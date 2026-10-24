@@ -257,6 +257,12 @@ Base URL: `http://127.0.0.1:8000`. "Bearer" means `Authorization: Bearer <TEMPO_
 | GET | `/ledger` | Bearer | Hours and £ returned (totals) |
 | WS | `/events?token=` | token | Live updates |
 | POST | `/scam/check` | Bearer | Scam Shield |
+| POST | `/scam/payee` | Bearer | Before You Pay: pay, wait or stop, in plain words (5.13) |
+| GET | `/skills` | Bearer | Every skill manifest (5.13) |
+| GET | `/profiles`, `/profiles/{id}` | Bearer | Tempo Profiles: who Tempo works for and what it may never do (5.13) |
+| GET | `/profiles/{id}/share` | Bearer | A share code and link for a profile (5.13) |
+| POST | `/profiles/import` | Bearer | Validate a shared profile; never stored (5.13) |
+| POST | `/letters/read`, `/letters/reply` | Bearer | Read It To Me: a photographed letter, read back; a reply in the person's words (5.13) |
 | POST | `/entitlement/screen` | Bearer | Benefits screening |
 | POST | `/letters/pip` | Bearer | PIP decision explained + draft letter |
 | GET | `/memories?user_id=` | Bearer | Memory Card |
@@ -296,6 +302,11 @@ No auth. Call it on load and show a badge listing what is simulated.
 ---
 
 ### 5.2 Missions
+
+**Profiles.** `POST /missions` and `POST /missions/ofcom` take an optional `profile_id` (one of
+`GET /profiles`). The Gateway refuses an unknown one with 422 before anything starts, the
+`MissionView` echoes it as `profile_id`, and where the Negotiator runs, the profile's
+`CapabilityGuard` and `BudgetGuard` sit in the Harness right after the consent check.
 
 #### `POST /missions` → `201 MissionView`
 
@@ -867,6 +878,32 @@ ElevenLabs as a call connects, except that voice ids are replaced by the names o
   …)"), `kind: "voice"`; when a forget returns the next call to normal, a new fact replaces it.
 - A live `profile_applied` event (`user_id, language, speed, voice, patience, prefers_text`) is
   published as such a call connects.
+
+### 5.13 Profiles, skills, Read It To Me and Before You Pay
+
+All bearer-authenticated. Shapes mirror `tempo_core.profiles.ProfileView`, `tempo_core.skills.SkillManifest`,
+`tempo_core.letters.LetterReading` and `tempo_core.payee.PayeeAdvice`; the full contracts are in
+[SHIPPING.md](SHIPPING.md) §4.
+
+- `GET /skills` → `{"skills": [{"id", "name", "version", "status", "summary", "jobs": [...], "needs": [...], "channels": [...], ...}]}`.
+- `GET /profiles` → `{"profiles": [ProfileView...]}` (public ones); `GET /profiles/{id}` → one; 404 if unknown.
+  A `ProfileView` carries the YAML fields plus `skills: [{"id","name","status","jobs"}]` and `jobs`
+  (the ordered union of its skills' jobs).
+- `GET /profiles/{id}/share` → `{"code": "tp1....", "url": "<first WEB_ORIGINS>/profiles/import#p=tp1...."}`.
+  The code is in the URL fragment so it never reaches a server log.
+- `POST /profiles/import` `{"code": "tp1...."}` → `ProfileView`; 413 over 4096 bytes; 422 with a
+  plain `detail` when anything fails validation (tampered code, unknown skill, a capability a
+  skill needs that the profile forbids). Nothing is stored.
+- `POST /letters/read` `{"image_b64", "filename", "user_id", "language"}` → a `LetterReading`:
+  `{"kind", "sender", "date", "says", "money": {"direction", "amount_gbp"}, "must_do", "by",
+  "clocks": [{"id","label","expires_on"}], "unsure": [{"key","question"}], "reading_text", "language"}`.
+  Replay mode reads `fixtures/vision/thames_water_overpayment.png` and `council_tax_reminder.png`
+  (the second has one unsure date, so `unsure` has one read-back question). 413 over 8 MiB, 400 on
+  bad base64, 503 when vision is off.
+- `POST /letters/reply` `{"reading": LetterReading, "said": "..."}` → `{"draft": "...", "added_nothing": true}`.
+- `POST /scam/payee` `{"payee_name", "amount_gbp", "reason", "new_payee", "message_text"?, "firm"?}` →
+  `{"verdict": "pay"|"wait"|"stop", "reasons": [...], "say": "...", "simulated": bool}`. Tempo never
+  moves money; this is the check a person runs before they do.
 
 ### 5.10 Privacy Proof: `GET /privacy?user_id=u_margaret`
 

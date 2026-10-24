@@ -59,6 +59,7 @@ class StartMission(BaseModel):
     departure: str = Field(pattern=r"^\d{2}:?\d{2}$")
     fare_gbp: Decimal = Field(ge=0)
     time_value_gbp_h: Decimal = Field(default=Decimal("18"), ge=0)
+    profile_id: str | None = Field(default=None, pattern=r"^[a-z0-9-]{2,40}$")  # a Tempo Profile
 
 
 class StartOfcom(BaseModel):
@@ -74,6 +75,7 @@ class StartOfcom(BaseModel):
     time_value_gbp_h: Decimal = Field(default=Decimal("18"), ge=0)
     hazard_id: str = "nyc311.hpd.all"
     source: str = Field(default="you", max_length=120)  # where the date came from
+    profile_id: str | None = Field(default=None, pattern=r"^[a-z0-9-]{2,40}$")  # a Tempo Profile
 
 
 class ConsentAsk(BaseModel):
@@ -97,6 +99,7 @@ class MissionView(BaseModel):
     skill_id: str | None = None
     plan: dict[str, Any] | None = None  # Rights Decay: when to act, and why
     mandate: dict[str, Any] | None = None  # Agent Passport: the newest mandate for this mission
+    profile_id: str | None = None  # the Tempo Profile this mission runs under, if one was chosen
 
 
 class MissionService:
@@ -122,6 +125,7 @@ class MissionService:
         self._names: dict[str, str] = {}  # user id -> what they like to be called (voice calls)
         self._companies: dict[str, str] = {}  # mission id -> the company, from its rule pack
         self._skills: dict[str, str] = {}  # mission id -> skill id (which workflow runs it)
+        self._profiles: dict[str, str] = {}  # mission id -> the Tempo Profile it runs under
         self._plans: dict[str, dict[str, Any]] = {}  # mission id -> its latest Rights Decay plan
         self._reasons: dict[str, str] = {}  # mission id -> why its current timer is set
         self.credited: set[str] = set()  # demo: missions whose automatic credit has arrived
@@ -151,6 +155,8 @@ class MissionService:
         )
         self.mission_ids.append(mission_id)
         self._skills[mission_id] = SKILL
+        if request.profile_id:
+            self._profiles[mission_id] = request.profile_id
         self._names[request.user_id] = request.display_name
         if request.phone:
             self._by_phone[phone_hash(request.phone)].append(mission_id)
@@ -186,6 +192,8 @@ class MissionService:
         ))  # fmt: skip
         self.mission_ids.append(mission_id)
         self._skills[mission_id] = OFCOM
+        if request.profile_id:
+            self._profiles[mission_id] = request.profile_id
         self._names[request.user_id] = request.display_name
         self._companies[mission_id] = request.operator
         self._matters[mission_id]["account_ref"] = request.account_ref
@@ -334,6 +342,10 @@ class MissionService:
     async def user_for(self, mission_id: str) -> str:
         return (await self.deps.repo.get_mission(mission_id)).user_id
 
+    def profile_for(self, mission_id: str) -> str | None:
+        """The Tempo Profile a mission runs under, for the Harness that guards its calls."""
+        return self._profiles.get(mission_id)
+
     def company_for(self, mission_id: str) -> str | None:
         return self._companies.get(mission_id)
 
@@ -379,6 +391,7 @@ class MissionService:
                 message = f"Claim filed. I'll check the payment has arrived on {local}."
         return MissionView(
             skill_id=self._skills.get(mission_id),
+            profile_id=self._profiles.get(mission_id),
             plan=plan,
             mandate=self.mandate_summary(mission_id) if self.mandate_summary else None,
             trace_url=self._trace_link(self._traces.get(mission_id)),

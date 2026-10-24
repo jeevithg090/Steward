@@ -1,0 +1,32 @@
+# For someone sorting out a parent's admin: more skills, a helper who may be told, and Tempo may
+# phone the company. Still nothing binding without a signed yes, and never a voucher.
+id: carer
+name: The Carer
+version: "0.1.0"
+status: starter
+summary: >-
+  You look after someone else's admin. Tempo claims what they are owed, explains the letters
+  that arrive, screens what benefits they could get, and warns about scams. It can tell you,
+  the helper, what it did.
+for_whom: >-
+  A son, daughter or friend who handles a parent's post, calls and refunds.
+skills: [clawback-uk-rail, clawback-ofcom, rights-decay, letter-explainer, entitlement-check, scam-shield]
+may: [claim, call, accept_cash, escalate, share_personal_data]
+may_not: [accept_voucher, discuss_other_accounts, change_contract]
+limits:
+  max_gbp_per_claim: "500.00"
+  max_user_questions: 3
+  max_llm_gbp_per_mission: "0.40"
+  mandate_days: 7
+access:
+  language: en
+  pace: slower
+  patience: high
+  voice: default
+  prefers_text: false
+  plain_words: true
+channels: [web, sms, voice]
+time_value_gbp_h: "22.00"
+share:
+  public: true
+  author: Tempo team

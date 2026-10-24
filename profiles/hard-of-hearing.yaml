@@ -1,0 +1,31 @@
+# For a caller with hearing loss: a lower, steadier voice, a slower pace, and the question sent
+# as text so it can be read as often as needed.
+id: hard-of-hearing
+name: Say It Again, Lower
+version: "0.1.0"
+status: starter
+summary: >-
+  Tempo speaks lower and slower, repeats key numbers, and sends the question as a text so you
+  can read it as many times as you like.
+for_whom: >-
+  Anyone who struggles to hear on the phone, especially high voices.
+skills: [clawback-uk-rail, clawback-ofcom, entitlement-check, scam-shield]
+may: [claim, call, accept_cash, escalate]
+may_not: [accept_voucher, discuss_other_accounts, change_contract, share_personal_data]
+limits:
+  max_gbp_per_claim: "250.00"
+  max_user_questions: 2
+  max_llm_gbp_per_mission: "0.20"
+  mandate_days: 7
+access:
+  language: en
+  pace: slower
+  patience: high
+  voice: low
+  prefers_text: true
+  plain_words: true
+channels: [sms, web, voice]
+time_value_gbp_h: "18.00"
+share:
+  public: true
+  author: Tempo team

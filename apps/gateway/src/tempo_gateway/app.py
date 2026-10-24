@@ -72,6 +72,7 @@ from tempo_core.entitlement import DISCLAIMER, Answers, Figures, pack, screen
 from tempo_core.errors import MissionNotFound, VisionUnavailable
 from tempo_core.intake import follow_up
 from tempo_core.ledger import summarise
+from tempo_core.profiles import ProfileCatalog
 from tempo_core.scam import Level, assess
 from tempo_core.signals import SignalSpec
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
@@ -79,6 +80,7 @@ from tempo_core.voice_profile import VoiceProfile, how_to_speak, profile_from, t
 from tempo_crypto.vault import VaultStore
 from tempo_gateway.clock import DemoClock
 from tempo_gateway.events import EventBus
+from tempo_gateway.letters import letters_router, payee_router
 from tempo_gateway.mandates import MandateService, NoSigningKey
 from tempo_gateway.memory import (
     Memory,
@@ -98,6 +100,7 @@ from tempo_gateway.missions import (
     UnknownRequest,
 )
 from tempo_gateway.privacy import privacy_proof
+from tempo_gateway.profiles import profiles_router
 from tempo_gateway.scheduler import run_scheduler
 from tempo_gateway.security import (
     SeenKeys,
@@ -229,6 +232,7 @@ def create_app(
     mandates: MandateService | None = None,
     vision: VisionPort | None = None,
     greetings: Mapping[str, str] | None = None,
+    profiles: ProfileCatalog | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -362,13 +366,20 @@ def create_app(
             "gbp_recovered": str(totals.gbp_recovered.quantize(Decimal("0.01"))),
         }
 
+    def profile_known(profile_id: str | None) -> None:
+        """A mission may name a Tempo Profile; an unknown one is refused before anything starts."""
+        if profile_id is not None and (profiles is None or profiles.get(profile_id) is None):
+            raise HTTPException(422, f"no profile called {profile_id!r} is installed")
+
     @app.post("/missions", status_code=201)
     async def create_mission(body: StartMission, caller: Caller) -> MissionView:
+        profile_known(body.profile_id)
         return await service.start(body)
 
     @app.post("/missions/ofcom", status_code=201)
     async def create_ofcom_mission(body: StartOfcom, caller: Caller) -> MissionView:
         """A missed engineer visit: Rights Decay decides whether to wait or act, and when."""
+        profile_known(body.profile_id)
         return await service.start_ofcom(body)
 
     @app.post("/missions/ofcom/read")
@@ -832,6 +843,18 @@ def create_app(
             mesh_router(
                 mesh, service, settings, web_caller, bus=bus, signals=signals, mandates=mandates
             )
+        )
+    if profiles is not None:  # Tempo Profiles: the catalogue, share codes and the import check
+        app.include_router(
+            profiles_router(
+                profiles, web_caller, web_origin=settings.web_origins.split(",")[0].strip()
+            )
+        )
+    if vision is not None:  # Read It To Me: a photographed letter, read back in plain words
+        app.include_router(letters_router(vision, service.deps.rules.clocks, holidays, web_caller))
+    if registers is not None:  # Before You Pay: Tempo never moves money; it checks the payee first
+        app.include_router(
+            payee_router(web_caller, registers=registers, registers_simulated=registers_simulated)
         )
 
     @app.websocket("/events")

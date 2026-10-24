@@ -9,3 +9,8 @@ The fare's confidence (0.72) is deliberately below 0.8, so the demo asks one que
 (Rights Decay, R8); its reading is the JSON named after its SHA-256. The date's confidence
 (0.74) is deliberately below 0.8, so Tempo reads it back once before planning. The same image is
 in `apps/web/public/demo/` so Mission Control can send it.
+
+`thames_water_overpayment.png` and `council_tax_reminder.png` are made-up letters for Read It To
+Me (`POST /letters/read`), drawn by `scripts/make_letter_fixtures.py`; their readings are the JSON
+files named after their SHA-256, and the `LetterReading` each should produce is in
+`fixtures/letters/`. See `fixtures/letters/README.md`.

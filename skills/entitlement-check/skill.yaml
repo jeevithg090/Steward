@@ -1,0 +1,15 @@
+id: entitlement-check
+name: Entitlement Check
+version: "0.1.0"
+status: demo-values
+summary: >-
+  Ten questions, then what is worth claiming: Pension Credit, Attendance Allowance and
+  broadband social tariffs, with a pre-filled pack. Screening, not a decision.
+jobs:
+  - Ask ten plain questions about age, income, savings and health
+  - Say which benefits look worth claiming and roughly what they are worth each week
+  - Prepare a pre-filled pack and point to the official page for each one
+needs: []
+channels: [web, sms, voice]
+docs: https://www.gov.uk/pension-credit/eligibility
+maintainers: [tempo-team]

@@ -1,0 +1,19 @@
+id: letter-explainer
+name: Letter Explainer and Decision Challenger
+version: "0.2.0"
+status: ready
+summary: >-
+  Show Tempo any official letter and it reads it to you in plain words: what it is, what it says,
+  who owes what, what to do by when, and the clocks it starts. A PIP decision is explained
+  against its points, with a draft reply that adds no facts you did not give.
+jobs:
+  - Read a photo of a bill, reminder or decision letter and say what it is and what it says
+  - Say whether money is owed to you or by you, what you must do and by when
+  - Read back anything it is not sure of as one plain question before trusting it
+  - Name the rights clocks the letter starts, with the date each one ends
+  - Explain a PIP decision against its points and work out the deadline from bank holidays
+  - Draft a reply from your own words only, for you to check and send
+needs: []
+channels: [web, sms, voice]
+notes: photos are read once and never stored; in replay mode two synthetic letters are the demo
+maintainers: [tempo-team]

@@ -1,0 +1,15 @@
+id: clawback-uk-flights
+name: Flight delay compensation (UK261)
+version: "0.1.0"
+status: demo-values
+summary: >-
+  Your flight landed hours late. UK261 pays a fixed amount by distance. Tempo works out the
+  band and the exceptions, and claims it with your yes.
+jobs:
+  - Work out the UK261 band from the route distance and the arrival delay
+  - Flag extraordinary circumstances the airline may rely on, so you are not surprised
+  - Ask you once, file the claim, and watch the six-year clock
+needs: [claim, accept_cash, escalate]
+channels: [web, sms, voice]
+mission: clawback_rail
+maintainers: [tempo-team]

@@ -1,0 +1,21 @@
+# A skill manifest: what this skill does for a person, in plain words, and which capabilities
+# its binding tools need. Profiles list skills by id; a profile that leaves out a capability a
+# skill needs is rejected when it is loaded. `rules/*.yaml` next to this file are the rule packs.
+id: clawback-uk-rail
+name: Delay Repay for UK trains
+version: "0.1.0"
+status: demo-values
+summary: >-
+  Your train was late. Tempo finds how late from rail data, works out what the operator owes
+  you from its published bands, and claims it once you say yes.
+jobs:
+  - Find out how late your train really was from National Rail and Realtime Trains data
+  - Work out what you are owed from the operator's own Delay Repay bands, with the source shown
+  - Have three AI jurors check the reading; they can say no, never change the amount
+  - Ask you once in plain words, file the claim, and wait until the money has arrived
+needs: [claim, accept_cash]
+channels: [web, sms, voice]
+mission: clawback_rail
+operators: [GWR, Chiltern]
+docs: docs/adr/0003-rules-as-code.md
+maintainers: [tempo-team]

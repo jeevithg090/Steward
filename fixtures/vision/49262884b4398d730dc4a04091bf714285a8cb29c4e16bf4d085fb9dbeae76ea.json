@@ -1,0 +1,39 @@
+{
+  "facts": [
+    {
+      "key": "sender",
+      "value": "Oxford City Council",
+      "confidence": 0.96
+    },
+    {
+      "key": "kind",
+      "value": "council_tax",
+      "confidence": 0.94
+    },
+    {
+      "key": "letter_date",
+      "value": "2026-10-20",
+      "confidence": 0.9
+    },
+    {
+      "key": "amount_gbp",
+      "value": "112.00",
+      "confidence": 0.93
+    },
+    {
+      "key": "direction",
+      "value": "you_owe",
+      "confidence": 0.91
+    },
+    {
+      "key": "due_date",
+      "value": "2026-11-10",
+      "confidence": 0.7
+    },
+    {
+      "key": "reference",
+      "value": "CT-7731902",
+      "confidence": 0.86
+    }
+  ]
+}

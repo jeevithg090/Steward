@@ -1,0 +1,21 @@
+{
+  "kind": "council_tax",
+  "sender": "Oxford City Council",
+  "date": "2026-10-20",
+  "says": "It says you owe Oxford City Council \u00a3112.00.",
+  "money": {
+    "direction": "you_owe",
+    "amount_gbp": "112.00"
+  },
+  "must_do": "Pay \u00a3112.00 by 10 November 2026. If you cannot pay, ring them before that date to ask for more time.",
+  "by": "2026-11-10",
+  "clocks": [],
+  "unsure": [
+    {
+      "key": "due_date",
+      "question": "I read the date to pay by as 10 November 2026. Is that right?"
+    }
+  ],
+  "reading_text": "This is a council tax letter from Oxford City Council, dated 20 October 2026. It says you owe Oxford City Council \u00a3112.00. Pay \u00a3112.00 by 10 November 2026. If you cannot pay, ring them before that date to ask for more time. I read the date to pay by as 10 November 2026. Is that right?",
+  "language": "en"
+}

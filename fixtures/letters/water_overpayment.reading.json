@@ -1,0 +1,16 @@
+{
+  "kind": "water_bill",
+  "sender": "Thames Water",
+  "date": "2026-10-03",
+  "says": "It says you paid too much. Thames Water owes you \u00a323.40. You do not owe anything.",
+  "money": {
+    "direction": "owed_to_you",
+    "amount_gbp": "23.40"
+  },
+  "must_do": "There is nothing you need to do.",
+  "by": null,
+  "clocks": [],
+  "unsure": [],
+  "reading_text": "This is a water bill from Thames Water, dated 3 October 2026. It says you paid too much. Thames Water owes you \u00a323.40. You do not owe anything. There is nothing you need to do.",
+  "language": "en"
+}

@@ -7,7 +7,7 @@ define pytest_marker
 	uv run pytest -m "$(1)" $(2) || [ $$? -eq 5 ]
 endef
 
-.PHONY: help setup check fmt test-int e2e evals doctor local calibrate demo-dry-run demo-rehearsal db-migrate sync-voice seed
+.PHONY: help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web
 
 help: ## List the commands
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-14s %s\n", $$1, $$2}'
@@ -48,11 +48,15 @@ local: ## Local mode: Postgres, Ollama and the Gateway on this machine (deploy/l
 calibrate: ## Fit the delay model, hold out a week: docs/calibration.png and docs/backtest.md
 	uv run python scripts/calibrate_delay_model.py
 
+rights-backtest: ## Fit Rights Decay's curves from .data/, write docs/rights_*.md and the chart
+	uv run --with openpyxl python scripts/rights_backtest.py
+
 demo-dry-run: ## Scripted demo in replay mode, with a mid-mission restart and timings
 	uv run python scripts/demo_dry_run.py
 
 demo-rehearsal: ## Three dry runs in a row: all three must pass (build plan S6.4)
-	@for run in 1 2 3; do echo "== rehearsal $$run"; uv run python scripts/demo_dry_run.py | tail -9 || exit 1; done
+	@for run in 1 2 3; do echo "== rehearsal $$run"; uv run python scripts/demo_dry_run.py | tail -9 || exit 1; \
+		uv run python scripts/demo_dry_run_ofcom.py | tail -8 || exit 1; done
 
 sync-voice: ## Push voice/**/*.yaml agent configs to ElevenLabs
 	uv run python voice/sync.py
@@ -62,3 +66,26 @@ seed: ## Put the demo's people into a running Gateway (needs TEMPO_API_TOKEN)
 
 db-migrate: ## Bring the database in DATABASE_URL up to the latest schema
 	uv run alembic upgrade head
+
+# --- Shipping (SHIPPING.md): skills, profiles, the web showcase and deployment -------------------
+
+new-skill: ## Scaffold a skill: make new-skill id=water-refund name="Water refunds" [needs=claim,accept_cash] [rules=fixed_amount|delay_repay|none]
+	uv run python scripts/new_skill.py --id "$(id)" --name "$(name)" --needs "$(needs)" --rules "$(or $(rules),none)"
+
+validate-skills: ## Check that every rule pack, skill manifest and profile loads and agrees
+	uv run python scripts/validate_skills.py
+
+catalog: ## Regenerate apps/web/showcase/catalog.json from profiles/ and skills/*/skill.yaml
+	cd apps/web && pnpm catalog
+
+showcase: ## Mission Control on recorded data with no Gateway: http://localhost:3000
+	cd apps/web && NEXT_PUBLIC_TEMPO_SHOWCASE=1 pnpm dev
+
+web-check: ## Typecheck, test and build the web app, in both modes
+	cd apps/web && pnpm typecheck && pnpm test && pnpm build && NEXT_PUBLIC_TEMPO_SHOWCASE=1 pnpm build
+
+ship-check: check validate-skills web-check ## Everything CI runs, locally
+
+deploy-web: ## Deploy apps/web to Vercel from this machine (run `npx vercel login` once first)
+	npx vercel --cwd apps/web --prod
+

@@ -12,7 +12,7 @@ async function withFaceId(page: Page): Promise<void> {
 
 async function screen(context: BrowserContext): Promise<Page> {
   const page = await context.newPage();
-  await page.goto("/");
+  await page.goto("/control");
   await expect(page.getByRole("heading", { name: "Tempo · Mission Control" })).toBeVisible();
   return page;
 }

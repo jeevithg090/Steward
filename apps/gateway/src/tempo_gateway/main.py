@@ -35,6 +35,7 @@ from tempo_adapters.telemetry import (
 from tempo_adapters.vision import GeminiVision, ReplayVision
 from tempo_core.entitlement import Figures
 from tempo_core.hazard import load_hazards
+from tempo_core.profiles import ProfileCatalog
 from tempo_core.rules import RulePackRegistry
 from tempo_core.signals import SignalSpec, load_signals
 from tempo_crypto.vault import MemoryVaultStore, VaultStore
@@ -156,6 +157,7 @@ def build(
         transparency=REPO / "deploy" / "transparency", scheduler_interval_s=scheduler_interval_s,
         mandates=mandates, vision=build_vision(settings),
         greetings=load_greetings(REPO / "voice" / "greetings.yaml"),
+        profiles=ProfileCatalog.load(REPO / "profiles", REPO / "skills"),
     )  # fmt: skip
 
 

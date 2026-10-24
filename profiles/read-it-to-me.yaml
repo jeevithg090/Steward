@@ -1,0 +1,34 @@
+# The safety-barrier profile: for someone who cannot easily read the letter, hear the call or
+# trust the message. Tempo reads things to you in your language, warns you before you pay, and
+# never moves money or acts without your signed yes.
+id: read-it-to-me
+name: Read It To Me
+version: "0.1.0"
+status: starter
+summary: >-
+  Take a photo of a letter and Tempo tells you, in your language, what it is, what it says and
+  what you must do by when. It warns you before you pay someone new, and checks messages for
+  scams. It never moves money.
+for_whom: >-
+  Anyone who finds official letters, phone menus and banking apps frightening, or who reads
+  another language better than English.
+skills: [letter-explainer, scam-shield, entitlement-check, rights-decay]
+may: [escalate]
+may_not: [claim, call, accept_cash, accept_voucher, discuss_other_accounts, change_contract, share_personal_data]
+limits:
+  max_gbp_per_claim: "0.00"
+  max_user_questions: 3
+  max_llm_gbp_per_mission: "0.15"
+  mandate_days: 1
+access:
+  language: en
+  pace: slower
+  patience: high
+  voice: default
+  prefers_text: true
+  plain_words: true
+channels: [voice, sms, web]
+time_value_gbp_h: "15.00"
+share:
+  public: true
+  author: Tempo team

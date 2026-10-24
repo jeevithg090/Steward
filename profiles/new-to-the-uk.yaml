@@ -1,0 +1,31 @@
+# For someone who would rather be spoken to in Hindi, slowly, and who most needs protection
+# from scams and from forfeiting flight and train rights they did not know they had.
+id: new-to-the-uk
+name: New Here
+version: "0.1.0"
+status: starter
+summary: >-
+  Tempo speaks Hindi with you, slowly. It claims late trains and flights, tells you when a
+  right is about to run out, and checks whether a message is a scam before you reply.
+for_whom: >-
+  Anyone new to the UK who finds the rules, the letters and the calls hard to follow.
+skills: [clawback-uk-rail, clawback-uk-flights, rights-decay, scam-shield]
+may: [claim, accept_cash, escalate]
+may_not: [accept_voucher, call, discuss_other_accounts, change_contract, share_personal_data]
+limits:
+  max_gbp_per_claim: "600.00"
+  max_user_questions: 2
+  max_llm_gbp_per_mission: "0.30"
+  mandate_days: 7
+access:
+  language: hi
+  pace: slower
+  patience: normal
+  voice: default
+  prefers_text: false
+  plain_words: true
+channels: [voice, sms, web]
+time_value_gbp_h: "15.00"
+share:
+  public: true
+  author: Tempo team

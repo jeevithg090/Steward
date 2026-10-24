@@ -1,0 +1,18 @@
+id: scam-shield
+name: Scam Shield
+version: "0.2.0"
+status: ready
+summary: >-
+  Forward a message and Tempo checks who the firm really is in Companies House and the FCA
+  registers, and how hard the message pushes you. Before you pay someone new, it says pay, wait
+  or stop. It never says "safe", and it never moves your money.
+jobs:
+  - Check the firm against Companies House, the FCA Register and the FCA Warning List
+  - 'Spot pressure signs: urgency, "move your money", secrecy, requests for codes or PINs'
+  - Tell you plainly what it found and what to do next, by text or on the web
+  - Watch texts on your phone with rules that run on the phone, and send only which rule matched
+  - Before you pay, ask who, how much and why, then say pay, wait or stop in plain words
+needs: []
+channels: [sms, web, voice]
+notes: recorded register answers are used until keys are set and TEMPO_MODE=live
+maintainers: [tempo-team]

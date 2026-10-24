@@ -1,0 +1,32 @@
+# A Tempo Profile: who Tempo works for, which skills are on, and what it may never do.
+# Share it as a file or a link (/profiles/<id>/share). The capability words come from the Agent
+# Passport (tempo_passport.ACTIONS), so a profile and a signed mandate speak the same language.
+id: commuter
+name: The Commuter
+version: "0.1.0"
+status: starter
+summary: >-
+  Your train was late. Tempo works out what you are owed, asks you once, claims it and waits
+  until the money arrives. It also knows when a right is about to run out.
+for_whom: >-
+  Anyone who takes the same train most days and never gets round to claiming.
+skills: [clawback-uk-rail, rights-decay]
+may: [claim, accept_cash, escalate]
+may_not: [accept_voucher, call, discuss_other_accounts, change_contract, share_personal_data]
+limits:
+  max_gbp_per_claim: "250.00"
+  max_user_questions: 2
+  max_llm_gbp_per_mission: "0.20"
+  mandate_days: 7
+access:
+  language: en
+  pace: normal
+  patience: normal
+  voice: default
+  prefers_text: false
+  plain_words: true
+channels: [web, sms, voice]
+time_value_gbp_h: "18.00"
+share:
+  public: true
+  author: Tempo team

@@ -13,6 +13,7 @@ class DocumentKind(StrEnum):
     LETTER = "letter"
     BENEFIT_DECISION = "benefit_decision"  # e.g. a PIP decision letter (S7.2)
     MISSED_VISIT = "missed_visit"  # a "sorry we missed you" card or text (Rights Decay, R8)
+    OFFICIAL_LETTER = "official_letter"  # any bill, reminder or decision: Read It To Me (1b)
 
 
 class VisionPort(Protocol):

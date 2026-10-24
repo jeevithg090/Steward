@@ -1,0 +1,17 @@
+id: clawback-ofcom
+name: Missed engineer visits and broadband faults
+version: "0.1.0"
+status: demo-values
+summary: >-
+  The engineer never came, or the fault dragged on. Ofcom says your provider must pay you
+  automatically. Tempo checks the credit arrives and complains only when it is late.
+jobs:
+  - Read the "sorry we missed you" card and read back any date it is unsure of
+  - Price the automatic compensation from Ofcom's published scheme
+  - Wait for the provider's own credit when waiting is the better move, then complain once if it does not come
+  - Phone the provider for you, within the mandate you signed, and refuse vouchers
+needs: [claim, call, accept_cash, escalate]
+channels: [web, sms, voice]
+mission: clawback_ofcom
+operators: [Broadbandly (simulated)]
+maintainers: [tempo-team]

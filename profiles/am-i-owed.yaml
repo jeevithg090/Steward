@@ -1,0 +1,31 @@
+# A read-only profile: Tempo screens, explains and warns. It may not claim, call or accept
+# anything. A good first profile for someone who wants to look before they trust.
+id: am-i-owed
+name: Am I Owed Anything?
+version: "0.1.0"
+status: starter
+summary: >-
+  Tempo only looks and explains. It tells you what benefits are worth claiming, what a letter
+  means and whether a message is a scam. It never files, calls or accepts anything.
+for_whom: >-
+  Anyone who wants answers first and will decide later whether Tempo may act.
+skills: [entitlement-check, letter-explainer, scam-shield]
+may: []
+may_not: [claim, call, accept_cash, accept_voucher, discuss_other_accounts, change_contract, share_personal_data, escalate]
+limits:
+  max_gbp_per_claim: "0.00"
+  max_user_questions: 10
+  max_llm_gbp_per_mission: "0.10"
+  mandate_days: 1
+access:
+  language: en
+  pace: normal
+  patience: normal
+  voice: default
+  prefers_text: false
+  plain_words: true
+channels: [web, sms, voice]
+time_value_gbp_h: "18.00"
+share:
+  public: true
+  author: Tempo team

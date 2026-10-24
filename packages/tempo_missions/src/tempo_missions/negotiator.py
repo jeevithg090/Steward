@@ -17,6 +17,7 @@ from agent_framework import Agent, FunctionTool
 
 from tempo_core.consent import ConsentState
 from tempo_core.models import ProofTrace
+from tempo_core.profiles import Profile
 from tempo_harness.bundle import Implementation, build_harness
 from tempo_harness.policies import (
     ConsentScopeGuard,
@@ -27,6 +28,7 @@ from tempo_harness.policies import (
     SettlementGuard,
 )
 from tempo_harness.policies_mandate import MandateGuard, utc_now
+from tempo_harness.policies_profile import BudgetGuard, CapabilityGuard
 from tempo_missions.tools import BINDING_SCOPES, ToolDeps, mission_tools
 from tempo_passport import NO_KEYS, Revoked, SignedMandate
 
@@ -45,9 +47,12 @@ def negotiator_policies(
     clock: Callable[[], datetime] = utc_now,
     revoked: Revoked | None = None,
     gateway_keys: Mapping[str, bytes] = NO_KEYS,
+    profile: Profile | None = None,
 ) -> list[Policy]:
     """With `mandate`, a MandateGuard runs right after the consent check, before the settlement
-    check, so a mandate's deny is never hidden behind a settlement escalation."""
+    check, so a mandate's deny is never hidden behind a settlement escalation. With `profile`,
+    the profile's CapabilityGuard and BudgetGuard run there too: a Tempo Profile is enforced,
+    not displayed (SHIPPING.md §4.4)."""
     policies: list[Policy] = [
         ConsentScopeGuard(BINDING_SCOPES, consent),
         SettlementGuard(entitlement, consent),
@@ -55,6 +60,8 @@ def negotiator_policies(
         InjectionShield(),
         PIIEgressRedactor(),
     ]
+    if profile is not None:
+        policies[1:1] = [CapabilityGuard(profile), BudgetGuard(profile, traces)]
     if mandate is not None:
         if counterparty is None:
             raise ValueError("a mandate is checked against a company: pass counterparty")

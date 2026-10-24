@@ -1,0 +1,16 @@
+id: rights-decay
+name: "Rights Decay: when to act"
+version: "0.1.0"
+status: demo-values
+summary: >-
+  Every right has a clock, and some problems fix themselves. Tempo prices waiting against
+  acting from real data and names the day to act, so nothing expires and no time is wasted.
+jobs:
+  - Keep a clock for every right you hold, each with the rule it comes from
+  - Work out, from how often cases like yours are paid without a fight, whether to wait or act today
+  - Name the next decision date and wake up on it, even after a restart
+  - Explain why it waited, in plain words, with the odds and the deadline
+needs: []
+channels: [web, sms, voice]
+docs: docs/rights_backtest.md
+maintainers: [tempo-team]
