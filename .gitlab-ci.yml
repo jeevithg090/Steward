@@ -1,6 +1,6 @@
 # GitLab CI/CD for Tempo (build plan S0.2).
 # Unit, contract, policy and workflow jobs need no secrets: they run on recorded fixtures.
-stages: [lint, test, e2e, security]
+stages: [lint, test, e2e, security, release]
 
 variables:
   UV_CACHE_DIR: .uv-cache
@@ -101,3 +101,38 @@ secrets:
   cache: []
   script:
     - gitleaks git --redact --no-banner --verbose .
+
+# Signed, reproducible images (build plan S8.6). Manual, on tags. Needs CI variables:
+# COSIGN_PRIVATE_KEY, COSIGN_PASSWORD (masked), RUNPOD_API_KEY, RUNPOD_TEMPLATE_ID.
+release-images:
+  stage: release
+  image: docker:27.5
+  services: [docker:27.5-dind]
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: manual
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - apk add --no-cache git python3 cosign syft   # (check) Alpine package names
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"   # the commit time: reproducible layers
+    - docker buildx create --use
+  script:
+    - |
+      for name in worker gateway; do
+        docker buildx build --file "deploy/$name.Dockerfile" --platform linux/amd64 --provenance=false \
+          --output "type=image,name=$CI_REGISTRY_IMAGE/tempo-$name:$CI_COMMIT_TAG,push=true,rewrite-timestamp=true" \
+          --metadata-file "$name.json" .
+        DIGEST="$(python3 -c "import json; print(json.load(open('$name.json'))['containerimage.digest'])")"
+        syft "$CI_REGISTRY_IMAGE/tempo-$name@$DIGEST" -o spdx-json > "sbom-$name.spdx.json"
+        cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$CI_REGISTRY_IMAGE/tempo-$name@$DIGEST"
+      done
+    - python3 deploy/transparency/write_allowlist.py worker.json gateway.json > deploy/transparency/allowlist.json
+    - cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature deploy/transparency/allowlist.json.sig deploy/transparency/allowlist.json
+    - cosign verify-blob --key deploy/transparency/cosign.pub --signature deploy/transparency/allowlist.json.sig deploy/transparency/allowlist.json
+    - DIGEST="$(python3 -c "import json; print(json.load(open('worker.json'))['containerimage.digest'])")"
+    - python3 deploy/runpod/deploy.py "$RUNPOD_TEMPLATE_ID" "$CI_REGISTRY_IMAGE/tempo-worker@$DIGEST"
+  artifacts:
+    paths: [deploy/transparency/allowlist.json, deploy/transparency/allowlist.json.sig, "sbom-*.spdx.json"]
+

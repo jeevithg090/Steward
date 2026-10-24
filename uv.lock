@@ -20,6 +20,7 @@ members = [
     "tempo-memory",
     "tempo-missions",
     "tempo-ports",
+    "tempo-worker",
 ]
 
 [[package]]
@@ -3661,6 +3662,7 @@ dependencies = [
     { name = "tempo-memory" },
     { name = "tempo-missions" },
     { name = "tempo-ports" },
+    { name = "tempo-worker" },
 ]
 
 [package.dev-dependencies]
@@ -3692,6 +3694,7 @@ requires-dist = [
     { name = "tempo-memory", editable = "packages/tempo_memory" },
     { name = "tempo-missions", editable = "packages/tempo_missions" },
     { name = "tempo-ports", editable = "packages/tempo_ports" },
+    { name = "tempo-worker", editable = "apps/worker" },
 ]
 
 [package.metadata.requires-dev]
@@ -3906,6 +3909,23 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [{ name = "tempo-core", editable = "packages/tempo_core" }]
+
+[[package]]
+name = "tempo-worker"
+version = "0.1.0"
+source = { editable = "apps/worker" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "tempo-crypto" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.162" },
+    { name = "tempo-crypto", editable = "packages/tempo_crypto" },
+    { name = "uvicorn", specifier = ">=0.54" },
+]
 
 [[package]]
 name = "tenacity"

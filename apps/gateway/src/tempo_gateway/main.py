@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -36,7 +37,8 @@ from tempo_missions.court import ConsensusCourt
 from tempo_ports.claims import SimulatedClaims
 from tempo_ports.memory_repo import InMemoryRepo
 
-REPO = Path(__file__).resolve().parents[4]
+# Rule packs and replay fixtures: the repository, or TEMPO_HOME in the container image.
+REPO = Path(os.environ.get("TEMPO_HOME") or Path(__file__).resolve().parents[4])
 
 
 def build_service(settings: Settings) -> tuple[MissionService, EventBus]:

@@ -15,13 +15,14 @@ dependencies = [
     "tempo-crypto",
     "tempo-mcp-rail",
     "tempo-gateway",
+    "tempo-worker",
 ]
 
 [tool.uv]
 package = false
 
 [tool.uv.workspace]
-members = ["packages/*", "mcp-servers/*", "apps/gateway"]
+members = ["packages/*", "mcp-servers/*", "apps/gateway", "apps/worker"]
 
 [tool.uv.sources]
 tempo-core = { workspace = true }
@@ -33,6 +34,7 @@ tempo-memory = { workspace = true }
 tempo-crypto = { workspace = true }
 tempo-mcp-rail = { workspace = true }
 tempo-gateway = { workspace = true }
+tempo-worker = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -78,6 +80,7 @@ known-first-party = [
     "tempo_crypto",
     "tempo_mcp_rail",
     "tempo_gateway",
+    "tempo_worker",
 ]
 
 [tool.mypy]
@@ -126,6 +129,7 @@ source_pkgs = [
     "tempo_crypto",
     "tempo_mcp_rail",
     "tempo_gateway",
+    "tempo_worker",
 ]
 
 [tool.coverage.report]
