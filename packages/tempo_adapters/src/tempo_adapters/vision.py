@@ -32,6 +32,9 @@ KEYS: dict[DocumentKind, tuple[str, ...]] = {
         "ticket_type", "railcard", "operator",
     ),
     DocumentKind.LETTER: ("sender", "reference", "deadline", "amount_gbp", "summary", "what_to_do"),
+    DocumentKind.BENEFIT_DECISION: (
+        "benefit", "decision_date", "daily_living_points", "mobility_points", "reference",
+    ),
 }  # fmt: skip
 
 PROMPT = """Read this {kind} and extract only these fields: {keys}.
@@ -130,7 +133,9 @@ def _convert(key: str, raw: str) -> tuple[str | Decimal, bool]:
             return Decimal(raw.replace("£", "").replace(",", "")).quantize(Decimal("0.01")), True
         except InvalidOperation:
             return raw, False
-    if key in ("travel_date", "deadline"):
+    if key.endswith("_points"):
+        return raw, raw.isdigit()
+    if key in ("travel_date", "deadline", "decision_date"):
         try:
             return date.fromisoformat(raw).isoformat(), True
         except ValueError:

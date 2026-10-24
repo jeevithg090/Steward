@@ -10,6 +10,7 @@ import httpx
 import uvicorn
 from fastapi import FastAPI
 
+from tempo_adapters import bank_holidays
 from tempo_adapters.cortex import (
     CortexJuror,
     PatTokenProvider,
@@ -124,6 +125,7 @@ def build(
     return create_app(
         service, settings, bus, memory=memory, mesh=build_mesh(settings), vault=vault,
         registers=registers, registers_simulated=simulated,
+        holidays=bank_holidays.from_file(REPO / "fixtures" / "govuk" / "bank-holidays.json"),
         transparency=REPO / "deploy" / "transparency", scheduler_interval_s=scheduler_interval_s,
     )  # fmt: skip
 

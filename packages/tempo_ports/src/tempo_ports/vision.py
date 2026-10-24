@@ -11,6 +11,7 @@ from tempo_core.models import Fact
 class DocumentKind(StrEnum):
     TICKET = "ticket"
     LETTER = "letter"
+    BENEFIT_DECISION = "benefit_decision"  # e.g. a PIP decision letter (S7.2)
 
 
 class VisionPort(Protocol):

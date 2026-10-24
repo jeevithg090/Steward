@@ -13,6 +13,7 @@ runtime, and the per-app dependencies below are local names.
 | GET /memories, POST /memories/{id}/correct | the Memory Card | bearer token |
 | DELETE /memories/{id}, DELETE /timeline/{id} | forget, everywhere | bearer token |
 | POST /sms/inbound | YES, NO, STOP, HELP, MEMORY, FORGET <thing>, CHECK <message> | Twilio |
+| POST /letters/pip | a PIP decision explained, its deadline, a drafted reconsideration | bearer |
 | POST /scam/check | Scam Shield: registers plus pressure signs, never "safe" | bearer token |
 | WS /events | live updates | token query parameter |
 | /mesh/... | devices, pairing, passkey approvals, push (mesh_routes.py) | device token |
@@ -24,6 +25,7 @@ import asyncio
 import hashlib
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
 from typing import Annotated, Any
@@ -45,6 +47,14 @@ from pydantic import BaseModel, Field, ValidationError
 from tempo_adapters.scam import Registers
 from tempo_adapters.settings import Settings
 from tempo_core.config import profile
+from tempo_core.deadlines import mandatory_reconsideration
+from tempo_core.decisions import (
+    Evidence,
+    PipDecision,
+    draft_reconsideration,
+    explain,
+    unsupported_claims,
+)
 from tempo_core.errors import MissionNotFound
 from tempo_core.ledger import summarise
 from tempo_core.scam import Level, assess
@@ -114,6 +124,14 @@ class ScamCheck(BaseModel):
     website: str | None = Field(default=None, max_length=200)
 
 
+class PipLetter(BaseModel):
+    decision_date: date  # the date on the decision letter
+    daily_living_points: int = Field(ge=0, le=60)
+    mobility_points: int = Field(ge=0, le=40)
+    reference: str | None = Field(default=None, max_length=40)
+    evidence: list[dict[str, str]] = []  # {"activity": ..., "what_happens": ...}
+
+
 class Correction(BaseModel):
     user_id: str
     text: str = Field(min_length=1, max_length=200)
@@ -130,6 +148,7 @@ def create_app(
     *,
     memory: Memory | None = None,
     mesh: Mesh | None = None,
+    holidays: frozenset[date] = frozenset(),
     registers: Registers | None = None,
     registers_simulated: bool = True,
     vault: VaultStore | None = None,
@@ -203,6 +222,27 @@ def create_app(
             "reasons": list(verdict.reasons),
             "advice": verdict.advice,
             "simulated": registers is None or registers_simulated,
+        }
+
+    @app.post("/letters/pip")
+    async def pip_letter(body: PipLetter, caller: Caller) -> dict[str, Any]:
+        """Letter Explainer + Decision Challenger: what the decision means, the deadline, and a
+        reconsideration letter drafted only from the letter and the person's own words."""
+        decision = PipDecision(
+            f"{body.decision_date:%-d %B %Y}", body.daily_living_points, body.mobility_points,
+            body.reference,
+        )  # fmt: skip
+        evidence = [
+            Evidence(e.get("activity", ""), e.get("what_happens", "")) for e in body.evidence
+        ]
+        deadline = mandatory_reconsideration(body.decision_date, holidays)
+        draft = draft_reconsideration(decision, evidence)
+        return {
+            "explanation": explain(decision, deadline),
+            "deadline": deadline.deadline.isoformat(),
+            "post_by": deadline.post_by.isoformat(),
+            "draft": draft,
+            "unsupported": unsupported_claims(draft, decision, evidence),  # always empty here
         }
 
     @app.get("/privacy")
