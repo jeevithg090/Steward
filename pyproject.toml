@@ -32,7 +32,6 @@ tempo-crypto = { workspace = true }
 
 [dependency-groups]
 dev = [
-    "asyncpg>=0.30",
     "cryptography>=45",
     "httpx>=0.28",
     "hypothesis>=6.170",
@@ -55,6 +54,8 @@ extend-exclude = [".uv-cache"]
 [tool.ruff.lint]
 # S = bandit security rules
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "ASYNC", "S"]
+# Typographic characters we use on purpose in user-facing text.
+allowed-confusables = ["–", "→", "×", "·", "➖"]
 
 [tool.ruff.lint.per-file-ignores]
 # Tests assert on purpose and use fixed fake values.
@@ -95,7 +96,7 @@ markers = [
     "eval: LLM quality, costs tokens (min)",
     "live: real vendor smoke tests, one call each (s)",
 ]
-addopts = "-q --strict-markers"
+addopts = "-q --strict-markers --import-mode=importlib"
 
 [tool.coverage.run]
 branch = true
