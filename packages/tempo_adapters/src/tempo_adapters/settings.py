@@ -16,6 +16,12 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", env_ignore_empty=True, extra="ignore"
     )
 
+    # Gateway
+    tempo_api_token: SecretStr | None = None  # Mission Control's bearer token until passkeys (S5.2)
+    public_url: str = "http://localhost:8000"  # the URL Twilio and ElevenLabs call (for signatures)
+    elevenlabs_webhook_secret: SecretStr | None = None
+    checkpoint_dir: str = "checkpoints"
+
     # Modes
     tempo_mode: Literal["live", "replay"] = "replay"
     tempo_demo: bool = False

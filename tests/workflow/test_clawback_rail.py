@@ -68,7 +68,7 @@ class Fakes:
         )  # fmt: skip
 
     def states(self) -> list[str]:
-        return [e.to_state.value for e, _ in self.repo.case_events]
+        return [e.to_state.value for e, _ in self.repo.case_events_log]
 
 
 @pytest.fixture

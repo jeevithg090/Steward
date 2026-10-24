@@ -130,6 +130,11 @@ async def test_case_event_written_per_transition(repo: SqlRepo, engine: AsyncEng
         ).all()
 
     assert mission.state is S.APPRAISED
+    assert [e.to_state for e in await repo.case_events("m_1")] == [
+        S.UNDERSTOOD,
+        S.PLANNED,
+        S.APPRAISED,
+    ]
     assert (await repo.get_mission("m_1")).entered_state_at == T0 + timedelta(seconds=6)
     assert [tuple(e) for e in events] == [
         ("received", "understood", 2000),

@@ -15,7 +15,7 @@ class InMemoryRepo:
     def __init__(self) -> None:
         self.users: dict[str, dict[str, object]] = {}
         self.missions: dict[str, Mission] = {}
-        self.case_events: list[tuple[StateChanged, str]] = []
+        self.case_events_log: list[tuple[StateChanged, str]] = []
         self.consent_events: list[ConsentEvent] = []
         self.ledger: list[tuple[LedgerEntry, str, str | None]] = []
 
@@ -45,8 +45,11 @@ class InMemoryRepo:
             raise StaleMission(f"mission {event.mission_id} is not in {event.from_state} any more")
         moved = mission.model_copy(update={"state": event.to_state, "entered_state_at": event.at})
         self.missions[mission.id] = moved
-        self.case_events.append((event, actor))
+        self.case_events_log.append((event, actor))
         return moved
+
+    async def case_events(self, mission_id: str) -> list[StateChanged]:
+        return [e for e, _ in self.case_events_log if e.mission_id == mission_id]
 
     async def append_consent(self, event: ConsentEvent) -> None:
         self.consent_events.append(event)
