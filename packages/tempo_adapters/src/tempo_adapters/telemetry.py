@@ -5,14 +5,18 @@
   content is off unless ENABLE_SENSITIVE_DATA is set, and we never set it.
 - Logs are JSON with the trace id, and only allowlisted keys survive: anything else (a phone
   number someone passed by mistake) is dropped before it's written.
+- Spans leave the process content-free (ContentFreeExporter): prompt, completion, tool-argument
+  and tool-result attributes and message events are dropped, even if a library adds them.
+- Server logs never carry query strings (tokens, user ids): QueryRedactor on uvicorn's loggers.
 """
 
 from __future__ import annotations
 
 import base64
 import logging
+import re
 import sys
-from collections.abc import Iterator, MutableMapping
+from collections.abc import Iterator, MutableMapping, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any, TextIO
@@ -23,7 +27,12 @@ from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import ReadableSpan, Span, SpanProcessor, TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, SimpleSpanProcessor, SpanExporter
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    SimpleSpanProcessor,
+    SpanExporter,
+    SpanExportResult,
+)
 
 from tempo_adapters.settings import Settings
 
@@ -35,6 +44,71 @@ LOG_KEYS = frozenset(
         "span_id", "error_code", "source", "missions", "point", "tool", "decision", "reason",
     }
 )  # fmt: skip
+
+
+# Span attributes and events that carry what people or models said (OTel GenAI conventions).
+CONTENT_ATTRIBUTES = frozenset(
+    {
+        "gen_ai.input.messages", "gen_ai.output.messages", "gen_ai.system_instructions",
+        "gen_ai.tool.call.arguments", "gen_ai.tool.call.result",
+        "gen_ai.prompt", "gen_ai.completion",
+    }
+)  # fmt: skip
+CONTENT_EVENTS = frozenset(
+    {"gen_ai.user.message", "gen_ai.assistant.message", "gen_ai.system.message",
+     "gen_ai.tool.message", "gen_ai.choice"}
+)  # fmt: skip
+_LEGACY_CONTENT = re.compile(r"^gen_ai\.(prompt|completion)\.\d")
+
+
+def _content(key: str) -> bool:
+    return key in CONTENT_ATTRIBUTES or bool(_LEGACY_CONTENT.match(key))
+
+
+def content_free(span: ReadableSpan) -> ReadableSpan:
+    attributes = {k: v for k, v in (span.attributes or {}).items() if not _content(k)}
+    events = [e for e in span.events if e.name not in CONTENT_EVENTS]
+    return ReadableSpan(
+        name=span.name, context=span.context, parent=span.parent, resource=span.resource,
+        attributes=attributes, events=events, links=span.links, kind=span.kind,
+        status=span.status, start_time=span.start_time, end_time=span.end_time,
+        instrumentation_scope=span.instrumentation_scope,
+    )  # fmt: skip
+
+
+class ContentFreeExporter(SpanExporter):
+    """Wraps an exporter so no span leaves the process with prompt or completion content."""
+
+    def __init__(self, inner: SpanExporter) -> None:
+        self.inner = inner
+
+    def export(self, spans: Sequence[ReadableSpan]) -> SpanExportResult:
+        return self.inner.export([content_free(s) for s in spans])
+
+    def shutdown(self) -> None:
+        self.inner.shutdown()
+
+    def force_flush(self, timeout_millis: int = 30000) -> bool:
+        return self.inner.force_flush(timeout_millis)
+
+
+class QueryRedactor(logging.Filter):
+    """uvicorn logs paths with their query strings (e.g. /events?token=...). Keep the path."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if isinstance(record.args, tuple):
+            record.args = tuple(
+                a.split("?", 1)[0] + "?…" if isinstance(a, str) and "?" in a else a
+                for a in record.args
+            )
+        return True
+
+
+def quiet_server_logs() -> None:
+    for name in ("uvicorn.access", "uvicorn.error"):
+        logger = logging.getLogger(name)
+        if not any(isinstance(f, QueryRedactor) for f in logger.filters):
+            logger.addFilter(QueryRedactor())
 
 
 @contextmanager
@@ -85,9 +159,9 @@ def configure_tracing(
         trace.set_tracer_provider(provider)
     provider.add_span_processor(MissionIdSpanProcessor())
     if exporter is not None:
-        provider.add_span_processor(SimpleSpanProcessor(exporter))
+        provider.add_span_processor(SimpleSpanProcessor(ContentFreeExporter(exporter)))
     elif (langfuse := langfuse_exporter(settings)) is not None:
-        provider.add_span_processor(BatchSpanProcessor(langfuse))
+        provider.add_span_processor(BatchSpanProcessor(ContentFreeExporter(langfuse)))
     return provider
 
 
