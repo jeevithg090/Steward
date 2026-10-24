@@ -1,13 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DEMO_MISSION, Gateway, gatewayConfig, type Health, type LedgerTotals, type MissionView } from "@/lib/api";
+import {
+  DEMO_MISSION,
+  Gateway,
+  gatewayConfig,
+  type Health,
+  type LedgerTotals,
+  type MemoryCardData,
+  type MissionView,
+} from "@/lib/api";
 import { useLiveEvents } from "@/lib/live";
 import { AgentCards } from "./AgentCards";
 import { ConsensusGavels } from "./ConsensusGavels";
 import { ConsentCard } from "./ConsentCard";
 import { HonestyBadge } from "./HonestyBadge";
 import { LedgerCounter } from "./LedgerCounter";
+import { MemoryCard } from "./MemoryCard";
 import { MissionTimeline } from "./MissionTimeline";
 import { ProofTrace } from "./ProofTrace";
 import { StallRadar } from "./StallRadar";
@@ -20,6 +29,7 @@ export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
   const [missions, setMissions] = useState<MissionView[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [ledger, setLedger] = useState<LedgerTotals | null>(null);
+  const [memory, setMemory] = useState<MemoryCardData | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { events, connected } = useLiveEvents(gateway.eventsUrl());
@@ -31,6 +41,7 @@ export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
       setMissions(m);
       setLedger(l);
       setError(null);
+      setMemory(await gateway.memories(memoryUser(m)).catch(() => null));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -54,6 +65,7 @@ export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
   };
 
   const mission = missions.find((m) => m.id === selected) ?? missions[0] ?? null;
+  const user = memoryUser(missions);
 
   return (
     <main className="mx-auto max-w-7xl p-6">
@@ -119,6 +131,13 @@ export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
         </section>
 
         <aside className="space-y-6">
+          <MemoryCard
+            card={memory}
+            busy={busy}
+            onForget={(item) => act(() => gateway.forgetMemory(user, item.id))}
+            onForgetFact={(fact) => act(() => gateway.forgetEpisode(user, fact.episode_id))}
+            onCorrect={(item, text) => act(() => gateway.correctMemory(user, item.id, text))}
+          />
           <StallRadar events={events} />
           <section aria-labelledby="feed-heading">
             <h2 id="feed-heading" className="mb-2 text-lg font-semibold">Live feed {connected ? "●" : "○"}</h2>
@@ -132,4 +151,9 @@ export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
       </div>
     </main>
   );
+}
+
+/** Whose memories to show: the newest mission's person, or Margaret before any mission. */
+function memoryUser(missions: MissionView[]): string {
+  return missions[0]?.user_id ?? DEMO_MISSION.user_id;
 }

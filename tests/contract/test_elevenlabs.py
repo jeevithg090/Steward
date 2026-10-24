@@ -30,6 +30,9 @@ def test_server_tools_point_at_the_gateway_with_the_secret() -> None:
         "get_case_capsule",
         "record_consent",
         "request_human",
+        "recall_memories",
+        "forget_memory",
+        "confirm_memory",
     }
     consent = webhooks["record_consent"]["api_schema"]
     assert consent["url"] == "https://tempo.example.test/voice/tools/record_consent"

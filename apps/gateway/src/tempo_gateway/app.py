@@ -10,7 +10,9 @@ runtime, and the per-app dependencies below are local names.
 | POST /scheduler/tick | fire due Watchdog timers now (demos) | bearer token |
 | POST /voice/tools/{name} | ElevenLabs server tools | shared secret header |
 | POST /voice/post-call | transcripts after a call | HMAC signature |
-| POST /sms/inbound | YES / NO / STOP / HELP | Twilio signature |
+| GET /memories, POST /memories/{id}/correct | the Memory Card | bearer token |
+| DELETE /memories/{id}, DELETE /timeline/{id} | forget, everywhere | bearer token |
+| POST /sms/inbound | YES / NO / STOP / HELP / MEMORY / FORGET <thing> | Twilio signature |
 | WS /events | live updates | token query parameter |
 """
 
@@ -33,13 +35,20 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from tempo_adapters.settings import Settings
 from tempo_core.errors import MissionNotFound
 from tempo_core.ledger import summarise
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
 from tempo_gateway.events import EventBus
+from tempo_gateway.memory import (
+    Memory,
+    caller,
+    candidates_from_call,
+    readback_question,
+    write_episodes,
+)
 from tempo_gateway.missions import (
     BINDING_SCOPES,
     MissionService,
@@ -54,6 +63,7 @@ from tempo_gateway.security import (
     secret_matches,
     twilio_signature_ok,
 )
+from tempo_memory.service import MemoryCard, NeedsConsent, say_recalled
 from tempo_missions.clawback_rail import SignedApproval
 
 VOICE_TOOLS = (
@@ -63,12 +73,20 @@ VOICE_TOOLS = (
     "record_reference",
     "record_consent",
     "request_human",
+    "recall_memories",
+    "forget_memory",
+    "confirm_memory",
 )
 
 
 class Answer(BaseModel):
     approved: bool
     limits: dict[str, Decimal] = {}
+
+
+class Correction(BaseModel):
+    user_id: str
+    text: str = Field(min_length=1, max_length=200)
 
 
 def _secret(value: Any) -> str | None:
@@ -80,23 +98,30 @@ def create_app(
     settings: Settings,
     bus: EventBus,
     *,
+    memory: Memory | None = None,
     scheduler_interval_s: float | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        tasks = []
+        if memory is not None:  # before recovery, so re-emitted events reach the timeline
+            tasks.append(asyncio.create_task(write_episodes(
+                bus, memory, user_for=service.user_for, company_for=service.company_for,
+                clock=service.deps.clock,
+            )))  # fmt: skip
+            await asyncio.sleep(0)
         await service.recover()  # re-emit what paused missions were waiting for
-        task = None
         if scheduler_interval_s is not None:
-            task = asyncio.create_task(run_scheduler(service, scheduler_interval_s))
+            tasks.append(asyncio.create_task(run_scheduler(service, scheduler_interval_s)))
         yield
-        if task is not None:
+        for task in tasks:
             task.cancel()
 
     app = FastAPI(title="Tempo Gateway", version="0.1.0", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[o.strip() for o in settings.web_origins.split(",") if o.strip()],
-        allow_methods=["GET", "POST"],
+        allow_methods=["GET", "POST", "DELETE"],
         allow_headers=["Authorization", "Content-Type"],
     )
     seen = SeenKeys()
@@ -168,6 +193,33 @@ def create_app(
         except UnknownRequest:
             raise HTTPException(404, "nothing is waiting for this answer") from None
 
+    def memory_or_404() -> Memory:
+        if memory is None:
+            raise HTTPException(404, "memory is off")
+        return memory
+
+    @app.get("/memories")
+    async def memory_card(user_id: str, caller: Caller) -> MemoryCard:
+        return await memory_or_404().card(user_id)
+
+    @app.post("/memories/{item_id}/correct")
+    async def correct_memory(item_id: str, body: Correction, caller: Caller) -> dict[str, Any]:
+        try:
+            item = await memory_or_404().correct(body.user_id, item_id, body.text)
+        except KeyError:
+            raise HTTPException(404, "no such memory") from None
+        except NeedsConsent as exc:
+            raise HTTPException(409, f"say yes to remembering {exc} details first") from None
+        return item.model_dump(mode="json")
+
+    @app.delete("/memories/{item_id}")
+    async def forget_memory(item_id: str, user_id: str, caller: Caller) -> dict[str, bool]:
+        return {"forgotten": await memory_or_404().forget_item(user_id, item_id)}
+
+    @app.delete("/timeline/{episode_id}")
+    async def forget_episode(episode_id: str, user_id: str, caller: Caller) -> dict[str, bool]:
+        return {"forgotten": await memory_or_404().forget_episode(user_id, episode_id)}
+
     @app.post("/voice/tools/{name}")
     async def voice_tool(
         name: str, request: Request, x_tempo_voice_secret: Annotated[str | None, Header()] = None
@@ -185,6 +237,8 @@ def create_app(
         if name == "create_mission":
             view = await service.start(StartMission.model_validate(body))
             return {"mission_id": view.id, "state": view.state, "say": view.message}
+        if name in ("recall_memories", "forget_memory", "confirm_memory"):
+            return await _voice_memory(name, body)
         mission_id = str(body.get("mission_id", ""))
         if name == "get_case_capsule":
             view = await service.view(mission_id)
@@ -207,6 +261,32 @@ def create_app(
         bus.publish(event)
         return {"ok": True}
 
+    async def _voice_memory(name: str, body: dict[str, Any]) -> dict[str, Any]:
+        user_id = str(
+            body.get("user_id") or service.user_for_phone(str(body.get("phone", ""))) or ""
+        )
+        if memory is None or not user_id:
+            return {"say": "I can't look up what I remember right now."}
+        if name == "recall_memories":
+            recalled = await memory.recall(user_id)
+            waiting = memory.readbacks[user_id]
+            return {
+                "say": say_recalled(recalled),
+                "memories": [r.model_dump(mode="json") for r in recalled],
+                "ask_first": readback_question(waiting[0]) if waiting else None,
+            }
+        if name == "confirm_memory":
+            answered = await memory.confirm(user_id, bool(body.get("approved")))
+            if answered is None:
+                return {"say": "There's nothing waiting for your answer."}
+            if body.get("approved"):
+                return {"say": f"Thanks. I'll remember that: {answered.text}."}
+            return {"say": "OK, I won't remember that."}
+        forgotten = await memory.forget(user_id, str(body.get("thing", "")))
+        if forgotten is None:
+            return {"say": "I couldn't find that in what I remember."}
+        return {"say": f"Done. I've forgotten: {forgotten.text}. It's gone from all your devices."}
+
     @app.post("/voice/post-call")
     async def post_call(
         request: Request, elevenlabs_signature: Annotated[str | None, Header()] = None
@@ -217,9 +297,19 @@ def create_app(
         ):
             raise HTTPException(401, "bad signature")
         payload = await request.json()
-        conversation = str((payload.get("data") or {}).get("conversation_id", ""))
+        data = payload.get("data") or {}
+        conversation = str(data.get("conversation_id", ""))
         if conversation and seen.first_time(f"call:{conversation}"):
             bus.publish({"type": "call_ended", "conversation_id": conversation})
+            # Only calls with the person: the Negotiator's calls are a company talking.
+            inbound = settings.elevenlabs_agent_inbound_id
+            if memory is not None and inbound and data.get("agent_id") == inbound:
+                user_id, phone = caller(payload)
+                user_id = user_id or (service.user_for_phone(phone) if phone else None)
+                if user_id:
+                    await memory.propose(
+                        candidates_from_call(payload, user_id, service.deps.clock())
+                    )
         return {"ok": True}
 
     @app.post("/sms/inbound")
@@ -240,9 +330,23 @@ def create_app(
 
     async def _sms(sender: str, text: str, sid: str) -> str:
         word = text.strip().split(" ")[0].upper() if text.strip() else ""
+        if word in ("MEMORY", "FORGET") and memory is not None:
+            user_id = service.user_for_phone(sender)
+            if user_id is None:
+                return "Tempo: I don't know this number yet."
+            if word == "MEMORY":
+                return f"Tempo: {say_recalled(await memory.recall(user_id))}"
+            thing = text.strip()[len("FORGET") :].strip()
+            forgotten = await memory.forget(user_id, thing) if thing else None
+            if forgotten is None:
+                return "Tempo: I couldn't find that. Text MEMORY to see what I remember."
+            return f"Tempo: forgotten: {forgotten.text}. It's gone from all your devices."
         missions = service.missions_for_phone(sender)
         if word == "HELP" or not missions:
-            return "Tempo: reply YES to approve, NO to decline, STOP to stop everything."
+            return (
+                "Tempo: reply YES to approve, NO to decline, STOP to stop everything, "
+                "MEMORY to hear what I remember, FORGET and a word to delete it."
+            )
         latest = missions[-1]
         if word == "STOP":
             for mission_id in missions:

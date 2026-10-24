@@ -32,6 +32,10 @@ SYSTEM_TOOLS = frozenset(
 _MISSION = {"mission_id": {"type": "string", "description": "The mission this is about"}}
 
 # What each Gateway voice tool expects (apps/gateway: POST /voice/tools/{name}).
+_CALLER: dict[str, Any] = {
+    "user_id": {"type": "string", "description": "The caller's id ({{caller_id}})"},
+    "phone": {"type": "string", "description": "The caller's number ({{system__caller_id}})"},
+}
 TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
     "create_mission": {
         "description": "Start a rail Delay Repay mission once you have all the journey details.",
@@ -96,6 +100,27 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         "description": "Ask for the person (or their helper) to decide something you can't.",
         "properties": {**_MISSION, "reason": {"type": "string"}},
         "required": ["mission_id", "reason"],
+    },
+    "recall_memories": {
+        "description": "What Tempo remembers about the caller: the top 5, with dates and sources.",
+        "properties": {**_CALLER},
+        "required": ["user_id"],
+    },
+    "forget_memory": {
+        "description": "Delete something Tempo remembers, everywhere, when the caller asks.",
+        "properties": {
+            **_CALLER,
+            "thing": {"type": "string", "description": "What to forget, in their words"},
+        },
+        "required": ["user_id", "thing"],
+    },
+    "confirm_memory": {
+        "description": "The caller's yes or no to 'Shall I remember this about you?'",
+        "properties": {
+            **_CALLER,
+            "approved": {"type": "boolean", "description": "True only for a clear yes"},
+        },
+        "required": ["user_id", "approved"],
     },
 }
 

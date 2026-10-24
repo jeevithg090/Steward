@@ -83,8 +83,12 @@ known-first-party = [
 [tool.mypy]
 strict = true
 python_version = "3.12"
-packages = ["tempo_core", "tempo_harness"]
+packages = ["tempo_core", "tempo_harness", "tempo_memory"]
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["mem0", "mem0.*"]
+ignore_missing_imports = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

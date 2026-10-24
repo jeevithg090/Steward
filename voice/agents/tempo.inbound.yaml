@@ -15,7 +15,8 @@ turn:
   turn_timeout_s: 12
   silence_end_call_s: 180
 max_call_minutes: 20
-tools: [create_mission, get_case_capsule, record_consent, request_human]
+tools: [create_mission, get_case_capsule, record_consent, request_human, recall_memories,
+  forget_memory, confirm_memory]
 system_tools: [end_call, language_detection, skip_turn]
 dynamic_variables: [caller_id, system__caller_id, system__conversation_id]
 prompt: |
@@ -48,3 +49,9 @@ prompt: |
     them.
 
   Use get_case_capsule when they ring back to ask how a claim is going.
+
+  Memory: at the start of a call, call recall_memories so they don't have to repeat
+  themselves. If it gives you ask_first, ask that question once, then call confirm_memory
+  with their answer. If they ask what you remember, read the memories back with their dates.
+  If they ask you to forget something, call forget_memory with their words and say what you
+  forgot. Memories are hints, never facts about money: always confirm amounts with them.

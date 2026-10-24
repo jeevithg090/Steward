@@ -42,6 +42,7 @@ export interface TimelineEntry {
 
 export interface MissionView {
   id: string;
+  user_id?: string | null;
   state: MissionState;
   message: string | null;
   ask: ConsentAsk | null;
@@ -49,6 +50,35 @@ export interface MissionView {
   timeline: TimelineEntry[];
   trace_url: string | null;
   court: CourtDecision | null;
+}
+
+export interface MemoryItem {
+  id: string;
+  text: string;
+  category: string;
+  source: string;
+  trust: "trusted" | "untrusted";
+  observed_at: string;
+  confidence: number;
+  expires_at: string | null;
+  superseded_by: string | null;
+}
+
+export interface TemporalFact {
+  id: string;
+  kind: string;
+  subject: string;
+  predicate: string;
+  object: string;
+  valid_from: string;
+  valid_to: string | null;
+  superseded_by: string | null;
+  episode_id: string;
+}
+
+export interface MemoryCardData {
+  memories: Record<string, { item: MemoryItem; earlier: MemoryItem[] }[]>;
+  timeline: TemporalFact[];
 }
 
 export interface Health {
@@ -108,6 +138,13 @@ export class Gateway {
     });
   stop = (id: string) => this.call<MissionView>(`/missions/${id}/stop`, { method: "POST" });
   tick = () => this.call<{ fired: string[] }>("/scheduler/tick", { method: "POST" });
+  memories = (userId: string) => this.call<MemoryCardData>(`/memories?user_id=${encodeURIComponent(userId)}`);
+  forgetMemory = (userId: string, id: string) =>
+    this.call<{ forgotten: boolean }>(`/memories/${id}?user_id=${encodeURIComponent(userId)}`, { method: "DELETE" });
+  forgetEpisode = (userId: string, episodeId: string) =>
+    this.call<{ forgotten: boolean }>(`/timeline/${episodeId}?user_id=${encodeURIComponent(userId)}`, { method: "DELETE" });
+  correctMemory = (userId: string, id: string, text: string) =>
+    this.call<MemoryItem>(`/memories/${id}/correct`, { method: "POST", body: JSON.stringify({ user_id: userId, text }) });
 
   eventsUrl(): string {
     return `${this.config.url.replace(/^http/, "ws")}/events?token=${encodeURIComponent(this.config.token)}`;
