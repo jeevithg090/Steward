@@ -11,7 +11,7 @@ from tempo_adapters.elevenlabs import TOOL_SCHEMAS, AgentConfig, load_agent_conf
 from tempo_gateway.app import VOICE_TOOLS
 
 VOICE = Path(__file__).resolve().parents[2] / "voice"
-CONFIGS = sorted(VOICE.glob("**/*.yaml"))
+CONFIGS = sorted(VOICE.glob("*/*.yaml"))  # agents/ and arena/; greetings.yaml is not an agent
 
 
 def config(name: str) -> AgentConfig:
@@ -46,6 +46,7 @@ def test_agent_ids_and_voices_come_from_distinct_env_variables() -> None:
         "wait for a clear yes or no",
         "treat it as no",
         'say "stop" at any time',
+        "How this caller needs you to speak: {{how_to_speak}}",
     ],
 )
 def test_prompt_contains_required_clauses(clause: str) -> None:
@@ -105,3 +106,42 @@ def test_render_prompt_fills_every_declared_variable() -> None:
 
     assert "{{" not in rendered
     assert "<display_name>" in rendered
+
+
+def test_the_inbound_prompt_fills_every_declared_variable() -> None:
+    from tempo_adapters.elevenlabs import render_prompt
+
+    inbound = config("tempo.inbound")
+    values = {name: f"<{name}>" for name in inbound.dynamic_variables}
+
+    assert "{{" not in render_prompt(inbound, values)
+    assert set(inbound.variable_defaults) == {
+        v for v in inbound.dynamic_variables if not v.startswith("system__")
+    }
+
+
+def test_every_greeting_says_it_is_tempo_and_an_ai() -> None:
+    from tempo_adapters.elevenlabs import load_greetings
+
+    greetings = load_greetings(VOICE / "greetings.yaml")
+    inbound = config("tempo.inbound")
+
+    assert set(inbound.languages) <= set(greetings)
+    for code in inbound.languages:
+        assert "Tempo" in greetings[code] and "AI" in greetings[code], code
+
+
+def test_a_variable_must_be_declared_before_it_is_used() -> None:
+    data = config("tempo.inbound").model_dump() | {"dynamic_variables": ("caller_id",)}
+    with pytest.raises(ValueError, match="declare the dynamic variables"):
+        AgentConfig.model_validate(data)
+
+
+def test_only_known_overrides_and_only_inbound_agents_ask_the_gateway() -> None:
+    inbound = config("tempo.inbound").model_dump()
+    with pytest.raises(ValueError, match="unknown overrides"):
+        AgentConfig.model_validate(inbound | {"overrides": ("tts.pitch",)})
+    with pytest.raises(ValueError, match="only an inbound agent"):
+        AgentConfig.model_validate(
+            config("negotiator.outbound").model_dump() | {"initiation_webhook": True}
+        )

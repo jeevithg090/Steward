@@ -18,6 +18,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   health: "Health and access",
   immigration: "Immigration",
   finance: "Money",
+  access: "How to speak with me",
+};
+const CATEGORY_NOTES: Record<string, string> = {
+  access: "Only kept because you said yes. It never expires; forget it any time.",
 };
 
 export function day(iso: string): string {
@@ -64,6 +68,7 @@ export function MemoryCard({ card, busy = false, onForget, onForgetFact, onCorre
           {groups.map(([category, entries]) => (
             <div key={category}>
               <h3 className="font-semibold">{CATEGORY_LABELS[category] ?? category}</h3>
+              {CATEGORY_NOTES[category] && <p className="text-sm text-slate-700">{CATEGORY_NOTES[category]}</p>}
               <ul className="space-y-2">
                 {entries.map(({ item, earlier }) => (
                   <li key={item.id} className="rounded-lg border border-slate-200 p-2">

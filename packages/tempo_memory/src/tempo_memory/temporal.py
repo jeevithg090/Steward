@@ -16,6 +16,7 @@ import structlog
 from pydantic import AwareDatetime, BaseModel, ConfigDict, ValidationError
 
 from tempo_core.delays import LONDON
+from tempo_core.voice_profile import LANGUAGE_NAMES
 from tempo_memory.embedding import HashingEmbedder, cosine
 from tempo_memory.entities import (
     EPISODE,
@@ -25,12 +26,14 @@ from tempo_memory.entities import (
     OutcomeRecorded,
     PromiseMade,
     ReferenceGiven,
+    VoiceSet,
 )
 from tempo_memory.in_memory import utc_now
 from tempo_memory.port import MIN_SCORE
 
 log = structlog.get_logger("tempo.memory")
-SINGLE_VALUED = frozenset({"scheduled_for", "promised", "due", "outcome"})  # newest wins
+SINGLE_VALUED = frozenset({"scheduled_for", "promised", "due", "outcome", "set_to"})  # newest wins
+USUAL_VOICE = "the usual settings"
 
 
 class TemporalFact(BaseModel):
@@ -109,6 +112,25 @@ def triples(episode: Episode) -> list[tuple[str, str, str]]:
         case OutcomeRecorded():
             paid = f" £{episode.amount_gbp}" if episode.amount_gbp is not None else ""
             return [(episode.company, "outcome", f"{episode.state}{paid}")]
+        case VoiceSet():
+            return [
+                ("Tempo's voice", "set_to", f"{_voice_words(episode)} (call {_when(episode.at)})")
+            ]
+
+
+def _voice_words(episode: VoiceSet) -> str:
+    parts = (
+        [LANGUAGE_NAMES.get(episode.language, episode.language)] if episode.language != "en" else []
+    )
+    if episode.speed < 1:
+        parts.append("slower")
+    if episode.voice == "low":
+        parts.append("a lower voice")
+    if episode.patience == "high":
+        parts.append("extra time to answer")
+    if episode.prefers_text:
+        parts.append("the question offered by text")
+    return ", ".join(parts) or USUAL_VOICE
 
 
 def derive(episode: Episode) -> list[TemporalFact]:

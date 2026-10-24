@@ -71,8 +71,19 @@ class OutcomeRecorded(_Episode):
     amount_gbp: Money | None = None
 
 
+class VoiceSet(_Episode):
+    """How Tempo's voice was set up for one call, from what the person asked (Patience Profile)."""
+
+    event: Literal["voice"] = "voice"
+    language: Annotated[str, StringConstraints(pattern=r"^[a-z]{2}$")]
+    speed: Annotated[Decimal, Field(ge=Decimal("0.7"), le=Decimal("1.2"), decimal_places=2)]
+    voice: Literal["default", "low"] = "default"
+    patience: Literal["normal", "high"] = "normal"
+    prefers_text: bool = False
+
+
 Episode = Annotated[
-    AppointmentBooked | PromiseMade | DeadlineSet | ReferenceGiven | OutcomeRecorded,
+    AppointmentBooked | PromiseMade | DeadlineSet | ReferenceGiven | OutcomeRecorded | VoiceSet,
     Field(discriminator="event"),
 ]
 EPISODE = TypeAdapter[Episode](Episode)

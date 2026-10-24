@@ -1,0 +1,12 @@
+# The inbound agent's first message in each language it can switch to (the Patience Profile).
+# The Gateway sends one as `agent.first_message` when a caller has asked for that language, and
+# `make sync-voice` sets each as the agent's `first_message_translation` for that language.
+# Every greeting must say it is Tempo and an AI assistant (tests/unit/test_voice_configs.py).
+# checked: false until someone who speaks the language has read it; English is in the YAML.
+checked: false
+greetings:
+  hi: "नमस्ते, मैं Tempo हूँ, एक AI सहायक। कंपनियों पर आपका जो पैसा और समय बकाया है, मैं उसे वापस दिला सकता हूँ। बताइए, क्या हुआ?"
+  pa: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਮੈਂ Tempo ਹਾਂ, ਇੱਕ AI ਸਹਾਇਕ। ਕੰਪਨੀਆਂ ਵੱਲ ਤੁਹਾਡਾ ਜੋ ਪੈਸਾ ਅਤੇ ਸਮਾਂ ਬਕਾਇਆ ਹੈ, ਮੈਂ ਉਹ ਵਾਪਸ ਦਿਵਾ ਸਕਦਾ ਹਾਂ। ਦੱਸੋ, ਕੀ ਹੋਇਆ?"
+  pl: "Dzień dobry, jestem Tempo, asystent AI. Pomagam odzyskać pieniądze i czas, które firmy są Panu lub Pani winne. Co się stało?"
+  ur: "السلام علیکم، میں Tempo ہوں، ایک AI معاون۔ کمپنیوں پر آپ کا جو پیسہ اور وقت واجب ہے، میں وہ واپس دلوا سکتا ہوں۔ بتائیے، کیا ہوا؟"
+  cy: "Helo, Tempo ydw i, cynorthwyydd AI. Gallaf adennill arian ac amser sy'n ddyledus i chi gan gwmnïau. Beth sydd wedi digwydd?"

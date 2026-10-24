@@ -11,7 +11,10 @@ from collections.abc import Iterable
 from tempo_core.consent import ConsentState
 from tempo_memory.models import TTL, MemoryCandidate, MemoryItem, Tombstone, Trust, Verdict
 
-SENSITIVE: frozenset[str] = frozenset({"health", "immigration", "finance"})
+SENSITIVE: frozenset[str] = frozenset({"health", "immigration", "finance"})  # 30-day expiry
+# Categories Tempo stores only after the person says yes to remembering them. `access` (how to
+# speak with someone) is health-adjacent, so it is opt-in too, but it never expires.
+OPT_IN: frozenset[str] = SENSITIVE | {"access"}
 READ_BACK_BELOW = 0.8
 
 
@@ -22,7 +25,7 @@ def consent_scope(category: str) -> str:
 def decide(candidate: MemoryCandidate, consent: ConsentState) -> Verdict:
     if candidate.trust is Trust.UNTRUSTED:
         return Verdict.EPISODE_ONLY
-    if candidate.category in SENSITIVE and not consent.allows(consent_scope(candidate.category)):
+    if candidate.category in OPT_IN and not consent.allows(consent_scope(candidate.category)):
         # The person can opt in when they say it themselves; official data never forces it in.
         return Verdict.ASK_USER if candidate.source.startswith("user_") else Verdict.REJECT
     if candidate.confidence < READ_BACK_BELOW:
@@ -43,9 +46,7 @@ def to_item(candidate: MemoryCandidate, *, item_id: str) -> MemoryItem:
         trust=candidate.trust,
         observed_at=candidate.observed_at,
         confidence=candidate.confidence,
-        consent_scope=consent_scope(candidate.category)
-        if candidate.category in SENSITIVE
-        else None,
+        consent_scope=consent_scope(candidate.category) if candidate.category in OPT_IN else None,
         expires_at=candidate.observed_at + ttl if ttl is not None else None,
     )
 

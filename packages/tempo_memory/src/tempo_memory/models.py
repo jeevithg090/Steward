@@ -12,6 +12,7 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 Category = Literal[
     "preference", "contact", "journey", "household", "mission_fact",
     "health", "immigration", "finance",  # sensitive: opt-in only, 30-day expiry
+    "access",  # how to speak with the person (a stammer, hearing, a language): opt-in, no expiry
 ]  # fmt: skip
 Source = Literal[
     "user_voice", "user_sms", "user_web", "official_api",  # trusted
@@ -87,4 +88,5 @@ TTL: dict[str, timedelta | None] = {
     "preference": None, "contact": None, "journey": None, "household": None,
     "mission_fact": timedelta(days=395),  # 13 months: the longest claim windows
     "health": timedelta(days=30), "immigration": timedelta(days=30), "finance": timedelta(days=30),
+    "access": None,  # a need doesn't lapse; "forget" still deletes it everywhere
 }  # fmt: skip

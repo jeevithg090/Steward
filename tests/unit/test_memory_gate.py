@@ -47,7 +47,7 @@ def test_untrusted_sources_never_stored(source: str) -> None:
     assert decide(planted, consent("memory.finance")) is Verdict.EPISODE_ONLY
 
 
-@pytest.mark.parametrize("category", ["health", "immigration", "finance"])
+@pytest.mark.parametrize("category", ["health", "immigration", "finance", "access"])
 def test_sensitive_category_requires_consent(category: str) -> None:
     said = candidate(category=category, text="uses a wheelchair", source="user_voice")
     official = candidate(category=category, text="visa expires in May", source="official_api")
@@ -92,13 +92,15 @@ def test_gate_never_stores_untrusted(
         ("mission_fact", timedelta(days=395)),
         ("health", timedelta(days=30)),
         ("finance", timedelta(days=30)),
+        ("access", None),  # opt-in like health, but a need doesn't lapse
     ],
 )
 def test_ttl_assigned_by_category(category: str, ttl: timedelta | None) -> None:
     item = to_item(candidate(category=category), item_id="m_1")
 
     assert item.expires_at == (NOW + ttl if ttl is not None else None)
-    assert item.consent_scope == (f"memory.{category}" if ttl == timedelta(days=30) else None)
+    opt_in = ttl == timedelta(days=30) or category == "access"
+    assert item.consent_scope == (f"memory.{category}" if opt_in else None)
     assert (item.key, item.trust) == (candidate(category=category).key, Trust.TRUSTED)
 
 

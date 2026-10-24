@@ -19,8 +19,14 @@ Extractor = Callable[[str, str, Source, datetime, float], list[MemoryCandidate]]
 _FACT = r"(?P<fact>[^.!?\n]{2,80})"
 _NAME = r"[A-Z][A-Za-z'-]+(?: [A-Z][A-Za-z'-]+){0,2}"
 _PEOPLE = "daughter|son|wife|husband|partner|carer|friend|neighbour"
-_CONDITIONS = "diabetic|deaf|blind|disabled|hard of hearing|dyslexic"
-_AIDS = "wheelchair|hearing aid|guide dog|stammer"
+_CONDITIONS = "diabetic|blind|disabled|dyslexic"
+_AIDS = "wheelchair|hearing aid|guide dog"
+# How the person needs Tempo to speak with them (`access`): read back before it's kept (the Gate).
+_HEARING = "deaf|partially deaf|hard of hearing"
+_LANGUAGES = (
+    "English|Hindi|Punjabi|Polish|Urdu|Welsh|Bengali|Gujarati|Tamil|Arabic|Somali|Romanian"
+    "|Portuguese|Spanish|French|Cantonese|Mandarin"
+)
 _RULES: list[tuple[str, Category, str, float]] = [
     (rf"(?i)\bremember (?:that )?I {_FACT}", "preference", "{fact}", 0.95),
     (rf"(?i)\bI(?: would|'d)? prefer {_FACT}", "preference", "prefers {fact}", 0.9),
@@ -36,6 +42,62 @@ _RULES: list[tuple[str, Category, str, float]] = [
     ),
     (rf"(?i)\bI(?:'m| am) (?P<cond>{_CONDITIONS})\b", "health", "is {cond}", 0.85),
     (rf"(?i)\bI (?:use|have) (?:a )?(?P<aid>{_AIDS})\b", "health", "has a {aid}", 0.85),
+    (
+        r"(?i)\bI(?:'ve got| have got| have)? (?:a )?(?:stammer|stutter)\b",
+        "access",
+        "has a stammer",
+        0.85,
+    ),
+    (rf"(?i)\bI(?:'m| am) (?P<hear>{_HEARING})\b", "access", "is {hear}", 0.85),
+    (r"(?i)\bI (?:can't|cannot) hear (?:very )?well\b", "access", "is hard of hearing", 0.8),
+    (
+        r"(?i)\b(?:speak|talk)(?: to me)? (?:more )?(?:slowly|slower)\b",
+        "access",
+        "wants slower speech",
+        0.9,
+    ),
+    (
+        r"(?i)\byou(?:'re| are)? (?:talking|speaking) too fast\b",
+        "access",
+        "wants slower speech",
+        0.85,
+    ),
+    (r"(?i)\bgive me (?:more |some |a bit of )?time\b", "access", "needs more time to answer", 0.9),
+    (
+        r"(?i)\bI need (?:more |some )?time to (?:answer|reply|respond|speak)\b",
+        "access",
+        "needs more time to answer",
+        0.9,
+    ),
+    (r"(?i)\bdon'?t rush me\b", "access", "needs more time to answer", 0.9),
+    (
+        rf"(?i)\b(?:speak|talk)(?: to me)? in (?P<lang>{_LANGUAGES})\b",
+        "access",
+        "speaks {lang}",
+        0.9,
+    ),
+    (rf"(?i)\bI speak (?P<lang>{_LANGUAGES})\b", "access", "speaks {lang}", 0.9),
+    (rf"(?i)\bin (?P<lang>{_LANGUAGES}),? please\b", "access", "speaks {lang}", 0.9),
+    (rf"(?i)\bcan you (?:speak|talk) (?P<lang>{_LANGUAGES})\b", "access", "speaks {lang}", 0.8),
+    (
+        r"(?i)\b(?:text|message) me (?:the questions?|instead)\b",
+        "access",
+        "prefers text for questions",
+        0.85,
+    ),
+    (r"(?i)\bask me by text\b", "access", "prefers text for questions", 0.85),
+    (
+        r"(?i)\b(?:use|with|have|try) a (?:lower|deeper)(?:-pitched)? voice\b",
+        "access",
+        "prefers a lower voice",
+        0.85,
+    ),
+    (
+        r"(?i)\bI (?:can't|cannot|struggle to) hear high(?:-pitched)? voices\b",
+        "access",
+        "prefers a lower voice",
+        0.85,
+    ),
 ]
 RULES = [
     (re.compile(pattern), c, template, confidence) for pattern, c, template, confidence in _RULES
