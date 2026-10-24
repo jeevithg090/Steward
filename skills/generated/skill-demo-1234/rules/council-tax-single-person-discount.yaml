@@ -1,0 +1,18 @@
+id: council-tax-single-person-discount
+version: 0.1.0
+scheme: Council Tax Reduction
+operator: local_council
+bands:
+  - min_minutes: 15
+    max_minutes: 29
+    refund_pct: 25
+  - min_minutes: 30
+    max_minutes: 59
+    refund_pct: 50
+  - min_minutes: 60
+    max_minutes: null
+    refund_pct: 100
+claim_window_days: 28
+citation_url: https://www.gov.uk/apply-council-tax-reduction
+last_verified: 2026-10-24
+demo_values: true

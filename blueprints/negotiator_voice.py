@@ -1,0 +1,120 @@
+"""Negotiator Voice Agent Blueprint - Phones companies, handles hold, detects stalls, negotiates."""
+
+from ..base import (
+    STANDARD_TOOLS,
+    Blueprint,
+    EvalSpec,
+    GuardrailConfig,
+    HandoffConfig,
+    LimitsConfig,
+    ModelPolicy,
+    ModelRouter,
+    ToolCategory,
+    ToolSpec,
+    VoiceConfig,
+)
+
+NEGOTIATOR_VOICE_BLUEPRINT = Blueprint(
+    id="negotiator.voice",
+    role="Phone negotiator acting for the user: navigates menus, waits on hold, cites rules, detects stalling tactics, escalates, collects reference numbers.",
+    version="1.0.0",
+    description="The voice advocate that calls companies. Handles phone menus (touch tones + speech), skip-turn on hold, stall detection, warm handoff to user.",
+    model_policy=ModelPolicy(
+        router=ModelRouter.CAREFUL,
+        prefer=["claude-sonnet-5-5", "openai-gpt-5-mini"],
+        temperature=0.0,
+    ),
+    voice=VoiceConfig(
+        persona="tempo",
+        disclosure="required",
+        language="en-GB",
+        turn_taking_patience=2.0,
+    ),
+    tools_allowlist=[
+        STANDARD_TOOLS["get_case_capsule"],
+        STANDARD_TOOLS["log_stall"],
+        STANDARD_TOOLS["record_reference"],
+        STANDARD_TOOLS["phone_company"],
+        STANDARD_TOOLS["accept_offer"],
+        STANDARD_TOOLS["request_human"],
+        ToolSpec(
+            name="navigate_menu",
+            category=ToolCategory.READ_ONLY,
+            description="Navigate phone menu via touch tones or speech",
+        ),
+        ToolSpec(
+            name="detect_human_answer",
+            category=ToolCategory.READ_ONLY,
+            description="Detect when a human answers (vs hold music/IVR)",
+        ),
+        ToolSpec(
+            name="warm_handoff",
+            category=ToolCategory.BINDING,
+            requires_consent=["phone_company"],
+            description="Patch the user or helper into the live call",
+        ),
+    ],
+    guardrails=GuardrailConfig(
+        allow=[
+            "navigate_menu",
+            "detect_human_answer",
+            "log_stall",
+            "record_reference",
+            "phone_company",
+            "accept_offer",
+            "request_human",
+            "warm_handoff",
+        ],
+        deny=[
+            "move_money",
+            "collect_credentials",
+            "impersonate_user",
+            "give_legal_advice",
+            "accept_voucher_without_consent",
+            "settle_below_entitlement",
+        ],
+        require_human=[
+            "offer_above_auto_accept_max",
+            "voucher_offered_without_consent",
+            "uncertain_eligibility",
+        ],
+        custom={
+            "ai_disclosure_required": True,
+            "safe_word_on_inbound": True,
+            "stall_radar_enabled": True,
+            "max_transfers": 4,
+            "polite_firm_tone": True,
+            "log_all_stalls": True,
+        },
+    ),
+    limits=LimitsConfig(
+        max_call_minutes=30,
+        max_tokens=4000,
+        max_spend_gbp=0.50,
+        max_transfers=4,
+    ),
+    handoff=HandoffConfig(
+        emits="context_capsule.v1",
+        required_fields=["reference_number", "outcome", "stall_events", "recording_uri"],
+    ),
+    evals=EvalSpec(
+        suite="evals/negotiator_voice/",
+        publish_threshold=0.95,
+        adversarial=True,
+    ),
+    metadata={
+        "arena_opponents": ["staller", "transfer_looper", "lowballer", "prompt_injector"],
+        "stall_categories": [
+            "callback_deflection",
+            "transfer_loop",
+            "policy_wall",
+            "form_deflection",
+            "info_fishing",
+            "hold_extension",
+            "lowball_offer",
+            "denial_no_reason",
+        ],
+        "counter_plays": "mapped per category in Stall Radar taxonomy",
+        "channels": ["outbound_phone", "twilio", "elevenlabs"],
+    },
+)

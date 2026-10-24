@@ -1,0 +1,102 @@
+{
+  "id": "skill-demo-1234",
+  "name": "council-tax-single-person-discount",
+  "description": "Claims 25% council tax discount for single occupants",
+  "version": "0.1.0",
+  "tier": "community",
+  "triggers": [
+    {
+      "type": "intent",
+      "examples": [
+        "council tax discount",
+        "single person discount",
+        "council tax reduction"
+      ],
+      "source": null,
+      "cron": null
+    },
+    {
+      "type": "event",
+      "examples": [],
+      "source": "council.tax_bill",
+      "cron": null
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "read.evidence.council_tax_bill",
+      "requires_consent": [],
+      "description": "Read council tax bill",
+      "risk_level": "low"
+    },
+    {
+      "name": "net.api.council_portal",
+      "requires_consent": [
+        "file_claim"
+      ],
+      "description": "Submit claim to council portal",
+      "risk_level": "medium"
+    },
+    {
+      "name": "act.file_claim",
+      "requires_consent": [
+        "file_claim"
+      ],
+      "description": "File the discount claim",
+      "risk_level": "high"
+    }
+  ],
+  "forbidden": [
+    "money.move",
+    "credentials.collect",
+    "settlement.below_entitlement"
+  ],
+  "blueprints": [
+    "intake.vision",
+    "intake.voice",
+    "rules.entitlement",
+    "writer.claim",
+    "form_buddy"
+  ],
+  "rule_packs": [
+    {
+      "id": "council-tax-single-person-discount",
+      "scheme": "Council Tax Reduction",
+      "operator": "local_council",
+      "citation_url": "https://www.gov.uk/apply-council-tax-reduction",
+      "last_verified": "2026-10-24"
+    }
+  ],
+  "context": {
+    "pin": [
+      "user.time_value",
+      "case.facts",
+      "case.entitlement",
+      "consent.limits"
+    ],
+    "retrieve": {
+      "provider": "snowflake.cortex_search",
+      "service": "POLICY_SEARCH",
+      "filter": {
+        "scheme": "Council Tax"
+      },
+      "top_k": 4
+    }
+  },
+  "budgets": {
+    "max_llm_gbp": 0.15,
+    "max_call_minutes": 15,
+    "max_user_questions": 2
+  },
+  "time_value": {
+    "est_user_minutes_saved": 30
+  },
+  "evals": {
+    "suite": "evals/",
+    "publish_threshold": 0.95,
+    "adversarial": true
+  },
+  "created_at": "2026-10-24T16:03:18.517733",
+  "created_by": "demo-user",
+  "source_narration": "In my council you can get 25% off council tax if you live alone. You fill this form and they reply in 2 weeks."
+}
