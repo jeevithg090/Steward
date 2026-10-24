@@ -1,0 +1,15 @@
+# UK261 flight delay compensation: 3 h+ late on arrival, paid by flight distance.
+# Extraordinary circumstances are an eligibility question for the Consensus Court, not this pack.
+kind: distance_band
+id: uk261.delay
+version: "0.1.0"
+operator: UK261
+scheme: UK261
+citation_url: https://www.caa.co.uk/passengers-and-public/resolving-travel-problems/delays-and-cancellations/
+min_arrival_delay_minutes: 180
+claim_window_days: 2190
+demo_values: true
+bands:
+  - { max_km: 1500, amount_gbp: "220" }
+  - { max_km: 3500, amount_gbp: "350" }
+  - { max_km: null, amount_gbp: "520" }

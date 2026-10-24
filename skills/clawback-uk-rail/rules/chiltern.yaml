@@ -1,0 +1,16 @@
+# Chiltern Railways Delay Repay (DR15). demo_values stays true until checked against Chiltern's
+# published terms.
+kind: delay_repay
+id: uk-rail.chiltern.delay-repay
+version: "0.1.0"
+operator: Chiltern Railways
+scheme: DR15
+citation_url: https://www.chilternrailways.co.uk/delay-repay
+claim_window_days: 28
+demo_values: true
+bands:
+  - { min_minutes: 0, max_minutes: 14, refund_pct: "0" }
+  - { min_minutes: 15, max_minutes: 29, refund_pct: "25" }
+  - { min_minutes: 30, max_minutes: 59, refund_pct: "50" }
+  - { min_minutes: 60, max_minutes: 119, refund_pct: "100" }
+  - { min_minutes: 120, max_minutes: null, refund_pct: "100" }
