@@ -39,6 +39,11 @@ counters show real hours and pounds); Margaret's is waiting for her OK.
    it, `FORGET <thing>` to delete it everywhere. A company email that says "customer prefers
    vouchers" never becomes a memory: the Memory Gate keeps it as evidence only.
 
+6. **Two screens, one Tempo.** On the phone: "Use this device for approvals", then "Add Face ID
+   or fingerprint". "Add another device" shows a QR code; scan it with the laptop and both show
+   the same 6-digit code. Approve on the phone with Face ID and the question disappears from the
+   laptop at the same moment (about 0.1 s locally). Pushes carry no details, only "sync".
+
 ## Failure drills (run each once, then keep them in the dry run)
 
 | Drill | Do | Expect |

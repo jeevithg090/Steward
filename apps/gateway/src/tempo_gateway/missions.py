@@ -271,6 +271,10 @@ class MissionService:
     def missions_for_phone(self, phone: str) -> list[str]:
         return list(self._by_phone.get(phone_hash(phone), []))
 
+    def mission_for_request(self, request_id: str) -> str | None:
+        found = self._asks.get(request_id)
+        return found[0] if found else None
+
     def pending_for(self, mission_id: str) -> str | None:
         return next((rid for rid, (mid, _) in self._asks.items() if mid == mission_id), None)
 

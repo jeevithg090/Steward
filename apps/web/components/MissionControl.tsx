@@ -11,9 +11,11 @@ import {
   type MissionView,
 } from "@/lib/api";
 import { useLiveEvents } from "@/lib/live";
+import { type DeviceInfo, MeshClient } from "@/lib/mesh";
 import { AgentCards } from "./AgentCards";
 import { ConsensusGavels } from "./ConsensusGavels";
 import { ConsentCard } from "./ConsentCard";
+import { DevicePanel, JoinMesh } from "./DevicePanel";
 import { HonestyBadge } from "./HonestyBadge";
 import { LedgerCounter } from "./LedgerCounter";
 import { MemoryCard } from "./MemoryCard";
@@ -23,8 +25,17 @@ import { StallRadar } from "./StallRadar";
 import { STATE_LABELS } from "./labels";
 import { TraceLink } from "./TraceLink";
 
-export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
+export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gateway?: Gateway; mesh?: MeshClient }) {
   const gateway = useMemo(() => injected ?? new Gateway(gatewayConfig()), [injected]);
+  // The Mesh client needs the browser (localStorage, WebAuthn), so it starts after the first render.
+  const [mesh, setMesh] = useState<MeshClient | null>(injectedMesh ?? null);
+  const [joinLink, setJoinLink] = useState<string | null>(null);
+  const [devices, setDevices] = useState<DeviceInfo[] | null>(null);
+  useEffect(() => {
+    if (!injectedMesh) setMesh(new MeshClient(gatewayConfig(), window.localStorage));
+    if (window.location.hash.startsWith("#pair=")) setJoinLink(window.location.href);
+  }, [injectedMesh]);
+  const signs = Boolean(mesh && devices?.find((d) => d.id === mesh.deviceId)?.passkey);
   const [health, setHealth] = useState<Health | null>(null);
   const [missions, setMissions] = useState<MissionView[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -78,6 +89,7 @@ export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
         <LedgerCounter totals={ledger} />
       </header>
 
+      {joinLink && mesh && <JoinMesh mesh={mesh} link={joinLink} />}
       {error && <p role="alert" className="mb-4 rounded-lg bg-rose-100 p-3 text-rose-900">Can't reach the Gateway: {error}</p>}
 
       <div className="grid gap-6 lg:grid-cols-[16rem_1fr_18rem]">
@@ -110,7 +122,12 @@ export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
             <>
               <h2 className="text-2xl font-semibold">{STATE_LABELS[mission.state]}</h2>
               {mission.message && !mission.ask && <p className="text-lg">{mission.message}</p>}
-              {mission.ask && <ConsentCard ask={mission.ask} busy={busy} onAnswer={(yes) => act(() => gateway.answer(mission.ask!.request_id, yes))} />}
+              {mission.ask && (
+                <ConsentCard
+                  ask={mission.ask} busy={busy} signed={signs}
+                  onAnswer={(yes) => act(() => (signs && mesh ? mesh.answer(mission.ask!.request_id, yes) : gateway.answer(mission.ask!.request_id, yes)))}
+                />
+              )}
               {mission.state === "waiting" && (
                 <button type="button" disabled={busy} onClick={() => act(() => gateway.tick())} className="rounded-lg border-2 border-slate-800 px-4 py-2 font-semibold">
                   Check the payment now
@@ -131,6 +148,7 @@ export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
         </section>
 
         <aside className="space-y-6">
+          {mesh && <DevicePanel mesh={mesh} userId={user} onChange={setDevices} />}
           <MemoryCard
             card={memory}
             busy={busy}

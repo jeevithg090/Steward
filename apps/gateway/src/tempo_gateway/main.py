@@ -23,6 +23,7 @@ from tempo_core.rules import RulePackRegistry
 from tempo_gateway.app import create_app
 from tempo_gateway.events import EventBus, PublishingRepo
 from tempo_gateway.memory import Memory, build_memory
+from tempo_gateway.mesh import Mesh, WebPushSender
 from tempo_gateway.missions import MissionService
 from tempo_missions.clawback_rail import ClawbackDeps
 from tempo_missions.court import ConsensusCourt
@@ -91,7 +92,18 @@ def build(
     configure_tracing(settings)  # exports to Langfuse when its keys are set
     service, bus, memory = build_services(settings)
     return create_app(
-        service, settings, bus, memory=memory, scheduler_interval_s=scheduler_interval_s
+        service, settings, bus, memory=memory, mesh=build_mesh(settings),
+        scheduler_interval_s=scheduler_interval_s,
+    )  # fmt: skip
+
+
+def build_mesh(settings: Settings) -> Mesh:
+    push = None
+    if settings.vapid_private_key and settings.vapid_subject:
+        push = WebPushSender(settings.vapid_private_key.get_secret_value(), settings.vapid_subject)
+    origins = [o.strip() for o in settings.web_origins.split(",") if o.strip()]
+    return Mesh(
+        rp_id=settings.mesh_rp_id, origins=origins, path=Path(settings.mesh_file), push=push
     )
 
 

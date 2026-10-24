@@ -14,6 +14,9 @@ dependencies = [
     "python-multipart>=0.0.32",
     "structlog>=25.4",
     "twilio>=9.12",
+    "webauthn>=3.0.1",  # passkeys (py_webauthn)
+    "pywebpush>=2.5.0",  # Web Push, VAPID
+    "segno>=1.6.6",  # QR codes for pairing
     "uvicorn[standard]>=0.54",  # [standard] brings the WebSocket support /events needs
 ]
 
