@@ -13,6 +13,7 @@ runtime, and the per-app dependencies below are local names.
 | GET /memories, POST /memories/{id}/correct | the Memory Card | bearer token |
 | DELETE /memories/{id}, DELETE /timeline/{id} | forget, everywhere | bearer token |
 | POST /sms/inbound | YES, NO, STOP, HELP, MEMORY, FORGET <thing>, CHECK <message> | Twilio |
+| POST /entitlement/screen | ten answers in, what's worth claiming out (not a decision) | bearer |
 | POST /letters/pip | a PIP decision explained, its deadline, a drafted reconsideration | bearer |
 | POST /scam/check | Scam Shield: registers plus pressure signs, never "safe" | bearer token |
 | WS /events | live updates | token query parameter |
@@ -55,6 +56,7 @@ from tempo_core.decisions import (
     explain,
     unsupported_claims,
 )
+from tempo_core.entitlement import DISCLAIMER, Answers, Figures, pack, screen
 from tempo_core.errors import MissionNotFound
 from tempo_core.ledger import summarise
 from tempo_core.scam import Level, assess
@@ -149,6 +151,7 @@ def create_app(
     memory: Memory | None = None,
     mesh: Mesh | None = None,
     holidays: frozenset[date] = frozenset(),
+    entitlement: Figures | None = None,
     registers: Registers | None = None,
     registers_simulated: bool = True,
     vault: VaultStore | None = None,
@@ -222,6 +225,19 @@ def create_app(
             "reasons": list(verdict.reasons),
             "advice": verdict.advice,
             "simulated": registers is None or registers_simulated,
+        }
+
+    @app.post("/entitlement/screen")
+    async def entitlement_screen(body: Answers, caller: Caller) -> dict[str, Any]:
+        """Entitlement Check: screening, not a decision; each flag links the official checker."""
+        if entitlement is None:
+            raise HTTPException(404, "the entitlement figures aren't loaded")
+        flags = screen(body, entitlement)
+        return {
+            "flags": [f.model_dump(mode="json") for f in flags],
+            "disclaimer": DISCLAIMER,
+            "pack": pack(body, flags, entitlement),
+            "figures": {"tax_year": entitlement.tax_year, "demo_values": entitlement.demo_values},
         }
 
     @app.post("/letters/pip")
