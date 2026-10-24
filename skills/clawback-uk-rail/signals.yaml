@@ -1,0 +1,10 @@
+# On-device signal filters (spec §15.9): what this skill needs from a phone, decided ON the
+# phone. Only the `extract` fields of a matching notification ever leave the device.
+signals:
+  - id: rail_delay_notification
+    sources: [android.notifications, ios.shortcut_forward, sms.forward, email.forward]
+    match:
+      sender_any: ["GWR", "Great Western Railway", "Chiltern Railways", "CrossCountry", "Trainline", "National Rail"]
+      text_any: ["delayed", "cancelled", "running late", "disruption"]
+    extract: [service_time, origin, destination, delay_minutes]
+    retention_days: 30

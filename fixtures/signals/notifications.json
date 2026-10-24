@@ -1,0 +1,17 @@
+{
+  "note": "Shared test vectors: tempo_core.signals and apps/android-signal must agree on every one.",
+  "signal": "rail_delay_notification",
+  "cases": [
+    {"sender": "GWR", "text": "Your 08:12 from Oxford to London Paddington is delayed by 34 minutes.",
+     "expected": {"service_time": "08:12", "origin": "Oxford", "destination": "London Paddington", "delay_minutes": "34"}},
+    {"sender": "Trainline", "text": "Delay alert: 17:42 London Paddington to Oxford is running late (12 mins)",
+     "expected": {"service_time": "17:42", "origin": "London Paddington", "destination": "Oxford", "delay_minutes": "12"}},
+    {"sender": "Chiltern Railways", "text": "The 0758 to Oxford has been cancelled.",
+     "expected": {"service_time": "07:58", "destination": "Oxford"}},
+    {"sender": "Evri", "text": "Your parcel is delayed by 2 days.", "expected": null},
+    {"sender": "GWR", "text": "Plan your autumn getaway with 25% off advance fares!", "expected": null},
+    {"sender": "Mum", "text": "Train delayed, I'll be 20 minutes late for dinner", "expected": null},
+    {"sender": "National Rail", "text": "Disruption between Reading and Oxford: expect delays.",
+     "expected": {}}
+  ]
+}
