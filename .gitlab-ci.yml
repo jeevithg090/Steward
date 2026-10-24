@@ -49,14 +49,13 @@ integration:
     POSTGRES_DB: tempo
     POSTGRES_USER: tempo
     POSTGRES_PASSWORD: tempo
-    DATABASE_URL: postgresql+asyncpg://tempo:tempo@postgres:5432/tempo
     TEST_DATABASE_URL: postgresql+asyncpg://tempo:tempo@postgres:5432/tempo
     NEO4J_AUTH: neo4j/tempo-ci-password
     NEO4J_URI: bolt://neo4j:7687
     NEO4J_USER: neo4j
     NEO4J_PASSWORD: tempo-ci-password
   script:
-    - if [ -f alembic.ini ]; then uv run alembic upgrade head; fi
+    - uv run alembic -x url="$TEST_DATABASE_URL" upgrade head   # the migrations apply cleanly
     # pytest exits 5 when no integration tests exist yet; that is not a failure.
     - rc=0; uv run pytest -m integration --junitxml=report.xml || rc=$?; [ "$rc" -eq 0 ] || [ "$rc" -eq 5 ]
   artifacts:

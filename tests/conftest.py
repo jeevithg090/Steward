@@ -22,3 +22,12 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
             continue
         if layer in _LAYER_MARKERS:
             item.add_marker(getattr(pytest.mark, layer))
+
+
+@pytest.fixture(autouse=True)
+def _no_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Tests never use DATABASE_URL: a Gateway built in a test is in memory unless the test
+    says otherwise, and database tests use TEST_DATABASE_URL (tests/integration/conftest.py).
+    Without this, an exported DATABASE_URL (CI sets one for migrations) would point every
+    Gateway test at one shared database, and each would see the others' rows."""
+    monkeypatch.delenv("DATABASE_URL", raising=False)
