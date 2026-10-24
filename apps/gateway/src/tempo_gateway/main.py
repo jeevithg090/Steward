@@ -19,7 +19,12 @@ from tempo_adapters.db import SqlRepo, make_engine
 from tempo_adapters.factory import NotConfigured, build_adapters, chat_client
 from tempo_adapters.rail import rail_port
 from tempo_adapters.settings import Settings
-from tempo_adapters.telemetry import configure_logging, configure_tracing, trace_url
+from tempo_adapters.telemetry import (
+    configure_logging,
+    configure_tracing,
+    quiet_server_logs,
+    trace_url,
+)
 from tempo_core.rules import RulePackRegistry
 from tempo_gateway.app import create_app
 from tempo_gateway.events import EventBus, PublishingRepo
@@ -100,6 +105,7 @@ def build(
 ) -> FastAPI:
     settings = settings or Settings()
     configure_logging()
+    quiet_server_logs()  # no query strings (tokens, user ids) in server logs
     configure_tracing(settings)  # exports to Langfuse when its keys are set
     service, bus, memory = build_services(settings)
     return create_app(
@@ -119,4 +125,4 @@ def build_mesh(settings: Settings) -> Mesh:
 
 
 def run() -> None:
-    uvicorn.run(build(scheduler_interval_s=30.0), host="127.0.0.1", port=8000)
+    uvicorn.run(build(scheduler_interval_s=30.0), host="127.0.0.1", port=8000, access_log=False)
