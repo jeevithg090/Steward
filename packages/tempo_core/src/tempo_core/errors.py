@@ -16,3 +16,7 @@ class IllegalTransition(TempoError):
         super().__init__(f"illegal mission transition {current} → {target}")
         self.current = current
         self.target = target
+
+
+class ConsentConflict(TempoError):
+    """Two active grants disagree about what kind of value a limit is; callers fail closed."""
