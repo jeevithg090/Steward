@@ -38,6 +38,7 @@ export interface MissionView {
   ask: ConsentAsk | null;
   outcome: { state: string; message: string; amount_gbp: string | null; reference: string | null } | null;
   timeline: TimelineEntry[];
+  trace_url: string | null;
 }
 
 export interface Health {

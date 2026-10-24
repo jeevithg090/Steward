@@ -10,6 +10,7 @@ from fastapi import FastAPI
 
 from tempo_adapters.rail import rail_port
 from tempo_adapters.settings import Settings
+from tempo_adapters.telemetry import configure_logging, configure_tracing, trace_url
 from tempo_core.rules import RulePackRegistry
 from tempo_gateway.app import create_app
 from tempo_gateway.events import EventBus, PublishingRepo
@@ -37,13 +38,21 @@ def build_service(settings: Settings) -> tuple[MissionService, EventBus]:
         clock=clock,
         payment_check_after=timedelta(seconds=settings.payment_check_after_s),
     )
-    return MissionService(deps, Path(settings.checkpoint_dir), bus), bus
+    service = MissionService(
+        deps,
+        Path(settings.checkpoint_dir),
+        bus,
+        trace_link=lambda trace_id: trace_url(settings, trace_id),
+    )
+    return service, bus
 
 
 def build(
     settings: Settings | None = None, *, scheduler_interval_s: float | None = None
 ) -> FastAPI:
     settings = settings or Settings()
+    configure_logging()
+    configure_tracing(settings)  # exports to Langfuse when its keys are set
     service, bus = build_service(settings)
     return create_app(service, settings, bus, scheduler_interval_s=scheduler_interval_s)
 
