@@ -83,7 +83,7 @@ known-first-party = [
 [tool.mypy]
 strict = true
 python_version = "3.12"
-packages = ["tempo_core", "tempo_harness", "tempo_memory"]
+packages = ["tempo_core", "tempo_harness", "tempo_memory", "tempo_crypto"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]

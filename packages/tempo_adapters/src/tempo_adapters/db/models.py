@@ -18,6 +18,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     MetaData,
     Numeric,
     String,
@@ -161,3 +162,24 @@ class RulePackRow(Base):
     citation_url: Mapped[str] = mapped_column(Text)
     demo_values: Mapped[bool] = mapped_column(Boolean)
     last_verified: Mapped[date | None] = mapped_column(Date)
+
+
+class VaultBlob(Base):
+    """Sealed data (XChaCha20-Poly1305): ciphertext only, bound to its person and mission."""
+
+    __tablename__ = "vault_blobs"
+
+    user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    mission_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    blob: Mapped[bytes] = mapped_column(LargeBinary)
+
+
+class VaultKey(Base):
+    """A mission's data key, wrapped by the person's key. Delete these and the blobs are dust."""
+
+    __tablename__ = "vault_keys"
+
+    user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    mission_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    wrapped: Mapped[bytes] = mapped_column(LargeBinary)
