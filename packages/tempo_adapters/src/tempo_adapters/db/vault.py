@@ -57,6 +57,11 @@ class SqlVaultStore:
         async with self.engine.connect() as conn:
             return {r.mission_id: r.wrapped for r in await conn.execute(stmt)}
 
+    async def sample(self, user_id: str) -> bytes | None:
+        stmt = sa.select(BLOBS.c.blob).where(BLOBS.c.user_id == user_id).limit(1)
+        async with self.engine.connect() as conn:
+            return (await conn.execute(stmt)).scalar_one_or_none()
+
     async def delete_keys(self, user_id: str) -> int:
         async with self.engine.begin() as conn:
             result = await conn.execute(KEYS.delete().where(KEYS.c.user_id == user_id))

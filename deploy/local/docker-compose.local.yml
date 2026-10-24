@@ -1,0 +1,52 @@
+# Tempo in Local mode (spec §18, build plan S8.7): the whole stack on this machine, with the
+# model on Ollama, and every port bound to localhost. Start with `make local`.
+name: tempo-local
+services:
+  postgres:
+    image: pgvector/pgvector:pg16@sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a
+    environment:
+      POSTGRES_DB: tempo
+      POSTGRES_USER: tempo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tempo-local-only}
+    ports: ["127.0.0.1:55433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tempo"]
+      interval: 5s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:0.40.2@sha256:b86366bb528bbf7f1424435d165028497a5b69bf6ddb4fa5a87102e2b79f44fb
+    ports: ["127.0.0.1:11434:11434"]
+    volumes: [ollama:/root/.ollama]
+
+  ollama-pull:  # one-shot: fetch the small tool-calling model, then exit
+    image: ollama/ollama:0.40.2@sha256:b86366bb528bbf7f1424435d165028497a5b69bf6ddb4fa5a87102e2b79f44fb
+    depends_on: [ollama]
+    environment: {OLLAMA_HOST: "http://ollama:11434"}
+    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-qwen3:8b}"]
+    restart: "no"
+
+  gateway:
+    # A released image by digest (TEMPO_GATEWAY_IMAGE, checked by install.sh), or a local build.
+    image: ${TEMPO_GATEWAY_IMAGE:-tempo-gateway:local}
+    build: {context: ../.., dockerfile: deploy/gateway.Dockerfile}
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      TEMPO_DEPLOY: local
+      TEMPO_MODE: ${TEMPO_MODE:-replay}
+      TEMPO_API_TOKEN: ${TEMPO_API_TOKEN:?set TEMPO_API_TOKEN}
+      DATABASE_URL: postgresql+asyncpg://tempo:${POSTGRES_PASSWORD:-tempo-local-only}@postgres:5432/tempo
+      OLLAMA_BASE_URL: http://ollama:11434/v1
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:8b}
+      WEB_ORIGINS: http://localhost:3000
+    ports: ["127.0.0.1:8000:8000"]
+    read_only: true
+    tmpfs: [/tmp]
+    volumes: [data:/data]
+
+volumes:
+  pgdata:
+  ollama:
+  data:

@@ -47,6 +47,12 @@ timeline are in place (demo mode only; her words still go through the Memory Gat
    the same 6-digit code. Approve on the phone with Face ID and the question disappears from the
    laptop at the same moment (about 0.1 s locally). Pushes carry no details, only "sync".
 
+7. **Prove it.** The Privacy Proof panel lists, each checked by the Gateway: the deployment
+   mode and any outside AI companies (none in Private mode), the running image against the
+   signed allowlist, which device holds the key, and what an operator sees of a stored row
+   (ciphertext). Say the gaps out loud: until the cosign key exists there is no signed
+   allowlist, and the panel says so.
+
 ## Failure drills (run each once, then keep them in the dry run)
 
 | Drill | Do | Expect |

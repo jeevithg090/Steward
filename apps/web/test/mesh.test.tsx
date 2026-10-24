@@ -148,6 +148,7 @@ test("with a passkey on this device, Mission Control answers through it", async 
   gateway.missions = async () => [waiting];
   gateway.ledger = async () => ({ minutes_returned: "0", hours_returned: "0", gbp_recovered: "0" });
   gateway.memories = async () => ({ memories: {}, timeline: [] });
+  gateway.privacy = async () => { throw new Error("not in this test"); };
   gateway.answer = async () => { throw new Error("must not use the unsigned path"); };
 
   render(<MissionControl gateway={gateway} mesh={mesh} />);

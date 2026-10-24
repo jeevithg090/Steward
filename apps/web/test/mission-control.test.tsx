@@ -34,6 +34,7 @@ test("Mission Control shows a waiting mission and sends the approval", async () 
   gateway.health = async () => ({ status: "ok", mode: "replay", demo: false, simulated: ["company", "rail data"] });
   gateway.missions = async () => [WAITING];
   gateway.ledger = async () => ({ minutes_returned: "20", hours_returned: "0.3", gbp_recovered: "14.20" });
+  gateway.privacy = async () => { throw new Error("not in this test"); };
   gateway.memories = async () => ({
     memories: { preference: [{ item: { ...PHONE_UPDATES }, earlier: [] }] },
     timeline: [],
