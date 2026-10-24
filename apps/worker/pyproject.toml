@@ -1,0 +1,18 @@
+[project]
+name = "tempo-worker"
+version = "0.1.0"
+description = "Tempo's ephemeral mission worker: proves its image, runs one step per released key"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+dependencies = [
+    "tempo-crypto",
+    "fastapi>=0.162",
+    "uvicorn>=0.54",
+]
+
+[project.scripts]
+tempo-worker = "tempo_worker.app:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14"]
+build-backend = "uv_build"
