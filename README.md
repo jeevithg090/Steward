@@ -73,6 +73,7 @@ flowchart LR
 | Voice agents (Tempo, Negotiator) as config-as-code, Sludge Arena (3 company agents, 10 scenarios) | ✅ (push with `make sync-voice`) |
 | Mission Control web app, Stall Radar, tracing to Langfuse | ✅ |
 | Scam Shield: Companies House, the FCA Register and Warning List, plus pressure signs; by SMS (`CHECK <message>`) or REST; never says "safe" | ✅ (recorded register answers until keys are in) |
+| Letter Explainer + Decision Challenger: a PIP decision explained against the points, its reconsideration deadline (gov.uk bank holidays) and a draft letter that adds no facts | ✅ (decision letters read by Gemini with keys; the REST route takes the read facts) |
 | Rule packs: GWR, Chiltern, Ofcom missed appointment, UK261 | ⚠️ demo values until checked against published terms |
 | Tempo Memory: Memory Gate, Mem0 or pgvector, a dated timeline (SQL, or Graphiti on Neo4j), recall and forget by voice, SMS and the Memory Card | ✅ (Graphiti needs Neo4j and Cortex keys) |
 | Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ (TLS and per-device keys; MLS end-to-end encryption is the roadmap) |

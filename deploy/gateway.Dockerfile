@@ -13,6 +13,8 @@ COPY --from=build /src/.venv /app/.venv
 COPY skills /app/skills
 COPY fixtures/rail/replay /app/fixtures/rail/replay
 COPY fixtures/court /app/fixtures/court
+COPY fixtures/govuk /app/fixtures/govuk
+COPY fixtures/scam /app/fixtures/scam
 COPY alembic.ini /app/alembic.ini
 COPY alembic /app/alembic
 WORKDIR /app

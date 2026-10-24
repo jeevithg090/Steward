@@ -8,6 +8,8 @@ evals
 fixtures
 !fixtures/rail/replay
 !fixtures/court
+!fixtures/govuk
+!fixtures/scam
 docs
 blueprints
 skill_forge
