@@ -17,6 +17,8 @@ const WAITING: MissionView = {
   ask: { request_id: "r1", summary: "Shall I claim £14.20 for you?", amount_gbp: "14.20", proof_trace: null },
   outcome: null,
   timeline: [{ to: "understood", at: "", latency_ms: 4 }],
+  trace_url: null,
+  court: null,
 };
 
 test("Mission Control shows a waiting mission and sends the approval", async () => {

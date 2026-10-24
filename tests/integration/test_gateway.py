@@ -78,7 +78,7 @@ def test_web_routes_need_the_bearer_token(gateway: TestClient) -> None:
         == 401
     )
     health = gateway.get("/health").json()
-    assert (health["mode"], health["simulated"]) == ("replay", ["company", "rail data"])
+    assert (health["mode"], health["simulated"]) == ("replay", ["company", "rail data", "jurors"])
     assert gateway.get("/missions").status_code == 401
     assert gateway.get("/ledger").status_code == 401
 
@@ -310,3 +310,20 @@ def test_cors_allows_mission_control_only(gateway: TestClient) -> None:
 
 def test_the_ledger_shows_pounds_to_the_penny_even_when_empty(gateway: TestClient) -> None:
     assert gateway.get("/ledger", headers=AUTH).json()["gbp_recovered"] == "0.00"
+
+
+def test_in_replay_the_consensus_court_sits_and_its_votes_are_shown(gateway: TestClient) -> None:
+    view = gateway.post("/missions", json=MISSION, headers=AUTH).json()
+
+    court = view["court"]
+    assert court["outcome"] == "proceed"
+    assert [v["juror"] for v in court["verdicts"]] == [
+        "claude-sonnet-5-5",
+        "openai-gpt-5-mini",
+        "llama4-maverick",
+    ]
+    assert (
+        view["ask"]["proof_trace"]["steps"][-1]["explanation"]
+        == "Consensus Court: 3/3 jurors agreed that this is eligible"
+    )
+    assert view["ask"]["amount_gbp"] == "14.20"  # the court never changes the amount

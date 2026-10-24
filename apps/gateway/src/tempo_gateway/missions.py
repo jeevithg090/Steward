@@ -10,16 +10,21 @@ import asyncio
 import json
 import uuid
 from collections import defaultdict
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+import structlog
+from opentelemetry import trace
 from pydantic import BaseModel, Field
 
+from tempo_adapters.telemetry import current_trace_id, mission_context
 from tempo_core.consent import ConsentEvent, ConsentKind
 from tempo_core.delays import LONDON
-from tempo_core.errors import TempoError
+from tempo_core.errors import MissionNotFound, TempoError
 from tempo_core.models import Mission, MissionState
 from tempo_core.state import advance, allowed_next
 from tempo_gateway.events import EventBus
@@ -37,6 +42,8 @@ from tempo_missions.clawback_rail import (
 )
 
 SKILL = "clawback.uk-rail-delay-repay"
+_tracer = trace.get_tracer("tempo.gateway")
+log = structlog.get_logger(__name__)
 BINDING_SCOPES = ("file_claim",)
 
 
@@ -61,6 +68,7 @@ class ConsentAsk(BaseModel):
     summary: str
     amount_gbp: str
     proof_trace: dict[str, Any] | None = None
+    court: dict[str, Any] | None = None  # the Consensus Court's votes, if it sat
 
 
 class MissionView(BaseModel):
@@ -70,11 +78,23 @@ class MissionView(BaseModel):
     ask: ConsentAsk | None = None
     outcome: dict[str, Any] | None = None
     timeline: list[dict[str, Any]] = []
+    trace_url: str | None = None  # the latest trace for this mission (Langfuse)
+    court: dict[str, Any] | None = None  # how the Consensus Court voted, if it sat
 
 
 class MissionService:
-    def __init__(self, deps: ClawbackDeps, checkpoints: Path, bus: EventBus) -> None:
+    def __init__(
+        self,
+        deps: ClawbackDeps,
+        checkpoints: Path,
+        bus: EventBus,
+        *,
+        trace_link: Callable[[str | None], str | None] = lambda _: None,
+    ) -> None:
         self.deps = deps
+        self._trace_link = trace_link
+        self._traces: dict[str, str | None] = {}
+        self._courts: dict[str, dict[str, Any]] = {}
         self._checkpoints = checkpoints
         self._bus = bus
         self._asks: dict[str, tuple[str, ConsentAsk]] = {}  # request id -> (mission, ask)
@@ -116,7 +136,8 @@ class MissionService:
             time_value_gbp_h=str(request.time_value_gbp_h),
         )
         async with self._locks[mission_id]:
-            self._remember(mission_id, await start(self._workflow(mission_id), claim))
+            with self._traced("start", mission_id):
+                self._remember(mission_id, await start(self._workflow(mission_id), claim))
         return await self.view(mission_id)
 
     async def answer(self, request_id: str, approval: SignedApproval) -> MissionView:
@@ -129,10 +150,9 @@ class MissionService:
                 return await self.view(mission_id)
             del self._asks[request_id]
             storage = checkpoint_storage(self._checkpoints / mission_id)
-            self._remember(
-                mission_id,
-                await resume(self._workflow(mission_id), storage, {request_id: approval}),
-            )
+            with self._traced("answer", mission_id):
+                result = await resume(self._workflow(mission_id), storage, {request_id: approval})
+            self._remember(mission_id, result)
         return await self.view(mission_id)
 
     async def stop(self, mission_id: str, *, device_sig: str) -> MissionView:
@@ -142,6 +162,7 @@ class MissionService:
             no = SignedApproval(approved=False, scopes=BINDING_SCOPES, device_sig=device_sig)
             return await self.answer(waiting[0], no)
         async with self._locks[mission_id]:
+            self._traces[mission_id] = None
             for request_id in [r for r, (m, _) in self._timers.items() if m == mission_id]:
                 del self._timers[request_id]
             for scope in BINDING_SCOPES:
@@ -187,9 +208,9 @@ class MissionService:
                     continue
                 storage = checkpoint_storage(self._checkpoints / mission_id)
                 answer = {request_id: TimerFired(at=now.astimezone(UTC).isoformat())}
-                self._remember(
-                    mission_id, await resume(self._workflow(mission_id), storage, answer)
-                )
+                with self._traced("timer", mission_id):
+                    result = await resume(self._workflow(mission_id), storage, answer)
+                self._remember(mission_id, result)
             fired.append(mission_id)
         return fired
 
@@ -202,19 +223,35 @@ class MissionService:
         waiting = []
         paused = (MissionState.AWAITING_CONSENT, MissionState.WAITING)
         for folder in sorted(p for p in self._checkpoints.glob("m_*") if p.is_dir()):
-            mission = await self.deps.repo.get_mission(folder.name)
+            try:
+                mission = await self.deps.repo.get_mission(folder.name)
+            except MissionNotFound:  # e.g. an in-memory store that didn't survive the restart
+                log.warning("checkpoint_without_mission", mission_id=folder.name)
+                continue
+            if mission.id not in self.mission_ids:
+                self.mission_ids.append(mission.id)  # list every mission the store still knows
             if mission.state not in paused:
                 continue
             async with self._locks[mission.id]:
                 storage = checkpoint_storage(folder)
-                self._remember(mission.id, await resume(self._workflow(mission.id), storage))
+                with self._traced("recover", mission.id):
+                    result = await resume(self._workflow(mission.id), storage)
+                self._remember(mission.id, result)
             waiting.append(mission.id)
-            if mission.id not in self.mission_ids:
-                self.mission_ids.append(mission.id)
         return waiting
 
     def remember_phone(self, mission_id: str, phone: str) -> None:
         self._by_phone[phone_hash(phone)].append(mission_id)
+
+    @contextmanager
+    def _traced(self, operation: str, mission_id: str) -> Iterator[None]:
+        """One trace per operation; the workflow's own spans nest inside it."""
+        with (
+            mission_context(mission_id),
+            _tracer.start_as_current_span(f"tempo.mission.{operation}"),
+        ):
+            self._traces[mission_id] = current_trace_id()
+            yield
 
     def missions_for_phone(self, phone: str) -> list[str]:
         return list(self._by_phone.get(phone_hash(phone), []))
@@ -236,6 +273,8 @@ class MissionService:
             local = wake.astimezone(LONDON).strftime("%-d %b at %H:%M")
             message = f"Claim filed. I'll check the payment has arrived on {local}."
         return MissionView(
+            trace_url=self._trace_link(self._traces.get(mission_id)),
+            court=self._courts.get(mission_id),
             id=mission_id,
             state=mission.state,
             message=message,
@@ -252,6 +291,9 @@ class MissionService:
     def _remember(self, mission_id: str, result: RunResult) -> None:
         for request_id, ask in result.pending:
             trace = json.loads(ask.proof_trace_json) if ask.proof_trace_json else None
+            court = json.loads(ask.court_json) if ask.court_json else None
+            if court is not None:
+                self._courts[mission_id] = court
             self._asks[request_id] = (
                 mission_id,
                 ConsentAsk(
@@ -259,6 +301,7 @@ class MissionService:
                     summary=ask.summary,
                     amount_gbp=ask.amount_gbp,
                     proof_trace=trace,
+                    court=court,
                 ),
             )
             self._bus.publish(

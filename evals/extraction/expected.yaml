@@ -1,0 +1,165 @@
+# Synthetic extraction eval set (S6.1). Built by scripts/make_extraction_set.py.
+- file: ticket_01.png
+  kind: ticket
+  facts:
+    origin: Oxford
+    destination: London Paddington
+    travel_date: '2026-10-23'
+    departure_time: 08:12
+    fare_gbp: '28.40'
+    ticket_type: Off-Peak Day Single
+- file: ticket_02.png
+  kind: ticket
+  facts:
+    origin: Reading
+    destination: Oxford
+    travel_date: '2026-10-21'
+    departure_time: '17:42'
+    fare_gbp: '14.10'
+    ticket_type: Anytime Day Single
+- file: ticket_03.png
+  kind: ticket
+  facts:
+    origin: London Marylebone
+    destination: Oxford
+    travel_date: '2026-10-19'
+    departure_time: '19:05'
+    fare_gbp: '32.00'
+    ticket_type: Off-Peak Return
+- file: ticket_04.png
+  kind: ticket
+  facts:
+    origin: Bristol Temple Meads
+    destination: London Paddington
+    travel_date: '2026-10-18'
+    departure_time: 07:30
+    fare_gbp: '68.90'
+    ticket_type: Anytime Single
+- file: ticket_05.png
+  kind: ticket
+  facts:
+    origin: Didcot Parkway
+    destination: Swindon
+    travel_date: '2026-10-17'
+    departure_time: '12:16'
+    fare_gbp: '9.80'
+    ticket_type: Off-Peak Day Return
+- file: ticket_06.png
+  kind: ticket
+  facts:
+    origin: Banbury
+    destination: Birmingham Moor Street
+    travel_date: '2026-10-16'
+    departure_time: 09:48
+    fare_gbp: '12.60'
+    ticket_type: Super Off-Peak Single
+- file: ticket_07.png
+  kind: ticket
+  facts:
+    origin: Oxford
+    destination: Bicester Village
+    travel_date: '2026-10-15'
+    departure_time: '10:01'
+    fare_gbp: '6.20'
+    ticket_type: Off-Peak Day Single
+- file: ticket_08.png
+  kind: ticket
+  facts:
+    origin: London Paddington
+    destination: Cardiff Central
+    travel_date: '2026-10-14'
+    departure_time: '18:15'
+    fare_gbp: '45.50'
+    ticket_type: Advance Single
+- file: ticket_09.png
+  kind: ticket
+  facts:
+    origin: Slough
+    destination: London Paddington
+    travel_date: '2026-10-13'
+    departure_time: 08:41
+    fare_gbp: '11.30'
+    ticket_type: Anytime Day Return
+- file: ticket_10.png
+  kind: ticket
+  facts:
+    origin: Oxford
+    destination: Manchester Piccadilly
+    travel_date: '2026-10-12'
+    departure_time: 06:58
+    fare_gbp: '54.00'
+    ticket_type: Advance Single
+- file: ticket_11.png
+  kind: ticket
+  facts:
+    origin: Exeter St Davids
+    destination: Plymouth
+    travel_date: '2026-10-11'
+    departure_time: '14:22'
+    fare_gbp: '10.40'
+    ticket_type: Off-Peak Single
+- file: ticket_12.png
+  kind: ticket
+  facts:
+    origin: Cheltenham Spa
+    destination: Oxford
+    travel_date: '2026-10-10'
+    departure_time: '16:35'
+    fare_gbp: '24.70'
+    ticket_type: Off-Peak Day Return
+- file: letter_01.png
+  kind: letter
+  facts:
+    sender: Oxford City Council
+    reference: CTR-48213
+    deadline: '2026-11-21'
+    amount_gbp: '126.50'
+- file: letter_02.png
+  kind: letter
+  facts:
+    sender: HM Revenue and Customs
+    reference: HMRC-7Q2X9
+    deadline: '2026-12-05'
+    amount_gbp: '312.00'
+- file: letter_03.png
+  kind: letter
+  facts:
+    sender: Thames Water
+    reference: TW-559104
+    deadline: '2026-11-14'
+    amount_gbp: '88.25'
+- file: letter_04.png
+  kind: letter
+  facts:
+    sender: Openreach
+    reference: OR-30018
+    deadline: '2026-11-02'
+    amount_gbp: '32.31'
+- file: letter_05.png
+  kind: letter
+  facts:
+    sender: DVLA
+    reference: DV-882651
+    deadline: '2026-11-30'
+    amount_gbp: '55.00'
+- file: letter_06.png
+  kind: letter
+  facts:
+    sender: Department for Work and Pensions
+    reference: DWP-PIP-4471
+    deadline: '2026-11-24'
+    amount_gbp: '0.00'
+- file: letter_07.png
+  kind: letter
+  facts:
+    sender: British Gas
+    reference: BG-9920-17
+    deadline: '2026-11-09'
+    amount_gbp: '41.80'
+- file: letter_08.png
+  kind: letter
+  facts:
+    sender: Royal Mail
+    reference: RM-AB123456
+    deadline: '2026-11-03'
+    amount_gbp: '3.50'

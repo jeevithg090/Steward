@@ -156,3 +156,25 @@ async def test_stop_while_waiting_cancels_the_timer(tmp_path: Path) -> None:
 
     assert stopped.state.value == "failed_safe"
     assert await svc.tick() == []
+
+
+async def test_recover_skips_checkpoints_whose_mission_was_lost(tmp_path: Path) -> None:
+    clock = Clock(datetime(2026, 10, 24, 9, 0, tzinfo=UTC))
+    await approved(service(tmp_path, clock))
+
+    fresh_store = service(tmp_path, clock)  # an in-memory store after a restart: empty
+
+    assert await fresh_store.recover() == []
+
+
+async def test_recover_lists_finished_missions_too(tmp_path: Path) -> None:
+    clock = Clock(datetime(2026, 10, 24, 9, 0, tzinfo=UTC))
+    repo, claims = InMemoryRepo(), SimulatedClaims(clock=clock)
+    first = service(tmp_path, clock, repo=repo, claims=claims, check_after=timedelta(0))
+    mission_id = await approved(first)
+    await first.tick()
+
+    restarted = service(tmp_path, clock, repo=repo, claims=claims)
+
+    assert await restarted.recover() == []  # nothing is waiting
+    assert restarted.mission_ids == [mission_id]  # but the finished mission is still listed

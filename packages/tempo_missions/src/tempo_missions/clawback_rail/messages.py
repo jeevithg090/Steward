@@ -32,6 +32,7 @@ class RailCase:
     explanation: str = ""  # the Arbiter's reasoning, in plain words
     user_minutes_saved: str = "0"
     court_note: str | None = None
+    court_json: str | None = None  # the Consensus Court's decision, for the person to see
     receipt_json: str | None = None
     paid_amount_gbp: str | None = None  # set once the watchdog sees the money arrive
     payment_checks: int = 0
@@ -65,6 +66,7 @@ class ConsentRequest:
     amount_gbp: str
     scopes: tuple[str, ...]
     proof_trace_json: str = ""  # the working behind the amount, shown before the person decides
+    court_json: str = ""  # how the three jurors voted, if the court sat
 
 
 @dataclass(frozen=True)

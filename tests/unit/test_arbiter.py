@@ -130,3 +130,14 @@ def test_the_choice_does_not_depend_on_input_order(
     assert choose_action(shuffled, time_value_gbp_h=V18) == choose_action(
         options, time_value_gbp_h=V18
     )
+
+
+def test_a_decline_that_would_cost_money_says_so_plainly() -> None:
+    tiny = option(amount_gbp=Decimal("0.40"), user_minutes=Decimal("5"))
+
+    decision = choose_action([tiny], time_value_gbp_h=V18)
+
+    assert decision.explanation == (
+        "Not worth your time: the best way (Claim online for you) would pay £0.40 but needs "
+        "5 min of your time (about £18.00 an hour), so you'd be £1.16 worse off."
+    )

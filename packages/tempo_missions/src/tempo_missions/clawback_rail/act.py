@@ -38,6 +38,7 @@ class Consent(_Step):
                 amount_gbp=str(case.trace.amount_gbp),
                 scopes=("file_claim",),
                 proof_trace_json=case.trace.model_dump_json(),
+                court_json=case.court_json or "",
             ),
             response_type=SignedApproval,
         )

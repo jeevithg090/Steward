@@ -106,9 +106,9 @@ export function MissionControl({ gateway: injected }: { gateway?: Gateway }) {
               )}
               {mission.ask?.proof_trace && <ProofTrace trace={mission.ask.proof_trace} />}
               <AgentCards state={mission.state} reached={mission.timeline.map((t) => t.to)} />
-              <ConsensusGavels jurors={null} />
+              <ConsensusGavels court={mission.court} />
               <MissionTimeline mission={mission} />
-              <TraceLink url={null} />
+              <TraceLink url={mission.trace_url} />
               {!["declined", "failed_safe", "verified"].includes(mission.state) && (
                 <button type="button" disabled={busy} onClick={() => act(() => gateway.stop(mission.id))} className="text-sm font-semibold text-rose-800 underline">
                   Stop this mission
