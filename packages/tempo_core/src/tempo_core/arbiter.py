@@ -122,10 +122,15 @@ def _choice_text(o: ActionOption, ev: Decimal, time_value: Decimal) -> str:
 
 
 def _decline_text(o: ActionOption, ev: Decimal, time_value: Decimal) -> str:
+    worth = (
+        f"so you'd be £{_gbp(-ev)} worse off"
+        if ev < 0
+        else f"so it's only worth £{_gbp(ev)} to you"
+    )
     return (
-        f"Not worth your time: the best option, {o.label.lower()}, would pay "
-        f"£{_gbp(o.amount_gbp)} but needs {_minutes(o.user_minutes)} of your time "
-        f"(about £{_gbp(time_value)} an hour), so it's worth £{_gbp(ev)} to you."
+        f"Not worth your time: the best way ({o.label}) would pay £{_gbp(o.amount_gbp)} but "
+        f"needs {_minutes(o.user_minutes)} of your time (about £{_gbp(time_value)} an hour), "
+        f"{worth}."
     )
 
 

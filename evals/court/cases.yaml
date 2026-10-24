@@ -1,0 +1,94 @@
+# Consensus Court eval (S6.1): eligibility questions that need interpretation.
+# Pass bars: agreement >= 80%; never wrong when the three jurors are unanimous.
+# Expected answers follow the published scheme rules and well-known UK261 case law; a team member
+# should re-check them before quoting the results.
+- id: dr-clear-38
+  rule_id: uk-rail.gwr.delay-repay
+  rule_text: "Delay Repay: if your train arrives 15 minutes or more late, you can claim compensation."
+  facts: { arrival_delay_min: 38, ticket: "Off-Peak Day Single" }
+  question: "Is this journey covered by Delay Repay?"
+  expected_eligible: true
+- id: dr-below-threshold
+  rule_id: uk-rail.gwr.delay-repay
+  rule_text: "Delay Repay: if your train arrives 15 minutes or more late, you can claim compensation."
+  facts: { arrival_delay_min: 9 }
+  question: "Is this journey covered by Delay Repay?"
+  expected_eligible: false
+- id: dr-cancelled-next-train
+  rule_id: uk-rail.gwr.delay-repay
+  rule_text: "Delay Repay: if your train is cancelled, or arrives 15 minutes or more late, you can claim. A cancelled train counts by how late you reached your destination."
+  facts: { scheduled_service: cancelled, arrived_on_next_train_min_late: 55 }
+  question: "Is this journey covered by Delay Repay?"
+  expected_eligible: true
+- id: dr-weather-still-pays
+  rule_id: uk-rail.gwr.delay-repay
+  rule_text: "Delay Repay applies whatever the cause of the delay, including weather and incidents outside our control."
+  facts: { arrival_delay_min: 31, cause: "flooding near Didcot" }
+  question: "Does the cause stop this claim?"
+  expected_eligible: true
+- id: uk261-technical-fault
+  rule_id: uk261.delay
+  rule_text: "Compensation is not payable if the delay was caused by extraordinary circumstances which could not have been avoided even if all reasonable measures had been taken."
+  facts: { arrival_delay_min: 245, airline_reason: "unexpected technical fault with the aircraft" }
+  question: "Is the passenger owed compensation, or were these extraordinary circumstances?"
+  expected_eligible: true
+- id: uk261-storm
+  rule_id: uk261.delay
+  rule_text: "Compensation is not payable if the delay was caused by extraordinary circumstances which could not have been avoided even if all reasonable measures had been taken."
+  facts: { arrival_delay_min: 300, airline_reason: "severe storm closed the destination airport" }
+  question: "Is the passenger owed compensation, or were these extraordinary circumstances?"
+  expected_eligible: false
+- id: uk261-atc-strike
+  rule_id: uk261.delay
+  rule_text: "Compensation is not payable if the delay was caused by extraordinary circumstances which could not have been avoided even if all reasonable measures had been taken."
+  facts: { arrival_delay_min: 210, airline_reason: "air traffic control strike in France" }
+  question: "Is the passenger owed compensation, or were these extraordinary circumstances?"
+  expected_eligible: false
+- id: uk261-own-staff-strike
+  rule_id: uk261.delay
+  rule_text: "Compensation is not payable if the delay was caused by extraordinary circumstances which could not have been avoided even if all reasonable measures had been taken."
+  facts: { arrival_delay_min: 260, airline_reason: "strike by the airline's own pilots" }
+  question: "Is the passenger owed compensation, or were these extraordinary circumstances?"
+  expected_eligible: true
+- id: uk261-crew-sickness
+  rule_id: uk261.delay
+  rule_text: "Compensation is not payable if the delay was caused by extraordinary circumstances which could not have been avoided even if all reasonable measures had been taken."
+  facts: { arrival_delay_min: 200, airline_reason: "crew member called in sick" }
+  question: "Is the passenger owed compensation, or were these extraordinary circumstances?"
+  expected_eligible: true
+- id: uk261-bird-strike
+  rule_id: uk261.delay
+  rule_text: "Compensation is not payable if the delay was caused by extraordinary circumstances which could not have been avoided even if all reasonable measures had been taken."
+  facts: { arrival_delay_min: 240, airline_reason: "bird strike on landing at the departure airport" }
+  question: "Is the passenger owed compensation, or were these extraordinary circumstances?"
+  expected_eligible: false
+- id: uk261-security-alert
+  rule_id: uk261.delay
+  rule_text: "Compensation is not payable if the delay was caused by extraordinary circumstances which could not have been avoided even if all reasonable measures had been taken."
+  facts: { arrival_delay_min: 220, airline_reason: "airport closed by a police security alert" }
+  question: "Is the passenger owed compensation, or were these extraordinary circumstances?"
+  expected_eligible: false
+- id: uk261-knock-on-fault
+  rule_id: uk261.delay
+  rule_text: "Compensation is not payable if the delay was caused by extraordinary circumstances which could not have been avoided even if all reasonable measures had been taken."
+  facts: { arrival_delay_min: 230, airline_reason: "late inbound aircraft after an earlier technical problem" }
+  question: "Is the passenger owed compensation, or were these extraordinary circumstances?"
+  expected_eligible: true
+- id: ofcom-no-show
+  rule_id: ofcom.missed-appointment
+  rule_text: "If an engineer misses an appointment, or it is cancelled with less than 24 hours' notice, you get automatic compensation."
+  facts: { engineer_arrived: false, notice_hours: 0 }
+  question: "Is the customer owed missed-appointment compensation?"
+  expected_eligible: true
+- id: ofcom-customer-cancelled
+  rule_id: ofcom.missed-appointment
+  rule_text: "If an engineer misses an appointment, or it is cancelled with less than 24 hours' notice, you get automatic compensation. It does not apply if you cancelled or were not home."
+  facts: { cancelled_by: customer, notice_hours: 3 }
+  question: "Is the customer owed missed-appointment compensation?"
+  expected_eligible: false
+- id: ofcom-two-days-notice
+  rule_id: ofcom.missed-appointment
+  rule_text: "If an engineer misses an appointment, or it is cancelled with less than 24 hours' notice, you get automatic compensation."
+  facts: { cancelled_by: provider, notice_hours: 48 }
+  question: "Is the customer owed missed-appointment compensation?"
+  expected_eligible: false
