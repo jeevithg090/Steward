@@ -45,6 +45,7 @@ dev = [
     "respx>=0.22",
     "ruff>=0.14",
     "syrupy>=5.0",
+    "testcontainers[postgres]>=4.10",
     "types-PyYAML>=6.0",
 ]
 

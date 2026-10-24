@@ -9,9 +9,11 @@ dependencies = [
     "tempo-ports",
     "agent-framework-core>=1.23",
     "agent-framework-openai>=1.17",
+    "alembic>=1.16",
     "asyncpg>=0.30",
     "httpx>=0.28",
     "pydantic-settings>=2.11",
+    "sqlalchemy[asyncio]>=2.0.40",
     "structlog>=25.4",
 ]
 

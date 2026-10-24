@@ -40,3 +40,11 @@ class RailDataUnavailable(TempoError):
 
 class VisionUnavailable(TempoError):
     """The vision model could not read the document; Tempo asks the person instead."""
+
+
+class StaleMission(TempoError):
+    """A transition was based on a state the mission is no longer in (a race or a replay)."""
+
+
+class MissionNotFound(TempoError):
+    """No mission has this id."""
