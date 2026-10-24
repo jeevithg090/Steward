@@ -1,0 +1,21 @@
+{
+  "systemStatus": { "rttCore": "OK" },
+  "service": {
+    "scheduleMetadata": {
+      "uniqueIdentity": "gb-nr:X00002:2026-10-23",
+      "identity": "X00002",
+      "departureDate": "2026-10-23",
+      "operator": { "code": "GW", "name": "Great Western Railway" }
+    },
+    "locations": [
+      {
+        "location": { "description": "Oxford", "shortCodes": ["OXF"] },
+        "temporalData": { "departure": { "scheduleAdvertised": "2026-10-23T17:42:00+01:00" }, "displayAs": "CANCELLED" }
+      },
+      {
+        "location": { "description": "London Paddington", "shortCodes": ["PAD"] },
+        "temporalData": { "arrival": { "scheduleAdvertised": "2026-10-23T18:40:00+01:00" }, "displayAs": "CANCELLED" }
+      }
+    ]
+  }
+}

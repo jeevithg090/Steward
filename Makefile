@@ -29,7 +29,7 @@ fmt: ## Auto-fix lint and formatting
 	uv run ruff check --fix .
 	uv run ruff format .
 
-test-int: ## Integration tests (Postgres, Neo4j)
+test-int: ## Integration tests (Postgres via TEST_DATABASE_URL or Docker)
 	$(call pytest_marker,integration)
 
 e2e: ## Playwright end-to-end tests

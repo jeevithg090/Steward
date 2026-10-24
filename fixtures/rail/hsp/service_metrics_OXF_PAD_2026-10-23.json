@@ -1,0 +1,58 @@
+{
+  "header": {
+    "from_location": "OXF",
+    "to_location": "PAD"
+  },
+  "Services": [
+    {
+      "serviceAttributesMetrics": {
+        "origin_location": "OXF",
+        "destination_location": "PAD",
+        "gbtt_ptd": "0812",
+        "gbtt_pta": "0850",
+        "toc_code": "GW",
+        "matched_services": "1",
+        "rids": [
+          "202610230000001"
+        ]
+      },
+      "Metrics": [
+        {
+          "tolerance_value": "15",
+          "num_not_tolerance": "1",
+          "num_tolerance": "0",
+          "percent_tolerance": "0",
+          "global_tolerance": true
+        }
+      ]
+    },
+    {
+      "serviceAttributesMetrics": {
+        "origin_location": "OXF",
+        "destination_location": "PAD",
+        "gbtt_ptd": "0840",
+        "gbtt_pta": "0939",
+        "toc_code": "GW",
+        "matched_services": "1",
+        "rids": [
+          "202610230000009"
+        ]
+      },
+      "Metrics": []
+    },
+    {
+      "serviceAttributesMetrics": {
+        "origin_location": "OXF",
+        "destination_location": "PAD",
+        "gbtt_ptd": "1742",
+        "gbtt_pta": "1840",
+        "toc_code": "GW",
+        "matched_services": "1",
+        "rids": [
+          "202610230000002"
+        ]
+      },
+      "Metrics": []
+    }
+  ]
+}

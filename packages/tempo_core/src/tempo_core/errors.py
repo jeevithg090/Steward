@@ -20,3 +20,31 @@ class IllegalTransition(TempoError):
 
 class ConsentConflict(TempoError):
     """Two active grants disagree about what kind of value a limit is; callers fail closed."""
+
+
+class ModelAuthExpired(TempoError):
+    """The model provider rejected our token even after one refresh; a person must rotate it."""
+
+
+class ModelOutputInvalid(TempoError):
+    """The model's structured output was still invalid after one repair attempt."""
+
+
+class ServiceNotFound(TempoError):
+    """No train matches the journey asked about (wrong station, date or time)."""
+
+
+class RailDataUnavailable(TempoError):
+    """Every rail data source failed; the mission waits and retries or falls back to replay."""
+
+
+class VisionUnavailable(TempoError):
+    """The vision model could not read the document; Tempo asks the person instead."""
+
+
+class StaleMission(TempoError):
+    """A transition was based on a state the mission is no longer in (a race or a replay)."""
+
+
+class MissionNotFound(TempoError):
+    """No mission has this id."""

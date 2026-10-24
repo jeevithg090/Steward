@@ -6,7 +6,7 @@ from decimal import Decimal
 from enum import StrEnum
 from typing import Annotated, Any
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, PlainSerializer
+from pydantic import AwareDatetime, BaseModel, BeforeValidator, ConfigDict, Field, PlainSerializer
 
 
 def _tag_decimal(value: str | int | Decimal) -> str | int | dict[str, str]:
@@ -94,3 +94,16 @@ class ContextCapsule(BaseModel):
     proof_trace_id: str | None = None
     consent_scopes: tuple[str, ...] = ()
     do_not: tuple[str, ...] = ()
+
+
+class Mission(BaseModel):
+    """A person's goal in plain words and where it is in its lifecycle."""
+
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    user_id: str
+    skill_id: str  # "clawback.uk-rail-delay-repay"
+    goal: str
+    state: MissionState = MissionState.RECEIVED
+    entered_state_at: AwareDatetime  # when it entered `state`, for per-stage timings

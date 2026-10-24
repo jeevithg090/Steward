@@ -4,7 +4,18 @@ version = "0.1.0"
 description = "Tempo adapters: one file per vendor, each behind a port"
 license = "Apache-2.0"
 requires-python = ">=3.12"
-dependencies = ["tempo-core", "tempo-ports", "asyncpg>=0.30", "httpx>=0.28", "pydantic-settings>=2.11"]
+dependencies = [
+    "tempo-core",
+    "tempo-ports",
+    "agent-framework-core>=1.23",
+    "agent-framework-openai>=1.17",
+    "alembic>=1.16",
+    "asyncpg>=0.30",
+    "httpx>=0.28",
+    "pydantic-settings>=2.11",
+    "sqlalchemy[asyncio]>=2.0.40",
+    "structlog>=25.4",
+]
 
 [build-system]
 requires = ["uv_build>=0.13.1,<0.14"]

@@ -1,0 +1,21 @@
+"""Vision port: a photo of a ticket, letter or bill in, sourced facts out."""
+
+from __future__ import annotations
+
+from enum import StrEnum
+from typing import Protocol
+
+from tempo_core.models import Fact
+
+
+class DocumentKind(StrEnum):
+    TICKET = "ticket"
+    LETTER = "letter"
+
+
+class VisionPort(Protocol):
+    async def extract(
+        self, image: bytes, *, mime_type: str, kind: DocumentKind, filename: str
+    ) -> tuple[Fact, ...]:
+        """Every fact carries a source ("<filename>#vision") and a confidence from 0 to 1."""
+        ...

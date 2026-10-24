@@ -1,4 +1,5 @@
-# Hooks run the same tool versions as `uv.lock` (local hooks via `uv run`).
+# Local hooks use the tools installed by `make setup` (`uv run --no-sync`): a hook never changes
+# the lockfile or the environment.
 # gitleaks must be installed on your machine: `brew install gitleaks`.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -20,23 +21,23 @@ repos:
         pass_filenames: false
       - id: ruff
         name: ruff (lint)
-        entry: uv run ruff check --fix
+        entry: uv run --no-sync ruff check --fix
         language: system
         types_or: [python, pyi]
       - id: ruff-format
         name: ruff (format)
-        entry: uv run ruff format
+        entry: uv run --no-sync ruff format
         language: system
         types_or: [python, pyi]
       - id: mypy
         name: mypy (strict on core and harness)
-        entry: uv run mypy
+        entry: uv run --no-sync mypy
         language: system
         pass_filenames: false
         files: ^packages/(tempo_core|tempo_harness)/
       - id: pytest-fast
         name: pytest (unit, contract, policy)
-        entry: uv run pytest -m "unit or contract or policy" -x
+        entry: uv run --no-sync pytest -m "unit or contract or policy" -x
         language: system
         pass_filenames: false
         types: [python]

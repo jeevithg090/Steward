@@ -1,0 +1,33 @@
+{
+  "systemStatus": { "rttCore": "OK" },
+  "query": { "location": { "description": "Oxford", "shortCodes": ["OXF"] } },
+  "services": [
+    {
+      "scheduleMetadata": {
+        "uniqueIdentity": "gb-nr:X00001:2026-10-23",
+        "namespace": "gb-nr",
+        "identity": "X00001",
+        "departureDate": "2026-10-23",
+        "operator": { "code": "GW", "name": "Great Western Railway" },
+        "trainReportingIdentity": "1P00"
+      },
+      "temporalData": {
+        "departure": { "scheduleAdvertised": "2026-10-23T08:12:00+01:00", "realtimeActual": "2026-10-23T08:15:00+01:00" },
+        "displayAs": "CALL"
+      }
+    },
+    {
+      "scheduleMetadata": {
+        "uniqueIdentity": "gb-nr:X00009:2026-10-23",
+        "namespace": "gb-nr",
+        "identity": "X00009",
+        "departureDate": "2026-10-23",
+        "operator": { "code": "GW", "name": "Great Western Railway" }
+      },
+      "temporalData": {
+        "departure": { "scheduleAdvertised": "2026-10-23T08:20:00+01:00" },
+        "displayAs": "CALL"
+      }
+    }
+  ]
+}

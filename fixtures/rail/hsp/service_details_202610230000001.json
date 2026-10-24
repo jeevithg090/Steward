@@ -1,0 +1,12 @@
+{
+  "serviceAttributesDetails": {
+    "date_of_service": "2026-10-23",
+    "toc_code": "GW",
+    "rid": "202610230000001",
+    "locations": [
+      { "location": "OXF", "gbtt_ptd": "0812", "gbtt_pta": "", "actual_td": "0815", "actual_ta": "", "late_canc_reason": "" },
+      { "location": "RDG", "gbtt_ptd": "0834", "gbtt_pta": "0833", "actual_td": "0906", "actual_ta": "0904", "late_canc_reason": "IA" },
+      { "location": "PAD", "gbtt_ptd": "", "gbtt_pta": "0850", "actual_td": "", "actual_ta": "0928", "late_canc_reason": "IA" }
+    ]
+  }
+}
