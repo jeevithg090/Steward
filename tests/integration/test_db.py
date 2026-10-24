@@ -8,7 +8,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import command
-from tempo_adapters.db import SqlRepo
+from tempo_adapters.db import SqlRepo, make_engine
 from tempo_core.consent import ConsentEvent, ConsentKind, effective_consent
 from tempo_core.errors import MissionNotFound, StaleMission
 from tempo_core.ledger import LedgerEntry
@@ -210,3 +210,17 @@ async def test_ledger_entries_read_back(repo: SqlRepo) -> None:
 
     assert await repo.ledger_entries("u_1") == [entry]
     assert await repo.ledger_entries("someone_else") == []
+
+
+async def test_a_provider_style_url_connects(database_url: str) -> None:
+    """The form Tiger Data and Neon hand out (postgres://...?sslmode=...) works as pasted."""
+    pasted = database_url.replace("postgresql+asyncpg://", "postgres://", 1)
+    pasted += (
+        "&" if "?" in pasted else "?"
+    ) + "sslmode=disable"  # the CI and local servers have no TLS
+    engine = make_engine(pasted)
+    try:
+        async with engine.connect() as conn:
+            assert (await conn.execute(text("SELECT 1"))).scalar_one() == 1
+    finally:
+        await engine.dispose()

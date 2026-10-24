@@ -8,9 +8,10 @@ one at a time as their keys arrive (`make doctor` shows which are ready).
 ```bash
 make setup                         # once
 make demo-rehearsal                # three dry runs; all must pass
-createdb tempo_demo                # or any Postgres; Docker: docker compose up -d postgres
-export DATABASE_URL=postgresql+asyncpg://<user>@localhost:5432/tempo_demo
-make db-migrate
+createdb tempo_demo                # or Tiger Data / any Postgres with pgvector
+echo 'DATABASE_URL=postgresql+asyncpg://<user>@localhost:5432/tempo_demo' >> .env   # or the provider's postgres://...?sslmode=require
+make db-migrate                    # reads DATABASE_URL from .env
+make doctor                        # Postgres: SELECT 1, pgvector available
 ```
 
 Start the Gateway and Mission Control in two terminals:

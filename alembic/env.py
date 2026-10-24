@@ -5,10 +5,12 @@ import os
 from logging.config import fileConfig
 
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
+from tempo_adapters.db import make_engine
 from tempo_adapters.db.models import Base
+from tempo_adapters.db.urls import asyncpg_url
+from tempo_adapters.settings import Settings
 from tempo_memory.fallback_sql import metadata as memory_metadata
 from tempo_memory.temporal_sql import temporal_facts  # noqa: F401  (registers its tables)
 
@@ -24,10 +26,17 @@ def _url() -> str:
         context.get_x_argument(as_dictionary=True).get("url")
         or config.get_main_option("sqlalchemy.url")
         or os.environ.get("DATABASE_URL")
+        or _from_dotenv()
     )
     if not url:
-        raise RuntimeError("set DATABASE_URL (or pass -x url=...) to run migrations")
+        raise RuntimeError("set DATABASE_URL in .env (or pass -x url=...) to run migrations")
     return url
+
+
+def _from_dotenv() -> str | None:
+    """The same .env the Gateway reads, so `make db-migrate` needs nothing exported."""
+    secret = Settings().database_url
+    return secret.get_secret_value() if secret is not None else None
 
 
 def _run(connection: Connection) -> None:
@@ -37,14 +46,16 @@ def _run(connection: Connection) -> None:
 
 
 async def _run_async() -> None:
-    engine = create_async_engine(_url())
+    engine = make_engine(_url())
     async with engine.connect() as connection:
         await connection.run_sync(_run)
     await engine.dispose()
 
 
 if context.is_offline_mode():
-    context.configure(url=_url(), target_metadata=target_metadata, literal_binds=True)
+    context.configure(
+        url=asyncpg_url(_url())[0], target_metadata=target_metadata, literal_binds=True
+    )
     with context.begin_transaction():
         context.run_migrations()
 else:

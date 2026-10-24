@@ -16,6 +16,7 @@ from zoneinfo import ZoneInfo
 import httpx
 from pydantic import SecretStr
 
+from tempo_adapters.db.urls import libpq_url
 from tempo_adapters.settings import Settings
 
 LONDON = ZoneInfo("Europe/London")
@@ -189,7 +190,7 @@ async def probe_langfuse(s: Settings, http: httpx.AsyncClient) -> Outcome:
 async def probe_postgres(s: Settings, http: httpx.AsyncClient) -> Outcome:
     import asyncpg  # type: ignore[import-untyped]
 
-    dsn = _secret(s.database_url).replace("postgresql+asyncpg://", "postgresql://", 1)
+    dsn = libpq_url(_secret(s.database_url))
     start = time.perf_counter()
     conn = await asyncpg.connect(dsn, timeout=5)
     try:

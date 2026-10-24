@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
@@ -56,7 +57,7 @@ def mem0_config(
     dims, embedder_config = _embedder(embedder, embedder_api_key)
     store: dict[str, Any] = {"collection_name": collection, "embedding_model_dims": dims}
     if database_url is not None:  # pgvector on our Postgres (psycopg 3 URL)
-        url = database_url.replace("postgresql+asyncpg://", "postgresql://")
+        url = psycopg_url(database_url)
         vector_store = {"provider": "pgvector", "config": store | {"connection_string": url}}
     else:  # embedded Qdrant on disk: no server
         qdrant = {"path": str(data_dir / "qdrant"), "on_disk": True}
@@ -73,6 +74,14 @@ def mem0_config(
         "history_db_path": str(data_dir / "history.db"),
         "version": "v1.1",
     }
+
+
+def psycopg_url(database_url: str) -> str:
+    """psycopg wants postgresql:// and sslmode (the same rule as tempo_adapters.db.urls)."""
+    for scheme in ("postgresql+asyncpg://", "postgresql+psycopg://", "postgres://"):
+        if database_url.startswith(scheme):
+            database_url = "postgresql://" + database_url[len(scheme) :]
+    return re.sub(r"([?&])ssl=", r"\1sslmode=", database_url)
 
 
 def _embedder(kind: Embedder, api_key: str | None) -> tuple[int, dict[str, Any]]:

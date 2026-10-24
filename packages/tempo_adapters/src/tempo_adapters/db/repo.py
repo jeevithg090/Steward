@@ -10,6 +10,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
 from tempo_adapters.db.models import CaseEvent, ConsentRow, MissionRow, TimeLedgerRow, User
+from tempo_adapters.db.urls import asyncpg_url
 from tempo_core.consent import ConsentEvent, ConsentKind
 from tempo_core.errors import MissionNotFound, StaleMission
 from tempo_core.ledger import LedgerEntry
@@ -18,8 +19,10 @@ from tempo_core.state import StateChanged
 
 
 def make_engine(database_url: str) -> AsyncEngine:
+    """Any Postgres URL a provider gives (postgres://, ?sslmode=require) works here."""
+    url, ssl = asyncpg_url(database_url)
     return create_async_engine(
-        database_url, pool_pre_ping=True, connect_args={"timeout": 10, "command_timeout": 15}
+        url, pool_pre_ping=True, connect_args={"timeout": 10, "command_timeout": 15, **ssl}
     )
 
 
