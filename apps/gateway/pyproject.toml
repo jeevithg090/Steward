@@ -13,7 +13,7 @@ dependencies = [
     "python-multipart>=0.0.32",
     "structlog>=25.4",
     "twilio>=9.12",
-    "uvicorn>=0.54",
+    "uvicorn[standard]>=0.54",  # [standard] brings the WebSocket support /events needs
 ]
 
 [project.scripts]

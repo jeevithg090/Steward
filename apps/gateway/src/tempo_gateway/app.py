@@ -134,7 +134,7 @@ def create_app(
         return {
             "minutes_returned": str(totals.minutes_returned),
             "hours_returned": str(totals.hours_returned),
-            "gbp_recovered": str(totals.gbp_recovered),
+            "gbp_recovered": str(totals.gbp_recovered.quantize(Decimal("0.01"))),
         }
 
     @app.post("/missions", status_code=201)

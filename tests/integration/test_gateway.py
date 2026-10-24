@@ -306,3 +306,7 @@ def test_cors_allows_mission_control_only(gateway: TestClient) -> None:
 
     assert ok.headers.get("access-control-allow-origin") == "http://localhost:3000"
     assert "access-control-allow-origin" not in other.headers
+
+
+def test_the_ledger_shows_pounds_to_the_penny_even_when_empty(gateway: TestClient) -> None:
+    assert gateway.get("/ledger", headers=AUTH).json()["gbp_recovered"] == "0.00"

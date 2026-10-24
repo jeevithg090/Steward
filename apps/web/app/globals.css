@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Large, high-contrast text by default: Mission Control is read from across a room. */
+html {
+  font-size: 112.5%;
+}
+
+body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+:focus-visible {
+  outline: 4px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

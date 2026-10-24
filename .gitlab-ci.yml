@@ -65,11 +65,13 @@ integration:
 
 web:
   stage: test
-  image: node:20
+  image: node:22
   rules:
     - exists: [apps/web/package.json]
+  variables:
+    NEXT_TELEMETRY_DISABLED: "1"
   before_script: [corepack enable, cd apps/web, pnpm install --frozen-lockfile]
-  script: [pnpm vitest run]
+  script: [pnpm typecheck, pnpm test, pnpm build]
 
 e2e:
   stage: e2e
