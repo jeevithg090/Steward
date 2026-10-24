@@ -18,6 +18,15 @@ export interface ProofTraceData {
   amount_gbp: string;
 }
 
+export interface CourtDecision {
+  outcome: "proceed" | "proceed_flagged" | "human_checkpoint";
+  eligible: boolean | null;
+  agreement_rate: number;
+  verdicts: { juror: string; verdict: { eligible: boolean; rule_id: string; confidence: number } }[];
+  absent: string[];
+  flags: string[];
+}
+
 export interface ConsentAsk {
   request_id: string;
   summary: string;
@@ -39,6 +48,7 @@ export interface MissionView {
   outcome: { state: string; message: string; amount_gbp: string | null; reference: string | null } | null;
   timeline: TimelineEntry[];
   trace_url: string | null;
+  court: CourtDecision | null;
 }
 
 export interface Health {

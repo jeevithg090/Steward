@@ -7,7 +7,7 @@ define pytest_marker
 	uv run pytest -m "$(1)" $(2) || [ $$? -eq 5 ]
 endef
 
-.PHONY: help setup check fmt test-int e2e evals doctor demo-dry-run sync-voice seed
+.PHONY: help setup check fmt test-int e2e evals doctor demo-dry-run demo-rehearsal db-migrate sync-voice seed
 
 help: ## List the commands
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-14s %s\n", $$1, $$2}'
@@ -45,8 +45,14 @@ doctor: ## Check every key and service with one cheap live call
 demo-dry-run: ## Scripted demo in replay mode, with a mid-mission restart and timings
 	uv run python scripts/demo_dry_run.py
 
+demo-rehearsal: ## Three dry runs in a row: all three must pass (build plan S6.4)
+	@for run in 1 2 3; do echo "== rehearsal $$run"; uv run python scripts/demo_dry_run.py | tail -9 || exit 1; done
+
 sync-voice: ## Push voice/**/*.yaml agent configs to ElevenLabs
 	uv run python voice/sync.py
 
-seed: ## Demo users, consents, cached journeys, seeded Index
-	@echo "make seed arrives with S6.4 (demo hardening)."; exit 1
+seed: ## Put the demo's people into a running Gateway (needs TEMPO_API_TOKEN)
+	uv run python scripts/seed.py
+
+db-migrate: ## Bring the database in DATABASE_URL up to the latest schema
+	uv run alembic upgrade head

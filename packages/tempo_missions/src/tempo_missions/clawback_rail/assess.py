@@ -103,13 +103,15 @@ class Court(_Step):
             rule_text=trace.steps[0].explanation,
             facts=(),
         )
-        final = apply_court(trace, await self.deps.court.decide(question))
+        decision = await self.deps.court.decide(question)
+        final = apply_court(trace, decision)
+        voted = case.with_(court_json=decision.model_dump_json())
         if isinstance(final, NotEligible):
             await self.stop(ctx, case.request.mission_id, final.reason)
         elif isinstance(final, NeedsHuman):
-            await ctx.send_message(case.with_(court_note=final.reason))
+            await ctx.send_message(voted.with_(court_note=final.reason))
         else:
-            await ctx.send_message(case.with_(trace_json=final.model_dump_json()))
+            await ctx.send_message(voted.with_(trace_json=final.model_dump_json()))
 
 
 class Appraise(_Step):

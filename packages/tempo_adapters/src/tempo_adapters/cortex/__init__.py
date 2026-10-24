@@ -7,7 +7,7 @@ from tempo_adapters.cortex.client import (
     cortex_base_url,
     cortex_client,
 )
-from tempo_adapters.cortex.juror import CortexJuror
+from tempo_adapters.cortex.juror import CortexJuror, ReplayJuror, replay_jurors
 from tempo_adapters.cortex.router import (
     Engine,
     EngineSetting,
@@ -24,11 +24,13 @@ __all__ = [
     "Engine",
     "EngineSetting",
     "PatTokenProvider",
+    "ReplayJuror",
     "Task",
     "TokenProvider",
     "cortex_base_url",
     "cortex_client",
     "juror_models",
+    "replay_jurors",
     "route",
     "structured",
     "supports_tools",

@@ -121,7 +121,8 @@ def create_app(
             "status": "ok",
             "mode": settings.tempo_mode,
             "demo": settings.tempo_demo,
-            "simulated": ["company"] + (["rail data"] if settings.tempo_mode == "replay" else []),
+            "simulated": ["company"]
+            + (["rail data", "jurors"] if settings.tempo_mode == "replay" else []),
         }
 
     @app.get("/missions")

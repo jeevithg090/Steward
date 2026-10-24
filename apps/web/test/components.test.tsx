@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AgentCard, AgentCards, RAIL_TEAM, budgetPercent } from "@/components/AgentCards";
+import { ConsensusGavels } from "@/components/ConsensusGavels";
 import { ConsentCard } from "@/components/ConsentCard";
 import { HonestyBadge } from "@/components/HonestyBadge";
 import { MissionTimeline, duration } from "@/components/MissionTimeline";
@@ -117,4 +118,26 @@ test("StallRadar shows the tactic, the quote and the counter-play", () => {
   expect(screen.getByText("hold extension")).toBeInTheDocument();
   expect(screen.getByText("“Please continue to hold.”")).toBeInTheDocument();
   expect(screen.getByText("→ Log the minutes.")).toBeInTheDocument();
+});
+
+test("ConsensusGavels shows each juror's vote and the agreement", () => {
+  render(
+    <ConsensusGavels
+      court={{
+        outcome: "proceed_flagged",
+        eligible: true,
+        agreement_rate: 1,
+        verdicts: [
+          { juror: "claude-sonnet-5-5", verdict: { eligible: true, rule_id: "r", confidence: 0.9 } },
+          { juror: "openai-gpt-5-mini", verdict: { eligible: true, rule_id: "r", confidence: 0.8 } },
+        ],
+        absent: ["llama4-maverick"],
+        flags: ["juror absent: llama4-maverick"],
+      }}
+    />,
+  );
+
+  expect(screen.getAllByText("⚖️ eligible")).toHaveLength(2);
+  expect(screen.getByText("— absent")).toBeInTheDocument();
+  expect(screen.getByText(/100% agreement · juror absent: llama4-maverick/)).toBeInTheDocument();
 });

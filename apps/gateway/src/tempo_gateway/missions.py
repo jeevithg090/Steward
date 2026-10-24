@@ -17,13 +17,14 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+import structlog
 from opentelemetry import trace
 from pydantic import BaseModel, Field
 
 from tempo_adapters.telemetry import current_trace_id, mission_context
 from tempo_core.consent import ConsentEvent, ConsentKind
 from tempo_core.delays import LONDON
-from tempo_core.errors import TempoError
+from tempo_core.errors import MissionNotFound, TempoError
 from tempo_core.models import Mission, MissionState
 from tempo_core.state import advance, allowed_next
 from tempo_gateway.events import EventBus
@@ -42,6 +43,7 @@ from tempo_missions.clawback_rail import (
 
 SKILL = "clawback.uk-rail-delay-repay"
 _tracer = trace.get_tracer("tempo.gateway")
+log = structlog.get_logger(__name__)
 BINDING_SCOPES = ("file_claim",)
 
 
@@ -66,6 +68,7 @@ class ConsentAsk(BaseModel):
     summary: str
     amount_gbp: str
     proof_trace: dict[str, Any] | None = None
+    court: dict[str, Any] | None = None  # the Consensus Court's votes, if it sat
 
 
 class MissionView(BaseModel):
@@ -76,6 +79,7 @@ class MissionView(BaseModel):
     outcome: dict[str, Any] | None = None
     timeline: list[dict[str, Any]] = []
     trace_url: str | None = None  # the latest trace for this mission (Langfuse)
+    court: dict[str, Any] | None = None  # how the Consensus Court voted, if it sat
 
 
 class MissionService:
@@ -90,6 +94,7 @@ class MissionService:
         self.deps = deps
         self._trace_link = trace_link
         self._traces: dict[str, str | None] = {}
+        self._courts: dict[str, dict[str, Any]] = {}
         self._checkpoints = checkpoints
         self._bus = bus
         self._asks: dict[str, tuple[str, ConsentAsk]] = {}  # request id -> (mission, ask)
@@ -218,7 +223,13 @@ class MissionService:
         waiting = []
         paused = (MissionState.AWAITING_CONSENT, MissionState.WAITING)
         for folder in sorted(p for p in self._checkpoints.glob("m_*") if p.is_dir()):
-            mission = await self.deps.repo.get_mission(folder.name)
+            try:
+                mission = await self.deps.repo.get_mission(folder.name)
+            except MissionNotFound:  # e.g. an in-memory store that didn't survive the restart
+                log.warning("checkpoint_without_mission", mission_id=folder.name)
+                continue
+            if mission.id not in self.mission_ids:
+                self.mission_ids.append(mission.id)  # list every mission the store still knows
             if mission.state not in paused:
                 continue
             async with self._locks[mission.id]:
@@ -227,8 +238,6 @@ class MissionService:
                     result = await resume(self._workflow(mission.id), storage)
                 self._remember(mission.id, result)
             waiting.append(mission.id)
-            if mission.id not in self.mission_ids:
-                self.mission_ids.append(mission.id)
         return waiting
 
     def remember_phone(self, mission_id: str, phone: str) -> None:
@@ -265,6 +274,7 @@ class MissionService:
             message = f"Claim filed. I'll check the payment has arrived on {local}."
         return MissionView(
             trace_url=self._trace_link(self._traces.get(mission_id)),
+            court=self._courts.get(mission_id),
             id=mission_id,
             state=mission.state,
             message=message,
@@ -281,6 +291,9 @@ class MissionService:
     def _remember(self, mission_id: str, result: RunResult) -> None:
         for request_id, ask in result.pending:
             trace = json.loads(ask.proof_trace_json) if ask.proof_trace_json else None
+            court = json.loads(ask.court_json) if ask.court_json else None
+            if court is not None:
+                self._courts[mission_id] = court
             self._asks[request_id] = (
                 mission_id,
                 ConsentAsk(
@@ -288,6 +301,7 @@ class MissionService:
                     summary=ask.summary,
                     amount_gbp=ask.amount_gbp,
                     proof_trace=trace,
+                    court=court,
                 ),
             )
             self._bus.publish(

@@ -18,6 +18,7 @@ const WAITING: MissionView = {
   outcome: null,
   timeline: [{ to: "understood", at: "", latency_ms: 4 }],
   trace_url: null,
+  court: null,
 };
 
 test("Mission Control shows a waiting mission and sends the approval", async () => {
