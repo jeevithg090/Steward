@@ -1,0 +1,7 @@
+# gitleaks: the default rules, plus one allowlist for throwaway keys in crypto test vectors.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Throwaway test-only keys for the S8.4 interop vectors (never used elsewhere)"
+paths = ['''^fixtures/crypto/.*\.json$''']

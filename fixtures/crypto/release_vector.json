@@ -1,0 +1,18 @@
+{
+  "note": "TEST ONLY: throwaway keys for an interop test; never used anywhere else",
+  "deploy_pub": "VKiUoU3TM9dvM01lNPO65RUfyAhCuSNU6CJBRjW2Oh8",
+  "signed_report": {
+    "report": {
+      "image_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "ephemeral_pub": "glKancq5mWGzBiAxPSwPdw2Q-thkJMAi-rPqLm_s8HM",
+      "nonce": "vector-nonce-1",
+      "issued_at": "2026-10-24T19:00:00+00:00"
+    },
+    "signature": "481NF5AL9OLD40bN0URDGZhxyDr5peuve0F7XNdKxeMfQznX0tu8JROyLS7cWHHQUEDOxP9BI1XOoX4UW6EOBg"
+  },
+  "worker_private": "OKc1iZcfdlo6pJLZxHeeJ1zu5CfAwKoKKGDtrogDlUA",
+  "data_key": "2GyVNvM37rWwakV1x9Xdb1dksi4PakkqlsbNSp4VQoo",
+  "user_id": "u_margaret",
+  "mission_id": "m_1",
+  "step": "file_claim"
+}
