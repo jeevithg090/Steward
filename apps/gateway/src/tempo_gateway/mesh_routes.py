@@ -12,6 +12,7 @@ No `from __future__ import annotations`: FastAPI reads these annotations at runt
 | POST /mesh/pairings, GET /mesh/pairings/{id}, POST /mesh/pairings/{id}/confirm | a device |
 | POST /mesh/pairings/{id}/claim | the new device, with the one-time secret from the QR code |
 | POST /mesh/approvals/{request_id}/options, POST /mesh/approvals/{request_id} | a device |
+| GET /mesh/signals, POST /mesh/signals | a notification-reading device: filters; matches |
 """
 
 import asyncio
@@ -23,6 +24,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from tempo_adapters.settings import Settings
+from tempo_core.signals import SignalSpec, only_declared
 from tempo_gateway.events import EventBus
 from tempo_gateway.mesh import Device, Mesh, MeshError
 from tempo_gateway.missions import BINDING_SCOPES, MissionService, MissionView, UnknownRequest
@@ -48,13 +50,24 @@ class Signed(BaseModel):
     credential: dict[str, Any]
 
 
+class SignalIn(BaseModel):
+    signal_id: str
+    fields: dict[str, str]
+
+
 class AnswerRequest(BaseModel):
     approved: bool
     limits: dict[str, Decimal] = {}
 
 
 def mesh_router(
-    mesh: Mesh, service: MissionService, settings: Settings, web_caller: Any
+    mesh: Mesh,
+    service: MissionService,
+    settings: Settings,
+    web_caller: Any,
+    *,
+    bus: EventBus | None = None,
+    signals: dict[str, SignalSpec] | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/mesh")
     origin = settings.web_origins.split(",")[0].strip()
@@ -147,6 +160,27 @@ def mesh_router(
             return await service.answer(request_id, approval)
         except UnknownRequest:
             raise HTTPException(409, "this was already answered on another device") from None
+
+    @router.get("/signals")
+    async def signal_filters(me: Me) -> list[dict[str, Any]]:
+        """The filters a notification-reading device runs locally (skills/*/signals.yaml)."""
+        return [spec.model_dump(mode="json") for spec in (signals or {}).values()]
+
+    @router.post("/signals")
+    async def signal(body: SignalIn, me: Me) -> dict[str, Any]:
+        """A signal a device's own filter matched (spec §15.9). Only declared fields are taken;
+        anything more is refused rather than trimmed, so a leaky node is noticed."""
+        if "notifications.read" not in me.capabilities:
+            raise HTTPException(403, "this device doesn't read notifications")
+        spec = (signals or {}).get(body.signal_id)
+        if spec is None:
+            raise HTTPException(404, f"no skill asks for {body.signal_id!r}")
+        if not only_declared(spec, body.fields):
+            raise HTTPException(422, "only the fields the skill declares may leave a device")
+        if bus is not None:
+            bus.publish({"type": "signal", "signal_id": spec.id, "from": me.name, **body.fields})
+        routed = await mesh.notify(me.user_id)  # wake the device that can approve; it says "sync"
+        return {"accepted": True, "routed_to": routed.name if routed else None}
 
     def _mine(request_id: str, me: Device) -> None:
         if service.mission_for_request(request_id) is None:

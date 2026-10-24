@@ -402,3 +402,46 @@ def test_devices_and_passkeys_survive_a_restart(gateway: TestClient, tmp_path: P
     device = reloaded.device_for_token(phone)
     assert device is not None and device.credential_id == b64(face_id.credential_id)
     assert phone not in saved  # only a hash of the device token is stored
+
+
+def test_a_phone_that_reads_notifications_sends_only_declared_fields(
+    tmp_path: Path, push: FakePush
+) -> None:
+    from tempo_core.signals import load_signals
+
+    root = Path(__file__).resolve().parents[2]
+    signals = {s.id: s for s in load_signals(root / "skills" / "clawback-uk-rail" / "signals.yaml")}
+    settings = Settings(_env_file=None, tempo_mode="replay", tempo_api_token=TOKEN, web_origins=ORIGIN,  # type: ignore[call-arg]
+                        checkpoint_dir=str(tmp_path / "cp2"))  # fmt: skip
+    service, bus, memory = build_services(settings)
+    mesh = Mesh(rp_id="localhost", origins=[ORIGIN], push=push)
+    client = TestClient(
+        create_app(service, settings, bus, memory=memory, mesh=mesh, signals=signals)
+    )
+    iphone = first_device(client, "iPhone")
+    client.put(
+        "/mesh/devices/me/push",
+        json={"endpoint": "https://push.example/iphone"},
+        headers=as_device(iphone),
+    )
+    nothing = first_device(client, "Nothing Phone", capabilities=["notifications.read"])
+    laptop = first_device(client, "Laptop", capabilities=["notifications.show"])
+    seen = {
+        "signal_id": "rail_delay_notification",
+        "fields": {"service_time": "08:12", "delay_minutes": "34"},
+    }
+
+    accepted = client.post("/mesh/signals", json=seen, headers=as_device(nothing))
+    leaky = client.post("/mesh/signals", headers=as_device(nothing),
+                        json=seen | {"fields": seen["fields"] | {"text": "Your 08:12 from Oxford..."}})  # fmt: skip
+    not_a_reader = client.post("/mesh/signals", json=seen, headers=as_device(laptop))
+    unknown = client.post(
+        "/mesh/signals", json=seen | {"signal_id": "bank_texts"}, headers=as_device(nothing)
+    )
+
+    assert accepted.json() == {
+        "accepted": True,
+        "routed_to": "iPhone",
+    }  # the phone that can approve
+    assert push.sent == [("https://push.example/iphone", SYNC_PAYLOAD)]
+    assert (leaky.status_code, not_a_reader.status_code, unknown.status_code) == (422, 403, 404)

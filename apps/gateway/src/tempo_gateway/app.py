@@ -60,6 +60,7 @@ from tempo_core.entitlement import DISCLAIMER, Answers, Figures, pack, screen
 from tempo_core.errors import MissionNotFound
 from tempo_core.ledger import summarise
 from tempo_core.scam import Level, assess
+from tempo_core.signals import SignalSpec
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
 from tempo_crypto.vault import VaultStore
 from tempo_gateway.events import EventBus
@@ -151,6 +152,7 @@ def create_app(
     memory: Memory | None = None,
     mesh: Mesh | None = None,
     holidays: frozenset[date] = frozenset(),
+    signals: dict[str, SignalSpec] | None = None,
     entitlement: Figures | None = None,
     registers: Registers | None = None,
     registers_simulated: bool = True,
@@ -512,7 +514,9 @@ def create_app(
         return f"Tempo: {view.message}"
 
     if mesh is not None:
-        app.include_router(mesh_router(mesh, service, settings, web_caller))
+        app.include_router(
+            mesh_router(mesh, service, settings, web_caller, bus=bus, signals=signals)
+        )
 
     @app.websocket("/events")
     async def events(socket: WebSocket, token: str = "") -> None:
