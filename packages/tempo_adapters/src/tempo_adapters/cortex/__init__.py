@@ -7,6 +7,7 @@ from tempo_adapters.cortex.client import (
     cortex_base_url,
     cortex_client,
 )
+from tempo_adapters.cortex.juror import CortexJuror
 from tempo_adapters.cortex.router import (
     Engine,
     EngineSetting,
@@ -18,6 +19,7 @@ from tempo_adapters.cortex.router import (
 from tempo_adapters.cortex.structured import structured
 
 __all__ = [
+    "CortexJuror",
     "CortexTransport",
     "Engine",
     "EngineSetting",
