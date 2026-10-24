@@ -1,4 +1,5 @@
-"""The MemoryPort contract (S3.7) on Postgres: the pgvector fallback, and Mem0 on pgvector."""
+"""Memory on Postgres: the MemoryPort contract (S3.7) for the pgvector fallback and Mem0 on
+pgvector, and the TemporalPort contract (S3.8) for the temporal-facts fallback."""
 
 from __future__ import annotations
 
@@ -16,6 +17,8 @@ from tempo_memory.contract import NOW, FakeClock, MemoryPortContract, said
 from tempo_memory.fallback_sql import SqlMemory, SqlTombstones
 from tempo_memory.mem0_store import Mem0Memory, mem0_config
 from tempo_memory.models import Tombstone
+from tempo_memory.temporal_contract import TemporalPortContract
+from tempo_memory.temporal_sql import SqlTemporal
 
 
 def drop(table: str) -> sql.Composed:
@@ -62,3 +65,9 @@ async def test_tombstones_are_kept_without_content(engine: AsyncEngine) -> None:
     await log.record([Tombstone(user_id="u_2", key="k", at=NOW + timedelta(hours=1))])
 
     assert await log.for_user("u_1") == [stone]
+
+
+class TestSqlTemporal(TemporalPortContract):
+    @pytest.fixture
+    def temporal(self, engine: AsyncEngine) -> SqlTemporal:
+        return SqlTemporal(engine)

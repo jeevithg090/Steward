@@ -8,10 +8,12 @@ dependencies = [
     "tempo-core",
     "tempo-ports",
     "mem0ai>=2.2.1",
+    "graphiti-core>=0.30.2",
     "pgvector>=0.5.1",
     "psycopg[binary]>=3.3",  # Mem0's pgvector store
     "psycopg-pool>=3.3",
     "sqlalchemy[asyncio]>=2.0.40",
+    "structlog>=25.4",
 ]
 
 [build-system]

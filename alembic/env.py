@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from alembic import context
 from tempo_adapters.db.models import Base
 from tempo_memory.fallback_sql import metadata as memory_metadata
+from tempo_memory.temporal_sql import temporal_facts  # noqa: F401  (registers its tables)
 
 config = context.config
 if config.config_file_name and config.attributes.get("configure_logger", True):
