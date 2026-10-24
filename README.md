@@ -45,7 +45,9 @@ flowchart LR
 - **Models read and plan; code decides money and permissions.** The amount always comes from a
   YAML rule pack with a citation ([ADR 0003](docs/adr/0003-rules-as-code.md)). The Consensus
   Court can decline or hand a case to a person, never raise the amount.
-- **Nothing binding without a signed yes**, and consent is an append-only ledger where deny wins
+- **Nothing binding without a signed yes.** Once a person adds a passkey, approvals are signed on
+  their device (Face ID or fingerprint) and bound to one question and one answer, so they can't
+  be replayed; the prompt disappears from every other screen. Consent is an append-only ledger where deny wins
   ([ADR 0004](docs/adr/0004-deny-wins.md)). "STOP" by SMS or voice stops everything.
 - **Missions survive anything.** Each step is a checkpointed workflow executor; a crash or deploy
   mid-mission resumes from the checkpoint and asks the same question again.
@@ -72,7 +74,8 @@ flowchart LR
 | Mission Control web app, Stall Radar, tracing to Langfuse | ✅ |
 | Rule packs: GWR, Chiltern, Ofcom missed appointment, UK261 | ⚠️ demo values until checked against published terms |
 | Tempo Memory: Memory Gate, Mem0 or pgvector, a dated timeline (SQL, or Graphiti on Neo4j), recall and forget by voice, SMS and the Memory Card | ✅ (Graphiti needs Neo4j and Cortex keys) |
-| Tempo Mesh (passkeys, push), private RunPod mode | 🗺️ planned (build plan S5.2, S8) |
+| Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ (TLS and per-device keys; MLS end-to-end encryption is the roadmap) |
+| Private RunPod mode, deployment modes | 🗺️ planned (build plan S8) |
 
 ## Add a skill in five minutes
 
@@ -87,6 +90,7 @@ published terms, then set `last_verified`.
 ```bash
 make check         # ruff, mypy --strict (core, harness), unit/contract/policy/workflow tests, < 60 s
 make test-int      # Postgres (TEST_DATABASE_URL or Docker) and the Gateway end to end
+make e2e           # Playwright: Face ID approval (virtual authenticator) and pairing, in Chromium
 make demo-rehearsal  # three dry runs in a row
 make evals         # live LLM evals (costs tokens); appends to evals/report.md
 make doctor        # one cheap call per vendor, with an owner and a fallback for each failure

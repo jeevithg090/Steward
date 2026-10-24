@@ -75,11 +75,18 @@ web:
 
 e2e:
   stage: e2e
-  image: mcr.microsoft.com/playwright:v1.48.0-jammy   # match your @playwright/test version
+  image: mcr.microsoft.com/playwright:v1.64.0-noble   # matches @playwright/test in tests/e2e
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       exists: [tests/e2e/package.json]
-  before_script: [corepack enable, cd tests/e2e, pnpm install --frozen-lockfile]
+  variables:
+    NEXT_TELEMETRY_DISABLED: "1"
+  before_script:   # the suite starts the Gateway (Python, via uv) and builds Mission Control
+    - curl -LsSf https://astral.sh/uv/0.13.1/install.sh | sh && export PATH="$HOME/.local/bin:$PATH"
+    - uv sync --frozen
+    - corepack enable
+    - (cd apps/web && pnpm install --frozen-lockfile)
+    - cd tests/e2e && pnpm install --frozen-lockfile
   script: [pnpm playwright test]
   artifacts:
     when: on_failure

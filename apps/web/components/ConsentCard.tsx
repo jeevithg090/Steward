@@ -1,12 +1,13 @@
 import type { ConsentAsk } from "@/lib/api";
 
 export function ConsentCard({
-  ask, busy, onAnswer,
-}: { ask: ConsentAsk; busy: boolean; onAnswer: (approved: boolean) => void }) {
+  ask, busy, onAnswer, signed = false,
+}: { ask: ConsentAsk; busy: boolean; onAnswer: (approved: boolean) => void; signed?: boolean }) {
   return (
     <section aria-labelledby="consent-heading" className="rounded-xl border-4 border-teal-700 bg-teal-50 p-4">
       <h2 id="consent-heading" className="text-lg font-semibold">Tempo is asking you</h2>
       <p className="mt-2 text-lg">{ask.summary}</p>
+      {signed && <p className="mt-1 text-slate-700">You&apos;ll confirm with Face ID or your fingerprint. Your answer is signed on this device.</p>}
       <div className="mt-4 flex gap-3">
         <button
           type="button" disabled={busy} onClick={() => onAnswer(true)}

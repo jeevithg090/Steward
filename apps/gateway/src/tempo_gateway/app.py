@@ -14,6 +14,7 @@ runtime, and the per-app dependencies below are local names.
 | DELETE /memories/{id}, DELETE /timeline/{id} | forget, everywhere | bearer token |
 | POST /sms/inbound | YES / NO / STOP / HELP / MEMORY / FORGET <thing> | Twilio signature |
 | WS /events | live updates | token query parameter |
+| /mesh/... | devices, pairing, passkey approvals, push (mesh_routes.py) | device token |
 """
 
 import asyncio
@@ -49,6 +50,8 @@ from tempo_gateway.memory import (
     readback_question,
     write_episodes,
 )
+from tempo_gateway.mesh import Mesh
+from tempo_gateway.mesh_routes import mesh_router, notify_devices
 from tempo_gateway.missions import (
     BINDING_SCOPES,
     MissionService,
@@ -99,6 +102,7 @@ def create_app(
     bus: EventBus,
     *,
     memory: Memory | None = None,
+    mesh: Mesh | None = None,
     scheduler_interval_s: float | None = None,
 ) -> FastAPI:
     @asynccontextmanager
@@ -109,7 +113,9 @@ def create_app(
                 bus, memory, user_for=service.user_for, company_for=service.company_for,
                 clock=service.deps.clock,
             )))  # fmt: skip
-            await asyncio.sleep(0)
+        if mesh is not None:
+            tasks.append(asyncio.create_task(notify_devices(bus, mesh, service)))
+        await asyncio.sleep(0)  # let the subscribers start before recovery re-emits events
         await service.recover()  # re-emit what paused missions were waiting for
         if scheduler_interval_s is not None:
             tasks.append(asyncio.create_task(run_scheduler(service, scheduler_interval_s)))
@@ -121,8 +127,8 @@ def create_app(
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[o.strip() for o in settings.web_origins.split(",") if o.strip()],
-        allow_methods=["GET", "POST", "DELETE"],
-        allow_headers=["Authorization", "Content-Type"],
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_headers=["Authorization", "Content-Type", "X-Tempo-Device"],
     )
     seen = SeenKeys()
     api_token = _secret(settings.tempo_api_token)
@@ -182,6 +188,10 @@ def create_app(
 
     @app.post("/approvals/{request_id}")
     async def approve(request_id: str, body: Answer, caller: Caller) -> MissionView:
+        mission_id = service.mission_for_request(request_id)
+        user_id = await service.user_for(mission_id) if mission_id is not None else None
+        if mesh is not None and user_id is not None and mesh.has_passkey(user_id):
+            raise HTTPException(403, "approve with your passkey on one of your devices")
         approval = SignedApproval(
             approved=body.approved,
             scopes=BINDING_SCOPES,
@@ -360,6 +370,9 @@ def create_app(
         )
         view = await service.answer(request_id, approval)
         return f"Tempo: {view.message}"
+
+    if mesh is not None:
+        app.include_router(mesh_router(mesh, service, settings, web_caller))
 
     @app.websocket("/events")
     async def events(socket: WebSocket, token: str = "") -> None:

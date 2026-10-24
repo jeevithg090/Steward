@@ -78,6 +78,10 @@ class Settings(BaseSettings):
     neo4j_user: str = "neo4j"
     neo4j_password: SecretStr | None = None
 
+    # Tempo Mesh (passkeys are bound to this domain; use your PWA's host when deployed)
+    mesh_rp_id: str = "localhost"
+    mesh_file: str = "mesh.json"  # devices and their public keys; never secrets
+
     # Web Push
     vapid_public_key: str | None = None
     vapid_private_key: SecretStr | None = None
