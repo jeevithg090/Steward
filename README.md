@@ -77,7 +77,7 @@ flowchart LR
 | Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ (TLS and per-device keys; MLS end-to-end encryption is the roadmap) |
 | Deployment modes (`TEMPO_DEPLOY`): local (Ollama), cloud-standard (Cortex), cloud-private (our own model on RunPod vLLM: no outside AI company sees personal data) | ✅ switch, factory and RunPod client (the private endpoint needs keys; [deploy/runpod](deploy/runpod/README.md)) |
 | Client-side encryption (device-held keys, crypto-shred), ephemeral workers with signed reports and one-step key release (browser and Python interop-tested), no-logs hardening with a canary test, signed reproducible images with a transparency allowlist, Local mode, the Privacy Proof panel | ✅ code and tests; images not yet built and keys not yet made ([deploy/transparency](deploy/transparency/README.md)); the Vault isn't yet wired into mission checkpoints |
-| Confidential mode (TEE attestation) | 🗺️ roadmap (S8.8) |
+| Confidential mode: key release only to an attested enclave (measurement, no debug, GPU CC mode, freshness, bound to the worker's key) | ⚠️ simulated attestation; real TEEs are roadmap ([deploy/confidential](deploy/confidential/README.md)) |
 
 ## Add a skill in five minutes
 
