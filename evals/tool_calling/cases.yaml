@@ -1,0 +1,77 @@
+# 20 tool-calling cases (build plan S8.2). The same cases run on Cortex and on the private
+# RunPod model; Private mode is shown only if the private model matches >= 90%.
+# `tool: null` means the right answer is to call no tool. `args` lists the arguments that must
+# match (others are free). The caller is Margaret (user id u_margaret); today is 24 Oct 2026.
+- id: delay-full-details
+  say: "My 08:12 from Oxford to Paddington yesterday was late. The ticket was £28.40. I'm Margaret."
+  tool: create_mission
+  args: {origin_crs: OXF, destination_crs: PAD, travel_date: "2026-10-23", departure: "08:12"}
+- id: delay-station-names
+  say: "Yesterday's 17:42 from London Paddington to Oxford was really late. It cost £28.40. Call me Margaret."
+  tool: create_mission
+  args: {origin_crs: PAD, destination_crs: OXF, travel_date: "2026-10-23", departure: "17:42"}
+- id: delay-check-only
+  say: "Can you check how late the 07:58 from Oxford to Paddington was on 22 October?"
+  tool: get_service_delay
+  args: {origin_crs: OXF, destination_crs: PAD, travel_date: "2026-10-22", departure: "07:58"}
+- id: status-of-claim
+  say: "How is my claim m_abc123 going?"
+  tool: get_case_capsule
+  args: {mission_id: m_abc123}
+- id: status-ring-back
+  say: "I'm ringing back about mission m_9f2 - has the money come?"
+  tool: get_case_capsule
+  args: {mission_id: m_9f2}
+- id: consent-yes
+  say: "Yes, please go ahead and claim it. That's for mission m_abc123."
+  tool: record_consent
+  args: {mission_id: m_abc123, approved: true}
+- id: consent-no
+  say: "No, don't claim anything for m_abc123."
+  tool: record_consent
+  args: {mission_id: m_abc123, approved: false}
+- id: consent-unsure
+  say: "Hmm, I'm not sure about m_abc123, maybe, I don't know."
+  tool: null
+- id: wants-a-person
+  say: "I'd rather speak to a real person about mission m_abc123, please."
+  tool: request_human
+  args: {mission_id: m_abc123}
+- id: memory-recall
+  say: "What do you remember about me?"
+  tool: recall_memories
+  args: {user_id: u_margaret}
+- id: memory-recall-2
+  say: "Remind me what you know about me."
+  tool: recall_memories
+  args: {user_id: u_margaret}
+- id: memory-forget-address
+  say: "Please forget my address."
+  tool: forget_memory
+  args: {user_id: u_margaret}
+- id: memory-forget-daughter
+  say: "Forget what I told you about my daughter Sarah."
+  tool: forget_memory
+  args: {user_id: u_margaret}
+- id: greeting
+  say: "Hello, who is this?"
+  tool: null
+- id: scam-bank-details
+  say: "Someone texted me asking for my bank PIN to pay my refund. Should I give it to them?"
+  tool: null
+- id: move-money
+  say: "Transfer £500 from my savings to my current account."
+  tool: null
+- id: missing-fare
+  say: "My 08:12 from Oxford to Paddington yesterday was late."
+  tool: null   # ask for the fare first: one question at a time
+- id: missing-date
+  say: "The 08:12 Oxford to Paddington was late and the ticket was £28.40."
+  tool: null   # ask which day
+- id: delay-tomorrow
+  say: "Will tomorrow's 08:12 from Oxford be late?"
+  tool: null   # can't claim for the future
+- id: delay-cancelled
+  say: "Yesterday's 18:12 from Paddington to Oxford was cancelled. I paid £28.40. I'm Margaret."
+  tool: create_mission
+  args: {origin_crs: PAD, destination_crs: OXF, travel_date: "2026-10-23", departure: "18:12"}

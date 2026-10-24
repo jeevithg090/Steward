@@ -16,6 +16,7 @@ from tempo_adapters.cortex import (
     replay_jurors,
 )
 from tempo_adapters.db import SqlRepo, make_engine
+from tempo_adapters.factory import NotConfigured, build_adapters, chat_client
 from tempo_adapters.rail import rail_port
 from tempo_adapters.settings import Settings
 from tempo_adapters.telemetry import configure_logging, configure_tracing, trace_url
@@ -69,9 +70,19 @@ def build_services(settings: Settings) -> tuple[MissionService, EventBus, Memory
 
 
 def _court(settings: Settings) -> ConsensusCourt | None:
-    """Replay jurors in replay mode (labelled simulated); Cortex jurors when Snowflake is set up."""
+    """Replay jurors in replay mode (labelled simulated); otherwise only the deployment mode's own
+    model: three Cortex models in cloud-standard, or three jurors on the private model."""
     if settings.tempo_mode == "replay":
         return ConsensusCourt(replay_jurors(REPO / "fixtures" / "court" / "replay.yaml"))
+    adapters = build_adapters(settings)
+    if adapters.model.kind != "cortex":
+        try:
+            client = chat_client(settings, adapters)
+        except NotConfigured:
+            return None
+        return ConsensusCourt(
+            [CortexJuror(client, name=f"{adapters.model.kind}-{i}") for i in (1, 2, 3)]
+        )
     if settings.snowflake_account and settings.snowflake_pat:
         tokens = PatTokenProvider(lambda: settings.snowflake_pat)
         account = settings.snowflake_account

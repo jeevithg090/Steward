@@ -75,7 +75,8 @@ flowchart LR
 | Rule packs: GWR, Chiltern, Ofcom missed appointment, UK261 | ⚠️ demo values until checked against published terms |
 | Tempo Memory: Memory Gate, Mem0 or pgvector, a dated timeline (SQL, or Graphiti on Neo4j), recall and forget by voice, SMS and the Memory Card | ✅ (Graphiti needs Neo4j and Cortex keys) |
 | Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ (TLS and per-device keys; MLS end-to-end encryption is the roadmap) |
-| Private RunPod mode, deployment modes | 🗺️ planned (build plan S8) |
+| Deployment modes (`TEMPO_DEPLOY`): local (Ollama), cloud-standard (Cortex), cloud-private (our own model on RunPod vLLM: no outside AI company sees personal data) | ✅ switch, factory and RunPod client (the private endpoint needs keys; [deploy/runpod](deploy/runpod/README.md)) |
+| Client-side encryption, the worker key-release protocol, signed images, the Privacy Proof panel | 🗺️ planned (build plan S8.3–S8.7) |
 
 ## Add a skill in five minutes
 

@@ -40,6 +40,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, ValidationError
 
 from tempo_adapters.settings import Settings
+from tempo_core.config import profile
 from tempo_core.errors import MissionNotFound
 from tempo_core.ledger import summarise
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
@@ -144,6 +145,7 @@ def create_app(
     )
     seen = SeenKeys()
     api_token = _secret(settings.tempo_api_token)
+    deployment = profile(settings.tempo_deploy)  # an unknown mode fails here, at start-up
 
     def web_caller(authorization: Annotated[str | None, Header()] = None) -> str:
         token = (authorization or "").removeprefix("Bearer ").strip()
@@ -166,6 +168,9 @@ def create_app(
             "demo": settings.tempo_demo,
             "simulated": ["company"]
             + (["rail data", "jurors"] if settings.tempo_mode == "replay" else []),
+            "deploy": deployment.mode.value,
+            "region": deployment.region,
+            "third_parties": sorted(deployment.third_parties),
         }
 
     @app.get("/missions")
@@ -264,6 +269,8 @@ def create_app(
     async def voice_tool(
         name: str, request: Request, x_tempo_voice_secret: Annotated[str | None, Header()] = None
     ) -> dict[str, Any]:
+        if deployment.voice == "off":
+            raise HTTPException(404, f"voice is off in {deployment.mode} mode")
         if not secret_matches(x_tempo_voice_secret, _secret(settings.voice_tool_secret)):
             raise HTTPException(401, "unknown caller")
         if name not in VOICE_TOOLS:
@@ -331,6 +338,8 @@ def create_app(
     async def post_call(
         request: Request, elevenlabs_signature: Annotated[str | None, Header()] = None
     ) -> dict[str, bool]:
+        if deployment.voice == "off":
+            raise HTTPException(404, f"voice is off in {deployment.mode} mode")
         body = await request.body()
         if not elevenlabs_signature_ok(
             _secret(settings.elevenlabs_webhook_secret), elevenlabs_signature, body
