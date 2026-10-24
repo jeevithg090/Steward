@@ -36,7 +36,7 @@ e2e: ## Playwright end-to-end tests
 	@if [ ! -f tests/e2e/package.json ]; then echo "No e2e suite yet (it arrives with S5.1)."; exit 1; fi
 	cd tests/e2e && pnpm playwright test
 
-evals: ## LLM quality evals (costs tokens); writes evals/report.md
+evals: ## LLM quality evals (costs tokens); writes evals/*/report.md
 	$(call pytest_marker,eval)
 
 doctor: ## Check every key and service with one cheap live call
