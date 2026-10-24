@@ -145,8 +145,32 @@ async def probe_elevenlabs_agents(s: Settings, http: httpx.AsyncClient) -> Outco
             return Outcome(
                 False, f"{role} agent: HTTP {resp.status_code}", "Run `make sync-voice` (S4.1)."
             )
-        found.append(f"{role} '{_json(resp).get('name', agent_id)}'")
-    return Outcome(True, ", ".join(found))
+        agent = _json(resp)
+        if role == "inbound" and (gap := _patience_gap(agent, s.public_url)):
+            return Outcome(False, f"inbound agent: {gap}", PATIENCE_HINT)
+        found.append(f"{role} '{agent.get('name', agent_id)}'")
+    return Outcome(True, ", ".join(found) + " (inbound asks the Gateway how to speak)")
+
+
+PATIENCE_HINT = (
+    "Run `make sync-voice` with PUBLIC_URL set to the Gateway ElevenLabs can reach; until then "
+    "every caller gets the default voice (the Patience Profile is off)."
+)
+
+
+def _patience_gap(agent: dict[str, Any], public_url: str) -> str | None:
+    """Why the inbound agent can't ask POST /voice/initiation how to speak, or None if it can."""
+    platform = agent.get("platform_settings") or {}
+    overrides = platform.get("overrides") or {}
+    if not overrides.get("enable_conversation_initiation_client_data_from_webhook"):
+        return "the conversation-initiation webhook is off"
+    hook = (platform.get("workspace_overrides") or {}).get(
+        "conversation_initiation_client_data_webhook"
+    ) or {}
+    want = f"{public_url.rstrip('/')}/voice/initiation"
+    if hook.get("url") and hook["url"] != want:
+        return f"the webhook points at {hook['url']}, not {want}"
+    return None
 
 
 async def probe_twilio(s: Settings, http: httpx.AsyncClient) -> Outcome:

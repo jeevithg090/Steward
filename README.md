@@ -81,6 +81,9 @@ flowchart LR
 | Deployment modes (`TEMPO_DEPLOY`): local (Ollama), cloud-standard (Cortex), cloud-private (our own model on RunPod vLLM: no outside AI company sees personal data) | ✅ switch, factory and RunPod client (the private endpoint needs keys; [deploy/runpod](deploy/runpod/README.md)) |
 | Client-side encryption (device-held keys, crypto-shred), ephemeral workers with signed reports and one-step key release (browser and Python interop-tested), no-logs hardening with a canary test, signed reproducible images with a transparency allowlist, Local mode, the Privacy Proof panel | ✅ code and tests; images not yet built and keys not yet made ([deploy/transparency](deploy/transparency/README.md)); the Vault isn't yet wired into mission checkpoints |
 | Confidential mode: key release only to an attested enclave (measurement, no debug, GPU CC mode, freshness, bound to the worker's key) | ⚠️ simulated attestation; real TEEs are roadmap ([deploy/confidential](deploy/confidential/README.md)) |
+| Rights Decay: every right has a clock (`kind: clock` rule packs, 8 with citations); a planner prices waiting against acting from a fitted hazard curve and the person's time, and names the day to act; the Ofcom missed-visit mission waits with durable timers and re-plans on every wake; vision reads the "sorry we missed you" card and reads back one unsure fact | ✅ clocks are demo values until checked; the curves are NYC 311 housing requests standing in for UK companies, scaled by the FCA's real UK "upheld" share ([backtest](docs/rights_backtest.md), [calibration](docs/rights_calibration.md)) |
+| Agent Passport: a mandate signed with Face ID (the WebAuthn challenge is its digest) or by the Gateway after a spoken yes; checked offline in Python and in the browser; the Harness and the company's line both enforce it; Tempo answers only for the exact mandate it issued; STOP revokes it everywhere | ✅ 10/10 attacks refused ([red team](docs/passport_redteam.md)); the passkey is self-certifying, so a directory or attestation issuer is roadmap |
+| Patience Profile: a caller tells Tempo once how to speak with them (a stammer, hearing, a language, a slower pace); the Memory Gate reads it back and keeps it opt-in, dated and forgettable; as each call connects, ElevenLabs asks the Gateway, which sets language, pace, voice and listening keywords, and tells the agent in plain words; the whole line is patient for everyone | ✅ replay and tests; live needs `make sync-voice` (it turns on the conversation-initiation webhook) and a lower voice in `ELEVENLABS_VOICE_TEMPO_LOW`; the five greetings are unchecked by native speakers |
 
 ## Add a skill in five minutes
 
@@ -96,7 +99,8 @@ published terms, then set `last_verified`.
 make check         # ruff, mypy --strict (core, harness), unit/contract/policy/workflow tests, < 60 s
 make test-int      # Postgres (TEST_DATABASE_URL or Docker) and the Gateway end to end
 make e2e           # Playwright: Face ID approval (virtual authenticator) and pairing, in Chromium
-make demo-rehearsal  # three dry runs in a row
+make demo-rehearsal  # three dry runs in a row (the rail claim and the Rights Decay beat)
+make rights-backtest # fit the Rights Decay curves from .data/ and write the backtest
 make evals         # live LLM evals (costs tokens); appends to evals/report.md
 make doctor        # one cheap call per vendor, with an owner and a fallback for each failure
 make local         # Local mode: Postgres, Ollama and the Gateway on this machine, localhost only
@@ -109,6 +113,8 @@ make local         # Local mode: Postgres, Ollama and the Gateway on this machin
 | Consensus Court (15 cases incl. UK261 extraordinary circumstances) | agreement ≥ 80%, never wrong when unanimous |
 | Sludge Arena (10 adversarial calls) | disclosure, injection resistance, vouchers declined: 100% |
 | Delay model (`make calibrate`: P(late ≥ 15/30/60) by service, last week held out) | Brier below the route average; [backtest](docs/backtest.md), [reliability diagram](docs/calibration.png) (synthetic until HSP keys) |
+| Rights Decay (`make rights-backtest`: Kaplan-Meier on 458,589 NYC 311 requests, Jan-Jun fitted, Jul-Dec scored) | the planner matches or beats the best simple rule at every share of closures that pay; [backtest](docs/rights_backtest.md) |
+| Agent Passport red team (`tests/policy/test_passport_redteam.py`) | 10/10 attacks refused, 2/2 honest calls allowed; verify p99 under 0.1 ms ([table](docs/passport_redteam.md)) |
 
 Results: [evals/report.md](evals/report.md) (appears after the first run with keys).
 
@@ -119,7 +125,8 @@ Results: [evals/report.md](evals/report.md) (appears after the first run with ke
 | `packages/tempo_core` | Domain core: pure Python, no I/O |
 | `packages/tempo_ports` | Ports (`typing.Protocol`) and replay/in-memory implementations |
 | `packages/tempo_adapters` | One module per vendor: Cortex, rail, Gemini, ElevenLabs, Postgres, telemetry |
-| `packages/tempo_harness` | Guardrails as code (Agent Hooks + fallback), audit records |
+| `packages/tempo_harness` | Guardrails as code (Agent Hooks + fallback), audit records, MandateGuard |
+| `packages/tempo_passport` | Agent Passport: the mandate, its canonical form and the offline verifier |
 | `packages/tempo_missions` | Mission workflows, tools, the Consensus Court, Negotiator, Sludge Arena |
 | `packages/tempo_memory` | Memory Gate, MemoryPort (Mem0, pgvector, in-memory), timeline (Graphiti, SQL), context provider |
 | `apps/gateway` | FastAPI: REST, ElevenLabs tools, Twilio SMS, post-call webhook, live WebSocket |

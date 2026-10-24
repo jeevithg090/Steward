@@ -221,3 +221,37 @@ async def test_optional_failures_do_not_fail_the_exit_code(make_settings: MakeSe
     assert results[0].status is Status.FAIL
     assert "➖ Gemini vision (optional)" in render(results)
     assert exit_code(results) == 0
+
+
+@respx.mock
+async def test_the_inbound_agent_must_ask_the_gateway_how_to_speak(
+    make_settings: MakeSettings,
+) -> None:
+    """The Patience Profile is off until `make sync-voice` turns on the initiation webhook."""
+    base = "https://api.elevenlabs.io/v1/convai/agents"
+    settings = make_settings(
+        elevenlabs_api_key="k-eleven", elevenlabs_agent_inbound_id="agent_in",
+        elevenlabs_agent_negotiator_id="agent_neg", public_url="https://tempo.example.test",
+    )  # fmt: skip
+    respx.get(f"{base}/agent_neg").respond(200, json={"name": "Tempo Negotiator"})
+    inbound = respx.get(f"{base}/agent_in")
+
+    inbound.respond(200, json={"name": "Tempo", "platform_settings": {"overrides": {}}})
+    off = await run_one("ElevenLabs agents", settings)
+    inbound.respond(200, json={"name": "Tempo", "platform_settings": {
+        "overrides": {"enable_conversation_initiation_client_data_from_webhook": True},
+        "workspace_overrides": {"conversation_initiation_client_data_webhook": {
+            "url": "https://old-tunnel.example.test/voice/initiation"}},
+    }})  # fmt: skip
+    stale = await run_one("ElevenLabs agents", settings)
+    inbound.respond(200, json={"name": "Tempo", "platform_settings": {
+        "overrides": {"enable_conversation_initiation_client_data_from_webhook": True},
+        "workspace_overrides": {"conversation_initiation_client_data_webhook": {
+            "url": "https://tempo.example.test/voice/initiation"}},
+    }})  # fmt: skip
+    on = await run_one("ElevenLabs agents", settings)
+
+    assert off.status is not Status.OK and "webhook is off" in off.detail
+    assert "make sync-voice" in off.hint
+    assert stale.status is not Status.OK and "old-tunnel" in stale.detail
+    assert on.status is Status.OK and "asks the Gateway how to speak" in on.detail
