@@ -1,0 +1,56 @@
+# The regexes in the "Tempo Delay Spotter" shortcut, one per Match Text action.
+#
+# Copy each `regex` into the Match Text action exactly as written (the README shows them too).
+# `case_sensitive` is the action's Case Sensitive switch. The patterns use only syntax that
+# behaves the same in ICU (what Shortcuts uses, via NSRegularExpression) and in Python's `re`:
+# numbered groups, (?i), lookarounds, lazy quantifiers. `delay_spotter.py check --icu` proves it.
+#
+# Every pattern that feeds "Get Group at Index" starts with ^[\s\S]*? so it can match only once
+# (the first occurrence). Shortcuts then hands back one value, never a list.
+
+signal:
+  block: 3
+  purpose: Is this about a delay at all? If not, stop quietly.
+  case_sensitive: false
+  regex: '(?i)\b(?:delay(?:ed|s)?|cancel(?:l?ed|lation)|running late|disruption)\b'
+
+short_delay:
+  block: 4
+  purpose: >-
+    Stop quietly when the first delay in the text is under 15 minutes (Delay Repay starts at 15),
+    unless the text mentions a cancellation or hours. Group 1 is the minutes. Delay minutes are
+    used only here, on the phone; the Gateway takes the official delay from rail data.
+  case_sensitive: false
+  regex: '(?i)^(?![\s\S]*\bcancel)(?![\s\S]*\b\d{1,2}\s?(?:hours?|hrs?)\b)(?:(?!\b\d{1,3}\s?(?:mins?|minutes)\b)[\s\S])*\b(\d|1[0-4])\s?(?:mins?|minutes)\b'
+
+departure:
+  block: 5
+  purpose: The first 24-hour time in the text (08:12 or 08.12) is the scheduled departure.
+  case_sensitive: true
+  regex: '^[\s\S]*?(?<![\d.:/])((?:[01]\d|2[0-3])[:.][0-5]\d)(?![.:/]?\d)'
+
+stations:
+  block: 6
+  purpose: >-
+    The first "Station to Station" (or " - ", " – ", " → ") pair. Group 1 is where the train
+    starts, group 2 where it goes. Station names are capitalised words, so Case Sensitive must
+    stay on. Opening words such as "The" or "Your" are skipped.
+  case_sensitive: true
+  regex: '^[\s\S]*?\b(?!(?:The|Your|This|Our|An?|Sorry|Update|Alert|Delayed|Cancelled|Service|Train|Today''s|Tonight''s)\b)([A-Z][A-Za-z''’]*(?:-[A-Za-z]+)*(?: (?:[A-Z][A-Za-z''’]*(?:-[A-Za-z]+)*|&))*)\s+(?:to|-|–|—|→)\s+([A-Z][A-Za-z''’]*(?:-[A-Za-z]+)*(?: (?:[A-Z][A-Za-z''’]*(?:-[A-Za-z]+)*|&))*)'
+
+date:
+  block: 7
+  purpose: >-
+    A travel date written like "23 Oct", "Fri 23 October" or "23rd October 2026". Group 1 goes
+    to Format Date, which picks the nearest such date. With no date in the text, the shortcut
+    uses the day the message arrived.
+  case_sensitive: false
+  regex: '(?i)^[\s\S]*?\b(\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*(?:\s+\d{4})?)\b'
+
+check:
+  block: 8
+  purpose: >-
+    The fields look right ("OXF PAD 08:12 2026-10-23"): both stations were found in the Stations
+    dictionary and the time and date are well formed. If not, say so and send nothing.
+  case_sensitive: true
+  regex: '^[A-Z]{3} [A-Z]{3} (?:[01]\d|2[0-3]):[0-5]\d \d{4}-\d{2}-\d{2}$'

@@ -1,0 +1,218 @@
+# Sample delay alerts for Delay Spotter. All synthetic: written in the style of UK operator texts,
+# Trainline emails and app notifications, not copied from real messages.
+#
+# channel: sms | email | notification. For an email the shortcut sees "<subject>\n<body>", which
+# is what the Email automation passes on (see the README).
+# received: when the message arrived. The shortcut uses it as the travel date when the text
+# doesn't give one, just as the phone uses the current date.
+# expect.outcome:
+#   send        - all fields found; the shortcut POSTs them to the Gateway
+#   short_delay - under 15 minutes: stops quietly, nothing leaves the phone
+#   unreadable  - a delay, but the journey can't be read: one notification, nothing sent
+#   ignored     - not about a delay: stops quietly
+# expect.gateway: what the replay Gateway (`uv run tempo-gateway`) should answer for a `send`.
+#   Replay mode knows only the journeys in fixtures/rail/replay (OXF -> PAD on 22 and 23 Oct).
+# model_line: a plausible reply from the optional on-device "Use Model" step (simulated here;
+#   the script can't run Apple's model). The shortcut puts it in front of the original text.
+
+- id: gwr-sms-0812-delayed
+  channel: sms
+  sender: GWR
+  received: "2026-10-23T08:19:00+01:00"
+  text: >-
+    GWR: We're sorry, the 08:12 Oxford to London Paddington is delayed by approximately 38
+    minutes due to a signalling fault at Didcot Parkway. You may be able to claim Delay Repay at
+    gwr.com/delayrepay
+  model_line: "08:12 Oxford to London Paddington, 38 min late"
+  expect:
+    outcome: send
+    departure: "08:12"
+    origin: Oxford
+    destination: London Paddington
+    origin_crs: OXF
+    destination_crs: PAD
+    travel_date: "2026-10-23"
+    short_delay_minutes: null
+    gateway: {state: awaiting_consent, amount_gbp: "14.20"}
+
+- id: nre-sms-0758-delayed
+  channel: sms
+  sender: National Rail
+  received: "2026-10-22T08:06:00+01:00"
+  text: >-
+    National Rail: 07:58 Oxford - London Paddington is delayed. Expected arrival 09:59 (64 mins
+    late). Check before you travel at nationalrail.co.uk
+  expect:
+    outcome: send
+    departure: "07:58"
+    origin: Oxford
+    destination: London Paddington
+    origin_crs: OXF
+    destination_crs: PAD
+    travel_date: "2026-10-22"
+    short_delay_minutes: null
+    gateway: {state: awaiting_consent, amount_gbp: "28.40"}
+
+- id: trainline-email-1742-cancelled
+  channel: email
+  sender: Trainline
+  received: "2026-10-23T17:31:00+01:00"
+  subject: Your 17:42 train to London Paddington has been cancelled
+  body: |
+    Hi Margaret,
+
+    We're sorry to tell you that your 17:42 Great Western Railway service from Oxford to London Paddington on Friday 23 October has been cancelled.
+
+    You may be entitled to compensation through the train company's Delay Repay scheme. Your ticket is still valid on the next available service.
+
+    The Trainline team
+  expect:
+    outcome: send
+    departure: "17:42"
+    origin: Oxford
+    destination: London Paddington
+    origin_crs: OXF
+    destination_crs: PAD
+    travel_date: "2026-10-23"
+    short_delay_minutes: null
+    gateway: {state: awaiting_consent, amount_gbp: "28.40"}
+
+- id: gwr-sms-0912-short
+  channel: sms
+  sender: GWR
+  received: "2026-10-23T09:15:00+01:00"
+  text: >-
+    GWR: The 09:12 Oxford to London Paddington is running 9 mins late. Expected at London
+    Paddington 09:59. Sorry for the delay.
+  expect:
+    outcome: short_delay
+    departure: "09:12"
+    origin: Oxford
+    destination: London Paddington
+    origin_crs: OXF
+    destination_crs: PAD
+    travel_date: "2026-10-23"
+    short_delay_minutes: 9
+
+- id: chiltern-sms-0744-delayed
+  channel: sms
+  sender: Chiltern Railways
+  received: "2026-10-23T07:52:00+01:00"
+  text: >-
+    Chiltern Railways: The 07:44 Oxford to London Marylebone is running 22 mins late due to a
+    signalling problem near Bicester Village. We apologise for the disruption to your journey.
+  expect:
+    outcome: send
+    departure: "07:44"
+    origin: Oxford
+    destination: London Marylebone
+    origin_crs: OXF
+    destination_crs: MYB
+    travel_date: "2026-10-23"
+    short_delay_minutes: null
+    gateway: {state: declined, message_contains: "couldn't find that train"}
+
+- id: crosscountry-sms-0905-unknown-station
+  channel: sms
+  sender: CrossCountry
+  received: "2026-10-23T09:11:00+01:00"
+  text: >-
+    CrossCountry: Your 09:05 Reading to Manchester Piccadilly service is delayed by 17 minutes
+    because of a train fault. Visit crosscountrytrains.co.uk for help with your journey.
+  expect:
+    outcome: unreadable
+    departure: "09:05"
+    origin: Reading
+    destination: Manchester Piccadilly
+    origin_crs: RDG
+    destination_crs: null
+    travel_date: "2026-10-23"
+    short_delay_minutes: null
+
+- id: trainline-email-0812-claim-reminder
+  channel: email
+  sender: Trainline
+  received: "2026-10-25T09:02:00+00:00"
+  subject: "Your journey on Fri 23 Oct: you could claim Delay Repay"
+  body: |
+    Hi Margaret,
+
+    Your 08:12 Oxford to London Paddington train on Fri 23 Oct arrived 38 minutes late. You could be owed money back through Delay Repay.
+
+    Claims must be made within 28 days of travel.
+  expect:
+    outcome: send
+    departure: "08:12"
+    origin: Oxford
+    destination: London Paddington
+    origin_crs: OXF
+    destination_crs: PAD
+    travel_date: "2026-10-23"
+    short_delay_minutes: null
+    gateway: {state: awaiting_consent, amount_gbp: "14.20"}
+
+- id: nre-sms-disruption
+  channel: sms
+  sender: National Rail
+  received: "2026-10-23T10:40:00+01:00"
+  text: >-
+    National Rail: Disruption between Didcot Parkway and Swindon. Trains may be cancelled or
+    delayed by up to 30 minutes until 12:00.
+  expect:
+    outcome: unreadable
+    departure: "12:00"
+    origin: null
+    destination: null
+    origin_crs: null
+    destination_crs: null
+    travel_date: "2026-10-23"
+    short_delay_minutes: null
+
+- id: gwr-email-1821-hours
+  channel: email
+  sender: GWR
+  received: "2026-10-24T08:00:00+01:00"
+  subject: Delay to your 18:21 London Paddington to Oxford service
+  body: |
+    Dear customer,
+
+    We're sorry that the 18:21 London Paddington to Oxford on 23rd October was delayed by 1 hour 5 minutes because of a points failure at Reading.
+
+    You can claim Delay Repay within 28 days at gwr.com/delayrepay.
+  expect:
+    outcome: send
+    departure: "18:21"
+    origin: London Paddington
+    destination: Oxford
+    origin_crs: PAD
+    destination_crs: OXF
+    travel_date: "2026-10-23"
+    short_delay_minutes: null
+    gateway: {state: declined, message_contains: "couldn't find that train"}
+
+- id: trainline-push-0812
+  channel: notification
+  sender: Trainline
+  received: "2026-10-23T08:21:00+01:00"
+  text: >-
+    Delay alert. Your train from Oxford (08:12) to London Paddington is delayed by 38 minutes.
+  model_line: "08:12 Oxford to London Paddington, 38 min late"
+  expect:
+    outcome: unreadable
+    departure: "08:12"
+    origin: null
+    destination: null
+    origin_crs: null
+    destination_crs: null
+    travel_date: "2026-10-23"
+    short_delay_minutes: null
+  expect_with_model:
+    outcome: send
+    departure: "08:12"
+    origin: Oxford
+    destination: London Paddington
+    origin_crs: OXF
+    destination_crs: PAD
+    travel_date: "2026-10-23"
+    short_delay_minutes: null
+    gateway: {state: awaiting_consent, amount_gbp: "14.20"}

@@ -1,0 +1,21 @@
+# The shortcut's "Stations" dictionary: station names, exactly as operators write them, to CRS
+# codes. Keep your own commute in it; anything else stops on the phone with "add it to Stations".
+# Keys are matched exactly (case matters), so add the spellings your operator uses.
+Oxford: OXF
+Oxford Parkway: OXP
+London Paddington: PAD
+Paddington: PAD
+London Marylebone: MYB
+Marylebone: MYB
+Reading: RDG
+Didcot Parkway: DID
+Bicester Village: BIV
+Banbury: BAN
+Haddenham & Thame Parkway: HDM
+High Wycombe: HWY
+Slough: SLO
+Swindon: SWI
+Bath Spa: BTH
+Bristol Temple Meads: BRI
+Cheltenham Spa: CNM
+Birmingham New Street: BHM
