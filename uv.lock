@@ -3663,6 +3663,7 @@ name = "tempo-memory"
 version = "0.1.0"
 source = { editable = "packages/tempo_memory" }
 dependencies = [
+    { name = "agent-framework-core" },
     { name = "graphiti-core" },
     { name = "mem0ai" },
     { name = "pgvector" },
@@ -3676,6 +3677,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "agent-framework-core", specifier = ">=1.23" },
     { name = "graphiti-core", specifier = ">=0.30.2" },
     { name = "mem0ai", specifier = ">=2.2.1" },
     { name = "pgvector", specifier = ">=0.5.1" },

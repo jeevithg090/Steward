@@ -23,7 +23,13 @@ from tempo_memory.models import MemoryCandidate, MemoryItem, Tombstone
 from tempo_memory.port import MIN_SCORE, MemoryHit, admit
 
 TS = sa.DateTime(timezone=True)
-metadata = sa.MetaData(naming_convention={"ix": "ix_%(column_0_label)s", "pk": "pk_%(table_name)s"})
+metadata = sa.MetaData(
+    naming_convention={
+        "ix": "ix_%(column_0_label)s",
+        "pk": "pk_%(table_name)s",
+        "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    }
+)
 
 memories = sa.Table(
     "memories",
