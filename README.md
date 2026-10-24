@@ -5,9 +5,8 @@ wins back the money and hours companies waste. Its flagship skill pack, **Clawba
 compensation you're owed, works it out from published rules, claims it with your consent, and
 only says "done" once the money has arrived.
 
-<!-- Replace <group>/<project> once the GitLab project exists. -->
-[![pipeline](https://gitlab.com/<group>/<project>/badges/main/pipeline.svg)](https://gitlab.com/<group>/<project>/-/pipelines)
-[![coverage](https://gitlab.com/<group>/<project>/badges/main/coverage.svg)](https://gitlab.com/<group>/<project>/-/graphs/main/charts)
+[![pipeline](https://gitlab.com/na-group4693543/Tempo/badges/main/pipeline.svg)](https://gitlab.com/na-group4693543/Tempo/-/pipelines)
+[![coverage](https://gitlab.com/na-group4693543/Tempo/badges/main/coverage.svg)](https://gitlab.com/na-group4693543/Tempo/-/graphs/main/charts)
 
 ![Mission Control: Tempo asks once, shows its Proof Trace and the Consensus Court's votes](docs/mission-control.jpg)
 
