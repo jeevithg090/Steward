@@ -83,3 +83,7 @@ def test_jargon_scores_lower_than_plain_words() -> None:
 
 def test_now_is_not_used() -> None:  # keep the dataset deterministic
     assert datetime(2026, 10, 24, tzinfo=UTC).year == 2026
+
+
+def test_empty_text_is_trivially_readable() -> None:
+    assert flesch_reading_ease("") == 100.0
