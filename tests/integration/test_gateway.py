@@ -77,7 +77,10 @@ def test_web_routes_need_the_bearer_token(gateway: TestClient) -> None:
         ).status_code
         == 401
     )
-    assert gateway.get("/health").json()["mode"] == "replay"
+    health = gateway.get("/health").json()
+    assert (health["mode"], health["simulated"]) == ("replay", ["company", "rail data"])
+    assert gateway.get("/missions").status_code == 401
+    assert gateway.get("/ledger").status_code == 401
 
 
 def test_create_mission_returns_id_and_streams_events(gateway: TestClient) -> None:
@@ -274,3 +277,36 @@ def test_stall_event_reaches_dashboard_under_200ms(gateway: TestClient) -> None:
     assert event["category"] == "hold_extension"  # the rules overrule the model's label
     assert event["counter"].startswith("Log the minutes")
     assert elapsed_ms < 200
+
+
+def test_the_dashboard_lists_missions_and_the_ledger(gateway: TestClient) -> None:
+    view = gateway.post("/missions", json=MISSION, headers=AUTH).json()
+    trace = view["ask"]["proof_trace"]
+    gateway.post(f"/approvals/{view['ask']['request_id']}", json={"approved": True}, headers=AUTH)
+    gateway.post("/scheduler/tick", headers=AUTH)
+
+    missions = gateway.get("/missions", headers=AUTH).json()
+    ledger = gateway.get("/ledger", headers=AUTH).json()
+
+    assert trace["amount_gbp"] == "14.20"
+    assert trace["steps"][0]["citation_url"].startswith("https://")
+    assert [m["id"] for m in missions] == [view["id"]]
+    assert ledger == {"minutes_returned": "20", "hours_returned": "0.3", "gbp_recovered": "14.20"}
+
+
+def test_cors_allows_mission_control_only(gateway: TestClient) -> None:
+    ok = gateway.options(
+        "/missions",
+        headers={"Origin": "http://localhost:3000", "Access-Control-Request-Method": "GET"},
+    )
+    other = gateway.options(
+        "/missions",
+        headers={"Origin": "https://evil.example", "Access-Control-Request-Method": "GET"},
+    )
+
+    assert ok.headers.get("access-control-allow-origin") == "http://localhost:3000"
+    assert "access-control-allow-origin" not in other.headers
+
+
+def test_the_ledger_shows_pounds_to_the_penny_even_when_empty(gateway: TestClient) -> None:
+    assert gateway.get("/ledger", headers=AUTH).json()["gbp_recovered"] == "0.00"

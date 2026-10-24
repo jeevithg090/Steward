@@ -37,6 +37,10 @@ class RepoPort(Protocol):
 
     async def consents(self, mission_id: str) -> list[ConsentEvent]: ...
 
+    async def ledger_entries(self, user_id: str | None = None) -> list[LedgerEntry]:
+        """Everyone's entries, or one person's."""
+        ...
+
     async def add_ledger_entry(
         self, entry: LedgerEntry, *, user_id: str, company: str | None = None
     ) -> None:

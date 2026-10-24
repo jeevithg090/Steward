@@ -145,6 +145,24 @@ class SqlRepo:
                 for r in rows
             ]
 
+    async def ledger_entries(self, user_id: str | None = None) -> list[LedgerEntry]:
+        query = select(TimeLedgerRow).order_by(TimeLedgerRow.id)
+        if user_id is not None:
+            query = query.where(TimeLedgerRow.user_id == user_id)
+        async with self._sessions() as session:
+            rows = await session.scalars(query)
+            return [
+                LedgerEntry(
+                    mission_id=r.mission_id or "",
+                    at=r.at,
+                    minutes_lost=r.minutes_lost,
+                    minutes_returned=r.minutes_returned,
+                    gbp_recovered=r.gbp_recovered,
+                    key=r.entry_key,
+                )
+                for r in rows
+            ]
+
     async def add_ledger_entry(
         self, entry: LedgerEntry, *, user_id: str, company: str | None = None
     ) -> None:

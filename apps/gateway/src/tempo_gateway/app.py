@@ -32,10 +32,12 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
 
 from tempo_adapters.settings import Settings
 from tempo_core.errors import MissionNotFound
+from tempo_core.ledger import summarise
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
 from tempo_gateway.events import EventBus
 from tempo_gateway.missions import (
@@ -91,6 +93,12 @@ def create_app(
             task.cancel()
 
     app = FastAPI(title="Tempo Gateway", version="0.1.0", lifespan=lifespan)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[o.strip() for o in settings.web_origins.split(",") if o.strip()],
+        allow_methods=["GET", "POST"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
     seen = SeenKeys()
     api_token = _secret(settings.tempo_api_token)
 
@@ -107,8 +115,27 @@ def create_app(
         return Response(status_code=404, content="mission not found")
 
     @app.get("/health")
-    async def health() -> dict[str, str]:
-        return {"status": "ok", "mode": settings.tempo_mode}
+    async def health() -> dict[str, Any]:
+        # The honesty badge: what is live and what is simulated in this run.
+        return {
+            "status": "ok",
+            "mode": settings.tempo_mode,
+            "demo": settings.tempo_demo,
+            "simulated": ["company"] + (["rail data"] if settings.tempo_mode == "replay" else []),
+        }
+
+    @app.get("/missions")
+    async def list_missions(caller: Caller) -> list[MissionView]:
+        return [await service.view(m) for m in reversed(service.mission_ids)]
+
+    @app.get("/ledger")
+    async def ledger(caller: Caller) -> dict[str, str]:
+        totals = summarise(await service.deps.repo.ledger_entries())
+        return {
+            "minutes_returned": str(totals.minutes_returned),
+            "hours_returned": str(totals.hours_returned),
+            "gbp_recovered": str(totals.gbp_recovered.quantize(Decimal("0.01"))),
+        }
 
     @app.post("/missions", status_code=201)
     async def create_mission(body: StartMission, caller: Caller) -> MissionView:
