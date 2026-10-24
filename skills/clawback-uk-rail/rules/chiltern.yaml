@@ -5,6 +5,7 @@ id: uk-rail.chiltern.delay-repay
 version: "0.1.0"
 operator: Chiltern Railways
 scheme: DR15
+toc_codes: [CH]
 citation_url: https://www.chilternrailways.co.uk/delay-repay
 claim_window_days: 28
 demo_values: true

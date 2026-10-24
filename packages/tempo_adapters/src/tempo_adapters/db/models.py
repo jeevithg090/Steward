@@ -146,6 +146,7 @@ class TimeLedgerRow(Base):
     minutes_lost: Mapped[Decimal] = mapped_column(MINUTES, default=Decimal(0))
     minutes_returned: Mapped[Decimal] = mapped_column(MINUTES, default=Decimal(0))
     gbp_recovered: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    entry_key: Mapped[str | None] = mapped_column(String(128), unique=True)  # idempotency
 
 
 class RulePackRow(Base):

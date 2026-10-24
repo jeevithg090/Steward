@@ -130,6 +130,11 @@ async def test_case_event_written_per_transition(repo: SqlRepo, engine: AsyncEng
         ).all()
 
     assert mission.state is S.APPRAISED
+    assert [e.to_state for e in await repo.case_events("m_1")] == [
+        S.UNDERSTOOD,
+        S.PLANNED,
+        S.APPRAISED,
+    ]
     assert (await repo.get_mission("m_1")).entered_state_at == T0 + timedelta(seconds=6)
     assert [tuple(e) for e in events] == [
         ("received", "understood", 2000),
@@ -181,3 +186,18 @@ async def test_no_pii_columns_in_ledger_tables(engine: AsyncEngine) -> None:
 async def test_an_unknown_mission_is_not_found(repo: SqlRepo) -> None:
     with pytest.raises(MissionNotFound):
         await repo.get_mission("m_404")
+
+
+async def test_a_ledger_entry_with_the_same_key_is_recorded_once(
+    repo: SqlRepo, engine: AsyncEngine
+) -> None:
+    await seed(repo)
+    entry = LedgerEntry(mission_id="m_1", at=T0, minutes_returned=Decimal("20"), key="m_1:claimed")
+
+    await repo.add_ledger_entry(entry, user_id="u_1", company="GW")
+    await repo.add_ledger_entry(entry, user_id="u_1", company="GW")  # a replayed step
+    await repo.add_ledger_entry(entry.model_copy(update={"key": None}), user_id="u_1")
+
+    async with engine.connect() as conn:
+        rows = (await conn.execute(text("SELECT entry_key FROM time_ledger ORDER BY id"))).all()
+    assert [r[0] for r in rows] == ["m_1:claimed", None]

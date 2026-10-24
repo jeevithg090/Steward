@@ -42,8 +42,8 @@ evals: ## LLM quality evals (costs tokens); writes evals/report.md
 doctor: ## Check every key and service with one cheap live call
 	uv run python scripts/doctor.py
 
-demo-dry-run: ## Full scripted demo in replay mode, then live, with timings
-	@echo "make demo-dry-run arrives with S6.4 (demo hardening)."; exit 1
+demo-dry-run: ## Scripted demo in replay mode, with a mid-mission restart and timings
+	uv run python scripts/demo_dry_run.py
 
 sync-voice: ## Push voice/**/*.yaml agent configs to ElevenLabs
 	@echo "make sync-voice arrives with S4.1 (voice/sync.py)."; exit 1

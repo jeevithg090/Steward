@@ -119,6 +119,7 @@ def test_unknown_operator_raises_not_covered() -> None:
     registry = RulePackRegistry.from_directory(SKILLS)
 
     assert registry.delay_repay("gwr").operator == "GWR"  # case-insensitive
+    assert registry.delay_repay("GW").operator == "GWR"  # rail data's TOC code
     with pytest.raises(NotCovered):
         registry.delay_repay("Hogwarts Express")
     with pytest.raises(NotCovered):

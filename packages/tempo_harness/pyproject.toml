@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Tempo harness: policies, hooks adapter, middleware, budgets"
 license = "Apache-2.0"
 requires-python = ">=3.12"
-dependencies = ["tempo-core"]
+dependencies = ["tempo-core", "agent-framework-core>=1.23", "agent-hooks-sdk>=0.1.0b3"]
 
 [build-system]
 requires = ["uv_build>=0.13.1,<0.14"]

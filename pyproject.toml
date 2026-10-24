@@ -14,13 +14,14 @@ dependencies = [
     "tempo-memory",
     "tempo-crypto",
     "tempo-mcp-rail",
+    "tempo-gateway",
 ]
 
 [tool.uv]
 package = false
 
 [tool.uv.workspace]
-members = ["packages/*", "mcp-servers/*"]
+members = ["packages/*", "mcp-servers/*", "apps/gateway"]
 
 [tool.uv.sources]
 tempo-core = { workspace = true }
@@ -31,6 +32,7 @@ tempo-missions = { workspace = true }
 tempo-memory = { workspace = true }
 tempo-crypto = { workspace = true }
 tempo-mcp-rail = { workspace = true }
+tempo-gateway = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -62,7 +64,7 @@ allowed-confusables = ["–", "→", "×", "·", "➖"]
 
 [tool.ruff.lint.per-file-ignores]
 # Tests assert on purpose and use fixed fake values.
-"tests/**" = ["S101", "S105", "S106"]
+"tests/**" = ["S101", "S105", "S106", "E501"]  # long rows keep policy tables readable
 
 [tool.ruff.lint.isort]
 known-first-party = [
@@ -74,6 +76,7 @@ known-first-party = [
     "tempo_memory",
     "tempo_crypto",
     "tempo_mcp_rail",
+    "tempo_gateway",
 ]
 
 [tool.mypy]
@@ -101,6 +104,10 @@ markers = [
     "live: real vendor smoke tests, one call each (s)",
 ]
 addopts = "-q --strict-markers --import-mode=importlib"
+filterwarnings = [
+    # Agent Hooks is experimental by design; ADR 0001 records why we use it anyway.
+    "ignore:.*create_agent_hooks_middleware is experimental:Warning",
+]
 
 [tool.coverage.run]
 branch = true
@@ -113,6 +120,7 @@ source_pkgs = [
     "tempo_memory",
     "tempo_crypto",
     "tempo_mcp_rail",
+    "tempo_gateway",
 ]
 
 [tool.coverage.report]

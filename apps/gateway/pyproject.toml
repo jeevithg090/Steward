@@ -1,0 +1,24 @@
+[project]
+name = "tempo-gateway"
+version = "0.1.0"
+description = "Tempo's Gateway: REST, webhooks (ElevenLabs, Twilio) and live WebSocket updates"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+dependencies = [
+    "tempo-core",
+    "tempo-ports",
+    "tempo-adapters",
+    "tempo-missions",
+    "fastapi>=0.162",
+    "python-multipart>=0.0.32",
+    "structlog>=25.4",
+    "twilio>=9.12",
+    "uvicorn>=0.54",
+]
+
+[project.scripts]
+tempo-gateway = "tempo_gateway.main:run"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14"]
+build-backend = "uv_build"

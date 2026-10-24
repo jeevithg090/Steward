@@ -5,6 +5,7 @@ id: uk-rail.gwr.delay-repay
 version: "0.1.0"
 operator: GWR
 scheme: DR15
+toc_codes: [GW]
 citation_url: https://www.gwr.com/help-and-support/refunds-and-compensation/delay-repay
 claim_window_days: 28
 demo_values: true

@@ -91,6 +91,22 @@ class SqlRepo:
             )
             return _mission(row)
 
+    async def case_events(self, mission_id: str) -> list[StateChanged]:
+        async with self._sessions() as session:
+            rows = await session.scalars(
+                select(CaseEvent).where(CaseEvent.mission_id == mission_id).order_by(CaseEvent.id)
+            )
+            return [
+                StateChanged(
+                    mission_id=r.mission_id,
+                    from_state=MissionState(r.from_state),
+                    to_state=MissionState(r.to_state),
+                    at=r.at,
+                    latency_ms=r.latency_ms,
+                )
+                for r in rows
+            ]
+
     async def append_consent(self, event: ConsentEvent) -> None:
         async with self._sessions.begin() as session:
             session.add(
@@ -132,18 +148,18 @@ class SqlRepo:
     async def add_ledger_entry(
         self, entry: LedgerEntry, *, user_id: str, company: str | None = None
     ) -> None:
+        statement = insert(TimeLedgerRow).values(
+            user_id=user_id,
+            mission_id=entry.mission_id,
+            at=entry.at,
+            company=company,
+            minutes_lost=entry.minutes_lost,
+            minutes_returned=entry.minutes_returned,
+            gbp_recovered=entry.gbp_recovered,
+            entry_key=entry.key,
+        )
         async with self._sessions.begin() as session:
-            session.add(
-                TimeLedgerRow(
-                    user_id=user_id,
-                    mission_id=entry.mission_id,
-                    at=entry.at,
-                    company=company,
-                    minutes_lost=entry.minutes_lost,
-                    minutes_returned=entry.minutes_returned,
-                    gbp_recovered=entry.gbp_recovered,
-                )
-            )
+            await session.execute(statement.on_conflict_do_nothing(index_elements=["entry_key"]))
 
 
 def _mission(row: MissionRow) -> Mission:
