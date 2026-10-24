@@ -242,3 +242,16 @@ def test_transforms_chain_and_policies_for_other_points_are_skipped() -> None:
 
 def test_nothing_to_check_allows() -> None:
     assert evaluate([], pre("anything"))[0] is ALLOW
+
+
+def test_pii_redactor_walks_multi_message_output_without_failing() -> None:
+    content = [
+        {"role": "assistant", "content": [{"type": "function_call", "name": "log_stall"}]},
+        {"role": "assistant", "content": [{"type": "text", "text": "Ring 07700 900123."}]},
+    ]
+
+    decision = PIIEgressRedactor().check(Seen(Point.OUTPUT, content=content))
+
+    assert decision.action is Action.TRANSFORM
+    assert decision.replacement[1]["content"][0]["text"] == "Ring [phone number removed]."
+    assert decision.replacement[0] == content[0]  # parts without text are left alone

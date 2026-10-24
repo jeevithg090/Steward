@@ -6,6 +6,10 @@ idempotency key, so a retried or replayed call happens once. Read-only tools nev
 Every tool runs under a timeout.
 
 Claims never take an amount from the model: `file_claim` reads it from the Proof Trace.
+
+Standing approvals: on a live call there's no time to ask, so a binding tool in `standing` runs
+without MAF's approval prompt. It is still gated by the Harness, which only lets it through
+within limits the person set in advance (SettlementGuard escalates anything outside them).
 """
 
 from __future__ import annotations
@@ -15,7 +19,7 @@ import json
 from collections.abc import Awaitable, Callable, Coroutine
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 
 from agent_framework import FunctionTool, tool
 
@@ -51,10 +55,17 @@ async def _timed[T](work: Coroutine[Any, Any, T]) -> T:
         return await work
 
 
-def mission_tools(deps: ToolDeps) -> list[FunctionTool]:
+def mission_tools(deps: ToolDeps, *, standing: frozenset[str] = frozenset()) -> list[FunctionTool]:
+    unknown = standing - set(BINDING_SCOPES)
+    if unknown:
+        raise ValueError(f"only binding tools can have standing approval: {sorted(unknown)}")
+
+    def approval(name: str) -> Literal["always_require", "never_require"]:
+        return "never_require" if name in standing else "always_require"
+
     @tool(
         name="file_claim",
-        approval_mode="always_require",
+        approval_mode=approval("file_claim"),
         description="File the compensation claim backed by a Proof Trace. Needs approval.",
     )
     async def file_claim(mission_id: str, proof_trace_id: str, idempotency_key: str) -> str:
@@ -74,7 +85,7 @@ def mission_tools(deps: ToolDeps) -> list[FunctionTool]:
 
     @tool(
         name="phone_company",
-        approval_mode="always_require",
+        approval_mode=approval("phone_company"),
         description="Phone the company about this mission, with AI disclosure. Needs approval.",
     )
     async def phone_company(mission_id: str, idempotency_key: str) -> str:
@@ -85,7 +96,7 @@ def mission_tools(deps: ToolDeps) -> list[FunctionTool]:
 
     @tool(
         name="accept_offer",
-        approval_mode="always_require",
+        approval_mode=approval("accept_offer"),
         description="Accept the company's offer (kind: cash or voucher). Needs approval.",
     )
     async def accept_offer(
@@ -97,7 +108,7 @@ def mission_tools(deps: ToolDeps) -> list[FunctionTool]:
 
     @tool(
         name="share_with_helper",
-        approval_mode="always_require",
+        approval_mode=approval("share_with_helper"),
         description="Share this mission's status with the person's chosen helper. Needs approval.",
     )
     async def share_with_helper(mission_id: str, helper_id: str, idempotency_key: str) -> str:

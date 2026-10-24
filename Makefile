@@ -36,7 +36,7 @@ e2e: ## Playwright end-to-end tests
 	@if [ ! -f tests/e2e/package.json ]; then echo "No e2e suite yet (it arrives with S5.1)."; exit 1; fi
 	cd tests/e2e && pnpm playwright test
 
-evals: ## LLM quality evals (costs tokens); writes evals/report.md
+evals: ## LLM quality evals (costs tokens); writes evals/*/report.md
 	$(call pytest_marker,eval)
 
 doctor: ## Check every key and service with one cheap live call
@@ -46,7 +46,7 @@ demo-dry-run: ## Scripted demo in replay mode, with a mid-mission restart and ti
 	uv run python scripts/demo_dry_run.py
 
 sync-voice: ## Push voice/**/*.yaml agent configs to ElevenLabs
-	@echo "make sync-voice arrives with S4.1 (voice/sync.py)."; exit 1
+	uv run python voice/sync.py
 
 seed: ## Demo users, consents, cached journeys, seeded Index
 	@echo "make seed arrives with S6.4 (demo hardening)."; exit 1

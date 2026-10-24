@@ -36,6 +36,7 @@ from pydantic import BaseModel, ValidationError
 
 from tempo_adapters.settings import Settings
 from tempo_core.errors import MissionNotFound
+from tempo_core.stalls import COUNTER_PLAY, Stall, classify
 from tempo_gateway.events import EventBus
 from tempo_gateway.missions import (
     BINDING_SCOPES,
@@ -170,9 +171,12 @@ def create_app(
             )
             view = await service.answer(request_id, approval)
             return {"mission_id": mission_id, "state": view.state, "say": view.message}
-        bus.publish(
-            {"type": name, **{k: str(v) for k, v in body.items()}}
-        )  # stall radar, references
+        event = {"type": name, **{k: str(v) for k, v in body.items()}}
+        if name == "log_stall":  # the Stall Radar: trust the rules over the model's label
+            stall = classify(event.get("quote", "")) or _known(event.get("category", ""))
+            event["category"] = stall.value if stall else "unknown"
+            event["counter"] = COUNTER_PLAY[stall] if stall else ""
+        bus.publish(event)
         return {"ok": True}
 
     @app.post("/voice/post-call")
@@ -239,6 +243,13 @@ def create_app(
                 return
 
     return app
+
+
+def _known(category: str) -> Stall | None:
+    try:
+        return Stall(category)
+    except ValueError:
+        return None
 
 
 def _twiml(message: str | None) -> Response:

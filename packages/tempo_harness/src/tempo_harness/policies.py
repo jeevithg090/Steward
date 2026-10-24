@@ -239,13 +239,14 @@ class PIIEgressRedactor:
         return Decision(Action.TRANSFORM, "pii_redacted", replacement=redacted)
 
     def _redact(self, content: Any) -> Any:
-        """Plain text, or a list of {"role", "content"} messages."""
+        """Plain text, or messages and parts nested as lists and dicts: only their text changes."""
         if isinstance(content, str):
             text = DATE_OF_BIRTH.sub("[date of birth removed]", content)
             return PHONE.sub("[phone number removed]", text)
         if isinstance(content, list):
-            return [
-                {**m, "content": self._redact(m["content"])} if isinstance(m, dict) else m
-                for m in content
-            ]
+            return [self._redact(item) for item in content]
+        if isinstance(content, dict):
+            return {
+                k: self._redact(v) if k in ("content", "text") else v for k, v in content.items()
+            }
         return content

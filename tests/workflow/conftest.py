@@ -63,12 +63,11 @@ class ScriptedModel:
         return OpenAIChatCompletionClient("scripted", async_client=openai)
 
     def tool_messages(self) -> list[str]:
-        """Every tool result the model was shown, in order."""
+        """Every tool result the model was shown, in order (the last request holds them all)."""
+        if not self.requests:
+            return []
         return [
-            str(m.get("content"))
-            for request in self.requests
-            for m in request["messages"]
-            if m.get("role") == "tool"
+            str(m.get("content")) for m in self.requests[-1]["messages"] if m.get("role") == "tool"
         ]
 
 
