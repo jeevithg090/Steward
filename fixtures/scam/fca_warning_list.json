@@ -1,0 +1,8 @@
+{
+  "source": "SYNTHETIC cache in the shape of the FCA Warning List",
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "firms": [
+    {"name": "Barclays Wealth Desk", "type": "clone", "phones": ["+442079460000"], "websites": ["barclays-wealthdesk.co"]},
+    {"name": "Crown Yield Partners", "type": "unauthorised", "phones": ["+441632960111"], "websites": ["crownyield.io"]}
+  ]
+}

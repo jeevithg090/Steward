@@ -72,6 +72,7 @@ flowchart LR
 | Cortex model client, router, Consensus Court; Gemini intake | ✅ (live use needs keys) |
 | Voice agents (Tempo, Negotiator) as config-as-code, Sludge Arena (3 company agents, 10 scenarios) | ✅ (push with `make sync-voice`) |
 | Mission Control web app, Stall Radar, tracing to Langfuse | ✅ |
+| Scam Shield: Companies House, the FCA Register and Warning List, plus pressure signs; by SMS (`CHECK <message>`) or REST; never says "safe" | ✅ (recorded register answers until keys are in) |
 | Rule packs: GWR, Chiltern, Ofcom missed appointment, UK261 | ⚠️ demo values until checked against published terms |
 | Tempo Memory: Memory Gate, Mem0 or pgvector, a dated timeline (SQL, or Graphiti on Neo4j), recall and forget by voice, SMS and the Memory Card | ✅ (Graphiti needs Neo4j and Cortex keys) |
 | Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ (TLS and per-device keys; MLS end-to-end encryption is the roadmap) |

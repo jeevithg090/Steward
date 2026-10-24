@@ -12,7 +12,8 @@ runtime, and the per-app dependencies below are local names.
 | POST /voice/post-call | transcripts after a call | HMAC signature |
 | GET /memories, POST /memories/{id}/correct | the Memory Card | bearer token |
 | DELETE /memories/{id}, DELETE /timeline/{id} | forget, everywhere | bearer token |
-| POST /sms/inbound | YES / NO / STOP / HELP / MEMORY / FORGET <thing> | Twilio signature |
+| POST /sms/inbound | YES, NO, STOP, HELP, MEMORY, FORGET <thing>, CHECK <message> | Twilio |
+| POST /scam/check | Scam Shield: registers plus pressure signs, never "safe" | bearer token |
 | WS /events | live updates | token query parameter |
 | /mesh/... | devices, pairing, passkey approvals, push (mesh_routes.py) | device token |
 | GET /privacy | the Privacy Proof panel's facts | bearer token |
@@ -41,10 +42,12 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, ValidationError
 
+from tempo_adapters.scam import Registers
 from tempo_adapters.settings import Settings
 from tempo_core.config import profile
 from tempo_core.errors import MissionNotFound
 from tempo_core.ledger import summarise
+from tempo_core.scam import Level, assess
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
 from tempo_crypto.vault import VaultStore
 from tempo_gateway.events import EventBus
@@ -104,6 +107,13 @@ class DemoMemory(BaseModel):
     episodes: list[dict[str, Any]] = []
 
 
+class ScamCheck(BaseModel):
+    text: str = Field(max_length=2000)
+    firm: str | None = Field(default=None, max_length=120)
+    phone: str | None = Field(default=None, max_length=40)
+    website: str | None = Field(default=None, max_length=200)
+
+
 class Correction(BaseModel):
     user_id: str
     text: str = Field(min_length=1, max_length=200)
@@ -120,6 +130,8 @@ def create_app(
     *,
     memory: Memory | None = None,
     mesh: Mesh | None = None,
+    registers: Registers | None = None,
+    registers_simulated: bool = True,
     vault: VaultStore | None = None,
     transparency: Path | None = None,
     scheduler_interval_s: float | None = None,
@@ -177,6 +189,20 @@ def create_app(
             "deploy": deployment.mode.value,
             "region": deployment.region,
             "third_parties": sorted(deployment.third_parties),
+        }
+
+    @app.post("/scam/check")
+    async def scam_check(body: ScamCheck, caller: Caller) -> dict[str, Any]:
+        """Scam Shield: who the firm really is, and how hard the message pushes. Never "safe"."""
+        firm = None
+        if body.firm and registers is not None:
+            firm = await registers.check(body.firm, phone=body.phone, website=body.website)
+        verdict = assess(body.text, firm)
+        return {
+            "level": verdict.level.value,
+            "reasons": list(verdict.reasons),
+            "advice": verdict.advice,
+            "simulated": registers is None or registers_simulated,
         }
 
     @app.get("/privacy")
@@ -393,6 +419,10 @@ def create_app(
 
     async def _sms(sender: str, text: str, sid: str) -> str:
         word = text.strip().split(" ")[0].upper() if text.strip() else ""
+        if word == "CHECK":  # a forwarded message: how hard does it push?
+            verdict = assess(text.strip()[len("CHECK") :], None)
+            why = f" ({'; '.join(verdict.reasons)})" if verdict.reasons else ""
+            return f"Tempo: {LEVEL_WORDS[verdict.level]}{why}. {verdict.advice}"
         if word in ("MEMORY", "FORGET") and memory is not None:
             user_id = service.user_for_phone(sender)
             if user_id is None:
@@ -408,7 +438,8 @@ def create_app(
         if word == "HELP" or not missions:
             return (
                 "Tempo: reply YES to approve, NO to decline, STOP to stop everything, "
-                "MEMORY to hear what I remember, FORGET and a word to delete it."
+                "MEMORY to hear what I remember, FORGET and a word to delete it, CHECK and a "
+                "message you're unsure about."
             )
         latest = missions[-1]
         if word == "STOP":
@@ -441,6 +472,14 @@ def create_app(
                 return
 
     return app
+
+
+LEVEL_WORDS = {
+    Level.LIKELY_SCAM: "this looks like a scam",
+    Level.CAUTION: "be careful with this one",
+    Level.UNKNOWN: "I can't tell yet",
+    Level.NO_FLAGS: "no warning signs",
+}
 
 
 def _known(category: str) -> Stall | None:

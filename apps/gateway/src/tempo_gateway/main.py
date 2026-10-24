@@ -6,6 +6,7 @@ import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import httpx
 import uvicorn
 from fastapi import FastAPI
 
@@ -20,6 +21,7 @@ from tempo_adapters.db import SqlRepo, make_engine
 from tempo_adapters.db.vault import SqlVaultStore
 from tempo_adapters.factory import NotConfigured, build_adapters, chat_client
 from tempo_adapters.rail import rail_port
+from tempo_adapters.scam import Registers, WarningList, registers_from_fixtures
 from tempo_adapters.settings import Settings
 from tempo_adapters.telemetry import (
     configure_logging,
@@ -118,10 +120,30 @@ def build(
     quiet_server_logs()  # no query strings (tokens, user ids) in server logs
     configure_tracing(settings)  # exports to Langfuse when its keys are set
     service, bus, memory, vault = _build(settings)
+    registers, simulated = build_registers(settings)
     return create_app(
         service, settings, bus, memory=memory, mesh=build_mesh(settings), vault=vault,
+        registers=registers, registers_simulated=simulated,
         transparency=REPO / "deploy" / "transparency", scheduler_interval_s=scheduler_interval_s,
     )  # fmt: skip
+
+
+def build_registers(settings: Settings) -> tuple[Registers, bool]:
+    """Scam Shield's registers: live when keys are set and not replaying; else recorded."""
+    live_keys = settings.companies_house_api_key or (
+        settings.fca_api_email and settings.fca_api_key
+    )
+    if settings.tempo_mode == "live" and live_keys:
+        key = settings.companies_house_api_key
+        fca = settings.fca_api_key
+        warnings = WarningList.from_file(REPO / "fixtures" / "scam" / "fca_warning_list.json")
+        registers = Registers(
+            httpx.AsyncClient(), warning_list=warnings,
+            companies_house_key=key.get_secret_value() if key else None,
+            fca_email=settings.fca_api_email, fca_key=fca.get_secret_value() if fca else None,
+        )  # fmt: skip
+        return registers, False
+    return registers_from_fixtures(REPO / "fixtures" / "scam", today=datetime.now(UTC).date()), True
 
 
 def build_mesh(settings: Settings) -> Mesh:
