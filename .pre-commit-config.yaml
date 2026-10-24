@@ -1,0 +1,42 @@
+# Hooks run the same tool versions as `uv.lock` (local hooks via `uv run`).
+# gitleaks must be installed on your machine: `brew install gitleaks`.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: gitleaks
+        name: gitleaks (secrets)
+        entry: gitleaks git --pre-commit --staged --redact --no-banner --verbose
+        language: system
+        pass_filenames: false
+      - id: ruff
+        name: ruff (lint)
+        entry: uv run ruff check --fix
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: ruff (format)
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi]
+      - id: mypy
+        name: mypy (strict on core and harness)
+        entry: uv run mypy
+        language: system
+        pass_filenames: false
+        files: ^packages/(tempo_core|tempo_harness)/
+      - id: pytest-fast
+        name: pytest (unit, contract, policy)
+        entry: uv run pytest -m "unit or contract or policy" -x
+        language: system
+        pass_filenames: false
+        types: [python]

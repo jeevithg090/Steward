@@ -1,0 +1,17 @@
+# Build plan A6. On GitLab Free this documents ownership; assign reviewers manually.
+# A = Voice, B = Brains, C = Data/Core, D = Product. Replace with GitLab usernames.
+
+/voice/                                         @owner-a
+/packages/tempo_adapters/src/tempo_adapters/elevenlabs.py  @owner-a
+
+/packages/tempo_harness/                        @owner-b
+/packages/tempo_missions/                       @owner-b
+/packages/tempo_adapters/src/tempo_adapters/cortex.py      @owner-b
+
+/packages/tempo_core/                           @owner-c
+/mcp-servers/                                   @owner-c
+/packages/tempo_adapters/src/tempo_adapters/rail.py        @owner-c
+/packages/tempo_adapters/src/tempo_adapters/db/            @owner-c
+
+/apps/web/                                      @owner-d
+/tests/e2e/                                     @owner-d
