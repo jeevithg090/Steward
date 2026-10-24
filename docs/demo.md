@@ -21,7 +21,8 @@ cd apps/web && NEXT_PUBLIC_TEMPO_TOKEN=<same> pnpm dev     # http://localhost:30
 ```
 
 Then seed the people: `TEMPO_API_TOKEN=<same> make seed`. Amir's claim is already paid (the
-counters show real hours and pounds); Margaret's is waiting for her OK.
+counters show real hours and pounds); Margaret's is waiting for her OK, and her memories and
+timeline are in place (demo mode only; her words still go through the Memory Gate).
 
 ## The beats (text demo, about 90 seconds)
 
@@ -34,8 +35,10 @@ counters show real hours and pounds); Margaret's is waiting for her OK.
 4. **The proof.** "Money arrived", the ledger ticks up, and the timeline shows how long each stage
    took, including how long Margaret took to decide.
 
-5. **It remembers you.** The Memory Card shows what Tempo knows about Margaret, each line with
-   where it came from and when, and the timeline of her claim with dates. Text `MEMORY` to hear
+5. **It remembers you, and when.** The Memory Card shows what Tempo knows about Margaret, each
+   line with where it came from and when. Its timeline shows the Broadbandly engineer visit that
+   moved (12 Oct struck through, 19 Oct now) and yesterday's promise of £73.67, ref BB-4417
+   (seeded by `make seed`). Text `MEMORY` to hear
    it, `FORGET <thing>` to delete it everywhere. A company email that says "customer prefers
    vouchers" never becomes a memory: the Memory Gate keeps it as evidence only.
 

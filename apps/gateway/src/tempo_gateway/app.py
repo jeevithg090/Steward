@@ -15,6 +15,7 @@ runtime, and the per-app dependencies below are local names.
 | POST /sms/inbound | YES / NO / STOP / HELP / MEMORY / FORGET <thing> | Twilio signature |
 | WS /events | live updates | token query parameter |
 | /mesh/... | devices, pairing, passkey approvals, push (mesh_routes.py) | device token |
+| POST /demo/memory | seed the demo's memories and timeline (TEMPO_DEMO=1 only) | bearer token |
 """
 
 import asyncio
@@ -66,7 +67,9 @@ from tempo_gateway.security import (
     secret_matches,
     twilio_signature_ok,
 )
+from tempo_memory.extract import extract_candidates
 from tempo_memory.service import MemoryCard, NeedsConsent, say_recalled
+from tempo_memory.temporal import UntrustedEpisode, trusted_episode
 from tempo_missions.clawback_rail import SignedApproval
 
 VOICE_TOOLS = (
@@ -85,6 +88,15 @@ VOICE_TOOLS = (
 class Answer(BaseModel):
     approved: bool
     limits: dict[str, Decimal] = {}
+
+
+class DemoMemory(BaseModel):
+    """Demo seeding (TEMPO_DEMO=1 only): words go through the Memory Gate, episodes through the
+    same strict validation as the Gateway's own."""
+
+    user_id: str
+    said: list[str] = []
+    episodes: list[dict[str, Any]] = []
 
 
 class Correction(BaseModel):
@@ -229,6 +241,24 @@ def create_app(
     @app.delete("/timeline/{episode_id}")
     async def forget_episode(episode_id: str, user_id: str, caller: Caller) -> dict[str, bool]:
         return {"forgotten": await memory_or_404().forget_episode(user_id, episode_id)}
+
+    @app.post("/demo/memory")
+    async def seed_memory(body: DemoMemory, caller: Caller) -> dict[str, Any]:
+        if not settings.tempo_demo or memory is None:
+            raise HTTPException(404, "seeding is only for demo mode (TEMPO_DEMO=1)")
+        now = service.deps.clock()
+        said = [
+            c
+            for text in body.said
+            for c in extract_candidates(text, body.user_id, "user_voice", now)
+        ]
+        verdicts = await memory.propose(said)
+        try:
+            episodes = [trusted_episode(e) for e in body.episodes]
+        except UntrustedEpisode as exc:
+            raise HTTPException(422, str(exc)) from None
+        facts = [f for e in episodes for f in await memory.temporal.write(e)]
+        return {"memories": [v.value for v in verdicts], "facts": len(facts)}
 
     @app.post("/voice/tools/{name}")
     async def voice_tool(
