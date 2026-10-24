@@ -7,7 +7,7 @@ define pytest_marker
 	uv run pytest -m "$(1)" $(2) || [ $$? -eq 5 ]
 endef
 
-.PHONY: help setup check fmt test-int e2e evals doctor calibrate demo-dry-run demo-rehearsal db-migrate sync-voice seed
+.PHONY: help setup check fmt test-int e2e evals doctor local calibrate demo-dry-run demo-rehearsal db-migrate sync-voice seed
 
 help: ## List the commands
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-14s %s\n", $$1, $$2}'
@@ -41,6 +41,9 @@ evals: ## LLM quality evals (costs tokens); appends to evals/report.md
 
 doctor: ## Check every key and service with one cheap live call
 	uv run python scripts/doctor.py
+
+local: ## Local mode: Postgres, Ollama and the Gateway on this machine (deploy/local)
+	./deploy/local/install.sh
 
 calibrate: ## Fit the delay model, hold out a week: docs/calibration.png and docs/backtest.md
 	uv run python scripts/calibrate_delay_model.py

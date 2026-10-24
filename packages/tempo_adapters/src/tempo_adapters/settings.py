@@ -32,6 +32,7 @@ class Settings(BaseSettings):
         "cloud-standard"
     )
     tempo_temporal: Literal["sql", "graphiti"] = "sql"
+    image_digest: str | None = None  # set by the deploy: the running image (Privacy Proof panel)
     tempo_memory: Literal["sql", "mem0"] = "sql"  # personal memory: our pgvector table, or Mem0
     memory_dir: str = "memory"  # Mem0's local files (history, embedded Qdrant without Postgres)
 

@@ -81,6 +81,19 @@ export interface MemoryCardData {
   timeline: TemporalFact[];
 }
 
+export interface PrivacyProofData {
+  mode: string;
+  region: string;
+  third_parties: string[];
+  image_digest: string | null;
+  allowlist: "missing" | "signed";
+  image_allowlisted: boolean;
+  key_held_on: string[];
+  operator_view: { table: string; bytes: string } | null;
+  canary_test: string;
+  attestation: string;
+}
+
 export interface Health {
   status: string;
   mode: "live" | "replay";
@@ -138,6 +151,7 @@ export class Gateway {
     });
   stop = (id: string) => this.call<MissionView>(`/missions/${id}/stop`, { method: "POST" });
   tick = () => this.call<{ fired: string[] }>("/scheduler/tick", { method: "POST" });
+  privacy = (userId: string) => this.call<PrivacyProofData>(`/privacy?user_id=${encodeURIComponent(userId)}`);
   memories = (userId: string) => this.call<MemoryCardData>(`/memories?user_id=${encodeURIComponent(userId)}`);
   forgetMemory = (userId: string, id: string) =>
     this.call<{ forgotten: boolean }>(`/memories/${id}?user_id=${encodeURIComponent(userId)}`, { method: "DELETE" });

@@ -10,6 +10,7 @@ dependencies = [
     "tempo-adapters",
     "tempo-missions",
     "tempo-memory",
+    "tempo-crypto",
     "fastapi>=0.162",
     "python-multipart>=0.0.32",
     "structlog>=25.4",

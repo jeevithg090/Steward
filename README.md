@@ -76,7 +76,8 @@ flowchart LR
 | Tempo Memory: Memory Gate, Mem0 or pgvector, a dated timeline (SQL, or Graphiti on Neo4j), recall and forget by voice, SMS and the Memory Card | ✅ (Graphiti needs Neo4j and Cortex keys) |
 | Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ (TLS and per-device keys; MLS end-to-end encryption is the roadmap) |
 | Deployment modes (`TEMPO_DEPLOY`): local (Ollama), cloud-standard (Cortex), cloud-private (our own model on RunPod vLLM: no outside AI company sees personal data) | ✅ switch, factory and RunPod client (the private endpoint needs keys; [deploy/runpod](deploy/runpod/README.md)) |
-| Client-side encryption, the worker key-release protocol, signed images, the Privacy Proof panel | 🗺️ planned (build plan S8.3–S8.7) |
+| Client-side encryption (device-held keys, crypto-shred), ephemeral workers with signed reports and one-step key release (browser and Python interop-tested), no-logs hardening with a canary test, signed reproducible images with a transparency allowlist, Local mode, the Privacy Proof panel | ✅ code and tests; images not yet built and keys not yet made ([deploy/transparency](deploy/transparency/README.md)); the Vault isn't yet wired into mission checkpoints |
+| Confidential mode (TEE attestation) | 🗺️ roadmap (S8.8) |
 
 ## Add a skill in five minutes
 
@@ -95,6 +96,7 @@ make e2e           # Playwright: Face ID approval (virtual authenticator) and pa
 make demo-rehearsal  # three dry runs in a row
 make evals         # live LLM evals (costs tokens); appends to evals/report.md
 make doctor        # one cheap call per vendor, with an owner and a fallback for each failure
+make local         # Local mode: Postgres, Ollama and the Gateway on this machine, localhost only
 ```
 
 | Eval | Pass bar |

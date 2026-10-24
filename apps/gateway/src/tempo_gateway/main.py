@@ -17,6 +17,7 @@ from tempo_adapters.cortex import (
     replay_jurors,
 )
 from tempo_adapters.db import SqlRepo, make_engine
+from tempo_adapters.db.vault import SqlVaultStore
 from tempo_adapters.factory import NotConfigured, build_adapters, chat_client
 from tempo_adapters.rail import rail_port
 from tempo_adapters.settings import Settings
@@ -27,6 +28,7 @@ from tempo_adapters.telemetry import (
     trace_url,
 )
 from tempo_core.rules import RulePackRegistry
+from tempo_crypto.vault import MemoryVaultStore, VaultStore
 from tempo_gateway.app import create_app
 from tempo_gateway.events import EventBus, PublishingRepo
 from tempo_gateway.memory import Memory, build_memory
@@ -50,6 +52,11 @@ def build_service(settings: Settings) -> tuple[MissionService, EventBus]:
 
 def build_services(settings: Settings) -> tuple[MissionService, EventBus, Memory]:
     """The missions and Tempo Memory, sharing one Postgres engine when DATABASE_URL is set."""
+    service, bus, memory, _ = _build(settings)
+    return service, bus, memory
+
+
+def _build(settings: Settings) -> tuple[MissionService, EventBus, Memory, VaultStore]:
     bus = EventBus()
     engine = (
         make_engine(settings.database_url.get_secret_value()) if settings.database_url else None
@@ -73,7 +80,8 @@ def build_services(settings: Settings) -> tuple[MissionService, EventBus, Memory
         bus,
         trace_link=lambda trace_id: trace_url(settings, trace_id),
     )
-    return service, bus, build_memory(settings, engine)
+    vault: VaultStore = SqlVaultStore(engine) if engine is not None else MemoryVaultStore()
+    return service, bus, build_memory(settings, engine), vault
 
 
 def _court(settings: Settings) -> ConsensusCourt | None:
@@ -109,10 +117,10 @@ def build(
     configure_logging()
     quiet_server_logs()  # no query strings (tokens, user ids) in server logs
     configure_tracing(settings)  # exports to Langfuse when its keys are set
-    service, bus, memory = build_services(settings)
+    service, bus, memory, vault = _build(settings)
     return create_app(
-        service, settings, bus, memory=memory, mesh=build_mesh(settings),
-        scheduler_interval_s=scheduler_interval_s,
+        service, settings, bus, memory=memory, mesh=build_mesh(settings), vault=vault,
+        transparency=REPO / "deploy" / "transparency", scheduler_interval_s=scheduler_interval_s,
     )  # fmt: skip
 
 

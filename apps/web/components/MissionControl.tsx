@@ -9,6 +9,7 @@ import {
   type LedgerTotals,
   type MemoryCardData,
   type MissionView,
+  type PrivacyProofData,
 } from "@/lib/api";
 import { useLiveEvents } from "@/lib/live";
 import { type DeviceInfo, MeshClient } from "@/lib/mesh";
@@ -19,6 +20,7 @@ import { DevicePanel, JoinMesh } from "./DevicePanel";
 import { HonestyBadge } from "./HonestyBadge";
 import { LedgerCounter } from "./LedgerCounter";
 import { MemoryCard } from "./MemoryCard";
+import { PrivacyProof } from "./PrivacyProof";
 import { MissionTimeline } from "./MissionTimeline";
 import { ProofTrace } from "./ProofTrace";
 import { StallRadar } from "./StallRadar";
@@ -41,6 +43,7 @@ export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gate
   const [selected, setSelected] = useState<string | null>(null);
   const [ledger, setLedger] = useState<LedgerTotals | null>(null);
   const [memory, setMemory] = useState<MemoryCardData | null>(null);
+  const [proof, setProof] = useState<PrivacyProofData | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { events, connected } = useLiveEvents(gateway.eventsUrl());
@@ -53,6 +56,7 @@ export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gate
       setLedger(l);
       setError(null);
       setMemory(await gateway.memories(memoryUser(m)).catch(() => null));
+      setProof(await gateway.privacy(memoryUser(m)).catch(() => null));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -156,6 +160,7 @@ export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gate
             onForgetFact={(fact) => act(() => gateway.forgetEpisode(user, fact.episode_id))}
             onCorrect={(item, text) => act(() => gateway.correctMemory(user, item.id, text))}
           />
+          <PrivacyProof proof={proof} />
           <StallRadar events={events} />
           <section aria-labelledby="feed-heading">
             <h2 id="feed-heading" className="mb-2 text-lg font-semibold">Live feed {connected ? "●" : "○"}</h2>

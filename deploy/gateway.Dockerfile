@@ -13,6 +13,9 @@ COPY --from=build /src/.venv /app/.venv
 COPY skills /app/skills
 COPY fixtures/rail/replay /app/fixtures/rail/replay
 COPY fixtures/court /app/fixtures/court
+COPY alembic.ini /app/alembic.ini
+COPY alembic /app/alembic
+WORKDIR /app
 ENV PATH=/app/.venv/bin:$PATH PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 TMPDIR=/tmp \
     TEMPO_HOME=/app CHECKPOINT_DIR=/data/checkpoints MESH_FILE=/data/mesh.json
 USER 10001

@@ -21,6 +21,9 @@ class VaultStore(Protocol):
     async def get_key(self, user_id: str, mission_id: str) -> bytes | None: ...
     async def keys_of(self, user_id: str) -> dict[str, bytes]: ...
     async def delete_keys(self, user_id: str) -> int: ...
+    async def sample(self, user_id: str) -> bytes | None:
+        """One stored blob, exactly as an operator would see it (the Privacy Proof panel)."""
+        ...
 
 
 class MemoryVaultStore:
@@ -42,6 +45,9 @@ class MemoryVaultStore:
 
     async def keys_of(self, user_id: str) -> dict[str, bytes]:
         return {m: k for (u, m), k in self.keys.items() if u == user_id}
+
+    async def sample(self, user_id: str) -> bytes | None:
+        return next((b for (u, _, _), b in self.blobs.items() if u == user_id), None)
 
     async def delete_keys(self, user_id: str) -> int:
         mine = [k for k in self.keys if k[0] == user_id]

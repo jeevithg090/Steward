@@ -15,6 +15,7 @@ runtime, and the per-app dependencies below are local names.
 | POST /sms/inbound | YES / NO / STOP / HELP / MEMORY / FORGET <thing> | Twilio signature |
 | WS /events | live updates | token query parameter |
 | /mesh/... | devices, pairing, passkey approvals, push (mesh_routes.py) | device token |
+| GET /privacy | the Privacy Proof panel's facts | bearer token |
 | POST /demo/memory | seed the demo's memories and timeline (TEMPO_DEMO=1 only) | bearer token |
 """
 
@@ -23,6 +24,7 @@ import hashlib
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from decimal import Decimal
+from pathlib import Path
 from typing import Annotated, Any
 from xml.sax.saxutils import escape
 
@@ -44,6 +46,7 @@ from tempo_core.config import profile
 from tempo_core.errors import MissionNotFound
 from tempo_core.ledger import summarise
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
+from tempo_crypto.vault import VaultStore
 from tempo_gateway.events import EventBus
 from tempo_gateway.memory import (
     Memory,
@@ -61,6 +64,7 @@ from tempo_gateway.missions import (
     StartMission,
     UnknownRequest,
 )
+from tempo_gateway.privacy import privacy_proof
 from tempo_gateway.scheduler import run_scheduler
 from tempo_gateway.security import (
     SeenKeys,
@@ -116,6 +120,8 @@ def create_app(
     *,
     memory: Memory | None = None,
     mesh: Mesh | None = None,
+    vault: VaultStore | None = None,
+    transparency: Path | None = None,
     scheduler_interval_s: float | None = None,
 ) -> FastAPI:
     @asynccontextmanager
@@ -172,6 +178,14 @@ def create_app(
             "region": deployment.region,
             "third_parties": sorted(deployment.third_parties),
         }
+
+    @app.get("/privacy")
+    async def privacy(user_id: str, caller: Caller) -> dict[str, Any]:
+        """The Privacy Proof panel: each line checked, not claimed."""
+        return await privacy_proof(
+            user_id, deployment=deployment, image_digest=settings.image_digest,
+            transparency=transparency or Path("deploy/transparency"), mesh=mesh, vault=vault,
+        )  # fmt: skip
 
     @app.get("/missions")
     async def list_missions(caller: Caller) -> list[MissionView]:
