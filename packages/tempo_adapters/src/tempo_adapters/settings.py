@@ -63,6 +63,11 @@ class Settings(BaseSettings):
     hsp_user: str | None = None
     hsp_pass: SecretStr | None = None
 
+    # Scam Shield registers
+    companies_house_api_key: SecretStr | None = None
+    fca_api_email: str | None = None
+    fca_api_key: SecretStr | None = None
+
     # Vision
     gemini_api_key: SecretStr | None = None
     gemini_model: str = "gemini-flash-latest"  # (check) the Flash model your key can use

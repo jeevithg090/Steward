@@ -17,7 +17,11 @@ from tempo_core.intake import follow_up
 from tempo_core.models import Fact
 from tempo_core.readability import flesch_reading_ease, syllables
 from tempo_core.rules import NotEligible, RulePackRegistry, evaluate_delay_repay
+from tempo_core.scam import ADVICE
 from tempo_core.time_value import TimeProfile, time_value
+from tempo_gateway.memory import readback_question
+from tempo_memory.models import MemoryCandidate
+from tempo_memory.service import Recalled, say_recalled
 
 SKILLS = Path(__file__).resolve().parents[2] / "skills" / "clawback-uk-rail"
 PASS_BAR = 60
@@ -56,6 +60,29 @@ def messages() -> dict[str, str]:
         "paid": "GWR has paid you £14.20 (reference GW-12345). That's 20 minutes of your time back.",
         "not_paid": "I've claimed £14.20 (reference GW-12345), but GWR hasn't paid after 4 checks. I'll chase it.",
         "failed_safe": "I couldn't verify that approval, so I did nothing.",
+        "recall": say_recalled(
+            [
+                Recalled(
+                    kind="memory",
+                    id="1",
+                    text="prefers phone updates",
+                    source="you said, by voice",
+                    when=datetime(2026, 10, 24, tzinfo=UTC),
+                ),
+            ]
+        ),
+        "readback": readback_question(
+            MemoryCandidate(
+                user_id="u",
+                text="has a hearing aid",
+                category="health",
+                source="user_voice",
+                observed_at=datetime(2026, 10, 24, tzinfo=UTC),
+                confidence=0.85,
+            )
+        ),
+        "forgot": "Done. I've forgotten: lives in Didcot. It's gone from all your devices.",
+        **{f"scam_{level.value}": advice for level, advice in ADVICE.items()},
     }
 
 
@@ -70,8 +97,8 @@ def test_tempo_speaks_plainly(name: str, text: str) -> None:
     assert score >= PASS_BAR, f"{name} reads at {score:.0f}: {text}"
 
 
-def test_there_are_ten_messages_in_the_eval() -> None:
-    assert len(messages()) == 10
+def test_every_message_family_is_in_the_eval() -> None:
+    assert len(messages()) == 17
 
 
 def test_jargon_scores_lower_than_plain_words() -> None:
