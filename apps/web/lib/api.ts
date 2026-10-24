@@ -40,6 +40,71 @@ export interface TimelineEntry {
   latency_ms: number;
 }
 
+// Rights Decay (R6): when to act on each right, and why. Mirrors tempo_core.rights_decay.Plan.
+export type RightStatus = "chosen" | "open" | "opens_later" | "locked" | "expired";
+
+export interface PlanRight {
+  id: string;
+  label: string;
+  status: RightStatus;
+  opens_on: string | null;
+  expires_on: string | null;
+  unlocked_by: string[];
+  ev_gbp: string;
+  best_way: string;
+}
+
+export interface PlanDay {
+  day: string;
+  best: string;
+  value_gbp: string;
+  value_at_risk_gbp: string;
+  cost_of_delay_gbp: string;
+}
+
+export interface PlanView {
+  today: string;
+  horizon: string;
+  action_today: string; // "wait", "drop" or a right id
+  way: string | null;
+  next_decision_on: string | null;
+  days: PlanDay[];
+  rights: PlanRight[];
+  explanation: string;
+  why: string[];
+  assumptions: {
+    time_value_gbp_h: string;
+    attention_minutes_per_week: string;
+    hazard_id: string;
+    hazard_demo_values: boolean;
+    pays_share: string;
+    pays_share_source: string;
+  };
+}
+
+// Agent Passport (P7): the newest mandate for a mission, as the Gateway summarises it.
+export interface MandateView {
+  id: string;
+  status: "active" | "revoked" | "expired" | "unknown";
+  counterparty: string;
+  may: string[];
+  may_not: string[];
+  max_gbp: string;
+  expires_at: string;
+  account_ref: string | null;
+  assurance: "device-biometric" | "gateway-attested";
+  digest: string;
+}
+
+// R8: what vision read off the card, and the one read-back question if a fact is unsure.
+export interface CardReading {
+  facts: { key: string; value: string; source: string; confidence: number }[];
+  question: string | null;
+  fact_key?: string;
+  visit: Record<string, string | null> | null;
+  mission?: MissionView;
+}
+
 export interface MissionView {
   id: string;
   user_id?: string | null;
@@ -50,6 +115,9 @@ export interface MissionView {
   timeline: TimelineEntry[];
   trace_url: string | null;
   court: CourtDecision | null;
+  skill_id?: string | null;
+  plan?: PlanView | null;
+  mandate?: MandateView | null;
 }
 
 export interface MemoryItem {
@@ -81,6 +149,38 @@ export interface MemoryCardData {
   timeline: TemporalFact[];
 }
 
+/** How Tempo's voice agent will speak with one caller (GET /voice/profile, the Patience Profile). */
+export interface VoiceProfileData {
+  language: string; // "en", "hi", "pa", "pl", "ur", "cy"
+  speed: string; // "1.0", "0.9", "0.85"
+  voice: "default" | "low";
+  patience: "normal" | "high";
+  stammer: boolean;
+  hearing: boolean;
+  prefers_text: boolean;
+  other_language: string | null;
+  keywords: string[];
+  reasons: string[]; // the memories that set it, in the person's words
+}
+
+export interface VoiceProfileView {
+  user_id: string;
+  display_name: string | null;
+  profile: VoiceProfileData;
+  adjusted: boolean;
+  how_to_speak: string;
+  initiation: {
+    type: string;
+    dynamic_variables: Record<string, string>;
+    conversation_config_override?: {
+      agent?: { language?: string; first_message?: string };
+      tts?: { voice_id?: string; speed?: number; stability?: number };
+      asr?: { keywords?: string[] };
+    };
+  };
+  low_voice_configured: boolean;
+}
+
 export interface PrivacyProofData {
   mode: string;
   region: string;
@@ -99,6 +199,7 @@ export interface Health {
   mode: "live" | "replay";
   demo: boolean;
   simulated: string[];
+  clock_offset_days?: number; // the demo clock, moved forward (demo mode only)
 }
 
 export interface LedgerTotals {
@@ -150,9 +251,21 @@ export class Gateway {
       body: JSON.stringify({ approved, limits: approved ? { auto_accept_max_gbp: "50" } : {} }),
     });
   stop = (id: string) => this.call<MissionView>(`/missions/${id}/stop`, { method: "POST" });
+  startOfcom = (body: Record<string, string>) =>
+    this.call<MissionView>("/missions/ofcom", { method: "POST", body: JSON.stringify(body) });
+  readCard = (body: Record<string, string>) =>
+    this.call<CardReading>("/missions/ofcom/read", { method: "POST", body: JSON.stringify(body) });
+  advanceClock = (days: number) =>
+    this.call<{ now: string; offset_days: number; fired: string[] }>("/demo/clock", {
+      method: "POST",
+      body: JSON.stringify({ advance_days: days }),
+    });
+  revokeMandate = (id: string) => this.call<{ status: string }>(`/mandates/${id}/revoke`, { method: "POST" });
+  creditArrives = (id: string) => this.call<{ credited: boolean }>(`/demo/credit/${id}`, { method: "POST" });
   tick = () => this.call<{ fired: string[] }>("/scheduler/tick", { method: "POST" });
   privacy = (userId: string) => this.call<PrivacyProofData>(`/privacy?user_id=${encodeURIComponent(userId)}`);
   memories = (userId: string) => this.call<MemoryCardData>(`/memories?user_id=${encodeURIComponent(userId)}`);
+  voiceProfile = (userId: string) => this.call<VoiceProfileView>(`/voice/profile?user_id=${encodeURIComponent(userId)}`);
   forgetMemory = (userId: string, id: string) =>
     this.call<{ forgotten: boolean }>(`/memories/${id}?user_id=${encodeURIComponent(userId)}`, { method: "DELETE" });
   forgetEpisode = (userId: string, episodeId: string) =>
@@ -174,5 +287,15 @@ export const DEMO_MISSION = {
   travel_date: "2026-10-23",
   departure: "08:12",
   fare_gbp: "28.40",
+  time_value_gbp_h: "18",
+};
+
+// Margaret's broadband: the engineer due on 19 Oct never came (Rights Decay's demo case).
+export const DEMO_BROADBAND = {
+  user_id: "u_margaret",
+  display_name: "Margaret",
+  operator: "Broadbandly",
+  event_date: "2026-10-19",
+  account_ref: "BB-4417",
   time_value_gbp_h: "18",
 };

@@ -6,6 +6,11 @@ runtime, and the per-app dependencies below are local names.
 | Route | Purpose | Security |
 |---|---|---|
 | POST /missions, GET /missions/{id}, POST /missions/{id}/stop | Mission Control | bearer token |
+| POST /missions/ofcom | a missed engineer visit, planned with Rights Decay | bearer token |
+| POST /missions/ofcom/read | read the "sorry we missed you" card (vision), then plan | bearer |
+| POST /demo/clock, POST /demo/credit/{id} | demo only: jump ahead; the credit arrives | bearer |
+| GET /mandates/{id}?digest=, POST /mandates/verify | a company: is it live, ours, enough? | none |
+| POST /mandates/{id}/revoke | revoke a mandate (STOP revokes them all) | bearer token |
 | POST /approvals/{request_id} | an answer from the web app | bearer token (passkeys: S5.2) |
 | POST /scheduler/tick | fire due Watchdog timers now (demos) | bearer token |
 | POST /voice/tools/{name} | ElevenLabs server tools | shared secret header |
@@ -23,8 +28,12 @@ runtime, and the per-app dependencies below are local names.
 """
 
 import asyncio
+import base64
+import binascii
 import hashlib
-from collections.abc import AsyncIterator
+import re
+import uuid
+from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import replace
 from datetime import date
@@ -33,6 +42,7 @@ from pathlib import Path
 from typing import Annotated, Any
 from xml.sax.saxutils import escape
 
+import structlog
 from fastapi import (
     Depends,
     FastAPI,
@@ -44,11 +54,12 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from tempo_adapters.scam import Registers
 from tempo_adapters.settings import Settings
 from tempo_core.config import profile
+from tempo_core.consent import effective_consent
 from tempo_core.deadlines import mandatory_reconsideration
 from tempo_core.decisions import (
     Evidence,
@@ -58,13 +69,17 @@ from tempo_core.decisions import (
     unsupported_claims,
 )
 from tempo_core.entitlement import DISCLAIMER, Answers, Figures, pack, screen
-from tempo_core.errors import MissionNotFound
+from tempo_core.errors import MissionNotFound, VisionUnavailable
+from tempo_core.intake import follow_up
 from tempo_core.ledger import summarise
 from tempo_core.scam import Level, assess
 from tempo_core.signals import SignalSpec
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
+from tempo_core.voice_profile import VoiceProfile, how_to_speak, profile_from, to_initiation
 from tempo_crypto.vault import VaultStore
+from tempo_gateway.clock import DemoClock
 from tempo_gateway.events import EventBus
+from tempo_gateway.mandates import MandateService, NoSigningKey
 from tempo_gateway.memory import (
     Memory,
     caller,
@@ -79,6 +94,7 @@ from tempo_gateway.missions import (
     MissionService,
     MissionView,
     StartMission,
+    StartOfcom,
     UnknownRequest,
 )
 from tempo_gateway.privacy import privacy_proof
@@ -89,10 +105,14 @@ from tempo_gateway.security import (
     secret_matches,
     twilio_signature_ok,
 )
+from tempo_memory.entities import VoiceSet
 from tempo_memory.extract import extract_candidates
 from tempo_memory.service import MemoryCard, NeedsConsent, say_recalled
-from tempo_memory.temporal import UntrustedEpisode, trusted_episode
+from tempo_memory.temporal import USUAL_VOICE, UntrustedEpisode, trusted_episode
 from tempo_missions.clawback_rail import SignedApproval
+from tempo_ports.vision import DocumentKind, VisionPort
+
+log = structlog.get_logger("tempo.gateway")
 
 VOICE_TOOLS = (
     "create_mission",
@@ -104,6 +124,9 @@ VOICE_TOOLS = (
     "recall_memories",
     "forget_memory",
     "confirm_memory",
+    "issue_mandate",  # a spoken yes on the landline becomes a Gateway-signed mandate
+    "present_mandate",  # the Negotiator shows the company its authority
+    "verify_mandate",  # the company's line checks it (the Sludge Arena verifier)
 )
 
 
@@ -119,6 +142,49 @@ class DemoMemory(BaseModel):
     user_id: str
     said: list[str] = []
     episodes: list[dict[str, Any]] = []
+    phone: str | None = None  # recognise this caller by number (the Patience Profile)
+    display_name: str | None = Field(default=None, max_length=80)
+    # Answer yes to every read-back these words raise, as if the person had said yes on a call.
+    # Demo seeding only; the response lists what was confirmed, so nothing is hidden.
+    confirm_readbacks: bool = False
+
+
+class Initiation(BaseModel):
+    """ElevenLabs' conversation-initiation webhook body (inbound Twilio/SIP calls). Every field is
+    optional: a missing one must never stop a call, it only means Tempo's defaults."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    caller_id: str = ""
+    agent_id: str = ""
+    called_number: str = ""
+    call_sid: str = ""
+    conversation_id: str = ""
+
+
+class CardPhoto(BaseModel):
+    """A photo of the card or text the provider left. Read by vision; nothing is kept."""
+
+    image_b64: str = Field(max_length=10_000_000)
+    mime_type: str = Field(default="image/png", pattern=r"^image/(png|jpeg|webp|heic)$")
+    filename: str = Field(default="card.png", max_length=80)
+    user_id: str
+    display_name: str = Field(max_length=80)
+    phone: str | None = None
+    time_value_gbp_h: Decimal = Field(default=Decimal("18"), ge=0)
+
+
+class MandateCheck(BaseModel):
+    """A company asks: may this agent do this, for this much? (No login: it's a public check.)"""
+
+    envelope: dict[str, Any]
+    counterparty: str = Field(max_length=80)
+    action: str = Field(max_length=40)
+    amount_gbp: Decimal | None = None
+
+
+class ClockMove(BaseModel):
+    advance_days: int = Field(ge=0, le=400)
 
 
 class ScamCheck(BaseModel):
@@ -160,6 +226,9 @@ def create_app(
     vault: VaultStore | None = None,
     transparency: Path | None = None,
     scheduler_interval_s: float | None = None,
+    mandates: MandateService | None = None,
+    vision: VisionPort | None = None,
+    greetings: Mapping[str, str] | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -199,6 +268,11 @@ def create_app(
         return "web:" + hashlib.sha256(token.encode()).hexdigest()[:12]
 
     Caller = Annotated[str, Depends(web_caller)]
+    if mandates is not None:  # STOP revokes every mandate; Mission Control sees the newest
+        service.on_stop = mandates.revoke_all
+        service.mandate_summary = mandates.summary
+    clock = service.deps.clock
+    demo_clock = clock if isinstance(clock, DemoClock) and settings.tempo_demo else None
 
     @app.exception_handler(MissionNotFound)
     async def not_found(request: Request, exc: MissionNotFound) -> Response:
@@ -212,10 +286,11 @@ def create_app(
             "mode": settings.tempo_mode,
             "demo": settings.tempo_demo,
             "simulated": ["company"]
-            + (["rail data", "jurors"] if settings.tempo_mode == "replay" else []),
+            + (["rail data", "jurors", "vision"] if settings.tempo_mode == "replay" else []),
             "deploy": deployment.mode.value,
             "region": deployment.region,
             "third_parties": sorted(deployment.third_parties),
+            "clock_offset_days": demo_clock.offset_days if demo_clock else 0,
         }
 
     @app.post("/scam/check")
@@ -291,6 +366,98 @@ def create_app(
     async def create_mission(body: StartMission, caller: Caller) -> MissionView:
         return await service.start(body)
 
+    @app.post("/missions/ofcom", status_code=201)
+    async def create_ofcom_mission(body: StartOfcom, caller: Caller) -> MissionView:
+        """A missed engineer visit: Rights Decay decides whether to wait or act, and when."""
+        return await service.start_ofcom(body)
+
+    @app.post("/missions/ofcom/read")
+    async def read_card(body: CardPhoto, caller: Caller) -> dict[str, Any]:
+        """The agent reads the card; Rights Decay plans. One read-back first if a fact is unsure."""
+        if vision is None:
+            raise HTTPException(404, "reading photos is off")
+        try:
+            facts = await vision.extract(
+                base64.b64decode(body.image_b64, validate=True), mime_type=body.mime_type,
+                kind=DocumentKind.MISSED_VISIT, filename=body.filename,
+            )  # fmt: skip
+        except (VisionUnavailable, binascii.Error) as exc:
+            raise HTTPException(
+                503, f"I couldn't read the card ({exc}). Tell me the date."
+            ) from None
+        found = {f.key: f for f in facts}
+        read = [f.model_dump(mode="json") for f in facts]
+        when, who = found.get("event_date"), found.get("operator")
+        if when is None or who is None or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(when.value)):
+            return {"facts": read, "question": "I couldn't read the provider or the date. What "
+                    "does the card say?", "fact_key": "event_date", "visit": None}  # fmt: skip
+        notice, ref = found.get("notice_hours"), found.get("account_ref")
+        visit = StartOfcom(
+            user_id=body.user_id, display_name=body.display_name, phone=body.phone,
+            operator=str(who.value), event_date=str(when.value),
+            notice_hours=Decimal(str(notice.value)) if notice else None,
+            account_ref=str(ref.value) if ref else None, time_value_gbp_h=body.time_value_gbp_h,
+            source=f"{body.filename}#vision",
+        )  # fmt: skip
+        question = follow_up(facts)
+        if question is not None:  # one read-back; Mission Control starts it once confirmed
+            return {"facts": read, "question": question.question, "fact_key": question.fact_key,
+                    "visit": visit.model_dump(mode="json")}  # fmt: skip
+        view = await service.start_ofcom(visit)
+        return {"facts": read, "question": None, "mission": view.model_dump(mode="json")}
+
+    @app.post("/demo/clock")
+    async def move_clock(body: ClockMove, caller: Caller) -> dict[str, Any]:
+        """Demo only: jump ahead (the badge says so), then fire whatever timers are now due."""
+        if demo_clock is None:
+            raise HTTPException(404, "the clock only moves in demo mode (TEMPO_DEMO=1)")
+        now = demo_clock.advance(body.advance_days)
+        bus.publish({"type": "clock_moved", "offset_days": demo_clock.offset_days})
+        return {"now": now.isoformat(), "offset_days": demo_clock.offset_days,
+                "fired": await service.tick()}  # fmt: skip
+
+    def mandates_or_404() -> MandateService:
+        if mandates is None:
+            raise HTTPException(404, "mandates are off")
+        return mandates
+
+    @app.get("/mandates/{mandate_id}")
+    async def mandate_status(mandate_id: str, digest: str | None = None) -> dict[str, str]:
+        """Status only, never the mandate. With its digest, "active" only for the exact one."""
+        return {"status": mandates_or_404().status(mandate_id, digest)}
+
+    @app.post("/mandates/verify")
+    async def verify_mandate(body: MandateCheck) -> dict[str, Any]:
+        verdict = mandates_or_404().verify(
+            body.envelope, counterparty=body.counterparty, action=body.action,
+            amount_gbp=body.amount_gbp,
+        )  # fmt: skip
+        mandate = body.envelope.get("mandate") if isinstance(body.envelope, dict) else None
+        bus.publish({
+            "type": "mandate_verified" if verdict.ok else "mandate_refused",
+            "mission_id": str(((mandate or {}).get("matter") or {}).get("mission_id", "")),
+            "action": body.action, "reason": verdict.reason,
+            "latency_ms": round(verdict.latency_ms, 3), "counterparty": body.counterparty,
+        })  # fmt: skip
+        return verdict.model_dump(mode="json")
+
+    @app.post("/mandates/{mandate_id}/revoke")
+    async def revoke_mandate(mandate_id: str, caller: Caller) -> dict[str, str]:
+        status = await mandates_or_404().revoke(mandate_id, device_sig=caller)
+        if status == "unknown":
+            raise HTTPException(404, "no such mandate")
+        bus.publish({"type": "mandate_revoked", "mandate_id": mandate_id})
+        return {"status": status}
+
+    @app.post("/demo/credit/{mission_id}")
+    async def credit_arrives(mission_id: str, caller: Caller) -> dict[str, bool]:
+        """Demo only: the provider's automatic credit shows up on the next bill."""
+        if not settings.tempo_demo:
+            raise HTTPException(404, "only in demo mode (TEMPO_DEMO=1)")
+        await service.user_for(mission_id)  # 404 if there is no such mission
+        service.credited.add(mission_id)
+        return {"credited": True}
+
     @app.get("/missions/{mission_id}")
     async def get_mission(mission_id: str, caller: Caller) -> MissionView:
         return await service.view(mission_id)
@@ -359,12 +526,106 @@ def create_app(
             for c in extract_candidates(text, body.user_id, "user_voice", now)
         ]
         verdicts = await memory.propose(said)
+        confirmed: list[str] = []
+        while body.confirm_readbacks and memory.readbacks[body.user_id] and len(confirmed) < 20:
+            answered = await memory.confirm(body.user_id, True)
+            if answered is not None:
+                confirmed.append(answered.text)
+        if body.phone:
+            service.register_phone(body.phone, body.user_id, body.display_name)
         try:
             episodes = [trusted_episode(e) for e in body.episodes]
         except UntrustedEpisode as exc:
             raise HTTPException(422, str(exc)) from None
         facts = [f for e in episodes for f in await memory.temporal.write(e)]
-        return {"memories": [v.value for v in verdicts], "facts": len(facts)}
+        seeded: dict[str, Any] = {"memories": [v.value for v in verdicts], "facts": len(facts)}
+        if body.confirm_readbacks:
+            seeded["confirmed"] = confirmed
+        return seeded
+
+    # The Patience Profile: how to speak with each caller, from what they told Tempo themselves.
+    voice_greetings = dict(greetings or {})
+
+    async def _voice_profile(user_id: str) -> VoiceProfile:
+        if memory is None:
+            return VoiceProfile()
+        now = service.deps.clock()
+        items = await memory.memory.list_for_user(user_id)
+        live = [(i.category, i.text) for i in items if i.expires_at is None or i.expires_at > now]
+        return profile_from(live)
+
+    async def _note_voice(user_id: str, profile: VoiceProfile, conversation_id: str) -> None:
+        """A dated timeline line for a call that sounds different, and one more when it goes back
+        to the usual (after a forget), so the timeline never shows a setting that no longer applies.
+        Memory must never stop a call, so a failed write is only logged."""
+        if memory is None:
+            return
+        try:
+            current = [
+                f for f in await memory.temporal.timeline(user_id)
+                if f.kind == "voice" and f.valid_to is None
+            ]  # fmt: skip
+            was_usual = not current or current[-1].object.startswith(USUAL_VOICE)
+            if not profile.adjusted and was_usual:
+                return
+            call = re.sub(r"[^A-Za-z0-9_-]", "_", conversation_id)[:40] or uuid.uuid4().hex[:12]
+            await memory.temporal.write(VoiceSet(
+                id=f"voice_{call}", user_id=user_id, at=service.deps.clock(),
+                language=profile.language, speed=profile.speed, voice=profile.voice,
+                patience=profile.patience, prefers_text=profile.prefers_text,
+            ))  # fmt: skip
+        except Exception as exc:  # memory must never break a call
+            log.warning("voice_profile_note_failed", error_code=type(exc).__name__)
+
+    @app.post("/voice/initiation")
+    async def voice_initiation(
+        body: Initiation, x_tempo_voice_secret: Annotated[str | None, Header()] = None
+    ) -> dict[str, Any]:
+        """ElevenLabs calls this as an inbound call connects: who is it, and how to speak?"""
+        if deployment.voice == "off":
+            raise HTTPException(404, f"voice is off in {deployment.mode} mode")
+        if not secret_matches(x_tempo_voice_secret, _secret(settings.voice_tool_secret)):
+            raise HTTPException(401, "unknown caller")
+        user_id = service.user_for_phone(body.caller_id) if body.caller_id else None
+        profile = await _voice_profile(user_id) if user_id else VoiceProfile()
+        voices = {"default": settings.elevenlabs_voice_tempo or "",
+                  "low": settings.elevenlabs_voice_tempo_low or ""}  # fmt: skip
+        answer = to_initiation(
+            profile, user_id=user_id, display_name=service.name_for(user_id) if user_id else None,
+            voices=voices, greetings=voice_greetings,
+        )  # fmt: skip
+        if user_id:
+            await _note_voice(user_id, profile, body.conversation_id)
+            if profile.adjusted:
+                bus.publish({
+                    "type": "profile_applied", "user_id": user_id, "language": profile.language,
+                    "speed": str(profile.speed), "voice": profile.voice,
+                    "patience": profile.patience, "prefers_text": str(profile.prefers_text).lower(),
+                })  # fmt: skip
+        log.info("voice_initiation", known=user_id is not None, adjusted=profile.adjusted)
+        return answer
+
+    @app.get("/voice/profile")
+    async def voice_profile(user_id: str, caller: Caller) -> dict[str, Any]:
+        """What Tempo would send ElevenLabs for this person, for Mission Control. Voice ids are
+        shown as the names of their settings, never the ids themselves."""
+        profile = await _voice_profile(user_id)
+        names = {"default": "ELEVENLABS_VOICE_TEMPO", "low": "ELEVENLABS_VOICE_TEMPO_LOW"}
+        return {
+            "user_id": user_id,
+            "display_name": service.name_for(user_id),
+            "profile": profile.model_dump(mode="json"),
+            "adjusted": profile.adjusted,
+            "how_to_speak": how_to_speak(profile),
+            "initiation": to_initiation(
+                profile,
+                user_id=user_id,
+                display_name=service.name_for(user_id),
+                voices=names,
+                greetings=voice_greetings,
+            ),
+            "low_voice_configured": bool(settings.elevenlabs_voice_tempo_low),
+        }
 
     @app.post("/voice/tools/{name}")
     async def voice_tool(
@@ -387,6 +648,8 @@ def create_app(
             return {"mission_id": view.id, "state": view.state, "say": view.message}
         if name in ("recall_memories", "forget_memory", "confirm_memory"):
             return await _voice_memory(name, body)
+        if name in ("issue_mandate", "present_mandate", "verify_mandate"):
+            return await _voice_mandate(name, body)
         mission_id = str(body.get("mission_id", ""))
         if name == "get_case_capsule":
             view = await service.view(mission_id)
@@ -408,6 +671,54 @@ def create_app(
             event["counter"] = COUNTER_PLAY[stall] if stall else ""
         bus.publish(event)
         return {"ok": True}
+
+    async def _voice_mandate(name: str, body: dict[str, Any]) -> dict[str, Any]:
+        if mandates is None:
+            return {"say": "I can't show my authority on this line yet."}
+        mission_id = str(body.get("mission_id", ""))
+        if name == "verify_mandate":
+            heard = mandates.envelope(str(body.get("mandate_id", "")))  # read out on the call
+            envelope = body.get("envelope") or (heard.model_dump(mode="json") if heard else {})
+            check = MandateCheck(
+                envelope=envelope,
+                counterparty=str(body.get("counterparty", "")),
+                action=str(body.get("action", "")),
+                amount_gbp=body.get("amount_gbp"),
+            )
+            result = await verify_mandate(check)
+            return {"say": result["message"], **result}
+        if name == "present_mandate":
+            signed = mandates.active_for(mission_id)
+            if signed is None:
+                return {"say": "I don't hold a signed mandate for this.", "error": "no mandate"}
+            mandate_id = signed.mandate.mandate_id
+            return {
+                "say": f"My mandate is {mandate_id}. It covers this claim only.",
+                "mandate_id": mandate_id, "envelope": signed.model_dump(mode="json"),
+            }  # fmt: skip
+        consent = effective_consent(await service.deps.repo.consents(mission_id), clock())
+        matter = service.matter_for(mission_id)
+        if not consent.allows("file_claim") or not matter.get("counterparty"):
+            return {"say": "I need your yes first, so I haven't issued a mandate."}
+        try:
+            signed = mandates.issue_spoken(mandates.draft(
+                mission_id=mission_id, user_id=await service.user_for(mission_id),
+                display_name=str(body.get("display_name") or "the caller"),
+                counterparty=str(matter["counterparty"]), skill_id=str(matter["skill_id"]),
+                amount_gbp=Decimal(str(matter.get("amount_gbp") or "0")),
+                rule_id=matter.get("rule_id"), account_ref=matter.get("account_ref"),
+            ))  # fmt: skip
+        except NoSigningKey:
+            return {"say": "I can't issue a mandate on this line yet."}
+        issued = signed.mandate.mandate_id
+        bus.publish(
+            {"type": "mandate_issued", "mission_id": mission_id, "mandate_id": issued,
+             "assurance": "gateway-attested"}
+        )  # fmt: skip
+        return {
+            "say": "Done. I hold your mandate for this claim only.",
+            "mandate_id": signed.mandate.mandate_id,
+        }
 
     async def _voice_memory(name: str, body: dict[str, Any]) -> dict[str, Any]:
         user_id = str(
@@ -518,7 +829,9 @@ def create_app(
 
     if mesh is not None:
         app.include_router(
-            mesh_router(mesh, service, settings, web_caller, bus=bus, signals=signals)
+            mesh_router(
+                mesh, service, settings, web_caller, bus=bus, signals=signals, mandates=mandates
+            )
         )
 
     @app.websocket("/events")

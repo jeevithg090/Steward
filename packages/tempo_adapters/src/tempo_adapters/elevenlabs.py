@@ -8,6 +8,8 @@ the shared secret the Gateway checks.
 
 from __future__ import annotations
 
+import re
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Literal
 
@@ -122,14 +124,60 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         },
         "required": ["user_id", "approved"],
     },
+    "issue_mandate": {
+        "description": "After a clear yes from the caller, issue a mandate for this claim only.",
+        "properties": {
+            **_MISSION,
+            "display_name": {"type": "string", "description": "What the caller likes to be called"},
+        },
+        "required": ["mission_id"],
+    },
+    "present_mandate": {
+        "description": "When the company asks who authorised you: get your mandate id to read out.",
+        "properties": _MISSION,
+        "required": ["mission_id"],
+    },
+    "verify_mandate": {
+        "description": "Company line: check the caller's mandate before you do anything it asks.",
+        "properties": {
+            "mandate_id": {"type": "string", "description": "The id the caller read out (md_...)"},
+            "action": {
+                "type": "string",
+                "description": "What they want: claim, call, accept_cash, accept_voucher, "
+                "discuss_other_accounts, change_contract, share_personal_data or escalate",
+            },
+            "counterparty": {"type": "string", "description": "Your company's name"},
+            "amount_gbp": {"type": "string", "description": "The amount, if money is involved"},
+        },
+        "required": ["mandate_id", "action", "counterparty"],
+    },
 }
+
+
+# What a call's conversation-initiation answer may change (the Patience Profile). ElevenLabs only
+# accepts an override for a field the agent enables, so each agent lists the ones it allows.
+OVERRIDABLE = frozenset(
+    {
+        "agent.language",
+        "agent.first_message",
+        "agent.prompt.prompt",
+        "tts.voice_id",
+        "tts.speed",
+        "tts.stability",
+        "tts.similarity_boost",
+        "asr.keywords",
+    }
+)
+_VARIABLE = re.compile(r"\{\{\s*([A-Za-z0-9_]+)\s*\}\}")
 
 
 class Voice(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     voice_id_env: str  # the .env variable holding the ElevenLabs voice id
-    model: str = "eleven_flash_v2_5"  # (check) low-latency TTS model id
+    # ~100 ms and 90+ languages (Hindi, Punjabi, Polish, Urdu, Welsh among them); the default for
+    # new ElevenAgents since Sep 2026. eleven_flash_v2_5 has 32 and no Punjabi, Urdu or Welsh.
+    model: str = "eleven_v4_turbo"
 
 
 class Turn(BaseModel):
@@ -137,6 +185,9 @@ class Turn(BaseModel):
 
     turn_timeout_s: float = Field(default=12.0, ge=1, le=30)  # long: never rush a caller
     silence_end_call_s: int = Field(default=120, ge=10)
+    # Turn-taking can't be changed per call, so a line for everyone is patient for everyone.
+    eagerness: Literal["patient", "normal", "eager"] = "normal"
+    model: Literal["turn_v2", "turn_v3"] = "turn_v3"
 
 
 class AgentConfig(BaseModel):
@@ -158,6 +209,10 @@ class AgentConfig(BaseModel):
     system_tools: tuple[str, ...] = ()
     dynamic_variables: tuple[str, ...] = ()
     evil_level: int | None = Field(default=None, ge=1, le=10)  # arena agents only
+    languages: tuple[str, ...] = ()  # more languages it can switch to (voice/greetings.yaml)
+    overrides: tuple[str, ...] = ()  # what each call's initiation answer may change
+    initiation_webhook: bool = False  # inbound: ask the Gateway how to speak with each caller
+    variable_defaults: dict[str, str] = {}  # placeholders for previews and tests
 
     @model_validator(mode="after")
     def tools_are_known(self) -> AgentConfig:
@@ -169,11 +224,30 @@ class AgentConfig(BaseModel):
             raise ValueError(f"unknown system tools: {sorted(bad_system)}")
         if (self.kind == "arena") != (self.evil_level is not None):
             raise ValueError("arena agents (and only they) set evil_level")
+        bad_overrides = set(self.overrides) - OVERRIDABLE
+        if bad_overrides:
+            raise ValueError(f"unknown overrides: {sorted(bad_overrides)}")
+        if self.initiation_webhook and self.kind != "inbound":
+            raise ValueError("only an inbound agent asks the Gateway how to speak with a caller")
+        if any(not re.fullmatch(r"[a-z]{2}", c) or c == self.language for c in self.languages):
+            raise ValueError("languages are two-letter codes other than the agent's own")
+        used = set(_VARIABLE.findall(self.prompt + self.first_message))
+        undeclared = {v for v in used if not v.startswith("system__")} - set(self.dynamic_variables)
+        if undeclared:
+            raise ValueError(f"declare the dynamic variables you use: {sorted(undeclared)}")
         return self
 
 
 def load_agent_config(path: Path) -> AgentConfig:
     return AgentConfig.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
+
+
+def load_greetings(path: Path) -> dict[str, str]:
+    """The inbound agent's first message by language code (voice/greetings.yaml), or {}."""
+    if not path.exists():
+        return {}
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return {str(code): str(text) for code, text in (data.get("greetings") or {}).items()}
 
 
 def render_prompt(config: AgentConfig, variables: dict[str, str]) -> str:
@@ -184,8 +258,25 @@ def render_prompt(config: AgentConfig, variables: dict[str, str]) -> str:
     return prompt
 
 
+def _nested_flags(paths: tuple[str, ...]) -> dict[str, Any]:
+    """("agent.prompt.prompt", "tts.speed") -> {"agent": {"prompt": {"prompt": True}}, ...}."""
+    flags: dict[str, Any] = {}
+    for path in paths:
+        *parents, leaf = path.split(".")
+        node = flags
+        for key in parents:
+            node = node.setdefault(key, {})
+        node[leaf] = True
+    return flags
+
+
 def to_elevenlabs_payload(
-    config: AgentConfig, *, voice_id: str, gateway_url: str, tool_secret: str
+    config: AgentConfig,
+    *,
+    voice_id: str,
+    gateway_url: str,
+    tool_secret: str,
+    greetings: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     """(check) The ElevenLabs Agents create/update body for one of our configs."""
     tools: list[dict[str, Any]] = [
@@ -207,22 +298,53 @@ def to_elevenlabs_payload(
         for name in config.tools
     ]
     tools += [{"type": "system", "name": name} for name in config.system_tools]
-    return {
-        "name": config.name,
-        "conversation_config": {
-            "agent": {
-                "first_message": config.first_message,
-                "language": config.language,
-                "prompt": {"prompt": config.prompt, "llm": config.llm, "tools": tools},
-            },
-            "tts": {"voice_id": voice_id, "model_id": config.voice.model},
-            "turn": {
-                "turn_timeout": config.turn.turn_timeout_s,
-                "silence_end_call_timeout": config.turn.silence_end_call_s,
-            },
-            "conversation": {"max_duration_seconds": config.max_call_minutes * 60},
-        },
+    agent: dict[str, Any] = {
+        "first_message": config.first_message,
+        "language": config.language,
+        "prompt": {"prompt": config.prompt, "llm": config.llm, "tools": tools},
     }
+    if config.variable_defaults:  # (check) where the placeholders live in the agent schema
+        agent["dynamic_variables"] = {"dynamic_variable_placeholders": config.variable_defaults}
+    conversation_config: dict[str, Any] = {
+        "agent": agent,
+        "tts": {"voice_id": voice_id, "model_id": config.voice.model},
+        "turn": {
+            "turn_timeout": config.turn.turn_timeout_s,
+            "silence_end_call_timeout": config.turn.silence_end_call_s,
+            "turn_eagerness": config.turn.eagerness,
+            "turn_model": config.turn.model,
+        },
+        "conversation": {"max_duration_seconds": config.max_call_minutes * 60},
+    }
+    if config.languages:
+        greetings = greetings or {}
+        conversation_config["language_presets"] = {
+            code: {
+                "overrides": {
+                    "agent": {"language": code}
+                    | ({"first_message": greetings[code]} if code in greetings else {})
+                }
+            }
+            for code in config.languages
+        }
+    payload: dict[str, Any] = {"name": config.name, "conversation_config": conversation_config}
+    if config.overrides or config.initiation_webhook:
+        webhook_on = config.initiation_webhook
+        settings: dict[str, Any] = {
+            "overrides": {
+                "conversation_config_override": _nested_flags(config.overrides),
+                "enable_conversation_initiation_client_data_from_webhook": webhook_on,
+            }
+        }
+        if config.initiation_webhook:
+            settings["workspace_overrides"] = {
+                "conversation_initiation_client_data_webhook": {
+                    "url": f"{gateway_url.rstrip('/')}/voice/initiation",
+                    "request_headers": {"X-Tempo-Voice-Secret": tool_secret},  # (check)
+                }
+            }
+        payload["platform_settings"] = settings
+    return payload
 
 
 class ElevenLabsClient:

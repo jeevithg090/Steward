@@ -6,16 +6,18 @@ change that makes Tempo harder to understand fails here.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
 
 from tempo_core.arbiter import ActionOption, choose_action
+from tempo_core.hazard import Hazard
 from tempo_core.intake import follow_up
 from tempo_core.models import Fact
 from tempo_core.readability import flesch_reading_ease, syllables
+from tempo_core.rights_decay import Right, plan
 from tempo_core.rules import NotEligible, RulePackRegistry, evaluate_delay_repay
 from tempo_core.scam import ADVICE
 from tempo_core.time_value import TimeProfile, time_value
@@ -83,6 +85,36 @@ def messages() -> dict[str, str]:
         ),
         "forgot": "Done. I've forgotten: lives in Didcot. It's gone from all your devices.",
         **{f"scam_{level.value}": advice for level, advice in ADVICE.items()},
+        **rights_decay_messages(),
+    }
+
+
+def rights_decay_messages() -> dict[str, str]:
+    """What the Rights Decay planner says: wait, act, or stop chasing (from the real planner)."""
+    hazard = Hazard(
+        id="t", source="test", n=100, demo_values=True,
+        resolved_by=((0, Decimal(0)), (14, Decimal("0.57")), (60, Decimal("0.78"))),
+    )  # fmt: skip
+    call = ActionOption(
+        id="call", label="I call Broadbandly for you", p_success=Decimal("0.85"),
+        amount_gbp=Decimal("32.31"), user_minutes=Decimal(0), compute_gbp=Decimal("0.20"),
+    )  # fmt: skip
+    complain = Right(
+        id="c", label="Complain to Broadbandly", ways=(call,), opens_on=date(2026, 11, 18)
+    )
+    missed = date(2026, 10, 18)
+
+    def said(today: date, rights: list[Right], h: Hazard = hazard) -> str:
+        return plan(
+            rights, hazard=h, started_on=missed, today=today, time_value_gbp_h=Decimal(18),
+            resolved_value_gbp=Decimal("32.31"),
+        ).explanation  # fmt: skip
+
+    return {
+        "rights_wait": said(date(2026, 10, 25), [complain]),
+        "rights_act": said(date(2026, 11, 18), [complain]),
+        "rights_drop": said(date(2026, 10, 25), []),
+        "rights_nothing": said(date(2026, 10, 25), [], Hazard.none()),
     }
 
 
@@ -98,7 +130,7 @@ def test_tempo_speaks_plainly(name: str, text: str) -> None:
 
 
 def test_every_message_family_is_in_the_eval() -> None:
-    assert len(messages()) == 17
+    assert len(messages()) == 21
 
 
 def test_jargon_scores_lower_than_plain_words() -> None:

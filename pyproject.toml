@@ -16,6 +16,7 @@ dependencies = [
     "tempo-mcp-rail",
     "tempo-gateway",
     "tempo-worker",
+    "tempo-passport",
 ]
 
 [tool.uv]
@@ -35,6 +36,7 @@ tempo-crypto = { workspace = true }
 tempo-mcp-rail = { workspace = true }
 tempo-gateway = { workspace = true }
 tempo-worker = { workspace = true }
+tempo-passport = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -81,12 +83,13 @@ known-first-party = [
     "tempo_mcp_rail",
     "tempo_gateway",
     "tempo_worker",
+    "tempo_passport",
 ]
 
 [tool.mypy]
 strict = true
 python_version = "3.12"
-packages = ["tempo_core", "tempo_harness", "tempo_memory", "tempo_crypto"]
+packages = ["tempo_core", "tempo_harness", "tempo_memory", "tempo_crypto", "tempo_passport"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
@@ -130,6 +133,7 @@ source_pkgs = [
     "tempo_mcp_rail",
     "tempo_gateway",
     "tempo_worker",
+    "tempo_passport",
 ]
 
 [tool.coverage.report]

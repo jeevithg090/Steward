@@ -19,6 +19,7 @@ members = [
     "tempo-mcp-rail",
     "tempo-memory",
     "tempo-missions",
+    "tempo-passport",
     "tempo-ports",
     "tempo-worker",
 ]
@@ -1075,9 +1076,10 @@ wheels = [
 
 [[package]]
 name = "graphiti-core"
-version = "0.30.2"
+version = "0.31.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "certifi" },
     { name = "neo4j" },
     { name = "numpy" },
     { name = "openai" },
@@ -1086,9 +1088,9 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "tenacity" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4a/a1/3e0fe119b6f3116ef7671ae1b2d98ef70655ac634d9914e748b5f97ecacb/graphiti_core-0.30.2.tar.gz", hash = "sha256:b8ac6999705d350ebb53d799505d49b76f5d74c20265a09df4094645b5d8ada9", size = 6978112, upload-time = "2026-09-08T20:39:14.59Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ca/f5/1e0b758bdfa15f5bc971b97e326d6dfcf979b66024e7e7a82a08798d7413/graphiti_core-0.31.2.tar.gz", hash = "sha256:cee47010d440ae015646c722b18272c3b2e659e38ab7ed6a0fd165a15282f451", size = 7142697, upload-time = "2026-10-20T17:25:56.472Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/13/19/7ee37826a9dff81eb4d242a785c4ca76d2d510528dd52fc7dd10fb45d9cd/graphiti_core-0.30.2-py3-none-any.whl", hash = "sha256:97674a49514130db175faecf23221ce9338240be3cbe13a7e23e5a5033892b9f", size = 363163, upload-time = "2026-09-08T20:39:12.422Z" },
+    { url = "https://files.pythonhosted.org/packages/82/73/a0957ba4de14bfc69cb201db9b147f5835564838411e147c4c63e4967d0b/graphiti_core-0.31.2-py3-none-any.whl", hash = "sha256:b26e1f350482266aec24beb1cd4c58d5e32ede1a897af8fa25b10800a16bbb8d", size = 403350, upload-time = "2026-10-20T17:25:54.496Z" },
 ]
 
 [[package]]
@@ -3661,6 +3663,7 @@ dependencies = [
     { name = "tempo-mcp-rail" },
     { name = "tempo-memory" },
     { name = "tempo-missions" },
+    { name = "tempo-passport" },
     { name = "tempo-ports" },
     { name = "tempo-worker" },
 ]
@@ -3693,6 +3696,7 @@ requires-dist = [
     { name = "tempo-mcp-rail", editable = "mcp-servers/rail" },
     { name = "tempo-memory", editable = "packages/tempo_memory" },
     { name = "tempo-missions", editable = "packages/tempo_missions" },
+    { name = "tempo-passport", editable = "packages/tempo_passport" },
     { name = "tempo-ports", editable = "packages/tempo_ports" },
     { name = "tempo-worker", editable = "apps/worker" },
 ]
@@ -3755,12 +3759,14 @@ name = "tempo-core"
 version = "0.1.0"
 source = { editable = "packages/tempo_core" }
 dependencies = [
+    { name = "hypothesis" },
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "hypothesis", specifier = ">=6.92" },
     { name = "pydantic", specifier = ">=2.14" },
     { name = "pyyaml", specifier = ">=6.0" },
 ]
@@ -3795,6 +3801,7 @@ dependencies = [
     { name = "tempo-crypto" },
     { name = "tempo-memory" },
     { name = "tempo-missions" },
+    { name = "tempo-passport" },
     { name = "tempo-ports" },
     { name = "twilio" },
     { name = "uvicorn", extra = ["standard"] },
@@ -3813,6 +3820,7 @@ requires-dist = [
     { name = "tempo-crypto", editable = "packages/tempo_crypto" },
     { name = "tempo-memory", editable = "packages/tempo_memory" },
     { name = "tempo-missions", editable = "packages/tempo_missions" },
+    { name = "tempo-passport", editable = "packages/tempo_passport" },
     { name = "tempo-ports", editable = "packages/tempo_ports" },
     { name = "twilio", specifier = ">=9.12" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54" },
@@ -3827,6 +3835,7 @@ dependencies = [
     { name = "agent-framework-core" },
     { name = "agent-hooks-sdk" },
     { name = "tempo-core" },
+    { name = "tempo-passport" },
 ]
 
 [package.metadata]
@@ -3834,6 +3843,7 @@ requires-dist = [
     { name = "agent-framework-core", specifier = ">=1.23" },
     { name = "agent-hooks-sdk", specifier = ">=0.1.0b3" },
     { name = "tempo-core", editable = "packages/tempo_core" },
+    { name = "tempo-passport", editable = "packages/tempo_passport" },
 ]
 
 [[package]]
@@ -3890,6 +3900,7 @@ dependencies = [
     { name = "agent-framework-core" },
     { name = "tempo-core" },
     { name = "tempo-harness" },
+    { name = "tempo-passport" },
     { name = "tempo-ports" },
 ]
 
@@ -3898,7 +3909,25 @@ requires-dist = [
     { name = "agent-framework-core", specifier = ">=1.23" },
     { name = "tempo-core", editable = "packages/tempo_core" },
     { name = "tempo-harness", editable = "packages/tempo_harness" },
+    { name = "tempo-passport", editable = "packages/tempo_passport" },
     { name = "tempo-ports", editable = "packages/tempo_ports" },
+]
+
+[[package]]
+name = "tempo-passport"
+version = "0.1.0"
+source = { editable = "packages/tempo_passport" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "pydantic" },
+    { name = "webauthn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cryptography", specifier = ">=46" },
+    { name = "pydantic", specifier = ">=2.14" },
+    { name = "webauthn", specifier = ">=3.0.1" },
 ]
 
 [[package]]

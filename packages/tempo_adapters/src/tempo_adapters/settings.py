@@ -49,7 +49,10 @@ class Settings(BaseSettings):
     elevenlabs_arena_staller_id: str | None = None
     elevenlabs_arena_injector_id: str | None = None
     elevenlabs_arena_lowballer_id: str | None = None
+    elevenlabs_arena_verifier_id: str | None = None  # the company line that checks mandates
     voice_tool_secret: SecretStr | None = None
+    elevenlabs_voice_tempo: str | None = None  # Tempo's voice (voice library id)
+    elevenlabs_voice_tempo_low: str | None = None  # a lower-pitched Tempo, for hearing loss
 
     # Twilio
     twilio_account_sid: str | None = None
@@ -88,6 +91,9 @@ class Settings(BaseSettings):
     # Tempo Mesh (passkeys are bound to this domain; use your PWA's host when deployed)
     mesh_rp_id: str = "localhost"
     mesh_file: str = "mesh.json"  # devices and their public keys; never secrets
+
+    # Agent Passport: the Gateway's Ed25519 seed, for mandates from a spoken yes (P2)
+    mandate_signing_key: SecretStr | None = None
 
     # Web Push
     vapid_public_key: str | None = None

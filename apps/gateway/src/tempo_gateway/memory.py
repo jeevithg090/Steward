@@ -21,7 +21,7 @@ from tempo_gateway.events import EventBus
 from tempo_memory.entities import DeadlineSet, Episode, OutcomeRecorded, ReferenceGiven
 from tempo_memory.extract import extract_candidates
 from tempo_memory.fallback_sql import SqlMemory, SqlTombstones
-from tempo_memory.gate import consent_scope, decide
+from tempo_memory.gate import OPT_IN, consent_scope, decide
 from tempo_memory.in_memory import InMemoryMemory, InMemoryTombstones
 from tempo_memory.mem0_store import Mem0Memory, mem0_config
 from tempo_memory.models import MemoryCandidate, Verdict
@@ -70,7 +70,7 @@ class Memory(MemoryService):
             return None
         candidate = self.readbacks[user_id].pop(0)
         if approved:
-            if candidate.category in {"health", "immigration", "finance"}:
+            if candidate.category in OPT_IN:
                 self.opted_in[user_id].add(consent_scope(candidate.category))
             await self.propose([candidate.model_copy(update={"confidence": 1.0})])
         return candidate

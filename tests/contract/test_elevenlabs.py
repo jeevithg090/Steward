@@ -7,9 +7,15 @@ from pathlib import Path
 
 import httpx
 
-from tempo_adapters.elevenlabs import ElevenLabsClient, load_agent_config, to_elevenlabs_payload
+from tempo_adapters.elevenlabs import (
+    ElevenLabsClient,
+    load_agent_config,
+    load_greetings,
+    to_elevenlabs_payload,
+)
 
-INBOUND = Path(__file__).resolve().parents[2] / "voice" / "agents" / "tempo.inbound.yaml"
+VOICE = Path(__file__).resolve().parents[2] / "voice"
+INBOUND = VOICE / "agents" / "tempo.inbound.yaml"
 
 
 def payload() -> dict:
@@ -110,3 +116,43 @@ async def test_outbound_call_payload_shape() -> None:
             "dynamic_variables": {"mission_id": "m_1", "display_name": "Margaret"}
         },
     }
+
+
+def test_the_inbound_agent_asks_the_gateway_how_to_speak_with_each_caller() -> None:
+    body = to_elevenlabs_payload(
+        load_agent_config(INBOUND), voice_id="voice_123", gateway_url="https://tempo.example.test/",
+        tool_secret="s3cret", greetings=load_greetings(VOICE / "greetings.yaml"),
+    )  # fmt: skip
+    platform = body["platform_settings"]
+
+    assert platform["overrides"]["conversation_config_override"] == {
+        "agent": {"language": True, "first_message": True},
+        "tts": {"voice_id": True, "speed": True, "stability": True},
+        "asr": {"keywords": True},
+    }
+    assert platform["overrides"]["enable_conversation_initiation_client_data_from_webhook"]
+    webhook = platform["workspace_overrides"]["conversation_initiation_client_data_webhook"]
+    assert webhook == {
+        "url": "https://tempo.example.test/voice/initiation",
+        "request_headers": {"X-Tempo-Voice-Secret": "s3cret"},
+    }
+    config = body["conversation_config"]
+    assert (config["turn"]["turn_eagerness"], config["tts"]["model_id"]) == (
+        "patient", "eleven_v4_turbo",
+    )  # fmt: skip
+    presets = config["language_presets"]
+    assert sorted(presets) == ["cy", "hi", "pa", "pl", "ur"]
+    assert presets["hi"]["overrides"]["agent"]["language"] == "hi"
+    assert "Tempo" in presets["hi"]["overrides"]["agent"]["first_message"]
+    placeholders = config["agent"]["dynamic_variables"]["dynamic_variable_placeholders"]
+    assert placeholders["patience"] == "normal"
+
+
+def test_agents_that_do_not_ask_have_no_platform_overrides() -> None:
+    for name in ("agents/negotiator.outbound.yaml", "arena/staller.yaml"):
+        body = to_elevenlabs_payload(
+            load_agent_config(VOICE / name), voice_id="v", gateway_url="https://t.test",
+            tool_secret="s",
+        )  # fmt: skip
+        assert "platform_settings" not in body, name
+        assert "language_presets" not in body["conversation_config"], name

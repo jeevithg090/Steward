@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  DEMO_BROADBAND,
   DEMO_MISSION,
   Gateway,
   gatewayConfig,
   type Health,
   type LedgerTotals,
   type MemoryCardData,
+  type CardReading,
   type MissionView,
   type PrivacyProofData,
 } from "@/lib/api";
@@ -20,12 +22,16 @@ import { DevicePanel, JoinMesh } from "./DevicePanel";
 import { HonestyBadge } from "./HonestyBadge";
 import { LedgerCounter } from "./LedgerCounter";
 import { MemoryCard } from "./MemoryCard";
+import { PassportPanel } from "./PassportPanel";
 import { PrivacyProof } from "./PrivacyProof";
 import { MissionTimeline } from "./MissionTimeline";
 import { ProofTrace } from "./ProofTrace";
+import { ReadBackCard } from "./ReadBackCard";
+import { RightsPortfolio } from "./RightsPortfolio";
 import { StallRadar } from "./StallRadar";
 import { STATE_LABELS } from "./labels";
 import { TraceLink } from "./TraceLink";
+import { WhoIsCalling } from "./WhoIsCalling";
 
 export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gateway?: Gateway; mesh?: MeshClient }) {
   const gateway = useMemo(() => injected ?? new Gateway(gatewayConfig()), [injected]);
@@ -45,6 +51,7 @@ export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gate
   const [memory, setMemory] = useState<MemoryCardData | null>(null);
   const [proof, setProof] = useState<PrivacyProofData | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reading, setReading] = useState<CardReading | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { events, connected } = useLiveEvents(gateway.eventsUrl());
 
@@ -79,6 +86,25 @@ export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gate
     }
   };
 
+  const readCard = () => act(async () => {
+    const image = await (await fetch("/demo/missed-visit-card.png")).arrayBuffer();
+    let binary = "";
+    for (const byte of new Uint8Array(image)) binary += String.fromCharCode(byte);
+    const read = await gateway.readCard({
+      image_b64: btoa(binary), filename: "missed_visit_card.png",
+      user_id: DEMO_BROADBAND.user_id, display_name: DEMO_BROADBAND.display_name,
+    });
+    setReading(read.question ? read : null);
+    return read.mission ?? null;
+  });
+
+  const confirmReading = (date: string, corrected: boolean) => act(async () => {
+    const visit = { ...(reading?.visit ?? {}) } as Record<string, string>;
+    const source = `${visit.source ?? "card#vision"}, ${corrected ? "corrected" : "confirmed"} by ${DEMO_BROADBAND.display_name}`;
+    setReading(null);
+    return gateway.startOfcom({ ...visit, event_date: date, source });
+  });
+
   const mission = missions.find((m) => m.id === selected) ?? missions[0] ?? null;
   const user = memoryUser(missions);
 
@@ -104,6 +130,18 @@ export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gate
           >
             Start Margaret's claim
           </button>
+          <button
+            type="button" disabled={busy} onClick={() => act(() => gateway.startOfcom(DEMO_BROADBAND))}
+            className="w-full rounded-lg border-2 border-teal-800 px-4 py-3 font-semibold text-teal-900 disabled:opacity-50"
+          >
+            Start Margaret's broadband case
+          </button>
+          <button
+            type="button" disabled={busy} onClick={readCard}
+            className="w-full rounded-lg border-2 border-amber-700 px-4 py-3 font-semibold text-amber-900 disabled:opacity-50"
+          >
+            Read Margaret's missed-visit card
+          </button>
           <ul className="space-y-2">
             {missions.map((m) => (
               <li key={m.id}>
@@ -120,6 +158,12 @@ export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gate
         </nav>
 
         <section aria-label="Selected mission" className="space-y-6">
+          {reading?.question && reading.visit && (
+            <ReadBackCard
+              question={reading.question} date={String(reading.visit.event_date ?? "")} busy={busy}
+              onConfirm={confirmReading}
+            />
+          )}
           {mission === null ? (
             <p className="text-lg">No missions yet. Start Margaret's claim to watch Tempo work.</p>
           ) : (
@@ -132,12 +176,29 @@ export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gate
                   onAnswer={(yes) => act(() => (signs && mesh ? mesh.answer(mission.ask!.request_id, yes) : gateway.answer(mission.ask!.request_id, yes)))}
                 />
               )}
-              {mission.state === "waiting" && (
+              {mission.state === "waiting" && mission.plan?.action_today !== "wait" && (
                 <button type="button" disabled={busy} onClick={() => act(() => gateway.tick())} className="rounded-lg border-2 border-slate-800 px-4 py-2 font-semibold">
                   Check the payment now
                 </button>
               )}
+              {mission.plan && <RightsPortfolio plan={mission.plan} />}
+              {mission.plan?.action_today === "wait" && health?.demo && mission.state === "waiting" && (
+                <div className="flex flex-wrap gap-3" aria-label="Demo controls">
+                  <button type="button" disabled={busy} onClick={() => act(() => gateway.advanceClock(31))} className="rounded-lg border-2 border-amber-700 px-4 py-2 font-semibold text-amber-900">
+                    Demo: jump ahead 31 days
+                  </button>
+                  <button type="button" disabled={busy} onClick={() => act(() => gateway.creditArrives(mission.id))} className="rounded-lg border-2 border-slate-500 px-4 py-2 font-semibold">
+                    Demo: the credit arrives
+                  </button>
+                </div>
+              )}
               {mission.ask?.proof_trace && <ProofTrace trace={mission.ask.proof_trace} />}
+              <PassportPanel
+                mandate={mission.mandate} events={events.filter((e) => !e.mission_id || e.mission_id === mission.id)}
+                canIssue={signs && mesh !== null} busy={busy}
+                onIssue={() => act(() => mesh!.issueMandate(mission.id))}
+                onRevoke={(id) => act(() => gateway.revokeMandate(id))}
+              />
               <AgentCards state={mission.state} reached={mission.timeline.map((t) => t.to)} />
               <ConsensusGavels court={mission.court} />
               <MissionTimeline mission={mission} />
@@ -160,6 +221,7 @@ export function MissionControl({ gateway: injected, mesh: injectedMesh }: { gate
             onForgetFact={(fact) => act(() => gateway.forgetEpisode(user, fact.episode_id))}
             onCorrect={(item, text) => act(() => gateway.correctMemory(user, item.id, text))}
           />
+          <WhoIsCalling load={gateway.voiceProfile} events={events} />
           <PrivacyProof proof={proof} />
           <StallRadar events={events} />
           <section aria-labelledby="feed-heading">
