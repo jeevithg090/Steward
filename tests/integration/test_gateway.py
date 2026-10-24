@@ -256,3 +256,21 @@ def test_a_restarted_gateway_recovers_the_pending_question(
 
     assert waiting == [view["id"]]
     assert request_id == view["ask"]["request_id"]  # the same question, not a new one
+
+
+def test_stall_event_reaches_dashboard_under_200ms(gateway: TestClient) -> None:
+    voice = {"X-Tempo-Voice-Secret": VOICE}
+    with gateway.websocket_connect(f"/events?token={TOKEN}") as live:
+        start = time.perf_counter()
+        gateway.post(
+            "/voice/tools/log_stall",
+            json={"mission_id": "m_1", "category": "made_up", "quote": "Please continue to hold."},
+            headers=voice,
+        )
+        event = live.receive_json()
+        elapsed_ms = (time.perf_counter() - start) * 1000
+
+    assert event["type"] == "log_stall"
+    assert event["category"] == "hold_extension"  # the rules overrule the model's label
+    assert event["counter"].startswith("Log the minutes")
+    assert elapsed_ms < 200
