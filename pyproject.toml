@@ -62,7 +62,7 @@ allowed-confusables = ["–", "→", "×", "·", "➖"]
 
 [tool.ruff.lint.per-file-ignores]
 # Tests assert on purpose and use fixed fake values.
-"tests/**" = ["S101", "S105", "S106"]
+"tests/**" = ["S101", "S105", "S106", "E501"]  # long rows keep policy tables readable
 
 [tool.ruff.lint.isort]
 known-first-party = [
@@ -101,6 +101,10 @@ markers = [
     "live: real vendor smoke tests, one call each (s)",
 ]
 addopts = "-q --strict-markers --import-mode=importlib"
+filterwarnings = [
+    # Agent Hooks is experimental by design; ADR 0001 records why we use it anyway.
+    "ignore:.*create_agent_hooks_middleware is experimental:Warning",
+]
 
 [tool.coverage.run]
 branch = true
