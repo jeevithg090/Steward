@@ -20,3 +20,11 @@ class IllegalTransition(TempoError):
 
 class ConsentConflict(TempoError):
     """Two active grants disagree about what kind of value a limit is; callers fail closed."""
+
+
+class ModelAuthExpired(TempoError):
+    """The model provider rejected our token even after one refresh; a person must rotate it."""
+
+
+class ModelOutputInvalid(TempoError):
+    """The model's structured output was still invalid after one repair attempt."""
