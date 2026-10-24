@@ -7,6 +7,7 @@ mission's. A lock per mission stops two deliveries of the same answer from racin
 from __future__ import annotations
 
 import asyncio
+import json
 import uuid
 from collections import defaultdict
 from datetime import UTC, datetime
@@ -59,6 +60,7 @@ class ConsentAsk(BaseModel):
     request_id: str
     summary: str
     amount_gbp: str
+    proof_trace: dict[str, Any] | None = None
 
 
 class MissionView(BaseModel):
@@ -80,6 +82,7 @@ class MissionService:
         self._outcomes: dict[str, dict[str, Any]] = {}
         self._by_phone: dict[str, list[str]] = defaultdict(list)
         self._locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self.mission_ids: list[str] = []  # newest last
 
     async def start(self, request: StartMission) -> MissionView:
         mission_id = f"m_{uuid.uuid4().hex[:12]}"
@@ -98,6 +101,7 @@ class MissionService:
                 entered_state_at=now,
             )
         )
+        self.mission_ids.append(mission_id)
         if request.phone:
             self._by_phone[phone_hash(request.phone)].append(mission_id)
         claim = ClaimRequest(
@@ -205,6 +209,8 @@ class MissionService:
                 storage = checkpoint_storage(folder)
                 self._remember(mission.id, await resume(self._workflow(mission.id), storage))
             waiting.append(mission.id)
+            if mission.id not in self.mission_ids:
+                self.mission_ids.append(mission.id)
         return waiting
 
     def remember_phone(self, mission_id: str, phone: str) -> None:
@@ -245,9 +251,15 @@ class MissionService:
 
     def _remember(self, mission_id: str, result: RunResult) -> None:
         for request_id, ask in result.pending:
+            trace = json.loads(ask.proof_trace_json) if ask.proof_trace_json else None
             self._asks[request_id] = (
                 mission_id,
-                ConsentAsk(request_id=request_id, summary=ask.summary, amount_gbp=ask.amount_gbp),
+                ConsentAsk(
+                    request_id=request_id,
+                    summary=ask.summary,
+                    amount_gbp=ask.amount_gbp,
+                    proof_trace=trace,
+                ),
             )
             self._bus.publish(
                 {"type": "consent_requested", "mission_id": mission_id, "request_id": request_id}

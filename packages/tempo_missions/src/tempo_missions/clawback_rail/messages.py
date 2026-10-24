@@ -64,6 +64,7 @@ class ConsentRequest:
     summary: str
     amount_gbp: str
     scopes: tuple[str, ...]
+    proof_trace_json: str = ""  # the working behind the amount, shown before the person decides
 
 
 @dataclass(frozen=True)

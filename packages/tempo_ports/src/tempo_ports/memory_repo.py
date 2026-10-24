@@ -57,6 +57,9 @@ class InMemoryRepo:
     async def consents(self, mission_id: str) -> list[ConsentEvent]:
         return [e for e in self.consent_events if e.mission_id == mission_id]
 
+    async def ledger_entries(self, user_id: str | None = None) -> list[LedgerEntry]:
+        return [e for e, uid, _ in self.ledger if user_id is None or uid == user_id]
+
     async def add_ledger_entry(
         self, entry: LedgerEntry, *, user_id: str, company: str | None = None
     ) -> None:

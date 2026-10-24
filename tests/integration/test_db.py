@@ -201,3 +201,12 @@ async def test_a_ledger_entry_with_the_same_key_is_recorded_once(
     async with engine.connect() as conn:
         rows = (await conn.execute(text("SELECT entry_key FROM time_ledger ORDER BY id"))).all()
     assert [r[0] for r in rows] == ["m_1:claimed", None]
+
+
+async def test_ledger_entries_read_back(repo: SqlRepo) -> None:
+    await seed(repo)
+    entry = LedgerEntry(mission_id="m_1", at=T0, gbp_recovered=Decimal("14.20"), key="m_1:paid")
+    await repo.add_ledger_entry(entry, user_id="u_1")
+
+    assert await repo.ledger_entries("u_1") == [entry]
+    assert await repo.ledger_entries("someone_else") == []

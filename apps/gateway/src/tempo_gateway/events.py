@@ -78,7 +78,11 @@ class PublishingRepo:
     async def consents(self, mission_id: str) -> list[ConsentEvent]:
         return await self._inner.consents(mission_id)
 
+    async def ledger_entries(self, user_id: str | None = None) -> list[LedgerEntry]:
+        return await self._inner.ledger_entries(user_id)
+
     async def add_ledger_entry(
         self, entry: LedgerEntry, *, user_id: str, company: str | None = None
     ) -> None:
         await self._inner.add_ledger_entry(entry, user_id=user_id, company=company)
+        self._bus.publish({"type": "ledger", "mission_id": entry.mission_id})

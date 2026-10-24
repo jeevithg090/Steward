@@ -37,6 +37,7 @@ class Consent(_Step):
                 summary=f"{summary} Shall I claim £{case.trace.amount_gbp} for you?",
                 amount_gbp=str(case.trace.amount_gbp),
                 scopes=("file_claim",),
+                proof_trace_json=case.trace.model_dump_json(),
             ),
             response_type=SignedApproval,
         )
