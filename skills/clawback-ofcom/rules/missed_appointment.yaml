@@ -1,0 +1,12 @@
+# Ofcom automatic compensation: a missed engineer appointment, or one cancelled with less than
+# 24 hours' notice. The amount rises with inflation each April; check Ofcom's page and update.
+kind: fixed_amount
+id: ofcom.missed-appointment
+version: "0.1.0"
+operator: Ofcom
+scheme: automatic compensation (missed appointment)
+citation_url: https://www.ofcom.org.uk/phones-and-broadband/service-quality/automatic-compensation-need-know/
+amount_gbp: "32.31"
+min_notice_hours: 24
+claim_window_days: 30
+demo_values: true
