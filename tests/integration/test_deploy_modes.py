@@ -47,3 +47,16 @@ def test_private_mode_never_builds_cortex_jurors() -> None:
     assert court is not None
     urls = {str(j._client.client.base_url) for j in court._jurors}  # type: ignore[attr-defined]
     assert urls == {"https://api.runpod.ai/v2/ep1/openai/v1/"}
+
+
+def test_the_real_region_is_reported_when_set(tmp_path: Path) -> None:
+    settings = Settings(  # type: ignore[call-arg]
+        _env_file=None, tempo_mode="replay", tempo_api_token="t", tempo_region="us-east-1",
+        checkpoint_dir=str(tmp_path / "cp"),
+    )  # fmt: skip
+    service, bus, memory = build_services(settings)
+    client = TestClient(create_app(service, settings, bus, memory=memory))
+
+    assert client.get("/health").json()["region"] == "us-east-1"
+    proof = client.get("/privacy", params={"user_id": "u"}, headers={"Authorization": "Bearer t"})
+    assert proof.json()["region"] == "us-east-1"

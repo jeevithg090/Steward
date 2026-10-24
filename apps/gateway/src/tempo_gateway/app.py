@@ -26,6 +26,7 @@ import asyncio
 import hashlib
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -188,6 +189,8 @@ def create_app(
     seen = SeenKeys()
     api_token = _secret(settings.tempo_api_token)
     deployment = profile(settings.tempo_deploy)  # an unknown mode fails here, at start-up
+    if settings.tempo_region:  # the profile's region is a default; the real one wins
+        deployment = replace(deployment, region=settings.tempo_region)
 
     def web_caller(authorization: Annotated[str | None, Header()] = None) -> str:
         token = (authorization or "").removeprefix("Bearer ").strip()

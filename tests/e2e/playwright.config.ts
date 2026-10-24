@@ -4,11 +4,13 @@ import { defineConfig, devices } from "@playwright/test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const TOKEN = "e2e-token";
 export const GATEWAY = "http://localhost:8010";
 export const WEB = "http://localhost:3010";
 const data = mkdtempSync(join(tmpdir(), "tempo-e2e-"));
+const root = fileURLToPath(new URL("../..", import.meta.url));
 
 export default defineConfig({
   testDir: ".",
@@ -20,12 +22,13 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {
-      command: "uv run --no-sync uvicorn tempo_gateway.main:build --factory --port 8010",
-      cwd: "../..",
+      // Run from the throwaway data folder, so a developer's .env (and its DATABASE_URL) is never read.
+      command: `uv run --project ${root} --no-sync uvicorn tempo_gateway.main:build --factory --port 8010`,
+      cwd: data,
       url: `${GATEWAY}/health`,
       env: {
         TEMPO_MODE: "replay", TEMPO_API_TOKEN: TOKEN, WEB_ORIGINS: WEB, PAYMENT_CHECK_AFTER_S: "0",
-        CHECKPOINT_DIR: join(data, "checkpoints"), MESH_FILE: join(data, "mesh.json"), DATABASE_URL: "",
+        CHECKPOINT_DIR: join(data, "checkpoints"), MESH_FILE: join(data, "mesh.json"), TEMPO_HOME: root,
       },
       timeout: 60_000,
     },
