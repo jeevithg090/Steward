@@ -30,6 +30,7 @@ from tempo_adapters.telemetry import (
     quiet_server_logs,
     trace_url,
 )
+from tempo_core.entitlement import Figures
 from tempo_core.rules import RulePackRegistry
 from tempo_crypto.vault import MemoryVaultStore, VaultStore
 from tempo_gateway.app import create_app
@@ -126,6 +127,7 @@ def build(
         service, settings, bus, memory=memory, mesh=build_mesh(settings), vault=vault,
         registers=registers, registers_simulated=simulated,
         holidays=bank_holidays.from_file(REPO / "fixtures" / "govuk" / "bank-holidays.json"),
+        entitlement=Figures.from_file(REPO / "skills" / "entitlement-check" / "figures.yaml"),
         transparency=REPO / "deploy" / "transparency", scheduler_interval_s=scheduler_interval_s,
     )  # fmt: skip
 

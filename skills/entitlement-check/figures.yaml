@@ -1,0 +1,20 @@
+# Entitlement Check figures (build plan S7.1). These are uprated every April: demo_values stays
+# true until a person checks each one against the gov.uk pages below, then sets last_verified.
+tax_year: "2025/26"
+demo_values: true
+state_pension_age: 66
+pension_credit:
+  guarantee_single_weekly_gbp: "227.10"
+  guarantee_couple_weekly_gbp: "346.60"
+  savings_disregard_gbp: "10000"
+  tariff_per_500_gbp: "1"   # £1 a week for every £500, or part of £500, above the disregard
+  worth_checking_margin_gbp: "30"   # housing costs and extra amounts can lift the guarantee
+  signpost: https://www.gov.uk/pension-credit/eligibility
+attendance_allowance:
+  lower_weekly_gbp: "73.90"
+  higher_weekly_gbp: "110.40"
+  qualifying_months: 6
+  signpost: https://www.gov.uk/attendance-allowance/eligibility
+social_tariff:
+  qualifying_benefits: [universal_credit, pension_credit, jobseekers_allowance, employment_support_allowance, income_support, pip, attendance_allowance]
+  signpost: https://www.ofcom.org.uk/phones-and-broadband/saving-money/social-tariffs
