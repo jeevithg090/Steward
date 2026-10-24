@@ -160,6 +160,26 @@ class MissionService:
                 )
         return await self.view(mission_id)
 
+    async def recover(self) -> list[str]:
+        """After a restart: re-emit the pending question of every mission still waiting for one.
+
+        The question lives in the mission's checkpoint, so nothing the person was asked is lost.
+        Returns the ids of the missions that are waiting again.
+        """
+        waiting = []
+        for folder in sorted(p for p in self._checkpoints.glob("m_*") if p.is_dir()):
+            mission = await self.deps.repo.get_mission(folder.name)
+            if mission.state is not MissionState.AWAITING_CONSENT:
+                continue
+            async with self._locks[mission.id]:
+                storage = checkpoint_storage(folder)
+                self._remember(mission.id, await resume(self._workflow(mission.id), storage))
+            waiting.append(mission.id)
+        return waiting
+
+    def remember_phone(self, mission_id: str, phone: str) -> None:
+        self._by_phone[phone_hash(phone)].append(mission_id)
+
     def missions_for_phone(self, phone: str) -> list[str]:
         return list(self._by_phone.get(phone_hash(phone), []))
 

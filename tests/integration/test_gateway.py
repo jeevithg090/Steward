@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import json
@@ -233,3 +234,19 @@ def test_ws_event_latency_under_200ms_local(gateway: TestClient) -> None:
 
     assert first_change["type"] == "state_changed"
     assert elapsed_ms < 200
+
+
+def test_a_restarted_gateway_recovers_the_pending_question(
+    gateway: TestClient, tmp_path: Path
+) -> None:
+    view = gateway.post("/missions", json=MISSION, headers=AUTH).json()
+    old = gateway.service  # type: ignore[attr-defined]
+    restarted = type(old)(
+        old.deps, old._checkpoints, old._bus
+    )  # same database, fresh process state
+
+    waiting = asyncio.run(restarted.recover())
+    request_id = restarted.pending_for(view["id"])
+
+    assert waiting == [view["id"]]
+    assert request_id == view["ask"]["request_id"]  # the same question, not a new one
