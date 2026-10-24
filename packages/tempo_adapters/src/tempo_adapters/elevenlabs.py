@@ -151,6 +151,14 @@ def load_agent_config(path: Path) -> AgentConfig:
     return AgentConfig.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
 
 
+def render_prompt(config: AgentConfig, variables: dict[str, str]) -> str:
+    """Fill the {{dynamic_variables}} the way ElevenLabs does, for text-mode runs and evals."""
+    prompt = config.prompt
+    for name, value in variables.items():
+        prompt = prompt.replace("{{" + name + "}}", value)
+    return prompt
+
+
 def to_elevenlabs_payload(
     config: AgentConfig, *, voice_id: str, gateway_url: str, tool_secret: str
 ) -> dict[str, Any]:
