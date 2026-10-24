@@ -36,3 +36,7 @@ class ServiceNotFound(TempoError):
 
 class RailDataUnavailable(TempoError):
     """Every rail data source failed; the mission waits and retries or falls back to replay."""
+
+
+class VisionUnavailable(TempoError):
+    """The vision model could not read the document; Tempo asks the person instead."""

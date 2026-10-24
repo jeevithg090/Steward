@@ -1,0 +1,34 @@
+{
+  "facts": [
+    {
+      "key": "origin",
+      "value": "Oxford",
+      "confidence": 0.98
+    },
+    {
+      "key": "destination",
+      "value": "London Paddington",
+      "confidence": 0.97
+    },
+    {
+      "key": "travel_date",
+      "value": "2026-10-23",
+      "confidence": 0.95
+    },
+    {
+      "key": "departure_time",
+      "value": "08:12",
+      "confidence": 0.93
+    },
+    {
+      "key": "fare_gbp",
+      "value": "28.40",
+      "confidence": 0.72
+    },
+    {
+      "key": "ticket_type",
+      "value": "Off-Peak Day Single",
+      "confidence": 0.9
+    }
+  ]
+}

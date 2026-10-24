@@ -54,6 +54,7 @@ class Settings(BaseSettings):
 
     # Vision
     gemini_api_key: SecretStr | None = None
+    gemini_model: str = "gemini-flash-latest"  # (check) the Flash model your key can use
 
     # Tracing
     langfuse_host: str = "https://cloud.langfuse.com"
