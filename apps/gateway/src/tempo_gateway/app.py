@@ -7,13 +7,17 @@ runtime, and the per-app dependencies below are local names.
 |---|---|---|
 | POST /missions, GET /missions/{id}, POST /missions/{id}/stop | Mission Control | bearer token |
 | POST /approvals/{request_id} | an answer from the web app | bearer token (passkeys: S5.2) |
+| POST /scheduler/tick | fire due Watchdog timers now (demos) | bearer token |
 | POST /voice/tools/{name} | ElevenLabs server tools | shared secret header |
 | POST /voice/post-call | transcripts after a call | HMAC signature |
 | POST /sms/inbound | YES / NO / STOP / HELP | Twilio signature |
 | WS /events | live updates | token query parameter |
 """
 
+import asyncio
 import hashlib
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from decimal import Decimal
 from typing import Annotated, Any
 from xml.sax.saxutils import escape
@@ -40,6 +44,7 @@ from tempo_gateway.missions import (
     StartMission,
     UnknownRequest,
 )
+from tempo_gateway.scheduler import run_scheduler
 from tempo_gateway.security import (
     SeenKeys,
     elevenlabs_signature_ok,
@@ -67,8 +72,24 @@ def _secret(value: Any) -> str | None:
     return value.get_secret_value() if value is not None else None
 
 
-def create_app(service: MissionService, settings: Settings, bus: EventBus) -> FastAPI:
-    app = FastAPI(title="Tempo Gateway", version="0.1.0")
+def create_app(
+    service: MissionService,
+    settings: Settings,
+    bus: EventBus,
+    *,
+    scheduler_interval_s: float | None = None,
+) -> FastAPI:
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        await service.recover()  # re-emit what paused missions were waiting for
+        task = None
+        if scheduler_interval_s is not None:
+            task = asyncio.create_task(run_scheduler(service, scheduler_interval_s))
+        yield
+        if task is not None:
+            task.cancel()
+
+    app = FastAPI(title="Tempo Gateway", version="0.1.0", lifespan=lifespan)
     seen = SeenKeys()
     api_token = _secret(settings.tempo_api_token)
 
@@ -99,6 +120,11 @@ def create_app(service: MissionService, settings: Settings, bus: EventBus) -> Fa
     @app.post("/missions/{mission_id}/stop")
     async def stop_mission(mission_id: str, caller: Caller) -> MissionView:
         return await service.stop(mission_id, device_sig=caller)
+
+    @app.post("/scheduler/tick")
+    async def tick(caller: Caller) -> dict[str, list[str]]:
+        """Fire the timers that are due now (the scheduler also does this every 30 s)."""
+        return {"fired": await service.tick()}
 
     @app.post("/approvals/{request_id}")
     async def approve(request_id: str, body: Answer, caller: Caller) -> MissionView:

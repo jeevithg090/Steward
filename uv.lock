@@ -2940,6 +2940,7 @@ source = { editable = "apps/gateway" }
 dependencies = [
     { name = "fastapi" },
     { name = "python-multipart" },
+    { name = "structlog" },
     { name = "tempo-adapters" },
     { name = "tempo-core" },
     { name = "tempo-missions" },
@@ -2952,6 +2953,7 @@ dependencies = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.162" },
     { name = "python-multipart", specifier = ">=0.0.32" },
+    { name = "structlog", specifier = ">=25.4" },
     { name = "tempo-adapters", editable = "packages/tempo_adapters" },
     { name = "tempo-core", editable = "packages/tempo_core" },
     { name = "tempo-missions", editable = "packages/tempo_missions" },

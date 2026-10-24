@@ -106,19 +106,22 @@ class Action(_Step):
             amount_gbp=trace.amount_gbp,
             idempotency_key=f"{mission_id}:{trace.id}",
         )
-        await self.move(mission_id, S.COMPLETED)
         await ctx.send_message(case.with_(receipt_json=receipt.model_dump_json()))
 
 
 class Ledger(_Step):
-    """Counts the minutes Tempo saved now; the money only once the claim is verified as paid."""
+    """Counts the minutes Tempo saved, and the pounds only once the money has arrived."""
 
     def __init__(self, deps: ClawbackDeps) -> None:
         super().__init__("ledger", deps)
 
     @handler
     async def run(self, case: RailCase, ctx: WorkflowContext[RailCase, MissionOutcome]) -> None:
-        mission_id, receipt = case.request.mission_id, case.receipt
+        mission_id, receipt, operator = (
+            case.request.mission_id,
+            case.receipt,
+            case.journey.operator_code,
+        )
         await self.deps.repo.add_ledger_entry(
             LedgerEntry(
                 mission_id=mission_id,
@@ -127,14 +130,38 @@ class Ledger(_Step):
                 key=f"{mission_id}:claimed",
             ),
             user_id=case.request.user_id,
-            company=case.journey.operator_code,
+            company=operator,
         )
+        simulated = " (a simulated company)" if receipt.simulated else ""
+        if case.paid_amount_gbp is None:
+            message = (
+                f"I've claimed £{receipt.amount_gbp} (reference {receipt.reference}), but "
+                f"{operator}{simulated} hasn't paid after {case.payment_checks} checks. "
+                "I'll chase it."
+            )
+            state = S.COMPLETED
+        else:
+            await self.deps.repo.add_ledger_entry(
+                LedgerEntry(
+                    mission_id=mission_id,
+                    at=self.deps.clock(),
+                    gbp_recovered=Decimal(case.paid_amount_gbp),
+                    key=f"{mission_id}:paid",
+                ),
+                user_id=case.request.user_id,
+                company=operator,
+            )
+            message = (
+                f"{operator}{simulated} has paid you £{case.paid_amount_gbp} "
+                f"(reference {receipt.reference}). That's {case.user_minutes_saved} minutes "
+                "of your time back."
+            )
+            state = S.VERIFIED
         await ctx.yield_output(
             MissionOutcome(
                 mission_id,
-                S.COMPLETED.value,
-                f"I've claimed £{receipt.amount_gbp} for you. "
-                f"The reference is {receipt.reference}.",
+                state.value,
+                message,
                 amount_gbp=str(receipt.amount_gbp),
                 reference=receipt.reference,
                 proof_trace_id=case.trace.id,

@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     public_url: str = "http://localhost:8000"  # the URL Twilio and ElevenLabs call (for signatures)
     elevenlabs_webhook_secret: SecretStr | None = None
     checkpoint_dir: str = "checkpoints"
+    payment_check_after_s: int = 7 * 24 * 3600  # how long the Watchdog waits before each check
 
     # Modes
     tempo_mode: Literal["live", "replay"] = "replay"

@@ -1,8 +1,9 @@
 """`make demo-dry-run`: the scripted demo, text only, in replay mode, with timings (milestone M1).
 
 Margaret's 08:12 Oxford -> Paddington arrived 38 minutes late. Tempo finds the delay, works out
-Delay Repay with a Proof Trace, asks her once, and claims. Halfway through, the Gateway is
-"killed" and restarted: the mission resumes from its checkpoint and asks the same question.
+Delay Repay with a Proof Trace, asks her once, claims, and waits until the (simulated) company
+pays before it says "done". Halfway through, the Gateway is "killed" and restarted: the mission
+resumes from its checkpoint and asks the same question.
 
 Exits 1 if any beat goes wrong, so it can gate a demo.
 """
@@ -48,7 +49,10 @@ async def beat(
 
 async def main(checkpoints: Path) -> list[Check]:
     settings = Settings(  # type: ignore[call-arg]
-        _env_file=None, tempo_mode="replay", checkpoint_dir=str(checkpoints)
+        _env_file=None,
+        tempo_mode="replay",
+        checkpoint_dir=str(checkpoints),
+        payment_check_after_s=0,
     )
     service, _ = build_service(settings)
     timings: list[tuple[str, float]] = []
@@ -63,7 +67,10 @@ async def main(checkpoints: Path) -> list[Check]:
     request_id = restarted.pending_for(view.id)
 
     yes = SignedApproval(approved=True, scopes=("file_claim",), device_sig="demo:passkey")
-    done = await beat("approve + claim", lambda: restarted.answer(request_id or "", yes), timings)
+    filed = await beat("approve + claim", lambda: restarted.answer(request_id or "", yes), timings)
+    print(f"Tempo: {filed.message}\n")
+    await beat("watchdog checks payment", restarted.tick, timings)
+    done = await restarted.view(view.id)
     print(f"Tempo: {done.message}\n")
 
     for name, ms in timings:
@@ -79,7 +86,8 @@ async def main(checkpoints: Path) -> list[Check]:
             recovered == [view.id] and request_id == ask.request_id if ask else False,
         ),
         ("claimed exactly once", getattr(claims, "calls", None) == 1),
-        ("mission completed", done.state.value == "completed"),
+        ("waited for the money", filed.state.value == "waiting"),
+        ("verified once it was paid", done.state.value == "verified"),
         ("whole run under 2 s", sum(ms for _, ms in timings) < 2000),
     ]
 

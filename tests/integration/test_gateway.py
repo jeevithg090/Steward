@@ -48,6 +48,7 @@ def gateway(tmp_path: Path) -> Any:
         elevenlabs_webhook_secret=HOOK,
         public_url="https://tempo.example.test",
         checkpoint_dir=str(tmp_path / "checkpoints"),
+        payment_check_after_s=0,  # the Watchdog checks straight away
     )
     service, bus = build_service(settings)
     client = TestClient(create_app(service, settings, bus))
@@ -69,6 +70,7 @@ def claims(client: TestClient) -> int:
 
 def test_web_routes_need_the_bearer_token(gateway: TestClient) -> None:
     assert gateway.post("/missions", json=MISSION).status_code == 401
+    assert gateway.post("/scheduler/tick").status_code == 401
     assert (
         gateway.post(
             "/missions", json=MISSION, headers={"Authorization": "Bearer nope"}
@@ -102,15 +104,19 @@ def test_a_web_approval_finishes_the_mission_once(gateway: TestClient) -> None:
     view = gateway.post("/missions", json=MISSION, headers=AUTH).json()
     request_id = view["ask"]["request_id"]
 
-    done = gateway.post(f"/approvals/{request_id}", json={"approved": True}, headers=AUTH)
+    filed = gateway.post(f"/approvals/{request_id}", json={"approved": True}, headers=AUTH)
     again = gateway.post(f"/approvals/{request_id}", json={"approved": True}, headers=AUTH)
+    fired = gateway.post("/scheduler/tick", headers=AUTH).json()["fired"]
+    done = gateway.get(f"/missions/{view['id']}", headers=AUTH).json()
 
-    assert done.json()["state"] == "completed"
-    assert done.json()["outcome"]["amount_gbp"] == "14.20"
+    assert filed.json()["state"] == "waiting"
+    assert filed.json()["message"].startswith("Claim filed. I'll check the payment has arrived")
     assert again.status_code == 404  # a second delivery changes nothing
+    assert fired == [view["id"]]
+    assert done["state"] == "verified"
+    assert done["outcome"]["amount_gbp"] == "14.20"
     assert claims(gateway) == 1
-    timeline = gateway.get(f"/missions/{view['id']}", headers=AUTH).json()["timeline"]
-    assert [t["to"] for t in timeline][-2:] == ["running", "completed"]
+    assert [t["to"] for t in done["timeline"]][-3:] == ["running", "completed", "verified"]
 
 
 def test_an_unknown_mission_is_404(gateway: TestClient) -> None:
@@ -140,8 +146,8 @@ def test_a_mission_can_be_created_and_approved_by_voice(gateway: TestClient) -> 
     ).json()
 
     assert "Shall I claim £14.20 for you?" in created["say"]
-    assert answered["state"] == "completed"
-    assert answered["say"].startswith("I've claimed £14.20 for you.")
+    assert answered["state"] == "waiting"
+    assert answered["say"].startswith("Claim filed.")
 
 
 def test_every_voice_tool_has_a_route(gateway: TestClient) -> None:
@@ -165,7 +171,7 @@ def test_sms_yes_resolves_pending_request(gateway: TestClient) -> None:
     reply = sms(gateway, "yes please", "SM2")
 
     assert reply.headers["content-type"].startswith("application/xml")
-    assert "I've claimed £14.20 for you." in reply.text
+    assert "Tempo: Claim filed." in reply.text
     assert claims(gateway) == 1
 
 

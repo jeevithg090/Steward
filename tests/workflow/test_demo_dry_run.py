@@ -17,4 +17,4 @@ def test_the_demo_dry_run_passes(capsys: pytest.CaptureFixture[str]) -> None:
     assert demo.run() == 0
     out = capsys.readouterr().out
     assert "❌" not in out
-    assert "I've claimed £14.20 for you." in out
+    assert "has paid you £14.20" in out

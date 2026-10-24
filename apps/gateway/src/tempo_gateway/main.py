@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import uvicorn
@@ -24,20 +25,28 @@ def build_service(settings: Settings) -> tuple[MissionService, EventBus]:
     """Replay mode uses recorded rail data, an in-memory store and the simulated operator, so
     the whole mission runs with no keys and no network."""
     bus = EventBus()
+
+    def clock() -> datetime:
+        return datetime.now(tz=UTC)
+
     deps = ClawbackDeps(
         repo=PublishingRepo(InMemoryRepo(), bus),
         rail=rail_port(settings),
         rules=RulePackRegistry.from_directory(REPO / "skills" / "clawback-uk-rail"),
-        claims=SimulatedClaims(),
+        claims=SimulatedClaims(pays_after=timedelta(0), clock=clock),
+        clock=clock,
+        payment_check_after=timedelta(seconds=settings.payment_check_after_s),
     )
     return MissionService(deps, Path(settings.checkpoint_dir), bus), bus
 
 
-def build(settings: Settings | None = None) -> FastAPI:
+def build(
+    settings: Settings | None = None, *, scheduler_interval_s: float | None = None
+) -> FastAPI:
     settings = settings or Settings()
     service, bus = build_service(settings)
-    return create_app(service, settings, bus)
+    return create_app(service, settings, bus, scheduler_interval_s=scheduler_interval_s)
 
 
 def run() -> None:
-    uvicorn.run(build(), host="127.0.0.1", port=8000)
+    uvicorn.run(build(scheduler_interval_s=30.0), host="127.0.0.1", port=8000)

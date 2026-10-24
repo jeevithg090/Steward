@@ -33,6 +33,8 @@ class RailCase:
     user_minutes_saved: str = "0"
     court_note: str | None = None
     receipt_json: str | None = None
+    paid_amount_gbp: str | None = None  # set once the watchdog sees the money arrive
+    payment_checks: int = 0
 
     @property
     def journey(self) -> ServiceDelay:
@@ -75,6 +77,21 @@ class SignedApproval:
 
 
 @dataclass(frozen=True)
+class TimerRequest:
+    """A durable wait: the workflow sleeps in its checkpoint until the scheduler answers."""
+
+    mission_id: str
+    wake_at: str  # an ISO 8601 UTC instant, never a wall-clock time
+    reason: str
+    attempt: int
+
+
+@dataclass(frozen=True)
+class TimerFired:
+    at: str  # ISO 8601 UTC
+
+
+@dataclass(frozen=True)
 class MissionOutcome:
     mission_id: str
     state: str
@@ -90,5 +107,13 @@ class MissionOutcome:
 
 CHECKPOINT_TYPES = [
     f"{__name__}:{cls.__name__}"
-    for cls in (ClaimRequest, RailCase, ConsentRequest, SignedApproval, MissionOutcome)
+    for cls in (
+        ClaimRequest,
+        RailCase,
+        ConsentRequest,
+        SignedApproval,
+        TimerRequest,
+        TimerFired,
+        MissionOutcome,
+    )
 ]

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from agent_framework import Executor, WorkflowContext
@@ -60,6 +60,8 @@ class ClawbackDeps:
     court: ConsensusCourt | None = None
     verify_approval: Callable[[SignedApproval], bool] = _signed  # the Mesh's signature check
     clock: Callable[[], datetime] = field(default=lambda: datetime.now(tz=UTC))
+    payment_check_after: timedelta = timedelta(days=7)  # how long to wait before each check
+    max_payment_checks: int = 4
 
 
 class _Step(Executor):

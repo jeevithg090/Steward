@@ -1,6 +1,7 @@
 """Clawback Rail: find a late train, claim Delay Repay with consent, and survive restarts.
 
-    intake -> rights -> court -> arbiter -> consent (request_info) -> action -> ledger
+    intake -> rights -> court -> arbiter -> consent (request_info) -> action
+        -> watchdog (timer via request_info) -> ledger
 
 How the Gateway runs it (spec §16.5):
 1. `start(workflow, request)`; a `ConsentRequest` comes back as pending, with its request id.
@@ -28,7 +29,10 @@ from tempo_missions.clawback_rail.messages import (
     MissionOutcome,
     RailCase,
     SignedApproval,
+    TimerFired,
+    TimerRequest,
 )
+from tempo_missions.clawback_rail.watchdog import PaymentWatchdog
 
 WORKFLOW_NAME = "clawback-rail"  # stable, or checkpoints can't be found after a restart
 
@@ -41,6 +45,8 @@ __all__ = [
     "RailCase",
     "RunResult",
     "SignedApproval",
+    "TimerFired",
+    "TimerRequest",
     "build_clawback_workflow",
     "checkpoint_storage",
     "resume",
@@ -61,6 +67,7 @@ def build_clawback_workflow(deps: ClawbackDeps, storage: CheckpointStorage) -> W
         Appraise(deps),
         Consent(deps),
         Action(deps),
+        PaymentWatchdog(deps),
         Ledger(deps),
     ]
     return (
@@ -79,6 +86,7 @@ def build_clawback_workflow(deps: ClawbackDeps, storage: CheckpointStorage) -> W
 class RunResult:
     outcomes: tuple[MissionOutcome, ...]
     pending: tuple[tuple[str, ConsentRequest], ...]  # (request id, what the person is asked)
+    timers: tuple[tuple[str, TimerRequest], ...] = ()  # (request id, when to wake the mission)
 
     @property
     def outcome(self) -> MissionOutcome | None:
@@ -86,13 +94,15 @@ class RunResult:
 
 
 async def _collect(events: Any) -> RunResult:
-    outcomes, pending = [], []
+    outcomes, pending, timers = [], [], []
     async for event in events:
         if event.type == "output" and isinstance(event.data, MissionOutcome):
             outcomes.append(event.data)
         elif event.type == "request_info" and isinstance(event.data, ConsentRequest):
             pending.append((event.request_id, event.data))
-    return RunResult(tuple(outcomes), tuple(pending))
+        elif event.type == "request_info" and isinstance(event.data, TimerRequest):
+            timers.append((event.request_id, event.data))
+    return RunResult(tuple(outcomes), tuple(pending), tuple(timers))
 
 
 async def start(workflow: Workflow, request: ClaimRequest) -> RunResult:
@@ -102,7 +112,7 @@ async def start(workflow: Workflow, request: ClaimRequest) -> RunResult:
 async def resume(
     workflow: Workflow,
     storage: CheckpointStorage,
-    responses: Mapping[str, SignedApproval] | None = None,
+    responses: Mapping[str, SignedApproval | TimerFired] | None = None,
     *,
     checkpoint_id: str | None = None,
 ) -> RunResult:

@@ -16,7 +16,9 @@ from tempo_core.rules import RulePackRegistry
 from tempo_missions.clawback_rail import (
     ClaimRequest,
     ClawbackDeps,
+    RunResult,
     SignedApproval,
+    TimerFired,
     build_clawback_workflow,
     checkpoint_storage,
     resume,
@@ -44,15 +46,16 @@ class Clock:
 
 class Fakes:
     def __init__(self, court: ConsensusCourt | None = None) -> None:
+        self.clock = Clock()
         self.repo = InMemoryRepo()
-        self.claims = SimulatedClaims()
+        self.claims = SimulatedClaims(clock=self.clock)
         self.deps = ClawbackDeps(
             repo=self.repo,
             rail=ReplayRail.from_directory(REPO_ROOT / "fixtures" / "rail" / "replay"),
             rules=RulePackRegistry.from_directory(REPO_ROOT / "skills" / "clawback-uk-rail"),
             claims=self.claims,
             court=court,
-            clock=Clock(),
+            clock=self.clock,
         )
 
     async def mission(self, departure: str = "08:12", mission_id: str = "m_1") -> ClaimRequest:
@@ -69,6 +72,14 @@ class Fakes:
 
     def states(self) -> list[str]:
         return [e.to_state.value for e, _ in self.repo.case_events_log]
+
+
+async def fire(fakes: Fakes, storage: Any, result: RunResult) -> RunResult:
+    """Play the scheduler: answer the mission's pending timer."""
+    [(timer_id, timer)] = result.timers
+    fakes.clock.now = datetime.fromisoformat(timer.wake_at)
+    fired = TimerFired(at=fakes.clock.now.isoformat())
+    return await resume(build_clawback_workflow(fakes.deps, storage), storage, {timer_id: fired})
 
 
 @pytest.fixture
@@ -90,18 +101,28 @@ async def test_happy_path_asks_once_then_claims_and_records_the_time(storage: An
     assert fakes.claims.calls == 0
     assert (await fakes.repo.get_mission("m_1")).state is S.AWAITING_CONSENT
 
-    done = await resume(build_clawback_workflow(fakes.deps, storage), storage, {request_id: YES})
+    filed = await resume(build_clawback_workflow(fakes.deps, storage), storage, {request_id: YES})
+
+    assert filed.outcome is None  # the claim is in, the money isn't yet
+    [(_, timer)] = filed.timers
+    assert timer.attempt == 1
+    assert fakes.claims.calls == 1
+    assert (await fakes.repo.get_mission("m_1")).state is S.WAITING
+
+    done = await fire(fakes, storage, filed)
 
     outcome = done.outcome
     assert outcome is not None
-    assert (outcome.state, outcome.amount) == ("completed", Decimal("14.20"))
+    assert (outcome.state, outcome.amount) == ("verified", Decimal("14.20"))
     assert outcome.reference is not None and outcome.reference.startswith("GW-")
+    assert outcome.message.startswith("GW (a simulated company) has paid you £14.20")
     assert fakes.claims.calls == 1
     assert fakes.states() == [
-        "understood", "planned", "appraised", "awaiting_consent", "running", "completed",
+        "understood", "planned", "appraised", "awaiting_consent", "running", "waiting",
+        "running", "completed", "verified",
     ]  # fmt: skip
-    [(entry, user_id, company)] = fakes.repo.ledger
-    assert (entry.minutes_returned, user_id, company) == (Decimal(20), "u_1", "GW")
+    claimed, paid = (entry for entry, _, _ in fakes.repo.ledger)
+    assert (claimed.minutes_returned, paid.gbp_recovered) == (Decimal(20), Decimal("14.20"))
     [consent] = fakes.repo.consent_events
     assert (consent.scope, consent.kind.value, consent.device_sig) == (
         "file_claim", "grant", "passkey:iphone",
@@ -174,10 +195,11 @@ async def test_mission_resumes_after_crash(storage: Any) -> None:
     del first  # the process dies; only the checkpoint files and the database survive
 
     fresh = build_clawback_workflow(fakes.deps, storage)  # a new process
-    done = await resume(fresh, storage, {request_id: YES})
+    filed = await resume(fresh, storage, {request_id: YES})
+    done = await fire(fakes, storage, filed)
 
     assert done.outcome is not None
-    assert done.outcome.state == "completed"
+    assert done.outcome.state == "verified"
     assert fakes.claims.calls == 1
 
 
@@ -197,17 +219,20 @@ async def test_resume_is_idempotent_no_double_claim(storage: Any) -> None:
     [(request_id, _)] = first.pending
     waiting = await storage.get_latest(workflow_name="clawback-rail")
 
-    for _ in range(2):  # e.g. the approval webhook is delivered twice
+    results = [
         await resume(
             build_clawback_workflow(fakes.deps, storage),
             storage,
             {request_id: YES},
             checkpoint_id=waiting.checkpoint_id,
         )
+        for _ in range(2)  # e.g. the approval webhook is delivered twice
+    ]
+    await fire(fakes, storage, results[-1])
 
     assert fakes.claims.calls == 1
-    assert len(fakes.repo.ledger) == 1
-    assert fakes.states().count("completed") == 1
+    assert len(fakes.repo.ledger) == 2  # minutes once, pounds once
+    assert fakes.states().count("verified") == 1
 
 
 class Juror:

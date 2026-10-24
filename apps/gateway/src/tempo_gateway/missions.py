@@ -17,6 +17,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from tempo_core.consent import ConsentEvent, ConsentKind
+from tempo_core.delays import LONDON
 from tempo_core.errors import TempoError
 from tempo_core.models import Mission, MissionState
 from tempo_core.state import advance, allowed_next
@@ -27,6 +28,7 @@ from tempo_missions.clawback_rail import (
     ClawbackDeps,
     RunResult,
     SignedApproval,
+    TimerFired,
     build_clawback_workflow,
     checkpoint_storage,
     resume,
@@ -74,6 +76,7 @@ class MissionService:
         self._checkpoints = checkpoints
         self._bus = bus
         self._asks: dict[str, tuple[str, ConsentAsk]] = {}  # request id -> (mission, ask)
+        self._timers: dict[str, tuple[str, datetime]] = {}  # request id -> (mission, wake at UTC)
         self._outcomes: dict[str, dict[str, Any]] = {}
         self._by_phone: dict[str, list[str]] = defaultdict(list)
         self._locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
@@ -135,6 +138,8 @@ class MissionService:
             no = SignedApproval(approved=False, scopes=BINDING_SCOPES, device_sig=device_sig)
             return await self.answer(waiting[0], no)
         async with self._locks[mission_id]:
+            for request_id in [r for r, (m, _) in self._timers.items() if m == mission_id]:
+                del self._timers[request_id]
             for scope in BINDING_SCOPES:
                 await self.deps.repo.append_consent(
                     ConsentEvent(
@@ -160,16 +165,41 @@ class MissionService:
                 )
         return await self.view(mission_id)
 
-    async def recover(self) -> list[str]:
-        """After a restart: re-emit the pending question of every mission still waiting for one.
+    async def tick(self, now: datetime | None = None) -> list[str]:
+        """Fire every timer that is due (the scheduler calls this every 30 s).
 
-        The question lives in the mission's checkpoint, so nothing the person was asked is lost.
+        Wake times are UTC instants and a fired timer is removed before the mission resumes,
+        so a timer fires once, even in the hour the clocks go back.
+        """
+        now = now or self.deps.clock()
+        fired = []
+        for request_id, (mission_id, wake_at) in sorted(
+            self._timers.items(), key=lambda t: t[1][1]
+        ):
+            if wake_at > now:
+                continue
+            async with self._locks[mission_id]:
+                if self._timers.pop(request_id, None) is None:
+                    continue
+                storage = checkpoint_storage(self._checkpoints / mission_id)
+                answer = {request_id: TimerFired(at=now.astimezone(UTC).isoformat())}
+                self._remember(
+                    mission_id, await resume(self._workflow(mission_id), storage, answer)
+                )
+            fired.append(mission_id)
+        return fired
+
+    async def recover(self) -> list[str]:
+        """After a restart: re-emit what every paused mission was waiting for.
+
+        A pending question or timer lives in the mission's checkpoint, so nothing is lost.
         Returns the ids of the missions that are waiting again.
         """
         waiting = []
+        paused = (MissionState.AWAITING_CONSENT, MissionState.WAITING)
         for folder in sorted(p for p in self._checkpoints.glob("m_*") if p.is_dir()):
             mission = await self.deps.repo.get_mission(folder.name)
-            if mission.state is not MissionState.AWAITING_CONSENT:
+            if mission.state not in paused:
                 continue
             async with self._locks[mission.id]:
                 storage = checkpoint_storage(folder)
@@ -194,7 +224,11 @@ class MissionService:
             {"to": e.to_state.value, "at": e.at.isoformat(), "latency_ms": e.latency_ms}
             for e in await self.deps.repo.case_events(mission_id)
         ]
+        wake = next((w for m, w in self._timers.values() if m == mission_id), None)
         message = outcome["message"] if outcome else (ask.summary if ask else None)
+        if message is None and wake is not None:
+            local = wake.astimezone(LONDON).strftime("%-d %b at %H:%M")
+            message = f"Claim filed. I'll check the payment has arrived on {local}."
         return MissionView(
             id=mission_id,
             state=mission.state,
@@ -217,6 +251,11 @@ class MissionService:
             )
             self._bus.publish(
                 {"type": "consent_requested", "mission_id": mission_id, "request_id": request_id}
+            )
+        for request_id, timer in result.timers:
+            self._timers[request_id] = (mission_id, datetime.fromisoformat(timer.wake_at))
+            self._bus.publish(
+                {"type": "timer_set", "mission_id": mission_id, "wake_at": timer.wake_at}
             )
         if result.outcome is not None:
             self._outcomes[mission_id] = {
