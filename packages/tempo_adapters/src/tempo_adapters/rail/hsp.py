@@ -13,6 +13,7 @@ from typing import Any
 import httpx
 
 from tempo_adapters.rail._http import hhmm, send
+from tempo_core.delay_model import THRESHOLDS, Run
 from tempo_core.delays import LONDON, at_or_after, delay_minutes, nearest
 from tempo_core.errors import ServiceNotFound
 from tempo_ports.rail import ServiceDelay
@@ -45,7 +46,24 @@ class HspSource:
         details = await self._post("serviceDetails", {"rid": rid})
         return _parse_details(details, origin_crs, destination_crs, departure)
 
-    async def _post(self, endpoint: str, body: dict[str, str]) -> Any:
+    async def day_runs(
+        self,
+        origin_crs: str,
+        destination_crs: str,
+        day: date,
+        thresholds: tuple[int, ...] = THRESHOLDS,
+    ) -> list[Run]:
+        """Every service on the route that day, and which lateness thresholds each reached (one
+        call a day: the delay model's history, S6.3)."""
+        query: dict[str, Any] = {
+            "from_loc": origin_crs, "to_loc": destination_crs, "from_time": "0000",
+            "to_time": "2359", "from_date": day.isoformat(), "to_date": day.isoformat(),
+            "days": DAY_TYPES.get(day.weekday(), "WEEKDAY"),
+            "tolerance": [str(t) for t in thresholds],  # (check) HSP's tolerance list
+        }  # fmt: skip
+        return runs_from_metrics(await self._post("serviceMetrics", query), day)
+
+    async def _post(self, endpoint: str, body: dict[str, Any]) -> Any:
         request = self._http.build_request(
             "POST", f"{self._base}/{endpoint}", json=body, headers=self._headers
         )
@@ -63,6 +81,22 @@ def _metrics_query(origin: str, destination: str, day: date, departure: str) -> 
         "to_date": day.isoformat(),
         "days": DAY_TYPES.get(day.weekday(), "WEEKDAY"),
     }
+
+
+def runs_from_metrics(metrics: Any, day: date) -> list[Run]:
+    """One Run per service: a tolerance with any run outside it counts as reached."""
+    runs = []
+    for service in metrics.get("Services") or []:
+        departure = (service.get("serviceAttributesMetrics") or {}).get("gbtt_ptd")
+        if not departure:
+            continue
+        late = frozenset(
+            int(m["tolerance_value"])
+            for m in service.get("Metrics") or []
+            if int(m.get("num_not_tolerance") or 0) > 0
+        )
+        runs.append(Run(day, departure, late))
+    return runs
 
 
 def _matching_rid(metrics: Any, departure: str) -> str:

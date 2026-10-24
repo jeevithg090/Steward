@@ -94,6 +94,22 @@ async def test_hsp_service_metrics_parsing() -> None:
     assert json.loads(details.content) == {"rid": "202610230000001"}
 
 
+async def test_hsp_day_history_for_the_delay_model() -> None:
+    seen: list[httpx.Request] = []
+
+    runs = await hsp(hsp_handler(seen)).day_runs("OXF", "PAD", DAY)
+
+    (query,) = seen
+    assert json.loads(query.content)["tolerance"] == ["15", "30", "60"]
+    assert json.loads(query.content)["from_time"] == "0000"
+    assert {(r.departure, r.late) for r in runs} == {
+        ("0812", frozenset({15})),
+        ("0840", frozenset()),
+        ("1742", frozenset()),
+    }
+    assert {r.day for r in runs} == {DAY}
+
+
 async def test_hsp_service_details_actual_vs_scheduled() -> None:
     journey = await hsp(hsp_handler([])).service_delay("OXF", "PAD", DAY, "0812")
 

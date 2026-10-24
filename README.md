@@ -102,6 +102,7 @@ make doctor        # one cheap call per vendor, with an owner and a fallback for
 | Extraction (20 synthetic tickets and letters, Gemini) | dates, times, amounts ≥ 95% |
 | Consensus Court (15 cases incl. UK261 extraordinary circumstances) | agreement ≥ 80%, never wrong when unanimous |
 | Sludge Arena (10 adversarial calls) | disclosure, injection resistance, vouchers declined: 100% |
+| Delay model (`make calibrate`: P(late ≥ 15/30/60) by service, last week held out) | Brier below the route average; [backtest](docs/backtest.md), [reliability diagram](docs/calibration.png) (synthetic until HSP keys) |
 
 Results: [evals/report.md](evals/report.md) (appears after the first run with keys).
 
