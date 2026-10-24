@@ -50,6 +50,7 @@ class DelayRepayPack(_Pack):
 
     kind: Literal["delay_repay"] = "delay_repay"
     scheme: Literal["DR15", "DR30"]
+    toc_codes: tuple[str, ...] = ()  # how rail data names the operator, e.g. ("GW",) for GWR
     bands: tuple[DelayBand, ...] = Field(min_length=1)
 
     @model_validator(mode="after")

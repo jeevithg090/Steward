@@ -35,4 +35,6 @@ class RepoPort(Protocol):
 
     async def add_ledger_entry(
         self, entry: LedgerEntry, *, user_id: str, company: str | None = None
-    ) -> None: ...
+    ) -> None:
+        """An entry whose `key` was already recorded is ignored."""
+        ...

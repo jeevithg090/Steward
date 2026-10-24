@@ -23,6 +23,9 @@ class LedgerEntry(BaseModel):
     minutes_lost: Decimal = Field(default=Decimal(0), ge=0)  # e.g. hold time the company caused
     minutes_returned: Decimal = Field(default=Decimal(0), ge=0)  # what Tempo did instead of you
     gbp_recovered: Decimal = Field(default=Decimal(0), ge=0)
+    # An idempotency key: entries with the same key are recorded once, so a replayed step
+    # can't count the same minutes or pounds twice.
+    key: str | None = None
 
 
 class LedgerTotals(BaseModel):

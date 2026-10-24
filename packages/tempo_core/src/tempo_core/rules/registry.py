@@ -45,9 +45,13 @@ class RulePackRegistry:
             raise NotCovered(f"no rule pack {pack_id!r} is installed") from None
 
     def delay_repay(self, operator: str) -> DelayRepayPack:
+        """The Delay Repay pack for an operator, by name ("GWR") or TOC code ("GW")."""
         wanted = operator.casefold()
         for pack in self._by_id.values():
-            if isinstance(pack, DelayRepayPack) and pack.operator.casefold() == wanted:
+            if isinstance(pack, DelayRepayPack) and wanted in (
+                pack.operator.casefold(),
+                *(code.casefold() for code in pack.toc_codes),
+            ):
                 return pack
         raise NotCovered(f"no Delay Repay pack covers {operator!r} yet")
 

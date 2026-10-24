@@ -57,4 +57,6 @@ class InMemoryRepo:
     async def add_ledger_entry(
         self, entry: LedgerEntry, *, user_id: str, company: str | None = None
     ) -> None:
+        if entry.key is not None and any(e.key == entry.key for e, _, _ in self.ledger):
+            return
         self.ledger.append((entry, user_id, company))
