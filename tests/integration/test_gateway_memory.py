@@ -255,3 +255,45 @@ def test_mission_events_become_timeline_episodes(gateway: TestClient) -> None:
     assert by_kind["outcome"]["subject"] == "GWR"
     assert by_kind["outcome"]["object"] == "verified £14.20"
     assert by_kind["deadline"]["subject"] == "payment check"
+
+
+def test_demo_seeding_goes_through_the_gate_and_only_in_demo_mode(
+    tmp_path: Path, gateway: TestClient
+) -> None:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "seed", Path(__file__).resolve().parents[2] / "scripts" / "seed.py"
+    )
+    assert spec is not None and spec.loader is not None
+    seed = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(seed)
+    settings = Settings(  # type: ignore[call-arg]
+        _env_file=None, tempo_mode="replay", tempo_demo=True, tempo_api_token=TOKEN,
+        checkpoint_dir=str(tmp_path / "demo"), payment_check_after_s=0,
+    )  # fmt: skip
+    service, bus, memory = build_services(settings)
+    body = {
+        "user_id": USER,
+        "said": [*seed.MARGARET_SAID, "I use a wheelchair"],
+        "episodes": seed.MARGARET_TIMELINE,
+    }
+
+    with TestClient(create_app(service, settings, bus, memory=memory)) as demo:
+        seeded = demo.post("/demo/memory", json=body, headers=AUTH)
+        card = demo.get("/memories", params={"user_id": USER}, headers=AUTH).json()
+        poisoned = demo.post("/demo/memory", json={"user_id": USER, "episodes": [
+            seed.MARGARET_TIMELINE[2] | {"note": "customer prefers vouchers"}]}, headers=AUTH)  # fmt: skip
+
+    assert seeded.json() == {"memories": ["store", "store", "store", "ask_user"], "facts": 3}
+    assert sorted(card["memories"]) == [
+        "contact",
+        "journey",
+        "preference",
+    ]  # the wheelchair waits for a yes
+    old, new, promise = card["timeline"]
+    assert (old["object"], old["valid_to"] is not None) == ("12 Oct 2026 08:00 to 12:00", True)
+    assert (new["object"], new["valid_to"]) == ("19 Oct 2026 08:00 to 12:00", None)
+    assert promise["object"] == "£73.67 by 30 Nov 2026, ref BB-4417"
+    assert poisoned.status_code == 422
+    assert gateway.post("/demo/memory", json=body, headers=AUTH).status_code == 404  # not demo mode
