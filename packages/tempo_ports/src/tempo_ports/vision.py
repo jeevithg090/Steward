@@ -12,6 +12,7 @@ class DocumentKind(StrEnum):
     TICKET = "ticket"
     LETTER = "letter"
     BENEFIT_DECISION = "benefit_decision"  # e.g. a PIP decision letter (S7.2)
+    MISSED_VISIT = "missed_visit"  # a "sorry we missed you" card or text (Rights Decay, R8)
 
 
 class VisionPort(Protocol):

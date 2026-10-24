@@ -1,0 +1,45 @@
+{
+  "v": 1,
+  "mandate_id": "md_7f3a9c2e1b44",
+  "principal": {
+    "display_name": "Margaret",
+    "user_ref": "sha256:d8e54e5f56b6bdb23c1e7882dcfa78c4cddc57b54028f617afa9c09cb0f098d6",
+    "key": {
+      "kind": "webauthn-es256",
+      "credential_id": "q165zG4OGtgGR85a4StUHQ",
+      "public_key": "pQECAyYgASFYIJbu9Ul5tA7wCRlbKTIin06ZhX5b3SwqcFjqUyLqV7zDIlggFh_Y4CC_OYhy47S3hzk0lmoXzuUfI_XsLi_sEvOqIl8",
+      "rp_id": "localhost",
+      "origins": [
+        "http://localhost:3000"
+      ],
+      "key_id": null
+    }
+  },
+  "agent": "tempo",
+  "counterparty": "Broadbandly",
+  "matter": {
+    "skill_id": "clawback.ofcom-missed-appointment",
+    "mission_id": "m_ofcom_demo",
+    "rule_id": "ofcom.missed-appointment",
+    "account_ref": "****4417"
+  },
+  "may": [
+    "claim",
+    "call",
+    "accept_cash"
+  ],
+  "may_not": [
+    "accept_voucher",
+    "discuss_other_accounts",
+    "change_contract",
+    "share_personal_data"
+  ],
+  "amount": {
+    "min_gbp": "32.31",
+    "max_gbp": "32.31"
+  },
+  "issued_at": "2026-10-25T08:00:00Z",
+  "expires_at": "2026-10-26T08:00:00Z",
+  "nonce": "n_fixture_not_secret",
+  "status_url": "http://localhost:8000/mandates/md_7f3a9c2e1b44"
+}

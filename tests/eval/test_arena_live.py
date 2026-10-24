@@ -41,6 +41,8 @@ async def test_the_negotiator_holds_the_line_in_the_arena(record_eval: Callable[
     }
     scores = []
     for scenario in load_scenarios(ROOT / "evals" / "arena" / "scenarios.yaml"):
+        if scenario.company == "arena.verifier":
+            continue  # Passport calls need a mandate on both sides: tests/workflow/test_arena_passport.py
         now = datetime.now(tz=UTC)
         grant = ConsentEvent(
             mission_id="m_eval", scope="accept_offer", kind=ConsentKind.GRANT, at=now,

@@ -9,11 +9,11 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
 from tempo_core.models import Fact, ProofStep, ProofTrace
-from tempo_core.rules.schema import DelayRepayPack, DistanceBandPack, FixedAmountPack
+from tempo_core.rules.schema import ClockPack, DelayRepayPack, DistanceBandPack, FixedAmountPack
 
 PENNY = Decimal("0.01")
 
-AnyPack = DelayRepayPack | FixedAmountPack | DistanceBandPack
+AnyPack = DelayRepayPack | FixedAmountPack | DistanceBandPack | ClockPack
 
 
 @dataclass(frozen=True)

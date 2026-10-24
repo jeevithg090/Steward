@@ -4,3 +4,8 @@
 `ReplayVision` returns for it (a Gemini-style `{"facts": [...]}` answer). To replay a real demo
 photo, run it once through `GeminiVision` and save the answer as `<sha256-of-the-photo>.json`.
 The fare's confidence (0.72) is deliberately below 0.8, so the demo asks one question about it.
+
+`missed_visit_card.png` is a made-up "sorry we missed you" card from the simulated Broadbandly
+(Rights Decay, R8); its reading is the JSON named after its SHA-256. The date's confidence
+(0.74) is deliberately below 0.8, so Tempo reads it back once before planning. The same image is
+in `apps/web/public/demo/` so Mission Control can send it.

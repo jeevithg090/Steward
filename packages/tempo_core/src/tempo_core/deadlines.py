@@ -36,6 +36,16 @@ def working_days_before(day: date, count: int, holidays: Collection[date]) -> da
     return current
 
 
+def working_days_after(day: date, count: int, holidays: Collection[date]) -> date:
+    """The working day `count` working days after `day`."""
+    current = day
+    while count > 0:
+        current += timedelta(days=1)
+        if is_working_day(current, holidays):
+            count -= 1
+    return current
+
+
 @dataclass(frozen=True)
 class ReconsiderationDeadline:
     decision_date: date

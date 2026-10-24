@@ -1,0 +1,14 @@
+# The provider should pay Ofcom's automatic compensation on its own. If the credit hasn't come
+# within 30 days, it's time to complain. Check the window against Ofcom's page.
+kind: clock
+id: ofcom.auto-comp.payment-window
+version: "0.1.0"
+operator: Ofcom
+citation_url: https://www.ofcom.org.uk/phones-and-broadband/service-quality/automatic-compensation-need-know/
+demo_values: true
+trigger: missed_appointment
+starts_from: event_date
+length: { days: 30 }
+role: wait
+right: ofcom.complaint
+summary: Your provider should pay this on its own within 30 days. If it doesn't, you can complain.

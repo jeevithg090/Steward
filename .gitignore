@@ -38,3 +38,6 @@ evals/.cache/
 .DS_Store
 .idea/
 .vscode/
+
+# Research data for the Rights Decay backtest (copied from the research session; large, not ours to publish)
+.data/

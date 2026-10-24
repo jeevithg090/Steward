@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Tempo domain core: models, rules, consent, state machine, arbiter, ledger"
 license = "Apache-2.0"
 requires-python = ">=3.12"
-dependencies = ["pydantic>=2.14", "pyyaml>=6.0"]
+dependencies = ["pydantic>=2.14", "pyyaml>=6.0", "hypothesis>=6.92"]
 
 [build-system]
 requires = ["uv_build>=0.13.1,<0.14"]

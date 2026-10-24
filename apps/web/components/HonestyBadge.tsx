@@ -11,6 +11,7 @@ export function HonestyBadge({ health }: { health: Health | null }) {
       className="rounded-full border-2 border-amber-700 bg-amber-50 px-4 py-1 text-sm font-semibold tracking-wide text-amber-900"
     >
       {real} · SIMULATED {simulated.join(" · ") || "COMPANY"}
+      {health.clock_offset_days ? ` · DEMO CLOCK +${health.clock_offset_days} DAYS` : ""}
     </p>
   );
 }

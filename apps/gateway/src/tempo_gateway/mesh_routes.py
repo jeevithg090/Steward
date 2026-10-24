@@ -13,6 +13,7 @@ No `from __future__ import annotations`: FastAPI reads these annotations at runt
 | POST /mesh/pairings/{id}/claim | the new device, with the one-time secret from the QR code |
 | POST /mesh/approvals/{request_id}/options, POST /mesh/approvals/{request_id} | a device |
 | GET /mesh/signals, POST /mesh/signals | a notification-reading device: filters; matches |
+| POST /mesh/mandates/options, POST /mesh/mandates | a device with Face ID: sign a mandate (P2) |
 """
 
 import asyncio
@@ -26,6 +27,7 @@ from pydantic import BaseModel, Field
 from tempo_adapters.settings import Settings
 from tempo_core.signals import SignalSpec, only_declared
 from tempo_gateway.events import EventBus
+from tempo_gateway.mandates import MAY, MAY_NOT, MandateService
 from tempo_gateway.mesh import Device, Mesh, MeshError
 from tempo_gateway.missions import BINDING_SCOPES, MissionService, MissionView, UnknownRequest
 from tempo_missions.clawback_rail import SignedApproval
@@ -60,6 +62,14 @@ class AnswerRequest(BaseModel):
     limits: dict[str, Decimal] = {}
 
 
+class MandateAsk(BaseModel):
+    """What the person is about to sign. The company and amount come from the mission."""
+
+    mission_id: str
+    may: list[str] = list(MAY)
+    may_not: list[str] = list(MAY_NOT)
+
+
 def mesh_router(
     mesh: Mesh,
     service: MissionService,
@@ -68,6 +78,7 @@ def mesh_router(
     *,
     bus: EventBus | None = None,
     signals: dict[str, SignalSpec] | None = None,
+    mandates: MandateService | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/mesh")
     origin = settings.web_origins.split(",")[0].strip()
@@ -181,6 +192,44 @@ def mesh_router(
             bus.publish({"type": "signal", "signal_id": spec.id, "from": me.name, **body.fields})
         routed = await mesh.notify(me.user_id)  # wake the device that can approve; it says "sync"
         return {"accepted": True, "routed_to": routed.name if routed else None}
+
+    @router.post("/mandates/options")
+    async def mandate_options(body: MandateAsk, me: Me) -> dict[str, Any]:
+        """Draft the mandate from the mission and bind it to this device's passkey."""
+        if mandates is None:
+            raise HTTPException(404, "mandates are off")
+        if await service.user_for(body.mission_id) != me.user_id:
+            raise HTTPException(404, "no such mission")
+        matter = service.matter_for(body.mission_id)
+        if not matter.get("counterparty") or not matter.get("amount_gbp"):
+            raise HTTPException(409, "this mission doesn't name a company and an amount yet")
+        try:
+            draft = mandates.draft(
+                mission_id=body.mission_id, user_id=me.user_id, display_name=me.name,
+                counterparty=str(matter["counterparty"]), skill_id=str(matter["skill_id"]),
+                amount_gbp=Decimal(str(matter["amount_gbp"])), rule_id=matter.get("rule_id"),
+                account_ref=matter.get("account_ref"), may=body.may, may_not=body.may_not,
+            )  # fmt: skip
+        except ValueError as e:  # an unknown action, or one both allowed and refused
+            raise HTTPException(422, str(e)) from None
+        return run(lambda: mesh.mandate_options(me, draft))  # type: ignore[no-any-return]
+
+    @router.post("/mandates")
+    async def signed_mandate(body: Signed, me: Me) -> dict[str, Any]:
+        """Face ID signed it: keep it, and hand back exactly what a company will be shown."""
+        if mandates is None:
+            raise HTTPException(404, "mandates are off")
+        signed = mandates.store(
+            run(lambda: mesh.finish_mandate(me, body.challenge_id, body.credential))
+        )
+        m = signed.mandate
+        if bus is not None:
+            bus.publish({
+                "type": "mandate_issued", "mission_id": m.matter.mission_id,
+                "mandate_id": m.mandate_id, "assurance": "device-biometric",
+                "expires_at": m.expires_at.isoformat(),
+            })  # fmt: skip
+        return signed.model_dump(mode="json")
 
     def _mine(request_id: str, me: Device) -> None:
         if service.mission_for_request(request_id) is None:

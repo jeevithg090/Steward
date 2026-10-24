@@ -170,4 +170,6 @@ def test_the_negotiator_only_gets_its_own_tools() -> None:
         if hasattr(agent, "default_options")
         else set()
     )
-    assert names <= {"get_case_capsule", "log_stall", "record_reference", "accept_offer"}
+    assert names <= {
+        "get_case_capsule", "log_stall", "record_reference", "accept_offer", "present_mandate",
+    }  # fmt: skip

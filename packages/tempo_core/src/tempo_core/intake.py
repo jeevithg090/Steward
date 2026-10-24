@@ -17,6 +17,7 @@ CONFIDENT = 0.8
 
 # Most important first: a wrong date or fare changes the claim; a wrong ticket type rarely does.
 PRIORITY = (
+    "event_date",  # the day the engineer didn't come: it starts every clock
     "travel_date",
     "departure_time",
     "fare_gbp",
@@ -28,6 +29,10 @@ PRIORITY = (
 )
 
 LABELS = {
+    "event_date": "the date of the missed visit",
+    "operator": "your provider",
+    "notice_hours": "the notice they gave",
+    "account_ref": "your account number",
     "travel_date": "the date you travelled",
     "departure_time": "the train's departure time",
     "fare_gbp": "the fare",

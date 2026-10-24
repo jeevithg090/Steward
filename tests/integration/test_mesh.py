@@ -1,31 +1,28 @@
 """Tempo Mesh v0 (S5.2): pairing, passkey-signed approvals, push with no content, fan-out.
 
-A software authenticator (an ES256 key, as a phone's secure element would hold) produces real
-WebAuthn registrations and assertions, so py_webauthn verifies genuine signatures.
+A software authenticator (tests/helpers/webauthn.py: an ES256 key, as a phone's secure element
+would hold) produces real WebAuthn registrations and assertions, so py_webauthn verifies genuine
+signatures.
 """
 
 from __future__ import annotations
 
-import base64
-import hashlib
 import json
-import os
 import time
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-import cbor2
 import pytest
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi.testclient import TestClient
 
 from tempo_adapters.settings import Settings
 from tempo_gateway.app import create_app
 from tempo_gateway.main import build_services
 from tempo_gateway.mesh import SYNC_PAYLOAD, Mesh
+
+from ..helpers.webauthn import SoftAuthenticator, b64
 
 TOKEN = "mc-token"
 ORIGIN = "http://localhost:3000"
@@ -35,58 +32,6 @@ MISSION = {
     "user_id": USER, "display_name": "Margaret", "origin_crs": "OXF", "destination_crs": "PAD",
     "travel_date": "2026-10-23", "departure": "08:12", "fare_gbp": "28.40",
 }  # fmt: skip
-
-
-def b64(raw: bytes) -> str:
-    return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
-
-
-class SoftAuthenticator:
-    """A platform authenticator in software: user present and verified ("Face ID")."""
-
-    def __init__(self, rp_id: str = "localhost", origin: str = ORIGIN) -> None:
-        self.rp_id_hash = hashlib.sha256(rp_id.encode()).digest()
-        self.origin = origin
-        self.key = ec.generate_private_key(ec.SECP256R1())
-        self.credential_id = os.urandom(16)
-        self.counter = 0
-
-    def _client_data(self, kind: str, challenge: str) -> bytes:
-        return json.dumps({"type": kind, "challenge": challenge, "origin": self.origin}).encode()
-
-    def create(self, options: dict[str, Any]) -> dict[str, Any]:
-        numbers = self.key.public_key().public_numbers()
-        cose = cbor2.dumps(
-            {1: 2, 3: -7, -1: 1, -2: numbers.x.to_bytes(32), -3: numbers.y.to_bytes(32)}
-        )
-        attested = bytes(16) + len(self.credential_id).to_bytes(2) + self.credential_id + cose
-        auth_data = self.rp_id_hash + bytes([0x45]) + self.counter.to_bytes(4) + attested
-        attestation = cbor2.dumps({"fmt": "none", "attStmt": {}, "authData": auth_data})
-        return {
-            "id": b64(self.credential_id), "rawId": b64(self.credential_id), "type": "public-key",
-            "response": {
-                "clientDataJSON": b64(self._client_data("webauthn.create", options["challenge"])),
-                "attestationObject": b64(attestation),
-            },
-            "clientExtensionResults": {},
-        }  # fmt: skip
-
-    def get(self, options: dict[str, Any], *, tamper: bool = False) -> dict[str, Any]:
-        self.counter += 1
-        auth_data = self.rp_id_hash + bytes([0x05]) + self.counter.to_bytes(4)
-        client_data = self._client_data("webauthn.get", options["challenge"])
-        signed = auth_data + hashlib.sha256(client_data).digest()
-        signature = self.key.sign(signed, ec.ECDSA(hashes.SHA256()))
-        if tamper:
-            client_data = self._client_data("webauthn.get", b64(os.urandom(32)))
-        return {
-            "id": b64(self.credential_id), "rawId": b64(self.credential_id), "type": "public-key",
-            "response": {
-                "clientDataJSON": b64(client_data), "authenticatorData": b64(auth_data),
-                "signature": b64(signature), "userHandle": None,
-            },
-            "clientExtensionResults": {},
-        }  # fmt: skip
 
 
 class FakePush:

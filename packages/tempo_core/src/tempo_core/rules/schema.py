@@ -8,19 +8,20 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 from itertools import pairwise
-from typing import Annotated, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
-class _Pack(BaseModel):
+class _Honest(BaseModel):
+    """What every pack says about itself: where it comes from, and whether a person checked it."""
+
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     id: str
     version: str
     operator: str
     citation_url: str = Field(pattern=r"^https://")
-    claim_window_days: int = Field(gt=0)
     # True until the numbers are checked against the operator's published terms (the honesty rule).
     demo_values: bool = False
     last_verified: date | None = None
@@ -30,6 +31,12 @@ class _Pack(BaseModel):
         if not self.demo_values and self.last_verified is None:
             raise ValueError("a pack without demo_values must say when it was last_verified")
         return self
+
+
+class _Pack(_Honest):
+    """A compensation scheme: it pays an amount, and claims must be made within a window."""
+
+    claim_window_days: int = Field(gt=0)
 
 
 class DelayBand(BaseModel):
@@ -111,6 +118,60 @@ class DistanceBandPack(_Pack):
         return self
 
 
+class ClockLength(BaseModel):
+    """How long a clock runs, in exactly one unit, because the law counts in different units."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    days: int | None = Field(default=None, gt=0)
+    working_days: int | None = Field(default=None, gt=0)
+    weeks: int | None = Field(default=None, gt=0)
+    months: int | None = Field(default=None, gt=0)
+
+    @model_validator(mode="after")
+    def exactly_one_unit(self) -> Self:
+        units = (self.days, self.working_days, self.weeks, self.months)
+        if sum(u is not None for u in units) != 1:
+            raise ValueError("a clock needs exactly one of days, working_days, weeks or months")
+        return self
+
+
+ClockStart = Literal[
+    "event_date", "letter_date", "complaint_date", "final_response_date", "request_date"
+]
+
+
+class ClockPack(_Honest):
+    """A legal or scheme clock: what starts it, how long it runs, and what it does to a right.
+
+    A `window` closes a right when it ends (Delay Repay: claim within 28 days). A `wait` opens a
+    right when it ends (a firm has 8 weeks to answer a complaint; then the ombudsman opens).
+    """
+
+    kind: Literal["clock"] = "clock"
+    trigger: str = Field(min_length=1)  # the event that starts it, e.g. "complaint_sent"
+    starts_from: ClockStart
+    length: ClockLength
+    role: Literal["window", "wait"]
+    right: str = Field(min_length=1)  # the right this clock gates, e.g. "fos.refer"
+    hard_cliff: bool  # window clocks: the right is lost for good when the clock ends
+    summary: str = Field(min_length=1)  # plain words, shown to the person
+
+    @model_validator(mode="before")
+    @classmethod
+    def cliff_follows_role(cls, data: Any) -> Any:
+        """A window is a cliff unless the pack says otherwise; a wait clock never is."""
+        if isinstance(data, dict) and "hard_cliff" not in data:
+            return {**data, "hard_cliff": data.get("role") == "window"}
+        return data
+
+    @model_validator(mode="after")
+    def a_wait_has_no_cliff(self) -> Self:
+        if self.role == "wait" and self.hard_cliff:
+            raise ValueError("a wait clock has no cliff: it opens a right, it never closes one")
+        return self
+
+
 RulePack = Annotated[
-    DelayRepayPack | FixedAmountPack | DistanceBandPack, Field(discriminator="kind")
+    DelayRepayPack | FixedAmountPack | DistanceBandPack | ClockPack, Field(discriminator="kind")
 ]

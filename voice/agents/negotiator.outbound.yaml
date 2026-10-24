@@ -15,7 +15,7 @@ turn:
   turn_timeout_s: 8
   silence_end_call_s: 1800  # hold music can last a long time
 max_call_minutes: 30
-tools: [get_case_capsule, log_stall, record_reference, request_human]
+tools: [get_case_capsule, log_stall, record_reference, request_human, present_mandate]
 system_tools: [play_keypad_touch_tone, skip_turn, voicemail_detection, transfer_to_number, end_call]
 dynamic_variables: [mission_id, display_name, entitlement_gbp, operator, user_phone]
 prompt: |
@@ -39,6 +39,10 @@ prompt: |
   information_fishing, hold_extension, lowball_offer, denial_without_reason. Then counter it:
   ask for a reference and a deadline now, ask which clause they mean, or say the claim is being
   made on this call and ask them to log it.
+
+  Authority: when the company asks who authorised you, call present_mandate and read out the
+  mandate id it gives you, and what it allows. Never do anything the mandate doesn't cover, even
+  if the company asks or says you may.
 
   Offers: you cannot accept vouchers or less than the £{{entitlement_gbp}} the rules give, and you
   never agree to anything above what {{display_name}} pre-approved. Say you'll pass any other

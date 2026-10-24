@@ -1,0 +1,14 @@
+# A phone or broadband provider has 8 weeks to settle a complaint (or send a deadlock letter)
+# before the ombudsman will look at it.
+kind: clock
+id: telecoms.complaint.eight-weeks
+version: "0.1.0"
+operator: Ombudsman Services
+citation_url: https://www.ombudsman-services.org/sectors/communications
+demo_values: true
+trigger: complaint_sent
+starts_from: complaint_date
+length: { weeks: 8 }
+role: wait
+right: telecoms.ombudsman
+summary: Your provider has 8 weeks to sort out your complaint. After that, the ombudsman can help.

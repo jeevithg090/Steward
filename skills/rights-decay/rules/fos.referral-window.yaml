@@ -1,0 +1,14 @@
+# The Financial Ombudsman Service usually needs a complaint within 6 months of the firm's final
+# response (DISP 2.8).
+kind: clock
+id: fos.referral-window
+version: "0.1.0"
+operator: Financial Ombudsman Service
+citation_url: https://www.financial-ombudsman.org.uk/consumers/how-to-complain
+demo_values: true
+trigger: final_response
+starts_from: final_response_date
+length: { months: 6 }
+role: window
+right: fos.refer
+summary: After your bank's final answer, you have 6 months to go to the ombudsman.

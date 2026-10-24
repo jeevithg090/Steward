@@ -1,0 +1,14 @@
+# A bank or other financial firm has 8 weeks to give a final response (FCA DISP 1.6) before the
+# Financial Ombudsman Service can step in.
+kind: clock
+id: fca.complaint.eight-weeks
+version: "0.1.0"
+operator: FCA
+citation_url: https://www.handbook.fca.org.uk/handbook/DISP/1/6.html
+demo_values: true
+trigger: complaint_sent
+starts_from: complaint_date
+length: { weeks: 8 }
+role: wait
+right: fos.refer
+summary: Your bank has 8 weeks to answer your complaint. After that, the ombudsman can help.

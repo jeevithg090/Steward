@@ -11,6 +11,8 @@ encryption (MLS), offline CRDT merges and the Rust core are the roadmap (spec §
 - Approvals: each challenge is single-use and bound to one request and one answer (yes or no),
   so a captured approval can't be replayed or turned into a different answer.
 - Push says only "sync needed"; the device fetches the details itself, over its own session.
+- Mandates (Agent Passport, P2): the challenge *is* the mandate's digest, so Face ID signs the
+  mandate itself and anyone can check it offline with tempo_passport.
 """
 
 from __future__ import annotations
@@ -44,6 +46,8 @@ from webauthn.helpers.structs import (
     ResidentKeyRequirement,
     UserVerificationRequirement,
 )
+
+from tempo_passport import Mandate, PrincipalKey, Signature, SignedMandate, digest
 
 log = structlog.get_logger("tempo.mesh")
 
@@ -129,8 +133,9 @@ class Challenge(BaseModel):
 
     id: str  # the challenge bytes, base64url
     device_id: str
-    purpose: Literal["register", "approve"]
+    purpose: Literal["register", "approve", "mandate"]
     request_id: str | None = None
+    mandate_json: str | None = None  # the exact mandate being signed (purpose "mandate")
     approved: bool | None = None
     limits: tuple[tuple[str, str], ...] = ()  # signed with the answer, e.g. auto_accept_max_gbp
     expires_at: datetime
@@ -332,6 +337,52 @@ class Mesh:
         challenge = self._take(device, challenge_id, "approve")
         if challenge.request_id != request_id or challenge.approved is None:
             raise BadSignature("that signature was for a different question")
+        self._verify_assertion(device, challenge, credential)
+        return challenge
+
+    def mandate_options(self, device: Device, draft: Mandate) -> dict[str, Any]:
+        """Bind the draft to this device's passkey, then ask Face ID to sign its digest."""
+        if device.credential_id is None or device.public_key is None:
+            raise NotFound("this device has no passkey yet")
+        key = PrincipalKey(
+            kind="webauthn-es256", credential_id=device.credential_id,
+            public_key=device.public_key, rp_id=self.rp_id, origins=tuple(self.origins),
+        )  # fmt: skip
+        principal = draft.principal.model_copy(update={"key": key})
+        mandate = Mandate.model_validate(
+            draft.model_copy(update={"principal": principal}).model_dump()
+        )
+        challenge = self._challenge(
+            device, "mandate", challenge_id=b64url(digest(mandate)),
+            mandate_json=mandate.model_dump_json(),
+        )  # fmt: skip
+        options = generate_authentication_options(
+            rp_id=self.rp_id, challenge=unb64url(challenge.id),
+            allow_credentials=[PublicKeyCredentialDescriptor(id=unb64url(device.credential_id))],
+            user_verification=UserVerificationRequirement.REQUIRED,
+        )  # fmt: skip
+        return {
+            "challenge_id": challenge.id, "options": json.loads(options_to_json(options)),
+            "mandate": mandate.model_dump(mode="json"),
+        }  # fmt: skip
+
+    def finish_mandate(
+        self, device: Device, challenge_id: str, credential: dict[str, Any]
+    ) -> SignedMandate:
+        """The signed mandate, as a company will receive it. Single use, like every challenge."""
+        challenge = self._take(device, challenge_id, "mandate")
+        if challenge.mandate_json is None:
+            raise BadSignature("that challenge wasn't for a mandate")
+        self._verify_assertion(device, challenge, credential)
+        return SignedMandate(
+            mandate=Mandate.model_validate_json(challenge.mandate_json),
+            signature=Signature(kind="webauthn", credential=credential),
+        )
+
+    def _verify_assertion(
+        self, device: Device, challenge: Challenge, credential: dict[str, Any]
+    ) -> None:
+        """One check for every passkey signature: this device, this challenge, user verified."""
         if device.credential_id is None or device.public_key is None:
             raise BadSignature("this device has no passkey")
         try:
@@ -342,11 +393,10 @@ class Mesh:
                 credential_current_sign_count=device.sign_count, require_user_verification=True,
             )  # fmt: skip
         except InvalidAuthenticationResponse as e:
-            raise BadSignature("the approval signature didn't verify") from e
+            raise BadSignature("the signature didn't verify") from e
         if b64url(verified.credential_id) != device.credential_id:
             raise BadSignature("that passkey belongs to another device")
         self._update(device, sign_count=verified.new_sign_count)
-        return challenge
 
     # Device Router and push ---------------------------------------------------------------------
 
@@ -370,11 +420,16 @@ class Mesh:
     # Internals ----------------------------------------------------------------------------------
 
     def _challenge(
-        self, device: Device, purpose: Literal["register", "approve"], **bound: Any
+        self,
+        device: Device,
+        purpose: Literal["register", "approve", "mandate"],
+        *,
+        challenge_id: str | None = None,
+        **bound: Any,
     ) -> Challenge:
         challenge = Challenge(
-            id=b64url(secrets.token_bytes(32)), device_id=device.id, purpose=purpose,
-            expires_at=self.clock() + CHALLENGE_TTL, **bound,
+            id=challenge_id or b64url(secrets.token_bytes(32)), device_id=device.id,
+            purpose=purpose, expires_at=self.clock() + CHALLENGE_TTL, **bound,
         )  # fmt: skip
         self.challenges[challenge.id] = challenge
         return challenge

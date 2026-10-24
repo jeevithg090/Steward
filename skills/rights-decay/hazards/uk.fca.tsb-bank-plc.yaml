@@ -1,0 +1,13 @@
+# Fitted by scripts/rights_backtest.py (make rights-backtest). Do not edit by hand.
+id: uk.fca.tsb-bank-plc
+source: FCA firm-level complaints, H1 2026
+n: 28524
+demo_values: true
+note: 'Banking and card complaints this firm closed within 3 days and within 8 weeks. Coarse by construction:
+  two points, then flat.'
+pays_share: '0.5235'
+pays_share_source: this firm's upheld share, FCA H1 2026
+resolved_by:
+- [0, '0']
+- [3, '0.5595']
+- [56, '0.9973']

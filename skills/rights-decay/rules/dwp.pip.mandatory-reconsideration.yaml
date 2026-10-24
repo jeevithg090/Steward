@@ -1,0 +1,14 @@
+# Ask DWP to look again within one calendar month of the date on the decision letter (the same
+# rule tempo_core.deadlines.mandatory_reconsideration works out, with a post-by date).
+kind: clock
+id: dwp.pip.mandatory-reconsideration
+version: "0.1.0"
+operator: DWP
+citation_url: https://www.gov.uk/pip/if-you-disagree-with-a-decision
+demo_values: true
+trigger: decision_letter
+starts_from: letter_date
+length: { months: 1 }
+role: window
+right: dwp.pip.reconsider
+summary: You have one month from the date on the letter to ask DWP to look again.

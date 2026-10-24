@@ -1,6 +1,8 @@
 """Loading rule packs from skill folders and finding the one that covers a case.
 
-Adding an operator means adding one YAML file under `skills/<skill>/rules/`.
+Adding an operator means adding one YAML file under `skills/<skill>/rules/`. Packs that Skill
+Forge drafts live under `skills/generated/` and are not loaded: a drafted pack is a proposal until
+it passes the eval gate and a person moves it into a skill of its own.
 """
 
 from __future__ import annotations
@@ -14,9 +16,10 @@ from pydantic import TypeAdapter
 
 from tempo_core.errors import NotCovered
 from tempo_core.rules.engine import AnyPack
-from tempo_core.rules.schema import DelayRepayPack, RulePack
+from tempo_core.rules.schema import ClockPack, DelayRepayPack, RulePack
 
 _PACK = TypeAdapter[AnyPack](RulePack)
+GENERATED = "generated"  # Skill Forge's drafts: never loaded as rules
 
 
 def parse_pack(data: Any) -> AnyPack:
@@ -34,8 +37,12 @@ class RulePackRegistry:
 
     @classmethod
     def from_directory(cls, skills_root: Path) -> RulePackRegistry:
-        """Load every `**/rules/*.yaml` under the skills folder."""
-        paths = sorted(skills_root.glob("**/rules/*.yaml"))
+        """Load every `**/rules/*.yaml` under the skills folder, except Skill Forge's drafts."""
+        paths = sorted(
+            p
+            for p in skills_root.glob("**/rules/*.yaml")
+            if GENERATED not in p.relative_to(skills_root).parts
+        )
         return cls(parse_pack(yaml.safe_load(p.read_text(encoding="utf-8"))) for p in paths)
 
     def by_id(self, pack_id: str) -> AnyPack:
@@ -54,6 +61,11 @@ class RulePackRegistry:
             ):
                 return pack
         raise NotCovered(f"no Delay Repay pack covers {operator!r} yet")
+
+    def clocks(self, trigger: str) -> list[ClockPack]:
+        """Every clock that this event starts, in a stable order."""
+        found = (p for p in self._by_id.values() if isinstance(p, ClockPack))
+        return sorted((p for p in found if p.trigger == trigger), key=lambda p: p.id)
 
     def __iter__(self) -> Iterator[AnyPack]:
         return iter(self._by_id.values())

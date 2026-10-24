@@ -7,6 +7,9 @@ Every tool runs under a timeout.
 
 Claims never take an amount from the model: `file_claim` reads it from the Proof Trace.
 
+`present_mandate` hands the company the person's signed mandate (build plan P3). It is not
+secret, but it is bound to one mission, so it is read-only and comes from `ToolDeps.mandate`.
+
 Standing approvals: on a live call there's no time to ask, so a binding tool in `standing` runs
 without MAF's approval prompt. It is still gated by the Harness, which only lets it through
 within limits the person set in advance (SettlementGuard escalates anything outside them).
@@ -24,6 +27,7 @@ from typing import Any, Literal
 from agent_framework import FunctionTool, tool
 
 from tempo_core.models import ContextCapsule, ProofTrace
+from tempo_passport import SignedMandate
 from tempo_ports.claims import ClaimsPort
 
 TOOL_TIMEOUT_S = 20.0
@@ -37,6 +41,10 @@ BINDING_SCOPES = {
 }
 
 
+def _no_mandate(_: str) -> SignedMandate | None:
+    return None
+
+
 @dataclass
 class ToolDeps:
     claims: ClaimsPort
@@ -48,6 +56,8 @@ class ToolDeps:
     references: list[dict[str, str]] = field(default_factory=list)
     accepted: dict[str, dict[str, str]] = field(default_factory=dict)  # idempotency key -> offer
     shared: dict[str, dict[str, str]] = field(default_factory=dict)
+    mandate: Callable[[str], SignedMandate | None] = _no_mandate  # mission id -> its mandate
+    verifications: list[dict[str, str]] = field(default_factory=list)  # the company's checks
 
 
 async def _timed[T](work: Coroutine[Any, Any, T]) -> T:
@@ -129,6 +139,16 @@ def mission_tools(deps: ToolDeps, *, standing: frozenset[str] = frozenset()) -> 
         deps.references.append({"mission_id": mission_id, "reference": reference})
         return "recorded"
 
+    @tool(
+        name="present_mandate",
+        description="The person's signed mandate for this mission, as JSON, to show the company.",
+    )
+    async def present_mandate(mission_id: str) -> str:
+        signed = deps.mandate(mission_id)
+        if signed is None:
+            return json.dumps({"error": "no mandate"})
+        return signed.model_dump_json()
+
     return [
         file_claim,
         phone_company,
@@ -137,4 +157,5 @@ def mission_tools(deps: ToolDeps, *, standing: frozenset[str] = frozenset()) -> 
         get_case_capsule,
         log_stall,
         record_reference,
+        present_mandate,
     ]

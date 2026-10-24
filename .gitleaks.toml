@@ -1,7 +1,11 @@
-# gitleaks: the default rules, plus one allowlist for throwaway keys in crypto test vectors.
+# gitleaks: the default rules, plus allowlists for public, throwaway values in test vectors.
 [extend]
 useDefault = true
 
 [[allowlists]]
 description = "Throwaway test-only keys for the S8.4 interop vectors (never used elsewhere)"
 paths = ['''^fixtures/crypto/.*\.json$''']
+
+[[allowlists]]
+description = "Agent Passport test vectors: a public key and a WebAuthn assertion from a seeded test passkey (no secrets)"
+paths = ['''^fixtures/passport/.*\.json$''']

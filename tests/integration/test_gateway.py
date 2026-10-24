@@ -78,7 +78,9 @@ def test_web_routes_need_the_bearer_token(gateway: TestClient) -> None:
         == 401
     )
     health = gateway.get("/health").json()
-    assert (health["mode"], health["simulated"]) == ("replay", ["company", "rail data", "jurors"])
+    assert (health["mode"], health["simulated"]) == (
+        "replay", ["company", "rail data", "jurors", "vision"],
+    )  # fmt: skip
     assert gateway.get("/missions").status_code == 401
     assert gateway.get("/ledger").status_code == 401
 

@@ -1,0 +1,14 @@
+# Rights Decay clock (build plan R1). demo_values stays true until a person checks the length
+# against the cited page, then sets last_verified.
+kind: clock
+id: uk-rail.delay-repay.claim-window
+version: "0.1.0"
+operator: GWR
+citation_url: https://www.gwr.com/help-and-support/refunds-and-compensation/delay-repay
+demo_values: true
+trigger: journey
+starts_from: event_date
+length: { days: 28 }
+role: window
+right: uk-rail.delay-repay.claim
+summary: You have 28 days from the journey to claim Delay Repay.

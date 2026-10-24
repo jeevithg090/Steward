@@ -11,6 +11,7 @@ dependencies = [
     "tempo-missions",
     "tempo-memory",
     "tempo-crypto",
+    "tempo-passport",  # Agent Passport: signed mandates (P2)
     "fastapi>=0.162",
     "python-multipart>=0.0.32",
     "structlog>=25.4",

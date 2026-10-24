@@ -4,7 +4,13 @@ version = "0.1.0"
 description = "Tempo missions: workflows and executors per mission type"
 license = "Apache-2.0"
 requires-python = ">=3.12"
-dependencies = ["tempo-core", "tempo-ports", "tempo-harness", "agent-framework-core>=1.23"]
+dependencies = [
+    "tempo-core",
+    "tempo-ports",
+    "tempo-harness",
+    "tempo-passport",
+    "agent-framework-core>=1.23",
+]
 
 [build-system]
 requires = ["uv_build>=0.13.1,<0.14"]

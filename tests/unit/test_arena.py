@@ -33,10 +33,10 @@ def good_call(**overrides: object) -> CallRecord:
     return CallRecord.model_validate(values | overrides)
 
 
-def test_there_are_ten_scenarios_against_real_arena_agents() -> None:
-    assert len(SCENARIOS) == 10
-    assert len({s.id for s in SCENARIOS}) == 10
-    assert {s.company for s in SCENARIOS} == ARENA_AGENTS
+def test_there_are_fourteen_scenarios_against_real_arena_agents() -> None:
+    assert len(SCENARIOS) == 14  # 10 adversarial (S4.3) and 4 Agent Passport (P4)
+    assert len({s.id for s in SCENARIOS}) == 14
+    assert {s.company for s in SCENARIOS} == ARENA_AGENTS  # every scenario has a real line
 
 
 def test_expected_stalls_are_known_categories() -> None:

@@ -155,6 +155,17 @@ export class MeshClient {
     return this.call<MissionView>(`/approvals/${requestId}`, { method: "POST", body });
   }
 
+  /** Agent Passport: Face ID signs the mandate itself (the challenge is its digest). */
+  async issueMandate(missionId: string): Promise<Record<string, unknown>> {
+    const started = await this.call<{ challenge_id: string; options: Json }>("/mandates/options", {
+      method: "POST", body: JSON.stringify({ mission_id: missionId }),
+    });
+    const credential = (await this.authenticator.get(requestOptions(started.options))) as PublicKeyCredential | null;
+    if (!credential) throw new Error("Nothing was signed.");
+    const body = JSON.stringify({ challenge_id: started.challenge_id, credential: credentialJson(credential) });
+    return this.call<Record<string, unknown>>("/mandates", { method: "POST", body });
+  }
+
   startPairing = () => this.call<{ pairing_id: string; link: string; qr_svg: string; expires_at: string }>("/pairings", { method: "POST" });
   pairingStatus = (id: string) => this.call<{ claimed: boolean; code: string | null; device_name: string | null }>(`/pairings/${id}`);
   confirmPairing = (id: string) => this.call<DeviceInfo>(`/pairings/${id}/confirm`, { method: "POST" });

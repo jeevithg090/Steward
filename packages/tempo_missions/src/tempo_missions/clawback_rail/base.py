@@ -6,13 +6,14 @@ step re-run after a crash finds the mission already in its target state and carr
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 from agent_framework import Executor, WorkflowContext
 
+from tempo_core.hazard import Hazard
 from tempo_core.models import MissionState
 from tempo_core.rules import RulePackRegistry
 from tempo_core.state import advance
@@ -51,6 +52,10 @@ def _signed(approval: SignedApproval) -> bool:
     return bool(approval.device_sig)
 
 
+async def _no_credit(mission_id: str) -> bool:
+    return False
+
+
 @dataclass
 class ClawbackDeps:
     repo: RepoPort
@@ -62,6 +67,12 @@ class ClawbackDeps:
     clock: Callable[[], datetime] = field(default=lambda: datetime.now(tz=UTC))
     payment_check_after: timedelta = timedelta(days=7)  # how long to wait before each check
     max_payment_checks: int = 4
+    # Rights Decay (missions with clocks): hazard curves by id, bank holidays, the plan's horizon,
+    # and whether the automatic credit has shown up (a bill read by vision, or open banking).
+    hazards: Mapping[str, Hazard] = field(default_factory=dict)
+    holidays: frozenset[date] = frozenset()
+    horizon_days: int = 180
+    credit_arrived: Callable[[str], Awaitable[bool]] = _no_credit
 
 
 class _Step(Executor):

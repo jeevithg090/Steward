@@ -1,0 +1,19 @@
+{
+  "facts": [
+    {
+      "key": "operator",
+      "value": "Broadbandly",
+      "confidence": 0.97
+    },
+    {
+      "key": "event_date",
+      "value": "2026-10-19",
+      "confidence": 0.74
+    },
+    {
+      "key": "account_ref",
+      "value": "BB-4417",
+      "confidence": 0.9
+    }
+  ]
+}

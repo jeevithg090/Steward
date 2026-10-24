@@ -1,0 +1,14 @@
+# A company has one month to answer a request for your data (it can extend in some cases). If it
+# doesn't, you can complain to the ICO.
+kind: clock
+id: ico.dsar.response
+version: "0.1.0"
+operator: ICO
+citation_url: https://ico.org.uk/for-the-public/getting-copies-of-your-information-subject-access-request/
+demo_values: true
+trigger: data_request_sent
+starts_from: request_date
+length: { months: 1 }
+role: wait
+right: ico.complain
+summary: A company has one month to send you your data. If it doesn't, you can tell the ICO.

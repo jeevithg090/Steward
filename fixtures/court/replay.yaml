@@ -1,24 +1,49 @@
 # Recorded Consensus Court verdicts for replay mode, keyed by juror (model) and rule id.
 # Synthetic: written to match what the rule says, not captured from the models. The honesty
 # badge reports the jurors as simulated in replay mode.
+# Ofcom missed engineer appointment (Rights Decay demo, build plan R4). Synthetic, like the above.
 claude-sonnet-5-5:
   uk-rail.gwr.delay-repay:
     eligible: true
     rule_id: uk-rail.gwr.delay-repay
     confidence: 0.95
-    citations: ["if your train arrives 15 minutes or more late, you can claim"]
+    citations:
+    - if your train arrives 15 minutes or more late, you can claim
     reasoning: The train arrived 38 minutes late, inside the 30 to 59 minute band.
+  ofcom.missed-appointment:
+    eligible: true
+    rule_id: ofcom.missed-appointment
+    confidence: 0.95
+    citations:
+    - if an engineer doesn't turn up for a scheduled appointment
+    reasoning: Nobody came and nobody called, so the missed-appointment payment applies.
 openai-gpt-5-mini:
   uk-rail.gwr.delay-repay:
     eligible: true
     rule_id: uk-rail.gwr.delay-repay
     confidence: 0.9
-    citations: ["15 minutes or more late"]
+    citations:
+    - 15 minutes or more late
     reasoning: Delay over 15 minutes on a single journey is covered.
+  ofcom.missed-appointment:
+    eligible: true
+    rule_id: ofcom.missed-appointment
+    confidence: 0.9
+    citations:
+    - missed appointment
+    reasoning: A visit missed without notice is covered.
 llama4-maverick:
   uk-rail.gwr.delay-repay:
     eligible: true
     rule_id: uk-rail.gwr.delay-repay
     confidence: 0.85
-    citations: ["Delay Repay"]
+    citations:
+    - Delay Repay
     reasoning: A 38 minute delay qualifies.
+  ofcom.missed-appointment:
+    eligible: true
+    rule_id: ofcom.missed-appointment
+    confidence: 0.85
+    citations:
+    - automatic compensation
+    reasoning: The engineer didn't come; it is covered.

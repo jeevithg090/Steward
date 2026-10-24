@@ -67,6 +67,7 @@ class ConsentRequest:
     scopes: tuple[str, ...]
     proof_trace_json: str = ""  # the working behind the amount, shown before the person decides
     court_json: str = ""  # how the three jurors voted, if the court sat
+    plan_json: str = ""  # Rights Decay: when to act, and why (missions that have clocks)
 
 
 @dataclass(frozen=True)
@@ -87,6 +88,7 @@ class TimerRequest:
     wake_at: str  # an ISO 8601 UTC instant, never a wall-clock time
     reason: str
     attempt: int
+    plan_json: str = ""  # Rights Decay: the plan this wait belongs to (missions with clocks)
 
 
 @dataclass(frozen=True)
@@ -102,6 +104,7 @@ class MissionOutcome:
     amount_gbp: str | None = None
     reference: str | None = None
     proof_trace_id: str | None = None
+    plan_json: str = ""  # the last Rights Decay plan, for missions that have clocks
 
     @property
     def amount(self) -> Decimal | None:

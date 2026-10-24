@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from tempo_core.errors import NotCovered
 from tempo_core.models import Fact, ProofTrace
 from tempo_core.rules import (
+    ClockPack,
     DelayRepayPack,
     DistanceBandPack,
     FixedAmountPack,
@@ -64,8 +65,23 @@ def test_pack_yaml_files_validate() -> None:
     registry = RulePackRegistry.from_directory(SKILLS)
 
     kinds = {type(p) for p in registry}
-    assert kinds == {DelayRepayPack, FixedAmountPack, DistanceBandPack}
-    assert len(registry) >= 4
+    assert kinds == {DelayRepayPack, FixedAmountPack, DistanceBandPack, ClockPack}
+    assert len(registry) >= 12
+
+
+def test_skill_forge_drafts_are_not_loaded(tmp_path: Path) -> None:
+    good = tmp_path / "clawback-uk-rail" / "rules"
+    draft = tmp_path / "generated" / "skill-x" / "rules"
+    for folder in (good, draft):
+        folder.mkdir(parents=True)
+    (good / "gwr.yaml").write_text((SKILLS / "clawback-uk-rail/rules/gwr.yaml").read_text())
+    (draft / "bad.yaml").write_text("id: no-kind\nversion: '1'\n")  # would fail validation
+
+    registry = RulePackRegistry.from_directory(tmp_path)
+
+    assert [p.id for p in registry] == ["uk-rail.gwr.delay-repay"]
+    with pytest.raises(ValidationError):  # pointed at a draft on purpose, it is checked
+        RulePackRegistry.from_directory(draft.parent)
 
 
 def test_money_in_packs_is_exact() -> None:

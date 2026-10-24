@@ -1,0 +1,14 @@
+# The time limit for taking a phone or broadband complaint to the ombudsman after the provider's
+# final answer. The length is a demo value: check the scheme's own rules before relying on it.
+kind: clock
+id: telecoms.ombudsman.referral-window
+version: "0.1.0"
+operator: Ombudsman Services
+citation_url: https://www.ombudsman-services.org/sectors/communications
+demo_values: true
+trigger: final_response
+starts_from: final_response_date
+length: { months: 12 }
+role: window
+right: telecoms.ombudsman
+summary: After your provider's final answer, you have a year to go to the ombudsman.

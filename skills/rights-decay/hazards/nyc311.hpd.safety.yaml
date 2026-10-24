@@ -1,0 +1,27 @@
+# Fitted by scripts/rights_backtest.py (make rights-backtest). Do not edit by hand.
+id: nyc311.hpd.safety
+source: NYC 311 housing requests 2025
+n: 12752
+demo_values: true
+note: US housing repair requests as a stand-in for how often a UK company sorts a problem before you chase
+  it. Kaplan-Meier on all of 2025; scored out of sample in docs/rights_calibration.md.
+pays_share: '0.5302'
+pays_share_source: 'FCA H1 2026: 56 UK firms upheld 53% of the banking complaints they closed'
+resolved_by:
+- [0, '0.0000']
+- [1, '0.0430']
+- [2, '0.1359']
+- [3, '0.2367']
+- [5, '0.3925']
+- [7, '0.4915']
+- [10, '0.5796']
+- [14, '0.6603']
+- [21, '0.7713']
+- [30, '0.8329']
+- [45, '0.8848']
+- [60, '0.9108']
+- [75, '0.9271']
+- [90, '0.9412']
+- [120, '0.9604']
+- [150, '0.9771']
+- [180, '0.9880']
