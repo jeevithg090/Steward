@@ -2442,6 +2442,7 @@ name = "tempo-missions"
 version = "0.1.0"
 source = { editable = "packages/tempo_missions" }
 dependencies = [
+    { name = "agent-framework-core" },
     { name = "tempo-core" },
     { name = "tempo-harness" },
     { name = "tempo-ports" },
@@ -2449,6 +2450,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "agent-framework-core", specifier = ">=1.23" },
     { name = "tempo-core", editable = "packages/tempo_core" },
     { name = "tempo-harness", editable = "packages/tempo_harness" },
     { name = "tempo-ports", editable = "packages/tempo_ports" },
