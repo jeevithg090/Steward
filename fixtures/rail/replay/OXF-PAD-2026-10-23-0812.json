@@ -1,0 +1,12 @@
+{
+  "service_id": "202610230000001",
+  "operator_code": "GW",
+  "origin_crs": "OXF",
+  "destination_crs": "PAD",
+  "scheduled_departure": "2026-10-23T08:12:00+01:00",
+  "scheduled_arrival": "2026-10-23T08:50:00+01:00",
+  "actual_arrival": "2026-10-23T09:28:00+01:00",
+  "cancelled": false,
+  "delay_minutes": 38,
+  "source": "synthetic:hsp:RID:202610230000001"
+}

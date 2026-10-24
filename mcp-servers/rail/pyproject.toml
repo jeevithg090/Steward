@@ -1,0 +1,14 @@
+[project]
+name = "tempo-mcp-rail"
+version = "0.1.0"
+description = "MCP server: how late a UK train was, from National Rail HSP and Realtime Trains"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+dependencies = ["tempo-adapters", "mcp>=2.3"]
+
+[project.scripts]
+tempo-mcp-rail = "tempo_mcp_rail.server:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14"]
+build-backend = "uv_build"

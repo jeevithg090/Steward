@@ -28,3 +28,11 @@ class ModelAuthExpired(TempoError):
 
 class ModelOutputInvalid(TempoError):
     """The model's structured output was still invalid after one repair attempt."""
+
+
+class ServiceNotFound(TempoError):
+    """No train matches the journey asked about (wrong station, date or time)."""
+
+
+class RailDataUnavailable(TempoError):
+    """Every rail data source failed; the mission waits and retries or falls back to replay."""
