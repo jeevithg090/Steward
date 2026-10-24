@@ -87,6 +87,11 @@ class Settings(BaseSettings):
     vapid_private_key: SecretStr | None = None
     vapid_subject: str | None = None
 
+    # Local mode (Ollama) and Confidential mode
+    ollama_base_url: str = "http://localhost:11434/v1"
+    ollama_model: str = "qwen3:8b"  # (check) a small tool-calling model you have pulled
+    confidential_base_url: str | None = None
+
     # RunPod private inference
     runpod_api_key: SecretStr | None = None
     runpod_endpoint_id: str | None = None

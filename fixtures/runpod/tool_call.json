@@ -1,0 +1,14 @@
+{
+  "id": "chatcmpl-synthetic-2",
+  "object": "chat.completion",
+  "created": 1792900001,
+  "model": "tempo-private",
+  "choices": [
+    {"index": 0, "finish_reason": "tool_calls",
+     "message": {"role": "assistant", "content": null,
+       "tool_calls": [{"id": "chatcmpl-tool-1", "type": "function",
+         "function": {"name": "get_service_delay",
+           "arguments": "{\"origin_crs\": \"OXF\", \"destination_crs\": \"PAD\", \"travel_date\": \"2026-10-23\", \"departure\": \"08:12\"}"}}]}}
+  ],
+  "usage": {"prompt_tokens": 120, "completion_tokens": 30, "total_tokens": 150}
+}
