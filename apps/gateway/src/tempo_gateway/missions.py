@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 from tempo_adapters.telemetry import current_trace_id, mission_context
 from tempo_core.consent import ConsentEvent, ConsentKind
 from tempo_core.delays import LONDON
-from tempo_core.errors import MissionNotFound, TempoError
+from tempo_core.errors import MissionNotFound, NotCovered, TempoError
 from tempo_core.models import Mission, MissionState
 from tempo_core.state import advance, allowed_next
 from tempo_gateway.events import EventBus
@@ -73,6 +73,7 @@ class ConsentAsk(BaseModel):
 
 class MissionView(BaseModel):
     id: str
+    user_id: str | None = None
     state: MissionState
     message: str | None = None
     ask: ConsentAsk | None = None
@@ -101,6 +102,8 @@ class MissionService:
         self._timers: dict[str, tuple[str, datetime]] = {}  # request id -> (mission, wake at UTC)
         self._outcomes: dict[str, dict[str, Any]] = {}
         self._by_phone: dict[str, list[str]] = defaultdict(list)
+        self._user_by_phone: dict[str, str] = {}
+        self._companies: dict[str, str] = {}  # mission id -> the company, from its rule pack
         self._locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
         self.mission_ids: list[str] = []  # newest last
 
@@ -124,6 +127,7 @@ class MissionService:
         self.mission_ids.append(mission_id)
         if request.phone:
             self._by_phone[phone_hash(request.phone)].append(mission_id)
+            self._user_by_phone[phone_hash(request.phone)] = request.user_id
         claim = ClaimRequest(
             mission_id=mission_id,
             user_id=request.user_id,
@@ -240,8 +244,19 @@ class MissionService:
             waiting.append(mission.id)
         return waiting
 
-    def remember_phone(self, mission_id: str, phone: str) -> None:
+    def remember_phone(self, mission_id: str, phone: str, user_id: str | None = None) -> None:
         self._by_phone[phone_hash(phone)].append(mission_id)
+        if user_id is not None:
+            self._user_by_phone[phone_hash(phone)] = user_id
+
+    def user_for_phone(self, phone: str) -> str | None:
+        return self._user_by_phone.get(phone_hash(phone))
+
+    async def user_for(self, mission_id: str) -> str:
+        return (await self.deps.repo.get_mission(mission_id)).user_id
+
+    def company_for(self, mission_id: str) -> str | None:
+        return self._companies.get(mission_id)
 
     @contextmanager
     def _traced(self, operation: str, mission_id: str) -> Iterator[None]:
@@ -276,12 +291,19 @@ class MissionService:
             trace_url=self._trace_link(self._traces.get(mission_id)),
             court=self._courts.get(mission_id),
             id=mission_id,
+            user_id=mission.user_id,
             state=mission.state,
             message=message,
             ask=ask,
             outcome=outcome,
             timeline=timeline,
         )
+
+    def _company(self, rule_id: str) -> str:
+        try:
+            return str(self.deps.rules.by_id(rule_id).operator)
+        except NotCovered:
+            return rule_id.split(".")[1].upper() if "." in rule_id else rule_id
 
     def _workflow(self, mission_id: str) -> Any:
         return build_clawback_workflow(
@@ -291,6 +313,8 @@ class MissionService:
     def _remember(self, mission_id: str, result: RunResult) -> None:
         for request_id, ask in result.pending:
             trace = json.loads(ask.proof_trace_json) if ask.proof_trace_json else None
+            if trace and trace.get("steps"):
+                self._companies[mission_id] = self._company(trace["steps"][0]["rule_id"])
             court = json.loads(ask.court_json) if ask.court_json else None
             if court is not None:
                 self._courts[mission_id] = court

@@ -22,12 +22,12 @@ from tempo_adapters.telemetry import configure_logging, configure_tracing, trace
 from tempo_core.rules import RulePackRegistry
 from tempo_gateway.app import create_app
 from tempo_gateway.events import EventBus, PublishingRepo
+from tempo_gateway.memory import Memory, build_memory
 from tempo_gateway.missions import MissionService
 from tempo_missions.clawback_rail import ClawbackDeps
 from tempo_missions.court import ConsensusCourt
 from tempo_ports.claims import SimulatedClaims
 from tempo_ports.memory_repo import InMemoryRepo
-from tempo_ports.repo import RepoPort
 
 REPO = Path(__file__).resolve().parents[4]
 
@@ -35,14 +35,23 @@ REPO = Path(__file__).resolve().parents[4]
 def build_service(settings: Settings) -> tuple[MissionService, EventBus]:
     """Replay mode uses recorded rail data, an in-memory store and the simulated operator, so
     the whole mission runs with no keys and no network."""
+    service, bus, _ = build_services(settings)
+    return service, bus
+
+
+def build_services(settings: Settings) -> tuple[MissionService, EventBus, Memory]:
+    """The missions and Tempo Memory, sharing one Postgres engine when DATABASE_URL is set."""
     bus = EventBus()
+    engine = (
+        make_engine(settings.database_url.get_secret_value()) if settings.database_url else None
+    )
 
     def clock() -> datetime:
         return datetime.now(tz=UTC)
 
     deps = ClawbackDeps(
         court=_court(settings),
-        repo=PublishingRepo(_repo(settings), bus),
+        repo=PublishingRepo(SqlRepo(engine) if engine is not None else InMemoryRepo(), bus),
         rail=rail_port(settings),
         rules=RulePackRegistry.from_directory(REPO / "skills" / "clawback-uk-rail"),
         claims=SimulatedClaims(pays_after=timedelta(0), clock=clock),
@@ -55,14 +64,7 @@ def build_service(settings: Settings) -> tuple[MissionService, EventBus]:
         bus,
         trace_link=lambda trace_id: trace_url(settings, trace_id),
     )
-    return service, bus
-
-
-def _repo(settings: Settings) -> RepoPort:
-    """Postgres when DATABASE_URL is set (missions survive restarts), else in memory."""
-    if settings.database_url is not None:
-        return SqlRepo(make_engine(settings.database_url.get_secret_value()))
-    return InMemoryRepo()
+    return service, bus, build_memory(settings, engine)
 
 
 def _court(settings: Settings) -> ConsensusCourt | None:
@@ -87,8 +89,10 @@ def build(
     settings = settings or Settings()
     configure_logging()
     configure_tracing(settings)  # exports to Langfuse when its keys are set
-    service, bus = build_service(settings)
-    return create_app(service, settings, bus, scheduler_interval_s=scheduler_interval_s)
+    service, bus, memory = build_services(settings)
+    return create_app(
+        service, settings, bus, memory=memory, scheduler_interval_s=scheduler_interval_s
+    )
 
 
 def run() -> None:

@@ -32,6 +32,8 @@ class Settings(BaseSettings):
         "cloud-standard"
     )
     tempo_temporal: Literal["sql", "graphiti"] = "sql"
+    tempo_memory: Literal["sql", "mem0"] = "sql"  # personal memory: our pgvector table, or Mem0
+    memory_dir: str = "memory"  # Mem0's local files (history, embedded Qdrant without Postgres)
 
     # Snowflake Cortex
     snowflake_account: str | None = None
