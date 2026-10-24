@@ -1,0 +1,38 @@
+# Secrets: only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.uv-cache/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.coverage
+coverage.xml
+report.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+.pnpm-store/
+playwright-report/
+test-results/
+
+# Runtime data
+checkpoints/
+*.sqlite3
+evals/.cache/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

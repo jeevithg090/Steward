@@ -1,0 +1,31 @@
+# Local services. Passwords come from .env (see .env.example); the defaults are for local dev only.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tempo}
+      POSTGRES_USER: ${POSTGRES_USER:-tempo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tempo}
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tempo}"]
+      interval: 5s
+      retries: 10
+
+  neo4j:
+    image: neo4j:5.26
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-tempo-local-password}
+    ports:
+      - "127.0.0.1:7474:7474"   # Neo4j Browser: the graph visual for judges
+      - "127.0.0.1:7687:7687"
+    volumes: [neo4jdata:/data]
+
+  # Optional tracing UI: `docker compose --profile langfuse up -d`.
+  # Self-hosted Langfuse needs its own Postgres, ClickHouse and Redis; for the weekend,
+  # Langfuse Cloud (LANGFUSE_HOST) is the simpler choice.
+
+volumes:
+  pgdata:
+  neo4jdata:
