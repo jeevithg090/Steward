@@ -53,6 +53,10 @@ flowchart LR
   vouchers, nothing below the entitlement), consent scope, proof required, an injection shield for
   company text, and PII redaction. They run as Agent Hooks, with a plain-middleware fallback that
   passes the same tests.
+- **Memory you can see and control:** Tempo remembers only what the person said and verified
+  official data; company emails and transcripts are evidence, never memories (the Memory Gate).
+  Every memory shows where it came from and when, facts keep the dates they were true, and
+  "forget" deletes everywhere.
 - **Built for everyone:** voice and SMS first, one question at a time, read-back, stammer-friendly
   turn-taking, plain words (every message Tempo sends scores Flesch ≥ 60 in CI).
 
@@ -67,7 +71,8 @@ flowchart LR
 | Voice agents (Tempo, Negotiator) as config-as-code, Sludge Arena (3 company agents, 10 scenarios) | ✅ (push with `make sync-voice`) |
 | Mission Control web app, Stall Radar, tracing to Langfuse | ✅ |
 | Rule packs: GWR, Chiltern, Ofcom missed appointment, UK261 | ⚠️ demo values until checked against published terms |
-| Tempo Memory (Mem0, Graphiti), Tempo Mesh (passkeys, push), private RunPod mode | 🗺️ planned (build plan S3.6+, S5.2, S8) |
+| Tempo Memory: Memory Gate, Mem0 or pgvector, a dated timeline (SQL, or Graphiti on Neo4j), recall and forget by voice, SMS and the Memory Card | ✅ (Graphiti needs Neo4j and Cortex keys) |
+| Tempo Mesh (passkeys, push), private RunPod mode | 🗺️ planned (build plan S5.2, S8) |
 
 ## Add a skill in five minutes
 
@@ -105,6 +110,7 @@ Results: [evals/report.md](evals/report.md) (appears after the first run with ke
 | `packages/tempo_adapters` | One module per vendor: Cortex, rail, Gemini, ElevenLabs, Postgres, telemetry |
 | `packages/tempo_harness` | Guardrails as code (Agent Hooks + fallback), audit records |
 | `packages/tempo_missions` | Mission workflows, tools, the Consensus Court, Negotiator, Sludge Arena |
+| `packages/tempo_memory` | Memory Gate, MemoryPort (Mem0, pgvector, in-memory), timeline (Graphiti, SQL), context provider |
 | `apps/gateway` | FastAPI: REST, ElevenLabs tools, Twilio SMS, post-call webhook, live WebSocket |
 | `apps/web` | Mission Control (Next.js) |
 | `mcp-servers/rail` | MCP server: how late a UK train was |

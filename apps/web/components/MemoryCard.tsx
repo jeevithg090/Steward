@@ -45,7 +45,7 @@ export function MemoryCard({ card, busy = false, onForget, onForgetFact, onCorre
 
   return (
     <section aria-labelledby="memory-heading" className="rounded-xl border-2 border-slate-200 bg-white p-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 id="memory-heading" className="text-lg font-semibold">What Tempo remembers</h2>
         <div role="tablist" aria-label="Memory view" className="flex gap-1 text-sm">
           {(["memories", "timeline"] as const).map((v) => (
