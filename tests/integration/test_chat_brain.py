@@ -227,3 +227,12 @@ def test_health_names_nvidia_when_it_holds_the_conversation(brain: Any) -> None:
     health = client.get("/health").json()
     assert health["chat"]["brain"] == "nvidia:nvidia/nemotron-3-ultra-550b-a55b"
     assert "nvidia" in health["third_parties"]
+
+
+def test_a_place_alone_is_not_labelled_a_claim_and_notes_no_journey(brain: Any) -> None:
+    """Asked on the live site: "find hotels in oxford" was labelled Delay Repay and noted Oxford."""
+    client, _, script = brain
+    script[0] = lambda body: says("I can't search for hotels, but I can help with a late train.")
+    reply = chat(client, "find hotels in oxford")
+    assert reply["intent"] == "smalltalk"
+    assert reply["slots"].get("origin_crs") is None

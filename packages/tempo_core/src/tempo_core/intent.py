@@ -322,6 +322,13 @@ _TO = re.compile(r"\b(?:to|into|towards|for|reach(?:ing)?)\s+$", re.IGNORECASE)
 _JOINERS = frozenset({"to", "-", "–", "—", "→", "->"})
 
 
+def talks_of_a_claim(text: str) -> bool:
+    """The words describe a train problem or a missed visit, not just a place ("hotels in Oxford"
+    names a station but is no claim). For labels and noted facts, never for starting anything."""
+    text = _normalise(text)
+    return bool(_RAIL.search(text)) or _visit_like(text)
+
+
 def station_code(name: str) -> str | None:
     """A station's CRS code from its name, an alias or the code itself ("London Paddington",
     "paddington", "PAD"); None for a place that isn't one station (a city, a typo)."""

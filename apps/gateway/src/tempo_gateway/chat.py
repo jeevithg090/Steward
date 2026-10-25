@@ -46,6 +46,7 @@ from tempo_core.intent import (
     merge,
     missing,
     station_name,
+    talks_of_a_claim,
 )
 from tempo_core.ledger import summarise
 from tempo_core.models import MissionState
@@ -407,6 +408,8 @@ class Chat:
         for, else (for a short answer) the claim the conversation is about, else a chat."""
         claims = (Intent.RAIL_DELAY, Intent.MISSED_VISIT)
         found = classify(body.text)
+        if found in claims and not talks_of_a_claim(body.text):
+            found = Intent.SMALLTALK  # a place alone ("hotels in Oxford") is not a claim
         if found not in (Intent.SMALLTALK, Intent.APPROVE, Intent.DECLINE, Intent.STOP):
             return found  # what the person's own words ask for ("help", a claim, the ledger)
         if len(body.text.split()) <= SHORT_ANSWER:  # "London", "28.40": an answer, in context
