@@ -22,6 +22,13 @@ from tempo_core.intent import (
 )
 
 LONDON_TERMINALS = frozenset({"PAD", "KGX", "EUS", "WAT", "VIC", "LST", "MYB"})
+# Where a train from each station usually arrives in London, so "Oxford to London" needs no
+# question: the ask then names the station, and the person can still correct it.
+LONDON_FROM = {
+    "OXF": "PAD", "RDG": "PAD", "DID": "PAD", "SLO": "PAD", "SWI": "PAD", "BRI": "PAD",
+    "CDF": "PAD", "BTH": "PAD", "BAN": "MYB", "BHM": "EUS", "MAN": "EUS", "LDS": "KGX",
+    "EDB": "KGX",
+}  # fmt: skip
 _RELATIVE = re.compile(
     r"\b(?:today|yesterday|tonight|this (?:morning|afternoon|evening)|last (?:night|week)|"
     r"mon|tues?|wed(?:nes)?|thur?s?|fri|sat(?:ur)?|sun)(?:day)?\b",
@@ -30,8 +37,12 @@ _RELATIVE = re.compile(
 MAX_AGE = timedelta(days=366)
 
 
-def _station(arg: str, words: str, what: str, problems: list[str]) -> str | None:
+def _station(
+    arg: str, words: str, what: str, problems: list[str], other: str | None = None
+) -> str | None:
     code = station_code(arg)
+    if code is None and arg.strip().casefold() in ("london", "london (any)") and other:
+        code = LONDON_FROM.get(other)  # the city, from the other end of the journey
     if code is None:
         problems.append(f"{what}: Tempo doesn't know a station called {arg!r}; ask which station")
         return None
@@ -67,8 +78,9 @@ def _day(arg: str, words: str, today: date, what: str, problems: list[str]) -> s
 def train(args: dict[str, str], words: str, today: date) -> tuple[Slots | None, list[str]]:
     """A late train's five facts, each one checked against what the person said."""
     problems: list[str] = []
-    origin = _station(args.get("origin_station", ""), words, "origin", problems)
-    destination = _station(args.get("destination_station", ""), words, "destination", problems)
+    said_from, said_to = args.get("origin_station", ""), args.get("destination_station", "")
+    origin = _station(said_from, words, "origin", problems, other=station_code(said_to))
+    destination = _station(said_to, words, "destination", problems, other=station_code(said_from))
     travel_date = _day(args.get("travel_date", ""), words, today, "travel date", problems)
     departure = next(iter(times_in(args.get("departure_time", ""))), None)
     if departure is None or departure not in times_in(words):

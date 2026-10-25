@@ -28,10 +28,16 @@ def rule_in_words(pack: DelayRepayPack | FixedAmountPack | DistanceBandPack) -> 
             else f"{b.min_minutes} minutes or more late: {_pct(b.refund_pct)}% of the fare"
             for b in paying
         )
+        top = max(pack.bands, key=lambda b: b.min_minutes)
+        # The Rights Engine pays a cancelled train as the top band (delays.claimable_delay); the
+        # jurors must read the same rule, or they judge a cancellation by its "0 minutes late".
+        cancelled = (
+            f"A cancelled train is paid as the top band: {_pct(top.refund_pct)}% of the fare."
+        )
         return (
             f"{pack.operator} Delay Repay ({pack.scheme}). If your train arrives "
             f"{paying[0].min_minutes} minutes or more late at your destination, you can claim "
-            f"compensation for that journey. It pays: {bands}. {window} {source}"
+            f"compensation for that journey. It pays: {bands}. {cancelled} {window} {source}"
         )
     if isinstance(pack, FixedAmountPack):
         return (

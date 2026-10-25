@@ -40,8 +40,8 @@ MAX_LOOKUPS = 4  # look-up rounds in one turn, then the brain must answer
 SYSTEM = """You are Tempo, a warm, patient and genuinely helpful assistant for people in the UK
 (many are older, some find reading hard). You help with anything they ask: questions, finding
 places, the weather, explaining things, reading a web page. Your speciality is winning back money
-and time that companies owe them, and protecting them from scams. Today is {today}. You are talking
-with {name}. Reply in the language with code "{language}".
+and time that companies owe them, and protecting them from scams. Today is {today}. {who}
+Reply in the language with code "{language}".
 
 How you talk:
 - Like a kind person speaking, not a form: short, plain sentences, no jargon. Keep answers brief;
@@ -66,8 +66,9 @@ Tempo's own work, only through its tools:
   going, the day, the train's departure time and what the ticket cost. Gather these in
   conversation, then call claim_late_train straight away (never ask them to confirm what they
   just said: Tempo always asks for their yes before it acts).
-- If a place is a city with several stations (like London), use the station a train from their
-  starting point would most likely arrive at, and say which one you assumed.
+- If they name a city with several stations (like London), never ask which station: pass the
+  city as they said it ("London") and Tempo picks the station a train from their starting point
+  arrives at. The question for their yes names it, so they can correct it.
 - A date without a year is this year (the most recent such day that is not in the future).
 - A broadband or phone engineer who missed a booked visit (Ofcom compensation): you need the
   provider and the day; then call claim_missed_engineer_visit. Only broadband or phone providers
@@ -83,6 +84,8 @@ Rules you never break:
 - About Tempo's claims, never say an amount of money, a percentage or a deadline yourself: the
   tools' results say those. Never say you have filed, sent or claimed anything.
 - Never invent facts. If you don't know and can't look it up, say so.
+- Never make up a name: not theirs, not a person's, a street's, a place's or a business's. Use only
+  a name they told you or a tool gave.
 - For medical, legal or money decisions, give general information and point to the right official
   place (NHS 111, Citizens Advice, GOV.UK); never a diagnosis or a personal recommendation."""
 
@@ -265,9 +268,9 @@ class Brain:
         )
 
     def _messages(
-        self, history: list[Line], text: str, *, name: str, language: str, today: date
+        self, history: list[Line], text: str, *, name: str | None, language: str, today: date
     ) -> list[dict[str, Any]]:
-        system = SYSTEM.format(today=today.isoformat(), name=name, language=language)
+        system = SYSTEM.format(today=today.isoformat(), who=_who(name), language=language)
         lines = [
             {"role": "user" if line.role == "user" else "assistant", "content": line.text}
             for line in history[-MAX_HISTORY:]
@@ -300,7 +303,7 @@ class Brain:
         history: list[Line],
         text: str,
         *,
-        name: str,
+        name: str | None,
         language: str,
         today: date,
     ) -> Turn:
@@ -364,7 +367,7 @@ class Brain:
         return DOORS | (self.toolbox.names if self.toolbox else frozenset())
 
     async def decide(
-        self, history: list[Line], text: str, *, name: str, language: str, today: date
+        self, history: list[Line], text: str, *, name: str | None, language: str, today: date
     ) -> Say | Act:
         """What to do with this turn: answer, or call one tool. Raises when the model fails."""
         message = await self._complete(
@@ -389,7 +392,7 @@ class Brain:
         act: Act,
         result: str,
         *,
-        name: str,
+        name: str | None,
         language: str,
         today: date,
     ) -> str:
@@ -412,6 +415,16 @@ class Brain:
         ]
         message = await self._complete(messages, tools=False)
         return str(message.get("content") or "").strip()
+
+
+def _who(name: str | None) -> str:
+    """Who Tempo is talking with: a name only when the person gave one, never a guess."""
+    if name:
+        return f'They asked to be called "{name}".'
+    return (
+        "You don't know their name: don't call them by any name, and never guess or make one up."
+        " If they tell you their name, use that."
+    )
 
 
 def _act(call: dict[str, Any]) -> Act:

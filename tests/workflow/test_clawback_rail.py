@@ -258,3 +258,34 @@ async def test_the_court_can_say_no_but_never_changes_the_amount(storage: Any) -
     assert ask.amount_gbp == "14.20"
     assert no.outcome is not None
     assert no.outcome.message == "The Consensus Court found this isn't covered (2/3 jurors agreed)"
+
+
+class Recorder(Juror):
+    """A juror that keeps the question it was asked."""
+
+    def __init__(self, name: str) -> None:
+        super().__init__(name, True)
+        self.asked: list[CaseQuestion] = []
+
+    async def deliberate(self, question: CaseQuestion) -> JurorVerdict:
+        self.asked.append(question)
+        return await super().deliberate(question)
+
+
+async def test_the_jurors_of_a_cancelled_train_read_the_cancellation_rule_not_zero_minutes(
+    storage: Any,
+) -> None:
+    # Live, three real models said a cancelled 17:42 "isn't covered": they were told it arrived 0
+    # minutes late and read a rule that never mentioned cancellations.
+    jurors = [Recorder("a"), Recorder("b"), Recorder("c")]
+    fakes = Fakes(ConsensusCourt(jurors))
+
+    result = await start(build_clawback_workflow(fakes.deps, storage), await fakes.mission("17:42"))
+
+    [(_, ask)] = result.pending
+    assert ask.amount_gbp == "28.40"
+    [question] = jurors[0].asked
+    facts = {f.key: f.value for f in question.facts}
+    assert facts["cancelled"] == "yes"
+    assert "arrival_delay_min" not in facts
+    assert "A cancelled train is paid as the top band: 100% of the fare." in question.rule_text

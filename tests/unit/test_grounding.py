@@ -30,6 +30,22 @@ def test_a_journey_said_in_full_is_accepted_and_london_from_oxford_is_paddington
     )
 
 
+def test_the_city_london_is_the_terminus_a_train_from_there_arrives_at() -> None:
+    # Live, the model asked "which London station?" of someone who just said "Oxford to London".
+    slots, problems = grounding.train(CLAIM | {"destination_station": "London"}, SAID, TODAY)
+    assert problems == [] and slots is not None and slots.destination_crs == "PAD"
+    back = "my 17:42 from London to Banbury on 23 October was cancelled, the ticket was £28.40"
+    claim = CLAIM | {"origin_station": "London", "destination_station": "Banbury",
+                     "departure_time": "17:42"}  # fmt: skip
+    slots, problems = grounding.train(claim, back, TODAY)
+    assert problems == [] and slots is not None and slots.origin_crs == "MYB"
+    # Where nothing says which terminus, the person is asked.
+    _, problems = grounding.train(
+        CLAIM | {"origin_station": "London", "destination_station": "London"}, SAID, TODAY
+    )
+    assert any(p.startswith("origin") for p in problems)
+
+
 @pytest.mark.parametrize(
     ("change", "problem"),
     [

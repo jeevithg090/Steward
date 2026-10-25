@@ -111,9 +111,15 @@ class Court(_Step):
             if isinstance(pack, DelayRepayPack | FixedAmountPack | DistanceBandPack)
             else trace.steps[0].explanation
         )
+        # A cancelled train has no arrival delay: it is called cancelled, never "0 minutes late".
+        delay = (
+            ()
+            if journey.delay_minutes is None
+            else (Fact(key="arrival_delay_min", value=journey.delay_minutes,
+                       source=journey.source, confidence=1.0),)
+        )  # fmt: skip
         facts = (
-            Fact(key="arrival_delay_min", value=journey.delay_minutes or 0,
-                 source=journey.source, confidence=1.0),
+            *delay,
             Fact(key="cancelled", value="yes" if journey.cancelled else "no",
                  source=journey.source, confidence=1.0),
             Fact(key="operator", value=journey.operator_code,
