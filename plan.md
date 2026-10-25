@@ -702,3 +702,57 @@ Tempo gives people their time back. The look is the hour before dusk:
   - **Trust pages:** a profile gallery; skills as cards; callers as character cards; Devices steppers and a framed QR; Privacy Proof as "who sees what" in three tiers; connectors with a gold hero and code windows for MCP; a memory timeline; settings rows.
   - **Kept:** every heading, label and role the tests and screen readers use is unchanged, and the 245 web tests pass.
   - **Found and fixed on the way:** `Stat` put an `aria-label` on a paragraph, which axe fails; it now has a screen-reader-only value. React duplicate keys in the Shield log. "3Step 3 of 8" read out on Margaret's Tuesday. The ledger showing £0.00 while loading.
+
+---
+
+## 16. The chat's brain: a real LLM holds the conversation (started 13:50)
+
+*Reported from the live site: "it is giving template answer not ai agent answer". Asked: "I
+dont want hardcoded it should be a good LLM", "for brain just use nvidia", "use this then
+Nemotron 3 Ultra".*
+
+**What was wrong:**
+- The chat was a rules router with fixed sentences, and a model only phrased small talk.
+- A reply to "Where were you going?" of "London" isn't one station, so the rules dropped the
+  claim and said the help line.
+- The GPU's small talk then timed out at 20 s twice, because the worker had gone cold.
+
+**What it is now:**
+- A language model holds the conversation. It sees the last 16 lines (the web sends them),
+  answers in its own words, asks its own one question, and handles what Tempo can't do kindly
+  ("I can only help with missed visits from broadband or phone engineers, not plumbers").
+- It acts only through Tempo's tools: claim a late train, claim a missed engineer visit, check a
+  scam, recall, forget, the ledger, sweep the inbox, read a letter, check benefits, profiles.
+  Each tool is one of the chat's existing doors, so code still decides money, time and
+  permissions: the rule pack sets the amount and the Court judges.
+- **Code keeps STOP and the person's yes or no to a waiting ask.** The model never sees them.
+- **Every fact a claim tool receives is checked against the person's own words**
+  (`grounding.py`): the stations (London from Oxford may be Paddington, said back), the day,
+  the time and the fare. A fact never said is refused, and the model asks for it instead.
+- **The model's own words may not carry an amount, a percentage or a claim of having acted.**
+  Markdown is flattened to plain text.
+- When the model fails, is slow (15 s) or breaks a rule, the rules answer as before, and they
+  keep noting facts on brain turns so a fallback carries on.
+- **The model:** NVIDIA's Nemotron 3 Ultra (`nvidia/nemotron-3-ultra-550b-a55b`) on NVIDIA's API,
+  chosen on Tempo's real turns, with thinking off. `CHAT_BRAIN=auto|nvidia|off`,
+  `NVIDIA_BRAIN_MODEL`.
+- **Honesty:** `/health` says `chat.brain`, and NVIDIA joins `third_parties` and the region
+  whenever it reads the person's words.
+
+**Why not route the chat to a Claude Code session (asked):**
+- A public site's messages would reach a tool with a shell on the laptop.
+- Claude subscriptions are for one person's own use.
+- Claude as the brain belongs on the Anthropic API, behind the same tools and checks.
+
+- [x] 13:55 Measured on Tempo's real turns (the London follow-up, the plumber, a full journey), with tools:
+  - **Nemotron 3 Ultra** asked "Which London station?" and called the claim with every fact right.
+  - **StepFun Step 5 preview** was as good.
+  - **MiniMax M3.1 Flash** was good but spiked to 11 s.
+  - **Nemotron Lightning** took the plumber for a broadband engineer.
+  - **gpt-oss-20b made up a date, a time and a fare**, which is why the grounding checks exist.
+  - **GLM 5.3 and DeepSeek V4.1** timed out.
+  - **Thinking off** (`chat_template_kwargs.enable_thinking=false`) took Nemotron 3 Ultra's tool call from 21–28 s to 1.8 s.
+- [x] 14:20 Built: `brain.py`, `grounding.py`, the brain's turn in `chat.py`, the conversation history from the web, `/health` and Privacy Proof naming. Tests: 9 brain integration tests (a stand-in NVIDIA) and 17 unit tests; 1,500 fast and 210 integration pass
+- [x] 14:40 Nemotron kept reading facts back as a question ("Is that all correct?", "Was that 2026?") even when told not to. So a claim whose every fact is already said now starts in code at once, without the model (faster, and the same every time). The model gathers what's missing and does everything else. Markdown replies are flattened, and the label follows what the person asked
+- [x] 14:50 **`make live-test` passed with the brain on the redesigned live site: 21 of 21 through the tunnel and 18 of 18 in the browser.** The live site (tempo-live-ten.vercel.app) and the showcase (tempo-showcase.vercel.app) both run the new design
+- [x] 14:30 Live: the user's own transcript through the public tunnel. "London" got "Trains from Oxford usually arrive at London Paddington or Marylebone. Which one?", the plumber got a kind no, and a journey in pieces started the £14.20 claim. The GPU had gone cold again (a job queued 124 s), so the live demo now runs `cloud-apis`: Nemotron 3 Ultra as the brain, and Gemini plus NVIDIA jurors

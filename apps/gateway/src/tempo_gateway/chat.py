@@ -27,7 +27,7 @@ import re
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import date
 from decimal import Decimal
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
@@ -51,6 +51,8 @@ from tempo_core.ledger import summarise
 from tempo_core.models import MissionState
 from tempo_core.profiles import ProfileCatalog
 from tempo_core.readability import flesch_reading_ease
+from tempo_gateway import grounding
+from tempo_gateway.brain import Act, Brain, Line, Say, said_ok
 from tempo_gateway.connectors import ConnectorHub, places
 from tempo_gateway.engines import OFCOM, RAIL
 from tempo_gateway.events import EventBus
@@ -195,6 +197,18 @@ class Action(BaseModel):
     href: str
 
 
+SHORT_ANSWER = 3  # words: a reply this short answers the last question (brain turns' label)
+
+
+class HistoryLine(BaseModel):
+    """One earlier line of this conversation, as the web shows it (for the brain's context)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    role: Literal["user", "tempo"]
+    text: str = Field(max_length=2000)
+
+
 class ChatTurn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -204,6 +218,7 @@ class ChatTurn(BaseModel):
     profile_id: str | None = Field(default=None, pattern=r"^[a-z0-9-]{2,40}$")
     language: str = Field(default="en", pattern=r"^[a-z]{2}$")
     slots: dict[str, str | None] = {}  # what the client already knows from earlier turns
+    history: list[HistoryLine] = Field(default=[], max_length=40)  # the conversation so far
 
 
 class ChatReply(BaseModel):
@@ -290,6 +305,7 @@ class Chat:
         mesh: Mesh | None = None,
         replay: bool = False,
         connectors: ConnectorHub | None = None,
+        brain: Brain | None = None,
     ) -> None:
         self.service, self.shield, self.memory, self.profiles = service, shield, memory, profiles
         self.bus, self.llm_say, self.today = bus, llm_say, today
@@ -297,6 +313,7 @@ class Chat:
         self.mesh = mesh  # a person with a passkey answers on their device, not with a typed yes
         self.replay = replay  # replay mode: the rail records are the recorded demo journeys
         self.connectors = connectors  # the sweep: what her email, calendar and bank show
+        self.brain = brain  # a language model holds the conversation; code still acts (brain.py)
 
     async def turn(self, body: ChatTurn, caller: str) -> ChatReply:
         missions = [
@@ -307,10 +324,150 @@ class Chat:
         intent = classify(body.text, pending_question=bool(pending))
         if intent is Intent.SMALLTALK:
             intent = self._continued(known, body.text) or intent
-        reply = await self._answer(intent, body, caller, known, missions, pending)
-        self.bus.publish({"type": "chat_turn", "intent": intent.value, "user_id": body.user_id})
-        log.info("chat_turn", intent=intent.value, needs=len(reply.needs or []))
+        # Code keeps STOP, the person's yes or no to a waiting ask, and a claim whose every fact
+        # is already said (it starts at once, the same way every time); the brain has the rest.
+        thought = None
+        code_only = intent is Intent.STOP or (
+            bool(pending) and intent in (Intent.APPROVE, Intent.DECLINE)
+        )
+        if self.brain is not None and not code_only and not self._complete(intent, body, known):
+            thought = await self._think(body, caller, known, missions, pending)
+        if thought is not None:
+            reply = thought
+        else:  # no brain, it failed, or code's turn: the rules answer, as they always have
+            reply = await self._answer(intent, body, caller, known, missions, pending)
+        self.bus.publish(
+            {"type": "chat_turn", "intent": reply.intent.value, "user_id": body.user_id}
+        )
+        log.info(
+            "chat_turn",
+            intent=reply.intent.value,
+            needs=len(reply.needs or []),
+            brain=thought is not None,
+        )
         return reply.model_copy(update={"simulated": self.simulated})
+
+    async def _think(
+        self,
+        body: ChatTurn,
+        caller: str,
+        known: Slots,
+        missions: list[str],
+        pending: list[tuple[str, str]],
+    ) -> ChatReply | None:
+        """The brain's turn: its own words, or one of Tempo's tools. None when it failed or broke
+        a rule, so the rules answer instead."""
+        assert self.brain is not None  # noqa: S101 (turn checks)
+        history = [Line(line.role, line.text) for line in body.history]
+        name, language, today = body.display_name, body.language, self.today()
+        topic = self._topic(body)
+        try:
+            decision = await self.brain.decide(
+                history, body.text, name=name, language=language, today=today
+            )
+            if isinstance(decision, Act):
+                done = await self._act(decision, body, caller, known, missions, pending)
+                if isinstance(done, ChatReply):
+                    return done
+                log.info("brain_tool_refused", tool=decision.tool, problems=len(done))
+                text = await self.brain.follow_up(
+                    history,
+                    body.text,
+                    decision,
+                    "; ".join(done),
+                    name=name,
+                    language=language,
+                    today=today,
+                )
+                decision = Say(text)
+        except Exception as exc:  # a model that fails must never fail the chat
+            log.warning("brain_failed", error_code=type(exc).__name__)
+            return None
+        said = said_ok(decision.text)
+        if said is None:
+            log.warning("brain_said_unsafe")
+            return None
+        # The rules still note the facts said this turn, so if the brain fails later the rules
+        # carry on from here (the client echoes the slots back).
+        slots = known
+        if topic in (Intent.RAIL_DELAY, Intent.MISSED_VISIT):
+            found = extract(body.text, today=today, intent=topic)
+            slots = merge(known, _aimed(known, found, body.text, topic))
+        return ChatReply(intent=topic, reply=said, say=said, slots=slots.model_dump())
+
+    def _complete(self, intent: Intent, body: ChatTurn, known: Slots) -> bool:
+        """Every fact this claim needs is in the person's words (this turn and earlier ones)."""
+        if intent not in (Intent.RAIL_DELAY, Intent.MISSED_VISIT):
+            return False
+        found = extract(body.text, today=self.today(), intent=intent)
+        return not missing(intent, merge(known, _aimed(known, found, body.text, intent)))
+
+    def _topic(self, body: ChatTurn) -> Intent:
+        """What the conversation is about, for the reply's label: what the person's own words ask
+        for, else (for a short answer) the claim the conversation is about, else a chat."""
+        claims = (Intent.RAIL_DELAY, Intent.MISSED_VISIT)
+        found = classify(body.text)
+        if found not in (Intent.SMALLTALK, Intent.APPROVE, Intent.DECLINE, Intent.STOP):
+            return found  # what the person's own words ask for ("help", a claim, the ledger)
+        if len(body.text.split()) <= SHORT_ANSWER:  # "London", "28.40": an answer, in context
+            for line in reversed(body.history):
+                if line.role == "user" and (earlier := classify(line.text)) in claims:
+                    return earlier
+        return Intent.SMALLTALK
+
+    async def _act(
+        self,
+        act: Act,
+        body: ChatTurn,
+        caller: str,
+        known: Slots,
+        missions: list[str],
+        pending: list[tuple[str, str]],
+    ) -> ChatReply | list[str]:
+        """Run the tool the brain chose through the chat's own doors. A claim's facts must have
+        been said by the person (grounding.py); else the problems go back to the brain."""
+        words = " ".join([*(line.text for line in body.history if line.role == "user"), body.text])
+        quiet = body.model_copy(update={"text": ""})  # the facts come in as slots, checked
+        door = {
+            "recall_memory": Intent.MEMORY_RECALL, "money_returned": Intent.LEDGER,
+            "sweep_inbox": Intent.SWEEP, "read_letter": Intent.LETTER,
+            "check_benefits": Intent.ENTITLEMENT, "show_profiles": Intent.PROFILES,
+        }  # fmt: skip
+        match act.tool:
+            case "claim_late_train":
+                slots, problems = grounding.train(act.args, words, self.today())
+                if slots is None:
+                    return problems
+                return await self._claim(Intent.RAIL_DELAY, quiet, merge(known, slots))
+            case "claim_missed_engineer_visit":
+                slots, problems = grounding.visit(act.args, words, self.today())
+                if slots is None:
+                    return problems
+                return await self._claim(Intent.MISSED_VISIT, quiet, merge(known, slots))
+            case "check_message_for_scam":
+                message = act.args.get("message", "").strip()
+                checked = message if message and message in words else body.text
+                return await self._answer(
+                    Intent.SCAM_CHECK,
+                    body.model_copy(update={"text": checked}),
+                    caller,
+                    known,
+                    missions,
+                    pending,
+                )
+            case "forget_memory":
+                what = act.args.get("what", "").strip()
+                return await self._answer(
+                    Intent.MEMORY_FORGET,
+                    body.model_copy(update={"text": f"forget {what}"}),
+                    caller,
+                    known,
+                    missions,
+                    pending,
+                )
+            case tool if tool in door:
+                return await self._answer(door[tool], body, caller, known, missions, pending)
+        return [f"{act.tool} is not one of Tempo's tools"]
 
     def _continued(self, known: Slots, text: str) -> Intent | None:
         """An answer to the one question has no door words of its own: "28.40", "19 October".
@@ -660,6 +817,7 @@ def chat_router(
     simulated: Sequence[str] | None = None,
     mesh: Mesh | None = None,
     connectors: ConnectorHub | None = None,
+    brain: Brain | None = None,
 ) -> APIRouter:
     """`today` defaults to the service clock's London date, so the demo clock moves "yesterday"
     too; `simulated` defaults to what `/health` shows for these settings. With `mesh`, a person
@@ -671,7 +829,7 @@ def chat_router(
         service, shield=shield, memory=memory, profiles=profiles, bus=bus, llm_say=llm_say,
         today=today or (lambda: service.deps.clock().astimezone(LONDON).date()),
         simulated=simulated if simulated is not None else simulated_in(settings),
-        mesh=mesh, replay=settings.tempo_mode == "replay", connectors=connectors,
+        mesh=mesh, replay=settings.tempo_mode == "replay", connectors=connectors, brain=brain,
     )  # fmt: skip
 
     @router.post("/chat")

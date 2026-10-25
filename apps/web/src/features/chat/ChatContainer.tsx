@@ -67,6 +67,9 @@ export function gatewayModelWords(health: Health | null): string | null {
   return model.processor || model.name || null;
 }
 
+/** How many earlier lines go with each turn: enough for the brain to follow (plan.md §16). */
+const HISTORY_LINES = 16;
+
 export default function ChatContainer({ gateway, user, showcase, health, connected, events, language, speak, config, activeModels, selectedModel, onSelectModel, elevenLabsKey }: ChatContainerProps) {
   const { conversations, activeId, speech } = useChatStore();
   const active = conversations.find((c) => c.id === activeId) ?? null;
@@ -180,6 +183,11 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
     async (text: string) => {
       const convId = chatStore.ensureActive(title(text));
       const conv = chatStore.find(convId)!;
+      // The last lines of this conversation, for the brain's context (before this one is added).
+      const history = conv.messages
+        .filter((m) => (m.role === "user" || m.role === "agent") && m.text.trim())
+        .slice(-HISTORY_LINES)
+        .map((m) => ({ role: m.role === "user" ? ("user" as const) : ("tempo" as const), text: m.text.slice(0, 1500) }));
       chatStore.appendTo(convId, [{ id: uid(), role: "user", text, timestamp: Date.now() }]);
       setBusy(true);
       setThinking(true);
@@ -191,6 +199,7 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
           profile_id: user.profileId,
           language,
           slots: conv.slots,
+          history,
         });
         applyReply(convId, text, reply);
       } catch (err) {

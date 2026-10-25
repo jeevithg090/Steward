@@ -141,6 +141,13 @@ def court_providers(settings: Settings) -> frozenset[str]:
     return frozenset(s.provider for s in court_seats(settings)) - {"gemini"}
 
 
+def brain_provider(settings: Settings) -> str | None:
+    """Who runs the chat's brain (plan.md §16), or None when the rules alone answer."""
+    if settings.chat_brain == "off" or settings.nvidia_api_key is None:
+        return None
+    return "nvidia" if settings.chat_brain == "nvidia" or models_live(settings) else None
+
+
 def models_live(settings: Settings) -> bool:
     """The model-backed parts run on a real model: TEMPO_MODELS, else TEMPO_MODE."""
     return (settings.tempo_models or settings.tempo_mode) == "live"

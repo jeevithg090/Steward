@@ -234,6 +234,8 @@ export interface ChatTurn {
   language?: string;
   /** What the client already knows from earlier turns; the server merges and echoes it back. */
   slots?: Record<string, string | null>;
+  /** The conversation so far, so the Gateway's brain answers in context (plan.md §16). */
+  history?: { role: "user" | "tempo"; text: string }[];
 }
 
 export interface ChatNeed {

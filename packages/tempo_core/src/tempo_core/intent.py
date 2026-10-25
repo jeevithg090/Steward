@@ -322,6 +322,44 @@ _TO = re.compile(r"\b(?:to|into|towards|for|reach(?:ing)?)\s+$", re.IGNORECASE)
 _JOINERS = frozenset({"to", "-", "–", "—", "→", "->"})
 
 
+def station_code(name: str) -> str | None:
+    """A station's CRS code from its name, an alias or the code itself ("London Paddington",
+    "paddington", "PAD"); None for a place that isn't one station (a city, a typo)."""
+    cleaned = re.sub(r"\b(?:station|rail|railway)\b", "", _normalise(name), flags=re.IGNORECASE)
+    cleaned = " ".join(cleaned.split()).strip(" .,")
+    if cleaned.upper() in _CODES:
+        return cleaned.upper()
+    return _NAMES.get(cleaned.casefold())
+
+
+def provider_name(text: str) -> str | None:
+    """The broadband or phone provider named in `text`, by its usual name; None for anyone else."""
+    return _provider(_normalise(text))
+
+
+def times_in(text: str) -> set[str]:
+    """Every clock time in `text` as HH:MM (fares blanked first, so £14.20 is not 14:20)."""
+    _, masked = _fares(_normalise(text))
+    found: set[str] = set()
+    for m in _TIME.finditer(masked):
+        hour, minute = _meridiem(int(m.group(1)), m.group(3)), int(m.group(2))
+        if hour is not None and 0 <= hour <= 23 and 0 <= minute <= 59:
+            found.add(f"{hour:02d}:{minute:02d}")
+    for m in _CLOCK.finditer(masked):
+        hour = _meridiem(int(m.group(1)), m.group(2))
+        if hour is not None:
+            found.add(f"{hour:02d}:00")
+    return found
+
+
+def numbers_in(text: str) -> set[Decimal]:
+    """Every number in `text` (28.40, £28.4, 28), for checking an amount was really said."""
+    return {
+        Decimal(m)
+        for m in re.findall(r"(?<![\d.])(\d{1,5}(?:\.\d{1,2})?)(?![\d])", _normalise(text))
+    }
+
+
 def station_name(crs: str) -> str:
     """The usual name for a CRS code, or the code itself when it isn't in the table."""
     code = crs.upper()

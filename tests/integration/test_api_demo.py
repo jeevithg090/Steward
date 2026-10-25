@@ -140,6 +140,7 @@ def nvidia(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClie
         with gateway_with(
             tmp_path, tempo_deploy="cloud-apis", gemini_api_key="g-test", nvidia_api_key="nv-test",
             openrouter_api_key="or-test", openrouter_models="dots-studio/dots-3-note-preview:free",
+            chat_brain="off",  # the seats, not the brain (tests/integration/test_chat_brain.py)
         ) as client:  # fmt: skip
             client.openrouter = openrouter  # type: ignore[attr-defined]
             yield client

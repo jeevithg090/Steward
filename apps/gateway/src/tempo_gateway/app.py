@@ -62,6 +62,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from tempo_adapters.factory import (
     PROVIDER_NAMES,
+    brain_provider,
     build_adapters,
     court_providers,
     model_ready,
@@ -88,6 +89,7 @@ from tempo_core.signals import SignalSpec
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
 from tempo_core.voice_profile import VoiceProfile, how_to_speak, profile_from, to_initiation
 from tempo_crypto.vault import VaultStore
+from tempo_gateway.brain import Brain
 from tempo_gateway.chat import chat_router, simulated_in
 from tempo_gateway.clock import DemoClock
 from tempo_gateway.connectors import ConnectorHub, connectors_router
@@ -265,6 +267,7 @@ def create_app(
     connectors: ConnectorHub | None = None,  # Connectors and the sweep (connectors.py)
     chat_llm: Callable[[str], Awaitable[str | None]] | None = None,  # phrases small talk only
     chat_llm_kind: str | None = None,  # what /health says phrases it: "ollama", "cortex", …
+    brain: Brain | None = None,  # the chat's brain: a language model holds the conversation
     http: httpx.AsyncClient | None = None,  # for /voice/tts; tests inject a mocked one
 ) -> FastAPI:
     @asynccontextmanager
@@ -297,7 +300,10 @@ def create_app(
     deployment = profile(settings.tempo_deploy)  # an unknown mode fails here, at start-up
     if settings.tempo_region:  # the profile's region is a default; the real one wins
         deployment = replace(deployment, region=settings.tempo_region)
-    if extra := court_providers(settings):  # an NVIDIA or OpenRouter juror sees the case too
+    extra = court_providers(settings) | (
+        {thinker} if (thinker := brain_provider(settings)) else set()
+    )
+    if extra:  # an NVIDIA or OpenRouter juror, or the chat's brain, sees the person's words too
         region = deployment.region
         if not settings.tempo_region:  # name it where the data goes, only when it really does
             region = " and ".join([region, *(PROVIDER_NAMES[p] for p in sorted(extra))])
@@ -343,7 +349,9 @@ def create_app(
             "region": deployment.region,
             "third_parties": sorted(deployment.third_parties),
             "clock_offset_days": demo_clock.offset_days if demo_clock else 0,
-            "chat": {"llm": small_talk},  # what phrases small talk: replay, off, or the model
+            # what phrases small talk (replay, off, or the model) and what holds the conversation
+            "chat": {"llm": small_talk}
+            | ({"brain": f"{brain.provider}:{brain.model}"} if brain else {}),
             # e.g. our own model on a RunPod GPU (plan.md §13), else null; with whether it answers
             "model": (
                 model | (service.model_status.view() if service.model_status else {})
@@ -990,7 +998,7 @@ def create_app(
         chat_router(
             service, web_caller, shield=shield, memory=memory, profiles=profiles,
             settings=settings, bus=bus, llm_say=chat_llm, simulated=simulated, mesh=mesh,
-            connectors=connectors,
+            connectors=connectors, brain=brain,
         )
     )  # fmt: skip
     # Tempo as an MCP server (plan.md §14): any MCP client may ask; none can approve (mcp_server.py)

@@ -26,6 +26,7 @@ from tempo_adapters.db.vault import SqlVaultStore
 from tempo_adapters.elevenlabs import load_greetings
 from tempo_adapters.factory import (
     NotConfigured,
+    brain_provider,
     build_adapters,
     chat_client,
     juror_clients,
@@ -60,6 +61,7 @@ from tempo_core.scam_voice import load_warnings
 from tempo_core.signals import SignalSpec, load_signals
 from tempo_crypto.vault import MemoryVaultStore, VaultStore
 from tempo_gateway.app import create_app
+from tempo_gateway.brain import Brain
 from tempo_gateway.chat import SMALL_TALK_PROMPT
 from tempo_gateway.clock import DemoClock
 from tempo_gateway.connectors import build_connectors
@@ -192,6 +194,17 @@ def build_chat_llm(
     return say, adapters.model.kind
 
 
+def build_brain(settings: Settings) -> Brain | None:
+    """The chat's brain (plan.md §16): NVIDIA's model holds the conversation when its key is set
+    and the models are live; otherwise the rules answer alone, as before."""
+    if brain_provider(settings) != "nvidia" or settings.nvidia_api_key is None:
+        return None
+    return Brain(
+        httpx.AsyncClient(), api_key=settings.nvidia_api_key.get_secret_value(),
+        model=settings.nvidia_brain_model, timeout_s=settings.brain_timeout_s,
+    )  # fmt: skip
+
+
 def build(
     settings: Settings | None = None, *, scheduler_interval_s: float | None = None
 ) -> FastAPI:
@@ -221,7 +234,7 @@ def build(
         mandates=mandates, vision=build_vision(settings),
         greetings=load_greetings(REPO / "voice" / "greetings.yaml"),
         profiles=ProfileCatalog.load(REPO / "profiles", REPO / "skills"),
-        chat_llm=chat_llm, chat_llm_kind=chat_llm_kind,
+        chat_llm=chat_llm, chat_llm_kind=chat_llm_kind, brain=build_brain(settings),
     )  # fmt: skip
 
 

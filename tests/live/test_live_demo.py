@@ -134,7 +134,10 @@ def test_health_through_the_tunnel_names_the_model_and_what_is_still_recorded(
     assert health["deploy"] in ("cloud-gpu", "cloud-apis")
     assert health["simulated"] == ["company", "rail data"]
     kind = "runpod-vllm" if ON_GPU else "apis"
-    assert health["model"]["kind"] == kind and health["chat"] == {"llm": kind}
+    assert health["model"]["kind"] == kind and health["chat"]["llm"] == kind
+    if "brain" in health["chat"]:  # a language model holds the conversation (plan.md §16)
+        assert health["chat"]["brain"].startswith("nvidia:"), health["chat"]
+        assert "nvidia" in health["third_parties"]
     assert health["model"]["answering"] is not False, (
         f"the model is not answering: {health['model']}"
     )

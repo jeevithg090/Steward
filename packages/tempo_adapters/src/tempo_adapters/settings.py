@@ -96,6 +96,14 @@ class Settings(BaseSettings):
     # rejected a 10-minute delay. NVIDIA_MODELS="" keeps the Court on Gemini alone.
     nvidia_api_key: SecretStr | None = None
     nvidia_models: str = "nvidia/nemotron-3.5-bolt-e4b"
+    # The chat's brain (plan.md §16): a language model holds the conversation and acts only
+    # through Tempo's tools. "auto" uses NVIDIA's model when NVIDIA_API_KEY is set and the models
+    # are live. Nemotron 3 Ultra, measured 25 Oct 2026: it understood "London" mid-claim, said
+    # kindly that a plumber isn't something Tempo can claim for, and called the claim tool with
+    # every fact right, in 3 to 6 s.
+    chat_brain: Literal["auto", "nvidia", "off"] = "auto"
+    nvidia_brain_model: str = "nvidia/nemotron-3-ultra-550b-a55b"
+    brain_timeout_s: float = 15.0
     openrouter_api_key: SecretStr | None = None
     # Opt-in: an OpenRouter model takes the second seat (e.g. dots-studio/dots-3-note-preview:free:
     # correct, but 17.7 s and about 50 free requests a day; raise JUROR_TIMEOUT_S to 35 with it).
