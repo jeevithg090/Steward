@@ -1,6 +1,7 @@
+import { CheckCircle2, CircleSlash } from "lucide-react";
 import { Badge, Card, SectionTitle } from "@/components/ui";
-import type { PlanRight, PlanView, RightStatus } from "@/lib/api";
-import { dayWords, gbp } from "./words";
+import type { MissionView, PlanRight, PlanView, RightStatus } from "@/lib/api";
+import { dayWords, gbp, reachedAt } from "./words";
 
 const DAY_MS = 86_400_000;
 
@@ -50,38 +51,10 @@ function describe(right: PlanRight): string {
   return `${right.label}: ${STATUS_WORDS[right.status]}${opens}${ends}`;
 }
 
-/** Rights Decay: today's verdict, each right as a bar in time, and the numbers behind it. */
-export function RightsPortfolio({ plan }: { plan: PlanView }) {
-  const today = plan.days[0];
-  const a = plan.assumptions;
-  const waiting = plan.action_today === "wait";
+/** Each right as a bar in time, between today and the plan's horizon. */
+function RightsBars({ plan }: { plan: PlanView }) {
   return (
-    <Card as="section" aria-labelledby="rights-heading">
-      <SectionTitle id="rights-heading" as="h3" right={a.hazard_demo_values ? <Badge tone="amber">demo values</Badge> : undefined}>
-        Rights Portfolio
-      </SectionTitle>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className={`text-lg font-semibold ${waiting ? "text-amber-100" : "text-emerald-100"}`}>{verdict(plan)}</p>
-        {plan.next_decision_on && waiting && (
-          <p className="text-sm text-slate-300">
-            Next decision: <strong className="text-slate-100">{dayWords(plan.next_decision_on)}</strong>
-          </p>
-        )}
-        {!waiting && plan.way && <p className="text-sm text-slate-300">by {plan.way.replaceAll("_", " ")}</p>}
-      </div>
-      <p className="mt-2 text-sm text-slate-200">{plan.explanation}</p>
-      {today && (
-        <dl className="mt-3 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-amber-500/10 p-3">
-            <dt className="text-xs text-slate-300">At stake if you do nothing</dt>
-            <dd className="text-xl font-semibold tabular-nums text-amber-100">{gbp(today.value_at_risk_gbp)}</dd>
-          </div>
-          <div className="rounded-xl bg-white/5 p-3">
-            <dt className="text-xs text-slate-300">Cost of one more day of waiting</dt>
-            <dd className="text-xl font-semibold tabular-nums text-slate-100">{gbp(today.cost_of_delay_gbp)}</dd>
-          </div>
-        </dl>
-      )}
+    <>
       <ul className="mt-4 space-y-3">
         {plan.rights.map((right) => {
           const { left, width } = span(plan, right);
@@ -106,18 +79,108 @@ export function RightsPortfolio({ plan }: { plan: PlanView }) {
         <span>today, {dayWords(plan.today)}</span>
         <span>{dayWords(plan.horizon)}</span>
       </p>
+    </>
+  );
+}
+
+/** The reasons and the numbers behind the plan. */
+function Why({ plan }: { plan: PlanView }) {
+  const a = plan.assumptions;
+  return (
+    <>
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-300">
+        {plan.why.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </ul>
+      <p className="mt-2 text-xs text-slate-400">
+        Curve <span className="font-mono">{a.hazard_id}</span>
+        {a.hazard_demo_values ? " (a stand-in, not this company's own data)" : ""}. Time valued at £{a.time_value_gbp_h} an hour; an open problem costs{" "}
+        {a.attention_minutes_per_week} minutes a week. Share that pays: {Math.round(Number(a.pays_share) * 100)}% ({a.pays_share_source}).
+      </p>
+    </>
+  );
+}
+
+/** The day a mission reached a state, in words ("24 October"), or "" when the timeline does not say. */
+function dayOf(mission: Pick<MissionView, "timeline">, ...states: MissionView["state"][]): string {
+  for (const state of states) {
+    const at = reachedAt(mission, state);
+    if (at) return dayWords(at.slice(0, 10));
+  }
+  return "";
+}
+
+/**
+ * Rights Decay: today's verdict, each right as a bar in time, and the numbers behind it. Only a
+ * live mission waits or acts; a paid one is Settled and a stopped one Stopped, with what Tempo
+ * weighed folded away underneath.
+ */
+export function RightsPortfolio({ plan, mission }: { plan: PlanView; mission?: Pick<MissionView, "state" | "outcome" | "timeline"> | null }) {
+  const state = mission?.state;
+  if (mission && (state === "verified" || state === "completed" || state === "declined" || state === "failed_safe")) {
+    const settled = state === "verified" || state === "completed";
+    const amount = mission.outcome?.amount_gbp;
+    const day = settled ? dayOf(mission, "verified", "completed") : dayOf(mission, state);
+    const on = day ? ` on ${day}` : "";
+    const line = settled
+      ? amount
+        ? `Paid ${gbp(amount)}${on}. Nothing more to do.`
+        : `Resolved${on}. Nothing more to do.`
+      : `Stopped${on}. Nothing more will be sent.`;
+    return (
+      <Card as="section" aria-labelledby="rights-heading">
+        <SectionTitle id="rights-heading" as="h3" right={plan.assumptions.hazard_demo_values ? <Badge tone="amber">demo values</Badge> : undefined}>
+          Rights Portfolio
+        </SectionTitle>
+        <p className={`flex items-center gap-2 text-lg font-semibold ${settled ? "text-emerald-200" : "text-slate-300"}`}>
+          {settled ? <CheckCircle2 size={18} aria-hidden className="text-emerald-300" /> : <CircleSlash size={18} aria-hidden className="text-slate-400" />}
+          {settled ? "Settled" : "Stopped"}
+        </p>
+        <p className="mt-1 text-sm text-slate-200">{line}</p>
+        <details className="mt-3 text-sm">
+          <summary className="cursor-pointer font-semibold text-slate-200">What Tempo weighed</summary>
+          <p className="mt-2 text-slate-300">{plan.explanation}</p>
+          <RightsBars plan={plan} />
+          <Why plan={plan} />
+        </details>
+      </Card>
+    );
+  }
+
+  const today = plan.days[0];
+  const waiting = plan.action_today === "wait";
+  return (
+    <Card as="section" aria-labelledby="rights-heading">
+      <SectionTitle id="rights-heading" as="h3" right={plan.assumptions.hazard_demo_values ? <Badge tone="amber">demo values</Badge> : undefined}>
+        Rights Portfolio
+      </SectionTitle>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <p className={`text-lg font-semibold ${waiting ? "text-amber-100" : "text-emerald-100"}`}>{verdict(plan)}</p>
+        {plan.next_decision_on && waiting && (
+          <p className="text-sm text-slate-300">
+            Next decision: <strong className="text-slate-100">{dayWords(plan.next_decision_on)}</strong>
+          </p>
+        )}
+        {!waiting && plan.way && <p className="text-sm text-slate-300">by {plan.way.replaceAll("_", " ")}</p>}
+      </div>
+      <p className="mt-2 text-sm text-slate-200">{plan.explanation}</p>
+      {today && (
+        <dl className="mt-3 grid grid-cols-2 gap-3">
+          <div className="rounded-xl bg-amber-500/10 p-3">
+            <dt className="text-xs text-slate-300">At stake if you do nothing</dt>
+            <dd className="text-xl font-semibold tabular-nums text-amber-100">{gbp(today.value_at_risk_gbp)}</dd>
+          </div>
+          <div className="rounded-xl bg-white/5 p-3">
+            <dt className="text-xs text-slate-300">Cost of one more day of waiting</dt>
+            <dd className="text-xl font-semibold tabular-nums text-slate-100">{gbp(today.cost_of_delay_gbp)}</dd>
+          </div>
+        </dl>
+      )}
+      <RightsBars plan={plan} />
       <details className="mt-3 text-sm">
         <summary className="cursor-pointer font-semibold text-slate-200">Why</summary>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-300">
-          {plan.why.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-        <p className="mt-2 text-xs text-slate-400">
-          Curve <span className="font-mono">{a.hazard_id}</span>
-          {a.hazard_demo_values ? " (a stand-in, not this company's own data)" : ""}. Time valued at £{a.time_value_gbp_h} an hour; an open problem costs{" "}
-          {a.attention_minutes_per_week} minutes a week. Share that pays: {Math.round(Number(a.pays_share) * 100)}% ({a.pays_share_source}).
-        </p>
+        <Why plan={plan} />
       </details>
     </Card>
   );

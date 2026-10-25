@@ -1,21 +1,28 @@
-// The chat door (plan.md §2, §4.1): free text goes to `gateway.chat()`, replies become messages,
-// the one pending question keeps the conversation waiting, consent is answered inline, live
-// Gateway events (from App's one socket) update the thread, the camera reads a letter.
+// The chat door (plan.md §2, §4.1, §12.2): free text goes to `gateway.chat()`, replies become
+// messages (with suggestion chips), the one pending question keeps the conversation waiting,
+// consent is answered inline through `answerAsk` (a passkey when this device has one), live
+// Gateway events (from App's one socket) update the thread, the camera reads a letter, and
+// `#/chat?say=<text>` sends a sentence once, as if typed.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { duration, plainError, shortDateTime } from "@/components/mission";
+import { afterYes, duration, isUnreachable, plainError, rememberAmount, rememberAsks, shortDateTime, toastError } from "@/components/mission";
+import { toast } from "@/components/ui";
 import type { Recording } from "@/hooks/useAudioRecorder";
-import type { ChatReply, Intent, MissionState, MissionView } from "@/lib/api";
+import type { ChatReply, Intent, MissionState } from "@/lib/api";
+import { answerAsk } from "@/lib/approve";
 import { CatalogClient } from "@/lib/catalog-client";
 import type { GatewayConfig } from "@/lib/config";
 import { STATE_LABELS } from "@/lib/labels";
 import type { LetterReading } from "@/lib/letters";
 import type { LiveEvent } from "@/lib/live";
+import { useMesh } from "@/lib/mesh-context";
 import { ShieldClient, type ShieldVerdict, ShowcaseShield } from "@/lib/shield";
 import { ShowcaseCatalog } from "@/lib/showcase";
+import { SUGGESTIONS } from "@/lib/showcase-chat";
+import { useRoute } from "@/router";
 import type { PageProps } from "@/types/page";
-import type { ChatMessage, ModelProvider } from "@/types/types";
-import { ChatPage } from "./ChatPage";
-import { type Conversation, chatStore, saveIntent, useChatStore } from "./store";
+import type { ModelProvider } from "@/types/types";
+import { ChatPage, type Link } from "./ChatPage";
+import { type Conversation, type ThreadMessage, chatStore, saveIntent, useChatStore } from "./store";
 
 export interface ChatContainerProps extends PageProps {
   config: GatewayConfig;
@@ -35,6 +42,13 @@ function title(text: string): string {
   return text.length > 48 ? `${text.slice(0, 45)}…` : text;
 }
 
+/** The `say` of `#/chat?say=…` in the address bar right now (read live, so StrictMode's second run finds it gone). */
+function sayInHash(): string | null {
+  const hash = typeof window === "undefined" ? "" : window.location.hash;
+  const at = hash.indexOf("?");
+  return at < 0 ? null : new URLSearchParams(hash.slice(at + 1)).get("say");
+}
+
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -48,7 +62,11 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
   const { conversations, activeId, speech } = useChatStore();
   const active = conversations.find((c) => c.id === activeId) ?? null;
   const [busy, setBusy] = useState(false);
+  const [thinking, setThinking] = useState(false);
   const [ttsAvailable, setTtsAvailable] = useState(false);
+  const { mesh, signs } = useMesh();
+  const route = useRoute();
+  const link: Link = showcase ? "showcase" : connected ? "live" : health ? "gateway" : "offline";
 
   // Clients for the two doors the chat uses directly (plan.md §4.1: the camera posts to /letters/read).
   const catalog = useMemo(() => (showcase ? new ShowcaseCatalog() : new CatalogClient(config)), [showcase, config]);
@@ -67,7 +85,11 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
     let live = true;
     gateway
       .missions()
-      .then((missions) => live && chatStore.syncMissions(missions.filter((m) => !m.user_id || m.user_id === user.id)))
+      .then((missions) => {
+        if (!live) return;
+        rememberAsks(missions);
+        chatStore.syncMissions(missions.filter((m) => !m.user_id || m.user_id === user.id));
+      })
       .catch(() => undefined);
     return () => {
       live = false;
@@ -90,17 +112,18 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
       let text = reply.reply?.trim() || question || STATE_LABELS[reply.mission?.state ?? "received"];
       if (question && !text.includes(question)) text = `${text} ${question}`;
       const firstAgent = !conv.simulatedShown && !conv.messages.some((m) => m.role === "agent");
-      const message: ChatMessage = {
+      const message: ThreadMessage = {
         id: uid(),
         role: "agent",
         text,
         intent: reply.intent,
         verdict: (reply.verdict as unknown as ShieldVerdict | null) ?? undefined,
-        memories: (reply.memories as unknown as ChatMessage["memories"]) ?? undefined,
+        memories: (reply.memories as unknown as ThreadMessage["memories"]) ?? undefined,
         ledger: reply.ledger ?? undefined,
         flags: reply.flags ?? undefined,
         actions: reply.actions ?? undefined,
         simulated: firstAgent && reply.simulated?.length ? reply.simulated : undefined,
+        suggestions: reply.suggestions?.length ? reply.suggestions.slice(0, 4) : undefined,
         timestamp: Date.now(),
       };
       // The server merges what we echoed with what this turn said and sends the result back
@@ -111,6 +134,7 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
         simulatedShown: conv.simulatedShown || firstAgent,
       };
       if (reply.mission) {
+        rememberAmount(reply.mission.id, (reply.ask ?? reply.mission.ask)?.amount_gbp);
         patch.missionId = reply.mission.id;
         patch.missionState = reply.mission.state;
         patch.ask = reply.ask ?? reply.mission.ask ?? null;
@@ -125,11 +149,21 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
         patch.status = null;
         patch.missionState = conv.missionState && !TERMINAL.has(conv.missionState) ? "failed_safe" : conv.missionState;
       }
-      if ((reply.intent === "approve" || reply.intent === "decline") && !reply.mission) patch.ask = null;
+      // A typed yes/no that the Gateway answered clears the ask; one it sends back (this person
+      // confirms with a passkey, plan.md §12.2) stays on screen for the signed Yes.
+      if ((reply.intent === "approve" || reply.intent === "decline") && !reply.mission && !reply.ask) patch.ask = null;
       chatStore.appendTo(convId, [message], patch);
       say(reply.say || reply.reply);
+      if (reply.mission && (reply.intent === "approve" || reply.intent === "decline")) {
+        if (reply.ask) toast.info(signs ? "Press Yes below to confirm with Face ID." : "Confirm on the device that has your Face ID or fingerprint.");
+        else if (reply.intent === "approve") {
+          const words = afterYes(reply.mission);
+          toast[words.tone](words.text);
+        } else toast.info("You said no. Nothing was sent.");
+      }
+      if (reply.intent === "stop" && reply.mission) toast.info("Stopped. Nothing more will be sent.");
     },
-    [say],
+    [say, signs],
   );
 
   const send = useCallback(
@@ -138,6 +172,7 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
       const conv = chatStore.find(convId)!;
       chatStore.appendTo(convId, [{ id: uid(), role: "user", text, timestamp: Date.now() }]);
       setBusy(true);
+      setThinking(true);
       try {
         const reply = await gateway.chat({
           user_id: user.id,
@@ -149,14 +184,18 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
         });
         applyReply(convId, text, reply);
       } catch (err) {
+        // The line by the input says it; a Gateway that does not answer also gets a way to Settings.
+        if (isUnreachable(err)) toastError(err);
         throw new Error(plainError(err));
       } finally {
         setBusy(false);
+        setThinking(false);
       }
     },
     [applyReply, gateway, language, user.id, user.name, user.profileId],
   );
 
+  /** The consent card's Yes or No: the one way the web answers (answerAsk: a passkey here when this device signs). */
   const consent = useCallback(
     async (approved: boolean) => {
       const conv = chatStore.find(chatStore.get().activeId);
@@ -164,30 +203,32 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
       const convId = conv.id;
       setBusy(true);
       try {
-        if (approved) {
-          const view: MissionView = await gateway.answer(conv.ask.request_id, true);
-          const text = view.message ?? `${STATE_LABELS[view.state]}.`;
-          chatStore.appendTo(convId, [{ id: uid(), role: "agent", text, intent: "approve", timestamp: Date.now() }], {
+        const view = await answerAsk({ gateway, mesh, signs }, conv.ask.request_id, approved);
+        const text = view.message ?? (approved ? `${STATE_LABELS[view.state]}.` : "Stopped: you said no. Nothing was sent.");
+        const paid = view.state === "verified";
+        chatStore.appendTo(
+          convId,
+          [{ id: uid(), role: "agent", text, intent: approved ? "approve" : "decline", timestamp: Date.now(), ...(paid ? { suggestions: [...SUGGESTIONS.paid] } : {}) }],
+          {
             ask: view.ask ?? null,
             missionId: view.id,
             missionState: view.state,
             status: view.state === "waiting" ? "Waiting for the money." : null,
-          });
-          say(text);
-        } else {
-          if (conv.missionId) await gateway.stop(conv.missionId);
-          const text = "Stopped: you declined.";
-          chatStore.appendTo(convId, [{ id: uid(), role: "agent", text, intent: "decline", timestamp: Date.now() }], { ask: null, missionState: "declined", status: null });
-          say(text);
-        }
+          },
+        );
+        say(text);
+        if (approved) {
+          const words = afterYes(view);
+          toast[words.tone](words.text);
+        } else toast.info("You said no. Nothing was sent.");
       } catch (err) {
-        const text = plainError(err);
+        const text = toastError(err);
         chatStore.appendTo(convId, [{ id: uid(), role: "agent", text, timestamp: Date.now() }], { ask: /404/.test(String(err)) ? null : conv.ask });
       } finally {
         setBusy(false);
       }
     },
-    [gateway, say],
+    [gateway, mesh, say, signs],
   );
 
   const stop = useCallback(async () => {
@@ -199,7 +240,9 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
       const text = "Stopped: you asked me to stop. Nothing more will be sent.";
       chatStore.appendTo(conv.id, [{ id: uid(), role: "agent", text, intent: "stop", timestamp: Date.now() }], { ask: null, missionState: view.state, status: null });
       say(text);
+      toast.info("Stopped. Nothing more will be sent.");
     } catch (err) {
+      if (isUnreachable(err)) toastError(err);
       throw new Error(plainError(err));
     } finally {
       setBusy(false);
@@ -240,7 +283,9 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
         }
         chatStore.appendTo(convId, [{ id: uid(), role: "agent", text: lead, intent: "letter", letter: reading, actions: [{ label: "Open Read It To Me", href: "#/read" }], timestamp: Date.now() }]);
         say(reading.reading_text);
+        toast.success(showcase ? "Here is a recorded reading of a sample letter." : "Letter read. Tempo will read it to you.");
       } catch (err) {
+        if (isUnreachable(err)) toastError(err);
         throw new Error(plainError(err));
       } finally {
         setBusy(false);
@@ -277,8 +322,11 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
         case "outcome": {
           if (!conv) break;
           const text = typeof e.message === "string" && e.message ? e.message : STATE_LABELS.verified;
-          chatStore.appendTo(conv.id, [{ id: uid(), role: "agent", text, intent: "ledger" as Intent, timestamp: Date.now() }], { ask: null, status: null, missionState: (String(e.state) as MissionState) || "verified" });
+          const state = (String(e.state) as MissionState) || "verified";
+          const paid = state === "verified";
+          chatStore.appendTo(conv.id, [{ id: uid(), role: "agent", text, intent: "ledger" as Intent, timestamp: Date.now(), ...(paid ? { suggestions: [...SUGGESTIONS.paid] } : {}) }], { ask: null, status: null, missionState: state });
           if (isActive) say(text);
+          if (paid) toast.success(typeof e.amount_gbp === "string" ? `Money arrived: £${e.amount_gbp}.` : "Money arrived.");
           break;
         }
         case "timer_set": {
@@ -291,7 +339,10 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
           if (!conv || conv.ask) break;
           void gateway
             .mission(missionId!)
-            .then((view) => chatStore.update(conv.id, (c) => ({ ...c, ask: view.ask, court: view.court, missionState: view.state })))
+            .then((view) => {
+              rememberAsks([view]);
+              chatStore.update(conv.id, (c) => ({ ...c, ask: view.ask, court: view.court, missionState: view.state }));
+            })
             .catch(() => undefined);
           break;
         }
@@ -309,12 +360,24 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
     }
   }, [events, gateway, say, user.id]);
 
+  // `#/chat?say=<text>` (plan.md §12.2): a fresh conversation, the text sent once, then the address
+  // goes back to `#/chat` without a history entry, so Back does not send it again. The live hash is
+  // the guard: React StrictMode's second effect run finds it already cleared.
+  // Every hash change makes a new `route`, so the same sentence twice in a row is sent twice.
+  useEffect(() => {
+    const text = sayInHash()?.trim();
+    if (!route.query.get("say") || !text) return;
+    window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}#/chat`);
+    chatStore.newChat();
+    void send(text).catch(() => undefined); // the conversation shows the error line; nothing else to do here
+  }, [route, send]);
+
   return (
     <ChatPage
       user={user}
       language={language}
       showcase={showcase}
-      online={connected || health !== null}
+      link={link}
       gateway={gateway}
       ttsAvailable={ttsAvailable}
       activeModels={activeModels}
@@ -322,6 +385,8 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
       onSelectModel={onSelectModel}
       conversation={active}
       busy={busy}
+      thinking={thinking}
+      signs={signs}
       onSend={send}
       onSendAudio={sendAudio}
       onReadLetter={readLetter}

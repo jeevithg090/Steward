@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { SAMPLES } from "./shield";
 import { ShowcaseGateway } from "./showcase";
-import { classify, extract, extractDate, extractStations, extractTime, mergeSlots, showcaseChat } from "./showcase-chat";
+import { LATE_TRAIN, MISSED_VISIT, SCAM_SAMPLE, SUGGESTIONS, classify, extract, extractDate, extractStations, extractTime, limitNote, mergeSlots, profileRefusal, showcaseChat } from "./showcase-chat";
 
 const TODAY = "2026-10-25";
 
@@ -126,6 +126,79 @@ describe("answers from the recordings", () => {
     const ledger = await showcaseChat(turn("How much have you got back for me?"), gateway);
     expect(ledger.ledger?.gbp_recovered).toBe("28.40");
     expect(ledger.reply).toBe("So far Tempo has got back £28.40 and 20 minutes of your time.");
+  });
+
+  test("help and small talk suggest the doors, as chat.py does; each is short and goes where it says", async () => {
+    const gateway = new ShowcaseGateway();
+    for (const text of ["Help", "Hello there"]) {
+      const said = await showcaseChat(turn(text), gateway);
+      expect(said.suggestions).toEqual([LATE_TRAIN, MISSED_VISIT, SCAM_SAMPLE, "Am I owed anything?"]);
+    }
+    for (const list of Object.values(SUGGESTIONS)) {
+      expect(list.length).toBeLessThanOrEqual(4);
+      for (const s of list) if (s !== SCAM_SAMPLE) expect(s.length).toBeLessThanOrEqual(120);
+    }
+    expect(SUGGESTIONS.doors.map((s) => classify(s))).toEqual(["rail_delay", "missed_visit", "scam_check", "entitlement"]);
+    expect(extract(LATE_TRAIN, "rail_delay", TODAY)).toMatchObject({ origin_crs: "OXF", destination_crs: "PAD", travel_date: "2026-10-23", departure: "08:12", fare_gbp: "28.40" });
+    expect(extract(MISSED_VISIT, "missed_visit", TODAY)).toMatchObject({ operator: "Broadbandly", event_date: "2026-10-19" });
+    expect(classify(SUGGESTIONS.profiles[0])).toBe("profiles");
+    // The suggested late train starts the recorded mission.
+    expect((await showcaseChat(turn(LATE_TRAIN), gateway)).mission?.state).toBe("awaiting_consent");
+  });
+
+  test("the recorded journey's fare question offers its fare; another journey is not found and offers the recorded one", async () => {
+    const gateway = new ShowcaseGateway();
+    const ask = await showcaseChat(turn("My 08:12 Oxford to Paddington was late on 23 October"), gateway);
+    expect(ask.needs?.[0]?.field).toBe("fare_gbp");
+    expect(ask.suggestions).toEqual(["£28.40"]);
+    const other = await showcaseChat(turn("My 08:12 Oxford to Paddington was late yesterday"), gateway);
+    expect(other.suggestions).toBeNull(); // not the recorded journey: no fare is offered
+    const missing = await showcaseChat(turn("My 08:12 Oxford to Paddington was 38 minutes late yesterday, ticket £28.40"), gateway);
+    expect(missing.mission?.state).toBe("declined");
+    expect(missing.ask).toBeNull();
+    expect(missing.reply).toBe("I couldn't find the 08:12 from Oxford to Paddington on 24 October in the rail records. This showcase only has the 08:12 from 23 October.");
+    expect(missing.slots).toMatchObject({ origin_crs: "OXF", travel_date: "2026-10-24" }); // kept, so a corrected date starts again
+    expect(missing.suggestions).toEqual([LATE_TRAIN]);
+    const fixed = await showcaseChat(turn("It was on 23 October", missing.slots), gateway);
+    expect(fixed.mission?.state).toBe("awaiting_consent");
+    expect(fixed.suggestions).toBeNull();
+  });
+
+  test("a ledger reply suggests what next; a memory reply carries no suggestions", async () => {
+    const gateway = new ShowcaseGateway();
+    expect((await showcaseChat(turn("How much have you got back for me?"), gateway)).suggestions).toEqual(["What do you remember about me?", "Am I owed anything?"]);
+    expect((await showcaseChat(turn("What do you remember about me?"), gateway)).suggestions).toBeNull();
+  });
+
+  test("a profile that may not do what the skill needs refuses before asking, in tempo_core's words", async () => {
+    const gateway = new ShowcaseGateway();
+    const withProfile = (text: string, profile_id: string) => ({ ...turn(text), profile_id });
+    const rail = await showcaseChat(withProfile(LATE_TRAIN, "read-it-to-me"), gateway);
+    expect(rail.intent).toBe("rail_delay");
+    expect(rail.mission).toBeNull();
+    expect(rail.ask).toBeNull();
+    expect(rail.reply).toBe("Your profile, Read It To Me, doesn't let me file a claim or accept cash, so I haven't started. Choose another profile if you want me to file a claim.");
+    expect(rail.actions).toEqual([{ label: "Show my profiles", href: "#/profiles" }]);
+    expect(rail.suggestions).toEqual(["Show me my profiles"]);
+    expect(rail.slots).toMatchObject({ origin_crs: "OXF", fare_gbp: "28.40" }); // the facts stay for another profile
+    // Refused before any question, too.
+    expect((await showcaseChat(withProfile("my train was late", "read-it-to-me"), gateway)).needs).toBeNull();
+    // The Commuter may claim for a train but may not phone the company about a missed visit.
+    const ofcom = await showcaseChat(withProfile(MISSED_VISIT, "commuter"), gateway);
+    expect(ofcom.mission).toBeNull();
+    expect(ofcom.reply).toBe("Your profile, The Commuter, doesn't let me phone the company, so I haven't started. Choose another profile if you want me to phone the company.");
+    expect(profileRefusal("am-i-owed", "rail_delay")).toMatch(/^Your profile, Am I Owed Anything, doesn't let me/);
+    const allowed = await showcaseChat(withProfile(LATE_TRAIN, "commuter"), gateway);
+    expect(allowed.mission?.state).toBe("awaiting_consent");
+    expect(await gateway.missions()).toHaveLength(4); // only the allowed one started
+    expect(profileRefusal(null, "rail_delay")).toBeNull();
+    // Within every installed profile's limit, the recorded ask is unchanged; above it, the ask says so.
+    expect(allowed.ask?.summary).not.toMatch(/limit/);
+    expect(limitNote("commuter", "14.20")).toBeNull();
+    expect(limitNote("commuter", "300.00")).toBe("This is above your profile's limit of £250.00, so I'm asking you first.");
+    expect(limitNote(null, "300.00")).toBeNull();
+    expect(profileRefusal("take-your-time", "missed_visit")).toBeNull();
+    expect(profileRefusal("read-it-to-me", "ledger")).toBeNull();
   });
 
   test("STOP halts the open missions", async () => {

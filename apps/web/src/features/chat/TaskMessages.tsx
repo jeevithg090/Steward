@@ -1,12 +1,12 @@
-import { useEffect, useRef } from "react";
+import { CornerDownRight } from "lucide-react";
 import { Badge, type BadgeTone, FOCUS } from "@/components/ui";
 import { LedgerCounter } from "@/components/mission";
 import type { Intent } from "@/lib/api";
 import { linkProps } from "@/router";
-import type { ChatMessage } from "@/types/types";
 import { AudioMessage } from "./AudioMessage";
 import { LetterReadingCard } from "./LetterReadingCard";
 import { ScamVerdictCard } from "./ScamVerdictCard";
+import type { ThreadMessage } from "./store";
 
 export const INTENT_WORDS: Record<Intent, string> = {
   rail_delay: "Delay Repay",
@@ -39,22 +39,50 @@ function shortDate(iso: string): string {
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
-interface TaskMessagesProps {
-  messages: ChatMessage[];
-  onSpeak?: (text: string) => void;
-  onFeedback?: (alertId: string, label: "scam" | "real") => Promise<void>;
+/**
+ * The words in the bubble. A reply whose details are shown right under it is introduced, not
+ * repeated: the ask still waiting (its card below says it in full) and a list of memories.
+ */
+function shown(message: ThreadMessage, pendingSummary: string | null): string {
+  if (message.role !== "user" && pendingSummary && message.text.trim() === pendingSummary.trim()) return "I've worked it out. Here is what I'd claim; it needs your OK first.";
+  if (message.memories && message.memories.length > 0) {
+    const colon = message.text.indexOf(": ");
+    if (colon > 0 && colon < 60) return message.text.slice(0, colon + 1);
+  }
+  return message.text;
 }
 
-export function TaskMessages({ messages, onSpeak, onFeedback }: TaskMessagesProps) {
-  const endRef = useRef<HTMLDivElement>(null);
+interface TaskMessagesProps {
+  messages: ThreadMessage[];
+  /** The consent question still waiting, so the bubble that says the same thing is not repeated in full. */
+  pendingSummary?: string | null;
+  onSpeak?: (text: string) => void;
+  onFeedback?: (alertId: string, label: "scam" | "real") => Promise<void>;
+  /** Send a suggestion as if typed (ChatReply.suggestions, plan.md §12.2). */
+  onSuggest?: (text: string) => void;
+  /** A /chat call is in flight: show the typing dots. */
+  thinking?: boolean;
+  /** Something is in flight: suggestion chips wait. */
+  busy?: boolean;
+}
 
-  // Keep the newest message in view (jsdom has no scrollIntoView).
-  useEffect(() => {
-    endRef.current?.scrollIntoView?.({ block: "end" });
-  }, [messages.length]);
+/** Three dots in an agent bubble while Tempo works out the reply; read out once as "Tempo is thinking". */
+export function TypingIndicator() {
+  return (
+    <div role="status" className="mt-4 inline-flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-nexus-card px-4 py-3">
+      <span className="sr-only">Tempo is thinking</span>
+      {[0, 150, 300].map((delay) => (
+        <span key={delay} aria-hidden style={{ animationDelay: `${delay}ms` }} className="h-2 w-2 animate-bounce rounded-full bg-indigo-300 motion-reduce:animate-none" />
+      ))}
+    </div>
+  );
+}
+
+export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedback, onSuggest, thinking = false, busy = false }: TaskMessagesProps) {
+  const last = messages[messages.length - 1];
 
   return (
-    <div role="log" aria-label="Conversation" className="flex-1 overflow-y-auto pb-28 pr-1">
+    <div role="log" aria-label="Conversation" className="pr-1">
       <ol className="space-y-4">
       {messages.map((message) => {
         const isUser = message.role === "user";
@@ -66,25 +94,25 @@ export function TaskMessages({ messages, onSpeak, onFeedback }: TaskMessagesProp
           );
         }
         return (
-          <li key={message.id} className={`max-w-[85%] rounded-2xl bg-nexus-card px-4 py-3 text-sm text-white ${isUser ? "ml-auto rounded-br-sm" : "rounded-bl-sm"}`}>
+          <li key={message.id} className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm text-white lg:max-w-[80%] ${isUser ? "ml-auto w-fit rounded-br-sm bg-nexus-badge" : "rounded-bl-sm border border-white/5 bg-nexus-card"}`}>
             <span className="sr-only">{isUser ? "You said: " : "Tempo said: "}</span>
             {!isUser && message.intent && (
               <Badge tone={INTENT_TONE[message.intent] ?? "indigo"} className="mb-1.5">
                 {INTENT_WORDS[message.intent]}
               </Badge>
             )}
-            {message.audio ? <AudioMessage audio={message.audio} /> : <p className="whitespace-pre-wrap leading-relaxed">{message.text}</p>}
+            {message.audio ? <AudioMessage audio={message.audio} /> : <p className="whitespace-pre-wrap leading-relaxed">{shown(message, pendingSummary)}</p>}
             {message.verdict && <ScamVerdictCard verdict={message.verdict} onFeedback={onFeedback} />}
             {message.letter && <LetterReadingCard reading={message.letter} onSpeak={onSpeak} />}
             {message.memories && message.memories.length > 0 && (
-              <ul aria-label="What Tempo remembers" className="mt-3 space-y-1">
+              <ul aria-label="What Tempo remembers" className="mt-3 divide-y divide-white/5 rounded-xl border border-white/5 bg-black/20">
                 {message.memories.map((m) => {
                   const when = m.when ?? m.observed_at;
                   const details = [m.category?.replaceAll("_", " "), m.source?.replaceAll("_", " "), when ? shortDate(when) : null, m.trust === "untrusted" ? "unchecked" : null].filter(Boolean);
                   return (
-                    <li key={m.id} className="flex flex-wrap items-baseline gap-2 text-xs">
-                      <span className="text-slate-100">{m.text}</span>
-                      {details.length > 0 && <span className="text-slate-500">{details.join(" · ")}</span>}
+                    <li key={m.id} className="px-3 py-2">
+                      <span className="block text-sm text-slate-100">{m.text}</span>
+                      {details.length > 0 && <span className="block text-[11px] text-slate-400">{details.join(" · ")}</span>}
                     </li>
                   );
                 })}
@@ -113,7 +141,7 @@ export function TaskMessages({ messages, onSpeak, onFeedback }: TaskMessagesProp
               <ul aria-label="Open the page" className="mt-3 flex flex-wrap gap-2">
                 {message.actions.map((a) => (
                   <li key={a.href}>
-                    <a {...linkProps(a.href)} className={`inline-flex items-center rounded-full border border-indigo-400/40 bg-indigo-500/10 px-3 py-1 text-xs text-indigo-100 hover:bg-indigo-500/20 ${FOCUS}`}>
+                    <a {...linkProps(a.href)} className={`inline-flex min-h-9 items-center rounded-full border border-indigo-400/40 bg-indigo-500/10 px-3.5 py-1.5 text-xs font-medium text-indigo-100 hover:bg-indigo-500/20 ${FOCUS}`}>
                       {a.label}
                     </a>
                   </li>
@@ -121,13 +149,30 @@ export function TaskMessages({ messages, onSpeak, onFeedback }: TaskMessagesProp
               </ul>
             )}
             {message.simulated && message.simulated.length > 0 && (
-              <p className="mt-2 text-[11px] text-slate-500">Simulated in this run: {message.simulated.join(", ")}.</p>
+              <p className="mt-2 text-[11px] text-slate-400">Simulated in this run: {message.simulated.join(", ")}.</p>
+            )}
+            {message === last && !thinking && onSuggest && message.suggestions && message.suggestions.length > 0 && (
+              <ul aria-label="You could say" className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                {message.suggestions.map((text) => (
+                  <li key={text} className="min-w-0">
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => onSuggest(text)}
+                      className={`flex min-h-11 w-full items-start gap-2 whitespace-normal break-words rounded-2xl border border-indigo-400/40 bg-indigo-500/10 px-3.5 py-2.5 text-left text-sm leading-snug text-indigo-50 transition-colors hover:bg-indigo-500/25 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none sm:w-auto ${FOCUS}`}
+                    >
+                      <CornerDownRight size={14} aria-hidden className="mt-0.5 shrink-0 text-indigo-300" />
+                      <span>{text}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
           </li>
         );
       })}
       </ol>
-      <div ref={endRef} />
+      {thinking && <TypingIndicator />}
     </div>
   );
 }

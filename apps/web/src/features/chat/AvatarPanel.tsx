@@ -97,6 +97,10 @@ interface AvatarPanelProps {
   ttsAvailable?: boolean;
   /** BCP 47 tag for the browser's voice. */
   lang?: string;
+  /** Phones (below `lg`): one strip at most 72px tall, so the conversation gets the screen. */
+  compact?: boolean;
+  /** Shown at the end of the compact strip (the chat's stream badge). */
+  extra?: ReactNode;
 }
 
 function AnimatedFacialAvatar({
@@ -105,12 +109,15 @@ function AnimatedFacialAvatar({
   viseme,
   levelRef,
   onToggleSpeech,
+  small = false,
 }: {
   profile: AgentProfile;
   speaking: boolean;
   viseme: VisemeShape;
   levelRef: RefObject<HTMLDivElement | null>;
   onToggleSpeech?: () => void;
+  /** The 44px face of the phone strip. */
+  small?: boolean;
 }) {
   const currentProfile = AGENT_PROFILES.find((p) => p.id === profile) ?? AGENT_PROFILES[0]!;
   const [isBlinking, setIsBlinking] = useState(false);
@@ -139,15 +146,15 @@ function AnimatedFacialAvatar({
           opacity: speaking ? 0.6 : 0.15,
           transition: "transform 80ms ease-out, opacity 120ms ease-in-out",
         }}
-        className="absolute h-24 w-24 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 blur-xl motion-reduce:transition-none lg:h-36 lg:w-36"
+        className={`absolute rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 motion-reduce:transition-none ${small ? "h-11 w-11 blur-md" : "h-24 w-24 blur-xl lg:h-36 lg:w-36"}`}
       />
       <div
         ref={levelRef}
-        className={`relative z-10 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border bg-slate-900/90 shadow-2xl transition-all group-hover/face:scale-105 group-hover/face:border-indigo-400 motion-reduce:transition-none lg:h-36 lg:w-36 ${
+        className={`relative z-10 flex items-center justify-center overflow-hidden rounded-full border bg-slate-900/90 shadow-2xl transition-all group-hover/face:scale-105 group-hover/face:border-indigo-400 motion-reduce:transition-none ${small ? "h-11 w-11" : "h-24 w-24 lg:h-36 lg:w-36"} ${
           speaking ? "border-indigo-400 shadow-indigo-500/30" : "border-white/10"
         }`}
       >
-        <svg viewBox="0 0 120 120" className="h-20 w-20 text-indigo-100 lg:h-32 lg:w-32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <svg viewBox="0 0 120 120" className={`text-indigo-100 ${small ? "h-10 w-10" : "h-20 w-20 lg:h-32 lg:w-32"}`} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <circle cx="60" cy="60" r="50" className="fill-indigo-950/40 stroke-none" />
           <circle cx="60" cy="42" r="22" strokeWidth="2.5" className="stroke-slate-200" />
           <path d="M18 110c0-26 18-44 42-44s42 18 42 44" strokeWidth="2.5" className="stroke-slate-300" />
@@ -226,6 +233,8 @@ export function AvatarPanel({
   tts,
   ttsAvailable = false,
   lang = "en-GB",
+  compact = false,
+  extra,
 }: AvatarPanelProps) {
   // Voice is on by default: the browser's own voice needs no key (plan.md §9).
   const [mode, setMode] = useState<OutputMode>("avatar");
@@ -293,6 +302,62 @@ export function AvatarPanel({
   const onEnter = (e: PointerEvent) => e.pointerType === "mouse" && setHovered(true);
   const onLeave = (e: PointerEvent) => e.pointerType === "mouse" && setHovered(false);
   const voiceWords = source === "gateway" ? "Tempo's voice" : source === "elevenlabs" ? "your ElevenLabs key" : source === "browser" ? "this browser's voice" : ttsAvailable ? "Tempo's voice" : elevenLabsKey?.trim() ? "your ElevenLabs key" : "this browser's voice";
+  const nextMode = MODES[(modeIndex + 1) % MODES.length]!;
+
+  if (compact) {
+    // The phone strip: the face (its mouth still moves), who is speaking, how replies come, the speaker.
+    const line = !voiceOn ? "Voice off: text only" : isLoading ? "Preparing voice…" : isSpeaking ? "Speaking…" : error ? error : `Voice: ${voiceWords}`;
+    return (
+      <aside aria-label="Tempo's voice and face" className={`flex h-[60px] min-w-0 items-center gap-2 rounded-2xl border border-white/10 bg-nexus-card px-2 ${className}`}>
+        <div className="shrink-0">
+          {mode === "avatar" ? (
+            <AnimatedFacialAvatar profile={profile} speaking={isSpeaking} viseme={currentViseme} levelRef={levelRef} onToggleSpeech={handleToggleSpeech} small />
+          ) : (
+            <button
+              type="button"
+              onClick={handleToggleSpeech}
+              disabled={!voiceOn}
+              aria-label={isSpeaking ? "Stop speaking" : "Read the last reply aloud"}
+              className={`flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-slate-900/90 text-white disabled:opacity-60 ${FOCUS}`}
+            >
+              <div ref={levelRef} className="flex items-center justify-center">
+                {mode === "voice" ? <AudioLines size={22} className={isSpeaking ? "text-indigo-300" : ""} aria-hidden /> : <MessageSquareText size={22} aria-hidden />}
+              </div>
+            </button>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className={`flex items-center gap-1 text-sm font-semibold ${activeProfile.badgeText}`}>
+            {activeProfile.icon}
+            <span className="truncate">{activeProfile.name}</span>
+          </p>
+          <p role="status" aria-live="polite" className={`truncate text-[11px] ${error && voiceOn && !isLoading && !isSpeaking ? "text-rose-300" : "text-slate-400"}`}>
+            {line}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => selectMode(nextMode)}
+          aria-label={`Reply mode: ${LABELS[mode]}. Tap for ${LABELS[nextMode]}.`}
+          title={`Reply mode: ${LABELS[mode]}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-nexus-badge text-white active:scale-95 motion-reduce:transform-none ${FOCUS}`}
+        >
+          {MODE_ICONS[mode]}
+        </button>
+        <button
+          type="button"
+          disabled={!voiceOn}
+          onClick={cycleVolume}
+          aria-label={`Volume: ${voiceOn ? volume : 0}%. Tap to change`}
+          title={`Volume: ${volume}%`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-white/10 ${FOCUS} ${voiceOn ? "text-white" : "cursor-not-allowed text-nexus-silver opacity-40"}`}
+        >
+          <SpeakerIcon size={20} aria-hidden />
+        </button>
+        {extra && <div className="shrink-0">{extra}</div>}
+      </aside>
+    );
+  }
 
   return (
     <aside

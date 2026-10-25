@@ -493,7 +493,100 @@ export const CANNED = {
   started: "I've started on it.",
   showcase_scam: "There's no Gateway in the showcase, so I can only check the sample messages. Run Tempo locally to check your own.",
   showcase_forget: "In the showcase I can't forget anything for good: that needs a Gateway. The Memory page shows how Forget and Correct work.",
+  demo_journeys: "This showcase only has the 08:12 from 23 October.",
 } as const;
+
+// --- suggestions and profile refusals (plan.md §12.2, chat.py SUGGESTIONS and profiles.refusal) --
+
+/** chat.py LATE_TRAIN: the journey the replay recordings hold, in plain sentences. */
+export const LATE_TRAIN = "My 08:12 train from Oxford to Paddington was 38 minutes late on 23 October. It cost £28.40.";
+/** chat.py MISSED_VISIT. */
+export const MISSED_VISIT = "The Broadbandly engineer did not come on 19 October. No one rang.";
+/** chat.py SCAM_SAMPLE: a pasted message, quoted as it arrived. */
+export const SCAM_SAMPLE = `Is this a scam? ${SAMPLES[0].text}`;
+
+/** What the chat door suggests next (ChatReply.suggestions: ≤ 4, each ≤ 120 chars), as chat.py SUGGESTIONS. */
+export const SUGGESTIONS = {
+  /** After help and small talk: the doors. */
+  doors: [LATE_TRAIN, MISSED_VISIT, SCAM_SAMPLE, "Am I owed anything?"],
+  /** After a journey the recordings don't have. */
+  demo_journey: [LATE_TRAIN],
+  /** The fare question, for the recorded demo journey only. */
+  demo_fare: ["£28.40"],
+  /** After a profile refused to start a claim. */
+  profiles: ["Show me my profiles"],
+  /** After a claim that is paid. */
+  paid: ["How much have you got back for me?", "What do you remember about me?"],
+  /** After the ledger. */
+  ledger: ["What do you remember about me?", "Am I owed anything?"],
+} as const satisfies Record<string, readonly string[]>;
+
+/** chat.py DEMO_JOURNEY: the recorded journey whose fare is offered as a chip. */
+const DEMO_JOURNEY: Record<string, string> = { origin_crs: "OXF", destination_crs: "PAD", travel_date: "2026-10-23", departure: "08:12" };
+const TRAIN_NOT_FOUND = "I couldn't find that train"; // how the rail workflow's Intake step declines
+const SHOW_PROFILES = { label: "Show my profiles", href: "#/profiles" };
+
+/** How a refusal names each capability (tempo_core.capabilities.IN_PLAIN_WORDS). */
+export const IN_PLAIN_WORDS: Record<string, string> = {
+  claim: "file a claim",
+  call: "phone the company",
+  accept_cash: "accept cash",
+  accept_voucher: "accept vouchers",
+  discuss_other_accounts: "talk about your other accounts",
+  change_contract: "change your contract",
+  share_personal_data: "share your details",
+  escalate: "take this further",
+};
+
+/** The skill behind each claim door, as the catalogue names it (skills/<id>/skill.yaml). */
+const CLAIM_SKILL: Partial<Record<Intent, string>> = { rail_delay: "clawback-uk-rail", missed_visit: "clawback-ofcom" };
+
+interface CatalogProfile {
+  id: string;
+  name: string;
+  may?: string[];
+  limits?: { max_gbp_per_claim?: string };
+  share?: { public?: boolean };
+}
+
+interface CatalogSkill {
+  id: string;
+  needs?: string[];
+}
+
+const CATALOG = catalogJson as unknown as { profiles: CatalogProfile[]; skills: CatalogSkill[] };
+
+function joinWords(words: string[]): string {
+  return words.length <= 1 ? (words[0] ?? "") : `${words.slice(0, -1).join(", ")} or ${words[words.length - 1]}`;
+}
+
+/**
+ * The profile refusal (plan.md §12.2, tempo_core.profiles.refusal): when the person's profile may
+ * not do what this door's skill needs, nothing starts and the chat says why in plain words. Null
+ * when the profile allows it (or there is no profile, or the catalogue does not know it).
+ */
+export function profileRefusal(profileId: string | null | undefined, intent: Intent): string | null {
+  const skillId = CLAIM_SKILL[intent];
+  if (!profileId || !skillId) return null;
+  const profile = CATALOG.profiles.find((p) => p.id === profileId);
+  const skill = CATALOG.skills.find((s) => s.id === skillId);
+  if (!profile || !skill) return null;
+  const may = new Set(profile.may ?? []);
+  const lacking = (skill.needs ?? []).filter((need) => !may.has(need)).map((w) => IN_PLAIN_WORDS[w] ?? w.replaceAll("_", " "));
+  if (lacking.length === 0) return null;
+  const name = profile.name.replace(/[?!. ]+$/, ""); // "Am I Owed Anything?" reads as a name mid-sentence
+  return `Your profile, ${name}, doesn't let me ${joinWords(lacking)}, so I haven't started. Choose another profile if you want me to ${lacking[0]}.`;
+}
+
+/**
+ * The sentence an ask gains when the claim is above the profile's limit (tempo_harness.claims_guard
+ * ask_note): Tempo still asks, and says why it is asking. Null within the limit or with no profile.
+ */
+export function limitNote(profileId: string | null | undefined, amountGbp: string | null | undefined): string | null {
+  const cap = profileId ? CATALOG.profiles.find((p) => p.id === profileId)?.limits?.max_gbp_per_claim : undefined;
+  if (cap === undefined || amountGbp === null || amountGbp === undefined) return null;
+  return Number(amountGbp) > Number(cap) ? `This is above your profile's limit of £${cap}, so I'm asking you first.` : null;
+}
 
 const SLOT_FIELDS = ["origin_crs", "destination_crs", "travel_date", "departure", "fare_gbp", "delay_minutes", "operator", "event_date", "notice_hours", "account_ref", "forget_target"] as const;
 const BARE_NUMBER = /^£?\s*(\d{1,4}(?:\.\d{1,2})?)\s*(?:pounds?|quid|gbp)?\.?$/i;
@@ -613,6 +706,7 @@ function reply(partial: Partial<ChatReply> & { intent: Intent; reply: string; sl
     ledger: null,
     flags: null,
     actions: null,
+    suggestions: null,
     simulated: SIMULATED,
     ...partial,
   };
@@ -626,10 +720,14 @@ function missionAction(view: MissionView): ChatAction {
 async function claim(intent: Intent, turn: ChatTurn, known: Slots, state: ShowcaseChatState, today: string): Promise<ChatReply> {
   const found = extract(turn.text, intent, today);
   const slots = mergeSlots(known, aimed(known, found, turn.text, intent));
+  // A profile that can't run this skill is refused first, so no question is wasted on it; the facts stay.
+  const refused = profileRefusal(turn.profile_id, intent);
+  if (refused) return reply({ intent, reply: refused, slots, actions: [SHOW_PROFILES], suggestions: [...SUGGESTIONS.profiles] });
   const need = firstMissing(intent, slots);
   if (need) {
     const said = `${understood(intent, slots)} ${need.question}`;
-    return reply({ intent, reply: said, slots, needs: [need] });
+    const demoFare = need.field === "fare_gbp" && Object.entries(DEMO_JOURNEY).every(([k, v]) => slots[k] === v);
+    return reply({ intent, reply: said, slots, needs: [need], ...(demoFare ? { suggestions: [...SUGGESTIONS.demo_fare] } : {}) });
   }
   const person = { user_id: turn.user_id, display_name: turn.display_name ?? "Friend", time_value_gbp_h: "18", ...(turn.profile_id ? { profile_id: turn.profile_id } : {}) };
   const view =
@@ -642,8 +740,18 @@ async function claim(intent: Intent, turn: ChatTurn, known: Slots, state: Showca
           ...(slots.notice_hours ? { notice_hours: slots.notice_hours } : {}),
           ...(slots.account_ref ? { account_ref: slots.account_ref } : {}),
         });
+  if (intent === "rail_delay" && (view.state === "declined" || view.state === "failed_safe") && (view.message ?? "").startsWith(TRAIN_NOT_FOUND)) {
+    // chat.py _not_found: say which journey, from the person's own facts; the slots stay so a corrected date starts again.
+    const said = `I couldn't find the ${slots.departure} from ${stationName(slots.origin_crs)} to ${stationName(slots.destination_crs)} on ${spokenDate(slots.travel_date ?? "")} in the rail records. ${CANNED.demo_journeys}`;
+    return reply({ intent, reply: said, slots, mission: view, actions: [missionAction(view)], suggestions: [...SUGGESTIONS.demo_journey] });
+  }
+  const note = view.ask ? limitNote(turn.profile_id, view.ask.amount_gbp) : null;
+  if (note && view.ask) {
+    view.ask = { ...view.ask, summary: `${view.ask.summary} ${note}` };
+    view.message = view.ask.summary;
+  }
   const said = view.ask?.summary ?? view.message ?? CANNED.started;
-  return reply({ intent, reply: said, slots: {}, mission: view, ask: view.ask, actions: [missionAction(view)] });
+  return reply({ intent, reply: said, slots: {}, mission: view, ask: view.ask, actions: [missionAction(view)], ...(view.state === "verified" ? { suggestions: [...SUGGESTIONS.paid] } : {}) });
 }
 
 /** The showcase's chat door: the Gateway's rules, answered from the recordings (chat.py `Chat.turn`). */
@@ -668,7 +776,7 @@ export async function showcaseChat(turn: ChatTurn, state: ShowcaseChatState): Pr
       const newest = pending[0];
       if (!newest?.ask) return plain(CANNED.nothing_waiting);
       const view = await state.answer(newest.ask.request_id, intent === "approve");
-      return plain(view.message ?? CANNED.started, { mission: view, ask: view.ask, actions: [missionAction(view)] });
+      return plain(view.message ?? CANNED.started, { mission: view, ask: view.ask, actions: [missionAction(view)], ...(view.state === "verified" ? { suggestions: [...SUGGESTIONS.paid] } : {}) });
     }
     case "stop": {
       if (missions.length === 0) return plain(CANNED.nothing_running);
@@ -696,20 +804,20 @@ export async function showcaseChat(turn: ChatTurn, state: ShowcaseChatState): Pr
     }
     case "ledger": {
       const totals = await state.ledger();
-      return plain(ledgerSentence(totals), { ledger: totals, actions: [MISSIONS_ACTION] });
+      return plain(ledgerSentence(totals), { ledger: totals, actions: [MISSIONS_ACTION], suggestions: [...SUGGESTIONS.ledger] });
     }
     case "entitlement":
       return plain(CANNED.entitlement, { actions: [{ label: "Answer ten questions", href: "#/owed" }] });
     case "profiles": {
-      const names = (catalogJson as { profiles: { name: string; share?: { public?: boolean } }[] }).profiles.filter((p) => p.share?.public).map((p) => p.name);
+      const names = CATALOG.profiles.filter((p) => p.share?.public).map((p) => p.name);
       const said = names.length ? `Tempo can work as: ${names.join(", ")}. ${CANNED.profiles_pick}` : "No profiles are installed yet.";
       return plain(said, { actions: [{ label: "Open Profiles", href: "#/profiles" }] });
     }
     case "letter":
       return plain(CANNED.letter, { actions: [{ label: "Read a letter", href: "#/read" }] });
     case "help":
-      return plain(CANNED.help, { actions: [MISSIONS_ACTION] });
+      return plain(CANNED.help, { actions: [MISSIONS_ACTION], suggestions: [...SUGGESTIONS.doors] });
     default:
-      return plain(CANNED.smalltalk);
+      return plain(CANNED.smalltalk, { suggestions: [...SUGGESTIONS.doors] });
   }
 }

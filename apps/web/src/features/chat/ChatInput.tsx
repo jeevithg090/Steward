@@ -37,7 +37,7 @@ export interface ChatInputProps {
 }
 
 const SHOW_MODEL_FROM = 360;
-const roundBtn = `shrink-0 rounded-full p-2 ${FOCUS}`;
+const roundBtn = `flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${FOCUS}`;
 
 export function ChatInput({
   activeModels,
@@ -136,10 +136,10 @@ export function ChatInput({
   };
 
   const displayError = recorderError || speech.error || error;
-  const hint = speech.listening ? "Listening…" : isReading ? "Reading the letter…" : isSubmitting ? "Thinking…" : placeholder || "Tell me what happened, or ask a question";
+  const hint = speech.listening ? "Listening…" : isReading ? "Reading the letter…" : isSubmitting ? "Thinking…" : placeholder || (width > 0 && width < 640 ? "Tell me what happened" : "Tell me what happened, or ask a question");
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} aria-label="Message Tempo" className="absolute inset-x-0 bottom-0 flex items-center gap-2 rounded-full border border-white/10 bg-nexus-card px-3 py-2 shadow-2xl">
+    <form ref={formRef} onSubmit={handleSubmit} aria-label="Message Tempo" className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-nexus-card px-2 py-1.5 shadow-2xl sm:gap-2 sm:px-3 sm:py-2">
       {displayError && (
         <p role="alert" className="absolute bottom-full left-4 mb-2 max-w-[90%] rounded-lg bg-slate-900/95 px-3 py-1.5 text-xs text-rose-300">
           {displayError}
@@ -223,8 +223,15 @@ export function ChatInput({
           )}
 
           {isMissionRunning && onStop && !speech.listening && (
-            <button type="button" onClick={() => void handleStop()} aria-label="Stop the mission" title="Stop: nothing more will be sent" className={`${roundBtn} bg-rose-600 text-white hover:bg-rose-500`}>
-              <Square size={18} fill="currentColor" aria-hidden />
+            <button
+              type="button"
+              onClick={() => void handleStop()}
+              aria-label="Stop the mission"
+              title="Stop: nothing more will be sent"
+              className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-rose-600 px-3 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-500 ${FOCUS}`}
+            >
+              <Square size={14} fill="currentColor" aria-hidden />
+              Stop
             </button>
           )}
 
