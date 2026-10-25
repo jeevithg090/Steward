@@ -103,7 +103,12 @@ class Settings(BaseSettings):
     # every fact right, in 3 to 6 s.
     chat_brain: Literal["auto", "nvidia", "off"] = "auto"
     nvidia_brain_model: str = "nvidia/nemotron-3-ultra-550b-a55b"
-    brain_timeout_s: float = 15.0
+    brain_timeout_s: float = 25.0  # per model call; a look-up turn makes two (1 to 17 s each)
+    # The brain's look-ups (plan.md §17): OpenStreetMap, Open-Meteo, DuckDuckGo and Wikipedia need
+    # no key. A Tavily or Brave key turns on full web search (news, prices, opening hours).
+    web_tools: bool = True
+    tavily_api_key: SecretStr | None = None
+    brave_api_key: SecretStr | None = None
     openrouter_api_key: SecretStr | None = None
     # Opt-in: an OpenRouter model takes the second seat (e.g. dots-studio/dots-3-note-preview:free:
     # correct, but 17.7 s and about 50 free requests a day; raise JUROR_TIMEOUT_S to 35 with it).

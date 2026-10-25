@@ -279,7 +279,22 @@ export interface ChatReply {
   suggestions?: string[] | null;
   /** What a sweep of the connected places found (plan.md §14.2), for the `sweep` intent. */
   findings?: Finding[] | null;
+  /** Where a looked-up answer came from (plan.md §17): shown as links under the reply. */
+  sources?: ChatSource[] | null;
+  /** What the brain did this turn, with timings (plan.md §17): the reply's steps row. */
+  steps?: ChatStep[] | null;
   simulated: string[];
+}
+
+export interface ChatSource {
+  title: string;
+  url: string;
+}
+
+export interface ChatStep {
+  kind: "think" | "look_up" | "act";
+  label: string;
+  ms: number;
 }
 
 // --- Connectors and MCP (plan.md §14.2) ---------------------------------------------------------

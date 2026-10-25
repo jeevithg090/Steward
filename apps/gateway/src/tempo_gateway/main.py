@@ -71,6 +71,7 @@ from tempo_gateway.memory import Memory, build_memory
 from tempo_gateway.mesh import Mesh, WebPushSender
 from tempo_gateway.missions import MissionService
 from tempo_gateway.shield import ShieldService
+from tempo_gateway.web_tools import WebTools
 from tempo_missions.clawback_rail import ClawbackDeps
 from tempo_missions.court import ConsensusCourt
 from tempo_ports.claims import SimulatedClaims
@@ -202,7 +203,20 @@ def build_brain(settings: Settings) -> Brain | None:
     return Brain(
         httpx.AsyncClient(), api_key=settings.nvidia_api_key.get_secret_value(),
         model=settings.nvidia_brain_model, timeout_s=settings.brain_timeout_s,
+        look_ups=settings.web_tools,
     )  # fmt: skip
+
+
+def build_web_tools(settings: Settings) -> WebTools | None:
+    """The brain's look-ups (plan.md §17): keyless public sources, or a search key when set."""
+    if not settings.web_tools or brain_provider(settings) is None:
+        return None
+    tavily, brave = settings.tavily_api_key, settings.brave_api_key
+    return WebTools(
+        httpx.AsyncClient(),
+        tavily_key=tavily.get_secret_value() if tavily else None,
+        brave_key=brave.get_secret_value() if brave else None,
+    )
 
 
 def build(
@@ -234,7 +248,8 @@ def build(
         mandates=mandates, vision=build_vision(settings),
         greetings=load_greetings(REPO / "voice" / "greetings.yaml"),
         profiles=ProfileCatalog.load(REPO / "profiles", REPO / "skills"),
-        chat_llm=chat_llm, chat_llm_kind=chat_llm_kind, brain=build_brain(settings),
+        chat_llm=chat_llm, chat_llm_kind=chat_llm_kind,
+        brain=build_brain(settings), web=build_web_tools(settings),
     )  # fmt: skip
 
 

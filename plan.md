@@ -761,3 +761,47 @@ Nemotron 3 Ultra".*
 - [x] 14:40 Nemotron kept reading facts back as a question ("Is that all correct?", "Was that 2026?") even when told not to. So a claim whose every fact is already said now starts in code at once, without the model (faster, and the same every time). The model gathers what's missing and does everything else. Markdown replies are flattened, and the label follows what the person asked
 - [x] 14:50 **`make live-test` passed with the brain on the redesigned live site: 21 of 21 through the tunnel and 18 of 18 in the browser.** The live site (tempo-live-ten.vercel.app) and the showcase (tempo-showcase.vercel.app) both run the new design
 - [x] 14:30 Live: the user's own transcript through the public tunnel. "London" got "Trains from Oxford usually arrive at London Paddington or Marylebone. Which one?", the plumber got a kind no, and a journey in pieces started the £14.20 claim. The GPU had gone cold again (a job queued 124 s), so the live demo now runs `cloud-apis`: Nemotron 3 Ultra as the brain, and Gemini plus NVIDIA jurors
+
+---
+
+## 17. Tempo is open to anything: live look-ups (started 15:30)
+
+*Asked: "I want tempo to be open to any so equip web tools etc and everything", then "just use
+nvidia for general task and show its output". From the live site: "find hotels in oxford" got
+"I'm not able to search for hotels", by design until now.*
+
+- **NVIDIA's Nemotron 3 Ultra now answers anything in its own words:** how to make tea, what Delay
+  Repay is, what a web page says. The chat shows what it wrote. The only guards on a general
+  answer:
+  - No markdown symbols; lists become "• " lines.
+  - Never a claim to have done something ("I've booked/filed/paid").
+  - About Tempo's own claims, amounts still come only from the rule packs.
+- **Four look-up tools the model may call** (`web_tools.py`), with up to four rounds per turn:
+
+  | Tool | Source | Key |
+  |---|---|---|
+  | web_search | Tavily or Brave when a key is set; else DuckDuckGo's instant answers and Wikipedia (general knowledge, and it says so) | optional |
+  | find_places | OpenStreetMap Nominatim (UK first): hotels, pharmacies, GPs, cafés, with address, phone and website | none |
+  | weather | Open-Meteo, now and three days | none |
+  | read_web_page | the page, fetched by the Gateway | none |
+
+- **A look-up result is data, never instructions.** The model is told so, and a claim's facts must
+  still be in the person's own words (`grounding.py`), so a page can't start a claim.
+- **`read_web_page` reads only public addresses:**
+  - http(s) on ports 80 and 443.
+  - Every redirect is checked again, and loopback, private, link-local and reserved addresses are refused.
+  - Pages are capped at 1.5 MB and 10 s, and reduced to text.
+- **Under each answer:**
+  - **Sources**, as links to the place's own site.
+  - **"How Tempo got here"**, the steps with their times. This is the turn-trace idea from OpenBot (PolyForm Noncommercial), built from scratch with none of its code.
+- **The voice** reads a long answer's first sentence and "The details are on your screen", which saves the ElevenLabs quota.
+- **Honesty:** `/health` `chat.web` lists the look-up sources.
+
+- [x] 15:30 Google Search grounding through the Gemini key returns 429 (no free quota for grounding), so web search falls back to keyless sources and takes a search key when one is set
+- [x] 16:05 Built and tested:
+  - Look-up and SSRF tests (private addresses, redirects to them, non-web schemes, a page read without scripts or icons), and tests of each source's parsing and failures.
+  - The brain's look-up turn with sources and steps, and the voice's short form.
+  - 1,520 fast, 213 integration and 247 web tests pass.
+- [x] 16:15 Live on tempo-live-ten.vercel.app:
+  - "find hotels in oxford" in 7.3 s: five real hotels with addresses, phones and websites, with sources and steps.
+  - "weather in Oxford tomorrow" in 2.7 s: light rain, 16°C.

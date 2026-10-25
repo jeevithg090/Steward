@@ -7,6 +7,7 @@ import { FindingCard } from "../connectors/FindingCard";
 import { AudioMessage } from "./AudioMessage";
 import { LetterReadingCard } from "./LetterReadingCard";
 import { ScamVerdictCard } from "./ScamVerdictCard";
+import { Sources, StepsRow } from "./TurnTrace";
 import type { ThreadMessage } from "./store";
 
 export const INTENT_WORDS: Record<Intent, string> = {
@@ -105,6 +106,8 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
               </Badge>
             )}
             {message.audio ? <AudioMessage audio={message.audio} /> : <p className="whitespace-pre-wrap leading-relaxed">{shown(message, pendingSummary)}</p>}
+            {message.sources && message.sources.length > 0 && <Sources sources={message.sources} />}
+            {message.steps && message.steps.length > 0 && <StepsRow steps={message.steps} />}
             {message.verdict && <ScamVerdictCard verdict={message.verdict} onFeedback={onFeedback} />}
             {message.letter && <LetterReadingCard reading={message.letter} onSpeak={onSpeak} />}
             {message.memories && message.memories.length > 0 && (

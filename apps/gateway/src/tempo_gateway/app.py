@@ -127,6 +127,7 @@ from tempo_gateway.security import (
 )
 from tempo_gateway.shield import ShieldService, shield_router
 from tempo_gateway.tts import tts_router
+from tempo_gateway.web_tools import WebTools
 from tempo_memory.entities import VoiceSet
 from tempo_memory.extract import extract_candidates
 from tempo_memory.service import MemoryCard, NeedsConsent, say_recalled
@@ -268,6 +269,7 @@ def create_app(
     chat_llm: Callable[[str], Awaitable[str | None]] | None = None,  # phrases small talk only
     chat_llm_kind: str | None = None,  # what /health says phrases it: "ollama", "cortex", …
     brain: Brain | None = None,  # the chat's brain: a language model holds the conversation
+    web: WebTools | None = None,  # the brain's look-ups (web_tools.py)
     http: httpx.AsyncClient | None = None,  # for /voice/tts; tests inject a mocked one
 ) -> FastAPI:
     @asynccontextmanager
@@ -351,7 +353,8 @@ def create_app(
             "clock_offset_days": demo_clock.offset_days if demo_clock else 0,
             # what phrases small talk (replay, off, or the model) and what holds the conversation
             "chat": {"llm": small_talk}
-            | ({"brain": f"{brain.provider}:{brain.model}"} if brain else {}),
+            | ({"brain": f"{brain.provider}:{brain.model}"} if brain else {})
+            | ({"web": web.providers} if web and brain else {}),
             # e.g. our own model on a RunPod GPU (plan.md §13), else null; with whether it answers
             "model": (
                 model | (service.model_status.view() if service.model_status else {})
@@ -998,7 +1001,7 @@ def create_app(
         chat_router(
             service, web_caller, shield=shield, memory=memory, profiles=profiles,
             settings=settings, bus=bus, llm_say=chat_llm, simulated=simulated, mesh=mesh,
-            connectors=connectors, brain=brain,
+            connectors=connectors, brain=brain, web=web,
         )
     )  # fmt: skip
     # Tempo as an MCP server (plan.md §14): any MCP client may ask; none can approve (mcp_server.py)

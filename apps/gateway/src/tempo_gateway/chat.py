@@ -53,7 +53,7 @@ from tempo_core.models import MissionState
 from tempo_core.profiles import ProfileCatalog
 from tempo_core.readability import flesch_reading_ease
 from tempo_gateway import grounding
-from tempo_gateway.brain import Act, Brain, Line, Say, said_ok
+from tempo_gateway.brain import Act, Brain, Line, Say, plain, said_ok
 from tempo_gateway.connectors import ConnectorHub, places
 from tempo_gateway.engines import OFCOM, RAIL
 from tempo_gateway.events import EventBus
@@ -70,6 +70,7 @@ from tempo_gateway.missions import (
     profile_refusal,
 )
 from tempo_gateway.shield import ShieldService
+from tempo_gateway.web_tools import WebTools
 from tempo_memory.service import say_recalled
 from tempo_missions.clawback_rail import SignedApproval
 
@@ -237,6 +238,8 @@ class ChatReply(BaseModel):
     actions: list[Action] | None = None
     suggestions: list[str] | None = None  # things to say next, as chips (plan.md §12.2)
     findings: list[dict[str, Any]] | None = None  # a sweep's findings (plan.md §14.2)
+    sources: list[dict[str, str]] | None = None  # where a looked-up answer came from (§17)
+    steps: list[dict[str, Any]] | None = None  # what the brain did this turn, with timings (§17)
     simulated: list[str] = []
 
 
@@ -307,6 +310,7 @@ class Chat:
         replay: bool = False,
         connectors: ConnectorHub | None = None,
         brain: Brain | None = None,
+        web: WebTools | None = None,
     ) -> None:
         self.service, self.shield, self.memory, self.profiles = service, shield, memory, profiles
         self.bus, self.llm_say, self.today = bus, llm_say, today
@@ -315,6 +319,7 @@ class Chat:
         self.replay = replay  # replay mode: the rail records are the recorded demo journeys
         self.connectors = connectors  # the sweep: what her email, calendar and bank show
         self.brain = brain  # a language model holds the conversation; code still acts (brain.py)
+        self.web = web  # the brain's look-ups: search, places, weather, a page (web_tools.py)
 
     async def turn(self, body: ChatTurn, caller: str) -> ChatReply:
         missions = [
@@ -363,9 +368,11 @@ class Chat:
         name, language, today = body.display_name, body.language, self.today()
         topic = self._topic(body)
         try:
-            decision = await self.brain.decide(
-                history, body.text, name=name, language=language, today=today
+            look_up = self.web.run if self.web is not None else None
+            turn = await self.brain.converse(
+                history, body.text, name=name, language=language, today=today, look_up=look_up
             )
+            decision = turn.said
             if isinstance(decision, Act):
                 done = await self._act(decision, body, caller, known, missions, pending)
                 if isinstance(done, ChatReply):
@@ -384,7 +391,8 @@ class Chat:
         except Exception as exc:  # a model that fails must never fail the chat
             log.warning("brain_failed", error_code=type(exc).__name__)
             return None
-        said = said_ok(decision.text)
+        about_a_claim = topic in (Intent.RAIL_DELAY, Intent.MISSED_VISIT)
+        said = said_ok(decision.text, about_a_claim=about_a_claim)
         if said is None:
             log.warning("brain_said_unsafe")
             return None
@@ -394,7 +402,11 @@ class Chat:
         if topic in (Intent.RAIL_DELAY, Intent.MISSED_VISIT):
             found = extract(body.text, today=today, intent=topic)
             slots = merge(known, _aimed(known, found, body.text, topic))
-        return ChatReply(intent=topic, reply=said, say=said, slots=slots.model_dump())
+        return ChatReply(
+            intent=topic, reply=said, say=spoken(said), slots=slots.model_dump(),
+            sources=[{"title": s.title, "url": s.url} for s in turn.sources] or None,
+            steps=[{"kind": s.kind, "label": s.label, "ms": s.ms} for s in turn.steps] or None,
+        )  # fmt: skip
 
     def _complete(self, intent: Intent, body: ChatTurn, known: Slots) -> bool:
         """Every fact this claim needs is in the person's words (this turn and earlier ones)."""
@@ -736,6 +748,22 @@ class Chat:
         return said or CANNED["smalltalk"]
 
 
+MAX_SPOKEN = 280  # characters read aloud; longer answers are on the screen (and save voice quota)
+ON_SCREEN = "The details are on your screen."
+
+
+def spoken(said: str) -> str:
+    """What the voice reads: the whole answer when short, else its first sentence and a pointer to
+    the screen (a list of places read aloud is hard to follow, and costs voice quota)."""
+    text = plain(said)
+    if len(text) <= MAX_SPOKEN:
+        return text
+    first = re.split(r"(?<=[.!?])\s", text, maxsplit=1)[0]
+    if len(first) > MAX_SPOKEN:
+        first = first[:MAX_SPOKEN].rsplit(" ", 1)[0] + "…"
+    return f"{first} {ON_SCREEN}"
+
+
 def _aimed(known: Slots, found: Slots, text: str, intent: Intent) -> Slots:
     """An answer to the one question fills the slot that was asked: a lone station after the
     origin is known is the destination; a bare number when the fare is missing is the fare."""
@@ -821,6 +849,7 @@ def chat_router(
     mesh: Mesh | None = None,
     connectors: ConnectorHub | None = None,
     brain: Brain | None = None,
+    web: WebTools | None = None,
 ) -> APIRouter:
     """`today` defaults to the service clock's London date, so the demo clock moves "yesterday"
     too; `simulated` defaults to what `/health` shows for these settings. With `mesh`, a person
@@ -832,7 +861,8 @@ def chat_router(
         service, shield=shield, memory=memory, profiles=profiles, bus=bus, llm_say=llm_say,
         today=today or (lambda: service.deps.clock().astimezone(LONDON).date()),
         simulated=simulated if simulated is not None else simulated_in(settings),
-        mesh=mesh, replay=settings.tempo_mode == "replay", connectors=connectors, brain=brain,
+        mesh=mesh, replay=settings.tempo_mode == "replay", connectors=connectors,
+        brain=brain, web=web,
     )  # fmt: skip
 
     @router.post("/chat")

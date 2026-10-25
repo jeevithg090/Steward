@@ -134,6 +134,8 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
         ledger: reply.ledger ?? undefined,
         flags: reply.flags ?? undefined,
         findings: reply.findings?.length ? reply.findings : undefined,
+        sources: reply.sources?.length ? reply.sources : undefined,
+        steps: reply.steps?.length ? reply.steps : undefined,
         actions: reply.actions ?? undefined,
         simulated: firstAgent && reply.simulated?.length ? reply.simulated : undefined,
         suggestions: reply.suggestions?.length ? reply.suggestions.slice(0, 4) : undefined,

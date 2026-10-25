@@ -75,6 +75,7 @@ def brain(
         )
         mock.route(host="testserver").pass_through()
         with TestClient(build(settings)) as client:
+            client.respx = mock  # type: ignore[attr-defined]  # for a look-up's stand-in
             yield client, route, script
 
 
@@ -236,3 +237,49 @@ def test_a_place_alone_is_not_labelled_a_claim_and_notes_no_journey(brain: Any) 
     reply = chat(client, "find hotels in oxford")
     assert reply["intent"] == "smalltalk"
     assert reply["slots"].get("origin_crs") is None
+
+
+def test_the_brain_looks_things_up_and_shows_where_its_answer_came_from(brain: Any) -> None:
+    """Asked on the live site: "find hotels in oxford". Tempo is open to anything now (plan.md §17)."""
+    client, route, script = brain
+    nominatim = client.respx.get("https://nominatim.openstreetmap.org/search").mock(
+        return_value=httpx.Response(200, json=[{
+            "name": "The Buttery Hotel", "type": "hotel", "osm_type": "way", "osm_id": 1,
+            "display_name": "The Buttery Hotel, 11 Broad Street, Oxford",
+            "extratags": {"website": "https://www.thebutteryhotel.co.uk/"},
+        }])
+    )  # fmt: skip
+
+    def model(body: dict[str, Any]) -> httpx.Response:
+        if body["messages"][-1]["role"] == "tool":  # it has read what the look-up found
+            assert "The Buttery Hotel" in body["messages"][-1]["content"]
+            return says(
+                "OpenStreetMap lists:\n- The Buttery Hotel, 11 Broad Street. Rooms from about £120."
+            )
+        assert {t["function"]["name"] for t in body["tools"]} >= {
+            "web_search",
+            "find_places",
+            "weather",
+        }
+        return calls("find_places", {"what": "hotel", "where": "Oxford"})
+
+    script[0] = model
+    reply = chat(client, "find hotels in oxford")
+
+    assert nominatim.called and route.call_count == 2
+    assert reply["intent"] == "smalltalk" and reply["mission"] is None
+    assert (
+        reply["reply"]
+        == "OpenStreetMap lists:\n• The Buttery Hotel, 11 Broad Street. Rooms from about £120."
+    )
+    assert "\n" not in reply["say"]  # the voice gets one paragraph
+    assert reply["sources"] == [
+        {"title": "The Buttery Hotel", "url": "https://www.thebutteryhotel.co.uk/"}
+    ]
+    assert [s["kind"] for s in reply["steps"]] == ["think", "look_up", "think"]
+    assert client.get("/health").json()["chat"]["web"] == [
+        "duckduckgo",
+        "wikipedia",
+        "openstreetmap",
+        "open-meteo",
+    ]
