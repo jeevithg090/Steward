@@ -916,3 +916,50 @@ for completed and read. Rename Profiles to Summary.*
 - Web unit tests: the status rules, the L key (and that it doesn't fire while typing), the sidebar order, the in-chat tools, and the PDF attach.
 - Gateway tests: a PDF letter goes to vision as `application/pdf`, and the GPU reader refuses a PDF in plain words.
 - Then `make check`, the web suite, the live site redeployed, and a look at it.
+
+### 19.5 Done (25 Oct)
+
+- [x] **955e947:** the simpler app and PDF letters.
+  - Checks: 258 web tests (now 259), 1,550 fast and 219 integration tests.
+  - Deployed to tempo-live-ten.vercel.app.
+  - Seen in the browser:
+    - The sidebar order is right.
+    - L shows and hides the extra pages.
+    - The owed questions and the scam check open as cards in the chat.
+- [x] **9ef0392:** Tempo's voice on the real site.
+  - **The mic muted Tempo for good.** It set the avatar's volume to 0 and never back, so every later reply was skipped. Now the mic only stops Tempo mid-sentence.
+  - **Safari could hang.** The audio context could wait for ever in Safari. Now it's unlocked on the first click or key press, with the browser's voice as a fallback.
+  - **Live:** the Gateway gave ElevenLabs clips for every reply, and the free quota has used 4,610 of 10,000 characters.
+
+## 20. A missed train, end to end on the live site (25 Oct)
+
+*Asked: "test if this feature will work no mock fully real: if you missed a train … the agent
+will do it on your behalf in your personal way, hosted locally".*
+
+- **Real:**
+  - NVIDIA Nemotron 3 Ultra holds the conversation.
+  - Three jurors (Gemini 3.5 Flash-Lite and NVIDIA's Nemotron Bolt and MiniMax) check every claim.
+  - GWR's Delay Repay rule pack works out the amount, and the Proof Trace records how.
+  - The ElevenLabs voice reads the replies.
+  - Tempo's memory of the person ("has a stammer", "needs more time to answer").
+  - The Gateway runs on this Mac and is reached by a Cloudflare tunnel.
+- **Still simulated, and labelled so on every page:**
+  - **The train company:** "GW" receives the claim and pays it. GWR has no public API for filing Delay Repay, and filing for real would need the person's own ticket, account and say-so.
+  - **The rail data:** recorded journeys. Real data needs a Realtime Trains or HSP account, and the live adapter (`rail/live.py`) is ready for a `RTT_TOKEN`.
+- **The run:** "My 17:42 train from Oxford to London on 23 October got cancelled … The ticket was £28.40. I don't know what to do about it."
+  - **First try:** it asked "which London station?", then the jurors said "not covered" (3/3).
+    - **Cause:** the jurors were told the train arrived "0 minutes late", and their rule text never mentioned cancellations.
+    - **Fix 497783b:** the rule text includes the cancellation clause, and an unknown delay is never sent as 0. "London" from Oxford is Paddington.
+  - **Second try:** NVIDIA asked the person to confirm what they had just said and repeated the fare, so its words were held back. The rule-based path then asked "Where were you going?".
+    - **Fix e965eed:** the London terminus is now in `tempo_core.intent`, so a complete claim starts in code with no question.
+  - **Third try, one message:**
+    1. Tempo worked it out and the jurors agreed. It asked for the yes: £28.40, 100% of the fare.
+    2. After the yes: "Claim filed. I'll check the payment has arrived".
+    3. Then "GW (a simulated company) has paid you £28.40 (reference GW-13876). That's 20 minutes of your time back."
+    4. "Returned so far" went from £28.40 to £56.80, and History's dot went yellow, then grey.
+    5. Memory now holds the reference and the outcome.
+    6. ElevenLabs read each reply.
+  - **Fix 7ec4639:** the ask said "120 min late" for a cancelled train. It now says "Cancelled → 100% of £28.40 under GWR DR15" (live, 4.5 s).
+- **Left as it is:** NVIDIA still asks people to confirm facts they have just given, despite the prompt.
+  - When every fact is said, code starts the claim, so this only matters for half-said claims.
+  - **A later fix:** let the brain's words repeat an amount the person said themselves. That code is in `chat.py`, which another session is editing.
