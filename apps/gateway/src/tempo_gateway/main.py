@@ -52,6 +52,7 @@ from tempo_adapters.telemetry import (
     trace_url,
 )
 from tempo_adapters.vision import GeminiVision, OpenAIVision, ReplayVision
+from tempo_core.delays import LONDON
 from tempo_core.entitlement import Figures
 from tempo_core.hazard import load_hazards
 from tempo_core.profiles import ProfileCatalog
@@ -71,7 +72,8 @@ from tempo_gateway.memory import Memory, build_memory
 from tempo_gateway.mesh import Mesh, WebPushSender
 from tempo_gateway.missions import MissionService
 from tempo_gateway.shield import ShieldService
-from tempo_gateway.web_tools import WebTools
+from tempo_gateway.tools import AddonHub, Toolbox
+from tempo_gateway.tools.addons import load_specs
 from tempo_missions.clawback_rail import ClawbackDeps
 from tempo_missions.court import ConsensusCourt
 from tempo_ports.claims import SimulatedClaims
@@ -195,28 +197,27 @@ def build_chat_llm(
     return say, adapters.model.kind
 
 
-def build_brain(settings: Settings) -> Brain | None:
+def build_toolbox(settings: Settings, today: Callable[[], date]) -> Toolbox | None:
+    """The brain's look-ups (plan.md §17): native tools over public sources, plus the MCP add-ons
+    in addons/tools.yaml. A search key, when set, adds open-web search of its own."""
+    if not settings.web_tools or brain_provider(settings) is None:
+        return None
+    tavily, brave = settings.tavily_api_key, settings.brave_api_key
+    keys = {"tavily": tavily.get_secret_value() if tavily else "",
+            "brave": brave.get_secret_value() if brave else ""}  # fmt: skip
+    addons = AddonHub(load_specs(REPO / "addons" / "tools.yaml")) if settings.addons else None
+    return Toolbox(httpx.AsyncClient(), today=today, keys=keys, addons=addons)
+
+
+def build_brain(settings: Settings, toolbox: Toolbox | None = None) -> Brain | None:
     """The chat's brain (plan.md §16): NVIDIA's model holds the conversation when its key is set
     and the models are live; otherwise the rules answer alone, as before."""
     if brain_provider(settings) != "nvidia" or settings.nvidia_api_key is None:
         return None
     return Brain(
         httpx.AsyncClient(), api_key=settings.nvidia_api_key.get_secret_value(),
-        model=settings.nvidia_brain_model, timeout_s=settings.brain_timeout_s,
-        look_ups=settings.web_tools,
+        model=settings.nvidia_brain_model, timeout_s=settings.brain_timeout_s, toolbox=toolbox,
     )  # fmt: skip
-
-
-def build_web_tools(settings: Settings) -> WebTools | None:
-    """The brain's look-ups (plan.md §17): keyless public sources, or a search key when set."""
-    if not settings.web_tools or brain_provider(settings) is None:
-        return None
-    tavily, brave = settings.tavily_api_key, settings.brave_api_key
-    return WebTools(
-        httpx.AsyncClient(),
-        tavily_key=tavily.get_secret_value() if tavily else None,
-        brave_key=brave.get_secret_value() if brave else None,
-    )
 
 
 def build(
@@ -235,6 +236,7 @@ def build(
         service.deps.repo, service.deps.clock, public_url=settings.public_url,
         signing_key=gateway_key(seed.get_secret_value() if seed else None),
     )  # fmt: skip
+    toolbox = build_toolbox(settings, lambda: service.deps.clock().astimezone(LONDON).date())
     chat_llm, chat_llm_kind = build_chat_llm(settings, service.model_status)
     return create_app(
         service, settings, bus, memory=memory, mesh=build_mesh(settings, service.deps.clock),
@@ -249,7 +251,7 @@ def build(
         greetings=load_greetings(REPO / "voice" / "greetings.yaml"),
         profiles=ProfileCatalog.load(REPO / "profiles", REPO / "skills"),
         chat_llm=chat_llm, chat_llm_kind=chat_llm_kind,
-        brain=build_brain(settings), web=build_web_tools(settings),
+        brain=build_brain(settings, toolbox), toolbox=toolbox,
     )  # fmt: skip
 
 

@@ -70,7 +70,6 @@ from tempo_gateway.missions import (
     profile_refusal,
 )
 from tempo_gateway.shield import ShieldService
-from tempo_gateway.web_tools import WebTools
 from tempo_memory.service import say_recalled
 from tempo_missions.clawback_rail import SignedApproval
 
@@ -310,7 +309,6 @@ class Chat:
         replay: bool = False,
         connectors: ConnectorHub | None = None,
         brain: Brain | None = None,
-        web: WebTools | None = None,
     ) -> None:
         self.service, self.shield, self.memory, self.profiles = service, shield, memory, profiles
         self.bus, self.llm_say, self.today = bus, llm_say, today
@@ -319,7 +317,6 @@ class Chat:
         self.replay = replay  # replay mode: the rail records are the recorded demo journeys
         self.connectors = connectors  # the sweep: what her email, calendar and bank show
         self.brain = brain  # a language model holds the conversation; code still acts (brain.py)
-        self.web = web  # the brain's look-ups: search, places, weather, a page (web_tools.py)
 
     async def turn(self, body: ChatTurn, caller: str) -> ChatReply:
         missions = [
@@ -368,9 +365,8 @@ class Chat:
         name, language, today = body.display_name, body.language, self.today()
         topic = self._topic(body)
         try:
-            look_up = self.web.run if self.web is not None else None
             turn = await self.brain.converse(
-                history, body.text, name=name, language=language, today=today, look_up=look_up
+                history, body.text, name=name, language=language, today=today
             )
             decision = turn.said
             if isinstance(decision, Act):
@@ -849,7 +845,6 @@ def chat_router(
     mesh: Mesh | None = None,
     connectors: ConnectorHub | None = None,
     brain: Brain | None = None,
-    web: WebTools | None = None,
 ) -> APIRouter:
     """`today` defaults to the service clock's London date, so the demo clock moves "yesterday"
     too; `simulated` defaults to what `/health` shows for these settings. With `mesh`, a person
@@ -862,7 +857,7 @@ def chat_router(
         today=today or (lambda: service.deps.clock().astimezone(LONDON).date()),
         simulated=simulated if simulated is not None else simulated_in(settings),
         mesh=mesh, replay=settings.tempo_mode == "replay", connectors=connectors,
-        brain=brain, web=web,
+        brain=brain,
     )  # fmt: skip
 
     @router.post("/chat")

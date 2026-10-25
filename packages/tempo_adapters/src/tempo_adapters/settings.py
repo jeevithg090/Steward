@@ -107,6 +107,7 @@ class Settings(BaseSettings):
     # The brain's look-ups (plan.md §17): OpenStreetMap, Open-Meteo, DuckDuckGo and Wikipedia need
     # no key. A Tavily or Brave key turns on full web search (news, prices, opening hours).
     web_tools: bool = True
+    addons: bool = True  # the MCP add-ons in addons/tools.yaml (started with uvx)
     tavily_api_key: SecretStr | None = None
     brave_api_key: SecretStr | None = None
     openrouter_api_key: SecretStr | None = None

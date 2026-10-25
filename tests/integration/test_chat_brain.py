@@ -67,6 +67,7 @@ def brain(
         _env_file=None, tempo_mode="replay", tempo_demo=True, tempo_api_token=TOKEN,
         checkpoint_dir=str(tmp_path / "cp"), mesh_file=str(tmp_path / "mesh.json"),
         payment_check_after_s=0, chat_brain="nvidia", nvidia_api_key="nv-test",
+        addons=False,  # tests/integration/test_addons.py starts a real add-on; none here
     )  # fmt: skip
     script: list[Script] = [lambda body: says("Hello, I'm Tempo.")]
     with respx.mock(assert_all_called=False) as mock:
@@ -257,7 +258,7 @@ def test_the_brain_looks_things_up_and_shows_where_its_answer_came_from(brain: A
                 "OpenStreetMap lists:\n- The Buttery Hotel, 11 Broad Street. Rooms from about £120."
             )
         assert {t["function"]["name"] for t in body["tools"]} >= {
-            "web_search",
+            "calculate",
             "find_places",
             "weather",
         }
@@ -277,9 +278,5 @@ def test_the_brain_looks_things_up_and_shows_where_its_answer_came_from(brain: A
         {"title": "The Buttery Hotel", "url": "https://www.thebutteryhotel.co.uk/"}
     ]
     assert [s["kind"] for s in reply["steps"]] == ["think", "look_up", "think"]
-    assert client.get("/health").json()["chat"]["web"] == [
-        "duckduckgo",
-        "wikipedia",
-        "openstreetmap",
-        "open-meteo",
-    ]
+    tools = client.get("/health").json()["chat"]["tools"]
+    assert tools["count"] >= 17 and "openstreetmap" in tools["sources"]

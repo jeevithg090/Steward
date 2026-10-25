@@ -52,7 +52,10 @@ TUNNEL: str = RUN["tunnel"]
 SITE: str = RUN["site"]
 AUTH = {"Authorization": f"Bearer {TOKEN}"}
 # Which AI the running Gateway uses: our own model on the GPU, or Gemini and OpenRouter.
-DEPLOY: str = httpx.get(f"{TUNNEL}/health", timeout=60).json()["deploy"]
+try:
+    DEPLOY: str = httpx.get(f"{TUNNEL}/health", timeout=60).json()["deploy"]
+except (httpx.HTTPError, ValueError, KeyError):  # stopped, or mid-restart: skip, never fail
+    pytest.skip(f"the live demo at {TUNNEL} isn't answering", allow_module_level=True)
 ON_GPU = DEPLOY == "cloud-gpu"
 needs_gpu = pytest.mark.skipif(not ON_GPU, reason=f"the live demo runs {DEPLOY}, not the GPU")
 

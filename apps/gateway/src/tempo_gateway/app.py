@@ -126,8 +126,8 @@ from tempo_gateway.security import (
     twilio_signature_ok,
 )
 from tempo_gateway.shield import ShieldService, shield_router
+from tempo_gateway.tools import Toolbox
 from tempo_gateway.tts import tts_router
-from tempo_gateway.web_tools import WebTools
 from tempo_memory.entities import VoiceSet
 from tempo_memory.extract import extract_candidates
 from tempo_memory.service import MemoryCard, NeedsConsent, say_recalled
@@ -269,7 +269,7 @@ def create_app(
     chat_llm: Callable[[str], Awaitable[str | None]] | None = None,  # phrases small talk only
     chat_llm_kind: str | None = None,  # what /health says phrases it: "ollama", "cortex", …
     brain: Brain | None = None,  # the chat's brain: a language model holds the conversation
-    web: WebTools | None = None,  # the brain's look-ups (web_tools.py)
+    toolbox: Toolbox | None = None,  # the brain's look-ups (tools/): started and stopped here
     http: httpx.AsyncClient | None = None,  # for /voice/tts; tests inject a mocked one
 ) -> FastAPI:
     @asynccontextmanager
@@ -286,9 +286,13 @@ def create_app(
         await service.recover()  # re-emit what paused missions were waiting for
         if scheduler_interval_s is not None:
             tasks.append(asyncio.create_task(run_scheduler(service, scheduler_interval_s)))
+        if toolbox is not None:  # the add-ons start in the background; native tools are ready now
+            tasks.append(asyncio.create_task(toolbox.warm()))
         yield
         for task in tasks:
             task.cancel()
+        if toolbox is not None:
+            await toolbox.close()
 
     app = FastAPI(title="Tempo Gateway", version="0.1.0", lifespan=lifespan)
     app.add_middleware(
@@ -354,7 +358,11 @@ def create_app(
             # what phrases small talk (replay, off, or the model) and what holds the conversation
             "chat": {"llm": small_talk}
             | ({"brain": f"{brain.provider}:{brain.model}"} if brain else {})
-            | ({"web": web.providers} if web and brain else {}),
+            | (
+                {"tools": {"count": len(toolbox.names), "sources": toolbox.providers}}
+                if toolbox and brain
+                else {}
+            ),
             # e.g. our own model on a RunPod GPU (plan.md §13), else null; with whether it answers
             "model": (
                 model | (service.model_status.view() if service.model_status else {})
@@ -1001,7 +1009,7 @@ def create_app(
         chat_router(
             service, web_caller, shield=shield, memory=memory, profiles=profiles,
             settings=settings, bus=bus, llm_say=chat_llm, simulated=simulated, mesh=mesh,
-            connectors=connectors, brain=brain, web=web,
+            connectors=connectors, brain=brain,
         )
     )  # fmt: skip
     # Tempo as an MCP server (plan.md §14): any MCP client may ask; none can approve (mcp_server.py)

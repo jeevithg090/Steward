@@ -805,3 +805,64 @@ nvidia for general task and show its output". From the live site: "find hotels i
 - [x] 16:15 Live on tempo-live-ten.vercel.app:
   - "find hotels in oxford" in 7.3 s: five real hotels with addresses, phones and websites, with sources and steps.
   - "weather in Oxford tomorrow" in 2.7 s: light rain, 16°C.
+
+## 18. Many tools: a native toolbox and MCP add-ons (25 Oct)
+
+*Asked: "equip our agent to so many of such tools that nvidia can use based on what user asks",
+then "search any github repo which will have this add on so its easy to implement that add on to
+our agent".*
+
+- **`web_tools.py` became a package, `tools/`,** with one small function per look-up over a public
+  source, and no keys. NVIDIA picks the tools it needs (up to four rounds a turn).
+
+  | Area | Tools | Source |
+  |---|---|---|
+  | Places | find_places, directions (walk, bike, drive), food_hygiene | OpenStreetMap Nominatim and FOSSGIS Valhalla; the Food Standards Agency |
+  | Everyday | weather, air_quality (pollen too), news, currency, define_word, recipe | Open-Meteo, BBC News RSS, the ECB via Frankfurter, dictionaryapi.dev, TheMealDB |
+  | UK | postcode_info, my_mp, bank_holidays, flood_warnings, tube_status | postcodes.io, UK Parliament, GOV.UK, the Environment Agency, TfL |
+  | Knowledge | encyclopedia, read_web_page, web_search (only with a Tavily or Brave key) | Wikipedia, the page itself |
+  | Exact | calculate, dates | Tempo: a safe AST calculator, never `eval` |
+
+- **Add-ons from GitHub** (`addons/tools.yaml`): any MCP server can lend its tools through the MCP
+  bridge (`tools/addons.py`). Three are plugged in:
+
+  | Add-on | Repo | Licence | Tools lent |
+  |---|---|---|---|
+  | DuckDuckGo search | nickclyde/duckduckgo-mcp-server, pinned 0.7.0 | MIT | search (UK region, moderate safe search) |
+  | Time | modelcontextprotocol/servers `src/time`, pinned 2026.10.19 | MIT | get_current_time, convert_time |
+  | OpenStreetMap | jagan-shanmugam/open-streetmap-mcp, pinned 0.1.1 | MIT | geocode_address, reverse_geocode |
+
+- **How the add-ons are kept safe:**
+  - Each one is pinned to a version and runs through `uvx`.
+  - Its environment is stripped to PATH, HOME and its own settings, so no Gateway key ever reaches it.
+  - It lends only the tools on its allowlist, named `<id>_<tool>`, with a 20 s limit per call.
+  - An add-on that fails to start is left out, and the rest still work.
+  - Like every look-up, its results are data, never instructions.
+- **Adding one** is a few lines of YAML (the file's header says how). Review its code first.
+- **Directions:**
+  - The OSM add-on routes only by car (the public OSRM demo), so it said "7 minutes" for a 2.4 km walk.
+  - FOSSGIS's OSRM foot router fixed the time, but Oxford's pavements are mapped as separate unnamed ways, so it gave turns with no street names and the model filled the gaps from memory.
+  - The `directions` tool now uses Valhalla, the router openstreetmap.org offers, with walking set to prefer named streets over pavements. Every street it names comes from the router.
+  - The brain is told to name only the streets a tool gives and to offer the map link.
+- **Honesty:** `/health` `chat.tools` gives the count and the sources (it replaces `chat.web`).
+- **The live tests** skip, not fail, when the live Gateway isn't answering (mid-restart).
+
+- [x] Built and tested:
+  - About 45 toolbox tests: every native tool against a stand-in, the SSRF guard, and the calculator's sums and refusals.
+  - The add-on bridge, run against Tempo's own calendar MCP server. An unlisted tool is never offered, a missing server is left out, and the shipped add-ons are pinned and allowlisted.
+  - 1,548 fast and 217 integration tests pass, with ruff, format and mypy clean.
+- [x] Live on tempo-live-ten.vercel.app, with 23 tools from 15 sources:
+
+  | Question | Time | Answer |
+  |---|---|---|
+  | India's time now | 3.5 s | Correct |
+  | The MP for OX1 3DA | 3.2 s | Correct |
+  | The Central line | — | Good service |
+  | 15% of £240 | 2.4 s | £36, via calculate |
+  | Botanic Garden opening hours | — | Correct, via DuckDuckGo plus reading the page |
+  | Pollen in Oxford | — | Correct |
+  | BBC headlines | — | Correct |
+  | Pret's food hygiene ratings | — | 5/5 |
+  | The next bank holiday | — | Christmas Day |
+  | Walking from Oxford station to the Radcliffe Camera | 4.3 s | 17 min and 1.4 km, via Park End Street, New Road, Queen Street, Carfax, High Street and St Mary's Passage |
+  | Cycling from the station to Headington | — | 20 min and 5.7 km |

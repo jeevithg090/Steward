@@ -1,0 +1,60 @@
+# Add-on tools for Tempo's brain (plan.md §17, apps/gateway/src/tempo_gateway/tools/addons.py).
+#
+# Each entry is an open-source MCP server the Gateway starts over stdio when it starts. Only the
+# tools listed under `tools` are offered to the model, as `<id>_<tool>`. A tool may override the
+# server's description and set the line it adds to the reply's steps (`{arg}` fills in).
+#
+# To add one:
+#   1. Pick a read-only server, e.g. from https://github.com/punkpeye/awesome-mcp-servers.
+#   2. Read its code (what it contacts, what it reads and writes).
+#   3. Check its licence, and pin its version.
+#   4. List only the tools Tempo should have, and restart the Gateway.
+# Add-ons get PATH, HOME and their own `env`; never the Gateway's keys. Their code is not in this
+# repository: `uvx` fetches the pinned package.
+
+addons:
+  - id: ddg
+    name: DuckDuckGo search
+    repo: https://github.com/nickclyde/duckduckgo-mcp-server
+    license: MIT
+    command: uvx
+    args: ["duckduckgo-mcp-server==0.7.0"]
+    env: { DDG_REGION: uk-en, DDG_SAFE_SEARCH: MODERATE }
+    provider: duckduckgo
+    tools:
+      search:
+        description: "Search the web (DuckDuckGo) for facts, news, prices, opening times, phone numbers or how to do something."
+        label: "Searched the web for “{query}”"
+
+  - id: time
+    name: the time server
+    repo: https://github.com/modelcontextprotocol/servers/tree/main/src/time
+    license: MIT
+    command: uvx
+    args: ["mcp-server-time==2026.10.19", "--local-timezone=Europe/London"]
+    provider: modelcontextprotocol time
+    tools:
+      get_current_time:
+        description: "The current time and day in a time zone (IANA name, e.g. Asia/Kolkata, America/New_York)."
+        label: "Checked the time in {timezone}"
+      convert_time:
+        description: "Convert a time (HH:MM) from one time zone to another (IANA names)."
+        label: "Converted {time} from {source_timezone} to {target_timezone}"
+
+  - id: osm
+    name: OpenStreetMap
+    repo: https://github.com/jagan-shanmugam/open-streetmap-mcp
+    license: MIT
+    command: uvx
+    # The server was written for the MCP SDK 1.x. Its Overpass tools (nearby, parking, EV) return
+    # 406 today, and its directions use a driving-only router, so only geocoding is used; walking,
+    # cycling and driving directions are the native `directions` tool (tools/places.py).
+    args: ["--with", "mcp<2", "osm-mcp-server==0.1.1"]
+    provider: openstreetmap
+    tools:
+      geocode_address:
+        description: "Find the coordinates and full address of a place or address."
+        label: "Found “{address}” on OpenStreetMap"
+      reverse_geocode:
+        description: "The address at some coordinates."
+        label: "Found the address on OpenStreetMap"
