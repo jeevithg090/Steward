@@ -83,6 +83,7 @@ from tempo_core.voice_profile import VoiceProfile, how_to_speak, profile_from, t
 from tempo_crypto.vault import VaultStore
 from tempo_gateway.chat import chat_router, simulated_in
 from tempo_gateway.clock import DemoClock
+from tempo_gateway.engines import OFCOM, RAIL
 from tempo_gateway.events import EventBus
 from tempo_gateway.letters import letters_router, payee_router
 from tempo_gateway.mandates import MandateService, NoSigningKey
@@ -102,6 +103,7 @@ from tempo_gateway.missions import (
     StartMission,
     StartOfcom,
     UnknownRequest,
+    profile_refusal,
 )
 from tempo_gateway.privacy import privacy_proof
 from tempo_gateway.profiles import profiles_router
@@ -279,6 +281,8 @@ def create_app(
     if mandates is not None:  # STOP revokes every mandate; Mission Control sees the newest
         service.on_stop = mandates.revoke_all
         service.mandate_summary = mandates.summary
+    if profiles is not None:  # the claim guard enforces the same profiles the routes check
+        service.profiles = profiles
     clock = service.deps.clock
     demo_clock = clock if isinstance(clock, DemoClock) and settings.tempo_demo else None
     simulated = simulated_in(settings)  # the honesty badge's list, shared with /chat
@@ -359,20 +363,37 @@ def create_app(
             "gbp_recovered": str(totals.gbp_recovered.quantize(Decimal("0.01"))),
         }
 
-    def profile_known(profile_id: str | None) -> None:
-        """A mission may name a Tempo Profile; an unknown one is refused before anything starts."""
+    def profile_allows(profile_id: str | None, skill_id: str) -> None:
+        """A mission may name a Tempo Profile. An unknown one, or one whose `may` lacks what the
+        skill needs, is refused with 422 before anything starts; the detail is plain words."""
         if profile_id is not None and (profiles is None or profiles.get(profile_id) is None):
             raise HTTPException(422, f"no profile called {profile_id!r} is installed")
+        reason = profile_refusal(profiles, profile_id, skill_id)
+        if reason is not None:
+            raise HTTPException(422, reason)
 
     @app.post("/missions", status_code=201)
-    async def create_mission(body: StartMission, caller: Caller) -> MissionView:
-        profile_known(body.profile_id)
+    async def create_mission(body: StartMission, caller: Caller, response: Response) -> MissionView:
+        """Idempotent per journey: this person's live mission for the same train comes back with
+        200 instead of a second claim (one declined or failed safe doesn't count)."""
+        profile_allows(body.profile_id, RAIL)
+        existing = await service.duplicate_of(body)
+        if existing is not None:
+            response.status_code = 200
+            return existing
         return await service.start(body)
 
     @app.post("/missions/ofcom", status_code=201)
-    async def create_ofcom_mission(body: StartOfcom, caller: Caller) -> MissionView:
-        """A missed engineer visit: Rights Decay decides whether to wait or act, and when."""
-        profile_known(body.profile_id)
+    async def create_ofcom_mission(
+        body: StartOfcom, caller: Caller, response: Response
+    ) -> MissionView:
+        """A missed engineer visit: Rights Decay decides whether to wait or act, and when.
+        Idempotent per provider and day, as `/missions` is per journey."""
+        profile_allows(body.profile_id, OFCOM)
+        existing = await service.duplicate_of(body)
+        if existing is not None:
+            response.status_code = 200
+            return existing
         return await service.start_ofcom(body)
 
     @app.post("/missions/ofcom/read")
@@ -660,7 +681,11 @@ def create_app(
             )  # fmt: skip
             return {k: checked[k] for k in ("say", "level", "zone", "why", "confidence")}
         if name == "create_mission":
-            view = await service.start(StartMission.model_validate(body))
+            start = StartMission.model_validate(body)
+            refused = profile_refusal(profiles, start.profile_id, RAIL)
+            if refused is not None:  # the same refusal the web gets, before anything starts
+                return {"mission_id": None, "state": None, "say": refused}
+            view = await service.duplicate_of(start) or await service.start(start)  # never twice
             return {"mission_id": view.id, "state": view.state, "say": view.message}
         if name in ("recall_memories", "forget_memory", "confirm_memory"):
             return await _voice_memory(name, body)
@@ -893,7 +918,7 @@ def create_app(
     app.include_router(
         chat_router(
             service, web_caller, shield=shield, memory=memory, profiles=profiles,
-            settings=settings, bus=bus, llm_say=chat_llm, simulated=simulated,
+            settings=settings, bus=bus, llm_say=chat_llm, simulated=simulated, mesh=mesh,
         )
     )  # fmt: skip
     app.include_router(tts_router(settings, web_caller, http))  # speech out, key on the server

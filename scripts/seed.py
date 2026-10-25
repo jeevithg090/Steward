@@ -115,10 +115,14 @@ def main() -> int:
     url = os.environ.get("GATEWAY_URL", "http://127.0.0.1:8000")
     with httpx.Client(base_url=url, headers={"Authorization": f"Bearer {token}"}, timeout=30) as gw:
         amir = gw.post("/missions", json=AMIR).raise_for_status().json()
-        gw.post(
-            f"/approvals/{amir['ask']['request_id']}", json={"approved": True}
-        ).raise_for_status()
-        gw.post("/scheduler/tick").raise_for_status()  # needs PAYMENT_CHECK_AFTER_S=0 to pay now
+        # POST /missions is idempotent: on a Gateway that is already seeded it returns Amir's
+        # existing mission, which may be paid already. Approve only a claim that is still asking.
+        if amir.get("ask"):
+            gw.post(
+                f"/approvals/{amir['ask']['request_id']}", json={"approved": True}
+            ).raise_for_status()
+            # PAYMENT_CHECK_AFTER_S=0 lets the tick pay it now
+            gw.post("/scheduler/tick").raise_for_status()
         amir = gw.get(f"/missions/{amir['id']}").raise_for_status().json()
         margaret = gw.post("/missions", json=MARGARET).raise_for_status().json()
         broadband = gw.post("/missions/ofcom", json=MARGARET_BROADBAND).raise_for_status().json()

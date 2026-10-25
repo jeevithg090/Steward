@@ -14,6 +14,11 @@ actions. The server is stateless about conversations: the client echoes the merg
 
 The text is never logged and never published on the bus; the `chat_turn` event carries the intent
 and the user id only.
+
+Three rules keep the chat from doing less carefully what another door does carefully (plan.md
+§12.2): a profile that lacks a skill's needs is refused before anything starts, as `/missions`
+refuses it; a person with a passkey answers on their device, never with a typed yes; and a
+mission that fails safe is explained in plain words, never with an engine's raw message.
 """
 
 import re
@@ -40,10 +45,13 @@ from tempo_core.intent import (
     station_name,
 )
 from tempo_core.ledger import summarise
+from tempo_core.models import MissionState
 from tempo_core.profiles import ProfileCatalog
 from tempo_core.readability import flesch_reading_ease
+from tempo_gateway.engines import OFCOM, RAIL
 from tempo_gateway.events import EventBus
 from tempo_gateway.memory import Memory
+from tempo_gateway.mesh import Mesh
 from tempo_gateway.missions import (
     BINDING_SCOPES,
     ConsentAsk,
@@ -52,6 +60,7 @@ from tempo_gateway.missions import (
     StartMission,
     StartOfcom,
     UnknownRequest,
+    profile_refusal,
 )
 from tempo_gateway.shield import ShieldService
 from tempo_memory.service import say_recalled
@@ -62,6 +71,7 @@ log = structlog.get_logger("tempo.chat")
 MAX_TEXT = 2000
 PLAIN = 60  # Flesch reading ease: what Tempo says must score at least this
 MAX_SMALL_TALK = 240
+MAX_SUGGESTION = 120  # a chip the person taps; ChatReply.suggestions (plan.md §12.2)
 
 LlmSay = Callable[[str], Awaitable[str | None]]
 
@@ -95,7 +105,53 @@ CANNED: dict[str, str] = {
     "late_train": "Sorry about the train.",
     "missed_visit": "Sorry they didn't come.",
     "started": "I've started on it.",
+    "passkey": "Please confirm with Face ID or your fingerprint on this device.",
+    # Replay mode's recorded journeys: fixtures/rail/replay/ (OXF to PAD, 22 and 23 October).
+    "demo_journeys": "This demo only has trains from 22 and 23 October.",
+    "stopped_safe": "I had to stop here. Mission Control shows what happened.",
+    # The same journey or visit again: Tempo never claims twice (plan.md §12.2).
+    "already_asking": "I'm already on this one. It needs your OK.",
+    "already_waiting": "I'm already on this one. I'm waiting for the money.",
+    "already_claimed": "I already claimed this one.",
+    "already_handled": "I've already dealt with this one.",
 }
+# A journey the rail records don't have, read back from the person's own facts (never the
+# engine's message, which may quote a lookup key).
+NOT_FOUND = (
+    "I couldn't find the {departure} from {origin} to {destination} on {day} in the rail records."
+)
+
+# Things the person could say next, shown as chips that send the text (ChatReply.suggestions).
+# Each is at most MAX_SUGGESTION characters and reads plainly, except the scam text, which is a
+# pasted message quoted as it arrived (tests/unit/test_chat_plain.py exempts it by name).
+LATE_TRAIN = (
+    "My 08:12 train from Oxford to Paddington was 38 minutes late on 23 October. It cost £28.40."
+)
+MISSED_VISIT = "The Broadbandly engineer did not come on 19 October. No one rang."
+SCAM_SAMPLE = (
+    "Is this a scam? HMRC: You are due a tax refund of 248.20 GBP. Claim within 24 hours at "
+    "http://hmrc-refunds-gov.uk/claim"
+)
+QUOTED = frozenset({SCAM_SAMPLE})
+SUGGESTIONS: dict[str, tuple[str, ...]] = {
+    "doors": (LATE_TRAIN, MISSED_VISIT, SCAM_SAMPLE, "Am I owed anything?"),  # help, small talk
+    "demo_journey": (LATE_TRAIN,),  # a journey replay mode has no recording of
+    "demo_fare": ("£28.40",),  # the fare question, for the recorded demo journey only
+    "profiles": ("Show me my profiles",),  # after a profile refusal
+    "paid": ("How much have you got back for me?", "What do you remember about me?"),
+    "already_paid": ("How much have you got back for me?",),  # the same claim, already paid
+    "ledger": ("What do you remember about me?", "Am I owed anything?"),
+}
+# The recorded demo journey (fixtures/rail/replay/): its fare is the one chip offered for "£?".
+DEMO_JOURNEY = {
+    "origin_crs": "OXF", "destination_crs": "PAD", "travel_date": "2026-10-23",
+    "departure": "08:12",
+}  # fmt: skip
+_TRAIN_NOT_FOUND = "I couldn't find that train"  # how the rail workflow's Intake step declines
+_ENDED = (MissionState.DECLINED, MissionState.FAILED_SAFE)
+# What a Python repr looks like inside a sentence: a reply must never carry one.
+_REPR = re.compile(r"datetime\.|Decimal\(|\(\s*'|\[\s*'|\{\s*'|\b[A-Za-z_]\w*\(\w+=")
+_PARENS = re.compile(r"\s*\([^()]*\)")
 
 # What the model is told when it may phrase small talk. It never sees a number to repeat.
 SMALL_TALK_PROMPT = (
@@ -150,10 +206,27 @@ class ChatReply(BaseModel):
     ledger: dict[str, str] | None = None
     flags: list[dict[str, Any]] | None = None
     actions: list[Action] | None = None
+    suggestions: list[str] | None = None  # things to say next, as chips (plan.md §12.2)
     simulated: list[str] = []
 
 
 MISSIONS = Action(label="Open Mission Control", href="#/missions")
+SHOW_PROFILES = Action(label="Show my profiles", href="#/profiles")
+
+
+def suggest(key: str) -> list[str]:
+    return list(SUGGESTIONS[key])
+
+
+def readable(message: str) -> str:
+    """An engine's message, fit for the chat: one that quotes a Python repr loses its brackets,
+    and if a repr is still there, the person gets a plain fallback instead."""
+    if not _REPR.search(message):
+        return message
+    stripped = message
+    for _ in range(4):  # brackets inside brackets come off from the inside out
+        stripped = _PARENS.sub("", stripped)
+    return stripped if not _REPR.search(stripped) else CANNED["stopped_safe"]
 
 
 def mission_action(view: MissionView) -> Action:
@@ -192,10 +265,14 @@ class Chat:
         llm_say: LlmSay | None,
         today: Callable[[], date],
         simulated: Sequence[str],
+        mesh: Mesh | None = None,
+        replay: bool = False,
     ) -> None:
         self.service, self.shield, self.memory, self.profiles = service, shield, memory, profiles
         self.bus, self.llm_say, self.today = bus, llm_say, today
         self.simulated = list(simulated)
+        self.mesh = mesh  # a person with a passkey answers on their device, not with a typed yes
+        self.replay = replay  # replay mode: the rail records are the recorded demo journeys
 
     async def turn(self, body: ChatTurn, caller: str) -> ChatReply:
         missions = [
@@ -245,7 +322,16 @@ class Chat:
             case Intent.APPROVE | Intent.DECLINE:
                 if not pending:
                     return plain(CANNED["nothing_waiting"])
-                _, request_id = pending[-1]
+                mission_id, request_id = pending[-1]
+                if self.mesh is not None and self.mesh.has_passkey(body.user_id):
+                    # The same rule as /approvals: once there's a passkey, a bearer can't answer.
+                    # Nothing is answered; the web signs this ask on the device.
+                    view = await self.service.view(mission_id)
+                    return plain(
+                        CANNED["passkey"], mission=view,
+                        ask=self.service.ask_for(request_id) or view.ask,
+                        actions=[mission_action(view)],
+                    )  # fmt: skip
                 approval = SignedApproval(
                     approved=intent is Intent.APPROVE, scopes=BINDING_SCOPES, device_sig=caller
                 )
@@ -254,8 +340,9 @@ class Chat:
                 except UnknownRequest:
                     return plain(CANNED["nothing_waiting"])
                 return plain(
-                    view.message or CANNED["started"], mission=view, ask=view.ask,
+                    readable(view.message or CANNED["started"]), mission=view, ask=view.ask,
                     actions=[mission_action(view)],
+                    suggestions=suggest("paid") if view.state is MissionState.VERIFIED else None,
                 )  # fmt: skip
             case Intent.STOP:
                 if not missions:
@@ -306,7 +393,10 @@ class Chat:
                     "hours_returned": str(totals.hours_returned),
                     "gbp_recovered": str(totals.gbp_recovered.quantize(Decimal("0.01"))),
                 }
-                return plain(_ledger_sentence(ledger), ledger=ledger, actions=[MISSIONS])
+                return plain(
+                    _ledger_sentence(ledger), ledger=ledger, actions=[MISSIONS],
+                    suggestions=suggest("ledger"),
+                )  # fmt: skip
             case Intent.ENTITLEMENT:
                 return plain(
                     CANNED["entitlement"],
@@ -325,41 +415,102 @@ class Chat:
                     CANNED["letter"], actions=[Action(label="Read a letter", href="#/read")]
                 )
             case Intent.HELP:
-                return plain(CANNED["help"], actions=[MISSIONS])
+                return plain(CANNED["help"], actions=[MISSIONS], suggestions=suggest("doors"))
             case _:
-                return plain(await self._small_talk(body.text))
+                return plain(await self._small_talk(body.text), suggestions=suggest("doors"))
 
     async def _claim(self, intent: Intent, body: ChatTurn, known: Slots) -> ChatReply:
-        """A late train or a missed visit: start it when every fact is in, else ask one question."""
+        """A late train or a missed visit: start it when every fact is in, else ask one question.
+        A profile that can't run this skill is refused first, so no question is wasted on it."""
         found = extract(body.text, today=self.today(), intent=intent)
         slots = merge(known, _aimed(known, found, body.text, intent))
+        self._profile_known(body.profile_id)
+        refused = profile_refusal(
+            self.profiles, body.profile_id, RAIL if intent is Intent.RAIL_DELAY else OFCOM
+        )
+        if refused is not None:  # nothing starts; the facts stay, for another profile to use
+            return ChatReply(
+                intent=intent, reply=refused, say=refused, slots=slots.model_dump(),
+                actions=[SHOW_PROFILES], suggestions=suggest("profiles"),
+            )  # fmt: skip
         needs = missing(intent, slots)
         if needs:
             field, question = needs[0]
             said = f"{_understood(intent, slots)} {question}"
+            demo_fare = (
+                self.replay and field == "fare_gbp"
+                and all(getattr(slots, k) == v for k, v in DEMO_JOURNEY.items())
+            )  # fmt: skip
             return ChatReply(
                 intent=intent, reply=said, say=said, slots=slots.model_dump(),
                 needs=[Need(field=field, question=question)],
+                suggestions=suggest("demo_fare") if demo_fare else None,
             )  # fmt: skip
-        self._profile_known(body.profile_id)
+        request: StartMission | StartOfcom
         if intent is Intent.RAIL_DELAY:
-            view = await self.service.start(StartMission(
+            request = StartMission(
                 user_id=body.user_id, display_name=body.display_name,
                 origin_crs=slots.origin_crs or "", destination_crs=slots.destination_crs or "",
                 travel_date=slots.travel_date or "", departure=slots.departure or "",
                 fare_gbp=Decimal(slots.fare_gbp or "0"), profile_id=body.profile_id,
-            ))  # fmt: skip
+            )  # fmt: skip
         else:
-            view = await self.service.start_ofcom(StartOfcom(
+            request = StartOfcom(
                 user_id=body.user_id, display_name=body.display_name,
                 operator=slots.operator or "", event_date=slots.event_date or "",
                 notice_hours=Decimal(slots.notice_hours) if slots.notice_hours else None,
                 account_ref=slots.account_ref, profile_id=body.profile_id,
-            ))  # fmt: skip
-        said = view.ask.summary if view.ask else (view.message or CANNED["started"])
+            )  # fmt: skip
+        existing = await self.service.duplicate_of(request)
+        if existing is not None:  # never the same claim twice: say where the first one is
+            return self._already(intent, existing)
+        if isinstance(request, StartMission):
+            view = await self.service.start(request)
+        else:
+            view = await self.service.start_ofcom(request)
+        if (
+            intent is Intent.RAIL_DELAY and view.state in _ENDED
+            and (view.message or "").startswith(_TRAIN_NOT_FOUND)
+        ):  # fmt: skip
+            return self._not_found(intent, slots, view)
+        said = view.ask.summary if view.ask else readable(view.message or CANNED["started"])
         return ChatReply(
             intent=intent, reply=said, say=said, slots={}, mission=view, ask=view.ask,
             actions=[mission_action(view)],
+            suggestions=suggest("paid") if view.state is MissionState.VERIFIED else None,
+        )  # fmt: skip
+
+    def _already(self, intent: Intent, view: MissionView) -> ChatReply:
+        """The same journey or visit is already a live mission: return it, never a second one."""
+        suggestions = None
+        if view.state is MissionState.AWAITING_CONSENT:
+            said = CANNED["already_asking"]
+        elif view.state is MissionState.VERIFIED:
+            said = f"{CANNED['already_claimed']} {readable(view.message or '')}".strip()
+            suggestions = suggest("already_paid")
+        elif view.state is MissionState.COMPLETED:  # nothing more is coming; say what happened
+            said = f"{CANNED['already_handled']} {readable(view.message or '')}".strip()
+        else:
+            said = CANNED["already_waiting"]
+        return ChatReply(
+            intent=intent, reply=said, say=said, slots={}, mission=view, ask=view.ask,
+            actions=[mission_action(view)], suggestions=suggestions,
+        )  # fmt: skip
+
+    def _not_found(self, intent: Intent, slots: Slots, view: MissionView) -> ChatReply:
+        """The rail records have no such journey: say which one, from the person's own facts.
+        The slots stay, so "it was on 23 October" next turn fixes the date and starts again."""
+        said = NOT_FOUND.format(
+            departure=slots.departure, origin=station_name(slots.origin_crs or ""),
+            destination=station_name(slots.destination_crs or ""),
+            day=_spoken_date(slots.travel_date or ""),
+        )  # fmt: skip
+        if self.replay:
+            said = f"{said} {CANNED['demo_journeys']}"
+        return ChatReply(
+            intent=intent, reply=said, say=said, slots=slots.model_dump(), mission=view,
+            actions=[mission_action(view)],
+            suggestions=suggest("demo_journey") if self.replay else None,
         )  # fmt: skip
 
     def _profile_known(self, profile_id: str | None) -> None:
@@ -448,15 +599,18 @@ def chat_router(
     llm_say: LlmSay | None = None,
     today: Callable[[], date] | None = None,
     simulated: Sequence[str] | None = None,
+    mesh: Mesh | None = None,
 ) -> APIRouter:
     """`today` defaults to the service clock's London date, so the demo clock moves "yesterday"
-    too; `simulated` defaults to what `/health` shows for these settings."""
+    too; `simulated` defaults to what `/health` shows for these settings. With `mesh`, a person
+    who has a passkey confirms on their device: a typed yes is not an answer."""
     router = APIRouter()
     Caller = Annotated[str, Depends(web_caller)]
     chat = Chat(
         service, shield=shield, memory=memory, profiles=profiles, bus=bus, llm_say=llm_say,
         today=today or (lambda: service.deps.clock().astimezone(LONDON).date()),
         simulated=simulated if simulated is not None else simulated_in(settings),
+        mesh=mesh, replay=settings.tempo_mode == "replay",
     )  # fmt: skip
 
     @router.post("/chat")

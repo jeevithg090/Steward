@@ -21,7 +21,7 @@ from typing import Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
-from tempo_core.capabilities import MAX_MANDATE_DAYS, check_capabilities
+from tempo_core.capabilities import IN_PLAIN_WORDS, MAX_MANDATE_DAYS, check_capabilities
 from tempo_core.errors import TempoError
 from tempo_core.skills import (
     ID_PATTERN,
@@ -188,6 +188,24 @@ def check_against_skills(profile: Profile, skills: Mapping[str, SkillManifest]) 
         raise ProfileInvalid(f"{', '.join(both)} can't be both allowed and refused")
     if profile.limits.mandate_days > MAX_MANDATE_DAYS:
         raise ProfileInvalid(f"a mandate can last at most {MAX_MANDATE_DAYS} days")
+
+
+def refusal(profile: Profile, needs: Iterable[str]) -> str | None:
+    """Why this profile can't run a skill that needs these capabilities, in plain words, or None
+    when it can (plan.md §12.2). The Gateway says it before anything starts, so nobody is asked
+    to agree to a claim the profile would refuse; the guards on the claim tool say no again.
+
+    The verb phrases are the guards' own (`IN_PLAIN_WORDS`), so the refusal before a mission and
+    the deny at the tool name a capability the same way."""
+    lacking = [IN_PLAIN_WORDS[need] for need in needs if need not in profile.may]
+    if not lacking:
+        return None
+    what = lacking[0] if len(lacking) == 1 else f"{', '.join(lacking[:-1])} or {lacking[-1]}"
+    name = profile.name.rstrip("?!. ")  # "Am I Owed Anything?" reads as a name mid-sentence
+    return (
+        f"Your profile, {name}, doesn't let me {what}, so I haven't started. "
+        f"Choose another profile if you want me to {lacking[0]}."
+    )
 
 
 def view_of(profile: Profile, skills: Mapping[str, SkillManifest]) -> ProfileView:

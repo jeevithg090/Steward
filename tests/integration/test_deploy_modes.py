@@ -28,6 +28,7 @@ def test_private_mode_reports_no_outside_ai_and_turns_voice_off(tmp_path: Path) 
         "status": "ok", "mode": "replay", "demo": False, "simulated": [],
         "deploy": "cloud-private", "region": "eu (RunPod Secure Cloud)", "third_parties": [],
         "clock_offset_days": 0,  # the demo clock hasn't moved (and only moves in demo mode)
+        "chat": {"llm": "replay"},  # replay mode: small talk is the canned line, never a model
     }  # fmt: skip
     assert standard.get("/health").json()["third_parties"] == ["cortex", "elevenlabs", "gemini"]
     assert private.post("/voice/tools/recall_memories", json={}, headers=tool).status_code == 404

@@ -8,6 +8,7 @@ dependencies = [
     "tempo-core",
     "tempo-ports",
     "tempo-adapters",
+    "tempo-harness",  # the profile guards on the workflows' claim path (missions.py)
     "tempo-missions",
     "tempo-memory",
     "tempo-crypto",
