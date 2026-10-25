@@ -343,4 +343,15 @@ make demo                        # then walk every page in a browser; screenshot
 - [x] 05:25 Track C done: the chat door on `/chat` (sample chips, one-question slot filling, consent inline with Proof Trace and Court, letter camera, browser speech in, Gateway voice → pasted key → browser voice), Mission Control (list, detail, Rights Portfolio, Passport, timeline, demo controls), the TypeScript intent port checked against the 58 shared vectors; 125 web tests in all
 - [x] 05:40 Integrated (track I): recalled-memory type, `connected` page prop, dead mock removed; `make check` green (ruff, format, mypy --strict, 1,263 fast tests), 7 skills / 12 packs / 7 profiles valid, 18 chat and TTS integration tests, `npm run typecheck`, 125 web tests, both builds; the demo Gateway restarted on the new code and re-seeded
 - [x] 05:50 Browser walk, live and in showcase: one sentence → the £14.20 ask with proof → Yes → claim filed → the live "waiting for the money" line → "paid you £14.20, 20 minutes of your time back"; Mission Control with the Rights Portfolio waiting on purpose, Proof Trace and the three jurors; Scam Shield speaks on the HMRC text; Memory, Profiles, Skills, Read It To Me, Am I Owed Anything?, Who's calling?, Privacy Proof, The story, Settings all render; screenshots in `docs/screens/`
+- [x] 05:55 Committed as five logical commits (1ecb08b web foundation, cbd8278 the chat door and TTS, 09c9fff chat and Mission Control, a44c01c the nine pages, 010d33b docs, CI and ops) and pushed to GitHub and GitLab; a clean `git archive` export of HEAD builds, typechecks and passes the 125 web tests
+- [x] 06:00 Found and fixed: the root `.gitignore` rule `memory/` (Mem0's local files) had silently ignored `apps/web/src/features/memory/`; anchored to `/memory/` and the Memory page committed (d2eddd8), pushed to both remotes
+
+## 11. What the team does next
+
+1. `make demo`, then walk §6's beats once before the judges; `make showcase` is the no-backend fallback.
+2. Deploy the web app on Vercel (framework Vite, root `apps/web`, `VITE_TEMPO_SHOWCASE=1`); `docs/deploy.md` has the live-Gateway variant with `WEB_ORIGINS` and `ELEVENLABS_API_KEY`.
+3. Set `ELEVENLABS_API_KEY` on the Gateway for the real voice; without it the browser's voice speaks and the face still moves.
+4. Run the Playwright smoke suite once (`cd tests/e2e && npx playwright install chromium && npx playwright test`); it was written tonight but not run here.
+5. Decide on Tempo Mesh in the new UI (pairing, passkeys, push): the Gateway routes and `src/lib/mesh.ts` are intact; the pages are the work.
+6. Everything in §9 stays true until a person changes it.
 
