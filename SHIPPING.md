@@ -366,6 +366,7 @@ for a kind of person. Governance: Apache-2.0, Contributor Covenant, CODEOWNERS, 
 - [x] 01:45 Track 6 (Scam Shield) built end to end by the Scam & Fraud Shielding session: see `docs/scam-shield.md` §12 for its own log, `docs/scam_backtest.md` for the numbers; committed on top of f6610a5 with explicit paths
 - [x] 01:50 GitLab pipeline on `main` (f6610a5) fully green: lint-type, unit-contract-policy-workflow, integration, web, e2e, secrets (<https://gitlab.com/na-group4693543/Tempo/-/pipelines/2985466656>). GitHub mirror at the same commit.
 - [x] 01:55 Scam & Fraud Shielding landed from the second session (1f35318, 84 files: `/scam/check` and `/scam/shield` in `tempo_gateway/shield.py`, a `check_message` voice tool, SMS `CHECK`/`TEACH`, the `scam_text` on-device signal, a trained model under `skills/scam-shield/`, `/shield` in the web app, `docs/scam-shield.md`); verified from a clean export and pushed to both remotes; GitLab pipeline fully green (<https://gitlab.com/na-group4693543/Tempo/-/pipelines/2985503688>)
+- [x] 02:10 Scam Shield's story page pushed by its session (af21894); `apps/web/showcase/catalog.json` regenerated so the committed fallback matches the manifests. Tree clean, both remotes level.
 
 ## 12. What the team does next (in this order)
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T00:00:32.597Z",
+  "generated_at": "2026-10-25T00:56:07.424Z",
   "source": "profiles/*.yaml and skills/*/skill.yaml, via apps/web/scripts/build-catalog.mjs",
   "skills": [
     {
@@ -178,15 +178,16 @@
     {
       "id": "scam-shield",
       "name": "Scam Shield",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "status": "ready",
-      "summary": "Forward a message and Tempo checks who the firm really is in Companies House and the FCA registers, and how hard the message pushes you. Before you pay someone new, it says pay, wait or stop. It never says \"safe\", and it never moves your money.",
+      "summary": "Tempo watches the texts that reach your phone and speaks when one is a trick. It checks the words, the links, the official registers and public phishing lists, and it never says \"safe\". It never moves your money.",
       "jobs": [
-        "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-        "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-        "Tell you plainly what it found and what to do next, by text or on the web",
-        "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-        "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
       ],
       "needs": [],
       "channels": [
@@ -196,8 +197,8 @@
       ],
       "mission": null,
       "operators": [],
-      "docs": null,
-      "notes": "recorded register answers are used until keys are set and TEMPO_MODE=live",
+      "docs": "docs/scam-shield.md",
+      "notes": "Recorded register, phishing-list and sandbox answers are used until keys are set and TEMPO_MODE=live. The text model is trained on two CC BY 4.0 SMS corpora plus a declared synthetic set; its numbers are in docs/scam_backtest.md. The Android node is written but not compiled here.",
       "maintainers": [
         "tempo-team"
       ]
@@ -240,11 +241,12 @@
           "name": "Scam Shield",
           "status": "ready",
           "jobs": [
-            "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-            "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-            "Tell you plainly what it found and what to do next, by text or on the web",
-            "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-            "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
           ]
         }
       ],
@@ -258,11 +260,12 @@
         "Name the rights clocks the letter starts, with the date each one ends",
         "Explain a PIP decision against its points and work out the deadline from bank holidays",
         "Draft a reply from your own words only, for you to check and send",
-        "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-        "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-        "Tell you plainly what it found and what to do next, by text or on the web",
-        "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-        "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
       ],
       "may": [],
       "may_not": [
@@ -370,11 +373,12 @@
           "name": "Scam Shield",
           "status": "ready",
           "jobs": [
-            "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-            "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-            "Tell you plainly what it found and what to do next, by text or on the web",
-            "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-            "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
           ]
         }
       ],
@@ -400,11 +404,12 @@
         "Ask ten plain questions about age, income, savings and health",
         "Say which benefits look worth claiming and roughly what they are worth each week",
         "Prepare a pre-filled pack and point to the official page for each one",
-        "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-        "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-        "Tell you plainly what it found and what to do next, by text or on the web",
-        "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-        "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
       ],
       "may": [
         "claim",
@@ -568,11 +573,12 @@
           "name": "Scam Shield",
           "status": "ready",
           "jobs": [
-            "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-            "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-            "Tell you plainly what it found and what to do next, by text or on the web",
-            "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-            "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
           ]
         }
       ],
@@ -588,11 +594,12 @@
         "Ask ten plain questions about age, income, savings and health",
         "Say which benefits look worth claiming and roughly what they are worth each week",
         "Prepare a pre-filled pack and point to the official page for each one",
-        "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-        "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-        "Tell you plainly what it found and what to do next, by text or on the web",
-        "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-        "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
       ],
       "may": [
         "claim",
@@ -677,11 +684,12 @@
           "name": "Scam Shield",
           "status": "ready",
           "jobs": [
-            "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-            "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-            "Tell you plainly what it found and what to do next, by text or on the web",
-            "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-            "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
           ]
         }
       ],
@@ -697,11 +705,12 @@
         "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
         "Name the next decision date and wake up on it, even after a restart",
         "Explain why it waited, in plain words, with the odds and the deadline",
-        "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-        "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-        "Tell you plainly what it found and what to do next, by text or on the web",
-        "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-        "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
       ],
       "may": [
         "claim",
@@ -767,11 +776,12 @@
           "name": "Scam Shield",
           "status": "ready",
           "jobs": [
-            "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-            "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-            "Tell you plainly what it found and what to do next, by text or on the web",
-            "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-            "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
           ]
         },
         {
@@ -803,11 +813,12 @@
         "Name the rights clocks the letter starts, with the date each one ends",
         "Explain a PIP decision against its points and work out the deadline from bank holidays",
         "Draft a reply from your own words only, for you to check and send",
-        "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-        "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-        "Tell you plainly what it found and what to do next, by text or on the web",
-        "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-        "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words",
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it",
         "Ask ten plain questions about age, income, savings and health",
         "Say which benefits look worth claiming and roughly what they are worth each week",
         "Prepare a pre-filled pack and point to the official page for each one",
@@ -889,11 +900,12 @@
           "name": "Scam Shield",
           "status": "ready",
           "jobs": [
-            "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-            "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-            "Tell you plainly what it found and what to do next, by text or on the web",
-            "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-            "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
           ]
         }
       ],
@@ -906,11 +918,12 @@
         "Price the automatic compensation from Ofcom's published scheme",
         "Wait for the provider's own credit when waiting is the better move, then complain once if it does not come",
         "Phone the provider for you, within the mandate you signed, and refuse vouchers",
-        "Check the firm against Companies House, the FCA Register and the FCA Warning List",
-        "Spot pressure signs: urgency, \"move your money\", secrecy, requests for codes or PINs",
-        "Tell you plainly what it found and what to do next, by text or on the web",
-        "Watch texts on your phone with rules that run on the phone, and send only which rule matched",
-        "Before you pay, ask who, how much and why, then say pay, wait or stop in plain words"
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
       ],
       "may": [
         "claim",
