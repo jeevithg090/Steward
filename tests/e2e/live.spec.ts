@@ -71,7 +71,8 @@ test("the chat: Margaret's late train, three real jurors, Yes, and the money arr
   await expect(page.getByText(/Claim filed|Waiting for the money/).first()).toBeVisible();
 
   await page.goto("/#/missions");
-  await page.getByRole("link", { name: /Delay Repay for Margaret.*Waiting for the company/ }).first().click();
+  // "you" since the app stopped calling the person Margaret; a site deployed before that still says Margaret.
+  await page.getByRole("link", { name: /Delay Repay for (you|Margaret).*Waiting for the company/ }).first().click();
   // The payment check also runs on its own (PAYMENT_CHECK_AFTER_S=0): it may already have landed.
   const check = page.getByRole("button", { name: "Check the payment now" });
   const arrived = page.getByText(/Money arrived/).first();

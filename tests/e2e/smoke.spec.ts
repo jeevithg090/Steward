@@ -41,7 +41,7 @@ test("the chat claims Margaret's late train from one sample chip, and Mission Co
 
   // Mission Control: the payment check finds the money.
   await page.goto("/#/missions");
-  await page.getByRole("link", { name: /Delay Repay for Margaret.*Waiting for the company/ }).first().click();
+  await page.getByRole("link", { name: /Delay Repay for you.*Waiting for the company/ }).first().click();
   const check = page.getByRole("button", { name: "Check the payment now" });
   await expect(check).toBeVisible({ timeout: 20_000 });
   await check.click();

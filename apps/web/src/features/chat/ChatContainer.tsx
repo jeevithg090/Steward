@@ -214,7 +214,7 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
       try {
         const reply = await gateway.chat({
           user_id: user.id,
-          display_name: user.name,
+          display_name: user.name ?? undefined,
           text,
           profile_id: user.profileId,
           language,
@@ -332,7 +332,7 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
           lead = "There's no Gateway in the showcase, so I can't read your photo. Here is a recorded reading of a sample letter instead.";
         } else {
           if (file.size > MAX_FILE_BYTES) throw new Error("That file is too big. 8 MB is the most I can read.");
-          reading = await catalog.readLetter({ image_b64: await fileToBase64(file), filename: file.name, user_id: user.id, display_name: user.name, language });
+          reading = await catalog.readLetter({ image_b64: await fileToBase64(file), filename: file.name, user_id: user.id, display_name: user.name ?? undefined, language });
           lead = reading.says;
         }
         // Read It To Me's page is only offered once L has brought it back (plan.md §19).

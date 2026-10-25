@@ -166,7 +166,7 @@ export class ShowcaseGateway extends Gateway {
       const now = nowIso();
       Object.assign(fresh.view, {
         state: "declined",
-        message: "I couldn't find that train in the rail records (the showcase only has Margaret's 08:12 Oxford to Paddington recorded).",
+        message: "I couldn't find that train in the rail records (the showcase only has the demo's 08:12 Oxford to Paddington recorded).",
         ask: null,
         court: null,
         timeline: [{ to: "understood", at: now, latency_ms: 0 }, { to: "declined", at: now, latency_ms: 0 }],

@@ -28,6 +28,8 @@ import { planWords } from "./MissionList";
 
 export interface MissionDetailProps {
   mission: MissionView;
+  /** The id of the person using the app: their missions say "you", never a name. */
+  me?: string;
   health: Health | null;
   events: LiveEvent[];
   busy: boolean;
@@ -65,7 +67,7 @@ const EYEBROW = "text-[11px] font-semibold uppercase tracking-[0.14em] text-slat
  * the timeline beside them on wide screens (after them on narrow ones) and the trace link
  * (plan.md §12.3).
  */
-export function MissionDetail({ mission, health, events, busy, signs = false, clockDays = 0, onAnswer, onStop, onTick, onAdvanceClock, onCreditArrives, onRevoke, onChanged }: MissionDetailProps) {
+export function MissionDetail({ mission, me, health, events, busy, signs = false, clockDays = 0, onAnswer, onStop, onTick, onAdvanceClock, onCreditArrives, onRevoke, onChanged }: MissionDetailProps) {
   const live = isLive(mission.state);
   const ofcom = (mission.skill_id ?? "").includes("ofcom");
   const demo = Boolean(health?.demo);
@@ -100,7 +102,7 @@ export function MissionDetail({ mission, health, events, busy, signs = false, cl
             </span>
             <div className="min-w-0 flex-1">
               <h2 id="mission-state-heading" className="line-clamp-2 text-base font-semibold leading-snug tracking-[-0.01em] text-white sm:truncate sm:text-lg">
-                {skillWords(mission.skill_id)} for {personWords(mission.user_id)}
+                {skillWords(mission.skill_id)} for {personWords(mission.user_id, me)}
               </h2>
               <p aria-live="polite" className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                 <Badge tone={tone} dot>
@@ -254,7 +256,7 @@ export function MissionDetail({ mission, health, events, busy, signs = false, cl
         </div>
 
         <div className="min-w-0 space-y-3 xl:sticky xl:top-32">
-          <MissionTimeline mission={mission} personName={personWords(mission.user_id)} />
+          <MissionTimeline mission={mission} personName={personWords(mission.user_id, me)} />
           <div className="px-2">
             <TraceLink url={mission.trace_url} />
           </div>

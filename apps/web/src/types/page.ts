@@ -5,7 +5,8 @@ import type { Language } from "@/lib/shield";
 
 export interface PageUser {
   id: string;
-  name: string;
+  /** The name they gave Tempo; null until they give one. Tempo never makes one up. */
+  name: string | null;
   profileId: string | null;
 }
 

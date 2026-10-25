@@ -216,7 +216,7 @@ class ChatTurn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     user_id: str = Field(pattern=r"^[A-Za-z0-9_-]{1,64}$")
-    display_name: str = Field(default="Friend", min_length=1, max_length=80)
+    display_name: str | None = Field(default=None, min_length=1, max_length=80)  # only if given
     text: str = Field(max_length=MAX_TEXT)
     profile_id: str | None = Field(default=None, pattern=r"^[a-z0-9-]{2,40}$")
     language: str = Field(default="en", pattern=r"^[a-z]{2}$")
@@ -649,14 +649,14 @@ class Chat:
         request: StartMission | StartOfcom
         if intent is Intent.RAIL_DELAY:
             request = StartMission(
-                user_id=body.user_id, display_name=body.display_name,
+                user_id=body.user_id, display_name=body.display_name or "",
                 origin_crs=slots.origin_crs or "", destination_crs=slots.destination_crs or "",
                 travel_date=slots.travel_date or "", departure=slots.departure or "",
                 fare_gbp=Decimal(slots.fare_gbp or "0"), profile_id=body.profile_id,
             )  # fmt: skip
         else:
             request = StartOfcom(
-                user_id=body.user_id, display_name=body.display_name,
+                user_id=body.user_id, display_name=body.display_name or "",
                 operator=slots.operator or "", event_date=slots.event_date or "",
                 notice_hours=Decimal(slots.notice_hours) if slots.notice_hours else None,
                 account_ref=slots.account_ref, profile_id=body.profile_id,

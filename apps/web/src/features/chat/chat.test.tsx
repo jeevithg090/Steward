@@ -121,7 +121,7 @@ function renderChat(gateway: Gateway, extra: Partial<PageProps> = {}, strict = f
   const speak = vi.fn();
   const props: PageProps = {
     gateway,
-    user: { id: "u_margaret", name: "Margaret", profileId: null },
+    user: { id: "u_margaret", name: null, profileId: null }, // as the app: no name until one is given
     showcase: false,
     health: { status: "ok", mode: "replay", demo: true, simulated: ["company"], deploy: "local", region: "eu", third_parties: [] },
     connected: true,
@@ -144,11 +144,12 @@ function renderChat(gateway: Gateway, extra: Partial<PageProps> = {}, strict = f
 
 const RAIL_CHIP = SAMPLE_CHIPS[0]!;
 
-test("the empty chat greets Margaret, groups a sample for every beat, says the promise, and is axe-clean", async () => {
+test("the empty chat greets the person by no name (it never makes one up), groups a sample for every beat, says the promise, and is axe-clean", async () => {
   const { gateway } = fakeGateway(() => blank("help", "I can help."));
   const { container } = renderChat(gateway);
   expect(screen.getByRole("heading", { level: 1, name: "Chat" })).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "Hello Margaret. I'm Tempo." })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Hello. I'm Tempo." })).toBeInTheDocument();
+  expect(screen.queryByText(/Margaret/)).not.toBeInTheDocument();
   expect(screen.getByText("I ask once before I act. Say STOP any time.")).toBeInTheDocument();
   const list = screen.getByRole("list", { name: "Things to try" });
   const groups = within(list).getAllByRole("listitem");
@@ -161,13 +162,23 @@ test("the empty chat greets Margaret, groups a sample for every beat, says the p
   await expectNoA11yViolations(container);
 });
 
+test("a name the person gave is the one Tempo greets and sends", async () => {
+  const { gateway, calls } = fakeGateway(() => blank("help", "I can help."));
+  renderChat(gateway, { user: { id: "u_jo", name: "Jo", profileId: null } });
+  expect(screen.getByRole("heading", { name: "Hello Jo. I'm Tempo." })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: RAIL_CHIP }));
+  await waitFor(() => expect(calls.turns).toHaveLength(1));
+  expect(calls.turns[0]).toMatchObject({ user_id: "u_jo", display_name: "Jo" });
+});
+
 test("a chip goes through gateway.chat with the slots; the ask shows; Yes is answered through answerAsk and toasts", async () => {
   const { gateway, calls } = fakeGateway(() => ({ ...blank("rail_delay", RAIL.message!), mission: RAIL, ask: RAIL.ask, slots: { origin_crs: "OXF" } }));
   const { container, speak } = renderChat(gateway);
   await userEvent.click(screen.getByRole("button", { name: RAIL_CHIP }));
 
   const yes = await screen.findByRole("button", { name: "Yes, claim £14.20" });
-  expect(calls.turns[0]).toMatchObject({ user_id: "u_margaret", display_name: "Margaret", text: RAIL_CHIP, language: "en", slots: {} });
+  expect(calls.turns[0]).toMatchObject({ user_id: "u_margaret", text: RAIL_CHIP, language: "en", slots: {} });
+  expect(calls.turns[0]!.display_name).toBeUndefined(); // no name is sent that the person never gave
   expect(screen.getByText("Tempo is asking you")).toBeInTheDocument();
   expect(screen.getByText("Delay Repay")).toBeInTheDocument(); // the intent badge
   expect(screen.getByText(/Simulated in this run: company, rail data/)).toBeInTheDocument();

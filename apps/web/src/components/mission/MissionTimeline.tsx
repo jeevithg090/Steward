@@ -27,7 +27,7 @@ const PULSE: Partial<Record<Step, string>> = { current: "bg-accent-400/40", wait
 const CORE: Partial<Record<Step, string>> = { current: "bg-accent-200", waiting: "bg-amber-200" };
 
 /** Each state the mission reached, as a vertical stepper: when, how long the step before it took, and the person's decision. */
-export function MissionTimeline({ mission, personName = "Margaret" }: { mission: MissionView; personName?: string }) {
+export function MissionTimeline({ mission, personName = "they" }: { mission: MissionView; personName?: string }) {
   const stages = mission.timeline;
   return (
     <Card as="section" aria-labelledby="timeline-heading">

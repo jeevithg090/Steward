@@ -80,8 +80,9 @@ export function duration(ms: number): string {
 }
 
 /** The person a mission belongs to, from the id the Gateway uses. */
-export function personWords(userId: string | null | undefined): string {
+export function personWords(userId: string | null | undefined, me?: string): string {
   if (!userId) return "Someone";
+  if (userId === me) return "you"; // never a name for the person using the app: they gave none
   const name = userId.replace(/^u_/, "");
   return name.charAt(0).toUpperCase() + name.slice(1);
 }

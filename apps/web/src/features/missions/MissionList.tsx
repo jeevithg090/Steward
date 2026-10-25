@@ -17,7 +17,7 @@ export function planWords(m: MissionView): string | null {
  * One card per mission, newest first, each one big link: a rail in the state's colour, the skill
  * in words with its state, the mission's own words, who and when, and the amount on the right.
  */
-export function MissionList({ missions }: { missions: MissionView[] }) {
+export function MissionList({ missions, me }: { missions: MissionView[]; me?: string }) {
   return (
     <ul aria-label="Missions" className="stagger space-y-3">
       {missions.map((m) => {
@@ -32,7 +32,7 @@ export function MissionList({ missions }: { missions: MissionView[] }) {
           <li key={m.id}>
             <a
               {...link}
-              aria-label={`${skillWords(m.skill_id)} for ${personWords(m.user_id)}${amount ? `, ${gbp(amount)}` : ""}: ${state}`}
+              aria-label={`${skillWords(m.skill_id)} for ${personWords(m.user_id, me)}${amount ? `, ${gbp(amount)}` : ""}: ${state}`}
               className={`surface group relative flex items-start gap-4 overflow-hidden rounded-3xl py-4 pl-5 pr-4 transition-[transform,box-shadow,border-color,background-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-white/[0.14] hover:shadow-lift motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:items-center sm:gap-5 sm:py-5 sm:pl-6 sm:pr-5 ${FOCUS}`}
             >
               <span aria-hidden className={`absolute inset-y-4 left-0 w-[3px] rounded-r-full ${RAIL[tone]}`} />
@@ -57,7 +57,7 @@ export function MissionList({ missions }: { missions: MissionView[] }) {
                 </div>
                 {message && <p className="mt-1.5 line-clamp-2 max-w-3xl text-sm leading-relaxed text-slate-400">{message}</p>}
                 <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-400">
-                  <span className="font-medium text-slate-300">{personWords(m.user_id)}</span>
+                  <span className="font-medium capitalize text-slate-300">{personWords(m.user_id, me)}</span>
                   {when && (
                     <>
                       <span aria-hidden className="text-slate-600">

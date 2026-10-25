@@ -100,7 +100,7 @@ class UnknownRequest(TempoError):
 
 class StartMission(BaseModel):
     user_id: str
-    display_name: str = Field(max_length=80)
+    display_name: str = Field(default="", max_length=80)  # "": they never gave one
     phone: str | None = None  # for SMS updates; only its hash is kept
     origin_crs: str = Field(pattern=r"^[A-Za-z]{3}$")
     destination_crs: str = Field(pattern=r"^[A-Za-z]{3}$")
@@ -115,7 +115,7 @@ class StartOfcom(BaseModel):
     """A missed engineer visit (Rights Decay demo): what was read off the card, or said."""
 
     user_id: str
-    display_name: str = Field(max_length=80)
+    display_name: str = Field(default="", max_length=80)  # "": they never gave one
     phone: str | None = None
     operator: str = Field(min_length=1, max_length=80)  # the provider, e.g. "Broadbandly"
     event_date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")  # the day of the missed visit
@@ -234,7 +234,8 @@ class MissionService:
             self._profiles[mission_id] = request.profile_id
         self._keys[mission_id] = mission_key(request)
         self._save_facts()
-        self._names[request.user_id] = request.display_name
+        if request.display_name:  # a blank never replaces a name they gave
+            self._names[request.user_id] = request.display_name
         if request.phone:
             self._by_phone[phone_hash(request.phone)].append(mission_id)
             self._user_by_phone[phone_hash(request.phone)] = request.user_id
@@ -273,7 +274,8 @@ class MissionService:
             self._profiles[mission_id] = request.profile_id
         self._keys[mission_id] = mission_key(request)
         self._save_facts()
-        self._names[request.user_id] = request.display_name
+        if request.display_name:  # a blank never replaces a name they gave
+            self._names[request.user_id] = request.display_name
         self._companies[mission_id] = request.operator
         self._matters[mission_id]["account_ref"] = request.account_ref
         if request.phone:

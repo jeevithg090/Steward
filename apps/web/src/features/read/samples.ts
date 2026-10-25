@@ -63,11 +63,11 @@ export async function sha256Hex(bytes: Uint8Array): Promise<string | null> {
 }
 
 /** The request body for a sample photo: the same shape an uploaded photo produces. */
-export async function samplePhotoBody(photo: SamplePhoto, user: { id: string; name: string }, fetchImpl: typeof fetch = (...a) => fetch(...a)): Promise<ReadLetterRequest> {
+export async function samplePhotoBody(photo: SamplePhoto, user: { id: string; name: string | null }, fetchImpl: typeof fetch = (...a) => fetch(...a)): Promise<ReadLetterRequest> {
   const response = await fetchImpl(photoUrl(photo));
   if (!response.ok) throw new Error(`The sample photo didn't load (HTTP ${response.status}). Reload the page and try again.`);
   const bytes = new Uint8Array(await response.arrayBuffer());
-  return { image_b64: toBase64(bytes), filename: photo.file, user_id: user.id, display_name: user.name };
+  return { image_b64: toBase64(bytes), filename: photo.file, user_id: user.id, display_name: user.name ?? undefined };
 }
 
 export const SHOWCASE_CANNOT_READ = "The showcase has no Gateway, so it can only read the two sample photos. To read your own letter, run Tempo with a Gemini key on the Gateway.";

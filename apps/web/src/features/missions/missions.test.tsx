@@ -11,7 +11,7 @@ import MissionsPage from "./MissionsPage";
 function props(gateway: Gateway, params: Record<string, string> = {}): PageProps {
   return {
     gateway,
-    user: { id: "u_margaret", name: "Margaret", profileId: null },
+    user: { id: "u_margaret", name: null, profileId: null }, // as the app: no name until one is given
     showcase: true,
     health: { status: "ok", mode: "replay", demo: true, simulated: ["company", "rail data", "jurors", "vision"], deploy: "cloud-standard", region: "eu", third_parties: [] },
     events: [],
@@ -37,7 +37,7 @@ beforeEach(() => {
   forgetAmounts();
 });
 
-test("Mission Control lists Margaret's missions by default, Everyone adds Amir's, and is axe-clean", async () => {
+test("Mission Control lists your missions by default (never as \"Margaret\"), Everyone adds Amir's, and is axe-clean", async () => {
   const gateway = new ShowcaseGateway();
   const { container } = renderPage(props(gateway));
   expect(screen.getByRole("heading", { level: 1, name: "Mission Control" })).toBeInTheDocument();
@@ -49,8 +49,10 @@ test("Mission Control lists Margaret's missions by default, Everyone adds Amir's
   expect(within(items[0]!).getByText("waiting on purpose")).toBeInTheDocument(); // live, so the plan shows
   expect(within(items[1]!).getByText("Delay Repay")).toBeInTheDocument();
   // Each card is one big link that says what it is and how far along.
-  expect(within(items[1]!).getByRole("link")).toHaveAccessibleName("Delay Repay for Margaret, £14.20: Waiting for your OK");
-  expect(screen.getByRole("button", { name: "Margaret" })).toHaveAttribute("aria-pressed", "true");
+  expect(within(items[1]!).getByRole("link")).toHaveAccessibleName("Delay Repay for you, £14.20: Waiting for your OK");
+  expect(screen.getByRole("button", { name: "Mine" })).toHaveAttribute("aria-pressed", "true");
+  expect(within(items[1]!).getByText("you")).toBeInTheDocument();
+  expect(screen.queryByText(/Margaret/)).not.toBeInTheDocument();
 
   await userEvent.click(screen.getByRole("button", { name: "Everyone" }));
   items = within(screen.getByRole("list", { name: "Missions" })).getAllByRole("listitem");
@@ -85,7 +87,7 @@ test("a finished mission shows no plan badge, and a message that leaks code is s
   expect(screen.queryByText(/datetime/)).not.toBeInTheDocument();
 });
 
-test("while the list loads it keeps its shape; with no missions it offers to start Margaret's claim", async () => {
+test("while the list loads it keeps its shape; with no missions it offers to start the demo claim", async () => {
   const gateway = new ShowcaseGateway();
   let release: (m: MissionView[]) => void = () => undefined;
   gateway.missions = () => new Promise<MissionView[]>((resolve) => (release = resolve));
@@ -93,7 +95,7 @@ test("while the list loads it keeps its shape; with no missions it offers to sta
   expect(screen.getByRole("status", { name: "Loading missions" })).toBeInTheDocument();
   release([]);
   expect(await screen.findByText("No missions yet")).toBeInTheDocument();
-  expect(screen.getAllByRole("button", { name: "Start Margaret's claim" })).toHaveLength(2);
+  expect(screen.getAllByRole("button", { name: "Start the demo claim" })).toHaveLength(2);
 });
 
 test("a Gateway that does not answer says so in plain words, with Try again and Settings", async () => {
@@ -109,14 +111,14 @@ test("a Gateway that does not answer says so in plain words, with Try again and 
   expect(within(alert).getByRole("link", { name: "Settings" })).toHaveAttribute("href", "#/settings");
 });
 
-test("Start Margaret's claim adds a mission, opens it and says so", async () => {
+test("Start the demo claim adds a mission, opens it and says so", async () => {
   const gateway = new ShowcaseGateway();
   renderPage(props(gateway));
   await screen.findByRole("list", { name: "Missions" });
-  await userEvent.click(screen.getByRole("button", { name: "Start Margaret's claim" }));
+  await userEvent.click(screen.getByRole("button", { name: "Start the demo claim" }));
   await waitFor(() => expect(window.location.hash).toMatch(/^#\/missions\/m_/));
   expect(await gateway.missions()).toHaveLength(4);
-  expect(await screen.findByText("Margaret's claim has started. Tempo will ask before it acts.")).toBeInTheDocument();
+  expect(await screen.findByText("The demo claim has started. Tempo will ask before it acts.")).toBeInTheDocument();
 });
 
 test("the detail: a sticky header with STOP, then the ask, Proof Trace, Court, Passport and timeline; Yes and the payment check toast", async () => {
@@ -125,7 +127,7 @@ test("the detail: a sticky header with STOP, then the ask, Proof Trace, Court, P
   const p = props(gateway, { id: rail.id });
   const { container, rerender } = renderPage(p);
   expect(await screen.findByRole("button", { name: "Yes, claim £14.20" })).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "Delay Repay for Margaret" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Delay Repay for you" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "All missions" })).toHaveAttribute("href", "#/missions");
   // The sections, in order.
@@ -209,14 +211,14 @@ test("a waiting rail mission keeps its amount on the list after Yes (from the as
   const gateway = new ShowcaseGateway();
   const { unmount } = renderPage(props(gateway));
   const list = await screen.findByRole("list", { name: "Missions" });
-  expect(within(list).getByRole("link", { name: /^Delay Repay for Margaret, £14\.20: Waiting for your OK$/ })).toBeInTheDocument();
+  expect(within(list).getByRole("link", { name: /^Delay Repay for you, £14\.20: Waiting for your OK$/ })).toBeInTheDocument();
   unmount();
   const rail = (await gateway.missions()).find((m) => m.skill_id?.includes("rail"))!;
   const waiting = await gateway.answer(rail.ask!.request_id, true);
   expect(waiting.ask).toBeNull(); // the Gateway's waiting view carries no amount of its own
   renderPage(props(gateway));
   const after = await screen.findByRole("list", { name: "Missions" });
-  expect(within(after).getByRole("link", { name: /^Delay Repay for Margaret, £14\.20: Waiting for the company$/ })).toBeInTheDocument();
+  expect(within(after).getByRole("link", { name: /^Delay Repay for you, £14\.20: Waiting for the company$/ })).toBeInTheDocument();
 });
 
 test("the credit arriving is confirmed", async () => {
@@ -228,12 +230,12 @@ test("the credit arriving is confirmed", async () => {
   expect(await screen.findByText("The credit has arrived. The next check will find it.")).toBeInTheDocument();
 });
 
-test("reading Margaret's card asks the one read-back question, and Yes starts the broadband case", async () => {
+test("reading the demo card asks the one read-back question, and Yes starts the broadband case", async () => {
   const gateway = new ShowcaseGateway();
   const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(new Uint8Array([137, 80, 78, 71]), { status: 200 }));
   renderPage(props(gateway));
   await screen.findByRole("list", { name: "Missions" });
-  await userEvent.click(screen.getByRole("button", { name: "Read Margaret's missed-visit card" }));
+  await userEvent.click(screen.getByRole("button", { name: "Read the demo missed-visit card" }));
   expect(await screen.findByText(/I read the date of the missed visit as 19 October 2026/)).toBeInTheDocument();
   expect(screen.getByText("Tempo read the card. One thing to check.")).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Yes, that's right" }));

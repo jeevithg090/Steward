@@ -99,14 +99,14 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
     [refresh],
   );
 
-  const startMargaret = () =>
+  const startDemoClaim = () =>
     act(
       async () => {
         const view = await gateway.start(DEMO_MISSION);
         navigate(`/missions/${view.id}`);
         return view;
       },
-      () => toast.success("Margaret's claim has started. Tempo will ask before it acts."),
+      () => toast.success("The demo claim has started. Tempo will ask before it acts."),
     );
 
   const readCard = () =>
@@ -132,7 +132,7 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
     act(
       async () => {
         const visit = clean(reading?.visit ?? {});
-        const source = `${visit.source ?? "card#vision"}, ${corrected ? "corrected" : "confirmed"} by ${DEMO_BROADBAND.display_name}`;
+        const source = `${visit.source ?? "card#vision"}, ${corrected ? "corrected" : "confirmed"} by you`;
         setReading(null);
         const view = await gateway.startOfcom({ ...visit, event_date: date, source });
         navigate(`/missions/${view.id}`);
@@ -215,6 +215,7 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
         {detail ? (
           <MissionDetail
             mission={detail}
+            me={user.id}
             health={health}
             events={events}
             busy={busy}
@@ -271,11 +272,11 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
       {header}
       <LedgerCounter totals={ledger} />
       <div className="mt-6 flex flex-wrap items-center gap-2">
-        <Button variant="primary" busy={busy} icon={<Play size={14} aria-hidden />} onClick={() => void startMargaret()}>
-          Start Margaret&apos;s claim
+        <Button variant="primary" busy={busy} icon={<Play size={14} aria-hidden />} onClick={() => void startDemoClaim()}>
+          Start the demo claim
         </Button>
         <Button variant="quiet" busy={busy} icon={<Camera size={14} aria-hidden />} onClick={() => void readCard()}>
-          Read Margaret&apos;s missed-visit card
+          Read the demo missed-visit card
         </Button>
       </div>
       {error && (
@@ -312,7 +313,7 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
               value={who}
               onChange={setWho}
               options={[
-                { value: "mine", label: user.name },
+                { value: "mine", label: user.name ?? "Mine" },
                 { value: "everyone", label: "Everyone" },
               ]}
             />
@@ -332,16 +333,16 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
           <EmptyState
             title="No missions yet"
             action={
-              <Button variant="primary" busy={busy} icon={<Play size={14} aria-hidden />} onClick={() => void startMargaret()}>
-                Start Margaret&apos;s claim
+              <Button variant="primary" busy={busy} icon={<Play size={14} aria-hidden />} onClick={() => void startDemoClaim()}>
+                Start the demo claim
               </Button>
             }
           >
-            Start Margaret&apos;s claim to watch Tempo work, or tell the chat about a late train.
+            Start the demo claim to watch Tempo work, or tell the chat about a late train.
           </EmptyState>
         ) : shown.length === 0 ? (
           <EmptyState
-            title={phase === "live" ? "Nothing is running right now" : phase === "finished" ? "Nothing has finished yet" : `No missions for ${user.name} yet`}
+            title={phase === "live" ? "Nothing is running right now" : phase === "finished" ? "Nothing has finished yet" : user.name ? `No missions for ${user.name} yet` : "You have no missions yet"}
             action={
               <Button
                 variant="quiet"
@@ -355,7 +356,7 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
             }
           />
         ) : (
-          <MissionList missions={shown} />
+          <MissionList missions={shown} me={user.id} />
         )}
       </section>
     </div>

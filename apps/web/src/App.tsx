@@ -67,8 +67,8 @@ const PROFILE_NAMES: Record<string, string> = Object.fromEntries(
   (catalogJson as { profiles: { id: string; name: string }[] }).profiles.map((p) => [p.id, p.name]),
 );
 
-/** The demo's person (seeded by `make seed`). */
-const DEMO_USER = { id: "u_margaret", name: "Margaret" };
+/** The demo's account (seeded by `make seed`). No name: whoever opens the app is not "Margaret". */
+const DEMO_USER = { id: "u_margaret", name: null };
 
 export default function App() {
   const route = useRoute();

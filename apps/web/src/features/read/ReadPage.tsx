@@ -135,7 +135,7 @@ export default function ReadPage({ user, showcase, speak, health }: PageProps) {
       image_b64: toBase64(new Uint8Array(await file.arrayBuffer())),
       filename: file.name,
       user_id: user.id,
-      display_name: user.name,
+      display_name: user.name ?? undefined,
     }));
   };
 
@@ -313,7 +313,7 @@ export default function ReadPage({ user, showcase, speak, health }: PageProps) {
       )}
 
       {reading && origin && (
-        <LetterReadingCard reading={reading} speak={speak} source={source} displayName={user.name} headingRef={readingRef} provenance={<Provenance origin={origin} reading={reading} />} />
+        <LetterReadingCard reading={reading} speak={speak} source={source} displayName={user.name ?? undefined} headingRef={readingRef} provenance={<Provenance origin={origin} reading={reading} />} />
       )}
 
       <Card tone="amber" padding="tight" className="flex items-start gap-3 !px-5 !py-4">
@@ -357,7 +357,8 @@ function LetterReadingCard({
   reading: LetterReading;
   speak: (text: string) => void;
   source: CatalogSource;
-  displayName: string;
+  /** The name to sign with, only if they gave one; otherwise the draft says "[your name]". */
+  displayName?: string;
   headingRef: RefObject<HTMLHeadingElement | null>;
   provenance: ReactNode;
 }) {

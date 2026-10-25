@@ -85,7 +85,7 @@ test("approve with Face ID on the phone, the ask leaves the laptop, then sign a 
     await useForApprovals(phone);
 
     await phone.goto("/#/missions");
-    await phone.getByRole("button", { name: "Start Margaret's claim" }).first().click();
+    await phone.getByRole("button", { name: "Start the demo claim" }).first().click();
     await expect(phone).toHaveURL(/#\/missions\/m_/);
     await expect(phone.getByText(/You'll confirm with Face ID or your fingerprint/)).toBeVisible();
     const laptop = await screen(browser, phone.url()); // the same mission on her other screen

@@ -51,7 +51,7 @@ export function greeting(now: Date = new Date()): string {
   return "Good evening";
 }
 
-export function WelcomeCard({ name, onPick, disabled = false }: { name: string; onPick: (text: string) => void; disabled?: boolean }) {
+export function WelcomeCard({ name, onPick, disabled = false }: { name: string | null; onPick: (text: string) => void; disabled?: boolean }) {
   const [ref, width] = useElementWidth<HTMLDivElement>();
   const twoColumns = width >= TWO_COLUMNS_FROM;
   return (
@@ -61,7 +61,7 @@ export function WelcomeCard({ name, onPick, disabled = false }: { name: string; 
           <Sparkles size={13} aria-hidden className="text-accent-300" /> {greeting()}
         </p>
         <h2 id="welcome-heading" className="mt-3 font-display text-[2.6rem] leading-[1.02] text-white motion-safe:animate-fade-up sm:text-[3.4rem]">
-          Hello {name}. I&apos;m <em className="text-brand pr-[0.03em]">Tempo</em>.
+          Hello{name ? ` ${name}` : ""}. I&apos;m <em className="text-brand pr-[0.03em]">Tempo</em>.
         </h2>
         <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-400 motion-safe:animate-fade-up">Tell me what happened, in your own words, or try one of these.</p>
         <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/[0.08] px-3.5 py-1.5 text-[13px] font-medium text-emerald-200 motion-safe:animate-fade-up">

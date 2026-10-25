@@ -127,6 +127,25 @@ def test_the_brain_sees_the_conversation_so_far(brain: Any) -> None:
     assert sent[-1]["content"] == "London" and sent[3]["content"] == "Oxford"
 
 
+def test_the_brain_is_given_no_name_the_person_never_gave(brain: Any) -> None:
+    """The web app sends no name: the brain must not call them "Margaret", or anything else."""
+    client, route, _ = brain
+    r = client.post("/chat", headers=AUTH, json={"user_id": "u_margaret", "text": "hello"})
+    assert r.status_code == 200, r.text
+    system = json.loads(route.calls.last.request.content)["messages"][0]["content"]
+    assert "Margaret" not in system
+    assert "don't call them by any name, and never guess or make one up" in system
+    assert "Never make up a name" in system
+
+    chat(client, "hello")  # a name the person gave is the only one it is told
+    system = json.loads(route.calls.last.request.content)["messages"][0]["content"]
+    assert 'They asked to be called "Margaret".' in system
+
+    r = client.post("/chat", headers=AUTH, json={"user_id": "u_jo", "text": JOURNEY})
+    assert r.status_code == 200, r.text
+    assert r.json()["ask"]["amount_gbp"] == "14.20"  # a claim needs no name
+
+
 def test_a_claim_said_in_full_starts_at_once_without_the_model(brain: Any) -> None:
     client, route, _ = brain
     reply = chat(client, JOURNEY)
