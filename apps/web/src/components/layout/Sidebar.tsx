@@ -1,24 +1,9 @@
-import type { ReactNode } from "react";
-import {
-  Plug,
-  BookOpen,
-  Brain,
-  FileText,
-  History as HistoryIcon,
-  LayoutList,
-  Lock,
-  Smartphone,
-  MessageSquare,
-  PhoneCall,
-  Plus,
-  PoundSterling,
-  Puzzle,
-  Settings as SettingsIcon,
-  ShieldAlert,
-  Users,
-  X,
-} from "lucide-react";
+import { History as HistoryIcon, Plus, Sparkles, X } from "lucide-react";
 import { linkProps } from "@/router";
+import { TempoMark } from "../ui/TempoMark";
+import { NAV_DOING, NAV_SETTINGS, NAV_TRUST, type NavEntry } from "./nav";
+
+export { NAV_DOING, NAV_TRUST, type NavEntry } from "./nav";
 
 interface SidebarProps {
   /** The current route's first segment, e.g. `/missions`. */
@@ -35,33 +20,7 @@ interface SidebarProps {
 }
 
 const COMPACT_BELOW = 190;
-const focus = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-white";
-
-export interface NavEntry {
-  to: string;
-  label: string;
-  icon: ReactNode;
-}
-
-/** The pages, in two groups (plan.md §2): what Tempo does, and why you can trust it. */
-export const NAV_DOING: NavEntry[] = [
-  { to: "/chat", label: "Chat", icon: <MessageSquare size={18} aria-hidden /> },
-  { to: "/missions", label: "Mission Control", icon: <LayoutList size={18} aria-hidden /> },
-  { to: "/memory", label: "Memory", icon: <Brain size={18} aria-hidden /> },
-  { to: "/read", label: "Read It To Me", icon: <FileText size={18} aria-hidden /> },
-  { to: "/owed", label: "Am I owed anything?", icon: <PoundSterling size={18} aria-hidden /> },
-  { to: "/shield", label: "Scam Shield", icon: <ShieldAlert size={18} aria-hidden /> },
-  { to: "/connectors", label: "Connectors", icon: <Plug size={18} aria-hidden /> },
-];
-
-export const NAV_TRUST: NavEntry[] = [
-  { to: "/profiles", label: "Profiles", icon: <Users size={18} aria-hidden /> },
-  { to: "/skills", label: "Skills", icon: <Puzzle size={18} aria-hidden /> },
-  { to: "/callers", label: "Who's calling?", icon: <PhoneCall size={18} aria-hidden /> },
-  { to: "/devices", label: "Devices", icon: <Smartphone size={18} aria-hidden /> },
-  { to: "/privacy", label: "Privacy Proof", icon: <Lock size={18} aria-hidden /> },
-  { to: "/story", label: "The story", icon: <BookOpen size={18} aria-hidden /> },
-];
+const focus = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-300";
 
 function NavItem({ entry, active, compact, onClick }: { entry: NavEntry; active: boolean; compact: boolean; onClick?: () => void }) {
   const link = linkProps(entry.to);
@@ -75,11 +34,12 @@ function NavItem({ entry, active, compact, onClick }: { entry: NavEntry; active:
       title={compact ? entry.label : undefined}
       aria-label={compact ? entry.label : undefined}
       aria-current={active ? "page" : undefined}
-      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-white transition-colors motion-reduce:transition-none ${focus} ${
+      className={`group relative flex h-9 w-full items-center gap-3 rounded-xl px-3 text-[13.5px] transition-colors duration-150 motion-reduce:transition-none ${focus} ${
         compact ? "justify-center" : ""
-      } ${active ? "bg-nexus-nav-hi" : "hover:bg-nexus-nav-hi/70"}`}
+      } ${active ? "bg-gradient-to-r from-violet-500/[0.18] via-violet-500/[0.07] to-transparent font-medium text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"}`}
     >
-      {entry.icon}
+      {active && <span aria-hidden className="absolute -left-4 top-1.5 h-6 w-[3px] rounded-r-full bg-gradient-to-b from-violet-300 to-violet-500 shadow-[0_0_12px_rgb(167_139_250/0.8)]" />}
+      <entry.Icon size={18} strokeWidth={1.75} aria-hidden className={active ? "text-violet-200" : "text-slate-500 transition-colors group-hover:text-slate-300"} />
       {!compact && <span className="truncate">{entry.label}</span>}
     </a>
   );
@@ -88,7 +48,7 @@ function NavItem({ entry, active, compact, onClick }: { entry: NavEntry; active:
 function Group({ title, entries, section, compact, onClose }: { title: string; entries: NavEntry[]; section: string; compact: boolean; onClose?: () => void }) {
   return (
     <div>
-      {!compact && <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-indigo-200/80">{title}</p>}
+      {!compact && <p className="mb-1.5 px-3 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-slate-500">{title}</p>}
       <ul className="flex flex-col gap-0.5">
         {entries.map((entry) => (
           <li key={entry.to}>
@@ -108,28 +68,35 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
     <nav
       aria-label="Primary"
       style={width ? { width } : undefined}
-      className={`flex h-full flex-col gap-4 overflow-hidden bg-nexus-nav p-4 text-white ${width ? "" : "w-72"}`}
+      className={`relative flex h-full flex-col gap-5 overflow-hidden border-r border-white/[0.06] bg-ink-900/80 p-4 text-white backdrop-blur-xl ${width ? "" : "w-72"}`}
     >
-      {(!compact || onClose) && (
-        <div className="flex items-start justify-between">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(80%_100%_at_20%_0%,rgb(124_58_237/0.18),transparent)]" />
+
+      <div className={`relative flex items-center ${compact ? "justify-center" : "justify-between"}`}>
+        <a {...linkProps("/chat")} className={`flex min-w-0 items-center gap-3 rounded-xl ${focus}`} aria-label={compact ? "Tempo, back to the chat" : undefined}>
+          <TempoMark size={36} className="shrink-0 drop-shadow-[0_8px_18px_rgb(124_58_237/0.45)]" />
           {!compact && (
-            <div>
-              <a {...linkProps("/chat")} className={`text-lg font-semibold tracking-tight ${focus} rounded`}>Tempo</a>
-              {profileName ? (
-                <a {...linkProps("/profiles")} className={`block text-[11px] text-indigo-200/90 underline-offset-2 hover:underline ${focus} rounded`}>
-                  Working for: {profileName}
-                </a>
-              ) : (
-                <p className="text-[11px] text-indigo-200/80">Your time, returned.</p>
-              )}
-            </div>
+            <span className="min-w-0">
+              <span className="block font-display text-[1.6rem] leading-none text-white">Tempo</span>
+              <span className="mt-1 block truncate text-[11px] text-slate-400">Your time, returned.</span>
+            </span>
           )}
-          {onClose && (
-            <button onClick={onClose} aria-label="Close menu" className={`rounded p-1 hover:bg-white/10 ${focus}`}>
-              <X size={20} />
-            </button>
-          )}
-        </div>
+        </a>
+        {onClose && (
+          <button onClick={onClose} aria-label="Close menu" className={`rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white ${focus}`}>
+            <X size={20} />
+          </button>
+        )}
+      </div>
+
+      {profileName && !compact && (
+        <a
+          {...linkProps("/profiles")}
+          className={`relative -mt-2 flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2 text-[12px] text-slate-300 hover:border-white/15 hover:text-white ${focus}`}
+        >
+          <Sparkles size={13} className="text-violet-300" aria-hidden />
+          <span className="truncate">Working for: {profileName}</span>
+        </a>
       )}
 
       <button
@@ -139,21 +106,24 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
         }}
         aria-label="New chat"
         title={compact ? "New chat" : undefined}
-        className={`flex items-center gap-2 rounded-xl border border-white/30 px-3 py-2.5 text-sm font-medium hover:bg-white/10 ${focus} ${compact ? "justify-center" : ""}`}
+        className={`relative flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-slate-100 shadow-[0_1px_0_0_rgb(255_255_255/0.06)_inset] transition-colors hover:border-violet-300/30 hover:bg-violet-500/10 ${focus} ${compact ? "justify-center" : ""}`}
       >
-        <Plus size={18} aria-hidden /> {!compact && "New chat"}
+        <span className="grid h-5 w-5 place-items-center rounded-md bg-violet-500/25 text-violet-100">
+          <Plus size={14} aria-hidden />
+        </span>
+        {!compact && "New chat"}
       </button>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+      <div className="relative -mx-1 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-1">
         <Group title="Doing" entries={NAV_DOING} section={section} compact={compact} onClose={onClose} />
         <Group title="Trust" entries={NAV_TRUST} section={section} compact={compact} onClose={onClose} />
 
         {onChat && !compact && history.length > 0 && (
           <section aria-labelledby="history-heading">
-            <h2 id="history-heading" className="mb-2 flex items-center gap-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-indigo-200/80">
+            <h2 id="history-heading" className="mb-1.5 flex items-center gap-2 px-3 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-slate-500">
               <HistoryIcon size={12} aria-hidden /> History
             </h2>
-            <ul className="flex flex-col gap-1.5">
+            <ul className="flex flex-col gap-0.5">
               {history.map((title, index) => (
                 <li key={`${title}-${index}`}>
                   <button
@@ -161,7 +131,7 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
                       onSelectChat?.(index);
                       onClose?.();
                     }}
-                    className={`w-full truncate rounded-full bg-nexus-nav-hi px-4 py-2 text-left text-sm text-white hover:bg-nexus-badge ${focus}`}
+                    className={`w-full truncate rounded-xl px-3 py-2 text-left text-[13px] text-slate-400 hover:bg-white/[0.04] hover:text-slate-100 ${focus}`}
                   >
                     {title}
                   </button>
@@ -172,7 +142,7 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
         )}
       </div>
 
-      <div className="border-t border-white/15 pt-3">
+      <div className="relative flex flex-col gap-2 border-t border-white/[0.06] pt-4">
         {ledger && !compact && (
           <a
             {...linkProps("/missions")}
@@ -180,15 +150,16 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
               linkProps("/missions").onClick(e);
               onClose?.();
             }}
-            className={`mb-2 block rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10 ${focus}`}
+            className={`group relative overflow-hidden rounded-2xl border border-gold-400/20 bg-gradient-to-br from-gold-400/[0.12] via-gold-400/[0.04] to-transparent px-3.5 py-3 transition-colors hover:border-gold-400/35 ${focus}`}
             aria-label={`So far Tempo has got back £${ledger.gbp} and ${ledger.hours} hours of your time. Open Mission Control.`}
           >
-            <span className="block text-[10px] font-semibold uppercase tracking-wider text-indigo-200/80">Returned so far</span>
-            <span className="text-sm font-semibold text-emerald-300">£{ledger.gbp}</span>
-            <span className="text-xs text-indigo-100/80"> · {ledger.hours} h of your time</span>
+            <span aria-hidden className="absolute -right-6 -top-6 h-20 w-20 rounded-full border-[6px] border-gold-400/15" />
+            <span className="block text-[10.5px] font-semibold uppercase tracking-[0.16em] text-gold-200/80">Returned so far</span>
+            <span className="num mt-1 block text-xl font-semibold leading-tight text-gold">£{ledger.gbp}</span>
+            <span className="text-[12px] text-slate-400">{ledger.hours} h of your time</span>
           </a>
         )}
-        <NavItem entry={{ to: "/settings", label: "Settings", icon: <SettingsIcon size={18} aria-hidden /> }} active={section === "/settings"} compact={compact} onClick={onClose} />
+        <NavItem entry={NAV_SETTINGS} active={section === "/settings"} compact={compact} onClick={onClose} />
       </div>
     </nav>
   );

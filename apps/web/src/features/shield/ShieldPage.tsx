@@ -23,12 +23,12 @@ export default function ShieldPage({ user, showcase, language: initial, speak }:
   const [language, setLanguage] = useState<Language>(initial);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageTitle lede="An agent that runs in the background on the phone, reads incoming texts on the device, and speaks when one is a trick. Built for people who cannot read the letter, hear the call or trust the message, and are the ones scammers target.">
         Scam Shield
       </PageTitle>
 
-      <div role="tablist" aria-label="Scam Shield" className="grid w-full grid-cols-2 gap-1 rounded-full border border-white/10 bg-white/5 p-1 sm:inline-flex sm:w-auto">
+      <div role="tablist" aria-label="Scam Shield" className="grid w-full grid-cols-2 gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] p-1 shadow-[0_1px_0_0_rgb(255_255_255/0.04)_inset] sm:inline-flex sm:w-auto">
         {TABS.map((t) => {
           const Icon = t.icon;
           const selected = tab === t.id;
@@ -50,15 +50,19 @@ export default function ShieldPage({ user, showcase, language: initial, speak }:
                   document.getElementById(`tab-${next.id}`)?.focus();
                 }
               }}
-              className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium sm:px-4 transition-colors motion-reduce:transition-none ${FOCUS} ${selected ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-white/10"}`}
+              className={`inline-flex min-h-[44px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-[background-color,color,box-shadow] duration-200 sm:px-5 motion-reduce:transition-none ${FOCUS} ${
+                selected
+                  ? "bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.2)_inset,0_10px_24px_-12px_rgb(124_58_237/0.9)]"
+                  : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+              }`}
             >
-              <Icon size={14} aria-hidden /> {t.label}
+              <Icon size={15} aria-hidden className={selected ? "text-violet-100" : "text-slate-400"} /> {t.label}
             </button>
           );
         })}
       </div>
 
-      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+      <div key={tab} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="motion-safe:animate-fade-up">
         {tab === "check" ? (
           <ShieldPanel source={source} language={language} onLanguage={setLanguage} userId={user.id} speak={speak} />
         ) : (

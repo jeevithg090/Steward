@@ -3,7 +3,7 @@
 // refusals. The chosen profile is obvious (a sticky "Tempo is working for" banner), can be
 // stopped, and each card can be tried straight away in the chat with a sentence that fits it.
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { ArrowLeft, Check, ClipboardPaste, Copy, Download, FileDown, Link2, MessageCircle, ShieldCheck, ShieldX, Upload, UserCheck, UserMinus } from "lucide-react";
+import { ArrowLeft, AudioLines, CalendarClock, Check, ClipboardPaste, Copy, Cpu, Download, FileDown, Gauge, Link2, MessageCircle, MessageCircleQuestion, PoundSterling, Puzzle, ShieldCheck, ShieldX, Sparkles, Upload, UserCheck, UserMinus, UserRound } from "lucide-react";
 import { Badge, Button, Card, EmptyState, FOCUS, PageTitle, SectionTitle, SkeletonCards, toast } from "@/components/ui";
 import { CatalogClient, type CatalogSource, GatewayError } from "@/lib/catalog-client";
 import { ACTION_WORDS, type Profile, ProfileInvalid, type ProfileView, type SkillManifest, codeFromHash, decodeShareCode, encodeShareCode, profileToYaml, toProfile, toView } from "@/lib/profiles";
@@ -12,12 +12,15 @@ import { useCatalog } from "@/lib/use-showcase";
 import { linkProps, navigate, useRoute } from "@/router";
 import type { PageProps } from "@/types/page";
 import { SAY, TAP, chatSay, shortSay } from "../story/demo";
-import { AccessChips, CHANNEL_WORDS, DOCS, MayNever, StatusBadge, WillDo, accessInWords, capital, limitsInWords } from "./bits";
+import { AccessChips, Avatar, CHANNEL_WORDS, DOCS, MayNever, StatusBadge, WillDo, accessInWords, capital, limitsInWords } from "./bits";
 import { loadError } from "@/components/mission/words";
 import catalogJson from "@/showcase/catalog.json";
 
-const TEXTAREA = `w-full rounded-xl border border-white/15 bg-black/30 p-3 font-mono text-xs text-slate-100 placeholder:text-slate-500 ${FOCUS}`;
-const QUIET_LINK = `inline-flex ${TAP} items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:bg-white/10 ${FOCUS}`;
+const TEXTAREA = `w-full resize-y rounded-2xl border border-white/10 bg-ink-900/70 p-3.5 font-mono text-[12px] leading-relaxed text-slate-100 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] placeholder:text-slate-500 transition-colors hover:border-white/20 focus:border-violet-400/50 ${FOCUS}`;
+/** A link that looks like the quiet Button. */
+const QUIET_LINK = `inline-flex ${TAP} items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.05] px-4 text-sm font-medium text-slate-100 transition-colors hover:border-white/20 hover:bg-white/[0.09] motion-reduce:transition-none ${FOCUS}`;
+const BACK_LINK = `inline-flex ${TAP} items-center gap-1.5 rounded-full pr-3 text-sm font-medium text-slate-400 transition-colors hover:text-white ${FOCUS}`;
+const TEXT_LINK = `font-medium text-violet-300 underline decoration-violet-400/40 underline-offset-[3px] hover:text-violet-200 hover:decoration-violet-200 ${FOCUS}`;
 
 /** The import URL for a profile: the whole profile travels in the fragment's query, never to a server log. */
 export function importUrl(profile: Profile): string {
@@ -127,17 +130,23 @@ function WorkingFor({ source, id, setProfile }: { source: CatalogSource; id: str
   }, [source, id]);
 
   return (
-    <div className="sticky top-0 z-20 pt-1">
+    <div className="sticky top-0 z-20 pt-1 motion-safe:animate-fade-up">
       <div
         role="region"
         aria-label="Who Tempo is working for"
-        className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-2xl border border-emerald-500/40 bg-emerald-950/95 py-1.5 pl-4 pr-1.5 shadow-lg shadow-black/40 backdrop-blur"
+        className="glass-strong flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-full border-violet-400/30 py-1.5 pl-1.5 pr-1.5 shadow-glow"
       >
-        <p className="flex min-w-0 items-center gap-2 text-sm text-emerald-50">
-          <UserCheck size={18} className="shrink-0 text-emerald-300" aria-hidden />
-          <span>
-            Tempo is working for:{" "}
-            <a {...linkProps(`/profiles/${id}`)} className={`font-semibold text-white underline decoration-emerald-300/50 underline-offset-2 hover:decoration-white ${FOCUS}`}>
+        <p className="flex min-w-0 items-center gap-3 text-sm text-slate-200">
+          <Avatar name={name} seed={id} size="sm" glow className="!rounded-full [&>span]:!rounded-full" />
+          <span className="min-w-0">
+            <span className="mr-1 inline-flex items-center gap-1.5 text-slate-400">
+              <span aria-hidden className="relative inline-flex h-2 w-2">
+                <span className="absolute inset-0 animate-ping rounded-full bg-violet-400/60 motion-reduce:animate-none" />
+                <span className="relative h-2 w-2 rounded-full bg-violet-300" />
+              </span>
+              Tempo is working for:
+            </span>{" "}
+            <a {...linkProps(`/profiles/${id}`)} className={`font-semibold text-white underline decoration-violet-300/40 underline-offset-[3px] hover:decoration-white ${FOCUS}`}>
               {name}
             </a>
           </span>
@@ -170,7 +179,7 @@ function TryLink({ profile, setProfile, className = QUIET_LINK }: { profile: { i
 function TryHint({ id }: { id: string }) {
   const t = tryWith(id);
   return (
-    <p id={`${id}-try-hint`} className="text-xs text-slate-400">
+    <p id={`${id}-try-hint`} className="text-xs leading-relaxed text-slate-400">
       Sends “{shortSay(t.say, 56)}” in the chat under this profile.{t.watch ? ` ${t.watch}` : ""}
     </p>
   );
@@ -196,8 +205,10 @@ function ProfileList({ source, user, setProfile, showcase, banner }: Sub) {
   }, [source]);
   useEffect(load, [load]);
 
+  const activeCount = profiles?.filter((p) => p.id === user.profileId).length ?? 0;
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageTitle
         lede="A profile says who Tempo works for, which skills are on, how it must speak with you, and what it may never do. It is enforced, not just displayed: if you ask for something a profile rules out, Tempo refuses before it starts."
         right={
@@ -211,9 +222,14 @@ function ProfileList({ source, user, setProfile, showcase, banner }: Sub) {
 
       {banner}
       {!user.profileId && profiles && (
-        <p className="rounded-2xl border border-dashed border-white/15 px-4 py-3 text-sm text-slate-300">
-          No profile chosen: Tempo asks before anything binding, and uses its usual patient voice. Choose one below and the chat sends it with every mission.
-        </p>
+        <div className="flex items-start gap-3 rounded-3xl border border-dashed border-white/[0.14] bg-white/[0.02] px-4 py-3.5 text-sm leading-relaxed text-slate-300 motion-safe:animate-fade-up">
+          <span aria-hidden className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/[0.06] text-slate-300 ring-1 ring-inset ring-white/10">
+            <UserRound size={14} />
+          </span>
+          <p className="min-w-0 pt-0.5">
+            No profile chosen: Tempo asks before anything binding, and uses its usual patient voice. Choose one below and the chat sends it with every mission.
+          </p>
+        </div>
       )}
 
       {error && (
@@ -224,69 +240,107 @@ function ProfileList({ source, user, setProfile, showcase, banner }: Sub) {
       {!error && profiles === null && <SkeletonCards count={4} label="Loading profiles" />}
       {profiles && profiles.length === 0 && <EmptyState title="No profiles yet">Add one YAML file to profiles/ and it appears here.</EmptyState>}
       {profiles && profiles.length > 0 && (
-        <ul className="grid gap-4 md:grid-cols-2">
-          {profiles.map((p) => {
-            const active = user.profileId === p.id;
-            return (
-              <Card key={p.id} as="li" tone={active ? "emerald" : "default"} className={`flex flex-col gap-3 ${active ? "ring-1 ring-emerald-400/40" : ""}`}>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-lg font-semibold text-slate-100">
-                      <a {...linkProps(`/profiles/${p.id}`)} className={`text-indigo-200 underline decoration-indigo-300/40 underline-offset-2 hover:decoration-indigo-200 ${FOCUS}`}>
-                        {p.name}
-                      </a>
-                    </h2>
-                    {active && (
-                      <Badge tone="emerald">
-                        <Check size={11} aria-hidden /> In use
-                      </Badge>
-                    )}
+        <section aria-labelledby="gallery-heading">
+          <SectionTitle as="p" id="gallery-heading" right={<span className="num text-xs text-slate-400">{profiles.length} profiles{activeCount ? " · 1 chosen" : ""}</span>}>
+            <Sparkles size={12} aria-hidden /> Choose who Tempo works for
+          </SectionTitle>
+          <ul className="stagger grid gap-4 lg:grid-cols-2">
+            {profiles.map((p) => {
+              const active = user.profileId === p.id;
+              return (
+                <Card
+                  key={p.id}
+                  as="li"
+                  tone={active ? "indigo" : "default"}
+                  padding="none"
+                  className={`group relative flex flex-col overflow-hidden ${active ? "shadow-glow ring-1 ring-violet-400/50" : "transition-[border-color,box-shadow] duration-200 hover:border-white/[0.14] hover:shadow-lift motion-reduce:transition-none"}`}
+                >
+                  {active && <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/80 to-transparent" />}
+                  <div className="flex items-start gap-4 p-5 pb-4 lg:p-6 lg:pb-4">
+                    <Avatar name={p.name} seed={p.id} size="lg" glow={active} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <h2 className="text-[17px] font-semibold leading-snug tracking-[-0.01em] text-white">
+                          <a {...linkProps(`/profiles/${p.id}`)} className={`rounded-sm decoration-violet-300/60 underline-offset-[3px] hover:text-violet-100 hover:underline ${FOCUS}`}>
+                            {p.name}
+                          </a>
+                        </h2>
+                        {active && (
+                          <Badge tone="indigo" dot className="ring-violet-300/40">
+                            In use
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
+                        <span className="font-medium text-slate-400">For:</span> {p.for_whom}
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                        <StatusBadge status={p.status} />
+                        <span className="num">v{p.version}</span>
+                      </div>
+                    </div>
                   </div>
-                  <p className="mt-1 text-sm text-slate-300">
-                    <span className="text-slate-400">For:</span> {p.for_whom}
-                  </p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2">
-                  <WillDo jobs={p.jobs} id={`${p.id}-jobs`} limit={3} />
-                  <MayNever actions={p.may_not} id={`${p.id}-may-not`} limit={3} />
-                </div>
-                <div>
-                  <SectionTitle as="p">Skills on</SectionTitle>
-                  <ul aria-label={`Skills on for ${p.name}`} className="flex flex-wrap gap-1.5">
-                    {p.skills.map((s) => (
-                      <li key={s.id}>
-                        <Badge tone={s.status === "ready" ? "emerald" : s.status === "demo-values" ? "amber" : "slate"}>{s.name}</Badge>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <AccessChips access={p.access} />
-                <div className="mt-auto space-y-2 border-t border-white/10 pt-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {active ? (
-                      <Button variant="quiet" onClick={() => choose.stop(p.name)} icon={<UserMinus size={14} aria-hidden />} className={TAP}>
-                        Stop using
-                      </Button>
-                    ) : (
-                      <Button onClick={() => choose.use(p)} icon={<UserCheck size={14} aria-hidden />} className={TAP} aria-label={`Use this profile: ${p.name}`}>
-                        Use this profile
-                      </Button>
-                    )}
-                    <TryLink profile={p} setProfile={setProfile} />
+
+                  <div className="mx-5 grid gap-x-5 gap-y-4 rounded-2xl border border-white/[0.06] bg-black/20 p-4 sm:grid-cols-[1.2fr_1fr] lg:mx-6">
+                    <WillDo jobs={p.jobs} id={`${p.id}-jobs`} limit={3} />
+                    <MayNever actions={p.may_not} id={`${p.id}-may-not`} limit={3} />
                   </div>
-                  <TryHint id={p.id} />
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-                    <StatusBadge status={p.status} />
-                    <span>v{p.version}</span>
+
+                  <div className="space-y-3 px-5 pt-4 lg:px-6">
+                    <div>
+                      <SectionTitle as="p" className="!mb-2">Skills on</SectionTitle>
+                      <ul aria-label={`Skills on for ${p.name}`} className="flex flex-wrap gap-1.5">
+                        {p.skills.map((s) => (
+                          <li key={s.id}>
+                            <Badge tone={s.status === "ready" ? "emerald" : s.status === "demo-values" ? "amber" : "slate"} className="py-1">
+                              <Puzzle size={11} aria-hidden className="opacity-80" />
+                              {s.name}
+                            </Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <SectionTitle as="p" className="!mb-2">Speaks with you</SectionTitle>
+                      <AccessChips access={p.access} />
+                    </div>
                   </div>
-                </div>
-              </Card>
-            );
-          })}
-        </ul>
+
+                  <div className="mt-auto space-y-2.5 border-t border-white/[0.06] bg-white/[0.015] px-5 py-4 lg:px-6">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {active ? (
+                        <Button variant="quiet" onClick={() => choose.stop(p.name)} icon={<UserMinus size={14} aria-hidden />} className={TAP}>
+                          Stop using
+                        </Button>
+                      ) : (
+                        <Button onClick={() => choose.use(p)} icon={<UserCheck size={14} aria-hidden />} className={TAP} aria-label={`Use this profile: ${p.name}`}>
+                          Use this profile
+                        </Button>
+                      )}
+                      <TryLink profile={p} setProfile={setProfile} />
+                    </div>
+                    <TryHint id={p.id} />
+                  </div>
+                </Card>
+              );
+            })}
+          </ul>
+        </section>
       )}
-      {showcase && profiles && <p className="text-xs text-slate-400">Showcase: read from the committed catalogue (profiles/*.yaml), not from a Gateway.</p>}
+      {showcase && profiles && <ShowcaseNote>Showcase: read from the committed catalogue (profiles/*.yaml), not from a Gateway.</ShowcaseNote>}
     </div>
+  );
+}
+
+/** The honesty label for the showcase: an amber note, never fine print. */
+function ShowcaseNote({ children }: { children: ReactNode }) {
+  return (
+    <p className="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-500/[0.06] px-4 py-2.5 text-sm text-amber-100">
+      <Badge tone="amber" dot>
+        showcase
+      </Badge>
+      {children}
+    </p>
   );
 }
 
@@ -333,12 +387,8 @@ function ProfileDetail({ source, id, user, setProfile, showcase, banner }: Sub &
   const active = profile !== null && user.profileId === profile.id;
 
   return (
-    <div className="space-y-5">
-      <p>
-        <a {...linkProps("/profiles")} className={`inline-flex ${TAP} items-center gap-1 text-sm text-indigo-300 underline ${FOCUS}`}>
-          <ArrowLeft size={14} aria-hidden /> All profiles
-        </a>
-      </p>
+    <div className="space-y-6">
+      <BackLink />
       {error && (
         <>
           <PageTitle>Profiles</PageTitle>
@@ -359,57 +409,71 @@ function ProfileDetail({ source, id, user, setProfile, showcase, banner }: Sub &
         <>
           <PageTitle lede={profile.summary}>Profiles</PageTitle>
           {banner}
-          <Card tone={active ? "emerald" : "indigo"} className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-xl font-semibold text-slate-100">{profile.name}</h2>
-              {active && (
-                <Badge tone="emerald">
-                  <Check size={11} aria-hidden /> In use
-                </Badge>
-              )}
-              <StatusBadge status={profile.status} />
-              <span className="text-xs text-slate-400">
-                v{profile.version} · by {profile.share.author}
-              </span>
+          <Card tone="indigo" padding="none" className={`relative overflow-hidden motion-safe:animate-fade-up ${active ? "shadow-glow ring-1 ring-violet-400/50" : ""}`}>
+            <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/20 blur-3xl" />
+            <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/70 to-transparent" />
+            <div className="relative flex flex-col gap-5 p-5 sm:flex-row sm:items-start lg:p-7">
+              <Avatar name={profile.name} seed={profile.id} size="xl" glow />
+              <div className="min-w-0 flex-1 space-y-3">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <h2 className="font-display text-[2.1rem] leading-[1.05] text-white sm:text-[2.6rem]">{profile.name}</h2>
+                  {active && (
+                    <Badge tone="indigo" dot className="ring-violet-300/40">
+                      In use
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                  <StatusBadge status={profile.status} />
+                  <span className="num">
+                    v{profile.version} · by {profile.share.author}
+                  </span>
+                </div>
+                <p className="max-w-2xl text-[15px] leading-relaxed text-slate-200">
+                  <span className="font-medium text-slate-400">Who it is for:</span> {profile.for_whom}
+                </p>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  {active ? (
+                    <Button variant="quiet" onClick={() => choose.stop(profile.name)} icon={<UserMinus size={14} aria-hidden />} className={TAP}>
+                      Stop using
+                    </Button>
+                  ) : (
+                    <Button onClick={() => choose.use(profile)} icon={<UserCheck size={14} aria-hidden />} className={TAP} aria-label={`Use this profile: ${profile.name}`}>
+                      Use this profile
+                    </Button>
+                  )}
+                  <TryLink profile={profile} setProfile={setProfile} />
+                </div>
+                <TryHint id={profile.id} />
+              </div>
             </div>
-            <p className="text-sm text-slate-200">
-              <span className="text-slate-400">Who it is for:</span> {profile.for_whom}
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              {active ? (
-                <Button variant="quiet" onClick={() => choose.stop(profile.name)} icon={<UserMinus size={14} aria-hidden />} className={TAP}>
-                  Stop using
-                </Button>
-              ) : (
-                <Button onClick={() => choose.use(profile)} icon={<UserCheck size={14} aria-hidden />} className={TAP} aria-label={`Use this profile: ${profile.name}`}>
-                  Use this profile
-                </Button>
-              )}
-              <TryLink profile={profile} setProfile={setProfile} />
-            </div>
-            <TryHint id={profile.id} />
           </Card>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid items-start gap-4 md:grid-cols-2">
             <Card>
               <WillDo jobs={profile.jobs} id="detail-jobs" as="h3" />
             </Card>
+            <div className="stagger space-y-4">
             <Card tone="rose">
               <MayNever actions={profile.may_not} id="detail-may-not" as="h3" />
-              <p className="mt-3 flex items-start gap-2 rounded-xl border border-rose-500/30 bg-black/20 px-3 py-2 text-sm text-rose-50">
+              <p className="mt-4 flex items-start gap-2.5 rounded-2xl border border-rose-400/25 bg-rose-500/[0.08] px-3.5 py-2.5 text-sm font-medium leading-snug text-rose-50">
                 <ShieldX size={16} className="mt-0.5 shrink-0 text-rose-300" aria-hidden />
                 If you ask for something this profile rules out, Tempo refuses before it starts.
               </p>
             </Card>
             <Card tone="emerald">
-              <SectionTitle as="h3">What it may do, once you say yes</SectionTitle>
+              <SectionTitle as="h3">
+                <ShieldCheck size={12} aria-hidden className="text-emerald-300" /> What it may do, once you say yes
+              </SectionTitle>
               {profile.may.length === 0 ? (
-                <p className="text-sm text-slate-300">Nothing binding at all. This profile only looks, explains and warns.</p>
+                <p className="text-sm leading-relaxed text-slate-300">Nothing binding at all. This profile only looks, explains and warns.</p>
               ) : (
-                <ul className="space-y-1 text-sm text-slate-200">
+                <ul className="flex flex-wrap gap-2">
                   {profile.may.map((a) => (
-                    <li key={a} className="flex items-start gap-2">
-                      <Check size={14} className="mt-0.5 shrink-0 text-emerald-300" aria-hidden />
+                    <li key={a} className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/[0.08] py-1.5 pl-1.5 pr-3 text-sm text-emerald-50">
+                      <span aria-hidden className="grid h-5 w-5 place-items-center rounded-full bg-emerald-500/20 text-emerald-200">
+                        <Check size={12} strokeWidth={3} />
+                      </span>
                       {capital(ACTION_WORDS[a])}
                     </li>
                   ))}
@@ -417,72 +481,109 @@ function ProfileDetail({ source, id, user, setProfile, showcase, banner }: Sub &
               )}
             </Card>
             <Card>
-              <SectionTitle as="h3">Its limits</SectionTitle>
-              <ul className="space-y-1 text-sm text-slate-200">
-                {limitsInWords(profile.limits).map((l) => (
-                  <li key={l}>{l}</li>
+              <SectionTitle as="h3">
+                <Gauge size={12} aria-hidden /> Its limits
+              </SectionTitle>
+              <ul className="space-y-2.5 text-sm text-slate-200">
+                {limitsInWords(profile.limits).map((l, i) => {
+                  const LimitIcon = LIMIT_ICONS[i] ?? Gauge;
+                  return (
+                    <li key={l} className="flex items-start gap-3">
+                      <span aria-hidden className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-violet-200 ring-1 ring-inset ring-white/10">
+                        <LimitIcon size={14} />
+                      </span>
+                      <span className="pt-1 leading-snug">{l}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Card>
+            </div>
+          </div>
+
+          <div className="grid items-start gap-4 lg:grid-cols-[3fr_2fr]">
+            <Card>
+              <SectionTitle as="h3">
+                <AudioLines size={12} aria-hidden /> How Tempo speaks with you
+              </SectionTitle>
+              <AccessChips access={profile.access} />
+              <p className="mt-3 text-[15px] leading-relaxed text-slate-100">{accessInWords(profile.access)}</p>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                Reaches you by {profile.channels.map((c) => CHANNEL_WORDS[c] ?? c).join(", ")}. Your time is valued at £{profile.time_value_gbp_h} an hour when Tempo weighs
+                whether a claim is worth it.
+              </p>
+            </Card>
+
+            <Card>
+              <SectionTitle as="h3">
+                <Puzzle size={12} aria-hidden /> The skills it turns on
+              </SectionTitle>
+              <ul className="space-y-2">
+                {profile.skills.map((s) => (
+                  <li key={s.id} className="flex flex-col items-start gap-1.5 rounded-2xl border border-white/[0.07] bg-black/20 px-3.5 py-2.5 text-sm">
+                    <a {...linkProps("/skills")} className={TEXT_LINK}>
+                      {s.name}
+                    </a>
+                    <StatusBadge status={s.status} />
+                  </li>
                 ))}
               </ul>
             </Card>
           </div>
 
-          <Card>
-            <SectionTitle as="h3">How Tempo speaks with you</SectionTitle>
-            <AccessChips access={profile.access} />
-            <p className="mt-2 text-sm text-slate-200">{accessInWords(profile.access)}</p>
-            <p className="mt-2 text-sm text-slate-300">
-              Reaches you by {profile.channels.map((c) => CHANNEL_WORDS[c] ?? c).join(", ")}. Your time is valued at £{profile.time_value_gbp_h} an hour when Tempo weighs
-              whether a claim is worth it.
-            </p>
-          </Card>
-
-          <Card>
-            <SectionTitle as="h3">The skills it turns on</SectionTitle>
-            <ul className="flex flex-wrap gap-2">
-              {profile.skills.map((s) => (
-                <li key={s.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm">
-                  <a {...linkProps("/skills")} className={`font-medium text-indigo-300 underline ${FOCUS}`}>
-                    {s.name}
-                  </a>
-                  <StatusBadge status={s.status} />
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          <Card as="section" aria-labelledby="share-heading" tone="indigo">
-            <SectionTitle id="share-heading" as="h3">
-              <span className="inline-flex items-center gap-1.5">
-                <Link2 size={12} aria-hidden /> Share this profile
-              </span>
-            </SectionTitle>
-            <p className="text-sm text-slate-200">
-              The link carries the whole profile after the <code className="text-indigo-200">#</code>, so it never reaches a server log. Whoever opens it sees exactly this page
-              and nothing is stored until they choose to use it.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button onClick={() => void copy()} disabled={!link} icon={<Copy size={14} aria-hidden />} className={TAP}>
-                Copy link
-              </Button>
-              <Button variant="quiet" onClick={() => downloadYaml(profile, "Put it in profiles/ and open a pull request to share it with everyone.")} icon={<FileDown size={14} aria-hidden />} className={TAP}>
-                Download YAML
-              </Button>
-              {link && (
-                <a {...linkProps(link.slice(link.indexOf("#")))} className={QUIET_LINK}>
-                  <Upload size={14} aria-hidden /> Open the import page
-                </a>
-              )}
+          <Card as="section" aria-labelledby="share-heading" className="relative overflow-hidden">
+            <span aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-violet-600/10 blur-3xl" />
+            <div className="relative grid gap-5 lg:grid-cols-[2fr_3fr] lg:gap-8">
+              <div>
+                <SectionTitle id="share-heading" as="h3">
+                  <Link2 size={12} aria-hidden /> Share this profile
+                </SectionTitle>
+                <p className="text-sm leading-relaxed text-slate-300">
+                  The link carries the whole profile after the <code className="rounded-md bg-white/[0.06] px-1 font-mono text-violet-200">#</code>, so it never reaches a server log.
+                  Whoever opens it sees exactly this page and nothing is stored until they choose to use it.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button onClick={() => void copy()} disabled={!link} icon={<Copy size={14} aria-hidden />} className={TAP}>
+                    Copy link
+                  </Button>
+                  <Button variant="quiet" onClick={() => downloadYaml(profile, "Put it in profiles/ and open a pull request to share it with everyone.")} icon={<FileDown size={14} aria-hidden />} className={TAP}>
+                    Download YAML
+                  </Button>
+                  {link && (
+                    <a {...linkProps(link.slice(link.indexOf("#")))} className={QUIET_LINK}>
+                      <Upload size={14} aria-hidden /> Open the import page
+                    </a>
+                  )}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <label htmlFor="share-link" className="mb-1.5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  The link
+                </label>
+                <textarea id="share-link" readOnly value={link ?? ""} rows={4} className={TEXTAREA} onFocus={(e) => e.currentTarget.select()} />
+              </div>
             </div>
-            <label htmlFor="share-link" className="mt-3 block text-xs font-medium text-slate-400">
-              The link
-            </label>
-            <textarea id="share-link" readOnly value={link ?? ""} rows={3} className={`mt-1 ${TEXTAREA}`} onFocus={(e) => e.currentTarget.select()} />
           </Card>
 
-          {showcase && <p className="text-xs text-slate-400">Showcase: this profile comes from the committed catalogue (profiles/{profile.id}.yaml), not from a Gateway.</p>}
+          {showcase && <ShowcaseNote>Showcase: this profile comes from the committed catalogue (profiles/{profile.id}.yaml), not from a Gateway.</ShowcaseNote>}
         </>
       )}
     </div>
+  );
+}
+
+const LIMIT_ICONS = [PoundSterling, MessageCircleQuestion, Cpu, CalendarClock];
+
+function BackLink() {
+  return (
+    <p className="-mb-2">
+      <a {...linkProps("/profiles")} className={BACK_LINK}>
+        <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full border border-white/10 bg-white/[0.04]">
+          <ArrowLeft size={14} />
+        </span>
+        All profiles
+      </a>
+    </p>
   );
 }
 
@@ -584,24 +685,28 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
   const active = profile !== null && user.profileId === profile.id;
 
   return (
-    <div className="space-y-5">
-      <p>
-        <a {...linkProps("/profiles")} className={`inline-flex ${TAP} items-center gap-1 text-sm text-indigo-300 underline ${FOCUS}`}>
-          <ArrowLeft size={14} aria-hidden /> All profiles
-        </a>
-      </p>
+    <div className="space-y-6">
+      <BackLink />
       <PageTitle lede="Somebody sent you a Tempo profile. The link holds the whole profile; this page only reads it and shows it. Nothing is saved, here or anywhere else, unless you download the file yourself.">
         Profiles
       </PageTitle>
       {banner}
 
-      <Card as="section" aria-labelledby="paste-heading" tone="indigo">
-        <h2 id="paste-heading" className="flex items-center gap-2 text-base font-semibold text-slate-100">
-          <Upload size={16} className="text-indigo-300" aria-hidden /> Import a profile
-        </h2>
-        <p className="mt-1 text-sm text-slate-300">Paste the share link or code you were sent. Tempo checks every rule a Gateway would, and tells you plainly if one fails.</p>
+      <Card as="section" aria-labelledby="paste-heading" tone="indigo" className="relative overflow-hidden motion-safe:animate-fade-up">
+        <span aria-hidden className="pointer-events-none absolute -right-20 -top-28 h-64 w-64 rounded-full bg-violet-500/15 blur-3xl" />
+        <div className="relative flex items-start gap-3.5">
+          <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/30 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/25">
+            <Upload size={18} />
+          </span>
+          <div className="min-w-0">
+            <h2 id="paste-heading" className="text-[17px] font-semibold text-white">
+              Import a profile
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-slate-300">Paste the share link or code you were sent. Tempo checks every rule a Gateway would, and tells you plainly if one fails.</p>
+          </div>
+        </div>
         <form
-          className="mt-3"
+          className="relative mt-4"
           onSubmit={(e) => {
             e.preventDefault();
             void check(typed);
@@ -611,7 +716,7 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
             Paste a share link or code
           </label>
           <textarea id="share-code" value={typed} onChange={(e) => setTyped(e.target.value)} rows={3} className={TEXTAREA} placeholder="https://…#/profiles/import?p=tp1.…  or  tp1.…" />
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button type="submit" disabled={!typed.trim() || busy || manifests === null} busy={busy} icon={<ShieldCheck size={14} aria-hidden />} className={TAP}>
               Check it
             </Button>
@@ -619,7 +724,7 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
               Paste from clipboard
             </Button>
             {(result || refusal) && (
-              <Button variant="quiet" onClick={reset} className={TAP}>
+              <Button variant="ghost" onClick={reset} className={TAP}>
                 Try another code
               </Button>
             )}
@@ -630,34 +735,58 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
       <div aria-live="polite" className="space-y-4">
         {busy && <SkeletonCards count={1} label="Checking the code" />}
         {refusal && (
-          <Card tone="rose" role="alert">
-            <p className="flex items-center gap-2 text-sm font-semibold text-rose-100">
-              <ShieldX size={16} className="text-rose-300" aria-hidden /> This code can't be trusted.
-            </p>
-            <p className="mt-1 text-sm text-rose-50">{refusal}</p>
-            <p className="mt-2 text-xs text-rose-200/80">Nothing was stored. Ask whoever sent it to share the profile again.</p>
+          <Card tone="rose" role="alert" className="relative overflow-hidden motion-safe:animate-scale-in">
+            <span aria-hidden className="absolute inset-y-0 left-0 w-[3px] bg-rose-400" />
+            <div className="flex items-start gap-3">
+              <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-rose-500/15 text-rose-300 ring-1 ring-inset ring-rose-400/25">
+                <ShieldX size={18} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[15px] font-semibold text-rose-50">This code can't be trusted.</p>
+                <p className="mt-1 text-sm leading-relaxed text-rose-100">{refusal}</p>
+                <p className="mt-2 text-xs text-rose-200/90">Nothing was stored. Ask whoever sent it to share the profile again.</p>
+              </div>
+            </div>
           </Card>
         )}
         {profile && result && (
           <>
-            <Card className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                {result.checked === "gateway" ? <Badge tone="emerald">Checked by the Gateway</Badge> : <Badge tone="amber">Not yet checked by a Gateway</Badge>}
-                <StatusBadge status={profile.status} />
-                {active && <Badge tone="emerald">In use</Badge>}
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-slate-100">{profile.name}</h3>
-                <p className="mt-1 text-sm text-slate-300">{profile.summary}</p>
-                <p className="mt-1 text-sm text-slate-200">
-                  <span className="text-slate-400">For:</span> {profile.for_whom}
-                </p>
+            <Card className="relative overflow-hidden motion-safe:animate-fade-up">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                <Avatar name={profile.name} seed={profile.id} size="lg" glow={active} />
+                <div className="min-w-0 flex-1 space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {result.checked === "gateway" ? (
+                      <Badge tone="emerald" dot>
+                        Checked by the Gateway
+                      </Badge>
+                    ) : (
+                      <Badge tone="amber" dot>
+                        Not yet checked by a Gateway
+                      </Badge>
+                    )}
+                    <StatusBadge status={profile.status} />
+                    {active && (
+                      <Badge tone="indigo" dot>
+                        In use
+                      </Badge>
+                    )}
+                  </div>
+                  <h3 className="font-display text-[2rem] leading-tight text-white">{profile.name}</h3>
+                  <p className="text-sm leading-relaxed text-slate-300">{profile.summary}</p>
+                  <p className="text-sm leading-relaxed text-slate-200">
+                    <span className="font-medium text-slate-400">For:</span> {profile.for_whom}
+                  </p>
+                </div>
               </div>
               {result.checked === "browser" && (
-                <p className="rounded-xl border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-sm text-amber-50">
-                  {showcase
-                    ? "The showcase decoded this in your browser and checked its shape and its skills against the committed catalogue. A Gateway re-checks everything before a profile is ever used, and only ever validates: it never stores what is sent."
-                    : result.gatewayNote ?? "Checked in your browser."}
+                <p className="mt-4 flex items-start gap-2.5 rounded-2xl border border-amber-400/25 bg-amber-500/[0.08] px-3.5 py-2.5 text-sm leading-relaxed text-amber-50">
+                  <ShieldCheck size={16} aria-hidden className="mt-0.5 shrink-0 text-amber-300" />
+                  <span>
+                    {showcase
+                      ? "The showcase decoded this in your browser and checked its shape and its skills against the committed catalogue. A Gateway re-checks everything before a profile is ever used, and only ever validates: it never stores what is sent."
+                      : result.gatewayNote ?? "Checked in your browser."}
+                  </span>
                 </p>
               )}
             </Card>
@@ -668,9 +797,12 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
                 ) : (
                   <>
                     <SectionTitle as="h3">The skills it turns on</SectionTitle>
-                    <ul className="space-y-1 text-sm text-slate-200">
+                    <ul className="space-y-1.5 text-sm text-slate-200">
                       {profile.skills.map((s) => (
-                        <li key={s.id}>{s.name}</li>
+                        <li key={s.id} className="flex items-center gap-2">
+                          <Puzzle size={13} aria-hidden className="text-violet-300" />
+                          {s.name}
+                        </li>
                       ))}
                     </ul>
                   </>
@@ -681,25 +813,37 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
               </Card>
             </div>
             <Card>
-              <SectionTitle as="h3">Its limits and how it speaks</SectionTitle>
-              <ul className="space-y-1 text-sm text-slate-200">
-                {limitsInWords(profile.limits).map((l) => (
-                  <li key={l}>{l}</li>
-                ))}
+              <SectionTitle as="h3">
+                <Gauge size={12} aria-hidden /> Its limits and how it speaks
+              </SectionTitle>
+              <ul className="grid gap-2.5 text-sm text-slate-200 sm:grid-cols-2">
+                {limitsInWords(profile.limits).map((l, i) => {
+                  const LimitIcon = LIMIT_ICONS[i] ?? Gauge;
+                  return (
+                    <li key={l} className="flex items-start gap-3">
+                      <span aria-hidden className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-violet-200 ring-1 ring-inset ring-white/10">
+                        <LimitIcon size={14} />
+                      </span>
+                      <span className="pt-1 leading-snug">{l}</span>
+                    </li>
+                  );
+                })}
               </ul>
-              <div className="mt-3">
+              <div className="mt-4 border-t border-white/[0.06] pt-4">
                 <AccessChips access={profile.access} />
               </div>
             </Card>
             <Card tone="indigo">
-              <SectionTitle as="h3">Use it</SectionTitle>
+              <SectionTitle as="h3">
+                <UserCheck size={12} aria-hidden /> Use it
+              </SectionTitle>
               {inCatalogue ? (
                 <>
-                  <p className="text-sm text-slate-200">
-                    This Tempo already has a profile called <strong className="text-slate-100">{profile.id}</strong>, so you can choose it for the chat right away. The Gateway
+                  <p className="text-sm leading-relaxed text-slate-200">
+                    This Tempo already has a profile called <strong className="font-mono text-[13px] text-white">{profile.id}</strong>, so you can choose it for the chat right away. The Gateway
                     only validates a shared code; it never stores one.
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     {active ? (
                       <Button variant="quiet" onClick={() => choose.stop(profile.name)} icon={<UserMinus size={14} aria-hidden />} className={TAP}>
                         Stop using
@@ -714,21 +858,21 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
                       Download YAML
                     </Button>
                   </div>
-                  <div className="mt-2">
+                  <div className="mt-2.5">
                     <TryHint id={profile.id} />
                   </div>
                 </>
               ) : (
                 <>
-                  <p className="text-sm text-slate-200">
+                  <p className="text-sm leading-relaxed text-slate-200">
                     This profile isn't in this Tempo's catalogue yet. The Gateway only validates a shared code; it never stores one. To use it, put the YAML in{" "}
-                    <code className="text-indigo-200">profiles/</code> of your own Tempo and open a pull request, or compare it with the{" "}
-                    <a {...linkProps("/profiles")} className={`text-indigo-300 underline ${FOCUS}`}>
+                    <code className="rounded-md bg-white/[0.06] px-1 font-mono text-violet-200">profiles/</code> of your own Tempo and open a pull request, or compare it with the{" "}
+                    <a {...linkProps("/profiles")} className={TEXT_LINK}>
                       starter profiles
                     </a>
                     .
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <Button onClick={() => downloadYaml(profile, "Put it in profiles/ of your own Tempo and open a pull request.")} icon={<Download size={14} aria-hidden />} className={TAP}>
                       Download YAML
                     </Button>
@@ -739,11 +883,13 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
                 </>
               )}
             </Card>
-            <p className="text-xs text-slate-400">This page has stored nothing.</p>
+            <p className="flex items-center gap-2 text-sm text-slate-300">
+              <ShieldCheck size={15} aria-hidden className="text-emerald-300" />
+              This page has stored nothing.
+            </p>
           </>
         )}
       </div>
     </div>
   );
 }
-

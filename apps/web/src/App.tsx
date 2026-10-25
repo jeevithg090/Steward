@@ -3,11 +3,13 @@
 // and the user's profile. Pages get everything through PageProps and never read env themselves.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "./components/layout/AppShell";
-import { EmptyState, HonestyBadge, Spinner, Toaster, toast } from "./components/ui";
+import { Button, EmptyState, HonestyBadge, Spinner, Toaster, toast } from "./components/ui";
 import { GatewayBanner } from "./components/layout/GatewayBanner";
 import catalogJson from "./showcase/catalog.json";
 import ChatContainer from "./features/chat/ChatContainer";
-import { chatStore, useChatStore } from "./features/chat/store";
+import { chatStore, queuePrompt, useChatStore } from "./features/chat/store";
+import { BEATS } from "./features/chat/WelcomeCard";
+import type { Command } from "./components/layout/CommandPalette";
 import { LANGUAGE_KEY, SettingsPage, readLanguage } from "./features/settings/SettingsPage";
 import { Gateway, type Health, type LedgerTotals } from "./lib/api";
 import { gatewayConfig, setGatewayOverride, setShowcaseOverride, showcaseEnabled, showcaseForcedByBuild } from "./lib/config";
@@ -182,6 +184,28 @@ export default function App() {
 
   const profileName = profileId ? (PROFILE_NAMES[profileId] ?? profileId) : null;
 
+  // ⌘K "Ask Tempo": every sample from the chat's welcome, sent from anywhere.
+  const askCommands = useMemo<Command[]>(
+    () =>
+      BEATS.flatMap((beat) =>
+        beat.samples.map((text) => {
+          const Icon = beat.icon;
+          return {
+            id: `ask:${text}`,
+            label: text,
+            hint: beat.label,
+            group: "Ask Tempo" as const,
+            icon: <Icon size={16} aria-hidden />,
+            run: () => {
+              navigate("/chat");
+              queuePrompt(text);
+            },
+          };
+        }),
+      ),
+    [],
+  );
+
   const pageProps: PageProps = {
     gateway,
     user,
@@ -266,9 +290,7 @@ export default function App() {
             <EmptyState
               title={`There is no page at ${route.path}.`}
               action={
-                <button onClick={() => navigate("/chat")} className="rounded-full bg-indigo-600 px-4 py-2 text-sm text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
-                  Back to the chat
-                </button>
+                <Button onClick={() => navigate("/chat")}>Back to the chat</Button>
               }
             >
               The menu lists every page.
@@ -285,6 +307,7 @@ export default function App() {
       history={history}
       profileName={profileName}
       ledger={ledger ? { gbp: ledger.gbp_recovered, hours: ledger.hours_returned } : null}
+      commands={askCommands}
       banner={
         !showcase && healthChecked && health === null ? (
           <GatewayBanner

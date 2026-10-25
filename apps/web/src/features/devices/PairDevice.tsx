@@ -1,10 +1,10 @@
 // "Add another device": a one-time QR code (2 minutes), the same link to copy, then the 6-digit
 // code both screens show. Nothing joins until the person says the codes match.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Copy, QrCode, RefreshCw } from "lucide-react";
+import { Copy, QrCode, RefreshCw, Timer } from "lucide-react";
 import { Button, Card, SectionTitle, Spinner, toast } from "@/components/ui";
 import type { MeshClient } from "@/lib/mesh";
-import { BigCode, clock, step, useSecondsLeft } from "./parts";
+import { BigCode, IconTile, Stepper, clock, step, useSecondsLeft } from "./parts";
 
 interface Pairing {
   pairing_id: string;
@@ -93,12 +93,26 @@ export function PairDevice({ mesh, onChanged, pollMs = 1500 }: { mesh: MeshClien
     }
   };
 
+  const stage = !pairing ? 0 : claimed ? 2 : 1;
+
   return (
-    <Card as="section" aria-labelledby="pair-heading" className="space-y-3">
-      <SectionTitle id="pair-heading">Add another device</SectionTitle>
+    <Card as="section" aria-labelledby="pair-heading" className="relative space-y-4 overflow-hidden">
+      <div className="flex items-start gap-3.5">
+        <IconTile>
+          <QrCode size={20} strokeWidth={1.75} />
+        </IconTile>
+        <div className="min-w-0 pt-0.5">
+          <SectionTitle id="pair-heading" className="!mb-1">
+            Add another device
+          </SectionTitle>
+          <p className="text-xs leading-relaxed text-slate-400">A one-time code, then the same six numbers on both screens.</p>
+        </div>
+      </div>
+      <Stepper steps={["Show a code here", "Scan it there", "Match the numbers"]} current={expired ? 0 : stage} label="Pairing steps" />
+
       {!pairing && (
         <>
-          <p className="text-sm text-slate-300">
+          <p className="text-sm leading-relaxed text-slate-300">
             Show a code here, then scan it with your other phone or laptop. Both screens will show the same six numbers, and you say yes here.
           </p>
           <Button variant="primary" busy={busy === "start"} icon={<QrCode size={16} aria-hidden />} onClick={() => void start()}>
@@ -108,33 +122,46 @@ export function PairDevice({ mesh, onChanged, pollMs = 1500 }: { mesh: MeshClien
       )}
 
       {pairing && !claimed && !expired && (
-        <div className="space-y-3">
+        <div className="space-y-4 motion-safe:animate-fade-up">
           <p className="text-sm text-slate-200">Scan this with your other device&apos;s camera.</p>
-          <div
-            role="img"
-            aria-label="QR code for adding your other device. Scan it with that device's camera, or open the link below on it."
-            className="w-fit rounded-2xl bg-white p-3 [&_svg]:h-48 [&_svg]:w-48"
-            dangerouslySetInnerHTML={{ __html: scalable(pairing.qr_svg) }}
-          />
-          <div>
-            <p className="text-xs text-slate-400">Or open this link on the other device:</p>
-            <p className="mt-1 break-all rounded-xl bg-black/40 px-3 py-2 font-mono text-xs text-slate-200" data-testid="pairing-link">
-              {pairing.link}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-start gap-5">
+            <div className="glass relative rounded-[1.75rem] p-3.5 shadow-glow">
+              <span aria-hidden className="absolute left-1.5 top-1.5 h-5 w-5 rounded-tl-xl border-l-2 border-t-2 border-violet-300/80" />
+              <span aria-hidden className="absolute right-1.5 top-1.5 h-5 w-5 rounded-tr-xl border-r-2 border-t-2 border-violet-300/80" />
+              <span aria-hidden className="absolute bottom-1.5 left-1.5 h-5 w-5 rounded-bl-xl border-b-2 border-l-2 border-violet-300/80" />
+              <span aria-hidden className="absolute bottom-1.5 right-1.5 h-5 w-5 rounded-br-xl border-b-2 border-r-2 border-violet-300/80" />
+              <div
+                role="img"
+                aria-label="QR code for adding your other device. Scan it with that device's camera, or open the link below on it."
+                className="w-fit rounded-2xl bg-white p-3 [&_svg]:h-44 [&_svg]:w-44 sm:[&_svg]:h-48 sm:[&_svg]:w-48"
+                dangerouslySetInnerHTML={{ __html: scalable(pairing.qr_svg) }}
+              />
+            </div>
+            <div className="min-w-0 flex-1 basis-56 space-y-3">
+              <p className="inline-flex items-center gap-2 rounded-full bg-amber-500/[0.1] px-3 py-1 text-xs font-medium text-amber-100 ring-1 ring-inset ring-amber-400/25">
+                <Timer size={13} aria-hidden className="text-amber-300" />
+                <span className="num">{left !== null && <>Works for {clock(left)} more. One use only.</>}</span>
+              </p>
+              <div>
+                <p className="text-xs text-slate-400">Or open this link on the other device:</p>
+                <p className="mt-1.5 break-all rounded-2xl border border-white/[0.08] bg-ink-900/80 px-3.5 py-2.5 font-mono text-[12px] leading-relaxed text-slate-200" data-testid="pairing-link">
+                  {pairing.link}
+                </p>
+              </div>
               <Button variant="quiet" size="sm" icon={<Copy size={14} aria-hidden />} onClick={() => void copy()}>
                 Copy link
               </Button>
-              <span className="text-xs text-slate-400">{left !== null && <>Works for {clock(left)} more. One use only.</>}</span>
             </div>
           </div>
-          <Spinner label="Waiting for your other device" />
+          <div className="flex items-center gap-2 rounded-2xl border border-white/[0.06] bg-black/20 px-3.5 py-2.5">
+            <Spinner label="Waiting for your other device" />
+          </div>
         </div>
       )}
 
       {pairing && !claimed && expired && (
-        <div className="space-y-2" role="status">
-          <p className="text-sm text-amber-200">That code has run out. Codes last two minutes, so nobody can use an old one.</p>
+        <div className="space-y-3 rounded-2xl border border-amber-400/25 bg-amber-500/[0.07] p-4" role="status">
+          <p className="text-sm leading-relaxed text-amber-50">That code has run out. Codes last two minutes, so nobody can use an old one.</p>
           <Button variant="primary" size="sm" busy={busy === "start"} icon={<RefreshCw size={14} aria-hidden />} onClick={() => void start()}>
             Make a new code
           </Button>
@@ -142,9 +169,9 @@ export function PairDevice({ mesh, onChanged, pollMs = 1500 }: { mesh: MeshClien
       )}
 
       {pairing && claimed && (
-        <div className="space-y-3" role="status" aria-live="polite">
-          <p className="text-sm text-slate-200">
-            <span className="font-semibold">{claimed.device_name ?? "Your other device"}</span> wants to join. Do both screens show the same code?
+        <div className="space-y-4 motion-safe:animate-fade-up" role="status" aria-live="polite">
+          <p className="text-sm leading-relaxed text-slate-200">
+            <span className="font-semibold text-white">{claimed.device_name ?? "Your other device"}</span> wants to join. Do both screens show the same code?
           </p>
           <BigCode code={claimed.code} />
           <div className="flex flex-wrap gap-2">
@@ -155,7 +182,7 @@ export function PairDevice({ mesh, onChanged, pollMs = 1500 }: { mesh: MeshClien
               No, cancel
             </Button>
           </div>
-          <p className="text-xs text-slate-400">If the numbers differ, press No: someone else may have opened the link.</p>
+          <p className="text-xs leading-relaxed text-slate-400">If the numbers differ, press No: someone else may have opened the link.</p>
         </div>
       )}
     </Card>

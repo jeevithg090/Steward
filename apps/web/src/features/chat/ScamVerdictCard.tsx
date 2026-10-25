@@ -32,7 +32,7 @@ export function ScamVerdictCard({ verdict, onFeedback }: { verdict: ShieldVerdic
   };
 
   return (
-    <section aria-label="Scam Shield verdict" className={`mt-3 space-y-3 rounded-xl border p-3 ${tone === "rose" ? "border-rose-500/30 bg-rose-950/20" : tone === "emerald" ? "border-emerald-500/30 bg-emerald-950/20" : "border-amber-500/30 bg-amber-950/10"}`}>
+    <section aria-label="Scam Shield verdict" className={`mt-3 space-y-3 rounded-2xl border p-4 ${tone === "rose" ? "border-rose-400/30 bg-gradient-to-b from-rose-500/[0.12] to-rose-500/[0.03]" : tone === "emerald" ? "border-emerald-400/30 bg-gradient-to-b from-emerald-500/[0.1] to-emerald-500/[0.02]" : "border-amber-400/30 bg-gradient-to-b from-amber-500/[0.1] to-amber-500/[0.02]"}`}>
       <div className="flex flex-wrap items-center gap-2">
         <Icon size={16} aria-hidden className={tone === "rose" ? "text-rose-300" : tone === "emerald" ? "text-emerald-300" : "text-amber-300"} />
         <Badge tone={tone}>{LEVEL_WORDS[verdict.level]}</Badge>
@@ -54,7 +54,7 @@ export function ScamVerdictCard({ verdict, onFeedback }: { verdict: ShieldVerdic
       {verdict.rules.length > 0 && (
         <ul aria-label="Rules that fired" className="flex flex-wrap gap-1.5">
           {verdict.rules.map((rule) => (
-            <li key={rule} className="rounded-full bg-white/5 px-2.5 py-0.5 text-[11px] text-slate-300">
+            <li key={rule} className="rounded-full bg-white/[0.06] px-2.5 py-0.5 text-[11px] text-slate-300 ring-1 ring-inset ring-white/10">
               {RULE_WORDS[rule] ?? rule.replace(/^scam_/, "").replaceAll("_", " ")}
             </li>
           ))}

@@ -143,9 +143,9 @@ export function ChatInput({
   const hint = speech.listening ? "Listening…" : isReading ? "Reading the letter…" : isSubmitting ? "Thinking…" : placeholder || (width > 0 && width < 640 ? "Tell me what happened" : "Tell me what happened, or ask a question");
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} aria-label="Message Tempo" className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-nexus-card px-2 py-1.5 shadow-2xl sm:gap-2 sm:px-3 sm:py-2">
+    <form ref={formRef} onSubmit={handleSubmit} aria-label="Message Tempo" className="glass-strong relative flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1.5 transition-[box-shadow,border-color] duration-200 focus-within:border-violet-300/40 focus-within:shadow-[0_0_0_4px_rgb(139_92_246/0.12),0_30px_80px_-30px_rgb(0_0_0/0.95)] sm:gap-2 sm:px-2.5 sm:py-2 motion-reduce:transition-none">
       {displayError && (
-        <p role="alert" className="absolute bottom-full left-4 mb-2 max-w-[90%] rounded-lg bg-slate-900/95 px-3 py-1.5 text-xs text-rose-300">
+        <p role="alert" className="glass-strong absolute bottom-full left-4 mb-2 max-w-[90%] rounded-xl px-3 py-1.5 text-xs text-rose-200">
           {displayError}
         </p>
       )}
@@ -173,7 +173,7 @@ export function ChatInput({
             disabled={disabled || (busy && !speech.listening)}
             placeholder={hint}
             aria-label="Your message"
-            className="min-w-0 flex-1 bg-transparent px-2 text-sm text-white placeholder:text-nexus-silver focus:outline-none disabled:opacity-50"
+            className="min-w-0 flex-1 bg-transparent px-2 text-[15px] text-white placeholder:text-slate-500 focus:outline-none disabled:opacity-50"
           />
         </>
       )}
@@ -182,7 +182,7 @@ export function ChatInput({
         <div className="flex min-w-0 flex-1 items-center gap-2 px-2 text-sm text-white" role="status">
           <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-rose-500 motion-reduce:animate-none" />
           <span className="truncate">Recording a clip</span>
-          <span className="tabular-nums text-nexus-silver">{formatDuration(elapsedMs)}</span>
+          <span className="num text-slate-400">{formatDuration(elapsedMs)}</span>
         </div>
       )}
 
@@ -191,7 +191,7 @@ export function ChatInput({
       {status === "idle" && !speech.listening && width >= SHOW_MODEL_FROM && gatewayModel && (
         <span
           title={`Tempo's Gateway phrases small talk with ${gatewayModel}. No model ever sets an amount.`}
-          className="plain-hide max-w-[11rem] shrink-0 truncate rounded-full bg-nexus-badge px-3 py-1.5 text-xs font-medium text-white"
+          className="plain-hide max-w-[11rem] shrink-0 truncate rounded-full bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-white/10"
         >
           <span className="sr-only">Small talk is phrased by </span>AI: {gatewayModel}
         </span>
@@ -204,15 +204,15 @@ export function ChatInput({
             onChange={(e) => onSelectModel(e.target.value as ModelProvider)}
             disabled={busy}
             aria-label="Model that phrases small talk"
-            className={`cursor-pointer appearance-none rounded-full bg-nexus-badge py-1.5 pl-3 pr-7 text-xs font-medium text-white disabled:opacity-50 ${FOCUS}`}
+            className={`cursor-pointer appearance-none rounded-full bg-white/[0.06] py-1.5 pl-3 pr-7 text-xs font-medium text-slate-200 ring-1 ring-inset ring-white/10 hover:bg-white/[0.1] disabled:opacity-50 ${FOCUS}`}
           >
             {sortedActiveModels.map((m) => (
-              <option key={m} value={m} className="bg-slate-900 text-white">
+              <option key={m} value={m} className="bg-ink-800 text-white">
                 {MODEL_LABELS[m]}
               </option>
             ))}
           </select>
-          <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-white" aria-hidden />
+          <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden />
         </div>
       )}
 
@@ -229,7 +229,7 @@ export function ChatInput({
               disabled={busy || disabled}
               aria-label={speech.supported ? "Speak your message" : "Record a voice clip"}
               title={speech.supported ? "Speak; I'll type what you say" : "This browser can't turn speech into text; it records a clip"}
-              className={`${roundBtn} bg-white text-black hover:bg-white/90 disabled:opacity-50 ${hasText ? "lg:hidden" : ""}`}
+              className={`${roundBtn} bg-gradient-to-b from-violet-500 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.25)_inset,0_8px_22px_-8px_rgb(124_58_237/0.9)] hover:from-violet-400 disabled:opacity-50 ${hasText ? "lg:hidden" : ""}`}
             >
               <Mic size={18} aria-hidden />
             </button>
@@ -255,7 +255,7 @@ export function ChatInput({
           ) : (
             hasText &&
             !speech.listening && (
-              <button type="submit" disabled={disabled} aria-label="Send" className={`${roundBtn} bg-white text-black hover:bg-white/90 disabled:opacity-50`}>
+              <button type="submit" disabled={disabled} aria-label="Send" className={`${roundBtn} bg-gradient-to-b from-violet-500 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.25)_inset,0_8px_22px_-8px_rgb(124_58_237/0.9)] hover:from-violet-400 disabled:opacity-50`}>
                 <SendHorizontal size={18} aria-hidden />
               </button>
             )
@@ -274,7 +274,7 @@ export function ChatInput({
           <button type="button" onClick={recorder.discard} aria-label="Discard recording" className={`${roundBtn} text-white hover:bg-white/10`}>
             <Trash2 size={18} aria-hidden />
           </button>
-          <button type="submit" aria-label="Send recording" className={`${roundBtn} bg-white text-black hover:bg-white/90`}>
+          <button type="submit" aria-label="Send recording" className={`${roundBtn} bg-gradient-to-b from-violet-500 to-violet-700 text-white hover:from-violet-400`}>
             <SendHorizontal size={18} aria-hidden />
           </button>
         </>

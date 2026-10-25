@@ -1,11 +1,11 @@
 // "Join": this browser was opened from another device's QR code. Name it, join, compare the code,
 // wait for the yes on the other screen, then add Face ID here.
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { CheckCircle2, Fingerprint, Smartphone } from "lucide-react";
-import { Button, Card, SectionTitle, Spinner, toast } from "@/components/ui";
+import { CheckCircle2, Fingerprint, MonitorSmartphone, Smartphone } from "lucide-react";
+import { Button, Card, FOCUS, SectionTitle, Spinner, toast } from "@/components/ui";
 import { type MeshClient, meshWords } from "@/lib/mesh";
 import { friendlyName } from "./deviceName";
-import { BigCode, LinkButton, step } from "./parts";
+import { BigCode, IconTile, LinkButton, Stepper, step } from "./parts";
 
 type Stage = "name" | "code" | "confirmed" | "done";
 
@@ -58,9 +58,16 @@ export function JoinDevice({
 
   if (!link) {
     return (
-      <Card as="section" aria-labelledby="join-heading" className="space-y-3">
-        <SectionTitle id="join-heading">Join from a QR code</SectionTitle>
-        <p className="text-sm text-slate-300">
+      <Card as="section" aria-labelledby="join-heading" className="space-y-4">
+        <div className="flex items-start gap-3.5">
+          <IconTile>
+            <Smartphone size={20} strokeWidth={1.75} />
+          </IconTile>
+          <SectionTitle id="join-heading" className="!mb-0 pt-3">
+            Join from a QR code
+          </SectionTitle>
+        </div>
+        <p className="text-sm leading-relaxed text-slate-300">
           On a device that already uses Tempo, open Devices and press &quot;Add another device&quot;. Scan the QR code with this device&apos;s camera, or open the link it shows.
         </p>
         <LinkButton to="/devices" icon={<Smartphone size={14} aria-hidden />}>
@@ -105,13 +112,24 @@ export function JoinDevice({
   };
 
   return (
-    <Card as="section" aria-labelledby="join-heading" tone="indigo" className="space-y-3">
-      <SectionTitle id="join-heading">Add this device to Tempo</SectionTitle>
+    <Card as="section" aria-labelledby="join-heading" tone="indigo" className="relative space-y-5 overflow-hidden">
+      <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-violet-500/15 blur-3xl" />
+      <div className="relative flex items-start gap-3.5">
+        <IconTile>
+          <MonitorSmartphone size={20} strokeWidth={1.75} />
+        </IconTile>
+        <SectionTitle id="join-heading" className="!mb-0 pt-3">
+          Add this device to Tempo
+        </SectionTitle>
+      </div>
+      <div className="relative">
+        <Stepper steps={["Name it", "Compare the code", "Add Face ID"]} current={stage === "name" ? 0 : stage === "code" ? 1 : stage === "confirmed" ? 2 : 3} label="Joining steps" />
+      </div>
 
       {stage === "name" && (
-        <form className="space-y-3" onSubmit={(e) => void join(e)}>
+        <form className="relative space-y-4" onSubmit={(e) => void join(e)}>
           <div>
-            <label htmlFor={inputId} className="block text-sm text-slate-200">
+            <label htmlFor={inputId} className="block text-sm font-medium text-slate-100">
               What should Tempo call this device?
             </label>
             <input
@@ -119,7 +137,7 @@ export function JoinDevice({
               value={name}
               maxLength={60}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full max-w-sm rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
+              className={`mt-2 min-h-[44px] w-full max-w-sm rounded-2xl border border-white/10 bg-ink-900/70 px-3.5 py-2 text-sm text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] transition-colors placeholder:text-slate-500 hover:border-white/20 focus:border-violet-400/60 ${FOCUS}`}
             />
           </div>
           <Button type="submit" variant="primary" busy={busy} disabled={!name.trim()}>
@@ -134,20 +152,20 @@ export function JoinDevice({
       )}
 
       {stage === "code" && code && (
-        <div className="space-y-3" role="status">
+        <div className="relative space-y-4" role="status">
           <p className="text-sm text-slate-200">Your code is</p>
           <BigCode code={code} />
-          <p className="text-sm text-slate-300">Check your other screen shows the same numbers, then press &quot;Yes, the codes match&quot; there.</p>
+          <p className="text-sm leading-relaxed text-slate-300">Check your other screen shows the same numbers, then press &quot;Yes, the codes match&quot; there.</p>
           <Spinner label="Waiting for your other device to say yes" />
         </div>
       )}
 
       {stage === "confirmed" && (
-        <div className="space-y-3">
-          <p className="flex items-center gap-2 text-sm text-emerald-200" role="status">
-            <CheckCircle2 size={16} aria-hidden /> This device is in.
+        <div className="relative space-y-3">
+          <p className="flex items-center gap-2 text-[15px] font-medium text-emerald-200" role="status">
+            <CheckCircle2 size={18} aria-hidden /> This device is in.
           </p>
-          <p className="text-sm text-slate-300">Now add Face ID or your fingerprint, so a yes from this device is signed here.</p>
+          <p className="text-sm leading-relaxed text-slate-300">Now add Face ID or your fingerprint, so a yes from this device is signed here.</p>
           <Button variant="primary" busy={busy} disabled={!canPasskey} icon={<Fingerprint size={16} aria-hidden />} onClick={() => void addFaceId()}>
             Now add Face ID
           </Button>
@@ -156,9 +174,9 @@ export function JoinDevice({
       )}
 
       {stage === "done" && (
-        <div className="space-y-3">
-          <p className="flex items-center gap-2 text-sm text-emerald-200" role="status">
-            <CheckCircle2 size={16} aria-hidden /> Face ID is on for this device.
+        <div className="relative space-y-3">
+          <p className="flex items-center gap-2 text-[15px] font-medium text-emerald-200" role="status">
+            <CheckCircle2 size={18} aria-hidden /> Face ID is on for this device.
           </p>
           <LinkButton to="/devices" icon={<Smartphone size={14} aria-hidden />}>
             See your devices

@@ -3,9 +3,9 @@
 // plus the demo controls. Every action confirms with a toast; every failure says what to do next.
 // Works on a live Gateway and in the showcase (ShowcaseGateway walks the recorded missions).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Clock, Play, RefreshCw, Settings } from "lucide-react";
+import { AlertTriangle, Camera, Clock, Play, RefreshCw, Settings } from "lucide-react";
 import { LedgerCounter, ReadBackCard, afterYes, isLive, plainError, rememberAsks, toastError } from "@/components/mission";
-import { Badge, Button, EmptyState, FOCUS, PageTitle, SkeletonCards, toast } from "@/components/ui";
+import { Badge, Button, EmptyState, FOCUS, PageTitle, Segmented, Skeleton, SkeletonCards, toast } from "@/components/ui";
 import { type CardReading, DEMO_BROADBAND, DEMO_MISSION, type LedgerTotals, type MissionView } from "@/lib/api";
 import { answerAsk } from "@/lib/approve";
 import { useMesh } from "@/lib/mesh-context";
@@ -26,29 +26,6 @@ async function toBase64(url: string): Promise<string> {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary);
-}
-
-/** A row of toggle buttons: one choice from a few, said with aria-pressed. */
-function Segmented<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: { value: T; label: string; count?: number }[]; onChange: (v: T) => void }) {
-  return (
-    <div role="group" aria-label={label} className="inline-flex rounded-full border border-white/10 bg-black/30 p-1">
-      {options.map((o) => {
-        const on = o.value === value;
-        return (
-          <button
-            key={o.value}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onChange(o.value)}
-            className={`flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-colors motion-reduce:transition-none ${FOCUS} ${on ? "bg-nexus-badge text-white" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
-          >
-            {o.label}
-            {o.count !== undefined && <span className={`rounded-full px-1.5 text-[11px] tabular-nums ${on ? "bg-white/20" : "bg-white/10"}`}>{o.count}</span>}
-          </button>
-        );
-      })}
-    </div>
-  );
 }
 
 export default function MissionsPage({ gateway, user, showcase, health, events, params, speak }: PageProps) {
@@ -168,14 +145,15 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
     <PageTitle
       lede={showcase ? "Recorded missions from a replay-mode Gateway; the buttons walk them through their recorded states." : "Every mission, its state, and the proof behind each pound."}
       right={
-        <div className="flex flex-col items-end gap-2">
-          <LedgerCounter totals={ledger} />
-          {clockDays > 0 && !id && (
-            <Badge tone="amber" title="The demo clock has been moved forward">
-              <Clock size={12} aria-hidden /> Demo clock +{clockDays} days
-            </Badge>
-          )}
-        </div>
+        id ? (
+          <div className="rounded-full border border-gold-300/20 bg-gold-400/[0.06] px-4 py-2 shadow-[0_1px_0_0_rgb(255_255_255/0.06)_inset]">
+            <LedgerCounter totals={ledger} compact counted />
+          </div>
+        ) : clockDays > 0 ? (
+          <Badge tone="amber" dot title="The demo clock has been moved forward">
+            <Clock size={12} aria-hidden /> Demo clock +{clockDays} days
+          </Badge>
+        ) : undefined
       }
     >
       Mission Control
@@ -194,7 +172,10 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
               <Button variant="quiet" icon={<RefreshCw size={14} aria-hidden />} onClick={() => void refresh()}>
                 Try again
               </Button>
-              <a {...linkProps("/settings")} className={`inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-slate-200 hover:bg-white/10 ${FOCUS}`}>
+              <a
+                {...linkProps("/settings")}
+                className={`inline-flex h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 text-sm font-medium text-slate-100 transition-colors hover:border-white/20 hover:bg-white/[0.09] motion-reduce:transition-none ${FOCUS}`}
+              >
                 <Settings size={14} aria-hidden /> Settings
               </a>
             </div>
@@ -210,6 +191,18 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
     return (
       <div>
         {header}
+        {!id && (
+          <div aria-hidden className="surface mb-10 flex flex-wrap items-center gap-10 rounded-3xl p-6">
+            <div className="space-y-3">
+              <Skeleton className="h-3 w-36" />
+              <Skeleton className="h-9 w-20" />
+            </div>
+            <div className="space-y-3">
+              <Skeleton className="h-3 w-32" />
+              <Skeleton className="h-9 w-28" />
+            </div>
+          </div>
+        )}
         <SkeletonCards count={3} label="Loading missions" />
       </div>
     );
@@ -276,77 +269,95 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
   return (
     <div>
       {header}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <LedgerCounter totals={ledger} />
+      <div className="mt-6 flex flex-wrap items-center gap-2">
         <Button variant="primary" busy={busy} icon={<Play size={14} aria-hidden />} onClick={() => void startMargaret()}>
           Start Margaret&apos;s claim
         </Button>
         <Button variant="quiet" busy={busy} icon={<Camera size={14} aria-hidden />} onClick={() => void readCard()}>
           Read Margaret&apos;s missed-visit card
         </Button>
-        <Button variant="quiet" disabled={busy} icon={<RefreshCw size={14} aria-hidden />} onClick={() => void refresh().then((fresh) => fresh && toast.info("Missions refreshed."))}>
-          Refresh
-        </Button>
       </div>
       {error && (
-        <p role="alert" className="mb-3 rounded-xl border border-rose-500/30 bg-rose-950/20 px-3 py-2 text-sm text-rose-200">
-          {error}
+        <p role="alert" className="mt-4 flex items-start gap-2.5 rounded-2xl border border-rose-400/30 bg-rose-500/[0.07] px-4 py-3 text-sm text-rose-100">
+          <AlertTriangle size={16} aria-hidden className="mt-0.5 shrink-0 text-rose-300" />
+          <span>{error}</span>
         </p>
       )}
       {reading?.question && reading.visit && (
-        <div className="mb-4">
+        <div className="mt-6">
           <ReadBackCard question={reading.question} date={String(reading.visit.event_date ?? "")} busy={busy} onConfirm={(date, corrected) => void confirmReading(date, corrected)} onCancel={() => setReading(null)} />
         </div>
       )}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Segmented<Who>
-          label="Whose missions"
-          value={who}
-          onChange={setWho}
-          options={[
-            { value: "mine", label: user.name },
-            { value: "everyone", label: "Everyone" },
-          ]}
-        />
-        <Segmented<Phase>
-          label="Which missions"
-          value={phase}
-          onChange={setPhase}
-          options={[
-            { value: "live", label: "Live", count: liveCount },
-            { value: "finished", label: "Finished", count: mine.length - liveCount },
-            { value: "all", label: "All", count: mine.length },
-          ]}
-        />
-      </div>
-      {missions.length === 0 ? (
-        <EmptyState
-          title="No missions yet"
-          action={
-            <Button variant="primary" busy={busy} icon={<Play size={14} aria-hidden />} onClick={() => void startMargaret()}>
-              Start Margaret&apos;s claim
-            </Button>
-          }
-        >
-          Start Margaret&apos;s claim to watch Tempo work, or tell the chat about a late train.
-        </EmptyState>
-      ) : shown.length === 0 ? (
-        <EmptyState
-          title={phase === "live" ? "Nothing is running right now" : phase === "finished" ? "Nothing has finished yet" : `No missions for ${user.name} yet`}
-          action={
+      <section aria-labelledby="missions-heading" className="mt-10">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <div className="flex items-center gap-2">
+            <h2 id="missions-heading" className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+              Missions
+              <span className="num rounded-full bg-white/[0.06] px-2 py-0.5 text-[11px] tracking-normal text-slate-300">{shown.length}</span>
+            </h2>
             <Button
-              variant="quiet"
-              onClick={() => {
-                setWho("everyone");
-                setPhase("all");
-              }}
+              variant="ghost"
+              size="sm"
+              disabled={busy}
+              icon={<RefreshCw size={13} aria-hidden />}
+              onClick={() => void refresh().then((fresh) => fresh && toast.info("Missions refreshed."))}
             >
-              Show every mission
+              Refresh
             </Button>
-          }
-        />
-      ) : (
-        <MissionList missions={shown} />
-      )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Segmented<Who>
+              label="Whose missions"
+              value={who}
+              onChange={setWho}
+              options={[
+                { value: "mine", label: user.name },
+                { value: "everyone", label: "Everyone" },
+              ]}
+            />
+            <Segmented<Phase>
+              label="Which missions"
+              value={phase}
+              onChange={setPhase}
+              options={[
+                { value: "live", label: "Live", count: liveCount },
+                { value: "finished", label: "Finished", count: mine.length - liveCount },
+                { value: "all", label: "All", count: mine.length },
+              ]}
+            />
+          </div>
+        </div>
+        {missions.length === 0 ? (
+          <EmptyState
+            title="No missions yet"
+            action={
+              <Button variant="primary" busy={busy} icon={<Play size={14} aria-hidden />} onClick={() => void startMargaret()}>
+                Start Margaret&apos;s claim
+              </Button>
+            }
+          >
+            Start Margaret&apos;s claim to watch Tempo work, or tell the chat about a late train.
+          </EmptyState>
+        ) : shown.length === 0 ? (
+          <EmptyState
+            title={phase === "live" ? "Nothing is running right now" : phase === "finished" ? "Nothing has finished yet" : `No missions for ${user.name} yet`}
+            action={
+              <Button
+                variant="quiet"
+                onClick={() => {
+                  setWho("everyone");
+                  setPhase("all");
+                }}
+              >
+                Show every mission
+              </Button>
+            }
+          />
+        ) : (
+          <MissionList missions={shown} />
+        )}
+      </section>
     </div>
   );
 }

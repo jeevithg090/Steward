@@ -3,9 +3,29 @@
 // sentence the voice says (voice/warnings.yaml); nothing is invented in the browser. Built to be
 // used with the eyes shut, with a keyboard only, with a screen reader. Ported from the old
 // ShieldStory; dark theme.
-import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from "react";
-import { ChevronLeft, ChevronRight, Eye, EyeOff, Pause, Play, Volume2 } from "lucide-react";
-import { Badge, Button, Card, FOCUS, SectionTitle } from "@/components/ui";
+import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent, type ReactNode } from "react";
+import {
+  AudioLines,
+  BatteryFull,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Keyboard,
+  Languages,
+  Pause,
+  Play,
+  ScrollText,
+  Signal,
+  Smartphone,
+  TriangleAlert,
+  Volume2,
+  Wifi,
+  X,
+} from "lucide-react";
+import { Badge, Button, Card, FOCUS, Kbd, SectionTitle } from "@/components/ui";
 import { LANGUAGES, RULE_WORDS, SAMPLES, type Language, type Narrator, type ShieldVerdict, type SpokenLine, recordedStatus, recordedVerdict, spokenLine, translatedSay } from "@/lib/shield";
 import { LanguagePicker } from "./ShieldPanel";
 
@@ -133,8 +153,18 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
   const [cardNote, setCardNote] = useState<string | null>(null);
   const [focused, setFocused] = useState<string>("nothing yet");
   const tourRef = useRef(false);
+  const stepsRef = useRef<HTMLOListElement>(null);
 
   useEffect(() => () => narrator.stop(), [narrator]);
+
+  // On a phone the steps scroll sideways: keep the current one in view (sideways only, never the page).
+  useEffect(() => {
+    const list = stepsRef.current;
+    const item = list?.children[step] as HTMLElement | undefined;
+    if (!list || !item || list.scrollWidth <= list.clientWidth) return;
+    const reduce = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    list.scrollTo?.({ left: Math.max(0, item.offsetLeft - 16), behavior: reduce ? "auto" : "smooth" });
+  }, [step]);
 
   const scene = SCENES[step]!;
   const verdict = scene.sample === "grey" ? GREY : scene.sample === "genuine" ? GENUINE : HMRC;
@@ -222,17 +252,23 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
   const captionIsTempoEnglish = caption !== null && caption.language === "en" && scene.tempoSays !== undefined && scene.tempoSays("en") === caption.text;
 
   return (
-    <div className="space-y-6" onFocus={onFocus}>
-      <section aria-labelledby="story-heading" className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 id="story-heading" className="text-lg font-semibold text-slate-100">
-            Margaret's Tuesday
-          </h2>
-          <Badge tone="emerald">Recorded from the replay Gateway</Badge>
-          {STATUS.model && <Badge tone="slate">Text model {STATUS.model.version}</Badge>}
+    <div className="space-y-10" onFocus={onFocus}>
+      <section aria-labelledby="story-heading" className="space-y-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0">
+            <h2 id="story-heading" className="font-display text-[2.1rem] leading-[1.05] text-white sm:text-[2.6rem]">
+              Margaret's <em className="text-brand">Tuesday</em>
+            </h2>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Badge tone="emerald" dot>
+                Recorded from the replay Gateway
+              </Badge>
+              {STATUS.model && <Badge tone="slate">Text model {STATUS.model.version}</Badge>}
+            </div>
+          </div>
         </div>
-        <p className="text-sm text-slate-300">
-          Press <strong className="text-slate-100">Play the story out loud</strong> and close your eyes: this is what Margaret hears. Or step through it with the buttons, the keyboard, or
+        <p className="max-w-3xl text-[15px] leading-relaxed text-slate-300">
+          Press <strong className="font-semibold text-white">Play the story out loud</strong> and close your eyes: this is what Margaret hears. Or step through it with the buttons, the keyboard, or
           a screen reader. Every verdict below is a real answer from Tempo's Gateway, replayed; nothing is made up on this page.
         </p>
 
@@ -249,106 +285,181 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
           <Button variant="quiet" size="lg" onClick={playThisStep} disabled={playing} icon={<Volume2 size={16} aria-hidden />}>
             Hear this step
           </Button>
-          <LanguagePicker id="story-language" label="Tempo speaks in" value={language} onChange={onLanguage} />
+          <div className="w-full min-[460px]:w-56">
+            <LanguagePicker id="story-language" label="Tempo speaks in" value={language} onChange={onLanguage} />
+          </div>
           <Button variant={eyesClosed ? "primary" : "quiet"} size="lg" aria-pressed={eyesClosed} onClick={() => setEyesClosed((v) => !v)} icon={eyesClosed ? <Eye size={16} aria-hidden /> : <EyeOff size={16} aria-hidden />}>
             {eyesClosed ? "Eyes open" : "Eyes closed mode"}
           </Button>
         </div>
         {!narrator.available && (
-          <p role="note" className="rounded-xl border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-sm text-amber-100">
-            This browser cannot speak, so the captions below carry the words instead.
+          <p role="note" className="flex items-start gap-2.5 rounded-2xl border border-amber-400/25 bg-amber-500/[0.07] px-4 py-3 text-sm text-amber-100">
+            <TriangleAlert size={16} aria-hidden className="mt-0.5 shrink-0 text-amber-300" />
+            <span>This browser cannot speak, so the captions below carry the words instead.</span>
           </p>
         )}
 
         {/* captions: what is being said right now, for everyone */}
-        <div aria-live="polite" aria-atomic="true" data-testid="captions" className={`rounded-2xl border border-indigo-500/40 bg-indigo-950/40 p-5 ${eyesClosed ? "min-h-48" : "min-h-24"}`}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-200">{caption ? (captionIsTempo || captionIsTempoEnglish ? "Tempo says" : "Narrator") : "Captions"}</p>
-          <p lang={caption ? bcp47(caption.language) : undefined} dir={caption && RTL.has(caption.language) ? "rtl" : "ltr"} className={`mt-1 leading-relaxed text-slate-100 ${eyesClosed ? "text-2xl" : "text-base"}`}>
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          data-testid="captions"
+          className={`relative overflow-hidden rounded-3xl border border-violet-400/25 bg-gradient-to-b from-violet-500/[0.14] to-violet-500/[0.03] p-5 shadow-[0_24px_60px_-34px_rgb(124_58_237/0.8)] sm:p-6 ${eyesClosed ? "min-h-48" : "min-h-28"}`}
+        >
+          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-200">
+            <span aria-hidden className={`relative grid h-5 w-5 place-items-center rounded-full ${playing ? "bg-violet-500/30" : "bg-white/[0.06]"}`}>
+              {playing && <span className="absolute inset-0 rounded-full bg-violet-400/40 motion-safe:animate-ripple" />}
+              <AudioLines size={11} className="relative" />
+            </span>
+            {caption ? (captionIsTempo || captionIsTempoEnglish ? "Tempo says" : "Narrator") : "Captions"}
+          </p>
+          <p
+            lang={caption ? bcp47(caption.language) : undefined}
+            dir={caption && RTL.has(caption.language) ? "rtl" : "ltr"}
+            className={`mt-3 leading-relaxed ${caption ? "text-white" : "text-slate-300"} ${eyesClosed ? "text-2xl sm:text-3xl" : "text-base sm:text-lg"}`}
+          >
             {caption?.text ?? "Press Play, or step through the story. What is spoken appears here, word for word."}
           </p>
         </div>
 
-        <nav aria-label="Story steps">
-          <ol className="flex flex-wrap gap-1.5">
-            {SCENES.map((s, i) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  aria-current={i === step ? "step" : undefined}
-                  onClick={() => go(i)}
-                  className={`min-h-[44px] rounded-full border px-3.5 py-1 text-sm transition-colors motion-reduce:transition-none ${FOCUS} ${i === step ? "border-indigo-400 bg-indigo-600 text-white" : "border-white/15 bg-white/5 text-slate-200 hover:bg-white/10"}`}
-                >
-                  <span className="sr-only">
-                    Step {i + 1} of {SCENES.length}:{" "}
-                  </span>
-                  {i + 1}. {s.title}
-                </button>
-              </li>
-            ))}
+        <nav aria-label="Story steps" className="-mx-4 sm:mx-0">
+          <ol ref={stepsRef} className="relative flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
+            {SCENES.map((s, i) => {
+              const here = i === step;
+              const past = i < step;
+              return (
+                <li key={s.id} className="w-[15.5rem] shrink-0 snap-start scroll-ml-4 sm:w-auto">
+                  <button
+                    type="button"
+                    aria-current={here ? "step" : undefined}
+                    aria-label={`Step ${i + 1} of ${SCENES.length}: ${s.title}`}
+                    onClick={() => go(i)}
+                    className={`group flex min-h-[52px] w-full items-center gap-3 rounded-2xl border px-3 py-2 text-left text-[13px] leading-snug transition-[background-color,border-color,box-shadow] duration-200 motion-reduce:transition-none ${FOCUS} ${
+                      here
+                        ? "border-violet-400/50 bg-violet-500/[0.14] text-white shadow-[0_12px_30px_-18px_rgb(124_58_237/0.9)]"
+                        : "border-white/[0.07] bg-white/[0.025] text-slate-300 hover:border-white/15 hover:bg-white/[0.05] hover:text-white"
+                    }`}
+                  >
+                    <span
+                      aria-hidden
+                      className={`num relative grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold ${
+                        here
+                          ? "bg-gradient-to-b from-violet-500 to-violet-700 text-white shadow-glow"
+                          : past
+                            ? "bg-gradient-to-b from-emerald-400 to-emerald-600 text-emerald-950"
+                            : "bg-ink-800 text-slate-300 ring-1 ring-inset ring-white/15"
+                      }`}
+                    >
+                      {past ? <Check size={15} strokeWidth={2.75} /> : i + 1}
+                    </span>
+                    <span className="min-w-0">{s.title}</span>
+                  </button>
+                </li>
+              );
+            })}
           </ol>
         </nav>
 
-        <div className="grid gap-5 lg:grid-cols-[20rem_1fr]">
+        <div className="grid gap-6 pt-2 lg:grid-cols-[20rem_1fr] lg:gap-8">
           {/* the phone */}
           <div style={visual} aria-label={`Margaret's phone: ${scene.title}`} role="img" className="mx-auto w-full max-w-[20rem] motion-reduce:transition-none">
-            <div className="rounded-[2.5rem] border-[8px] border-slate-800 bg-slate-800 p-2 shadow-xl">
-              <div className="min-h-[30rem] rounded-[2rem] bg-slate-950 p-4 text-slate-100">
-                <p className="text-center text-xs text-slate-400">Tuesday 14:07</p>
-                {scene.screen === "card" || scene.screen === "settled" || scene.screen === "hold" ? (
-                  <div className={`mt-3 rounded-2xl p-4 text-white ${scene.screen === "hold" ? "bg-amber-700" : "bg-rose-800"}`} aria-hidden="true">
-                    <p className="text-2xl font-bold">{scene.screen === "hold" ? "Wait" : "Stop"}</p>
-                    <p className="mt-2 text-sm leading-snug" lang={bcp47(language)} dir={rtl ? "rtl" : "ltr"}>
-                      {scene.tempoSays?.(language)}
-                    </p>
-                    <div className="mt-3 space-y-2">
-                      {["Read it again", "I know this sender", "I'm fine"].map((b) => (
-                        <div key={b} className="rounded-full bg-white/15 px-3 py-2 text-center text-sm font-semibold">
-                          {b}
+            <div className="relative">
+              <div aria-hidden className="absolute inset-x-6 -bottom-6 top-10 rounded-full bg-violet-600/20 blur-3xl" />
+              <div className="relative rounded-[2.9rem] bg-gradient-to-b from-slate-500/50 via-slate-700/60 to-slate-800/60 p-[2px] shadow-[0_40px_80px_-32px_rgb(0_0_0/0.95)]">
+                <div className="rounded-[2.8rem] bg-ink p-2.5">
+                  <div className="relative min-h-[31rem] overflow-hidden rounded-[2.2rem] bg-gradient-to-b from-ink-700 via-ink-900 to-ink px-4 pb-6 pt-3 text-slate-100">
+                    <div className="flex items-center justify-between px-2 text-[11px] font-semibold text-slate-200">
+                      <span className="num">14:07</span>
+                      <span className="h-[22px] w-[86px] rounded-full bg-black ring-1 ring-white/[0.06]" />
+                      <span className="flex items-center gap-1 text-slate-300">
+                        <Signal size={11} />
+                        <Wifi size={11} />
+                        <BatteryFull size={13} />
+                      </span>
+                    </div>
+                    <p className="mt-3 text-center text-xs text-slate-400">Tuesday 14:07</p>
+                    {scene.screen === "card" || scene.screen === "settled" || scene.screen === "hold" ? (
+                      <div
+                        className={`mt-4 rounded-3xl p-4 text-white shadow-[0_20px_40px_-20px_rgb(0_0_0/0.9)] ring-1 ring-inset ring-white/15 ${
+                          scene.screen === "hold" ? "bg-amber-700 bg-gradient-to-b from-amber-700 to-amber-800" : "bg-rose-700 bg-gradient-to-b from-rose-600 to-rose-800"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        <p className="flex items-center gap-2 text-2xl font-bold">
+                          <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/15">{scene.screen === "hold" ? <TriangleAlert size={17} /> : <X size={18} strokeWidth={3} />}</span>
+                          {scene.screen === "hold" ? "Wait" : "Stop"}
+                        </p>
+                        <p className="mt-3 text-sm leading-snug" lang={bcp47(language)} dir={rtl ? "rtl" : "ltr"}>
+                          {scene.tempoSays?.(language)}
+                        </p>
+                        <div className="mt-4 space-y-2">
+                          {["Read it again", "I know this sender", "I'm fine"].map((b) => (
+                            <div key={b} className="rounded-full bg-white/15 px-3 py-2 text-center text-sm font-semibold ring-1 ring-inset ring-white/10">
+                              {b}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-3 space-y-3">
-                    <p className="text-center text-xs font-semibold text-slate-400">{scene.sender}</p>
-                    <div className="max-w-[90%] rounded-2xl rounded-tl-sm bg-white/10 p-3 text-sm leading-snug">
-                      {scene.screen === "doors" ? <span>CHECK HMRC: You are due a tax refund of 248.20 GBP…</span> : <span className={scene.screen === "ledger" ? "line-through decoration-rose-400 decoration-2" : ""}>{sample.text}</span>}
-                    </div>
-                    {scene.screen === "deciding" && (
-                      <ul className="space-y-1 text-xs" aria-hidden="true">
-                        {verdict.rules.map((r) => (
-                          <li key={r} className="rounded-full border border-amber-500/40 bg-amber-950/40 px-3 py-1 text-amber-100">
-                            ● {RULE_WORDS[r] ?? r}
-                          </li>
-                        ))}
-                        {verdict.links.map((l) => (
-                          <li key={l.host} className="rounded-full border border-rose-500/40 bg-rose-950/40 px-3 py-1 text-rose-100">
-                            ● {l.words[0] ?? l.host}
-                          </li>
-                        ))}
-                        {verdict.confidence !== null && <li className="rounded-full border border-white/15 bg-white/5 px-3 py-1">● model: {Math.round(verdict.confidence * 100)} in 100</li>}
-                      </ul>
+                      </div>
+                    ) : (
+                      <div className="mt-4 space-y-3">
+                        <div className="flex flex-col items-center gap-1.5">
+                          <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-b from-slate-500 to-slate-700 text-sm font-semibold text-white">{scene.sender.replace(/[^A-Za-z0-9]/g, "").charAt(0)}</span>
+                          <p className="text-center text-xs font-semibold text-slate-300">{scene.sender}</p>
+                        </div>
+                        <div className="max-w-[90%] rounded-2xl rounded-tl-md bg-white/10 p-3 text-sm leading-snug">
+                          {scene.screen === "doors" ? (
+                            <span>CHECK HMRC: You are due a tax refund of 248.20 GBP…</span>
+                          ) : (
+                            <span className={scene.screen === "ledger" ? "line-through decoration-rose-400 decoration-2" : ""}>{sample.text}</span>
+                          )}
+                        </div>
+                        {scene.screen === "deciding" && (
+                          <ul className="space-y-1.5 text-xs" aria-hidden="true">
+                            {verdict.rules.map((r) => (
+                              <li key={r} className="flex items-center gap-2 rounded-full border border-amber-400/35 bg-amber-500/[0.12] px-3 py-1 text-amber-100">
+                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" /> {RULE_WORDS[r] ?? r}
+                              </li>
+                            ))}
+                            {verdict.links.map((l) => (
+                              <li key={l.host} className="flex items-center gap-2 rounded-full border border-rose-400/35 bg-rose-500/[0.12] px-3 py-1 text-rose-100">
+                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-300" /> {l.words[0] ?? l.host}
+                              </li>
+                            ))}
+                            {verdict.confidence !== null && (
+                              <li className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1">
+                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" /> model: {Math.round(verdict.confidence * 100)} in 100
+                              </li>
+                            )}
+                          </ul>
+                        )}
+                        {scene.screen === "ledger" && <p className="text-center text-xs text-rose-200">The message stays here. Four fields leave →</p>}
+                        {scene.screen === "quiet" && <p className="text-center text-xs text-slate-400">Tempo says nothing.</p>}
+                        {scene.screen === "doors" && (
+                          <div className="ml-auto max-w-[90%] rounded-2xl rounded-tr-md bg-gradient-to-b from-violet-600 to-violet-700 p-3 text-sm leading-snug text-white">Tempo: {HMRC.say.split(" Why:")[0]}</div>
+                        )}
+                      </div>
                     )}
-                    {scene.screen === "ledger" && <p className="text-center text-xs text-rose-200">The message stays here. Four fields leave →</p>}
-                    {scene.screen === "quiet" && <p className="text-center text-xs text-slate-400">Tempo says nothing.</p>}
-                    {scene.screen === "doors" && <div className="ml-auto max-w-[90%] rounded-2xl rounded-tr-sm bg-indigo-600 p-3 text-sm leading-snug text-white">Tempo: {HMRC.say.split(" Why:")[0]}</div>}
+                    <span className="absolute bottom-2 left-1/2 h-1 w-28 -translate-x-1/2 rounded-full bg-white/25" />
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
 
           {/* the words beside the phone */}
-          <div className="space-y-4">
-            <h3 className="text-base font-semibold text-slate-100">
+          <div className="min-w-0 space-y-4">
+            <p aria-hidden className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-200">
+              Step {step + 1} of {SCENES.length}
+            </p>
+            <h3 className="font-display text-[1.9rem] leading-[1.1] text-white sm:text-[2.2rem]">
               {step + 1}. {scene.title}
             </h3>
-            <p className="text-sm leading-relaxed text-slate-200">{scene.narration}</p>
+            <p className="max-w-2xl text-[15px] leading-relaxed text-slate-200">{scene.narration}</p>
 
             {scene.screen === "card" && (
               <Card role="group" aria-label="The Shield card's buttons, working" tone="rose" style={visual}>
                 <p className="text-sm font-medium text-rose-100">The card's three buttons, live:</p>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <Button variant="quiet" onClick={sayAgain} className="min-h-[44px]">
                     Read it again
                   </Button>
@@ -368,25 +479,27 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
             {(scene.screen === "ledger" || scene.screen === "settled") && (
               <Card style={visual}>
                 <SectionTitle as="h3">What left the phone</SectionTitle>
-                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-xs">
+                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-2xl bg-black/30 p-4 font-mono text-xs ring-1 ring-inset ring-white/[0.06]">
                   {leaves(verdict, scene.sender).map((f) => (
                     <div key={f.field} className="contents">
-                      <dt className="text-slate-400">{f.field}</dt>
+                      <dt className="text-violet-300">{f.field}</dt>
                       <dd className="break-all text-slate-100">{f.value}</dd>
                     </div>
                   ))}
                 </dl>
-                <p className="mt-2 text-xs text-slate-400">Not the message, not the number, not the name. The Gateway refuses anything more (a test proves it).</p>
+                <p className="mt-3 text-[13px] text-slate-400">Not the message, not the number, not the name. The Gateway refuses anything more (a test proves it).</p>
               </Card>
             )}
 
             {scene.screen !== "quiet" && scene.screen !== "message" && (
               <Card style={visual}>
                 <SectionTitle as="h3">{scene.screen === "settled" ? "What the sandbox found" : "Why, in plain words"}</SectionTitle>
-                <ul className="space-y-1 text-sm text-slate-200">
+                <ul className="space-y-2.5 text-sm text-slate-200">
                   {verdict.why.slice(0, scene.screen === "deciding" ? 4 : 6).map((w) => (
-                    <li key={w} className="flex items-start gap-2">
-                      <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400" />
+                    <li key={w} className="flex items-start gap-2.5 leading-relaxed">
+                      <span aria-hidden className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-rose-500/15 text-rose-300 ring-1 ring-inset ring-rose-400/25">
+                        <X size={11} strokeWidth={3} />
+                      </span>
                       {capital(w)}.
                     </li>
                   ))}
@@ -396,18 +509,18 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
 
             {scene.screen === "quiet" && (
               <Card tone="emerald" style={visual}>
-                <p className="text-sm text-slate-200">
-                  Model score: <strong className="text-slate-100">{Math.round((GENUINE.confidence ?? 0) * 100)} in 100</strong>. Patterns fired: <strong className="text-slate-100">none</strong>. Links:{" "}
-                  <strong className="text-slate-100">none</strong>. If asked: “{GENUINE.say}”
+                <p className="text-sm leading-relaxed text-slate-200">
+                  Model score: <strong className="text-white">{Math.round((GENUINE.confidence ?? 0) * 100)} in 100</strong>. Patterns fired: <strong className="text-white">none</strong>. Links:{" "}
+                  <strong className="text-white">none</strong>. If asked: “{GENUINE.say}”
                 </p>
               </Card>
             )}
 
-            <div className="flex flex-wrap gap-2">
-              <Button variant="quiet" onClick={() => go(step - 1)} disabled={step === 0} icon={<ChevronLeft size={16} aria-hidden />}>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button variant="quiet" onClick={() => go(step - 1)} disabled={step === 0} icon={<ChevronLeft size={16} aria-hidden />} className="min-h-[44px]">
                 Back
               </Button>
-              <Button onClick={() => go(step + 1)} disabled={step === SCENES.length - 1} icon={<ChevronRight size={16} aria-hidden />}>
+              <Button onClick={() => go(step + 1)} disabled={step === SCENES.length - 1} icon={<ChevronRight size={16} aria-hidden />} className="min-h-[44px]">
                 Next
               </Button>
             </div>
@@ -418,47 +531,48 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
       <section aria-labelledby="proof-heading" className="space-y-3">
         <SectionTitle id="proof-heading">Prove the accessibility to yourself</SectionTitle>
         <div className="grid gap-3 md:grid-cols-2">
-          <Card padding="tight">
-            <h3 className="text-sm font-semibold text-slate-100">Eyes shut</h3>
-            <p className="mt-1 text-xs text-slate-300">
-              Switch on <strong>Eyes closed mode</strong> above: the pictures fade, the captions grow, the voice carries everything. That is Margaret's phone in her pocket.
-            </p>
-          </Card>
-          <Card padding="tight">
-            <h3 className="text-sm font-semibold text-slate-100">Keyboard only</h3>
-            <p className="mt-1 text-xs text-slate-300">
-              Press <kbd className="rounded border border-white/20 px-1">Tab</kbd>. Every control is reachable in reading order and shows a white ring.
-            </p>
-            <p role="status" className="mt-2 rounded-xl bg-black/20 px-2 py-1 text-xs text-slate-200">
-              Focus is on: <strong>{focused}</strong>
-            </p>
-          </Card>
-          <Card padding="tight">
-            <h3 className="text-sm font-semibold text-slate-100">Screen reader</h3>
-            <p className="mt-1 text-xs text-slate-300">The captions are a live region, the steps are numbered, the phone is one described image, and everything Tempo said is in the transcript below.</p>
-          </Card>
-          <Card padding="tight">
-            <h3 className="text-sm font-semibold text-slate-100">Six languages, right to left too</h3>
-            <p className="mt-1 text-xs text-slate-300">
-              Choose Urdu above and press <strong>Hear this step</strong> on step 3: the warning is spoken and shown right to left, with the language marked for screen readers. The
-              reasons stay in English until a speaker has checked a translation; we say so.
-            </p>
-          </Card>
+          <ProofCard icon={<EyeOff size={17} strokeWidth={1.85} />} title="Eyes shut">
+            Switch on <strong className="text-slate-100">Eyes closed mode</strong> above: the pictures fade, the captions grow, the voice carries everything. That is Margaret's phone in her pocket.
+          </ProofCard>
+          <ProofCard
+            icon={<Keyboard size={17} strokeWidth={1.85} />}
+            title="Keyboard only"
+            extra={
+              <p role="status" className="mt-3 truncate rounded-xl bg-black/30 px-3 py-2 text-xs text-slate-200 ring-1 ring-inset ring-white/[0.06]">
+                Focus is on: <strong className="text-white">{focused}</strong>
+              </p>
+            }
+          >
+            Press <Kbd>Tab</Kbd>. Every control is reachable in reading order and shows a white ring.
+          </ProofCard>
+          <ProofCard icon={<Smartphone size={17} strokeWidth={1.85} />} title="Screen reader">
+            The captions are a live region, the steps are numbered, the phone is one described image, and everything Tempo said is in the transcript below.
+          </ProofCard>
+          <ProofCard icon={<Languages size={17} strokeWidth={1.85} />} title="Six languages, right to left too">
+            Choose Urdu above and press <strong className="text-slate-100">Hear this step</strong> on step 3: the warning is spoken and shown right to left, with the language marked for screen readers. The
+            reasons stay in English until a speaker has checked a translation; we say so.
+          </ProofCard>
         </div>
 
-        <details className="rounded-2xl border border-white/10 bg-nexus-card p-4">
-          <summary className={`cursor-pointer text-sm font-medium text-indigo-300 ${FOCUS}`}>Transcript: everything spoken on this page so far</summary>
-          {transcript.length === 0 ? (
-            <p className="mt-2 text-xs text-slate-400">Nothing yet.</p>
-          ) : (
-            <ol aria-label="Transcript" className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-200">
-              {transcript.map((line, i) => (
-                <li key={`${i}-${line.text.slice(0, 12)}`} lang={bcp47(line.language)} dir={RTL.has(line.language) ? "rtl" : "ltr"}>
-                  {line.text}
-                </li>
-              ))}
-            </ol>
-          )}
+        <details className="group surface rounded-2xl px-4 py-1">
+          <summary className={`flex min-h-[48px] cursor-pointer list-none items-center gap-2.5 rounded-xl text-sm font-medium text-violet-200 hover:text-white [&::-webkit-details-marker]:hidden ${FOCUS}`}>
+            <ScrollText size={16} aria-hidden className="shrink-0 text-violet-300" />
+            <span className="flex-1">Transcript: everything spoken on this page so far</span>
+            <ChevronDown size={16} aria-hidden className="shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" />
+          </summary>
+          <div className="pb-4">
+            {transcript.length === 0 ? (
+              <p className="mt-1 text-[13px] text-slate-400">Nothing yet.</p>
+            ) : (
+              <ol aria-label="Transcript" className="mt-1 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-slate-200 marker:text-slate-400">
+                {transcript.map((line, i) => (
+                  <li key={`${i}-${line.text.slice(0, 12)}`} lang={bcp47(line.language)} dir={RTL.has(line.language) ? "rtl" : "ltr"}>
+                    {line.text}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
         </details>
       </section>
 
@@ -470,17 +584,34 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
             { label: "Of the scams, caught", value: pct(metrics.recall_at_warn) },
             { label: "Genuine bank, NHS and council texts it spoke about", value: pct(metrics.synthetic_spoken_on_genuine) },
           ].map((n) => (
-            <Card key={n.label} padding="tight">
-              <dt className="text-xs text-slate-400">{n.label}</dt>
-              <dd className="text-2xl font-semibold text-slate-100">{n.value}</dd>
-            </Card>
+            <div key={n.label} className="surface flex flex-col-reverse justify-end gap-2 rounded-3xl p-5">
+              <dt className="text-[13px] leading-snug text-slate-400">{n.label}</dt>
+              <dd className="num text-[2rem] font-semibold leading-none tracking-[-0.02em] text-white">{n.value}</dd>
+            </div>
           ))}
         </dl>
-        <p className="text-xs text-slate-400">
+        <p className="text-[13px] leading-relaxed text-slate-400">
           Measured on a held-out fold of {metrics.n_test ?? "the"} public scam and genuine texts, and on synthetic bank, NHS and council messages. The model ranks; the rules and
           the sandbox decide what is spoken.
         </p>
       </section>
     </div>
+  );
+}
+
+function ProofCard({ icon, title, children, extra }: { icon: ReactNode; title: string; children: ReactNode; extra?: ReactNode }) {
+  return (
+    <Card padding="tight" className="!p-4 sm:!p-5">
+      <div className="flex items-start gap-3.5">
+        <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/25 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/20">
+          {icon}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[15px] font-semibold text-white">{title}</h3>
+          <p className="mt-1 text-[13px] leading-relaxed text-slate-300">{children}</p>
+          {extra}
+        </div>
+      </div>
+    </Card>
   );
 }

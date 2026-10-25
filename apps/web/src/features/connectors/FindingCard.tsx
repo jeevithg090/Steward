@@ -12,7 +12,9 @@ interface KindStyle {
   icon: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }>;
   /** The card's border and wash. */
   box: string;
-  /** The icon's circle. */
+  /** The status rail on the left edge. */
+  rail: string;
+  /** The icon's tile. */
   ring: string;
   badge: BadgeTone;
   /** The badge's words; `amount` is the finding's amount in pounds, when it has one; `started` when its claim is already live. */
@@ -24,43 +26,48 @@ interface KindStyle {
 export const FINDING_STYLE: Record<FindingKind, KindStyle> = {
   late_train: {
     icon: PoundSterling,
-    box: "border-emerald-500/30 bg-emerald-950/20",
-    ring: "bg-emerald-500/15 text-emerald-300",
-    badge: "emerald",
+    box: "border-gold-400/25 bg-gradient-to-b from-gold-400/[0.08] to-gold-400/[0.01]",
+    rail: "bg-gold-400",
+    ring: "bg-gold-400/15 text-gold-200 ring-gold-400/30",
+    badge: "gold",
     words: (amount, started) => (started ? (amount ? `£${amount} claim started` : "Claim started") : amount ? `£${amount} to claim` : "Money to claim"),
-    action: "bg-emerald-600 text-white hover:bg-emerald-500",
+    action: "bg-gradient-to-b from-gold-300 to-gold-400 text-ink shadow-[0_1px_0_0_rgb(255_255_255/0.5)_inset,0_10px_28px_-12px_rgb(245_181_68/0.8)] hover:from-gold-200 hover:to-gold-300",
   },
   engineer_visit: {
     icon: CircleHelp,
-    box: "border-amber-500/30 bg-amber-950/20",
-    ring: "bg-amber-500/15 text-amber-300",
+    box: "border-amber-400/20 bg-gradient-to-b from-amber-500/[0.07] to-amber-500/[0.01]",
+    rail: "bg-amber-400",
+    ring: "bg-amber-500/15 text-amber-200 ring-amber-400/30",
     badge: "amber",
     words: (_amount, started) => (started ? "Claim started" : "A question for you"),
-    action: "bg-amber-500 text-slate-950 hover:bg-amber-400",
+    action: "border border-amber-300/30 bg-amber-400/[0.12] text-amber-50 hover:bg-amber-400/20",
   },
   scam: {
     icon: ShieldAlert,
-    box: "border-rose-500/30 bg-rose-950/20",
-    ring: "bg-rose-500/15 text-rose-300",
+    box: "border-rose-400/25 bg-gradient-to-b from-rose-500/[0.09] to-rose-500/[0.01]",
+    rail: "bg-rose-400",
+    ring: "bg-rose-500/15 text-rose-200 ring-rose-400/30",
     badge: "rose",
     words: () => "A trick: don't click",
-    action: "bg-rose-600 text-white hover:bg-rose-500",
+    action: "bg-gradient-to-b from-rose-600 to-rose-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.18)_inset,0_10px_26px_-12px_rgb(244_63_94/0.7)] hover:from-rose-500 hover:to-rose-700",
   },
   money_arrived: {
     icon: CircleCheck,
-    box: "border-white/10 bg-white/[0.03]",
-    ring: "bg-white/10 text-slate-200",
-    badge: "slate",
+    box: "border-emerald-400/20 bg-gradient-to-b from-emerald-500/[0.06] to-transparent",
+    rail: "bg-emerald-400",
+    ring: "bg-emerald-500/15 text-emerald-200 ring-emerald-400/30",
+    badge: "emerald",
     words: () => "Nothing to do",
-    action: "border border-white/15 bg-white/5 text-slate-100 hover:bg-white/10",
+    action: "border border-white/10 bg-white/[0.05] text-slate-100 hover:border-white/20 hover:bg-white/[0.09]",
   },
   letter: {
     icon: FileText,
-    box: "border-indigo-500/30 bg-indigo-950/30",
-    ring: "bg-indigo-500/15 text-indigo-300",
+    box: "border-violet-400/25 bg-gradient-to-b from-violet-500/[0.09] to-violet-500/[0.01]",
+    rail: "bg-violet-400",
+    ring: "bg-violet-500/15 text-violet-200 ring-violet-400/30",
     badge: "indigo",
     words: () => "A letter to read",
-    action: "bg-indigo-600 text-white hover:bg-indigo-500",
+    action: "bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_10px_28px_-12px_rgb(124_58_237/0.9)] hover:from-violet-500 hover:to-violet-700",
   },
 };
 
@@ -80,23 +87,35 @@ export function FindingCard({ finding, compact = false, headingLevel = "h3" }: F
   const toChat = finding.action.href.startsWith("#/chat");
   // A late train or a visit whose claim is already live opens Mission Control instead of the chat (findings.py under_way).
   const started = finding.action.href.startsWith("#/missions") && (finding.kind === "late_train" || finding.kind === "engineer_visit");
+  // Money in gold: what can come back, or what already did.
+  const amount = finding.amount_gbp && (finding.kind === "late_train" || finding.kind === "money_arrived") ? finding.amount_gbp : null;
   return (
-    <article aria-labelledby={titleId} data-kind={finding.kind} className={`rounded-2xl border ${style.box} ${compact ? "p-3" : "p-4"}`}>
+    <article aria-labelledby={titleId} data-kind={finding.kind} className={`relative h-full overflow-hidden rounded-2xl border ${style.box} ${compact ? "p-3 pl-4" : "p-4 pl-5 lg:p-5 lg:pl-6"}`}>
+      <span aria-hidden className={`absolute inset-y-3 left-0 w-[3px] rounded-r-full ${style.rail}`} />
       <div className="flex items-start gap-3">
-        <span className={`flex shrink-0 items-center justify-center rounded-full ${style.ring} ${compact ? "h-8 w-8" : "h-10 w-10"}`}>
-          <Icon size={compact ? 16 : 20} aria-hidden />
+        <span aria-hidden className={`grid shrink-0 place-items-center rounded-xl ring-1 ring-inset ${style.ring} ${compact ? "h-8 w-8" : "h-10 w-10"}`}>
+          <Icon size={compact ? 16 : 19} aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <Badge tone={style.badge}>{style.words(finding.amount_gbp ?? null, started)}</Badge>
-          <Title id={titleId} className={`mt-1 break-words font-semibold text-slate-50 ${compact ? "text-sm" : "text-base"}`}>
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <Badge tone={style.badge} dot>
+              {style.words(finding.amount_gbp ?? null, started)}
+            </Badge>
+            {amount && !compact && (
+              <span aria-hidden className="num text-gold text-2xl font-semibold leading-none tracking-[-0.02em]">
+                £{amount}
+              </span>
+            )}
+          </div>
+          <Title id={titleId} className={`mt-2 break-words font-semibold leading-snug text-white ${compact ? "text-sm" : "text-[15px]"}`}>
             {finding.title}
           </Title>
-          <p className="mt-1 break-words text-sm leading-relaxed text-slate-300">{finding.why}</p>
-          <p className="mt-1.5 break-words text-xs text-slate-400">{sourceLine(finding)}</p>
+          <p className={`mt-1 break-words leading-relaxed text-slate-300 ${compact ? "text-[13px]" : "text-sm"}`}>{finding.why}</p>
+          <p className="mt-2 break-words text-xs text-slate-400">{sourceLine(finding)}</p>
           <a
             {...linkProps(finding.action.href)}
             aria-describedby={titleId}
-            className={`mt-3 inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors motion-reduce:transition-none ${style.action} ${FOCUS}`}
+            className={`mt-3 inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 text-sm font-medium transition-[background-color,box-shadow,border-color] duration-150 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 ${style.action} ${FOCUS}`}
           >
             {toChat ? <MessageCircle size={14} aria-hidden /> : <ArrowRight size={14} aria-hidden />}
             {finding.action.label}

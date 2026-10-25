@@ -144,6 +144,28 @@ function set(next: Partial<State>): void {
   for (const l of listeners) l();
 }
 
+// A prompt sent from elsewhere (the ⌘K palette): the chat takes it once it is on screen.
+let queuedPrompt: string | null = null;
+const promptListeners = new Set<() => void>();
+
+/** Ask Tempo something from outside the chat: it starts a new conversation and sends `text`. */
+export function queuePrompt(text: string): void {
+  queuedPrompt = text;
+  for (const l of promptListeners) l();
+}
+
+/** The chat takes the queued prompt (once), and hears about later ones. */
+export function takeQueuedPrompt(): string | null {
+  const text = queuedPrompt;
+  queuedPrompt = null;
+  return text;
+}
+
+export function onQueuedPrompt(listener: () => void): () => void {
+  promptListeners.add(listener);
+  return () => promptListeners.delete(listener);
+}
+
 export const chatStore = {
   get: () => state,
   subscribe(listener: () => void): () => void {

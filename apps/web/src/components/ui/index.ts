@@ -10,3 +10,7 @@ export { Spinner } from "./Spinner";
 export { Switch } from "./Switch";
 export { Skeleton, SkeletonCards } from "./Skeleton";
 export { Toaster, dismiss, toast, type ToastItem, type ToastTone } from "./Toast";
+export { Kbd } from "./Kbd";
+export { Segmented, type SegmentOption } from "./Segmented";
+export { Stat, useCountUp } from "./Stat";
+export { TempoMark } from "./TempoMark";

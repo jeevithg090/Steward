@@ -18,32 +18,39 @@ export function ReadBackCard({
 }) {
   const [value, setValue] = useState(date);
   return (
-    <Card as="section" tone="amber" aria-labelledby="readback-heading" className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 id="readback-heading" className="flex items-center gap-2 text-sm font-semibold text-amber-100">
-          <ScanLine size={16} aria-hidden /> Tempo read the card
+    <Card as="section" tone="amber" aria-labelledby="readback-heading" className="relative overflow-hidden motion-safe:animate-scale-in">
+      <span aria-hidden className="pointer-events-none absolute -right-16 -top-24 h-56 w-56 rounded-full bg-amber-400/10 blur-3xl" />
+      <div className="relative flex flex-wrap items-center justify-between gap-2">
+        <h3 id="readback-heading" className="flex items-center gap-3 text-[15px] font-semibold text-white">
+          <span aria-hidden className="grid h-9 w-9 place-items-center rounded-xl bg-amber-400/15 text-amber-200 ring-1 ring-inset ring-amber-300/30">
+            <ScanLine size={16} />
+          </span>
+          Tempo read the card
         </h3>
-        <Badge tone="amber">vision · one thing to check</Badge>
+        <Badge tone="amber" dot>
+          vision · one thing to check
+        </Badge>
       </div>
-      <p className="text-sm text-slate-200">{question}</p>
-      <div className="flex flex-wrap items-end gap-3">
+      <p className="relative mt-4 text-[15px] leading-relaxed text-slate-100">{question}</p>
+      <div className="relative mt-5 flex flex-wrap items-end gap-3">
         <Button variant="ok" busy={busy} onClick={() => onConfirm(date, false)}>
           Yes, that&apos;s right
         </Button>
-        <label className="text-xs text-slate-300">
+        <span aria-hidden className="hidden h-10 w-px bg-white/10 sm:block" />
+        <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-300">
           Or the right date
           <input
             type="date"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className={`ml-2 rounded-lg border border-white/15 bg-slate-900/80 px-2 py-1.5 text-sm text-slate-100 ${FOCUS}`}
+            className={`h-10 rounded-full border border-white/15 bg-ink/70 px-4 text-sm text-slate-100 [color-scheme:dark] ${FOCUS}`}
           />
         </label>
         <Button variant="quiet" disabled={busy || !value} onClick={() => onConfirm(value, true)}>
           Use this date
         </Button>
         {onCancel && (
-          <Button variant="quiet" disabled={busy} onClick={onCancel}>
+          <Button variant="ghost" disabled={busy} onClick={onCancel}>
             Not now
           </Button>
         )}

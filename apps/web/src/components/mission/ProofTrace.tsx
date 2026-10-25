@@ -1,47 +1,59 @@
-import { ExternalLink } from "lucide-react";
-import { Card, FOCUS, SectionTitle } from "@/components/ui";
+import { ArrowRight, ExternalLink, Route } from "lucide-react";
+import { Card, FOCUS } from "@/components/ui";
 import type { ProofTraceData } from "@/lib/api";
+import { PanelHeading } from "./look";
 import { gbp } from "./words";
 
 /** fact → rule vX → published source → amount, for every money step (the Proof Trace). */
 export function ProofTrace({ trace, id = "proof-heading", bare = false }: { trace: ProofTraceData; id?: string; bare?: boolean }) {
   const body = (
     <>
-      <SectionTitle id={id} as="h3">
-        Proof Trace
-      </SectionTitle>
-      <ol className="space-y-3">
+      <PanelHeading id={id} icon={<Route size={16} />} title="Proof Trace" sub="Each step, from the facts to the rule to its published source." className="mb-5" />
+      <ol className="relative">
         {trace.steps.map((step, i) => (
-          <li key={`${step.rule_id}-${i}`} className="flex gap-3">
-            <span aria-hidden className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-[10px] font-semibold text-purple-200">
+          <li key={`${step.rule_id}-${i}`} className="relative flex gap-4 pb-6 last:pb-0">
+            {i < trace.steps.length - 1 && <span aria-hidden className="absolute bottom-1 left-[15px] top-10 w-px bg-gradient-to-b from-violet-300/40 to-violet-300/[0.06]" />}
+            <span
+              aria-hidden
+              className="num relative grid h-8 w-8 shrink-0 place-items-center rounded-full bg-violet-500/15 text-[13px] font-semibold text-violet-100 ring-1 ring-inset ring-violet-300/35 shadow-[0_0_18px_-4px_rgb(139_92_246/0.6)]"
+            >
               {i + 1}
             </span>
-            <div className="min-w-0 text-sm text-slate-200">
-              <p>{step.explanation}</p>
-              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
-                {step.fact_keys.length > 0 && <span>facts: {step.fact_keys.map((k) => k.replaceAll("_", " ")).join(", ")}</span>}
-                <span aria-hidden>→</span>
-                <span>
-                  rule <span className="font-mono text-purple-200">{step.rule_id}</span> v{step.rule_version}
+            <div className="min-w-0 flex-1 pt-1">
+              <p className="text-sm leading-relaxed text-slate-100">{step.explanation}</p>
+              <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-xs">
+                {step.fact_keys.length > 0 && (
+                  <>
+                    <span className="text-slate-400">facts:</span>
+                    {step.fact_keys.map((k) => (
+                      <span key={k} className="rounded-full bg-white/[0.05] px-2 py-0.5 text-slate-300 ring-1 ring-inset ring-white/10">
+                        {k.replaceAll("_", " ")}
+                      </span>
+                    ))}
+                    <ArrowRight size={12} aria-hidden className="mx-0.5 text-slate-500" />
+                  </>
+                )}
+                <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-slate-400 ring-1 ring-inset ring-violet-300/20">
+                  rule <span className="font-mono text-violet-200">{step.rule_id}</span> v{step.rule_version}
                 </span>
-                <span aria-hidden>→</span>
+                <ArrowRight size={12} aria-hidden className="mx-0.5 text-slate-500" />
                 <a
                   href={step.citation_url}
                   target="_blank"
                   rel="noreferrer"
-                  className={`inline-flex items-center gap-1 rounded text-indigo-300 underline hover:text-indigo-200 ${FOCUS}`}
+                  className={`inline-flex items-center gap-1 rounded-full px-1 font-medium text-violet-300 underline decoration-violet-300/40 underline-offset-2 transition-colors hover:text-violet-100 hover:decoration-violet-100 motion-reduce:transition-none ${FOCUS}`}
                 >
                   published source <ExternalLink size={11} aria-hidden />
                 </a>
-              </p>
+              </div>
             </div>
           </li>
         ))}
       </ol>
-      <p className="mt-3 flex items-baseline gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Amount</span>
-        <span className="text-xl font-semibold tabular-nums text-slate-100">{gbp(trace.amount_gbp)}</span>
-      </p>
+      <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-gold-300/20 bg-gradient-to-r from-gold-400/[0.08] to-gold-400/[0.02] px-4 py-3">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-200">Amount</span>
+        <span className="num text-2xl font-semibold leading-none tracking-[-0.02em] text-gold">{gbp(trace.amount_gbp)}</span>
+      </div>
     </>
   );
   if (bare) return <section aria-labelledby={id}>{body}</section>;

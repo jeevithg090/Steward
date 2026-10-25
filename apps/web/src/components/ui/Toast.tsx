@@ -59,9 +59,9 @@ function useToasts(): ToastItem[] {
 }
 
 const TONE = {
-  success: { box: "border-emerald-500/40 bg-emerald-950/90 text-emerald-50", icon: <CheckCircle2 size={16} className="text-emerald-300" aria-hidden /> },
-  error: { box: "border-rose-500/40 bg-rose-950/90 text-rose-50", icon: <TriangleAlert size={16} className="text-rose-300" aria-hidden /> },
-  info: { box: "border-indigo-500/40 bg-slate-900/95 text-slate-50", icon: <Info size={16} className="text-indigo-300" aria-hidden /> },
+  success: { box: "text-slate-50", icon: <CheckCircle2 size={16} className="text-emerald-300" aria-hidden /> },
+  error: { box: "text-rose-50 !border-rose-400/35", icon: <TriangleAlert size={16} className="text-rose-300" aria-hidden /> },
+  info: { box: "text-slate-50", icon: <Info size={16} className="text-violet-300" aria-hidden /> },
 } as const;
 
 /** Mounted once; at the top under the header on phones (so the chat input and buttons below stay
@@ -75,7 +75,7 @@ export function Toaster() {
         <div
           key={t.id}
           role={t.tone === "error" ? "alert" : "status"}
-          className={`pointer-events-auto flex max-w-sm items-start gap-2 rounded-2xl border px-3.5 py-2.5 text-sm shadow-2xl backdrop-blur-md motion-safe:animate-[toast-in_160ms_ease-out] ${TONE[t.tone].box}`}
+          className={`glass-strong pointer-events-auto flex max-w-sm items-start gap-2.5 rounded-2xl px-4 py-3 text-sm motion-safe:animate-[toast-in_220ms_cubic-bezier(0.22,1,0.36,1)] ${TONE[t.tone].box}`}
         >
           <span className="mt-0.5 shrink-0">{TONE[t.tone].icon}</span>
           <span className="min-w-0 flex-1 leading-snug">{t.text}</span>

@@ -8,14 +8,14 @@ import { Badge } from "./Badge";
 export function HonestyBadge({ health, showcase, connected }: { health: Health | null; showcase: boolean; connected: boolean }) {
   if (showcase) {
     return (
-      <Badge tone="amber" title="No Gateway: recorded replies from a real replay-mode run">
+      <Badge tone="amber" dot title="No Gateway: recorded replies from a real replay-mode run">
         <span className="hidden sm:inline">{SHOWCASE_LABEL}</span>
         <span className="sm:hidden" aria-label={SHOWCASE_LABEL}>SHOWCASE · recorded</span>
       </Badge>
     );
   }
   if (!connected || !health) {
-    return <Badge tone="rose" title="The web app cannot reach the Gateway">NO GATEWAY</Badge>;
+    return <Badge tone="rose" dot title="The web app cannot reach the Gateway">NO GATEWAY</Badge>;
   }
   const simulated = health.simulated.length ? `SIMULATED ${health.simulated.join(", ")}` : "nothing simulated";
   const clock = health.clock_offset_days ? ` · DEMO CLOCK +${health.clock_offset_days} DAYS` : "";

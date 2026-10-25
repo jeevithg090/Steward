@@ -1,7 +1,7 @@
 // Skills (plan.md §2): the manifests in plain words: jobs, capabilities needed, status, operators,
 // and how to add one. Ported from the old SkillsPage; dark theme.
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, BookOpen, ExternalLink, FolderPlus, MessageCircle, Puzzle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
+import { ArrowRight, BadgeCheck, BookOpen, ExternalLink, Eye, FlaskConical, FolderPlus, HandCoins, Hourglass, Info, KeyRound, MessageCircle, Plane, Puzzle, Router, ScrollText, ShieldAlert, TrainFront } from "lucide-react";
 import { Badge, Button, Card, EmptyState, FOCUS, PageTitle, SectionTitle, SkeletonCards } from "@/components/ui";
 import { CatalogClient, type CatalogSource } from "@/lib/catalog-client";
 import { ACTION_WORDS, type SkillManifest } from "@/lib/profiles";
@@ -9,7 +9,7 @@ import { ShowcaseCatalog } from "@/lib/showcase";
 import { useCatalog } from "@/lib/use-showcase";
 import { linkProps } from "@/router";
 import type { PageProps } from "@/types/page";
-import { DOCS, GITHUB, StatusBadge } from "../profiles/bits";
+import { DOCS, Figure, GITHUB, StatusBadge } from "../profiles/bits";
 import { SAY, TAP, chatSay, shortSay } from "../story/demo";
 import { loadError } from "@/components/mission/words";
 
@@ -30,7 +30,24 @@ const WAYS_IN = [
   { title: "A mission in Python", body: "A multi-step workflow with its own tools, waits and consent points: copy clawback_ofcom under packages/tempo_missions/." },
 ];
 
-const LINK = `inline-flex min-h-[44px] items-center gap-1 text-indigo-300 underline ${FOCUS}`;
+const LINK = `inline-flex min-h-[44px] items-center gap-1 font-medium text-violet-300 underline decoration-violet-400/40 underline-offset-[3px] hover:text-violet-200 hover:decoration-violet-200 ${FOCUS}`;
+const META_LINK = `inline-flex min-h-[32px] items-center gap-1 rounded-full font-mono text-[12px] text-violet-200 underline decoration-violet-400/30 underline-offset-[3px] hover:text-white hover:decoration-white ${FOCUS}`;
+
+type Icon = ComponentType<{ size?: number; className?: string; strokeWidth?: number; "aria-hidden"?: boolean }>;
+
+/** A mark for each skill, so the grid reads at a glance. */
+const SKILL_ICONS: Record<string, { icon: Icon; tile: string }> = {
+  "clawback-uk-rail": { icon: TrainFront, tile: "from-violet-400/30 to-violet-700/10 text-violet-100 ring-violet-300/25" },
+  "clawback-uk-flights": { icon: Plane, tile: "from-sky-400/25 to-sky-700/10 text-sky-100 ring-sky-300/25" },
+  "clawback-ofcom": { icon: Router, tile: "from-indigo-400/25 to-indigo-700/10 text-indigo-100 ring-indigo-300/25" },
+  "entitlement-check": { icon: HandCoins, tile: "from-emerald-400/25 to-emerald-700/10 text-emerald-100 ring-emerald-300/25" },
+  "letter-explainer": { icon: ScrollText, tile: "from-fuchsia-400/25 to-fuchsia-700/10 text-fuchsia-100 ring-fuchsia-300/25" },
+  "rights-decay": { icon: Hourglass, tile: "from-amber-400/25 to-amber-700/10 text-amber-100 ring-amber-300/25" },
+  "scam-shield": { icon: ShieldAlert, tile: "from-rose-400/25 to-rose-700/10 text-rose-100 ring-rose-300/25" },
+};
+const FALLBACK = { icon: Puzzle, tile: "from-white/15 to-white/[0.03] text-slate-100 ring-white/15" };
+
+const TRY_LINK = `inline-flex ${TAP} items-center gap-2 rounded-full bg-violet-500/[0.14] px-4 text-sm font-medium text-violet-50 ring-1 ring-inset ring-violet-400/30 transition-colors hover:bg-violet-500/25 hover:ring-violet-300/50 motion-reduce:transition-none ${FOCUS}`;
 
 export default function SkillsPage({ showcase }: PageProps) {
   const injected = useMemo<CatalogSource>(() => (showcase ? new ShowcaseCatalog() : new CatalogClient()), [showcase]);
@@ -51,11 +68,22 @@ export default function SkillsPage({ showcase }: PageProps) {
   }, [source]);
   useEffect(load, [load]);
 
+  const readyCount = skills?.filter((s) => s.status === "ready").length ?? 0;
+  const demoCount = skills?.filter((s) => s.status === "demo-values").length ?? 0;
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       <PageTitle lede="A skill is the unit a profile is made of: a folder with a manifest in plain words and, usually, a YAML rule pack that decides the amounts. A profile that turns a skill on must allow every capability the skill needs.">
         Skills
       </PageTitle>
+
+      {skills && skills.length > 0 && (
+        <Card className="grid grid-cols-3 gap-4 motion-safe:animate-fade-up sm:gap-6">
+          <Figure label="Skills" value={String(skills.length)} icon={<Puzzle size={12} aria-hidden />} sub="in this catalogue" />
+          <Figure label="Ready" value={String(readyCount)} tone="emerald" icon={<BadgeCheck size={12} aria-hidden />} sub="checked against the published terms" />
+          <Figure label="Demo values" value={String(demoCount)} icon={<FlaskConical size={12} aria-hidden />} sub="labelled on every card" />
+        </Card>
+      )}
 
       {error && (
         <EmptyState title="Couldn't load the skills" tone="error" action={<Button variant="quiet" onClick={load} className={TAP}>Try again</Button>}>
@@ -65,131 +93,159 @@ export default function SkillsPage({ showcase }: PageProps) {
       {!error && skills === null && <SkeletonCards count={4} label="Loading skills" />}
       {skills && skills.length === 0 && <EmptyState title="No skills yet">Add a folder under skills/ with a skill.yaml and it appears here.</EmptyState>}
       {skills && skills.length > 0 && (
-        <ul className="grid gap-4 md:grid-cols-2">
+        <ul className="stagger grid gap-4 lg:grid-cols-2">
           {skills.map((s) => {
             const tryIt = TRY_SKILL[s.id];
+            const { icon: SkillIcon, tile } = SKILL_ICONS[s.id] ?? FALLBACK;
+            const railTone = s.status === "ready" ? "bg-emerald-400/80" : s.status === "demo-values" ? "bg-amber-400/80" : "bg-slate-500";
             return (
-            <Card key={s.id} as="li" id={s.id} className="flex flex-col gap-3 scroll-mt-24">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="text-lg font-semibold text-slate-100">{s.name}</h2>
-                <StatusBadge status={s.status} />
-              </div>
-              <p className="text-sm text-slate-300">{s.summary}</p>
-              <div>
-                <SectionTitle as="h3">What Tempo does when this skill is on</SectionTitle>
-                <ul className="space-y-1 text-sm text-slate-200">
-                  {s.jobs.map((job) => (
-                    <li key={job} className="flex items-start gap-2">
-                      <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
-                      {job}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <SectionTitle as="h3">Needs your permission to</SectionTitle>
-                {s.needs.length ? (
-                  <ul aria-label={`Capabilities ${s.name} needs`} className="flex flex-wrap gap-1.5">
-                    {s.needs.map((n) => (
-                      <li key={n}>
-                        <Badge tone="amber">{ACTION_WORDS[n]}</Badge>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-slate-300">nothing binding: it only reads, explains and warns</p>
-                )}
-              </div>
-              <dl className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
-                <div>
-                  <dt className="text-xs text-slate-400">Reaches you by</dt>
-                  <dd className="text-slate-200">{s.channels.map((c) => CHANNEL_WORDS[c] ?? c).join(", ")}</dd>
-                </div>
-                {s.operators && s.operators.length > 0 && (
+              <Card key={s.id} as="li" id={s.id} interactive padding="none" className="relative flex scroll-mt-24 flex-col overflow-hidden">
+                <span aria-hidden className={`absolute inset-y-6 left-0 w-[3px] rounded-r-full ${railTone}`} />
+                <div className="flex flex-1 flex-col gap-4 p-5 lg:p-6">
+                  <div className="flex items-start gap-4">
+                    <span aria-hidden className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b ring-1 ring-inset shadow-[0_12px_28px_-14px_rgb(0_0_0/0.9)] ${tile}`}>
+                      <SkillIcon size={22} strokeWidth={1.75} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-[17px] font-semibold leading-snug tracking-[-0.01em] text-white">{s.name}</h2>
+                      <div className="mt-1.5">
+                        <StatusBadge status={s.status} />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm leading-relaxed text-slate-300">{s.summary}</p>
                   <div>
-                    <dt className="text-xs text-slate-400">Companies it knows</dt>
-                    <dd className="text-slate-200">{s.operators.join(", ")}</dd>
+                    <SectionTitle as="h3" className="!mb-2">
+                      What Tempo does when this skill is on
+                    </SectionTitle>
+                    <ul className="space-y-1.5 text-sm leading-snug text-slate-200">
+                      {s.jobs.map((job) => (
+                        <li key={job} className="flex items-start gap-2.5">
+                          <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400 shadow-[0_0_0_3px_rgb(139_92_246/0.18)]" />
+                          {job}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <SectionTitle as="h3" className="!mb-2">
+                      Needs your permission to
+                    </SectionTitle>
+                    {s.needs.length ? (
+                      <ul aria-label={`Capabilities ${s.name} needs`} className="flex flex-wrap gap-1.5">
+                        {s.needs.map((n) => (
+                          <li key={n}>
+                            <Badge tone="amber" className="py-1">
+                              <KeyRound size={11} aria-hidden />
+                              {ACTION_WORDS[n]}
+                            </Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="inline-flex items-center gap-2 rounded-full bg-emerald-500/[0.08] px-3 py-1 text-sm text-emerald-100 ring-1 ring-inset ring-emerald-400/20">
+                        <Eye size={13} aria-hidden className="shrink-0 text-emerald-300" />
+                        nothing binding: it only reads, explains and warns
+                      </p>
+                    )}
+                  </div>
+                  {s.notes && (
+                    <p className="flex items-start gap-2.5 rounded-2xl border border-amber-400/25 bg-amber-500/[0.07] px-3.5 py-2.5 text-xs leading-relaxed text-amber-50">
+                      <Info size={14} aria-hidden className="mt-px shrink-0 text-amber-300" />
+                      <span>
+                        <span className="font-semibold">Note:</span> {s.notes}
+                      </span>
+                    </p>
+                  )}
+                  <dl className="mt-auto grid gap-x-5 gap-y-3 rounded-2xl border border-white/[0.06] bg-black/20 p-3.5 text-sm sm:grid-cols-2">
+                    <div className="min-w-0">
+                      <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Reaches you by</dt>
+                      <dd className="mt-0.5 text-slate-200">{s.channels.map((c) => CHANNEL_WORDS[c] ?? c).join(", ")}</dd>
+                    </div>
+                    <div className="min-w-0">
+                      <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Version</dt>
+                      <dd className="num mt-0.5 text-slate-200">
+                        v{s.version} · maintained by {s.maintainers.join(", ")}
+                      </dd>
+                    </div>
+                    {s.operators && s.operators.length > 0 && (
+                      <div className="min-w-0 sm:col-span-2">
+                        <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Companies it knows</dt>
+                        <dd className="mt-0.5 text-slate-200">{s.operators.join(", ")}</dd>
+                      </div>
+                    )}
+                    <div className="min-w-0 sm:col-span-2">
+                      <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Where it lives</dt>
+                      <dd className="flex flex-wrap gap-x-3">
+                        <a href={`${GITHUB}/tree/main/skills/${s.id}`} rel="noopener noreferrer" className={META_LINK}>
+                          skills/{s.id} <ExternalLink size={11} aria-hidden />
+                        </a>
+                        {s.docs && (
+                          <a href={s.docs.startsWith("http") ? s.docs : `${GITHUB}/blob/main/${s.docs}`} rel="noopener noreferrer" className={META_LINK}>
+                            docs <ExternalLink size={11} aria-hidden />
+                          </a>
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+                {tryIt && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/[0.06] bg-white/[0.015] px-5 py-3.5 lg:px-6">
+                    <a {...linkProps(tryIt.href)} aria-describedby={`${s.id}-try-hint`} className={TRY_LINK}>
+                      {tryIt.href.startsWith("#/chat") ? <MessageCircle size={14} aria-hidden /> : <ArrowRight size={14} aria-hidden />}
+                      Try it<span className="sr-only">: {s.name}</span>
+                    </a>
+                    <p id={`${s.id}-try-hint`} className="min-w-0 flex-1 basis-48 text-xs leading-relaxed text-slate-400">
+                      {tryIt.hint}
+                    </p>
                   </div>
                 )}
-                <div>
-                  <dt className="text-xs text-slate-400">Version</dt>
-                  <dd className="text-slate-200">
-                    v{s.version} · maintained by {s.maintainers.join(", ")}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-slate-400">Where it lives</dt>
-                  <dd className="flex flex-wrap gap-x-3 text-slate-200">
-                    <a href={`${GITHUB}/tree/main/skills/${s.id}`} rel="noopener noreferrer" className={LINK}>
-                      skills/{s.id} <ExternalLink size={12} aria-hidden />
-                    </a>
-                    {s.docs && (
-                      <a href={s.docs.startsWith("http") ? s.docs : `${GITHUB}/blob/main/${s.docs}`} rel="noopener noreferrer" className={LINK}>
-                        docs <ExternalLink size={12} aria-hidden />
-                      </a>
-                    )}
-                  </dd>
-                </div>
-              </dl>
-              {s.notes && (
-                <p className="rounded-xl border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-xs text-amber-100">
-                  <span className="font-semibold">Note:</span> {s.notes}
-                </p>
-              )}
-              {tryIt && (
-                <div className="mt-auto space-y-1.5 border-t border-white/10 pt-3">
-                  <a
-                    {...linkProps(tryIt.href)}
-                    aria-describedby={`${s.id}-try-hint`}
-                    className={`inline-flex ${TAP} items-center gap-1.5 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 ${FOCUS}`}
-                  >
-                    {tryIt.href.startsWith("#/chat") ? <MessageCircle size={14} aria-hidden /> : <ArrowRight size={14} aria-hidden />}
-                    Try it<span className="sr-only">: {s.name}</span>
-                  </a>
-                  <p id={`${s.id}-try-hint`} className="text-xs text-slate-400">
-                    {tryIt.hint}
-                  </p>
-                </div>
-              )}
-            </Card>
+              </Card>
             );
           })}
         </ul>
       )}
 
-      <Card as="section" aria-labelledby="add-heading" tone="indigo">
-        <SectionTitle id="add-heading" as="h2">
-          <span className="inline-flex items-center gap-1.5">
+      <Card as="section" aria-labelledby="add-heading" tone="indigo" className="relative overflow-hidden">
+        <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/15 blur-3xl" />
+        <div className="relative">
+          <SectionTitle id="add-heading" as="h2">
             <FolderPlus size={12} aria-hidden /> Add your own use case
-          </span>
-        </SectionTitle>
-        <p className="text-sm text-slate-200">
-          Tempo prices nothing from a model: every amount comes from a rule pack with a citation. Most use cases are a YAML file, not Python. Three ways in,
-          shortest first:
-        </p>
-        <ol className="mt-3 grid gap-3 sm:grid-cols-3">
-          {WAYS_IN.map((way, i) => (
-            <li key={way.title} className="rounded-xl border border-white/10 bg-black/20 p-3">
-              <p className="text-sm font-semibold text-slate-100">
-                <span className="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[11px] text-white" aria-hidden>
+          </SectionTitle>
+          <p className="max-w-3xl text-[15px] leading-relaxed text-slate-200">
+            Tempo prices nothing from a model: every amount comes from a rule pack with a citation. Most use cases are a YAML file, not Python. Three ways in,
+            shortest first:
+          </p>
+          <ol className="mt-5 grid gap-3 md:grid-cols-3">
+            {WAYS_IN.map((way, i) => (
+              <li key={way.title} className="relative rounded-2xl border border-white/[0.08] bg-black/25 p-4">
+                {i < WAYS_IN.length - 1 && <span aria-hidden className="absolute -right-3 top-8 hidden h-px w-3 bg-gradient-to-r from-violet-400/50 to-transparent md:block" />}
+                <span aria-hidden className="num grid h-7 w-7 place-items-center rounded-full bg-gradient-to-b from-violet-500 to-violet-700 text-[12px] font-semibold text-white shadow-[0_6px_16px_-6px_rgb(124_58_237/0.9)]">
                   {i + 1}
                 </span>
-                {way.title}
-              </p>
-              <p className="mt-1 text-xs text-slate-300">{way.body}</p>
-            </li>
-          ))}
-        </ol>
-        <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          <a href={DOCS.addUseCase} rel="noopener noreferrer" className={LINK}>
-            <BookOpen size={14} aria-hidden /> docs/add-a-usecase.md on GitHub <ExternalLink size={12} aria-hidden />
-          </a>
-          <a href={`${GITHUB}/tree/main/skills`} rel="noopener noreferrer" className={LINK}>
-            <Puzzle size={14} aria-hidden /> the skills folder <ExternalLink size={12} aria-hidden />
-          </a>
-        </p>
+                <p className="mt-3 text-[15px] font-semibold text-white">{way.title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-300">{way.body}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+            <a href={DOCS.addUseCase} rel="noopener noreferrer" className={LINK}>
+              <BookOpen size={14} aria-hidden /> docs/add-a-usecase.md on GitHub <ExternalLink size={12} aria-hidden />
+            </a>
+            <a href={`${GITHUB}/tree/main/skills`} rel="noopener noreferrer" className={LINK}>
+              <Puzzle size={14} aria-hidden /> the skills folder <ExternalLink size={12} aria-hidden />
+            </a>
+          </p>
+        </div>
       </Card>
-      {showcase && skills && <p className="text-xs text-slate-400">Showcase: read from the committed catalogue (skills/*/skill.yaml), not from a Gateway.</p>}
+      {showcase && skills && (
+        <p className="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-500/[0.06] px-4 py-2.5 text-sm text-amber-100">
+          <Badge tone="amber" dot>
+            showcase
+          </Badge>
+          Showcase: read from the committed catalogue (skills/*/skill.yaml), not from a Gateway.
+        </p>
+      )}
     </div>
   );
 }

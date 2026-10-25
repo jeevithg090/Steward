@@ -22,7 +22,7 @@ import { useRoute } from "@/router";
 import type { PageProps } from "@/types/page";
 import type { ModelProvider } from "@/types/types";
 import { ChatPage, type Link } from "./ChatPage";
-import { type Conversation, type ThreadMessage, chatStore, saveIntent, useChatStore } from "./store";
+import { type Conversation, type ThreadMessage, chatStore, onQueuedPrompt, saveIntent, takeQueuedPrompt, useChatStore } from "./store";
 
 export interface ChatContainerProps extends PageProps {
   config: GatewayConfig;
@@ -204,6 +204,18 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
     },
     [applyReply, gateway, language, user.id, user.name, user.profileId],
   );
+
+  // A prompt from the ⌘K palette: a fresh conversation, then the words as if typed.
+  useEffect(() => {
+    const take = () => {
+      const text = takeQueuedPrompt();
+      if (!text) return;
+      chatStore.newChat();
+      void send(text).catch((err: unknown) => toast.error(err instanceof Error ? err.message : String(err)));
+    };
+    take();
+    return onQueuedPrompt(take);
+  }, [send]);
 
   /** The consent card's Yes or No: the one way the web answers (answerAsk: a passkey here when this device signs). */
   const consent = useCallback(

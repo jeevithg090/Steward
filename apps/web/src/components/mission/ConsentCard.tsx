@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
-import { ChevronDown, ChevronRight, Fingerprint, HandCoins } from "lucide-react";
-import { Badge, Button, Card, FOCUS } from "@/components/ui";
+import { ChevronDown, Fingerprint, HandCoins } from "lucide-react";
+import { Badge, Button, FOCUS } from "@/components/ui";
 import type { ConsentAsk, CourtDecision } from "@/lib/api";
 import { CourtVotes } from "./CourtVotes";
 import { ProofTrace } from "./ProofTrace";
@@ -32,7 +32,10 @@ function yesWords(amount: string, { signed = false, waits = false }: { signed?: 
   return signed ? `${yes} with Face ID` : yes;
 }
 
-/** "Tempo is asking you": the one question, the exact amount, and why (Proof Trace, the Court). */
+/**
+ * "Tempo is asking you": the one decision on the page. The exact amount in gold, the question in
+ * Tempo's words, a gold Yes and a plain No, and (in the chat) why that amount (Proof Trace, the Court).
+ */
 export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, signed = false, waits }: ConsentCardProps) {
   const [open, setOpen] = useState(false);
   const headingId = useId();
@@ -44,61 +47,83 @@ export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, si
   const handsOver = waits ?? WAITS.test(ask.summary);
 
   return (
-    <Card as="section" tone="indigo" aria-labelledby={headingId} className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id={headingId} className="flex items-center gap-2 text-sm font-semibold text-indigo-100">
-          <HandCoins size={16} aria-hidden className="text-indigo-300" /> Tempo is asking you
-        </h2>
-        <div className="flex items-center gap-2">
+    <section
+      aria-labelledby={headingId}
+      className="relative overflow-hidden rounded-3xl border border-violet-300/25 bg-gradient-to-b from-violet-500/[0.16] via-violet-500/[0.06] to-gold-400/[0.04] text-slate-200 shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset,0_30px_60px_-30px_rgb(109_91_255/0.55)] motion-safe:animate-scale-in"
+    >
+      {/* The agent's violet light above, the gold of the money below. */}
+      <span aria-hidden className="pointer-events-none absolute -left-16 -top-24 h-60 w-60 rounded-full bg-violet-500/25 blur-3xl" />
+      <span aria-hidden className="pointer-events-none absolute -bottom-28 -right-10 h-56 w-56 rounded-full bg-gold-400/[0.12] blur-3xl" />
+      <span aria-hidden className="pointer-events-none absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-violet-200/60 to-transparent" />
+
+      <div className="relative p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 id={headingId} className="flex items-center gap-2.5 text-[15px] font-semibold text-white">
+            <span aria-hidden className="relative grid h-8 w-8 place-items-center rounded-full bg-violet-500/25 text-violet-100 ring-1 ring-inset ring-violet-300/30">
+              <span className="absolute inset-0 rounded-full bg-violet-400/30 motion-safe:animate-ripple" />
+              <HandCoins size={15} className="relative" />
+            </span>
+            Tempo is asking you
+          </h2>
           {demoValues && (
-            <Badge tone="amber" title="Rule packs and clocks are demo values until a person checks each source">
+            <Badge tone="amber" dot title="Rule packs and clocks are demo values until a person checks each source">
               demo values
             </Badge>
           )}
-          <Badge tone="indigo">{gbp(ask.amount_gbp)}</Badge>
         </div>
-      </div>
-      <p className="text-sm leading-relaxed text-slate-200">{ask.summary}</p>
-      {signed && (
-        <p id={signedId} className="flex items-start gap-2 text-xs leading-relaxed text-indigo-100">
-          <Fingerprint size={14} aria-hidden className="mt-0.5 shrink-0 text-indigo-300" />
-          You&apos;ll confirm with Face ID or your fingerprint. Your answer is signed on this device.
-        </p>
-      )}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="ok"
-          size="lg"
-          busy={busy}
-          icon={signed ? <Fingerprint size={18} aria-hidden /> : undefined}
-          aria-describedby={signed ? signedId : undefined}
-          onClick={() => onAnswer(true)}
-        >
-          {yesWords(amount, { signed, waits: handsOver })}
-        </Button>
-        <Button variant="quiet" size="lg" disabled={busy} onClick={() => onAnswer(false)}>
-          No
-        </Button>
-      </div>
-      {why && (ask.proof_trace || theCourt !== undefined) && (
-        <div className="border-t border-white/10 pt-3">
-          <button
-            type="button"
-            aria-expanded={open}
-            aria-controls={whyId}
-            onClick={() => setOpen((o) => !o)}
-            className={`flex items-center gap-1 rounded text-xs font-semibold text-indigo-200 hover:text-indigo-100 ${FOCUS}`}
+
+        <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+          <div className="shrink-0 sm:min-w-[8.5rem]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gold-200">{handsOver ? "Worth" : "To claim"}</p>
+            <p className="num mt-1.5 text-[2.5rem] font-semibold leading-none tracking-[-0.03em] text-gold">{gbp(ask.amount_gbp)}</p>
+          </div>
+          <p className="min-w-0 flex-1 border-white/[0.08] text-[15px] leading-relaxed text-slate-200 sm:border-l sm:pl-6">{ask.summary}</p>
+        </div>
+
+        {signed && (
+          <p id={signedId} className="mt-4 flex items-start gap-2 rounded-2xl border border-violet-300/15 bg-violet-500/[0.08] px-3 py-2.5 text-xs leading-relaxed text-violet-100">
+            <Fingerprint size={14} aria-hidden className="mt-0.5 shrink-0 text-violet-300" />
+            You&apos;ll confirm with Face ID or your fingerprint. Your answer is signed on this device.
+          </p>
+        )}
+
+        <div className="mt-5 flex flex-wrap gap-2.5">
+          <Button
+            variant="gold"
+            size="lg"
+            busy={busy}
+            icon={signed ? <Fingerprint size={18} aria-hidden /> : undefined}
+            aria-describedby={signed ? signedId : undefined}
+            onClick={() => onAnswer(true)}
+            className="font-semibold"
           >
-            {open ? <ChevronDown size={14} aria-hidden /> : <ChevronRight size={14} aria-hidden />} Why this amount
-          </button>
-          {open && (
-            <div id={whyId} className="mt-3 space-y-4">
-              {ask.proof_trace && <ProofTrace trace={ask.proof_trace} id={`${whyId}-proof`} bare />}
-              <CourtVotes court={theCourt} id={`${whyId}-court`} bare />
-            </div>
-          )}
+            {yesWords(amount, { signed, waits: handsOver })}
+          </Button>
+          <Button variant="quiet" size="lg" disabled={busy} onClick={() => onAnswer(false)} className="min-w-[5.5rem]">
+            No
+          </Button>
         </div>
-      )}
-    </Card>
+
+        {why && (ask.proof_trace || theCourt !== undefined) && (
+          <div className="mt-5 border-t border-white/[0.08] pt-4">
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls={whyId}
+              onClick={() => setOpen((o) => !o)}
+              className={`-ml-1 inline-flex items-center gap-1.5 rounded-full px-1 py-0.5 text-[13px] font-semibold text-violet-200 transition-colors hover:text-white motion-reduce:transition-none ${FOCUS}`}
+            >
+              <ChevronDown size={15} aria-hidden className={`transition-transform duration-200 motion-reduce:transition-none ${open ? "" : "-rotate-90"}`} /> Why this amount
+            </button>
+            {open && (
+              <div id={whyId} className="mt-4 space-y-6 motion-safe:animate-fade-up">
+                {ask.proof_trace && <ProofTrace trace={ask.proof_trace} id={`${whyId}-proof`} bare />}
+                <CourtVotes court={theCourt} id={`${whyId}-court`} bare />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

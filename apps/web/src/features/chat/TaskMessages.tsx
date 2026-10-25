@@ -72,10 +72,10 @@ interface TaskMessagesProps {
 /** Three dots in an agent bubble while Tempo works out the reply; read out once as "Tempo is thinking". */
 export function TypingIndicator() {
   return (
-    <div role="status" className="mt-4 inline-flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-nexus-card px-4 py-3">
+    <div role="status" className="surface mt-4 inline-flex items-center gap-1.5 rounded-3xl rounded-bl-md px-4 py-3.5">
       <span className="sr-only">Tempo is thinking</span>
       {[0, 150, 300].map((delay) => (
-        <span key={delay} aria-hidden style={{ animationDelay: `${delay}ms` }} className="h-2 w-2 animate-bounce rounded-full bg-indigo-300 motion-reduce:animate-none" />
+        <span key={delay} aria-hidden style={{ animationDelay: `${delay}ms` }} className="h-2 w-2 animate-bounce rounded-full bg-gradient-to-b from-violet-200 to-violet-400 motion-reduce:animate-none" />
       ))}
     </div>
   );
@@ -86,7 +86,7 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
 
   return (
     <div role="log" aria-label="Conversation" className="pr-1">
-      <ol className="space-y-4">
+      <ol className="space-y-5">
       {messages.map((message) => {
         const isUser = message.role === "user";
         if (message.kind === "status") {
@@ -97,7 +97,7 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
           );
         }
         return (
-          <li key={message.id} className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm text-white lg:max-w-[80%] ${isUser ? "ml-auto w-fit rounded-br-sm bg-nexus-badge" : "rounded-bl-sm border border-white/5 bg-nexus-card"}`}>
+          <li key={message.id} className={`max-w-[88%] px-4 py-3 text-[14.5px] text-white motion-safe:animate-fade-up lg:max-w-[78%] ${isUser ? "ml-auto w-fit rounded-3xl rounded-br-md bg-gradient-to-b from-violet-600 to-violet-700 shadow-[0_1px_0_0_rgb(255_255_255/0.18)_inset,0_14px_30px_-16px_rgb(124_58_237/0.9)]" : "surface rounded-3xl rounded-bl-md px-5 py-4"}`}>
             <span className="sr-only">{isUser ? "You said: " : "Tempo said: "}</span>
             {!isUser && message.intent && (
               <Badge tone={INTENT_TONE[message.intent] ?? "indigo"} className="mb-1.5">
@@ -108,7 +108,7 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
             {message.verdict && <ScamVerdictCard verdict={message.verdict} onFeedback={onFeedback} />}
             {message.letter && <LetterReadingCard reading={message.letter} onSpeak={onSpeak} />}
             {message.memories && message.memories.length > 0 && (
-              <ul aria-label="What Tempo remembers" className="mt-3 divide-y divide-white/5 rounded-xl border border-white/5 bg-black/20">
+              <ul aria-label="What Tempo remembers" className="mt-3 divide-y divide-white/[0.06] rounded-2xl border border-white/[0.07] bg-white/[0.02]">
                 {message.memories.map((m) => {
                   const when = m.when ?? m.observed_at;
                   const details = [m.category?.replaceAll("_", " "), m.source?.replaceAll("_", " "), when ? shortDate(when) : null, m.trust === "untrusted" ? "unchecked" : null].filter(Boolean);
@@ -142,7 +142,7 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
                     <span className="font-medium text-slate-100">{f.benefit}</span> <Badge tone={f.likelihood === "likely" ? "emerald" : "amber"}>{f.likelihood}</Badge>
                     {f.weekly_gbp && <span className="text-slate-300"> · about £{f.weekly_gbp} a week</span>}
                     <span className="block text-slate-400">{f.why}</span>
-                    <a href={f.signpost} target="_blank" rel="noreferrer" className={`text-indigo-300 underline ${FOCUS} rounded`}>
+                    <a href={f.signpost} target="_blank" rel="noreferrer" className={`text-violet-300 underline decoration-violet-300/40 underline-offset-2 hover:decoration-violet-300 ${FOCUS} rounded`}>
                       official page
                     </a>
                   </li>
@@ -153,7 +153,7 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
               <ul aria-label="Open the page" className="mt-3 flex flex-wrap gap-2">
                 {message.actions.map((a) => (
                   <li key={a.href}>
-                    <a {...linkProps(a.href)} className={`inline-flex min-h-9 items-center rounded-full border border-indigo-400/40 bg-indigo-500/10 px-3.5 py-1.5 text-xs font-medium text-indigo-100 hover:bg-indigo-500/20 ${FOCUS}`}>
+                    <a {...linkProps(a.href)} className={`inline-flex min-h-9 items-center rounded-full border border-violet-300/30 bg-violet-500/[0.12] px-3.5 py-1.5 text-xs font-medium text-violet-50 transition-colors hover:bg-violet-500/25 ${FOCUS}`}>
                       {a.label}
                     </a>
                   </li>
@@ -171,9 +171,9 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
                       type="button"
                       disabled={busy}
                       onClick={() => onSuggest(text)}
-                      className={`flex min-h-11 w-full items-start gap-2 whitespace-normal break-words rounded-2xl border border-indigo-400/40 bg-indigo-500/10 px-3.5 py-2.5 text-left text-sm leading-snug text-indigo-50 transition-colors hover:bg-indigo-500/25 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none sm:w-auto ${FOCUS}`}
+                      className={`flex min-h-11 w-full items-start gap-2 whitespace-normal break-words rounded-2xl border border-violet-300/25 bg-violet-500/[0.08] px-3.5 py-2.5 text-left text-sm leading-snug text-violet-50 transition-colors hover:bg-indigo-500/25 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none sm:w-auto ${FOCUS}`}
                     >
-                      <CornerDownRight size={14} aria-hidden className="mt-0.5 shrink-0 text-indigo-300" />
+                      <CornerDownRight size={14} aria-hidden className="mt-0.5 shrink-0 text-violet-300" />
                       <span>{text}</span>
                     </button>
                   </li>

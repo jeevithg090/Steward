@@ -66,15 +66,6 @@ const MODE_ICONS: Record<OutputMode, ReactNode> = {
   text: <MessageSquareText size={15} aria-hidden />,
 };
 
-const VISEME_PATHS: Record<VisemeShape, string> = {
-  A: "M53 53 Q60 53.5 67 53 Q60 54 53 53 Z",
-  B: "M53 52.5 Q60 55 67 52.5 Q60 56 53 52.5 Z",
-  C: "M52 51.5 Q60 57.5 68 51.5 Q60 58.5 52 51.5 Z",
-  D: "M51 51.5 Q60 56 69 51.5 Q60 54 51 51.5 Z",
-  E: "M55 51 Q60 57.5 65 51 Q60 57 55 51 Z",
-  F: "M53 52 Q60 53.5 67 52 Q60 56.5 53 52 Z",
-};
-
 const SHOW_CONTROLS_FROM = 60;
 const SHOW_SLIDER_FROM = 160;
 const SHOW_FULL_BADGE_FROM = 300;
@@ -103,6 +94,27 @@ interface AvatarPanelProps {
   extra?: ReactNode;
 }
 
+/** Each voice's orb: the sphere's colours and its glow. */
+const ORBS: Record<AgentProfile, { sphere: string; glow: string; ring: string }> = {
+  tempo: { sphere: "conic-gradient(from 210deg, #c4b5fd, #7c3aed, #4c1d95, #f5b544, #c4b5fd)", glow: "bg-violet-500", ring: "border-violet-300/50" },
+  negotiator: { sphere: "conic-gradient(from 210deg, #a7f3d0, #059669, #064e3b, #fcd581, #a7f3d0)", glow: "bg-emerald-500", ring: "border-emerald-300/50" },
+  analyst: { sphere: "conic-gradient(from 210deg, #fde68a, #d97706, #78350f, #c4b5fd, #fde68a)", glow: "bg-amber-500", ring: "border-amber-300/50" },
+  auditor: { sphere: "conic-gradient(from 210deg, #f5d0fe, #c026d3, #701a75, #fcd581, #f5d0fe)", glow: "bg-fuchsia-500", ring: "border-fuchsia-300/50" },
+};
+
+/** The voice bars inside the orb, one pattern per mouth shape (the lip-sync's visemes). */
+const BARS: Record<VisemeShape, number[]> = {
+  A: [0.25, 0.4, 0.5, 0.4, 0.25],
+  B: [0.4, 0.65, 0.85, 0.65, 0.4],
+  C: [0.55, 0.85, 1, 0.85, 0.55],
+  D: [0.45, 0.75, 0.95, 0.75, 0.45],
+  E: [0.7, 1, 0.75, 1, 0.7],
+  F: [0.35, 0.7, 0.55, 0.7, 0.35],
+};
+
+/** Tempo's face (plan.md §15.2 P1): a breathing orb. It turns slowly, swells with the voice's
+ * level (`--level`, set on `levelRef` by useSpeech), ripples while speaking, and its bars follow
+ * the mouth shapes. Clicking it reads the last reply aloud or stops. */
 function AnimatedFacialAvatar({
   profile,
   speaking,
@@ -116,21 +128,13 @@ function AnimatedFacialAvatar({
   viseme: VisemeShape;
   levelRef: RefObject<HTMLDivElement | null>;
   onToggleSpeech?: () => void;
-  /** The 44px face of the phone strip. */
+  /** The 44px orb of the phone strip. */
   small?: boolean;
 }) {
   const currentProfile = AGENT_PROFILES.find((p) => p.id === profile) ?? AGENT_PROFILES[0]!;
-  const [isBlinking, setIsBlinking] = useState(false);
-
-  useEffect(() => {
-    const reduce = typeof window !== "undefined" && (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || document.documentElement.hasAttribute("data-reduce-motion"));
-    if (reduce) return;
-    const blinkInterval = setInterval(() => {
-      setIsBlinking(true);
-      setTimeout(() => setIsBlinking(false), 150);
-    }, 3800);
-    return () => clearInterval(blinkInterval);
-  }, []);
+  const orb = ORBS[profile] ?? ORBS.tempo;
+  const bars = BARS[speaking ? viseme : "A"] ?? BARS.A;
+  const size = small ? "h-11 w-11" : "h-32 w-32 lg:h-44 lg:w-44";
 
   return (
     <button
@@ -140,36 +144,51 @@ function AnimatedFacialAvatar({
       title={speaking ? "Click the face to stop speaking" : "Click the face to hear the last reply"}
       className={`group/face relative flex cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 ${FOCUS}`}
     >
-      <div
-        style={{
-          transform: "scale(calc(1 + var(--level, 0) * 0.25))",
-          opacity: speaking ? 0.6 : 0.15,
-          transition: "transform 80ms ease-out, opacity 120ms ease-in-out",
-        }}
-        className={`absolute rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 motion-reduce:transition-none ${small ? "h-11 w-11 blur-md" : "h-24 w-24 blur-xl lg:h-36 lg:w-36"}`}
-      />
-      <div
-        ref={levelRef}
-        className={`relative z-10 flex items-center justify-center overflow-hidden rounded-full border bg-slate-900/90 shadow-2xl transition-all group-hover/face:scale-105 group-hover/face:border-indigo-400 motion-reduce:transition-none ${small ? "h-11 w-11" : "h-24 w-24 lg:h-36 lg:w-36"} ${
-          speaking ? "border-indigo-400 shadow-indigo-500/30" : "border-white/10"
-        }`}
-      >
-        <svg viewBox="0 0 120 120" className={`text-indigo-100 ${small ? "h-10 w-10" : "h-20 w-20 lg:h-32 lg:w-32"}`} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <circle cx="60" cy="60" r="50" className="fill-indigo-950/40 stroke-none" />
-          <circle cx="60" cy="42" r="22" strokeWidth="2.5" className="stroke-slate-200" />
-          <path d="M18 110c0-26 18-44 42-44s42 18 42 44" strokeWidth="2.5" className="stroke-slate-300" />
-          {isBlinking ? (
-            <>
-              <line x1="48" y1="38" x2="54" y2="38" strokeWidth="2.2" className="stroke-indigo-300" />
-              <line x1="66" y1="38" x2="72" y2="38" strokeWidth="2.2" className="stroke-indigo-300" />
-            </>
-          ) : (
-            <>
-              <circle cx="51" cy="38" r="2.2" className="fill-indigo-300 stroke-none" />
-              <circle cx="69" cy="38" r="2.2" className="fill-indigo-300 stroke-none" />
-            </>
-          )}
-          <path d={VISEME_PATHS[viseme] || VISEME_PATHS.A} className={speaking ? "fill-indigo-400/25 stroke-indigo-300" : "fill-slate-400/10 stroke-slate-400"} strokeWidth="1.8" style={{ transition: "d 60ms ease-out" }} />
+      <div ref={levelRef} className={`relative grid place-items-center ${size}`}>
+        <span
+          aria-hidden
+          className={`absolute inset-0 rounded-full ${orb.glow} ${small ? "blur-md" : "blur-3xl"} motion-reduce:transition-none`}
+          style={{
+            transform: `scale(calc(${speaking ? 1.1 : 0.95} + var(--level, 0) * 0.55))`,
+            opacity: speaking ? 0.55 : 0.28,
+            transition: "transform 90ms ease-out, opacity 300ms ease-in-out",
+          }}
+        />
+        {speaking && !small && (
+          <>
+            <span aria-hidden className={`absolute inset-0 rounded-full border ${orb.ring} animate-ripple`} />
+            <span aria-hidden className={`absolute inset-0 rounded-full border ${orb.ring} animate-ripple`} style={{ animationDelay: "1.2s" }} />
+          </>
+        )}
+        <span
+          aria-hidden
+          className="relative h-full w-full overflow-hidden rounded-full shadow-[0_20px_60px_-20px_rgb(0_0_0/0.9),inset_0_-10px_30px_rgb(0_0_0/0.45)] transition-transform duration-300 group-hover/face:scale-[1.03] motion-safe:animate-breathe motion-reduce:transition-none"
+          style={{ transform: `scale(calc(1 + var(--level, 0) * 0.06))` }}
+        >
+          <span className="absolute inset-[-30%] motion-safe:animate-spin-slow" style={{ background: orb.sphere }} />
+          <span className="absolute inset-0 bg-[radial-gradient(circle_at_34%_26%,rgb(255_255_255/0.6),transparent_34%)]" />
+          <span className="absolute inset-0 bg-[radial-gradient(circle_at_50%_115%,rgb(7_7_11/0.6),transparent_62%)]" />
+          <span className="absolute inset-[2px] rounded-full ring-1 ring-inset ring-white/25" />
+        </span>
+        <svg aria-hidden viewBox="0 0 50 30" className={`absolute ${small ? "w-6" : "w-14 lg:w-20"}`}>
+          {bars.map((height, i) => (
+            <rect
+              key={i}
+              x={3 + i * 9.5}
+              y={3}
+              width={5}
+              height={24}
+              rx={2.5}
+              fill="white"
+              fillOpacity={speaking ? 0.92 : 0.55}
+              style={{
+                transform: `scaleY(${speaking ? height : 0.18})`,
+                transformOrigin: "center",
+                transformBox: "fill-box",
+                transition: "transform 80ms ease-out, fill-opacity 200ms",
+              }}
+            />
+          ))}
         </svg>
       </div>
     </button>
@@ -197,12 +216,12 @@ function Stage({
     return (
       <div className="flex flex-col items-center text-center">
         <AnimatedFacialAvatar profile={profile} speaking={speaking} viseme={viseme} levelRef={levelRef} onToggleSpeech={onToggleSpeech} />
-        <div className="mt-4 flex flex-col items-center gap-1">
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${currentProfile.badgeBg} ${currentProfile.badgeText}`}>
+        <div className="mt-6 flex flex-col items-center gap-1.5">
+          <span className="flex items-center gap-2 font-display text-[1.7rem] leading-none text-white">
             {currentProfile.icon}
             {currentProfile.name}
           </span>
-          <span className="text-[10px] text-slate-400">{currentProfile.role}</span>
+          <span className="text-xs text-slate-400">{currentProfile.role}</span>
         </div>
       </div>
     );
@@ -308,7 +327,7 @@ export function AvatarPanel({
     // The phone strip: the face (its mouth still moves), who is speaking, how replies come, the speaker.
     const line = !voiceOn ? "Voice off: text only" : isLoading ? "Preparing voice…" : isSpeaking ? "Speaking…" : error ? error : `Voice: ${voiceWords}`;
     return (
-      <aside aria-label="Tempo's voice and face" className={`flex h-[60px] min-w-0 items-center gap-2 rounded-2xl border border-white/10 bg-nexus-card px-2 ${className}`}>
+      <aside aria-label="Tempo's voice and face" className={`surface flex h-[60px] min-w-0 items-center gap-2 rounded-2xl px-2 ${className}`}>
         <div className="shrink-0">
           {mode === "avatar" ? (
             <AnimatedFacialAvatar profile={profile} speaking={isSpeaking} viseme={currentViseme} levelRef={levelRef} onToggleSpeech={handleToggleSpeech} small />
@@ -340,7 +359,7 @@ export function AvatarPanel({
           onClick={() => selectMode(nextMode)}
           aria-label={`Reply mode: ${LABELS[mode]}. Tap for ${LABELS[nextMode]}.`}
           title={`Reply mode: ${LABELS[mode]}`}
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-nexus-badge text-white active:scale-95 motion-reduce:transform-none ${FOCUS}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-violet-100 ring-1 ring-inset ring-violet-300/25 active:scale-95 motion-reduce:transform-none ${FOCUS}`}
         >
           {MODE_ICONS[mode]}
         </button>
@@ -365,10 +384,10 @@ export function AvatarPanel({
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}
       onClick={() => setPinned((p) => !p)}
-      className={`group flex min-w-0 flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-nexus-card p-4 lg:p-5 ${className}`}
+      className={`surface group relative flex min-w-0 flex-col justify-between overflow-hidden rounded-3xl p-4 lg:p-5 ${className}`}
     >
       <div className="relative z-20 mb-2 flex w-full flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-        <label htmlFor={selectId} className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+        <label htmlFor={selectId} className="block text-[10.5px] font-semibold uppercase tracking-[0.16em] text-slate-500">
           Who is speaking
         </label>
         <div className="relative w-full">
@@ -379,16 +398,16 @@ export function AvatarPanel({
               setProfile(e.target.value as AgentProfile);
               onProfileChange?.(e.target.value as AgentProfile);
             }}
-            className={`w-full cursor-pointer appearance-none rounded-xl border border-white/10 bg-slate-900/90 py-1.5 pl-8 pr-7 text-xs font-medium text-slate-100 shadow-sm ${FOCUS}`}
+            className={`h-10 w-full cursor-pointer appearance-none rounded-xl border border-white/10 bg-white/[0.04] pl-9 pr-8 text-[13px] font-medium text-slate-100 transition-colors hover:border-white/20 ${FOCUS}`}
           >
             {AGENT_PROFILES.map((p) => (
-              <option key={p.id} value={p.id} className="bg-slate-900 text-slate-100">
+              <option key={p.id} value={p.id} className="bg-ink-800 text-slate-100">
                 {p.name} · {p.role}
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2">{activeProfile.icon}</div>
-          <ChevronDown size={14} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden />
+          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">{activeProfile.icon}</div>
+          <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden />
         </div>
       </div>
 
@@ -411,8 +430,8 @@ export function AvatarPanel({
         {showControls && (
           <>
             {fullBadge ? (
-              <div onClick={(e) => e.stopPropagation()} role="group" aria-label="How Tempo replies" className="relative flex h-8 w-44 shrink-0 rounded-full bg-black/40 p-1">
-                <div className="absolute bottom-1 top-1 w-[calc(33.333%-2px)] rounded-full bg-nexus-badge transition-transform duration-200 ease-out motion-reduce:transition-none" style={{ transform: `translateX(${modeIndex * 100}%)` }} aria-hidden />
+              <div onClick={(e) => e.stopPropagation()} role="group" aria-label="How Tempo replies" className="relative flex h-9 w-48 shrink-0 rounded-full border border-white/[0.08] bg-white/[0.03] p-1">
+                <div className="absolute bottom-1 top-1 w-[calc(33.333%-2px)] rounded-full bg-gradient-to-b from-violet-500/45 to-violet-700/40 shadow-[0_1px_0_0_rgb(255_255_255/0.12)_inset] ring-1 ring-inset ring-violet-300/25 transition-transform duration-200 ease-out motion-reduce:transition-none" style={{ transform: `translateX(${modeIndex * 100}%)` }} aria-hidden />
                 {MODES.map((m) => {
                   const isActive = mode === m;
                   return (
@@ -438,7 +457,7 @@ export function AvatarPanel({
                 }}
                 aria-label={`Reply mode: ${LABELS[mode]}. Click to switch.`}
                 title={`Reply mode: ${LABELS[mode]}. Click to switch.`}
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-nexus-badge text-white transition-transform active:scale-95 motion-reduce:transition-none ${FOCUS}`}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-violet-100 ring-1 ring-inset ring-violet-300/25 transition-transform active:scale-95 motion-reduce:transition-none ${FOCUS}`}
               >
                 {MODE_ICONS[mode]}
               </button>
@@ -473,7 +492,7 @@ export function AvatarPanel({
                   onInput={(e) => handleVolumeInput(Number((e.target as HTMLInputElement).value))}
                   onChange={(e) => handleVolumeInput(Number(e.target.value))}
                   aria-label="Volume"
-                  className="h-1.5 w-full min-w-0 cursor-pointer accent-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="h-1.5 w-full min-w-0 cursor-pointer accent-violet-400 disabled:cursor-not-allowed disabled:opacity-40"
                 />
               </div>
             )}

@@ -65,7 +65,7 @@ const LINKS: Record<Link, { label: string; short: string; tone: string; title: s
 function StreamBadge({ link, short }: { link: Link; short: boolean }) {
   const s = LINKS[link];
   return (
-    <div role="status" title={s.title} className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/10 bg-slate-900/80 px-2.5 py-1 text-[10px] font-medium text-slate-300 backdrop-blur-md">
+    <div role="status" title={s.title} className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold tracking-[0.06em] text-slate-300 ring-1 ring-inset ring-white/10">
       <Radio size={12} className={`${s.tone} ${link === "live" ? "animate-pulse motion-reduce:animate-none" : ""}`} aria-hidden />
       {short ? (
         <>
@@ -162,7 +162,7 @@ export function ChatPage({
             <TaskMessages messages={messages} pendingSummary={conversation?.ask?.summary ?? null} onSpeak={onSpeak} onFeedback={onFeedback} onSuggest={pick} thinking={thinking} busy={busy} />
           )}
           {chipError && (
-            <p role="alert" className="my-2 rounded-xl border border-rose-500/30 bg-rose-950/20 px-3 py-2 text-sm text-rose-200">
+            <p role="alert" className="my-2 rounded-2xl border border-rose-400/30 bg-rose-500/[0.08] px-3.5 py-2.5 text-sm text-rose-200">
               {chipError}
             </p>
           )}

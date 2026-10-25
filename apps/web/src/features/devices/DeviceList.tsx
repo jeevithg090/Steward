@@ -21,41 +21,62 @@ export function DeviceList({ devices, thisId, onRemove }: { devices: DeviceInfo[
 
   return (
     <Card as="section" aria-labelledby="device-list-heading">
-      <SectionTitle id="device-list-heading" right={<Badge tone="slate">{devices.length}</Badge>}>
+      <SectionTitle id="device-list-heading" right={<span className="num grid h-6 min-w-6 place-items-center rounded-full bg-white/[0.07] px-2 text-[11px] font-semibold text-slate-300 ring-1 ring-inset ring-white/10">{devices.length}</span>}>
         Your devices
       </SectionTitle>
-      <ul aria-label="Your devices" className="divide-y divide-white/5">
+      <ul aria-label="Your devices" className="space-y-2">
         {ordered.map((d) => {
           const mine = d.id === thisId;
           const Icon = looksHandheld(d.name) ? Smartphone : Laptop;
+          const light = !d.active ? "bg-amber-300" : d.passkey ? "bg-emerald-400" : "bg-slate-400";
           return (
-            <li key={d.id} className="py-3 first:pt-1 last:pb-0">
+            <li
+              key={d.id}
+              className={`rounded-2xl border px-3.5 py-3 transition-colors motion-reduce:transition-none ${mine ? "border-violet-400/25 bg-violet-500/[0.06]" : "border-white/[0.06] bg-black/20 hover:border-white/[0.12]"}`}
+            >
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 rounded-xl bg-white/5 p-2 text-indigo-200">
-                  <Icon size={18} aria-hidden />
+                <span aria-hidden className="relative mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-violet-200 ring-1 ring-inset ring-white/10">
+                  <Icon size={18} />
+                  <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-ink-900 ${light}`} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-100">
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-white">
                     <span className="break-words">{d.name}</span>
                     {mine && <Badge tone="indigo">this one</Badge>}
                   </p>
-                  <p className="mt-1 flex flex-wrap items-center gap-1.5">
-                    {d.passkey ? <Badge tone="emerald">Face ID or fingerprint</Badge> : <Badge tone="slate">no Face ID yet</Badge>}
-                    {!d.active && <Badge tone="amber">waiting for the code</Badge>}
-                    {d.push && <Badge tone="slate">notifications on</Badge>}
+                  <p className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    {d.passkey ? (
+                      <Badge tone="emerald" dot>
+                        Face ID or fingerprint
+                      </Badge>
+                    ) : (
+                      <Badge tone="slate" dot>
+                        no Face ID yet
+                      </Badge>
+                    )}
+                    {!d.active && (
+                      <Badge tone="amber" dot>
+                        waiting for the code
+                      </Badge>
+                    )}
+                    {d.push && (
+                      <Badge tone="slate" dot>
+                        notifications on
+                      </Badge>
+                    )}
                   </p>
-                  {d.last_active && <p className="mt-1 text-xs text-slate-400">Last seen {shortDateTime(d.last_active)}</p>}
+                  {d.last_active && <p className="num mt-1.5 text-xs text-slate-400">Last seen {shortDateTime(d.last_active)}</p>}
                 </div>
                 {!mine && asking !== d.id && (
-                  <Button variant="quiet" size="sm" aria-label={`Remove ${d.name}`} onClick={() => setAsking(d.id)}>
+                  <Button variant="ghost" size="sm" aria-label={`Remove ${d.name}`} onClick={() => setAsking(d.id)} className="shrink-0 !text-rose-200 hover:!bg-rose-500/10 hover:!text-rose-100">
                     Remove
                   </Button>
                 )}
               </div>
               {asking === d.id && (
-                <div role="group" aria-label={`Remove ${d.name}?`} className="mt-3 rounded-xl border border-rose-500/30 bg-rose-950/20 p-3">
-                  <p className="text-sm text-rose-100">Remove {d.name}? It won&apos;t be able to answer Tempo any more. You can pair it again later.</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                <div role="group" aria-label={`Remove ${d.name}?`} className="mt-3 rounded-2xl border border-rose-400/30 bg-rose-500/[0.08] p-3.5 motion-safe:animate-scale-in">
+                  <p className="text-sm leading-relaxed text-rose-50">Remove {d.name}? It won&apos;t be able to answer Tempo any more. You can pair it again later.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <Button variant="danger" size="sm" busy={busy === d.id} onClick={() => void remove(d)}>
                       Yes, remove it
                     </Button>

@@ -2,7 +2,7 @@
 // says "sync"; the details come over the device's own session. Honest when the Gateway has no
 // VAPID key, or the browser can't or won't.
 import { useEffect, useState } from "react";
-import { BellRing } from "lucide-react";
+import { BellRing, Info } from "lucide-react";
 import { Card, SectionTitle, Switch, toast } from "@/components/ui";
 import { type MeshClient, meshWords } from "@/lib/mesh";
 
@@ -61,19 +61,28 @@ export function NotificationsCard({ mesh, on, onChanged }: { mesh: MeshClient; o
   };
 
   return (
-    <Card as="section" aria-labelledby="notify-heading" className="space-y-3">
+    <Card as="section" aria-labelledby="notify-heading">
       <SectionTitle id="notify-heading">Notifications</SectionTitle>
-      <div className="flex items-start justify-between gap-4">
-        <p className="flex items-start gap-2 text-sm text-slate-200">
-          <BellRing size={16} aria-hidden className="mt-0.5 shrink-0 text-indigo-300" />
-          Wake this device when Tempo needs an answer
-        </p>
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-black/20 px-4 py-3.5">
+        <div className="flex min-w-0 items-start gap-3">
+          <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-500/15 text-violet-200 ring-1 ring-inset ring-violet-400/25">
+            <BellRing size={16} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-white">Wake this device when Tempo needs an answer</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">A push says only &quot;sync&quot;: no names, no amounts, no companies. This device then asks Tempo for the details itself.</p>
+          </div>
+        </div>
         <Switch checked={on} disabled={busy || (noKey && !on)} onChange={(v) => void toggle(v)} label="Wake this device when Tempo needs an answer" />
       </div>
-      <p className="text-xs text-slate-400">A push says only &quot;sync&quot;: no names, no amounts, no companies. This device then asks Tempo for the details itself.</p>
-      {noKey && !on && <p className="text-xs text-amber-200">{NO_VAPID}</p>}
+      {noKey && !on && (
+        <p className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-400/20 bg-amber-500/[0.06] px-3.5 py-2.5 text-xs leading-relaxed text-amber-100">
+          <Info size={14} aria-hidden className="mt-px shrink-0 text-amber-300" />
+          <span>{NO_VAPID}</span>
+        </p>
+      )}
       {note && !noKey && (
-        <p role="status" className="text-xs text-amber-200">
+        <p role="status" className="mt-3 rounded-2xl border border-amber-400/20 bg-amber-500/[0.06] px-3.5 py-2.5 text-xs leading-relaxed text-amber-100">
           {note}
         </p>
       )}

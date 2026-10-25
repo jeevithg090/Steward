@@ -3,7 +3,7 @@
 // remove a lost one, and turn on notifications that say only "sync". `/pair` (the QR link) shows
 // the Join view on the new device. The Gateway checks every signature.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Fingerprint, MonitorSmartphone, Settings as SettingsIcon, ShieldCheck } from "lucide-react";
+import { Fingerprint, MonitorSmartphone, QrCode, Settings as SettingsIcon, ShieldCheck } from "lucide-react";
 import { Badge, Button, Card, EmptyState, PageTitle, SectionTitle, SkeletonCards } from "@/components/ui";
 import { type DeviceInfo, meshWords } from "@/lib/mesh";
 import { useMesh } from "@/lib/mesh-context";
@@ -13,7 +13,10 @@ import { friendlyName } from "./deviceName";
 import { JoinDevice, NOT_SECURE } from "./JoinDevice";
 import { NotificationsCard } from "./NotificationsCard";
 import { PairDevice } from "./PairDevice";
-import { LinkButton, step } from "./parts";
+import { IconTile, LinkButton, Stepper, step } from "./parts";
+
+/** The three things that make a browser one of your devices, for the stepper. */
+const SETUP_STEPS = ["Make this browser yours", "Add Face ID", "Pair your phone"];
 
 type Problem = { kind: "unpaired" | "pending" | "unreachable" | "other"; text: string };
 
@@ -36,7 +39,7 @@ export default function DevicesPage({ user, showcase, params, pollMs = 1500 }: P
 
   if (showcase || meshShowcase) {
     return (
-      <div>
+      <div className="space-y-6">
         <PageTitle lede={lede}>Devices</PageTitle>
         <EmptyState
           title="Pairing needs a running Gateway"
@@ -47,9 +50,10 @@ export default function DevicesPage({ user, showcase, params, pollMs = 1500 }: P
             </LinkButton>
           }
         >
-          This is the showcase: recorded replies, no Gateway. A device can&apos;t be paired or sign with Face ID here. Run Tempo locally (<code>make demo</code>), switch the
+          This is the showcase: recorded replies, no Gateway. A device can&apos;t be paired or sign with Face ID here. Run Tempo locally (<code className="whitespace-nowrap rounded-md bg-white/[0.07] px-1.5 py-0.5 font-mono text-[12px] text-violet-200">make demo</code>), switch the
           showcase off in Settings, and come back to pair your phone.
         </EmptyState>
+        <HowItWorks />
       </div>
     );
   }
@@ -58,7 +62,7 @@ export default function DevicesPage({ user, showcase, params, pollMs = 1500 }: P
     <div>
       <PageTitle lede={lede}>Devices</PageTitle>
       {joining ? (
-        <div className="max-w-xl">
+        <div className="max-w-xl motion-safe:animate-fade-up">
           <JoinDevice mesh={mesh} link={params.link ?? null} canPasskey={canPasskey} onJoined={refresh} pollMs={pollMs} />
         </div>
       ) : (
@@ -131,14 +135,23 @@ function MyDevices({ userId, pollMs }: { userId: string; pollMs: number }) {
   // A device that joined by QR code but whose code hasn't been confirmed on the other screen yet.
   if (problem?.kind === "pending") {
     return (
-      <Card as="section" aria-labelledby="pending-heading" tone="amber" className="max-w-xl space-y-3">
-        <SectionTitle id="pending-heading">Waiting for your other device</SectionTitle>
-        <p className="text-sm text-amber-100">
-          This browser has joined, but the code hasn&apos;t been confirmed yet. On your other device, press &quot;Yes, the codes match&quot;.
-        </p>
-        <Button variant="quiet" size="sm" onClick={() => void load()}>
-          Check again
-        </Button>
+      <Card as="section" aria-labelledby="pending-heading" tone="amber" className="max-w-xl motion-safe:animate-fade-up">
+        <div className="flex items-start gap-4">
+          <IconTile tone="amber">
+            <MonitorSmartphone size={20} />
+          </IconTile>
+          <div className="min-w-0 space-y-3">
+            <SectionTitle id="pending-heading" className="!mb-0">
+              Waiting for your other device
+            </SectionTitle>
+            <p className="text-sm leading-relaxed text-amber-50">
+              This browser has joined, but the code hasn&apos;t been confirmed yet. On your other device, press &quot;Yes, the codes match&quot;.
+            </p>
+            <Button variant="quiet" size="sm" onClick={() => void load()}>
+              Check again
+            </Button>
+          </div>
+        </div>
       </Card>
     );
   }
@@ -163,58 +176,120 @@ function MyDevices({ userId, pollMs }: { userId: string; pollMs: number }) {
 
   if (!devices || !me) {
     return (
-      <Card as="section" aria-labelledby="register-heading" tone="indigo" className="max-w-2xl space-y-3">
-        <SectionTitle id="register-heading">This browser</SectionTitle>
-        <p className="text-sm text-slate-100">
-          Tempo asks before it does anything that matters. Make this browser one of your devices, then add Face ID or a fingerprint, so each yes is signed on the device in your
-          hand.
-        </p>
-        {problem?.kind === "unpaired" && (
-          <p role="status" className="text-xs text-amber-200">
-            The Gateway doesn&apos;t know this browser any more (it was removed, or the Gateway started again without its device list). Set it up again below.
-          </p>
-        )}
-        <Button variant="primary" size="lg" busy={busy === "register"} icon={<MonitorSmartphone size={18} aria-hidden />} onClick={() => void register()}>
-          Use this browser for approvals
-        </Button>
-        <p className="text-xs text-slate-400">It will be called &quot;{friendlyName()}&quot;. Joining from another device&apos;s QR code instead? Open the link it shows.</p>
+      <Card as="section" aria-labelledby="register-heading" tone="indigo" className="relative max-w-3xl overflow-hidden motion-safe:animate-fade-up">
+        <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/20 blur-3xl" />
+        <div className="relative space-y-5">
+          <div className="flex items-start gap-4">
+            <IconTile size="lg">
+              <MonitorSmartphone size={26} strokeWidth={1.6} />
+            </IconTile>
+            <div className="min-w-0">
+              <SectionTitle id="register-heading" className="!mb-1.5">
+                This browser
+              </SectionTitle>
+              <p className="text-[15px] leading-relaxed text-slate-100">
+                Tempo asks before it does anything that matters. Make this browser one of your devices, then add Face ID or a fingerprint, so each yes is signed on the device in
+                your hand.
+              </p>
+            </div>
+          </div>
+          <Stepper steps={SETUP_STEPS} current={0} label="Setting up this device" />
+          {problem?.kind === "unpaired" && (
+            <p role="status" className="rounded-2xl border border-amber-400/25 bg-amber-500/[0.08] px-3.5 py-2.5 text-sm text-amber-100">
+              The Gateway doesn&apos;t know this browser any more (it was removed, or the Gateway started again without its device list). Set it up again below.
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Button variant="primary" size="lg" busy={busy === "register"} icon={<MonitorSmartphone size={18} aria-hidden />} onClick={() => void register()}>
+              Use this browser for approvals
+            </Button>
+            <p className="min-w-0 flex-1 basis-64 text-xs leading-relaxed text-slate-400">
+              It will be called &quot;{friendlyName()}&quot;. Joining from another device&apos;s QR code instead? Open the link it shows.
+            </p>
+          </div>
+        </div>
       </Card>
     );
   }
 
   return (
     <div className="space-y-4">
-      <Card as="section" aria-labelledby="this-device-heading" tone={me.passkey ? "emerald" : "indigo"} className="space-y-3">
-        <SectionTitle id="this-device-heading" right={me.passkey ? <Badge tone="emerald">Face ID on</Badge> : <Badge tone="amber">no Face ID yet</Badge>}>
-          This browser: {me.name}
-        </SectionTitle>
-        {me.passkey ? (
-          <p className="flex items-start gap-2 text-sm text-emerald-100">
-            <ShieldCheck size={16} aria-hidden className="mt-0.5 shrink-0" />
-            Your answers from here are signed with Face ID or your fingerprint. From now on Tempo only accepts a signed yes for you, from one of your devices.
-          </p>
-        ) : (
-          <>
-            <p className="text-sm text-slate-100">
-              Add Face ID, Touch ID, a fingerprint or Windows Hello. Each yes or no is then signed on this device; the fingerprint never leaves it, and Tempo keeps only a public
-              key.
-            </p>
-            <Button variant="primary" size="lg" busy={busy === "passkey"} disabled={!canPasskey} icon={<Fingerprint size={18} aria-hidden />} onClick={() => void addPasskey()}>
-              Add Face ID or fingerprint
-            </Button>
-            <p className={`text-xs ${canPasskey ? "text-slate-400" : "text-amber-200"}`}>
-              {canPasskey ? "Passkeys (WebAuthn) only work on a secure page: localhost or https. This one is." : NOT_SECURE}
-            </p>
-          </>
-        )}
+      <Card as="section" aria-labelledby="this-device-heading" tone={me.passkey ? "emerald" : "indigo"} className="relative overflow-hidden motion-safe:animate-fade-up">
+        <span aria-hidden className={`pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full blur-3xl ${me.passkey ? "bg-emerald-500/10" : "bg-violet-500/15"}`} />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start">
+          <span className="relative shrink-0 self-start">
+            <IconTile size="lg" tone={me.passkey ? "emerald" : "violet"}>
+              <Fingerprint size={26} strokeWidth={1.6} />
+            </IconTile>
+            {me.passkey && (
+              <span aria-hidden className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-emerald-500 text-white ring-2 ring-ink-900">
+                <ShieldCheck size={11} />
+              </span>
+            )}
+          </span>
+          <div className="min-w-0 flex-1 space-y-3">
+            <SectionTitle id="this-device-heading" className="!mb-0" right={me.passkey ? <Badge tone="emerald" dot>Face ID on</Badge> : <Badge tone="amber" dot>no Face ID yet</Badge>}>
+              This browser: {me.name}
+            </SectionTitle>
+            {me.passkey ? (
+              <p className="text-[15px] leading-relaxed text-emerald-50">
+                Your answers from here are signed with Face ID or your fingerprint. From now on Tempo only accepts a signed yes for you, from one of your devices.
+              </p>
+            ) : (
+              <>
+                <Stepper steps={SETUP_STEPS} current={1} label="Setting up this device" />
+                <p className="text-[15px] leading-relaxed text-slate-100">
+                  Add Face ID, Touch ID, a fingerprint or Windows Hello. Each yes or no is then signed on this device; the fingerprint never leaves it, and Tempo keeps only a
+                  public key.
+                </p>
+                <Button variant="primary" size="lg" busy={busy === "passkey"} disabled={!canPasskey} icon={<Fingerprint size={18} aria-hidden />} onClick={() => void addPasskey()}>
+                  Add Face ID or fingerprint
+                </Button>
+                <p className={`text-xs ${canPasskey ? "text-slate-400" : "text-amber-200"}`}>
+                  {canPasskey ? "Passkeys (WebAuthn) only work on a secure page: localhost or https. This one is." : NOT_SECURE}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <DeviceList devices={devices} thisId={mesh.deviceId} onRemove={remove} />
         <PairDevice mesh={mesh} onChanged={load} pollMs={pollMs} />
       </div>
 
       <NotificationsCard mesh={mesh} on={me.push} onChanged={load} />
     </div>
+  );
+}
+
+/** The showcase can't pair, but it can say how pairing works. */
+function HowItWorks() {
+  const steps = [
+    { icon: MonitorSmartphone, title: "Make this browser yours", body: "This browser becomes one of your devices, with a name you can recognise in the list." },
+    { icon: Fingerprint, title: "Add Face ID", body: "Each yes or no is signed on the device in your hand. The fingerprint never leaves it; Tempo keeps only a public key." },
+    { icon: QrCode, title: "Pair your phone", body: "Scan a one-time QR code. Both screens show the same six numbers, and nothing joins until you say they match." },
+  ];
+  return (
+    <section aria-labelledby="how-heading">
+      <SectionTitle id="how-heading">How pairing works</SectionTitle>
+      <ol className="stagger grid gap-3 md:grid-cols-3">
+        {steps.map((st, i) => (
+          <li key={st.title} className="surface relative rounded-3xl p-5">
+            <div className="flex items-center justify-between">
+              <IconTile>
+                <st.icon size={20} strokeWidth={1.75} />
+              </IconTile>
+              <span aria-hidden className="num font-display text-4xl leading-none text-white/15">
+                {i + 1}
+              </span>
+            </div>
+            <p className="mt-4 text-[15px] font-semibold text-white">{st.title}</p>
+            <p className="mt-1 text-sm leading-relaxed text-slate-400">{st.body}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }

@@ -624,3 +624,81 @@ read-only, data folder from `TEMPO_CONNECTOR_DATA`, default `fixtures/connectors
 - [x] 11:15 Lead wiring: `/mcp` and the connectors router mounted, `#/connectors` in the router, the app and the sidebar; the Gateway package now declares `mcp` and the three servers, and the image copies `connectors/` and `fixtures/connectors/` (it would have failed to start without `mcp`)
 - [x] 11:15 A full walk of the live site (tempo-live-ten.vercel.app, cloud-apis, Gemini live) found and fixed: every claim waited 20 s for a slow third juror (the Court now rules once two agree, with a 2 s grace); the region named OpenRouter when it wasn't used; Privacy Proof said the jurors and vision answered from recordings when they were live; the chat's model picker said "Local model (Ollama)" while Gemini answered (it now shows the Gateway's real model); "Yes, claim £32.31" on a plan to wait (now "Yes, handle it for me"); the profile banner showed an id; seven identical "Use this profile" buttons; raw "Failed to fetch" on five pages; the Gateway banner overflowing at phone width and telling visitors to run `make demo`; "three providers" when all three jurors are Gemini. Passed as expected: both claims end to end, the Proof Trace and Court, STOP, Scam Shield (English and Hindi, feedback, voice), letters read by Gemini (1.6 s), the reply drafter, the screener's ten questions and GOV.UK links, Who's calling (three callers), memory correct and forget, profile refusal and import, Devices, a photo through the chat, text size and plain mode
 - [x] Handed to the live-demo session: the pairing QR points at the SSO-protected deployment URL (put the site alias first in `WEB_ORIGINS`), and the live Gateway has no VAPID key. Done (§13.5, 11:45)
+
+---
+
+## 15. The website, made exceptional (started 12:15)
+
+*Asked: "make the website UI and UX much more better and excellent to make it insane".*
+
+The app works page by page but reads as a generic dark dashboard: a saturated navy sidebar
+against a near-black canvas, the system font with no hierarchy, flat grey cards, dense rows of
+text, a stick-figure avatar, almost no motion and no identity. Every page heading goes through
+`PageTitle`, and the pages are built from `Card` (78 uses), `Button` (111), `Badge` (76) and
+`SectionTitle` (95). So a real design system at the token and primitive level reaches every page
+at once, and the signature pages get bespoke work on top.
+
+### 15.1 Direction: "golden hour"
+
+Tempo gives people their time back. The look is the hour before dusk:
+- **Ink canvas** (#07070B) with two slow aurora glows (violet top left, amber bottom right) and a
+  fine grain.
+- **Glass surfaces** with hairline borders, so depth comes from light rather than from greys.
+- **Violet** for the agent and its actions.
+- **Gold** for what was returned (money, hours).
+- **Emerald** for done, **rose** for danger, **amber** for waiting.
+- **Signature motif: the time ring.** It is used in the logo, the ledger, the chat's orb, the loaders
+  and the empty states.
+- **Type:** Inter Variable for the interface, Instrument Serif for display lines ("Your time,
+  *returned*."). Both are self-hosted (@fontsource), so the Tauri app and offline use keep them.
+- **Motion:** short and purposeful. Pages fade up, lists stagger, numbers count up and the orb
+  breathes. All of it is off under reduced motion (the system setting or Settings).
+- **Accessibility does not regress:**
+  - WCAG AA contrast.
+  - Visible focus rings.
+  - 44 px targets in plain mode.
+  - Every heading and label the tests and screen readers rely on stays word for word.
+
+### 15.2 Work
+
+| # | Piece | Files |
+|---|---|---|
+| F1 | Tokens: fonts, palette (`ink`, `glass`, `brand`, `gold`), shadows, radii, keyframes; global CSS (aurora, grain, scrollbars, selection, focus, `.glass`, `.hairline`, `.text-gold`, tabular numbers) | `tailwind.config.ts`, `index.css`, `main.tsx` |
+| F2 | Primitives: `Button` (gradient primary with glow, glass quiet, press scale), `Card` (glass, `interactive`, tones), `Badge` (dot), `PageTitle` (eyebrow, display title, icon tile, lede), `SectionTitle`, `EmptyState` (time ring), `Skeleton` (shimmer), `Spinner` (ring), `Switch`, `Toast`; new `Stat` (count-up), `Segmented`, `Kbd`, `TempoMark` (logo) | `components/ui/*` |
+| S1 | Shell: glass sidebar with the mark, a gradient active rail, a gold ledger with a ring, the profile chip; a header with the page's name, a ⌘K button and the honesty badge; a phone tab bar; a page transition | `components/layout/*` |
+| S2 | ⌘K command palette: every page, the demo's actions, settings toggles, keyboard first, with screen-reader announcements | `components/layout/CommandPalette.tsx`, `App.tsx` |
+| P1 | Chat: a display greeting by time of day, a bento of suggestion cards, a breathing orb in place of the stick figure (speaking, listening, thinking), a glass input with a glow | `features/chat/*` |
+| P2 | Mission Control and the mission page: hero stats in gold, a segmented filter, cards with a status rail and the amount, the timeline and the Court restyled | `features/missions/*`, `components/mission/*` |
+| P3 | The story, Scam Shield, Read It To Me, Am I owed: the guided beats, the verdict cards, the reading | `features/{story,shield,read,owed}/*` |
+| P4 | Trust pages: Profiles, Skills, Who's calling, Devices, Privacy Proof, Connectors, Memory, Settings | `features/*` |
+| V | A browser walk of every page at desktop and phone widths; web tests, typecheck, build, the e2e smoke run; the showcase and the live site redeployed | `tests/e2e`, Vercel |
+
+### 15.3 Status log
+
+- [x] 12:15 Plan written; the foundation (F1, F2) and the shell (S1, S2) first, then the pages
+- [x] 12:35 F1 and F2 landed:
+  - Inter Variable and Instrument Serif, self-hosted.
+  - The ink, violet and gold tokens, and the aurora and grain canvas.
+  - `.surface`, `.glass`, `.text-gold` and `.num`.
+  - Restyled `Button`, `Card`, `Badge`, `PageTitle` (the page's icon tile and a display title), `EmptyState`, `Skeleton`, `Spinner`, `Switch` and toasts.
+  - New `Stat` (count-up), `Segmented`, `Kbd` and `TempoMark`.
+  - `docs/design-system.md` is the reference. The 245 web tests pass unchanged.
+- [x] 12:45 S1 and S2 landed:
+  - The glass sidebar with the mark, a glowing active rail and the gold ledger.
+  - A header with the page's place, a ⌘K button and the honesty badge, plus a phone tab bar (Chat, Missions, Shield, Read, More).
+  - The ⌘K palette: pages, "Ask Tempo" with every welcome sample, the guided demo and the comfort toggles. It follows the ARIA combobox and listbox pattern.
+  - The new favicon and PWA icons.
+- [x] 12:55 P1, the chat:
+  - A display greeting by the time of day.
+  - A bento of suggestion tiles, with the train featured.
+  - **The breathing orb** in place of the stick figure: it turns, swells with the voice's level and ripples while speaking, its bars follow the lip-sync shapes, and each voice has its own colours. The old glow never received the level, so it never pulsed; the orb now reacts.
+  - A glass input with a violet focus glow, gradient send and mic buttons, and violet bubbles.
+  - The palette's "Ask Tempo" opens the chat and sends: checked in a browser, the train sentence gets the £14.20 ask.
+- [x] 13:30 P2 to P4, in three parallel tracks:
+  - **Mission Control:** a gold ledger hero; mission cards with glowing status rails, skill tiles and the amount with its word ("to claim", "paid"); the mission page's sticky glass bar, a stepper timeline, three juror tiles with an agreement meter, a numbered Proof Trace with a gold total, and the consent card's amount large in gold with a gold Yes.
+  - **The story:** a serif hero with "38 minutes late" in gold, the ten beats as a ring stepper and a vertical timeline.
+  - **Scam Shield:** a dramatic verdict band, reasons as a checklist, and the log as count-up tiles.
+  - **Read It To Me and Am I owed:** letter cards with the money large, drag and drop on the upload area, and a one-question-at-a-time screener with a ten-step progress bar.
+  - **Trust pages:** a profile gallery; skills as cards; callers as character cards; Devices steppers and a framed QR; Privacy Proof as "who sees what" in three tiers; connectors with a gold hero and code windows for MCP; a memory timeline; settings rows.
+  - **Kept:** every heading, label and role the tests and screen readers use is unchanged, and the 245 web tests pass.
+  - **Found and fixed on the way:** `Stat` put an `aria-label` on a paragraph, which axe fails; it now has a screen-reader-only value. React duplicate keys in the Shield log. "3Step 3 of 8" read out on Margaret's Tuesday. The ledger showing £0.00 while loading.

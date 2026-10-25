@@ -6,9 +6,9 @@ import { type LetterReading, directionWords, kindWords, longDate } from "@/lib/l
 export function LetterReadingCard({ reading, onSpeak }: { reading: LetterReading; onSpeak?: (text: string) => void }) {
   const money = reading.money.amount_gbp ? `${directionWords(reading.money.direction)}: £${reading.money.amount_gbp}` : directionWords(reading.money.direction);
   return (
-    <section aria-label="Letter reading" lang={reading.language} className="mt-3 space-y-3 rounded-xl border border-indigo-500/30 bg-indigo-950/20 p-3">
+    <section aria-label="Letter reading" lang={reading.language} className="mt-3 space-y-3 rounded-2xl border border-violet-300/25 bg-gradient-to-b from-violet-500/[0.1] to-violet-500/[0.02] p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <FileText size={16} aria-hidden className="text-indigo-300" />
+        <FileText size={16} aria-hidden className="text-violet-300" />
         <h2 className="text-sm font-semibold text-slate-100">
           {kindWords(reading.kind)} from {reading.sender}
           {reading.date ? `, dated ${longDate(reading.date)}` : ""}
@@ -23,7 +23,7 @@ export function LetterReadingCard({ reading, onSpeak }: { reading: LetterReading
         </div>
         <div>
           <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Money</dt>
-          <dd className={reading.money.direction === "owed_to_you" ? "text-emerald-200" : reading.money.direction === "you_owe" ? "text-amber-200" : "text-slate-200"}>{money}</dd>
+          <dd className={reading.money.direction === "owed_to_you" ? "text-gold-200 font-semibold" : reading.money.direction === "you_owe" ? "text-amber-200" : "text-slate-200"}>{money}</dd>
         </div>
         <div>
           <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">What to do</dt>
@@ -47,7 +47,7 @@ export function LetterReadingCard({ reading, onSpeak }: { reading: LetterReading
           </div>
         )}
         {reading.unsure.length > 0 && (
-          <div className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-2">
+          <div className="rounded-xl border border-amber-400/30 bg-amber-500/[0.08] p-3">
             <dt className="text-[10px] font-semibold uppercase tracking-wider text-amber-200">One thing I wasn&apos;t sure of</dt>
             <dd>
               <ul className="list-disc pl-5 text-amber-100">
