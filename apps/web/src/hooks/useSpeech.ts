@@ -1,9 +1,15 @@
+// Speech out (plan.md §1.5, §9): the Gateway's own voice first (POST /voice/tts, the server's
+// ElevenLabs key), then a key pasted in Settings, then the browser's speechSynthesis. The face
+// moves in every case: the viseme timeline is built from the text and the clip's length.
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Persona } from "@/lib/api";
 
+// ElevenLabs voice ids for the pasted-key path. Tempo (the agent itself) speaks with the negotiator's voice.
 const DEFAULT_VOICE_MAP: Record<string, string> = {
+  tempo: "21m00Tcm4TlvDq8ikWAM", // Rachel
   negotiator: "21m00Tcm4TlvDq8ikWAM", // Rachel
-  analyst: "AZnzlk1XvdvUeBnXmlld",    // Domi
-  auditor: "EXAVITQu4vr4xnSDxMaL",    // Bella
+  analyst: "AZnzlk1XvdvUeBnXmlld", // Domi
+  auditor: "EXAVITQu4vr4xnSDxMaL", // Bella
   contractor: "ErXwobaYiN019PkySvjV", // Antoni
 };
 
@@ -17,7 +23,11 @@ interface VisemeFrame {
 }
 
 export function generateVisemeTimeline(text: string, durationMs: number): VisemeFrame[] {
-  const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(Boolean);
+  const words = text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .split(/\s+/)
+    .filter(Boolean);
   if (words.length === 0) return [{ timeMs: 0, shape: "A" }];
 
   const frames: VisemeFrame[] = [{ timeMs: 0, shape: "A" }];
@@ -30,18 +40,14 @@ export function generateVisemeTimeline(text: string, durationMs: number): Viseme
 
     for (const char of word) {
       let shape: VisemeShape = "B";
-
       if ("aaeEiI".includes(char)) shape = "C";
       else if ("oOuUwW".includes(char)) shape = "E";
       else if ("mMBbP".includes(char)) shape = "A";
       else if ("fFvV".includes(char)) shape = "F";
       else if ("ySszZtTdDnN".includes(char)) shape = "D";
-      else shape = "B";
-
       frames.push({ timeMs: Math.round(currentTime), shape });
       currentTime += charTime;
     }
-
     frames.push({ timeMs: Math.round(currentTime), shape: "A" });
   }
 
@@ -57,17 +63,24 @@ export function prepareSpeechText(raw: string): string {
   return lastStop > 120 ? cut.slice(0, lastStop + 1) : cut;
 }
 
-interface UseSpeechOptions {
-  apiBaseUrl?: string;
-  apiToken?: string;
+export type SpeechSource = "gateway" | "elevenlabs" | "browser" | null;
+
+export interface UseSpeechOptions {
+  /** A key pasted in Settings (the desktop path); used when the Gateway has no voice. */
   elevenLabsKey?: string;
+  /** The Gateway's voice: `gateway.tts(text, persona)`; tried first when `ttsAvailable`. */
+  tts?: (text: string, persona: Persona) => Promise<ArrayBuffer>;
+  ttsAvailable?: boolean;
+  /** BCP 47 tag for the browser's voice (en-GB, hi-IN, …). */
+  lang?: string;
 }
 
-export function useSpeech({ elevenLabsKey }: UseSpeechOptions) {
+export function useSpeech({ elevenLabsKey, tts, ttsAvailable = false, lang = "en-GB" }: UseSpeechOptions) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentViseme, setCurrentViseme] = useState<VisemeShape>("A");
+  const [source, setSource] = useState<SpeechSource>(null);
 
   const ctxRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
@@ -82,7 +95,6 @@ export function useSpeech({ elevenLabsKey }: UseSpeechOptions) {
   const visemeRef = useRef<VisemeShape>("A");
   const volumeRef = useRef<number>(1);
 
-  // Tracking state to recover animation after tab blur/focus
   const activeTimelineRef = useRef<VisemeFrame[]>([]);
   const startTimeMsRef = useRef<number>(0);
   const isSpeakingRef = useRef<boolean>(false);
@@ -104,80 +116,67 @@ export function useSpeech({ elevenLabsKey }: UseSpeechOptions) {
     isSpeakingRef.current = false;
   }, []);
 
-  const startAnimationLoop = useCallback(
-    (timeline: VisemeFrame[], startTimeMs: number) => {
-      cancelAnimationFrame(rafRef.current);
-      activeTimelineRef.current = timeline;
-      startTimeMsRef.current = startTimeMs;
-      isSpeakingRef.current = true;
+  const startAnimationLoop = useCallback((timeline: VisemeFrame[], startTimeMs: number) => {
+    cancelAnimationFrame(rafRef.current);
+    activeTimelineRef.current = timeline;
+    startTimeMsRef.current = startTimeMs;
+    isSpeakingRef.current = true;
 
-      const analyser = analyserRef.current;
-      const data = analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
+    const analyser = analyserRef.current;
+    const data = analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
 
-      const tick = () => {
-        if (!isSpeakingRef.current) return;
+    const tick = () => {
+      if (!isSpeakingRef.current) return;
+      const elapsed = performance.now() - startTimeMsRef.current;
 
-        const elapsed = performance.now() - startTimeMsRef.current;
+      if (analyser && data) {
+        analyser.getByteFrequencyData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) sum += data[i]!;
+        const level = Math.min(1, sum / data.length / 90);
+        levelRef.current?.style.setProperty("--level", level.toFixed(3));
+      } else {
+        // No analyser (browser voice): a soft pulse from the viseme so the glow still breathes.
+        levelRef.current?.style.setProperty("--level", visemeRef.current === "A" ? "0.1" : "0.5");
+      }
 
-        if (analyser && data) {
-          analyser.getByteFrequencyData(data);
-          let sum = 0;
-          for (let i = 0; i < data.length; i++) sum += data[i];
-          const level = Math.min(1, sum / data.length / 90);
-          levelRef.current?.style.setProperty("--level", level.toFixed(3));
+      let currentShape: VisemeShape = "A";
+      const currentTimeline = activeTimelineRef.current;
+      for (let i = currentTimeline.length - 1; i >= 0; i--) {
+        if (elapsed >= currentTimeline[i]!.timeMs) {
+          currentShape = currentTimeline[i]!.shape;
+          break;
         }
+      }
+      setViseme(currentShape);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    tick();
+  }, []);
 
-        let currentShape: VisemeShape = "A";
-        const currentTimeline = activeTimelineRef.current;
-
-        for (let i = currentTimeline.length - 1; i >= 0; i--) {
-          if (elapsed >= currentTimeline[i].timeMs) {
-            currentShape = currentTimeline[i].shape;
-            break;
-          }
-        }
-
-        setViseme(currentShape);
-        rafRef.current = requestAnimationFrame(tick);
-      };
-
-      tick();
-    },
-    []
-  );
-
-  // Resume animation instantly when returning to tab
+  // Resume the animation when the tab comes back.
   useEffect(() => {
-    const handleVisibilityChange = () => {
+    const onVisibility = () => {
       if (document.visibilityState === "visible" && isSpeakingRef.current) {
-        if (ctxRef.current && ctxRef.current.state === "suspended") {
-          void ctxRef.current.resume();
-        }
+        if (ctxRef.current && ctxRef.current.state === "suspended") void ctxRef.current.resume();
         startAnimationLoop(activeTimelineRef.current, startTimeMsRef.current);
       }
     };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [startAnimationLoop]);
 
   const getAudioContext = useCallback(() => {
     if (!ctxRef.current || ctxRef.current.state === "closed") {
-      const Ctx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!Ctx) return null;
-
       const ctx = new Ctx();
       const masterGain = ctx.createGain();
       const analyser = ctx.createAnalyser();
-
       analyser.fftSize = 256;
       masterGain.gain.setValueAtTime(volumeRef.current, ctx.currentTime);
-
       masterGain.connect(analyser);
       analyser.connect(ctx.destination);
-
       ctxRef.current = ctx;
       analyserRef.current = analyser;
       masterGainRef.current = masterGain;
@@ -188,21 +187,16 @@ export function useSpeech({ elevenLabsKey }: UseSpeechOptions) {
   const stopPlayback = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
-
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-
+    if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
     if (activeSourceRef.current) {
       try {
         activeSourceRef.current.stop();
         activeSourceRef.current.disconnect();
       } catch {
-        /* ignore */
+        /* already stopped */
       }
       activeSourceRef.current = null;
     }
-
     stopLevelLoop();
     setIsSpeaking(false);
     setIsLoading(false);
@@ -216,64 +210,109 @@ export function useSpeech({ elevenLabsKey }: UseSpeechOptions) {
   const setPlaybackVolume = useCallback((volume: number) => {
     const normalized = Math.min(1, Math.max(0, volume / 100));
     volumeRef.current = normalized;
-
     if (masterGainRef.current && ctxRef.current) {
-      const currentTime = ctxRef.current.currentTime;
-      masterGainRef.current.gain.cancelScheduledValues(currentTime);
-      masterGainRef.current.gain.setTargetAtTime(normalized, currentTime, 0.01);
+      const t = ctxRef.current.currentTime;
+      masterGainRef.current.gain.cancelScheduledValues(t);
+      masterGainRef.current.gain.setTargetAtTime(normalized, t, 0.01);
     }
-
-    if (window.speechSynthesis && window.speechSynthesis.speaking) {
-      if (normalized === 0) {
-        window.speechSynthesis.pause();
-      } else if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      }
+    const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
+    if (synth && synth.speaking) {
+      if (normalized === 0) synth.pause();
+      else if (synth.paused) synth.resume();
     }
   }, []);
 
-  const speakNativeFallback = useCallback(
+  /** The browser's own voice: no key, no network. The face follows an estimated timeline. */
+  const speakBrowser = useCallback(
     (text: string, myId: number) => {
-      if (!window.speechSynthesis) {
-        setError("Speech synthesis not supported in this browser.");
+      const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
+      if (!synth || typeof SpeechSynthesisUtterance === "undefined") {
+        setError("This browser has no voice. The reply is in the text.");
         setIsLoading(false);
         setIsSpeaking(false);
+        setSource(null);
         return;
       }
-
-      window.speechSynthesis.cancel();
+      synth.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.volume = volumeRef.current;
-      utterance.rate = 1.0;
+      utterance.rate = 0.95;
+      utterance.lang = lang;
+      const voice = synth.getVoices?.().find((v) => v.lang.replace("_", "-").toLowerCase() === lang.toLowerCase());
+      if (voice) utterance.voice = voice;
 
-      const estimatedDurationMs = (text.length / 15) * 1000;
+      const estimatedDurationMs = (text.length / 14) * 1000;
       const timeline = generateVisemeTimeline(text, estimatedDurationMs);
 
       utterance.onstart = () => {
         if (myId !== requestIdRef.current) return;
         setIsLoading(false);
         setIsSpeaking(true);
+        setSource("browser");
         startAnimationLoop(timeline, performance.now());
       };
-
-      utterance.onend = () => {
-        if (myId === requestIdRef.current) {
-          setIsSpeaking(false);
-          stopLevelLoop();
-        }
+      const finish = () => {
+        if (myId !== requestIdRef.current) return;
+        setIsSpeaking(false);
+        setIsLoading(false);
+        stopLevelLoop();
       };
-
-      utterance.onerror = () => {
-        if (myId === requestIdRef.current) {
-          setIsSpeaking(false);
-          setIsLoading(false);
-          stopLevelLoop();
-        }
-      };
-
-      window.speechSynthesis.speak(utterance);
+      utterance.onend = finish;
+      utterance.onerror = finish;
+      setSource("browser");
+      synth.speak(utterance);
     },
-    [startAnimationLoop, stopLevelLoop]
+    [lang, startAnimationLoop, stopLevelLoop],
+  );
+
+  /** Plays an mp3 the Gateway or ElevenLabs returned, with the face in step. */
+  const playBuffer = useCallback(
+    async (arrayBuffer: ArrayBuffer, text: string, myId: number, from: SpeechSource) => {
+      const ctx = getAudioContext();
+      if (!ctx) throw new Error("AudioContext not supported");
+      if (ctx.state === "suspended") await ctx.resume();
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+      if (myId !== requestIdRef.current) return;
+
+      const node = ctx.createBufferSource();
+      node.buffer = audioBuffer;
+      if (masterGainRef.current) {
+        masterGainRef.current.gain.setValueAtTime(volumeRef.current, ctx.currentTime);
+        node.connect(masterGainRef.current);
+      }
+      const timeline = generateVisemeTimeline(text, audioBuffer.duration * 1000);
+      node.onended = () => {
+        if (myId === requestIdRef.current) {
+          setIsSpeaking(false);
+          stopLevelLoop();
+        }
+      };
+      activeSourceRef.current = node;
+      const startTimeMs = performance.now();
+      node.start(0);
+      setIsLoading(false);
+      setIsSpeaking(true);
+      setSource(from);
+      startAnimationLoop(timeline, startTimeMs);
+    },
+    [getAudioContext, startAnimationLoop, stopLevelLoop],
+  );
+
+  const fetchElevenLabs = useCallback(
+    async (text: string, persona: string, signal: AbortSignal): Promise<ArrayBuffer | null> => {
+      const key = elevenLabsKey?.trim();
+      if (!key) return null;
+      const voiceId = DEFAULT_VOICE_MAP[persona] || DEFAULT_VOICE_MAP.negotiator!;
+      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: "POST",
+        signal,
+        headers: { "Content-Type": "application/json", "xi-api-key": key, Accept: "audio/mpeg" },
+        body: JSON.stringify({ text, model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.5, similarity_boost: 0.75 } }),
+      });
+      if (!res.ok) return null;
+      return res.arrayBuffer();
+    },
+    [elevenLabsKey],
   );
 
   const speak = useCallback(
@@ -286,115 +325,71 @@ export function useSpeech({ elevenLabsKey }: UseSpeechOptions) {
       setError(null);
       setPlaybackVolume(volume);
 
-      if (!elevenLabsKey || elevenLabsKey.trim().length === 0) {
-        speakNativeFallback(text, myId);
+      const canDecode = typeof window !== "undefined" && Boolean(window.AudioContext || (window as unknown as { webkitAudioContext?: unknown }).webkitAudioContext);
+      const tryGateway = Boolean(tts && ttsAvailable && canDecode);
+      const tryKey = Boolean(elevenLabsKey?.trim() && canDecode);
+
+      if (!tryGateway && !tryKey) {
+        speakBrowser(text, myId);
         return;
       }
 
+      setIsLoading(true);
+      const controller = new AbortController();
+      abortRef.current = controller;
       try {
-        const key = `${persona}|${text}`;
-        let arrayBuffer = cacheRef.current.get(key);
-
-        if (!arrayBuffer) {
-          setIsLoading(true);
-          const controller = new AbortController();
-          abortRef.current = controller;
-
-          const voiceId = DEFAULT_VOICE_MAP[persona] || DEFAULT_VOICE_MAP.negotiator;
-
-          const res = await fetch(
-            `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-            {
-              method: "POST",
-              signal: controller.signal,
-              headers: {
-                "Content-Type": "application/json",
-                "xi-api-key": elevenLabsKey.trim(),
-                Accept: "audio/mpeg",
-              },
-              body: JSON.stringify({
-                text,
-                model_id: "eleven_multilingual_v2",
-                voice_settings: {
-                  stability: 0.5,
-                  similarity_boost: 0.75,
-                },
-              }),
+        let buffer: ArrayBuffer | undefined;
+        let from: SpeechSource = null;
+        if (tryGateway) {
+          const key = `gateway|${persona}|${text}`;
+          buffer = cacheRef.current.get(key);
+          if (!buffer) {
+            try {
+              buffer = await tts!(text, persona as Persona);
+              cacheRef.current.set(key, buffer);
+            } catch {
+              buffer = undefined;
             }
-          );
-
-          if (!res.ok) {
-            speakNativeFallback(text, myId);
-            return;
           }
-
-          arrayBuffer = await res.arrayBuffer();
-          if (myId !== requestIdRef.current) return;
-          cacheRef.current.set(key, arrayBuffer);
+          if (buffer) from = "gateway";
         }
-
-        if (myId !== requestIdRef.current) return;
-
-        const ctx = getAudioContext();
-        if (!ctx) throw new Error("AudioContext not supported");
-
-        if (ctx.state === "suspended") {
-          await ctx.resume();
-        }
-
-        const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
-        if (myId !== requestIdRef.current) return;
-
-        const source = ctx.createBufferSource();
-        source.buffer = audioBuffer;
-
-        if (masterGainRef.current) {
-          masterGainRef.current.gain.setValueAtTime(volumeRef.current, ctx.currentTime);
-          source.connect(masterGainRef.current);
-        }
-
-        const durationMs = audioBuffer.duration * 1000;
-        const timeline = generateVisemeTimeline(text, durationMs);
-
-        source.onended = () => {
-          if (myId === requestIdRef.current) {
-            setIsSpeaking(false);
-            stopLevelLoop();
+        if (!buffer && tryKey) {
+          const key = `elevenlabs|${persona}|${text}`;
+          buffer = cacheRef.current.get(key);
+          if (!buffer) {
+            const fetched = await fetchElevenLabs(text, persona, controller.signal);
+            if (fetched) {
+              buffer = fetched;
+              cacheRef.current.set(key, buffer);
+            }
           }
-        };
-
-        activeSourceRef.current = source;
-        const startTimeMs = performance.now();
-        source.start(0);
-
-        setIsLoading(false);
-        setIsSpeaking(true);
-        startAnimationLoop(timeline, startTimeMs);
-      } catch {
-        speakNativeFallback(text, myId);
+          if (buffer) from = "elevenlabs";
+        }
+        if (myId !== requestIdRef.current) return;
+        if (!buffer) {
+          speakBrowser(text, myId);
+          return;
+        }
+        await playBuffer(buffer, text, myId, from);
+      } catch (e) {
+        if (e instanceof Error && e.name === "AbortError") return;
+        if (myId === requestIdRef.current) speakBrowser(text, myId);
       }
     },
-    [
-      elevenLabsKey,
-      getAudioContext,
-      setPlaybackVolume,
-      speakNativeFallback,
-      startAnimationLoop,
-      stopPlayback,
-    ]
+    [elevenLabsKey, fetchElevenLabs, playBuffer, setPlaybackVolume, speakBrowser, stopPlayback, tts, ttsAvailable],
   );
 
   useEffect(() => {
     return () => {
       requestIdRef.current++;
       abortRef.current?.abort();
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
       cancelAnimationFrame(rafRef.current);
       if (activeSourceRef.current) {
         try {
           activeSourceRef.current.stop();
         } catch {
-          /* ignore */
+          /* already stopped */
         }
       }
       cacheRef.current.clear();
@@ -402,15 +397,5 @@ export function useSpeech({ elevenLabsKey }: UseSpeechOptions) {
     };
   }, []);
 
-  return {
-    speak,
-    stop,
-    setPlaybackVolume,
-    isLoading,
-    isSpeaking,
-    error,
-    levelRef,
-    visemeRef,
-    currentViseme,
-  };
+  return { speak, stop, setPlaybackVolume, isLoading, isSpeaking, error, source, levelRef, visemeRef, currentViseme };
 }
