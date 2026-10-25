@@ -1,0 +1,19 @@
+{
+    "status": "ok",
+    "mode": "replay",
+    "demo": true,
+    "simulated": [
+        "company",
+        "rail data",
+        "jurors",
+        "vision"
+    ],
+    "deploy": "cloud-standard",
+    "region": "eu",
+    "third_parties": [
+        "cortex",
+        "elevenlabs",
+        "gemini"
+    ],
+    "clock_offset_days": 0
+}

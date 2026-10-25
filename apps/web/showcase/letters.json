@@ -1,0 +1,55 @@
+{
+  "recorded_at": "2026-10-25T00:58:46+01:00",
+  "source": "recorded from POST /letters/read on the replay-mode Gateway (no keys) against fixtures/vision/thames_water_overpayment.png and council_tax_reminder.png; identical to fixtures/letters/*.reading.json, the golden files the backend tests compare against",
+  "letters": [
+    {
+      "id": "thames-water-overpayment",
+      "title": "A water bill: you paid too much",
+      "description": "Thames Water owes you £23.40. Nothing to do.",
+      "reading": {
+        "kind": "water_bill",
+        "sender": "Thames Water",
+        "date": "2026-10-03",
+        "says": "It says you paid too much. Thames Water owes you £23.40. You do not owe anything.",
+        "money": {
+          "direction": "owed_to_you",
+          "amount_gbp": "23.40"
+        },
+        "must_do": "There is nothing you need to do.",
+        "by": null,
+        "clocks": [],
+        "unsure": [],
+        "reading_text": "This is a water bill from Thames Water, dated 3 October 2026. It says you paid too much. Thames Water owes you £23.40. You do not owe anything. There is nothing you need to do.",
+        "language": "en",
+        "sample": false
+      }
+    },
+    {
+      "id": "council-tax-reminder",
+      "title": "A council tax reminder",
+      "description": "£112.00 to pay by 10 November. One date Tempo reads back first.",
+      "reading": {
+        "kind": "council_tax",
+        "sender": "Oxford City Council",
+        "date": "2026-10-20",
+        "says": "It says you owe Oxford City Council £112.00.",
+        "money": {
+          "direction": "you_owe",
+          "amount_gbp": "112.00"
+        },
+        "must_do": "Pay £112.00 by 10 November 2026. If you cannot pay, ring them before that date to ask for more time.",
+        "by": "2026-11-10",
+        "clocks": [],
+        "unsure": [
+          {
+            "key": "due_date",
+            "question": "I read the date to pay by as 10 November 2026. Is that right?"
+          }
+        ],
+        "reading_text": "This is a council tax letter from Oxford City Council, dated 20 October 2026. It says you owe Oxford City Council £112.00. Pay £112.00 by 10 November 2026. If you cannot pay, ring them before that date to ask for more time. I read the date to pay by as 10 November 2026. Is that right?",
+        "language": "en",
+        "sample": false
+      }
+    }
+  ]
+}

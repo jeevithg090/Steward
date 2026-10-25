@@ -1,0 +1,115 @@
+{
+    "id": "m_3abfb35ebd9d",
+    "user_id": "u_margaret",
+    "state": "verified",
+    "message": "GW (a simulated company) has paid you \u00a314.20 (reference GW-23428). That's 20 minutes of your time back.",
+    "ask": null,
+    "outcome": {
+        "state": "verified",
+        "message": "GW (a simulated company) has paid you \u00a314.20 (reference GW-23428). That's 20 minutes of your time back.",
+        "amount_gbp": "14.20",
+        "reference": "GW-23428"
+    },
+    "timeline": [
+        {
+            "to": "understood",
+            "at": "2026-10-24T23:29:25.224618+00:00",
+            "latency_ms": 1
+        },
+        {
+            "to": "planned",
+            "at": "2026-10-24T23:29:25.225454+00:00",
+            "latency_ms": 0
+        },
+        {
+            "to": "appraised",
+            "at": "2026-10-24T23:29:25.227023+00:00",
+            "latency_ms": 1
+        },
+        {
+            "to": "awaiting_consent",
+            "at": "2026-10-24T23:29:25.227691+00:00",
+            "latency_ms": 0
+        },
+        {
+            "to": "running",
+            "at": "2026-10-24T23:30:09.371120+00:00",
+            "latency_ms": 44143
+        },
+        {
+            "to": "waiting",
+            "at": "2026-10-24T23:30:09.374061+00:00",
+            "latency_ms": 2
+        },
+        {
+            "to": "running",
+            "at": "2026-10-24T23:30:09.438250+00:00",
+            "latency_ms": 64
+        },
+        {
+            "to": "completed",
+            "at": "2026-10-24T23:30:09.438318+00:00",
+            "latency_ms": 0
+        },
+        {
+            "to": "verified",
+            "at": "2026-10-24T23:30:09.438325+00:00",
+            "latency_ms": 0
+        }
+    ],
+    "trace_url": null,
+    "court": {
+        "outcome": "proceed",
+        "eligible": true,
+        "agreement_rate": 1.0,
+        "verdicts": [
+            {
+                "juror": "claude-sonnet-5-5",
+                "verdict": {
+                    "eligible": true,
+                    "rule_id": "uk-rail.gwr.delay-repay",
+                    "band": null,
+                    "amount_gbp": null,
+                    "citations": [
+                        "if your train arrives 15 minutes or more late, you can claim"
+                    ],
+                    "confidence": 0.95,
+                    "reasoning": "The train arrived 38 minutes late, inside the 30 to 59 minute band."
+                }
+            },
+            {
+                "juror": "openai-gpt-5-mini",
+                "verdict": {
+                    "eligible": true,
+                    "rule_id": "uk-rail.gwr.delay-repay",
+                    "band": null,
+                    "amount_gbp": null,
+                    "citations": [
+                        "15 minutes or more late"
+                    ],
+                    "confidence": 0.9,
+                    "reasoning": "Delay over 15 minutes on a single journey is covered."
+                }
+            },
+            {
+                "juror": "llama4-maverick",
+                "verdict": {
+                    "eligible": true,
+                    "rule_id": "uk-rail.gwr.delay-repay",
+                    "band": null,
+                    "amount_gbp": null,
+                    "citations": [
+                        "Delay Repay"
+                    ],
+                    "confidence": 0.85,
+                    "reasoning": "A 38 minute delay qualifies."
+                }
+            }
+        ],
+        "absent": [],
+        "flags": []
+    },
+    "skill_id": "clawback.uk-rail-delay-repay",
+    "plan": null,
+    "mandate": null
+}

@@ -1,0 +1,135 @@
+{
+    "memories": {
+        "access": [
+            {
+                "item": {
+                    "id": "4aa54b60cdb84b2fa89cc326c3fcff6f",
+                    "user_id": "u_margaret",
+                    "key": "32c4b148ff74e4407edda715",
+                    "text": "has a stammer",
+                    "category": "access",
+                    "source": "user_voice",
+                    "trust": "trusted",
+                    "observed_at": "2026-10-24T23:29:25.239123Z",
+                    "confidence": 1.0,
+                    "consent_scope": "memory.access",
+                    "expires_at": null,
+                    "superseded_by": null
+                },
+                "earlier": []
+            },
+            {
+                "item": {
+                    "id": "90ef3981a5f74dd9b359370be5174cf3",
+                    "user_id": "u_margaret",
+                    "key": "cc135b19a5e7dde9176ea479",
+                    "text": "needs more time to answer",
+                    "category": "access",
+                    "source": "user_voice",
+                    "trust": "trusted",
+                    "observed_at": "2026-10-24T23:29:25.239123Z",
+                    "confidence": 1.0,
+                    "consent_scope": "memory.access",
+                    "expires_at": null,
+                    "superseded_by": null
+                },
+                "earlier": []
+            }
+        ],
+        "preference": [
+            {
+                "item": {
+                    "id": "ce015b1fd274459395abd2ae878e152e",
+                    "user_id": "u_margaret",
+                    "key": "4e7ccdf8104c37409746f2db",
+                    "text": "prefers phone updates",
+                    "category": "preference",
+                    "source": "user_voice",
+                    "trust": "trusted",
+                    "observed_at": "2026-10-24T23:29:25.238138Z",
+                    "confidence": 0.9,
+                    "consent_scope": null,
+                    "expires_at": null,
+                    "superseded_by": null
+                },
+                "earlier": []
+            }
+        ],
+        "journey": [
+            {
+                "item": {
+                    "id": "e2c33fade2484f70b8dfa46151aff768",
+                    "user_id": "u_margaret",
+                    "key": "016c597f70b8e5b98cce9bc2",
+                    "text": "commutes Oxford to Paddington",
+                    "category": "journey",
+                    "source": "user_voice",
+                    "trust": "trusted",
+                    "observed_at": "2026-10-24T23:29:25.238138Z",
+                    "confidence": 0.85,
+                    "consent_scope": null,
+                    "expires_at": null,
+                    "superseded_by": null
+                },
+                "earlier": []
+            }
+        ],
+        "contact": [
+            {
+                "item": {
+                    "id": "04da9fb62b8f4f54821c80b55aba50b9",
+                    "user_id": "u_margaret",
+                    "key": "cf37164c57a094d0e45cbfd7",
+                    "text": "Sarah is their daughter",
+                    "category": "contact",
+                    "source": "user_voice",
+                    "trust": "trusted",
+                    "observed_at": "2026-10-24T23:29:25.238138Z",
+                    "confidence": 0.85,
+                    "consent_scope": null,
+                    "expires_at": null,
+                    "superseded_by": null
+                },
+                "earlier": []
+            }
+        ]
+    },
+    "timeline": [
+        {
+            "id": "4c6071d0841d4b9297e213fc85e234d5",
+            "user_id": "u_margaret",
+            "kind": "appointment",
+            "subject": "Broadbandly engineer visit",
+            "predicate": "scheduled_for",
+            "object": "12 Oct 2026 08:00 to 12:00",
+            "valid_from": "2026-10-10T09:00:00+01:00",
+            "valid_to": "2026-10-15T14:00:00+01:00",
+            "superseded_by": "e53ee374fc26404aac3faf0baddb49b7",
+            "episode_id": "seed_bb_slot_1"
+        },
+        {
+            "id": "e53ee374fc26404aac3faf0baddb49b7",
+            "user_id": "u_margaret",
+            "kind": "appointment",
+            "subject": "Broadbandly engineer visit",
+            "predicate": "scheduled_for",
+            "object": "19 Oct 2026 08:00 to 12:00",
+            "valid_from": "2026-10-15T14:00:00+01:00",
+            "valid_to": null,
+            "superseded_by": null,
+            "episode_id": "seed_bb_slot_2"
+        },
+        {
+            "id": "55aaef1bf2c44bbc863ab85b741b54a5",
+            "user_id": "u_margaret",
+            "kind": "promise",
+            "subject": "Broadbandly",
+            "predicate": "promised",
+            "object": "\u00a373.67 by 30 Nov 2026, ref BB-4417",
+            "valid_from": "2026-10-23T14:02:00+01:00",
+            "valid_to": null,
+            "superseded_by": null,
+            "episode_id": "seed_bb_promise"
+        }
+    ]
+}

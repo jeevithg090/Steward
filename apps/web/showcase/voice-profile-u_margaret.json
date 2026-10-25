@@ -1,0 +1,49 @@
+{
+    "user_id": "u_margaret",
+    "display_name": "Margaret",
+    "profile": {
+        "language": "en",
+        "speed": "1.0",
+        "voice": "default",
+        "patience": "high",
+        "stammer": true,
+        "hearing": false,
+        "prefers_text": false,
+        "other_language": null,
+        "keywords": [
+            "Oxford",
+            "Paddington",
+            "Sarah",
+            "Tempo",
+            "Delay Repay"
+        ],
+        "reasons": [
+            "has a stammer",
+            "needs more time to answer"
+        ]
+    },
+    "adjusted": true,
+    "how_to_speak": "This caller has a stammer. Never finish their words for them. Wait as long as it takes, and never rush them.",
+    "initiation": {
+        "type": "conversation_initiation_client_data",
+        "dynamic_variables": {
+            "caller_id": "u_margaret",
+            "display_name": "Margaret",
+            "how_to_speak": "This caller has a stammer. Never finish their words for them. Wait as long as it takes, and never rush them.",
+            "patience": "high",
+            "channel_hint": "voice"
+        },
+        "conversation_config_override": {
+            "asr": {
+                "keywords": [
+                    "Oxford",
+                    "Paddington",
+                    "Sarah",
+                    "Tempo",
+                    "Delay Repay"
+                ]
+            }
+        }
+    },
+    "low_voice_configured": false
+}

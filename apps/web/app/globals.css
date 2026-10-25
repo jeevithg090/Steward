@@ -9,9 +9,22 @@ html {
   font-size: 112.5%;
 }
 
+/* The text-size control (A, A+, A++). Everything is in rem, so this scales the whole site. */
+html[data-text-size="large"] {
+  font-size: 131.25%;
+}
+
+html[data-text-size="larger"] {
+  font-size: 150%;
+}
+
 body {
   background: #f8fafc;
   color: #0f172a;
+}
+
+a {
+  text-underline-offset: 0.15em;
 }
 
 :focus-visible {
@@ -19,9 +32,76 @@ body {
   outline-offset: 2px;
 }
 
+/* Plain mode: one thing at a time, bigger targets, more room. */
+html[data-plain] {
+  line-height: 1.7;
+}
+
+html[data-plain] [class*="grid-cols"],
+html[data-plain] [class*="grid-cols-["] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+html[data-plain] main > div,
+html[data-plain] #main > main {
+  max-width: 48rem !important;
+}
+
+html[data-plain] button,
+html[data-plain] a[class*="rounded"],
+html[data-plain] input,
+html[data-plain] select,
+html[data-plain] textarea,
+html[data-plain] summary {
+  min-height: 3.25rem;
+  font-size: 1.1em;
+}
+
+html[data-plain] article,
+html[data-plain] section {
+  margin-bottom: 1rem;
+}
+
+html[data-plain] nav ul {
+  flex-direction: column;
+  align-items: stretch;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* When the system asks for more contrast: black on white, stronger borders, a darker focus ring. */
+@media (prefers-contrast: more) {
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .text-slate-700,
+  .text-slate-600,
+  .text-slate-800 {
+    color: #0f172a;
+  }
+
+  .border-slate-200,
+  .border-slate-300 {
+    border-color: #334155;
+  }
+
+  .bg-slate-50 {
+    background-color: #ffffff;
+  }
+
+  :focus-visible {
+    outline-color: #000000;
+    outline-width: 5px;
+  }
+
+  a {
+    text-decoration-thickness: 2px;
   }
 }

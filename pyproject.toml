@@ -70,6 +70,8 @@ allowed-confusables = ["–", "→", "×", "·", "➖"]
 [tool.ruff.lint.per-file-ignores]
 # Tests assert on purpose and use fixed fake values.
 "tests/**" = ["S101", "S105", "S106", "E501"]  # long rows keep policy tables readable
+# The look-alike table is made of confusable characters on purpose: that is what it detects.
+"packages/tempo_core/src/tempo_core/links.py" = ["RUF001", "RUF003"]
 
 [tool.ruff.lint.isort]
 known-first-party = [

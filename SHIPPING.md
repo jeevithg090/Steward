@@ -333,6 +333,8 @@ for a kind of person. Governance: Apache-2.0, Contributor Covenant, CODEOWNERS, 
 
 ## 10. Honesty: what is not done
 
+- A Gateway started at 21:11 from inside `tempo/` (PID 83049, `uv run --no-sync tempo-gateway`) is still listening on port 8000 and reads the `.env` that points `DATABASE_URL` at the hosted database. It belongs to an earlier, idle session; it was left running and is flagged for the team to stop.
+
 - Rule packs, clocks and benefit figures are demo values until a person checks each source.
 - Rights Decay's curves are NYC 311 housing requests standing in for UK companies.
 - A mandate's passkey is self-certifying; a directory or attestation issuer is roadmap.
@@ -353,7 +355,7 @@ for a kind of person. Governance: Apache-2.0, Contributor Covenant, CODEOWNERS, 
 - [x] 00:45 Track 1 done: `tempo_core.{capabilities,skills,profiles}`, `CapabilityGuard`, `BudgetGuard`, `profiles_router`, `scripts/{new_skill,validate_skills}.py`, 152 tests; `hard-of-hearing` now allows `call` because the Ofcom mission phones the provider
 - [x] 00:50 Track 1b done: `tempo_core.{letters,letter_words,payee}`, `OFFICIAL_LETTER` vision kind, two letter fixtures with goldens, `letters_router` (`/letters/read`, `/letters/reply`, `/scam/payee`), 50 tests; the scam-signals piece handed to the Scam Shield session, which now owns everything scam
 - [x] 00:55 Wired: `create_app(profiles=…)`, the three routers, `profile_id` on `POST /missions` and `/missions/ofcom` (422 if unknown) and on the view, the two guards in `negotiator_policies(profile=…)`; verified against the real `build()` through a TestClient
-- [ ] Track 3: landing, showcase mode, profiles and skills pages, accessibility controls (agent running)
+- [x] 01:05 Track 3 done: landing, `/control`, `/profiles`, `/profiles/[id]`, `/profiles/import`, `/skills`, `/read`, `/accessibility`; showcase mode (`ShowcaseGateway`, `ShowcaseMesh`, 34 recorded fixtures from a replay Gateway, generated `catalog.json`); SiteChrome with text size, plain mode, skip link, `prefers-contrast`; CSP and security headers; 91 web tests, all new pages axe-clean; smoke-tested in a browser. The two letter readings in the showcase are the recorded goldens (92 web tests)
 - [ ] Track 4: GitHub CI and templates, deploy configs, docs (agent running)
 - [x] 00:35 Track 2 confirmed done by the ElevenLabs session and committed
 - [ ] Track 5: wiring, Makefile, README, full checks, commits, push

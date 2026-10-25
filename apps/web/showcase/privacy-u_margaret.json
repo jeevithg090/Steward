@@ -1,0 +1,16 @@
+{
+    "mode": "cloud-standard",
+    "region": "eu",
+    "third_parties": [
+        "cortex",
+        "elevenlabs",
+        "gemini"
+    ],
+    "image_digest": null,
+    "allowlist": "missing",
+    "image_allowlisted": false,
+    "key_held_on": [],
+    "operator_view": null,
+    "canary_test": "tests/integration/test_canary.py, on every commit in CI",
+    "attestation": "n/a"
+}

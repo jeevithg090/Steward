@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Tempo",
     short_name: "Tempo",
-    description: "Your time, returned.",
+    description: "Your time, returned. An AI agent that wins back money and time; code decides money, time and permissions.",
     start_url: "/",
     display: "standalone",
     background_color: "#f8fafc",
