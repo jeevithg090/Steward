@@ -22,7 +22,7 @@ Actions workflow for forks. [SHIPPING.md](SHIPPING.md) is the plan that turned t
 | Want | Do |
 |---|---|
 | **The real thing, offline** | `make setup && make demo`: the Gateway starts from a scratch folder on 8000 (replay mode, no keys), the demo's people are seeded, and the web app opens on http://localhost:3000. Rail data, jurors and the company are simulated, and the badge says so. [docs/demo.md](docs/demo.md) has the beats. |
-| **Just look** | Press *Deploy with Vercel* above (one env var, `VITE_TEMPO_SHOWCASE=1`), or run `make setup && make showcase` and open http://localhost:3000. The whole app runs on recorded replay data with no backend. |
+| **Just look** | Open **https://tempo-showcase.vercel.app**: the whole app on recorded replay data, no backend, no keys; the badge says so. Or run `make showcase` locally (http://localhost:3000). To deploy your own copy, press *Deploy with Vercel* above with `VITE_TEMPO_SHOWCASE=1`. |
 | **The text demo** | `make demo-dry-run`: Margaret's late train found, priced, asked once, claimed and paid, with a restart in the middle. |
 | **Live vendors** | Fill `.env` from `.env.example`; `make doctor` says which are ready. |
 

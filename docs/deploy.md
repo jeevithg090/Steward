@@ -67,6 +67,8 @@ restart:
 | `VITE_GATEWAY_URL` | the Gateway's URL, e.g. `https://tempo-gateway.onrender.com` |
 | `VITE_TEMPO_TOKEN` | the same string as the Gateway's `TEMPO_API_TOKEN` |
 
+The team's public showcase is the Vercel project `tempo-showcase` at https://tempo-showcase.vercel.app (root `apps/web`, `VITE_TEMPO_SHOWCASE=1` for Production and Preview; `apps/web/.vercelignore` keeps the CLI's `.env.local` token out of every upload). Redeploy it with `make deploy-web` or `npx vercel deploy --prod` from `apps/web`.
+
 Delete `VITE_TEMPO_SHOWCASE`: set to `1`, it keeps the app in showcase mode and Settings cannot
 switch it off. The token is a demo convenience and ends up in the browser bundle
 (`apps/web/.env.example` says so); passkey-signed approvals are the real authentication: once a browser has Face ID or a fingerprint
