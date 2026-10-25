@@ -112,7 +112,7 @@ export default function MissionsPage({ gateway, user, showcase, health, events, 
   const readCard = () =>
     act(async () => {
       const image_b64 = await toBase64("/demo/missed-visit-card.png");
-      const read = await gateway.readCard({ image_b64, filename: "missed_visit_card.png", user_id: DEMO_BROADBAND.user_id, display_name: DEMO_BROADBAND.display_name });
+      const read = await gateway.readCard({ image_b64, filename: "missed_visit_card.png", user_id: DEMO_BROADBAND.user_id });
       if (read.question) {
         setReading(read);
         speak(read.question);

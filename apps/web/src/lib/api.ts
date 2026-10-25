@@ -481,10 +481,10 @@ export class Gateway {
   }
 }
 
-// Margaret's 08:12 Oxford -> Paddington, 38 minutes late (the replay demo journey).
+// The demo's 08:12 Oxford -> Paddington, 38 minutes late (the replay demo journey). No
+// display_name: the person pressing the button never gave one.
 export const DEMO_MISSION = {
   user_id: "u_margaret",
-  display_name: "Margaret",
   origin_crs: "OXF",
   destination_crs: "PAD",
   travel_date: "2026-10-23",
@@ -493,10 +493,9 @@ export const DEMO_MISSION = {
   time_value_gbp_h: "18",
 };
 
-// Margaret's broadband: the engineer due on 19 Oct never came (Rights Decay's demo case).
+// The demo's broadband: the engineer due on 19 Oct never came (Rights Decay's demo case).
 export const DEMO_BROADBAND = {
   user_id: "u_margaret",
-  display_name: "Margaret",
   operator: "Broadbandly",
   event_date: "2026-10-19",
   account_ref: "BB-4417",

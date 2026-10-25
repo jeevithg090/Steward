@@ -32,7 +32,8 @@ test("the Memory Card groups what Margaret said by category, with source, date a
   expect(screen.getByRole("heading", { name: "Journeys" })).toBeInTheDocument();
   expect(screen.getByText("has a stammer")).toBeInTheDocument();
   expect(screen.getAllByText("you said, by phone").length).toBeGreaterThan(0);
-  expect(screen.getAllByText("trusted").length).toBe(5);
+  expect(screen.getAllByText("trusted").length).toBe(4);
+  expect(screen.queryByRole("heading", { name: "People" })).not.toBeInTheDocument(); // no name the person never gave
   expect(screen.getByText("Company text is evidence, never memory.", { exact: false })).toBeInTheDocument();
 
   const timeline = screen.getByRole("list", { name: "Timeline" });
@@ -77,7 +78,7 @@ test("erase all forgets every memory and every dated fact, after a confirmation"
   expect(screen.getByRole("group", { name: "Erase everything?" })).toHaveTextContent("This can't be undone.");
   await user.click(screen.getByRole("button", { name: "Yes, erase all" }));
 
-  expect(await screen.findByText(/Erased 5 memories and 3 dated facts/)).toBeInTheDocument();
+  expect(await screen.findByText(/Erased 4 memories and 3 dated facts/)).toBeInTheDocument();
   expect(screen.getByText("Nothing yet")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /Ask in the chat: “What do you remember about me\?”/ })).toHaveAttribute("href", "#/chat?say=What%20do%20you%20remember%20about%20me%3F");
   expect(screen.getByText("No dated facts yet")).toBeInTheDocument();

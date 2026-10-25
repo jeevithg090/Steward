@@ -132,6 +132,7 @@ def test_a_passkey_is_asked_for_as_es256_only(gateway: TestClient) -> None:
     started = gateway.post("/mesh/devices/me/passkey/options", headers=as_device(token)).json()
 
     assert started["options"]["pubKeyCredParams"] == [{"type": "public-key", "alg": -7}]
+    assert started["options"]["user"]["name"] == "Tempo"  # the phone's sheet shows no account id
 
 
 def test_pairing_shows_the_same_code_on_both_devices(gateway: TestClient, clock: Clock) -> None:

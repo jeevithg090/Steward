@@ -423,7 +423,8 @@ def _who(name: str | None) -> str:
         return f'They asked to be called "{name}".'
     return (
         "You don't know their name: don't call them by any name, and never guess or make one up."
-        " If they tell you their name, use that."
+        " If they tell you their name, use that; a name only in your own earlier replies doesn't"
+        " count."
     )
 
 

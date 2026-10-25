@@ -210,7 +210,7 @@ class CardPhoto(BaseModel):
     mime_type: str = Field(default="image/png", pattern=r"^image/(png|jpeg|webp|heic)$")
     filename: str = Field(default="card.png", max_length=80)
     user_id: str
-    display_name: str = Field(max_length=80)
+    display_name: str = Field(default="", max_length=80)  # "": they never gave one
     phone: str | None = None
     time_value_gbp_h: Decimal = Field(default=Decimal("18"), ge=0)
 

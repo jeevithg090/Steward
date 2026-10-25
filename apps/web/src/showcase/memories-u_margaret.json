@@ -73,25 +73,6 @@
                 },
                 "earlier": []
             }
-        ],
-        "contact": [
-            {
-                "item": {
-                    "id": "04da9fb62b8f4f54821c80b55aba50b9",
-                    "user_id": "u_margaret",
-                    "key": "cf37164c57a094d0e45cbfd7",
-                    "text": "Sarah is their daughter",
-                    "category": "contact",
-                    "source": "user_voice",
-                    "trust": "trusted",
-                    "observed_at": "2026-10-24T23:29:25.238138Z",
-                    "confidence": 0.85,
-                    "consent_scope": null,
-                    "expires_at": null,
-                    "superseded_by": null
-                },
-                "earlier": []
-            }
         ]
     },
     "timeline": [
@@ -125,7 +106,7 @@
             "kind": "promise",
             "subject": "Broadbandly",
             "predicate": "promised",
-            "object": "\u00a373.67 by 30 Nov 2026, ref BB-4417",
+            "object": "£73.67 by 30 Nov 2026, ref BB-4417",
             "valid_from": "2026-10-23T14:02:00+01:00",
             "valid_to": null,
             "superseded_by": null,

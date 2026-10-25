@@ -130,7 +130,14 @@ ImageB64 = Annotated[
 ]
 ImageMime = Literal["image/png", "image/jpeg", "image/webp", "image/heic"]
 UserId = Annotated[str, Field(description="Tempo's id for the person, e.g. u_margaret.")]
-DisplayName = Annotated[str, Field(description="What the person likes to be called.")]
+DisplayName = Annotated[
+    str,
+    Field(
+        max_length=80,
+        description="Only a name the person told you they like to be called. Leave it out if they "
+        "haven't said one: never guess or make one up.",
+    ),
+]
 Crs = Annotated[str, Field(description="Three-letter station code, e.g. OXF or PAD.")]
 Day = Annotated[str, Field(description="The day, as YYYY-MM-DD.")]
 Departure = Annotated[str, Field(description="The train's timetabled departure, as HH:MM.")]
@@ -149,7 +156,8 @@ def how_to_approve(name: str, *, by_text: bool) -> str:
     """What the assistant tells the person. Texting YES is offered only when it would work: the
     claim knows their number."""
     ways = WAYS_WITH_TEXT if by_text else WAYS
-    return f"{name} approves on their own device: {ways}. An assistant cannot approve."
+    who = name or "The person"  # never a name they didn't give
+    return f"{who} approves on their own device: {ways}. An assistant cannot approve."
 
 
 def build_mcp_server(
@@ -228,12 +236,12 @@ def build_mcp_server(
     @tool(STARTS_A_CLAIM)
     async def start_rail_claim(
         user_id: UserId,
-        display_name: DisplayName,
         origin_crs: Crs,
         destination_crs: Crs,
         travel_date: Day,
         departure: Departure,
         fare_gbp: Fare,
+        display_name: DisplayName = "",
         profile_id: ProfileId | None = None,
         phone: Phone | None = None,
     ) -> dict[str, Any]:
@@ -252,9 +260,9 @@ def build_mcp_server(
     @tool(STARTS_A_CLAIM)
     async def start_missed_visit_claim(
         user_id: UserId,
-        display_name: DisplayName,
         provider: Annotated[str, Field(description="The broadband or phone company.")],
         visit_date: Annotated[str, Field(description="The day of the missed visit, YYYY-MM-DD.")],
+        display_name: DisplayName = "",
         notice_hours: Annotated[
             Decimal | None,
             Field(description="Hours of notice they gave, if they cancelled. Leave out if none."),

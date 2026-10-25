@@ -235,6 +235,25 @@ async def test_texting_yes_is_offered_only_when_the_claim_knows_her_number(
     assert visit_again["mission_id"] == visit["mission_id"] and visit_again["started"] is False
 
 
+async def test_a_claim_needs_no_name_and_tempo_never_makes_one_up(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    nameless = {k: v for k, v in MARGARET.items() if k != "display_name"} | {"user_id": "u_jo"}
+    async with tempo(tmp_path, monkeypatch) as t:
+        tools = {tool.name: tool for tool in (await t.session.list_tools()).tools}
+        claim = await t.ok("start_rail_claim", **nameless)
+
+    for name in ("start_rail_claim", "start_missed_visit_claim"):
+        schema = tools[name].input_schema
+        assert "display_name" not in schema.get("required", []), name
+        assert "never guess" in schema["properties"]["display_name"]["description"]
+    assert claim["state"] == "awaiting_consent"
+    assert claim["how_to_approve"] == (
+        "The person approves on their own device: the Tempo web app or Face ID. An assistant "
+        "cannot approve."
+    )
+
+
 async def test_a_profile_that_may_not_claim_refuses_in_the_words_missions_uses(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

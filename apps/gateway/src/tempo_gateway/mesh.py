@@ -285,7 +285,9 @@ class Mesh:
     def registration_options(self, device: Device) -> dict[str, Any]:
         challenge = self._challenge(device, "register")
         options = generate_registration_options(
-            rp_id=self.rp_id, rp_name="Tempo", user_name=device.user_id,
+            # The phone's passkey sheet shows user_name: "Tempo", never the account id (the demo's
+            # is u_margaret, a name the person using it never gave).
+            rp_id=self.rp_id, rp_name="Tempo", user_name="Tempo",
             user_id=device.user_id.encode(), user_display_name=device.name,
             challenge=unb64url(challenge.id),
             authenticator_selection=AuthenticatorSelectionCriteria(

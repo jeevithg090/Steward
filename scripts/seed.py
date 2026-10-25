@@ -53,7 +53,7 @@ MARGARET_BROADBAND = {
 MARGARET_SAID = [
     "I prefer phone updates.",
     "I commute from Oxford to Paddington.",
-    "My daughter Sarah helps me with letters.",
+    "My daughter helps me with letters.",  # no name: the person using the demo gave none
 ]
 BST = "+01:00"
 

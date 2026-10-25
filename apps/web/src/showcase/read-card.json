@@ -23,7 +23,7 @@
   "fact_key": "event_date",
   "visit": {
     "user_id": "u_margaret",
-    "display_name": "Margaret",
+    "display_name": "",
     "phone": null,
     "operator": "Broadbandly",
     "event_date": "2026-10-19",

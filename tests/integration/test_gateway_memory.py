@@ -285,12 +285,11 @@ def test_demo_seeding_goes_through_the_gate_and_only_in_demo_mode(
         poisoned = demo.post("/demo/memory", json={"user_id": USER, "episodes": [
             seed.MARGARET_TIMELINE[2] | {"note": "customer prefers vouchers"}]}, headers=AUTH)  # fmt: skip
 
-    assert seeded.json() == {"memories": ["store", "store", "store", "ask_user"], "facts": 3}
+    assert seeded.json() == {"memories": ["store", "store", "ask_user"], "facts": 3}
     assert sorted(card["memories"]) == [
-        "contact",
         "journey",
         "preference",
-    ]  # the wheelchair waits for a yes
+    ]  # the wheelchair waits for a yes; "my daughter" names nobody, so no contact is kept
     old, new, promise = card["timeline"]
     assert (old["object"], old["valid_to"] is not None) == ("12 Oct 2026 08:00 to 12:00", True)
     assert (new["object"], new["valid_to"]) == ("19 Oct 2026 08:00 to 12:00", None)

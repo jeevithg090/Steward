@@ -47,10 +47,20 @@ def test_agent_ids_and_voices_come_from_distinct_env_variables() -> None:
         "treat it as no",
         'say "stop" at any time',
         "How this caller needs you to speak: {{how_to_speak}}",
+        "Never call them by a name they haven't told you",
+        "never make up a name",
+        "Never give that person a name",
     ],
 )
 def test_prompt_contains_required_clauses(clause: str) -> None:
     assert clause in config("tempo.inbound").prompt
+
+
+def test_no_voice_tool_needs_a_name_so_none_is_made_up() -> None:
+    for name, schema in TOOL_SCHEMAS.items():
+        assert "display_name" not in schema.get("required", []), name
+        if "display_name" in schema["properties"]:
+            assert "never guess" in schema["properties"]["display_name"]["description"], name
 
 
 def test_the_greeting_says_it_is_an_ai() -> None:

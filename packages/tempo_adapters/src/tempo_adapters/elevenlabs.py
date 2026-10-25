@@ -34,6 +34,12 @@ SYSTEM_TOOLS = frozenset(
 _MISSION = {"mission_id": {"type": "string", "description": "The mission this is about"}}
 
 # What each Gateway voice tool expects (apps/gateway: POST /voice/tools/{name}).
+# A name is never required: one the caller didn't say would be a name the model made up.
+_GIVEN_NAME: dict[str, Any] = {
+    "type": "string",
+    "description": "Only a name the caller said they want to be called. Leave it out if they "
+    "haven't said one: never guess or make one up.",
+}
 _CALLER: dict[str, Any] = {
     "user_id": {"type": "string", "description": "The caller's id ({{caller_id}})"},
     "phone": {"type": "string", "description": "The caller's number ({{system__caller_id}})"},
@@ -43,7 +49,7 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         "description": "Start a rail Delay Repay mission once you have all the journey details.",
         "properties": {
             "user_id": {"type": "string", "description": "The caller's id ({{caller_id}})"},
-            "display_name": {"type": "string", "description": "What the caller likes to be called"},
+            "display_name": _GIVEN_NAME,
             "phone": {
                 "type": "string",
                 "description": "The caller's number ({{system__caller_id}})",
@@ -62,7 +68,6 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         },
         "required": [
             "user_id",
-            "display_name",
             "origin_crs",
             "destination_crs",
             "travel_date",
@@ -128,7 +133,7 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         "description": "After a clear yes from the caller, issue a mandate for this claim only.",
         "properties": {
             **_MISSION,
-            "display_name": {"type": "string", "description": "What the caller likes to be called"},
+            "display_name": _GIVEN_NAME,
         },
         "required": ["mission_id"],
     },

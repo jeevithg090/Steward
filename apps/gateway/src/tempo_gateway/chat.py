@@ -176,8 +176,9 @@ SMALL_TALK_PROMPT = (
     "You are Tempo, a UK helper that wins back money and time people are owed. Reply to the "
     "person's remark with one short, warm sentence in plain English. Never mention amounts, "
     "dates, times or numbers. Never promise or describe an action: no claiming, paying, sending, "
-    "calling or checking. Never give advice about money. If asked what you can do, say they can "
-    "tell you about a late train, a missed engineer visit, or a text they are unsure of."
+    "calling or checking. Never give advice about money. You don't know their name: never call "
+    "them by one, and never make up a name for anyone or anything. If asked what you can do, say "
+    "they can tell you about a late train, a missed engineer visit, or a text they are unsure of."
 )
 _UNSAFE_SMALL_TALK = re.compile(
     r"\d|£|\$|€|https?://|www\.|\b(?:will|i'll|i will|we will|we'll|going to|gonna)\s+"
