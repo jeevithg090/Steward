@@ -25,6 +25,9 @@ runtime, and the per-app dependencies below are local names.
 | /mesh/... | devices, pairing, passkey approvals, push (mesh_routes.py) | device token |
 | GET /privacy | the Privacy Proof panel's facts | bearer token |
 | POST /demo/memory | seed the demo's memories and timeline (TEMPO_DEMO=1 only) | bearer token |
+| POST /chat | the web app's front door: one sentence in, what it did out (chat.py) | bearer |
+| GET /voice/tts | whether the Gateway can speak (an ElevenLabs key is set) (tts.py) | bearer |
+| POST /voice/tts | one sentence to audio/mpeg with the server's key (tts.py) | bearer token |
 """
 
 import asyncio
@@ -33,7 +36,7 @@ import binascii
 import hashlib
 import re
 import uuid
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import replace
 from datetime import date
@@ -42,6 +45,7 @@ from pathlib import Path
 from typing import Annotated, Any
 from xml.sax.saxutils import escape
 
+import httpx
 import structlog
 from fastapi import (
     Depends,
@@ -77,6 +81,7 @@ from tempo_core.signals import SignalSpec
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
 from tempo_core.voice_profile import VoiceProfile, how_to_speak, profile_from, to_initiation
 from tempo_crypto.vault import VaultStore
+from tempo_gateway.chat import chat_router, simulated_in
 from tempo_gateway.clock import DemoClock
 from tempo_gateway.events import EventBus
 from tempo_gateway.letters import letters_router, payee_router
@@ -108,6 +113,7 @@ from tempo_gateway.security import (
     twilio_signature_ok,
 )
 from tempo_gateway.shield import ShieldService, shield_router
+from tempo_gateway.tts import tts_router
 from tempo_memory.entities import VoiceSet
 from tempo_memory.extract import extract_candidates
 from tempo_memory.service import MemoryCard, NeedsConsent, say_recalled
@@ -228,6 +234,9 @@ def create_app(
     greetings: Mapping[str, str] | None = None,
     profiles: ProfileCatalog | None = None,
     shield: ShieldService | None = None,
+    chat_llm: Callable[[str], Awaitable[str | None]] | None = None,  # phrases small talk only
+    chat_llm_kind: str | None = None,  # what /health says phrases it: "ollama", "cortex", …
+    http: httpx.AsyncClient | None = None,  # for /voice/tts; tests inject a mocked one
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -272,6 +281,9 @@ def create_app(
         service.mandate_summary = mandates.summary
     clock = service.deps.clock
     demo_clock = clock if isinstance(clock, DemoClock) and settings.tempo_demo else None
+    simulated = simulated_in(settings)  # the honesty badge's list, shared with /chat
+    replay = settings.tempo_mode == "replay"
+    small_talk = "replay" if replay else ("off" if chat_llm is None else chat_llm_kind or "model")
 
     @app.exception_handler(MissionNotFound)
     async def not_found(request: Request, exc: MissionNotFound) -> Response:
@@ -284,12 +296,12 @@ def create_app(
             "status": "ok",
             "mode": settings.tempo_mode,
             "demo": settings.tempo_demo,
-            "simulated": ["company"]
-            + (["rail data", "jurors", "vision"] if settings.tempo_mode == "replay" else []),
+            "simulated": simulated,
             "deploy": deployment.mode.value,
             "region": deployment.region,
             "third_parties": sorted(deployment.third_parties),
             "clock_offset_days": demo_clock.offset_days if demo_clock else 0,
+            "chat": {"llm": small_talk},  # what phrases small talk: replay, off, or the model
         }
 
     @app.post("/entitlement/screen")
@@ -877,6 +889,14 @@ def create_app(
         app.include_router(
             payee_router(web_caller, registers=registers, registers_simulated=registers_simulated)
         )
+    # The web app's front door: the same services as the SMS and voice doors, one sentence at a time
+    app.include_router(
+        chat_router(
+            service, web_caller, shield=shield, memory=memory, profiles=profiles,
+            settings=settings, bus=bus, llm_say=chat_llm, simulated=simulated,
+        )
+    )  # fmt: skip
+    app.include_router(tts_router(settings, web_caller, http))  # speech out, key on the server
 
     @app.websocket("/events")
     async def events(socket: WebSocket, token: str = "") -> None:

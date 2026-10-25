@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import httpx
 import uvicorn
+from agent_framework import Message
 from fastapi import FastAPI
 
 from tempo_adapters import bank_holidays
@@ -49,6 +50,7 @@ from tempo_core.scam_voice import load_warnings
 from tempo_core.signals import SignalSpec, load_signals
 from tempo_crypto.vault import MemoryVaultStore, VaultStore
 from tempo_gateway.app import create_app
+from tempo_gateway.chat import SMALL_TALK_PROMPT
 from tempo_gateway.clock import DemoClock
 from tempo_gateway.events import EventBus, PublishingRepo
 from tempo_gateway.mandates import MandateService, gateway_key
@@ -143,6 +145,27 @@ def _court(settings: Settings) -> ConsensusCourt | None:
     return None
 
 
+def build_chat_llm(
+    settings: Settings,
+) -> tuple[Callable[[str], Awaitable[str | None]] | None, str | None]:
+    """The one thing a model may write in the chat: a small-talk sentence (plan.md §1.3). Only
+    outside replay mode, and only on the deployment mode's own model; otherwise the chat uses its
+    canned line and `/health` says `"chat": {"llm": "off"}`."""
+    if settings.tempo_mode == "replay":
+        return None, None
+    adapters = build_adapters(settings)
+    try:
+        client = chat_client(settings, adapters)
+    except NotConfigured:
+        return None, None
+
+    async def say(text: str) -> str | None:
+        messages = [Message("system", [SMALL_TALK_PROMPT]), Message("user", [text])]
+        return (await client.get_response(messages)).text
+
+    return say, adapters.model.kind
+
+
 def build(
     settings: Settings | None = None, *, scheduler_interval_s: float | None = None
 ) -> FastAPI:
@@ -159,6 +182,7 @@ def build(
         service.deps.repo, service.deps.clock, public_url=settings.public_url,
         signing_key=gateway_key(seed.get_secret_value() if seed else None),
     )  # fmt: skip
+    chat_llm, chat_llm_kind = build_chat_llm(settings)
     return create_app(
         service, settings, bus, memory=memory, mesh=build_mesh(settings, service.deps.clock),
         vault=vault,
@@ -170,6 +194,7 @@ def build(
         mandates=mandates, vision=build_vision(settings),
         greetings=load_greetings(REPO / "voice" / "greetings.yaml"),
         profiles=ProfileCatalog.load(REPO / "profiles", REPO / "skills"),
+        chat_llm=chat_llm, chat_llm_kind=chat_llm_kind,
     )  # fmt: skip
 
 
