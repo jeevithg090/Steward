@@ -1,0 +1,58 @@
+# ngrok config for the Tempo tunnel WITH the phone voice page (one ngrok process, two endpoints).
+# Used by start_tunnel_with_voice.sh together with the default ngrok.yml (which holds the authtoken).
+#
+# Public  https://unreleasing-laree-nebulously.ngrok-free.dev  ->  hub :8787, but only:
+#   POST /api/ask        the ElevenLabs agent's server tool (still needs the hub device token)
+#   GET  /api/hello      health check
+#   GET  /voice/...      the tap-to-talk page (static files, no data)     -> internal endpoint -> :8788
+#   POST /voice/token    short-lived ElevenLabs call token; needs the phone key from the #fragment link,
+#                        rate-limited, the ElevenLabs key never leaves the laptop
+#   POST /voice/phone-task  the voice agent's phone_task tool (needs the tool secret or the phone key)
+#   GET  /voice/phone-task/latest  task progress for the page (phone key)
+#   ANY  /voice/agents/...   the in-app agents (letter reader): phone key checked by token_server.py, which
+#                            forwards to agents/server.py on :8789. POST bodies up to 9 MB (a photo).
+# Everything else (hub web app, device sign-up, ingest, events, profile) answers 404 at ngrok.
+# Bodies over 64 KB answer 413 at ngrok (the hub refuses them too), except photos for /voice/agents/ (9 MB).
+# The request inspector (127.0.0.1:4040) is OFF: it recorded Authorization headers and full answers.
+# Never open :4040 on stage.
+version: "3"
+agent:
+  inspect_db_size: -1   # -1 = no inspection database, i.e. no request capture for any endpoint of this agent
+endpoints:
+  - name: tempo-hub
+    url: https://unreleasing-laree-nebulously.ngrok-free.dev
+    upstream:
+      url: http://localhost:8787
+    traffic_policy:
+      on_http_request:
+        - expressions:
+            - "req.content_length > 65536 && !(req.method == 'POST' && req.url.path.startsWith('/voice/agents/'))"
+          actions:
+            - type: custom-response
+              config:
+                status_code: 413
+                content: "Request too large"
+        - expressions:
+            - "req.content_length > 9437184"
+          actions:
+            - type: custom-response
+              config:
+                status_code: 413
+                content: "Photo too large"
+        - expressions:
+            - "(req.method == 'GET' && (req.url.path == '/voice' || req.url.path.startsWith('/voice/'))) || (req.method == 'POST' && (req.url.path == '/voice/token' || req.url.path == '/voice/phone-task' || req.url.path.startsWith('/voice/agents/')))"
+          actions:
+            - type: forward-internal
+              config:
+                url: https://tempo-voice.internal
+        - expressions:
+            - "!((req.method == 'POST' && req.url.path == '/api/ask') || (req.method == 'GET' && req.url.path == '/api/hello'))"
+          actions:
+            - type: custom-response
+              config:
+                status_code: 404
+                content: "Not found"
+  - name: tempo-voice
+    url: https://tempo-voice.internal
+    upstream:
+      url: http://localhost:8788

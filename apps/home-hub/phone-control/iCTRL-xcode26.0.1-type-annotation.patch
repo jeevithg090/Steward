@@ -1,0 +1,13 @@
+diff --git a/iCTRLUITests/ActionHandler.swift b/iCTRLUITests/ActionHandler.swift
+index dbfdaec..058627d 100644
+--- a/iCTRLUITests/ActionHandler.swift
++++ b/iCTRLUITests/ActionHandler.swift
+@@ -5382,7 +5382,7 @@ class ActionHandler {
+     /// 120pt above the keyboard nothing moves, from 165pt it scrolls.
+     private func pageBand(pages: Double) -> (bottom: Double, travel: Double) {
+         let h = pointSize.height
+-        let bottom = pageKeyboardTop.map { max(h * 0.3, min($0 - 120, $0 * 0.72)) } ?? h * 0.78
++        let bottom: Double = pageKeyboardTop.map { max(h * 0.3, min($0 - 120, $0 * 0.72)) } ?? h * 0.78
+         return (bottom, (pageKeyboardTop == nil ? h * 0.66 : bottom - h * 0.12) * pages)
+     }
+ 

@@ -1,0 +1,453 @@
+[
+ {
+  "app": "Avanti West Coast",
+  "title": "Request received",
+  "text": "Delay Repay request DR8812345 received: 14:43 London Euston to Glasgow Central, 18 Oct, 64 mins late",
+  "want": [
+   null,
+   "14:43",
+   "Glasgow Central"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Northern",
+  "title": "Delay Repay payment sent",
+  "text": "£12.35 for your 17:20 to Leeds on 12 October (31 mins late) has been sent to your bank account",
+  "want": [
+   null,
+   "17:20",
+   "Leeds"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "South Western Railway",
+  "title": "Good news",
+  "text": "You've been awarded £6.15 for your 08:47 to London Waterloo on Tue 13 Oct, which was 22 minutes late",
+  "want": [
+   null,
+   "08:47",
+   "London Waterloo"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "GWR",
+  "title": "Delay Repay",
+  "text": "We've paid £7.10 into your account for the 08:30 to Cardiff Central on 20 Oct (delayed by 21 minutes)",
+  "want": [
+   null,
+   "08:30",
+   "Cardiff Central"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Trainline",
+  "title": "Your week in travel",
+  "text": "4 of your 10 journeys this week were delayed. The longest: your 07:55 to London Waterloo, 41 minutes late on Wednesday",
+  "want": [
+   null,
+   "07:55",
+   "London Waterloo"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "South Western Railway",
+  "title": "Your 07:55 to London Waterloo",
+  "text": "is running, but the earlier train has been cancelled, so expect it to be busy",
+  "want": [
+   null,
+   "07:55",
+   "London Waterloo"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Northern",
+  "title": "Update",
+  "text": "Your 07:15 to Leeds will now run. Apologies for the earlier message saying it was cancelled",
+  "want": [
+   null,
+   "07:15",
+   "Leeds"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "GWR",
+  "title": "Update",
+  "text": "Following a 45 minute delay at Reading, your 09:12 to London Paddington is now running on time",
+  "want": [
+   null,
+   "09:12",
+   "London Paddington"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Trainline",
+  "title": "Delays happen",
+  "text": "Get £5 off when your 07:15 to Leeds is delayed by 30 mins or more with Delay Protect",
+  "want": [
+   null,
+   "07:15",
+   "Leeds"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Southeastern",
+  "title": "Your 07:52 to London Charing Cross",
+  "text": "Heads-up: there's a risk of delays this morning because of a broken rail at Tonbridge",
+  "want": [
+   null,
+   "07:52",
+   "London Charing Cross"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "South Western Railway",
+  "title": "Your 06:58 to London Waterloo",
+  "text": "will be cancelled tomorrow due to strike action",
+  "want": [
+   "cancelled",
+   "06:58",
+   "London Waterloo"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "TfL Go",
+  "title": "Elizabeth line",
+  "text": "08:16 to Maidenhead cancelled. Next train 08:23",
+  "want": [
+   "cancelled",
+   "08:16",
+   "Maidenhead"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "ScotRail",
+  "title": "The 16:20 Glasgow Central to Edinburgh",
+  "text": "has been withdrawn from service due to a fault",
+  "want": [
+   "cancelled",
+   "16:20",
+   "Edinburgh"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Northern",
+  "title": "Your 07:40 to Bradford Interchange",
+  "text": "will no longer run today",
+  "want": [
+   "cancelled",
+   "07:40",
+   "Bradford Interchange"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "GWR",
+  "title": "We're sorry",
+  "text": "Your 12:14 to Exeter St Davids won't be departing today because of a fault with the train",
+  "want": [
+   "cancelled",
+   "12:14",
+   "Exeter St Davids"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Avanti West Coast",
+  "title": "Your return journey",
+  "text": "Your outward 07:15 to London Euston is on time. Your return 19:40 to Manchester Piccadilly has been cancelled",
+  "want": [
+   "cancelled",
+   "19:40",
+   "Manchester Piccadilly"
+  ],
+  "known_miss": true
+ },
+ {
+  "app": "Avanti West Coast",
+  "title": "Thursday's 08:30 to London Euston",
+  "text": "was delayed by 47 minutes. You can claim Delay Repay for this journey",
+  "want": [
+   47,
+   "08:30",
+   "London Euston"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "GWR",
+  "title": "Your 18:00 to Bath Spa next Tuesday",
+  "text": "has been cancelled due to planned engineering works",
+  "want": [
+   "cancelled",
+   "18:00",
+   "Bath Spa"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "National Rail Enquiries",
+  "title": "Strike action",
+  "text": "Strike action on 25/10/2026: the 08:30 Leeds to York is cancelled",
+  "want": [
+   "cancelled",
+   "08:30",
+   "York"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "CrossCountry",
+  "title": "Delay to your journey",
+  "text": "Your 12:07 to Manchester Piccadilly is delayed by two hours because of a fatality at Stafford",
+  "want": [
+   120,
+   "12:07",
+   "Manchester Piccadilly"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "GWR",
+  "title": "Your 18:00 to Plymouth",
+  "text": "is now leaving at 18:25",
+  "want": [
+   25,
+   "18:00",
+   "Plymouth"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Trainline",
+  "title": "Change to your 19:04 to Exeter St Davids",
+  "text": "New departure time: 19:31",
+  "want": [
+   27,
+   "19:04",
+   "Exeter St Davids"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "LNER",
+  "title": "Your 15:03 to York",
+  "text": "will arrive in York at 17:11 instead of 16:50",
+  "want": [
+   21,
+   "15:03",
+   "York"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "National Rail Enquiries",
+  "title": "08:15 London Euston to Manchester Piccadilly",
+  "text": "Arrives Manchester Piccadilly 10:22, expected 10:47",
+  "want": [
+   25,
+   "08:15",
+   "Manchester Piccadilly"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "GWR",
+  "title": "Your 15:15 to Penzance",
+  "text": "Delayed. New arrival time 20:40 (scheduled 20:05)",
+  "want": [
+   35,
+   "15:15",
+   "Penzance"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Trainline",
+  "title": "Your 17:35 to Brighton",
+  "text": "is delayed — it's now due to depart at 17:51",
+  "want": [
+   16,
+   "17:35",
+   "Brighton"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "ScotRail",
+  "title": "Your 07:41 to Edinburgh Waverley",
+  "text": "is delayed by twenty minutes",
+  "want": [
+   20,
+   "07:41",
+   "Edinburgh Waverley"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Trainline",
+  "title": "Your 07:12 to Oxford",
+  "text": "is delayed 15+ mins",
+  "want": [
+   15,
+   "07:12",
+   "Oxford"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Northern",
+  "title": "Your 16:10 to Doncaster",
+  "text": "is delayed by approximately 1.5 hours",
+  "want": [
+   90,
+   "16:10",
+   "Doncaster"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Southeastern",
+  "title": "Your 18:12 from London Charing Cross to Sevenoaks",
+  "text": "is delayed by approx. 12 minutes",
+  "want": [
+   12,
+   "18:12",
+   "Sevenoaks"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "National Rail Enquiries",
+  "title": "Delay alert",
+  "text": "07:32 Reading to London Paddington: delayed (exp. 07:45)",
+  "want": [
+   13,
+   "07:32",
+   "London Paddington"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Trainline",
+  "title": "Live: 07:32 → London Paddington",
+  "text": "9 min delay",
+  "want": [
+   9,
+   "07:32",
+   "London Paddington"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "ScotRail",
+  "title": "Service update",
+  "text": "Your 1905 Glasgow Central to Edinburgh is delayed by 20 minutes",
+  "want": [
+   20,
+   "19:05",
+   "Edinburgh"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "GWR",
+  "title": "Your 15:00 to Penzance",
+  "text": "will now only run as far as Plymouth",
+  "want": [
+   "part",
+   "15:00",
+   "Penzance"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Avanti West Coast",
+  "title": "Your 18:05 to Carlisle",
+  "text": "Change of plan: this train will now end at Preston. Please change for onward services",
+  "want": [
+   "part",
+   "18:05",
+   "Carlisle"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Northern",
+  "title": "Your 09:16 to Blackpool North",
+  "text": "is terminating early at Preston",
+  "want": [
+   "part",
+   "09:16",
+   "Blackpool North"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "TfL Go",
+  "title": "Elizabeth line",
+  "text": "Your 08:05 to Heathrow Terminal 5 is delayed by 6 mins",
+  "want": [
+   6,
+   "08:05",
+   "Heathrow Terminal 5"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "National Rail Enquiries",
+  "title": "07:45 Leeds - York",
+  "text": "12 min late",
+  "want": [
+   12,
+   "07:45",
+   "York"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "National Rail Enquiries",
+  "title": "Journey alert",
+  "text": "16:52 Bristol Parkway → Cardiff Central | Delayed | Exp 17:09 | Plat 3",
+  "want": [
+   17,
+   "16:52",
+   "Cardiff Central"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "GWR",
+  "title": "Good news",
+  "text": "Your 08:30 to Reading is back on schedule",
+  "want": [
+   null,
+   "08:30",
+   "Reading"
+  ],
+  "known_miss": false
+ },
+ {
+  "app": "Thameslink",
+  "title": "Your 18:40 to Bedford",
+  "text": "Previously cancelled – this train is now running",
+  "want": [
+   null,
+   "18:40",
+   "Bedford"
+  ],
+  "known_miss": false
+ }
+]

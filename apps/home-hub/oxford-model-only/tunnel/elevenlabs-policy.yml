@@ -1,0 +1,33 @@
+# ngrok traffic policy for the Tempo hub tunnel: only what the ElevenLabs voice agent needs is public.
+#   POST /api/ask   - the agent's server tool (still needs the hub device token in Authorization)
+#   GET  /api/hello - health check
+# Everything else (web app, device sign-up, ingest, events) answers 404 from ngrok and never reaches the hub.
+# Bodies over 64 KB are refused here with 413 (the hub also refuses them, chunked uploads included).
+# POST /api/ask is limited to 30 per minute per client IP (429 + retry-after); the local model serves
+# one question at a time (4-10 s each), so this only stops abuse.
+on_http_request:
+  - expressions:
+      - "req.content_length > 65536"
+    actions:
+      - type: custom-response
+        config:
+          status_code: 413
+          content: "Request too large"
+  - expressions:
+      - "req.method == 'POST' && req.url.path == '/api/ask'"
+    actions:
+      - type: rate-limit
+        config:
+          name: tempo-ask-per-ip
+          algorithm: sliding_window
+          capacity: 30
+          rate: "60s"
+          bucket_key:
+            - conn.client_ip
+  - expressions:
+      - "!((req.method == 'POST' && req.url.path == '/api/ask') || (req.method == 'GET' && req.url.path == '/api/hello'))"
+    actions:
+      - type: custom-response
+        config:
+          status_code: 404
+          content: "Not found"

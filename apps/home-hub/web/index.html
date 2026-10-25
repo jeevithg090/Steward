@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tempo</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1f6f5c">
+<style>
+  :root {
+    --bg: #faf9f6; --card: #ffffff; --text: #1d1d1b; --muted: #6b6a66; --line: #e6e3dc;
+    --accent: #1f6f5c; --accent-bg: #e3f2ec; --warn: #8a5a00; --warn-bg: #fbf0d9; --bad: #9b2c2c; --bad-bg: #fbe6e6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614; --card: #1f1f1d; --text: #ecebe6; --muted: #a3a29c; --line: #34332f;
+      --accent: #6fd3b3; --accent-bg: #173a31; --warn: #f2c66d; --warn-bg: #3a2f17; --bad: #f19b9b; --bad-bg: #3d1f1f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614; --card: #1f1f1d; --text: #ecebe6; --muted: #a3a29c; --line: #34332f;
+    --accent: #6fd3b3; --accent-bg: #173a31; --warn: #f2c66d; --warn-bg: #3a2f17; --bad: #f19b9b; --bad-bg: #3d1f1f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 8px 0 4px; }
+  h2 { font-size: 16px; font-weight: 600; margin: 0 0 10px; }
+  .sub { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+  .card[hidden] { display: none; }
+  .status { display: flex; gap: 12px; align-items: center; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--muted); flex: none; }
+  .dot.ok { background: var(--accent); } .dot.bad { background: var(--bad); }
+  .pill { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  ul.list { list-style: none; margin: 0; padding: 0; }
+  ul.list li { padding: 8px 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; font-size: 14px; }
+  ul.list li:first-child { border-top: 0; }
+  ul.list li > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .ev-kind { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--muted); }
+  form.ask { display: flex; gap: 8px; }
+  input[type=text] { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  button { font: inherit; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent); color: var(--card); cursor: pointer; }
+  button.ghost { background: transparent; color: var(--accent); }
+  button.small { font-size: 13px; padding: 4px 10px; border-radius: 8px; flex: none; }
+  button.danger { border-color: var(--bad); background: transparent; color: var(--bad); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .answer { white-space: pre-wrap; margin-top: 10px; font-size: 15px; }
+  details summary { cursor: pointer; font-weight: 600; }
+  .int { border-top: 1px solid var(--line); padding: 10px 0; font-size: 14px; }
+  code { display: block; word-break: break-all; font-size: 12px; background: var(--bg); padding: 6px 8px; border-radius: 8px; margin: 6px 0; user-select: all; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row a { color: var(--accent); font-size: 14px; }
+  .error { background: var(--bad-bg); color: var(--bad); padding: 10px 12px; border-radius: 10px; font-size: 14px; }
+  .msg { margin-top: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tempo</h1>
+  <p class="sub">All your devices, any brand, in one place. This page connects itself and keeps syncing while it's open.</p>
+
+  <section class="card" aria-live="polite">
+    <div class="status"><span id="dot" class="dot"></span><div><strong id="status">Connecting…</strong><div id="status2" class="muted"></div>
+      <button id="joinNow" class="small" type="button" hidden>Join now</button></div></div>
+  </section>
+
+  <section class="card" id="approvalsCard" hidden>
+    <h2>Waiting for your OK</h2>
+    <p class="muted">An agent wants to do something for you. Nothing happens until you approve.</p>
+    <ul class="list" id="approvals"></ul>
+    <div id="approvalsMsg" class="muted msg" aria-live="polite"></div>
+  </section>
+
+  <section class="card" id="moneyCard" hidden>
+    <h2>Payments by the Navigator</h2>
+    <p class="muted">Every payment Kairos handled, step by step with times. Nothing is sent until you tap Yes on your phone.</p>
+    <ul class="list" id="money"></ul>
+  </section>
+
+  <section class="card" id="requestsCard" hidden>
+    <h2>Agent requests</h2>
+    <p class="muted">An agent asked to forget something. Nothing is deleted until you approve.</p>
+    <ul class="list" id="requests"></ul>
+    <div id="requestsMsg" class="muted msg" aria-live="polite"></div>
+  </section>
+
+  <section class="card">
+    <h2>Ask Tempo about your devices</h2>
+    <form class="ask" id="askForm">
+      <input type="text" id="q" placeholder="e.g. How did I sleep? Which devices are syncing?" aria-label="Question">
+      <button type="submit">Ask</button>
+    </form>
+    <div id="answer" class="answer" aria-live="polite"></div>
+  </section>
+
+  <section class="card">
+    <h2>What Tempo knows</h2>
+    <ul class="list" id="facts"><li class="muted">Loading…</li></ul>
+    <div id="factsMsg" class="muted msg" aria-live="polite"></div>
+  </section>
+
+  <section class="card">
+    <h2>Your devices</h2>
+    <ul class="list" id="devices"><li class="muted">Loading…</li></ul>
+    <div id="blockedBox"></div>
+    <div id="devicesMsg" class="muted msg" aria-live="polite"></div>
+  </section>
+
+  <section class="card">
+    <h2>Live timeline</h2>
+    <ul class="list" id="timeline"><li class="muted">Nothing yet.</li></ul>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>Add another device or app</summary>
+      <p class="muted">Tap <strong>Add a device now</strong>, then open this hub's address on the new device within 2 minutes: it joins by itself, and every device is told. Elsewhere, open your personal link once.</p>
+      <div class="row"><button id="joinWindow" type="button">Add a device now</button><span id="joinMsg" class="muted"></span></div>
+      <div class="row" style="margin-top:8px"><button class="ghost" id="shareLink" type="button">Send my link to my other devices</button><span id="linkMsg" class="muted"></span></div>
+      <div id="linkBox"></div>
+      <div id="integrations"></div>
+      <div class="row" style="margin-top:8px"><button class="ghost small" id="rotate" type="button">Make a new link and app key</button><span id="rotateMsg" class="muted"></span></div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>Privacy</h2>
+    <p class="muted">Forget everything Tempo has stored about you. Your devices stay connected; copies of old data that apps send again are refused.</p>
+    <button class="danger" id="forgetMe" type="button">Forget me</button>
+    <div id="forgetMsg" class="muted msg" aria-live="polite"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+  const $ = (id) => document.getElementById(id);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  let cred = null, cursor = 0, running = false, joining = false, hubDown = false, joinTimer = 0;
+
+  // 1. Pick up a personal link token from the URL fragment (never sent to server logs).
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (hash.get("t")) { store.set("tempo.join", hash.get("t")); history.replaceState(null, "", location.pathname); }
+
+  function setStatus(kind, title, sub) {
+    $("dot").className = "dot" + (kind ? " " + kind : "");
+    $("status").textContent = title;
+    $("status2").textContent = sub || "";
+  }
+  function showConnected() {
+    setStatus("ok", "This device is connected",
+      `${(cred && cred.name) || ""} joined via ${(cred && cred.joined_via) || "saved credential"}. Syncing automatically while this page is open.`);
+  }
+  function detailText(e, fallback) {
+    const d = e && e.body && e.body.detail;
+    return (d && (typeof d === "string" ? d : d.message)) || fallback;
+  }
+
+  async function describeDevice() {
+    const ua = navigator.userAgent;
+    let model = "", platform = "";
+    try {
+      if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+        const h = await navigator.userAgentData.getHighEntropyValues(["model", "platform", "platformVersion"]);
+        model = h.model || ""; platform = h.platform || "";
+      }
+    } catch {}
+    const isIPhone = /iPhone/.test(ua), isIPad = /iPad|Macintosh/.test(ua) && "ontouchend" in document;
+    const isAndroid = /Android/.test(ua), isMac = /Macintosh/.test(ua) && !isIPad, isWin = /Windows/.test(ua);
+    const browser = /Edg\//.test(ua) ? "Edge" : /SamsungBrowser/.test(ua) ? "Samsung Internet" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Browser";
+    const os = isIPhone ? "iPhone" : isIPad ? "iPad" : isAndroid ? (model ? `Android ${model}` : "Android phone") : isMac ? "Mac" : isWin ? "Windows PC" : (platform || "Linux");
+    const kind = isIPhone || (isAndroid && /Mobile/.test(ua)) ? "phone" : isIPad || isAndroid ? "tablet" : "laptop";
+    return { name: `${os} · ${browser}`, platform: isIPhone || isIPad ? "ios" : isAndroid ? "android" : isMac ? "macos" : isWin ? "windows" : "linux", kind };
+  }
+
+  // opts.noRejoin: a 401 here must not start a re-join (used by join itself).
+  async function api(path, opts = {}) {
+    const { noRejoin, ...init } = opts;
+    const headers = { "Content-Type": "application/json", ...(init.headers || {}) };
+    if (cred) headers.Authorization = "Bearer " + cred.device_token;
+    let r;
+    try { r = await fetch(path, { ...init, headers }); }
+    catch (e) {
+      if (e.name !== "AbortError" && running && !joining) {
+        hubDown = true;
+        setStatus("bad", "Can't reach the hub", "Retrying automatically. Anything this device records waits here until then.");
+      }
+      throw e;
+    }
+    if (r.status === 401 && cred) { store.del("tempo.cred"); cred = null; if (!noRejoin) reconnect(); }
+    if (r.status === 410 && cred) { store.del("tempo.cred"); cred = null; if (!noRejoin) reconnect(true); }
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw Object.assign(new Error("HTTP " + r.status), { status: r.status, body });
+    if (hubDown && cred && !joining) { hubDown = false; showConnected(); }
+    return body;
+  }
+
+  // 2. Join automatically: this computer, an open join window, or the personal link if we have one.
+  async function join() {
+    const saved = store.get("tempo.cred");
+    if (saved) {
+      try { cred = JSON.parse(saved); const me = await api("/api/me", { noRejoin: true }); cred.hub_seq = me.hub_seq; return true; }
+      catch (e) {
+        if (e.status === 410) { store.del("tempo.cred"); cred = null; setStatus("bad", "This device was removed", detailText(e, "")); return "tap"; }
+        if (cred && e.status !== 401) { setStatus("bad", "Can't reach the hub", "Retrying every 10 s."); return false; }  // keep the saved credential
+        cred = null;
+      }
+    }
+    const d = await describeDevice();
+    try {
+      const res = await api("/api/devices/register", { method: "POST", noRejoin: true, body: JSON.stringify({
+        ...d, capabilities: ["web", "heartbeat"], join_token: store.get("tempo.join") || null }) });
+      cred = res; store.set("tempo.cred", JSON.stringify(res));
+      store.del("tempo.join");  // the link did its job; a removed device must not silently join again with it
+      return true;
+    } catch (e) {
+      setStatus("bad", e.status ? "Not connected yet" : "Can't reach the hub",
+        e.status ? detailText(e, "Open your personal Tempo link on this device.") : "Retrying every 10 s.");
+      // Refused (403/410): wait for a tap, so a forgotten or removed tab can't take the next join window.
+      return e.status === 403 || e.status === 410 ? "tap" : false;
+    }
+  }
+
+  function waitForTap() {
+    return new Promise((resolve) => {
+      const b = $("joinNow");
+      b.hidden = false;
+      b.onclick = () => { b.hidden = true; resolve(); };
+    });
+  }
+
+  // The hub no longer knows our token (hub reset: join again by itself) or removed this device (410: only
+  // after a tap, so it can't slip back in through someone else's join window).
+  async function reconnect(removed = false) {
+    if (joining) return;
+    joining = true;
+    if (removed) {
+      setStatus("bad", "This device was removed", "To use it again, tap 'Add a device now' on a device that already uses Tempo, then tap Join now.");
+      await waitForTap();
+    } else setStatus("", "Reconnecting…", "The hub didn't recognise this device; joining again.");
+    for (;;) {
+      const ok = await join();
+      if (ok === true) break;
+      if (ok === "tap") await waitForTap(); else await sleep(10000);
+    }
+    joining = false; hubDown = false;
+    showConnected();
+    rows.length = 0; cursor = Math.max(0, (cred.hub_seq || 0) - 40);
+    renderTimeline(); refreshAll();
+  }
+
+  // 3. Send what this device can share by itself, now and every minute while open.
+  const OUTBOX = "tempo.outbox";
+  function outbox() { try { return JSON.parse(store.get(OUTBOX) || "[]"); } catch { return []; } }
+  function queue(ev) { const box = outbox(); box.push(ev); store.set(OUTBOX, JSON.stringify(box.slice(-500))); }
+  async function flush() {
+    const box = outbox();
+    if (!box.length || !cred || !navigator.onLine) return;
+    try { await api("/api/events", { method: "POST", body: JSON.stringify({ events: box }) }); store.set(OUTBOX, "[]"); }
+    catch (e) { if (e.status && e.status !== 401 && e.status < 500) store.set(OUTBOX, "[]"); }  // the hub will never take these
+  }
+  async function heartbeat(reason) {
+    const p = { reason, online: navigator.onLine, visible: document.visibilityState === "visible",
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone, screen: `${screen.width}x${screen.height}` };
+    try { if (navigator.getBattery) { const b = await navigator.getBattery(); p.battery = Math.round(b.level * 100); p.charging = b.charging; } } catch {}
+    try { if (navigator.connection) p.network = navigator.connection.effectiveType; } catch {}
+    queue({ kind: "node.heartbeat", payload: p, event_time: new Date().toISOString(), tz: p.tz });
+    await flush();
+  }
+
+  function ago(iso) {
+    if (!iso) return "never";
+    const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+    return s < 90 ? `${Math.round(s)} s ago` : s < 5400 ? `${Math.round(s / 60)} min ago` : s < 172800 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} days ago`;
+  }
+  function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+  async function renderDevices() {
+    try {
+      const { devices, you, blocked = [] } = await api("/api/devices");
+      $("devices").innerHTML = devices.map((d) => {
+        const stale = d.last_seen_at && (Date.now() - new Date(d.last_seen_at)) > 6 * 3600e3;
+        const app = d.kind === "integration";
+        return `<li><span>${esc(d.name)} ${d.id === you ? '<span class="pill">this device</span>' : ""}
+          <div class="muted">${esc(d.kind || "")} · joined via ${esc(d.joined_via || "")} · ${d.event_count} events ·${d.seq_gaps ? ` <span class="pill warn">${d.seq_gaps} missed</span> ·` : ""}
+          <span class="${stale ? "pill warn" : ""}">${stale ? "stale: " : ""}${ago(d.last_seen_at)}</span></div></span>
+          ${d.id === you ? "" : `<button class="ghost small" type="button" data-remove="${esc(d.id)}" data-name="${esc(d.name)}" data-app="${app ? 1 : ""}">${app ? "Block" : "Remove"}</button>`}</li>`;
+      }).join("") || '<li class="muted">No devices yet.</li>';
+      $("blockedBox").innerHTML = blocked.length ? `<h2 style="margin-top:12px">Blocked apps</h2><ul class="list">${blocked.map((b) =>
+        `<li><span>${esc(b.name)}<div class="muted">Anything it sends is refused.</div></span><button class="ghost small" type="button" data-unblock="${esc(b.id)}">Unblock</button></li>`).join("")}</ul>` : "";
+    } catch {}
+  }
+  $("devices").addEventListener("click", async (ev) => {
+    const b = ev.target.closest("[data-remove]");
+    if (!b) return;
+    const name = b.dataset.name, app = !!b.dataset.app;
+    if (!confirm(app ? `Block ${name}? It stays set up in the app, but nothing it sends is stored until you unblock it here.`
+                     : `Remove ${name}? It's signed out at once. To come back it has to join again (Add a device now, or your personal link).`)) return;
+    try { const r = await api(`/api/devices/${encodeURIComponent(b.dataset.remove)}`, { method: "DELETE" }); $("devicesMsg").textContent = r.note || `Removed ${name}.`; }
+    catch (e) { $("devicesMsg").textContent = detailText(e, "Couldn't remove it."); }
+    renderDevices();
+  });
+  $("blockedBox").addEventListener("click", async (ev) => {
+    const b = ev.target.closest("[data-unblock]");
+    if (!b) return;
+    try { const r = await api(`/api/devices/${encodeURIComponent(b.dataset.unblock)}/unblock`, { method: "POST" }); $("devicesMsg").textContent = `${r.name} can send again.`; }
+    catch (e) { $("devicesMsg").textContent = detailText(e, "Couldn't unblock it."); }
+    renderDevices();
+  });
+
+  // 4. The live timeline: start near the end (not at #0), keep up, and drop what was forgotten.
+  const rows = [];
+  const simulated = (e) => !!((e.payload && e.payload._simulated) || String(e.source || "").endsWith(":simulated"));
+  function renderTimeline() {
+    // Private notifications (apps outside TEMPO_NOTIFY_APPS) show only "[notification from X hidden]": safe on a projector.
+    $("timeline").innerHTML = rows.map((e) => `<li><span>${esc(e.hidden ? e.display_text : (e.text || e.kind))}<div class="ev-kind">#${e.hub_seq} · ${esc(e.kind)}${simulated(e) ? ' · <span class="pill warn">simulated</span>' : ""}</div></span>
+      <span class="muted">${ago(e.event_time_utc)}</span></li>`).join("") || '<li class="muted">Nothing yet.</li>';
+  }
+  function dropForgotten(p) {
+    const refs = new Set([...(p.refs || []), ...(p.derived_refs || [])].map(String));
+    const kinds = new Set((p.kinds || []).map(String));
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const e = rows[i];
+      if (kinds.has(String(e.kind)) && (!p.device_id || e.device_id === p.device_id)) { rows.splice(i, 1); continue; }
+      const byKind = p.kind_prefix && String(e.kind).startsWith(p.kind_prefix) && (!p.device_id || e.device_id === p.device_id);
+      const byDevice = !p.kind_prefix && !p.kinds && p.device_id && e.device_id === p.device_id && !(p.refs);
+      if (p.all || refs.has("#" + e.hub_seq) || byKind || byDevice) rows.splice(i, 1);
+    }
+  }
+  function apply(events) {
+    let requests = false, asks = false;
+    for (const e of events) {
+      if (e.kind === "forget.done") dropForgotten(e.payload || {});
+      if (e.kind === "device.joined" && e.payload && e.payload.opened_by === cred.device_id) {
+        clearInterval(joinTimer);
+        const from = [e.payload.ip, e.payload.user_agent && e.payload.user_agent.slice(0, 60)].filter(Boolean).join(", ");
+        $("joinMsg").textContent = `"${e.payload.name || "A device"}"${from ? ` (${from})` : ""} just joined through your window (now closed). Not yours? Remove it under Your devices.`;
+      }
+      const old = rows.findIndex((x) => x.id === e.id);  // an app updated this record in place
+      if (old >= 0) rows.splice(old, 1);
+      rows.unshift(e);
+      if (String(e.kind).startsWith("forget.")) requests = true;
+      if (String(e.kind).startsWith("approval.") || e.kind === "mission.suggested") asks = true;
+    }
+    rows.length = Math.min(rows.length, 40);
+    if (requests) { renderRequests(); renderFacts(); }
+    if (asks) renderApprovals();
+  }
+  let pulling = false;
+  async function pullEvents() {
+    if (!cred || pulling) return;
+    pulling = true;
+    try {
+      let changed = false;
+      for (let page = 0; page < 10; page++) {
+        const r = await api(`/api/events?after=${cursor}&limit=200`);
+        if (typeof r.latest_hub_seq === "number" && r.latest_hub_seq < cursor) {  // the hub was reset
+          cursor = Math.max(0, r.latest_hub_seq - 40); rows.length = 0; changed = true; continue;
+        }
+        cursor = r.hub_seq;
+        if (r.events.length) { apply(r.events); changed = true; }
+        if (r.events.length < 200) break;
+      }
+      if (changed) { renderTimeline(); renderDevices(); }
+    } catch {} finally { pulling = false; }
+  }
+
+  // 5. What Tempo knows, with a Forget button per fact; agent requests to forget, with Approve/Decline.
+  let facts = [];
+  async function renderFacts() {
+    try {
+      facts = (await api("/api/profile")).facts || [];
+      $("facts").innerHTML = facts.map((f, i) => `<li><span>${esc(f.fact)}<div class="ev-kind">${esc((f.refs || []).join(" "))}</div></span>
+        ${(f.refs || []).length ? `<button class="ghost small" type="button" data-fact="${i}">${esc(f.forget ? f.forget.label : "Forget")}</button>` : ""}</li>`).join("")
+        || '<li class="muted">Nothing yet. Facts appear when your devices and apps send data.</li>';
+    } catch {}
+  }
+  $("facts").addEventListener("click", async (ev) => {
+    const b = ev.target.closest("[data-fact]");
+    const f = b && facts[+b.dataset.fact];
+    if (!f) return;
+    const what = f.forget ? { kinds: f.forget.kinds } : { ids: f.refs };
+    const ask = f.forget ? `${f.forget.label}?\n\nEvery stored reading of this kind is deleted from the hub, not just "${f.fact}". Copies an app sends again are dropped; new readings still arrive.`
+                         : `Forget "${f.fact}"?\n\nThe ${f.refs.length} event(s) behind it are deleted from the hub, and won't come back if an app sends them again.`;
+    if (!confirm(ask)) return;
+    try { const r = await api("/api/forget", { method: "POST", body: JSON.stringify(what) }); $("factsMsg").textContent = `Forgot ${r.deleted_events} event(s).`; }
+    catch (e) { $("factsMsg").textContent = detailText(e, "Couldn't forget that."); }
+    renderFacts(); pullEvents();
+  });
+
+  let approvals = [];
+  async function renderApprovals() {
+    try {
+      approvals = (await api("/api/approvals")).approvals || [];
+      $("approvalsCard").hidden = !approvals.length;
+      $("approvals").innerHTML = approvals.map((a, i) => `<li><span><strong>${esc(a.summary)}</strong>
+        <div class="muted">from ${esc(a.from)} · ${ago(a.time)}${a.amount_gbp != null ? ` · £${a.amount_gbp.toFixed(2)}` : ""}${a.simulated ? " · simulated" : ""}</div></span>
+        <span class="row"><button class="small" type="button" data-ok="${i}">Approve</button>
+        <button class="ghost small" type="button" data-no="${i}">Decline</button></span></li>`).join("");
+    } catch {}
+  }
+  $("approvals").addEventListener("click", async (ev) => {
+    const b = ev.target.closest("[data-ok],[data-no]");
+    const a = b && approvals[+(b.dataset.ok ?? b.dataset.no)];
+    if (!a) return;
+    const ok = b.dataset.ok !== undefined;
+    try {
+      await api(`/api/approvals/${a.hub_seq}/${ok ? "approve" : "decline"}`, { method: "POST" });
+      $("approvalsMsg").textContent = ok ? "Approved. The agent can go ahead." : "Declined. The agent won't do it.";
+    } catch (e) { $("approvalsMsg").textContent = detailText(e, "Couldn't answer that."); }
+    renderApprovals(); pullEvents();
+  });
+
+  const MONEY_WORDS = { requested: "asked", understood: "understood", checked: "checked against your payee book", refused: "refused", navigating: "driving the bank app",
+    verified: "name and amount verified on the bank's screen", mismatch: "stopped: the bank's screen didn't match", awaiting_approval: "waiting for your Yes",
+    approved: "approved by you", sent: "sent", aborted: "nothing sent", stopped: "stopped by you", expired: "approval time ran out", declined: "declined by you", locked: "bank asked for your PIN" };
+  async function renderMoney() {
+    try {
+      const led = (await api("/api/money/ledger")).payments || [];
+      $("moneyCard").hidden = !led.length;
+      $("money").innerHTML = led.slice(0, 8).map(p => {
+        const t0 = p.steps.length ? Date.parse(p.steps[0].time) : 0;
+        const steps = p.steps.map(s => `<span class="ev-kind">+${Math.max(0, Math.round((Date.parse(s.time) - t0) / 1000))}s ${esc(s.kind.replace("money.", ""))}</span>`).join(" · ");
+        const head = p.readback || p.task || p.payment_id;
+        const cls = p.status === "sent" ? "" : (["refused","mismatch","stopped","expired","declined","aborted","locked"].includes(p.status) ? " warn" : "");
+        return `<li><span><strong>${esc(head)}</strong><div class="muted">${p.cop_name ? `bank showed “${esc(p.cop_name)}” · ` : ""}${ago(p.started)}</div>
+          <div class="muted" style="margin-top:4px">${steps}</div></span><span class="pill${cls}">${esc(MONEY_WORDS[p.status] || p.status)}</span></li>`;
+      }).join("");
+    } catch {}
+  }
+
+  let requests = [];
+  async function renderRequests() {
+    try {
+      requests = (await api("/api/forget/requests")).requests || [];
+      $("requestsCard").hidden = !requests.length;
+      $("requests").innerHTML = requests.map((r, i) => `<li><span><strong>Forget ${esc(r.summary)}</strong>
+        <div class="muted">asked by ${esc(r.from)} · ${ago(r.time)}${r.what ? ` · "${esc(r.what)}"` : ""}${r.reason ? ` · reason: ${esc(r.reason)}` : ""}</div></span>
+        <span class="row"><button class="small" type="button" data-approve="${i}" ${r.can_apply ? "" : "disabled title=\"It doesn't say exactly what to forget\""}>Approve</button>
+        <button class="ghost small" type="button" data-decline="${i}">Decline</button></span></li>`).join("");
+    } catch {}
+  }
+  $("requests").addEventListener("click", async (ev) => {
+    const b = ev.target.closest("[data-approve],[data-decline]");
+    const r = b && requests[+(b.dataset.approve ?? b.dataset.decline)];
+    if (!r) return;
+    const approve = b.dataset.approve !== undefined;
+    if (approve && !confirm(`Forget ${r.summary}?\n\nThis can't be undone from here, and re-sent copies are refused.`)) return;
+    try {
+      const res = await api(`/api/forget/requests/${r.hub_seq}/${approve ? "approve" : "decline"}`, { method: "POST" });
+      $("requestsMsg").textContent = approve ? `Done: forgot ${res.deleted_events} event(s).` : "Declined. Nothing was deleted.";
+    } catch (e) { $("requestsMsg").textContent = detailText(e, "Couldn't answer that request."); }
+    renderRequests(); renderFacts(); pullEvents();
+  });
+
+  // 6. App URLs: the key is masked until you ask to see it (safe on a projector).
+  async function renderIntegrations(full) {
+    try {
+      const r = full ? await api("/api/integrations/reveal", { method: "POST" }) : await api("/api/integrations");
+      const head = r.masked
+        ? `<div class="row" style="margin-top:10px"><button class="ghost small" type="button" id="reveal">Show full app URLs</button><span class="muted">They contain your app key: don't show them on a shared screen.</span></div>`
+        : `<div class="row" style="margin-top:10px"><button class="ghost small" type="button" id="hideUrls">Hide app URLs</button><span class="muted">Full URLs shown.</span></div>`;
+      $("integrations").innerHTML = head + r.integrations.map((i) => `<div class="int"><strong>${esc(i.name)}</strong>
+        <div class="muted">${esc(i.how)}</div><code>${esc(i.url)}</code>
+        ${i.url_by_name && i.url_by_name !== i.url ? `<div class="muted">iPhone apps that refuse IP addresses:</div><code>${esc(i.url_by_name)}</code>` : ""}
+        ${r.masked ? "" : `<button class="ghost small" type="button" data-copy="${esc(i.url)}">Copy URL</button>`}</div>`).join("");
+    } catch {}
+  }
+  $("integrations").addEventListener("click", async (ev) => {
+    if (ev.target.id === "reveal") return renderIntegrations(true);
+    if (ev.target.id === "hideUrls") return renderIntegrations(false);
+    const b = ev.target.closest("[data-copy]");
+    if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "Copied"; }
+    catch {  // plain-HTTP pages have no clipboard API: select the URL so the person can copy it
+      const code = b.parentElement.querySelector("code");
+      const range = document.createRange(); range.selectNodeContents(code);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      b.textContent = "Selected: copy it now";
+    }
+  });
+
+  $("rotate").addEventListener("click", async () => {
+    if (!confirm("Make a new personal link and app key?\n\nDevices that already joined keep working. Old personal links stop working, and every app (Health Connect, Health Auto Export, OwnTracks, Tasker…) needs its new URL pasted in again.")) return;
+    try { const r = await api("/api/rotate", { method: "POST" }); $("rotateMsg").textContent = r.note; $("linkBox").innerHTML = ""; renderIntegrations(false); }
+    catch (e) { $("rotateMsg").textContent = detailText(e, "Couldn't make new keys."); }
+  });
+
+  $("joinWindow").addEventListener("click", async () => {
+    try {
+      const r = await api("/api/join-window", { method: "POST" });
+      let left = r.open_for_seconds;
+      $("joinMsg").textContent = `Open for ${left} s: open ${location.origin} on the new device now.`;
+      clearInterval(joinTimer);
+      joinTimer = setInterval(() => { left -= 1; $("joinMsg").textContent = left > 0 ? `Open for ${left} s: open ${location.origin} on the new device now.` : "Closed."; if (left <= 0) clearInterval(joinTimer); }, 1000);
+    } catch { $("joinMsg").textContent = "Couldn't open the window."; }
+  });
+
+  // The link is always shown as text: share/clipboard only exist on HTTPS or localhost.
+  $("shareLink").addEventListener("click", async () => {
+    try {
+      // The link joins any device to this person forever, so it's never shown in full (projector, screen
+      // share): only inside the text/email links, and in full after a deliberate "Show" tap.
+      const { link, masked, label } = await api("/api/link");
+      const enc = encodeURIComponent(link);
+      $("linkBox").innerHTML = `<div class="muted" style="margin-top:8px">${esc(label || "")}</div><code id="linkText">${esc(masked || "")}</code>
+        <div class="row"><a href="sms:?&body=${enc}">Text it to myself</a><a href="mailto:?subject=${encodeURIComponent("My Tempo link")}&body=${enc}">Email it to myself</a>
+        <button class="ghost small" type="button" id="linkShow">Show (not on a shared screen)</button></div>`;
+      $("linkShow").addEventListener("click", () => { $("linkText").textContent = link; $("linkShow").remove(); });
+      $("linkMsg").textContent = "";
+      if (window.isSecureContext) {
+        try {
+          if (navigator.share) await navigator.share({ title: "My Tempo link", text: "Open this on my other device to connect it to Tempo", url: link });
+          else { await navigator.clipboard.writeText(link); $("linkMsg").textContent = "Link copied (not shown on screen)."; }
+        } catch {}
+      }
+    } catch { $("linkMsg").textContent = "Couldn't get the link."; }
+  });
+
+  $("forgetMe").addEventListener("click", async () => {
+    if (!confirm("Forget everything Tempo has stored about you?\n\nEvery event from every device and app is deleted from the hub, and old data that apps send again is refused. Your devices stay connected.\n\nA backup copy is kept on the hub computer in case this was a mistake.")) return;
+    try {
+      const r = await api("/api/forget", { method: "POST", body: JSON.stringify({ all: true }) });
+      $("forgetMsg").textContent = `Forgot ${r.deleted_events} events.` + (r.backup ? ` A backup (${r.backup}) is in the backups folder next to the hub's database (data/backups): delete it there to make this permanent.` : "");
+      rows.length = 0; renderTimeline(); renderFacts(); renderRequests(); renderApprovals(); pullEvents();
+    } catch (e) { $("forgetMsg").textContent = detailText(e, "Couldn't reach the hub. Try again."); }
+  });
+
+  $("askForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const q = $("q").value.trim();
+    if (!q) { $("answer").textContent = "Type a question first."; return; }
+    $("answer").textContent = "Thinking…";
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 30000);
+    try {
+      const r = await api("/api/ask", { method: "POST", body: JSON.stringify({ question: q }), signal: ctl.signal });
+      $("answer").textContent = r.answer + (r.model ? `\n\n— ${r.model}${r.tools_used && r.tools_used.length ? " · looked at: " + r.tools_used.join(", ") : ""}` : "");
+    } catch (e) {
+      $("answer").textContent = e.name === "AbortError" ? "No answer within 30 s. Try again, or ask something simpler."
+        : e.status ? detailText(e, `The hub couldn't answer that (HTTP ${e.status}).`) : "Couldn't reach the hub.";
+    } finally { clearTimeout(timer); }
+  });
+
+  function refreshAll() { renderDevices(); renderIntegrations(false); renderFacts(); renderRequests(); renderApprovals(); renderMoney(); pullEvents(); }
+
+  async function start() {
+    const ok = await join();
+    if (ok === "tap") { await waitForTap(); return start(); }  // not let in: try again when the person taps
+    if (!ok) { setTimeout(start, 10000); return; }  // hub down: keep trying
+    showConnected();
+    cursor = Math.max(0, (cred.hub_seq || 0) - 40);  // start near the end, not at #0
+    if (running) return;
+    running = true;
+    await heartbeat("open");
+    refreshAll();
+    setInterval(pullEvents, 4000);
+    setInterval(() => heartbeat("interval"), 60000);
+    setInterval(() => { renderFacts(); renderRequests(); renderApprovals(); }, 60000);
+    setInterval(renderMoney, 8000);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") heartbeat("visible"); });
+    window.addEventListener("online", flush);
+  }
+  start();
+})();
+</script>
+</body>
+</html>

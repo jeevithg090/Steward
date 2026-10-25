@@ -1,0 +1,5 @@
+# Secrets and personal logs never go in git
+.device_token
+ssh.log
+*.shortcut
+.*.shortcut

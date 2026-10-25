@@ -1,0 +1,194 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 790" role="img" aria-label="How every device syncs with the Tempo Hub tonight. On the left, collectors are grouped by the door they use: Tempo's own apps sign every event and post to /v1/events; free Home Assistant apps on iPhone, Android and Wear OS report health, notifications and location to Home Assistant, which the hub subscribes to; and webhooks bring in Health Connect data, Apple Watch notes, and SMS from Meta glasses and landlines through a gateway phone. Everything lands in one event log, filtered per device. On the right, devices hear back through a server-sent-events poke and pull, through Web Push, or through an SMS reply; watches mirror their phone's notifications." font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+    <marker id="blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1440" height="790" fill="#ffffff"/>
+
+  <text x="30" y="50" font-size="26" font-weight="700" fill="#0f172a">Every device, in and out</text>
+  <text x="30" y="78" font-size="14" fill="#475569">Three doors in, one log, three ways back. Watches and glasses hold no keys: they ride on a phone (Bluetooth) or a gateway phone (SMS).</text>
+
+  <!-- Legend -->
+  <line x1="1010" y1="40" x2="1050" y2="40" stroke="#2563eb" stroke-width="2"/>
+  <text x="1058" y="44" font-size="12" fill="#334155">signed on the device</text>
+  <line x1="1200" y1="40" x2="1240" y2="40" stroke="#475569" stroke-width="1.6"/>
+  <text x="1248" y="44" font-size="12" fill="#334155">door-checked, hub-signed</text>
+  <line x1="1010" y1="64" x2="1050" y2="64" stroke="#475569" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="1058" y="68" font-size="12" fill="#334155">optional / stretch</text>
+
+  <!-- Column headers -->
+  <text x="30" y="128" font-size="13" font-weight="700" fill="#475569" letter-spacing="1">IN · HOW DATA GETS TO THE HUB</text>
+  <text x="785" y="128" font-size="13" font-weight="700" fill="#1d4ed8" letter-spacing="1" text-anchor="middle">TEMPO HUB · YOUR LAPTOP</text>
+  <text x="1050" y="128" font-size="13" font-weight="700" fill="#475569" letter-spacing="1">OUT · HOW EACH DEVICE HEARS BACK</text>
+
+  <!-- ============ LEFT: GROUP 1 — Tempo's own apps ============ -->
+  <text x="30" y="153" font-size="11.5" font-weight="700" fill="#1d4ed8">TEMPO'S OWN APPS · SIGN EVERY EVENT</text>
+  <rect x="30" y="160" width="390" height="42" rx="8" fill="#ffffff" stroke="#2563eb"/>
+  <text x="42" y="176" font-size="12.5" font-weight="700" fill="#0f172a">Laptop</text>
+  <text x="42" y="194" font-size="12" fill="#334155">ActivityWatch + 20-line poller: app and site time</text>
+  <rect x="30" y="208" width="390" height="42" rx="8" fill="#ffffff" stroke="#2563eb"/>
+  <text x="42" y="224" font-size="12.5" font-weight="700" fill="#0f172a">iPhone · any phone's browser</text>
+  <text x="42" y="242" font-size="12" fill="#334155">Tempo web app: pairing, approvals, "Tell Tempo" notes</text>
+  <rect x="30" y="256" width="390" height="42" rx="8" fill="#ffffff" stroke="#2563eb"/>
+  <text x="42" y="272" font-size="12.5" font-weight="700" fill="#0f172a">Android (any brand)</text>
+  <text x="42" y="290" font-size="12" fill="#334155">Tempo node: notification → 3 fields, Keystore key</text>
+
+  <line x1="420" y1="181" x2="550" y2="181" stroke="#2563eb" stroke-width="2"/>
+  <line x1="420" y1="229" x2="550" y2="229" stroke="#2563eb" stroke-width="2"/>
+  <line x1="420" y1="277" x2="550" y2="277" stroke="#2563eb" stroke-width="2"/>
+  <line x1="550" y1="181" x2="550" y2="277" stroke="#2563eb" stroke-width="2"/>
+  <line x1="550" y1="229" x2="579" y2="229" stroke="#2563eb" stroke-width="2" marker-end="url(#blue)"/>
+
+  <!-- ============ LEFT: GROUP 2 — Home Assistant apps ============ -->
+  <text x="30" y="325" font-size="11.5" font-weight="700" fill="#475569">HOME ASSISTANT APPS · FREE ON APP STORE / PLAY</text>
+  <rect x="30" y="332" width="390" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="42" y="348" font-size="12.5" font-weight="700" fill="#0f172a">iPhone + Apple Watch</text>
+  <text x="42" y="366" font-size="12" fill="#334155">Apple Health: heart rate, sleep, steps · location · Focus</text>
+  <rect x="30" y="380" width="390" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="42" y="396" font-size="12.5" font-weight="700" fill="#0f172a">Android + any watch it syncs</text>
+  <text x="42" y="414" font-size="12" fill="#334155">notifications (allow-list) · app usage · Health Connect</text>
+  <rect x="30" y="428" width="390" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="42" y="444" font-size="12.5" font-weight="700" fill="#0f172a">Wear OS / Galaxy watch</text>
+  <text x="42" y="462" font-size="12" fill="#334155">heart rate · steps · on-body (HA Wear OS app)</text>
+
+  <line x1="420" y1="353" x2="550" y2="353" stroke="#475569" stroke-width="1.6"/>
+  <line x1="420" y1="401" x2="550" y2="401" stroke="#475569" stroke-width="1.6"/>
+  <line x1="420" y1="449" x2="550" y2="449" stroke="#475569" stroke-width="1.6"/>
+  <line x1="550" y1="353" x2="550" y2="449" stroke="#475569" stroke-width="1.6"/>
+  <line x1="550" y1="401" x2="579" y2="401" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+
+  <!-- ============ LEFT: GROUP 3 — Webhooks ============ -->
+  <text x="30" y="497" font-size="11.5" font-weight="700" fill="#475569">WEBHOOKS · TOKEN OR HMAC</text>
+  <rect x="30" y="504" width="390" height="42" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="6 4"/>
+  <text x="42" y="520" font-size="12.5" font-weight="700" fill="#0f172a">CMF · Garmin · Galaxy watch</text>
+  <text x="42" y="538" font-size="12" fill="#334155">→ Health Connect → webhook app (no HA needed)</text>
+  <rect x="30" y="552" width="390" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="42" y="568" font-size="12.5" font-weight="700" fill="#0f172a">Apple Watch</text>
+  <text x="42" y="586" font-size="12" fill="#334155">"Tell Tempo" Shortcut: dictate → POST</text>
+  <rect x="30" y="600" width="390" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="42" y="616" font-size="12.5" font-weight="700" fill="#0f172a">Meta glasses (via Android)</text>
+  <text x="42" y="634" font-size="12" fill="#334155">"Hey Meta, message Tempo" → SMS</text>
+  <rect x="30" y="648" width="390" height="42" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="6 4"/>
+  <text x="42" y="664" font-size="12.5" font-weight="700" fill="#0f172a">Landline / basic phone</text>
+  <text x="42" y="682" font-size="12" fill="#334155">texts Tempo's number</text>
+
+  <!-- SMS gateway phone -->
+  <rect x="440" y="610" width="92" height="70" rx="8" fill="#f8fafc" stroke="#475569"/>
+  <text x="486" y="632" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">SMS</text>
+  <text x="486" y="648" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">gateway</text>
+  <text x="486" y="664" font-size="11" fill="#475569" text-anchor="middle">spare Android</text>
+  <line x1="420" y1="621" x2="439" y2="628" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+  <line x1="420" y1="669" x2="439" y2="662" stroke="#475569" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#ink)"/>
+
+  <line x1="420" y1="525" x2="550" y2="525" stroke="#475569" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <line x1="420" y1="573" x2="550" y2="573" stroke="#475569" stroke-width="1.6"/>
+  <line x1="532" y1="645" x2="550" y2="645" stroke="#475569" stroke-width="1.6"/>
+  <line x1="550" y1="525" x2="550" y2="645" stroke="#475569" stroke-width="1.6"/>
+  <line x1="550" y1="585" x2="579" y2="585" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+
+  <!-- ============ HUB ============ -->
+  <rect x="570" y="140" width="430" height="560" rx="14" fill="#f5f9ff" stroke="#2563eb" stroke-width="1.5"/>
+
+  <!-- Doors in -->
+  <rect x="580" y="194" width="130" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="645" y="218" font-size="12.5" font-weight="700" fill="#1d4ed8" text-anchor="middle">POST /v1/events</text>
+  <text x="645" y="236" font-size="11.5" fill="#334155" text-anchor="middle">device signature</text>
+  <text x="645" y="252" font-size="11.5" fill="#334155" text-anchor="middle">verified</text>
+
+  <rect x="580" y="361" width="130" height="80" rx="8" fill="#ffffff" stroke="#475569"/>
+  <text x="645" y="385" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Home Assistant</text>
+  <text x="645" y="403" font-size="11.5" fill="#334155" text-anchor="middle">Docker, :8123</text>
+  <text x="645" y="419" font-size="11.5" fill="#334155" text-anchor="middle">hub subscribes</text>
+  <text x="645" y="434" font-size="11.5" fill="#334155" text-anchor="middle">over WebSocket</text>
+
+  <rect x="580" y="550" width="130" height="70" rx="8" fill="#ffffff" stroke="#475569"/>
+  <text x="645" y="574" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">POST /hooks/*</text>
+  <text x="645" y="592" font-size="11.5" fill="#334155" text-anchor="middle">token / HMAC</text>
+  <text x="645" y="608" font-size="11.5" fill="#334155" text-anchor="middle">checked</text>
+
+  <!-- Core log -->
+  <path d="M730,190 a55,12 0 0 0 110,0 v440 a55,12 0 0 1 -110,0 z" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <ellipse cx="785" cy="190" rx="55" ry="12" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="785" y="236" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">one</text>
+  <text x="785" y="253" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">event log</text>
+  <text x="785" y="296" font-size="12" fill="#334155" text-anchor="middle">drop</text>
+  <text x="785" y="312" font-size="12" fill="#334155" text-anchor="middle">duplicates</text>
+  <text x="785" y="338" font-size="12" fill="#94a3b8" text-anchor="middle">↓</text>
+  <text x="785" y="364" font-size="12" fill="#334155" text-anchor="middle">hub signs</text>
+  <text x="785" y="380" font-size="12" fill="#334155" text-anchor="middle">door events</text>
+  <text x="785" y="406" font-size="12" fill="#94a3b8" text-anchor="middle">↓</text>
+  <text x="785" y="432" font-size="12" fill="#334155" text-anchor="middle">append,</text>
+  <text x="785" y="448" font-size="12" fill="#334155" text-anchor="middle">hub_seq++</text>
+  <text x="785" y="474" font-size="12" fill="#94a3b8" text-anchor="middle">↓</text>
+  <text x="785" y="500" font-size="12" fill="#334155" text-anchor="middle">filter for</text>
+  <text x="785" y="516" font-size="12" fill="#334155" text-anchor="middle">each device</text>
+  <text x="785" y="560" font-size="11" fill="#64748b" text-anchor="middle">SQLite</text>
+
+  <line x1="710" y1="229" x2="729" y2="229" stroke="#2563eb" stroke-width="2" marker-end="url(#blue)"/>
+  <line x1="710" y1="401" x2="729" y2="401" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+  <line x1="710" y1="585" x2="729" y2="585" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+
+  <!-- Doors out -->
+  <rect x="860" y="232" width="130" height="64" rx="8" fill="#ffffff" stroke="#475569"/>
+  <text x="925" y="256" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">SSE poke</text>
+  <text x="925" y="274" font-size="11.5" fill="#334155" text-anchor="middle">→ GET /v1/changes</text>
+  <text x="925" y="289" font-size="11.5" fill="#334155" text-anchor="middle">?since=cursor</text>
+
+  <rect x="860" y="368" width="130" height="64" rx="8" fill="#ffffff" stroke="#475569"/>
+  <text x="925" y="392" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Web Push</text>
+  <text x="925" y="410" font-size="11.5" fill="#334155" text-anchor="middle">own VAPID keys,</text>
+  <text x="925" y="425" font-size="11.5" fill="#334155" text-anchor="middle">no Apple account</text>
+
+  <rect x="860" y="552" width="130" height="64" rx="8" fill="#ffffff" stroke="#475569"/>
+  <text x="925" y="576" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">SMS reply</text>
+  <text x="925" y="594" font-size="11.5" fill="#334155" text-anchor="middle">via the gateway</text>
+  <text x="925" y="609" font-size="11.5" fill="#334155" text-anchor="middle">phone's API</text>
+
+  <line x1="840" y1="264" x2="859" y2="264" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+  <line x1="840" y1="400" x2="859" y2="400" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+  <line x1="840" y1="584" x2="859" y2="584" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+
+  <!-- ============ RIGHT: OUT ============ -->
+  <rect x="1050" y="220" width="370" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="1062" y="236" font-size="12.5" font-weight="700" fill="#0f172a">Laptop</text>
+  <text x="1062" y="254" font-size="12" fill="#334155">open web app updates live</text>
+
+  <rect x="1050" y="274" width="370" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="1062" y="290" font-size="12.5" font-weight="700" fill="#0f172a">Android phone</text>
+  <text x="1062" y="308" font-size="12" fill="#334155">node pulls on poke · Web Push when closed</text>
+
+  <path d="M1064,316 V349 H1079" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ink)"/>
+  <rect x="1080" y="328" width="340" height="42" rx="8" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="1092" y="344" font-size="12.5" font-weight="700" fill="#0f172a">CMF · Wear OS · Galaxy · Garmin</text>
+  <text x="1092" y="362" font-size="12" fill="#334155">mirror the phone's notification (Bluetooth)</text>
+
+  <rect x="1050" y="396" width="370" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="1062" y="412" font-size="12.5" font-weight="700" fill="#0f172a">iPhone (Home Screen web app)</text>
+  <text x="1062" y="430" font-size="12" fill="#334155">"Tempo needs your OK" → tap → pull changes</text>
+
+  <path d="M1064,438 V471 H1079" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ink)"/>
+  <rect x="1080" y="450" width="340" height="42" rx="8" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="1092" y="466" font-size="12.5" font-weight="700" fill="#0f172a">Apple Watch</text>
+  <text x="1092" y="484" font-size="12" fill="#334155">shows the push while the iPhone is locked</text>
+
+  <rect x="1050" y="536" width="370" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="1062" y="552" font-size="12.5" font-weight="700" fill="#0f172a">Meta glasses</text>
+  <text x="1062" y="570" font-size="12" fill="#334155">read the SMS reply aloud</text>
+
+  <rect x="1050" y="590" width="370" height="42" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="6 4"/>
+  <text x="1062" y="606" font-size="12.5" font-weight="700" fill="#0f172a">Landline / basic phone</text>
+  <text x="1062" y="624" font-size="12" fill="#334155">gets the SMS reply</text>
+
+  <!-- Out arrows -->
+  <line x1="990" y1="254" x2="1049" y2="241" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+  <line x1="990" y1="274" x2="1049" y2="290" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+  <line x1="990" y1="384" x2="1049" y2="303" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+  <line x1="990" y1="412" x2="1049" y2="417" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+  <line x1="990" y1="574" x2="1049" y2="557" stroke="#475569" stroke-width="1.6" marker-end="url(#ink)"/>
+  <line x1="990" y1="596" x2="1049" y2="611" stroke="#475569" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#ink)"/>
+
+  <!-- Footnote -->
+  <text x="30" y="740" font-size="12.5" fill="#475569">Caveats: iPhone health data can only be read while the iPhone is unlocked. Android notification access needs "Allow restricted settings" for sideloaded apps.</text>
+  <text x="30" y="760" font-size="12.5" fill="#475569">Home Assistant is a bridge for tonight; Tempo's own apps replace it later. The hub signs every door event as a gateway, so the log always records who vouched for it.</text>
+</svg>

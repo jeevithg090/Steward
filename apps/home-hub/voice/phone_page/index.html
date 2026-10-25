@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Kairos</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a66; --line: #e3e1da;
+    --accent: #2f6f5e; --accent-ink: #ffffff; --speak: #c2662d; --warn-bg: #fff4e0; --warn-ink: #7a4b00;
+    --err-bg: #fde8e6; --err-ink: #8a1f14; --you: #eef3f1; --tempo: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141513; --card: #1d1f1c; --ink: #ecebe6; --muted: #a3a29c; --line: #30332e;
+      --accent: #5fb39b; --accent-ink: #0d1a16; --speak: #e48a4f; --warn-bg: #3a2c12; --warn-ink: #f3cf8e;
+      --err-bg: #3d1a16; --err-ink: #f6b8ae; --you: #1f2a26; --tempo: #23251f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141513; --card: #1d1f1c; --ink: #ecebe6; --muted: #a3a29c; --line: #30332e;
+    --accent: #5fb39b; --accent-ink: #0d1a16; --speak: #e48a4f; --warn-bg: #3a2c12; --warn-ink: #f3cf8e;
+    --err-bg: #3d1a16; --err-ink: #f6b8ae; --you: #1f2a26; --tempo: #23251f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 520px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px
+    max(24px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; min-height: 100dvh; }
+  header { display: flex; align-items: baseline; justify-content: space-between; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 14px; }
+  .banner { border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+  .banner.warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .banner.err { background: var(--err-bg); color: var(--err-ink); }
+  .langs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px;
+    padding: 6px 14px; font: inherit; font-size: 15px; }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0; }
+  #talk { width: 168px; height: 168px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink);
+    font-family: inherit; font-size: 19px; font-weight: 600; line-height: 1.2; box-shadow: 0 6px 24px rgba(0,0,0,.15); touch-action: manipulation;
+    transition: transform .15s ease, background .2s ease; }
+  #talk:active { transform: scale(.97); }
+  #talk[data-state="connecting"] { opacity: .75; }
+  #talk[data-state="listening"] { animation: pulse 1.8s ease-in-out infinite; }
+  #talk[data-state="speaking"] { background: var(--speak); }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(47,111,94,.45); } 50% { box-shadow: 0 0 0 18px rgba(47,111,94,0); } }
+  @media (prefers-reduced-motion: reduce) { #talk[data-state="listening"] { animation: none; outline: 4px solid var(--accent); outline-offset: 6px; } }
+  #status { color: var(--muted); font-size: 15px; min-height: 1.45em; text-align: center; }
+  #captions { flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
+  .line { border-radius: 14px; padding: 9px 12px; max-width: 88%; border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .line.user { align-self: flex-end; background: var(--you); }
+  .line.agent { align-self: flex-start; background: var(--tempo); }
+  .line.tool { align-self: center; background: transparent; border-style: dashed; color: var(--muted); font-size: 14px; }
+  form { display: flex; gap: 8px; }
+  #typed { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 12px; padding: 10px 12px; font: inherit; font-size: 16px; }
+  form button { border: 0; border-radius: 12px; padding: 0 16px; background: var(--ink); color: var(--bg); font: inherit; font-weight: 600; }
+  .notice { font-size: 13px; color: var(--muted); margin: 0; }
+  .agents { border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .agents h2 { font-size: 16px; margin: 0; }
+  .hint { font-size: 13px; color: var(--muted); margin: 0; white-space: pre-wrap; }
+  #agentform { display: flex; gap: 8px; }
+  #agentask { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 12px; padding: 10px 12px; font: inherit; font-size: 16px; }
+  #agentgo { border: 0; border-radius: 12px; padding: 0 16px; background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .filebtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 14px;
+    padding: 14px 18px; background: var(--accent); color: var(--accent-ink); font: inherit; font-size: 18px; font-weight: 700;
+    cursor: pointer; flex: 1; min-height: 56px; }
+  .filebtn:active { transform: scale(.98); }
+  #letterlang, #dialect { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 12px;
+    padding: 10px 12px; font: inherit; font-size: 16px; min-width: 0; }
+  #letterlang { flex: 0 1 44%; } #dialect { flex: 1 1 50%; }
+  .big { font-size: 22px; line-height: 1.5; margin: 0; white-space: pre-wrap; }
+  .steps { font-size: 14px; color: var(--muted); margin: 0; white-space: pre-wrap; }
+  #letterplay, #letterstop { border: 0; border-radius: 12px; padding: 12px 18px; background: var(--speak); color: #fff;
+    font: inherit; font-size: 17px; font-weight: 700; }
+  #letterstop { background: var(--ink); color: var(--bg); }
+  #letterask { display: flex; gap: 8px; }
+  #letterq { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 12px; padding: 10px 12px; font: inherit; font-size: 16px; }
+  #letterask button { border: 0; border-radius: 12px; padding: 0 16px; background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; }
+  .facts { font-size: 14px; color: var(--muted); margin: 0; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Kairos</h1>
+    <span class="sub" id="conn">voice</span>
+  </header>
+
+  <div id="banner" class="banner hidden" role="alert"></div>
+
+  <div class="langs" role="group" aria-label="Language">
+    <button class="chip" data-lang="en" aria-pressed="true">English</button>
+    <button class="chip" data-lang="cy" aria-pressed="false">Cymraeg</button>
+    <button class="chip" data-lang="te" aria-pressed="false">తెలుగు</button>
+  </div>
+
+  <div class="stage">
+    <button id="talk" data-state="idle" aria-live="polite">Tap to talk</button>
+    <div id="status">Tap once, then just speak. Tap again to stop.</div>
+  </div>
+
+  <section id="captions" aria-live="polite" aria-label="Conversation"></section>
+
+  <form id="typeform" autocomplete="off">
+    <input id="typed" type="text" inputmode="text" enterkeyhint="send" placeholder="Type instead…" aria-label="Type a message to Kairos">
+    <button type="submit">Send</button>
+  </form>
+
+  <section class="agents" aria-label="Ask your helpers">
+    <h2>Your helpers</h2>
+    <p class="hint">Ask for something on your laptop or this phone. Type it, or tap 🎤 on the keyboard.</p>
+    <form id="agentform" autocomplete="off">
+      <input id="agentask" type="text" enterkeyhint="go" placeholder="e.g. how much battery does my laptop have?" aria-label="Ask your helpers">
+      <button type="submit" id="agentgo">Go</button>
+    </form>
+    <div id="agentstatus" class="hint" aria-live="polite"></div>
+  </section>
+
+  <section class="agents" id="letter" aria-label="Read a letter">
+    <h2>Read a letter</h2>
+    <p class="hint">Got a letter, bill or form you don't understand? Take a photo. Kairos tells you what it is, what it means and what to do, in your language.</p>
+    <div class="row">
+      <select id="letterlang" aria-label="Language to hear it in"></select>
+      <input id="dialect" type="text" placeholder="Dialect (optional), e.g. Telangana" aria-label="Dialect, optional" autocomplete="off">
+    </div>
+    <div class="row">
+      <label class="filebtn" for="letterfile">📷 Take a photo of the letter</label>
+      <input id="letterfile" type="file" accept="image/*" capture="environment" class="hidden">
+    </div>
+    <p id="lettersteps" class="steps" aria-live="polite"></p>
+    <div id="letterresult" class="hidden">
+      <div id="letterwarn" class="banner warn hidden" role="alert"></div>
+      <p id="lettertext" class="big" lang="en"></p>
+      <div class="row">
+        <button id="letterplay" type="button">▶ Hear it again</button>
+        <button id="letterstop" type="button">■ Stop</button>
+        <span id="letterfacts" class="facts"></span>
+      </div>
+      <form id="letterask" autocomplete="off">
+        <input id="letterq" type="text" enterkeyhint="send" placeholder="Ask about it, e.g. what if I can't pay?" aria-label="Ask about the letter">
+        <button type="submit">Ask</button>
+      </form>
+      <p id="letteranswer" class="big hidden"></p>
+    </div>
+    <p class="hint">Information, not legal or financial advice. The photo is read by Google's Gemini (or the laptop's own model when there's no key) and isn't kept.</p>
+  </section>
+
+  <p class="notice">What you say is processed by ElevenLabs (US) and Google (Gemini, via ElevenLabs) to understand and answer you. Call recording and model training
+      are off; conversations are deleted by midday Sunday. Tool questions pass through our tunnel provider (ngrok).
+      18+ for the voice line.</p>
+</main>
+<script src="vendor/elevenlabs-client-1.27.0.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

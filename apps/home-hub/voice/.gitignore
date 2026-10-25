@@ -1,0 +1,6 @@
+# Secrets never go in git
+.env
+.env.*
+!.env.example
+node_modules/
+.voice_sessions.json

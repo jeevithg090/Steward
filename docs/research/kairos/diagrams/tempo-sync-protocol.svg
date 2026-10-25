@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 870" role="img" aria-label="Tempo sync protocol for one late train. The Android phone, offline, writes event 42 to its outbox. On reconnect it asks the hub for status, uploads the event, and the hub verifies, deduplicates and assigns hub sequence 1204 before acknowledging. The hub alerts the agent, which checks consent and requests approval. The hub sends a Web Push to the iPhone, which pulls changes since its cursor, gets the approval card, signs it with Face ID and uploads the approval. The agent receives the signed approval." font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1440" height="870" fill="#ffffff"/>
+
+  <text x="40" y="50" font-size="26" font-weight="700" fill="#0f172a">Tempo Sync protocol: one late train, end to end</text>
+  <text x="40" y="78" font-size="14" fill="#475569">Uploads retry until acknowledged and duplicates are ignored. Devices pull with one hub cursor. Pushes and pokes only say "something changed".</text>
+
+  <!-- Legend -->
+  <line x1="1110" y1="44" x2="1150" y2="44" stroke="#334155" stroke-width="1.6" marker-end="url(#ink)"/>
+  <text x="1158" y="48" font-size="12" fill="#334155">request</text>
+  <line x1="1230" y1="44" x2="1270" y2="44" stroke="#334155" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ink)"/>
+  <text x="1278" y="48" font-size="12" fill="#334155">response</text>
+  <line x1="1110" y1="68" x2="1150" y2="68" stroke="#2563eb" stroke-width="2" marker-end="url(#blue)"/>
+  <text x="1158" y="72" font-size="12" fill="#334155">wake-up (Web Push)</text>
+
+  <!-- Lane headers -->
+  <rect x="70" y="110" width="220" height="50" rx="10" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="180" y="132" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">Android node</text>
+  <text x="180" y="150" font-size="11.5" fill="#64748b" text-anchor="middle">Nothing Phone · outbox</text>
+
+  <rect x="450" y="110" width="220" height="50" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="560" y="132" font-size="14" font-weight="700" fill="#1d4ed8" text-anchor="middle">Tempo Hub</text>
+  <text x="560" y="150" font-size="11.5" fill="#64748b" text-anchor="middle">hub_epoch · event log</text>
+
+  <rect x="830" y="110" width="220" height="50" rx="10" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="940" y="132" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">iPhone web app</text>
+  <text x="940" y="150" font-size="11.5" fill="#64748b" text-anchor="middle">cursor = 1188 · closed</text>
+
+  <rect x="1170" y="110" width="220" height="50" rx="10" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="1280" y="132" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">Teammate's agent</text>
+  <text x="1280" y="150" font-size="11.5" fill="#64748b" text-anchor="middle">MCP client</text>
+
+  <!-- Lifelines -->
+  <line x1="180" y1="160" x2="180" y2="840" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="560" y1="160" x2="560" y2="840" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="940" y1="160" x2="940" y2="840" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="1280" y1="160" x2="1280" y2="840" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- 1. Offline outbox -->
+  <rect x="40" y="180" width="280" height="54" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <circle cx="58" cy="198" r="10" fill="#0f172a"/><text x="58" y="202" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="76" y="202" font-size="12.5" font-weight="700" fill="#0f172a">Offline: "GWR 08:12, +34 min"</text>
+  <text x="76" y="222" font-size="12" fill="#334155">→ 3 fields → outbox seq 42, prev = #41</text>
+
+  <!-- 2. Status -->
+  <circle cx="200" cy="262" r="10" fill="#0f172a"/><text x="200" y="266" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="218" y="266" font-size="12.5" fill="#0f172a">Reconnect → GET /v1/sync/status</text>
+  <line x1="180" y1="276" x2="559" y2="276" stroke="#334155" stroke-width="1.6" marker-end="url(#ink)"/>
+  <text x="370" y="298" font-size="12" fill="#475569" text-anchor="middle">hub_epoch · have[me] = 41 · server_time</text>
+  <line x1="560" y1="306" x2="181" y2="306" stroke="#334155" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ink)"/>
+
+  <!-- 3. Upload -->
+  <circle cx="200" cy="338" r="10" fill="#0f172a"/><text x="200" y="342" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="218" y="342" font-size="12.5" fill="#0f172a">POST /v1/events [seq 42]</text>
+  <line x1="180" y1="352" x2="559" y2="352" stroke="#334155" stroke-width="1.6" marker-end="url(#ink)"/>
+  <rect x="580" y="330" width="340" height="66" rx="8" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="596" y="352" font-size="12.5" font-weight="700" fill="#0f172a">Verify, then append once</text>
+  <text x="596" y="370" font-size="12" fill="#334155">signature ✓ · seq follows 41 ✓ · prev hash ✓</text>
+  <text x="596" y="387" font-size="12" fill="#334155">INSERT OR IGNORE · assign hub_seq = 1204</text>
+
+  <!-- 4. Ack -->
+  <text x="370" y="400" font-size="12" fill="#475569" text-anchor="middle">ack: have[me] = 42 (same batch again = no-op)</text>
+  <line x1="560" y1="410" x2="181" y2="410" stroke="#334155" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ink)"/>
+  <circle cx="540" cy="396" r="10" fill="#0f172a"/><text x="540" y="400" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+
+  <!-- 5. Signal to agent -->
+  <circle cx="580" cy="450" r="10" fill="#0f172a"/><text x="580" y="454" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+  <text x="598" y="454" font-size="12.5" fill="#0f172a">webhook: signal.rail_delay {GWR, 08:12, +34}</text>
+  <line x1="560" y1="464" x2="1279" y2="464" stroke="#334155" stroke-width="1.6" marker-end="url(#ink)"/>
+
+  <!-- 6. Agent asks -->
+  <circle cx="1260" cy="500" r="10" fill="#0f172a"/><text x="1260" y="504" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">6</text>
+  <text x="1242" y="504" font-size="12.5" fill="#0f172a" text-anchor="end">MCP: check_consent ✓ → request_approval("claim £14.20?")</text>
+  <line x1="1280" y1="514" x2="561" y2="514" stroke="#334155" stroke-width="1.6" marker-end="url(#ink)"/>
+
+  <!-- 7. Web Push -->
+  <circle cx="580" cy="550" r="10" fill="#2563eb"/><text x="580" y="554" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">7</text>
+  <text x="598" y="554" font-size="12.5" fill="#1d4ed8">Web Push: "Tempo needs your OK"</text>
+  <line x1="560" y1="564" x2="939" y2="564" stroke="#2563eb" stroke-width="2" marker-end="url(#blue)"/>
+  <text x="750" y="584" font-size="11.5" fill="#64748b" text-anchor="middle">no details in the push; it must be visible</text>
+
+  <!-- 8. Pull -->
+  <circle cx="920" cy="618" r="10" fill="#0f172a"/><text x="920" y="622" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">8</text>
+  <text x="902" y="622" font-size="12.5" fill="#0f172a" text-anchor="end">user taps → GET /v1/changes?since=1188</text>
+  <line x1="940" y1="632" x2="561" y2="632" stroke="#334155" stroke-width="1.6" marker-end="url(#ink)"/>
+  <text x="750" y="656" font-size="12" fill="#475569" text-anchor="middle">only this phone's filter: approval card · next = 1205</text>
+  <line x1="560" y1="666" x2="939" y2="666" stroke="#334155" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ink)"/>
+
+  <!-- 9. Face ID -->
+  <rect x="960" y="684" width="300" height="54" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <circle cx="978" cy="702" r="10" fill="#0f172a"/><text x="978" y="706" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">9</text>
+  <text x="996" y="706" font-size="12.5" font-weight="700" fill="#0f172a">Face ID (passkey) signs</text>
+  <text x="996" y="726" font-size="12" fill="#334155">H(mission, £14.20, nonce)</text>
+
+  <!-- 10. Upload approval -->
+  <circle cx="920" cy="760" r="10" fill="#0f172a"/><text x="920" y="764" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">10</text>
+  <text x="902" y="764" font-size="12.5" fill="#0f172a" text-anchor="end">POST /v1/events [approval]</text>
+  <line x1="940" y1="774" x2="561" y2="774" stroke="#334155" stroke-width="1.6" marker-end="url(#ink)"/>
+
+  <!-- 11. Agent gets result -->
+  <circle cx="580" cy="806" r="10" fill="#0f172a"/><text x="580" y="810" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">11</text>
+  <text x="598" y="810" font-size="12.5" fill="#0f172a">request_approval returns: approved, with signature</text>
+  <line x1="560" y1="820" x2="1279" y2="820" stroke="#334155" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ink)"/>
+</svg>

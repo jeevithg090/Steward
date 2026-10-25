@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1480 850" role="img" aria-label="Tempo Sync architecture. Devices on the left keep raw data and send events out through one stable HTTPS origin. The Tempo Hub takes events in through three doors, verifies and deduplicates them, appends them to one log, replays the log into state and memory, and sends each device only what it can use. Agents reach the data through an MCP server, and model calls go through a router that keeps raw personal data on a local model." font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+    <marker id="orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1480" height="850" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="40" y="50" font-size="26" font-weight="700" fill="#0f172a">Tempo Sync: one hub, every device</text>
+  <text x="40" y="78" font-size="14" fill="#475569">Each device writes events to its own outbox. The hub merges them into one timeline, then sends each device only what it can use.</text>
+
+  <!-- Legend -->
+  <line x1="1110" y1="44" x2="1150" y2="44" stroke="#334155" stroke-width="1.8"/>
+  <text x="1158" y="48" font-size="12" fill="#334155">build tonight</text>
+  <line x1="1270" y1="44" x2="1310" y2="44" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <text x="1318" y="48" font-size="12" fill="#334155">optional / roadmap</text>
+  <line x1="1110" y1="68" x2="1150" y2="68" stroke="#c2410c" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <text x="1158" y="72" font-size="12" fill="#334155">Mission fields only, never raw personal data</text>
+
+  <!-- ===================== ZONE 1: DEVICES ===================== -->
+  <rect x="20" y="110" width="420" height="690" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="40" y="138" font-size="13" font-weight="700" fill="#475569" letter-spacing="1">1 · YOUR DEVICES</text>
+  <text x="40" y="156" font-size="12" fill="#64748b">Raw data (L0) stays on the device or the hub laptop</text>
+
+  <!-- Android -->
+  <rect x="40" y="175" width="380" height="165" rx="10" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="58" y="201" font-size="15" font-weight="700" fill="#0f172a">Android phone (any brand)</text>
+  <text x="58" y="223" font-size="12.5" fill="#334155">Tempo node: notification → 3 fields, signed</text>
+  <text x="58" y="241" font-size="12.5" fill="#334155">Home Assistant app: Health Connect, app usage</text>
+  <rect x="58" y="254" width="344" height="34" rx="6" fill="#f1f5f9"/>
+  <text x="70" y="276" font-size="12" fill="#334155"><tspan font-weight="700">Watch</tspan>  CMF · Wear OS · Garmin → Health Connect</text>
+  <rect x="58" y="294" width="344" height="34" rx="6" fill="#f1f5f9"/>
+  <text x="70" y="316" font-size="12" fill="#334155"><tspan font-weight="700">Glasses</tspan>  "Hey Meta, message Tempo" → SMS</text>
+  <rect x="340" y="186" width="66" height="22" rx="11" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="373" y="201" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">outbox</text>
+
+  <!-- iPhone -->
+  <rect x="40" y="355" width="380" height="165" rx="10" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="58" y="381" font-size="15" font-weight="700" fill="#0f172a">iPhone + Apple Watch</text>
+  <text x="58" y="403" font-size="12.5" fill="#334155">Home Screen web app: approve with Face ID</text>
+  <text x="58" y="421" font-size="12.5" fill="#334155">Home Assistant app: Apple Health, location</text>
+  <rect x="58" y="434" width="344" height="34" rx="6" fill="#f1f5f9"/>
+  <text x="70" y="456" font-size="12" fill="#334155"><tspan font-weight="700">Watch</tspan>  HealthKit via iPhone · "Tell Tempo" Shortcut</text>
+  <rect x="58" y="474" width="344" height="34" rx="6" fill="#f1f5f9"/>
+  <text x="70" y="496" font-size="12" fill="#334155"><tspan font-weight="700">Wake-up</tspan>  Web Push: "Tempo needs your OK"</text>
+  <rect x="340" y="366" width="66" height="22" rx="11" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="373" y="381" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">outbox</text>
+
+  <!-- Laptop -->
+  <rect x="40" y="535" width="380" height="135" rx="10" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="58" y="561" font-size="15" font-weight="700" fill="#0f172a">Laptop (Windows · macOS · Linux)</text>
+  <text x="58" y="583" font-size="12.5" fill="#334155">ActivityWatch + poller · calendar (ICS)</text>
+  <text x="58" y="601" font-size="12.5" fill="#334155">On-demand file agent: asks before it reads</text>
+  <rect x="58" y="614" width="344" height="34" rx="6" fill="#f1f5f9"/>
+  <text x="70" y="636" font-size="12" fill="#334155"><tspan font-weight="700">Tonight</tspan>  this laptop also runs the hub + local model</text>
+  <rect x="340" y="546" width="66" height="22" rx="11" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="373" y="561" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">outbox</text>
+
+  <!-- SMS gateway -->
+  <rect x="40" y="685" width="380" height="95" rx="10" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="58" y="711" font-size="15" font-weight="700" fill="#0f172a">SMS gateway (spare Android + SIM)</text>
+  <text x="58" y="733" font-size="12.5" fill="#334155">glasses and landline texts in · replies out</text>
+  <text x="58" y="751" font-size="12.5" fill="#334155">webhook signed with HMAC</text>
+
+  <!-- Device <-> origin links -->
+  <line x1="420" y1="257" x2="460" y2="257" stroke="#334155" stroke-width="1.8" marker-start="url(#ink)" marker-end="url(#ink)"/>
+  <line x1="420" y1="437" x2="460" y2="437" stroke="#334155" stroke-width="1.8" marker-start="url(#ink)" marker-end="url(#ink)"/>
+  <line x1="420" y1="602" x2="460" y2="602" stroke="#334155" stroke-width="1.8" marker-start="url(#ink)" marker-end="url(#ink)"/>
+  <line x1="420" y1="732" x2="460" y2="732" stroke="#334155" stroke-width="1.8" marker-start="url(#ink)" marker-end="url(#ink)"/>
+
+  <!-- ===================== ORIGIN BUS ===================== -->
+  <text x="470" y="138" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle">HTTPS</text>
+  <text x="470" y="154" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle">origin</text>
+  <rect x="462" y="175" width="16" height="605" rx="8" fill="#2563eb"/>
+  <text x="470" y="802" font-size="11" fill="#1d4ed8" text-anchor="middle">Tailscale</text>
+  <text x="470" y="816" font-size="11" fill="#1d4ed8" text-anchor="middle">Funnel</text>
+
+  <!-- ===================== ZONE 2: HUB ===================== -->
+  <rect x="545" y="110" width="525" height="690" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="565" y="138" font-size="13" font-weight="700" fill="#1d4ed8" letter-spacing="1">2 · TEMPO HUB</text>
+  <text x="565" y="156" font-size="12" fill="#475569">Node 24 + Hono + SQLite, with Home Assistant in Docker beside it</text>
+
+  <!-- Pairing -->
+  <rect x="565" y="175" width="485" height="52" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="582" y="197" font-size="13.5" font-weight="700" fill="#0f172a">Pairing &amp; device registry</text>
+  <text x="582" y="216" font-size="12" fill="#334155">QR code (expires in 2 min) → device key · capability profile · push subscription</text>
+  <line x1="478" y1="201" x2="564" y2="201" stroke="#2563eb" stroke-width="1.8" marker-end="url(#blue)"/>
+  <text x="511" y="194" font-size="11" fill="#1d4ed8" text-anchor="middle">pair</text>
+
+  <!-- Ingest -->
+  <rect x="565" y="242" width="485" height="72" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="582" y="264" font-size="13.5" font-weight="700" fill="#0f172a">Ingest · 3 doors</text>
+  <text x="582" y="284" font-size="12" fill="#334155">/v1/events (device-signed) · /hooks/* (token, HMAC) · Home Assistant</text>
+  <text x="582" y="302" font-size="12" fill="#334155">verify → drop duplicate → check seq + prev hash → assign hub_seq → ack</text>
+  <line x1="478" y1="278" x2="564" y2="278" stroke="#2563eb" stroke-width="1.8" marker-end="url(#blue)"/>
+  <text x="511" y="258" font-size="11" fill="#1d4ed8" text-anchor="middle">signed</text>
+  <text x="511" y="271" font-size="11" fill="#1d4ed8" text-anchor="middle">events</text>
+
+  <!-- Event log (cylinder) -->
+  <path d="M565,342 a242.5,10 0 0 0 485,0 v64 a242.5,10 0 0 1 -485,0 z" fill="#ffffff" stroke="#94a3b8"/>
+  <ellipse cx="807.5" cy="342" rx="242.5" ry="10" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="807.5" y="377" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Event log · SQLite, append-only</text>
+  <text x="807.5" y="397" font-size="12" fill="#334155" text-anchor="middle">hub_seq · device · seq · prev · HLC · UTC + offset + zone · class · signature</text>
+  <line x1="807.5" y1="314" x2="807.5" y2="331" stroke="#334155" stroke-width="1.5" marker-end="url(#ink)"/>
+  <text x="817" y="327" font-size="11" fill="#475569">append</text>
+
+  <!-- Fold -->
+  <rect x="565" y="437" width="232" height="74" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="582" y="460" font-size="13.5" font-weight="700" fill="#0f172a">State (fold)</text>
+  <text x="582" y="479" font-size="12" fill="#334155">replay the log →</text>
+  <text x="582" y="496" font-size="12" fill="#334155">consent (deny wins) · prefs</text>
+  <line x1="681" y1="416" x2="681" y2="436" stroke="#334155" stroke-width="1.5" marker-end="url(#ink)"/>
+  <text x="691" y="430" font-size="11" fill="#475569">replay</text>
+
+  <!-- Memory -->
+  <rect x="817" y="437" width="233" height="74" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="834" y="460" font-size="13.5" font-weight="700" fill="#0f172a">Memory</text>
+  <text x="834" y="479" font-size="12" fill="#334155">facts · cited profile</text>
+  <text x="834" y="496" font-size="12" fill="#334155">FTS5 search · Forget cascade</text>
+  <line x1="933" y1="416" x2="933" y2="436" stroke="#334155" stroke-width="1.5" marker-end="url(#ink)"/>
+  <text x="943" y="430" font-size="11" fill="#475569">index</text>
+
+  <!-- Sync out -->
+  <rect x="565" y="532" width="232" height="140" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="582" y="555" font-size="13.5" font-weight="700" fill="#0f172a">Sync out</text>
+  <text x="582" y="574" font-size="12" fill="#334155">per-device filter + byte budget</text>
+  <text x="582" y="592" font-size="12" fill="#334155">watch: L3 summaries only</text>
+  <text x="582" y="610" font-size="12" fill="#334155">phones: L2 facts + approvals</text>
+  <text x="582" y="634" font-size="12" fill="#334155">GET /v1/changes?since=cursor</text>
+  <text x="582" y="652" font-size="12" fill="#334155">SSE poke · Web Push · SMS reply</text>
+  <line x1="681" y1="511" x2="681" y2="531" stroke="#334155" stroke-width="1.5" marker-end="url(#ink)"/>
+  <text x="691" y="525" font-size="11" fill="#475569">rules</text>
+  <path d="M845,511 V522 H770 V531" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#ink)"/>
+  <line x1="565" y1="612" x2="479" y2="612" stroke="#2563eb" stroke-width="1.8" marker-end="url(#blue)"/>
+  <text x="511" y="592" font-size="11" fill="#1d4ed8" text-anchor="middle">only what</text>
+  <text x="511" y="605" font-size="11" fill="#1d4ed8" text-anchor="middle">you need</text>
+
+  <!-- MCP -->
+  <rect x="817" y="532" width="233" height="62" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="834" y="555" font-size="13.5" font-weight="700" fill="#0f172a">tempo-me MCP server</text>
+  <text x="834" y="575" font-size="12" fill="#334155">search · consent · approval</text>
+  <line x1="963" y1="511" x2="963" y2="531" stroke="#334155" stroke-width="1.5" marker-end="url(#ink)"/>
+  <text x="973" y="525" font-size="11" fill="#475569">query</text>
+
+  <!-- Router -->
+  <rect x="817" y="610" width="233" height="62" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="834" y="633" font-size="13.5" font-weight="700" fill="#0f172a">Model router</text>
+  <text x="834" y="653" font-size="12" fill="#334155">OpenAI-compatible · vault → local</text>
+
+  <!-- Privacy log -->
+  <rect x="565" y="692" width="485" height="52" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="582" y="714" font-size="13.5" font-weight="700" fill="#0f172a">Privacy log</text>
+  <text x="582" y="733" font-size="12" fill="#334155">what left each device, when, for which skill · shown on every device</text>
+
+  <text x="565" y="776" font-size="12" font-style="italic" fill="#64748b">Hub off? Devices keep appending to their outbox and catch up later.</text>
+
+  <!-- ===================== ZONE 3: AGENTS & MODELS ===================== -->
+  <rect x="1125" y="110" width="335" height="690" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="1145" y="138" font-size="13" font-weight="700" fill="#475569" letter-spacing="1">3 · AGENTS &amp; MODELS</text>
+  <text x="1145" y="156" font-size="12" fill="#64748b">plug in through two open interfaces</text>
+
+  <!-- Connectors -->
+  <rect x="1145" y="248" width="295" height="60" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="6 4"/>
+  <text x="1162" y="271" font-size="13.5" font-weight="700" fill="#0f172a">Connectors</text>
+  <text x="1162" y="292" font-size="12" fill="#334155">ICS calendar · Health export · Garmin key</text>
+  <line x1="1145" y1="278" x2="1051" y2="278" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ink)"/>
+  <text x="1097" y="270" font-size="11" fill="#475569" text-anchor="middle">imports</text>
+
+  <!-- Agents -->
+  <rect x="1145" y="532" width="295" height="62" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="1162" y="555" font-size="13.5" font-weight="700" fill="#0f172a">Teammate's agents</text>
+  <text x="1162" y="575" font-size="12" fill="#334155">Conductor · or any MCP client</text>
+  <line x1="1051" y1="563" x2="1144" y2="563" stroke="#334155" stroke-width="1.8" marker-start="url(#ink)" marker-end="url(#ink)"/>
+  <text x="1097" y="555" font-size="11" fill="#475569" text-anchor="middle">MCP</text>
+
+  <!-- Local model -->
+  <rect x="1145" y="610" width="295" height="62" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="1162" y="633" font-size="13.5" font-weight="700" fill="#0f172a">Local model</text>
+  <text x="1162" y="653" font-size="12" fill="#334155">Ollama on the hub laptop</text>
+  <line x1="1051" y1="641" x2="1144" y2="641" stroke="#334155" stroke-width="1.8" marker-end="url(#ink)"/>
+  <text x="1097" y="633" font-size="11" fill="#475569" text-anchor="middle">all data</text>
+
+  <!-- Cloud model -->
+  <rect x="1145" y="692" width="295" height="62" rx="8" fill="#ffffff" stroke="#c2410c" stroke-dasharray="6 4"/>
+  <text x="1162" y="715" font-size="13.5" font-weight="700" fill="#0f172a">Cloud model (optional)</text>
+  <text x="1162" y="735" font-size="12" fill="#334155">your own API key, kept on the hub</text>
+  <path d="M1051,660 H1097 V723 H1144" fill="none" stroke="#c2410c" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#orange)"/>
+</svg>

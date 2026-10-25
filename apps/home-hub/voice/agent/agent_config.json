@@ -1,0 +1,89 @@
+{
+  "_comment": "Tempo's ElevenLabs agent as code. push_agent.py fills in the prompt and first message from the .md/.txt files next to this. No secrets and no personal facts here: ElevenLabs keeps agent config whatever the retention setting.",
+  "name": "Kairos",
+  "tags": [
+    "oxhack-2026",
+    "tempo"
+  ],
+  "conversation_config": {
+    "agent": {
+      "language": "en",
+      "prompt": {
+        "llm": "gemini-2.5-flash",
+        "temperature": 0.3,
+        "built_in_tools": {
+          "language_detection": {
+            "name": "language_detection",
+            "description": "",
+            "params": {
+              "system_tool_type": "language_detection",
+              "only_at_conversation_start": false
+            }
+          }
+        },
+        "thinking_budget": 0,
+        "backup_llm_config": {
+          "preference": "override",
+          "order": [
+            "claude-haiku-4-5",
+            "gpt-4.1-mini"
+          ]
+        }
+      },
+      "dynamic_variables": {
+        "dynamic_variable_placeholders": {
+          "secret__kairos_session": "none"
+        }
+      }
+    },
+    "tts": {
+      "model_id": "eleven_v4_turbo",
+      "voice_id": "JBFqnCBsd6RMkjVDRZzb"
+    },
+    "turn": {
+      "turn_eagerness": "patient",
+      "turn_timeout": 15
+    },
+    "conversation": {
+      "max_duration_seconds": 900
+    },
+    "language_presets": {
+      "cy": {
+        "overrides": {}
+      },
+      "te": {
+        "overrides": {}
+      },
+      "hi": {
+        "overrides": {}
+      },
+      "ru": {
+        "overrides": {}
+      }
+    }
+  },
+  "platform_settings": {
+    "auth": {
+      "enable_auth": true
+    },
+    "privacy": {
+      "record_voice": false,
+      "retention_days": 1,
+      "apply_to_existing_conversations": true
+    },
+    "overrides": {
+      "conversation_config_override": {
+        "agent": {
+          "language": true,
+          "first_message": false
+        }
+      }
+    },
+    "call_limits": {
+      "daily_limit": 500
+    }
+  },
+  "_llm_note": "24 Oct 22:55: switched from deepseek-v41-flash (ElevenLabs' default, hosted by ElevenLabs) to gemini-2.5-flash, because DeepSeek produced '#invalid_tool_call' and never called ask_tempo (reproduced with simulate.py). Gemini runs via Google Cloud (Vertex AI), so Google processes the conversation text: say so on the data card. To change: edit llm here, push_agent.py, then simulate.py to confirm tool calls work.",
+  "_backup_note": "Backup LLMs (other vendors, chosen for reliable tool calls) are used only if Gemini fails. If one kicks in, Anthropic (via Google Vertex) or OpenAI process that turn.",
+  "_session_note": "The Kairos app passes secret__kairos_session (from POST /api/voice/session) as a dynamic variable; ask_tempo sends it as X-Kairos-Session. Callers that don't pass it (web page, dashboard test, simulate.py) get the placeholder 'none', which the hub must treat as no session."
+}

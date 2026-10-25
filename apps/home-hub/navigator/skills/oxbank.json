@@ -1,0 +1,465 @@
+{
+  "id": "oxbank",
+  "name": "OxBank",
+  "app": {
+    "bundle_id": "com.apple.mobilesafari",
+    "url": "${OXBANK_URL}",
+    "name": "OxBank (demo bank)"
+  },
+  "private_screens": [
+    "ob.login"
+  ],
+  "never_tap": [
+    "Confirm payment",
+    "Confirm",
+    "Pay now",
+    "Send payment",
+    "Add a new payee",
+    "Log out",
+    "Learn more"
+  ],
+  "screens": {
+    "ob.login": {
+      "anchors": [
+        "Enter your 4-digit PIN",
+        "Log in"
+      ],
+      "elements": {
+        "pin": {
+          "type": "SecureTextField",
+          "aliases": [
+            "PIN"
+          ]
+        }
+      }
+    },
+    "ob.home": {
+      "anchors": [
+        "Current account",
+        "Pay someone",
+        "Pay a bill"
+      ],
+      "elements": {
+        "pay_someone": {
+          "type": "Button",
+          "aliases": [
+            "Pay someone",
+            "Pay"
+          ]
+        },
+        "pay_bill": {
+          "type": "Button",
+          "aliases": [
+            "Pay a bill",
+            "Bills"
+          ]
+        },
+        "mobile_money": {
+          "type": "Button",
+          "aliases": [
+            "Mobile money",
+            "OxMoney"
+          ]
+        },
+        "recent": {
+          "type": "Button",
+          "aliases": [
+            "Recent payments",
+            "Recent"
+          ]
+        },
+        "balance": {
+          "type": "StaticText",
+          "aliases": [
+            "Balance"
+          ]
+        }
+      }
+    },
+    "ob.payees": {
+      "anchors": [
+        "Pay someone",
+        "Search payees"
+      ],
+      "elements": {
+        "row": {
+          "type": "Cell",
+          "aliases": []
+        },
+        "search": {
+          "type": "SearchField",
+          "aliases": [
+            "Search payees"
+          ]
+        },
+        "back": {
+          "type": "Button",
+          "aliases": [
+            "Back"
+          ]
+        }
+      }
+    },
+    "ob.bills": {
+      "anchors": [
+        "Pay a bill",
+        "Ref"
+      ],
+      "elements": {
+        "row": {
+          "type": "Cell",
+          "aliases": []
+        },
+        "back": {
+          "type": "Button",
+          "aliases": [
+            "Back"
+          ]
+        }
+      }
+    },
+    "ob.amount": {
+      "anchors": [
+        "How much?",
+        "Amount in pounds"
+      ],
+      "elements": {
+        "field": {
+          "type": "TextField",
+          "aliases": [
+            "Amount in pounds",
+            "Amount"
+          ]
+        },
+        "continue": {
+          "type": "Button",
+          "aliases": [
+            "Continue",
+            "Next"
+          ]
+        },
+        "back": {
+          "type": "Button",
+          "aliases": [
+            "Back"
+          ]
+        }
+      }
+    },
+    "ob.reference": {
+      "anchors": [
+        "Reference",
+        "What's it for?"
+      ],
+      "elements": {
+        "field": {
+          "type": "TextField",
+          "aliases": [
+            "Reference",
+            "What's it for"
+          ]
+        },
+        "continue": {
+          "type": "Button",
+          "aliases": [
+            "Continue",
+            "Skip",
+            "Next"
+          ]
+        },
+        "back": {
+          "type": "Button",
+          "aliases": [
+            "Back"
+          ]
+        }
+      }
+    },
+    "ob.review": {
+      "anchors": [
+        "Check and confirm",
+        "You're sending",
+        "Confirm payment"
+      ],
+      "elements": {
+        "confirm": {
+          "type": "Button",
+          "aliases": [
+            "Confirm payment"
+          ]
+        },
+        "cancel": {
+          "type": "Button",
+          "aliases": [
+            "Cancel"
+          ]
+        },
+        "back": {
+          "type": "Button",
+          "aliases": [
+            "Back"
+          ]
+        }
+      }
+    },
+    "ob.success": {
+      "anchors": [
+        "Payment sent"
+      ],
+      "elements": {
+        "done": {
+          "type": "Button",
+          "aliases": [
+            "Done",
+            "OK",
+            "Close"
+          ]
+        }
+      }
+    },
+    "ob.recent": {
+      "anchors": [
+        "Recent payments"
+      ],
+      "elements": {
+        "back": {
+          "type": "Button",
+          "aliases": [
+            "Back"
+          ]
+        },
+        "row": {
+          "type": "Cell",
+          "aliases": []
+        }
+      }
+    },
+    "ob.ussd_menu": {
+      "anchors": [
+        "OxMoney",
+        "1. Send money"
+      ],
+      "elements": {
+        "reply": {
+          "type": "TextField",
+          "aliases": [
+            "Reply"
+          ]
+        },
+        "send": {
+          "type": "Button",
+          "aliases": [
+            "Send"
+          ]
+        },
+        "back": {
+          "type": "Button",
+          "aliases": [
+            "Back"
+          ]
+        }
+      }
+    },
+    "ob.ussd_phone": {
+      "anchors": [
+        "Enter the phone number"
+      ],
+      "elements": {
+        "reply": {
+          "type": "TextField",
+          "aliases": [
+            "Reply"
+          ]
+        },
+        "send": {
+          "type": "Button",
+          "aliases": [
+            "Send"
+          ]
+        }
+      }
+    },
+    "ob.ussd_amount": {
+      "anchors": [
+        "Enter the amount"
+      ],
+      "elements": {
+        "reply": {
+          "type": "TextField",
+          "aliases": [
+            "Reply"
+          ]
+        },
+        "send": {
+          "type": "Button",
+          "aliases": [
+            "Send"
+          ]
+        }
+      }
+    },
+    "ob.ussd_confirm": {
+      "anchors": [
+        "1. Yes",
+        "2. No"
+      ],
+      "elements": {
+        "reply": {
+          "type": "TextField",
+          "aliases": [
+            "Reply"
+          ]
+        },
+        "send": {
+          "type": "Button",
+          "aliases": [
+            "Send"
+          ]
+        }
+      }
+    },
+    "ob.ussd_done": {
+      "anchors": [
+        "Sent £"
+      ],
+      "elements": {
+        "back": {
+          "type": "Button",
+          "aliases": [
+            "Back"
+          ]
+        }
+      }
+    }
+  },
+  "interstitials": {
+    "ob.popup": {
+      "anchors": [
+        "OxBank Rewards"
+      ],
+      "dismiss": {
+        "type": "Button",
+        "aliases": [
+          "Not now",
+          "Close",
+          "Dismiss"
+        ]
+      }
+    }
+  },
+  "procedures": {
+    "send_money": {
+      "risk": "money",
+      "steps": [
+        "open_app",
+        "expect ob.home",
+        "tap ob.home.pay_someone",
+        "expect ob.payees",
+        "tap_row ob.payees.row \"{payee.display_name}\"",
+        "expect ob.amount",
+        "expect_text \"{payee.display_name}\"",
+        "type ob.amount.field \"{amount_plain}\" clear",
+        "tap ob.amount.continue",
+        "expect ob.reference",
+        "type ob.reference.field \"{reference}\" clear",
+        "tap ob.reference.continue",
+        "expect ob.review",
+        "verify",
+        "approve",
+        "tap ob.review.confirm",
+        "expect ob.success",
+        "tap ob.success.done",
+        "done \"Sent {amount} to {payee.display_name}. The bank shows it as sent.\""
+      ],
+      "cleanup": [
+        "if_screen ob.review: tap ob.review.cancel",
+        "if_screen ob.reference: tap ob.reference.back",
+        "if_screen ob.amount: tap ob.amount.back",
+        "if_screen ob.payees: tap ob.payees.back"
+      ]
+    },
+    "pay_bill": {
+      "risk": "money",
+      "steps": [
+        "open_app",
+        "expect ob.home",
+        "tap ob.home.pay_bill",
+        "expect ob.bills",
+        "tap_row ob.bills.row \"{payee.display_name}\"",
+        "expect ob.amount",
+        "expect_text \"{payee.display_name}\"",
+        "type ob.amount.field \"{amount_plain}\" clear",
+        "tap ob.amount.continue",
+        "expect ob.review",
+        "verify",
+        "approve",
+        "tap ob.review.confirm",
+        "expect ob.success",
+        "tap ob.success.done",
+        "done \"Paid {amount} to {payee.display_name}. The bank shows it as sent.\""
+      ],
+      "cleanup": [
+        "if_screen ob.review: tap ob.review.cancel",
+        "if_screen ob.amount: tap ob.amount.back",
+        "if_screen ob.bills: tap ob.bills.back"
+      ]
+    },
+    "ussd_send_money": {
+      "risk": "money",
+      "steps": [
+        "open_app",
+        "expect ob.home",
+        "tap ob.home.mobile_money",
+        "expect ob.ussd_menu",
+        "type ob.ussd_menu.reply \"1\" clear",
+        "tap ob.ussd_menu.send",
+        "expect ob.ussd_phone",
+        "type ob.ussd_phone.reply \"{payee.phone}\" clear",
+        "tap ob.ussd_phone.send",
+        "expect ob.ussd_amount",
+        "type ob.ussd_amount.reply \"{amount_plain}\" clear",
+        "tap ob.ussd_amount.send",
+        "expect ob.ussd_confirm",
+        "verify",
+        "approve",
+        "type ob.ussd_confirm.reply \"1\" clear",
+        "tap ob.ussd_confirm.send",
+        "expect ob.ussd_done",
+        "tap ob.ussd_done.back",
+        "done \"Sent {amount} to {payee.display_name} by mobile money.\""
+      ],
+      "cleanup": [
+        "if_screen ob.ussd_confirm: type ob.ussd_confirm.reply \"2\" clear",
+        "if_screen ob.ussd_confirm: tap ob.ussd_confirm.send",
+        "if_screen ob.ussd_amount: tap ob.ussd_amount.back",
+        "if_screen ob.ussd_phone: tap ob.ussd_phone.back",
+        "if_screen ob.ussd_menu: tap ob.ussd_menu.back"
+      ]
+    },
+    "check_balance": {
+      "risk": "read",
+      "steps": [
+        "open_app",
+        "expect ob.home",
+        "read ob.home.balance",
+        "done \"Your balance is {read}.\""
+      ],
+      "cleanup": []
+    },
+    "recent_transactions": {
+      "risk": "read",
+      "steps": [
+        "open_app",
+        "expect ob.home",
+        "tap ob.home.recent",
+        "expect ob.recent",
+        "read_rows ob.recent.row 3",
+        "done \"Your recent payments: {read}.\""
+      ],
+      "cleanup": [
+        "if_screen ob.recent: tap ob.recent.back"
+      ]
+    }
+  },
+  "root": "ob.home"
+}

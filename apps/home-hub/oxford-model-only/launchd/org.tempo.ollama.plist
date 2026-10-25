@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Optional: run Ollama for Tempo at login and restart it within 5 s if it exits. NOT installed by default.
+     Install (replace YOUR_USER first; launchd does not expand ~):
+       cp launchd/org.tempo.ollama.plist ~/Library/LaunchAgents/ && pkill -x ollama
+       launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.tempo.ollama.plist
+     Remove:
+       launchctl bootout gui/$(id -u)/org.tempo.ollama && rm ~/Library/LaunchAgents/org.tempo.ollama.plist
+     Don't also run `brew services start ollama` or the Ollama app: they would fight over port 11434. -->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>org.tempo.ollama</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/opt/homebrew/bin/ollama</string>
+		<string>serve</string>
+	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>OLLAMA_HOST</key>
+		<string>127.0.0.1:11434</string>
+		<key>OLLAMA_KEEP_ALIVE</key>
+		<string>-1</string>
+		<key>OLLAMA_CONTEXT_LENGTH</key>
+		<string>32768</string>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>ThrottleInterval</key>
+	<integer>5</integer>
+	<key>ProcessType</key>
+	<string>Interactive</string>
+	<key>StandardOutPath</key>
+	<string>/Users/YOUR_USER/Library/Logs/tempo-ollama.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/YOUR_USER/Library/Logs/tempo-ollama.log</string>
+</dict>
+</plist>

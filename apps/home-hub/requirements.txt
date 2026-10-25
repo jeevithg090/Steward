@@ -1,0 +1,8 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+httpx>=0.27
+pydantic>=2.7
+mcp[cli]>=1.2
+zeroconf>=0.130
+pytest>=8
+cryptography>=42  # guardian/vault.py: AES-GCM, HKDF, Ed25519
