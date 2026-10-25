@@ -359,4 +359,16 @@ for a kind of person. Governance: Apache-2.0, Contributor Covenant, CODEOWNERS, 
 - [x] 01:20 Track 4 done: `.github/workflows/{ci,release-images}.yml` (six CI jobs: lint-type, fast-tests, integration, web, skills, security; release mirrors GitLab's signed images behind a `release` environment), issue and PR templates, Dependabot, `CODE_OF_CONDUCT.md`, `SECURITY.md` (GitHub private reporting first), `CONTRIBUTING.md`, `CODEOWNERS`, `deploy/render.yaml`, `deploy/fly.toml`, docs for deploy, GitHub setup, security (threat model), accessibility, profiles and add-a-usecase. `pip-audit` and `pnpm audit` clean locally and blocking in CI. `.gitleaksignore` holds two hand-checked false positives (a hashed memory key in doc.md's example response; a type annotation in mandates.py), so the secrets scan is clean over the whole history
 - [x] 00:35 Track 2 confirmed done by the ElevenLabs session and committed
 - [x] 01:25 Web track committed (94cf816); docs track committed; README rewritten
-- [ ] Track 5: verify the committed tree in a clean export, push to GitHub and GitLab
+- [x] 01:30 Verified from a clean `git archive HEAD` export: ruff, format, mypy --strict, 1,270 fast tests, `validate_skills`, web typecheck, 92 web tests, `next build` in both modes: all green
+- [x] 01:32 Pushed `main` (e5e279e..6465f12) and `skill-forge-wip` to GitHub and GitLab; GitHub Actions runs on the push
+
+## 12. What the team does next (in this order)
+
+1. **Deploy the web app:** press *Deploy with Vercel* in the README (Root Directory `apps/web`, `NEXT_PUBLIC_TEMPO_SHOWCASE=1`). That is the public showcase, no backend needed. Steps and the live-Gateway variant: `docs/deploy.md`.
+2. **Deploy the Gateway** when you want the live product: `deploy/render.yaml` or `deploy/fly.toml` (first-deploy check: `/data` must be writable by uid 10001), then point Vercel at it with `NEXT_PUBLIC_GATEWAY_URL` and `NEXT_PUBLIC_TEMPO_TOKEN`, and set `WEB_ORIGINS` and `MESH_RP_ID` to the Vercel host.
+3. **Protect `main`** with the six CI checks (`docs/github-setup.md` §4 has the JSON), then make the repo public when the keys used during the hackathon have been rotated; private vulnerability reporting switches on at that point.
+4. **Stop the stale Gateway** on port 8000 (PID 83049, started 21:11 from inside `tempo/` with the hosted `DATABASE_URL`), and consider moving `DATABASE_URL` out of `tempo/.env` into a `.env.cloud` you source on purpose.
+5. **Land Scam & Fraud Shielding** from the second session (its plan and status: `docs/scam-shield.md`), then replace the two README placeholders it owns.
+6. **Finish or drop Skill Forge** on `skill-forge-wip`; the manifest + scaffolder path on `main` is the shipped open-source route.
+7. **Check the demo values**: every rule pack, clock and benefit figure says `demo_values: true` until a person has checked its cited page and set `last_verified`.
+
