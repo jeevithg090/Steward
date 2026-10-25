@@ -33,8 +33,10 @@ def evaluate_delay_repay(
     fare_gbp: Decimal,
     facts: tuple[Fact, ...],
     trace_id: str,
+    cancelled: bool = False,
 ) -> ProofTrace | NotEligible:
-    """Refund for a late train. `fare_gbp` is the fare for the delayed journey."""
+    """Refund for a late train. `fare_gbp` is the fare for the delayed journey. A cancelled train
+    comes with the delay it is paid as (delays.claimable_delay) and is called cancelled."""
     if fare_gbp < 0:
         raise ValueError("fare_gbp cannot be negative")
     if delay_minutes < 0:
@@ -45,8 +47,9 @@ def evaluate_delay_repay(
         reason = f"{delay_minutes} min late is below the {pack.scheme} threshold of {threshold} min"
         return _decline(pack, reason)
     amount = _money(fare_gbp * band.refund_pct / Decimal(100))
+    what = "Cancelled" if cancelled else f"{delay_minutes} min late"
     explanation = (
-        f"{delay_minutes} min late → {_pct(band.refund_pct)}% of £{_money(fare_gbp)} "
+        f"{what} → {_pct(band.refund_pct)}% of £{_money(fare_gbp)} "
         f"under {pack.operator} {pack.scheme}"
     )
     return _trace(pack, facts=facts, trace_id=trace_id, amount=amount, explanation=explanation)

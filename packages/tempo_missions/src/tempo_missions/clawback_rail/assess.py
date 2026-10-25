@@ -83,6 +83,7 @@ class Rights(_Step):
             fare_gbp=Decimal(case.request.fare_gbp),
             facts=facts,
             trace_id=f"pt_{mission_id}",
+            cancelled=journey.cancelled,
         )
         if isinstance(result, NotEligible):
             await self.stop(ctx, mission_id, f"Nothing to claim: {result.reason}.")

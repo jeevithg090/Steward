@@ -163,6 +163,7 @@ async def test_a_cancelled_train_claims_the_top_band(storage: Any) -> None:
 
     [(_, ask)] = result.pending
     assert ask.amount_gbp == "28.40"  # 100% of the fare
+    assert ask.summary.startswith("Cancelled → 100% of £28.40")  # live it said "120 min late"
 
 
 async def test_a_train_that_cannot_be_found_declines(storage: Any) -> None:
