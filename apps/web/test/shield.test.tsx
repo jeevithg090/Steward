@@ -87,7 +87,7 @@ test("the showcase refuses to invent a verdict for an unknown message", async ()
 test("the page explains the showcase and translatedSay covers every level", async () => {
   const { container } = render(<ShieldPage source={new ShowcaseShield()} />);
   expect(screen.getByRole("heading", { name: "Scam Shield" })).toBeInTheDocument();
-  expect(screen.getByRole("note")).toHaveTextContent("recorded from a real replay-mode Gateway");
+  expect(screen.getByText(/recorded from a real replay-mode Gateway\. Run/)).toBeInTheDocument();
   await expectNoA11yViolations(container);
 
   const source = new ShowcaseShield();

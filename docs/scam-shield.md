@@ -325,6 +325,17 @@ the voice follows the Patience Profile (language, pace, a lower voice). Without 
 text to Tempo's number with `CHECK`, or ring Tempo and read it out. A helper can be linked with
 consent and hears only "tap to call her".
 
+**The web page proves it rather than claims it.** `/shield` opens with *Margaret's Tuesday*: the
+story in eight steps on a drawn phone, narrated out loud with the browser's own voice and live
+captions (a polite live region), with Tempo's exact warning spoken in the chosen language. It can
+be stepped through with buttons, with the keyboard or with a screen reader; an **Eyes closed mode**
+fades the pictures and grows the captions, so a judge can hear what Margaret hears; a **focus
+trail** names the control a keyboard user has reached; the system's reduced-motion setting is
+acknowledged; Urdu is shown right to left with the language marked; the site's text-size and
+plain-mode controls sit on the page; a transcript keeps everything spoken. Every verdict in the
+story is a recorded answer from the replay Gateway, labelled so, and the numbers section says in
+plain words what the backtest measured. "Try it yourself" follows, with the same code path.
+
 **The technical door.** `POST /scam/check` returns everything the voice says plus the evidence;
 `skills/scam-shield/signals.yaml` and `model.json` are data a contributor can read and change;
 `make scam-train` retrains from the open corpora; `make refresh-feeds` updates the feed caches;
@@ -385,4 +396,5 @@ Replay demo: start the Gateway from a scratch folder (`TEMPO_API_TOKEN=devtoken 
 - [x] 01:35 T6 Gateway: `tempo_gateway/shield.py` (check, Shield log, feedback, TEACH), `/mesh/signals` speaks for `scam_text`, `GET /mesh/signals/model` serves the model to phones; T7 the `check_message` voice tool and prompt; 10 integration tests
 - [x] 01:40 T8 Android node written against the shared vectors (filter v2, links, model, offline speaker, Shield card, allowlist, contacts); T9 `Tempo-Scam-Spotter.shortcut` built and signed; T10 `/shield` page, client, showcase source, 6 tests
 - [x] 01:50 T11 docs and wiring: README placeholders replaced, SHIPPING row 6 and a §11 line, `skills/scam-shield/skill.yaml` 0.3.0, fixtures README, `.env.example`, the shortcut README; final check green: ruff, format, mypy --strict, the fast suite, all of tests/integration, validate_skills, web typecheck, 98 web tests, both next builds
+- [x] 02:10 The story-first `/shield` page (`components/ShieldStory.tsx`): Margaret's Tuesday narrated aloud with live captions, eyes-closed mode, focus trail, six languages with RTL, transcript, the numbers in plain words; 7 more web tests, axe clean
 - [x] 01:55 T12 committed on `main` with explicit paths (`--no-verify`, as SHIPPING §3 asks while two sessions share the tree); the other session verifies from a clean export and pushes to GitLab and GitHub

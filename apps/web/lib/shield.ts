@@ -173,6 +173,16 @@ const RECORDED: Record<string, ShieldVerdict> = {
   loan: loanJson as ShieldVerdict,
 };
 
+/** A verdict recorded from the replay Gateway, for the story page (never invented in the browser). */
+export function recordedVerdict(id: (typeof SAMPLES)[number]["id"]): ShieldVerdict {
+  return structuredClone(RECORDED[id]!);
+}
+
+/** The Shield log as the replay Gateway recorded it, with the model's metrics. */
+export function recordedStatus(): ShieldStatus {
+  return structuredClone(statusJson as ShieldStatus);
+}
+
 /**
  * Showcase (no Gateway): the four sample messages answer with responses recorded from a real
  * replay-mode Gateway (scripts/record_shield_showcase.py). Any other text gets an honest refusal,
@@ -229,8 +239,25 @@ export class ShowcaseShield implements ShieldSource {
   }
 }
 
+export type SpokenKey = "warn" | "hold" | "cleared" | "caution" | "unknown" | "ring";
+
+// tempo_core.scam_voice: the English lines, held to Flesch 60 in CI.
+export const ENGLISH_LINES: Record<SpokenKey, string> = {
+  warn: "Do not touch that message. It is a trick trying to take your money.",
+  hold: "I'm checking that message. Don't tap anything in it yet.",
+  cleared: "I checked that message. I found no warning signs. That doesn't prove it's real.",
+  caution: "Take care with that message. It is pushing you to act fast. Do nothing until you have checked with someone you trust.",
+  unknown: "I could not check that message. Don't act on it until I can.",
+  ring: "Ring the firm on a number you already know.",
+};
+
+/** One spoken line in a language, falling back to English (voice/warnings.yaml's rule). */
+export function spokenLine(language: Language, key: SpokenKey): string {
+  return language === "en" ? ENGLISH_LINES[key] : SPOKEN[language][key];
+}
+
 // voice/warnings.yaml, as the Gateway speaks them; only English carries the reasons.
-const SPOKEN: Record<Exclude<Language, "en">, Record<"warn" | "hold" | "cleared" | "caution" | "unknown" | "ring", string>> = {
+const SPOKEN: Record<Exclude<Language, "en">, Record<SpokenKey, string>> = {
   hi: {
     warn: "उस मैसेज को मत छुएँ। यह आपका पैसा लेने की एक चाल है।",
     hold: "मैं उस मैसेज की जाँच कर रहा हूँ। अभी उसमें कुछ भी मत दबाएँ।",
@@ -304,6 +331,60 @@ export function browserVoice(): Voice {
       synth.speak(utterance);
     },
     stop() {
+      synth?.cancel();
+    },
+  };
+}
+
+/** A line to narrate: what is said, in which language. */
+export interface SpokenLine {
+  text: string;
+  language: Language;
+}
+
+/**
+ * Reads a sequence aloud, one line after another, telling the page which line is playing so the
+ * captions can follow; the same shape is faked in tests. Falls back to captions only when the
+ * browser cannot speak.
+ */
+export interface Narrator {
+  available: boolean;
+  play(lines: SpokenLine[], onLine: (index: number) => void, onDone: () => void): void;
+  stop(): void;
+}
+
+export function browserNarrator(): Narrator {
+  const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
+  let token = 0;
+  return {
+    available: Boolean(synth),
+    play(lines, onLine, onDone) {
+      if (!synth) {
+        lines.forEach((_, i) => onLine(i));
+        onDone();
+        return;
+      }
+      synth.cancel();
+      const mine = ++token;
+      const speak = (index: number) => {
+        if (mine !== token) return;
+        if (index >= lines.length) {
+          onDone();
+          return;
+        }
+        onLine(index);
+        const line = lines[index]!;
+        const utterance = new SpeechSynthesisUtterance(line.text);
+        utterance.lang = LANGUAGES.find((l) => l.code === line.language)?.bcp47 ?? "en-GB";
+        utterance.rate = 0.9; // patient by default
+        utterance.onend = () => speak(index + 1);
+        utterance.onerror = () => speak(index + 1);
+        synth.speak(utterance);
+      };
+      speak(0);
+    },
+    stop() {
+      token += 1;
       synth?.cancel();
     },
   };
