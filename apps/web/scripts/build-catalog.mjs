@@ -108,6 +108,13 @@ async function main() {
     skills,
     profiles,
   };
+  // Rewrite only when the profiles or skills changed, so a build doesn't dirty the tree with a new timestamp.
+  const previous = existsSync(out) ? JSON.parse(readFileSync(out, "utf8")) : null;
+  const same = previous && JSON.stringify({ ...previous, generated_at: null }) === JSON.stringify({ ...catalog, generated_at: null });
+  if (same) {
+    console.log(`catalog: ${catalog.profiles.length} profiles, ${catalog.skills.length} skills unchanged; kept ${relative(out)}`);
+    return 0;
+  }
   writeFileSync(out, `${JSON.stringify(catalog, null, 2)}\n`);
   console.log(`catalog: ${profiles.length} profiles, ${skills.length} skills -> ${relative(out)}`);
   return 0;
