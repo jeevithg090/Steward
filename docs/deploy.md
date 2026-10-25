@@ -24,7 +24,7 @@ the Mesh device list to disk. None of that fits a serverless function.
 The README's button opens Vercel with everything filled in:
 
 ```
-https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fjeevithg090%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=NEXT_PUBLIC_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend
+https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgitlab.com%2Fna-group4693543%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=NEXT_PUBLIC_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend
 ```
 
 Vercel clones the repository into your account, sets the Root Directory to `apps/web` and asks

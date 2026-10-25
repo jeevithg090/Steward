@@ -63,29 +63,30 @@ A test's marker is the first folder under `tests/` (for example `tests/unit/test
 `make ship-check` adds the skill and profile validator and the web app in both modes; it is
 what CI runs.
 
-## Branches and pull requests (GitHub first)
+## Branches and merge requests (GitLab first)
 
-The repository lives at <https://github.com/jeevithg090/Tempo>.
+- The project lives on GitLab: <https://gitlab.com/na-group4693543/Tempo>. Its pipeline
+  (`.gitlab-ci.yml`) is the one that gates `main`.
+- **Trunk-based** with short-lived branches named after the build step or the skill, e.g.
+  `s1.2-rights-engine` or `skill-water-refunds`. Merge at least every 2 hours.
+- `main` is protected: merges only through a merge request with a **green pipeline** and all
+  threads resolved.
+- Keep many small commits on branches.
+- Fill in the MR template: what and why (with the spec or `SHIPPING.md` section), the Delta
+  thread, and the checklist (`demo_values` / `last_verified`, Flesch ≥ 60, no PII in logs, tests
+  by marker, `make check`).
+- One **Delta thread per build step** (for example "S1.2 Rights Engine"): brainstorm, build and
+  test there, and link it in the MR.
 
-1. **Fork** it (or branch, if you have write access) and clone your copy. Add the original as
-   `upstream` so you can rebase: `git remote add upstream https://github.com/jeevithg090/Tempo.git`.
-2. **Branch** off `main`, named after what the branch builds, e.g. `skill-lner-delay-repay` or
-   `s1.2-rights-engine`. Keep commits small and frequent; the history is read.
-3. **Open a pull request** against `main`. The template asks what and why, how a reviewer sees it
-   in replay mode, and walks the honesty checklist (demo values, plain words, no PII in logs,
-   tests by marker, `make check`).
-4. **`main` is protected.** A pull request merges only when the six CI checks are green
-   (`lint-type`, `fast-tests`, `integration`, `web`, `skills`, `security`), one code owner has
-   approved, every conversation is resolved and the history stays linear: rebase onto `main`
-   rather than merging it in. Squash or rebase merges only.
-5. **Trunk-based.** Merge at least every couple of hours while you are working on something; a
-   long-lived branch is a review nobody can finish.
+**GitHub mirror.** <https://github.com/jeevithg090/Tempo> carries the same `main`, with its own
+Actions workflow (`.github/workflows/ci.yml`), issue and PR templates and Dependabot, so people
+who live on GitHub can fork, open a pull request and get the same checks. A pull request accepted
+there is pushed to GitLab by a maintainer (`git push gitlab main`); [docs/github-setup.md](docs/github-setup.md)
+covers the mirror.
 
-**GitLab mirror.** <https://gitlab.com/na-group4693543/Tempo> runs the same pipeline
-(`.gitlab-ci.yml`, plus the Playwright suite on `main`). Maintainers push `main` to both remotes
-(the second push URL is set up in [docs/github-setup.md](docs/github-setup.md)). A merge request
-opened there is read, and `.gitlab/merge_request_templates/Default.md` still applies, but review
-and merge happen on GitHub.
+**Pairing live in one checkout.** Two sessions sharing a working tree commit with
+`git commit --no-verify` and run `make check` by hand: the pre-commit hooks stash every unstaged
+file while they run, and a write made in that window can be lost.
 
 ## Two sessions, one checkout
 

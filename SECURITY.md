@@ -8,12 +8,12 @@ threat model, with each threat mapped to its control and its test, is
 
 Please **don't open a public issue, merge request or pull request** for a vulnerability.
 
-1. **GitHub (preferred):** use private vulnerability reporting on this repository: the
-   *Security* tab, then *Report a vulnerability*, or go straight to
-   <https://github.com/jeevithg090/Tempo/security/advisories/new>. Only the maintainers see it,
-   and the fix can be prepared in a private fork before anything is public.
-2. **GitLab (the mirror):** open an issue on <https://gitlab.com/na-group4693543/Tempo/-/issues/new>
-   and tick **This issue is confidential** before you submit.
+1. **GitLab (where the project lives):** open an issue on
+   <https://gitlab.com/na-group4693543/Tempo/-/issues/new> and tick **This issue is confidential**
+   before you submit. Only the maintainers see it.
+2. **GitHub (the mirror):** use private vulnerability reporting on the mirror: the *Security*
+   tab, then *Report a vulnerability*, or <https://github.com/jeevithg090/Tempo/security/advisories/new>
+   (available once the mirror is public).
 
 Include what you found, how to reproduce it (replay mode needs no keys) and the impact you
 expect. We aim to reply within 72 hours, to fix in-scope problems before we talk about them, and

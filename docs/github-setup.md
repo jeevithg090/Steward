@@ -1,5 +1,9 @@
 # GitHub setup
 
+> The project lives on GitLab (<https://gitlab.com/na-group4693543/Tempo>), where the pipeline
+> runs. This page sets up the **GitHub mirror**: its Actions CI, templates, Dependabot and branch
+> protection, so contributors who live on GitHub get the same checks.
+
 How the team moved Tempo's front door from GitLab to GitHub without losing the GitLab pipeline,
 and what a stranger does to contribute. Every step is a click or one command; nothing here needs
 a secret.

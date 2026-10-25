@@ -5,15 +5,16 @@ wins back the money and hours companies waste. Models read and plan; **code deci
 and permissions**. You can reach it from a landline, by text or on the web, and it is patient by
 default.
 
-[![CI](https://github.com/jeevithg090/Tempo/actions/workflows/ci.yml/badge.svg)](https://github.com/jeevithg090/Tempo/actions/workflows/ci.yml)
 [![pipeline](https://gitlab.com/na-group4693543/Tempo/badges/main/pipeline.svg)](https://gitlab.com/na-group4693543/Tempo/-/pipelines)
 [![coverage](https://gitlab.com/na-group4693543/Tempo/badges/main/coverage.svg)](https://gitlab.com/na-group4693543/Tempo/-/graphs/main/charts)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fjeevithg090%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=NEXT_PUBLIC_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgitlab.com%2Fna-group4693543%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=NEXT_PUBLIC_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend)
 
 ![Mission Control: Tempo asks once, shows its Proof Trace and the Consensus Court's votes](docs/mission-control.jpg)
 
-Built at OxHack 26. [SHIPPING.md](SHIPPING.md) is the plan that turned the features into a product.
+Built at OxHack 26. The project lives on GitLab at [gitlab.com/na-group4693543/Tempo](https://gitlab.com/na-group4693543/Tempo),
+where the pipeline runs; [github.com/jeevithg090/Tempo](https://github.com/jeevithg090/Tempo) is a mirror with its own
+Actions workflow for forks. [SHIPPING.md](SHIPPING.md) is the plan that turned the features into a product.
 
 ## Try it in sixty seconds
 
@@ -177,14 +178,14 @@ flowchart LR
 
 ## Deploy
 
-- **Web:** the *Deploy with Vercel* button above, or import the repo with Root Directory
-  `apps/web`. `NEXT_PUBLIC_TEMPO_SHOWCASE=1` runs the recorded showcase with no backend;
+- **Web:** the *Deploy with Vercel* button above (it imports from GitLab; the GitHub mirror works
+  too), or import the repo by hand with Root Directory `apps/web`. `NEXT_PUBLIC_TEMPO_SHOWCASE=1` runs the recorded showcase with no backend;
   `NEXT_PUBLIC_GATEWAY_URL` and `NEXT_PUBLIC_TEMPO_TOKEN` attach a Gateway.
 - **Gateway:** a container from [deploy/gateway.Dockerfile](deploy/gateway.Dockerfile); blueprints
   for [Render](deploy/render.yaml) and [Fly](deploy/fly.toml). It holds WebSockets, runs a
   scheduler and writes checkpoints, so it is not a serverless target.
 - [docs/deploy.md](docs/deploy.md) has the steps and the env matrix; [docs/github-setup.md](docs/github-setup.md)
-  sets up the repo, CI, branch protection and the GitLab mirror.
+  sets up the GitHub mirror, its Actions CI and branch protection.
 
 ## Quality
 
