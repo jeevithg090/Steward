@@ -52,11 +52,11 @@ export default function ShieldPage({ user, showcase, language: initial, speak }:
               }}
               className={`inline-flex min-h-[44px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-[background-color,color,box-shadow] duration-200 sm:px-5 motion-reduce:transition-none ${FOCUS} ${
                 selected
-                  ? "bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.2)_inset,0_10px_24px_-12px_rgb(124_58_237/0.9)]"
+                  ? "bg-gradient-to-b from-accent-600 to-accent-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.2)_inset,0_10px_24px_-12px_rgb(var(--accent-600)/0.9)]"
                   : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
               }`}
             >
-              <Icon size={15} aria-hidden className={selected ? "text-violet-100" : "text-slate-400"} /> {t.label}
+              <Icon size={15} aria-hidden className={selected ? "text-accent-100" : "text-slate-400"} /> {t.label}
             </button>
           );
         })}

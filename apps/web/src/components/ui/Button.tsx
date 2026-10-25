@@ -11,12 +11,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children?: ReactNode;
 }
 
-export const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-300";
+export const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300";
 
 // Every filled colour keeps white text at WCAG AA (4.5:1 or better) at rest and on hover.
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_10px_28px_-12px_rgb(124_58_237/0.9)] hover:from-violet-500 hover:to-violet-700 hover:shadow-[0_1px_0_0_rgb(255_255_255/0.28)_inset,0_14px_34px_-12px_rgb(139_92_246/0.95)]",
+    "bg-gradient-to-b from-accent-600 to-accent-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_10px_28px_-12px_rgb(var(--accent-600)/0.9)] hover:from-accent-500 hover:to-accent-700 hover:shadow-[0_1px_0_0_rgb(255_255_255/0.28)_inset,0_14px_34px_-12px_rgb(var(--accent-500)/0.95)]",
   ok: "bg-gradient-to-b from-emerald-700 to-emerald-800 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.18)_inset,0_10px_26px_-12px_rgb(16_185_129/0.7)] hover:from-emerald-600 hover:to-emerald-800",
   danger: "bg-gradient-to-b from-rose-600 to-rose-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.18)_inset,0_10px_26px_-12px_rgb(244_63_94/0.7)] hover:from-rose-500 hover:to-rose-700",
   gold: "bg-gradient-to-b from-gold-300 to-gold-400 text-ink shadow-[0_1px_0_0_rgb(255_255_255/0.5)_inset,0_10px_28px_-12px_rgb(245_181_68/0.8)] hover:from-gold-200 hover:to-gold-300",

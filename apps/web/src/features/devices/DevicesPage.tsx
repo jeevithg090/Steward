@@ -50,7 +50,7 @@ export default function DevicesPage({ user, showcase, params, pollMs = 1500 }: P
             </LinkButton>
           }
         >
-          This is the showcase: recorded replies, no Gateway. A device can&apos;t be paired or sign with Face ID here. Run Tempo locally (<code className="whitespace-nowrap rounded-md bg-white/[0.07] px-1.5 py-0.5 font-mono text-[12px] text-violet-200">make demo</code>), switch the
+          This is the showcase: recorded replies, no Gateway. A device can&apos;t be paired or sign with Face ID here. Run Tempo locally (<code className="whitespace-nowrap rounded-md bg-white/[0.07] px-1.5 py-0.5 font-mono text-[12px] text-accent-200">make demo</code>), switch the
           showcase off in Settings, and come back to pair your phone.
         </EmptyState>
         <HowItWorks />
@@ -177,7 +177,7 @@ function MyDevices({ userId, pollMs }: { userId: string; pollMs: number }) {
   if (!devices || !me) {
     return (
       <Card as="section" aria-labelledby="register-heading" tone="indigo" className="relative max-w-3xl overflow-hidden motion-safe:animate-fade-up">
-        <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/20 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent-500/20 blur-3xl" />
         <div className="relative space-y-5">
           <div className="flex items-start gap-4">
             <IconTile size="lg">
@@ -215,7 +215,7 @@ function MyDevices({ userId, pollMs }: { userId: string; pollMs: number }) {
   return (
     <div className="space-y-4">
       <Card as="section" aria-labelledby="this-device-heading" tone={me.passkey ? "emerald" : "indigo"} className="relative overflow-hidden motion-safe:animate-fade-up">
-        <span aria-hidden className={`pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full blur-3xl ${me.passkey ? "bg-emerald-500/10" : "bg-violet-500/15"}`} />
+        <span aria-hidden className={`pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full blur-3xl ${me.passkey ? "bg-emerald-500/10" : "bg-accent-500/15"}`} />
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start">
           <span className="relative shrink-0 self-start">
             <IconTile size="lg" tone={me.passkey ? "emerald" : "violet"}>

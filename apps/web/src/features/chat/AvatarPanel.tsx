@@ -28,9 +28,9 @@ export const AGENT_PROFILES: ProfileOption[] = [
     id: "tempo",
     name: "Tempo",
     role: "The agent itself",
-    badgeBg: "bg-indigo-500/20",
-    badgeText: "text-indigo-200",
-    icon: <Sparkles size={14} className="text-indigo-300" aria-hidden />,
+    badgeBg: "bg-accent-500/20",
+    badgeText: "text-accent-200",
+    icon: <Sparkles size={14} className="text-accent-300" aria-hidden />,
   },
   {
     id: "negotiator",
@@ -52,9 +52,9 @@ export const AGENT_PROFILES: ProfileOption[] = [
     id: "auditor",
     name: "Auditor",
     role: "Proof and verifier",
-    badgeBg: "bg-purple-500/20",
-    badgeText: "text-purple-200",
-    icon: <FileCheck size={14} className="text-purple-300" aria-hidden />,
+    badgeBg: "bg-second-500/20",
+    badgeText: "text-second-200",
+    icon: <FileCheck size={14} className="text-second-300" aria-hidden />,
   },
 ];
 
@@ -96,10 +96,10 @@ interface AvatarPanelProps {
 
 /** Each voice's orb: the sphere's colours and its glow. */
 const ORBS: Record<AgentProfile, { sphere: string; glow: string; ring: string }> = {
-  tempo: { sphere: "conic-gradient(from 210deg, #c4b5fd, #7c3aed, #4c1d95, #f5b544, #c4b5fd)", glow: "bg-violet-500", ring: "border-violet-300/50" },
+  tempo: { sphere: "conic-gradient(from 210deg, rgb(var(--accent-300)), rgb(var(--accent-600)), rgb(var(--accent-900)), #f5b544, rgb(var(--accent-300)))", glow: "bg-accent-500", ring: "border-accent-300/50" },
   negotiator: { sphere: "conic-gradient(from 210deg, #a7f3d0, #059669, #064e3b, #fcd581, #a7f3d0)", glow: "bg-emerald-500", ring: "border-emerald-300/50" },
-  analyst: { sphere: "conic-gradient(from 210deg, #fde68a, #d97706, #78350f, #c4b5fd, #fde68a)", glow: "bg-amber-500", ring: "border-amber-300/50" },
-  auditor: { sphere: "conic-gradient(from 210deg, #f5d0fe, #c026d3, #701a75, #fcd581, #f5d0fe)", glow: "bg-fuchsia-500", ring: "border-fuchsia-300/50" },
+  analyst: { sphere: "conic-gradient(from 210deg, #fde68a, #d97706, #78350f, rgb(var(--accent-300)), #fde68a)", glow: "bg-amber-500", ring: "border-amber-300/50" },
+  auditor: { sphere: "conic-gradient(from 210deg, rgb(var(--second-200)), rgb(var(--second-600)), rgb(var(--second-900)), #fcd581, rgb(var(--second-200)))", glow: "bg-second-500", ring: "border-second-300/50" },
 };
 
 /** The voice bars inside the orb, one pattern per mouth shape (the lip-sync's visemes). */
@@ -231,7 +231,7 @@ function Stage({
     return (
       <button type="button" onClick={onToggleSpeech} className={`rounded-full p-2 ${FOCUS}`} aria-label={speaking ? "Stop speaking" : "Read the last reply aloud"}>
         <div ref={levelRef} className="rounded-full">
-          <AudioLines className={`h-16 w-16 max-w-full lg:h-24 lg:w-24 ${speaking ? "text-indigo-300" : "text-white"}`} strokeWidth={1.5} aria-hidden />
+          <AudioLines className={`h-16 w-16 max-w-full lg:h-24 lg:w-24 ${speaking ? "text-accent-300" : "text-white"}`} strokeWidth={1.5} aria-hidden />
         </div>
       </button>
     );
@@ -340,7 +340,7 @@ export function AvatarPanel({
               className={`flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-slate-900/90 text-white disabled:opacity-60 ${FOCUS}`}
             >
               <div ref={levelRef} className="flex items-center justify-center">
-                {mode === "voice" ? <AudioLines size={22} className={isSpeaking ? "text-indigo-300" : ""} aria-hidden /> : <MessageSquareText size={22} aria-hidden />}
+                {mode === "voice" ? <AudioLines size={22} className={isSpeaking ? "text-accent-300" : ""} aria-hidden /> : <MessageSquareText size={22} aria-hidden />}
               </div>
             </button>
           )}
@@ -359,7 +359,7 @@ export function AvatarPanel({
           onClick={() => selectMode(nextMode)}
           aria-label={`Reply mode: ${LABELS[mode]}. Tap for ${LABELS[nextMode]}.`}
           title={`Reply mode: ${LABELS[mode]}`}
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-violet-100 ring-1 ring-inset ring-violet-300/25 active:scale-95 motion-reduce:transform-none ${FOCUS}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-500/20 text-accent-100 ring-1 ring-inset ring-accent-300/25 active:scale-95 motion-reduce:transform-none ${FOCUS}`}
         >
           {MODE_ICONS[mode]}
         </button>
@@ -431,7 +431,7 @@ export function AvatarPanel({
           <>
             {fullBadge ? (
               <div onClick={(e) => e.stopPropagation()} role="group" aria-label="How Tempo replies" className="relative flex h-9 w-48 shrink-0 rounded-full border border-white/[0.08] bg-white/[0.03] p-1">
-                <div className="absolute bottom-1 top-1 w-[calc(33.333%-2px)] rounded-full bg-gradient-to-b from-violet-500/45 to-violet-700/40 shadow-[0_1px_0_0_rgb(255_255_255/0.12)_inset] ring-1 ring-inset ring-violet-300/25 transition-transform duration-200 ease-out motion-reduce:transition-none" style={{ transform: `translateX(${modeIndex * 100}%)` }} aria-hidden />
+                <div className="absolute bottom-1 top-1 w-[calc(33.333%-2px)] rounded-full bg-gradient-to-b from-accent-500/45 to-accent-700/40 shadow-[0_1px_0_0_rgb(255_255_255/0.12)_inset] ring-1 ring-inset ring-accent-300/25 transition-transform duration-200 ease-out motion-reduce:transition-none" style={{ transform: `translateX(${modeIndex * 100}%)` }} aria-hidden />
                 {MODES.map((m) => {
                   const isActive = mode === m;
                   return (
@@ -457,7 +457,7 @@ export function AvatarPanel({
                 }}
                 aria-label={`Reply mode: ${LABELS[mode]}. Click to switch.`}
                 title={`Reply mode: ${LABELS[mode]}. Click to switch.`}
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-violet-100 ring-1 ring-inset ring-violet-300/25 transition-transform active:scale-95 motion-reduce:transition-none ${FOCUS}`}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-500/20 text-accent-100 ring-1 ring-inset ring-accent-300/25 transition-transform active:scale-95 motion-reduce:transition-none ${FOCUS}`}
               >
                 {MODE_ICONS[mode]}
               </button>
@@ -492,7 +492,7 @@ export function AvatarPanel({
                   onInput={(e) => handleVolumeInput(Number((e.target as HTMLInputElement).value))}
                   onChange={(e) => handleVolumeInput(Number(e.target.value))}
                   aria-label="Volume"
-                  className="h-1.5 w-full min-w-0 cursor-pointer accent-violet-400 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="h-1.5 w-full min-w-0 cursor-pointer accent-accent-400 disabled:cursor-not-allowed disabled:opacity-40"
                 />
               </div>
             )}

@@ -142,7 +142,7 @@ function Snippet({ client, url, token, shown, live }: { client: McpClient; url: 
             <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
             <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
           </span>
-          {shell ? <Terminal size={13} aria-hidden className="shrink-0 text-violet-300" /> : <FileJson size={13} aria-hidden className="shrink-0 text-violet-300" />}
+          {shell ? <Terminal size={13} aria-hidden className="shrink-0 text-accent-300" /> : <FileJson size={13} aria-hidden className="shrink-0 text-accent-300" />}
           <h4 className="min-w-0 truncate text-sm font-semibold text-slate-100">{client.name}</h4>
         </div>
         <CopyButton
@@ -155,7 +155,7 @@ function Snippet({ client, url, token, shown, live }: { client: McpClient; url: 
       <pre className={`m-3 mt-2 max-w-full flex-1 overflow-hidden whitespace-pre-wrap rounded-xl border border-white/[0.05] bg-black/40 p-3.5 font-mono text-[12px] leading-relaxed text-slate-200 ${WRAP}`}>
         <code>
           {shell && (
-            <span aria-hidden className="select-none text-violet-300">
+            <span aria-hidden className="select-none text-accent-300">
               ${" "}
             </span>
           )}
@@ -201,9 +201,9 @@ export function McpSection({ gateway, showcase }: McpSectionProps) {
 
   return (
     <section aria-labelledby="mcp-heading" className="surface relative overflow-hidden rounded-3xl p-5 text-slate-200 lg:p-7">
-      <span aria-hidden className="pointer-events-none absolute -left-24 -top-28 h-72 w-72 rounded-full bg-violet-600/10 blur-3xl" />
+      <span aria-hidden className="pointer-events-none absolute -left-24 -top-28 h-72 w-72 rounded-full bg-accent-600/10 blur-3xl" />
       <div className="relative flex items-start gap-4">
-        <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/30 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/25 shadow-[0_12px_30px_-14px_rgb(124_58_237/0.9)]">
+        <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/30 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/25 shadow-[0_12px_30px_-14px_rgb(var(--accent-600)/0.9)]">
           <Bot size={22} strokeWidth={1.75} />
         </span>
         <div className="min-w-0">
@@ -294,7 +294,7 @@ export function McpSection({ gateway, showcase }: McpSectionProps) {
               {info.tools.map((tool, i) => (
                 <tr key={tool.name} className={`align-top transition-colors hover:bg-white/[0.02] ${i % 2 ? "bg-white/[0.012]" : ""}`}>
                   <th scope="row" className="border-b border-white/[0.05] px-4 py-3 font-normal">
-                    <code className={`block font-mono text-[12px] text-violet-100 ${WRAP}`}>
+                    <code className={`block font-mono text-[12px] text-accent-100 ${WRAP}`}>
                       <ToolName name={tool.name} />
                     </code>
                   </th>
@@ -328,7 +328,7 @@ export function McpSection({ gateway, showcase }: McpSectionProps) {
               <ul className="space-y-2 text-sm">
                 {info.resources.map((r) => (
                   <li key={entryName(r)} className="min-w-0">
-                    <code className={`font-mono text-[12px] text-violet-100 ${WRAP}`}>{entryName(r)}</code>
+                    <code className={`font-mono text-[12px] text-accent-100 ${WRAP}`}>{entryName(r)}</code>
                     {entryWords(r) && <span className="block text-xs text-slate-400">{entryWords(r)}</span>}
                   </li>
                 ))}
@@ -343,7 +343,7 @@ export function McpSection({ gateway, showcase }: McpSectionProps) {
               <ul className="space-y-2 text-sm">
                 {info.prompts.map((p) => (
                   <li key={entryName(p)} className="min-w-0">
-                    <code className={`font-mono text-[12px] text-violet-100 ${WRAP}`}>{entryName(p)}</code>
+                    <code className={`font-mono text-[12px] text-accent-100 ${WRAP}`}>{entryName(p)}</code>
                     {entryWords(p) && <span className="block text-xs text-slate-400">{entryWords(p)}</span>}
                   </li>
                 ))}

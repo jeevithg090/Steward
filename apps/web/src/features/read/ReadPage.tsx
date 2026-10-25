@@ -39,7 +39,7 @@ import { SAMPLE_PHOTOS, type SamplePhoto, photoUrl, samplePhotoBody, toBase64, w
 
 const MAX_BYTES = 8 * 1024 * 1024;
 /** Glass fields with a violet glow on focus (the glow is the focus ring here, so it is strong). */
-const FIELD = "rounded-2xl border border-white/10 bg-white/[0.03] text-slate-100 transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-slate-500 hover:border-white/20 focus:border-violet-300 focus:bg-white/[0.05] focus:outline-none focus:ring-4 focus:ring-violet-500/25 focus-visible:outline-none motion-reduce:transition-none [color-scheme:dark]";
+const FIELD = "rounded-2xl border border-white/10 bg-white/[0.03] text-slate-100 transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-slate-500 hover:border-white/20 focus:border-accent-300 focus:bg-white/[0.05] focus:outline-none focus:ring-4 focus:ring-accent-500/25 focus-visible:outline-none motion-reduce:transition-none [color-scheme:dark]";
 const TEXTAREA = `${FIELD} w-full p-4 text-[15px] leading-relaxed`;
 const INPUT = `${FIELD} min-h-[44px] px-3 py-2 text-sm`;
 const DT = "flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400";
@@ -146,9 +146,9 @@ export default function ReadPage({ user, showcase, speak, health }: PageProps) {
       </PageTitle>
 
       <Card as="section" aria-labelledby="pick-heading" className="relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-violet-600/15 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-accent-600/15 blur-3xl" />
         <h2 id="pick-heading" className="relative flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-white">
-          <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/30 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/25">
+          <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/30 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/25">
             <FileText size={19} strokeWidth={1.85} />
           </span>
           Your letter
@@ -179,11 +179,11 @@ export default function ReadPage({ user, showcase, speak, health }: PageProps) {
                   const file = e.dataTransfer.files?.[0];
                   if (file && busy === null) upload(file);
                 }}
-                className={`group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed px-6 py-10 text-center transition-[background-color,border-color] duration-200 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand-300 motion-reduce:transition-none ${
-                  dragging ? "border-violet-300 bg-violet-500/[0.14]" : "border-violet-400/35 bg-violet-500/[0.04] hover:border-violet-300/60 hover:bg-violet-500/[0.08]"
+                className={`group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed px-6 py-10 text-center transition-[background-color,border-color] duration-200 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent-300 motion-reduce:transition-none ${
+                  dragging ? "border-accent-300 bg-accent-500/[0.14]" : "border-accent-400/35 bg-accent-500/[0.04] hover:border-accent-300/60 hover:bg-accent-500/[0.08]"
                 } ${busy ? "pointer-events-none opacity-60" : ""}`}
               >
-                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-b from-violet-500 to-violet-700 text-white shadow-glow transition-transform duration-200 group-hover:-translate-y-0.5 motion-reduce:transition-none">
+                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-b from-accent-500 to-accent-700 text-white shadow-glow transition-transform duration-200 group-hover:-translate-y-0.5 motion-reduce:transition-none">
                   {busy === "photo" ? <Loader2 size={24} className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Camera size={24} aria-hidden />}
                 </span>
                 <span className="block text-base font-semibold text-white">Take a photo of the letter, or choose one</span>
@@ -231,7 +231,7 @@ export default function ReadPage({ user, showcase, speak, health }: PageProps) {
                     aria-pressed={active}
                     aria-describedby="sample-note"
                     className={`group flex h-full w-full flex-col overflow-hidden rounded-3xl border bg-gradient-to-b from-white/[0.05] to-white/[0.015] text-left transition-[transform,border-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lift disabled:cursor-wait disabled:hover:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${FOCUS} ${
-                      active ? "border-violet-400/60 shadow-glow" : "border-white/[0.08] shadow-glass hover:border-violet-300/35"
+                      active ? "border-accent-400/60 shadow-glow" : "border-white/[0.08] shadow-glass hover:border-accent-300/35"
                     }`}
                   >
                     <span className="relative block h-44 w-full overflow-hidden bg-white">
@@ -259,7 +259,7 @@ export default function ReadPage({ user, showcase, speak, health }: PageProps) {
                         )}
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-white transition-colors motion-reduce:transition-none ${
-                            active ? "bg-white/10 ring-1 ring-inset ring-white/15" : "bg-gradient-to-b from-violet-600 to-violet-700 shadow-[0_8px_20px_-10px_rgb(124_58_237/0.9)] group-hover:from-violet-500"
+                            active ? "bg-white/10 ring-1 ring-inset ring-white/15" : "bg-gradient-to-b from-accent-600 to-accent-700 shadow-[0_8px_20px_-10px_rgb(var(--accent-600)/0.9)] group-hover:from-accent-500"
                           }`}
                         >
                           <ScanText size={14} aria-hidden /> {loading ? "Reading…" : active ? "Read it again" : "Read this photo"}
@@ -291,7 +291,7 @@ export default function ReadPage({ user, showcase, speak, health }: PageProps) {
 
       {!reading && busy && (
         <div aria-hidden className="surface overflow-hidden rounded-3xl">
-          <div className="h-1 bg-gradient-to-r from-violet-500/60 via-violet-400/40 to-gold-400/40" />
+          <div className="h-1 bg-gradient-to-r from-accent-500/60 via-accent-400/40 to-gold-400/40" />
           <div className="space-y-4 p-6 sm:p-8">
             <div className="flex items-center gap-4">
               <Skeleton className="h-12 w-12 rounded-2xl" />
@@ -431,8 +431,8 @@ function LetterReadingCard({
       )}
 
       <Card padding="none" className="relative overflow-hidden">
-        <div aria-hidden className="h-1 bg-gradient-to-r from-violet-500 via-violet-400 to-gold-400" />
-        <div aria-hidden className="pointer-events-none absolute -right-20 top-0 h-56 w-56 rounded-full bg-violet-600/10 blur-3xl" />
+        <div aria-hidden className="h-1 bg-gradient-to-r from-accent-500 via-accent-400 to-gold-400" />
+        <div aria-hidden className="pointer-events-none absolute -right-20 top-0 h-56 w-56 rounded-full bg-accent-600/10 blur-3xl" />
         <div className="relative p-5 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-start gap-4">
@@ -507,8 +507,8 @@ function LetterReadingCard({
             )}
           </dl>
 
-          <div className="mt-3 rounded-2xl border-l-[3px] border-violet-400/70 bg-violet-500/[0.06] py-4 pl-5 pr-4">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-200">
+          <div className="mt-3 rounded-2xl border-l-[3px] border-accent-400/70 bg-accent-500/[0.06] py-4 pl-5 pr-4">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-200">
               <MessageSquareQuote size={12} aria-hidden /> The words Tempo reads aloud
             </p>
             <p className="mt-2 text-[15px] leading-relaxed text-slate-200">{reading.reading_text}</p>
@@ -518,7 +518,7 @@ function LetterReadingCard({
 
       <Card as="section" aria-labelledby="reply-heading">
         <h2 id="reply-heading" className="flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-white">
-          <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/30 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/25">
+          <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/30 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/25">
             <PenLine size={18} strokeWidth={1.85} />
           </span>
           Say it, Tempo writes it

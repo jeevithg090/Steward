@@ -62,12 +62,12 @@ export const FINDING_STYLE: Record<FindingKind, KindStyle> = {
   },
   letter: {
     icon: FileText,
-    box: "border-violet-400/25 bg-gradient-to-b from-violet-500/[0.09] to-violet-500/[0.01]",
-    rail: "bg-violet-400",
-    ring: "bg-violet-500/15 text-violet-200 ring-violet-400/30",
+    box: "border-accent-400/25 bg-gradient-to-b from-accent-500/[0.09] to-accent-500/[0.01]",
+    rail: "bg-accent-400",
+    ring: "bg-accent-500/15 text-accent-200 ring-accent-400/30",
     badge: "indigo",
     words: () => "A letter to read",
-    action: "bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_10px_28px_-12px_rgb(124_58_237/0.9)] hover:from-violet-500 hover:to-violet-700",
+    action: "bg-gradient-to-b from-accent-600 to-accent-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_10px_28px_-12px_rgb(var(--accent-600)/0.9)] hover:from-accent-500 hover:to-accent-700",
   },
 };
 

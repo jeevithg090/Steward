@@ -75,7 +75,7 @@ export function TypingIndicator() {
     <div role="status" className="surface mt-4 inline-flex items-center gap-1.5 rounded-3xl rounded-bl-md px-4 py-3.5">
       <span className="sr-only">Tempo is thinking</span>
       {[0, 150, 300].map((delay) => (
-        <span key={delay} aria-hidden style={{ animationDelay: `${delay}ms` }} className="h-2 w-2 animate-bounce rounded-full bg-gradient-to-b from-violet-200 to-violet-400 motion-reduce:animate-none" />
+        <span key={delay} aria-hidden style={{ animationDelay: `${delay}ms` }} className="h-2 w-2 animate-bounce rounded-full bg-gradient-to-b from-accent-200 to-accent-400 motion-reduce:animate-none" />
       ))}
     </div>
   );
@@ -97,7 +97,7 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
           );
         }
         return (
-          <li key={message.id} className={`max-w-[88%] px-4 py-3 text-[14.5px] text-white motion-safe:animate-fade-up lg:max-w-[78%] ${isUser ? "ml-auto w-fit rounded-3xl rounded-br-md bg-gradient-to-b from-violet-600 to-violet-700 shadow-[0_1px_0_0_rgb(255_255_255/0.18)_inset,0_14px_30px_-16px_rgb(124_58_237/0.9)]" : "surface rounded-3xl rounded-bl-md px-5 py-4"}`}>
+          <li key={message.id} className={`max-w-[88%] px-4 py-3 text-[14.5px] text-white motion-safe:animate-fade-up lg:max-w-[78%] ${isUser ? "ml-auto w-fit rounded-3xl rounded-br-md bg-gradient-to-b from-accent-600 to-accent-700 shadow-[0_1px_0_0_rgb(255_255_255/0.18)_inset,0_14px_30px_-16px_rgb(var(--accent-600)/0.9)]" : "surface rounded-3xl rounded-bl-md px-5 py-4"}`}>
             <span className="sr-only">{isUser ? "You said: " : "Tempo said: "}</span>
             {!isUser && message.intent && (
               <Badge tone={INTENT_TONE[message.intent] ?? "indigo"} className="mb-1.5">
@@ -142,7 +142,7 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
                     <span className="font-medium text-slate-100">{f.benefit}</span> <Badge tone={f.likelihood === "likely" ? "emerald" : "amber"}>{f.likelihood}</Badge>
                     {f.weekly_gbp && <span className="text-slate-300"> · about £{f.weekly_gbp} a week</span>}
                     <span className="block text-slate-400">{f.why}</span>
-                    <a href={f.signpost} target="_blank" rel="noreferrer" className={`text-violet-300 underline decoration-violet-300/40 underline-offset-2 hover:decoration-violet-300 ${FOCUS} rounded`}>
+                    <a href={f.signpost} target="_blank" rel="noreferrer" className={`text-accent-300 underline decoration-accent-300/40 underline-offset-2 hover:decoration-accent-300 ${FOCUS} rounded`}>
                       official page
                     </a>
                   </li>
@@ -153,7 +153,7 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
               <ul aria-label="Open the page" className="mt-3 flex flex-wrap gap-2">
                 {message.actions.map((a) => (
                   <li key={a.href}>
-                    <a {...linkProps(a.href)} className={`inline-flex min-h-9 items-center rounded-full border border-violet-300/30 bg-violet-500/[0.12] px-3.5 py-1.5 text-xs font-medium text-violet-50 transition-colors hover:bg-violet-500/25 ${FOCUS}`}>
+                    <a {...linkProps(a.href)} className={`inline-flex min-h-9 items-center rounded-full border border-accent-300/30 bg-accent-500/[0.12] px-3.5 py-1.5 text-xs font-medium text-accent-50 transition-colors hover:bg-accent-500/25 ${FOCUS}`}>
                       {a.label}
                     </a>
                   </li>
@@ -171,9 +171,9 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
                       type="button"
                       disabled={busy}
                       onClick={() => onSuggest(text)}
-                      className={`flex min-h-11 w-full items-start gap-2 whitespace-normal break-words rounded-2xl border border-violet-300/25 bg-violet-500/[0.08] px-3.5 py-2.5 text-left text-sm leading-snug text-violet-50 transition-colors hover:bg-indigo-500/25 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none sm:w-auto ${FOCUS}`}
+                      className={`flex min-h-11 w-full items-start gap-2 whitespace-normal break-words rounded-2xl border border-accent-300/25 bg-accent-500/[0.08] px-3.5 py-2.5 text-left text-sm leading-snug text-accent-50 transition-colors hover:bg-accent-500/25 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none sm:w-auto ${FOCUS}`}
                     >
-                      <CornerDownRight size={14} aria-hidden className="mt-0.5 shrink-0 text-violet-300" />
+                      <CornerDownRight size={14} aria-hidden className="mt-0.5 shrink-0 text-accent-300" />
                       <span>{text}</span>
                     </button>
                   </li>

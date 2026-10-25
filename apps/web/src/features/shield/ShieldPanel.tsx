@@ -97,7 +97,7 @@ const LEVEL_LOOK: Record<ShieldVerdict["level"], { band: string; border: string;
 const SAMPLE_ICONS: Record<string, LucideIcon> = { hmrc: Receipt, grey: Link2, genuine: Landmark, loan: Banknote };
 
 /** Glass fields with a violet glow on focus (the glow is the focus ring here, so it is strong). */
-export const FIELD = "w-full rounded-2xl border border-white/10 bg-white/[0.03] text-slate-100 shadow-[0_1px_0_0_rgb(255_255_255/0.03)_inset] transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-slate-500 hover:border-white/20 focus:border-violet-300 focus:bg-white/[0.05] focus:outline-none focus:ring-4 focus:ring-violet-500/25 focus-visible:outline-none motion-reduce:transition-none";
+export const FIELD = "w-full rounded-2xl border border-white/10 bg-white/[0.03] text-slate-100 shadow-[0_1px_0_0_rgb(255_255_255/0.03)_inset] transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-slate-500 hover:border-white/20 focus:border-accent-300 focus:bg-white/[0.05] focus:outline-none focus:ring-4 focus:ring-accent-500/25 focus-visible:outline-none motion-reduce:transition-none";
 const TEXTAREA = `${FIELD} p-4 text-[15px] leading-relaxed`;
 const SELECT = `${FIELD} min-h-[44px] cursor-pointer appearance-none py-2 pl-10 pr-10 text-sm`;
 const DT = "flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400";
@@ -109,7 +109,7 @@ export function LanguagePicker({ id, label, value, onChange }: { id: string; lab
         {label}
       </label>
       <div className="relative mt-1.5">
-        <Languages size={16} aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-violet-300" />
+        <Languages size={16} aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-accent-300" />
         <select id={id} value={value} onChange={(e) => onChange(e.target.value as Language)} className={SELECT}>
           {LANGUAGES.map((l) => (
             <option key={l.code} value={l.code} className="bg-ink-800 text-slate-100">
@@ -144,7 +144,7 @@ function LogStat({ label, value, icon }: { label: string; value: number; icon: R
 
 /** A card title with its icon tile, the way the Shield's panels open. */
 function PanelTitle({ id, icon, children, tone = "violet" }: { id: string; icon: ReactNode; children: ReactNode; tone?: "violet" | "emerald" }) {
-  const tile = tone === "emerald" ? "from-emerald-500/25 to-emerald-700/10 text-emerald-100 ring-emerald-300/25" : "from-violet-500/30 to-violet-700/10 text-violet-100 ring-violet-300/25";
+  const tile = tone === "emerald" ? "from-emerald-500/25 to-emerald-700/10 text-emerald-100 ring-emerald-300/25" : "from-accent-500/30 to-accent-700/10 text-accent-100 ring-accent-300/25";
   return (
     <h2 id={id} className="flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-white">
       <span aria-hidden className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b ring-1 ring-inset ${tile}`}>
@@ -236,7 +236,7 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
   return (
     <div className="space-y-6">
       <Card as="section" aria-labelledby="check-heading" className="relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-violet-600/15 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent-600/15 blur-3xl" />
         <div className="relative">
           <PanelTitle id="check-heading" icon={<ScanSearch size={19} strokeWidth={1.85} />}>
             Check a message
@@ -261,11 +261,11 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
                   aria-pressed={on}
                   className={`${TAP} inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-[background-color,border-color,color,box-shadow,transform] duration-150 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 ${FOCUS} ${
                     on
-                      ? "border-violet-300/60 bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.2)_inset,0_10px_24px_-12px_rgb(124_58_237/0.9)]"
-                      : "border-white/10 bg-white/[0.04] text-slate-200 hover:border-violet-300/35 hover:bg-white/[0.08] hover:text-white"
+                      ? "border-accent-300/60 bg-gradient-to-b from-accent-600 to-accent-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.2)_inset,0_10px_24px_-12px_rgb(var(--accent-600)/0.9)]"
+                      : "border-white/10 bg-white/[0.04] text-slate-200 hover:border-accent-300/35 hover:bg-white/[0.08] hover:text-white"
                   }`}
                 >
-                  {on ? <Check size={15} strokeWidth={2.5} aria-hidden /> : <Icon size={15} aria-hidden className="text-violet-300" />}
+                  {on ? <Check size={15} strokeWidth={2.5} aria-hidden /> : <Icon size={15} aria-hidden className="text-accent-300" />}
                   {s.label}
                 </button>
               );
@@ -445,8 +445,8 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
                     </dd>
                   </div>
                 )}
-                <div className="rounded-2xl border border-violet-300/20 bg-violet-500/[0.07] p-4 lg:col-span-2">
-                  <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-200">
+                <div className="rounded-2xl border border-accent-300/20 bg-accent-500/[0.07] p-4 lg:col-span-2">
+                  <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-200">
                     <Lightbulb size={12} aria-hidden /> What to do
                   </dt>
                   <dd className="mt-2 text-[15px] leading-relaxed text-white">{verdict.advice}</dd>
@@ -506,7 +506,7 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
         {status && (
           <>
             <dl className="mt-5 grid grid-cols-3 gap-2.5 sm:gap-3">
-              <LogStat label="Checked today" value={status.today.checked} icon={<ScanSearch size={13} aria-hidden className="shrink-0 text-violet-300" />} />
+              <LogStat label="Checked today" value={status.today.checked} icon={<ScanSearch size={13} aria-hidden className="shrink-0 text-accent-300" />} />
               <LogStat label="Held and looked at" value={status.today.held} icon={<Hourglass size={13} aria-hidden className="shrink-0 text-amber-300" />} />
               <LogStat label="Warned about" value={status.today.warned} icon={<Megaphone size={13} aria-hidden className="shrink-0 text-rose-300" />} />
             </dl>

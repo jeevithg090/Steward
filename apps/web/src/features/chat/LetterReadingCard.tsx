@@ -6,9 +6,9 @@ import { type LetterReading, directionWords, kindWords, longDate } from "@/lib/l
 export function LetterReadingCard({ reading, onSpeak }: { reading: LetterReading; onSpeak?: (text: string) => void }) {
   const money = reading.money.amount_gbp ? `${directionWords(reading.money.direction)}: £${reading.money.amount_gbp}` : directionWords(reading.money.direction);
   return (
-    <section aria-label="Letter reading" lang={reading.language} className="mt-3 space-y-3 rounded-2xl border border-violet-300/25 bg-gradient-to-b from-violet-500/[0.1] to-violet-500/[0.02] p-4">
+    <section aria-label="Letter reading" lang={reading.language} className="mt-3 space-y-3 rounded-2xl border border-accent-300/25 bg-gradient-to-b from-accent-500/[0.1] to-accent-500/[0.02] p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <FileText size={16} aria-hidden className="text-violet-300" />
+        <FileText size={16} aria-hidden className="text-accent-300" />
         <h2 className="text-sm font-semibold text-slate-100">
           {kindWords(reading.kind)} from {reading.sender}
           {reading.date ? `, dated ${longDate(reading.date)}` : ""}

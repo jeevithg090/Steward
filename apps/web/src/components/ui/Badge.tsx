@@ -3,18 +3,18 @@ import type { ReactNode } from "react";
 export type BadgeTone = "indigo" | "emerald" | "rose" | "amber" | "purple" | "slate" | "gold";
 
 const TONES: Record<BadgeTone, string> = {
-  indigo: "bg-violet-500/[0.14] text-violet-200 ring-violet-400/25",
+  indigo: "bg-accent-500/[0.14] text-accent-200 ring-accent-400/25",
   emerald: "bg-emerald-500/[0.13] text-emerald-200 ring-emerald-400/25",
   rose: "bg-rose-500/[0.14] text-rose-200 ring-rose-400/25",
   amber: "bg-amber-500/[0.14] text-amber-200 ring-amber-400/25",
-  purple: "bg-fuchsia-500/[0.13] text-fuchsia-200 ring-fuchsia-400/25",
+  purple: "bg-second-500/[0.13] text-second-200 ring-second-400/25",
   slate: "bg-white/[0.07] text-slate-300 ring-white/10",
   gold: "bg-gold-400/[0.14] text-gold-200 ring-gold-400/30",
 };
 
 const DOTS: Record<BadgeTone, string> = {
-  indigo: "bg-violet-300", emerald: "bg-emerald-300", rose: "bg-rose-300", amber: "bg-amber-300",
-  purple: "bg-fuchsia-300", slate: "bg-slate-400", gold: "bg-gold-300",
+  indigo: "bg-accent-300", emerald: "bg-emerald-300", rose: "bg-rose-300", amber: "bg-amber-300",
+  purple: "bg-second-300", slate: "bg-slate-400", gold: "bg-gold-300",
 };
 
 /** A small status pill: state, zone, honesty label. `dot` adds a status light in front. */

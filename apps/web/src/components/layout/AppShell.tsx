@@ -103,7 +103,7 @@ export function AppShell({ section, onNewChat, onSelectChat, history, profileNam
               onClick={() => setPaletteOpen(true)}
               aria-label="Search pages and actions"
               aria-keyshortcuts={MAC ? "Meta+K" : "Control+K"}
-              className="group flex h-9 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] pl-3 pr-1.5 text-[13px] text-slate-400 transition-colors hover:border-white/15 hover:bg-white/[0.06] hover:text-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-300"
+              className="group flex h-9 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] pl-3 pr-1.5 text-[13px] text-slate-400 transition-colors hover:border-white/15 hover:bg-white/[0.06] hover:text-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-300"
             >
               <Search size={15} aria-hidden />
               <span className="hidden md:inline">Jump to…</span>
@@ -130,7 +130,7 @@ export function AppShell({ section, onNewChat, onSelectChat, history, profileNam
                 aria-current={on ? "page" : undefined}
                 className={`flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium ${on ? "text-white" : "text-slate-500"}`}
               >
-                <span className={`grid h-7 w-12 place-items-center rounded-full transition-colors ${on ? "bg-violet-500/20 text-violet-100" : ""}`}>
+                <span className={`grid h-7 w-12 place-items-center rounded-full transition-colors ${on ? "bg-accent-500/20 text-accent-100" : ""}`}>
                   <tab.Icon size={18} strokeWidth={1.75} aria-hidden />
                 </span>
                 {tab.label}

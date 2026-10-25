@@ -25,13 +25,13 @@ export function Segmented<T extends string>({ options, value, onChange, label, c
             type="button"
             aria-pressed={on}
             onClick={() => onChange(option.value)}
-            className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-300 motion-reduce:transition-none ${
+            className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent-300 motion-reduce:transition-none ${
               on ? "bg-white/[0.1] text-white shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset]" : "text-slate-400 hover:text-slate-100"
             }`}
           >
             {option.label}
             {option.count !== undefined && (
-              <span className={`num rounded-full px-1.5 text-[11px] ${on ? "bg-violet-500/30 text-violet-100" : "bg-white/[0.06] text-slate-400"}`}>{option.count}</span>
+              <span className={`num rounded-full px-1.5 text-[11px] ${on ? "bg-accent-500/30 text-accent-100" : "bg-white/[0.06] text-slate-400"}`}>{option.count}</span>
             )}
           </button>
         );

@@ -24,10 +24,10 @@ export const SWEEP_SAMPLE = "Find money I'm owed in my email";
 
 /** One group per beat, each with its lucide icon. */
 export const BEATS: Beat[] = [
-  { id: "train", label: "A late train", icon: Train, tone: "from-violet-500/30 to-violet-700/10 text-violet-100 ring-violet-300/25", samples: [DEMO_SENTENCE] },
+  { id: "train", label: "A late train", icon: Train, tone: "from-accent-500/30 to-accent-700/10 text-accent-100 ring-accent-300/25", samples: [DEMO_SENTENCE] },
   { id: "engineer", label: "A missed engineer", icon: Wrench, tone: "from-amber-500/30 to-amber-700/10 text-amber-100 ring-amber-300/25", samples: ["The Broadbandly engineer never came on 19 October"] },
   { id: "scam", label: "Is this a scam?", icon: ShieldAlert, tone: "from-rose-500/30 to-rose-700/10 text-rose-100 ring-rose-300/25", samples: [SCAM_SAMPLE] },
-  { id: "memory", label: "What I remember", icon: Brain, tone: "from-fuchsia-500/30 to-fuchsia-700/10 text-fuchsia-100 ring-fuchsia-300/25", samples: ["What do you remember about me?"] },
+  { id: "memory", label: "What I remember", icon: Brain, tone: "from-second-500/30 to-second-700/10 text-second-100 ring-second-300/25", samples: ["What do you remember about me?"] },
   { id: "money", label: "Money back", icon: PoundSterling, tone: "from-gold-400/35 to-gold-500/10 text-gold-100 ring-gold-300/30", samples: ["How much have you got back for me?", "Am I owed anything?"] },
   { id: "inbox", label: "Money in my email", icon: Inbox, tone: "from-emerald-500/30 to-emerald-700/10 text-emerald-100 ring-emerald-300/25", samples: [SWEEP_SAMPLE] },
   { id: "letter", label: "Read a letter", icon: FileText, tone: "from-sky-500/30 to-sky-700/10 text-sky-100 ring-sky-300/25", samples: ["Read this letter"] },
@@ -37,7 +37,7 @@ export const BEATS: Beat[] = [
 export const SAMPLE_CHIPS: string[] = BEATS.flatMap((b) => b.samples);
 
 export const CHIP =
-  "group/chip flex min-h-11 w-full items-start justify-between gap-3 whitespace-normal break-words rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 text-left text-[14px] leading-snug text-slate-100 transition-[background-color,border-color,transform] duration-150 hover:border-violet-300/35 hover:bg-violet-500/[0.08] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none";
+  "group/chip flex min-h-11 w-full items-start justify-between gap-3 whitespace-normal break-words rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 text-left text-[14px] leading-snug text-slate-100 transition-[background-color,border-color,transform] duration-150 hover:border-accent-300/35 hover:bg-accent-500/[0.08] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none";
 
 /** Two columns only when the card itself is wide enough; the chat column narrows when the avatar panel is wide. */
 const TWO_COLUMNS_FROM = 560;
@@ -57,8 +57,8 @@ export function WelcomeCard({ name, onPick, disabled = false }: { name: string; 
   return (
     <div ref={ref} className="mx-auto w-full max-w-3xl">
       <section aria-labelledby="welcome-heading" className="pb-2 pt-2 lg:pt-8">
-        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/80 motion-safe:animate-fade-up">
-          <Sparkles size={13} aria-hidden className="text-violet-300" /> {greeting()}
+        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-200/80 motion-safe:animate-fade-up">
+          <Sparkles size={13} aria-hidden className="text-accent-300" /> {greeting()}
         </p>
         <h2 id="welcome-heading" className="mt-3 font-display text-[2.6rem] leading-[1.02] text-white motion-safe:animate-fade-up sm:text-[3.4rem]">
           Hello {name}. I&apos;m <em className="text-brand pr-[0.03em]">Tempo</em>.
@@ -86,10 +86,10 @@ export function WelcomeCard({ name, onPick, disabled = false }: { name: string; 
                 {beat.samples.map((text) => (
                   <button key={text} type="button" disabled={disabled} onClick={() => onPick(text)} className={`${CHIP} ${FOCUS} ${featured ? "text-[15px]" : ""}`}>
                     {text}
-                    <ArrowUpRight size={16} aria-hidden className="mt-0.5 shrink-0 text-slate-500 transition-[transform,color] duration-150 group-hover/chip:-translate-y-0.5 group-hover/chip:translate-x-0.5 group-hover/chip:text-violet-200 motion-reduce:transition-none" />
+                    <ArrowUpRight size={16} aria-hidden className="mt-0.5 shrink-0 text-slate-500 transition-[transform,color] duration-150 group-hover/chip:-translate-y-0.5 group-hover/chip:translate-x-0.5 group-hover/chip:text-accent-200 motion-reduce:transition-none" />
                   </button>
                 ))}
-                {featured && <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-violet-500/20 blur-3xl" />}
+                {featured && <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-accent-500/20 blur-3xl" />}
               </li>
             );
           })}

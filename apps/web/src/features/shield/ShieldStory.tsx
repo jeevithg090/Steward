@@ -304,11 +304,11 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
           aria-live="polite"
           aria-atomic="true"
           data-testid="captions"
-          className={`relative overflow-hidden rounded-3xl border border-violet-400/25 bg-gradient-to-b from-violet-500/[0.14] to-violet-500/[0.03] p-5 shadow-[0_24px_60px_-34px_rgb(124_58_237/0.8)] sm:p-6 ${eyesClosed ? "min-h-48" : "min-h-28"}`}
+          className={`relative overflow-hidden rounded-3xl border border-accent-400/25 bg-gradient-to-b from-accent-500/[0.14] to-accent-500/[0.03] p-5 shadow-[0_24px_60px_-34px_rgb(var(--accent-600)/0.8)] sm:p-6 ${eyesClosed ? "min-h-48" : "min-h-28"}`}
         >
-          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-200">
-            <span aria-hidden className={`relative grid h-5 w-5 place-items-center rounded-full ${playing ? "bg-violet-500/30" : "bg-white/[0.06]"}`}>
-              {playing && <span className="absolute inset-0 rounded-full bg-violet-400/40 motion-safe:animate-ripple" />}
+          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-200">
+            <span aria-hidden className={`relative grid h-5 w-5 place-items-center rounded-full ${playing ? "bg-accent-500/30" : "bg-white/[0.06]"}`}>
+              {playing && <span className="absolute inset-0 rounded-full bg-accent-400/40 motion-safe:animate-ripple" />}
               <AudioLines size={11} className="relative" />
             </span>
             {caption ? (captionIsTempo || captionIsTempoEnglish ? "Tempo says" : "Narrator") : "Captions"}
@@ -336,7 +336,7 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
                     onClick={() => go(i)}
                     className={`group flex min-h-[52px] w-full items-center gap-3 rounded-2xl border px-3 py-2 text-left text-[13px] leading-snug transition-[background-color,border-color,box-shadow] duration-200 motion-reduce:transition-none ${FOCUS} ${
                       here
-                        ? "border-violet-400/50 bg-violet-500/[0.14] text-white shadow-[0_12px_30px_-18px_rgb(124_58_237/0.9)]"
+                        ? "border-accent-400/50 bg-accent-500/[0.14] text-white shadow-[0_12px_30px_-18px_rgb(var(--accent-600)/0.9)]"
                         : "border-white/[0.07] bg-white/[0.025] text-slate-300 hover:border-white/15 hover:bg-white/[0.05] hover:text-white"
                     }`}
                   >
@@ -344,7 +344,7 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
                       aria-hidden
                       className={`num relative grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold ${
                         here
-                          ? "bg-gradient-to-b from-violet-500 to-violet-700 text-white shadow-glow"
+                          ? "bg-gradient-to-b from-accent-500 to-accent-700 text-white shadow-glow"
                           : past
                             ? "bg-gradient-to-b from-emerald-400 to-emerald-600 text-emerald-950"
                             : "bg-ink-800 text-slate-300 ring-1 ring-inset ring-white/15"
@@ -364,7 +364,7 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
           {/* the phone */}
           <div style={visual} aria-label={`Margaret's phone: ${scene.title}`} role="img" className="mx-auto w-full max-w-[20rem] motion-reduce:transition-none">
             <div className="relative">
-              <div aria-hidden className="absolute inset-x-6 -bottom-6 top-10 rounded-full bg-violet-600/20 blur-3xl" />
+              <div aria-hidden className="absolute inset-x-6 -bottom-6 top-10 rounded-full bg-accent-600/20 blur-3xl" />
               <div className="relative rounded-[2.9rem] bg-gradient-to-b from-slate-500/50 via-slate-700/60 to-slate-800/60 p-[2px] shadow-[0_40px_80px_-32px_rgb(0_0_0/0.95)]">
                 <div className="rounded-[2.8rem] bg-ink p-2.5">
                   <div className="relative min-h-[31rem] overflow-hidden rounded-[2.2rem] bg-gradient-to-b from-ink-700 via-ink-900 to-ink px-4 pb-6 pt-3 text-slate-100">
@@ -435,7 +435,7 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
                         {scene.screen === "ledger" && <p className="text-center text-xs text-rose-200">The message stays here. Four fields leave →</p>}
                         {scene.screen === "quiet" && <p className="text-center text-xs text-slate-400">Tempo says nothing.</p>}
                         {scene.screen === "doors" && (
-                          <div className="ml-auto max-w-[90%] rounded-2xl rounded-tr-md bg-gradient-to-b from-violet-600 to-violet-700 p-3 text-sm leading-snug text-white">Tempo: {HMRC.say.split(" Why:")[0]}</div>
+                          <div className="ml-auto max-w-[90%] rounded-2xl rounded-tr-md bg-gradient-to-b from-accent-600 to-accent-700 p-3 text-sm leading-snug text-white">Tempo: {HMRC.say.split(" Why:")[0]}</div>
                         )}
                       </div>
                     )}
@@ -448,7 +448,7 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
 
           {/* the words beside the phone */}
           <div className="min-w-0 space-y-4">
-            <p aria-hidden className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-200">
+            <p aria-hidden className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-200">
               Step {step + 1} of {SCENES.length}
             </p>
             <h3 className="font-display text-[1.9rem] leading-[1.1] text-white sm:text-[2.2rem]">
@@ -482,7 +482,7 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
                 <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-2xl bg-black/30 p-4 font-mono text-xs ring-1 ring-inset ring-white/[0.06]">
                   {leaves(verdict, scene.sender).map((f) => (
                     <div key={f.field} className="contents">
-                      <dt className="text-violet-300">{f.field}</dt>
+                      <dt className="text-accent-300">{f.field}</dt>
                       <dd className="break-all text-slate-100">{f.value}</dd>
                     </div>
                   ))}
@@ -555,8 +555,8 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
         </div>
 
         <details className="group surface rounded-2xl px-4 py-1">
-          <summary className={`flex min-h-[48px] cursor-pointer list-none items-center gap-2.5 rounded-xl text-sm font-medium text-violet-200 hover:text-white [&::-webkit-details-marker]:hidden ${FOCUS}`}>
-            <ScrollText size={16} aria-hidden className="shrink-0 text-violet-300" />
+          <summary className={`flex min-h-[48px] cursor-pointer list-none items-center gap-2.5 rounded-xl text-sm font-medium text-accent-200 hover:text-white [&::-webkit-details-marker]:hidden ${FOCUS}`}>
+            <ScrollText size={16} aria-hidden className="shrink-0 text-accent-300" />
             <span className="flex-1">Transcript: everything spoken on this page so far</span>
             <ChevronDown size={16} aria-hidden className="shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" />
           </summary>
@@ -603,7 +603,7 @@ function ProofCard({ icon, title, children, extra }: { icon: ReactNode; title: s
   return (
     <Card padding="tight" className="!p-4 sm:!p-5">
       <div className="flex items-start gap-3.5">
-        <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/25 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/20">
+        <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/25 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/20">
           {icon}
         </span>
         <div className="min-w-0 flex-1">

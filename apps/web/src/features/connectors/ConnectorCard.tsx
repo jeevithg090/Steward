@@ -9,7 +9,7 @@ type Icon = ComponentType<{ size?: number; className?: string; "aria-hidden"?: b
 
 /** A lucide icon and a colour for each kind of connector: `ring` for small circles, `tile` for the logo tile. */
 export const CONNECTOR_ICON: Record<string, { icon: Icon; ring: string; tile: string }> = {
-  mail: { icon: Mail, ring: "bg-violet-500/15 text-violet-200", tile: "from-violet-400 to-indigo-600" },
+  mail: { icon: Mail, ring: "bg-accent-500/15 text-accent-200", tile: "from-accent-400 to-accent-600" },
   calendar: { icon: CalendarDays, ring: "bg-amber-500/15 text-amber-200", tile: "from-amber-300 to-orange-500" },
   bank: { icon: Landmark, ring: "bg-emerald-500/15 text-emerald-200", tile: "from-emerald-300 to-teal-600" },
   rail: { icon: TrainFront, ring: "bg-sky-500/15 text-sky-200", tile: "from-sky-300 to-blue-600" },
@@ -81,13 +81,13 @@ export function ConnectorCard({ connector: c, pending, onToggle }: ConnectorCard
           disabled={pending}
           onClick={() => onToggle(c, !c.connected)}
           className={`inline-flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-full py-1.5 pl-2 pr-3.5 text-sm font-medium ring-1 ring-inset transition-colors disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none ${
-            c.connected ? "bg-violet-500/[0.12] text-violet-50 ring-violet-400/30 hover:bg-violet-500/20" : "bg-white/[0.04] text-slate-300 ring-white/15 hover:bg-white/[0.08]"
+            c.connected ? "bg-accent-500/[0.12] text-accent-50 ring-accent-400/30 hover:bg-accent-500/20" : "bg-white/[0.04] text-slate-300 ring-white/15 hover:bg-white/[0.08]"
           } ${FOCUS}`}
         >
           <span
             aria-hidden
             className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 ring-1 ring-inset transition-colors duration-200 motion-reduce:transition-none ${
-              c.connected ? "bg-gradient-to-b from-violet-500 to-violet-700 ring-violet-300/30 shadow-[0_6px_18px_-8px_rgb(124_58_237/0.9)]" : "bg-white/[0.08] ring-white/15"
+              c.connected ? "bg-gradient-to-b from-accent-500 to-accent-700 ring-accent-300/30 shadow-[0_6px_18px_-8px_rgb(var(--accent-600)/0.9)]" : "bg-white/[0.08] ring-white/15"
             }`}
           >
             <span
@@ -103,7 +103,7 @@ export function ConnectorCard({ connector: c, pending, onToggle }: ConnectorCard
         <ul className="space-y-1.5 text-sm leading-snug text-slate-200">
           {c.scopes.map((scope) => (
             <li key={scope} className="flex items-start gap-2.5">
-              <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400 shadow-[0_0_0_3px_rgb(139_92_246/0.18)]" />
+              <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent-400 shadow-[0_0_0_3px_rgb(var(--accent-500)/0.18)]" />
               <span className="min-w-0 break-words">{scope}</span>
             </li>
           ))}

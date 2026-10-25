@@ -340,7 +340,7 @@ export function PassportPanel({ mandate, events = [], busy = false, onRevoke, mi
 
           <section aria-labelledby={checkHeading} className="rounded-2xl border border-white/[0.08] bg-black/20 p-4">
             <h4 id={checkHeading} className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-              <Scale size={13} aria-hidden className="text-violet-300" /> Let the company check it
+              <Scale size={13} aria-hidden className="text-accent-300" /> Let the company check it
             </h4>
             <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
               Play {view.counterparty}: send this mandate to Tempo&apos;s public check, the one a company&apos;s agent calls with no login.

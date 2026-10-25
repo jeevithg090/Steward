@@ -28,11 +28,11 @@ const THIRD_PARTY_WORDS: Record<string, string> = {
 
 type Verdict = "ok" | "gap" | "info";
 
-const RAIL: Record<Verdict, string> = { ok: "bg-emerald-400", gap: "bg-amber-400", info: "bg-fuchsia-400/70" };
+const RAIL: Record<Verdict, string> = { ok: "bg-emerald-400", gap: "bg-amber-400", info: "bg-second-400/70" };
 const TILE: Record<Verdict, string> = {
   ok: "bg-emerald-500/[0.12] text-emerald-200 ring-emerald-400/25",
   gap: "bg-amber-500/[0.12] text-amber-200 ring-amber-400/25",
-  info: "bg-white/[0.05] text-violet-200 ring-white/10",
+  info: "bg-white/[0.05] text-accent-200 ring-white/10",
 };
 
 function Line({ icon, label, verdict, children }: { icon: ReactNode; label: string; verdict: Verdict; children: ReactNode }) {
@@ -114,12 +114,12 @@ export default function PrivacyPage({ gateway, user, health, showcase }: PagePro
       </PageTitle>
 
       <Card tone="indigo" padding="none" className="relative overflow-hidden motion-safe:animate-fade-up">
-        <span aria-hidden className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-accent-500/20 blur-3xl" />
         <span aria-hidden className="pointer-events-none absolute -bottom-32 right-0 h-72 w-72 rounded-full bg-emerald-500/[0.08] blur-3xl" />
-        <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/60 to-transparent" />
+        <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-300/60 to-transparent" />
         <div className="relative grid gap-6 p-5 lg:grid-cols-[1.4fr_1fr] lg:items-center lg:p-7">
           <div className="flex flex-col items-start gap-4 sm:flex-row">
-            <span aria-hidden className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/35 to-violet-700/10 text-violet-50 ring-1 ring-inset ring-violet-300/30 shadow-[0_14px_34px_-12px_rgb(124_58_237/0.9)]">
+            <span aria-hidden className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/35 to-accent-700/10 text-accent-50 ring-1 ring-inset ring-accent-300/30 shadow-[0_14px_34px_-12px_rgb(var(--accent-600)/0.9)]">
               <ShieldCheck size={26} strokeWidth={1.6} />
             </span>
             <div className="min-w-0">
@@ -135,7 +135,7 @@ export default function PrivacyPage({ gateway, user, health, showcase }: PagePro
           {proof && (
             <div className="grid grid-cols-3 gap-3 rounded-2xl border border-white/[0.08] bg-black/25 p-4">
               <Figure label="Checked" value={count("ok")} tone="emerald" icon={<CheckCircle2 size={12} aria-hidden className="text-emerald-300" />} />
-              <Figure label="Stated" value={count("info")} icon={<Info size={12} aria-hidden className="text-fuchsia-300" />} />
+              <Figure label="Stated" value={count("info")} icon={<Info size={12} aria-hidden className="text-second-300" />} />
               <Figure label="Gaps" value={count("gap")} tone="amber" icon={<AlertTriangle size={12} aria-hidden className="text-amber-300" />} />
             </div>
           )}
@@ -251,7 +251,7 @@ export default function PrivacyPage({ gateway, user, health, showcase }: PagePro
 
             <Line icon={<Fingerprint size={16} />} label="Running image against the signed allowlist" verdict={proof.allowlist === "signed" && proof.image_allowlisted ? "ok" : "gap"}>
               {proof.image_digest ? (
-                <code className="break-all rounded-md bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-violet-200">{proof.image_digest.slice(0, 19)}…</code>
+                <code className="break-all rounded-md bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-accent-200">{proof.image_digest.slice(0, 19)}…</code>
               ) : (
                 <span>a local build, so no image digest</span>
               )}
@@ -270,7 +270,7 @@ export default function PrivacyPage({ gateway, user, health, showcase }: PagePro
               ) : (
                 <>
                   no device yet: pairing a phone with a passkey is what puts the key on it.{" "}
-                  <a href="#/devices" className={`font-medium text-violet-300 underline decoration-violet-400/40 underline-offset-[3px] hover:text-violet-200 ${FOCUS}`}>
+                  <a href="#/devices" className={`font-medium text-accent-300 underline decoration-accent-400/40 underline-offset-[3px] hover:text-accent-200 ${FOCUS}`}>
                     Set one up on Devices
                   </a>
                   .
@@ -280,7 +280,7 @@ export default function PrivacyPage({ gateway, user, health, showcase }: PagePro
 
             <Line icon={<Lock size={16} />} label="What an operator sees of a stored row" verdict={proof.operator_view ? "ok" : "info"}>
               {proof.operator_view ? (
-                <code aria-label="Operator view of one stored row" className="break-all rounded-md bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-violet-200">
+                <code aria-label="Operator view of one stored row" className="break-all rounded-md bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-accent-200">
                   {proof.operator_view.table}: {proof.operator_view.bytes}…
                 </code>
               ) : (
@@ -313,7 +313,7 @@ function companyParts(id: string): [string, string | null] {
 function ZoneHead({ icon, tone, title, sub }: { icon: ReactNode; tone: "emerald" | "violet" | "amber"; title: string; sub: string }) {
   const tones = {
     emerald: "from-emerald-500/30 to-emerald-700/10 text-emerald-100 ring-emerald-300/25",
-    violet: "from-violet-500/30 to-violet-700/10 text-violet-100 ring-violet-300/25",
+    violet: "from-accent-500/30 to-accent-700/10 text-accent-100 ring-accent-300/25",
     amber: "from-amber-500/25 to-amber-700/10 text-amber-100 ring-amber-300/25",
   };
   return (

@@ -143,7 +143,7 @@ export function ChatInput({
   const hint = speech.listening ? "Listening…" : isReading ? "Reading the letter…" : isSubmitting ? "Thinking…" : placeholder || (width > 0 && width < 640 ? "Tell me what happened" : "Tell me what happened, or ask a question");
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} aria-label="Message Tempo" className="glass-strong relative flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1.5 transition-[box-shadow,border-color] duration-200 focus-within:border-violet-300/40 focus-within:shadow-[0_0_0_4px_rgb(139_92_246/0.12),0_30px_80px_-30px_rgb(0_0_0/0.95)] sm:gap-2 sm:px-2.5 sm:py-2 motion-reduce:transition-none">
+    <form ref={formRef} onSubmit={handleSubmit} aria-label="Message Tempo" className="glass-strong relative flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1.5 transition-[box-shadow,border-color] duration-200 focus-within:border-accent-300/40 focus-within:shadow-[0_0_0_4px_rgb(var(--accent-500)/0.12),0_30px_80px_-30px_rgb(0_0_0/0.95)] sm:gap-2 sm:px-2.5 sm:py-2 motion-reduce:transition-none">
       {displayError && (
         <p role="alert" className="glass-strong absolute bottom-full left-4 mb-2 max-w-[90%] rounded-xl px-3 py-1.5 text-xs text-rose-200">
           {displayError}
@@ -229,7 +229,7 @@ export function ChatInput({
               disabled={busy || disabled}
               aria-label={speech.supported ? "Speak your message" : "Record a voice clip"}
               title={speech.supported ? "Speak; I'll type what you say" : "This browser can't turn speech into text; it records a clip"}
-              className={`${roundBtn} bg-gradient-to-b from-violet-500 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.25)_inset,0_8px_22px_-8px_rgb(124_58_237/0.9)] hover:from-violet-400 disabled:opacity-50 ${hasText ? "lg:hidden" : ""}`}
+              className={`${roundBtn} bg-gradient-to-b from-accent-500 to-accent-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.25)_inset,0_8px_22px_-8px_rgb(var(--accent-600)/0.9)] hover:from-accent-400 disabled:opacity-50 ${hasText ? "lg:hidden" : ""}`}
             >
               <Mic size={18} aria-hidden />
             </button>
@@ -255,7 +255,7 @@ export function ChatInput({
           ) : (
             hasText &&
             !speech.listening && (
-              <button type="submit" disabled={disabled} aria-label="Send" className={`${roundBtn} bg-gradient-to-b from-violet-500 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.25)_inset,0_8px_22px_-8px_rgb(124_58_237/0.9)] hover:from-violet-400 disabled:opacity-50`}>
+              <button type="submit" disabled={disabled} aria-label="Send" className={`${roundBtn} bg-gradient-to-b from-accent-500 to-accent-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.25)_inset,0_8px_22px_-8px_rgb(var(--accent-600)/0.9)] hover:from-accent-400 disabled:opacity-50`}>
                 <SendHorizontal size={18} aria-hidden />
               </button>
             )
@@ -274,7 +274,7 @@ export function ChatInput({
           <button type="button" onClick={recorder.discard} aria-label="Discard recording" className={`${roundBtn} text-white hover:bg-white/10`}>
             <Trash2 size={18} aria-hidden />
           </button>
-          <button type="submit" aria-label="Send recording" className={`${roundBtn} bg-gradient-to-b from-violet-500 to-violet-700 text-white hover:from-violet-400`}>
+          <button type="submit" aria-label="Send recording" className={`${roundBtn} bg-gradient-to-b from-accent-500 to-accent-700 text-white hover:from-accent-400`}>
             <SendHorizontal size={18} aria-hidden />
           </button>
         </>

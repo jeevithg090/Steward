@@ -73,7 +73,7 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
               onClick={() => setCaller(c.id)}
               className={`group relative flex ${TAP} flex-col items-center gap-2.5 rounded-3xl border px-2 pb-4 pt-5 text-center transition-[transform,border-color,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:flex-row sm:gap-3.5 sm:px-4 sm:py-4 sm:text-left ${FOCUS} ${
                 on
-                  ? "border-violet-400/50 bg-gradient-to-b from-violet-500/[0.16] to-violet-500/[0.04] shadow-glow"
+                  ? "border-accent-400/50 bg-gradient-to-b from-accent-500/[0.16] to-accent-500/[0.04] shadow-glow"
                   : "surface hover:border-white/[0.16]"
               }`}
             >
@@ -83,7 +83,7 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
               </span>
               <span
                 aria-hidden
-                className={`absolute right-2.5 top-2.5 grid h-5 w-5 place-items-center rounded-full transition-opacity duration-200 motion-reduce:transition-none sm:right-3 sm:top-1/2 sm:-translate-y-1/2 ${on ? "bg-violet-500 text-white opacity-100" : "opacity-0"}`}
+                className={`absolute right-2.5 top-2.5 grid h-5 w-5 place-items-center rounded-full transition-opacity duration-200 motion-reduce:transition-none sm:right-3 sm:top-1/2 sm:-translate-y-1/2 ${on ? "bg-accent-500 text-white opacity-100" : "opacity-0"}`}
               >
                 <Check size={12} strokeWidth={3} />
               </span>
@@ -138,7 +138,7 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
       {view && profile && (
         <div className="grid gap-4 motion-safe:animate-fade-up lg:grid-cols-2">
           <Card as="section" aria-labelledby="settings-heading" className="relative overflow-hidden">
-            <span aria-hidden className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-violet-500/10 blur-3xl" />
+            <span aria-hidden className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-accent-500/10 blur-3xl" />
             <div className="relative">
               <div className="mb-5 flex items-center gap-4">
                 <Avatar name={name} seed={`caller-${caller}`} size="lg" glow />
@@ -190,8 +190,8 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
             >
               The words Tempo's agent is given
             </SectionTitle>
-            <blockquote className="relative rounded-2xl border border-violet-400/20 bg-gradient-to-b from-violet-500/[0.1] to-violet-500/[0.02] py-4 pl-12 pr-5 text-[15px] leading-relaxed text-slate-100">
-              <span aria-hidden className="absolute left-3.5 top-4 grid h-6 w-6 place-items-center rounded-full bg-violet-500/20 text-violet-200">
+            <blockquote className="relative rounded-2xl border border-accent-400/20 bg-gradient-to-b from-accent-500/[0.1] to-accent-500/[0.02] py-4 pl-12 pr-5 text-[15px] leading-relaxed text-slate-100">
+              <span aria-hidden className="absolute left-3.5 top-4 grid h-6 w-6 place-items-center rounded-full bg-accent-500/20 text-accent-200">
                 <Quote size={11} className="fill-current" />
               </span>
               {view.how_to_speak}
@@ -222,7 +222,7 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
                   {keywords.map((k) => (
                     <li key={k}>
                       <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 px-2.5 py-1 font-mono text-[12px] text-slate-200">
-                        <AudioWaveform size={12} aria-hidden className="text-violet-300" />
+                        <AudioWaveform size={12} aria-hidden className="text-accent-300" />
                         {k}
                       </span>
                     </li>
@@ -240,7 +240,7 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
               <ul aria-label="Because they said" className="flex flex-wrap gap-2">
                 {profile.reasons.map((r) => (
                   <li key={r} className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] py-2 pl-2.5 pr-4 text-[15px] text-slate-100">
-                    <span aria-hidden className="grid h-6 w-6 place-items-center rounded-full bg-violet-500/15 text-violet-200">
+                    <span aria-hidden className="grid h-6 w-6 place-items-center rounded-full bg-accent-500/15 text-accent-200">
                       <Quote size={11} className="fill-current" />
                     </span>
                     “{r}”
@@ -267,7 +267,7 @@ function Tile({ icon, label, children, wide = false }: { icon: ReactNode; label:
   return (
     <div className={`min-w-0 rounded-2xl border border-white/[0.07] bg-black/20 px-3.5 py-3 ${wide ? "col-span-2" : ""}`}>
       <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-        <span aria-hidden className="text-violet-300">
+        <span aria-hidden className="text-accent-300">
           {icon}
         </span>
         {label}

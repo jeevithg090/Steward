@@ -32,10 +32,10 @@ export function DeviceList({ devices, thisId, onRemove }: { devices: DeviceInfo[
           return (
             <li
               key={d.id}
-              className={`rounded-2xl border px-3.5 py-3 transition-colors motion-reduce:transition-none ${mine ? "border-violet-400/25 bg-violet-500/[0.06]" : "border-white/[0.06] bg-black/20 hover:border-white/[0.12]"}`}
+              className={`rounded-2xl border px-3.5 py-3 transition-colors motion-reduce:transition-none ${mine ? "border-accent-400/25 bg-accent-500/[0.06]" : "border-white/[0.06] bg-black/20 hover:border-white/[0.12]"}`}
             >
               <div className="flex items-start gap-3">
-                <span aria-hidden className="relative mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-violet-200 ring-1 ring-inset ring-white/10">
+                <span aria-hidden className="relative mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-accent-200 ring-1 ring-inset ring-white/10">
                   <Icon size={18} />
                   <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-ink-900 ${light}`} />
                 </span>

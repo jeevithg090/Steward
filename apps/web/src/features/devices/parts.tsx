@@ -21,7 +21,7 @@ export function LinkButton({ to, children, icon }: { to: string; children: React
 /** The 6-digit code both screens show, large and spaced, read as single digits by screen readers. */
 export function BigCode({ code, label = "Pairing code" }: { code: string; label?: string }) {
   return (
-    <p className="inline-flex rounded-3xl border border-violet-400/30 bg-gradient-to-b from-violet-500/[0.14] to-violet-500/[0.03] px-6 py-4 font-mono text-4xl font-semibold tracking-[0.22em] text-white shadow-glow motion-safe:animate-scale-in sm:text-5xl">
+    <p className="inline-flex rounded-3xl border border-accent-400/30 bg-gradient-to-b from-accent-500/[0.14] to-accent-500/[0.03] px-6 py-4 font-mono text-4xl font-semibold tracking-[0.22em] text-white shadow-glow motion-safe:animate-scale-in sm:text-5xl">
       <span aria-hidden className="num">{formatCode(code)}</span>
       <span className="sr-only">{`${label}: ${code.split("").join(" ")}`}</span>
     </p>
@@ -44,7 +44,7 @@ export function Stepper({ steps, current, label }: { steps: string[]; current: n
                   done
                     ? "bg-emerald-500/20 text-emerald-200 ring-emerald-400/40"
                     : now
-                      ? "bg-gradient-to-b from-violet-500 to-violet-700 text-white ring-violet-300/40 shadow-[0_0_0_4px_rgb(139_92_246/0.16)]"
+                      ? "bg-gradient-to-b from-accent-500 to-accent-700 text-white ring-accent-300/40 shadow-[0_0_0_4px_rgb(var(--accent-500)/0.16)]"
                       : "bg-white/[0.04] text-slate-400 ring-white/10"
                 }`}
               >
@@ -66,7 +66,7 @@ export function Stepper({ steps, current, label }: { steps: string[]; current: n
 /** A rounded icon tile with a soft gradient, for card headers. */
 export function IconTile({ children, tone = "violet", size = "md" }: { children: ReactNode; tone?: "violet" | "emerald" | "amber" | "slate"; size?: "md" | "lg" }) {
   const tones = {
-    violet: "from-violet-500/30 to-violet-700/10 text-violet-100 ring-violet-300/25 shadow-[0_12px_30px_-14px_rgb(124_58_237/0.9)]",
+    violet: "from-accent-500/30 to-accent-700/10 text-accent-100 ring-accent-300/25 shadow-[0_12px_30px_-14px_rgb(var(--accent-600)/0.9)]",
     emerald: "from-emerald-500/25 to-emerald-700/10 text-emerald-100 ring-emerald-300/25 shadow-[0_12px_30px_-14px_rgb(16_185_129/0.8)]",
     amber: "from-amber-500/25 to-amber-700/10 text-amber-100 ring-amber-300/25",
     slate: "from-white/[0.12] to-white/[0.03] text-slate-100 ring-white/15",

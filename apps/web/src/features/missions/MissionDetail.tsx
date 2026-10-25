@@ -50,8 +50,8 @@ const HALO = {
   emerald: "bg-emerald-400/20",
   amber: "bg-amber-400/20",
   rose: "bg-rose-400/20",
-  indigo: "bg-violet-500/25",
-  purple: "bg-fuchsia-400/20",
+  indigo: "bg-accent-500/25",
+  purple: "bg-second-400/20",
   slate: "bg-white/5",
   gold: "bg-gold-400/20",
 } as const;
@@ -229,7 +229,7 @@ export function MissionDetail({ mission, health, events, busy, signs = false, cl
             !mission.ask && (
               <Card as="section" aria-labelledby="message-heading" tone={tone === "rose" ? "rose" : "default"}>
                 <div className="flex items-start gap-4">
-                  <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-violet-500/15 text-violet-200 ring-1 ring-inset ring-violet-300/25">
+                  <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-accent-500/15 text-accent-200 ring-1 ring-inset ring-accent-300/25">
                     <MessageSquareText size={19} strokeWidth={1.75} />
                   </span>
                   <div className="min-w-0 flex-1">

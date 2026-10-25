@@ -83,7 +83,7 @@ function failure(e: unknown): string {
   return `That didn't work: ${(e instanceof Error ? e.message : String(e)).replace(/\.?$/, ".")} Try again, or check the Gateway in Settings.`;
 }
 
-const INPUT = `min-h-[44px] w-full rounded-2xl border border-white/10 bg-ink-900/70 px-3.5 py-2 text-sm text-slate-100 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] placeholder:text-slate-500 transition-colors hover:border-white/20 focus:border-violet-400/60 ${FOCUS}`;
+const INPUT = `min-h-[44px] w-full rounded-2xl border border-white/10 bg-ink-900/70 px-3.5 py-2 text-sm text-slate-100 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] placeholder:text-slate-500 transition-colors hover:border-white/20 focus:border-accent-400/60 ${FOCUS}`;
 
 const SOURCE_ICONS: Record<string, Icon> = { user_voice: Phone, user_sms: MessageSquareText, user_web: MousePointerClick, user_chat: MessageCircle, official_api: Landmark };
 
@@ -192,10 +192,10 @@ export default function MemoryPage({ gateway, user, showcase, events }: PageProp
       </PageTitle>
 
       <Card tone="indigo" padding="none" className="relative overflow-hidden motion-safe:animate-fade-up">
-        <span aria-hidden className="pointer-events-none absolute -left-24 -top-28 h-72 w-72 rounded-full bg-violet-500/20 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -left-24 -top-28 h-72 w-72 rounded-full bg-accent-500/20 blur-3xl" />
         <div className="relative grid gap-5 p-5 lg:grid-cols-[1.5fr_1fr] lg:items-center lg:p-6">
           <div className="flex items-start gap-4">
-            <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/30 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/25 shadow-[0_12px_30px_-14px_rgb(124_58_237/0.9)]">
+            <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/30 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/25 shadow-[0_12px_30px_-14px_rgb(var(--accent-600)/0.9)]">
               <Brain size={22} strokeWidth={1.75} />
             </span>
             <p className="text-[15px] leading-relaxed text-slate-200">
@@ -237,7 +237,7 @@ export default function MemoryPage({ gateway, user, showcase, events }: PageProp
                 action={
                   <a
                     {...linkProps(chatSay(SAY.remember))}
-                    className={`inline-flex ${TAP} items-center gap-2 rounded-full bg-gradient-to-b from-violet-600 to-violet-700 px-4 text-sm font-medium text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_10px_28px_-12px_rgb(124_58_237/0.9)] hover:from-violet-500 hover:to-violet-700 ${FOCUS}`}
+                    className={`inline-flex ${TAP} items-center gap-2 rounded-full bg-gradient-to-b from-accent-600 to-accent-700 px-4 text-sm font-medium text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_10px_28px_-12px_rgb(var(--accent-600)/0.9)] hover:from-accent-500 hover:to-accent-700 ${FOCUS}`}
                   >
                     <MessageCircle size={14} aria-hidden /> Ask in the chat: “{SAY.remember}”
                   </a>
@@ -253,7 +253,7 @@ export default function MemoryPage({ gateway, user, showcase, events }: PageProp
                   return (
                     <Card key={category} as="section" aria-labelledby={`cat-${category}`}>
                       <div className="mb-4 flex items-center gap-3">
-                        <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/25 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/20">
+                        <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/25 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/20">
                           <CategoryIcon size={18} />
                         </span>
                         <div className="min-w-0">
@@ -398,14 +398,14 @@ export default function MemoryPage({ gateway, user, showcase, events }: PageProp
             ) : (
               <Card>
                 <ol aria-label="Timeline" className="relative ml-2">
-                  <span aria-hidden className="absolute bottom-2 left-0 top-2 w-px bg-gradient-to-b from-violet-400/60 via-white/10 to-white/5" />
+                  <span aria-hidden className="absolute bottom-2 left-0 top-2 w-px bg-gradient-to-b from-accent-400/60 via-white/10 to-white/5" />
                   {card.timeline.map((fact) => {
                     const gone = Boolean(fact.valid_to || fact.superseded_by);
                     return (
                       <li key={fact.id} className="relative pb-6 pl-6 last:pb-0">
                         <span
                           aria-hidden
-                          className={`absolute -left-[6px] top-1 h-3 w-3 rounded-full ring-4 ring-ink-800 ${gone ? "border-2 border-slate-500 bg-ink-800" : "bg-violet-400 shadow-[0_0_12px_2px_rgb(139_92_246/0.6)]"}`}
+                          className={`absolute -left-[6px] top-1 h-3 w-3 rounded-full ring-4 ring-ink-800 ${gone ? "border-2 border-slate-500 bg-ink-800" : "bg-accent-400 shadow-[0_0_12px_2px_rgb(var(--accent-500)/0.6)]"}`}
                         />
                         <p className="num text-xs font-medium text-slate-400">
                           {day(fact.valid_from)} → {fact.valid_to ? day(fact.valid_to) : "still true"}
@@ -464,7 +464,7 @@ export default function MemoryPage({ gateway, user, showcase, events }: PageProp
 function Chip({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1 ring-1 ring-inset ring-white/[0.08]">
-      <span aria-hidden className="text-violet-300">
+      <span aria-hidden className="text-accent-300">
         {icon}
       </span>
       {children}

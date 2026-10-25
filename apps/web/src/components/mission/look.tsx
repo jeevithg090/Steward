@@ -12,8 +12,8 @@ export const RAIL: Record<BadgeTone, string> = {
   emerald: "bg-emerald-400 shadow-[0_0_14px_1px_rgb(52_211_153/0.55)]",
   amber: "bg-amber-400 shadow-[0_0_14px_1px_rgb(251_191_36/0.5)]",
   rose: "bg-rose-400 shadow-[0_0_14px_1px_rgb(251_113_133/0.5)]",
-  indigo: "bg-violet-400 shadow-[0_0_14px_1px_rgb(167_139_250/0.6)]",
-  purple: "bg-fuchsia-400 shadow-[0_0_14px_1px_rgb(232_121_249/0.5)]",
+  indigo: "bg-accent-400 shadow-[0_0_14px_1px_rgb(var(--accent-400)/0.6)]",
+  purple: "bg-second-400 shadow-[0_0_14px_1px_rgb(var(--second-400)/0.5)]",
   slate: "bg-slate-500",
   gold: "bg-gold-400 shadow-[0_0_14px_1px_rgb(245_181_68/0.55)]",
 };
@@ -23,8 +23,8 @@ export const GLOW_LINE: Record<BadgeTone, string> = {
   emerald: "via-emerald-400/70",
   amber: "via-amber-400/70",
   rose: "via-rose-400/70",
-  indigo: "via-violet-400/80",
-  purple: "via-fuchsia-400/70",
+  indigo: "via-accent-400/80",
+  purple: "via-second-400/70",
   slate: "via-white/20",
   gold: "via-gold-400/70",
 };
@@ -39,7 +39,7 @@ export function SkillIcon({ skillId, size = "md" }: { skillId: string | null | u
   return (
     <span
       aria-hidden
-      className={`grid shrink-0 place-items-center bg-gradient-to-b from-white/[0.09] to-white/[0.02] text-violet-200 shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset] ring-1 ring-inset ring-white/10 ${box}`}
+      className={`grid shrink-0 place-items-center bg-gradient-to-b from-white/[0.09] to-white/[0.02] text-accent-200 shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset] ring-1 ring-inset ring-white/10 ${box}`}
     >
       <Icon size={size === "sm" ? 16 : 19} strokeWidth={1.75} />
     </span>
@@ -87,7 +87,7 @@ export function PanelHeading({
       <div className="flex min-w-0 items-center gap-3">
         <span
           aria-hidden
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-b from-white/[0.09] to-white/[0.02] text-violet-200 shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset] ring-1 ring-inset ring-white/10"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-b from-white/[0.09] to-white/[0.02] text-accent-200 shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset] ring-1 ring-inset ring-white/10"
         >
           {icon}
         </span>

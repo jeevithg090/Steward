@@ -113,7 +113,7 @@ export function JoinDevice({
 
   return (
     <Card as="section" aria-labelledby="join-heading" tone="indigo" className="relative space-y-5 overflow-hidden">
-      <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-violet-500/15 blur-3xl" />
+      <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent-500/15 blur-3xl" />
       <div className="relative flex items-start gap-3.5">
         <IconTile>
           <MonitorSmartphone size={20} strokeWidth={1.75} />
@@ -137,7 +137,7 @@ export function JoinDevice({
               value={name}
               maxLength={60}
               onChange={(e) => setName(e.target.value)}
-              className={`mt-2 min-h-[44px] w-full max-w-sm rounded-2xl border border-white/10 bg-ink-900/70 px-3.5 py-2 text-sm text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] transition-colors placeholder:text-slate-500 hover:border-white/20 focus:border-violet-400/60 ${FOCUS}`}
+              className={`mt-2 min-h-[44px] w-full max-w-sm rounded-2xl border border-white/10 bg-ink-900/70 px-3.5 py-2 text-sm text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] transition-colors placeholder:text-slate-500 hover:border-white/20 focus:border-accent-400/60 ${FOCUS}`}
             />
           </div>
           <Button type="submit" variant="primary" busy={busy} disabled={!name.trim()}>

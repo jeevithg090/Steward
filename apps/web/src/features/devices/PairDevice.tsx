@@ -126,10 +126,10 @@ export function PairDevice({ mesh, onChanged, pollMs = 1500 }: { mesh: MeshClien
           <p className="text-sm text-slate-200">Scan this with your other device&apos;s camera.</p>
           <div className="flex flex-wrap items-start gap-5">
             <div className="glass relative rounded-[1.75rem] p-3.5 shadow-glow">
-              <span aria-hidden className="absolute left-1.5 top-1.5 h-5 w-5 rounded-tl-xl border-l-2 border-t-2 border-violet-300/80" />
-              <span aria-hidden className="absolute right-1.5 top-1.5 h-5 w-5 rounded-tr-xl border-r-2 border-t-2 border-violet-300/80" />
-              <span aria-hidden className="absolute bottom-1.5 left-1.5 h-5 w-5 rounded-bl-xl border-b-2 border-l-2 border-violet-300/80" />
-              <span aria-hidden className="absolute bottom-1.5 right-1.5 h-5 w-5 rounded-br-xl border-b-2 border-r-2 border-violet-300/80" />
+              <span aria-hidden className="absolute left-1.5 top-1.5 h-5 w-5 rounded-tl-xl border-l-2 border-t-2 border-accent-300/80" />
+              <span aria-hidden className="absolute right-1.5 top-1.5 h-5 w-5 rounded-tr-xl border-r-2 border-t-2 border-accent-300/80" />
+              <span aria-hidden className="absolute bottom-1.5 left-1.5 h-5 w-5 rounded-bl-xl border-b-2 border-l-2 border-accent-300/80" />
+              <span aria-hidden className="absolute bottom-1.5 right-1.5 h-5 w-5 rounded-br-xl border-b-2 border-r-2 border-accent-300/80" />
               <div
                 role="img"
                 aria-label="QR code for adding your other device. Scan it with that device's camera, or open the link below on it."

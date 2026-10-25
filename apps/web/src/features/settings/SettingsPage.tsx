@@ -36,7 +36,7 @@ export const AVAILABLE_MODELS: ModelOption[] = [
 ];
 
 const TAP = "min-h-[44px]";
-const FIELD = `mt-1.5 min-h-[44px] w-full rounded-2xl border border-white/10 bg-ink-900/70 px-3.5 py-2 font-mono text-[13px] font-normal normal-case tracking-normal text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] transition-colors placeholder:text-slate-500 hover:border-white/20 focus:border-violet-400/60 disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`;
+const FIELD = `mt-1.5 min-h-[44px] w-full rounded-2xl border border-white/10 bg-ink-900/70 px-3.5 py-2 font-mono text-[13px] font-normal normal-case tracking-normal text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] transition-colors placeholder:text-slate-500 hover:border-white/20 focus:border-accent-400/60 disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`;
 const FIELD_LABEL = "block text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400";
 
 const MODEL_ICONS: Record<string, ComponentType<{ size?: number; strokeWidth?: number }>> = { local: HardDrive, gemini: Sparkles, claude: BrainCircuit, openai: Bot };
@@ -260,7 +260,7 @@ export function SettingsPage({
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-4">
             <div className="min-w-0">
               <p id="text-size-label" className="flex items-center gap-2 text-[15px] font-medium text-white">
-                <Type size={15} aria-hidden className="text-violet-300" /> Text size
+                <Type size={15} aria-hidden className="text-accent-300" /> Text size
               </p>
               <p className="mt-0.5 text-sm text-slate-400">Larger letters everywhere; the layout follows.</p>
             </div>
@@ -281,7 +281,7 @@ export function SettingsPage({
                     onClick={() => chooseSize(size.id as TextSize, size.words)}
                     onKeyDown={(e) => onSizeKey(e, i)}
                     className={`${TAP} min-w-[52px] rounded-full px-3.5 font-semibold transition-colors duration-150 motion-reduce:transition-none ${FOCUS} ${
-                      on ? "bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_8px_20px_-10px_rgb(124_58_237/0.9)]" : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                      on ? "bg-gradient-to-b from-accent-600 to-accent-700 text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_8px_20px_-10px_rgb(var(--accent-600)/0.9)]" : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
                     } ${i === 0 ? "text-[13px]" : i === 1 ? "text-[15px]" : "text-[17px]"}`}
                   >
                     {size.label}
@@ -336,10 +336,10 @@ export function SettingsPage({
                 }}
                 lang={l.bcp47}
                 className={`${TAP} relative flex items-center justify-center gap-1.5 rounded-2xl border px-3 py-2 text-sm transition-colors duration-150 motion-reduce:transition-none ${FOCUS} ${
-                  on ? "border-violet-400/50 bg-violet-500/[0.16] font-medium text-white shadow-glow" : "border-white/[0.08] bg-white/[0.03] text-slate-200 hover:border-white/20 hover:bg-white/[0.06]"
+                  on ? "border-accent-400/50 bg-accent-500/[0.16] font-medium text-white shadow-glow" : "border-white/[0.08] bg-white/[0.03] text-slate-200 hover:border-white/20 hover:bg-white/[0.06]"
                 }`}
               >
-                {on && <Check size={13} aria-hidden className="shrink-0 text-violet-200" />}
+                {on && <Check size={13} aria-hidden className="shrink-0 text-accent-200" />}
                 {l.name}
               </button>
             );
@@ -398,13 +398,13 @@ export function SettingsPage({
             const hasKey = !model.requiresApiKey || Boolean(providerKey && providerKey.trim().length > 0);
             const ModelIcon = MODEL_ICONS[model.id] ?? Bot;
             return (
-              <div key={model.id} className={`px-5 py-4 transition-colors motion-reduce:transition-none lg:px-6 ${isActive ? "bg-violet-500/[0.04]" : ""}`}>
+              <div key={model.id} className={`px-5 py-4 transition-colors motion-reduce:transition-none lg:px-6 ${isActive ? "bg-accent-500/[0.04]" : ""}`}>
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex min-w-0 items-start gap-3.5">
                     <span
                       aria-hidden
                       className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ring-1 ring-inset ${
-                        isPrimaryLocal ? "bg-emerald-500/15 text-emerald-200 ring-emerald-400/25" : isActive ? "bg-violet-500/15 text-violet-200 ring-violet-400/25" : "bg-white/[0.05] text-slate-300 ring-white/10"
+                        isPrimaryLocal ? "bg-emerald-500/15 text-emerald-200 ring-emerald-400/25" : isActive ? "bg-accent-500/15 text-accent-200 ring-accent-400/25" : "bg-white/[0.05] text-slate-300 ring-white/10"
                       }`}
                     >
                       <ModelIcon size={18} strokeWidth={1.75} />
@@ -454,7 +454,7 @@ export function SettingsPage({
         >
           <div className="glass-strong w-full max-w-md rounded-3xl p-6 motion-safe:animate-scale-in">
             <div className="mb-2 flex items-center gap-3 text-slate-100">
-              <span aria-hidden className="grid h-10 w-10 place-items-center rounded-xl bg-violet-500/15 text-violet-200 ring-1 ring-inset ring-violet-400/25">
+              <span aria-hidden className="grid h-10 w-10 place-items-center rounded-xl bg-accent-500/15 text-accent-200 ring-1 ring-inset ring-accent-400/25">
                 <Lock size={17} />
               </span>
               <h2 id="key-dialog-heading" className="text-[17px] font-semibold text-white">Set the {PROVIDER_LABELS[editingProvider]} key</h2>
@@ -495,7 +495,7 @@ function GroupHead({ icon, children, right }: { icon: ReactNode; children: React
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="flex min-w-0 items-start gap-3.5">
-        <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-b from-violet-500/25 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/20">
+        <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-b from-accent-500/25 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/20">
           {icon}
         </span>
         <div className="min-w-0 pt-0.5">{children}</div>

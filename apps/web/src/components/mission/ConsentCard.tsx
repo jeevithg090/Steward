@@ -49,18 +49,18 @@ export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, si
   return (
     <section
       aria-labelledby={headingId}
-      className="relative overflow-hidden rounded-3xl border border-violet-300/25 bg-gradient-to-b from-violet-500/[0.16] via-violet-500/[0.06] to-gold-400/[0.04] text-slate-200 shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset,0_30px_60px_-30px_rgb(109_91_255/0.55)] motion-safe:animate-scale-in"
+      className="relative overflow-hidden rounded-3xl border border-accent-300/25 bg-gradient-to-b from-accent-500/[0.16] via-accent-500/[0.06] to-gold-400/[0.04] text-slate-200 shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset,0_30px_60px_-30px_rgb(var(--accent-500)/0.55)] motion-safe:animate-scale-in"
     >
       {/* The agent's violet light above, the gold of the money below. */}
-      <span aria-hidden className="pointer-events-none absolute -left-16 -top-24 h-60 w-60 rounded-full bg-violet-500/25 blur-3xl" />
+      <span aria-hidden className="pointer-events-none absolute -left-16 -top-24 h-60 w-60 rounded-full bg-accent-500/25 blur-3xl" />
       <span aria-hidden className="pointer-events-none absolute -bottom-28 -right-10 h-56 w-56 rounded-full bg-gold-400/[0.12] blur-3xl" />
-      <span aria-hidden className="pointer-events-none absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-violet-200/60 to-transparent" />
+      <span aria-hidden className="pointer-events-none absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-accent-200/60 to-transparent" />
 
       <div className="relative p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id={headingId} className="flex items-center gap-2.5 text-[15px] font-semibold text-white">
-            <span aria-hidden className="relative grid h-8 w-8 place-items-center rounded-full bg-violet-500/25 text-violet-100 ring-1 ring-inset ring-violet-300/30">
-              <span className="absolute inset-0 rounded-full bg-violet-400/30 motion-safe:animate-ripple" />
+            <span aria-hidden className="relative grid h-8 w-8 place-items-center rounded-full bg-accent-500/25 text-accent-100 ring-1 ring-inset ring-accent-300/30">
+              <span className="absolute inset-0 rounded-full bg-accent-400/30 motion-safe:animate-ripple" />
               <HandCoins size={15} className="relative" />
             </span>
             Tempo is asking you
@@ -81,8 +81,8 @@ export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, si
         </div>
 
         {signed && (
-          <p id={signedId} className="mt-4 flex items-start gap-2 rounded-2xl border border-violet-300/15 bg-violet-500/[0.08] px-3 py-2.5 text-xs leading-relaxed text-violet-100">
-            <Fingerprint size={14} aria-hidden className="mt-0.5 shrink-0 text-violet-300" />
+          <p id={signedId} className="mt-4 flex items-start gap-2 rounded-2xl border border-accent-300/15 bg-accent-500/[0.08] px-3 py-2.5 text-xs leading-relaxed text-accent-100">
+            <Fingerprint size={14} aria-hidden className="mt-0.5 shrink-0 text-accent-300" />
             You&apos;ll confirm with Face ID or your fingerprint. Your answer is signed on this device.
           </p>
         )}
@@ -111,7 +111,7 @@ export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, si
               aria-expanded={open}
               aria-controls={whyId}
               onClick={() => setOpen((o) => !o)}
-              className={`-ml-1 inline-flex items-center gap-1.5 rounded-full px-1 py-0.5 text-[13px] font-semibold text-violet-200 transition-colors hover:text-white motion-reduce:transition-none ${FOCUS}`}
+              className={`-ml-1 inline-flex items-center gap-1.5 rounded-full px-1 py-0.5 text-[13px] font-semibold text-accent-200 transition-colors hover:text-white motion-reduce:transition-none ${FOCUS}`}
             >
               <ChevronDown size={15} aria-hidden className={`transition-transform duration-200 motion-reduce:transition-none ${open ? "" : "-rotate-90"}`} /> Why this amount
             </button>

@@ -702,6 +702,11 @@ Tempo gives people their time back. The look is the hour before dusk:
   - **Trust pages:** a profile gallery; skills as cards; callers as character cards; Devices steppers and a framed QR; Privacy Proof as "who sees what" in three tiers; connectors with a gold hero and code windows for MCP; a memory timeline; settings rows.
   - **Kept:** every heading, label and role the tests and screen readers use is unchanged, and the 245 web tests pass.
   - **Found and fixed on the way:** `Stat` put an `aria-label` on a paragraph, which axe fails; it now has a screen-reader-only value. React duplicate keys in the Shield log. "3Step 3 of 8" read out on Margaret's Tuesday. The ledger showing £0.00 while loading.
+- [x] 15:10 **The theme is no longer purple** (asked: "the UI is purple ish very vibe coded"):
+  - Every accent class, colour value and gradient (about 300 places) now reads CSS variables (`accent-*`, `second-*`), so a palette is one block in `index.css`.
+  - Three palettes were rendered on the real app and checked for AA contrast (white on the 600 shade: teal 5.2, blue 6.3, copper 5.0).
+  - The user chose **lagoon teal**, with sky as the second hue. Gold stays for money.
+  - The mark, favicon and app icons are re-rendered in teal, and `docs/design-system.md` explains the palettes.
 
 ---
 

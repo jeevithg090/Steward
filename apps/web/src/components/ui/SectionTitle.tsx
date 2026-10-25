@@ -24,7 +24,7 @@ export function PageTitle({ children, lede, right }: { children: ReactNode; lede
         {entry && (
           <span
             aria-hidden
-            className="mt-1 hidden h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/25 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/25 shadow-[0_12px_30px_-14px_rgb(124_58_237/0.9)] sm:grid"
+            className="mt-1 hidden h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/25 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/25 shadow-[0_12px_30px_-14px_rgb(var(--accent-600)/0.9)] sm:grid"
           >
             <entry.Icon size={22} strokeWidth={1.75} />
           </span>

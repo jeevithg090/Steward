@@ -46,13 +46,13 @@ export function StatusBadge({ status }: { status: SkillStatus | ProfileStatus })
 // --- the avatar: an initial on ink inside a gradient ring ---------------------------------------
 
 const RINGS = [
-  "from-violet-300 via-fuchsia-400 to-violet-600",
-  "from-sky-300 via-violet-400 to-indigo-600",
+  "from-accent-300 via-second-400 to-accent-600",
+  "from-sky-300 via-accent-400 to-accent-600",
   "from-emerald-200 via-teal-400 to-sky-500",
-  "from-rose-300 via-fuchsia-400 to-violet-500",
-  "from-amber-200 via-rose-300 to-fuchsia-500",
-  "from-indigo-300 via-violet-400 to-fuchsia-500",
-  "from-teal-200 via-emerald-300 to-violet-500",
+  "from-rose-300 via-second-400 to-accent-500",
+  "from-amber-200 via-rose-300 to-second-500",
+  "from-accent-300 via-accent-400 to-second-500",
+  "from-teal-200 via-emerald-300 to-accent-500",
 ];
 
 function hash(text: string): number {
@@ -80,9 +80,9 @@ export function Avatar({ name, seed, size = "md", glow = false, className = "" }
   return (
     <span
       aria-hidden
-      className={`relative grid shrink-0 place-items-center bg-gradient-to-br p-[1.5px] ${ring} ${s.box} ${glow ? "shadow-[0_0_0_4px_rgb(139_92_246/0.14),0_14px_34px_-12px_rgb(124_58_237/0.85)]" : "shadow-[0_10px_26px_-14px_rgb(0_0_0/0.9)]"} ${className}`}
+      className={`relative grid shrink-0 place-items-center bg-gradient-to-br p-[1.5px] ${ring} ${s.box} ${glow ? "shadow-[0_0_0_4px_rgb(var(--accent-500)/0.14),0_14px_34px_-12px_rgb(var(--accent-600)/0.85)]" : "shadow-[0_10px_26px_-14px_rgb(0_0_0/0.9)]"} ${className}`}
     >
-      <span className={`grid h-full w-full place-items-center bg-[radial-gradient(120%_90%_at_30%_10%,#2a2550_0%,#0d0c18_70%)] ${s.inner}`}>
+      <span className={`grid h-full w-full place-items-center bg-[radial-gradient(120%_90%_at_30%_10%,rgb(var(--accent-900))_0%,#0b0c0e_70%)] ${s.inner}`}>
         <span className={`font-display leading-none text-white ${s.text}`}>{initialOf(name)}</span>
       </span>
     </span>
@@ -109,7 +109,7 @@ export function AccessChips({ access }: { access: ProfileAccess }) {
         return (
           <li key={chip}>
             <Badge tone="indigo" className="py-1">
-              <ChipIcon size={12} aria-hidden className="text-violet-300" />
+              <ChipIcon size={12} aria-hidden className="text-accent-300" />
               {chip}
             </Badge>
           </li>

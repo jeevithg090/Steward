@@ -191,7 +191,7 @@ export function CommandPalette({ open, onClose, commands }: { open: boolean; onC
                   onClick={() => run(command)}
                   className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 ${on ? "bg-white/[0.07]" : ""}`}
                 >
-                  <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl ring-1 ring-inset ${on ? "bg-violet-500/20 text-violet-100 ring-violet-300/30" : "bg-white/[0.04] text-slate-400 ring-white/[0.08]"}`}>
+                  <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl ring-1 ring-inset ${on ? "bg-accent-500/20 text-accent-100 ring-accent-300/30" : "bg-white/[0.04] text-slate-400 ring-white/[0.08]"}`}>
                     {command.icon}
                   </span>
                   <span className="min-w-0 flex-1">

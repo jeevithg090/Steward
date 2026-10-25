@@ -16,7 +16,7 @@ export function TraceLink({ url }: { url: string | null }) {
       href={url}
       target="_blank"
       rel="noreferrer"
-      className={`inline-flex items-center gap-1.5 rounded-full text-sm font-medium text-violet-300 underline decoration-violet-300/40 underline-offset-2 transition-colors hover:text-violet-100 hover:decoration-violet-100 motion-reduce:transition-none ${FOCUS}`}
+      className={`inline-flex items-center gap-1.5 rounded-full text-sm font-medium text-accent-300 underline decoration-accent-300/40 underline-offset-2 transition-colors hover:text-accent-100 hover:decoration-accent-100 motion-reduce:transition-none ${FOCUS}`}
     >
       <Telescope size={14} aria-hidden /> Open the trace: why did Tempo do that? <ExternalLink size={12} aria-hidden />
     </a>

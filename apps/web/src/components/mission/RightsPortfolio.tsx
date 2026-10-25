@@ -15,7 +15,7 @@ export const STATUS_WORDS: Record<RightStatus, string> = {
 };
 
 const BAR: Record<RightStatus, string> = {
-  chosen: "bg-gradient-to-r from-violet-500 to-violet-300 shadow-[0_0_14px_rgb(139_92_246/0.6)]",
+  chosen: "bg-gradient-to-r from-accent-500 to-accent-300 shadow-[0_0_14px_rgb(var(--accent-500)/0.6)]",
   open: "bg-gradient-to-r from-emerald-500/80 to-emerald-300/90",
   opens_later: "bg-slate-500/80",
   locked: "bg-[repeating-linear-gradient(45deg,rgba(148,163,184,0.5)_0_6px,rgba(148,163,184,0.15)_6px_12px)]",
@@ -32,7 +32,7 @@ const STATUS_TONE: Record<RightStatus, "indigo" | "emerald" | "slate" | "rose"> 
 
 /** The open/close look of a <details> summary: a chevron that turns, no browser marker. */
 const SUMMARY =
-  "flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-full py-1 pr-2 text-[13px] font-semibold text-slate-200 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-300 motion-reduce:transition-none [&::-webkit-details-marker]:hidden";
+  "flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-full py-1 pr-2 text-[13px] font-semibold text-slate-200 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300 motion-reduce:transition-none [&::-webkit-details-marker]:hidden";
 
 function days(from: string, to: string): number {
   return Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS);
@@ -106,7 +106,7 @@ function Why({ plan }: { plan: PlanView }) {
       <ul className="mt-3 space-y-1.5 text-slate-300">
         {plan.why.map((line) => (
           <li key={line} className="flex gap-2.5 leading-relaxed">
-            <span aria-hidden className="mt-[0.6rem] h-1 w-1 shrink-0 rounded-full bg-violet-300" />
+            <span aria-hidden className="mt-[0.6rem] h-1 w-1 shrink-0 rounded-full bg-accent-300" />
             <span>{line}</span>
           </li>
         ))}

@@ -3,7 +3,7 @@
 Tempo gives people their time back, so the interface looks like the hour before dusk:
 - An ink canvas.
 - Glass surfaces lit from above.
-- Violet for the agent and its actions.
+- Lagoon teal for the agent and its actions.
 - Gold for what was returned.
 
 This page is the reference for anyone adding a page or a component (plan.md §15).
@@ -15,7 +15,8 @@ This page is the reference for anyone adding a page or a component (plan.md §15
 | `bg-ink` (#07070b), `ink-900…600` | The canvas and the deepest panels. The body already paints the canvas, its aurora and its grain: pages never set a page background. |
 | `.surface` | **The default card.** A glass gradient, a hairline border and a soft drop. No blur, so it is cheap in long lists. `Card` uses it. |
 | `.glass`, `.glass-strong` | Floating things only: the palette, toasts, sticky bars, popovers. Both blur what is behind them. |
-| `violet-*` / `brand-*` | The agent: primary buttons, focus, selection, active navigation, links to act. |
+| `accent-*` (lagoon teal) | The agent: primary buttons, focus, selection, active navigation, links to act. A CSS-variable palette (see below). |
+| `second-*` (sky) | A companion hue for variety: avatar rings, skill tiles, the "waiting on purpose" badge. Also a CSS-variable palette. |
 | `gold-200…500`, `.text-gold` | **What came back:** money recovered, hours returned, the ledger. Never decorative. |
 | `emerald-*` | Done or paid, and "safe" verdicts. |
 | `amber-*` | Waiting: for your OK, or on purpose. |
@@ -41,7 +42,7 @@ This page is the reference for anyone adding a page or a component (plan.md §15
 ## Components (`src/components/ui`)
 
 - **`Button` variants:**
-  - `primary`: the violet gradient with a glow. One per view, for the main action.
+  - `primary`: the teal gradient with a glow. One per view, for the main action.
   - `quiet`: glass, for secondary actions.
   - `ghost`: text only.
   - `ok` and `danger`: approving or refusing.
@@ -77,8 +78,18 @@ This page is the reference for anyone adding a page or a component (plan.md §15
 ## Accessibility rules (do not regress)
 
 - Text contrast meets AA: body text is never below `slate-400` on ink, and white text on filled buttons is at least 4.5:1.
-- Focus is visible everywhere: the global `:focus-visible` ring, violet-300.
+- Focus is visible everywhere: the global `:focus-visible` ring, accent-300.
 - Every control has a name. Icon-only buttons have an `aria-label`, and decorative icons have `aria-hidden`.
 - Headings, labels, button words and roles that tests or screen readers use stay **word for word**. Restyle freely, but don't rename.
 - Status is never colour alone: always a word too (the badge says "Waiting for your OK").
 - Plain mode (`html[data-plain]`) and the three text sizes must still lay out (no fixed heights on text).
+
+## Palettes are variables
+
+`accent-*` and `second-*` are not hex values in Tailwind: each step is a CSS variable
+(`--accent-500: 20 160 139`, in `src/index.css`), so one block changes the whole theme. The default
+is **lagoon** (teal, with sky as the second hue). Two more are defined and checked for contrast:
+**harbour** (petrol blue, with teal) and **copper** (warm terracotta, with teal). Set one with
+`<html data-accent="harbour">`. White on `accent-600` and `-700` is 5:1 or better in every palette,
+and `accent-200` to `-400` read on ink at 6:1 and up. Purple was retired on 25 Oct 2026 (plan.md
+§15.3): it read as generic.

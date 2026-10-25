@@ -65,7 +65,7 @@ export function NotificationsCard({ mesh, on, onChanged }: { mesh: MeshClient; o
       <SectionTitle id="notify-heading">Notifications</SectionTitle>
       <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-black/20 px-4 py-3.5">
         <div className="flex min-w-0 items-start gap-3">
-          <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-500/15 text-violet-200 ring-1 ring-inset ring-violet-400/25">
+          <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent-500/15 text-accent-200 ring-1 ring-inset ring-accent-400/25">
             <BellRing size={16} />
           </span>
           <div className="min-w-0">

@@ -216,7 +216,7 @@ const BEAT_ICONS: Record<string, LucideIcon> = {
 };
 
 /** The primary button's look, for links that act like one (Start the demo, Try it). */
-const PRIMARY_LINK = `inline-flex ${TAP} select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-gradient-to-b from-violet-600 to-violet-700 font-semibold text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_10px_28px_-12px_rgb(124_58_237/0.9)] transition-[transform,box-shadow,background-color] duration-150 ease-out hover:from-violet-500 hover:to-violet-700 hover:shadow-[0_1px_0_0_rgb(255_255_255/0.28)_inset,0_14px_34px_-12px_rgb(139_92_246/0.95)] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 ${FOCUS}`;
+const PRIMARY_LINK = `inline-flex ${TAP} select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-gradient-to-b from-accent-600 to-accent-700 font-semibold text-white shadow-[0_1px_0_0_rgb(255_255_255/0.22)_inset,0_10px_28px_-12px_rgb(var(--accent-600)/0.9)] transition-[transform,box-shadow,background-color] duration-150 ease-out hover:from-accent-500 hover:to-accent-700 hover:shadow-[0_1px_0_0_rgb(255_255_255/0.28)_inset,0_14px_34px_-12px_rgb(var(--accent-500)/0.95)] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 ${FOCUS}`;
 
 /** A numbered ring: emerald with a tick once tried, violet and glowing for the beat in hand. */
 function BeatRing({ n, done, here, next = false, compact = false }: { n: number; done: boolean; here: boolean; next?: boolean; compact?: boolean }) {
@@ -225,15 +225,15 @@ function BeatRing({ n, done, here, next = false, compact = false }: { n: number;
       aria-hidden
       className={`num relative z-10 grid shrink-0 place-items-center rounded-full text-sm font-semibold transition-[background-color,box-shadow,color] duration-300 motion-reduce:transition-none ${compact ? "h-9 w-9 sm:h-11 sm:w-11" : "h-11 w-11"} ${
         here
-          ? "bg-gradient-to-b from-violet-500 to-violet-700 text-white shadow-glow"
+          ? "bg-gradient-to-b from-accent-500 to-accent-700 text-white shadow-glow"
           : done
             ? "bg-gradient-to-b from-emerald-400 to-emerald-600 text-emerald-950 shadow-[0_0_0_4px_rgb(16_185_129/0.12),0_8px_20px_-8px_rgb(16_185_129/0.7)]"
             : next
-              ? "bg-ink-800 text-violet-100 ring-2 ring-inset ring-violet-400/60 shadow-[0_0_0_4px_rgb(139_92_246/0.12)]"
-              : "bg-ink-800 text-slate-300 ring-1 ring-inset ring-white/15 group-hover:text-white group-hover:ring-violet-300/50"
+              ? "bg-ink-800 text-accent-100 ring-2 ring-inset ring-accent-400/60 shadow-[0_0_0_4px_rgb(var(--accent-500)/0.12)]"
+              : "bg-ink-800 text-slate-300 ring-1 ring-inset ring-white/15 group-hover:text-white group-hover:ring-accent-300/50"
       }`}
     >
-      {here && <span className="absolute inset-0 rounded-full bg-violet-500/50 motion-safe:animate-ripple" />}
+      {here && <span className="absolute inset-0 rounded-full bg-accent-500/50 motion-safe:animate-ripple" />}
       <span className="relative">{done && !here ? <Check size={18} strokeWidth={2.75} /> : n}</span>
     </span>
   );
@@ -247,12 +247,12 @@ function LateRing() {
   return (
     <div aria-hidden className="mx-auto hidden shrink-0 flex-col items-center gap-3 sm:flex">
       <div className="relative h-[220px] w-[220px]">
-        <div className="absolute inset-6 rounded-full bg-violet-600/25 blur-3xl" />
+        <div className="absolute inset-6 rounded-full bg-accent-600/25 blur-3xl" />
         <svg viewBox="0 0 220 220" className="relative h-full w-full">
           <defs>
             <linearGradient id="late-ring" x1="30" y1="20" x2="190" y2="200" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stopColor="#a78bfa" />
-              <stop offset="0.6" stopColor="#8b5cf6" />
+              <stop offset="0" style={{ stopColor: "rgb(var(--accent-400))" }} />
+              <stop offset="0.6" style={{ stopColor: "rgb(var(--accent-500))" }} />
               <stop offset="1" stopColor="#f5b544" />
             </linearGradient>
           </defs>
@@ -361,8 +361,8 @@ export default function StoryPage({ speak, showcase }: PageProps) {
       <PageTitle>The story</PageTitle>
 
       {/* The hero: Margaret, and the one fact the ten beats follow. */}
-      <div className="hairline relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-500/[0.10] via-white/[0.02] to-gold-400/[0.06] px-6 py-8 shadow-glass motion-safe:animate-fade-up sm:px-10 sm:py-10">
-        <div aria-hidden className="pointer-events-none absolute -left-24 -top-28 h-72 w-72 rounded-full bg-violet-600/20 blur-3xl" />
+      <div className="hairline relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-accent-500/[0.10] via-white/[0.02] to-gold-400/[0.06] px-6 py-8 shadow-glass motion-safe:animate-fade-up sm:px-10 sm:py-10">
+        <div aria-hidden className="pointer-events-none absolute -left-24 -top-28 h-72 w-72 rounded-full bg-accent-600/20 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-36 right-10 h-72 w-72 rounded-full bg-gold-400/10 blur-3xl" />
         <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center">
           <div className="min-w-0 flex-1">
@@ -376,10 +376,10 @@ export default function StoryPage({ speak, showcase }: PageProps) {
       </div>
 
       <Card as="section" aria-labelledby="demo-heading" tone="indigo" className="relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-violet-500/15 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-accent-500/15 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
           <div className="flex min-w-0 flex-1 items-start gap-3.5">
-            <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/30 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/25">
+            <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/30 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/25">
               <Rocket size={20} strokeWidth={1.75} />
             </span>
             <div className="min-w-0">
@@ -460,7 +460,7 @@ export default function StoryPage({ speak, showcase }: PageProps) {
                     className={`group relative flex ${TAP} w-full flex-col items-center gap-2 rounded-2xl px-0.5 ${FOCUS}`}
                   >
                     <BeatRing n={i + 1} done={isDone} here={isHere} />
-                    <span className={`hidden max-w-[6.5rem] text-center text-[11px] font-medium leading-tight sm:line-clamp-2 ${isHere ? "text-violet-100" : isDone ? "text-emerald-200" : "text-slate-400 group-hover:text-slate-200"}`}>
+                    <span className={`hidden max-w-[6.5rem] text-center text-[11px] font-medium leading-tight sm:line-clamp-2 ${isHere ? "text-accent-100" : isDone ? "text-emerald-200" : "text-slate-400 group-hover:text-slate-200"}`}>
                       {beat.name}
                     </span>
                   </button>
@@ -469,8 +469,8 @@ export default function StoryPage({ speak, showcase }: PageProps) {
             })}
           </ol>
         </nav>
-        <p aria-live="polite" className={playing ? "relative mt-6 flex items-center gap-2.5 rounded-2xl bg-violet-500/[0.12] px-4 py-2.5 text-sm text-violet-50 ring-1 ring-inset ring-violet-300/20" : "sr-only"}>
-          {playing && <AudioLines size={16} aria-hidden className="shrink-0 text-violet-200 motion-safe:animate-pulse" />}
+        <p aria-live="polite" className={playing ? "relative mt-6 flex items-center gap-2.5 rounded-2xl bg-accent-500/[0.12] px-4 py-2.5 text-sm text-accent-50 ring-1 ring-inset ring-accent-300/20" : "sr-only"}>
+          {playing && <AudioLines size={16} aria-hidden className="shrink-0 text-accent-200 motion-safe:animate-pulse" />}
           {playing && current !== null ? `Reading beat ${current + 1} of ${BEATS.length}: ${BEATS[current]!.name}.` : ""}
         </p>
       </Card>
@@ -479,7 +479,7 @@ export default function StoryPage({ speak, showcase }: PageProps) {
         <SectionTitle id="beats-heading">The ten beats</SectionTitle>
         <ol
           aria-label="The ten beats"
-          className="stagger relative space-y-4 before:absolute before:bottom-8 before:left-[17.5px] before:top-8 sm:before:left-[21.5px] before:w-px before:bg-gradient-to-b before:from-violet-400/60 before:via-white/10 before:to-gold-400/30"
+          className="stagger relative space-y-4 before:absolute before:bottom-8 before:left-[17.5px] before:top-8 sm:before:left-[21.5px] before:w-px before:bg-gradient-to-b before:from-accent-400/60 before:via-white/10 before:to-gold-400/30"
         >
           {BEATS.map((beat, i) => {
             const active = current === i;
@@ -496,10 +496,10 @@ export default function StoryPage({ speak, showcase }: PageProps) {
                   aria-current={active ? "step" : undefined}
                   className={`relative overflow-hidden transition-[box-shadow,border-color,background-color] duration-300 motion-reduce:transition-none ${active ? "shadow-glow" : "hover:border-white/[0.14]"}`}
                 >
-                  {(active || isDone) && <span aria-hidden className={`absolute inset-y-0 left-0 w-[3px] ${active ? "bg-violet-400" : "bg-emerald-400/80"}`} />}
+                  {(active || isDone) && <span aria-hidden className={`absolute inset-y-0 left-0 w-[3px] ${active ? "bg-accent-400" : "bg-emerald-400/80"}`} />}
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span aria-hidden className="num inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                      <span className={`grid h-6 w-6 place-items-center rounded-lg ring-1 ring-inset ${active ? "bg-violet-500/25 text-violet-100 ring-violet-300/30" : "bg-white/[0.05] text-violet-200 ring-white/10"}`}>
+                      <span className={`grid h-6 w-6 place-items-center rounded-lg ring-1 ring-inset ${active ? "bg-accent-500/25 text-accent-100 ring-accent-300/30" : "bg-white/[0.05] text-accent-200 ring-white/10"}`}>
                         <Icon size={13} strokeWidth={2} />
                       </span>
                       Beat {String(i + 1).padStart(2, "0")}
@@ -519,12 +519,12 @@ export default function StoryPage({ speak, showcase }: PageProps) {
                   <h3 className="mt-3 text-xl font-semibold tracking-[-0.015em] text-white">{beat.name}</h3>
                   <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-slate-200">{beat.sentence}</p>
                   <p className="mt-3 text-[13px] leading-relaxed text-slate-400">
-                    <Layers size={13} aria-hidden className="-mt-0.5 mr-1.5 inline text-violet-300/80" />
+                    <Layers size={13} aria-hidden className="-mt-0.5 mr-1.5 inline text-accent-300/80" />
                     Built as {beat.builtAs}.
                     {!tryIsPage && (
                       <>
                         {" "}
-                        <a {...linkProps(beat.href)} className={`ml-1 whitespace-nowrap rounded font-medium text-violet-200 underline decoration-violet-300/40 underline-offset-[3px] transition-colors hover:text-white hover:decoration-violet-200 motion-reduce:transition-none ${FOCUS}`}>
+                        <a {...linkProps(beat.href)} className={`ml-1 whitespace-nowrap rounded font-medium text-accent-200 underline decoration-accent-300/40 underline-offset-[3px] transition-colors hover:text-white hover:decoration-accent-200 motion-reduce:transition-none ${FOCUS}`}>
                           See it on {beat.link}
                         </a>
                       </>
@@ -573,13 +573,13 @@ export default function StoryPage({ speak, showcase }: PageProps) {
             <li key={to}>
               <a
                 {...linkProps(to)}
-                className={`group flex min-h-[56px] items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:border-violet-300/30 hover:bg-white/[0.06] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${FOCUS}`}
+                className={`group flex min-h-[56px] items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:border-accent-300/30 hover:bg-white/[0.06] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${FOCUS}`}
               >
-                <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-500/15 text-violet-200 ring-1 ring-inset ring-violet-300/20">
+                <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent-500/15 text-accent-200 ring-1 ring-inset ring-accent-300/20">
                   <Icon size={17} strokeWidth={1.85} />
                 </span>
                 <span className="min-w-0 flex-1 text-[15px] font-medium text-slate-100">{label}</span>
-                <ArrowRight size={16} aria-hidden className="shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-violet-200 motion-reduce:transition-none" />
+                <ArrowRight size={16} aria-hidden className="shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-accent-200 motion-reduce:transition-none" />
               </a>
             </li>
           ))}

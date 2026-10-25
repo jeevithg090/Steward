@@ -30,24 +30,24 @@ const WAYS_IN = [
   { title: "A mission in Python", body: "A multi-step workflow with its own tools, waits and consent points: copy clawback_ofcom under packages/tempo_missions/." },
 ];
 
-const LINK = `inline-flex min-h-[44px] items-center gap-1 font-medium text-violet-300 underline decoration-violet-400/40 underline-offset-[3px] hover:text-violet-200 hover:decoration-violet-200 ${FOCUS}`;
-const META_LINK = `inline-flex min-h-[32px] items-center gap-1 rounded-full font-mono text-[12px] text-violet-200 underline decoration-violet-400/30 underline-offset-[3px] hover:text-white hover:decoration-white ${FOCUS}`;
+const LINK = `inline-flex min-h-[44px] items-center gap-1 font-medium text-accent-300 underline decoration-accent-400/40 underline-offset-[3px] hover:text-accent-200 hover:decoration-accent-200 ${FOCUS}`;
+const META_LINK = `inline-flex min-h-[32px] items-center gap-1 rounded-full font-mono text-[12px] text-accent-200 underline decoration-accent-400/30 underline-offset-[3px] hover:text-white hover:decoration-white ${FOCUS}`;
 
 type Icon = ComponentType<{ size?: number; className?: string; strokeWidth?: number; "aria-hidden"?: boolean }>;
 
 /** A mark for each skill, so the grid reads at a glance. */
 const SKILL_ICONS: Record<string, { icon: Icon; tile: string }> = {
-  "clawback-uk-rail": { icon: TrainFront, tile: "from-violet-400/30 to-violet-700/10 text-violet-100 ring-violet-300/25" },
+  "clawback-uk-rail": { icon: TrainFront, tile: "from-accent-400/30 to-accent-700/10 text-accent-100 ring-accent-300/25" },
   "clawback-uk-flights": { icon: Plane, tile: "from-sky-400/25 to-sky-700/10 text-sky-100 ring-sky-300/25" },
-  "clawback-ofcom": { icon: Router, tile: "from-indigo-400/25 to-indigo-700/10 text-indigo-100 ring-indigo-300/25" },
+  "clawback-ofcom": { icon: Router, tile: "from-accent-400/25 to-accent-700/10 text-accent-100 ring-accent-300/25" },
   "entitlement-check": { icon: HandCoins, tile: "from-emerald-400/25 to-emerald-700/10 text-emerald-100 ring-emerald-300/25" },
-  "letter-explainer": { icon: ScrollText, tile: "from-fuchsia-400/25 to-fuchsia-700/10 text-fuchsia-100 ring-fuchsia-300/25" },
+  "letter-explainer": { icon: ScrollText, tile: "from-second-400/25 to-second-700/10 text-second-100 ring-second-300/25" },
   "rights-decay": { icon: Hourglass, tile: "from-amber-400/25 to-amber-700/10 text-amber-100 ring-amber-300/25" },
   "scam-shield": { icon: ShieldAlert, tile: "from-rose-400/25 to-rose-700/10 text-rose-100 ring-rose-300/25" },
 };
 const FALLBACK = { icon: Puzzle, tile: "from-white/15 to-white/[0.03] text-slate-100 ring-white/15" };
 
-const TRY_LINK = `inline-flex ${TAP} items-center gap-2 rounded-full bg-violet-500/[0.14] px-4 text-sm font-medium text-violet-50 ring-1 ring-inset ring-violet-400/30 transition-colors hover:bg-violet-500/25 hover:ring-violet-300/50 motion-reduce:transition-none ${FOCUS}`;
+const TRY_LINK = `inline-flex ${TAP} items-center gap-2 rounded-full bg-accent-500/[0.14] px-4 text-sm font-medium text-accent-50 ring-1 ring-inset ring-accent-400/30 transition-colors hover:bg-accent-500/25 hover:ring-accent-300/50 motion-reduce:transition-none ${FOCUS}`;
 
 export default function SkillsPage({ showcase }: PageProps) {
   const injected = useMemo<CatalogSource>(() => (showcase ? new ShowcaseCatalog() : new CatalogClient()), [showcase]);
@@ -121,7 +121,7 @@ export default function SkillsPage({ showcase }: PageProps) {
                     <ul className="space-y-1.5 text-sm leading-snug text-slate-200">
                       {s.jobs.map((job) => (
                         <li key={job} className="flex items-start gap-2.5">
-                          <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400 shadow-[0_0_0_3px_rgb(139_92_246/0.18)]" />
+                          <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent-400 shadow-[0_0_0_3px_rgb(var(--accent-500)/0.18)]" />
                           {job}
                         </li>
                       ))}
@@ -207,7 +207,7 @@ export default function SkillsPage({ showcase }: PageProps) {
       )}
 
       <Card as="section" aria-labelledby="add-heading" tone="indigo" className="relative overflow-hidden">
-        <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/15 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent-500/15 blur-3xl" />
         <div className="relative">
           <SectionTitle id="add-heading" as="h2">
             <FolderPlus size={12} aria-hidden /> Add your own use case
@@ -219,8 +219,8 @@ export default function SkillsPage({ showcase }: PageProps) {
           <ol className="mt-5 grid gap-3 md:grid-cols-3">
             {WAYS_IN.map((way, i) => (
               <li key={way.title} className="relative rounded-2xl border border-white/[0.08] bg-black/25 p-4">
-                {i < WAYS_IN.length - 1 && <span aria-hidden className="absolute -right-3 top-8 hidden h-px w-3 bg-gradient-to-r from-violet-400/50 to-transparent md:block" />}
-                <span aria-hidden className="num grid h-7 w-7 place-items-center rounded-full bg-gradient-to-b from-violet-500 to-violet-700 text-[12px] font-semibold text-white shadow-[0_6px_16px_-6px_rgb(124_58_237/0.9)]">
+                {i < WAYS_IN.length - 1 && <span aria-hidden className="absolute -right-3 top-8 hidden h-px w-3 bg-gradient-to-r from-accent-400/50 to-transparent md:block" />}
+                <span aria-hidden className="num grid h-7 w-7 place-items-center rounded-full bg-gradient-to-b from-accent-500 to-accent-700 text-[12px] font-semibold text-white shadow-[0_6px_16px_-6px_rgb(var(--accent-600)/0.9)]">
                   {i + 1}
                 </span>
                 <p className="mt-3 text-[15px] font-semibold text-white">{way.title}</p>

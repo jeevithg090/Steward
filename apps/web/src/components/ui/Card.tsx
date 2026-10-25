@@ -13,7 +13,7 @@ interface CardProps extends HTMLAttributes<HTMLElement> {
 
 const TONES: Record<NonNullable<CardProps["tone"]>, string> = {
   default: "surface",
-  indigo: "border border-violet-400/25 bg-gradient-to-b from-violet-500/[0.12] to-violet-500/[0.03] shadow-glass",
+  indigo: "border border-accent-400/25 bg-gradient-to-b from-accent-500/[0.12] to-accent-500/[0.03] shadow-glass",
   emerald: "border border-emerald-400/25 bg-gradient-to-b from-emerald-500/[0.1] to-emerald-500/[0.02] shadow-glass",
   rose: "border border-rose-400/25 bg-gradient-to-b from-rose-500/[0.1] to-rose-500/[0.02] shadow-glass",
   amber: "border border-amber-400/25 bg-gradient-to-b from-amber-500/[0.1] to-amber-500/[0.02] shadow-glass",

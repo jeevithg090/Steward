@@ -14,9 +14,9 @@ export function Switch({ checked, onChange, label, disabled = false }: SwitchPro
       aria-label={label}
       disabled={disabled}
       onClick={() => !disabled && onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 ring-1 ring-inset transition-[background-color,box-shadow] duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-300 motion-reduce:transition-none ${
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 ring-1 ring-inset transition-[background-color,box-shadow] duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300 motion-reduce:transition-none ${
         disabled ? "cursor-not-allowed opacity-40" : ""
-      } ${checked ? "bg-gradient-to-b from-violet-500 to-violet-700 ring-violet-300/30 shadow-[0_6px_18px_-8px_rgb(124_58_237/0.9)]" : "bg-white/[0.08] ring-white/15"}`}
+      } ${checked ? "bg-gradient-to-b from-accent-500 to-accent-700 ring-accent-300/30 shadow-[0_6px_18px_-8px_rgb(var(--accent-600)/0.9)]" : "bg-white/[0.08] ring-white/15"}`}
     >
       <span
         aria-hidden="true"

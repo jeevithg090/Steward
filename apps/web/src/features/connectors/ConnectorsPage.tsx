@@ -130,14 +130,14 @@ export default function ConnectorsPage({ gateway, user, showcase, speak }: PageP
       </div>
 
       {/* The sweep: the primary action, then what it found and what it read. */}
-      <section aria-labelledby="sweep-heading" className="relative overflow-hidden rounded-3xl border border-violet-400/25 bg-gradient-to-b from-violet-500/[0.14] via-violet-500/[0.05] to-transparent p-5 text-slate-200 shadow-glass lg:p-7">
-        <span aria-hidden className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-violet-500/25 blur-3xl" />
+      <section aria-labelledby="sweep-heading" className="relative overflow-hidden rounded-3xl border border-accent-400/25 bg-gradient-to-b from-accent-500/[0.14] via-accent-500/[0.05] to-transparent p-5 text-slate-200 shadow-glass lg:p-7">
+        <span aria-hidden className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-accent-500/25 blur-3xl" />
         <span aria-hidden className="pointer-events-none absolute -bottom-40 left-1/3 h-72 w-72 rounded-full bg-gold-400/[0.07] blur-3xl" />
-        <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/70 to-transparent" />
+        <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-300/70 to-transparent" />
         <div className="relative flex flex-wrap items-end justify-between gap-6">
           <div className="min-w-0 max-w-2xl">
             <h2 id="sweep-heading" className="flex items-center gap-3 font-display text-[2rem] leading-tight text-white sm:text-[2.4rem]">
-              <Sparkles size={22} aria-hidden className="shrink-0 text-violet-300" /> <span>Find money you&apos;re <em className="text-gold pr-1">owed</em></span>
+              <Sparkles size={22} aria-hidden className="shrink-0 text-accent-300" /> <span>Find money you&apos;re <em className="text-gold pr-1">owed</em></span>
             </h2>
             <p className="mt-2 text-[15px] leading-relaxed text-slate-300">
               Tempo looks through what you&apos;ve connected for late trains, missed engineer visits, tricks and refunds. It starts nothing: each find has one button for you to press.
@@ -178,7 +178,7 @@ export default function ConnectorsPage({ gateway, user, showcase, speak }: PageP
                   <ConnectorTile kind={c.kind} size="sm" />
                   Reading {c.name.toLowerCase()}…
                   <span className="ml-auto h-1.5 w-20 overflow-hidden rounded-full bg-white/10">
-                    <span className="block h-full w-full animate-shimmer rounded-full bg-[linear-gradient(90deg,transparent,rgb(167_139_250/0.9),transparent)] bg-[length:200%_100%] motion-reduce:animate-none" />
+                    <span className="block h-full w-full animate-shimmer rounded-full bg-[linear-gradient(90deg,transparent,rgb(var(--accent-400)/0.9),transparent)] bg-[length:200%_100%] motion-reduce:animate-none" />
                   </span>
                 </li>
               ))}

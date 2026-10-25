@@ -126,12 +126,12 @@ function likelihood(flag: EntitlementFlag): { tone: BadgeTone; words: string } {
 }
 
 /** Big glass fields with a violet glow on focus (the glow is the focus ring here, so it is strong). */
-const BIG_INPUT = "num min-h-[64px] rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3 text-3xl font-semibold tracking-[-0.01em] text-white transition-[border-color,box-shadow,background-color] duration-150 placeholder:font-normal placeholder:text-slate-600 hover:border-white/20 focus:border-violet-300 focus:bg-white/[0.05] focus:outline-none focus:ring-4 focus:ring-violet-500/25 focus-visible:outline-none motion-reduce:transition-none";
+const BIG_INPUT = "num min-h-[64px] rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3 text-3xl font-semibold tracking-[-0.01em] text-white transition-[border-color,box-shadow,background-color] duration-150 placeholder:font-normal placeholder:text-slate-600 hover:border-white/20 focus:border-accent-300 focus:bg-white/[0.05] focus:outline-none focus:ring-4 focus:ring-accent-500/25 focus-visible:outline-none motion-reduce:transition-none";
 
 /** A big answer card: violet and glowing when chosen. Its input is visually hidden; the ring shows its focus. */
-const CHOICE = "flex cursor-pointer items-center gap-3 rounded-2xl border transition-[background-color,border-color,box-shadow] duration-150 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand-300 motion-reduce:transition-none";
-const CHOICE_ON = "border-violet-300/70 bg-gradient-to-b from-violet-500/25 to-violet-600/10 text-white shadow-glow";
-const CHOICE_OFF = "border-white/10 bg-white/[0.03] text-slate-100 hover:border-violet-300/40 hover:bg-white/[0.06]";
+const CHOICE = "flex cursor-pointer items-center gap-3 rounded-2xl border transition-[background-color,border-color,box-shadow] duration-150 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent-300 motion-reduce:transition-none";
+const CHOICE_ON = "border-accent-300/70 bg-gradient-to-b from-accent-500/25 to-accent-600/10 text-white shadow-glow";
+const CHOICE_OFF = "border-white/10 bg-white/[0.03] text-slate-100 hover:border-accent-300/40 hover:bg-white/[0.06]";
 
 /** Two big radio cards. Arrow keys move between them, as for any radio group; Enter goes on. */
 function YesNo({ value, onChange, name }: { value: boolean | null; onChange: (v: boolean) => void; name: string }) {
@@ -145,7 +145,7 @@ function YesNo({ value, onChange, name }: { value: boolean | null; onChange: (v:
         return (
           <label key={o.label} className={`${CHOICE} min-h-[80px] justify-center px-5 py-4 text-xl font-semibold ${on ? CHOICE_ON : CHOICE_OFF}`}>
             <input type="radio" name={name} value={o.label} checked={on} onChange={() => onChange(o.v)} className="sr-only" />
-            <span aria-hidden className={`grid h-6 w-6 shrink-0 place-items-center rounded-full transition-colors motion-reduce:transition-none ${on ? "bg-violet-500 ring-2 ring-violet-200/60" : "ring-2 ring-inset ring-slate-500"}`}>
+            <span aria-hidden className={`grid h-6 w-6 shrink-0 place-items-center rounded-full transition-colors motion-reduce:transition-none ${on ? "bg-accent-500 ring-2 ring-accent-200/60" : "ring-2 ring-inset ring-slate-500"}`}>
               {on && <span className="h-2.5 w-2.5 rounded-full bg-white" />}
             </span>
             {o.label}
@@ -160,7 +160,7 @@ function Money({ value, onChange, label, placeholder, suffix }: { value: string;
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="relative w-60 max-w-full">
-        <span aria-hidden className="pointer-events-none absolute inset-y-0 left-5 flex items-center text-3xl font-semibold text-violet-200">
+        <span aria-hidden className="pointer-events-none absolute inset-y-0 left-5 flex items-center text-3xl font-semibold text-accent-200">
           £
         </span>
         <input aria-label={label} type="text" inputMode="decimal" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} className={`${BIG_INPUT} w-full pl-11`} placeholder={placeholder} />
@@ -175,7 +175,7 @@ function Tick({ on, onChange, children }: { on: boolean; onChange: (checked: boo
   return (
     <label className={`${CHOICE} min-h-[60px] px-4 py-3 text-base ${on ? CHOICE_ON : CHOICE_OFF}`}>
       <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
-      <span aria-hidden className={`grid h-6 w-6 shrink-0 place-items-center rounded-lg transition-colors motion-reduce:transition-none ${on ? "bg-violet-500 text-white ring-2 ring-violet-200/60" : "ring-2 ring-inset ring-slate-500"}`}>
+      <span aria-hidden className={`grid h-6 w-6 shrink-0 place-items-center rounded-lg transition-colors motion-reduce:transition-none ${on ? "bg-accent-500 text-white ring-2 ring-accent-200/60" : "ring-2 ring-inset ring-slate-500"}`}>
         {on && <Check size={15} strokeWidth={3} />}
       </span>
       <span className={on ? "text-white" : "text-slate-100"}>{children}</span>
@@ -349,10 +349,10 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
 
       {!result && (
         <Card as="section" aria-labelledby="question-heading" className="relative overflow-hidden !p-0">
-          <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-violet-600/15 blur-3xl" />
+          <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-accent-600/15 blur-3xl" />
           <div className="relative border-b border-white/[0.06] px-5 pb-5 pt-5 sm:px-8 sm:pt-6">
             <div className="flex items-center justify-between gap-3">
-              <p aria-live="polite" className="num text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-200">
+              <p aria-live="polite" className="num text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-200">
                 Question {step + 1} of {QUESTIONS.length}
               </p>
               <p className="text-xs text-slate-400">{QUESTIONS.length - step - 1 === 0 ? "Last one" : `${QUESTIONS.length - step - 1} more after this`}</p>
@@ -370,7 +370,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
                 <span
                   key={x.key}
                   className={`h-1.5 flex-1 rounded-full transition-[background-color,box-shadow] duration-300 motion-reduce:transition-none ${
-                    i < step ? "bg-gradient-to-r from-violet-500 to-violet-400" : i === step ? "bg-violet-300 shadow-[0_0_12px_rgb(167_139_250/0.8)]" : "bg-white/[0.08]"
+                    i < step ? "bg-gradient-to-r from-accent-500 to-accent-400" : i === step ? "bg-accent-300 shadow-[0_0_12px_rgb(var(--accent-400)/0.8)]" : "bg-white/[0.08]"
                   }`}
                 />
               ))}
@@ -503,7 +503,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
                           href={flag.signpost}
                           rel="noopener noreferrer"
                           target="_blank"
-                          className={`inline-flex ${TAP} items-center gap-1.5 rounded text-sm font-medium text-violet-200 underline decoration-violet-300/40 underline-offset-4 transition-colors hover:text-white hover:decoration-violet-200 motion-reduce:transition-none ${FOCUS}`}
+                          className={`inline-flex ${TAP} items-center gap-1.5 rounded text-sm font-medium text-accent-200 underline decoration-accent-300/40 underline-offset-4 transition-colors hover:text-white hover:decoration-accent-200 motion-reduce:transition-none ${FOCUS}`}
                         >
                           The official page <ExternalLink size={13} aria-hidden />
                           <span className="sr-only"> for {flag.benefit} (opens in a new tab)</span>
@@ -519,8 +519,8 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
 
           {pack && (
             <details className="group surface rounded-2xl px-4 py-1">
-              <summary className={`flex min-h-[48px] cursor-pointer list-none items-center gap-2.5 rounded-xl text-sm font-medium text-violet-200 hover:text-white [&::-webkit-details-marker]:hidden ${FOCUS}`}>
-                <FileText size={16} aria-hidden className="shrink-0 text-violet-300" />
+              <summary className={`flex min-h-[48px] cursor-pointer list-none items-center gap-2.5 rounded-xl text-sm font-medium text-accent-200 hover:text-white [&::-webkit-details-marker]:hidden ${FOCUS}`}>
+                <FileText size={16} aria-hidden className="shrink-0 text-accent-300" />
                 <span className="flex-1">Your answers and the check, as text to keep or hand to an adviser</span>
                 <ChevronDown size={16} aria-hidden className="shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" />
               </summary>

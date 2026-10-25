@@ -2,6 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The palettes (plan.md §15): the accent is the agent and its actions, the second hue adds variety,
+   gold (tailwind.config.ts) is only ever what was returned. Each step is "R G B" for Tailwind's
+   alpha. White text on accent-600 and -700 keeps WCAG AA (5:1 and up); accent-200 to -400 read on
+   ink at 6:1 and up. `data-accent` on <html> picks one; the first is the default. */
+:root,
+[data-accent="lagoon"] {
+  --accent-50: 239 252 249; --accent-100: 201 246 236; --accent-200: 148 236 217;
+  --accent-300: 92 217 193; --accent-400: 47 191 166; --accent-500: 20 160 139;
+  --accent-600: 11 122 108; --accent-700: 12 99 88; --accent-800: 15 80 72;
+  --accent-900: 16 66 60; --accent-950: 6 40 36;
+  --second-50: 240 249 255; --second-100: 224 242 254; --second-200: 186 230 253;
+  --second-300: 125 211 252; --second-400: 56 189 248; --second-500: 14 165 233;
+  --second-600: 2 132 199; --second-700: 3 105 161; --second-800: 7 89 133;
+  --second-900: 12 74 110; --second-950: 8 47 73;
+}
+[data-accent="harbour"] {
+  --accent-50: 239 246 251; --accent-100: 214 233 245; --accent-200: 174 211 234;
+  --accent-300: 123 182 219; --accent-400: 75 150 199; --accent-500: 47 123 176;
+  --accent-600: 36 99 154; --accent-700: 31 80 125; --accent-800: 29 67 102;
+  --accent-900: 28 57 84; --accent-950: 15 34 54;
+  --second-50: 240 253 250; --second-100: 204 251 241; --second-200: 153 246 228;
+  --second-300: 94 234 212; --second-400: 45 212 191; --second-500: 20 184 166;
+  --second-600: 13 148 136; --second-700: 15 118 110; --second-800: 17 94 89;
+  --second-900: 19 78 74; --second-950: 4 47 46;
+}
+[data-accent="copper"] {
+  --accent-50: 255 246 240; --accent-100: 255 232 214; --accent-200: 255 207 173;
+  --accent-300: 251 172 122; --accent-400: 240 136 74; --accent-500: 221 107 42;
+  --accent-600: 180 82 28; --accent-700: 144 66 26; --accent-800: 116 55 26;
+  --accent-900: 95 47 25; --accent-950: 51 22 10;
+  --second-50: 240 253 250; --second-100: 204 251 241; --second-200: 153 246 228;
+  --second-300: 94 234 212; --second-400: 45 212 191; --second-500: 20 184 166;
+  --second-600: 13 148 136; --second-700: 15 118 110; --second-800: 17 94 89;
+  --second-900: 19 78 74; --second-950: 4 47 46;
+}
+
 /* Tempo's canvas (plan.md §15.1, "golden hour"): ink, two slow aurora glows and a fine grain. */
 html,
 body,
@@ -24,13 +60,13 @@ body::after {
   pointer-events: none;
   z-index: 0;
 }
-/* The aurora: violet above, gold below, drifting very slowly. */
+/* The aurora: the accent above, gold below, drifting very slowly. */
 body::before {
   inset: -20%;
   background:
-    radial-gradient(40% 35% at 18% 8%, rgb(109 91 255 / 0.16), transparent 70%),
+    radial-gradient(40% 35% at 18% 8%, rgb(var(--accent-500) / 0.16), transparent 70%),
     radial-gradient(35% 30% at 88% 92%, rgb(245 181 68 / 0.09), transparent 70%),
-    radial-gradient(30% 25% at 70% 20%, rgb(139 92 246 / 0.07), transparent 70%);
+    radial-gradient(30% 25% at 70% 20%, rgb(var(--accent-500) / 0.07), transparent 70%);
   animation: drift 22s ease-in-out infinite;
 }
 /* The grain keeps large dark areas from banding. */
@@ -41,7 +77,7 @@ body::after {
 }
 #root { position: relative; z-index: 1; }
 
-::selection { background: rgb(139 92 246 / 0.45); color: #fff; }
+::selection { background: rgb(var(--accent-500) / 0.45); color: #fff; }
 
 /* Thin, quiet scrollbars that still show where you are. */
 * { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 0.14) transparent; }
@@ -51,7 +87,7 @@ body::after {
 *::-webkit-scrollbar-track { background: transparent; }
 
 /* One focus ring everywhere: visible on ink and on glass, never on a mouse click. */
-:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 2px; }
+:focus-visible { outline: 2px solid rgb(var(--accent-300)); outline-offset: 2px; }
 
 h1, h2, h3 { letter-spacing: -0.012em; }
 
@@ -98,7 +134,7 @@ h1, h2, h3 { letter-spacing: -0.012em; }
     color: transparent;
   }
   .text-brand {
-    background: linear-gradient(120deg, #ddd6fe 0%, #a78bfa 55%, #8b5cf6 100%);
+    background: linear-gradient(120deg, rgb(var(--accent-200)) 0%, rgb(var(--accent-400)) 55%, rgb(var(--accent-500)) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -168,7 +204,7 @@ html[data-reduce-motion] *::after {
   font-size: 0.875rem;
   font-weight: 600;
 }
-.skip-link:focus { top: 1rem; outline: 2px solid #a78bfa; }
+.skip-link:focus { top: 1rem; outline: 2px solid rgb(var(--accent-400)); }
 
 /* Struck-through earlier facts on the memory timeline and the rights clocks. */
 .superseded { text-decoration: line-through; opacity: 0.6; }

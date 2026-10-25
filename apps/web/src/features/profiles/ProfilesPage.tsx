@@ -16,11 +16,11 @@ import { AccessChips, Avatar, CHANNEL_WORDS, DOCS, MayNever, StatusBadge, WillDo
 import { loadError } from "@/components/mission/words";
 import catalogJson from "@/showcase/catalog.json";
 
-const TEXTAREA = `w-full resize-y rounded-2xl border border-white/10 bg-ink-900/70 p-3.5 font-mono text-[12px] leading-relaxed text-slate-100 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] placeholder:text-slate-500 transition-colors hover:border-white/20 focus:border-violet-400/50 ${FOCUS}`;
+const TEXTAREA = `w-full resize-y rounded-2xl border border-white/10 bg-ink-900/70 p-3.5 font-mono text-[12px] leading-relaxed text-slate-100 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] placeholder:text-slate-500 transition-colors hover:border-white/20 focus:border-accent-400/50 ${FOCUS}`;
 /** A link that looks like the quiet Button. */
 const QUIET_LINK = `inline-flex ${TAP} items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.05] px-4 text-sm font-medium text-slate-100 transition-colors hover:border-white/20 hover:bg-white/[0.09] motion-reduce:transition-none ${FOCUS}`;
 const BACK_LINK = `inline-flex ${TAP} items-center gap-1.5 rounded-full pr-3 text-sm font-medium text-slate-400 transition-colors hover:text-white ${FOCUS}`;
-const TEXT_LINK = `font-medium text-violet-300 underline decoration-violet-400/40 underline-offset-[3px] hover:text-violet-200 hover:decoration-violet-200 ${FOCUS}`;
+const TEXT_LINK = `font-medium text-accent-300 underline decoration-accent-400/40 underline-offset-[3px] hover:text-accent-200 hover:decoration-accent-200 ${FOCUS}`;
 
 /** The import URL for a profile: the whole profile travels in the fragment's query, never to a server log. */
 export function importUrl(profile: Profile): string {
@@ -134,19 +134,19 @@ function WorkingFor({ source, id, setProfile }: { source: CatalogSource; id: str
       <div
         role="region"
         aria-label="Who Tempo is working for"
-        className="glass-strong flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-full border-violet-400/30 py-1.5 pl-1.5 pr-1.5 shadow-glow"
+        className="glass-strong flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-full border-accent-400/30 py-1.5 pl-1.5 pr-1.5 shadow-glow"
       >
         <p className="flex min-w-0 items-center gap-3 text-sm text-slate-200">
           <Avatar name={name} seed={id} size="sm" glow className="!rounded-full [&>span]:!rounded-full" />
           <span className="min-w-0">
             <span className="mr-1 inline-flex items-center gap-1.5 text-slate-400">
               <span aria-hidden className="relative inline-flex h-2 w-2">
-                <span className="absolute inset-0 animate-ping rounded-full bg-violet-400/60 motion-reduce:animate-none" />
-                <span className="relative h-2 w-2 rounded-full bg-violet-300" />
+                <span className="absolute inset-0 animate-ping rounded-full bg-accent-400/60 motion-reduce:animate-none" />
+                <span className="relative h-2 w-2 rounded-full bg-accent-300" />
               </span>
               Tempo is working for:
             </span>{" "}
-            <a {...linkProps(`/profiles/${id}`)} className={`font-semibold text-white underline decoration-violet-300/40 underline-offset-[3px] hover:decoration-white ${FOCUS}`}>
+            <a {...linkProps(`/profiles/${id}`)} className={`font-semibold text-white underline decoration-accent-300/40 underline-offset-[3px] hover:decoration-white ${FOCUS}`}>
               {name}
             </a>
           </span>
@@ -253,20 +253,20 @@ function ProfileList({ source, user, setProfile, showcase, banner }: Sub) {
                   as="li"
                   tone={active ? "indigo" : "default"}
                   padding="none"
-                  className={`group relative flex flex-col overflow-hidden ${active ? "shadow-glow ring-1 ring-violet-400/50" : "transition-[border-color,box-shadow] duration-200 hover:border-white/[0.14] hover:shadow-lift motion-reduce:transition-none"}`}
+                  className={`group relative flex flex-col overflow-hidden ${active ? "shadow-glow ring-1 ring-accent-400/50" : "transition-[border-color,box-shadow] duration-200 hover:border-white/[0.14] hover:shadow-lift motion-reduce:transition-none"}`}
                 >
-                  {active && <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/80 to-transparent" />}
+                  {active && <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-300/80 to-transparent" />}
                   <div className="flex items-start gap-4 p-5 pb-4 lg:p-6 lg:pb-4">
                     <Avatar name={p.name} seed={p.id} size="lg" glow={active} />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <h2 className="text-[17px] font-semibold leading-snug tracking-[-0.01em] text-white">
-                          <a {...linkProps(`/profiles/${p.id}`)} className={`rounded-sm decoration-violet-300/60 underline-offset-[3px] hover:text-violet-100 hover:underline ${FOCUS}`}>
+                          <a {...linkProps(`/profiles/${p.id}`)} className={`rounded-sm decoration-accent-300/60 underline-offset-[3px] hover:text-accent-100 hover:underline ${FOCUS}`}>
                             {p.name}
                           </a>
                         </h2>
                         {active && (
-                          <Badge tone="indigo" dot className="ring-violet-300/40">
+                          <Badge tone="indigo" dot className="ring-accent-300/40">
                             In use
                           </Badge>
                         )}
@@ -409,16 +409,16 @@ function ProfileDetail({ source, id, user, setProfile, showcase, banner }: Sub &
         <>
           <PageTitle lede={profile.summary}>Profiles</PageTitle>
           {banner}
-          <Card tone="indigo" padding="none" className={`relative overflow-hidden motion-safe:animate-fade-up ${active ? "shadow-glow ring-1 ring-violet-400/50" : ""}`}>
-            <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/20 blur-3xl" />
-            <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/70 to-transparent" />
+          <Card tone="indigo" padding="none" className={`relative overflow-hidden motion-safe:animate-fade-up ${active ? "shadow-glow ring-1 ring-accent-400/50" : ""}`}>
+            <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent-500/20 blur-3xl" />
+            <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-300/70 to-transparent" />
             <div className="relative flex flex-col gap-5 p-5 sm:flex-row sm:items-start lg:p-7">
               <Avatar name={profile.name} seed={profile.id} size="xl" glow />
               <div className="min-w-0 flex-1 space-y-3">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                   <h2 className="font-display text-[2.1rem] leading-[1.05] text-white sm:text-[2.6rem]">{profile.name}</h2>
                   {active && (
-                    <Badge tone="indigo" dot className="ring-violet-300/40">
+                    <Badge tone="indigo" dot className="ring-accent-300/40">
                       In use
                     </Badge>
                   )}
@@ -489,7 +489,7 @@ function ProfileDetail({ source, id, user, setProfile, showcase, banner }: Sub &
                   const LimitIcon = LIMIT_ICONS[i] ?? Gauge;
                   return (
                     <li key={l} className="flex items-start gap-3">
-                      <span aria-hidden className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-violet-200 ring-1 ring-inset ring-white/10">
+                      <span aria-hidden className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-accent-200 ring-1 ring-inset ring-white/10">
                         <LimitIcon size={14} />
                       </span>
                       <span className="pt-1 leading-snug">{l}</span>
@@ -532,14 +532,14 @@ function ProfileDetail({ source, id, user, setProfile, showcase, banner }: Sub &
           </div>
 
           <Card as="section" aria-labelledby="share-heading" className="relative overflow-hidden">
-            <span aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-violet-600/10 blur-3xl" />
+            <span aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-accent-600/10 blur-3xl" />
             <div className="relative grid gap-5 lg:grid-cols-[2fr_3fr] lg:gap-8">
               <div>
                 <SectionTitle id="share-heading" as="h3">
                   <Link2 size={12} aria-hidden /> Share this profile
                 </SectionTitle>
                 <p className="text-sm leading-relaxed text-slate-300">
-                  The link carries the whole profile after the <code className="rounded-md bg-white/[0.06] px-1 font-mono text-violet-200">#</code>, so it never reaches a server log.
+                  The link carries the whole profile after the <code className="rounded-md bg-white/[0.06] px-1 font-mono text-accent-200">#</code>, so it never reaches a server log.
                   Whoever opens it sees exactly this page and nothing is stored until they choose to use it.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -693,9 +693,9 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
       {banner}
 
       <Card as="section" aria-labelledby="paste-heading" tone="indigo" className="relative overflow-hidden motion-safe:animate-fade-up">
-        <span aria-hidden className="pointer-events-none absolute -right-20 -top-28 h-64 w-64 rounded-full bg-violet-500/15 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -right-20 -top-28 h-64 w-64 rounded-full bg-accent-500/15 blur-3xl" />
         <div className="relative flex items-start gap-3.5">
-          <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-violet-500/30 to-violet-700/10 text-violet-100 ring-1 ring-inset ring-violet-300/25">
+          <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-accent-500/30 to-accent-700/10 text-accent-100 ring-1 ring-inset ring-accent-300/25">
             <Upload size={18} />
           </span>
           <div className="min-w-0">
@@ -800,7 +800,7 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
                     <ul className="space-y-1.5 text-sm text-slate-200">
                       {profile.skills.map((s) => (
                         <li key={s.id} className="flex items-center gap-2">
-                          <Puzzle size={13} aria-hidden className="text-violet-300" />
+                          <Puzzle size={13} aria-hidden className="text-accent-300" />
                           {s.name}
                         </li>
                       ))}
@@ -821,7 +821,7 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
                   const LimitIcon = LIMIT_ICONS[i] ?? Gauge;
                   return (
                     <li key={l} className="flex items-start gap-3">
-                      <span aria-hidden className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-violet-200 ring-1 ring-inset ring-white/10">
+                      <span aria-hidden className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-accent-200 ring-1 ring-inset ring-white/10">
                         <LimitIcon size={14} />
                       </span>
                       <span className="pt-1 leading-snug">{l}</span>
@@ -866,7 +866,7 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
                 <>
                   <p className="text-sm leading-relaxed text-slate-200">
                     This profile isn't in this Tempo's catalogue yet. The Gateway only validates a shared code; it never stores one. To use it, put the YAML in{" "}
-                    <code className="rounded-md bg-white/[0.06] px-1 font-mono text-violet-200">profiles/</code> of your own Tempo and open a pull request, or compare it with the{" "}
+                    <code className="rounded-md bg-white/[0.06] px-1 font-mono text-accent-200">profiles/</code> of your own Tempo and open a pull request, or compare it with the{" "}
                     <a {...linkProps("/profiles")} className={TEXT_LINK}>
                       starter profiles
                     </a>

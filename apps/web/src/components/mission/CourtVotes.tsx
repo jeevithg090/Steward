@@ -87,7 +87,7 @@ export function CourtVotes({ court, id = "court-heading", bare = false }: { cour
           </ul>
           <div className="mt-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-4 py-3">
             <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
-              <Scale size={13} aria-hidden className="text-violet-300" />
+              <Scale size={13} aria-hidden className="text-accent-300" />
               <span className="font-semibold text-slate-200">{agreed}% agreement</span>
               {court.eligible !== null && <span>· {court.eligible ? "eligible" : "not eligible"}</span>}
               {court.flags.length > 0 && <span className="text-amber-200">· {court.flags.join("; ")}</span>}

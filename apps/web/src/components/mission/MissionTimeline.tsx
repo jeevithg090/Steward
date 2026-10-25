@@ -18,13 +18,13 @@ function stepOf(isLast: boolean, missionState: MissionState): Step {
 
 const RING: Record<Step, string> = {
   done: "bg-emerald-400/15 text-emerald-200 ring-emerald-300/45",
-  current: "bg-violet-500/25 ring-violet-300/70 shadow-[0_0_0_4px_rgb(139_92_246/0.14),0_0_22px_rgb(139_92_246/0.55)]",
+  current: "bg-accent-500/25 ring-accent-300/70 shadow-[0_0_0_4px_rgb(var(--accent-500)/0.14),0_0_22px_rgb(var(--accent-500)/0.55)]",
   waiting: "bg-amber-400/20 ring-amber-300/60 shadow-[0_0_0_4px_rgb(251_191_36/0.1),0_0_20px_rgb(251_191_36/0.4)]",
   stopped: "bg-rose-500/15 text-rose-200 ring-rose-300/45",
 };
 
-const PULSE: Partial<Record<Step, string>> = { current: "bg-violet-400/40", waiting: "bg-amber-400/35" };
-const CORE: Partial<Record<Step, string>> = { current: "bg-violet-200", waiting: "bg-amber-200" };
+const PULSE: Partial<Record<Step, string>> = { current: "bg-accent-400/40", waiting: "bg-amber-400/35" };
+const CORE: Partial<Record<Step, string>> = { current: "bg-accent-200", waiting: "bg-amber-200" };
 
 /** Each state the mission reached, as a vertical stepper: when, how long the step before it took, and the person's decision. */
 export function MissionTimeline({ mission, personName = "Margaret" }: { mission: MissionView; personName?: string }) {
@@ -48,7 +48,7 @@ export function MissionTimeline({ mission, personName = "Margaret" }: { mission:
                   <span
                     aria-hidden
                     className={`absolute bottom-0 left-[13px] top-8 w-0.5 rounded-full bg-gradient-to-b ${
-                      nextStep === "current" ? "from-emerald-400/50 to-violet-400/60" : nextStep === "waiting" ? "from-emerald-400/50 to-amber-400/60" : nextStep === "stopped" ? "from-emerald-400/50 to-rose-400/50" : "from-emerald-400/50 to-emerald-400/30"
+                      nextStep === "current" ? "from-emerald-400/50 to-accent-400/60" : nextStep === "waiting" ? "from-emerald-400/50 to-amber-400/60" : nextStep === "stopped" ? "from-emerald-400/50 to-rose-400/50" : "from-emerald-400/50 to-emerald-400/30"
                     }`}
                   />
                 )}

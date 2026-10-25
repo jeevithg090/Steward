@@ -19,7 +19,7 @@ export function AudioMessage({ audio }: AudioMessageProps) {
     <div className="flex items-center gap-3">
       <audio controls src={audio.url} className="h-8 max-w-full" />
       {seconds > 0 && (
-        <span className="text-xs text-indigo-200">
+        <span className="text-xs text-accent-200">
           {seconds}s
         </span>
       )}

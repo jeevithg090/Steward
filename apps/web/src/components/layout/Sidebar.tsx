@@ -20,7 +20,7 @@ interface SidebarProps {
 }
 
 const COMPACT_BELOW = 190;
-const focus = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-300";
+const focus = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent-300";
 
 function NavItem({ entry, active, compact, onClick }: { entry: NavEntry; active: boolean; compact: boolean; onClick?: () => void }) {
   const link = linkProps(entry.to);
@@ -36,10 +36,10 @@ function NavItem({ entry, active, compact, onClick }: { entry: NavEntry; active:
       aria-current={active ? "page" : undefined}
       className={`group relative flex h-9 w-full items-center gap-3 rounded-xl px-3 text-[13.5px] transition-colors duration-150 motion-reduce:transition-none ${focus} ${
         compact ? "justify-center" : ""
-      } ${active ? "bg-gradient-to-r from-violet-500/[0.18] via-violet-500/[0.07] to-transparent font-medium text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"}`}
+      } ${active ? "bg-gradient-to-r from-accent-500/[0.18] via-accent-500/[0.07] to-transparent font-medium text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"}`}
     >
-      {active && <span aria-hidden className="absolute -left-4 top-1.5 h-6 w-[3px] rounded-r-full bg-gradient-to-b from-violet-300 to-violet-500 shadow-[0_0_12px_rgb(167_139_250/0.8)]" />}
-      <entry.Icon size={18} strokeWidth={1.75} aria-hidden className={active ? "text-violet-200" : "text-slate-500 transition-colors group-hover:text-slate-300"} />
+      {active && <span aria-hidden className="absolute -left-4 top-1.5 h-6 w-[3px] rounded-r-full bg-gradient-to-b from-accent-300 to-accent-500 shadow-[0_0_12px_rgb(var(--accent-400)/0.8)]" />}
+      <entry.Icon size={18} strokeWidth={1.75} aria-hidden className={active ? "text-accent-200" : "text-slate-500 transition-colors group-hover:text-slate-300"} />
       {!compact && <span className="truncate">{entry.label}</span>}
     </a>
   );
@@ -70,11 +70,11 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
       style={width ? { width } : undefined}
       className={`relative flex h-full flex-col gap-5 overflow-hidden border-r border-white/[0.06] bg-ink-900/80 p-4 text-white backdrop-blur-xl ${width ? "" : "w-72"}`}
     >
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(80%_100%_at_20%_0%,rgb(124_58_237/0.18),transparent)]" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(80%_100%_at_20%_0%,rgb(var(--accent-600)/0.18),transparent)]" />
 
       <div className={`relative flex items-center ${compact ? "justify-center" : "justify-between"}`}>
         <a {...linkProps("/chat")} className={`flex min-w-0 items-center gap-3 rounded-xl ${focus}`} aria-label={compact ? "Tempo, back to the chat" : undefined}>
-          <TempoMark size={36} className="shrink-0 drop-shadow-[0_8px_18px_rgb(124_58_237/0.45)]" />
+          <TempoMark size={36} className="shrink-0 drop-shadow-[0_8px_18px_rgb(var(--accent-600)/0.45)]" />
           {!compact && (
             <span className="min-w-0">
               <span className="block font-display text-[1.6rem] leading-none text-white">Tempo</span>
@@ -94,7 +94,7 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
           {...linkProps("/profiles")}
           className={`relative -mt-2 flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2 text-[12px] text-slate-300 hover:border-white/15 hover:text-white ${focus}`}
         >
-          <Sparkles size={13} className="text-violet-300" aria-hidden />
+          <Sparkles size={13} className="text-accent-300" aria-hidden />
           <span className="truncate">Working for: {profileName}</span>
         </a>
       )}
@@ -106,9 +106,9 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
         }}
         aria-label="New chat"
         title={compact ? "New chat" : undefined}
-        className={`relative flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-slate-100 shadow-[0_1px_0_0_rgb(255_255_255/0.06)_inset] transition-colors hover:border-violet-300/30 hover:bg-violet-500/10 ${focus} ${compact ? "justify-center" : ""}`}
+        className={`relative flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-slate-100 shadow-[0_1px_0_0_rgb(255_255_255/0.06)_inset] transition-colors hover:border-accent-300/30 hover:bg-accent-500/10 ${focus} ${compact ? "justify-center" : ""}`}
       >
-        <span className="grid h-5 w-5 place-items-center rounded-md bg-violet-500/25 text-violet-100">
+        <span className="grid h-5 w-5 place-items-center rounded-md bg-accent-500/25 text-accent-100">
           <Plus size={14} aria-hidden />
         </span>
         {!compact && "New chat"}

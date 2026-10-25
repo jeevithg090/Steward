@@ -61,7 +61,7 @@ function useToasts(): ToastItem[] {
 const TONE = {
   success: { box: "text-slate-50", icon: <CheckCircle2 size={16} className="text-emerald-300" aria-hidden /> },
   error: { box: "text-rose-50 !border-rose-400/35", icon: <TriangleAlert size={16} className="text-rose-300" aria-hidden /> },
-  info: { box: "text-slate-50", icon: <Info size={16} className="text-violet-300" aria-hidden /> },
+  info: { box: "text-slate-50", icon: <Info size={16} className="text-accent-300" aria-hidden /> },
 } as const;
 
 /** Mounted once; at the top under the header on phones (so the chat input and buttons below stay
