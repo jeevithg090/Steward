@@ -92,7 +92,12 @@ test("the device list, a pairing QR code, then the code both screens show; confi
     "GET /mesh/devices": () => [200, list],
     "GET /mesh/config": { rp_id: "localhost", vapid_public_key: null },
     "POST /mesh/pairings": { pairing_id: "p1", link: "http://localhost:3000/#pair=p1.s3cret", qr_svg: QR, expires_at: new Date(Date.now() + 120_000).toISOString() },
-    "GET /mesh/pairings/p1": { claimed: true, code: "042917", device_name: "Chrome on Mac" },
+    // Like a real pairing: not claimed on the first poll (the QR code and link are on screen),
+    // claimed on the next. A first-poll claim raced the assertions on a cold test run.
+    "GET /mesh/pairings/p1": (() => {
+      let polls = 0;
+      return () => (polls++ === 0 ? [200, { claimed: false, code: null, device_name: null }] : [200, { claimed: true, code: "042917", device_name: "Chrome on Mac" }]);
+    })(),
     "POST /mesh/pairings/p1/confirm": () => {
       list = [phone, device({ id: "d_2", name: "Chrome on Mac" })];
       return [200, list[1]];
@@ -110,7 +115,7 @@ test("the device list, a pairing QR code, then the code both screens show; confi
   await userEvent.click(screen.getByRole("button", { name: "Add another device" }));
   const qr = await screen.findByRole("img", { name: /QR code for adding your other device/ });
   expect(qr.innerHTML).toContain('viewBox="0 0 164 164"');
-  expect(screen.getByTestId("pairing-link")).toHaveTextContent("http://localhost:3000/#pair=p1.s3cret");
+  expect(await screen.findByTestId("pairing-link")).toHaveTextContent("http://localhost:3000/#pair=p1.s3cret");
   expect(screen.getByText(/Works for \d:\d\d more/)).toBeInTheDocument();
 
   expect(await screen.findByText("Pairing code: 0 4 2 9 1 7")).toBeInTheDocument();
