@@ -39,6 +39,7 @@ from webauthn import (
     verify_authentication_response,
     verify_registration_response,
 )
+from webauthn.helpers.cose import COSEAlgorithmIdentifier
 from webauthn.helpers.exceptions import InvalidAuthenticationResponse, InvalidRegistrationResponse
 from webauthn.helpers.structs import (
     AuthenticatorSelectionCriteria,
@@ -291,6 +292,9 @@ class Mesh:
                 resident_key=ResidentKeyRequirement.PREFERRED,
                 user_verification=UserVerificationRequirement.REQUIRED,
             ),
+            # ES256 only: a mandate's key is "webauthn-es256", and a company (or a browser) checks
+            # it as P-256. py_webauthn offers EdDSA first, and some authenticators take it.
+            supported_pub_key_algs=[COSEAlgorithmIdentifier.ECDSA_SHA_256],
         )  # fmt: skip
         return {"challenge_id": challenge.id, "options": json.loads(options_to_json(options))}
 

@@ -15,6 +15,7 @@ No `from __future__ import annotations`: FastAPI reads these annotations at runt
 | GET /mesh/signals, POST /mesh/signals | a notification-reading device: filters; matches |
 | GET /mesh/signals/model | a notification-reading device: Scam Shield's text model as data |
 | POST /mesh/mandates/options, POST /mesh/mandates | a device with Face ID: sign a mandate (P2) |
+| GET /mesh/mandates/{id} | one of the person's devices: the signed mandate, to show a company |
 """
 
 import asyncio
@@ -245,6 +246,17 @@ def mesh_router(
                 "mandate_id": m.mandate_id, "assurance": "device-biometric",
                 "expires_at": m.expires_at.isoformat(),
             })  # fmt: skip
+        return signed.model_dump(mode="json")
+
+    @router.get("/mandates/{mandate_id}")
+    async def my_mandate(mandate_id: str, me: Me) -> dict[str, Any]:
+        """The signed mandate as issued, for any of the person's own devices: the web app's "Let
+        the company check it" needs the envelope after a reload or on her other screen."""
+        if mandates is None:
+            raise HTTPException(404, "mandates are off")
+        signed = mandates.envelope(mandate_id)
+        if signed is None or await service.user_for(signed.mandate.matter.mission_id) != me.user_id:
+            raise HTTPException(404, "no such mandate")
         return signed.model_dump(mode="json")
 
     def _mine(request_id: str, me: Device) -> None:

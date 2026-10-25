@@ -256,6 +256,28 @@ def test_mandates_only_for_your_own_missions(gateway: TestClient) -> None:
     assert r.status_code == 404
 
 
+def test_her_devices_can_fetch_the_signed_mandate_again(gateway: TestClient) -> None:
+    """The web app shows a company the exact envelope after a reload; nobody else can fetch it."""
+    me, face_id = device_with_face_id(gateway)
+    envelope = issue(gateway, me, face_id, mission(gateway))
+    mandate_id = envelope["mandate"]["mandate_id"]
+    other = gateway.post(
+        "/mesh/devices", headers=AUTH,
+        json={"user_id": "u_someone_else", "name": "Not Margaret", "capabilities": []},
+    ).json()  # fmt: skip
+
+    again = gateway.get(f"/mesh/mandates/{mandate_id}", headers=me)
+    stranger = gateway.get(
+        f"/mesh/mandates/{mandate_id}", headers={"X-Tempo-Device": other["token"]}
+    )
+    unpaired = gateway.get(f"/mesh/mandates/{mandate_id}")
+    made_up = gateway.get("/mesh/mandates/md_made_up", headers=me)
+
+    assert again.status_code == 200 and again.json() == envelope
+    assert ask(gateway, again.json())["ok"] is True
+    assert (stranger.status_code, unpaired.status_code, made_up.status_code) == (404, 401, 404)
+
+
 def test_on_a_call_the_company_checks_the_id_it_heard(gateway: TestClient) -> None:
     me, face_id = device_with_face_id(gateway)
     mid = mission(gateway)

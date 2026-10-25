@@ -126,6 +126,14 @@ def sign(
     return body["challenge_id"], authenticator.get(body["options"], **kw)
 
 
+def test_a_passkey_is_asked_for_as_es256_only(gateway: TestClient) -> None:
+    """A mandate's key is "webauthn-es256": an EdDSA passkey would sign mandates nobody can check."""
+    token = first_device(gateway)
+    started = gateway.post("/mesh/devices/me/passkey/options", headers=as_device(token)).json()
+
+    assert started["options"]["pubKeyCredParams"] == [{"type": "public-key", "alg": -7}]
+
+
 def test_pairing_shows_the_same_code_on_both_devices(gateway: TestClient, clock: Clock) -> None:
     phone = first_device(gateway)
     pairing = gateway.post("/mesh/pairings", headers=as_device(phone)).json()
