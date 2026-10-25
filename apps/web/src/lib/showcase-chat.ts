@@ -716,6 +716,34 @@ function missionAction(view: MissionView): ChatAction {
   return { label: "Open Mission Control", href: `#/missions/${view.id}` };
 }
 
+const RECORDED_VISIT = { operator: "broadbandly", event_date: "2026-10-19" };
+
+/** The earlier claim for the same recorded journey or visit, still live or paid (chat.py `_existing`). */
+async function existingClaim(intent: Intent, slots: Slots, userId: string, state: ShowcaseChatState): Promise<ChatReply | null> {
+  const recorded =
+    intent === "rail_delay"
+      ? Object.entries(DEMO_JOURNEY).every(([k, v]) => k === "fare_gbp" || slots[k] === v)
+      : (slots.operator ?? "").replace(/\s+/g, "").toLowerCase() === RECORDED_VISIT.operator && slots.event_date === RECORDED_VISIT.event_date;
+  if (!recorded) return null;
+  const kind = intent === "rail_delay" ? "rail" : "ofcom";
+  const mine = (await state.missions()).filter((m) => (!m.user_id || m.user_id === userId) && (m.skill_id ?? "").includes(kind));
+  const view = mine.find((m) => m.state !== "declined" && m.state !== "failed_safe");
+  if (!view) return null;
+  const outcome = (view.outcome as { message?: string } | null)?.message ?? view.message ?? "";
+  const words =
+    view.state === "awaiting_consent"
+      ? "I'm already on this one. It needs your OK."
+      : view.state === "verified"
+        ? `I already claimed this one. ${outcome}`.trim()
+        : view.state === "completed"
+          ? `I've already dealt with this one. ${outcome}`.trim()
+          : "I'm already on this one. I'm waiting for the money.";
+  return reply({
+    intent, reply: words, slots: {}, mission: view, ask: view.ask ?? null, actions: [missionAction(view)],
+    ...(view.state === "verified" ? { suggestions: ["How much have you got back for me?"] } : {}),
+  });
+}
+
 /** A late train or a missed visit: start it when every fact is in, else ask one question (chat.py `_claim`). */
 async function claim(intent: Intent, turn: ChatTurn, known: Slots, state: ShowcaseChatState, today: string): Promise<ChatReply> {
   const found = extract(turn.text, intent, today);
@@ -729,6 +757,10 @@ async function claim(intent: Intent, turn: ChatTurn, known: Slots, state: Showca
     const demoFare = need.field === "fare_gbp" && Object.entries(DEMO_JOURNEY).every(([k, v]) => slots[k] === v);
     return reply({ intent, reply: said, slots, needs: [need], ...(demoFare ? { suggestions: [...SUGGESTIONS.demo_fare] } : {}) });
   }
+  // chat.py: never the same claim twice. The recordings hold one journey and one visit, so a live or
+  // paid mission of the same kind for the recorded facts is the same claim: answer with it.
+  const same = await existingClaim(intent, slots, turn.user_id, state);
+  if (same) return same;
   const person = { user_id: turn.user_id, display_name: turn.display_name ?? "Friend", time_value_gbp_h: "18", ...(turn.profile_id ? { profile_id: turn.profile_id } : {}) };
   const view =
     intent === "rail_delay"

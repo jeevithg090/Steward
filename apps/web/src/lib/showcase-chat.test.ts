@@ -67,7 +67,7 @@ describe("slot extraction", () => {
 describe("answers from the recordings", () => {
   const turn = (text: string, slots?: Record<string, string | null>) => ({ user_id: "u_margaret", display_name: "Margaret", text, language: "en", slots });
 
-  test("a late train with a fact missing asks one question, then starts the recorded mission", async () => {
+  test("a late train with a fact missing asks one question, then answers with the claim already under way", async () => {
     const gateway = new ShowcaseGateway();
     const first = await showcaseChat(turn("My 08:12 Oxford to Paddington was late on 23 October"), gateway);
     expect(first.intent).toBe("rail_delay");
@@ -75,24 +75,31 @@ describe("answers from the recordings", () => {
     expect(first.reply).toBe("Your 08:12 from Oxford to Paddington on 23 October. What did the ticket cost?");
     expect(first.mission).toBeNull();
     // A bare number has no door words of its own: the echoed slots say it continues the rail flow and fills the fare.
+    // The seed already started this exact journey, so Tempo answers with that claim, never a second one (chat.py).
+    const seededRail = (await gateway.missions()).find((m) => (m.skill_id ?? "").includes("rail") && m.state === "awaiting_consent")!;
     const second = await showcaseChat(turn("28.40", first.slots), gateway);
     expect(second.intent).toBe("rail_delay");
-    expect(second.mission?.state).toBe("awaiting_consent");
+    expect(second.reply).toBe("I'm already on this one. It needs your OK.");
+    expect(second.mission?.id).toBe(seededRail.id);
     expect(second.ask?.amount_gbp).toBe("14.20");
     expect(second.slots).toEqual({});
-    expect(second.actions?.[0]?.href).toBe(`#/missions/${second.mission!.id}`);
-    // Yes answers the newest pending ask: the mission just started.
-    const yes = await showcaseChat(turn("yes"), gateway);
-    expect(yes.intent).toBe("approve");
-    expect(yes.mission?.id).toBe(second.mission!.id);
-    expect(yes.mission?.state).toBe("waiting");
-    // The seed left Margaret's broadband case and her earlier claim waiting too; after those, nothing is left.
-    const broadband = await showcaseChat(turn("yes"), gateway);
-    expect(broadband.mission?.skill_id).toContain("ofcom");
-    const seeded = await showcaseChat(turn("yes"), gateway);
-    expect(seeded.mission?.skill_id).toContain("rail");
+    expect(second.actions?.[0]?.href).toBe(`#/missions/${seededRail.id}`);
+    expect(await gateway.missions()).toHaveLength(3); // nothing new started
+    // Typed yeses answer pending asks one at a time (the web answers the conversation's own ask
+    // through answerAsk; the door itself takes the newest), until nothing is left.
+    const answered = new Set<string>();
+    for (let i = 0; i < 2; i++) {
+      const yes = await showcaseChat(turn("yes"), gateway);
+      expect(yes.intent).toBe("approve");
+      answered.add(yes.mission!.id);
+    }
+    expect(answered.has(seededRail.id)).toBe(true);
     const again = await showcaseChat(turn("yes"), gateway);
     expect(again.reply).toBe("Nothing is waiting for your answer.");
+    // Once it is under way, the same journey says so instead of starting again.
+    const later = await showcaseChat(turn("My 08:12 Oxford to Paddington was 38 minutes late on 23 October, ticket £28.40"), gateway);
+    expect(later.mission?.id).toBe(seededRail.id);
+    expect(later.reply).toMatch(/^I'm already on this one\. I'm waiting for the money\.|^I already claimed this one\./);
   });
 
   test("a lone station after the origin is known fills the destination", async () => {
@@ -190,7 +197,7 @@ describe("answers from the recordings", () => {
     expect(profileRefusal("am-i-owed", "rail_delay")).toMatch(/^Your profile, Am I Owed Anything, doesn't let me/);
     const allowed = await showcaseChat(withProfile(LATE_TRAIN, "commuter"), gateway);
     expect(allowed.mission?.state).toBe("awaiting_consent");
-    expect(await gateway.missions()).toHaveLength(4); // only the allowed one started
+    expect(await gateway.missions()).toHaveLength(3); // the allowed one answers with the seeded claim; the refused ones started nothing
     expect(profileRefusal(null, "rail_delay")).toBeNull();
     // Within every installed profile's limit, the recorded ask is unchanged; above it, the ask says so.
     expect(allowed.ask?.summary).not.toMatch(/limit/);

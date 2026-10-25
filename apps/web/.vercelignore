@@ -1,0 +1,7 @@
+# Never upload local secrets or build output (the Vercel CLI writes .env.local with an OIDC token).
+.env*
+!.env.example
+node_modules
+dist
+.vercel
+coverage
