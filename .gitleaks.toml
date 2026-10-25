@@ -9,3 +9,13 @@ paths = ['''^fixtures/crypto/.*\.json$''']
 [[allowlists]]
 description = "Agent Passport test vectors: a public key and a WebAuthn assertion from a seeded test passkey (no secrets)"
 paths = ['''^fixtures/passport/.*\.json$''']
+
+[[allowlists]]
+description = "A memory item's `key` is sha256(category:text)[:24], an identifier for 'the same fact', never a credential; it appears in recorded /memories responses (apps/web/showcase, doc.md)"
+regexTarget = "line"
+regexes = ['''"key":\s*"[0-9a-f]{24}"''']
+
+[[allowlists]]
+description = "The type annotation of the Gateway's mandate signing key, quoted in code, docs and this repo's own ignore file"
+regexTarget = "line"
+regexes = ['''signing_key: Ed25519PrivateKey''']

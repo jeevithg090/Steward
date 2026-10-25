@@ -360,7 +360,8 @@ for a kind of person. Governance: Apache-2.0, Contributor Covenant, CODEOWNERS, 
 - [x] 00:35 Track 2 confirmed done by the ElevenLabs session and committed
 - [x] 01:25 Web track committed (94cf816); docs track committed; README rewritten
 - [x] 01:30 Verified from a clean `git archive HEAD` export: ruff, format, mypy --strict, 1,270 fast tests, `validate_skills`, web typecheck, 92 web tests, `next build` in both modes: all green
-- [x] 01:32 Pushed `main` (e5e279e..6465f12) and `skill-forge-wip` to GitHub and GitLab; GitHub Actions runs on the push
+- [x] 01:32 Pushed `main` (e5e279e..6465f12) and `skill-forge-wip` to GitLab (the home) and GitHub (the mirror)
+- [x] 01:40 GitLab pipeline on the push: lint, fast suite, integration, web and e2e green; the `secrets` job flagged five gitleaks false positives (recorded memory-item `key` hashes in a showcase fixture, and prose quoting the signing key's type annotation). Fixed at the rule level with two line allowlists in `.gitleaks.toml`; zero findings over the whole history locally. GitHub Actions fails at startup for every workflow including GitHub's own Dependabot ones, which is the mirror account's Actions minutes or billing, not the workflow (actionlint clean, both workflows registered active)
 
 ## 12. What the team does next (in this order)
 
