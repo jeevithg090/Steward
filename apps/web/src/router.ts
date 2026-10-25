@@ -11,7 +11,7 @@ export interface Route {
 
 export const ROUTES = [
   "/chat", "/missions", "/missions/:id", "/memory", "/profiles", "/profiles/import", "/profiles/:id",
-  "/skills", "/shield", "/read", "/owed", "/callers", "/privacy", "/story", "/settings",
+  "/skills", "/shield", "/read", "/owed", "/callers", "/privacy", "/story", "/settings", "/devices", "/pair",
 ] as const;
 
 export function parseHash(hash: string): { path: string; query: URLSearchParams } {
@@ -36,7 +36,12 @@ export function match(pattern: string, path: string): Record<string, string> | n
 }
 
 export function currentRoute(): Route {
-  const { path, query } = parseHash(typeof window === "undefined" ? "" : window.location.hash);
+  const hash = typeof window === "undefined" ? "" : window.location.hash;
+  // A Tempo Mesh pairing link from the QR code: <origin>/#pair=<id>.<secret> (tempo_gateway.mesh).
+  if (hash.startsWith("#pair=")) {
+    return { path: "/pair", params: { link: window.location.href }, query: new URLSearchParams() };
+  }
+  const { path, query } = parseHash(hash);
   for (const pattern of ROUTES) {
     const params = match(pattern, path);
     if (params) return { path, params, query };

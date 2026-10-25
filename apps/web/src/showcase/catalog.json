@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T04:44:31.612Z",
+  "generated_at": "2026-10-25T05:45:58.161Z",
   "source": "profiles/*.yaml and skills/*/skill.yaml, via apps/web/scripts/build-catalog.mjs",
   "skills": [
     {

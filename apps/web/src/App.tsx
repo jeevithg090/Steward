@@ -1,15 +1,18 @@
 // Tempo's web app (plan.md): the teammate's shell and chat, extended with hash routes to every
 // page, one Gateway client resolved from config (or the showcase), the honesty badge, live events
 // and the user's profile. Pages get everything through PageProps and never read env themselves.
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "./components/layout/AppShell";
-import { HonestyBadge, Spinner } from "./components/ui";
+import { EmptyState, HonestyBadge, Spinner, Toaster, toast } from "./components/ui";
+import { GatewayBanner } from "./components/layout/GatewayBanner";
+import catalogJson from "./showcase/catalog.json";
 import ChatContainer from "./features/chat/ChatContainer";
 import { chatStore, useChatStore } from "./features/chat/store";
 import { LANGUAGE_KEY, SettingsPage, readLanguage } from "./features/settings/SettingsPage";
-import { Gateway, type Health } from "./lib/api";
+import { Gateway, type Health, type LedgerTotals } from "./lib/api";
 import { gatewayConfig, setGatewayOverride, setShowcaseOverride, showcaseEnabled, showcaseForcedByBuild } from "./lib/config";
 import { useLiveEvents } from "./lib/live";
+import { MeshProvider } from "./lib/mesh-context";
 import type { Language } from "./lib/shield";
 import { ShowcaseGateway } from "./lib/showcase";
 import { navigate, section, useRoute } from "./router";
@@ -26,6 +29,7 @@ const OwedPage = lazy(() => import("./features/owed/OwedPage"));
 const CallersPage = lazy(() => import("./features/callers/CallersPage"));
 const PrivacyPage = lazy(() => import("./features/privacy/PrivacyPage"));
 const StoryPage = lazy(() => import("./features/story/StoryPage"));
+const DevicesPage = lazy(() => import("./features/devices/DevicesPage"));
 
 // API keys entered in Settings, kept on this device so they survive a reload.
 const API_KEYS_STORAGE = "tempo_api_keys";
@@ -48,7 +52,17 @@ function loadProfile(): string | null {
   }
 }
 
-/** The demo's person. Tempo Mesh (pairing a real device) is not wired into this UI tonight. */
+const PAGE_TITLES: Record<string, string> = {
+  "/chat": "Chat", "/missions": "Mission Control", "/memory": "Memory", "/profiles": "Profiles", "/skills": "Skills",
+  "/shield": "Scam Shield", "/read": "Read It To Me", "/owed": "Am I Owed Anything?", "/callers": "Who's calling?",
+  "/privacy": "Privacy Proof", "/story": "The story", "/settings": "Settings", "/devices": "Devices", "/pair": "Join Tempo",
+};
+
+const PROFILE_NAMES: Record<string, string> = Object.fromEntries(
+  (catalogJson as { profiles: { id: string; name: string }[] }).profiles.map((p) => [p.id, p.name]),
+);
+
+/** The demo's person (seeded by `make seed`). */
 const DEMO_USER = { id: "u_margaret", name: "Margaret" };
 
 export default function App() {
@@ -62,6 +76,8 @@ export default function App() {
   const gateway = useMemo<Gateway>(() => (showcase ? new ShowcaseGateway() : new Gateway(config)), [showcase, config]);
 
   const [health, setHealth] = useState<Health | null>(null);
+  const [healthChecked, setHealthChecked] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [ttsConfigured, setTtsConfigured] = useState<boolean | null>(null);
   useEffect(() => {
     let live = true;
@@ -71,6 +87,8 @@ export default function App() {
         if (live) setHealth(h);
       } catch {
         if (live) setHealth(null);
+      } finally {
+        if (live) setHealthChecked(true);
       }
     };
     void poll();
@@ -80,9 +98,23 @@ export default function App() {
       live = false;
       clearInterval(timer);
     };
-  }, [gateway]);
+  }, [gateway, retry]);
 
   const { events, connected } = useLiveEvents(showcase ? null : gateway.eventsUrl());
+
+  // The Time Ledger for the sidebar: refreshed when money arrives.
+  const [ledger, setLedger] = useState<LedgerTotals | null>(null);
+  const ledgerTick = events.filter((e) => e.type === "ledger" || e.type === "outcome").length;
+  useEffect(() => {
+    let live = true;
+    gateway
+      .ledger()
+      .then((l) => live && setLedger(l))
+      .catch(() => live && setLedger(null));
+    return () => {
+      live = false;
+    };
+  }, [gateway, ledgerTick, health]);
 
   const [profileId, setProfileId] = useState<string | null>(loadProfile);
   const setProfile = useCallback((id: string | null) => {
@@ -135,6 +167,20 @@ export default function App() {
 
   const speak = useCallback((text: string) => chatStore.setSpeech({ id: crypto.randomUUID(), text }), []);
 
+  // Each page names itself in the tab and, after the first load, moves focus to its content so a
+  // screen reader hears the new page (the skip link still leads there too).
+  const firstRoute = useRef(true);
+  useEffect(() => {
+    document.title = `${PAGE_TITLES[current] ?? "Tempo"} · Tempo`;
+    if (firstRoute.current) {
+      firstRoute.current = false;
+      return;
+    }
+    document.getElementById("main")?.focus({ preventScroll: true });
+  }, [current]);
+
+  const profileName = profileId ? (PROFILE_NAMES[profileId] ?? profileId) : null;
+
   const pageProps: PageProps = {
     gateway,
     user,
@@ -181,6 +227,9 @@ export default function App() {
         return <PrivacyPage {...pageProps} />;
       case "/story":
         return <StoryPage {...pageProps} />;
+      case "/devices":
+      case "/pair":
+        return <DevicesPage {...pageProps} />;
       case "/settings":
         return (
           <SettingsPage
@@ -209,19 +258,47 @@ export default function App() {
         );
       default:
         return (
-          <div className="py-10 text-center text-slate-300">
-            <p className="text-lg font-semibold">There is no page at {route.path}.</p>
-            <button onClick={() => navigate("/chat")} className="mt-3 rounded-full bg-indigo-600 px-4 py-2 text-sm text-white">Back to the chat</button>
+          <div className="py-10">
+            <h1 className="sr-only">Page not found</h1>
+            <EmptyState
+              title={`There is no page at ${route.path}.`}
+              action={
+                <button onClick={() => navigate("/chat")} className="rounded-full bg-indigo-600 px-4 py-2 text-sm text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+                  Back to the chat
+                </button>
+              }
+            >
+              The menu lists every page.
+            </EmptyState>
           </div>
         );
     }
   })();
 
   return (
+    <MeshProvider config={config} showcase={showcase}>
     <AppShell
       section={current}
       history={history}
-      profileName={profileId}
+      profileName={profileName}
+      ledger={ledger ? { gbp: ledger.gbp_recovered, hours: ledger.hours_returned } : null}
+      banner={
+        !showcase && healthChecked && health === null ? (
+          <GatewayBanner
+            url={config.url}
+            onRetry={() => {
+              setHealthChecked(false);
+              setRetry((r) => r + 1);
+            }}
+            onShowcase={() => {
+              setShowcaseOverride(true);
+              setShowcase(true);
+              chatStore.reset();
+              toast.info("Showcase on: every page now answers from recorded replies. Switch back in Settings.");
+            }}
+          />
+        ) : null
+      }
       onNewChat={() => {
         chatStore.newChat();
         navigate("/chat");
@@ -237,6 +314,8 @@ export default function App() {
       badge={<HonestyBadge health={health} showcase={showcase} connected={showcase || connected || health !== null} />}
     >
       <Suspense fallback={<div className="py-10"><Spinner label="Loading the page" /></div>}>{page}</Suspense>
+      <Toaster />
     </AppShell>
+    </MeshProvider>
   );
 }

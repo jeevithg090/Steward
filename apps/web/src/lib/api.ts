@@ -118,6 +118,8 @@ export interface MissionView {
   skill_id?: string | null;
   plan?: PlanView | null;
   mandate?: MandateView | null;
+  /** Paid, else asked; kept after the yes so a waiting claim still shows its amount. */
+  amount_gbp?: string | null;
 }
 
 export interface MemoryItem {
@@ -268,6 +270,8 @@ export interface ChatReply {
   ledger: LedgerTotals | null;
   flags: EntitlementFlag[] | null;
   actions: ChatAction[] | null;
+  /** Up to four things the person could say next; the chat shows them as chips that send the text (plan.md §12.2). */
+  suggestions?: string[] | null;
   simulated: string[];
 }
 

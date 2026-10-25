@@ -1,0 +1,16 @@
+{
+  "name": "Tempo: your time, returned",
+  "short_name": "Tempo",
+  "description": "An open-source personal AI agent that wins back the money and time companies owe you. Models read and plan; code decides money, time and permissions.",
+  "start_url": "/#/chat",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#0d0066",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

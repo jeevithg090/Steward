@@ -6,6 +6,7 @@ import {
   History as HistoryIcon,
   LayoutList,
   Lock,
+  Smartphone,
   MessageSquare,
   PhoneCall,
   Plus,
@@ -28,6 +29,8 @@ interface SidebarProps {
   width?: number;
   /** Who Tempo is working for, shown under the brand. */
   profileName?: string | null;
+  /** Money and time returned so far (the Time Ledger), shown above Settings. */
+  ledger?: { gbp: string; hours: string } | null;
 }
 
 const COMPACT_BELOW = 190;
@@ -53,6 +56,7 @@ export const NAV_TRUST: NavEntry[] = [
   { to: "/profiles", label: "Profiles", icon: <Users size={18} aria-hidden /> },
   { to: "/skills", label: "Skills", icon: <Puzzle size={18} aria-hidden /> },
   { to: "/callers", label: "Who's calling?", icon: <PhoneCall size={18} aria-hidden /> },
+  { to: "/devices", label: "Devices", icon: <Smartphone size={18} aria-hidden /> },
   { to: "/privacy", label: "Privacy Proof", icon: <Lock size={18} aria-hidden /> },
   { to: "/story", label: "The story", icon: <BookOpen size={18} aria-hidden /> },
 ];
@@ -94,7 +98,7 @@ function Group({ title, entries, section, compact, onClose }: { title: string; e
   );
 }
 
-export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, width, profileName }: SidebarProps) {
+export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, width, profileName, ledger }: SidebarProps) {
   const compact = width !== undefined && width < COMPACT_BELOW;
   const onChat = section === "/chat";
 
@@ -109,7 +113,13 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
           {!compact && (
             <div>
               <a {...linkProps("/chat")} className={`text-lg font-semibold tracking-tight ${focus} rounded`}>Tempo</a>
-              <p className="text-[11px] text-indigo-200/80">{profileName ? `Working for: ${profileName}` : "Your time, returned."}</p>
+              {profileName ? (
+                <a {...linkProps("/profiles")} className={`block text-[11px] text-indigo-200/90 underline-offset-2 hover:underline ${focus} rounded`}>
+                  Working for: {profileName}
+                </a>
+              ) : (
+                <p className="text-[11px] text-indigo-200/80">Your time, returned.</p>
+              )}
             </div>
           )}
           {onClose && (
@@ -161,6 +171,21 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
       </div>
 
       <div className="border-t border-white/15 pt-3">
+        {ledger && !compact && (
+          <a
+            {...linkProps("/missions")}
+            onClick={(e) => {
+              linkProps("/missions").onClick(e);
+              onClose?.();
+            }}
+            className={`mb-2 block rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10 ${focus}`}
+            aria-label={`So far Tempo has got back £${ledger.gbp} and ${ledger.hours} hours of your time. Open Mission Control.`}
+          >
+            <span className="block text-[10px] font-semibold uppercase tracking-wider text-indigo-200/80">Returned so far</span>
+            <span className="text-sm font-semibold text-emerald-300">£{ledger.gbp}</span>
+            <span className="text-xs text-indigo-100/80"> · {ledger.hours} h of your time</span>
+          </a>
+        )}
         <NavItem entry={{ to: "/settings", label: "Settings", icon: <SettingsIcon size={18} aria-hidden /> }} active={section === "/settings"} compact={compact} onClick={onClose} />
       </div>
     </nav>
