@@ -14,6 +14,7 @@ const root = fileURLToPath(new URL("../..", import.meta.url));
 
 export default defineConfig({
   testDir: ".",
+  testIgnore: "live.spec.ts", // the live GPU demo has its own config (playwright.live.config.ts)
   timeout: 60_000,
   fullyParallel: false,
   workers: 1,

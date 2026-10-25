@@ -81,6 +81,30 @@ time out: the Court then says a juror was absent and asks you, which is the desi
 `make live-demo-stop` stops the Gateway and the tunnel. Then set the endpoint's active workers
 back to 0 in RunPod.
 
+## 4. Test every feature, for real
+
+```bash
+make live-test
+```
+
+The suite runs against the running live demo and then restarts the Gateway clean (missions and
+paired devices cleared, the demo's people seeded again):
+
+- **`tests/live/test_live_demo.py`: 26 checks through the public tunnel.**
+  - The GPU worker and its served model name, and vLLM holding the model to a JSON schema.
+  - `/health` naming the model, CORS that admits only the live site, the bearer, and live events over the tunnel's WebSocket.
+  - Small talk from the model, three jurors on the GPU with the amount from the rules, Yes until the money arrives, one claim per journey, and a profile refusing before anything starts.
+  - The model reading the engineer's card and two letters: the sender, who owes whom, and the exact amount.
+  - Scam Shield (also in Hindi), memory and forgetting, the entitlement screen, the real voice, the Patience Profiles, profiles and share codes, the Privacy Proof, and STOP.
+- **`tests/e2e/live.spec.ts`: 18 checks on the live Vercel site in Chrome.**
+  - The badge, and every page with no console errors.
+  - The chat's claim with the three GPU jurors shown, through to the money arriving.
+  - A sample photo read by the model, Scam Shield, and the voice setting.
+  - Face ID bound to the live site, removed again afterwards.
+
+Each run uses fresh test users. A real model words things differently each time, so the checks
+are on facts and structure, and the amounts must match exactly.
+
 ## Things to know
 
 - **The demo token is public.** It is in the Vercel bundle, so anyone with the site can drive this

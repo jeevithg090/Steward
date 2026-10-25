@@ -4,6 +4,9 @@
 #
 #   scripts/live_demo.sh          tunnel → Vercel deploy → Gateway (port 8100) → seed → wake the GPU
 #   scripts/live_demo.sh --stop   stop the Gateway and the tunnel this script started
+#   scripts/live_demo.sh --restart-gateway
+#                                 a clean, freshly seeded Gateway on the same tunnel and site
+#                                 (after `make live-test`; clears missions and paired devices)
 #
 # Needs, in TEMPO_LIVE_DIR (default ../.tempo-live, outside the repo) a `.env` with:
 #   RUNPOD_API_KEY=...        RunPod → Settings → API Keys
@@ -28,13 +31,40 @@ mkdir -p "$LIVE_DIR"
 LIVE_DIR="$(cd "$LIVE_DIR" && pwd)"
 [ "$LIVE_DIR" != "$ROOT" ] || die "TEMPO_LIVE_DIR must not be the repo (its .env would be read)."
 
+start_gateway() {  # $1 token, $2 tunnel, $3 site, $4 origins
+  stop_pid "$LIVE_DIR/gateway.pid"
+  rm -rf "$LIVE_DIR/checkpoints" "$LIVE_DIR/mesh.json" "$LIVE_DIR/missions.json"
+  (
+    cd "$LIVE_DIR"
+    TEMPO_DEPLOY=cloud-gpu TEMPO_MODELS=live TEMPO_MODE=replay TEMPO_DEMO=1 PAYMENT_CHECK_AFTER_S=0 \
+      TEMPO_API_TOKEN="$1" TEMPO_PORT="$PORT" WEB_ORIGINS="$4" PUBLIC_URL="$2" \
+      MESH_RP_ID="${3#https://}" TEMPO_HOME="$ROOT" CHECKPOINT_DIR=checkpoints MESH_FILE=mesh.json \
+      exec uv run --project "$ROOT" --no-sync tempo-gateway >"$LIVE_DIR/gw.log" 2>&1
+  ) &
+  echo $! >"$LIVE_DIR/gateway.pid"
+  for _ in $(seq 1 60); do curl -sf -m 2 "$GATEWAY/health" >/dev/null 2>&1 && break; sleep 1; done
+  curl -sf -m 2 "$GATEWAY/health" >/dev/null 2>&1 || die "the Gateway did not start; see $LIVE_DIR/gw.log"
+  TEMPO_API_TOKEN="$1" GATEWAY_URL="$GATEWAY" uv run --project "$ROOT" --no-sync python "$ROOT/scripts/seed.py" \
+    | grep -E '^(Amir|Margaret|Broadband):' || die "seeding failed"
+}
+
+field() { python3 -c "import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])" "$LIVE_DIR/live.json" "$1"; }
+
+if [ "${1:-}" = "--restart-gateway" ]; then
+  { [ -f "$LIVE_DIR/live.json" ] && [ -f "$LIVE_DIR/token" ]; } || die "no live demo has run yet (no $LIVE_DIR/live.json); run make live-demo"
+  say "Restarting the live Gateway with a clean, seeded state (same tunnel, site and token) ..."
+  start_gateway "$(cat "$LIVE_DIR/token")" "$(field tunnel)" "$(field site)" "$(field origins)"
+  say "Ready: $(field site)"
+  exit 0
+fi
+
 if [ "${1:-}" = "--stop" ]; then
   stop_pid "$LIVE_DIR/gateway.pid"
   stop_pid "$LIVE_DIR/tunnel.pid"
   say "Stopped the live Gateway and its tunnel. The Vercel site stays up but can no longer reach anything."
   exit 0
 fi
-[ -z "${1:-}" ] || die "unknown option '$1' (use --stop, or nothing)"
+[ -z "${1:-}" ] || die "unknown option '$1' (use --stop, --restart-gateway, or nothing)"
 
 for tool in uv npx curl cloudflared openssl; do
   command -v "$tool" >/dev/null 2>&1 || die "$tool is not installed (cloudflared: brew install cloudflared)."
@@ -80,24 +110,18 @@ SITE="${SITE:-$DEPLOYMENT}"
 ORIGINS="$(printf '%s\n' "$ALIASES" "$DEPLOYMENT" | grep . | sort -u | paste -sd, -),http://localhost:3000"
 say "    $SITE"
 
-# 3. The Gateway: cloud-gpu, the models live, the data recorded; WebAuthn bound to the site.
-say "3/5 Starting the Gateway on $GATEWAY (models live on the RunPod GPU, data recorded) ..."
-stop_pid "$LIVE_DIR/gateway.pid"
-(
-  cd "$LIVE_DIR"
-  TEMPO_DEPLOY=cloud-gpu TEMPO_MODELS=live TEMPO_MODE=replay TEMPO_DEMO=1 PAYMENT_CHECK_AFTER_S=0 \
-    TEMPO_API_TOKEN="$TOKEN" TEMPO_PORT="$PORT" WEB_ORIGINS="$ORIGINS" PUBLIC_URL="$TUNNEL" \
-    MESH_RP_ID="${SITE#https://}" TEMPO_HOME="$ROOT" CHECKPOINT_DIR=checkpoints MESH_FILE=mesh.json \
-    exec uv run --project "$ROOT" --no-sync tempo-gateway >"$LIVE_DIR/gw.log" 2>&1
-) &
-echo $! >"$LIVE_DIR/gateway.pid"
-for _ in $(seq 1 60); do curl -sf -m 2 "$GATEWAY/health" >/dev/null 2>&1 && break; sleep 1; done
-curl -sf -m 2 "$GATEWAY/health" >/dev/null 2>&1 || die "the Gateway did not start; see $LIVE_DIR/gw.log"
+# The run's facts, for `make live-test` and --restart-gateway (no secrets: the token has its own file).
+python3 -c 'import json, sys
+path, site, tunnel, origins, port, project, deployment = sys.argv[1:]
+json.dump({"site": site, "tunnel": tunnel, "origins": origins, "port": int(port), "project": project,
+           "deployment": deployment, "gateway": "http://127.0.0.1:" + port}, open(path, "w"), indent=2)' \
+  "$LIVE_DIR/live.json" "$SITE" "$TUNNEL" "$ORIGINS" "$PORT" "$PROJECT" "$DEPLOYMENT"
 
-# 4. The demo's people.
-say "4/5 Seeding Margaret, Amir and the three callers ..."
-TEMPO_API_TOKEN="$TOKEN" GATEWAY_URL="$GATEWAY" uv run --project "$ROOT" --no-sync python "$ROOT/scripts/seed.py" \
-  | grep -E '^(Amir|Margaret|Broadband):' || die "seeding failed"
+# 3 and 4. The Gateway (cloud-gpu, the models live, the data recorded; WebAuthn bound to the
+# site), then the demo's people.
+say "3/5 Starting the Gateway on $GATEWAY (models live on the RunPod GPU, data recorded) ..."
+say "4/5 ... and seeding Margaret, Amir and the three callers"
+start_gateway "$TOKEN" "$TUNNEL" "$SITE" "$ORIGINS"
 
 # 5. Wake the GPU (a cold Serverless worker loads the model first), through the Gateway's own
 #    model client, so this also proves the key and the endpoint.

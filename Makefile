@@ -7,7 +7,7 @@ define pytest_marker
 	uv run pytest -m "$(1)" $(2) || [ $$? -eq 5 ]
 endef
 
-.PHONY: live-demo live-demo-stop help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo demo-gateway demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web scam-train refresh-feeds
+.PHONY: live-demo live-demo-stop live-test help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo demo-gateway demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web scam-train refresh-feeds
 
 help: ## List the commands
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-14s %s\n", $$1, $$2}'
@@ -110,3 +110,11 @@ live-demo: ## Real model on a RunPod GPU: Gateway on 8100 + public tunnel + the 
 
 live-demo-stop: ## Stop the live demo's Gateway and tunnel
 	./scripts/live_demo.sh --stop
+
+live-test: ## Every feature, for real, against the running live demo (Gateway suite + the live site); then a clean Gateway
+	@status=0; \
+	uv run --no-sync pytest tests/live/test_live_demo.py -v -o addopts="--import-mode=importlib --strict-markers" || status=1; \
+	(cd tests/e2e && npx playwright test -c playwright.live.config.ts) || status=1; \
+	./scripts/live_demo.sh --restart-gateway; \
+	exit $$status
+
