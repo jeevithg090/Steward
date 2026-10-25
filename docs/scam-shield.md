@@ -362,7 +362,7 @@ make scam-train            # writes skills/scam-shield/model.json and docs/scam_
 make check                 # ruff, mypy --strict, unit/contract/policy/workflow tests
 make validate-skills       # the manifest and signals load and agree
 uv run pytest -m integration tests/integration/test_scam_shield.py tests/integration/test_mesh.py
-cd apps/web && pnpm typecheck && pnpm test && pnpm build
+cd apps/web && npm run typecheck && npm test && npm run build
 uv run python voice/sync.py --print tempo.inbound | grep -A3 check_message
 ```
 

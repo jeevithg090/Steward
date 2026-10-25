@@ -60,6 +60,9 @@ workflows declare the little they need themselves (`permissions:` blocks). The f
 | Include administrators | on |
 
 The check names are the `name:` of each job in `ci.yml`; a renamed job must be renamed here too.
+The `web` job runs, in `apps/web`, `npm ci`, `npm run typecheck`, `npm test`, `npm run build` and
+the showcase build (`VITE_TEMPO_SHOWCASE=1 npm run build`); `security` adds `pip-audit` and
+`npm audit --omit=dev --audit-level=high`.
 The same, as one command once the first CI run has reported the checks:
 
 ```bash
@@ -88,8 +91,8 @@ the `@owner-*` placeholders there with GitHub usernames or the per-path rules do
 *Settings → Code security*:
 
 - **Dependabot alerts** and **Dependabot security updates**: on. Version updates are already
-  configured in [`.github/dependabot.yml`](../.github/dependabot.yml) (uv, the two pnpm
-  lockfiles, Actions; weekly, grouped).
+  configured in [`.github/dependabot.yml`](../.github/dependabot.yml) (uv, the two npm
+  lockfiles in `apps/web` and `tests/e2e`, Actions; weekly, grouped).
 - **Private vulnerability reporting**: on. [`SECURITY.md`](../SECURITY.md) sends reporters to
   the *Security → Report a vulnerability* form, so this must be enabled before the repo is public.
 - **Secret scanning** and **push protection**: on when the repository is public (free there).
@@ -121,7 +124,7 @@ and plan and code decides money, time and permissions", website = the Vercel URL
 ```bash
 gh repo edit jeevithg090/Tempo --description "Your time, returned: an open-source personal AI agent" \
   --add-topic ai-agent --add-topic accessibility --add-topic consumer-rights \
-  --add-topic delay-repay --add-topic fastapi --add-topic nextjs --add-topic python \
+  --add-topic delay-repay --add-topic fastapi --add-topic vite --add-topic react --add-topic python \
   --add-topic agent-framework --add-topic open-source
 ```
 

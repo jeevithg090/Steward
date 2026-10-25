@@ -67,10 +67,8 @@ web:
   image: node:22
   rules:
     - exists: [apps/web/package.json]
-  variables:
-    NEXT_TELEMETRY_DISABLED: "1"
-  before_script: [corepack enable, cd apps/web, pnpm install --frozen-lockfile]
-  script: [pnpm typecheck, pnpm test, pnpm build]
+  before_script: [cd apps/web, npm ci]
+  script: [npm run typecheck, npm test, npm run build]
 
 e2e:
   stage: e2e
@@ -78,15 +76,12 @@ e2e:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       exists: [tests/e2e/package.json]
-  variables:
-    NEXT_TELEMETRY_DISABLED: "1"
-  before_script:   # the suite starts the Gateway (Python, via uv) and builds Mission Control
+  before_script:   # the suite starts the Gateway (Python, via uv) and a Vite build of the web app (tests/e2e/playwright.config.ts)
     - curl -LsSf https://astral.sh/uv/0.13.1/install.sh | sh && export PATH="$HOME/.local/bin:$PATH"
     - uv sync --frozen
-    - corepack enable
-    - (cd apps/web && pnpm install --frozen-lockfile)
-    - cd tests/e2e && pnpm install --frozen-lockfile
-  script: [pnpm playwright test]
+    - (cd apps/web && npm ci)
+    - cd tests/e2e && npm ci
+  script: [npx playwright test]
   artifacts:
     when: on_failure
     paths: [tests/e2e/playwright-report/]

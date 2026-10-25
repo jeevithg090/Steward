@@ -1,7 +1,7 @@
 # Deploying Tempo
 
-Tempo is two deployables. The **web app** (`apps/web`, Next.js) is static-friendly and goes on
-Vercel. The **Gateway** (`apps/gateway`, FastAPI) is a long-running container and goes on Render,
+Tempo is two deployables. The **web app** (`apps/web`, a Vite + React single-page app) is static
+files and goes on Vercel. The **Gateway** (`apps/gateway`, FastAPI) is a long-running container and goes on Render,
 Fly, or any Docker host. Everything the Gateway needs for the demo runs **offline in replay
 mode** with no keys; vendor keys are switched on one at a time afterwards.
 
@@ -19,56 +19,62 @@ the Mesh device list to disk. None of that fits a serverless function.
 
 ## 1. The web app on Vercel
 
+The app is a Vite SPA with hash routes: the build is static files in `dist/`, and
+[`apps/web/vercel.json`](../apps/web/vercel.json) already declares the framework (`vite`), the
+build (`npm run build`), the output (`dist`), a rewrite of every path to `index.html`, and the
+security headers (a CSP, `frame-ancestors 'none'`, `nosniff`, `no-referrer`, and a
+Permissions-Policy that allows the camera and microphone for the app itself only).
+
 ### The button
 
 The README's button opens Vercel with everything filled in:
 
 ```
-https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgitlab.com%2Fna-group4693543%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=NEXT_PUBLIC_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend
+https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgitlab.com%2Fna-group4693543%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=VITE_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend
 ```
 
 Vercel clones the repository into your account, sets the Root Directory to `apps/web` and asks
 for one variable. Enter `1`. You get the **showcase**: every page runs on recorded Gateway
-responses from `apps/web/showcase/*.json`, Margaret's mission walks through its states on a
-timer, and the badge reads **SHOWCASE · recorded replay · no Gateway**. A deployment that is
-attached to a Gateway can still show the showcase for one visit with `?showcase=1` on any page
-(`apps/web/.env.example`).
+responses from `apps/web/src/showcase/*.json`, Margaret's missions walk through their recorded
+states as the buttons are pressed, the chat answers from the same recordings, and the badge reads
+**SHOWCASE · recorded replay · no Gateway**. A deployment that is attached to a Gateway can still
+show the showcase for one visit with `?showcase=1` on the URL, or per browser with the switch in
+Settings.
 
 ### By hand
 
-1. Vercel → *Add New…* → *Project* → import `jeevithg090/Tempo` (fork it first if you don't have
+1. Vercel → *Add New…* → *Project* → import the repository (fork it first if you don't have
    access).
-2. *Root Directory*: **`apps/web`**. The framework preset detects Next.js; leave the build
-   command as `next build`.
-3. *Environment Variables*: `NEXT_PUBLIC_TEMPO_SHOWCASE` = `1` for the no-backend showcase.
+2. *Root Directory*: **`apps/web`**. The framework preset is Vite (`vercel.json` says so), the
+   build command `npm run build`, the output directory `dist`. Node 22.
+3. *Environment Variables*: `VITE_TEMPO_SHOWCASE` = `1` for the no-backend showcase.
 4. Deploy.
 
-The web app pins `pnpm@12.11.2` through `packageManager` in `apps/web/package.json`. If the
-build picks a different pnpm and refuses the lockfile, set `ENABLE_EXPERIMENTAL_COREPACK=1` in
-the project's environment so Vercel uses the pinned version.
-
-The build's `prebuild` step (`node scripts/build-catalog.mjs --if-present`) regenerates
-`apps/web/showcase/catalog.json` from `profiles/*.yaml` and `skills/*/skill.yaml` when they are
-in the clone, and keeps the committed file when they are not, so a Root-Directory build works
-either way. Run `make catalog` after changing a profile or a manifest and commit the result.
+The lockfile is `package-lock.json`, so Vercel installs with `npm ci`. The build's `prebuild` step
+(`node scripts/build-catalog.mjs --if-present`) regenerates the profile and skill catalogue from
+`profiles/*.yaml` and `skills/*/skill.yaml` when they are in the clone and keeps the committed
+`src/showcase/catalog.json` when they are not, so a Root-Directory build works either way. Run
+`make catalog` after changing a profile or a manifest and commit the result.
 
 ### Attaching a real Gateway
 
-Once a Gateway is up (section 2), replace the showcase variable with two others and redeploy
-(`NEXT_PUBLIC_*` values are baked in at build time, so a redeploy is needed, not a restart):
+Once a Gateway is up (section 2), replace the showcase variable with two others and redeploy.
+**Vite bakes `VITE_*` values into the bundle at build time**, so a change needs a redeploy, not a
+restart:
 
 | Variable | Value |
 |---|---|
-| `NEXT_PUBLIC_GATEWAY_URL` | the Gateway's URL, e.g. `https://tempo-gateway.onrender.com` |
-| `NEXT_PUBLIC_TEMPO_TOKEN` | the same string as the Gateway's `TEMPO_API_TOKEN` |
+| `VITE_GATEWAY_URL` | the Gateway's URL, e.g. `https://tempo-gateway.onrender.com` |
+| `VITE_TEMPO_TOKEN` | the same string as the Gateway's `TEMPO_API_TOKEN` |
 
-Delete `NEXT_PUBLIC_TEMPO_SHOWCASE`: with it set, or with no `NEXT_PUBLIC_GATEWAY_URL`, the app
-stays in showcase mode. The token is a demo convenience and ends up in the browser bundle
-(`apps/web/.env.example` says so); passkey-signed approvals are the real authentication.
+Delete `VITE_TEMPO_SHOWCASE`: set to `1`, it keeps the app in showcase mode and Settings cannot
+switch it off. The token is a demo convenience and ends up in the browser bundle
+(`apps/web/.env.example` says so); passkey-signed approvals are the real authentication, and they
+are not wired into this UI yet (plan.md §9). Settings can also point a deployed app at another
+Gateway at runtime (kept per browser, no rebuild).
 
-On the Gateway side, two values must match the Vercel deployment exactly (section 3):
-`WEB_ORIGINS` must list the Vercel URL, and `MESH_RP_ID` must equal the Vercel host, or passkeys
-fail.
+On the Gateway side, `WEB_ORIGINS` must list the Vercel URL exactly (section 3), or the browser's
+requests and the `/events` WebSocket are refused by CORS.
 
 ### The CLI instead of the button
 
@@ -78,7 +84,7 @@ npx vercel --cwd apps/web        # a preview deployment
 npx vercel --cwd apps/web --prod # production; `make deploy-web` runs exactly this
 ```
 
-Set variables with `npx vercel env add NEXT_PUBLIC_TEMPO_SHOWCASE production --cwd apps/web`.
+Set variables with `npx vercel env add VITE_TEMPO_SHOWCASE production --cwd apps/web`.
 
 ## 2. The Gateway
 
@@ -88,6 +94,12 @@ build stage, then `python:3.12-slim` with only the virtualenv (`/app/.venv`), th
 on 8000, answers `GET /health`, and expects a writable `/data` (`CHECKPOINT_DIR=/data/checkpoints`,
 `MESH_FILE=/data/mesh.json`). There is no `uv` in the runtime image; `alembic` is at
 `/app/.venv/bin/alembic`.
+
+Nothing about the Gateway changed for the new web app. Two settings matter to it: `WEB_ORIGINS`,
+set to the Vercel host exactly, and, for spoken replies from the server, `ELEVENLABS_API_KEY`:
+`POST /voice/tts` proxies ElevenLabs with the Gateway's key (the browser never holds it), and
+`GET /voice/tts` tells the app whether it is configured. Without the key the route answers 404 and
+the browser's own voice speaks; the avatar still moves.
 
 ### Render (Blueprint)
 
@@ -178,8 +190,8 @@ documented in [`.env.example`](../.env.example) and read by `tempo_adapters.sett
 | Variable | Where | What it does |
 |---|---|---|
 | `TEMPO_API_TOKEN` | Gateway | The bearer token the web app sends. Any long random string. Compared in constant time (`tempo_gateway/security.py:secret_matches`); without it every web route is 401. |
-| `WEB_ORIGINS` | Gateway | Comma-separated origins allowed by CORS **and** the origins a passkey assertion must come from (`Mesh(origins=...)`). **Must list the Vercel URL exactly**, scheme and host, no trailing slash, e.g. `https://tempo.vercel.app`. The first entry is also the base of share links. |
-| `MESH_RP_ID` | Gateway | The WebAuthn relying-party id passkeys are bound to. **Must equal the Vercel host** (no scheme, no port), e.g. `tempo.vercel.app`, or Face ID registration and approval fail with an rp id mismatch. A custom domain changes it. |
+| `WEB_ORIGINS` | Gateway | Comma-separated origins allowed by CORS (REST and the `/events` WebSocket) **and** the origins a passkey assertion must come from (`Mesh(origins=...)`). **Must list the Vercel URL exactly**, scheme and host, no trailing slash, e.g. `https://tempo.vercel.app`; locally `http://localhost:3000,http://127.0.0.1:3000` (what `make demo` sets). The first entry is also the base of share links. |
+| `MESH_RP_ID` | Gateway | The WebAuthn relying-party id passkeys are bound to. **Must equal the Vercel host** (no scheme, no port), e.g. `tempo.vercel.app`, or Face ID registration and approval fail with an rp id mismatch. A custom domain changes it. (Passkeys are not in the new web UI yet; the Gateway still wants the value.) |
 | `PUBLIC_URL` | Gateway | The Gateway's own public URL. Twilio's signature is checked against `PUBLIC_URL + /sms/inbound`, and ElevenLabs is told to call the voice tools here. Wrong value: every SMS is rejected as unsigned. |
 | `DATABASE_URL` | Gateway, Alembic | Postgres, pasted as the provider gives it (`postgres://...?sslmode=require` is fine). Without it missions live in memory and a restart loses them; with it, `make db-migrate` first. |
 | `TEMPO_MODE` | Gateway | `replay` (default: recorded rail data, jurors, company; no network) or `live`. |
@@ -188,8 +200,9 @@ documented in [`.env.example`](../.env.example) and read by `tempo_adapters.sett
 | `TEMPO_REGION` | Gateway | Where the data lives, shown as is on `/health` and the Privacy Proof panel. |
 | `PAYMENT_CHECK_AFTER_S` | Gateway | How long the Watchdog waits before checking for the money. A week by default; `10` for a demo. |
 | `CHECKPOINT_DIR`, `MESH_FILE` | Gateway | Set by the image to `/data/checkpoints` and `/data/mesh.json`; mount a disk at `/data`. |
-| `NEXT_PUBLIC_TEMPO_SHOWCASE` | Vercel | `1`: recorded responses, no Gateway. |
-| `NEXT_PUBLIC_GATEWAY_URL`, `NEXT_PUBLIC_TEMPO_TOKEN` | Vercel | Attach a Gateway; the token must equal its `TEMPO_API_TOKEN`. Build-time values: redeploy after a change. |
+| `ELEVENLABS_API_KEY` (+ `ELEVENLABS_VOICE_TEMPO`, `ELEVENLABS_VOICE_TEMPO_LOW`) | Gateway | Server-side speech for the web app (`POST /voice/tts`). Optional: without it the browser's own voice speaks. |
+| `VITE_TEMPO_SHOWCASE` | Vercel | `1`: recorded responses, no Gateway. |
+| `VITE_GATEWAY_URL`, `VITE_TEMPO_TOKEN` | Vercel | Attach a Gateway; the token must equal its `TEMPO_API_TOKEN`. Build-time values: redeploy after a change. |
 
 Live vendors (`ELEVENLABS_*`, `TWILIO_*`, `SNOWFLAKE_*`, `GEMINI_API_KEY`, `RTT_TOKEN`,
 `HSP_*`, `VAPID_*`, `MANDATE_SIGNING_KEY`, the register keys) are optional and documented in

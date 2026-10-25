@@ -23,8 +23,6 @@ env:
   UV_VERSION: "0.13.1" # the same uv as deploy/*.Dockerfile and .gitlab-ci.yml
   UV_FROZEN: "1" # every `uv run` uses uv.lock as it is; CI never re-resolves
   UV_LINK_MODE: copy
-  NEXT_TELEMETRY_DISABLED: "1"
-  COREPACK_ENABLE_DOWNLOAD_PROMPT: "0" # corepack fetches the pnpm pinned in package.json silently
 
 jobs:
   lint-type:
@@ -128,16 +126,16 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
-      - name: pnpm, at the version pinned in package.json (through corepack, as on GitLab)
-        run: npm install -g corepack@latest && corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm build
-      - name: Build the showcase (recorded data, no Gateway)
-        run: pnpm build
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Build the showcase (recorded data, no Gateway; Vite bakes VITE_* in at build time)
+        run: npm run build
         env:
-          NEXT_PUBLIC_TEMPO_SHOWCASE: "1"
+          VITE_TEMPO_SHOWCASE: "1"
 
   skills:
     name: skills
@@ -187,7 +185,6 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
-      - run: npm install -g corepack@latest && corepack enable
-      - name: pnpm audit (web app, production dependencies)
+      - name: npm audit (web app, production dependencies, from package-lock.json)
         working-directory: apps/web
-        run: pnpm audit --prod --audit-level high
+        run: npm audit --omit=dev --audit-level=high

@@ -7,7 +7,7 @@ define pytest_marker
 	uv run pytest -m "$(1)" $(2) || [ $$? -eq 5 ]
 endef
 
-.PHONY: help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web scam-train refresh-feeds
+.PHONY: help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo demo-gateway demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web scam-train refresh-feeds
 
 help: ## List the commands
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-14s %s\n", $$1, $$2}'
@@ -15,7 +15,7 @@ help: ## List the commands
 setup: ## uv sync, pre-commit hooks, web deps, local services
 	uv sync
 	uv run pre-commit install
-	@if [ -f apps/web/package.json ]; then cd apps/web && pnpm install; fi
+	@if [ -f apps/web/package.json ]; then cd apps/web && npm ci; fi
 	@if command -v docker >/dev/null 2>&1; then docker compose up -d; \
 	else echo "Docker not found: skipping Postgres and Neo4j. Integration tests need them (CI provides both)."; fi
 
@@ -32,9 +32,9 @@ fmt: ## Auto-fix lint and formatting
 test-int: ## Integration tests (Postgres via TEST_DATABASE_URL or Docker)
 	$(call pytest_marker,integration)
 
-e2e: ## Playwright end-to-end tests
+e2e: ## Playwright smoke: the chat door and every page, against a replay Gateway (tests/e2e)
 	@if [ ! -f tests/e2e/package.json ]; then echo "No e2e suite yet (it arrives with S5.1)."; exit 1; fi
-	cd tests/e2e && pnpm playwright test
+	cd tests/e2e && npm ci && npx playwright test
 
 evals: ## LLM quality evals (costs tokens); appends to evals/report.md
 	$(call pytest_marker,eval,-rs)
@@ -50,6 +50,12 @@ calibrate: ## Fit the delay model, hold out a week: docs/calibration.png and doc
 
 rights-backtest: ## Fit Rights Decay's curves from .data/, write docs/rights_*.md and the chart
 	uv run --with openpyxl python scripts/rights_backtest.py
+
+demo: ## One command: Gateway from a scratch folder on 8000, seeded, and the web app on 3000
+	./scripts/demo.sh
+
+demo-gateway: ## Just the Gateway, from a scratch folder, seeded
+	./scripts/demo.sh --gateway-only
 
 demo-dry-run: ## Scripted demo in replay mode, with a mid-mission restart and timings
 	uv run python scripts/demo_dry_run.py
@@ -75,14 +81,14 @@ new-skill: ## Scaffold a skill: make new-skill id=water-refund name="Water refun
 validate-skills: ## Check that every rule pack, skill manifest and profile loads and agrees
 	uv run python scripts/validate_skills.py
 
-catalog: ## Regenerate apps/web/showcase/catalog.json from profiles/ and skills/*/skill.yaml
-	cd apps/web && pnpm catalog
+catalog: ## Regenerate apps/web/src/showcase/catalog.json from profiles/ and skills/*/skill.yaml
+	cd apps/web && npm run catalog
 
-showcase: ## Mission Control on recorded data with no Gateway: http://localhost:3000
-	cd apps/web && NEXT_PUBLIC_TEMPO_SHOWCASE=1 pnpm dev
+showcase: ## The web app on recorded data with no Gateway: http://localhost:3000
+	cd apps/web && VITE_TEMPO_SHOWCASE=1 npm run dev
 
 web-check: ## Typecheck, test and build the web app, in both modes
-	cd apps/web && pnpm typecheck && pnpm test && pnpm build && NEXT_PUBLIC_TEMPO_SHOWCASE=1 pnpm build
+	cd apps/web && npm run typecheck && npm test && npm run build && VITE_TEMPO_SHOWCASE=1 npx vite build
 
 ship-check: check validate-skills web-check ## Everything CI runs, locally
 

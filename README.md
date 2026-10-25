@@ -8,22 +8,38 @@ default.
 [![pipeline](https://gitlab.com/na-group4693543/Tempo/badges/main/pipeline.svg)](https://gitlab.com/na-group4693543/Tempo/-/pipelines)
 [![coverage](https://gitlab.com/na-group4693543/Tempo/badges/main/coverage.svg)](https://gitlab.com/na-group4693543/Tempo/-/graphs/main/charts)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgitlab.com%2Fna-group4693543%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=NEXT_PUBLIC_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgitlab.com%2Fna-group4693543%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=VITE_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend)
 
 ![Mission Control: Tempo asks once, shows its Proof Trace and the Consensus Court's votes](docs/mission-control.jpg)
 
 Built at OxHack 26. The project lives on GitLab at [gitlab.com/na-group4693543/Tempo](https://gitlab.com/na-group4693543/Tempo),
 where the pipeline runs; [github.com/jeevithg090/Tempo](https://github.com/jeevithg090/Tempo) is a mirror with its own
-Actions workflow for forks. [SHIPPING.md](SHIPPING.md) is the plan that turned the features into a product.
+Actions workflow for forks. [SHIPPING.md](SHIPPING.md) is the plan that turned the features into a product;
+[plan.md](plan.md) is the live plan for the web app and the chat door.
 
 ## Try it in sixty seconds
 
 | Want | Do |
 |---|---|
-| **Just look** | Press *Deploy with Vercel* above (one env var, `NEXT_PUBLIC_TEMPO_SHOWCASE=1`), or run `make setup && make showcase` and open http://localhost:3000. Everything runs on recorded replay data with no backend, and the badge says so. |
-| **The real thing, offline** | `make setup`, then `uv run tempo-gateway` in one terminal and `cd apps/web && pnpm dev` in another. Rail data, jurors and the company are simulated; no keys. [docs/demo.md](docs/demo.md) has the beats. |
+| **The real thing, offline** | `make setup && make demo`: the Gateway starts from a scratch folder on 8000 (replay mode, no keys), the demo's people are seeded, and the web app opens on http://localhost:3000. Rail data, jurors and the company are simulated, and the badge says so. [docs/demo.md](docs/demo.md) has the beats. |
+| **Just look** | Press *Deploy with Vercel* above (one env var, `VITE_TEMPO_SHOWCASE=1`), or run `make setup && make showcase` and open http://localhost:3000. The whole app runs on recorded replay data with no backend. |
 | **The text demo** | `make demo-dry-run`: Margaret's late train found, priced, asked once, claimed and paid, with a restart in the middle. |
 | **Live vendors** | Fill `.env` from `.env.example`; `make doctor` says which are ready. |
+
+## The web app
+
+The chat is the front door. Type or say *my 08:12 Oxford to Paddington was 38 minutes late
+yesterday* and Tempo understands, prices it, asks once (with the Proof Trace and the Court's votes
+inline) and claims on your yes; paste a scam text and it warns; ask what it remembers; say STOP.
+Every feature also has its own page in the sidebar, for anyone who wants to see the machinery:
+`#/chat`, `#/missions`, `#/memory`, `#/profiles`, `#/skills`, `#/shield`, `#/read`, `#/owed`,
+`#/callers`, `#/privacy`, `#/story`, `#/settings` (hash routes, so the build is a static site).
+`VITE_TEMPO_SHOWCASE=1` (or `?showcase=1`) runs it with no Gateway at all, on responses recorded
+from a real replay-mode Gateway; the badge then reads **SHOWCASE · recorded replay · no Gateway**.
+The theme (navy sidebar, near-black canvas, the talking avatar) came from the team's new UI and
+was kept; the app is Vite + React + Tailwind, built with npm. A Tauri desktop config is present
+but not built here. [docs/web.md](docs/web.md) is the map for contributors; [plan.md](plan.md)
+holds the contracts.
 
 ## One late train, and everything it touches
 
@@ -167,7 +183,7 @@ flowchart LR
 | Rule packs: GWR, Chiltern, Ofcom missed appointment, UK261 | ⚠️ demo values until checked against published terms |
 | Tempo Memory: Memory Gate, Mem0 or pgvector, a dated timeline (SQL, or Graphiti on Neo4j), recall and forget by voice, SMS and the Memory Card | ✅ (Graphiti needs Neo4j and Cortex keys) |
 | Android signal node: reads notifications on the phone; only a match's declared fields leave it, with a privacy log | ⚠️ written, not yet built (no JDK or Android SDK here); its filter rules are tested in Python against the shared vectors |
-| Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ (TLS and per-device keys; MLS end-to-end encryption is the roadmap) |
+| Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ Gateway routes and tests (TLS and per-device keys; MLS end-to-end encryption is the roadmap); not wired into the new web UI yet, where approvals use the demo bearer |
 | Deployment modes (`TEMPO_DEPLOY`): local (Ollama), cloud-standard (Cortex), cloud-private (our own model on RunPod vLLM: no outside AI company sees personal data) | ✅ switch, factory and RunPod client (the private endpoint needs keys; [deploy/runpod](deploy/runpod/README.md)) |
 | Client-side encryption (device-held keys, crypto-shred), ephemeral workers with signed reports and one-step key release (browser and Python interop-tested), no-logs hardening with a canary test, signed reproducible images with a transparency allowlist, Local mode, the Privacy Proof panel | ✅ code and tests; images not yet built and keys not yet made ([deploy/transparency](deploy/transparency/README.md)); the Vault isn't yet wired into mission checkpoints |
 | Confidential mode: key release only to an attested enclave (measurement, no debug, GPU CC mode, freshness, bound to the worker's key) | ⚠️ simulated attestation; real TEEs are roadmap ([deploy/confidential](deploy/confidential/README.md)) |
@@ -179,15 +195,17 @@ flowchart LR
 | Read It To Me: a photo of any official letter becomes a plain spoken reading (what it is, what it says, what you must do, by when, which rights clocks it starts) with a read-back for anything unsure, and a reply drafted from your own words that adds no facts | ✅ replay fixtures (a water overpayment, a council-tax reminder); live reading needs a Gemini key |
 | Before You Pay: a deterministic check before a transfer to someone new (Tempo never moves money) | ✅ rules and tests |
 | Scam Shield: a background agent for SMS scams, phishing links and loan apps. On the phone: eight keyword families, link look-alike rules and a calibrated text model (trained on two CC BY 4.0 SMS corpora plus a declared synthetic set of genuine bank, NHS and council texts) speak the warning offline in six languages; four derived fields go to the Gateway, which adds the FCA and Companies House registers, public phishing lists and an isolated link sandbox, and settles the grey zone by code. Spoken, by SMS `CHECK`, by the voice tool and on `/shield` | ✅ model, rules, sandbox, Gateway, web and iPhone shortcut; on the corpora's test fold precision 97.8% / recall 95.8% at the warn threshold, 0.0% of held-out genuine transactional texts spoken on ([backtest](docs/scam_backtest.md)); the Android node is written against the shared vectors but not compiled here ([plan](docs/scam-shield.md)) |
-| Showcase mode: the whole of Mission Control on recorded replay data with no backend, so the Vercel deployment works on its own; a landing page that tells the story | ✅ (`make showcase`, `NEXT_PUBLIC_TEMPO_SHOWCASE=1`) |
+| Showcase mode: the whole web app, chat included, on recorded replay data with no backend, so the Vercel deployment works on its own; the story page tells the story | ✅ (`make showcase`, `VITE_TEMPO_SHOWCASE=1`) |
 | GitHub Actions CI (lint, types, tests, web, skills, gitleaks, dependency audits), issue and PR templates, Dependabot, Render and Fly configs for the Gateway | ✅ ([docs/deploy.md](docs/deploy.md), [docs/github-setup.md](docs/github-setup.md)) |
 | Skill Forge: narrate a skill and get a draft pack, manifest, MCP server and tests | ⚠️ work in progress on branch `skill-forge-wip` |
 
 ## Deploy
 
 - **Web:** the *Deploy with Vercel* button above (it imports from GitLab; the GitHub mirror works
-  too), or import the repo by hand with Root Directory `apps/web`. `NEXT_PUBLIC_TEMPO_SHOWCASE=1` runs the recorded showcase with no backend;
-  `NEXT_PUBLIC_GATEWAY_URL` and `NEXT_PUBLIC_TEMPO_TOKEN` attach a Gateway.
+  too), or import the repo by hand with Root Directory `apps/web` (framework Vite; `apps/web/vercel.json`
+  sets the SPA rewrite and the security headers). `VITE_TEMPO_SHOWCASE=1` runs the recorded showcase
+  with no backend; `VITE_GATEWAY_URL` and `VITE_TEMPO_TOKEN` attach a Gateway. Vite bakes them in at
+  build time, so redeploy after changing them.
 - **Gateway:** a container from [deploy/gateway.Dockerfile](deploy/gateway.Dockerfile); blueprints
   for [Render](deploy/render.yaml) and [Fly](deploy/fly.toml). It holds WebSockets, runs a
   scheduler and writes checkpoints, so it is not a serverless target.
@@ -199,10 +217,10 @@ flowchart LR
 ```bash
 make check           # ruff, mypy --strict (core, harness, memory, crypto, passport), fast tests, < 60 s
 make validate-skills # every rule pack, skill manifest and profile loads and agrees
-make web-check       # typecheck, vitest (incl. axe), next build in both modes
+make web-check       # typecheck, vitest (incl. axe), vite build in both modes
 make ship-check      # the three above: what CI runs
 make test-int        # Postgres (TEST_DATABASE_URL or Docker) and the Gateway end to end
-make e2e             # Playwright: Face ID approval (virtual authenticator) and pairing, in Chromium
+make e2e             # Playwright smoke: the chat door and every page against a replay Gateway, in Chromium
 make demo-rehearsal  # three dry runs in a row (the rail claim and the Rights Decay beat)
 make rights-backtest # fit the Rights Decay curves from .data/ and write the backtest
 make evals           # live LLM evals (costs tokens); appends to evals/report.md
@@ -235,7 +253,7 @@ Results: [evals/report.md](evals/report.md) (appears after the first run with ke
 | `packages/tempo_missions` | Mission workflows, tools, the Consensus Court, Negotiator, Sludge Arena |
 | `packages/tempo_memory` | Memory Gate, MemoryPort (Mem0, pgvector, in-memory), timeline (Graphiti, SQL), context provider |
 | `apps/gateway` | FastAPI: REST, ElevenLabs tools, Twilio SMS, post-call webhook, live WebSocket, profiles, letters |
-| `apps/web` | The site and Mission Control (Next.js); `showcase/` holds the recorded replay data |
+| `apps/web` | The web app (Vite + React): the chat door and every page; `src/showcase/` holds the recorded replay data |
 | `apps/shortcuts`, `apps/android-signal` | On-device signal filters: iPhone Shortcuts (built), Android node (written) |
 | `mcp-servers/rail` | MCP server: how late a UK train was |
 | `voice/` | ElevenLabs agent configs (Tempo, Negotiator, Arena) and greetings |

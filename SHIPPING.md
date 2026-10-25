@@ -222,6 +222,10 @@ Wired in `create_app(..., profiles: ProfileCatalog | None)` and `main.build()` w
 
 ### 4.6 Web routes and showcase mode
 
+> **Superseded 25 Oct 04:00 by plan.md: the site is now the Vite app** (hash routes `#/chat`,
+> `#/missions`, …; `VITE_TEMPO_SHOWCASE=1`; npm). What follows is the record of the Next.js site
+> as it shipped at 01:25; `docs/web.md` describes the app as it is now.
+
 | Route | What |
 |---|---|
 | `/` | Landing: the story in §1, live counters from the ledger when a Gateway is reachable, CTAs |
@@ -367,13 +371,15 @@ for a kind of person. Governance: Apache-2.0, Contributor Covenant, CODEOWNERS, 
 - [x] 01:50 GitLab pipeline on `main` (f6610a5) fully green: lint-type, unit-contract-policy-workflow, integration, web, e2e, secrets (<https://gitlab.com/na-group4693543/Tempo/-/pipelines/2985466656>). GitHub mirror at the same commit.
 - [x] 01:55 Scam & Fraud Shielding landed from the second session (1f35318, 84 files: `/scam/check` and `/scam/shield` in `tempo_gateway/shield.py`, a `check_message` voice tool, SMS `CHECK`/`TEACH`, the `scam_text` on-device signal, a trained model under `skills/scam-shield/`, `/shield` in the web app, `docs/scam-shield.md`); verified from a clean export and pushed to both remotes; GitLab pipeline fully green (<https://gitlab.com/na-group4693543/Tempo/-/pipelines/2985503688>)
 - [x] 02:10 Scam Shield's story page pushed by its session (af21894); `apps/web/showcase/catalog.json` regenerated so the committed fallback matches the manifests. Tree clean, both remotes level.
+- [x] 04:10 GitHub pulled (the team's new Vite UI); plan.md written: the A–Z build in the new UI's theme (chat door, every feature as a page, showcase, npm, one-command demo)
 
 ## 12. What the team does next (in this order)
 
-1. **Deploy the web app:** press *Deploy with Vercel* in the README (Root Directory `apps/web`, `NEXT_PUBLIC_TEMPO_SHOWCASE=1`). That is the public showcase, no backend needed. Steps and the live-Gateway variant: `docs/deploy.md`.
-2. **Deploy the Gateway** when you want the live product: `deploy/render.yaml` or `deploy/fly.toml` (first-deploy check: `/data` must be writable by uid 10001), then point Vercel at it with `NEXT_PUBLIC_GATEWAY_URL` and `NEXT_PUBLIC_TEMPO_TOKEN`, and set `WEB_ORIGINS` and `MESH_RP_ID` to the Vercel host.
+0. **Read `plan.md`:** it is the live plan for the web app and the chat door.
+1. **Deploy the web app:** press *Deploy with Vercel* in the README (Root Directory `apps/web`, `VITE_TEMPO_SHOWCASE=1`). That is the public showcase, no backend needed. Steps and the live-Gateway variant: `docs/deploy.md`.
+2. **Deploy the Gateway** when you want the live product: `deploy/render.yaml` or `deploy/fly.toml` (first-deploy check: `/data` must be writable by uid 10001), then point Vercel at it with `VITE_GATEWAY_URL` and `VITE_TEMPO_TOKEN`, and set `WEB_ORIGINS` and `MESH_RP_ID` to the Vercel host.
 3. **Protect `main`** with the six CI checks (`docs/github-setup.md` §4 has the JSON), then make the repo public when the keys used during the hackathon have been rotated; private vulnerability reporting switches on at that point.
-4. **Stop the stale Gateway** on port 8000 (PID 83049, started 21:11 from inside `tempo/` with the hosted `DATABASE_URL`), and consider moving `DATABASE_URL` out of `tempo/.env` into a `.env.cloud` you source on purpose.
+4. ~~Stop the stale Gateway on port 8000~~ Done: stopped at 04:15 (PID 83049, started 21:11 from inside `tempo/` with the hosted `DATABASE_URL`). `make demo` now starts the Gateway from a scratch folder, so `tempo/.env` is never read; still consider moving `DATABASE_URL` out of `tempo/.env` into a `.env.cloud` you source on purpose.
 5. ~~Land Scam & Fraud Shielding~~ Done (1f35318); its plan and status stay in `docs/scam-shield.md`.
 6. **Finish or drop Skill Forge** on `skill-forge-wip`; the manifest + scaffolder path on `main` is the shipped open-source route.
 7. **Check the demo values**: every rule pack, clock and benefit figure says `demo_values: true` until a person has checked its cited page and set `last_verified`.

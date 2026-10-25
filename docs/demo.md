@@ -3,29 +3,70 @@
 Everything below works with **no keys and no network** (replay mode). Live vendors are switched on
 one at a time as their keys arrive (`make doctor` shows which are ready).
 
+## The chat beats (plan.md §6, about two minutes)
+
+`make demo` starts the Gateway from a scratch folder on 8000 (replay mode, no keys, `TEMPO_DEMO=1`),
+seeds the demo's people and opens the web app on <http://localhost:3000>. The chat is the front
+door, every page is in the sidebar, and the badge at the top says **REPLAY data · SIMULATED
+company, rail data, jurors, vision**. Sample chips carry every beat, so nothing needs typing.
+
+1. **Type** (or say, with the mic): *my 08:12 Oxford to Paddington was 38 minutes late yesterday*.
+   Tempo understands, finds the delay, prices it from the rule pack and asks once: the consent card
+   with the Proof Trace (38 min → 50% of £28.40 under GWR DR15, with the published source) and the
+   Court's three votes, inline. Leave the fare out and it asks one question, never guesses.
+2. **Yes, claim £14.20.** Filed once; the mission waits for the money, not for a webhook.
+3. **Mission Control** (sidebar): the timeline with latencies, the Proof Trace, the Court, the
+   Passport card. Press **Check the payment now** (or let the scheduler do it within 30 s).
+4. **Money arrived**, and the ledger ticks: hours and pounds returned, counted only once the money
+   is there.
+5. Back in the chat: **what do you remember?** The Memory Card: her own words, each with its
+   source, date and trust. *Forget* removes one everywhere; company text never becomes a memory.
+6. **Paste the HMRC text** ("You are due a tax refund… confirm within 24 hours"). Tempo warns in
+   plain words and says why; the Scam Shield page has the log, the link findings and six languages.
+7. **Read this letter** → the sample letter (a water overpayment): what it is, what it says, who
+   owes what, what to do by when, the clocks it starts. Say a reply and get a plain draft that adds
+   no facts.
+8. **The broadband card** in Mission Control: the missed engineer visit priced at £32.31, and the
+   Rights Portfolio says **Waiting, on purpose**, with the date and the odds. **Demo: jump ahead
+   31 days** flips it to acting and the money arrives. The other ending: **Demo: the credit
+   arrives** first, and nobody calls.
+9. **The Passport card** on the mission: what Tempo may and may not do for her, the amount, the
+   expiry, what the company checked and what it refused. **STOP** in the chat revokes it everywhere.
+10. **Who's calling?** Margaret, Dilip and Joan: language, pace, voice, the words the voice agent is
+    given, and the memories behind them.
+
+`make showcase` runs the same app with no Gateway, on recorded replies; the badge then reads
+**SHOWCASE · recorded replay · no Gateway**.
+
 ## Before the demo
 
 ```bash
-make setup                         # once
-make demo-rehearsal                # three dry runs; all must pass
+make setup                         # once: uv sync, hooks, npm ci in apps/web
+make demo-rehearsal                # three text dry runs; all must pass
+make demo                          # Gateway (scratch folder, 8000) + seed + web app (3000)
+```
+
+`make demo` runs `scripts/demo.sh`: it never starts the Gateway from inside the repo (whose `.env`
+may point `DATABASE_URL` at a hosted database) but from `../.tempo-demo/`; it reuses a Gateway that
+already answers on 8000, seeds once (`scripts/seed.py`), and stops what it started on Ctrl-C.
+`make demo-gateway` starts and seeds only the Gateway; `scripts/demo.sh --stop` ends it.
+
+For the kill-and-resume drill below the Gateway needs a database:
+
+```bash
 createdb tempo_demo                # or Tiger Data / any Postgres with pgvector
-echo 'DATABASE_URL=postgresql+asyncpg://<user>@localhost:5432/tempo_demo' >> .env   # or the provider's postgres://...?sslmode=require
-make db-migrate                    # reads DATABASE_URL from .env
+DATABASE_URL=postgresql+asyncpg://<user>@localhost:5432/tempo_demo make db-migrate
 make doctor                        # Postgres: SELECT 1, pgvector available
 ```
 
-Start the Gateway and Mission Control in two terminals:
+Then start the Gateway by hand from a scratch folder with that `DATABASE_URL`, `TEMPO_API_TOKEN`,
+`TEMPO_DEMO=1` and `PAYMENT_CHECK_AFTER_S=0` exported, seed it with `TEMPO_API_TOKEN=<same> make
+seed`, and start the web app with `cd apps/web && npm run dev`. Amir's claim is already paid (the
+counters show real hours and pounds); Margaret's claim and broadband case are waiting for her OK;
+her memories and timeline are in place (demo mode only; her words still go through the Memory
+Gate).
 
-```bash
-TEMPO_API_TOKEN=<pick-one> TEMPO_DEMO=1 PAYMENT_CHECK_AFTER_S=0 uv run tempo-gateway
-cd apps/web && NEXT_PUBLIC_TEMPO_TOKEN=<same> pnpm dev     # http://localhost:3000
-```
-
-Then seed the people: `TEMPO_API_TOKEN=<same> make seed`. Amir's claim is already paid (the
-counters show real hours and pounds); Margaret's is waiting for her OK, and her memories and
-timeline are in place (demo mode only; her words still go through the Memory Gate).
-
-## The beats (text demo, about 90 seconds)
+## The beats, page by page (the long form)
 
 1. **The question.** Margaret's 08:12 Oxford to Paddington arrived 38 minutes late. Mission
    Control shows Tempo's one question, the Proof Trace (38 min → 50% of £28.40 under GWR DR15,
@@ -43,7 +84,8 @@ timeline are in place (demo mode only; her words still go through the Memory Gat
    it, `FORGET <thing>` to delete it everywhere. A company email that says "customer prefers
    vouchers" never becomes a memory: the Memory Gate keeps it as evidence only.
 
-6. **Two screens, one Tempo.** On the phone: "Use this device for approvals", then "Add Face ID
+6. **Two screens, one Tempo** (Tempo Mesh: the Gateway routes and the old client; not wired into
+   the new web UI yet, plan.md §9, where approvals use the demo bearer). On the phone: "Use this device for approvals", then "Add Face ID
    or fingerprint". "Add another device" shows a QR code; scan it with the laptop and both show
    the same 6-digit code. Approve on the phone with Face ID and the question disappears from the
    laptop at the same moment (about 0.1 s locally). Pushes carry no details, only "sync".
@@ -66,8 +108,9 @@ timeline are in place (demo mode only; her words still go through the Memory Gat
    If a judge asks "why didn't it just call?", open **Why**: the odds, what an open problem costs
    her in time, and the nearest deadline. `make demo-rehearsal` runs this beat in text too.
 
-9. **Agent Passport: who says you can act for her?** With Face ID set up (step 6), press "Sign a
-   mandate with Face ID" on the mission. The card shows the company, what Tempo may and may not do,
+9. **Agent Passport: who says you can act for her?** The new UI shows the Passport card on the
+   mission with a Gateway-signed mandate; Face ID signing needs the Mesh client (step 6). With Face
+   ID set up there, press "Sign a mandate with Face ID" on the mission. The card shows the company, what Tempo may and may not do,
    the amount and the expiry. When the company's line checks it (`POST /mandates/verify`, or the
    `verify_mandate` voice tool on the Arena verifier), each check appears under "What the company
    checked" with its reason and latency: a claim is allowed; "her mobile contract" is refused as

@@ -1,5 +1,5 @@
-// End-to-end: the Gateway (in memory, replay mode) and a production build of Mission Control on
-// their own ports, so a demo already running on 8000/3000 is left alone.
+// End-to-end smoke: the Gateway (in memory, replay mode) and a production build of the web app on
+// their own ports (8010, 3010), so a demo already running on 8000/3000 is left alone.
 import { defineConfig, devices } from "@playwright/test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -33,10 +33,11 @@ export default defineConfig({
       timeout: 60_000,
     },
     {
-      command: "pnpm build && pnpm start -p 3010",
+      // Vite bakes VITE_* in at build time, so the Gateway's address and token are set on the build.
+      command: "npm run build && npx vite preview --port 3010 --strictPort",
       cwd: "../../apps/web",
       url: WEB,
-      env: { NEXT_PUBLIC_GATEWAY_URL: GATEWAY, NEXT_PUBLIC_TEMPO_TOKEN: TOKEN, NEXT_TELEMETRY_DISABLED: "1" },
+      env: { VITE_GATEWAY_URL: GATEWAY, VITE_TEMPO_TOKEN: TOKEN },
       timeout: 180_000,
     },
   ],

@@ -3,10 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "typecheck": "tsc --noEmit -p ."
   },
   "devDependencies": {
-    "@playwright/test": "1.64.0"
-  },
-  "packageManager": "pnpm@12.11.2"
+    "@playwright/test": "1.64.0",
+    "@types/node": "^26.6.5",
+    "typescript": "^5.9.3"
+  }
 }

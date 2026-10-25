@@ -259,7 +259,7 @@ tree), but a new kind, a new skill with code, or a mission does:
 | A Harness policy | a row in `tests/policy/test_policies.py`'s tables | `uv run pytest -m policy -q` |
 | A mission | `tests/workflow/test_<mission>.py`: pause, resume, crash, restore | `uv run pytest -m workflow -q` |
 | A Gateway route | `tests/integration/test_<thing>.py` (Postgres by `TEST_DATABASE_URL` or Docker) | `make test-int` |
-| A web page | `apps/web/test/*.test.tsx`, with `expectNoA11yViolations` from `apps/web/test/a11y.ts` (axe) | `cd apps/web && pnpm test` |
+| A web page | `apps/web/src/**/*.test.tsx`, with `expectNoA11yViolations` from `apps/web/src/test/a11y.ts` (axe) | `cd apps/web && npm test` |
 
 `make check` runs lint, types and the fast markers in under a minute; `make ship-check` adds the
 skill validator and the web app. CI runs the same (`.github/workflows/ci.yml`).
