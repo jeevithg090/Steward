@@ -506,3 +506,19 @@ Vercel (tempo live site) ──https──▶ Cloudflare quick tunnel ──▶ 
 - [x] 09:00 RunPod endpoint `awx2uv9y1h6qvi` created by the team; its key and id are in `../.tempo-live/.env` (mode 600). First jobs failed: "ran out of disk during startup" (the container disk is smaller than the worker image plus the ~17 GB model); the restricted key can't change endpoint settings, so the team is raising the container disk to 50 GB in the console
 - [x] 09:05 The live acceptance suites, ready for the GPU: `tests/live/test_live_demo.py` (26 checks through the public tunnel) and `tests/e2e/live.spec.ts` (18 on the live Vercel site, own config); `make live-test` runs both and then `scripts/live_demo.sh --restart-gateway` (new: a clean, seeded Gateway on the same tunnel, site and token); the script now records each run in `../.tempo-live/live.json`
 
+### 13.5 The fallback: hosted models (added 09:30)
+
+The RunPod workers kept failing with "ran out of disk during startup", so the live demo gained a
+second mode that needs no GPU. `cloud-apis`:
+- **Jurors:** three different hosted models, Gemini 3.1 Flash-Lite, Dots 3 (OpenRouter's one free model that answered the juror question with valid JSON) and Gemini 3.5 Flash. Two providers, three models; the Court still needs two to agree.
+- **Small talk:** the first Gemini model.
+- **Photos:** Gemini (`GEMINI_MODEL`).
+- **Outside AI companies:** Gemini, OpenRouter and ElevenLabs, and the Privacy Proof names all three.
+
+`make live-switch MODE=apis|gpu` swaps the running Gateway's AI without touching the tunnel or the
+site. `/health` now reports whether the model **answers** (`answering`, `answers`, `failures`), not
+only whether it is configured, and the badge says "(not answering yet)" when the last call failed.
+
+- [x] 09:20 Probed: the OpenRouter key is on the free tier. NVIDIA's free Nemotron models are blocked by the account's privacy setting (free endpoints that may train on inputs). Xing is rate-limited upstream. Most other popular `:free` slugs are now paid only. Dots 3 answered in 5 s with valid JSON. The Gemini key works; `gemini-2.5-flash` is closed to new users, `gemini-3.1-flash-lite` answered in 4 s with valid JSON, and `gemini-3.5-flash` worked but returned 503 once
+- [x] 09:40 Built `cloud-apis`, `juror_clients`, `openai_compat_client`, `ModelStatus`/`RecordingClient`, the badge's "not answering yet", the live script's modes and `make live-switch`; live suites aware of both modes; tests 1,365 fast, 177 integration, 207 web
+

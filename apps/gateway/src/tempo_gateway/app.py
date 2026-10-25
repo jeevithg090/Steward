@@ -330,7 +330,12 @@ def create_app(
             "third_parties": sorted(deployment.third_parties),
             "clock_offset_days": demo_clock.offset_days if demo_clock else 0,
             "chat": {"llm": small_talk},  # what phrases small talk: replay, off, or the model
-            "model": model,  # e.g. our own model on a RunPod GPU (plan.md §13), else null
+            # e.g. our own model on a RunPod GPU (plan.md §13), else null; with whether it answers
+            "model": (
+                model | (service.model_status.view() if service.model_status else {})
+                if model
+                else None
+            ),
         }
 
     @app.post("/entitlement/screen")

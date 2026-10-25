@@ -27,6 +27,8 @@ def settings(mode: str, **extra: Any) -> Settings:
         ("cloud-private", "runpod-vllm", "off", "off", set()),
         # The GPU demo (plan.md §13): our own model and vision on RunPod, ElevenLabs for the voice.
         ("cloud-gpu", "runpod-vllm", "elevenlabs", "runpod-vllm", {"elevenlabs"}),
+        # Its fallback: hosted models from Gemini and OpenRouter, Gemini reading photos.
+        ("cloud-apis", "apis", "elevenlabs", "gemini", {"elevenlabs", "gemini", "openrouter"}),
         ("cloud-confidential", "tee-vllm", "off", "off", set()),
     ],
 )

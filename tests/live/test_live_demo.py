@@ -51,6 +51,10 @@ ENV = dict(line.split("=", 1) for line in (LIVE / ".env").read_text().splitlines
 TUNNEL: str = RUN["tunnel"]
 SITE: str = RUN["site"]
 AUTH = {"Authorization": f"Bearer {TOKEN}"}
+# Which AI the running Gateway uses: our own model on the GPU, or Gemini and OpenRouter.
+DEPLOY: str = httpx.get(f"{TUNNEL}/health", timeout=60).json()["deploy"]
+ON_GPU = DEPLOY == "cloud-gpu"
+needs_gpu = pytest.mark.skipif(not ON_GPU, reason=f"the live demo runs {DEPLOY}, not the GPU")
 
 
 def user() -> str:
@@ -66,6 +70,8 @@ def gw() -> Iterator[httpx.Client]:
 
 @pytest.fixture(scope="module")
 def runpod() -> Iterator[httpx.Client]:
+    if "RUNPOD_ENDPOINT_ID" not in ENV:
+        pytest.skip("no RunPod endpoint in ../.tempo-live/.env")
     endpoint = ENV["RUNPOD_ENDPOINT_ID"]
     headers = {"Authorization": f"Bearer {ENV['RUNPOD_API_KEY']}"}
     with httpx.Client(
@@ -90,6 +96,7 @@ def photo(name: str) -> str:
 # --- The infrastructure: the GPU, the tunnel, the Gateway's honesty -----------------------------
 
 
+@needs_gpu
 def test_the_gpu_endpoint_has_a_worker_and_serves_tempo_private(runpod: httpx.Client) -> None:
     workers = runpod.get("/health").json()["workers"]
     assert workers["ready"] + workers["idle"] + workers["running"] >= 1, workers
@@ -98,6 +105,7 @@ def test_the_gpu_endpoint_has_a_worker_and_serves_tempo_private(runpod: httpx.Cl
     assert "tempo-private" in [m["id"] for m in models["data"]], models
 
 
+@needs_gpu
 def test_the_gpu_honours_a_json_schema(runpod: httpx.Client) -> None:
     """The jurors and the photo reader rely on vLLM holding the model to a schema."""
     schema = {
@@ -120,10 +128,13 @@ def test_health_through_the_tunnel_names_the_model_and_what_is_still_recorded(
     gw: httpx.Client,
 ) -> None:
     health = gw.get("/health").json()
-    assert health["deploy"] == "cloud-gpu"
+    assert health["deploy"] in ("cloud-gpu", "cloud-apis")
     assert health["simulated"] == ["company", "rail data"]
-    assert health["model"]["kind"] == "runpod-vllm" and health["model"]["name"] == "tempo-private"
-    assert health["chat"] == {"llm": "runpod-vllm"}
+    kind = "runpod-vllm" if ON_GPU else "apis"
+    assert health["model"]["kind"] == kind and health["chat"] == {"llm": kind}
+    assert health["model"]["answering"] is not False, (
+        f"the model is not answering: {health['model']}"
+    )
 
 
 def test_only_the_live_site_may_call_the_gateway_from_a_browser(gw: httpx.Client) -> None:
@@ -174,12 +185,14 @@ def test_the_three_jurors_vote_on_our_gpu_and_the_rules_set_the_amount(gw: httpx
     assert reply["ask"]["amount_gbp"] == "14.20"  # the rule pack, never the model
     court = reply["mission"]["court"]
     assert court["absent"] == [], f"a juror timed out or answered badly: {court}"
-    assert sorted(v["juror"] for v in court["verdicts"]) == [
-        "runpod-vllm-1", "runpod-vllm-2", "runpod-vllm-3",
-    ]  # fmt: skip
+    jurors = sorted(v["juror"] for v in court["verdicts"])
+    if ON_GPU:
+        assert jurors == ["runpod-vllm-1", "runpod-vllm-2", "runpod-vllm-3"]
+    else:  # three different models, from Gemini and OpenRouter
+        assert len(set(jurors)) == 3 and any(j.startswith("gemini") for j in jurors), jurors
     assert court["eligible"] is True and court["outcome"] in ("proceed", "proceed_flagged")
     assert all(v["verdict"]["rule_id"] for v in court["verdicts"])
-    print(f"\nthree jurors on the GPU: {seconds:.1f} s; agreement {court['agreement_rate']:.0%}")
+    print(f"\nthree jurors ({DEPLOY}): {seconds:.1f} s; agreement {court['agreement_rate']:.0%}")
 
 
 def test_yes_files_the_claim_and_the_money_arrives(gw: httpx.Client) -> None:
@@ -313,9 +326,11 @@ def test_profiles_and_skills_are_served_and_a_share_code_round_trips(gw: httpx.C
     assert gw.post("/profiles/import", json={"code": "tp1.not-a-profile"}).status_code == 422
 
 
-def test_the_privacy_proof_names_the_one_outside_ai_company(gw: httpx.Client) -> None:
+def test_the_privacy_proof_names_every_outside_ai_company(gw: httpx.Client) -> None:
     proof = gw.get("/privacy", params={"user_id": "u_margaret"}).json()
-    assert proof["mode"] == "cloud-gpu" and proof["third_parties"] == ["elevenlabs"]
+    assert proof["mode"] == DEPLOY
+    expected = ["elevenlabs"] if ON_GPU else ["elevenlabs", "gemini", "openrouter"]
+    assert proof["third_parties"] == expected
 
 
 def test_stop_stops_everything(gw: httpx.Client) -> None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime, timedelta
@@ -27,9 +28,11 @@ from tempo_adapters.factory import (
     NotConfigured,
     build_adapters,
     chat_client,
+    juror_clients,
     models_live,
     vision_ready,
 )
+from tempo_adapters.model_status import ModelStatus, RecordingClient
 from tempo_adapters.rail import rail_port
 from tempo_adapters.runpod_llm import PRIVATE_MODEL, runpod_base_url
 from tempo_adapters.scam import (
@@ -75,6 +78,9 @@ from tempo_ports.vision import VisionPort
 REPO = Path(os.environ.get("TEMPO_HOME") or Path(__file__).resolve().parents[4])
 
 
+SMALL_TALK_TIMEOUT_S = 20.0
+
+
 def HOLIDAYS() -> frozenset[date]:
     return bank_holidays.from_file(REPO / "fixtures" / "govuk" / "bank-holidays.json")
 
@@ -99,12 +105,13 @@ def _build(settings: Settings) -> tuple[MissionService, EventBus, Memory, VaultS
     )
     clock = DemoClock()  # the real time, until a demo moves it (TEMPO_DEMO=1 only)
     credited: set[str] = set()
+    model_status = ModelStatus()  # whether the jurors' and small talk's model really answers
 
     async def credit_arrived(mission_id: str) -> bool:
         return mission_id in credited  # (check) live: read the next bill, or open banking
 
     deps = ClawbackDeps(
-        court=_court(settings),
+        court=_court(settings, model_status),
         repo=PublishingRepo(SqlRepo(engine) if engine is not None else InMemoryRepo(), bus),
         rail=rail_port(settings),
         rules=RulePackRegistry.from_directory(REPO / "skills"),
@@ -122,23 +129,28 @@ def _build(settings: Settings) -> tuple[MissionService, EventBus, Memory, VaultS
         trace_link=lambda trace_id: trace_url(settings, trace_id),
     )
     service.credited = credited
+    service.model_status = model_status
     vault: VaultStore = SqlVaultStore(engine) if engine is not None else MemoryVaultStore()
     return service, bus, build_memory(settings, engine), vault
 
 
-def _court(settings: Settings) -> ConsensusCourt | None:
+def _court(settings: Settings, status: ModelStatus | None = None) -> ConsensusCourt | None:
     """Replay jurors unless the models are live (labelled simulated); otherwise only the deployment
-    mode's own model: three Cortex models in cloud-standard, or three jurors on our own model."""
+    mode's own model: three Cortex models in cloud-standard, three jurors on our own model, or
+    (cloud-apis) Gemini and OpenRouter models in turn. `status` notes whether they answer."""
     if not models_live(settings):
         return ConsensusCourt(replay_jurors(REPO / "fixtures" / "court" / "replay.yaml"))
     adapters = build_adapters(settings)
     if adapters.model.kind != "cortex":
         try:
-            client = chat_client(settings, adapters)
+            jurors = juror_clients(settings)
         except NotConfigured:
             return None
         return ConsensusCourt(
-            [CortexJuror(client, name=f"{adapters.model.kind}-{i}") for i in (1, 2, 3)]
+            [
+                CortexJuror(RecordingClient(client, status) if status else client, name=name)
+                for name, client in jurors
+            ]
         )
     if settings.snowflake_account and settings.snowflake_pat:
         tokens = PatTokenProvider(lambda: settings.snowflake_pat)
@@ -153,7 +165,7 @@ def _court(settings: Settings) -> ConsensusCourt | None:
 
 
 def build_chat_llm(
-    settings: Settings,
+    settings: Settings, status: ModelStatus | None = None
 ) -> tuple[Callable[[str], Awaitable[str | None]] | None, str | None]:
     """The one thing a model may write in the chat: a small-talk sentence (plan.md §1.3). Only
     outside replay mode, and only on the deployment mode's own model; otherwise the chat uses its
@@ -166,9 +178,12 @@ def build_chat_llm(
     except NotConfigured:
         return None, None
 
+    recorded = RecordingClient(client, status) if status else client
+
     async def say(text: str) -> str | None:
         messages = [Message("system", [SMALL_TALK_PROMPT]), Message("user", [text])]
-        return (await client.get_response(messages)).text
+        async with asyncio.timeout(SMALL_TALK_TIMEOUT_S):  # a slow model never stalls the chat
+            return str((await recorded.get_response(messages)).text)
 
     return say, adapters.model.kind
 
@@ -189,7 +204,7 @@ def build(
         service.deps.repo, service.deps.clock, public_url=settings.public_url,
         signing_key=gateway_key(seed.get_secret_value() if seed else None),
     )  # fmt: skip
-    chat_llm, chat_llm_kind = build_chat_llm(settings)
+    chat_llm, chat_llm_kind = build_chat_llm(settings, service.model_status)
     return create_app(
         service, settings, bus, memory=memory, mesh=build_mesh(settings, service.deps.clock),
         vault=vault,

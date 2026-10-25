@@ -207,7 +207,7 @@ export interface Health {
   clock_offset_days?: number; // the demo clock, moved forward (demo mode only)
   chat?: { llm: string }; // plan.md §4.3: what phrases small talk ("off", "replay", or a model kind)
   /** The real model behind the jurors, small talk and (cloud-gpu) photos, or null (plan.md §13). */
-  model?: { kind: string; name: string; processor: string } | null;
+  model?: { kind: string; name: string; processor: string; answering?: boolean | null } | null;
 }
 
 export interface LedgerTotals {

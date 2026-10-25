@@ -7,6 +7,8 @@ picks what sits behind each port, and so which outside companies ever see person
 - cloud-private: our own vLLM on RunPod; no outside AI company sees personal data (voice and
   vision are off until self-hosted speech, P2); a per-user encrypted vault.
 - cloud-confidential: vLLM inside a TEE; the vault is decrypted only in the enclave.
+- cloud-apis: the live demo's fallback (plan.md §13.5): the three jurors are hosted models from
+  Google (Gemini) and OpenRouter, Gemini reads photos, ElevenLabs speaks.
 - cloud-gpu: the live demo (plan.md §13): our own vision-language model on a RunPod GPU for the
   jurors, small talk and reading photos; ElevenLabs for the voice. Not private: ElevenLabs is an
   outside AI company, and the Privacy Proof panel says so.
@@ -18,7 +20,9 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 # Outside AI companies that would process a person's words, if their adapter is in use.
-THIRD_PARTY_AI: frozenset[str] = frozenset({"cortex", "elevenlabs", "gemini"})
+THIRD_PARTY_AI: frozenset[str] = frozenset({"cortex", "elevenlabs", "gemini", "openrouter"})
+# A model that is really several outside providers (cloud-apis).
+MODEL_PROVIDERS: dict[str, frozenset[str]] = {"apis": frozenset({"gemini", "openrouter"})}
 
 
 class DeployMode(StrEnum):
@@ -27,6 +31,7 @@ class DeployMode(StrEnum):
     PRIVATE = "cloud-private"
     CONFIDENTIAL = "cloud-confidential"
     GPU = "cloud-gpu"
+    APIS = "cloud-apis"
 
 
 class UnknownDeployMode(ValueError):
@@ -46,7 +51,8 @@ class Profile:
     @property
     def third_parties(self) -> frozenset[str]:
         """Outside AI processors this mode uses (for the Privacy Proof panel)."""
-        return THIRD_PARTY_AI & {self.model, self.voice, self.vision}
+        used = {self.model, self.voice, self.vision} | MODEL_PROVIDERS.get(self.model, frozenset())
+        return THIRD_PARTY_AI & used
 
 
 PROFILES: dict[DeployMode, Profile] = {
@@ -60,6 +66,8 @@ PROFILES: dict[DeployMode, Profile] = {
                                      "enclave-vault", "ciphertext-store", "confidential GPU"),
     DeployMode.GPU: Profile(DeployMode.GPU, "runpod-vllm", "elevenlabs", "runpod-vllm",
                             "encrypted-vault", "ciphertext-store", "this machine + RunPod GPU"),
+    DeployMode.APIS: Profile(DeployMode.APIS, "apis", "elevenlabs", "gemini", "encrypted-vault",
+                             "ciphertext-store", "this machine + Google and OpenRouter"),
 }  # fmt: skip
 
 

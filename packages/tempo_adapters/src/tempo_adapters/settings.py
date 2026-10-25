@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     tempo_demo: bool = False
     tempo_hooks: Literal["agent_hooks", "fallback"] = "agent_hooks"
     tempo_deploy: Literal[
-        "local", "cloud-standard", "cloud-private", "cloud-confidential", "cloud-gpu"
+        "local", "cloud-standard", "cloud-private", "cloud-confidential", "cloud-gpu", "cloud-apis"
     ] = "cloud-standard"
     # The model-backed parts (jurors, small talk, reading photos): live or recorded. Unset, they
     # follow TEMPO_MODE; `live` with TEMPO_MODE=replay is the GPU demo (plan.md §13): real model,
@@ -85,6 +85,10 @@ class Settings(BaseSettings):
     # Vision
     gemini_api_key: SecretStr | None = None
     gemini_model: str = "gemini-flash-latest"  # (check) the Flash model your key can use
+    # cloud-apis (plan.md §13.5): the jurors, in order, Gemini first; small talk uses the first.
+    gemini_juror_models: str = "gemini-3.1-flash-lite,gemini-3.5-flash"
+    openrouter_api_key: SecretStr | None = None
+    openrouter_models: str = "dots-studio/dots-3-note-preview:free"  # free models move; (check)
 
     # Tracing
     langfuse_host: str = "https://cloud.langfuse.com"

@@ -34,6 +34,7 @@ import structlog
 from opentelemetry import trace
 from pydantic import BaseModel, Field
 
+from tempo_adapters.model_status import ModelStatus
 from tempo_adapters.telemetry import current_trace_id, mission_context
 from tempo_core.consent import ConsentEvent, ConsentKind
 from tempo_core.delays import LONDON
@@ -183,6 +184,7 @@ class MissionService:
         self._plans: dict[str, dict[str, Any]] = {}  # mission id -> its latest Rights Decay plan
         self._reasons: dict[str, str] = {}  # mission id -> why its current timer is set
         self.credited: set[str] = set()  # demo: missions whose automatic credit has arrived
+        self.model_status: ModelStatus | None = None  # set by main._build (plan.md §13.5)
         self._matters: dict[str, dict[str, str | None]] = defaultdict(dict)  # for mandates
         # Agent Passport hooks (set by create_app when mandates are on): STOP revokes them all.
         self.on_stop: Callable[[str, str], Awaitable[object]] | None = None

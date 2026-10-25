@@ -12,9 +12,22 @@ from agent_framework.openai import OpenAIChatCompletionClient
 from openai import AsyncOpenAI
 
 from tempo_adapters.cortex import PatTokenProvider, cortex_client
-from tempo_adapters.runpod_llm import PRIVATE_MODEL, runpod_base_url, runpod_client
+from tempo_adapters.runpod_llm import (
+    PRIVATE_MODEL,
+    openai_compat_client,
+    runpod_base_url,
+    runpod_client,
+)
 from tempo_adapters.settings import Settings
 from tempo_core.config import Profile, profile
+
+GEMINI_OPENAI = "https://generativelanguage.googleapis.com/v1beta/openai/"
+OPENROUTER = "https://openrouter.ai/api/v1"
+OPENROUTER_HEADERS = {"HTTP-Referer": "https://github.com/jeevithg090/Tempo", "X-Title": "Tempo"}
+
+
+def _names(csv: str) -> list[str]:
+    return [n.strip() for n in csv.split(",") if n.strip()]
 
 
 class NotConfigured(RuntimeError):
@@ -47,6 +60,9 @@ def model_endpoint(settings: Settings, chosen: Profile) -> ModelEndpoint:
         case "ollama":
             return ModelEndpoint("ollama", settings.ollama_base_url, settings.ollama_model,
                                  "this machine (Ollama)")  # fmt: skip
+        case "apis":
+            first = (_names(settings.gemini_juror_models) or ["gemini-3.1-flash-lite"])[0]
+            return ModelEndpoint("apis", GEMINI_OPENAI, first, "Google Gemini and OpenRouter")
         case "runpod-vllm":
             url = (
                 runpod_base_url(settings.runpod_endpoint_id)
@@ -75,6 +91,12 @@ def chat_client(settings: Settings, adapters: Adapters) -> OpenAIChatCompletionC
             raise NotConfigured("cloud-standard needs SNOWFLAKE_ACCOUNT and SNOWFLAKE_PAT")
         tokens = PatTokenProvider(lambda: settings.snowflake_pat)
         return cortex_client(endpoint.model, account=settings.snowflake_account, tokens=tokens)
+    if endpoint.kind == "apis":
+        if settings.gemini_api_key is None:
+            raise NotConfigured("cloud-apis needs GEMINI_API_KEY (OPENROUTER_API_KEY is optional)")
+        return openai_compat_client(
+            GEMINI_OPENAI, settings.gemini_api_key.get_secret_value(), endpoint.model
+        )
     if endpoint.kind == "runpod-vllm":
         if not (settings.runpod_endpoint_id and settings.runpod_api_key):
             raise NotConfigured("cloud-private needs RUNPOD_ENDPOINT_ID and RUNPOD_API_KEY")
@@ -106,3 +128,29 @@ def vision_ready(settings: Settings) -> bool:
     if chosen.vision == "runpod-vllm":
         return bool(settings.runpod_endpoint_id and settings.runpod_api_key)
     return settings.gemini_api_key is not None
+
+
+def juror_clients(settings: Settings) -> list[tuple[str, OpenAIChatCompletionClient]]:
+    """The Consensus Court's three jurors on this mode's own model (not Cortex, which names its
+    own three). cloud-apis mixes providers, Gemini and OpenRouter in turn, so no single
+    company's model decides alone; elsewhere three jurors share the mode's one model."""
+    adapters = build_adapters(settings)
+    if adapters.model.kind != "apis":
+        client = chat_client(settings, adapters)
+        return [(f"{adapters.model.kind}-{i}", client) for i in (1, 2, 3)]
+    if settings.gemini_api_key is None:
+        raise NotConfigured("cloud-apis needs GEMINI_API_KEY")
+    gemini_key = settings.gemini_api_key.get_secret_value()
+    gemini = [(m, openai_compat_client(GEMINI_OPENAI, gemini_key, m))
+              for m in _names(settings.gemini_juror_models)]  # fmt: skip
+    hosted: list[tuple[str, OpenAIChatCompletionClient]] = []
+    if settings.openrouter_api_key is not None:
+        key = settings.openrouter_api_key.get_secret_value()
+        hosted = [
+            (m.split("/")[-1].removesuffix(":free"),
+             openai_compat_client(OPENROUTER, key, m, headers=OPENROUTER_HEADERS))
+            for m in _names(settings.openrouter_models)
+        ]  # fmt: skip
+    mixed = [j for pair in zip(gemini, hosted, strict=False) for j in pair]
+    mixed += gemini[len(hosted) :] + hosted[len(gemini) :]
+    return mixed[:3]

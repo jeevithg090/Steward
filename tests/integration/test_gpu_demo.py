@@ -80,7 +80,8 @@ def test_health_names_the_model_and_only_what_is_still_recorded(gateway: TestCli
     health = gateway.get("/health").json()
     assert health["deploy"] == "cloud-gpu"
     assert health["simulated"] == ["company", "rail data"]
-    assert health["model"] == {
+    assert health["model"] | {"answering": None} == health["model"]  # nothing asked yet
+    assert {k: health["model"][k] for k in ("kind", "name", "processor")} == {
         "kind": "runpod-vllm", "name": "tempo-private", "processor": "our own model on RunPod",
     }  # fmt: skip
     assert health["third_parties"] == ["elevenlabs"]

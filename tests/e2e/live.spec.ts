@@ -22,10 +22,19 @@ function watchErrors(page: Page): string[] {
   return errors;
 }
 
-test("the live site talks to the real Gateway and says the AI is our own model on a GPU", async ({ page }) => {
+/** The running Gateway's AI (no token needed for /health). */
+async function ai(page: Page): Promise<{ deploy: string; processor: string }> {
+  const health = (await (await page.request.get(`${TUNNEL}/health`)).json()) as { deploy: string; model?: { processor: string } };
+  return { deploy: health.deploy, processor: health.model?.processor ?? "" };
+}
+
+test("the live site talks to the real Gateway and names the real AI behind it", async ({ page }) => {
   const errors = watchErrors(page);
+  const { deploy } = await ai(page);
   await page.goto("/#/chat");
-  await expect(page.getByText(/AI: our own model on a RunPod GPU/).first()).toBeVisible();
+  const named = deploy === "cloud-gpu" ? /AI: our own model on a RunPod GPU/ : /AI: Google Gemini and OpenRouter/;
+  await expect(page.getByText(named).first()).toBeVisible();
+  await expect(page.getByText(/not answering yet/)).toHaveCount(0);
   await expect(page.getByText(/SIMULATED company, rail data/).first()).toBeVisible();
   await expect(page.getByText(/SHOWCASE/)).toHaveCount(0);
   await expect(page.getByText("LIVE STREAM")).toBeVisible();
@@ -43,14 +52,20 @@ for (const [path, heading] of PAGES) {
   });
 }
 
-test("the chat: Margaret's late train, three jurors on our GPU, Yes, and the money arrives", async ({ page }) => {
+test("the chat: Margaret's late train, three real jurors, Yes, and the money arrives", async ({ page }) => {
+  const { deploy } = await ai(page);
   await page.goto("/#/chat");
   await page.getByRole("button", { name: /08:12 Oxford to Paddington/ }).click();
   const yes = page.getByRole("button", { name: /Yes, claim £14\.20/ });
   await expect(yes).toBeVisible();
   await page.getByRole("button", { name: /Why this amount/ }).first().click();
-  for (const juror of ["runpod-vllm-1", "runpod-vllm-2", "runpod-vllm-3"]) {
-    await expect(page.getByText(juror, { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/3\/3 jurors agreed/).first()).toBeVisible();
+  if (deploy === "cloud-gpu") {
+    for (const juror of ["runpod-vllm-1", "runpod-vllm-2", "runpod-vllm-3"]) {
+      await expect(page.getByText(juror, { exact: true }).first()).toBeVisible();
+    }
+  } else {
+    await expect(page.getByText(/^gemini-/).first()).toBeVisible();
   }
   await yes.click();
   await expect(page.getByText(/Claim filed|Waiting for the money/).first()).toBeVisible();

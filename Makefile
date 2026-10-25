@@ -7,7 +7,7 @@ define pytest_marker
 	uv run pytest -m "$(1)" $(2) || [ $$? -eq 5 ]
 endef
 
-.PHONY: live-demo live-demo-stop live-test help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo demo-gateway demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web scam-train refresh-feeds
+.PHONY: live-demo live-demo-stop live-test live-switch help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo demo-gateway demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web scam-train refresh-feeds
 
 help: ## List the commands
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-14s %s\n", $$1, $$2}'
@@ -117,4 +117,7 @@ live-test: ## Every feature, for real, against the running live demo (Gateway su
 	(cd tests/e2e && npx playwright test -c playwright.live.config.ts) || status=1; \
 	./scripts/live_demo.sh --restart-gateway; \
 	exit $$status
+
+live-switch: ## Swap the live demo's AI without touching the tunnel or the site: make live-switch MODE=apis|gpu
+	TEMPO_LIVE_DEPLOY=cloud-$(MODE) ./scripts/live_demo.sh --restart-gateway
 
