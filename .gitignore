@@ -30,7 +30,7 @@ test-results/
 # Runtime data
 checkpoints/
 mesh.json
-memory/
+/memory/
 *.sqlite3
 evals/.cache/
 
