@@ -22,6 +22,7 @@ from tempo_core.rules import NotEligible, RulePackRegistry, evaluate_delay_repay
 from tempo_core.scam import ADVICE, Evidence, assess
 from tempo_core.scam_voice import ENGLISH, say
 from tempo_core.time_value import TimeProfile, time_value
+from tempo_gateway.app import signed_yes_needed
 from tempo_gateway.memory import readback_question
 from tempo_memory.models import MemoryCandidate
 from tempo_memory.service import Recalled, say_recalled
@@ -96,6 +97,14 @@ def messages() -> dict[str, str]:
             )
         ),
         **rights_decay_messages(),
+        # A yes by text or by phone from someone with a passkey (docs/security.md, one rule for yes)
+        **{
+            f"signed_yes_{door}{'' if reminded else '_no_push'}": signed_yes_needed(
+                door, reminded=reminded
+            )
+            for door in ("sms", "voice")
+            for reminded in (True, False)
+        },
     }
 
 
@@ -140,7 +149,7 @@ def test_tempo_speaks_plainly(name: str, text: str) -> None:
 
 
 def test_every_message_family_is_in_the_eval() -> None:
-    assert len(messages()) == 29
+    assert len(messages()) == 33
 
 
 def test_jargon_scores_lower_than_plain_words() -> None:

@@ -198,7 +198,7 @@ it is missing the mic records a clip and the chat says so. Speech out tries the 
 | Variable | Default | Purpose |
 |---|---|---|
 | `VITE_GATEWAY_URL` | `http://127.0.0.1:8000` | the Gateway |
-| `VITE_TEMPO_TOKEN` | `devtoken` | the demo bearer (it ends up in the bundle; passkeys on the Devices page are the real auth, and once a person has one the Gateway refuses bearer answers) |
+| `VITE_TEMPO_TOKEN` | `devtoken` | the demo bearer (it ends up in the bundle; passkeys on the Devices page are the real auth, and once a person has one the Gateway refuses a bearer yes; a no is still taken) |
 | `VITE_TEMPO_SHOWCASE` | unset | `1` → no Gateway, recordings only; Settings cannot switch it off |
 
 Vite reads `VITE_*` at **build time** (and from the shell for `npm run dev`); `.env.example` is

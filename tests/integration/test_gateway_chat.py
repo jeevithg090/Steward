@@ -337,16 +337,28 @@ def test_with_a_passkey_a_typed_yes_answers_nothing(gateway: TestClient) -> None
     mission_id, request_id = started["mission"]["id"], started["ask"]["request_id"]
 
     yes = chat(gateway, "yes")
-    no = chat(gateway, "no")
+    again = chat(gateway, "yes please, go ahead")
 
-    for reply in (yes, no):
+    for reply in (yes, again):
         assert reply["reply"] == "Please confirm with Face ID or your fingerprint on this device."
         assert reply["ask"]["request_id"] == request_id  # echoed, for the web to sign
         assert reply["mission"]["state"] == "awaiting_consent"
     after = gateway.get(f"/missions/{mission_id}", headers=AUTH).json()
     assert after["state"] == "awaiting_consent" and after["ask"]["request_id"] == request_id
     bearer = gateway.post(f"/approvals/{request_id}", headers=AUTH, json={"approved": True})
-    assert bearer.status_code == 403  # the same rule /approvals already kept
+    assert bearer.status_code == 403  # the same rule /approvals keeps
+
+
+def test_with_a_passkey_a_typed_no_still_declines(gateway: TestClient) -> None:
+    """Saying no binds nobody, as STOP doesn't: it is taken on every door, passkey or not."""
+    add_passkey(gateway)
+    started = chat(gateway, WITH_FARE)
+
+    no = chat(gateway, "no thanks")
+
+    assert no["intent"] == "decline" and no["mission"]["id"] == started["mission"]["id"]
+    assert no["mission"]["state"] == "declined" and no["ask"] is None
+    assert chat(gateway, "yes")["reply"] == "Nothing is waiting for your answer."
 
 
 def test_a_journey_with_no_recording_fails_safe_in_plain_words(gateway: TestClient) -> None:

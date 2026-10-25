@@ -392,9 +392,10 @@ working. Everything else in §1 stands.*
   plain reason as `reply` ("Your profile, Read It To Me, doesn't let me make claims, so I haven't
   started one. Choose another profile if you want me to claim."), an action to `#/profiles`.
   An amount above `limits.max_gbp_per_claim` still asks, and the ask says the profile's limit.
-- **Passkey answers through the chat:** if `mesh.has_passkey(user_id)`, `approve`/`decline` in
-  `/chat` reply "Please confirm with Face ID or your fingerprint on this device." with the pending
-  `ask` echoed and nothing answered. The web then signs with `useMesh().mesh.answer`.
+- **Passkey answers through the chat:** if `mesh.has_passkey(user_id)`, `approve` in `/chat`
+  replies "Please confirm with Face ID or your fingerprint on this device." with the pending
+  `ask` echoed and nothing answered. The web then signs with `useMesh().mesh.answer`. *(Since
+  25 Oct 06:25 GMT, one rule for every door: a `decline` is answered, as STOP is; see §12.4.)*
 - **`#/chat?say=<urlencoded text>`** sends that text once, as if typed, then clears the query.
   The story's "Try it" buttons, Profiles' "Try it with this profile" and the welcome card use it.
 - **Mesh in the app** (`src/lib/mesh-context.tsx`): `<MeshProvider>` in App; `useMesh()` →
@@ -432,6 +433,7 @@ working. Everything else in §1 stands.*
 - [x] 06:55 Fix round 2: one claim per journey (`/chat`, `POST /missions`, `/missions/ofcom` and the voice tool return the existing live or paid mission; "I'm already on this one."; persisted in `missions.json`), `scripts/seed.py` safe to run twice, `MissionView.amount_gbp` so a waiting claim keeps its amount; the stream badge in its own row, truthful toasts ("Saved. Tempo will wait on purpose until 19 November."), a settled Rights Portfolio after payment. Final: 1,354 fast and 152 integration tests, 203 web tests, both builds, e2e 14/14; re-walked live; `docs/screens/` refreshed with the current UI
 - [x] 07:20 Committed and pushed (65e751e..9e40087 on both remotes): the guardrail and chat fixes, the Mesh fixes, the shell, Mesh and Passport in the web app, chat and Mission Control UX, every other page, docs and fresh screenshots, a flaky Devices test made deterministic (three cold clean-export runs: 203/203 each), the showcase's own one-claim rule, and a catalog script that no longer dirties the tree
 - [x] 07:30 **Deployed: https://tempo-showcase.vercel.app** (Vercel project `tempo-showcase`, root `apps/web`, `VITE_TEMPO_SHOWCASE=1` for Production and Preview; `.vercelignore` keeps the CLI's token file out of uploads). Checked in a browser: HTTP 200, CSP and frame headers, manifest and sample photos served; the chip → £14.20 ask → Yes → Mission Control walk works with no backend, and a repeat of the journey says "I'm already on this one."
+- [x] 25 Oct 06:25 GMT **The two guardrail gaps of §12.5 closed.** *One rule for yes on every door:* once a person has a passkey, only the passkey says yes. SMS `YES` and the voice tool `record_consent` now answer nothing, say so in plain words (Flesch 93–98: "Tempo: You set up Face ID, so I can't take a yes by text. Open Tempo on your device and say yes with Face ID or your fingerprint. …") and wake the device that can sign; a no and STOP are taken on every door, chat and bearer `/approvals` included, because ending a claim binds nobody (STOP already declined on every door). The web's 403 line now says "only takes a yes signed". *No double claim at the same instant:* `MissionService.start_once` holds a lock per (person, `mission_key`) around the duplicate check and the start, on `/chat`, `POST /missions`, `/missions/ofcom`, `/missions/ofcom/read` (it had no duplicate check at all) and the voice `create_mission`; two identical turns fired together make one mission, and a control test shows the old check-then-start claims twice under a store that yields like Postgres. Tests: `tests/integration/test_passkey_parity.py` (8), `tests/integration/test_one_claim_at_once.py` (7), the chat's passkey test split into yes and no, the Flesch eval +4. Rule written into `docs/security.md` (threats 18 and 19, "One rule for yes") and `docs/chat.md`
 
 ### 12.5 What the team does next (replaces §11)
 
@@ -439,5 +441,5 @@ working. Everything else in §1 stands.*
 2. **Real voice:** set `ELEVENLABS_API_KEY` on the Gateway; until then the browser's voice speaks and the face still moves.
 3. **Live Gateway for the public site:** deploy the Gateway (`deploy/render.yaml` or `deploy/fly.toml`), set `WEB_ORIGINS` and `MESH_RP_ID` to the Vercel host, then set `VITE_GATEWAY_URL` and `VITE_TEMPO_TOKEN` on the Vercel project, remove `VITE_TEMPO_SHOWCASE`, and redeploy.
 4. **Push notifications:** generate VAPID keys (`scripts/gen_vapid.py`) and set them on the Gateway.
-5. **Known limits, stated:** SMS `YES` and the voice `record_consent` tool still answer without a passkey (separate channels); two chat turns sent at the same instant could both start a claim (no lock between the check and the start); Face ID was tested with Chrome's virtual authenticator, not a real iPhone; Tauri is not built here; the rule packs are demo values until a person checks each source.
+5. **Known limits, stated:** ~~SMS `YES` and the voice `record_consent` tool still answer without a passkey (separate channels); two chat turns sent at the same instant could both start a claim (no lock between the check and the start)~~ (both closed 25 Oct 06:25 GMT, §12.4); the one-claim lock holds within one Gateway process (several processes would need a unique index on the live claim in the database); Face ID was tested with Chrome's virtual authenticator, not a real iPhone; Tauri is not built here; the rule packs are demo values until a person checks each source.
 

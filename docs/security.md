@@ -36,8 +36,10 @@ Tempo ◄──database, disk, logs──► the operator who runs it
 ```
 
 - **Person → Tempo.** Nothing a person says becomes binding until it is a signed yes (passkey,
-  SMS `YES` on a verified Twilio webhook, or a spoken yes the Gateway attests). Memory keeps only
-  the person's own words and verified official data.
+  SMS `YES` on a verified Twilio webhook, or a spoken yes the Gateway attests). **Once the person
+  has a passkey, only the passkey says yes, on every door** (see "One rule for yes" below); a no
+  or a STOP is taken on every door. Memory keeps only the person's own words and verified
+  official data.
 - **Tempo → company.** Everything that comes back from a company is *data*: it may be evidence,
   never memory and never an instruction. The company's own agent can verify Tempo's mandate
   offline and must refuse anything outside it.
@@ -75,6 +77,8 @@ spelled out.
 | 15 | **Text inside a photographed letter** that tries to instruct Tempo, or a reading that invents a fact | Vision is intake, not instruction: facts come out with a source and a confidence, anything under 0.8 is read back one question at a time (`tempo_core/intake.py:follow_up`); the Decision Challenger's draft adds no facts the person didn't give (`tempo_core/decisions.py:unsupported_claims`); the general letter reader (`tempo_core/letters.py`, routes `POST /letters/read` and `POST /letters/reply` in `tempo_gateway/letters.py`) reads back what it assumed rather than trusting it, asks one plain question per unsure fact, refuses a photo over 8 MiB with 413, and in replay reads only from fixtures | `tests/unit/test_intake.py`, `tests/unit/test_decisions.py`, `tests/contract/test_vision.py`; `tests/unit/test_letters.py::test_an_assumed_direction_is_read_back_not_trusted`, `::test_each_unsure_fact_becomes_one_plain_question_most_important_first`, `::test_a_debt_letter_says_check_before_paying`; `tests/integration/test_letters_routes.py::test_a_photo_over_8_mib_is_refused_with_413`, `::test_the_routes_need_the_bearer_token` | in tree. The reading itself comes from a vision model in live mode; the guard is that it can only *read*, never file, pay or remember |
 | 16 | **Abuse and denial of service**: hammering the bearer-token routes, huge bodies | Pydantic size limits on every body (`CardPhoto.image_b64` ≤ 10 MB, `ScamCheck.text` ≤ 2000, `Correction.text` ≤ 200, …); every outbound I/O call has a timeout | the models' validators are exercised throughout `tests/integration` | **gap**: no rate limiting on the Gateway (grep finds none); put it at the platform edge for now |
 | 17 | **Demo routes in a real deployment** (`/demo/clock`, `/demo/credit/{id}`, `/demo/memory`) | Only mounted when `TEMPO_DEMO=1`, and behind the bearer token; the badge says `DEMO CLOCK +N DAYS` when the clock has moved | `tests/integration/test_gateway_rights.py` (the demo clock), `tests/integration/test_gateway_memory.py` | in tree. Set `TEMPO_DEMO=0` for anything real (`docs/deploy.md`) |
+| 18 | **A yes through a weaker door**: someone with the shared bearer token, a spoofed caller id or a text from the person's number says yes for a person who has set up a passkey | One rule for yes: once `mesh.has_passkey(user_id)`, `POST /approvals` refuses a bearer yes with 403 (`tempo_gateway/app.py:approve`), the chat answers a typed yes with "Please confirm with Face ID…" and answers nothing (`tempo_gateway/chat.py:Chat._answer`), SMS `YES` and the voice tool `record_consent` answer nothing and say so in plain words, waking the device that can sign (`app.py:passkey_holder`, `remind`, `signed_yes_needed`); only `/mesh/approvals/{id}` with a passkey assertion answers yes. A no and STOP stay open on every door: they end a claim and bind nobody | `tests/integration/test_passkey_parity.py::test_with_a_passkey_sms_yes_answers_nothing_and_wakes_the_phone`, `::test_with_a_passkey_a_spoken_yes_answers_nothing_and_the_passkey_still_can`, `::test_with_a_passkey_a_bearer_no_is_taken_and_a_bearer_yes_is_not`, `::test_a_device_without_a_passkey_changes_nothing`; `tests/integration/test_gateway_chat.py::test_with_a_passkey_a_typed_yes_answers_nothing`, `::test_with_a_passkey_a_typed_no_still_declines` | in tree. A person with no passkey still answers by text or by phone, as before |
+| 19 | **The same claim twice**: a double tap, a retry, or the chat and the phone at the same instant make two claims to a company for one journey | `tempo_gateway/missions.py:MissionService.start_once` holds one lock per person and claim (`mission_key`) around the duplicate check (`duplicate_of`) and the start, on every door that starts a mission (`/chat`, `POST /missions`, `/missions/ofcom`, `/missions/ofcom/read`, the voice tool `create_mission`); the key is saved in `missions.json`, so it holds after a restart | `tests/integration/test_one_claim_at_once.py::test_two_identical_chat_turns_at_the_same_instant_make_one_mission`, `::test_the_same_journey_through_three_doors_at_once_is_one_mission`, `::test_without_the_lock_this_store_would_claim_twice` (the control); `tests/integration/test_gateway_chat.py::test_once_paid_the_same_journey_is_already_claimed_and_paid_once` | in tree for one Gateway process. Several processes would need the database to hold the reservation (a unique index on the live claim key); the Gateway's asks and timers are per process too |
 
 ## The model guardrails, specifically
 
@@ -114,6 +118,26 @@ merge most-restrictive; a mandate carries `amount.min_gbp`/`max_gbp` and lives a
 (1..10), `max_llm_gbp_per_mission` and `mandate_days` (1..7, `tempo_core/capabilities.py:MAX_MANDATE_DAYS`). Checkpoints
 are a trust boundary too: only the mission's own message types can be restored
 (`tempo_missions/clawback_ofcom/__init__.py:checkpoint_storage`).
+
+## One rule for yes (25 Oct 2026)
+
+A yes is what lets Tempo file a claim, so it must be as strong on every door as on the strongest.
+Once a person has a passkey, **only the passkey says yes**:
+
+| Door | A yes | A no or STOP |
+|---|---|---|
+| Web app, signed (`/mesh/approvals/{id}`) | answers | answers |
+| Web app, bearer (`POST /approvals/{id}`) | **403** | answers |
+| Chat (`POST /chat`) | answers nothing; "Please confirm with Face ID or your fingerprint on this device." | answers |
+| SMS (`YES`, `NO`, `STOP`) | answers nothing; says so in plain words; wakes the device that can sign | answers |
+| Phone (`record_consent`) | answers nothing; says so in plain words; wakes the device that can sign | answers |
+
+Why a no stays open: a no ends one claim and a STOP ends them all, and neither binds anyone. A
+STOP was already taken on every door (it declines the waiting ask), so taking a no too gives an
+attacker nothing new, and the person is never told to find their phone to say no. The words
+the SMS and phone doors say are in [docs/chat.md](chat.md) ("One rule for yes, on every door").
+Until a passkey exists, nothing changes: a yes by text or by phone is still the person's answer,
+which is how a person with only a landline uses Tempo.
 
 ## What the Profiles track added (25 Oct 2026)
 

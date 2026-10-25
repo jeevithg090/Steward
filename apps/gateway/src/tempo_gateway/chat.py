@@ -17,8 +17,10 @@ and the user id only.
 
 Three rules keep the chat from doing less carefully what another door does carefully (plan.md
 §12.2): a profile that lacks a skill's needs is refused before anything starts, as `/missions`
-refuses it; a person with a passkey answers on their device, never with a typed yes; and a
-mission that fails safe is explained in plain words, never with an engine's raw message.
+refuses it; a person with a passkey says yes on their device, never with a typed yes (a typed no
+still declines, as STOP stops); and a mission that fails safe is explained in plain words, never
+with an engine's raw message. The same journey or visit is never claimed twice, even by two turns
+at the same instant (`MissionService.start_once`).
 """
 
 import re
@@ -323,9 +325,13 @@ class Chat:
                 if not pending:
                     return plain(CANNED["nothing_waiting"])
                 mission_id, request_id = pending[-1]
-                if self.mesh is not None and self.mesh.has_passkey(body.user_id):
-                    # The same rule as /approvals: once there's a passkey, a bearer can't answer.
-                    # Nothing is answered; the web signs this ask on the device.
+                if (
+                    intent is Intent.APPROVE and self.mesh is not None
+                    and self.mesh.has_passkey(body.user_id)
+                ):  # fmt: skip
+                    # One rule for yes on every door (docs/security.md): once there's a passkey,
+                    # only the passkey says yes. Nothing is answered; the web signs this ask on
+                    # the device. A no is still taken here: like STOP, it binds nobody.
                     view = await self.service.view(mission_id)
                     return plain(
                         CANNED["passkey"], mission=view,
@@ -461,13 +467,9 @@ class Chat:
                 notice_hours=Decimal(slots.notice_hours) if slots.notice_hours else None,
                 account_ref=slots.account_ref, profile_id=body.profile_id,
             )  # fmt: skip
-        existing = await self.service.duplicate_of(request)
-        if existing is not None:  # never the same claim twice: say where the first one is
-            return self._already(intent, existing)
-        if isinstance(request, StartMission):
-            view = await self.service.start(request)
-        else:
-            view = await self.service.start_ofcom(request)
+        view, started = await self.service.start_once(request)  # one check-and-start, locked
+        if not started:  # never the same claim twice: say where the first one is
+            return self._already(intent, view)
         if (
             intent is Intent.RAIL_DELAY and view.state in _ENDED
             and (view.message or "").startswith(_TRAIN_NOT_FOUND)
@@ -603,7 +605,7 @@ def chat_router(
 ) -> APIRouter:
     """`today` defaults to the service clock's London date, so the demo clock moves "yesterday"
     too; `simulated` defaults to what `/health` shows for these settings. With `mesh`, a person
-    who has a passkey confirms on their device: a typed yes is not an answer."""
+    who has a passkey confirms a yes on their device: a typed yes is not an answer."""
     router = APIRouter()
     Caller = Annotated[str, Depends(web_caller)]
     chat = Chat(

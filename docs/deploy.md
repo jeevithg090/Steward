@@ -72,7 +72,7 @@ The team's public showcase is the Vercel project `tempo-showcase` at https://tem
 Delete `VITE_TEMPO_SHOWCASE`: set to `1`, it keeps the app in showcase mode and Settings cannot
 switch it off. The token is a demo convenience and ends up in the browser bundle
 (`apps/web/.env.example` says so); passkey-signed approvals are the real authentication: once a browser has Face ID or a fingerprint
-on the Devices page (`#/devices`), the Gateway refuses bearer answers for that person. WebAuthn needs
+on the Devices page (`#/devices`), the Gateway takes a yes for that person only signed with it, on every door (a no or STOP is still taken anywhere). WebAuthn needs
 https or localhost, and `MESH_RP_ID` on the Gateway must equal the web app's host. Settings can also point a deployed app at another
 Gateway at runtime (kept per browser, no rebuild).
 

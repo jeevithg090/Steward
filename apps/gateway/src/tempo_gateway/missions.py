@@ -10,7 +10,9 @@ profile forbids: the claim is refused at the tool and the mission fails safe in 
 Which profile each mission runs under, and what it is for (`mission_key`: the journey or the
 visit), are kept in `missions.json` next to the checkpoints and read back by `recover()`, so a
 restart neither drops the guard nor forgets a claim: `duplicate_of` finds the live mission for
-the same journey, and the routes return it instead of claiming twice.
+the same journey, and the routes return it instead of claiming twice. Every door starts through
+`start_once`, which holds a lock per person and claim around that check and the start, so two
+identical requests at the same instant still make one mission.
 """
 
 from __future__ import annotations
@@ -186,7 +188,26 @@ class MissionService:
         self.on_stop: Callable[[str, str], Awaitable[object]] | None = None
         self.mandate_summary: Callable[[str], dict[str, Any] | None] | None = None
         self._locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        # (user id, mission_key) -> held from the duplicate check until the mission has started
+        self._claim_locks: dict[tuple[str, str], asyncio.Lock] = defaultdict(asyncio.Lock)
         self.mission_ids: list[str] = []  # newest last
+
+    async def start_once(self, request: StartMission | StartOfcom) -> tuple[MissionView, bool]:
+        """Start this claim unless this person already has a live mission for it. Returns the
+        mission and whether it is new.
+
+        The check and the start hold one lock per person and claim (`mission_key`), so two
+        identical requests at the same instant, through one door or two, make one mission: the
+        second waits until the first has started, then gets it back. Other claims never wait.
+        The lock is in this process, like the asks and timers: the Gateway runs as one process.
+        """
+        async with self._claim_locks[(request.user_id, mission_key(request))]:
+            existing = await self.duplicate_of(request)
+            if existing is not None:
+                return existing, False
+            if isinstance(request, StartMission):
+                return await self.start(request), True
+            return await self.start_ofcom(request), True
 
     async def start(self, request: StartMission) -> MissionView:
         mission_id = f"m_{uuid.uuid4().hex[:12]}"
@@ -449,7 +470,8 @@ class MissionService:
     async def duplicate_of(self, request: StartMission | StartOfcom) -> MissionView | None:
         """This person's live mission for the same journey or visit, if there is one: Tempo never
         claims the same thing twice. One that was declined or failed safe claimed nothing, so it
-        doesn't count, and the newest live one wins."""
+        doesn't count, and the newest live one wins. A door starts through `start_once`, which
+        runs this check and the start under one lock."""
         key = mission_key(request)
         for mission_id in reversed(self.mission_ids):
             if self._keys.get(mission_id) != key:

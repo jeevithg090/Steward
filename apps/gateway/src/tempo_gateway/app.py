@@ -11,7 +11,7 @@ runtime, and the per-app dependencies below are local names.
 | POST /demo/clock, POST /demo/credit/{id} | demo only: jump ahead; the credit arrives | bearer |
 | GET /mandates/{id}?digest=, POST /mandates/verify | a company: is it live, ours, enough? | none |
 | POST /mandates/{id}/revoke | revoke a mandate (STOP revokes them all) | bearer token |
-| POST /approvals/{request_id} | an answer from the web app | bearer token (passkeys: S5.2) |
+| POST /approvals/{request_id} | an answer from the web app | bearer (a yes: passkey, if set) |
 | POST /scheduler/tick | fire due Watchdog timers now (demos) | bearer token |
 | POST /voice/tools/{name} | ElevenLabs server tools | shared secret header |
 | POST /voice/post-call | transcripts after a call | HMAC signature |
@@ -140,6 +140,23 @@ VOICE_TOOLS = (
     "verify_mandate",  # the company's line checks it (the Sludge Arena verifier)
     "check_message",  # Scam Shield: the caller reads a message out; code answers (shield.py)
 )
+
+# One rule for yes on every door (docs/security.md): once a person has a passkey, only the passkey
+# says yes. A text or a call that says yes is told so, in plain words, and their device is woken.
+# A no or a STOP is taken on every door: ending a claim binds nobody.
+SIGNED_YES = {
+    "sms": "Tempo: You set up Face ID, so I can't take a yes by text.",
+    "voice": "You set up Face ID, so I can't take a yes on a call.",
+}
+SAY_YES_THERE = "Open Tempo on your device and say yes with Face ID or your fingerprint."
+REMINDED = "I've sent your device a reminder."
+STILL_NO = {"sms": "Text NO or STOP to say no.", "voice": "You can still say no here."}
+
+
+def signed_yes_needed(door: str, *, reminded: bool) -> str:
+    """What the SMS and phone doors say to a yes only a passkey may give."""
+    return " ".join([SIGNED_YES[door], SAY_YES_THERE, *([REMINDED] if reminded else []),
+                     STILL_NO[door]])  # fmt: skip
 
 
 class Answer(BaseModel):
@@ -375,13 +392,13 @@ def create_app(
     @app.post("/missions", status_code=201)
     async def create_mission(body: StartMission, caller: Caller, response: Response) -> MissionView:
         """Idempotent per journey: this person's live mission for the same train comes back with
-        200 instead of a second claim (one declined or failed safe doesn't count)."""
+        200 instead of a second claim (one declined or failed safe doesn't count), even when the
+        same request arrives twice at once."""
         profile_allows(body.profile_id, RAIL)
-        existing = await service.duplicate_of(body)
-        if existing is not None:
+        view, started = await service.start_once(body)
+        if not started:
             response.status_code = 200
-            return existing
-        return await service.start(body)
+        return view
 
     @app.post("/missions/ofcom", status_code=201)
     async def create_ofcom_mission(
@@ -390,11 +407,10 @@ def create_app(
         """A missed engineer visit: Rights Decay decides whether to wait or act, and when.
         Idempotent per provider and day, as `/missions` is per journey."""
         profile_allows(body.profile_id, OFCOM)
-        existing = await service.duplicate_of(body)
-        if existing is not None:
+        view, started = await service.start_once(body)
+        if not started:
             response.status_code = 200
-            return existing
-        return await service.start_ofcom(body)
+        return view
 
     @app.post("/missions/ofcom/read")
     async def read_card(body: CardPhoto, caller: Caller) -> dict[str, Any]:
@@ -428,7 +444,7 @@ def create_app(
         if question is not None:  # one read-back; Mission Control starts it once confirmed
             return {"facts": read, "question": question.question, "fact_key": question.fact_key,
                     "visit": visit.model_dump(mode="json")}  # fmt: skip
-        view = await service.start_ofcom(visit)
+        view, _ = await service.start_once(visit)  # the same card twice is the same mission
         return {"facts": read, "question": None, "mission": view.model_dump(mode="json")}
 
     @app.post("/demo/clock")
@@ -496,11 +512,29 @@ def create_app(
         """Fire the timers that are due now (the scheduler also does this every 30 s)."""
         return {"fired": await service.tick()}
 
+    async def passkey_holder(mission_id: str) -> str | None:
+        """The person behind this mission if they have a passkey: then only it can say yes."""
+        if mesh is None:
+            return None
+        user_id = await service.user_for(mission_id)
+        return user_id if mesh.has_passkey(user_id) else None
+
+    async def remind(user_id: str) -> bool:
+        """Wake the device that can sign (the push says only "sync"). Never fails the reply."""
+        if mesh is None:
+            return False
+        try:
+            return await mesh.notify(user_id) is not None
+        except Exception as exc:  # a push failure must never stop an answer
+            log.warning("push_failed", error_code=type(exc).__name__)
+            return False
+
     @app.post("/approvals/{request_id}")
     async def approve(request_id: str, body: Answer, caller: Caller) -> MissionView:
+        """An answer with the bearer. Once the person has a passkey, a yes must be signed on one
+        of their devices (`/mesh/approvals`); a no is still taken here, as STOP is."""
         mission_id = service.mission_for_request(request_id)
-        user_id = await service.user_for(mission_id) if mission_id is not None else None
-        if mesh is not None and user_id is not None and mesh.has_passkey(user_id):
+        if body.approved and mission_id is not None and await passkey_holder(mission_id):
             raise HTTPException(403, "approve with your passkey on one of your devices")
         approval = SignedApproval(
             approved=body.approved,
@@ -685,7 +719,7 @@ def create_app(
             refused = profile_refusal(profiles, start.profile_id, RAIL)
             if refused is not None:  # the same refusal the web gets, before anything starts
                 return {"mission_id": None, "state": None, "say": refused}
-            view = await service.duplicate_of(start) or await service.start(start)  # never twice
+            view, _ = await service.start_once(start)  # never twice, even at the same instant
             return {"mission_id": view.id, "state": view.state, "say": view.message}
         if name in ("recall_memories", "forget_memory", "confirm_memory"):
             return await _voice_memory(name, body)
@@ -699,10 +733,14 @@ def create_app(
             request_id = service.pending_for(mission_id)
             if request_id is None:
                 return {"say": "There's nothing waiting for your answer."}
+            approved = bool(body.get("approved"))
+            holder = await passkey_holder(mission_id) if approved else None
+            if holder is not None:  # a spoken yes is not a passkey: nothing is answered
+                view = await service.view(mission_id)
+                said = signed_yes_needed("voice", reminded=await remind(holder))
+                return {"mission_id": mission_id, "state": view.state, "say": said}
             sig = f"voice:{body.get('conversation_id', 'unknown')}"
-            approval = SignedApproval(
-                approved=bool(body.get("approved")), scopes=BINDING_SCOPES, device_sig=sig
-            )
+            approval = SignedApproval(approved=approved, scopes=BINDING_SCOPES, device_sig=sig)
             view = await service.answer(request_id, approval)
             return {"mission_id": mission_id, "state": view.state, "say": view.message}
         event = {"type": name, **{k: str(v) for k, v in body.items()}}
@@ -887,6 +925,9 @@ def create_app(
         request_id = service.pending_for(latest)
         if word not in ("YES", "NO") or request_id is None:
             return "Tempo: there's nothing waiting for your answer."
+        holder = await passkey_holder(latest) if word == "YES" else None
+        if holder is not None:  # a text is not a passkey: nothing is answered
+            return signed_yes_needed("sms", reminded=await remind(holder))
         approval = SignedApproval(
             approved=word == "YES", scopes=BINDING_SCOPES, device_sig=f"sms:{sid}"
         )

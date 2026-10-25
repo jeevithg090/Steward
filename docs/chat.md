@@ -4,7 +4,8 @@
 the route is `tempo_gateway/chat.py`, speech out is `tempo_gateway/tts.py`, the vectors are
 `fixtures/chat/intents.json`, and the tests are `tests/unit/test_intent.py`,
 `tests/unit/test_chat_plain.py`, `tests/unit/test_profile_refusal.py`,
-`tests/policy/test_claims_guard.py`, `tests/integration/test_gateway_chat.py` and
+`tests/policy/test_claims_guard.py`, `tests/integration/test_gateway_chat.py`,
+`tests/integration/test_passkey_parity.py`, `tests/integration/test_one_claim_at_once.py` and
 `tests/integration/test_gateway_tts.py`.*
 
 ## The idea
@@ -64,7 +65,7 @@ in `tests/unit/test_plain_language.py`. Each turn publishes `{"type": "chat_turn
 | Intent | Words that open it (in rule order) | What the Gateway does | Reply carries |
 |---|---|---|---|
 | `stop` | "stop", "stop everything", "please stop", "cancel everything" | stops every mission of this person | `mission` |
-| `approve` / `decline` | a bare yes/no ("yes", "ok go ahead", "no thanks"); a sentence starting with yes/no **only while a consent ask is pending** | answers the newest pending ask with a `SignedApproval` (scopes `file_claim`, `device_sig` the bearer's caller id); nothing pending → "Nothing is waiting for your answer." **With a passkey** (`mesh.has_passkey(user_id)`): answers nothing, replies "Please confirm with Face ID or your fingerprint on this device." and echoes the pending `ask` for the web to sign | `mission`, `ask`; `suggestions` when the yes finds the claim already paid |
+| `approve` / `decline` | a bare yes/no ("yes", "ok go ahead", "no thanks"); a sentence starting with yes/no **only while a consent ask is pending** | answers the newest pending ask with a `SignedApproval` (scopes `file_claim`, `device_sig` the bearer's caller id); nothing pending → "Nothing is waiting for your answer." **With a passkey** (`mesh.has_passkey(user_id)`), a yes answers nothing: the reply is "Please confirm with Face ID or your fingerprint on this device." with the pending `ask` echoed for the web to sign. A no still declines (see "One rule for yes" below) | `mission`, `ask`; `suggestions` when the yes finds the claim already paid |
 | `scam_check` | a link, "scam", "fraud", "is this real", "got a text", "someone rang", or a pasted message with pressure words (one strong: "safe account", "one-time code", "tax refund", "account locked"; or two weak: "urgent", "within 24 hours", "parcel", "fee") | `shield.check(text, language, user_id, source="web")` | `verdict` (zone, level, say, reasons, links, …) |
 | `memory_forget` | "forget …", "erase …", "delete …" | `memory.forget(user_id, target)` | – |
 | `memory_recall` | "remember", "what do you know about me" | `say_recalled(memory.recall(user_id))` | `memories` |
@@ -129,7 +130,48 @@ second claim:
 One that was declined or failed safe claimed nothing, so the same journey starts afresh. The key
 is saved with the profile in `missions.json`, so this holds after a restart too. `POST /missions`
 and `POST /missions/ofcom` follow the same rule: the existing mission comes back with **200**
-instead of **201**, and the voice tool `create_mission` returns the existing mission's id.
+instead of **201**, and the voice tool `create_mission` returns the existing mission's id. A
+photographed card (`POST /missions/ofcom/read`) that reads as the same visit returns the same
+mission too.
+
+**At the same instant, too.** Every one of those doors starts through
+`MissionService.start_once`, which holds one `asyncio.Lock` per person and claim
+(`(user_id, mission_key)`) from the check until the mission has started. Two identical turns
+sent together, through the same door or two different ones, make one mission: the second waits
+until the first has started (its consent ask, or its plan), then gets that mission back ("I'm
+already on this one. It needs your OK.", or **200**). Someone else's identical journey, and any other claim of
+the same person, never waits on that lock. The lock lives in the Gateway process, as the asks
+and timers do; the Gateway runs as one process. `tests/integration/test_one_claim_at_once.py`
+fires the turns concurrently against a store that takes a moment per call, as Postgres does
+(the in-memory store never yields, which hides the race), and its control test shows the old
+check-then-start claims twice under that store.
+
+### One rule for yes, on every door
+
+Once a person has a passkey (`mesh.has_passkey(user_id)`), **only the passkey says yes**. A no and
+a STOP are taken on every door, because ending a claim binds nobody (STOP already declines the
+waiting ask on every door).
+
+| Door | A yes, with a passkey | A no, with a passkey |
+|---|---|---|
+| `POST /chat` | nothing answered; "Please confirm with Face ID or your fingerprint on this device." and the `ask` echoed | declines |
+| `POST /approvals/{id}` (bearer) | **403** "approve with your passkey on one of your devices" | declines (200) |
+| SMS `YES` / `NO` | nothing answered; the reply below, and the device is woken | declines |
+| voice `record_consent` | nothing answered; `state: awaiting_consent`, the `say` below, and the device is woken | declines |
+| `/mesh/approvals/{id}` (signed) | answers | answers |
+
+The SMS and phone words (`tempo_gateway/app.py:signed_yes_needed`, Flesch 93 to 98, checked in
+`tests/unit/test_plain_language.py`):
+
+> Tempo: You set up Face ID, so I can't take a yes by text. Open Tempo on your device and say yes
+> with Face ID or your fingerprint. I've sent your device a reminder. Text NO or STOP to say no.
+
+> You set up Face ID, so I can't take a yes on a call. Open Tempo on your device and say yes with
+> Face ID or your fingerprint. I've sent your device a reminder. You can still say no here.
+
+"I've sent your device a reminder." is there only when `mesh.notify` woke a device (the push
+says only `{"type": "sync"}`); a failed push never fails the reply. A device without a passkey
+changes nothing: until Face ID is added, a yes by text or by phone is still the person's answer.
 
 ### A journey the rail records don't have
 
