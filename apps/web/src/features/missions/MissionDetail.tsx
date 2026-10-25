@@ -125,7 +125,7 @@ export function MissionDetail({ mission, health, events, busy, signs = false, cl
         </p>
       )}
 
-      {mission.ask && <ConsentCard ask={mission.ask} court={mission.court} busy={busy} onAnswer={(yes) => onAnswer(mission.ask!.request_id, yes)} why={false} signed={signs} />}
+      {mission.ask && <ConsentCard ask={mission.ask} court={mission.court} busy={busy} onAnswer={(yes) => onAnswer(mission.ask!.request_id, yes)} why={false} signed={signs} waits={mission.plan ? mission.plan.action_today === "wait" : undefined} />}
 
       {mission.outcome ? (
         <Card as="section" aria-labelledby="outcome-heading" tone={mission.outcome.state === "verified" ? "emerald" : "default"}>

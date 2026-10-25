@@ -70,7 +70,7 @@ PROFILES: dict[DeployMode, Profile] = {
     DeployMode.GPU: Profile(DeployMode.GPU, "runpod-vllm", "elevenlabs", "runpod-vllm",
                             "encrypted-vault", "ciphertext-store", "this machine + RunPod GPU"),
     DeployMode.APIS: Profile(DeployMode.APIS, "apis", "elevenlabs", "gemini", "encrypted-vault",
-                             "ciphertext-store", "this machine + Google and OpenRouter"),
+                             "ciphertext-store", "this machine + Google"),
 }  # fmt: skip
 
 

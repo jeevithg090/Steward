@@ -62,6 +62,7 @@ from tempo_crypto.vault import MemoryVaultStore, VaultStore
 from tempo_gateway.app import create_app
 from tempo_gateway.chat import SMALL_TALK_PROMPT
 from tempo_gateway.clock import DemoClock
+from tempo_gateway.connectors import build_connectors
 from tempo_gateway.events import EventBus, PublishingRepo
 from tempo_gateway.mandates import MandateService, gateway_key
 from tempo_gateway.memory import Memory, build_memory
@@ -213,6 +214,7 @@ def build(
         holidays=HOLIDAYS(),
         entitlement=Figures.from_file(REPO / "skills" / "entitlement-check" / "figures.yaml"),
         signals=signals, shield=shield,
+        connectors=build_connectors(REPO, service, shield, bus, mode=settings.tempo_mode),
         transparency=REPO / "deploy" / "transparency", scheduler_interval_s=scheduler_interval_s,
         mandates=mandates, vision=build_vision(settings),
         greetings=load_greetings(REPO / "voice" / "greetings.yaml"),

@@ -1,0 +1,45 @@
+X-Tempo-Demo: invented for the Tempo demo; not a real message
+From: Thames Water <billing@thameswater.example>
+To: Margaret <margaret@example.com>
+Subject: You have paid too much: we are refunding =?utf-8?q?=C2=A323=2E40?=
+Date: Sat, 03 Oct 2026 08:30:00 +0100
+Message-ID: <overpayment-TW-58201@thameswater.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============2913546796489547666=="
+
+--===============2913546796489547666==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Dear Margaret,
+
+Your latest water bill, dated 3 October 2026, shows you have paid more
+than you used.
+
+Amount you overpaid: £23.40
+Account reference: TW-58201
+
+We will refund £23.40 to the bank account you pay us from within five
+working days. You do not need to do anything.
+
+Thames Water Customer Services
+
+This message was invented for the Tempo demo. It is not from Thames Water.
+
+--===============2913546796489547666==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+
+<html><head><style>p { font-family: sans-serif; }</style></head><body>
+<p>Dear Margaret,</p>
+<p>Your latest water bill, dated 3 October 2026, shows you have paid more than you used.</p>
+<p><strong>Amount you overpaid: &pound;23.40</strong><br>Account reference: TW-58201</p>
+<p>We will refund &pound;23.40 to the bank account you pay us from within five working days.
+You do not need to do anything.</p>
+<p>Thames Water Customer Services</p>
+<p>This message was invented for the Tempo demo. It is not from Thames Water.</p>
+</body></html>
+
+--===============2913546796489547666==--

@@ -8,6 +8,7 @@ import { Badge, Button, Card, EmptyState, PageTitle, SectionTitle, Skeleton } fr
 import type { PrivacyProofData } from "@/lib/api";
 import type { PageProps } from "@/types/page";
 import { TAP } from "../story/demo";
+import { loadError } from "@/components/mission/words";
 
 const MODE_WORDS: Record<string, string> = {
   local: "on this machine",
@@ -51,6 +52,15 @@ function Line({ icon, label, verdict, children }: { icon: ReactNode; label: stri
   );
 }
 
+/** Whether the outside AI companies are really called in this run: the Gateway's own list of what
+ * answers from recordings (`/health.simulated`) says so, step by step, never the mode alone. */
+export function recordedWords(simulated: readonly string[] | undefined): string {
+  const recorded = ["jurors", "vision"].filter((step) => simulated?.includes(step));
+  if (recorded.length === 2) return "In this run they are named but not called: the jurors and vision answer from recordings.";
+  if (recorded.length === 1) return `In this run ${recorded[0] === "jurors" ? "the jurors answer" : "vision answers"} from recordings; the rest is called for real. They see what Tempo sends them for that step, and nothing is remembered from what they return.`;
+  return "They are called for real in this run. They see what Tempo sends them for that step, and nothing is remembered from what they return.";
+}
+
 export default function PrivacyPage({ gateway, user, health, showcase }: PageProps) {
   const [proof, setProof] = useState<PrivacyProofData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +70,7 @@ export default function PrivacyPage({ gateway, user, health, showcase }: PagePro
       setProof(await gateway.privacy(user.id));
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(loadError(e));
     }
   }, [gateway, user.id]);
 
@@ -118,7 +128,7 @@ export default function PrivacyPage({ gateway, user, health, showcase }: PagePro
                 <>
                   {outsiders.map((t) => THIRD_PARTY_WORDS[t] ?? t).join(", ")}
                   <span className="block text-xs text-slate-400">
-                    {health?.mode === "replay" ? "In replay mode they are named but not called: jurors and vision answer from recordings." : "They see what Tempo sends them for that step, and nothing is remembered from what they return."}
+                    {recordedWords(health?.simulated)}
                   </span>
                 </>
               )}

@@ -56,7 +56,7 @@ export const BEATS: Beat[] = [
   },
   {
     name: "Check",
-    sentence: "Three models from three providers check the reading; they may say no, and they can never raise the amount.",
+    sentence: "Three AI jurors check the reading, each a different model; they may say no, and they can never raise the amount.",
     builtAs: "the Consensus Court",
     href: "/missions",
     link: "Mission Control",

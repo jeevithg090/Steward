@@ -114,6 +114,15 @@ export function plainError(err: unknown, context = "Tempo's Gateway"): string {
   return message.replace(/^(GET|POST|DELETE) \S+: /, "");
 }
 
+/** Why a page couldn't load, in plain words, for a sentence that goes on to say what to do next. */
+export function loadError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  if (UNREACHABLE.test(message)) return "Tempo's Gateway didn't answer. It may be restarting";
+  if (/HTTP 401|HTTP 403/.test(message)) return "The Gateway refused the token";
+  if (/HTTP 5\d\d/.test(message)) return "The Gateway hit a problem";
+  return message.replace(/^(GET|POST|DELETE) \S+: /, "");
+}
+
 // A message that still carries a Python value (a tuple, a datetime) is not for a person to read.
 const PYTHON_REPR = /datetime\.\w+\(|Decimal\(|\(\s*'[^']*'\s*,\s*'|<\w[\w.]* object at 0x|\bNone\)/;
 

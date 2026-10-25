@@ -3,9 +3,11 @@
 // missions. Both are checked against fixtures/chat/intents.json. The router is code, not a model:
 // rules classify, regexes pull the facts out, and nothing here invents a number.
 // `state` is the ShowcaseGateway, so a reply can start, answer or stop a recorded mission.
-import type { ChatAction, ChatNeed, ChatReply, ChatTurn, Intent, LedgerTotals, MemoryCardData, MemoryItem, MissionView } from "./api";
+import type { ChatAction, ChatNeed, ChatReply, ChatTurn, Intent, LedgerTotals, MemoryCardData, MemoryItem, MissionView, SweepResult } from "./api";
+import { fullStop, sweepSentence } from "./connectors";
 import { type Language, SAMPLES, recordedVerdict, translatedSay } from "./shield";
 import catalogJson from "@/showcase/catalog.json";
+import sweepJson from "@/showcase/connectors-sweep.json";
 
 export type Slots = Record<string, string | null>;
 
@@ -17,6 +19,8 @@ export interface ShowcaseChatState {
   stop(id: string): Promise<MissionView>;
   ledger(): Promise<LedgerTotals>;
   memories(userId: string): Promise<MemoryCardData>;
+  /** The connectors' sweep (plan.md §14.2); the recorded one when the state has none. */
+  sweep?(userId: string): Promise<SweepResult>;
 }
 
 const SIMULATED = ["company", "rail data", "jurors", "vision"];
@@ -130,6 +134,14 @@ const ENTITLEMENT =
   /\bowed\b|\bbenefits?\b|pension credit|attendance allowance|\bentitled\b|\bentitlements?\b|universal credit|council tax (?:reduction|support)|winter fuel|\bpip\b|carer'?s allowance|housing benefit|what (?:can|could) i claim|am i (?:due|owed|missing)/i;
 const PROFILES = /\bprofiles?\b|who (?:do|are) you work(?:ing)? for/i;
 const HELP = /\bhelp\b|what can you do|how does this work|what do you do|what are you\b|what is tempo/i;
+// The connectors' sweep (plan.md §14.2, intent.py _SWEEP). Checked before Scam Shield, so "check my
+// email" is a sweep unless the text carries a link, pressure or a question about one message ("I got
+// an email…"); "Am I owed anything?" stays an entitlement question unless her email, inbox or bank is named.
+const SWEEP =
+  /\bsweep\b|\b(?:check|look (?:through|at|in)|go through|search|scan) my (?:e-?mails?|inbox|mail(?:box)?|calendar|bank statements?)\b|\bfind (?:what|money|anything|everything)\b[\w\s']*\bowed\b/i;
+const SWEEP_ALL = new RegExp(SWEEP.source, "gi");
+const SWEEP_PLACE = /\b(?:e-?mails?|inbox|mailbox|bank)\b/i;
+const OWED = /\bowed\b/i;
 
 // --- the facts ------------------------------------------------------------------------------------
 
@@ -193,6 +205,12 @@ function pressured(text: string): boolean {
   return PRESSURE_STRONG.test(text) || (text.match(PRESSURE_WEAK) ?? []).length >= 2;
 }
 
+/** intent.py `_sweep_like`: the sweep's words, or "owed" with her email, inbox or bank named; never a link, pressure or one message. */
+function sweepLike(text: string): boolean {
+  if (URL.test(text) || pressured(text) || SCAM_ASK.test(text.replace(SWEEP_ALL, " "))) return false;
+  return SWEEP.test(text) || (OWED.test(text) && SWEEP_PLACE.test(text));
+}
+
 function visitLike(text: string): boolean {
   if (provider(text) !== null || VISIT_STRONG.test(text)) return true;
   return VISIT_WEAK.test(text) && !RAIL_STRONG.test(text);
@@ -205,6 +223,7 @@ export function classify(raw: string, pending = false): Intent {
   if (STOP.test(text)) return "stop";
   const answer = yesOrNo(text, pending);
   if (answer) return answer;
+  if (sweepLike(text)) return "sweep";
   if (URL.test(text) || SCAM_ASK.test(text) || pressured(text)) return "scam_check";
   if (FORGET_WORD.test(text)) return "memory_forget";
   if (RECALL.test(text)) return "memory_recall";
@@ -593,6 +612,7 @@ const BARE_NUMBER = /^£?\s*(\d{1,4}(?:\.\d{1,2})?)\s*(?:pounds?|quid|gbp)?\.?$/
 const CHECK_PREFIX = /^\s*check\s*[:-]?\s+/i;
 const MISSIONS_ACTION = { label: "Open Mission Control", href: "#/missions" };
 const MEMORY_ACTION = { label: "Open the Memory Card", href: "#/memory" };
+const CONNECTORS_ACTION = { label: "Open Connectors", href: "#/connectors" };
 // tempo_memory.provider.SPOKEN_BY: where a memory came from, in plain words.
 const SPOKEN_BY: Record<string, string> = { user_voice: "you said, by voice", user_sms: "you texted", user_web: "you entered online", official_api: "official data" };
 const TERMINAL = new Set(["declined", "failed_safe", "verified", "completed"]);
@@ -818,7 +838,8 @@ export async function showcaseChat(turn: ChatTurn, state: ShowcaseChatState): Pr
     }
     case "scam_check": {
       const message = text.replace(CHECK_PREFIX, "") || text;
-      const sample = SAMPLES.find((s) => message.trim() === s.text || message.includes(s.text));
+      // A sweep's scam finding quotes the email without the "HMRC:" its text message starts with (tempo_core.findings.scam_say).
+      const sample = SAMPLES.find((s) => message.trim() === s.text || message.includes(s.text) || message.includes(s.text.replace(/^[A-Z]{2,10}:\s*/, "")));
       if (!sample) return plain(CANNED.showcase_scam, { actions: [{ label: "Open Scam Shield", href: "#/shield" }] });
       const verdict = recordedVerdict(sample.id);
       if (language !== "en") verdict.say = translatedSay(verdict, language);
@@ -847,6 +868,18 @@ export async function showcaseChat(turn: ChatTurn, state: ShowcaseChatState): Pr
     }
     case "letter":
       return plain(CANNED.letter, { actions: [{ label: "Read a letter", href: "#/read" }] });
+    case "sweep": {
+      // chat.py `_sweep`: the sweep reads the connected places and lists what it found; nothing is started.
+      const result = state.sweep ? await state.sweep(turn.user_id) : (structuredClone(sweepJson) as unknown as SweepResult);
+      const said = sweepSentence(result);
+      const spoken = [said, ...result.findings.map((f) => fullStop(f.title))].join(" ");
+      return plain(said, {
+        say: spoken,
+        findings: result.findings,
+        actions: [CONNECTORS_ACTION],
+        suggestions: result.findings.length ? result.findings.map((f) => f.say).slice(0, 4) : null,
+      });
+    }
     case "help":
       return plain(CANNED.help, { actions: [MISSIONS_ACTION], suggestions: [...SUGGESTIONS.doors] });
     default:

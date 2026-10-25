@@ -33,6 +33,8 @@ export interface ChatPageProps {
   activeModels: ModelProvider[];
   selectedModel: ModelProvider;
   onSelectModel: (model: ModelProvider) => void;
+  /** The Gateway's real small-talk model, shown in place of the picker (ChatInput). */
+  gatewayModel?: string | null;
   conversation: Conversation | null;
   /** Something is in flight (a turn, an answer, a stop): buttons wait. */
   busy: boolean;
@@ -86,6 +88,7 @@ export function ChatPage({
   activeModels,
   selectedModel,
   onSelectModel,
+  gatewayModel = null,
   conversation,
   busy,
   thinking = false,
@@ -185,6 +188,7 @@ export function ChatPage({
           activeModels={activeModels}
           selectedModel={selectedModel}
           onSelectModel={onSelectModel}
+          gatewayModel={gatewayModel}
           onSend={onSend}
           onSendAudio={onSendAudio}
           onReadLetter={onReadLetter}

@@ -30,6 +30,7 @@ const CallersPage = lazy(() => import("./features/callers/CallersPage"));
 const PrivacyPage = lazy(() => import("./features/privacy/PrivacyPage"));
 const StoryPage = lazy(() => import("./features/story/StoryPage"));
 const DevicesPage = lazy(() => import("./features/devices/DevicesPage"));
+const ConnectorsPage = lazy(() => import("./features/connectors/ConnectorsPage"));
 
 // API keys entered in Settings, kept on this device so they survive a reload.
 const API_KEYS_STORAGE = "tempo_api_keys";
@@ -55,7 +56,7 @@ function loadProfile(): string | null {
 const PAGE_TITLES: Record<string, string> = {
   "/chat": "Chat", "/missions": "Mission Control", "/memory": "Memory", "/profiles": "Profiles", "/skills": "Skills",
   "/shield": "Scam Shield", "/read": "Read It To Me", "/owed": "Am I Owed Anything?", "/callers": "Who's calling?",
-  "/privacy": "Privacy Proof", "/story": "The story", "/settings": "Settings", "/devices": "Devices", "/pair": "Join Tempo",
+  "/privacy": "Privacy Proof", "/story": "The story", "/settings": "Settings", "/devices": "Devices", "/pair": "Join Tempo", "/connectors": "Connectors",
 };
 
 const PROFILE_NAMES: Record<string, string> = Object.fromEntries(
@@ -230,6 +231,8 @@ export default function App() {
       case "/devices":
       case "/pair":
         return <DevicesPage {...pageProps} />;
+      case "/connectors":
+        return <ConnectorsPage {...pageProps} />;
       case "/settings":
         return (
           <SettingsPage

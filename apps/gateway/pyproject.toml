@@ -13,6 +13,10 @@ dependencies = [
     "tempo-memory",
     "tempo-crypto",
     "tempo-passport",  # Agent Passport: signed mandates (P2)
+    "tempo-mcp-mail",  # Connectors (plan.md §14): the read-only servers the sweep starts over stdio
+    "tempo-mcp-calendar",
+    "tempo-mcp-bank",
+    "mcp>=2.3",  # Tempo as an MCP server at /mcp, and the connectors' client (mcp_server.py, connectors.py)
     "fastapi>=0.162",
     "python-multipart>=0.0.32",
     "structlog>=25.4",

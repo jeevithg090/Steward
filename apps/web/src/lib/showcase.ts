@@ -10,12 +10,17 @@ import {
   type EntitlementFlag,
   type EntitlementResult,
   type CardReading,
+  type Connector,
+  type ConnectorList,
+  type Finding,
   type Health,
   type LedgerTotals,
   type MemoryCardData,
   type MemoryItem,
   type MissionView,
+  type McpInfo,
   type PrivacyProofData,
+  type SweepResult,
   type VoiceProfileView,
 } from "./api";
 import { type Authenticator, type DeviceInfo, MeshClient, type Storage } from "./mesh";
@@ -43,6 +48,9 @@ import voiceJoan from "@/showcase/voice-profile-u_joan.json";
 import voiceMargaret from "@/showcase/voice-profile-u_margaret.json";
 import catalogJson from "@/showcase/catalog.json";
 import lettersJson from "@/showcase/letters.json";
+import connectorsJson from "@/showcase/connectors.json";
+import sweepJson from "@/showcase/connectors-sweep.json";
+import mcpInfoJson from "@/showcase/mcp-info.json";
 
 export const SHOWCASE_LABEL = "SHOWCASE · recorded replay · no Gateway";
 export const NO_GATEWAY = "There is no Gateway in the showcase: this page runs on recorded replies.";
@@ -83,6 +91,9 @@ function nowIso(): string {
   return new Date().toISOString().replace("Z", "+00:00");
 }
 
+/** A finding needs its own connector on, and a late train also needs the rail records to check it against. */
+const FINDING_NEEDS: Record<string, string[]> = { late_train: ["rail"] };
+
 function pence(amount: string): number {
   return Math.round(Number(amount) * 100);
 }
@@ -98,6 +109,7 @@ export class ShowcaseGateway extends Gateway {
   private clockOffsetDays = 0;
   private totals: LedgerTotals;
   private memory: MemoryCardData;
+  private connectorState: Connector[];
 
   constructor() {
     super({ url: "showcase://no-gateway", token: "" }, failingFetch);
@@ -109,6 +121,7 @@ export class ShowcaseGateway extends Gateway {
     ];
     this.totals = { ...ledgerJson };
     this.memory = structuredClone(memoriesJson) as MemoryCardData;
+    this.connectorState = structuredClone(connectorsJson.connectors) as Connector[];
   }
 
   override eventsUrl(): string {
@@ -279,6 +292,45 @@ export class ShowcaseGateway extends Gateway {
     }
     throw new Error(`POST /memories/${id}/correct: HTTP 404`);
   };
+
+  // --- connectors and MCP (plan.md §14.2) -------------------------------------------------
+
+  /** Margaret's four connectors, all on at the start; Connected/Off switches them in memory. */
+  override connectors = async (_userId: string): Promise<ConnectorList> => ({ connectors: structuredClone(this.connectorState), simulated: true });
+  override connect = async (id: string, _userId: string): Promise<Connector> => this.switchConnector(id, true);
+  override disconnect = async (id: string, _userId: string): Promise<Connector> => this.switchConnector(id, false);
+
+  /** The recorded sweep, keeping only what the connectors that are on could have found. */
+  override sweep = async (_userId: string): Promise<SweepResult> => {
+    const on = new Set(this.connectorState.filter((c) => c.connected).map((c) => c.id));
+    const recorded = structuredClone(sweepJson) as unknown as SweepResult & { under_way: Record<string, Finding> };
+    // connectors._under_way: a journey or visit whose claim is already live is worded as "I am on it".
+    const live = (kind: Kind) => this.walks.some((w) => w.kind === kind && w.view.state !== "declined" && w.view.state !== "failed_safe");
+    const underWay = (f: Finding) => (f.kind === "late_train" && live("rail")) || (f.kind === "engineer_visit" && live("ofcom"));
+    const findings = recorded.findings
+      .filter((f) => on.has(f.source.connector) && (FINDING_NEEDS[f.kind] ?? []).every((id) => on.has(id)))
+      .map((f) => (underWay(f) ? (recorded.under_way[f.id] ?? f) : f));
+    const read = Object.fromEntries(Object.entries(recorded.read).filter(([id]) => on.has(id)));
+    const at = nowIso();
+    for (const c of this.connectorState) {
+      if (!on.has(c.id)) continue;
+      c.last_read_at = at;
+      c.items_read += read[c.id] ?? 0; // a running count, as connectors._note keeps it
+    }
+    return { findings, read, took_ms: on.size ? recorded.took_ms : 0 };
+  };
+
+  override mcpInfo = async (): Promise<McpInfo> => {
+    const { url, transport, tools, resources, prompts } = structuredClone(mcpInfoJson) as unknown as McpInfo;
+    return { url, transport, tools, resources, prompts };
+  };
+
+  private switchConnector(id: string, connected: boolean): Connector {
+    const found = this.connectorState.find((c) => c.id === id);
+    if (!found) throw new Error(`POST /connectors/${id}/${connected ? "connect" : "disconnect"}: HTTP 404`);
+    found.connected = connected;
+    return structuredClone(found);
+  }
 
   // --- the walk -------------------------------------------------------------------------
 

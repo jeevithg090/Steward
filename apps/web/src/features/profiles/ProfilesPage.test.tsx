@@ -48,7 +48,10 @@ test("the catalogue says who each profile is for, what it will and may never do,
   const chips = screen.getAllByRole("list", { name: "How Tempo speaks with you" });
   expect(chips.some((list) => within(list).queryByText("Hindi") && within(list).queryByText("slower"))).toBe(true);
 
-  await userEvent.click(screen.getAllByRole("button", { name: "Use this profile" })[0]!);
+  // Seven buttons, each named after its profile, so a screen reader's list of buttons tells them apart.
+  const uses = screen.getAllByRole("button", { name: /^Use this profile: / });
+  expect(new Set(uses.map((b) => b.getAttribute("aria-label"))).size).toBe(7);
+  await userEvent.click(screen.getByRole("button", { name: "Use this profile: Am I Owed Anything?" }));
   expect(setProfile).toHaveBeenCalledWith("am-i-owed");
   expect(await screen.findByText("Tempo now works under Am I Owed Anything?.")).toBeInTheDocument();
   await expectNoA11yViolations(container);
@@ -150,7 +153,7 @@ test("a valid code opens the profile, labelled as checked in the browser only, a
   expect(screen.getByText("Not yet checked by a Gateway")).toBeInTheDocument();
   expect(screen.getByText(/only ever validates: it never stores/)).toBeInTheDocument();
   expect(screen.getByText(/Work out the UK261 band/)).toBeInTheDocument();
-  await userEvent.click(await screen.findByRole("button", { name: "Use this profile" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Use this profile: New Here" }));
   expect(setProfile).toHaveBeenCalledWith("new-to-the-uk");
   expect(screen.getByText("This page has stored nothing.")).toBeInTheDocument();
 });

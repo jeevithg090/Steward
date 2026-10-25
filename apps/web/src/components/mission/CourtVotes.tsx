@@ -8,7 +8,7 @@ const OUTCOME_WORDS: Record<CourtDecision["outcome"], string> = {
   human_checkpoint: "A person should look",
 };
 
-/** Three models from three providers vote on eligibility; the amount is never up for a vote. */
+/** Three different models vote on eligibility; the amount is never up for a vote. */
 export function CourtVotes({ court, id = "court-heading", bare = false }: { court: CourtDecision | null; id?: string; bare?: boolean }) {
   const body = (
     <>

@@ -3,6 +3,7 @@ import { Badge, type BadgeTone, FOCUS } from "@/components/ui";
 import { LedgerCounter } from "@/components/mission";
 import type { Intent } from "@/lib/api";
 import { linkProps } from "@/router";
+import { FindingCard } from "../connectors/FindingCard";
 import { AudioMessage } from "./AudioMessage";
 import { LetterReadingCard } from "./LetterReadingCard";
 import { ScamVerdictCard } from "./ScamVerdictCard";
@@ -23,6 +24,7 @@ export const INTENT_WORDS: Record<Intent, string> = {
   profiles: "Profiles",
   help: "Help",
   smalltalk: "Chat",
+  sweep: "Connectors",
 };
 
 const INTENT_TONE: Partial<Record<Intent, BadgeTone>> = {
@@ -30,6 +32,7 @@ const INTENT_TONE: Partial<Record<Intent, BadgeTone>> = {
   stop: "rose",
   approve: "emerald",
   ledger: "emerald",
+  sweep: "emerald",
   memory_recall: "purple",
   memory_forget: "purple",
 };
@@ -116,6 +119,15 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
                     </li>
                   );
                 })}
+              </ul>
+            )}
+            {message.findings && message.findings.length > 0 && (
+              <ul aria-label="What Tempo found" className="mt-3 space-y-2">
+                {message.findings.map((f) => (
+                  <li key={f.id} className="min-w-0">
+                    <FindingCard finding={f} compact />
+                  </li>
+                ))}
               </ul>
             )}
             {message.ledger && (

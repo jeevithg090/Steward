@@ -76,6 +76,17 @@
     {"text": "what can you do", "intent": "help", "slots": {}},
     {"text": "hello", "intent": "smalltalk", "slots": {}},
     {"text": "thanks Tempo", "intent": "smalltalk", "slots": {}},
-    {"text": "how are you today", "intent": "smalltalk", "slots": {}}
+    {"text": "how are you today", "intent": "smalltalk", "slots": {}},
+    {"text": "check my email", "intent": "sweep", "slots": {}},
+    {"text": "Sweep my inbox", "intent": "sweep", "slots": {}},
+    {"text": "sweep", "intent": "sweep", "slots": {}},
+    {"text": "find what I'm owed", "intent": "sweep", "slots": {}},
+    {"text": "look through my emails", "intent": "sweep", "slots": {}},
+    {"text": "anything I'm owed in my email?", "intent": "sweep", "slots": {}},
+    {"text": "check my email for anything I'm owed", "intent": "sweep", "slots": {}},
+    {"text": "Am I owed anything? Look in my inbox and my bank.", "intent": "sweep", "slots": {}},
+    {"text": "Am I owed anything?", "intent": "entitlement", "slots": {}},
+    {"text": "check this email: you are due a tax refund", "intent": "scam_check", "slots": {}},
+    {"text": "I got an email saying I'm owed a refund", "intent": "scam_check", "slots": {}}
   ]
 }

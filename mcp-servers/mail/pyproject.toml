@@ -1,0 +1,14 @@
+[project]
+name = "tempo-mcp-mail"
+version = "0.1.0"
+description = "MCP connector: search and read a folder of .eml messages, read-only"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+dependencies = ["mcp>=2.3"]
+
+[project.scripts]
+tempo-mcp-mail = "tempo_mcp_mail.server:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14"]
+build-backend = "uv_build"

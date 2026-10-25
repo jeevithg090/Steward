@@ -1,0 +1,55 @@
+{
+ "recorded": "GET /mcp/info as tempo_gateway.mcp_server.describe answers it: the tools' own descriptions and annotations, read from mcp_server.py on 25 Oct 2026. The URL is a placeholder: a live Gateway answers with its public URL + /mcp.",
+ "url": "https://your-tempo-gateway.example/mcp",
+ "transport": "streamable-http",
+ "tools": [
+  {
+   "name": "check_message",
+   "description": "Check a text, email or message the person is unsure about, with Tempo's Scam Shield. It looks at the words, the links and the sender. It never calls a message safe.",
+   "read_only": true
+  },
+  {
+   "name": "read_letter",
+   "description": "Read a photographed letter: what it is, who sent it, any money owed either way, what must be done and by when. Anything Tempo is unsure of is listed. The photo isn't kept.",
+   "read_only": true
+  },
+  {
+   "name": "start_rail_claim",
+   "description": "Start a Delay Repay claim for a late UK train. Tempo checks the rail records and the operator's rule and works out what is owed. Then the claim waits: the person approves it on their own device, and this tool never can. The same journey twice is one claim.",
+   "read_only": false
+  },
+  {
+   "name": "start_missed_visit_claim",
+   "description": "Start a claim for a broadband or phone engineer who didn't come. Tempo plans when to act. Nothing is sent until the person approves on their own device; this tool never can. The same provider and day twice is one claim.",
+   "read_only": false
+  },
+  {
+   "name": "claim_status",
+   "description": "Where a claim stands: its state, Tempo's latest message, the amount and the timeline.",
+   "read_only": true
+  },
+  {
+   "name": "money_returned",
+   "description": "The Time Ledger: the money and the hours Tempo has won back, counted once paid.",
+   "read_only": true
+  },
+  {
+   "name": "screen_entitlements",
+   "description": "A quick check of benefits and discounts worth a look, from ten answers. It is screening, not a decision; each flag links the official checker.",
+   "read_only": true
+  },
+  {
+   "name": "verify_mandate",
+   "description": "For a company's agent: is this Agent Passport mandate genuine, live, issued by Tempo, and does it cover this action and amount? Fails closed.",
+   "read_only": true
+  }
+ ],
+ "resources": [
+  "tempo://rules/{rule_id}",
+  "tempo://profiles/{profile_id}"
+ ],
+ "prompts": [
+  "claim-a-late-train",
+  "is-this-a-scam"
+ ]
+}

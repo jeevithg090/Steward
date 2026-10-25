@@ -9,6 +9,7 @@ import type { MemoryCardData, MemoryItem, TemporalFact } from "@/lib/api";
 import { linkProps } from "@/router";
 import type { PageProps } from "@/types/page";
 import { SAY, TAP, chatSay } from "../story/demo";
+import { loadError } from "@/components/mission/words";
 
 export const SOURCE_WORDS: Record<string, string> = {
   user_voice: "you said, by phone",
@@ -97,7 +98,7 @@ export default function MemoryPage({ gateway, user, showcase, events }: PageProp
       setCard(await gateway.memories(user.id));
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(loadError(e));
     }
   }, [gateway, user.id]);
 

@@ -1,0 +1,70 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Tempo//Demo calendar: invented data//EN
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Margaret (demo data)
+X-WR-CALDESC:DEMO DATA. Invented for the Tempo demo\; not a real person's
+  calendar.
+X-WR-TIMEZONE:Europe/London
+BEGIN:VTIMEZONE
+TZID:Europe/London
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0000
+TZOFFSETTO:+0100
+TZNAME:BST
+DTSTART:19700329T010000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0000
+TZNAME:GMT
+DTSTART:19701025T020000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:gp-2026-10-14@demo.tempo
+DTSTAMP:20261001T091500Z
+DTSTART;TZID=Europe/London:20261014T102000
+DTEND;TZID=Europe/London:20261014T103000
+SUMMARY:GP appointment
+LOCATION:The Surgery\, High Street
+DESCRIPTION:Blood pressure check. Bring the list of tablets.
+END:VEVENT
+BEGIN:VEVENT
+UID:broadbandly-visit-BB-4417@demo.tempo
+DTSTAMP:20261012T091540Z
+DTSTART;TZID=Europe/London:20261019T080000
+DTEND;TZID=Europe/London:20261019T130000
+SUMMARY:Broadbandly engineer visit
+LOCATION:Home
+DESCRIPTION:Engineer to fix the broadband (no signal since 9 October).\nSl
+ ot 8am to 1pm. Someone must be in for the whole slot.\nAccount ref BB-44
+ 17.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Reminder: Broadbandly engineer tomorrow\, 8am to 1pm
+TRIGGER:-PT12H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:train-london-2026-10-23@demo.tempo
+DTSTAMP:20261021T180512Z
+DTSTART;TZID=Europe/London:20261023T081200
+DTEND;TZID=Europe/London:20261023T091500
+SUMMARY:Train to London (08:12 from Oxford)
+LOCATION:Oxford station
+DESCRIPTION:Great Western Railway to London Paddington\, due 09:15.\nOff-P
+ eak Day Return. Booking reference TL7Q2M.
+END:VEVENT
+BEGIN:VEVENT
+UID:book-club-2026-10-28@demo.tempo
+DTSTAMP:20261002T140000Z
+DTSTART;TZID=Europe/London:20261028T143000
+DTEND;TZID=Europe/London:20261028T160000
+SUMMARY:Book club
+LOCATION:Church hall
+DESCRIPTION:This month: Middlemarch\, chapters 1 to 20. Bring biscuits.
+END:VEVENT
+END:VCALENDAR

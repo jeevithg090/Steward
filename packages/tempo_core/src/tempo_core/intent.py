@@ -7,11 +7,13 @@ port runs against too. Code decides money, time and permissions; a model may onl
 talk, and that happens elsewhere (`tempo_gateway.chat`).
 
 Rules, in order: STOP wins; YES/NO when a question is pending (or the whole text is a yes/no);
-a link, "scam", "is this real", "got a text" or pressure words → `scam_check`; "forget …" →
-`memory_forget`; "remember" → `memory_recall`; "how much … back" → `ledger`; "letter" →
-`letter`; an engineer, a missed visit or a provider → `missed_visit`; a train, a delay, a
-station or a time → `rail_delay`; "owed", a benefit → `entitlement`; "profile" → `profiles`;
-"help" (or nothing) → `help`; else `smalltalk`.
+"sweep", "check my email", "find what I'm owed", or "owed" with her email, inbox or bank named
+(and no link, pressure or question about one message) → `sweep`; a link, "scam", "is this
+real", "got a text" or pressure words → `scam_check`; "forget …" → `memory_forget`;
+"remember" → `memory_recall`; "how much … back" → `ledger`; "letter" → `letter`; an engineer,
+a missed visit or a provider → `missed_visit`; a train, a delay, a station or a time →
+`rail_delay`; "owed", a benefit → `entitlement`; "profile" → `profiles`; "help" (or nothing) →
+`help`; else `smalltalk`.
 """
 
 from __future__ import annotations
@@ -38,6 +40,7 @@ class Intent(StrEnum):
     DECLINE = "decline"
     STOP = "stop"
     PROFILES = "profiles"
+    SWEEP = "sweep"  # look through the connected email, calendar and bank (plan.md §14.2)
     HELP = "help"
     SMALLTALK = "smalltalk"
 
@@ -225,6 +228,17 @@ _ENTITLEMENT = re.compile(
     re.IGNORECASE,
 )
 _PROFILES = re.compile(r"\bprofiles?\b|who (?:do|are) you work(?:ing)? for", re.IGNORECASE)
+# The connectors' sweep (plan.md §14.2). Checked before Scam Shield, so "check my email" is a sweep
+# unless the text carries a link, pressure or a question about one message ("I got an email…");
+# "Am I owed anything?" stays an entitlement question unless her email, inbox or bank is named.
+_SWEEP = re.compile(
+    r"\bsweep\b|\b(?:check|look (?:through|at|in)|go through|search|scan) my (?:e-?mails?|inbox"
+    r"|mail(?:box)?|calendar|bank statements?)\b|\bfind (?:what|money|anything|everything)\b"
+    r"[\w\s']*\bowed\b",
+    re.IGNORECASE,
+)
+_SWEEP_PLACE = re.compile(r"\b(?:e-?mails?|inbox|mailbox|bank)\b", re.IGNORECASE)
+_OWED = re.compile(r"\bowed\b", re.IGNORECASE)
 _HELP = re.compile(
     r"\bhelp\b|what can you do|how does this work|what do you do|what are you\b|what is tempo",
     re.IGNORECASE,
@@ -325,6 +339,8 @@ def classify(text: str, *, pending_question: bool = False) -> Intent:
     answer = _yes_or_no(text, pending_question)
     if answer is not None:
         return answer
+    if _sweep_like(text):
+        return Intent.SWEEP
     if _URL.search(text) or _SCAM_ASK.search(text) or _pressured(text):
         return Intent.SCAM_CHECK
     if _FORGET_WORD.search(text):
@@ -415,6 +431,12 @@ def _yes_or_no(text: str, pending: bool) -> Intent | None:
 
 def _pressured(text: str) -> bool:
     return bool(_PRESSURE_STRONG.search(text)) or len(_PRESSURE_WEAK.findall(text)) >= 2
+
+
+def _sweep_like(text: str) -> bool:
+    if _URL.search(text) or _pressured(text) or _SCAM_ASK.search(_SWEEP.sub(" ", text)):
+        return False
+    return bool(_SWEEP.search(text)) or bool(_OWED.search(text) and _SWEEP_PLACE.search(text))
 
 
 def _visit_like(text: str) -> bool:

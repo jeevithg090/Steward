@@ -1,0 +1,28 @@
+X-Tempo-Demo: invented for the Tempo demo; not a real message
+From: Your Library <reminders@library.example>
+To: Margaret <margaret@example.com>
+Subject: Reminder: 2 books due back on Tue 27 October
+Date: Tue, 20 Oct 2026 07:00:00 +0100
+Message-ID: <due-20261027-4471@library.example>
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+
+<!DOCTYPE html>
+<html>
+<head><title>Library reminder</title>
+<style>table { border-collapse: collapse; } td { padding: 4px; }</style></head>
+<body>
+<h1>Your books are due back soon</h1>
+<p>Hello Margaret,</p>
+<p>These books are due back on <b>Tuesday 27 October 2026</b>:</p>
+<table>
+<tr><td>Middlemarch</td><td>George Eliot</td></tr>
+<tr><td>The Moonstone</td><td>Wilkie Collins</td></tr>
+</table>
+<p>You can renew them at the desk or by phone. There are no fines on your account.</p>
+<p>Your Library</p>
+<p><small>Demo data: invented for the Tempo demo.</small></p>
+<script>trackOpen();</script>
+</body>
+</html>

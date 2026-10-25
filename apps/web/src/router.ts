@@ -11,7 +11,7 @@ export interface Route {
 
 export const ROUTES = [
   "/chat", "/missions", "/missions/:id", "/memory", "/profiles", "/profiles/import", "/profiles/:id",
-  "/skills", "/shield", "/read", "/owed", "/callers", "/privacy", "/story", "/settings", "/devices", "/pair",
+  "/skills", "/shield", "/read", "/owed", "/callers", "/privacy", "/story", "/settings", "/devices", "/pair", "/connectors",
 ] as const;
 
 export function parseHash(hash: string): { path: string; query: URLSearchParams } {

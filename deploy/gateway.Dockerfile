@@ -15,6 +15,8 @@ COPY fixtures/rail/replay /app/fixtures/rail/replay
 COPY fixtures/court /app/fixtures/court
 COPY fixtures/govuk /app/fixtures/govuk
 COPY fixtures/scam /app/fixtures/scam
+COPY fixtures/connectors /app/fixtures/connectors
+COPY connectors /app/connectors
 COPY alembic.ini /app/alembic.ini
 COPY alembic /app/alembic
 WORKDIR /app

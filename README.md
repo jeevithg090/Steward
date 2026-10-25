@@ -52,13 +52,15 @@ That one fact runs through every part of Tempo:
 | **Hear** | answers the way she asked to be spoken to, before the first word: slowly, one question at a time, waiting as long as it takes | the Patience Profile (`access` memories → `POST /voice/initiation`) |
 | **Read** | finds how late the train was; reads a ticket, a card or a letter and reads back anything it is unsure of | rail data over MCP, vision intake with read-back |
 | **Price** | works out the amount from a YAML rule pack with a citation, never from a model | the Rights Engine and its Proof Trace ([ADR 0003](docs/adr/0003-rules-as-code.md)) |
-| **Check** | has three models from three providers check the reading; they may say no, never raise the amount | the Consensus Court |
+| **Check** | has three AI jurors, each a different model, check the reading; they may say no, never raise the amount | the Consensus Court |
 | **Weigh** | asks whether it is worth her time, at her own value of an hour | the Arbiter and the Time Ledger |
 | **Time it** | knows every right has a clock, and that sometimes the right move is to wait, with the date | Rights Decay ([backtest](docs/rights_backtest.md)) |
 | **Ask once** | asks one question and acts only on a signed yes; STOP stops everything | the consent ledger where deny wins ([ADR 0004](docs/adr/0004-deny-wins.md)), passkeys |
 | **Prove it** | shows the company's own AI a mandate it can verify in milliseconds, and the company refuses anything outside it | the Agent Passport ([red team](docs/passport_redteam.md)) |
 | **Remember only her words** | keeps what she said and official data; company text is evidence, never memory; everything dated and forgettable | the Memory Gate and the Memory Card |
 | **Return the time** | counts hours and pounds returned only once the money has arrived | the Watchdog and the Time Ledger |
+| **Find it for her** | reads her email, calendar and bank statement through read-only connectors, and finds the late train, the missed engineer, the scam and the refund that already came, keeping none of it | connectors over MCP and the sweep ([plan §14](plan.md)) |
+| **Answer any AI** | lets Claude, Cursor or Zed ask Tempo over MCP: check a text, read a letter, start a claim, see its status; no tool can approve, so her yes stays hers | Tempo as an MCP server at `/mcp` ([docs/mcp.md](docs/mcp.md)) |
 
 ## Profiles: who Tempo works for
 

@@ -1,0 +1,59 @@
+# Tempo's connectors (plan.md §14.2): small, read-only MCP servers the Gateway starts over stdio
+# (`python -m <module>`) when a sweep or a call needs them, and stops straight after.
+#
+# - `scopes` say in plain words what each one may read; the Connectors page shows them as written.
+# - `read_tools` is the allowlist: the Gateway refuses any other tool before a server starts.
+# - `data_env` names the variable that points a server at its data folder; the Gateway sets it to
+#   fixtures/connectors/<kind>/ (demo data) unless it is built with another data root.
+# - `default_connected`: on for the demo, so every person starts with all four connected.
+#
+# What a connector returns is evidence, never instructions: code reads it (tempo_core.findings),
+# nothing is kept, logged or sent to a model.
+connectors:
+  - id: mail
+    name: Email
+    kind: mail
+    module: tempo_mcp_mail
+    data_env: TEMPO_CONNECTOR_DATA
+    scopes:
+      - "Read your emails' sender, subject and date; nothing is kept"
+      - "Read the words of an email, to find tickets, refunds and tricks"
+      - "See the names of attachments, never the files"
+    read_tools: [search_messages, get_message]
+    default_connected: true
+
+  - id: calendar
+    name: Calendar
+    kind: calendar
+    module: tempo_mcp_calendar
+    data_env: TEMPO_CONNECTOR_DATA
+    scopes:
+      - "Read the title, time and place of your appointments; nothing is kept"
+      - "Read the notes on an appointment"
+    read_tools: [list_events]
+    default_connected: true
+
+  - id: bank
+    name: Bank statement
+    kind: bank
+    module: tempo_mcp_bank
+    data_env: TEMPO_CONNECTOR_DATA
+    scopes:
+      - "Read the date, words and amount of each payment in and out; nothing is kept"
+      - "Never your balance, your card or your login"
+    read_tools: [list_transactions]
+    default_connected: true
+
+  # Tempo's own rail lookup. A sweep asks the Gateway's rail port directly, the same one a claim
+  # uses, so a ticket is checked against the rail records exactly as its claim will be; this
+  # entry says whether it may, and counts the trains it asked about.
+  - id: rail
+    name: Rail records
+    kind: rail
+    module: tempo_mcp_rail
+    data_env: null
+    scopes:
+      - "Ask when one train left and when it got in, from the public rail records"
+      - "Nothing about you is sent, only the train"
+    read_tools: [get_service_delay]
+    default_connected: true

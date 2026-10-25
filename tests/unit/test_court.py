@@ -190,3 +190,35 @@ async def test_a_split_goes_to_a_person() -> None:
 
     assert isinstance(final, NeedsHuman)
     assert "split" in final.reason
+
+
+async def test_once_two_agree_the_court_rules_without_waiting_for_a_slow_third() -> None:
+    jurors = (FakeJuror("a"), FakeJuror("slow", delay_s=5), FakeJuror("b", delay_s=0.05))
+    court_ = ConsensusCourt(jurors, timeout_s=10, grace_s=0.1)
+
+    start = time.perf_counter()
+    decision = await court_.decide(QUESTION)
+
+    assert time.perf_counter() - start < 1.0  # not the 5 s the slow juror takes, nor the timeout
+    assert decision.eligible is True
+    assert decision.absent == ("slow",)
+    assert "juror absent: slow" in decision.flags
+    assert [v.juror for v in decision.verdicts] == ["a", "b"]  # the jurors' own order
+
+
+async def test_a_third_juror_inside_the_grace_still_counts() -> None:
+    jurors = (FakeJuror("a"), FakeJuror("b"), FakeJuror("c", delay_s=0.05))
+
+    decision = await ConsensusCourt(jurors, timeout_s=10, grace_s=1.0).decide(QUESTION)
+
+    assert decision.outcome is CourtOutcome.PROCEED  # unanimous, unflagged
+    assert decision.absent == ()
+
+
+async def test_a_split_waits_for_the_third_juror() -> None:
+    jurors = (FakeJuror("yes"), FakeJuror("no", False), FakeJuror("late", False, delay_s=0.2))
+
+    decision = await ConsensusCourt(jurors, timeout_s=5, grace_s=0.01).decide(QUESTION)
+
+    assert decision.eligible is False  # the late juror broke the tie; no grace before two agreed
+    assert decision.absent == ()

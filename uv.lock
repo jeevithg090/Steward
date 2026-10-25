@@ -16,6 +16,9 @@ members = [
     "tempo-crypto",
     "tempo-gateway",
     "tempo-harness",
+    "tempo-mcp-bank",
+    "tempo-mcp-calendar",
+    "tempo-mcp-mail",
     "tempo-mcp-rail",
     "tempo-memory",
     "tempo-missions",
@@ -3660,6 +3663,9 @@ dependencies = [
     { name = "tempo-crypto" },
     { name = "tempo-gateway" },
     { name = "tempo-harness" },
+    { name = "tempo-mcp-bank" },
+    { name = "tempo-mcp-calendar" },
+    { name = "tempo-mcp-mail" },
     { name = "tempo-mcp-rail" },
     { name = "tempo-memory" },
     { name = "tempo-missions" },
@@ -3693,6 +3699,9 @@ requires-dist = [
     { name = "tempo-crypto", editable = "packages/tempo_crypto" },
     { name = "tempo-gateway", editable = "apps/gateway" },
     { name = "tempo-harness", editable = "packages/tempo_harness" },
+    { name = "tempo-mcp-bank", editable = "mcp-servers/bank" },
+    { name = "tempo-mcp-calendar", editable = "mcp-servers/calendar" },
+    { name = "tempo-mcp-mail", editable = "mcp-servers/mail" },
     { name = "tempo-mcp-rail", editable = "mcp-servers/rail" },
     { name = "tempo-memory", editable = "packages/tempo_memory" },
     { name = "tempo-missions", editable = "packages/tempo_missions" },
@@ -3792,6 +3801,7 @@ version = "0.1.0"
 source = { editable = "apps/gateway" }
 dependencies = [
     { name = "fastapi" },
+    { name = "mcp" },
     { name = "python-multipart" },
     { name = "pywebpush" },
     { name = "segno" },
@@ -3800,6 +3810,9 @@ dependencies = [
     { name = "tempo-core" },
     { name = "tempo-crypto" },
     { name = "tempo-harness" },
+    { name = "tempo-mcp-bank" },
+    { name = "tempo-mcp-calendar" },
+    { name = "tempo-mcp-mail" },
     { name = "tempo-memory" },
     { name = "tempo-missions" },
     { name = "tempo-passport" },
@@ -3812,6 +3825,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.162" },
+    { name = "mcp", specifier = ">=2.3" },
     { name = "python-multipart", specifier = ">=0.0.32" },
     { name = "pywebpush", specifier = ">=2.5.0" },
     { name = "segno", specifier = ">=1.6.6" },
@@ -3820,6 +3834,9 @@ requires-dist = [
     { name = "tempo-core", editable = "packages/tempo_core" },
     { name = "tempo-crypto", editable = "packages/tempo_crypto" },
     { name = "tempo-harness", editable = "packages/tempo_harness" },
+    { name = "tempo-mcp-bank", editable = "mcp-servers/bank" },
+    { name = "tempo-mcp-calendar", editable = "mcp-servers/calendar" },
+    { name = "tempo-mcp-mail", editable = "mcp-servers/mail" },
     { name = "tempo-memory", editable = "packages/tempo_memory" },
     { name = "tempo-missions", editable = "packages/tempo_missions" },
     { name = "tempo-passport", editable = "packages/tempo_passport" },
@@ -3847,6 +3864,39 @@ requires-dist = [
     { name = "tempo-core", editable = "packages/tempo_core" },
     { name = "tempo-passport", editable = "packages/tempo_passport" },
 ]
+
+[[package]]
+name = "tempo-mcp-bank"
+version = "0.1.0"
+source = { editable = "mcp-servers/bank" }
+dependencies = [
+    { name = "mcp" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "mcp", specifier = ">=2.3" }]
+
+[[package]]
+name = "tempo-mcp-calendar"
+version = "0.1.0"
+source = { editable = "mcp-servers/calendar" }
+dependencies = [
+    { name = "mcp" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "mcp", specifier = ">=2.3" }]
+
+[[package]]
+name = "tempo-mcp-mail"
+version = "0.1.0"
+source = { editable = "mcp-servers/mail" }
+dependencies = [
+    { name = "mcp" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "mcp", specifier = ">=2.3" }]
 
 [[package]]
 name = "tempo-mcp-rail"

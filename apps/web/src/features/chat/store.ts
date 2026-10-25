@@ -4,12 +4,14 @@
 // Conversations survive a reload (plan.md §12.3): they are kept in localStorage under
 // `tempo.chat.v1`, at most 30 conversations of 100 messages each, without audio clips.
 import { useSyncExternalStore } from "react";
-import type { ChatNeed, ConsentAsk, CourtDecision, MissionState, MissionView } from "@/lib/api";
+import type { ChatNeed, ConsentAsk, CourtDecision, Finding, MissionState, MissionView } from "@/lib/api";
 import type { ChatMessage } from "@/types/types";
 
 /** One bubble, plus the things the person could say next (ChatReply.suggestions, plan.md §12.2). */
 export interface ThreadMessage extends ChatMessage {
   suggestions?: string[];
+  /** What a sweep of the connectors found (ChatReply.findings, plan.md §14.2). */
+  findings?: Finding[];
 }
 
 export interface Conversation {

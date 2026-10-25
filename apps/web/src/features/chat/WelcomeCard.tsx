@@ -3,7 +3,7 @@
 // nothing is cut off on a phone, and every target is at least 44px tall.
 import { useElementWidth } from "@/hooks/useElementWidth";
 import type { ComponentType } from "react";
-import { Brain, FileText, Hand, PoundSterling, ShieldAlert, Sparkles, Train, Wrench } from "lucide-react";
+import { Brain, FileText, Hand, Inbox, PoundSterling, ShieldAlert, Sparkles, Train, Wrench } from "lucide-react";
 import { Card, FOCUS } from "@/components/ui";
 import { SCAM_SAMPLE } from "@/lib/showcase-chat";
 
@@ -19,6 +19,9 @@ export interface Beat {
 /** The demo's late train, as the presenter says it (the e2e test clicks it by "08:12 Oxford to Paddington"). */
 export const DEMO_SENTENCE = "My 08:12 Oxford to Paddington was 38 minutes late on 23 October, ticket £28.40";
 
+/** The connectors' sweep (plan.md §14): Tempo reads her email, calendar and bank statement for money she's owed. */
+export const SWEEP_SAMPLE = "Find money I'm owed in my email";
+
 /** One group per beat, each with its lucide icon. */
 export const BEATS: Beat[] = [
   { id: "train", label: "A late train", icon: Train, tone: "bg-indigo-500/15 text-indigo-300", samples: [DEMO_SENTENCE] },
@@ -26,6 +29,7 @@ export const BEATS: Beat[] = [
   { id: "scam", label: "Is this a scam?", icon: ShieldAlert, tone: "bg-rose-500/15 text-rose-300", samples: [SCAM_SAMPLE] },
   { id: "memory", label: "What I remember", icon: Brain, tone: "bg-purple-500/15 text-purple-300", samples: ["What do you remember about me?"] },
   { id: "money", label: "Money back", icon: PoundSterling, tone: "bg-emerald-500/15 text-emerald-300", samples: ["How much have you got back for me?", "Am I owed anything?"] },
+  { id: "inbox", label: "Money in my email", icon: Inbox, tone: "bg-emerald-500/15 text-emerald-300", samples: [SWEEP_SAMPLE] },
   { id: "letter", label: "Read a letter", icon: FileText, tone: "bg-white/10 text-slate-200", samples: ["Read this letter"] },
 ];
 

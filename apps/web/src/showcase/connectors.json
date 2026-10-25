@@ -1,0 +1,68 @@
+{
+ "recorded": "GET /connectors?user_id=u_margaret after a sweep, from tempo_gateway.connectors on connectors/connectors.yaml and fixtures/connectors (25 Oct 2026); the read times are pinned to the recording morning.",
+ "connectors": [
+  {
+   "id": "mail",
+   "name": "Email",
+   "kind": "mail",
+   "connected": true,
+   "scopes": [
+    "Read your emails' sender, subject and date; nothing is kept",
+    "Read the words of an email, to find tickets, refunds and tricks",
+    "See the names of attachments, never the files"
+   ],
+   "tools": [
+    "search_messages",
+    "get_message"
+   ],
+   "last_read_at": "2026-10-25T09:58:12+01:00",
+   "items_read": 6
+  },
+  {
+   "id": "calendar",
+   "name": "Calendar",
+   "kind": "calendar",
+   "connected": true,
+   "scopes": [
+    "Read the title, time and place of your appointments; nothing is kept",
+    "Read the notes on an appointment"
+   ],
+   "tools": [
+    "list_events"
+   ],
+   "last_read_at": "2026-10-25T09:58:12+01:00",
+   "items_read": 4
+  },
+  {
+   "id": "bank",
+   "name": "Bank statement",
+   "kind": "bank",
+   "connected": true,
+   "scopes": [
+    "Read the date, words and amount of each payment in and out; nothing is kept",
+    "Never your balance, your card or your login"
+   ],
+   "tools": [
+    "list_transactions"
+   ],
+   "last_read_at": "2026-10-25T09:58:12+01:00",
+   "items_read": 16
+  },
+  {
+   "id": "rail",
+   "name": "Rail records",
+   "kind": "rail",
+   "connected": true,
+   "scopes": [
+    "Ask when one train left and when it got in, from the public rail records",
+    "Nothing about you is sent, only the train"
+   ],
+   "tools": [
+    "get_service_delay"
+   ],
+   "last_read_at": "2026-10-25T09:58:12+01:00",
+   "items_read": 1
+  }
+ ],
+ "simulated": true
+}

@@ -34,6 +34,16 @@ company, rail data, jurors, vision**. Sample chips carry every beat, so nothing 
    expiry, what the company checked and what it refused. **STOP** in the chat revokes it everywhere.
 10. **Who's calling?** Margaret, Dilip and Joan: language, pace, voice, the words the voice agent is
     given, and the memories behind them.
+11. **Connectors** (sidebar): Email, Calendar, Bank statement and Rail records, each read-only, with
+    what Tempo may read in plain words. **Sweep my inbox** finds four things: the 08:12 e-ticket
+    (the rail records say 38 minutes late, so £14.20 is waiting), the Broadbandly visit on
+    19 October ("Did they come?"), the "HMRC refund" email Scam Shield calls a trick, and the
+    Thames Water £23.40 that already reached her bank. Each card says what Tempo read and links to
+    the next step. In the chat, *check my email for anything I'm owed* does the same.
+12. **Use Tempo from your AI** (the same page): the MCP server's eight tools, each marked read-only
+    or not, and a copyable config for Claude Code, Zed, Cursor and Claude Desktop. Say it out loud:
+    *no tool can approve; Margaret says yes on her own device.* `scripts/mcp_demo_client.py` shows
+    it from a terminal: it starts a claim over MCP and gets back how she approves it.
 
 `make showcase` runs the same app with no Gateway, on recorded replies; the badge then reads
 **SHOWCASE · recorded replay · no Gateway**.

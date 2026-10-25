@@ -63,6 +63,7 @@ Vercel, in `vite preview` and inside Tauri. `src/router.ts` exports `ROUTES` (th
 | `#/profiles`, `#/profiles/:id`, `#/profiles/import` | Profiles | `#/privacy` | Privacy Proof |
 | `#/skills` | Skills | `#/story` | The story |
 | `#/shield` | Scam Shield | `#/settings` | Settings |
+| `#/devices`, `#pair=…` | Devices (Tempo Mesh) | `#/connectors` | Connectors and Tempo's MCP server |
 
 The sidebar (`src/components/layout/Sidebar.tsx`) lists them in two groups, *Doing* and *Trust*,
 with Settings at the bottom; the chat's history appears under them on the chat page.

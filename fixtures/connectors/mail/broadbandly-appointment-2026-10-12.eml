@@ -1,0 +1,52 @@
+X-Tempo-Demo: invented for the Tempo demo; not a real message
+From: Broadbandly <appointments@broadbandly.example>
+To: Margaret <margaret@example.com>
+Subject: Your engineer visit is booked: Mon 19 October, 8am to 1pm
+Date: Mon, 12 Oct 2026 10:15:40 +0100
+Message-ID: <visit-BB-4417-20261019@broadbandly.example>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============4894359661137445343=="
+
+--===============4894359661137445343==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Hello Margaret,
+
+Your engineer visit is booked.
+
+Date: Monday 19 October 2026
+Time: 8am to 1pm
+Account ref: BB-4417
+Why: no broadband signal since 9 October
+
+Please make sure someone aged 18 or over is at home for the whole slot.
+The engineer will ring you 30 minutes before they arrive.
+
+If you need to change the visit, reply to this email or call us at least
+24 hours before. We have added the visit to the calendar invite attached.
+
+Thank you,
+Broadbandly Customer Care
+
+Broadbandly is a simulated company invented for the Tempo demo.
+
+--===============4894359661137445343==
+Content-Type: text/calendar; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="engineer-visit.ics"
+MIME-Version: 1.0
+
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Broadbandly (demo)//EN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:broadbandly-visit-BB-4417@demo.tempo
+DTSTART;TZID=Europe/London:20261019T080000
+DTEND;TZID=Europe/London:20261019T130000
+SUMMARY:Broadbandly engineer visit
+END:VEVENT
+END:VCALENDAR
+
+--===============4894359661137445343==--

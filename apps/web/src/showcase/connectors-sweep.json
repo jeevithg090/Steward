@@ -1,0 +1,111 @@
+{
+ "label": "recorded",
+ "note": "POST /connectors/sweep {user_id} from tempo_gateway.connectors over fixtures/connectors (replay rail records, Scam Shield), 25 Oct 2026; identical to the live reply. `under_way` holds the late train and the visit as the Gateway words them when a claim for them is already live (connectors._under_way, built by tempo_core.findings); the showcase swaps them in while Margaret's recorded claims are live.",
+ "findings": [
+  {
+   "id": "f_late_train_6f4b196efe91",
+   "kind": "late_train",
+   "title": "Your 08:12 to Paddington was 38 minutes late: £14.20 to claim",
+   "why": "Your Trainline ticket shows the 08:12 from Oxford to Paddington on 23 October. It cost £28.40. The rail records say it was 38 minutes late, so you can claim £14.20 back.",
+   "amount_gbp": "14.20",
+   "source": {
+    "connector": "mail",
+    "item": "Trainline e-ticket, 23 October"
+   },
+   "say": "My 08:12 train from Oxford to Paddington was 38 minutes late on 23 October. It cost £28.40.",
+   "action": {
+    "label": "Claim £14.20",
+    "href": "#/chat?say=My%2008%3A12%20train%20from%20Oxford%20to%20Paddington%20was%2038%20minutes%20late%20on%2023%20October.%20It%20cost%20%C2%A328.40."
+   }
+  },
+  {
+   "id": "f_engineer_visit_c28628f77915",
+   "kind": "engineer_visit",
+   "title": "Did they come? Broadbandly had an engineer booked for 19 October.",
+   "why": "Your calendar has a Broadbandly engineer booked for 19 October, 8am to 1pm. If no one came, Broadbandly may owe you money for it.",
+   "amount_gbp": null,
+   "source": {
+    "connector": "calendar",
+    "item": "Broadbandly engineer visit, 19 October"
+   },
+   "say": "The Broadbandly engineer did not come on 19 October. Can you help?",
+   "action": {
+    "label": "They didn't come",
+    "href": "#/chat?say=The%20Broadbandly%20engineer%20did%20not%20come%20on%2019%20October.%20Can%20you%20help%3F"
+   }
+  },
+  {
+   "id": "f_scam_e7f48f51f9e4",
+   "kind": "scam",
+   "title": "The email from “HMRC” is a trick",
+   "why": "Scam Shield says it is not from HMRC. Do not click its link, reply or pay. If you are not sure, call HMRC on a number you trust.",
+   "amount_gbp": null,
+   "source": {
+    "connector": "mail",
+    "item": "Email: HMRC: you are due a tax refund"
+   },
+   "say": "Is this a scam? You are due a tax refund of 248.20 GBP. Claim within 24 hours at http://hmrc-refunds-gov.uk/claim",
+   "action": {
+    "label": "See why it's a trick",
+    "href": "#/chat?say=Is%20this%20a%20scam%3F%20You%20are%20due%20a%20tax%20refund%20of%20248.20%20GBP.%20Claim%20within%2024%20hours%20at%20http%3A%2F%2Fhmrc-refunds-gov.uk%2Fclaim"
+   }
+  },
+  {
+   "id": "f_money_arrived_797b1ec3ea01",
+   "kind": "money_arrived",
+   "title": "Thames Water paid £23.40 into your bank",
+   "why": "Your bank shows £23.40 from Thames Water on 9 October. Their email said this money was coming, so there is nothing to do.",
+   "amount_gbp": "23.40",
+   "source": {
+    "connector": "bank",
+    "item": "THAMES WATER REFUND, 9 October"
+   },
+   "say": "Am I owed anything else?",
+   "action": {
+    "label": "Check what else I'm owed",
+    "href": "#/chat?say=Am%20I%20owed%20anything%20else%3F"
+   }
+  }
+ ],
+ "read": {
+  "mail": 6,
+  "calendar": 4,
+  "bank": 16,
+  "rail": 1
+ },
+ "took_ms": 412,
+ "under_way": {
+  "f_late_train_6f4b196efe91": {
+   "id": "f_late_train_6f4b196efe91",
+   "kind": "late_train",
+   "title": "Your 08:12 to Paddington: I am on it",
+   "why": "Your Trainline ticket shows the 08:12 from Oxford to Paddington on 23 October. A claim for it has already started. Mission Control shows where it is.",
+   "amount_gbp": "14.20",
+   "source": {
+    "connector": "mail",
+    "item": "Trainline e-ticket, 23 October"
+   },
+   "say": "My 08:12 train from Oxford to Paddington was 38 minutes late on 23 October. It cost £28.40.",
+   "action": {
+    "label": "Open Mission Control",
+    "href": "#/missions"
+   }
+  },
+  "f_engineer_visit_c28628f77915": {
+   "id": "f_engineer_visit_c28628f77915",
+   "kind": "engineer_visit",
+   "title": "The Broadbandly visit on 19 October: I am on it",
+   "why": "A claim for this visit has already started. Mission Control shows where it is.",
+   "amount_gbp": null,
+   "source": {
+    "connector": "calendar",
+    "item": "Broadbandly engineer visit, 19 October"
+   },
+   "say": "The Broadbandly engineer did not come on 19 October. Can you help?",
+   "action": {
+    "label": "Open Mission Control",
+    "href": "#/missions"
+   }
+  }
+ }
+}

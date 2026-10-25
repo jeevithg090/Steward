@@ -160,7 +160,7 @@ test("without demo mode the payment check stays (it only fires due checks); the 
   const ofcom = (await gateway.missions()).find((m) => m.skill_id?.includes("ofcom"))!;
   const p = props(gateway, { id: ofcom.id });
   renderPage({ ...p, health: { ...p.health!, demo: false } });
-  await userEvent.click(await screen.findByRole("button", { name: "Yes, claim £32.31" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Yes, handle it for me" }));
   const check = await screen.findByRole("button", { name: "Check the payment now" });
   expect(screen.queryByRole("button", { name: "Jump ahead 31 days" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "The credit arrives" })).not.toBeInTheDocument();
@@ -185,7 +185,7 @@ test("the broadband mission waits on purpose; the clock jump makes it act and sh
   expect(await screen.findByText("Waiting, on purpose")).toBeInTheDocument();
   expect(screen.getByText("Complain to Broadbandly")).toBeInTheDocument();
   expect(screen.getAllByText("demo values").length).toBeGreaterThan(0);
-  await userEvent.click(screen.getByRole("button", { name: "Yes, claim £32.31" }));
+  await userEvent.click(screen.getByRole("button", { name: "Yes, handle it for me" }));
   const jump = await screen.findByRole("button", { name: "Jump ahead 31 days" });
   // Waiting on purpose is not a filed claim: the toast says what happened.
   expect(screen.getByText("Saved. Tempo will wait on purpose until 19 November.")).toBeInTheDocument();
@@ -223,7 +223,7 @@ test("the credit arriving is confirmed", async () => {
   const gateway = new ShowcaseGateway();
   const ofcom = (await gateway.missions()).find((m) => m.skill_id?.includes("ofcom"))!;
   renderPage(props(gateway, { id: ofcom.id }));
-  await userEvent.click(await screen.findByRole("button", { name: "Yes, claim £32.31" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Yes, handle it for me" }));
   await userEvent.click(await screen.findByRole("button", { name: "The credit arrives" }));
   expect(await screen.findByText("The credit has arrived. The next check will find it.")).toBeInTheDocument();
 });

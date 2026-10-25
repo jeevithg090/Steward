@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import {
+  Plug,
   BookOpen,
   Brain,
   FileText,
@@ -50,6 +51,7 @@ export const NAV_DOING: NavEntry[] = [
   { to: "/read", label: "Read It To Me", icon: <FileText size={18} aria-hidden /> },
   { to: "/owed", label: "Am I owed anything?", icon: <PoundSterling size={18} aria-hidden /> },
   { to: "/shield", label: "Scam Shield", icon: <ShieldAlert size={18} aria-hidden /> },
+  { to: "/connectors", label: "Connectors", icon: <Plug size={18} aria-hidden /> },
 ];
 
 export const NAV_TRUST: NavEntry[] = [

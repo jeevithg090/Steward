@@ -19,10 +19,21 @@ export interface ConsentCardProps {
   why?: boolean;
   /** This device answers with its passkey (useMesh().signs): the yes says Face ID, and why. */
   signed?: boolean;
+  /** The plan is to wait on purpose, so a yes hands the case over rather than files a claim today.
+   * Defaults to what the ask itself says ("I'll wait for now"). */
+  waits?: boolean;
+}
+
+const WAITS = /\bI'll wait for now\b/i;
+
+/** The yes, in words that match what happens next: a claim today, or the case handed over. */
+function yesWords(amount: string, { signed = false, waits = false }: { signed?: boolean; waits?: boolean } = {}): string {
+  const yes = waits ? "Yes, handle it for me" : `Yes, claim £${amount}`;
+  return signed ? `${yes} with Face ID` : yes;
 }
 
 /** "Tempo is asking you": the one question, the exact amount, and why (Proof Trace, the Court). */
-export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, signed = false }: ConsentCardProps) {
+export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, signed = false, waits }: ConsentCardProps) {
   const [open, setOpen] = useState(false);
   const headingId = useId();
   const whyId = useId();
@@ -30,6 +41,7 @@ export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, si
   const demoValues = /demo values/i.test(ask.summary);
   const theCourt = (ask as AskWithCourt).court ?? court ?? null;
   const amount = gbp(ask.amount_gbp).replace("£", "");
+  const handsOver = waits ?? WAITS.test(ask.summary);
 
   return (
     <Card as="section" tone="indigo" aria-labelledby={headingId} className="space-y-3">
@@ -62,7 +74,7 @@ export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, si
           aria-describedby={signed ? signedId : undefined}
           onClick={() => onAnswer(true)}
         >
-          {signed ? `Yes, claim £${amount} with Face ID` : `Yes, claim £${amount}`}
+          {yesWords(amount, { signed, waits: handsOver })}
         </Button>
         <Button variant="quiet" size="lg" disabled={busy} onClick={() => onAnswer(false)}>
           No

@@ -7,6 +7,9 @@
 | a juror is absent        | the other two must agree, flagged    |
 | a split, or < 2 jurors   | human checkpoint                     |
 
+Once two jurors agree, the third can change a flag but never the outcome, so the court waits only
+a short grace for it and then rules; a juror that misses the grace is absent, as on a timeout.
+
 The court interprets eligibility and nothing else. It can say "no" or "ask a person", but it can
 never turn the Rights Engine's "not eligible" into a "yes", and it never sets an amount.
 """
@@ -14,8 +17,9 @@ never turn the Rights Engine's "not eligible" into a "yes", and it never sets an
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
@@ -24,7 +28,10 @@ from tempo_core.models import ProofStep, ProofTrace
 from tempo_core.rules import NotEligible
 from tempo_ports.court import CaseQuestion, Juror, JurorVerdict
 
+log = logging.getLogger(__name__)
+
 JUROR_TIMEOUT_S = 20.0
+LATE_GRACE_S = 2.0  # how long the third juror gets once two have agreed
 
 
 class CourtOutcome(StrEnum):
@@ -62,25 +69,69 @@ class NeedsHuman(BaseModel):
 
 
 class ConsensusCourt:
-    def __init__(self, jurors: Sequence[Juror], *, timeout_s: float = JUROR_TIMEOUT_S) -> None:
+    def __init__(
+        self,
+        jurors: Sequence[Juror],
+        *,
+        timeout_s: float = JUROR_TIMEOUT_S,
+        grace_s: float = LATE_GRACE_S,
+    ) -> None:
         if len(jurors) != 3:
             raise ValueError("the Consensus Court sits with exactly three jurors")
         self._jurors = tuple(jurors)
         self._timeout_s = timeout_s
+        self._grace_s = grace_s
 
     async def decide(self, question: CaseQuestion) -> CourtDecision:
-        """Ask all three jurors at once. A juror that times out or errors is marked absent."""
-        results = await asyncio.gather(*(self._ask(j, question) for j in self._jurors))
-        verdicts = tuple(NamedVerdict(juror=j.name, verdict=v) for j, v in results if v is not None)
-        absent = tuple(j.name for j, v in results if v is None)
+        """Ask all three jurors at once. A juror that times out or errors is marked absent, and so
+        is one still deliberating a short grace after the other two agreed (it can't change the
+        outcome, only a flag)."""
+        tasks = [asyncio.create_task(self._ask(j, question)) for j in self._jurors]
+        answers: dict[int, JurorVerdict | None] = {}
+        pending: set[asyncio.Task[tuple[Juror, JurorVerdict | None]]] = set(tasks)
+        loop = asyncio.get_running_loop()
+        grace_ends: float | None = None
+        try:
+            while pending:
+                wait_s = None if grace_ends is None else max(0.0, grace_ends - loop.time())
+                done, pending = await asyncio.wait(
+                    pending, timeout=wait_s, return_when=asyncio.FIRST_COMPLETED
+                )
+                if not done:  # the grace ran out: the late juror is absent
+                    break
+                for task in done:
+                    answers[tasks.index(task)] = task.result()[1]
+                if grace_ends is None and _two_agree(answers.values()):
+                    grace_ends = loop.time() + self._grace_s
+        finally:
+            for task in pending:
+                task.cancel()
+            if pending:
+                await asyncio.gather(*pending, return_exceptions=True)
+        for i, juror in enumerate(self._jurors):
+            if i not in answers:
+                log.warning("juror %s absent: still deliberating after two agreed", juror.name)
+        verdicts = tuple(
+            NamedVerdict(juror=j.name, verdict=v)
+            for i, j in enumerate(self._jurors)
+            if (v := answers.get(i)) is not None
+        )
+        absent = tuple(j.name for i, j in enumerate(self._jurors) if answers.get(i) is None)
         return aggregate(verdicts, absent)
 
     async def _ask(self, juror: Juror, question: CaseQuestion) -> tuple[Juror, JurorVerdict | None]:
         try:
             async with asyncio.timeout(self._timeout_s):
                 return juror, await juror.deliberate(question)
-        except Exception:  # timeout or invalid output: the juror is absent, never a silent yes
+        except Exception as exc:  # timeout or invalid output: absent, never a silent yes
+            why = exc if isinstance(exc, TimeoutError) else (exc.__cause__ or exc)
+            log.warning("juror %s absent: %s %s", juror.name, type(why).__name__, str(why)[:160])
             return juror, None
+
+
+def _two_agree(answers: Iterable[JurorVerdict | None]) -> bool:
+    votes = Counter(v.eligible for v in answers if v is not None)
+    return any(count >= 2 for count in votes.values())
 
 
 def aggregate(verdicts: tuple[NamedVerdict, ...], absent: tuple[str, ...] = ()) -> CourtDecision:

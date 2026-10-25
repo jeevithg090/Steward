@@ -11,6 +11,7 @@ import { linkProps } from "@/router";
 import type { PageProps } from "@/types/page";
 import { DOCS, GITHUB, StatusBadge } from "../profiles/bits";
 import { SAY, TAP, chatSay, shortSay } from "../story/demo";
+import { loadError } from "@/components/mission/words";
 
 /** Where a skill can be tried right now: a sentence in the chat, or its own page. */
 export const TRY_SKILL: Record<string, { href: string; hint: string }> = {
@@ -43,7 +44,7 @@ export default function SkillsPage({ showcase }: PageProps) {
     source
       .skills()
       .then((s) => live && setSkills(s))
-      .catch((e) => live && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => live && setError(loadError(e)));
     return () => {
       live = false;
     };

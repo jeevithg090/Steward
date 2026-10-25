@@ -3,7 +3,7 @@ import type { PrivacyProofData } from "@/lib/api";
 import { ShowcaseGateway } from "@/lib/showcase";
 import { expectNoA11yViolations } from "@/test/a11y";
 import type { PageProps } from "@/types/page";
-import PrivacyPage from "./PrivacyPage";
+import PrivacyPage, { recordedWords } from "./PrivacyPage";
 
 function props(over: Partial<PageProps> = {}): PageProps {
   return {
@@ -57,4 +57,11 @@ test("a private deployment with a signed image and a paired device passes every 
   expect(screen.getByText(/Margaret's iPhone/)).toBeInTheDocument();
   expect(screen.getByLabelText("Operator view of one stored row")).toHaveTextContent("vault_blobs: 9f3c0a7e…");
   expect(screen.getAllByText("checked").length).toBe(5);
+});
+
+test("the outside-AI line follows what the Gateway says answers from recordings, not the mode alone", () => {
+  expect(recordedWords(["company", "rail data", "jurors", "vision"])).toMatch(/named but not called: the jurors and vision answer from recordings/);
+  expect(recordedWords(["company", "rail data"])).toMatch(/^They are called for real in this run\./);
+  expect(recordedWords(["company", "rail data", "vision"])).toMatch(/^In this run vision answers from recordings; the rest is called for real\./);
+  expect(recordedWords(undefined)).toMatch(/^They are called for real/);
 });

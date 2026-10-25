@@ -27,6 +27,8 @@ them and walks Margaret's missions through these states in memory as the buttons
 | `voice-profile-u_{dilip,joan,margaret}.json` | `GET /voice/profile` for the three Patience Profile callers |
 | `catalog.json` | **Generated**, not recorded: `pnpm catalog` reads `profiles/*.yaml` and `skills/*/skill.yaml` (`scripts/build-catalog.mjs`) |
 | `letters.json` | Read It To Me: the two readings recorded from `POST /letters/read` (replay vision), copied from `fixtures/letters/*.reading.json`: a Thames Water overpayment and a council-tax reminder |
+| `connectors.json`, `connectors-sweep.json` | `GET /connectors?user_id=u_margaret` and `POST /connectors/sweep` over `fixtures/connectors/` (the four findings, labelled recorded) |
+| `mcp-info.json` | `GET /mcp/info`: the MCP server's eight tools, resources and prompts (the URL is a placeholder) |
 
 Timestamps inside the files are from the recording night; the showcase badge says so.
 Regenerate by following the recipe in the Track 3 brief (never start the Gateway from inside

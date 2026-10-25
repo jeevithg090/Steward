@@ -14,6 +14,9 @@ dependencies = [
     "tempo-memory",
     "tempo-crypto",
     "tempo-mcp-rail",
+    "tempo-mcp-mail",
+    "tempo-mcp-calendar",
+    "tempo-mcp-bank",
     "tempo-gateway",
     "tempo-worker",
     "tempo-passport",
@@ -34,6 +37,9 @@ tempo-missions = { workspace = true }
 tempo-memory = { workspace = true }
 tempo-crypto = { workspace = true }
 tempo-mcp-rail = { workspace = true }
+tempo-mcp-mail = { workspace = true }
+tempo-mcp-calendar = { workspace = true }
+tempo-mcp-bank = { workspace = true }
 tempo-gateway = { workspace = true }
 tempo-worker = { workspace = true }
 tempo-passport = { workspace = true }
@@ -83,6 +89,9 @@ known-first-party = [
     "tempo_memory",
     "tempo_crypto",
     "tempo_mcp_rail",
+    "tempo_mcp_mail",
+    "tempo_mcp_calendar",
+    "tempo_mcp_bank",
     "tempo_gateway",
     "tempo_worker",
     "tempo_passport",
@@ -91,7 +100,16 @@ known-first-party = [
 [tool.mypy]
 strict = true
 python_version = "3.12"
-packages = ["tempo_core", "tempo_harness", "tempo_memory", "tempo_crypto", "tempo_passport"]
+packages = [
+    "tempo_core",
+    "tempo_harness",
+    "tempo_memory",
+    "tempo_crypto",
+    "tempo_passport",
+    "tempo_mcp_mail",
+    "tempo_mcp_calendar",
+    "tempo_mcp_bank",
+]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]

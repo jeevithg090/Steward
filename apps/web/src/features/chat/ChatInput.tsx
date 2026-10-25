@@ -20,6 +20,9 @@ export interface ChatInputProps {
   activeModels: ModelProvider[];
   selectedModel: ModelProvider;
   onSelectModel: (model: ModelProvider) => void;
+  /** The model the Gateway really phrases small talk with (from /health). When known, it is shown
+   * instead of the picker: the Gateway's deployment decides, so a picker would choose nothing. */
+  gatewayModel?: string | null;
   /** Sends one message through the chat door; rejects with a plain-words error. */
   onSend: (text: string) => Promise<void>;
   /** A recorded clip, when the browser cannot turn speech into text. */
@@ -43,6 +46,7 @@ export function ChatInput({
   activeModels,
   selectedModel,
   onSelectModel,
+  gatewayModel = null,
   onSend,
   onSendAudio,
   onReadLetter,
@@ -184,7 +188,16 @@ export function ChatInput({
 
       {status === "ready" && clip && <audio src={clip.url} controls className="h-8 min-w-0 flex-1" aria-label="Recorded message" />}
 
-      {status === "idle" && !speech.listening && width >= SHOW_MODEL_FROM && (
+      {status === "idle" && !speech.listening && width >= SHOW_MODEL_FROM && gatewayModel && (
+        <span
+          title={`Tempo's Gateway phrases small talk with ${gatewayModel}. No model ever sets an amount.`}
+          className="plain-hide max-w-[11rem] shrink-0 truncate rounded-full bg-nexus-badge px-3 py-1.5 text-xs font-medium text-white"
+        >
+          <span className="sr-only">Small talk is phrased by </span>AI: {gatewayModel}
+        </span>
+      )}
+
+      {status === "idle" && !speech.listening && width >= SHOW_MODEL_FROM && !gatewayModel && (
         <div className="relative shrink-0 plain-hide">
           <select
             value={selectedModel}

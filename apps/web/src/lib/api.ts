@@ -223,7 +223,8 @@ import type { GatewayConfig } from "./config";
 
 export type Intent =
   | "rail_delay" | "missed_visit" | "scam_check" | "letter" | "memory_recall" | "memory_forget"
-  | "ledger" | "entitlement" | "approve" | "decline" | "stop" | "profiles" | "help" | "smalltalk";
+  | "ledger" | "entitlement" | "approve" | "decline" | "stop" | "profiles" | "help" | "smalltalk"
+  | "sweep";
 
 export interface ChatTurn {
   user_id: string;
@@ -274,7 +275,75 @@ export interface ChatReply {
   actions: ChatAction[] | null;
   /** Up to four things the person could say next; the chat shows them as chips that send the text (plan.md §12.2). */
   suggestions?: string[] | null;
+  /** What a sweep of the connected places found (plan.md §14.2), for the `sweep` intent. */
+  findings?: Finding[] | null;
   simulated: string[];
+}
+
+// --- Connectors and MCP (plan.md §14.2) ---------------------------------------------------------
+
+/** The places a person's life already is; each is a small read-only MCP server Tempo talks to. */
+export type ConnectorKind = "mail" | "calendar" | "bank" | "rail";
+
+export interface Connector {
+  id: string;
+  name: string;
+  kind: ConnectorKind;
+  connected: boolean;
+  /** What Tempo may read, in plain words. */
+  scopes: string[];
+  /** The read-only tools Tempo may call on it (an allowlist). */
+  tools: string[];
+  last_read_at: string | null;
+  items_read: number;
+}
+
+/** `GET /connectors?user_id=`. */
+export interface ConnectorList {
+  connectors: Connector[];
+  /** The data behind the connectors is fixtures, not the person's real accounts. */
+  simulated: boolean;
+}
+
+export type FindingKind = "late_train" | "engineer_visit" | "scam" | "money_arrived" | "letter";
+
+/** One thing a sweep found, worked out by code (tempo_core.findings). Nothing is started by it. */
+export interface Finding {
+  id: string;
+  kind: FindingKind;
+  title: string;
+  why: string;
+  amount_gbp?: string | null;
+  /** Where it was found: the connector's id and the item, in plain words. */
+  source: { connector: string; item: string };
+  /** The sentence the person could say next (the chat's suggestion chip). */
+  say: string;
+  action: ChatAction;
+}
+
+/** `POST /connectors/sweep`: the findings, and how many items Tempo read from each connector (never kept). */
+export interface SweepResult {
+  findings: Finding[];
+  read: Record<string, number>;
+  took_ms: number;
+}
+
+export interface McpTool {
+  name: string;
+  description: string;
+  read_only: boolean;
+}
+
+/** An MCP resource or prompt as `/mcp/info` lists it: a name, a URI or a short string. */
+export type McpEntry = string | { name?: string; uri?: string; uri_template?: string; description?: string };
+
+/** `GET /mcp/info`: how an MCP client reaches Tempo, and what it may ask. */
+export interface McpInfo {
+  url: string;
+  transport: "streamable-http";
+  tools: McpTool[];
+  resources: McpEntry[];
+  prompts: McpEntry[];
 }
 
 export type Persona = "tempo" | "negotiator" | "analyst" | "auditor" | "contractor";
@@ -381,6 +450,14 @@ export class Gateway {
     if (!response.ok) throw new Error(`POST /voice/tts: HTTP ${response.status}`);
     return response.arrayBuffer();
   };
+
+  connectors = (userId: string) => this.call<ConnectorList>(`/connectors?user_id=${encodeURIComponent(userId)}`);
+  connect = (id: string, userId: string) =>
+    this.call<Connector>(`/connectors/${encodeURIComponent(id)}/connect`, { method: "POST", body: JSON.stringify({ user_id: userId }) });
+  disconnect = (id: string, userId: string) =>
+    this.call<Connector>(`/connectors/${encodeURIComponent(id)}/disconnect`, { method: "POST", body: JSON.stringify({ user_id: userId }) });
+  sweep = (userId: string) => this.call<SweepResult>("/connectors/sweep", { method: "POST", body: JSON.stringify({ user_id: userId }) });
+  mcpInfo = () => this.call<McpInfo>("/mcp/info");
 
   eventsUrl(): string {
     return `${this.config.url.replace(/^http/, "ws")}/events?token=${encodeURIComponent(this.config.token)}`;

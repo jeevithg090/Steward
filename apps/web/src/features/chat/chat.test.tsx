@@ -2,13 +2,13 @@ import { StrictMode } from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Toaster, toast } from "@/components/ui";
-import { Gateway, type ChatReply, type ChatTurn, type MissionView } from "@/lib/api";
+import { Gateway, type ChatReply, type ChatTurn, type Health, type MissionView } from "@/lib/api";
 import { ZONE_WORDS, recordedVerdict } from "@/lib/shield";
 import { ShowcaseGateway } from "@/lib/showcase";
 import { SUGGESTIONS } from "@/lib/showcase-chat";
 import { expectNoA11yViolations } from "@/test/a11y";
 import type { PageProps } from "@/types/page";
-import ChatContainer from "./ChatContainer";
+import ChatContainer, { gatewayModelWords } from "./ChatContainer";
 import { MAX_CONVERSATIONS, STORE_KEY, chatStore } from "./store";
 import { BEATS, SAMPLE_CHIPS } from "./WelcomeCard";
 
@@ -149,7 +149,7 @@ test("the empty chat greets Margaret, groups a sample for every beat, says the p
   const list = screen.getByRole("list", { name: "Things to try" });
   const groups = within(list).getAllByRole("listitem");
   expect(groups).toHaveLength(BEATS.length);
-  expect(groups.map((g) => g.firstChild?.textContent)).toEqual(["A late train", "A missed engineer", "Is this a scam?", "What I remember", "Money back", "Read a letter"]);
+  expect(groups.map((g) => g.firstChild?.textContent)).toEqual(["A late train", "A missed engineer", "Is this a scam?", "What I remember", "Money back", "Money in my email", "Read a letter"]);
   const chips = within(list).getAllByRole("button");
   expect(chips.map((c) => c.textContent)).toEqual(SAMPLE_CHIPS);
   // The e2e test clicks this one by name.
@@ -452,4 +452,12 @@ test("in the showcase, help offers the four samples and a profile that may not c
   expect(screen.queryByText("Tempo is asking you")).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Show my profiles" })).toHaveAttribute("href", "#/profiles");
   expect(screen.getByRole("button", { name: "Show me my profiles" })).toBeInTheDocument();
+});
+
+test("the chat names the Gateway's real model, not a picker that chooses nothing", () => {
+  const base: Health = { status: "ok", mode: "replay", demo: true, simulated: ["company"], deploy: "cloud-apis", region: "eu", third_parties: [] };
+  expect(gatewayModelWords({ ...base, model: { kind: "apis", name: "gemini-3.5-flash-lite", processor: "Google Gemini" } })).toBe("Google Gemini");
+  expect(gatewayModelWords({ ...base, model: { kind: "runpod-vllm", name: "tempo-private", processor: "RunPod" } })).toBe("our model, RunPod GPU");
+  expect(gatewayModelWords({ ...base, model: null })).toBeNull(); // an older Gateway: the picker stays
+  expect(gatewayModelWords(null)).toBeNull();
 });

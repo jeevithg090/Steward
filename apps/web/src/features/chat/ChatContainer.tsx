@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { afterYes, duration, isUnreachable, plainError, rememberAmount, rememberAsks, shortDateTime, toastError } from "@/components/mission";
 import { toast } from "@/components/ui";
 import type { Recording } from "@/hooks/useAudioRecorder";
-import type { ChatReply, Intent, MissionState } from "@/lib/api";
+import type { ChatReply, Health, Intent, MissionState } from "@/lib/api";
 import { answerAsk } from "@/lib/approve";
 import { CatalogClient } from "@/lib/catalog-client";
 import type { GatewayConfig } from "@/lib/config";
@@ -56,6 +56,15 @@ async function fileToBase64(file: File): Promise<string> {
     reader.onerror = () => reject(new Error("The photo could not be read."));
     reader.readAsDataURL(file);
   });
+}
+
+/** What the chat names as its model: the Gateway's own, in short words (null in the showcase, or
+ * from a Gateway too old to say, where the picker stays). */
+export function gatewayModelWords(health: Health | null): string | null {
+  const model = health?.model;
+  if (!model) return null;
+  if (model.kind === "runpod-vllm") return "our model, RunPod GPU";
+  return model.processor || model.name || null;
 }
 
 export default function ChatContainer({ gateway, user, showcase, health, connected, events, language, speak, config, activeModels, selectedModel, onSelectModel, elevenLabsKey }: ChatContainerProps) {
@@ -121,6 +130,7 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
         memories: (reply.memories as unknown as ThreadMessage["memories"]) ?? undefined,
         ledger: reply.ledger ?? undefined,
         flags: reply.flags ?? undefined,
+        findings: reply.findings?.length ? reply.findings : undefined,
         actions: reply.actions ?? undefined,
         simulated: firstAgent && reply.simulated?.length ? reply.simulated : undefined,
         suggestions: reply.suggestions?.length ? reply.suggestions.slice(0, 4) : undefined,
@@ -383,6 +393,7 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
       activeModels={activeModels}
       selectedModel={selectedModel}
       onSelectModel={onSelectModel}
+      gatewayModel={gatewayModelWords(showcase ? null : health)}
       conversation={active}
       busy={busy}
       thinking={thinking}

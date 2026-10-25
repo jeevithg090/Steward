@@ -1,0 +1,14 @@
+[project]
+name = "tempo-mcp-bank"
+version = "0.1.0"
+description = "MCP connector: list the transactions in a CSV bank statement, read-only"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+dependencies = ["mcp>=2.3"]
+
+[project.scripts]
+tempo-mcp-bank = "tempo_mcp_bank.server:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14"]
+build-backend = "uv_build"

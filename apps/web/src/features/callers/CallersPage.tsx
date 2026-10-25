@@ -8,6 +8,7 @@ import type { VoiceProfileView } from "@/lib/api";
 import { LANGUAGE_NAMES } from "@/lib/profiles";
 import type { PageProps } from "@/types/page";
 import { TAP } from "../story/demo";
+import { loadError } from "@/components/mission/words";
 
 /** The demo's callers (seeded by `make seed`): each told Tempo how they need to be spoken to. */
 export const CALLERS = [
@@ -41,7 +42,7 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
         if (live) setView(v);
       })
       .catch((e) => {
-        if (live) setError(e instanceof Error ? e.message : String(e));
+        if (live) setError(loadError(e));
       });
     return () => {
       live = false;

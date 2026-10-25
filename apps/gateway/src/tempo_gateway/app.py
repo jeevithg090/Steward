@@ -84,10 +84,12 @@ from tempo_core.voice_profile import VoiceProfile, how_to_speak, profile_from, t
 from tempo_crypto.vault import VaultStore
 from tempo_gateway.chat import chat_router, simulated_in
 from tempo_gateway.clock import DemoClock
+from tempo_gateway.connectors import ConnectorHub, connectors_router
 from tempo_gateway.engines import OFCOM, RAIL
 from tempo_gateway.events import EventBus
 from tempo_gateway.letters import letters_router, payee_router
 from tempo_gateway.mandates import MandateService, NoSigningKey
+from tempo_gateway.mcp_server import mount_mcp
 from tempo_gateway.memory import (
     Memory,
     caller,
@@ -254,6 +256,7 @@ def create_app(
     greetings: Mapping[str, str] | None = None,
     profiles: ProfileCatalog | None = None,
     shield: ShieldService | None = None,
+    connectors: ConnectorHub | None = None,  # Connectors and the sweep (connectors.py)
     chat_llm: Callable[[str], Awaitable[str | None]] | None = None,  # phrases small talk only
     chat_llm_kind: str | None = None,  # what /health says phrases it: "ollama", "cortex", …
     http: httpx.AsyncClient | None = None,  # for /voice/tts; tests inject a mocked one
@@ -289,7 +292,10 @@ def create_app(
     if settings.tempo_region:  # the profile's region is a default; the real one wins
         deployment = replace(deployment, region=settings.tempo_region)
     if openrouter_used(settings):  # an OpenRouter juror makes OpenRouter an outside AI company too
-        deployment = replace(deployment, extra_ai=frozenset({"openrouter"}))
+        region = deployment.region
+        if not settings.tempo_region:  # name it where the data goes, only when it really does
+            region = f"{region} and OpenRouter"
+        deployment = replace(deployment, extra_ai=frozenset({"openrouter"}), region=region)
 
     def web_caller(authorization: Annotated[str | None, Header()] = None) -> str:
         token = (authorization or "").removeprefix("Bearer ").strip()
@@ -970,12 +976,21 @@ def create_app(
         app.include_router(
             payee_router(web_caller, registers=registers, registers_simulated=registers_simulated)
         )
+    if connectors is not None:  # Connectors: read-only MCP servers and the sweep (plan.md §14)
+        app.include_router(connectors_router(connectors, web_caller))
     # The web app's front door: the same services as the SMS and voice doors, one sentence at a time
     app.include_router(
         chat_router(
             service, web_caller, shield=shield, memory=memory, profiles=profiles,
             settings=settings, bus=bus, llm_say=chat_llm, simulated=simulated, mesh=mesh,
+            connectors=connectors,
         )
+    )  # fmt: skip
+    # Tempo as an MCP server (plan.md §14): any MCP client may ask; none can approve (mcp_server.py)
+    mount_mcp(
+        app, web_caller=web_caller, public_url=settings.public_url, service=service, bus=bus,
+        shield=shield, profiles=profiles, mandates=mandates, vision=vision, holidays=holidays,
+        entitlement=entitlement,
     )  # fmt: skip
     app.include_router(tts_router(settings, web_caller, http))  # speech out, key on the server
 

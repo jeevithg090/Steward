@@ -13,6 +13,8 @@ import { linkProps, navigate, useRoute } from "@/router";
 import type { PageProps } from "@/types/page";
 import { SAY, TAP, chatSay, shortSay } from "../story/demo";
 import { AccessChips, CHANNEL_WORDS, DOCS, MayNever, StatusBadge, WillDo, accessInWords, capital, limitsInWords } from "./bits";
+import { loadError } from "@/components/mission/words";
+import catalogJson from "@/showcase/catalog.json";
 
 const TEXTAREA = `w-full rounded-xl border border-white/15 bg-black/30 p-3 font-mono text-xs text-slate-100 placeholder:text-slate-500 ${FOCUS}`;
 const QUIET_LINK = `inline-flex ${TAP} items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:bg-white/10 ${FOCUS}`;
@@ -50,7 +52,7 @@ export function tryWith(id: string): { href: string; say: string; watch?: string
 }
 
 function message(e: unknown): string {
-  return e instanceof Error ? e.message : String(e);
+  return loadError(e);
 }
 
 function downloadYaml(profile: ProfileView, then: string) {
@@ -103,12 +105,18 @@ type Sub = PageProps & { source: CatalogSource; banner: ReactNode };
 
 // --- who Tempo works for, always in view -------------------------------------------------------
 
+// The starter profiles' names ship with the app, so the banner never falls back to an id while the
+// Gateway is busy or restarting; the Gateway's own answer still wins once it comes.
+const KNOWN_NAMES: Record<string, string> = Object.fromEntries(
+  (catalogJson as { profiles: { id: string; name: string }[] }).profiles.map((p) => [p.id, p.name]),
+);
+
 function WorkingFor({ source, id, setProfile }: { source: CatalogSource; id: string; setProfile: PageProps["setProfile"] }) {
-  const [name, setName] = useState<string>(id);
+  const [name, setName] = useState<string>(KNOWN_NAMES[id] ?? id);
   const choose = useChoose(setProfile);
   useEffect(() => {
     let live = true;
-    setName(id);
+    setName(KNOWN_NAMES[id] ?? id);
     source
       .profile(id)
       .then((p) => live && setName(p.name))
@@ -260,7 +268,7 @@ function ProfileList({ source, user, setProfile, showcase, banner }: Sub) {
                         Stop using
                       </Button>
                     ) : (
-                      <Button onClick={() => choose.use(p)} icon={<UserCheck size={14} aria-hidden />} className={TAP}>
+                      <Button onClick={() => choose.use(p)} icon={<UserCheck size={14} aria-hidden />} className={TAP} aria-label={`Use this profile: ${p.name}`}>
                         Use this profile
                       </Button>
                     )}
@@ -373,7 +381,7 @@ function ProfileDetail({ source, id, user, setProfile, showcase, banner }: Sub &
                   Stop using
                 </Button>
               ) : (
-                <Button onClick={() => choose.use(profile)} icon={<UserCheck size={14} aria-hidden />} className={TAP}>
+                <Button onClick={() => choose.use(profile)} icon={<UserCheck size={14} aria-hidden />} className={TAP} aria-label={`Use this profile: ${profile.name}`}>
                   Use this profile
                 </Button>
               )}
@@ -697,7 +705,7 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
                         Stop using
                       </Button>
                     ) : (
-                      <Button onClick={() => choose.use(profile)} icon={<UserCheck size={14} aria-hidden />} className={TAP}>
+                      <Button onClick={() => choose.use(profile)} icon={<UserCheck size={14} aria-hidden />} className={TAP} aria-label={`Use this profile: ${profile.name}`}>
                         Use this profile
                       </Button>
                     )}

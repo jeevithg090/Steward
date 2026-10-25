@@ -51,6 +51,7 @@ from tempo_core.ledger import summarise
 from tempo_core.models import MissionState
 from tempo_core.profiles import ProfileCatalog
 from tempo_core.readability import flesch_reading_ease
+from tempo_gateway.connectors import ConnectorHub, places
 from tempo_gateway.engines import OFCOM, RAIL
 from tempo_gateway.events import EventBus
 from tempo_gateway.memory import Memory
@@ -117,7 +118,16 @@ CANNED: dict[str, str] = {
     "already_waiting": "I'm already on this one. I'm waiting for the money.",
     "already_claimed": "I already claimed this one.",
     "already_handled": "I've already dealt with this one.",
+    # The connectors' sweep (plan.md §14.2): no hub in this Gateway, or nothing connected.
+    "sweep_off": "I can't look in your email yet. Connect it on the Connectors page.",
+    "sweep_nothing_on": "Nothing is connected, so I had nothing to read. Turn one on, on the "
+    "Connectors page.",
 }
+# After a sweep: what was found, and where Tempo looked (tempo_gateway.connectors.places).
+SWEEP_FOUND = "I found {count} {things} worth a look in your {places}. I kept none of what I read."
+SWEEP_EMPTY = "I looked in your {places} and found nothing to do. I kept none of what I read."
+_COUNT_WORDS = ("no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
+MAX_FINDING_CHIPS = 4
 # A journey the rail records don't have, read back from the person's own facts (never the
 # engine's message, which may quote a lookup key).
 NOT_FOUND = (
@@ -210,10 +220,12 @@ class ChatReply(BaseModel):
     flags: list[dict[str, Any]] | None = None
     actions: list[Action] | None = None
     suggestions: list[str] | None = None  # things to say next, as chips (plan.md §12.2)
+    findings: list[dict[str, Any]] | None = None  # a sweep's findings (plan.md §14.2)
     simulated: list[str] = []
 
 
 MISSIONS = Action(label="Open Mission Control", href="#/missions")
+CONNECTORS = Action(label="Open Connectors", href="#/connectors")
 SHOW_PROFILES = Action(label="Show my profiles", href="#/profiles")
 
 
@@ -277,12 +289,14 @@ class Chat:
         simulated: Sequence[str],
         mesh: Mesh | None = None,
         replay: bool = False,
+        connectors: ConnectorHub | None = None,
     ) -> None:
         self.service, self.shield, self.memory, self.profiles = service, shield, memory, profiles
         self.bus, self.llm_say, self.today = bus, llm_say, today
         self.simulated = list(simulated)
         self.mesh = mesh  # a person with a passkey answers on their device, not with a typed yes
         self.replay = replay  # replay mode: the rail records are the recorded demo journeys
+        self.connectors = connectors  # the sweep: what her email, calendar and bank show
 
     async def turn(self, body: ChatTurn, caller: str) -> ChatReply:
         missions = [
@@ -428,6 +442,8 @@ class Chat:
                 return plain(
                     CANNED["letter"], actions=[Action(label="Read a letter", href="#/read")]
                 )
+            case Intent.SWEEP:
+                return await self._sweep(body, known)
             case Intent.HELP:
                 return plain(CANNED["help"], actions=[MISSIONS], suggestions=suggest("doors"))
             case _:
@@ -488,6 +504,25 @@ class Chat:
             intent=intent, reply=said, say=said, slots={}, mission=view, ask=view.ask,
             actions=[mission_action(view)],
             suggestions=suggest("paid") if view.state is MissionState.VERIFIED else None,
+        )  # fmt: skip
+
+    async def _sweep(self, body: ChatTurn, known: Slots) -> ChatReply:
+        """Look through what she connected and say what's worth a look. Nothing is started: each
+        finding's chip is the sentence she'd say to act on it. No connector text reaches a
+        model or the log; the findings were written by code (tempo_core.findings)."""
+        if self.connectors is None:
+            said = CANNED["sweep_off"]
+            return ChatReply(intent=Intent.SWEEP, reply=said, say=said, slots=known.model_dump(),
+                             actions=[CONNECTORS])  # fmt: skip
+        swept = await self.connectors.sweep(body.user_id)
+        findings: list[dict[str, Any]] = swept["findings"]
+        where = places(swept["read"], self.connectors)
+        said = sweep_sentence(len(findings), where) if where else CANNED["sweep_nothing_on"]
+        spoken = " ".join([said, *(_full_stop(str(f["title"])) for f in findings)])
+        return ChatReply(
+            intent=Intent.SWEEP, reply=said, say=spoken, slots=known.model_dump(),
+            findings=findings, actions=[CONNECTORS],
+            suggestions=[str(f["say"]) for f in findings][:MAX_FINDING_CHIPS] or None,
         )  # fmt: skip
 
     def _already(self, intent: Intent, view: MissionView) -> ChatReply:
@@ -581,6 +616,20 @@ def _understood(intent: Intent, slots: Slots) -> str:
     return " ".join(parts) + "."
 
 
+def sweep_sentence(count: int, where: Sequence[str]) -> str:
+    """The sweep in one plain sentence: what was found, and where Tempo looked."""
+    joined = where[0] if len(where) == 1 else f"{', '.join(where[:-1])} and {where[-1]}"
+    if count == 0:
+        return SWEEP_EMPTY.format(places=joined)
+    spoken = _COUNT_WORDS[count] if count < len(_COUNT_WORDS) else str(count)
+    things = "thing" if count == 1 else "things"
+    return SWEEP_FOUND.format(count=spoken, things=things, places=joined)
+
+
+def _full_stop(text: str) -> str:
+    return text if text.endswith((".", "!", "?")) else f"{text}."
+
+
 def _spoken_date(iso: str) -> str:
     try:
         return date.fromisoformat(iso).strftime("%-d %B")
@@ -610,17 +659,19 @@ def chat_router(
     today: Callable[[], date] | None = None,
     simulated: Sequence[str] | None = None,
     mesh: Mesh | None = None,
+    connectors: ConnectorHub | None = None,
 ) -> APIRouter:
     """`today` defaults to the service clock's London date, so the demo clock moves "yesterday"
     too; `simulated` defaults to what `/health` shows for these settings. With `mesh`, a person
-    who has a passkey confirms a yes on their device: a typed yes is not an answer."""
+    who has a passkey confirms a yes on their device: a typed yes is not an answer. With
+    `connectors`, "check my email" sweeps her connected places (plan.md §14.2)."""
     router = APIRouter()
     Caller = Annotated[str, Depends(web_caller)]
     chat = Chat(
         service, shield=shield, memory=memory, profiles=profiles, bus=bus, llm_say=llm_say,
         today=today or (lambda: service.deps.clock().astimezone(LONDON).date()),
         simulated=simulated if simulated is not None else simulated_in(settings),
-        mesh=mesh, replay=settings.tempo_mode == "replay",
+        mesh=mesh, replay=settings.tempo_mode == "replay", connectors=connectors,
     )  # fmt: skip
 
     @router.post("/chat")
