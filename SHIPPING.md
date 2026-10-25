@@ -365,6 +365,7 @@ for a kind of person. Governance: Apache-2.0, Contributor Covenant, CODEOWNERS, 
 - [x] 01:40 GitLab pipeline on the push: lint, fast suite, integration, web and e2e green; the `secrets` job flagged five gitleaks false positives (recorded memory-item `key` hashes in a showcase fixture, and prose quoting the signing key's type annotation). Fixed at the rule level with two line allowlists in `.gitleaks.toml`; zero findings over the whole history locally. GitHub Actions fails at startup for every workflow including GitHub's own Dependabot ones, which is the mirror account's Actions minutes or billing, not the workflow (actionlint clean, both workflows registered active)
 - [x] 01:45 Track 6 (Scam Shield) built end to end by the Scam & Fraud Shielding session: see `docs/scam-shield.md` §12 for its own log, `docs/scam_backtest.md` for the numbers; committed on top of f6610a5 with explicit paths
 - [x] 01:50 GitLab pipeline on `main` (f6610a5) fully green: lint-type, unit-contract-policy-workflow, integration, web, e2e, secrets (<https://gitlab.com/na-group4693543/Tempo/-/pipelines/2985466656>). GitHub mirror at the same commit.
+- [x] 01:55 Scam & Fraud Shielding landed from the second session (1f35318, 84 files: `/scam/check` and `/scam/shield` in `tempo_gateway/shield.py`, a `check_message` voice tool, SMS `CHECK`/`TEACH`, the `scam_text` on-device signal, a trained model under `skills/scam-shield/`, `/shield` in the web app, `docs/scam-shield.md`); verified from a clean export and pushed to both remotes; GitLab pipeline fully green (<https://gitlab.com/na-group4693543/Tempo/-/pipelines/2985503688>)
 
 ## 12. What the team does next (in this order)
 
@@ -372,7 +373,7 @@ for a kind of person. Governance: Apache-2.0, Contributor Covenant, CODEOWNERS, 
 2. **Deploy the Gateway** when you want the live product: `deploy/render.yaml` or `deploy/fly.toml` (first-deploy check: `/data` must be writable by uid 10001), then point Vercel at it with `NEXT_PUBLIC_GATEWAY_URL` and `NEXT_PUBLIC_TEMPO_TOKEN`, and set `WEB_ORIGINS` and `MESH_RP_ID` to the Vercel host.
 3. **Protect `main`** with the six CI checks (`docs/github-setup.md` §4 has the JSON), then make the repo public when the keys used during the hackathon have been rotated; private vulnerability reporting switches on at that point.
 4. **Stop the stale Gateway** on port 8000 (PID 83049, started 21:11 from inside `tempo/` with the hosted `DATABASE_URL`), and consider moving `DATABASE_URL` out of `tempo/.env` into a `.env.cloud` you source on purpose.
-5. **Land Scam & Fraud Shielding** from the second session (its plan and status: `docs/scam-shield.md`), then replace the two README placeholders it owns.
+5. ~~Land Scam & Fraud Shielding~~ Done (1f35318); its plan and status stay in `docs/scam-shield.md`.
 6. **Finish or drop Skill Forge** on `skill-forge-wip`; the manifest + scaffolder path on `main` is the shipped open-source route.
 7. **Check the demo values**: every rule pack, clock and benefit figure says `demo_values: true` until a person has checked its cited page and set `last_verified`.
 
