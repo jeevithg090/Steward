@@ -12,6 +12,7 @@ from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
 from tempo_core.intent import (
+    LONDON_FROM,
     PROVIDERS,
     Slots,
     numbers_in,
@@ -22,13 +23,6 @@ from tempo_core.intent import (
 )
 
 LONDON_TERMINALS = frozenset({"PAD", "KGX", "EUS", "WAT", "VIC", "LST", "MYB"})
-# Where a train from each station usually arrives in London, so "Oxford to London" needs no
-# question: the ask then names the station, and the person can still correct it.
-LONDON_FROM = {
-    "OXF": "PAD", "RDG": "PAD", "DID": "PAD", "SLO": "PAD", "SWI": "PAD", "BRI": "PAD",
-    "CDF": "PAD", "BTH": "PAD", "BAN": "MYB", "BHM": "EUS", "MAN": "EUS", "LDS": "KGX",
-    "EDB": "KGX",
-}  # fmt: skip
 _RELATIVE = re.compile(
     r"\b(?:today|yesterday|tonight|this (?:morning|afternoon|evening)|last (?:night|week)|"
     r"mon|tues?|wed(?:nes)?|thur?s?|fri|sat(?:ur)?|sun)(?:day)?\b",

@@ -100,6 +100,21 @@ ALIASES: dict[str, str] = {
     "London Victoria": "VIC", "London Liverpool Street": "LST", "London Marylebone": "MYB",
     "Bath": "BTH",
 }  # fmt: skip
+# Where a train from each station usually arrives in London, so "Oxford to London" needs no
+# question: the claim's ask names the station, and the person can still correct it.
+LONDON_FROM: dict[str, str] = {
+    "OXF": "PAD", "RDG": "PAD", "DID": "PAD", "SLO": "PAD", "SWI": "PAD", "BRI": "PAD",
+    "CDF": "PAD", "BTH": "PAD", "BAN": "MYB", "BHM": "EUS", "MAN": "EUS", "LDS": "KGX",
+    "EDB": "KGX",
+}  # fmt: skip
+_TO_LONDON = re.compile(
+    r"\b(?:to|into|for)\s+london\b(?!\s+(?:paddington|euston|waterloo|victoria|marylebone|liverpool|king))",
+    re.IGNORECASE,
+)
+_FROM_LONDON = re.compile(
+    r"\bfrom\s+london\b(?!\s+(?:paddington|euston|waterloo|victoria|marylebone|liverpool|king))",
+    re.IGNORECASE,
+)
 _NAMES: dict[str, str] = {k.casefold(): v for k, v in (STATIONS | ALIASES).items()}
 _CODES: frozenset[str] = frozenset(STATIONS.values())
 # Also ordinary words: only a capital letter, "from/to" in front, or a very short text makes
@@ -528,6 +543,11 @@ def _stations(text: str) -> tuple[str | None, str | None]:
             origin = crs
         elif destination is None:
             destination = crs
+    # "Oxford to London": the city, as the terminus a train from the other end arrives at.
+    if destination is None and origin in LONDON_FROM and _TO_LONDON.search(text):
+        destination = LONDON_FROM[origin]
+    elif origin is None and destination in LONDON_FROM and _FROM_LONDON.search(text):
+        origin = LONDON_FROM[destination]
     return origin, destination
 
 

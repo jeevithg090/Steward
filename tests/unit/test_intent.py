@@ -191,3 +191,25 @@ def test_small_talk_word_rules_let_only_a_plain_harmless_sentence_through() -> N
     assert small_talk_ok("Lovely. " * 40) is None  # too long
     jargon = "Remuneration eligibility determination necessitates comprehensive verification."
     assert small_talk_ok(jargon) is None  # not plain
+
+
+@pytest.mark.parametrize(
+    ("text", "origin", "destination"),
+    [
+        # Live, "Oxford to London" made Tempo ask "Where were you going?".
+        (
+            "My 17:42 train from Oxford to London on 23 October got cancelled. The ticket was £28.40.",
+            "OXF",
+            "PAD",
+        ),
+        ("the 18:05 from London to Banbury was late", "MYB", "BAN"),
+        ("my train from Leeds to London was cancelled", "LDS", "KGX"),
+        ("Oxford to London Euston, 30 minutes late", "OXF", "EUS"),  # a station said is kept
+        ("a train to London was late", None, None),  # nothing says which terminus
+    ],
+)
+def test_the_city_london_is_the_terminus_a_train_from_the_other_end_arrives_at(
+    text: str, origin: str | None, destination: str | None
+) -> None:
+    found = extract(text, today=date(2026, 10, 25), intent=Intent.RAIL_DELAY)
+    assert (found.origin_crs, found.destination_crs) == (origin, destination)
