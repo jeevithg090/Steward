@@ -35,14 +35,18 @@ NOT_CONFIGURED = "voice is not configured"
 UPSTREAM_FAILED = "the voice service didn't answer"
 
 Persona = Literal["tempo", "negotiator", "analyst", "auditor", "contractor"]
-# ElevenLabs' stock voices, used when no voice id is configured. Public ids, not secrets.
+# ElevenLabs' premade voices, used when no voice id is configured. Public ids, not secrets.
+# Premade voices work on every plan; the older "library" voices (Rachel, Domi, Bella, Antoni)
+# are refused on a free plan with 402 "Free users cannot use library voices via the API".
 DEFAULT_VOICES: dict[str, str] = {
-    "tempo": "21m00Tcm4TlvDq8ikWAM",
-    "negotiator": "21m00Tcm4TlvDq8ikWAM",
-    "analyst": "AZnzlk1XvdvUeBnXmlld",
-    "auditor": "EXAVITQu4vr4xnSDxMaL",
-    "contractor": "ErXwobaYiN019PkySvjV",
+    "tempo": "EXAVITQu4vr4xnSDxMaL",  # Sarah: mature, reassuring
+    "negotiator": "IKne3meq5aSn9XLyUdCD",  # Charlie: deep, confident (talks to the company)
+    "analyst": "Xb7hH8MSUJpSbSDYk0k2",  # Alice: clear educator
+    "auditor": "XrExE9yKIg1WjnnlVkGX",  # Matilda: knowledgeable, professional
+    "contractor": "bIHbv24MWmeRgasZH58o",  # Will: relaxed
 }
+# The lower voice for people who hear low tones better (the Patience Profile's `voice: low`).
+DEFAULT_LOW_VOICE = "JBFqnCBsd6RMkjVDRZzb"  # George: warm, lower
 
 
 class TtsRequest(BaseModel):
@@ -53,10 +57,10 @@ class TtsRequest(BaseModel):
 
 
 def voice_id_for(settings: Settings, persona: str, voice: str) -> str:
-    """`voice=low` → ELEVENLABS_VOICE_TEMPO_LOW, else ELEVENLABS_VOICE_TEMPO, else the persona's
-    built-in default."""
-    if voice == "low" and settings.elevenlabs_voice_tempo_low:
-        return settings.elevenlabs_voice_tempo_low
+    """`voice=low` → ELEVENLABS_VOICE_TEMPO_LOW, else the built-in lower voice; otherwise
+    ELEVENLABS_VOICE_TEMPO, else the persona's built-in default."""
+    if voice == "low":
+        return settings.elevenlabs_voice_tempo_low or DEFAULT_LOW_VOICE
     if settings.elevenlabs_voice_tempo:
         return settings.elevenlabs_voice_tempo
     return DEFAULT_VOICES[persona]

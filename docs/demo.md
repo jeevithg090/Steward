@@ -38,6 +38,23 @@ company, rail data, jurors, vision**. Sample chips carry every beat, so nothing 
 `make showcase` runs the same app with no Gateway, on recorded replies; the badge then reads
 **SHOWCASE · recorded replay · no Gateway**.
 
+## Tempo's real voice (optional)
+
+Without a key, the browser's own voice reads every reply and the face still moves. For ElevenLabs,
+put the key in the demo's scratch folder, outside the repo, where `make demo` reads it:
+
+```bash
+printf 'ELEVENLABS_API_KEY=%s\n' '<your key>' > ../.tempo-demo/.env && chmod 600 ../.tempo-demo/.env
+```
+
+Then `scripts/demo.sh --stop` and `make demo` again; Settings shows **Gateway voice on**. The key
+stays on the Gateway (`POST /voice/tts`); it never reaches the browser and never goes on Vercel.
+Tempo uses ElevenLabs' premade voices (Sarah for Tempo, George for the lower voice), which work on
+the free plan; the older library voices are refused there with 402. The free plan has 10,000
+characters a month: a full rehearsal speaks a few thousand, repeated sentences come from the
+Gateway's cache, and when the quota runs out the browser's voice takes over by itself. The script
+refuses a `.env` there that sets `DATABASE_URL`.
+
 ## Before the demo
 
 ```bash

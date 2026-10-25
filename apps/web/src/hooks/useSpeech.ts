@@ -5,12 +5,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Persona } from "@/lib/api";
 
 // ElevenLabs voice ids for the pasted-key path. Tempo (the agent itself) speaks with the negotiator's voice.
+// ElevenLabs premade voices (the same as the Gateway's tempo_gateway/tts.py): they work on every
+// plan, where the older library voices are refused on a free plan with 402.
 const DEFAULT_VOICE_MAP: Record<string, string> = {
-  tempo: "21m00Tcm4TlvDq8ikWAM", // Rachel
-  negotiator: "21m00Tcm4TlvDq8ikWAM", // Rachel
-  analyst: "AZnzlk1XvdvUeBnXmlld", // Domi
-  auditor: "EXAVITQu4vr4xnSDxMaL", // Bella
-  contractor: "ErXwobaYiN019PkySvjV", // Antoni
+  tempo: "EXAVITQu4vr4xnSDxMaL", // Sarah
+  negotiator: "IKne3meq5aSn9XLyUdCD", // Charlie
+  analyst: "Xb7hH8MSUJpSbSDYk0k2", // Alice
+  auditor: "XrExE9yKIg1WjnnlVkGX", // Matilda
+  contractor: "bIHbv24MWmeRgasZH58o", // Will
 };
 
 const MAX_SPOKEN_CHARS = 450;

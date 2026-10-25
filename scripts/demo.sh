@@ -81,7 +81,13 @@ for tool in uv npm curl; do
   command -v "$tool" >/dev/null 2>&1 || die "$tool is not installed; the demo needs uv, npm and curl."
 done
 [ -d "$ROOT/.venv" ] || die "no .venv in $ROOT; run 'make setup' (or 'uv sync') once first."
-[ ! -e "$DEMO_DIR/.env" ] || say "Warning: $DEMO_DIR/.env exists and the Gateway will read it."
+# A .env in the scratch folder is how the demo gets a real voice (ELEVENLABS_API_KEY); it must never
+# point the demo at a hosted database.
+if [ -e "$DEMO_DIR/.env" ]; then
+  grep -q '^[[:space:]]*DATABASE_URL=' "$DEMO_DIR/.env" \
+    && die "$DEMO_DIR/.env sets DATABASE_URL; the demo must not write to a hosted database. Remove that line."
+  say "Reading $DEMO_DIR/.env (for example ELEVENLABS_API_KEY for Tempo's real voice)."
+fi
 
 STARTED=0
 GW_PID=""

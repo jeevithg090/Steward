@@ -126,3 +126,13 @@ def test_the_clip_cache_keeps_the_newest_two_hundred() -> None:
 
     assert cache.get(clip_key("v", "b")) is None and len(cache) == 2
     assert clip_key("v", "a") != clip_key("w", "a")  # the voice is part of the key
+
+
+def test_the_low_voice_has_a_built_in_default() -> None:
+    """Without ELEVENLABS_VOICE_TEMPO_LOW, `voice=low` still gets a lower premade voice."""
+    from tempo_adapters.settings import Settings
+    from tempo_gateway.tts import DEFAULT_LOW_VOICE, DEFAULT_VOICES, voice_id_for
+
+    plain = Settings(_env_file=None)  # type: ignore[call-arg]
+    assert voice_id_for(plain, "tempo", "low") == DEFAULT_LOW_VOICE != DEFAULT_VOICES["tempo"]
+    assert voice_id_for(plain, "auditor", "default") == DEFAULT_VOICES["auditor"]
