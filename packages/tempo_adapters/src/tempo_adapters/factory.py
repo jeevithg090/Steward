@@ -62,7 +62,8 @@ def model_endpoint(settings: Settings, chosen: Profile) -> ModelEndpoint:
                                  "this machine (Ollama)")  # fmt: skip
         case "apis":
             first = (_names(settings.gemini_juror_models) or ["gemini-3.1-flash-lite"])[0]
-            return ModelEndpoint("apis", GEMINI_OPENAI, first, "Google Gemini and OpenRouter")
+            who = "Google Gemini and OpenRouter" if openrouter_used(settings) else "Google Gemini"
+            return ModelEndpoint("apis", GEMINI_OPENAI, first, who)
         case "runpod-vllm":
             url = (
                 runpod_base_url(settings.runpod_endpoint_id)
@@ -108,6 +109,15 @@ def chat_client(settings: Settings, adapters: Adapters) -> OpenAIChatCompletionC
     return OpenAIChatCompletionClient(endpoint.model, async_client=openai)
 
 
+def openrouter_used(settings: Settings) -> bool:
+    """An OpenRouter model sits on the Court (cloud-apis with OPENROUTER_MODELS and its key)."""
+    return (
+        profile(settings.tempo_deploy).model == "apis"
+        and settings.openrouter_api_key is not None
+        and bool(_names(settings.openrouter_models))
+    )
+
+
 def models_live(settings: Settings) -> bool:
     """The model-backed parts run on a real model: TEMPO_MODELS, else TEMPO_MODE."""
     return (settings.tempo_models or settings.tempo_mode) == "live"
@@ -132,8 +142,8 @@ def vision_ready(settings: Settings) -> bool:
 
 def juror_clients(settings: Settings) -> list[tuple[str, OpenAIChatCompletionClient]]:
     """The Consensus Court's three jurors on this mode's own model (not Cortex, which names its
-    own three). cloud-apis mixes providers, Gemini and OpenRouter in turn, so no single
-    company's model decides alone; elsewhere three jurors share the mode's one model."""
+    own three). cloud-apis seats three different Gemini models, or Gemini and OpenRouter in turn
+    when an OpenRouter model is configured; elsewhere three jurors share the mode's one model."""
     adapters = build_adapters(settings)
     if adapters.model.kind != "apis":
         client = chat_client(settings, adapters)

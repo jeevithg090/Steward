@@ -32,7 +32,7 @@ test("the live site talks to the real Gateway and names the real AI behind it", 
   const errors = watchErrors(page);
   const { deploy } = await ai(page);
   await page.goto("/#/chat");
-  const named = deploy === "cloud-gpu" ? /AI: our own model on a RunPod GPU/ : /AI: Google Gemini and OpenRouter/;
+  const named = deploy === "cloud-gpu" ? /AI: our own model on a RunPod GPU/ : /AI: Google Gemini/;
   await expect(page.getByText(named).first()).toBeVisible();
   await expect(page.getByText(/not answering yet/)).toHaveCount(0);
   await expect(page.getByText(/SIMULATED company, rail data/).first()).toBeVisible();

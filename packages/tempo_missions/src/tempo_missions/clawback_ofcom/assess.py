@@ -21,6 +21,7 @@ from tempo_core.hazard import Hazard
 from tempo_core.models import Fact
 from tempo_core.rights_decay import Plan, Right, apply_clocks, plan
 from tempo_core.rules import FixedAmountPack, NotEligible, evaluate_missed_appointment
+from tempo_core.rules.words import rule_in_words
 from tempo_missions.clawback_ofcom.messages import OfcomCase, OfcomRequest
 from tempo_missions.clawback_rail.base import ClawbackDeps, S, _Step
 from tempo_missions.clawback_rail.messages import MissionOutcome
@@ -138,12 +139,26 @@ class Court(_Step):
             await ctx.send_message(case)
             return
         trace = case.trace
+        request = case.request
+        pack = self.deps.rules.by_id(trace.steps[0].rule_id)
+        notice = (
+            "nobody came and nobody called" if request.notice_hours is None
+            else f"cancelled with {request.notice_hours} hours' notice"
+        )  # fmt: skip
         question = CaseQuestion(
-            mission_id=case.request.mission_id,
+            mission_id=request.mission_id,
             question="Does Ofcom's automatic compensation cover this missed visit, as described?",
             rule_id=trace.steps[0].rule_id,
-            rule_text=trace.steps[0].explanation,
-        )
+            rule_text=rule_in_words(pack)
+            if isinstance(pack, FixedAmountPack)
+            else trace.steps[0].explanation,
+            facts=(
+                Fact(key="provider", value=request.operator, source=request.source, confidence=1.0),
+                Fact(key="visit_date", value=request.event_date, source=request.source,
+                     confidence=1.0),
+                Fact(key="what_happened", value=notice, source=request.source, confidence=1.0),
+            ),
+        )  # fmt: skip
         decision = await self.deps.court.decide(question)
         final = apply_court(trace, decision)
         voted = case.with_(court_json=decision.model_dump_json())

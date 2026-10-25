@@ -60,7 +60,7 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from tempo_adapters.factory import build_adapters, model_ready, models_live
+from tempo_adapters.factory import build_adapters, model_ready, models_live, openrouter_used
 from tempo_adapters.scam import Registers
 from tempo_adapters.settings import Settings
 from tempo_core.config import profile
@@ -288,6 +288,8 @@ def create_app(
     deployment = profile(settings.tempo_deploy)  # an unknown mode fails here, at start-up
     if settings.tempo_region:  # the profile's region is a default; the real one wins
         deployment = replace(deployment, region=settings.tempo_region)
+    if openrouter_used(settings):  # an OpenRouter juror makes OpenRouter an outside AI company too
+        deployment = replace(deployment, extra_ai=frozenset({"openrouter"}))
 
     def web_caller(authorization: Annotated[str | None, Header()] = None) -> str:
         token = (authorization or "").removeprefix("Bearer ").strip()

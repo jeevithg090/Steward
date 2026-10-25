@@ -188,7 +188,7 @@ def test_the_three_jurors_vote_on_our_gpu_and_the_rules_set_the_amount(gw: httpx
     jurors = sorted(v["juror"] for v in court["verdicts"])
     if ON_GPU:
         assert jurors == ["runpod-vllm-1", "runpod-vllm-2", "runpod-vllm-3"]
-    else:  # three different models, from Gemini and OpenRouter
+    else:  # three different hosted models (Gemini, and OpenRouter when one is seated)
         assert len(set(jurors)) == 3 and any(j.startswith("gemini") for j in jurors), jurors
     assert court["eligible"] is True and court["outcome"] in ("proceed", "proceed_flagged")
     assert all(v["verdict"]["rule_id"] for v in court["verdicts"])
@@ -328,9 +328,10 @@ def test_profiles_and_skills_are_served_and_a_share_code_round_trips(gw: httpx.C
 
 def test_the_privacy_proof_names_every_outside_ai_company(gw: httpx.Client) -> None:
     proof = gw.get("/privacy", params={"user_id": "u_margaret"}).json()
-    assert proof["mode"] == DEPLOY
-    expected = ["elevenlabs"] if ON_GPU else ["elevenlabs", "gemini", "openrouter"]
-    assert proof["third_parties"] == expected
+    health = gw.get("/health").json()
+    assert proof["mode"] == DEPLOY and proof["third_parties"] == health["third_parties"]
+    assert ("gemini" in proof["third_parties"]) is (not ON_GPU)
+    assert "elevenlabs" in proof["third_parties"]
 
 
 def test_stop_stops_everything(gw: httpx.Client) -> None:

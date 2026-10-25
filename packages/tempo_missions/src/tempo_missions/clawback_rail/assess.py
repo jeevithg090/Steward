@@ -11,7 +11,14 @@ from tempo_core.arbiter import ActionOption, choose_action
 from tempo_core.delays import claimable_delay
 from tempo_core.errors import NotCovered, RailDataUnavailable, ServiceNotFound
 from tempo_core.models import Fact
-from tempo_core.rules import NotEligible, evaluate_delay_repay
+from tempo_core.rules import (
+    DelayRepayPack,
+    DistanceBandPack,
+    FixedAmountPack,
+    NotEligible,
+    evaluate_delay_repay,
+)
+from tempo_core.rules.words import rule_in_words
 from tempo_missions.clawback_rail.base import DO_IT_YOURSELF_MINUTES, ClawbackDeps, S, _Step
 from tempo_missions.clawback_rail.messages import (
     ClaimRequest,
@@ -95,13 +102,33 @@ class Court(_Step):
         if self.deps.court is None:
             await ctx.send_message(case)
             return
-        trace = case.trace
+        trace, journey, request = case.trace, case.journey, case.request
+        pack = self.deps.rules.by_id(trace.steps[0].rule_id)
+        # The jurors read the operator's rule itself and the facts with their sources; never only
+        # Tempo's own result line (a model given that and no facts rightly says it can't tell).
+        rule_text = (
+            rule_in_words(pack)
+            if isinstance(pack, DelayRepayPack | FixedAmountPack | DistanceBandPack)
+            else trace.steps[0].explanation
+        )
+        facts = (
+            Fact(key="arrival_delay_min", value=journey.delay_minutes or 0,
+                 source=journey.source, confidence=1.0),
+            Fact(key="cancelled", value="yes" if journey.cancelled else "no",
+                 source=journey.source, confidence=1.0),
+            Fact(key="operator", value=journey.operator_code,
+                 source=journey.source, confidence=1.0),
+            Fact(key="journey", confidence=1.0, source="you",
+                 value=f"{request.origin_crs} to {request.destination_crs} on "
+                       f"{request.travel_date}, departing {request.departure}"),
+            Fact(key="fare_gbp", value=Decimal(request.fare_gbp), source="you", confidence=1.0),
+        )  # fmt: skip
         question = CaseQuestion(
-            mission_id=case.request.mission_id,
+            mission_id=request.mission_id,
             question="Does this rule cover this journey, as the facts describe it?",
             rule_id=trace.steps[0].rule_id,
-            rule_text=trace.steps[0].explanation,
-            facts=(),
+            rule_text=rule_text,
+            facts=facts,
         )
         decision = await self.deps.court.decide(question)
         final = apply_court(trace, decision)

@@ -81,17 +81,48 @@ def apis(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient
         mock.route(host="testserver").pass_through()
         with gateway_with(
             tmp_path, tempo_deploy="cloud-apis", gemini_api_key="g-test", openrouter_api_key="or-test",
-            gemini_model="gemini-3.1-flash-lite",
+            openrouter_models="dots-studio/dots-3-note-preview:free", gemini_model="gemini-3.1-flash-lite",
         ) as client:  # fmt: skip
             yield client
 
 
-def test_the_jurors_are_three_models_from_two_providers(apis: TestClient) -> None:
+@pytest.fixture
+def gemini_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+    """The default: an OpenRouter key alone seats nobody; three Gemini models judge."""
+    monkeypatch.chdir(tmp_path)
+    with respx.mock(assert_all_called=False) as mock:
+        mock.post(GEMINI_CHAT).mock(side_effect=a_model)
+        mock.route(host="testserver").pass_through()
+        with gateway_with(
+            tmp_path,
+            tempo_deploy="cloud-apis",
+            gemini_api_key="g-test",
+            openrouter_api_key="or-test",
+        ) as client:
+            yield client
+
+
+def test_by_default_three_different_gemini_models_judge(gemini_only: TestClient) -> None:
+    reply = gemini_only.post(
+        "/chat", headers=AUTH, json={"user_id": "u_d", "text": LATE_TRAIN}
+    ).json()
+    assert [v["juror"] for v in reply["mission"]["court"]["verdicts"]] == [
+        "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3-flash-preview",
+    ]  # fmt: skip
+    health = gemini_only.get("/health").json()
+    assert health["third_parties"] == [
+        "elevenlabs",
+        "gemini",
+    ]  # OpenRouter isn't used, so not named
+    assert health["model"]["processor"] == "Google Gemini"
+
+
+def test_an_openrouter_model_takes_the_second_seat(apis: TestClient) -> None:
     reply = apis.post("/chat", headers=AUTH, json={"user_id": "u_m", "text": LATE_TRAIN}).json()
     assert reply["ask"]["amount_gbp"] == "14.20"  # the rules, never a model
     court = reply["mission"]["court"]
     assert [v["juror"] for v in court["verdicts"]] == [
-        "gemini-3.1-flash-lite", "dots-3-note-preview", "gemini-3.5-flash",
+        "gemini-3.1-flash-lite", "dots-3-note-preview", "gemini-3.5-flash-lite",
     ]  # fmt: skip
     assert court["absent"] == [] and court["eligible"] is True
 

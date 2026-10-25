@@ -85,10 +85,16 @@ class Settings(BaseSettings):
     # Vision
     gemini_api_key: SecretStr | None = None
     gemini_model: str = "gemini-flash-latest"  # (check) the Flash model your key can use
-    # cloud-apis (plan.md §13.5): the jurors, in order, Gemini first; small talk uses the first.
-    gemini_juror_models: str = "gemini-3.1-flash-lite,gemini-3.5-flash"
+    # cloud-apis (plan.md §13.5): three different Gemini models judge; small talk uses the first.
+    # Measured 25 Oct 2026 on the real Court question: 1.0 to 5.2 s each, all correct.
+    gemini_juror_models: str = "gemini-3.1-flash-lite,gemini-3.5-flash-lite,gemini-3-flash-preview"
     openrouter_api_key: SecretStr | None = None
-    openrouter_models: str = "dots-studio/dots-3-note-preview:free"  # free models move; (check)
+    # Opt-in: an OpenRouter model takes the second seat (e.g. dots-studio/dots-3-note-preview:free:
+    # correct, but 17.7 s and about 50 free requests a day; raise JUROR_TIMEOUT_S to 35 with it).
+    openrouter_models: str = ""
+    juror_timeout_s: float = (
+        20.0  # the Consensus Court's per-juror limit; an absent juror is flagged
+    )
 
     # Tracing
     langfuse_host: str = "https://cloud.langfuse.com"

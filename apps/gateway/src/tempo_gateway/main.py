@@ -150,7 +150,8 @@ def _court(settings: Settings, status: ModelStatus | None = None) -> ConsensusCo
             [
                 CortexJuror(RecordingClient(client, status) if status else client, name=name)
                 for name, client in jurors
-            ]
+            ],
+            timeout_s=settings.juror_timeout_s,
         )
     if settings.snowflake_account and settings.snowflake_pat:
         tokens = PatTokenProvider(lambda: settings.snowflake_pat)
