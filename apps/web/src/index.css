@@ -7,7 +7,64 @@ body,
 #root {
   height: 100%;
   margin: 0;
-  background: #020617;
+  background: #0a0a0c;
+  color-scheme: dark;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Accessibility controls (plan.md §4.7), set on <html> by Settings and the boot script. */
+html[data-text-size="large"] { font-size: 118%; }
+html[data-text-size="larger"] { font-size: 136%; }
+
+html[data-plain] button,
+html[data-plain] a[role="button"],
+html[data-plain] select,
+html[data-plain] input:not([type="range"]) {
+  min-height: 44px;
+}
+html[data-plain] .plain-hide { display: none !important; }
+
+html[data-reduce-motion] *,
+html[data-reduce-motion] *::before,
+html[data-reduce-motion] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* The system's own preferences are honoured without touching Settings. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .bg-nexus-card { border-color: rgba(255, 255, 255, 0.35) !important; }
+  .text-slate-400 { color: #cbd5e1 !important; }
+  .text-slate-500 { color: #cbd5e1 !important; }
+}
+
+/* The skip link is the first focusable thing on every page. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 100;
+  border-radius: 9999px;
+  background: #fff;
+  color: #0a0a0c;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.skip-link:focus { top: 1rem; outline: 2px solid #818cf8; }
+
+/* Struck-through earlier facts on the memory timeline and the rights clocks. */
+.superseded { text-decoration: line-through; opacity: 0.6; }

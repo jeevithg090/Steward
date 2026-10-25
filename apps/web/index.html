@@ -3,7 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nexus AI Agent</title>
+    <meta name="description" content="Tempo: an open-source personal AI agent that wins back your money and your time. Models read and plan; code decides money, time and permissions." />
+    <meta name="theme-color" content="#0a0a0c" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Tempo</title>
+    <script>
+      // Apply the accessibility preferences before the first paint (plan.md §4.7).
+      try {
+        var s = localStorage.getItem("tempo.textSize");
+        if (s === "large" || s === "larger") document.documentElement.setAttribute("data-text-size", s);
+        if (localStorage.getItem("tempo.plain") === "1") document.documentElement.setAttribute("data-plain", "");
+        if (localStorage.getItem("tempo.reduceMotion") === "1") document.documentElement.setAttribute("data-reduce-motion", "");
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,0 +1,967 @@
+{
+  "generated_at": "2026-10-25T04:44:31.612Z",
+  "source": "profiles/*.yaml and skills/*/skill.yaml, via apps/web/scripts/build-catalog.mjs",
+  "skills": [
+    {
+      "id": "clawback-ofcom",
+      "name": "Missed engineer visits and broadband faults",
+      "version": "0.1.0",
+      "status": "demo-values",
+      "summary": "The engineer never came, or the fault dragged on. Ofcom says your provider must pay you automatically. Tempo checks the credit arrives and complains only when it is late.",
+      "jobs": [
+        "Read the \"sorry we missed you\" card and read back any date it is unsure of",
+        "Price the automatic compensation from Ofcom's published scheme",
+        "Wait for the provider's own credit when waiting is the better move, then complain once if it does not come",
+        "Phone the provider for you, within the mandate you signed, and refuse vouchers"
+      ],
+      "needs": [
+        "claim",
+        "call",
+        "accept_cash",
+        "escalate"
+      ],
+      "channels": [
+        "web",
+        "sms",
+        "voice"
+      ],
+      "mission": "clawback_ofcom",
+      "operators": [
+        "Broadbandly (simulated)"
+      ],
+      "docs": null,
+      "notes": null,
+      "maintainers": [
+        "tempo-team"
+      ]
+    },
+    {
+      "id": "clawback-uk-flights",
+      "name": "Flight delay compensation (UK261)",
+      "version": "0.1.0",
+      "status": "demo-values",
+      "summary": "Your flight landed hours late. UK261 pays a fixed amount by distance. Tempo works out the band and the exceptions, and claims it with your yes.",
+      "jobs": [
+        "Work out the UK261 band from the route distance and the arrival delay",
+        "Flag extraordinary circumstances the airline may rely on, so you are not surprised",
+        "Ask you once, file the claim, and watch the six-year clock"
+      ],
+      "needs": [
+        "claim",
+        "accept_cash",
+        "escalate"
+      ],
+      "channels": [
+        "web",
+        "sms",
+        "voice"
+      ],
+      "mission": "clawback_rail",
+      "operators": [],
+      "docs": null,
+      "notes": null,
+      "maintainers": [
+        "tempo-team"
+      ]
+    },
+    {
+      "id": "clawback-uk-rail",
+      "name": "Delay Repay for UK trains",
+      "version": "0.1.0",
+      "status": "demo-values",
+      "summary": "Your train was late. Tempo finds how late from rail data, works out what the operator owes you from its published bands, and claims it once you say yes.",
+      "jobs": [
+        "Find out how late your train really was from National Rail and Realtime Trains data",
+        "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+        "Have three AI jurors check the reading; they can say no, never change the amount",
+        "Ask you once in plain words, file the claim, and wait until the money has arrived"
+      ],
+      "needs": [
+        "claim",
+        "accept_cash"
+      ],
+      "channels": [
+        "web",
+        "sms",
+        "voice"
+      ],
+      "mission": "clawback_rail",
+      "operators": [
+        "GWR",
+        "Chiltern"
+      ],
+      "docs": "docs/adr/0003-rules-as-code.md",
+      "notes": null,
+      "maintainers": [
+        "tempo-team"
+      ]
+    },
+    {
+      "id": "entitlement-check",
+      "name": "Entitlement Check",
+      "version": "0.1.0",
+      "status": "demo-values",
+      "summary": "Ten questions, then what is worth claiming: Pension Credit, Attendance Allowance and broadband social tariffs, with a pre-filled pack. Screening, not a decision.",
+      "jobs": [
+        "Ask ten plain questions about age, income, savings and health",
+        "Say which benefits look worth claiming and roughly what they are worth each week",
+        "Prepare a pre-filled pack and point to the official page for each one"
+      ],
+      "needs": [],
+      "channels": [
+        "web",
+        "sms",
+        "voice"
+      ],
+      "mission": null,
+      "operators": [],
+      "docs": "https://www.gov.uk/pension-credit/eligibility",
+      "notes": null,
+      "maintainers": [
+        "tempo-team"
+      ]
+    },
+    {
+      "id": "letter-explainer",
+      "name": "Letter Explainer and Decision Challenger",
+      "version": "0.2.0",
+      "status": "ready",
+      "summary": "Show Tempo any official letter and it reads it to you in plain words: what it is, what it says, who owes what, what to do by when, and the clocks it starts. A PIP decision is explained against its points, with a draft reply that adds no facts you did not give.",
+      "jobs": [
+        "Read a photo of a bill, reminder or decision letter and say what it is and what it says",
+        "Say whether money is owed to you or by you, what you must do and by when",
+        "Read back anything it is not sure of as one plain question before trusting it",
+        "Name the rights clocks the letter starts, with the date each one ends",
+        "Explain a PIP decision against its points and work out the deadline from bank holidays",
+        "Draft a reply from your own words only, for you to check and send"
+      ],
+      "needs": [],
+      "channels": [
+        "web",
+        "sms",
+        "voice"
+      ],
+      "mission": null,
+      "operators": [],
+      "docs": null,
+      "notes": "photos are read once and never stored; in replay mode two synthetic letters are the demo",
+      "maintainers": [
+        "tempo-team"
+      ]
+    },
+    {
+      "id": "rights-decay",
+      "name": "Rights Decay: when to act",
+      "version": "0.1.0",
+      "status": "demo-values",
+      "summary": "Every right has a clock, and some problems fix themselves. Tempo prices waiting against acting from real data and names the day to act, so nothing expires and no time is wasted.",
+      "jobs": [
+        "Keep a clock for every right you hold, each with the rule it comes from",
+        "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
+        "Name the next decision date and wake up on it, even after a restart",
+        "Explain why it waited, in plain words, with the odds and the deadline"
+      ],
+      "needs": [],
+      "channels": [
+        "web",
+        "sms",
+        "voice"
+      ],
+      "mission": null,
+      "operators": [],
+      "docs": "docs/rights_backtest.md",
+      "notes": null,
+      "maintainers": [
+        "tempo-team"
+      ]
+    },
+    {
+      "id": "scam-shield",
+      "name": "Scam Shield",
+      "version": "0.3.0",
+      "status": "ready",
+      "summary": "Tempo watches the texts that reach your phone and speaks when one is a trick. It checks the words, the links, the official registers and public phishing lists, and it never says \"safe\". It never moves your money.",
+      "jobs": [
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+      ],
+      "needs": [],
+      "channels": [
+        "sms",
+        "web",
+        "voice"
+      ],
+      "mission": null,
+      "operators": [],
+      "docs": "docs/scam-shield.md",
+      "notes": "Recorded register, phishing-list and sandbox answers are used until keys are set and TEMPO_MODE=live. The text model is trained on two CC BY 4.0 SMS corpora plus a declared synthetic set; its numbers are in docs/scam_backtest.md. The Android node is written but not compiled here.",
+      "maintainers": [
+        "tempo-team"
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "am-i-owed",
+      "name": "Am I Owed Anything?",
+      "version": "0.1.0",
+      "status": "starter",
+      "summary": "Tempo only looks and explains. It tells you what benefits are worth claiming, what a letter means and whether a message is a scam. It never files, calls or accepts anything.",
+      "for_whom": "Anyone who wants answers first and will decide later whether Tempo may act.",
+      "skills": [
+        {
+          "id": "entitlement-check",
+          "name": "Entitlement Check",
+          "status": "demo-values",
+          "jobs": [
+            "Ask ten plain questions about age, income, savings and health",
+            "Say which benefits look worth claiming and roughly what they are worth each week",
+            "Prepare a pre-filled pack and point to the official page for each one"
+          ]
+        },
+        {
+          "id": "letter-explainer",
+          "name": "Letter Explainer and Decision Challenger",
+          "status": "ready",
+          "jobs": [
+            "Read a photo of a bill, reminder or decision letter and say what it is and what it says",
+            "Say whether money is owed to you or by you, what you must do and by when",
+            "Read back anything it is not sure of as one plain question before trusting it",
+            "Name the rights clocks the letter starts, with the date each one ends",
+            "Explain a PIP decision against its points and work out the deadline from bank holidays",
+            "Draft a reply from your own words only, for you to check and send"
+          ]
+        },
+        {
+          "id": "scam-shield",
+          "name": "Scam Shield",
+          "status": "ready",
+          "jobs": [
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+          ]
+        }
+      ],
+      "jobs": [
+        "Ask ten plain questions about age, income, savings and health",
+        "Say which benefits look worth claiming and roughly what they are worth each week",
+        "Prepare a pre-filled pack and point to the official page for each one",
+        "Read a photo of a bill, reminder or decision letter and say what it is and what it says",
+        "Say whether money is owed to you or by you, what you must do and by when",
+        "Read back anything it is not sure of as one plain question before trusting it",
+        "Name the rights clocks the letter starts, with the date each one ends",
+        "Explain a PIP decision against its points and work out the deadline from bank holidays",
+        "Draft a reply from your own words only, for you to check and send",
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+      ],
+      "may": [],
+      "may_not": [
+        "claim",
+        "call",
+        "accept_cash",
+        "accept_voucher",
+        "discuss_other_accounts",
+        "change_contract",
+        "share_personal_data",
+        "escalate"
+      ],
+      "limits": {
+        "max_gbp_per_claim": "0.00",
+        "max_user_questions": 10,
+        "max_llm_gbp_per_mission": "0.10",
+        "mandate_days": 1
+      },
+      "access": {
+        "language": "en",
+        "pace": "normal",
+        "patience": "normal",
+        "voice": "default",
+        "prefers_text": false,
+        "plain_words": true
+      },
+      "channels": [
+        "web",
+        "sms",
+        "voice"
+      ],
+      "time_value_gbp_h": "18.00",
+      "share": {
+        "public": true,
+        "author": "Tempo team"
+      },
+      "yaml": "# A read-only profile: Tempo screens, explains and warns. It may not claim, call or accept\n# anything. A good first profile for someone who wants to look before they trust.\nid: am-i-owed\nname: Am I Owed Anything?\nversion: \"0.1.0\"\nstatus: starter\nsummary: >-\n  Tempo only looks and explains. It tells you what benefits are worth claiming, what a letter\n  means and whether a message is a scam. It never files, calls or accepts anything.\nfor_whom: >-\n  Anyone who wants answers first and will decide later whether Tempo may act.\nskills: [entitlement-check, letter-explainer, scam-shield]\nmay: []\nmay_not: [claim, call, accept_cash, accept_voucher, discuss_other_accounts, change_contract, share_personal_data, escalate]\nlimits:\n  max_gbp_per_claim: \"0.00\"\n  max_user_questions: 10\n  max_llm_gbp_per_mission: \"0.10\"\n  mandate_days: 1\naccess:\n  language: en\n  pace: normal\n  patience: normal\n  voice: default\n  prefers_text: false\n  plain_words: true\nchannels: [web, sms, voice]\ntime_value_gbp_h: \"18.00\"\nshare:\n  public: true\n  author: Tempo team\n"
+    },
+    {
+      "id": "carer",
+      "name": "The Carer",
+      "version": "0.1.0",
+      "status": "starter",
+      "summary": "You look after someone else's admin. Tempo claims what they are owed, explains the letters that arrive, screens what benefits they could get, and warns about scams. It can tell you, the helper, what it did.",
+      "for_whom": "A son, daughter or friend who handles a parent's post, calls and refunds.",
+      "skills": [
+        {
+          "id": "clawback-uk-rail",
+          "name": "Delay Repay for UK trains",
+          "status": "demo-values",
+          "jobs": [
+            "Find out how late your train really was from National Rail and Realtime Trains data",
+            "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+            "Have three AI jurors check the reading; they can say no, never change the amount",
+            "Ask you once in plain words, file the claim, and wait until the money has arrived"
+          ]
+        },
+        {
+          "id": "clawback-ofcom",
+          "name": "Missed engineer visits and broadband faults",
+          "status": "demo-values",
+          "jobs": [
+            "Read the \"sorry we missed you\" card and read back any date it is unsure of",
+            "Price the automatic compensation from Ofcom's published scheme",
+            "Wait for the provider's own credit when waiting is the better move, then complain once if it does not come",
+            "Phone the provider for you, within the mandate you signed, and refuse vouchers"
+          ]
+        },
+        {
+          "id": "rights-decay",
+          "name": "Rights Decay: when to act",
+          "status": "demo-values",
+          "jobs": [
+            "Keep a clock for every right you hold, each with the rule it comes from",
+            "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
+            "Name the next decision date and wake up on it, even after a restart",
+            "Explain why it waited, in plain words, with the odds and the deadline"
+          ]
+        },
+        {
+          "id": "letter-explainer",
+          "name": "Letter Explainer and Decision Challenger",
+          "status": "ready",
+          "jobs": [
+            "Read a photo of a bill, reminder or decision letter and say what it is and what it says",
+            "Say whether money is owed to you or by you, what you must do and by when",
+            "Read back anything it is not sure of as one plain question before trusting it",
+            "Name the rights clocks the letter starts, with the date each one ends",
+            "Explain a PIP decision against its points and work out the deadline from bank holidays",
+            "Draft a reply from your own words only, for you to check and send"
+          ]
+        },
+        {
+          "id": "entitlement-check",
+          "name": "Entitlement Check",
+          "status": "demo-values",
+          "jobs": [
+            "Ask ten plain questions about age, income, savings and health",
+            "Say which benefits look worth claiming and roughly what they are worth each week",
+            "Prepare a pre-filled pack and point to the official page for each one"
+          ]
+        },
+        {
+          "id": "scam-shield",
+          "name": "Scam Shield",
+          "status": "ready",
+          "jobs": [
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+          ]
+        }
+      ],
+      "jobs": [
+        "Find out how late your train really was from National Rail and Realtime Trains data",
+        "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+        "Have three AI jurors check the reading; they can say no, never change the amount",
+        "Ask you once in plain words, file the claim, and wait until the money has arrived",
+        "Read the \"sorry we missed you\" card and read back any date it is unsure of",
+        "Price the automatic compensation from Ofcom's published scheme",
+        "Wait for the provider's own credit when waiting is the better move, then complain once if it does not come",
+        "Phone the provider for you, within the mandate you signed, and refuse vouchers",
+        "Keep a clock for every right you hold, each with the rule it comes from",
+        "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
+        "Name the next decision date and wake up on it, even after a restart",
+        "Explain why it waited, in plain words, with the odds and the deadline",
+        "Read a photo of a bill, reminder or decision letter and say what it is and what it says",
+        "Say whether money is owed to you or by you, what you must do and by when",
+        "Read back anything it is not sure of as one plain question before trusting it",
+        "Name the rights clocks the letter starts, with the date each one ends",
+        "Explain a PIP decision against its points and work out the deadline from bank holidays",
+        "Draft a reply from your own words only, for you to check and send",
+        "Ask ten plain questions about age, income, savings and health",
+        "Say which benefits look worth claiming and roughly what they are worth each week",
+        "Prepare a pre-filled pack and point to the official page for each one",
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+      ],
+      "may": [
+        "claim",
+        "call",
+        "accept_cash",
+        "escalate",
+        "share_personal_data"
+      ],
+      "may_not": [
+        "accept_voucher",
+        "discuss_other_accounts",
+        "change_contract"
+      ],
+      "limits": {
+        "max_gbp_per_claim": "500.00",
+        "max_user_questions": 3,
+        "max_llm_gbp_per_mission": "0.40",
+        "mandate_days": 7
+      },
+      "access": {
+        "language": "en",
+        "pace": "slower",
+        "patience": "high",
+        "voice": "default",
+        "prefers_text": false,
+        "plain_words": true
+      },
+      "channels": [
+        "web",
+        "sms",
+        "voice"
+      ],
+      "time_value_gbp_h": "22.00",
+      "share": {
+        "public": true,
+        "author": "Tempo team"
+      },
+      "yaml": "# For someone sorting out a parent's admin: more skills, a helper who may be told, and Tempo may\n# phone the company. Still nothing binding without a signed yes, and never a voucher.\nid: carer\nname: The Carer\nversion: \"0.1.0\"\nstatus: starter\nsummary: >-\n  You look after someone else's admin. Tempo claims what they are owed, explains the letters\n  that arrive, screens what benefits they could get, and warns about scams. It can tell you,\n  the helper, what it did.\nfor_whom: >-\n  A son, daughter or friend who handles a parent's post, calls and refunds.\nskills: [clawback-uk-rail, clawback-ofcom, rights-decay, letter-explainer, entitlement-check, scam-shield]\nmay: [claim, call, accept_cash, escalate, share_personal_data]\nmay_not: [accept_voucher, discuss_other_accounts, change_contract]\nlimits:\n  max_gbp_per_claim: \"500.00\"\n  max_user_questions: 3\n  max_llm_gbp_per_mission: \"0.40\"\n  mandate_days: 7\naccess:\n  language: en\n  pace: slower\n  patience: high\n  voice: default\n  prefers_text: false\n  plain_words: true\nchannels: [web, sms, voice]\ntime_value_gbp_h: \"22.00\"\nshare:\n  public: true\n  author: Tempo team\n"
+    },
+    {
+      "id": "commuter",
+      "name": "The Commuter",
+      "version": "0.1.0",
+      "status": "starter",
+      "summary": "Your train was late. Tempo works out what you are owed, asks you once, claims it and waits until the money arrives. It also knows when a right is about to run out.",
+      "for_whom": "Anyone who takes the same train most days and never gets round to claiming.",
+      "skills": [
+        {
+          "id": "clawback-uk-rail",
+          "name": "Delay Repay for UK trains",
+          "status": "demo-values",
+          "jobs": [
+            "Find out how late your train really was from National Rail and Realtime Trains data",
+            "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+            "Have three AI jurors check the reading; they can say no, never change the amount",
+            "Ask you once in plain words, file the claim, and wait until the money has arrived"
+          ]
+        },
+        {
+          "id": "rights-decay",
+          "name": "Rights Decay: when to act",
+          "status": "demo-values",
+          "jobs": [
+            "Keep a clock for every right you hold, each with the rule it comes from",
+            "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
+            "Name the next decision date and wake up on it, even after a restart",
+            "Explain why it waited, in plain words, with the odds and the deadline"
+          ]
+        }
+      ],
+      "jobs": [
+        "Find out how late your train really was from National Rail and Realtime Trains data",
+        "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+        "Have three AI jurors check the reading; they can say no, never change the amount",
+        "Ask you once in plain words, file the claim, and wait until the money has arrived",
+        "Keep a clock for every right you hold, each with the rule it comes from",
+        "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
+        "Name the next decision date and wake up on it, even after a restart",
+        "Explain why it waited, in plain words, with the odds and the deadline"
+      ],
+      "may": [
+        "claim",
+        "accept_cash",
+        "escalate"
+      ],
+      "may_not": [
+        "accept_voucher",
+        "call",
+        "discuss_other_accounts",
+        "change_contract",
+        "share_personal_data"
+      ],
+      "limits": {
+        "max_gbp_per_claim": "250.00",
+        "max_user_questions": 2,
+        "max_llm_gbp_per_mission": "0.20",
+        "mandate_days": 7
+      },
+      "access": {
+        "language": "en",
+        "pace": "normal",
+        "patience": "normal",
+        "voice": "default",
+        "prefers_text": false,
+        "plain_words": true
+      },
+      "channels": [
+        "web",
+        "sms",
+        "voice"
+      ],
+      "time_value_gbp_h": "18.00",
+      "share": {
+        "public": true,
+        "author": "Tempo team"
+      },
+      "yaml": "# A Tempo Profile: who Tempo works for, which skills are on, and what it may never do.\n# Share it as a file or a link (/profiles/<id>/share). The capability words come from the Agent\n# Passport (tempo_passport.ACTIONS), so a profile and a signed mandate speak the same language.\nid: commuter\nname: The Commuter\nversion: \"0.1.0\"\nstatus: starter\nsummary: >-\n  Your train was late. Tempo works out what you are owed, asks you once, claims it and waits\n  until the money arrives. It also knows when a right is about to run out.\nfor_whom: >-\n  Anyone who takes the same train most days and never gets round to claiming.\nskills: [clawback-uk-rail, rights-decay]\nmay: [claim, accept_cash, escalate]\nmay_not: [accept_voucher, call, discuss_other_accounts, change_contract, share_personal_data]\nlimits:\n  max_gbp_per_claim: \"250.00\"\n  max_user_questions: 2\n  max_llm_gbp_per_mission: \"0.20\"\n  mandate_days: 7\naccess:\n  language: en\n  pace: normal\n  patience: normal\n  voice: default\n  prefers_text: false\n  plain_words: true\nchannels: [web, sms, voice]\ntime_value_gbp_h: \"18.00\"\nshare:\n  public: true\n  author: Tempo team\n"
+    },
+    {
+      "id": "hard-of-hearing",
+      "name": "Say It Again, Lower",
+      "version": "0.1.0",
+      "status": "starter",
+      "summary": "Tempo speaks lower and slower, repeats key numbers, and sends the question as a text so you can read it as many times as you like.",
+      "for_whom": "Anyone who struggles to hear on the phone, especially high voices.",
+      "skills": [
+        {
+          "id": "clawback-uk-rail",
+          "name": "Delay Repay for UK trains",
+          "status": "demo-values",
+          "jobs": [
+            "Find out how late your train really was from National Rail and Realtime Trains data",
+            "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+            "Have three AI jurors check the reading; they can say no, never change the amount",
+            "Ask you once in plain words, file the claim, and wait until the money has arrived"
+          ]
+        },
+        {
+          "id": "clawback-ofcom",
+          "name": "Missed engineer visits and broadband faults",
+          "status": "demo-values",
+          "jobs": [
+            "Read the \"sorry we missed you\" card and read back any date it is unsure of",
+            "Price the automatic compensation from Ofcom's published scheme",
+            "Wait for the provider's own credit when waiting is the better move, then complain once if it does not come",
+            "Phone the provider for you, within the mandate you signed, and refuse vouchers"
+          ]
+        },
+        {
+          "id": "entitlement-check",
+          "name": "Entitlement Check",
+          "status": "demo-values",
+          "jobs": [
+            "Ask ten plain questions about age, income, savings and health",
+            "Say which benefits look worth claiming and roughly what they are worth each week",
+            "Prepare a pre-filled pack and point to the official page for each one"
+          ]
+        },
+        {
+          "id": "scam-shield",
+          "name": "Scam Shield",
+          "status": "ready",
+          "jobs": [
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+          ]
+        }
+      ],
+      "jobs": [
+        "Find out how late your train really was from National Rail and Realtime Trains data",
+        "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+        "Have three AI jurors check the reading; they can say no, never change the amount",
+        "Ask you once in plain words, file the claim, and wait until the money has arrived",
+        "Read the \"sorry we missed you\" card and read back any date it is unsure of",
+        "Price the automatic compensation from Ofcom's published scheme",
+        "Wait for the provider's own credit when waiting is the better move, then complain once if it does not come",
+        "Phone the provider for you, within the mandate you signed, and refuse vouchers",
+        "Ask ten plain questions about age, income, savings and health",
+        "Say which benefits look worth claiming and roughly what they are worth each week",
+        "Prepare a pre-filled pack and point to the official page for each one",
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+      ],
+      "may": [
+        "claim",
+        "call",
+        "accept_cash",
+        "escalate"
+      ],
+      "may_not": [
+        "accept_voucher",
+        "discuss_other_accounts",
+        "change_contract",
+        "share_personal_data"
+      ],
+      "limits": {
+        "max_gbp_per_claim": "250.00",
+        "max_user_questions": 2,
+        "max_llm_gbp_per_mission": "0.20",
+        "mandate_days": 7
+      },
+      "access": {
+        "language": "en",
+        "pace": "slower",
+        "patience": "high",
+        "voice": "low",
+        "prefers_text": true,
+        "plain_words": true
+      },
+      "channels": [
+        "sms",
+        "web",
+        "voice"
+      ],
+      "time_value_gbp_h": "18.00",
+      "share": {
+        "public": true,
+        "author": "Tempo team"
+      },
+      "yaml": "# For a caller with hearing loss: a lower, steadier voice, a slower pace, and the question sent\n# as text so it can be read as often as needed.\nid: hard-of-hearing\nname: Say It Again, Lower\nversion: \"0.1.0\"\nstatus: starter\nsummary: >-\n  Tempo speaks lower and slower, repeats key numbers, and sends the question as a text so you\n  can read it as many times as you like.\nfor_whom: >-\n  Anyone who struggles to hear on the phone, especially high voices.\nskills: [clawback-uk-rail, clawback-ofcom, entitlement-check, scam-shield]\nmay: [claim, call, accept_cash, escalate]\nmay_not: [accept_voucher, discuss_other_accounts, change_contract, share_personal_data]\nlimits:\n  max_gbp_per_claim: \"250.00\"\n  max_user_questions: 2\n  max_llm_gbp_per_mission: \"0.20\"\n  mandate_days: 7\naccess:\n  language: en\n  pace: slower\n  patience: high\n  voice: low\n  prefers_text: true\n  plain_words: true\nchannels: [sms, web, voice]\ntime_value_gbp_h: \"18.00\"\nshare:\n  public: true\n  author: Tempo team\n"
+    },
+    {
+      "id": "new-to-the-uk",
+      "name": "New Here",
+      "version": "0.1.0",
+      "status": "starter",
+      "summary": "Tempo speaks Hindi with you, slowly. It claims late trains and flights, tells you when a right is about to run out, and checks whether a message is a scam before you reply.",
+      "for_whom": "Anyone new to the UK who finds the rules, the letters and the calls hard to follow.",
+      "skills": [
+        {
+          "id": "clawback-uk-rail",
+          "name": "Delay Repay for UK trains",
+          "status": "demo-values",
+          "jobs": [
+            "Find out how late your train really was from National Rail and Realtime Trains data",
+            "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+            "Have three AI jurors check the reading; they can say no, never change the amount",
+            "Ask you once in plain words, file the claim, and wait until the money has arrived"
+          ]
+        },
+        {
+          "id": "clawback-uk-flights",
+          "name": "Flight delay compensation (UK261)",
+          "status": "demo-values",
+          "jobs": [
+            "Work out the UK261 band from the route distance and the arrival delay",
+            "Flag extraordinary circumstances the airline may rely on, so you are not surprised",
+            "Ask you once, file the claim, and watch the six-year clock"
+          ]
+        },
+        {
+          "id": "rights-decay",
+          "name": "Rights Decay: when to act",
+          "status": "demo-values",
+          "jobs": [
+            "Keep a clock for every right you hold, each with the rule it comes from",
+            "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
+            "Name the next decision date and wake up on it, even after a restart",
+            "Explain why it waited, in plain words, with the odds and the deadline"
+          ]
+        },
+        {
+          "id": "scam-shield",
+          "name": "Scam Shield",
+          "status": "ready",
+          "jobs": [
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+          ]
+        }
+      ],
+      "jobs": [
+        "Find out how late your train really was from National Rail and Realtime Trains data",
+        "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+        "Have three AI jurors check the reading; they can say no, never change the amount",
+        "Ask you once in plain words, file the claim, and wait until the money has arrived",
+        "Work out the UK261 band from the route distance and the arrival delay",
+        "Flag extraordinary circumstances the airline may rely on, so you are not surprised",
+        "Ask you once, file the claim, and watch the six-year clock",
+        "Keep a clock for every right you hold, each with the rule it comes from",
+        "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
+        "Name the next decision date and wake up on it, even after a restart",
+        "Explain why it waited, in plain words, with the odds and the deadline",
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+      ],
+      "may": [
+        "claim",
+        "accept_cash",
+        "escalate"
+      ],
+      "may_not": [
+        "accept_voucher",
+        "call",
+        "discuss_other_accounts",
+        "change_contract",
+        "share_personal_data"
+      ],
+      "limits": {
+        "max_gbp_per_claim": "600.00",
+        "max_user_questions": 2,
+        "max_llm_gbp_per_mission": "0.30",
+        "mandate_days": 7
+      },
+      "access": {
+        "language": "hi",
+        "pace": "slower",
+        "patience": "normal",
+        "voice": "default",
+        "prefers_text": false,
+        "plain_words": true
+      },
+      "channels": [
+        "voice",
+        "sms",
+        "web"
+      ],
+      "time_value_gbp_h": "15.00",
+      "share": {
+        "public": true,
+        "author": "Tempo team"
+      },
+      "yaml": "# For someone who would rather be spoken to in Hindi, slowly, and who most needs protection\n# from scams and from forfeiting flight and train rights they did not know they had.\nid: new-to-the-uk\nname: New Here\nversion: \"0.1.0\"\nstatus: starter\nsummary: >-\n  Tempo speaks Hindi with you, slowly. It claims late trains and flights, tells you when a\n  right is about to run out, and checks whether a message is a scam before you reply.\nfor_whom: >-\n  Anyone new to the UK who finds the rules, the letters and the calls hard to follow.\nskills: [clawback-uk-rail, clawback-uk-flights, rights-decay, scam-shield]\nmay: [claim, accept_cash, escalate]\nmay_not: [accept_voucher, call, discuss_other_accounts, change_contract, share_personal_data]\nlimits:\n  max_gbp_per_claim: \"600.00\"\n  max_user_questions: 2\n  max_llm_gbp_per_mission: \"0.30\"\n  mandate_days: 7\naccess:\n  language: hi\n  pace: slower\n  patience: normal\n  voice: default\n  prefers_text: false\n  plain_words: true\nchannels: [voice, sms, web]\ntime_value_gbp_h: \"15.00\"\nshare:\n  public: true\n  author: Tempo team\n"
+    },
+    {
+      "id": "read-it-to-me",
+      "name": "Read It To Me",
+      "version": "0.1.0",
+      "status": "starter",
+      "summary": "Take a photo of a letter and Tempo tells you, in your language, what it is, what it says and what you must do by when. It warns you before you pay someone new, and checks messages for scams. It never moves money.",
+      "for_whom": "Anyone who finds official letters, phone menus and banking apps frightening, or who reads another language better than English.",
+      "skills": [
+        {
+          "id": "letter-explainer",
+          "name": "Letter Explainer and Decision Challenger",
+          "status": "ready",
+          "jobs": [
+            "Read a photo of a bill, reminder or decision letter and say what it is and what it says",
+            "Say whether money is owed to you or by you, what you must do and by when",
+            "Read back anything it is not sure of as one plain question before trusting it",
+            "Name the rights clocks the letter starts, with the date each one ends",
+            "Explain a PIP decision against its points and work out the deadline from bank holidays",
+            "Draft a reply from your own words only, for you to check and send"
+          ]
+        },
+        {
+          "id": "scam-shield",
+          "name": "Scam Shield",
+          "status": "ready",
+          "jobs": [
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+          ]
+        },
+        {
+          "id": "entitlement-check",
+          "name": "Entitlement Check",
+          "status": "demo-values",
+          "jobs": [
+            "Ask ten plain questions about age, income, savings and health",
+            "Say which benefits look worth claiming and roughly what they are worth each week",
+            "Prepare a pre-filled pack and point to the official page for each one"
+          ]
+        },
+        {
+          "id": "rights-decay",
+          "name": "Rights Decay: when to act",
+          "status": "demo-values",
+          "jobs": [
+            "Keep a clock for every right you hold, each with the rule it comes from",
+            "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
+            "Name the next decision date and wake up on it, even after a restart",
+            "Explain why it waited, in plain words, with the odds and the deadline"
+          ]
+        }
+      ],
+      "jobs": [
+        "Read a photo of a bill, reminder or decision letter and say what it is and what it says",
+        "Say whether money is owed to you or by you, what you must do and by when",
+        "Read back anything it is not sure of as one plain question before trusting it",
+        "Name the rights clocks the letter starts, with the date each one ends",
+        "Explain a PIP decision against its points and work out the deadline from bank holidays",
+        "Draft a reply from your own words only, for you to check and send",
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it",
+        "Ask ten plain questions about age, income, savings and health",
+        "Say which benefits look worth claiming and roughly what they are worth each week",
+        "Prepare a pre-filled pack and point to the official page for each one",
+        "Keep a clock for every right you hold, each with the rule it comes from",
+        "Work out, from how often cases like yours are paid without a fight, whether to wait or act today",
+        "Name the next decision date and wake up on it, even after a restart",
+        "Explain why it waited, in plain words, with the odds and the deadline"
+      ],
+      "may": [
+        "escalate"
+      ],
+      "may_not": [
+        "claim",
+        "call",
+        "accept_cash",
+        "accept_voucher",
+        "discuss_other_accounts",
+        "change_contract",
+        "share_personal_data"
+      ],
+      "limits": {
+        "max_gbp_per_claim": "0.00",
+        "max_user_questions": 3,
+        "max_llm_gbp_per_mission": "0.15",
+        "mandate_days": 1
+      },
+      "access": {
+        "language": "en",
+        "pace": "slower",
+        "patience": "high",
+        "voice": "default",
+        "prefers_text": true,
+        "plain_words": true
+      },
+      "channels": [
+        "voice",
+        "sms",
+        "web"
+      ],
+      "time_value_gbp_h": "15.00",
+      "share": {
+        "public": true,
+        "author": "Tempo team"
+      },
+      "yaml": "# The safety-barrier profile: for someone who cannot easily read the letter, hear the call or\n# trust the message. Tempo reads things to you in your language, warns you before you pay, and\n# never moves money or acts without your signed yes.\nid: read-it-to-me\nname: Read It To Me\nversion: \"0.1.0\"\nstatus: starter\nsummary: >-\n  Take a photo of a letter and Tempo tells you, in your language, what it is, what it says and\n  what you must do by when. It warns you before you pay someone new, and checks messages for\n  scams. It never moves money.\nfor_whom: >-\n  Anyone who finds official letters, phone menus and banking apps frightening, or who reads\n  another language better than English.\nskills: [letter-explainer, scam-shield, entitlement-check, rights-decay]\nmay: [escalate]\nmay_not: [claim, call, accept_cash, accept_voucher, discuss_other_accounts, change_contract, share_personal_data]\nlimits:\n  max_gbp_per_claim: \"0.00\"\n  max_user_questions: 3\n  max_llm_gbp_per_mission: \"0.15\"\n  mandate_days: 1\naccess:\n  language: en\n  pace: slower\n  patience: high\n  voice: default\n  prefers_text: true\n  plain_words: true\nchannels: [voice, sms, web]\ntime_value_gbp_h: \"15.00\"\nshare:\n  public: true\n  author: Tempo team\n"
+    },
+    {
+      "id": "take-your-time",
+      "name": "Take Your Time",
+      "version": "0.1.0",
+      "status": "starter",
+      "summary": "Tempo never finishes your sentences and never rushes you. It asks one short question at a time and reads back what it heard before it does anything.",
+      "for_whom": "Anyone who stammers, or who needs a moment to answer, and is tired of being cut off.",
+      "skills": [
+        {
+          "id": "clawback-uk-rail",
+          "name": "Delay Repay for UK trains",
+          "status": "demo-values",
+          "jobs": [
+            "Find out how late your train really was from National Rail and Realtime Trains data",
+            "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+            "Have three AI jurors check the reading; they can say no, never change the amount",
+            "Ask you once in plain words, file the claim, and wait until the money has arrived"
+          ]
+        },
+        {
+          "id": "clawback-ofcom",
+          "name": "Missed engineer visits and broadband faults",
+          "status": "demo-values",
+          "jobs": [
+            "Read the \"sorry we missed you\" card and read back any date it is unsure of",
+            "Price the automatic compensation from Ofcom's published scheme",
+            "Wait for the provider's own credit when waiting is the better move, then complain once if it does not come",
+            "Phone the provider for you, within the mandate you signed, and refuse vouchers"
+          ]
+        },
+        {
+          "id": "scam-shield",
+          "name": "Scam Shield",
+          "status": "ready",
+          "jobs": [
+            "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+            "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+            "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+            "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+            "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+            "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+          ]
+        }
+      ],
+      "jobs": [
+        "Find out how late your train really was from National Rail and Realtime Trains data",
+        "Work out what you are owed from the operator's own Delay Repay bands, with the source shown",
+        "Have three AI jurors check the reading; they can say no, never change the amount",
+        "Ask you once in plain words, file the claim, and wait until the money has arrived",
+        "Read the \"sorry we missed you\" card and read back any date it is unsure of",
+        "Price the automatic compensation from Ofcom's published scheme",
+        "Wait for the provider's own credit when waiting is the better move, then complain once if it does not come",
+        "Phone the provider for you, within the mandate you signed, and refuse vouchers",
+        "Watch incoming texts on your phone and say out loud, in your language, when one is a trick",
+        "Hold a doubtful link, look behind it from the Gateway, and then tell you what was found",
+        "Check who the firm really is against Companies House, the FCA Register and the FCA Warning List",
+        "Check a message you forward by SMS, read out on the phone line, or paste on the web",
+        "Before you pay someone new, ask who, how much and why, then say pay, wait or stop",
+        "Keep a log of what it checked, never a word of the message, and learn only from what you give it"
+      ],
+      "may": [
+        "claim",
+        "call",
+        "accept_cash",
+        "escalate"
+      ],
+      "may_not": [
+        "accept_voucher",
+        "discuss_other_accounts",
+        "change_contract",
+        "share_personal_data"
+      ],
+      "limits": {
+        "max_gbp_per_claim": "250.00",
+        "max_user_questions": 2,
+        "max_llm_gbp_per_mission": "0.20",
+        "mandate_days": 7
+      },
+      "access": {
+        "language": "en",
+        "pace": "slower",
+        "patience": "high",
+        "voice": "default",
+        "prefers_text": false,
+        "plain_words": true
+      },
+      "channels": [
+        "voice",
+        "sms",
+        "web"
+      ],
+      "time_value_gbp_h": "18.00",
+      "share": {
+        "public": true,
+        "author": "Tempo team"
+      },
+      "yaml": "# For a caller who stammers or needs time to answer. The voice line waits as long as it takes,\n# asks one thing at a time and reads back what it heard. Nothing here lowers what Tempo checks.\nid: take-your-time\nname: Take Your Time\nversion: \"0.1.0\"\nstatus: starter\nsummary: >-\n  Tempo never finishes your sentences and never rushes you. It asks one short question at a\n  time and reads back what it heard before it does anything.\nfor_whom: >-\n  Anyone who stammers, or who needs a moment to answer, and is tired of being cut off.\nskills: [clawback-uk-rail, clawback-ofcom, scam-shield]\nmay: [claim, call, accept_cash, escalate]\nmay_not: [accept_voucher, discuss_other_accounts, change_contract, share_personal_data]\nlimits:\n  max_gbp_per_claim: \"250.00\"\n  max_user_questions: 2\n  max_llm_gbp_per_mission: \"0.20\"\n  mandate_days: 7\naccess:\n  language: en\n  pace: slower\n  patience: high\n  voice: default\n  prefers_text: false\n  plain_words: true\nchannels: [voice, sms, web]\ntime_value_gbp_h: \"18.00\"\nshare:\n  public: true\n  author: Tempo team\n"
+    }
+  ]
+}

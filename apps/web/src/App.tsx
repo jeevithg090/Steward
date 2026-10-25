@@ -1,47 +1,35 @@
-import { useState, useEffect, useCallback } from "react";
-import type { SetStateAction } from "react";
+// Tempo's web app (plan.md): the teammate's shell and chat, extended with hash routes to every
+// page, one Gateway client resolved from config (or the showcase), the honesty badge, live events
+// and the user's profile. Pages get everything through PageProps and never read env themselves.
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { AppShell } from "./components/layout/AppShell";
-import type { SpeechRequest } from "./features/chat/AvatarPanel";
-import { ChatPage } from "./features/chat/ChatPage";
-import { MemoryPage } from "./features/memory/MemoryPage";
-import { SettingsPage } from "./features/settings/SettingsPage";
-import type { ApiKeyProvider, ApiKeys, ChatMessage, ConsentAsk, ModelProvider, View } from "./types/types";
-import type { Recording } from "./hooks/useAudioRecorder";
+import { HonestyBadge, Spinner } from "./components/ui";
+import ChatContainer from "./features/chat/ChatContainer";
+import { chatStore, useChatStore } from "./features/chat/store";
+import { LANGUAGE_KEY, SettingsPage, readLanguage } from "./features/settings/SettingsPage";
+import { Gateway, type Health } from "./lib/api";
+import { gatewayConfig, setGatewayOverride, setShowcaseOverride, showcaseEnabled, showcaseForcedByBuild } from "./lib/config";
+import { useLiveEvents } from "./lib/live";
+import type { Language } from "./lib/shield";
+import { ShowcaseGateway } from "./lib/showcase";
+import { navigate, section, useRoute } from "./router";
+import type { PageProps, PageUser } from "./types/page";
+import type { ApiKeyProvider, ApiKeys, ModelProvider } from "./types/types";
 
-const MODEL_LABELS: Record<ModelProvider, string> = {
-  local: "Local Model (Primary • Ollama)",
-  gemini: "Gemini Pro",
-  claude: "Claude 3.5 Sonnet",
-  openai: "GPT-4o",
-};
-
-interface BackendMission {
-  id: string;
-  state: string;
-  user_id: string;
-  intent?: string;
-  ask?: ConsentAsk | null;
-  message?: string | null;
-  summary?: string | null;
-  origin_crs?: string;
-  destination_crs?: string;
-  fare_gbp?: string;
-}
-
-// One sidebar entry = one conversation with its own thread, pending ask and mission.
-interface Conversation {
-  id: string;
-  title: string;
-  messages: ChatMessage[];
-  ask: ConsentAsk | null;
-  missionId: string | null; // mission the consent UI currently talks to
-  missionIds: string[]; // every backend mission this conversation contains (for de-duping on sync)
-}
-
-const EMPTY_MESSAGES: ChatMessage[] = [];
+const MissionsPage = lazy(() => import("./features/missions/MissionsPage"));
+const MemoryPage = lazy(() => import("./features/memory/MemoryPage"));
+const ProfilesPage = lazy(() => import("./features/profiles/ProfilesPage"));
+const SkillsPage = lazy(() => import("./features/skills/SkillsPage"));
+const ShieldPage = lazy(() => import("./features/shield/ShieldPage"));
+const ReadPage = lazy(() => import("./features/read/ReadPage"));
+const OwedPage = lazy(() => import("./features/owed/OwedPage"));
+const CallersPage = lazy(() => import("./features/callers/CallersPage"));
+const PrivacyPage = lazy(() => import("./features/privacy/PrivacyPage"));
+const StoryPage = lazy(() => import("./features/story/StoryPage"));
 
 // API keys entered in Settings, kept on this device so they survive a reload.
 const API_KEYS_STORAGE = "tempo_api_keys";
+const PROFILE_KEY = "tempo.profile";
 const EMPTY_KEYS: ApiKeys = { claude: "", openai: "", elevenlabs: "" };
 
 function loadApiKeys(): ApiKeys {
@@ -52,89 +40,76 @@ function loadApiKeys(): ApiKeys {
   }
 }
 
-// The backend doesn't return what the user typed (no `intent`), so we remember it locally by mission id.
-const INTENT_KEY = "tempo_mission_intents";
-
-function loadIntents(): Record<string, string> {
+function loadProfile(): string | null {
   try {
-    return JSON.parse(localStorage.getItem(INTENT_KEY) || "{}");
+    return localStorage.getItem(PROFILE_KEY);
   } catch {
-    return {};
+    return null;
   }
 }
 
-function saveIntent(missionId: string, text: string) {
-  try {
-    const all = loadIntents();
-    all[missionId] = text;
-    localStorage.setItem(INTENT_KEY, JSON.stringify(all));
-  } catch {
-    /* storage unavailable, fall back to generic label */
-  }
-}
+/** The demo's person. Tempo Mesh (pairing a real device) is not wired into this UI tonight. */
+const DEMO_USER = { id: "u_margaret", name: "Margaret" };
 
-// Missions the user erased. The backend still lists them, so we hide them locally.
-const DISMISSED_KEY = "tempo_dismissed_missions";
+export default function App() {
+  const route = useRoute();
+  const current = section(route.path);
 
-function loadDismissed(): Set<string> {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) || "[]"));
-  } catch {
-    return new Set();
-  }
-}
+  // One Gateway for the whole app: the showcase's recordings, or the configured server.
+  const [showcase, setShowcase] = useState(showcaseEnabled);
+  const [configVersion, setConfigVersion] = useState(0);
+  const config = useMemo(() => gatewayConfig(), [configVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+  const gateway = useMemo<Gateway>(() => (showcase ? new ShowcaseGateway() : new Gateway(config)), [showcase, config]);
 
-function saveDismissed(ids: Set<string>) {
-  try {
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...ids]));
-  } catch {
-    /* storage unavailable */
-  }
-}
+  const [health, setHealth] = useState<Health | null>(null);
+  const [ttsConfigured, setTtsConfigured] = useState<boolean | null>(null);
+  useEffect(() => {
+    let live = true;
+    const poll = async () => {
+      try {
+        const h = await gateway.health();
+        if (live) setHealth(h);
+      } catch {
+        if (live) setHealth(null);
+      }
+    };
+    void poll();
+    void gateway.ttsConfigured().then((ok) => live && setTtsConfigured(ok));
+    const timer = setInterval(poll, 15_000);
+    return () => {
+      live = false;
+      clearInterval(timer);
+    };
+  }, [gateway]);
 
-function missionToConversation(m: BackendMission, storedIntents: Record<string, string>): Conversation {
-  const userText =
-    m.intent ||
-    storedIntents[m.id] ||
-    (m.origin_crs && m.destination_crs
-      ? `Claim Delay Repay for ${m.origin_crs} → ${m.destination_crs} (£${m.fare_gbp || "28.40"})`
-      : `Mission ${m.id.slice(0, 8)}`);
+  const { events, connected } = useLiveEvents(showcase ? null : gateway.eventsUrl());
 
-  let agentText = `Mission status: ${m.state}`;
-  if (m.ask) {
-    agentText = m.ask.summary || agentText;
-  } else if (m.message) {
-    agentText = m.message;
-  } else if (m.summary) {
-    agentText = m.summary;
-  }
+  const [profileId, setProfileId] = useState<string | null>(loadProfile);
+  const setProfile = useCallback((id: string | null) => {
+    setProfileId(id);
+    try {
+      if (id) localStorage.setItem(PROFILE_KEY, id);
+      else localStorage.removeItem(PROFILE_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  const user: PageUser = useMemo(() => ({ ...DEMO_USER, profileId }), [profileId]);
 
-  return {
-    id: m.id,
-    title: userText,
-    messages: [
-      { id: `${m.id}-user`, role: "user", text: userText },
-      { id: `${m.id}-agent`, role: "agent", text: agentText },
-    ],
-    ask: m.ask ?? null,
-    missionId: m.id,
-    missionIds: [m.id],
+  const [language, setLanguageState] = useState<Language>(readLanguage);
+  const setLanguage = (l: Language) => {
+    setLanguageState(l);
+    try {
+      localStorage.setItem(LANGUAGE_KEY, l);
+    } catch {
+      /* ignore */
+    }
   };
-}
 
-interface AppProps {
-  apiBaseUrl?: string;
-  apiToken?: string;
-}
-
-export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "devtoken" }: AppProps) {
-  const [view, setView] = useState<View>("chat");
-
+  // The teammate's model picker and keys (Settings).
   const [activeModels, setActiveModels] = useState<ModelProvider[]>(["local"]);
   const [selectedModel, setSelectedModel] = useState<ModelProvider>("local");
-
   const [apiKeys, setApiKeys] = useState<ApiKeys>(loadApiKeys);
-
   useEffect(() => {
     try {
       localStorage.setItem(API_KEYS_STORAGE, JSON.stringify(apiKeys));
@@ -143,286 +118,125 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
     }
   }, [apiKeys]);
 
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null); // null = fresh, empty chat
-  const [speech, setSpeech] = useState<SpeechRequest | null>(null); // latest live agent reply, read aloud by AvatarPanel
-
-  const activeConversation = conversations.find((c) => c.id === activeId) ?? null;
-  const messages = activeConversation?.messages ?? EMPTY_MESSAGES;
-  const activeAsk = activeConversation?.ask ?? null;
-  const activeMissionId = activeConversation?.missionId ?? null;
-  const history = conversations.map((c) => c.title); // same order as `conversations`
-
-  const updateActive = (fn: (c: Conversation) => Conversation) => {
-    setConversations((prev) => prev.map((c) => (c.id === activeId ? fn(c) : c)));
-  };
-
-  // Same call signature as a useState setter, so ChatPage can use it unchanged.
-  const setActiveAsk = (value: SetStateAction<ConsentAsk | null>) => {
-    updateActive((c) => ({ ...c, ask: typeof value === "function" ? value(c.ask) : value }));
-  };
-
-  const setActiveMissionId = (value: SetStateAction<string | null>) => {
-    updateActive((c) => ({ ...c, missionId: typeof value === "function" ? value(c.missionId) : value }));
-  };
-
-  // Load missions from the Gateway into the sidebar (adds only ones we don't already have).
-  const fetchBackendMissions = useCallback(async () => {
-    try {
-      const res = await fetch(`${apiBaseUrl}/missions?user_id=u_margaret`, {
-        headers: { Authorization: `Bearer ${apiToken}` },
-      });
-      if (!res.ok) return;
-
-      const missions: BackendMission[] = await res.json();
-      if (!missions || missions.length === 0) return;
-
-      const storedIntents = loadIntents();
-      const dismissed = loadDismissed();
-
-      setConversations((prev) => {
-        const known = new Set(prev.flatMap((c) => c.missionIds));
-        const incoming = missions
-          .filter((m) => !known.has(m.id) && !dismissed.has(m.id))
-          .map((m) => missionToConversation(m, storedIntents));
-
-        if (incoming.length > 0) {
-          // If no chat is active, set active to the newest mission and trigger speech
-          const updated = [...prev, ...incoming];
-          if (!activeId) {
-            const newest = incoming[0];
-            setActiveId(newest.id);
-            const agentMsg = newest.messages.find((m) => m.role === "agent");
-            if (agentMsg) {
-              setSpeech({ id: agentMsg.id, text: agentMsg.text });
-            }
-          }
-          return updated;
-        }
-        return prev;
-      });
-    } catch (err) {
-      console.error("Failed to sync missions with backend:", err);
-    }
-  }, [apiBaseUrl, apiToken, activeId]);
-
-  useEffect(() => {
-    void fetchBackendMissions();
-  }, [fetchBackendMissions]);
-
   const handleToggleActiveModel = (model: ModelProvider, active: boolean) => {
     setActiveModels((prev) => {
-      if (active) {
-        if (!prev.includes(model)) return [...prev, model];
-        return prev;
-      } else {
-        const next = prev.filter((m) => m !== model);
-        const updated: ModelProvider[] = next.length > 0 ? next : ["local"];
-        if (!updated.includes(selectedModel)) {
-          setSelectedModel(updated[0]);
-        }
-        return updated;
-      }
+      if (active) return prev.includes(model) ? prev : [...prev, model];
+      const next = prev.filter((m) => m !== model);
+      const updated: ModelProvider[] = next.length > 0 ? next : ["local"];
+      if (!updated.includes(selectedModel)) setSelectedModel(updated[0]!);
+      return updated;
     });
   };
+  const handleUpdateApiKey = (provider: ApiKeyProvider, key: string) => setApiKeys((prev) => ({ ...prev, [provider]: key }));
 
-  const handleUpdateApiKey = (provider: ApiKeyProvider, key: string) => {
-    setApiKeys((prev) => ({ ...prev, [provider]: key }));
+  // Sidebar history comes from the chat store.
+  const { conversations } = useChatStore();
+  const history = conversations.map((c) => c.title);
+
+  const speak = useCallback((text: string) => chatStore.setSpeech({ id: crypto.randomUUID(), text }), []);
+
+  const pageProps: PageProps = {
+    gateway,
+    user,
+    showcase,
+    health,
+    connected,
+    events,
+    language,
+    params: route.params,
+    speak,
+    setProfile,
   };
 
-  // Append messages to the active conversation, or start a new one if the chat is fresh.
-  const appendToChat = (
-    title: string,
-    newMessages: ChatMessage[],
-    patch: Partial<Pick<Conversation, "ask" | "missionId">> = {},
-    newMissionId?: string,
-    ownerId?: string // chat that already owns this mission (e.g. a result for a chat that isn't open)
-  ) => {
-    const targetId = ownerId ?? activeId ?? crypto.randomUUID();
-    if (!ownerId) setActiveId(targetId); // don't yank the user to another chat when filing a background result
-
-    setConversations((prev) => {
-      const exists = prev.some((c) => c.id === targetId);
-      if (!exists) {
-        const created: Conversation = {
-          id: targetId,
-          title,
-          messages: newMessages,
-          ask: patch.ask ?? null,
-          missionId: patch.missionId ?? null,
-          missionIds: newMissionId ? [newMissionId] : [],
-        };
-        return [created, ...prev]; // newest first
-      }
-      return prev.map((c) =>
-        c.id === targetId
-          ? {
-              ...c,
-              ...patch,
-              messages: [...c.messages, ...newMessages],
-              missionIds:
-                newMissionId && !c.missionIds.includes(newMissionId)
-                  ? [...c.missionIds, newMissionId]
-                  : c.missionIds,
-            }
-          : c
-      );
-    });
-  };
-
-  const handleSendMessage = (task: string, responseData?: unknown) => {
-    const cleanTask = task.trim();
-
-    // Parse reply text from Gateway response
-    let replyText = `Processed on ${MODEL_LABELS[selectedModel]}`;
-    const patch: Partial<Pick<Conversation, "ask" | "missionId">> = {};
-    let missionId: string | undefined;
-
-    if (responseData && typeof responseData === "object") {
-      const mission = responseData as BackendMission;
-      if (mission.id) {
-        missionId = mission.id;
-        patch.missionId = mission.id;
-        if (cleanTask) saveIntent(mission.id, cleanTask);
-      }
-      if (mission.ask) {
-        patch.ask = mission.ask;
-        replyText = mission.ask.summary || replyText;
-      } else {
-        patch.ask = null;
-        if (mission.message) replyText = mission.message;
-      }
+  const page = (() => {
+    switch (current) {
+      case "/chat":
+        return (
+          <ChatContainer
+            {...pageProps}
+            config={config}
+            activeModels={activeModels}
+            selectedModel={selectedModel}
+            onSelectModel={setSelectedModel}
+            elevenLabsKey={apiKeys.elevenlabs?.trim() || undefined}
+          />
+        );
+      case "/missions":
+        return <MissionsPage {...pageProps} />;
+      case "/memory":
+        return <MemoryPage {...pageProps} />;
+      case "/profiles":
+        return <ProfilesPage {...pageProps} />;
+      case "/skills":
+        return <SkillsPage {...pageProps} />;
+      case "/shield":
+        return <ShieldPage {...pageProps} />;
+      case "/read":
+        return <ReadPage {...pageProps} />;
+      case "/owed":
+        return <OwedPage {...pageProps} />;
+      case "/callers":
+        return <CallersPage {...pageProps} />;
+      case "/privacy":
+        return <PrivacyPage {...pageProps} />;
+      case "/story":
+        return <StoryPage {...pageProps} />;
+      case "/settings":
+        return (
+          <SettingsPage
+            gatewayUrl={config.url}
+            token={config.token}
+            showcase={showcase}
+            showcaseForced={showcaseForcedByBuild()}
+            onSaveGateway={(url, token) => {
+              setGatewayOverride(url || null, token || null);
+              setConfigVersion((v) => v + 1);
+            }}
+            onToggleShowcase={(on) => {
+              setShowcaseOverride(on);
+              setShowcase(on);
+              chatStore.reset();
+            }}
+            health={health}
+            ttsConfigured={ttsConfigured}
+            language={language}
+            onLanguage={setLanguage}
+            activeModels={activeModels}
+            onToggleActiveModel={handleToggleActiveModel}
+            apiKeys={apiKeys}
+            onUpdateApiKey={handleUpdateApiKey}
+          />
+        );
+      default:
+        return (
+          <div className="py-10 text-center text-slate-300">
+            <p className="text-lg font-semibold">There is no page at {route.path}.</p>
+            <button onClick={() => navigate("/chat")} className="mt-3 rounded-full bg-indigo-600 px-4 py-2 text-sm text-white">Back to the chat</button>
+          </div>
+        );
     }
-
-    const newMessages: ChatMessage[] = [];
-    if (cleanTask) {
-      newMessages.push({ id: crypto.randomUUID(), role: "user", text: cleanTask });
-    }
-    const agentMessage: ChatMessage = { id: crypto.randomUUID(), role: "agent", text: replyText };
-    newMessages.push(agentMessage);
-
-    // A result for a mission that belongs to an existing chat goes to that chat, not whichever is open.
-    const owner = missionId ? conversations.find((c) => c.missionIds.includes(missionId)) : undefined;
-
-    // Read live replies aloud, but not results filed into a chat that isn't open.
-    if (!owner || owner.id === activeId) setSpeech({ id: agentMessage.id, text: replyText });
-
-    appendToChat(cleanTask || replyText.slice(0, 40), newMessages, patch, missionId, owner?.id);
-  };
-
-  const handleSendAudio = (clip: Recording) => {
-    const audioTitle = "Voice message";
-
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: "user",
-      text: audioTitle,
-      audio: { url: clip.url, durationMs: clip.durationMs },
-      timestamp: Date.now(),
-    };
-
-    const replyText = `Voice message processed on ${MODEL_LABELS[selectedModel]}.`;
-    const agentMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: "agent",
-      text: replyText,
-    };
-
-    setSpeech({ id: agentMessage.id, text: replyText });
-    appendToChat(audioTitle, [userMessage, agentMessage]);
-  };
-
-  // New chat just deselects the current conversation. Nothing is deleted.
-  const handleNewChat = () => {
-    setActiveId(null);
-    setSpeech(null);
-    setView("chat");
-  };
-
-  // Called by the Memory page's "Erase all data": clears every chat from the sidebar.
-  const handleEraseAllChats = async () => {
-    const dismissed = loadDismissed();
-    conversations.forEach((c) => c.missionIds.forEach((id) => dismissed.add(id)));
-
-    // Also hide missions that exist on the backend but haven't been loaded into the sidebar yet.
-    try {
-      const res = await fetch(`${apiBaseUrl}/missions?user_id=u_margaret`, {
-        headers: { Authorization: `Bearer ${apiToken}` },
-      });
-      if (res.ok) {
-        const missions: BackendMission[] = await res.json();
-        missions.forEach((m) => dismissed.add(m.id));
-      }
-    } catch {
-      /* offline: only the already-loaded missions are hidden */
-    }
-
-    saveDismissed(dismissed);
-    try {
-      localStorage.removeItem(INTENT_KEY);
-    } catch {
-      /* ignore */
-    }
-    setConversations([]);
-    setActiveId(null);
-    setSpeech(null);
-  };
-
-  // `selected` is the sidebar item's index (or its title). AppShell must pass one of them.
-  const handleSelectChat = (selected?: number | string) => {
-    let target: Conversation | undefined;
-    if (typeof selected === "number") target = conversations[selected];
-    else if (typeof selected === "string") target = conversations.find((c) => c.title === selected);
-
-    if (target) {
-      setActiveId(target.id);
-      // Trigger speech for the latest agent reply in the selected chat
-      const lastAgentMsg = [...target.messages].reverse().find((m) => m.role === "agent");
-      if (lastAgentMsg) {
-        setSpeech({ id: lastAgentMsg.id, text: lastAgentMsg.text });
-      }
-    }
-    setView("chat");
-    void fetchBackendMissions();
-  };
+  })();
 
   return (
     <AppShell
-      view={view}
-      onNavigate={setView}
-      onNewChat={handleNewChat}
-      onSelectChat={handleSelectChat}
+      section={current}
       history={history}
+      profileName={profileId}
+      onNewChat={() => {
+        chatStore.newChat();
+        navigate("/chat");
+      }}
+      onSelectChat={(index) => {
+        const target = chatStore.selectIndex(index);
+        if (target) {
+          const lastAgent = [...target.messages].reverse().find((m) => m.role === "agent");
+          if (lastAgent) chatStore.setSpeech({ id: lastAgent.id, text: lastAgent.text });
+        }
+        navigate("/chat");
+      }}
+      badge={<HonestyBadge health={health} showcase={showcase} connected={showcase || connected || health !== null} />}
     >
-      {view === "chat" && (
-        <ChatPage
-          activeModels={activeModels}
-          selectedModel={selectedModel}
-          onSelectModel={setSelectedModel}
-          messages={messages}
-          activeAsk={activeAsk}
-          setActiveAsk={setActiveAsk}
-          activeMissionId={activeMissionId}
-          setActiveMissionId={setActiveMissionId}
-          onSendMessage={handleSendMessage}
-          onSendAudio={handleSendAudio}
-          speech={speech}
-          elevenLabsKey={apiKeys.elevenlabs?.trim() || undefined}
-          apiBaseUrl={apiBaseUrl}
-          apiToken={apiToken}
-        />
-      )}
-      {view === "memory" && (
-        <MemoryPage apiBaseUrl={apiBaseUrl} apiToken={apiToken} onEraseAll={handleEraseAllChats} />
-      )}
-      {view === "settings" && (
-        <SettingsPage
-          activeModels={activeModels}
-          onToggleActiveModel={handleToggleActiveModel}
-          apiKeys={apiKeys}
-          onUpdateApiKey={handleUpdateApiKey}
-        />
-      )}
+      <Suspense fallback={<div className="py-10"><Spinner label="Loading the page" /></div>}>{page}</Suspense>
     </AppShell>
   );
 }
