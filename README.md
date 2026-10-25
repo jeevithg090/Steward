@@ -29,7 +29,7 @@ Actions workflow for forks. [SHIPPING.md](SHIPPING.md) is the plan that turned t
 ## The web app
 
 The chat is the front door. Type or say *my 08:12 Oxford to Paddington was 38 minutes late
-yesterday* and Tempo understands, prices it, asks once (with the Proof Trace and the Court's votes
+on 23 October, ticket £28.40* and Tempo understands, prices it, asks once (with the Proof Trace and the Court's votes
 inline) and claims on your yes; paste a scam text and it warns; ask what it remembers; say STOP.
 Every feature also has its own page in the sidebar, for anyone who wants to see the machinery:
 `#/chat`, `#/missions`, `#/memory`, `#/profiles`, `#/skills`, `#/shield`, `#/read`, `#/owed`,
@@ -183,7 +183,7 @@ flowchart LR
 | Rule packs: GWR, Chiltern, Ofcom missed appointment, UK261 | ⚠️ demo values until checked against published terms |
 | Tempo Memory: Memory Gate, Mem0 or pgvector, a dated timeline (SQL, or Graphiti on Neo4j), recall and forget by voice, SMS and the Memory Card | ✅ (Graphiti needs Neo4j and Cortex keys) |
 | Android signal node: reads notifications on the phone; only a match's declared fields leave it, with a privacy log | ⚠️ written, not yet built (no JDK or Android SDK here); its filter rules are tested in Python against the shared vectors |
-| Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ Gateway routes and tests (TLS and per-device keys; MLS end-to-end encryption is the roadmap); not wired into the new web UI yet, where approvals use the demo bearer |
+| Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ Gateway routes and tests (TLS and per-device keys; MLS end-to-end encryption is the roadmap); in the web app as the **Devices** page: Face ID approvals, pairing by QR, signing an Agent Passport mandate and letting the company check it |
 | Deployment modes (`TEMPO_DEPLOY`): local (Ollama), cloud-standard (Cortex), cloud-private (our own model on RunPod vLLM: no outside AI company sees personal data) | ✅ switch, factory and RunPod client (the private endpoint needs keys; [deploy/runpod](deploy/runpod/README.md)) |
 | Client-side encryption (device-held keys, crypto-shred), ephemeral workers with signed reports and one-step key release (browser and Python interop-tested), no-logs hardening with a canary test, signed reproducible images with a transparency allowlist, Local mode, the Privacy Proof panel | ✅ code and tests; images not yet built and keys not yet made ([deploy/transparency](deploy/transparency/README.md)); the Vault isn't yet wired into mission checkpoints |
 | Confidential mode: key release only to an attested enclave (measurement, no debug, GPU CC mode, freshness, bound to the worker's key) | ⚠️ simulated attestation; real TEEs are roadmap ([deploy/confidential](deploy/confidential/README.md)) |

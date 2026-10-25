@@ -73,7 +73,7 @@ late. The chat tells that story in her words; each page shows one part of the ma
 
 | Route | Page | What a judge sees | Gateway |
 |---|---|---|---|
-| `#/chat` | **Chat** (home) | Type or say "my 08:12 Oxford to Paddington was 38 minutes late yesterday". Tempo understands, prices it, asks once (Proof Trace and Court votes inline), claims on Yes, waits for the money, says when it arrived. Paste a scam text and it warns. Ask what it remembers. Say STOP. Sample chips for every beat. | `POST /chat`, `/approvals`, `/missions/{id}/stop`, `WS /events`, `POST /voice/tts` |
+| `#/chat` | **Chat** (home) | Type or say "my 08:12 Oxford to Paddington was 38 minutes late on 23 October, ticket £28.40". Tempo understands, prices it, asks once (Proof Trace and Court votes inline), claims on Yes, waits for the money, says when it arrived. Paste a scam text and it warns. Ask what it remembers. Say STOP. Sample chips for every beat. | `POST /chat`, `/approvals`, `/missions/{id}/stop`, `WS /events`, `POST /voice/tts` |
 | `#/missions`, `#/missions/:id` | **Mission Control** | Every mission with its state, timeline with latencies, Proof Trace (fact → rule → citation → amount), Consensus Court, Rights Portfolio (wait on purpose, with the date and the odds), Agent Passport card, outcome, trace link. Demo controls: check the payment now, jump the clock 31 days, the credit arrives. Ledger counters. | `/missions*`, `/ledger`, `/scheduler/tick`, `/demo/clock`, `/demo/credit/{id}`, `/mandates/{id}/revoke` |
 | `#/memory` | **Memory** | The Memory Card by category with source, date and trust; the timeline with superseded facts struck through; Forget (everywhere), Correct, Erase all. | `/memories*`, `/timeline/{id}` |
 | `#/profiles`, `#/profiles/:id`, `#/profiles/import` | **Profiles** | Who Tempo works for: seven starters, what each will do and may never do, the access settings, share as link or YAML, import a code with plain-word refusals. Pick one for the chat. | `/profiles*`, `/skills` |
@@ -319,7 +319,7 @@ make demo                        # then walk every page in a browser; screenshot
 
 ## 9. Honesty: what is not done, and limits
 
-- Tempo Mesh (pairing, passkeys, push) is not in the new UI; approvals use the demo bearer.
+- ~~Tempo Mesh is not in the new UI~~ (phase 2 brought it in: Devices, Face ID approvals, Passport signing). Web Push still needs a VAPID key; tested with Chrome's virtual authenticator, not a real iPhone.
 - Speech in is the browser's recogniser (Chrome, Safari); Firefox records a clip and says so.
 - Speech out needs `ELEVENLABS_API_KEY` on the Gateway (or a key pasted in Settings); otherwise
   the browser's own voice speaks and the face still moves.
@@ -354,4 +354,80 @@ make demo                        # then walk every page in a browser; screenshot
 4. Run the Playwright smoke suite once (`cd tests/e2e && npx playwright install chromium && npx playwright test`); it was written tonight but not run here.
 5. Decide on Tempo Mesh in the new UI (pairing, passkeys, push): the Gateway routes and `src/lib/mesh.ts` are intact; the pages are the work.
 6. Everything in §9 stays true until a person changes it.
+
+---
+
+## 12. Phase 2: excellent UI and UX, every feature fully working (started 05:10)
+
+*Asked at 05:05: "make the UI and UX excellent and make all the features fully functioning, A–Z
+ready". §1.9 is reopened: **Tempo Mesh comes into the new UI** (devices, Face ID approvals,
+signing an Agent Passport mandate), because a feature that says "not in this UI" is not fully
+working. Everything else in §1 stands.*
+
+### 12.1 What the audit found (05:00–05:10, live Gateway, phone and desktop screenshots)
+
+| # | Finding | Where | Fix (track) |
+|---|---|---|---|
+| 1 | **A profile is not enforced on the rail path.** Under "Read It To Me" (may: escalate only) the chat asked for consent and filed a £14.20 claim. Commuter would likewise run a broadband claim that needs `call`. | `/chat`, `/missions`, the claim tool | Refuse before asking, in plain words, when the profile's `may` lacks a skill's `needs`; `CapabilityGuard`/`BudgetGuard` on the claim tool too (P) |
+| 2 | **The chat's "yes" bypasses passkeys.** `/approvals` refuses a bearer answer once the person has a passkey, but `/chat` "yes" calls `service.answer` directly. | `chat.py` | When the person has a passkey, reply "Confirm with Face ID" and return the ask unanswered (P) |
+| 3 | A date with no recording leaks a Python tuple: "no recorded journey for ('OXF', 'PAD', datetime.date(2026, 10, 24), '0812')". The demo script tells presenters to type "yesterday" (24 Oct), which has no recording. | rail replay adapter, `scripts/demo.sh` | A plain sentence plus a suggestion chip with the recorded journey (P); the script's beat says "on 23 October" (lead) |
+| 4 | Scam Shield's "no warning signs" line stays English when the person speaks Hindi. | `voice/warnings.yaml` | Add the missing lines in the six languages, `checked: false` (P) |
+| 5 | On a phone the avatar panel takes half the screen before the conversation; sample chips are cut off mid-sentence. | chat | A compact avatar strip below `lg`; chips wrap (C2) |
+| 6 | Mission Control shows "waiting on purpose" on a declined mission, and the raw tuple message. | mission list | Plan badges only while the mission is live; plain messages (C2) |
+| 7 | The Agent Passport card says Mesh "is not in this UI"; no device pairing, no Face ID approvals. | missions, devices | Port the Mesh UI and Passport signing (M) |
+| 8 | Read It To Me's camera only works with your own photo and a Gemini key; in replay there is nothing to photograph. | read, chat | Sample photos (the fixtures' PNGs) posted through the real vision path (D2) |
+| 9 | The e2e smoke test looks for wording the chat no longer uses. | `tests/e2e/smoke.spec.ts` | Match "Claim filed / Waiting for the money / paid" (C2) |
+| 10 | No toasts, no skeletons, no offline banner; errors appear in different places on each page. | everywhere | `toast`, `Skeleton`, `SkeletonCards` in `components/ui` (lead, done); every page uses them (C2, D2, M); offline banner (lead) |
+
+### 12.2 Contracts added
+
+- **`ChatReply.suggestions: list[str] | None`** (≤ 4, each ≤ 120 chars, Flesch ≥ 60): things the
+  person could say next. The chat renders them as chips that send the text. The Gateway sets them
+  after `help`, `smalltalk`, a fail-safe (e.g. the recorded journey "My 08:12 Oxford to Paddington
+  was 38 minutes late on 23 October, ticket £28.40"), a profile refusal ("Show me my profiles"),
+  and a finished claim ("How much have you got back for me?"). The showcase port mirrors it.
+- **Profile refusal** (both `/missions` and `/chat`): if the turn's `profile_id` names a profile
+  whose `may` lacks any capability in the skill's `needs`, nothing starts. `/missions` → **422**
+  `{"detail": "<plain reason>"}`; `/chat` → 200 with `intent` as classified, `mission: null`, the
+  plain reason as `reply` ("Your profile, Read It To Me, doesn't let me make claims, so I haven't
+  started one. Choose another profile if you want me to claim."), an action to `#/profiles`.
+  An amount above `limits.max_gbp_per_claim` still asks, and the ask says the profile's limit.
+- **Passkey answers through the chat:** if `mesh.has_passkey(user_id)`, `approve`/`decline` in
+  `/chat` reply "Please confirm with Face ID or your fingerprint on this device." with the pending
+  `ask` echoed and nothing answered. The web then signs with `useMesh().mesh.answer`.
+- **`#/chat?say=<urlencoded text>`** sends that text once, as if typed, then clears the query.
+  The story's "Try it" buttons, Profiles' "Try it with this profile" and the welcome card use it.
+- **Mesh in the app** (`src/lib/mesh-context.tsx`): `<MeshProvider>` in App; `useMesh()` →
+  `{mesh, devices, signs, canPasskey, showcase, refresh}`. **`answerAsk({gateway, mesh, signs},
+  requestId, approved)`** (`src/lib/approve.ts`) is the only way the web answers an ask.
+  `#/devices` is the Devices page; the QR link `<origin>/#pair=<id>.<secret>` routes to `/pair`
+  with `params.link` = the full URL (the same page renders "Join"). `ConsentCard` takes
+  `signed?: boolean` and says "You'll confirm with Face ID or your fingerprint" when true.
+- **Toasts and skeletons:** `toast.success|error|info(text, action?)`, `<Skeleton>`,
+  `<SkeletonCards count>` from `@/components/ui`. Every action that changes something confirms
+  with a toast; every failure says what to do next in plain words.
+
+### 12.3 Tracks (phase 2)
+
+| Track | Owner | Files (only these) | Done when |
+|---|---|---|---|
+| **P. Backend correctness** | agent P | `apps/gateway/src/tempo_gateway/{chat.py,app.py,missions.py,main.py}`, `packages/tempo_core/src/tempo_core/{intent.py,profiles.py}` (helpers only), `packages/tempo_adapters/src/tempo_adapters/rail/replay.py` (message), `packages/tempo_harness/**` (guard wiring only), `voice/warnings.yaml`, `fixtures/chat/intents.json` (only if a vector changes), tests under `tests/{unit,policy,integration}/` for these, `docs/chat.md` | findings 1–4 fixed with tests; `make check`, `validate-skills`, all `tests/integration/test_gateway_*` green |
+| **C2. Chat and Mission Control UX** | agent C2 | `src/features/chat/**`, `src/features/missions/**`, `src/components/mission/**` **except** `ConsentCard.tsx` and `PassportPanel.tsx`, `src/hooks/**`, `src/lib/showcase-chat.ts` (+ test), `tests/e2e/smoke.spec.ts` | findings 5, 6, 9; suggestions chips; `?say=`; answers through `answerAsk`; typing indicator; conversations survive a reload; toasts; phone and desktop screenshots clean; e2e smoke green |
+| **M. Mesh and Agent Passport** | agent M | `src/features/devices/**`, `src/components/mission/{ConsentCard,PassportPanel}.tsx`, `src/lib/{mesh,passport,mesh-context,approve}.ts(x)`, `public/sw.js`, `apps/gateway/src/tempo_gateway/{mesh.py,mesh_routes.py}` (only if needed), `tests/e2e/mesh.spec.ts` | register this browser, add Face ID, pair a second device by QR with the 6-digit code, approve with Face ID (the ask disappears on the other screen), sign a mandate, let "the company" check it (allowed claim, refused out-of-scope action), revoke; e2e with a virtual authenticator green |
+| **D2. Every other page** | agent D2 | `src/features/{memory,profiles,skills,shield,read,owed,callers,privacy,story,settings}/**`, `public/demo/*.png` | finding 8; toasts and skeletons on every page; the story becomes a guided demo with "Try it" buttons; Profiles shows and changes who Tempo works for, with "Try it with this profile"; phone and desktop screenshots clean; tests green |
+| **S. Shell, integration, release** | lead | `src/App.tsx`, `src/router.ts`, `src/components/{layout,ui}/**`, `src/index.css`, `index.html`, `public/manifest.webmanifest`, `scripts/demo.sh`, docs, this file | compact header on phones, offline banner with "Use the showcase", 404 page, installable manifest; the full ten-beat rehearsal live and in showcase; e2e green; the showcase deployed to Vercel; committed and pushed |
+
+### 12.4 Status log (phase 2)
+
+- [x] 05:00 Audit: the chat door probed on twelve turns, the e2e suite run (11/12; the twelfth is stale wording), every page captured at 390×844
+- [x] 05:10 Shared pieces landed for the tracks: `toast`, `Skeleton`, `SkeletonCards`, `<Toaster>` mounted, `MeshProvider`/`useMesh`, `answerAsk`, the `/devices` and `/pair` routes, `ChatReply.suggestions` in the TypeScript type
+- [x] 05:20 Track S (lead): honesty badge compact on phones; a Gateway-offline banner with "Try again" and "Use the showcase"; the sidebar shows the profile's name (links to Profiles) and "Returned so far" from the Time Ledger, refreshed when money arrives; each page sets the tab title and takes focus on navigation; a real 404; an installable manifest with PNG icons; the demo script, `docs/demo.md` and the README say "on 23 October, ticket £28.40" instead of "yesterday"
+- [x] 05:40 Track P done: profiles refused before anything starts (`/missions` 422, `/chat` plain reason + "Show me my profiles"), and every rail/Ofcom claim now runs `CapabilityGuard`/`BudgetGuard` (`tempo_harness/claims_guard.py`); a typed yes/no can't bypass a passkey; plain fail-safe with the recorded-journey chip; `suggestions`; the "no warning signs" line in six languages; 1,349 fast tests, 141 integration tests (41 skipped: no Postgres here), mypy clean. Demo Gateway restarted with it via `make demo-gateway` and verified live. Follow-ups sent back: declare `tempo-harness` in the Gateway's pyproject, persist mission profiles across a restart
+- [x] 05:55 Track C2 done: phone layout with a 60px avatar strip, wrapping 44px chips, the welcome card grouped by beat, suggestion chips, `#/chat?say=`, every answer through `answerAsk` (Face ID when this device signs), typing dots, toasts, plain errors, STOP as a labelled button, conversations kept across a reload (`tempo.chat.v1`), Mission Control filters (Margaret/Everyone, Live/Finished/All), live-only plan badges, plain messages; 196 web tests, e2e smoke 12/12. Lead's calls on its four questions: "Check the payment now" shows whenever a mission waits (it only fires due checks); the showcase's fail-safe says "This showcase only has the 08:12 from 23 October." (only that day is recorded); one storage key for both modes (switching modes resets the chat); the welcome chip keeps its own wording
+- [x] 06:05 Track P follow-ups: `tempo-harness` declared in `apps/gateway/pyproject.toml` (`uv lock --check` clean); the mission → profile map persists in `profiles.json` beside the checkpoints, so a restarted mission is still guarded (and an unreadable file refuses the claim rather than running it unguarded); 145 integration tests pass
+- [x] 06:15 Track D2 done: Read It To Me reads the two sample photos through the Gateway's real vision path (and in the showcase by the same fingerprints); the story is a guided demo with "Try it" on every beat; Profiles shows who Tempo works for and "Try it with this profile"; skeletons, toasts and plain errors on every page; 198 web tests
+- [x] 06:20 Track M done: the Devices page (this browser for approvals, Face ID, pair by QR with the 6-digit code, Join at `#/pair`), Face ID answers, the Agent Passport signed with Face ID and checked by "the company" (claim allowed, out-of-scope refused) and in the browser; Gateway fixes: passkeys now ES256 only (EdDSA keys made every mandate fail verification), `GET /mesh/mandates/{id}` for paired devices; e2e Mesh spec (two browsers, virtual authenticator) green
+- [x] 06:30 Integrated: phone toasts moved under the header and capped; the welcome card picks one or two columns from its own width; docs no longer say Mesh is missing; `docs/web.md` documents the phase-2 behaviours; `uv sync` for the new dependency; demo Gateway restarted with clean devices and re-seeded. All green: ruff, format, mypy, fast and integration suites, skills, `uv lock --check`, 198 web tests, both builds, e2e 14/14 (smoke + Mesh)
+- [x] 06:40 Live rehearsal of the beats: late train → ask with Proof Trace and three jurors → Yes → paid by the scheduler (ledger £28.40 → £42.60); broadband → waiting on purpose → +31 days → acting → paid (£74.91, 1.1 h); memory recall; HMRC verdict in the chat; a sample letter read through vision. Found and sent back: a second claim for the same journey (P), the floating stream badge covering buttons, a "Claim filed" toast on a wait-on-purpose case, "Acting now" after payment, no amount on a waiting card (C2)
+- [x] 06:55 Fix round 2: one claim per journey (`/chat`, `POST /missions`, `/missions/ofcom` and the voice tool return the existing live or paid mission; "I'm already on this one."; persisted in `missions.json`), `scripts/seed.py` safe to run twice, `MissionView.amount_gbp` so a waiting claim keeps its amount; the stream badge in its own row, truthful toasts ("Saved. Tempo will wait on purpose until 19 November."), a settled Rights Portfolio after payment. Final: 1,354 fast and 152 integration tests, 203 web tests, both builds, e2e 14/14; re-walked live; `docs/screens/` refreshed with the current UI
 

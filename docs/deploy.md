@@ -69,8 +69,9 @@ restart:
 
 Delete `VITE_TEMPO_SHOWCASE`: set to `1`, it keeps the app in showcase mode and Settings cannot
 switch it off. The token is a demo convenience and ends up in the browser bundle
-(`apps/web/.env.example` says so); passkey-signed approvals are the real authentication, and they
-are not wired into this UI yet (plan.md §9). Settings can also point a deployed app at another
+(`apps/web/.env.example` says so); passkey-signed approvals are the real authentication: once a browser has Face ID or a fingerprint
+on the Devices page (`#/devices`), the Gateway refuses bearer answers for that person. WebAuthn needs
+https or localhost, and `MESH_RP_ID` on the Gateway must equal the web app's host. Settings can also point a deployed app at another
 Gateway at runtime (kept per browser, no rebuild).
 
 On the Gateway side, `WEB_ORIGINS` must list the Vercel URL exactly (section 3), or the browser's

@@ -145,6 +145,23 @@ table. Both sides are checked against one vector file, `fixtures/chat/intents.js
 router in `tests/unit/test_intent.py`, the TypeScript port in the web tests, so the web says what
 the phone says. The route's own page is `docs/chat.md`.
 
+### Phase 2 behaviours (plan.md §12)
+
+- **`#/chat?say=<text>`** sends that sentence once, as if typed, in a fresh conversation, then puts
+  `#/chat` back with `history.replaceState` (Back never resends). The story's "Try it" buttons, the
+  Skills cards and Profiles' "Try it with this profile" use it.
+- **Suggestions**: `ChatReply.suggestions` (≤ 4) render as chips under the newest reply; tapping sends.
+- **Conversations survive a reload**: the chat store is saved under `tempo.chat.v1` in localStorage
+  (30 conversations, 100 messages each, no audio); on load, asks for missions the Gateway no longer
+  has are cleared. Switching showcase on or off resets the chat.
+- **Devices and passkeys**: `src/lib/mesh-context.tsx` (`MeshProvider`, `useMesh()`), `src/lib/approve.ts`
+  (`answerAsk` signs with Face ID when this browser holds a passkey, else uses the bearer). The QR
+  link `<origin>/#pair=<id>.<secret>` routes to `/pair`. `ConsentCard signed` and `PassportPanel` read it.
+- **Toasts and skeletons**: `toast.success|error|info`, `Skeleton`, `SkeletonCards` from `@/components/ui`;
+  toasts sit under the header on phones and bottom-right on wide screens.
+- **Shell**: a Gateway-offline banner with "Use the showcase", the Time Ledger in the sidebar, page
+  titles, focus moved to the content on navigation, an installable manifest (`public/manifest.webmanifest`).
+
 ## Theme (plan.md §4.7)
 
 Tailwind tokens in `tailwind.config.ts`, kept under their original `nexus-*` names so the
@@ -181,7 +198,7 @@ it is missing the mic records a clip and the chat says so. Speech out tries the 
 | Variable | Default | Purpose |
 |---|---|---|
 | `VITE_GATEWAY_URL` | `http://127.0.0.1:8000` | the Gateway |
-| `VITE_TEMPO_TOKEN` | `devtoken` | the demo bearer (it ends up in the bundle; passkeys are the real auth and are not in this UI yet) |
+| `VITE_TEMPO_TOKEN` | `devtoken` | the demo bearer (it ends up in the bundle; passkeys on the Devices page are the real auth, and once a person has one the Gateway refuses bearer answers) |
 | `VITE_TEMPO_SHOWCASE` | unset | `1` → no Gateway, recordings only; Settings cannot switch it off |
 
 Vite reads `VITE_*` at **build time** (and from the shell for `npm run dev`); `.env.example` is

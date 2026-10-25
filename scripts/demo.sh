@@ -165,7 +165,7 @@ else
 fi
 say ""
 say "The beats (plan.md §6; docs/demo.md has the long form):"
-say "   1. Type: my 08:12 Oxford to Paddington was 38 minutes late yesterday"
+say "   1. Type: my 08:12 Oxford to Paddington was 38 minutes late on 23 October, ticket £28.40"
 say "   2. Yes: Tempo asked once, with the Proof Trace and the Court's votes inline"
 say "   3. Mission Control: Check the payment now"
 say "   4. Money arrived; the ledger ticks"

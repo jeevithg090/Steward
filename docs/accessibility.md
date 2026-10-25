@@ -78,7 +78,7 @@ the gap named), **not checked** (nothing known to be wrong; nobody has measured)
 | 3.2.6 Consistent help (2.2) | yes | Settings, with the accessibility controls, is at the foot of the sidebar on every page; the chat answers "help" with the doors in one plain paragraph |
 | 3.3.1 Error identification / 3.3.3 Error suggestion | partly | Gateway errors are plain sentences (an invalid profile import says why, 422); form-level checks are not audited |
 | 3.3.7 Redundant entry (2.2) | yes | Nothing is asked twice; memories and profiles carry answers forward |
-| 3.3.8 Accessible authentication (2.2) | yes | No password, no puzzle, no transcription. The demo bearer token is configuration (Settings), never typed in a flow; passkeys (Tempo Mesh) are the real authentication and are not wired into this UI yet |
+| 3.3.8 Accessible authentication (2.2) | yes | No password, no puzzle, no transcription. The demo bearer token is configuration (Settings), never typed in a flow; passkeys (Tempo Mesh, the Devices page) are the real authentication: Face ID or a fingerprint, nothing to type or remember |
 | 4.1.2 Name, role, value | yes | ARIA labels and pressed states on the controls; axe runs on every new page |
 | 4.1.3 Status messages | yes | `aria-live="polite"` regions and `role="status"` for chat replies, mission state, the Passport card and the controls |
 

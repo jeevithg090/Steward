@@ -10,7 +10,7 @@ seeds the demo's people and opens the web app on <http://localhost:3000>. The ch
 door, every page is in the sidebar, and the badge at the top says **REPLAY data · SIMULATED
 company, rail data, jurors, vision**. Sample chips carry every beat, so nothing needs typing.
 
-1. **Type** (or say, with the mic): *my 08:12 Oxford to Paddington was 38 minutes late yesterday*.
+1. **Type** (or say, with the mic): *my 08:12 Oxford to Paddington was 38 minutes late on 23 October, ticket £28.40* (the replay data records the 08:12 on 22 and 23 October only, so say the date).
    Tempo understands, finds the delay, prices it from the rule pack and asks once: the consent card
    with the Proof Trace (38 min → 50% of £28.40 under GWR DR15, with the published source) and the
    Court's three votes, inline. Leave the fare out and it asks one question, never guesses.
@@ -84,11 +84,14 @@ Gate).
    it, `FORGET <thing>` to delete it everywhere. A company email that says "customer prefers
    vouchers" never becomes a memory: the Memory Gate keeps it as evidence only.
 
-6. **Two screens, one Tempo** (Tempo Mesh: the Gateway routes and the old client; not wired into
-   the new web UI yet, plan.md §9, where approvals use the demo bearer). On the phone: "Use this device for approvals", then "Add Face ID
-   or fingerprint". "Add another device" shows a QR code; scan it with the laptop and both show
-   the same 6-digit code. Approve on the phone with Face ID and the question disappears from the
-   laptop at the same moment (about 0.1 s locally). Pushes carry no details, only "sync".
+6. **Two screens, one Tempo** (Tempo Mesh, the **Devices** page `#/devices`). On the phone:
+   "Use this browser for approvals", then "Add Face ID or fingerprint". "Add another device" shows a
+   QR code; open it on the laptop (it lands on `#/pair`), and both show the same 6-digit code: press
+   "Yes, the codes match". Start Margaret's claim, then press "Yes, claim £14.20 with Face ID" on the
+   phone: the question disappears from the laptop at the same moment (115 to 170 ms in the e2e run).
+   Once a browser has Face ID, the Gateway refuses unsigned answers for Margaret, and a typed "yes"
+   in the chat asks for Face ID instead. Pushes carry no details, only "sync" (they need a VAPID key).
+   WebAuthn needs https or localhost; open the web app at http://localhost:3000, not 127.0.0.1.
 
 7. **Prove it.** The Privacy Proof panel lists, each checked by the Gateway: the deployment
    mode and any outside AI companies (none in Private mode), the running image against the
