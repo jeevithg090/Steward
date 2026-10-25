@@ -1,9 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Toaster, toast } from "@/components/ui";
 import { ShowcaseGateway } from "@/lib/showcase";
 import { expectNoA11yViolations } from "@/test/a11y";
 import type { PageProps } from "@/types/page";
 import ShieldPage from "./ShieldPage";
+
+afterEach(() => toast.clear());
 
 function props(over: Partial<PageProps> = {}): PageProps {
   return {
@@ -22,7 +25,7 @@ function props(over: Partial<PageProps> = {}): PageProps {
 
 test("the HMRC sample is a likely scam in the warn zone, spoken in Tempo's words, with its reasons; feedback keeps the verdict, never the message", async () => {
   const speak = vi.fn();
-  const { container } = render(<main><ShieldPage {...props({ speak })} /></main>);
+  const { container } = render(<main><ShieldPage {...props({ speak })} /><Toaster /></main>);
   expect(screen.getByRole("heading", { level: 1, name: "Scam Shield" })).toBeInTheDocument();
   expect(screen.getByText(/only the four example messages can be checked/)).toBeInTheDocument();
 
@@ -41,9 +44,16 @@ test("the HMRC sample is a likely scam in the warn zone, spoken in Tempo's words
   await userEvent.click(within(verdict).getByRole("button", { name: "Speak it" }));
   expect(speak).toHaveBeenCalledWith(expect.stringMatching(/^Do not touch that message/));
 
+  // The verdict's colour band is strong: white on rose for a likely scam.
+  expect(screen.getByRole("heading", { name: "This looks like a scam" }).closest(".bg-rose-700")).not.toBeNull();
+  // The Shield log refreshed after the check: today's count includes it.
+  const log = await screen.findByRole("list", { name: "Recent checks" });
+  expect(within(log).getAllByText("This looks like a scam").length).toBeGreaterThan(0);
+
   await userEvent.click(within(verdict).getByRole("button", { name: "That was a scam" }));
-  expect(within(verdict).getByRole("status")).toHaveTextContent("never the message");
-  const log = screen.getByRole("list", { name: "Recent checks" });
+  expect(await screen.findByText("Thank you. Only the verdict and your answer are kept, never the message.")).toBeInTheDocument();
+  expect(within(verdict).getByText(/You said: that was a scam\./)).toBeInTheDocument();
+  expect(within(log).getAllByText(/you said: scam/).length).toBeGreaterThan(0);
   expect(within(log).getAllByText("This looks like a scam").length).toBeGreaterThan(0);
   expect(within(log).queryByText(/248\.20/)).not.toBeInTheDocument();
   await expectNoA11yViolations(container);
@@ -77,6 +87,21 @@ test("a bank's genuine code is quiet and never called safe", async () => {
   const verdict = await screen.findByRole("region", { name: "No warning signs found" });
   expect(within(verdict).getByText("quiet")).toBeInTheDocument();
   expect(verdict.textContent).not.toMatch(/\bsafe\b/i);
+  expect(screen.getByRole("heading", { name: "No warning signs found" }).closest(".bg-emerald-700")).not.toBeNull();
+});
+
+test("Paste from clipboard fills the box, and says plainly when the browser won't allow it", async () => {
+  render(<main><ShieldPage {...props()} /><Toaster /></main>);
+  const box = screen.getByLabelText("Paste the text you're unsure of");
+
+  Object.assign(navigator, { clipboard: { readText: vi.fn(async () => "Your parcel is held. Pay £1.99 at http://evri-redelivery.top") } });
+  await userEvent.click(screen.getByRole("button", { name: "Paste from clipboard" }));
+  expect(box).toHaveValue("Your parcel is held. Pay £1.99 at http://evri-redelivery.top");
+  expect(box).toHaveFocus();
+
+  Object.assign(navigator, { clipboard: { readText: vi.fn(async () => { throw new Error("NotAllowedError"); }) } });
+  await userEvent.click(screen.getByRole("button", { name: "Paste from clipboard" }));
+  expect(await screen.findByText(/won't let Tempo read the clipboard\. Long-press or right-click in the box and choose Paste\./)).toBeInTheDocument();
 });
 
 test("Margaret's Tuesday steps through with captions, plays out loud (captions only where the browser cannot speak), and speaks Urdu right to left", async () => {

@@ -1,10 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Toaster, toast } from "@/components/ui";
 import { decodeShareCode, encodeShareCode, toProfile } from "@/lib/profiles";
 import { ShowcaseCatalog, ShowcaseGateway } from "@/lib/showcase";
 import { expectNoA11yViolations } from "@/test/a11y";
 import type { PageProps } from "@/types/page";
-import ProfilesPage, { codeFrom, importUrl } from "./ProfilesPage";
+import { SAY, chatSay } from "../story/demo";
+import ProfilesPage, { TRY_WITH, codeFrom, importUrl, tryWith } from "./ProfilesPage";
 
 const catalog = new ShowcaseCatalog();
 
@@ -29,14 +31,16 @@ async function code(id = "new-to-the-uk"): Promise<string> {
 
 afterEach(() => {
   window.location.hash = "";
+  toast.clear();
 });
 
 test("the catalogue says who each profile is for, what it will and may never do, and lets Margaret pick one", async () => {
   window.location.hash = "#/profiles";
   const setProfile = vi.fn();
-  const { container } = render(<main><ProfilesPage {...props({ setProfile })} /></main>);
+  const { container } = render(<main><ProfilesPage {...props({ setProfile })} /><Toaster /></main>);
 
   expect(screen.getByRole("heading", { level: 1, name: "Profiles" })).toBeInTheDocument();
+  expect(screen.getByRole("status", { name: "Loading profiles" })).toBeInTheDocument();
   expect(await screen.findByRole("link", { name: "The Commuter" })).toHaveAttribute("href", "#/profiles/commuter");
   expect(screen.getByRole("link", { name: "Read It To Me" })).toHaveAttribute("href", "#/profiles/read-it-to-me");
   expect(screen.getAllByRole("heading", { name: "What this profile will do for you" })).toHaveLength(7);
@@ -46,28 +50,54 @@ test("the catalogue says who each profile is for, what it will and may never do,
 
   await userEvent.click(screen.getAllByRole("button", { name: "Use this profile" })[0]!);
   expect(setProfile).toHaveBeenCalledWith("am-i-owed");
+  expect(await screen.findByText("Tempo now works under Am I Owed Anything?.")).toBeInTheDocument();
   await expectNoA11yViolations(container);
 });
 
 test("the profile in use is marked, and can be stopped", async () => {
   window.location.hash = "#/profiles";
   const setProfile = vi.fn();
-  render(<main><ProfilesPage {...props({ setProfile, user: { id: "u_margaret", name: "Margaret", profileId: "commuter" } })} /></main>);
+  render(<main><ProfilesPage {...props({ setProfile, user: { id: "u_margaret", name: "Margaret", profileId: "commuter" } })} /><Toaster /></main>);
 
-  expect(await screen.findByText(/Tempo is working for you as/)).toHaveTextContent("The Commuter");
-  expect(screen.getAllByText("In use").length).toBeGreaterThan(0);
-  await userEvent.click(screen.getAllByRole("button", { name: "Stop using" })[0]!);
+  const banner = screen.getByRole("region", { name: "Who Tempo is working for" });
+  expect(await within(banner).findByText("The Commuter")).toBeInTheDocument();
+  expect(banner).toHaveTextContent("Tempo is working for: The Commuter");
+  expect(banner.parentElement).toHaveClass("sticky");
+  expect((await screen.findAllByText("In use")).length).toBeGreaterThan(0);
+  await userEvent.click(within(banner).getByRole("button", { name: "Stop using" }));
   expect(setProfile).toHaveBeenCalledWith(null);
+  expect(await screen.findByText(/Tempo no longer works under The Commuter/)).toBeInTheDocument();
+});
+
+test("Try it with this profile chooses the profile and sends a sentence that fits it in the chat", async () => {
+  window.location.hash = "#/profiles";
+  const setProfile = vi.fn();
+  render(<main><ProfilesPage {...props({ setProfile })} /></main>);
+
+  const tryReadItToMe = await screen.findByRole("link", { name: "Try it with this profile: Read It To Me" });
+  expect(tryReadItToMe).toHaveAttribute("href", chatSay(SAY.lateTrain));
+  expect(screen.getByText(/This profile may not claim, so Tempo refuses before it starts\./)).toBeInTheDocument();
+  await userEvent.click(tryReadItToMe);
+  expect(setProfile).toHaveBeenCalledWith("read-it-to-me");
+  expect(window.location.hash).toBe(chatSay(SAY.lateTrain));
+
+  expect(screen.getByRole("link", { name: "Try it with this profile: Am I Owed Anything?" })).toHaveAttribute("href", "#/chat?say=Am%20I%20owed%20anything%3F");
+  expect(screen.getByRole("link", { name: "Try it with this profile: New Here" })).toHaveAttribute("href", chatSay(SAY.scam));
+  expect(screen.getByRole("link", { name: "Try it with this profile: The Carer" })).toHaveAttribute("href", chatSay(SAY.broadband));
+  for (const id of ["commuter", "take-your-time", "hard-of-hearing"]) expect(tryWith(id).say).toBe(SAY.lateTrain);
+  expect(Object.keys(TRY_WITH).sort()).toEqual(["am-i-owed", "carer", "commuter", "hard-of-hearing", "new-to-the-uk", "read-it-to-me", "take-your-time"]);
 });
 
 test("a profile's detail shows its limits in words, what it may never do, and a share link that carries the whole profile", async () => {
   window.location.hash = "#/profiles/read-it-to-me";
   Object.assign(navigator, { clipboard: { writeText: vi.fn(async () => undefined) } });
-  const { container } = render(<main><ProfilesPage {...props({ params: { id: "read-it-to-me" } })} /></main>);
+  const { container } = render(<main><ProfilesPage {...props({ params: { id: "read-it-to-me" } })} /><Toaster /></main>);
 
   expect(await screen.findByRole("heading", { level: 2, name: "Read It To Me" })).toBeInTheDocument();
   expect(screen.getByText("It never claims money: £0.00 a claim.")).toBeInTheDocument();
   expect(screen.getByText("Claim money for you")).toBeInTheDocument();
+  expect(screen.getByText("If you ask for something this profile rules out, Tempo refuses before it starts.")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Try it with this profile: Read It To Me" })).toHaveAttribute("href", chatSay(SAY.lateTrain));
 
   const link = (await screen.findByLabelText("The link")) as HTMLTextAreaElement;
   expect(link.value).toMatch(/#\/profiles\/import\?p=tp1\./);

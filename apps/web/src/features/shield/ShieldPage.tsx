@@ -28,7 +28,7 @@ export default function ShieldPage({ user, showcase, language: initial, speak }:
         Scam Shield
       </PageTitle>
 
-      <div role="tablist" aria-label="Scam Shield" className="inline-flex flex-wrap gap-1 rounded-full border border-white/10 bg-white/5 p-1">
+      <div role="tablist" aria-label="Scam Shield" className="grid w-full grid-cols-2 gap-1 rounded-full border border-white/10 bg-white/5 p-1 sm:inline-flex sm:w-auto">
         {TABS.map((t) => {
           const Icon = t.icon;
           const selected = tab === t.id;
@@ -50,7 +50,7 @@ export default function ShieldPage({ user, showcase, language: initial, speak }:
                   document.getElementById(`tab-${next.id}`)?.focus();
                 }
               }}
-              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors motion-reduce:transition-none ${FOCUS} ${selected ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-white/10"}`}
+              className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium sm:px-4 transition-colors motion-reduce:transition-none ${FOCUS} ${selected ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-white/10"}`}
             >
               <Icon size={14} aria-hidden /> {t.label}
             </button>

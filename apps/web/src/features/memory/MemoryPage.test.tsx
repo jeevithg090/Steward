@@ -1,9 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Toaster, toast } from "@/components/ui";
 import { ShowcaseGateway } from "@/lib/showcase";
 import { expectNoA11yViolations } from "@/test/a11y";
 import type { PageProps } from "@/types/page";
 import MemoryPage, { day, factText } from "./MemoryPage";
+
+afterEach(() => toast.clear());
 
 function props(over: Partial<PageProps> = {}): PageProps {
   return {
@@ -24,6 +27,7 @@ test("the Memory Card groups what Margaret said by category, with source, date a
   const { container } = render(<main><MemoryPage {...props()} /></main>);
 
   expect(screen.getByRole("heading", { level: 1, name: "Memory" })).toBeInTheDocument();
+  expect(screen.getByRole("status", { name: "Loading what Tempo remembers" })).toBeInTheDocument();
   expect(await screen.findByRole("heading", { name: "How to speak with me" })).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: "Journeys" })).toBeInTheDocument();
   expect(screen.getByText("has a stammer")).toBeInTheDocument();
@@ -44,7 +48,7 @@ test("the Memory Card groups what Margaret said by category, with source, date a
 
 test("forget asks first, then the memory is gone everywhere; correct keeps the earlier words struck through", async () => {
   const user = userEvent.setup();
-  render(<main><MemoryPage {...props()} /></main>);
+  render(<main><MemoryPage {...props()} /><Toaster /></main>);
   await screen.findByText("prefers phone updates");
 
   await user.click(screen.getByRole("button", { name: "Forget prefers phone updates" }));
@@ -59,20 +63,23 @@ test("forget asks first, then the memory is gone everywhere; correct keeps the e
   await user.type(box, "commutes Oxford to Reading");
   await user.click(screen.getByRole("button", { name: "Save" }));
   expect(await screen.findByText("commutes Oxford to Reading")).toBeInTheDocument();
+  expect(await screen.findByText(/^Corrected\. The earlier words stay visible/)).toBeInTheDocument();
   const earlier = screen.getByRole("list", { name: "Earlier versions" });
   expect(within(earlier).getByText("commutes Oxford to Paddington")).toHaveClass("superseded");
 });
 
 test("erase all forgets every memory and every dated fact, after a confirmation", async () => {
   const user = userEvent.setup();
-  render(<main><MemoryPage {...props()} /></main>);
+  render(<main><MemoryPage {...props()} /><Toaster /></main>);
   await screen.findByText("has a stammer");
 
   await user.click(screen.getByRole("button", { name: "Erase all" }));
+  expect(screen.getByRole("group", { name: "Erase everything?" })).toHaveTextContent("This can't be undone.");
   await user.click(screen.getByRole("button", { name: "Yes, erase all" }));
 
   expect(await screen.findByText(/Erased 5 memories and 3 dated facts/)).toBeInTheDocument();
   expect(screen.getByText("Nothing yet")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Ask in the chat: “What do you remember about me\?”/ })).toHaveAttribute("href", "#/chat?say=What%20do%20you%20remember%20about%20me%3F");
   expect(screen.getByText("No dated facts yet")).toBeInTheDocument();
   expect(screen.getByText(/cleared by the chat's own control/)).toBeInTheDocument();
 });

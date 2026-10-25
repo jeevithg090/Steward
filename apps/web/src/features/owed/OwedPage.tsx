@@ -1,11 +1,12 @@
 // Am I Owed Anything? (plan.md §2): the Entitlement Check as ten plain questions, one at a time
 // with big controls, then what is worth claiming with the official page for each. Screening, not
 // a decision. New page; the questions mirror tempo_core.entitlement.QUESTIONS.
-import { useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, ArrowLeft, ArrowRight, Check, ExternalLink, PoundSterling, RotateCcw, Volume2 } from "lucide-react";
-import { Badge, type BadgeTone, Button, Card, EmptyState, FOCUS, PageTitle, SectionTitle, Spinner } from "@/components/ui";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, CornerDownLeft, ExternalLink, PoundSterling, RotateCcw, Volume2 } from "lucide-react";
+import { Badge, type BadgeTone, Button, Card, EmptyState, FOCUS, PageTitle, SkeletonCards } from "@/components/ui";
 import type { EntitlementAnswers, EntitlementFlag, EntitlementResult } from "@/lib/api";
 import type { PageProps } from "@/types/page";
+import { TAP } from "../story/demo";
 
 export const BENEFIT_OPTIONS: { code: string; label: string }[] = [
   { code: "state_pension", label: "State Pension" },
@@ -112,34 +113,64 @@ function likelihood(flag: EntitlementFlag): { tone: BadgeTone; words: string } {
   return LIKELIHOOD[flag.likelihood] ?? { tone: "slate", words: flag.likelihood.replaceAll("_", " ") };
 }
 
-const BIG_INPUT = `w-40 rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-2xl text-slate-100 placeholder:text-slate-600 ${FOCUS}`;
+const BIG_INPUT = `min-h-[56px] rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-2xl text-slate-100 placeholder:text-slate-600 ${FOCUS}`;
 
+/** Two big radio cards. Arrow keys move between them, as for any radio group; Enter goes on. */
 function YesNo({ value, onChange, name }: { value: boolean | null; onChange: (v: boolean) => void; name: string }) {
   return (
-    <div role="group" aria-label={name} className="flex flex-wrap gap-3">
+    <div role="radiogroup" aria-labelledby="question-heading" className="grid max-w-md grid-cols-2 gap-3">
       {[
         { v: true, label: "Yes" },
         { v: false, label: "No" },
-      ].map((o) => (
-        <button
-          key={o.label}
-          type="button"
-          aria-pressed={value === o.v}
-          onClick={() => onChange(o.v)}
-          className={`min-w-[7rem] rounded-2xl border px-6 py-4 text-xl font-semibold transition-colors motion-reduce:transition-none ${FOCUS} ${value === o.v ? "border-indigo-400 bg-indigo-600 text-white" : "border-white/15 bg-black/20 text-slate-100 hover:bg-white/10"}`}
-        >
-          {o.label}
-        </button>
-      ))}
+      ].map((o) => {
+        const on = value === o.v;
+        return (
+          <label
+            key={o.label}
+            className={`flex min-h-[72px] cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 px-5 py-4 text-xl font-semibold transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-white motion-reduce:transition-none ${
+              on ? "border-indigo-300 bg-indigo-600 text-white" : "border-white/15 bg-black/20 text-slate-100 hover:border-white/30 hover:bg-white/10"
+            }`}
+          >
+            <input type="radio" name={name} value={o.label} checked={on} onChange={() => onChange(o.v)} className="sr-only" />
+            <span aria-hidden className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${on ? "border-white bg-white" : "border-slate-400"}`}>
+              {on && <span className="h-2.5 w-2.5 rounded-full bg-indigo-600" />}
+            </span>
+            {o.label}
+          </label>
+        );
+      })}
     </div>
   );
+}
+
+function Money({ value, onChange, label, placeholder, suffix }: { value: string; onChange: (v: string) => void; label: string; placeholder: string; suffix?: string }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="relative w-56 max-w-full">
+        <span aria-hidden className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-2xl font-semibold text-slate-300">
+          £
+        </span>
+        <input aria-label={label} type="text" inputMode="decimal" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} className={`${BIG_INPUT} w-full pl-10`} placeholder={placeholder} />
+      </div>
+      {suffix && <span className="text-base text-slate-300">{suffix}</span>}
+    </div>
+  );
+}
+
+/** What the flags add up to a week, if every one that isn't "unlikely" applies. Screening only. */
+export function weeklyTotal(result: EntitlementResult): string | null {
+  const known = result.flags.filter((f) => f.likelihood !== "unlikely" && f.weekly_gbp !== null && Number.isFinite(Number(f.weekly_gbp)));
+  if (known.length === 0) return null;
+  const pence = known.reduce((sum, f) => sum + Math.round(Number(f.weekly_gbp) * 100), 0);
+  return (pence / 100).toFixed(2);
 }
 
 export function spokenSummary(result: EntitlementResult): string {
   const worth = result.flags.filter((f) => f.likelihood !== "unlikely");
   if (worth.length === 0) return "Nothing here looks worth claiming right now. This is a quick check, not a decision.";
   const parts = worth.map((f) => `${f.benefit}: ${likelihood(f).words}${f.weekly_gbp ? `, about £${f.weekly_gbp} a week` : ""}`);
-  return `Worth checking: ${parts.join(". ")}. This is screening, not a decision; use the official pages to claim.`;
+  const total = weeklyTotal(result);
+  return `Worth checking: ${parts.join(". ")}.${total ? ` If all of these apply, that is about £${total} a week.` : ""} This is screening, not a decision; use the official pages to claim.`;
 }
 
 export default function OwedPage({ gateway, showcase, speak }: PageProps) {
@@ -148,11 +179,26 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
   const [result, setResult] = useState<EntitlementResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const resultsRef = useRef<HTMLHeadingElement>(null);
+  const moved = useRef(false);
 
   const q = QUESTIONS[step]!;
   const last = step === QUESTIONS.length - 1;
   const canGo = answered(draft, q.key);
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((d) => ({ ...d, [key]: value }));
+
+  // Each new question takes the focus, so the keyboard (and Enter) carries straight on.
+  useEffect(() => {
+    if (!moved.current) return;
+    const form = formRef.current;
+    const target = form?.querySelector<HTMLInputElement>("input:checked") ?? form?.querySelector<HTMLInputElement>("input");
+    target?.focus();
+  }, [step, result]);
+
+  useEffect(() => {
+    if (result) resultsRef.current?.focus();
+  }, [result]);
 
   const submit = async () => {
     setBusy(true);
@@ -160,19 +206,36 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
     try {
       setResult(await gateway.screen(toAnswers(draft)));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      const text = e instanceof Error ? e.message : String(e);
+      setError(`Couldn't check the figures: ${text.replace(/\.?$/, ".")} Press the button again, or check the Gateway in Settings.`);
     } finally {
       setBusy(false);
     }
   };
 
   const next = () => {
-    if (!canGo) return;
+    if (!canGo || busy) return;
+    moved.current = true;
     if (last) void submit();
     else setStep((s) => s + 1);
   };
 
+  const back = () => {
+    moved.current = true;
+    setStep((s) => Math.max(0, s - 1));
+  };
+
+  // Enter means Next everywhere in the question, even on a radio card or a tick box.
+  const onKeyDown = (e: KeyboardEvent<HTMLFormElement>) => {
+    const t = e.target as HTMLElement;
+    if (e.key === "Enter" && t instanceof HTMLInputElement && (t.type === "radio" || t.type === "checkbox")) {
+      e.preventDefault();
+      next();
+    }
+  };
+
   const restart = () => {
+    moved.current = true;
     setStep(0);
     setDraft(EMPTY);
     setResult(null);
@@ -180,43 +243,27 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
   };
 
   const pack = typeof result?.pack === "string" ? result.pack : null;
+  const total = result ? weeklyTotal(result) : null;
   const figures = result?.figures as { tax_year?: string; demo_values?: boolean } | undefined;
 
   const control: ReactNode = useMemo(() => {
     switch (q.key) {
       case "age":
         return (
-          <input aria-label="Your age" type="number" inputMode="numeric" min={16} max={120} value={draft.age} onChange={(e) => set("age", e.target.value)} className={BIG_INPUT} placeholder="74" autoFocus />
-        );
-      case "weekly_income":
-      case "savings": {
-        const key = q.key;
-        return (
-          <div className="flex items-center gap-2">
-            <span className="text-2xl text-slate-300" aria-hidden>
-              £
-            </span>
-            <input
-              aria-label={key === "savings" ? "Savings in pounds" : "Weekly income in pounds"}
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="1"
-              value={draft[key]}
-              onChange={(e) => set(key, e.target.value)}
-              className={BIG_INPUT}
-              placeholder={key === "savings" ? "3000" : "180"}
-              autoFocus
-            />
-            {key === "weekly_income" && <span className="text-sm text-slate-400">a week</span>}
+          <div className="flex flex-wrap items-center gap-3">
+            <input aria-label="Your age" type="number" inputMode="numeric" min={16} max={120} value={draft.age} onChange={(e) => set("age", e.target.value)} className={`${BIG_INPUT} w-32`} placeholder="74" />
+            <span className="text-base text-slate-300">years</span>
           </div>
         );
-      }
+      case "weekly_income":
+        return <Money label="Weekly income in pounds" value={draft.weekly_income} onChange={(v) => set("weekly_income", v)} placeholder="180" suffix="a week" />;
+      case "savings":
+        return <Money label="Savings in pounds" value={draft.savings} onChange={(v) => set("savings", v)} placeholder="3000" />;
       case "care_months":
         return (
           <div className="flex items-center gap-2">
-            <input aria-label="Months you have needed help" type="number" inputMode="numeric" min={0} max={600} value={draft.care_months} onChange={(e) => set("care_months", e.target.value)} className={BIG_INPUT} placeholder="8" autoFocus />
-            <span className="text-sm text-slate-400">months</span>
+            <input aria-label="Months you have needed help" type="number" inputMode="numeric" min={0} max={600} value={draft.care_months} onChange={(e) => set("care_months", e.target.value)} className={`${BIG_INPUT} w-32`} placeholder="8" />
+            <span className="text-base text-slate-300">months</span>
           </div>
         );
       case "benefits":
@@ -228,7 +275,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
                 const on = draft.benefits.includes(b.code);
                 return (
                   <li key={b.code}>
-                    <label className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-base ${on ? "border-indigo-400 bg-indigo-950/40" : "border-white/15 bg-black/20"}`}>
+                    <label className={`flex min-h-[56px] cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-base has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-white ${on ? "border-indigo-300 bg-indigo-950/60" : "border-white/15 bg-black/20 hover:bg-white/5"}`}>
                       <input
                         type="checkbox"
                         checked={on}
@@ -239,7 +286,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
                             benefits: e.target.checked ? [...d.benefits, b.code] : d.benefits.filter((c) => c !== b.code),
                           }))
                         }
-                        className={`h-5 w-5 accent-indigo-500 ${FOCUS}`}
+                        className="h-5 w-5 shrink-0 accent-indigo-500 focus:outline-none"
                       />
                       <span className="text-slate-100">{b.label}</span>
                     </label>
@@ -247,8 +294,8 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
                 );
               })}
               <li>
-                <label className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-base ${draft.none ? "border-indigo-400 bg-indigo-950/40" : "border-white/15 bg-black/20"}`}>
-                  <input type="checkbox" checked={draft.none} onChange={(e) => setDraft((d) => ({ ...d, none: e.target.checked, benefits: e.target.checked ? [] : d.benefits }))} className={`h-5 w-5 accent-indigo-500 ${FOCUS}`} />
+                <label className={`flex min-h-[56px] cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-base has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-white ${draft.none ? "border-indigo-300 bg-indigo-950/60" : "border-white/15 bg-black/20 hover:bg-white/5"}`}>
+                  <input type="checkbox" checked={draft.none} onChange={(e) => setDraft((d) => ({ ...d, none: e.target.checked, benefits: e.target.checked ? [] : d.benefits }))} className="h-5 w-5 shrink-0 accent-indigo-500 focus:outline-none" />
                   <span className="text-slate-100">None of these</span>
                 </label>
               </li>
@@ -258,8 +305,8 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
       case "terminally_ill":
         return (
           <div className="space-y-2">
-            <YesNo value={draft.terminally_ill} onChange={(v) => set("terminally_ill", v)} name={q.question} />
-            <button type="button" onClick={() => set("terminally_ill", false)} className={`text-sm text-slate-400 underline ${FOCUS}`}>
+            <YesNo value={draft.terminally_ill} onChange={(v) => set("terminally_ill", v)} name="terminally_ill" />
+            <button type="button" onClick={() => set("terminally_ill", false)} className={`${TAP} rounded-full px-1 text-sm text-slate-300 underline ${FOCUS}`}>
               I'd rather not say
             </button>
           </div>
@@ -268,7 +315,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
       case "care_day":
       case "care_night":
       case "broadband":
-        return <YesNo value={draft[q.key]} onChange={(v) => set(q.key as "couple" | "care_day" | "care_night" | "broadband", v)} name={q.question} />;
+        return <YesNo value={draft[q.key]} onChange={(v) => set(q.key as "couple" | "care_day" | "care_night" | "broadband", v)} name={q.key} />;
       default:
         return null;
     }
@@ -283,21 +330,34 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
 
       {!result && (
         <Card as="section" aria-labelledby="question-heading" className="space-y-5">
-          <div className="flex items-center justify-between gap-3">
-            <p aria-live="polite" className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              Question {step + 1} of {QUESTIONS.length}
-            </p>
-            <div className="h-1.5 w-40 overflow-hidden rounded-full bg-white/10" aria-hidden>
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <p aria-live="polite" className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                Question {step + 1} of {QUESTIONS.length}
+              </p>
+              <p className="text-xs text-slate-400">{QUESTIONS.length - step - 1 === 0 ? "Last one" : `${QUESTIONS.length - step - 1} more after this`}</p>
+            </div>
+            <div
+              role="progressbar"
+              aria-label="Progress through the questions"
+              aria-valuemin={1}
+              aria-valuemax={QUESTIONS.length}
+              aria-valuenow={step + 1}
+              aria-valuetext={`Question ${step + 1} of ${QUESTIONS.length}`}
+              className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/10"
+            >
               <div className="h-full rounded-full bg-indigo-500 transition-all motion-reduce:transition-none" style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }} />
             </div>
           </div>
           <div>
-            <h2 id="question-heading" className="text-xl font-semibold text-slate-100">
+            <h2 id="question-heading" className="text-2xl font-semibold leading-snug text-slate-100">
               {q.question}
             </h2>
-            {q.help && <p className="mt-1 text-sm text-slate-400">{q.help}</p>}
+            {q.help && <p className="mt-1 text-sm text-slate-300">{q.help}</p>}
           </div>
           <form
+            ref={formRef}
+            onKeyDown={onKeyDown}
             onSubmit={(e) => {
               e.preventDefault();
               next();
@@ -309,35 +369,52 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
                 {error}
               </p>
             )}
-            <div className="mt-6 flex flex-wrap items-center gap-2">
-              <Button type="button" variant="quiet" size="lg" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0 || busy} icon={<ArrowLeft size={16} aria-hidden />}>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Button type="button" variant="quiet" size="lg" onClick={back} disabled={step === 0 || busy} icon={<ArrowLeft size={16} aria-hidden />}>
                 Back
               </Button>
               <Button type="submit" size="lg" disabled={!canGo} busy={busy} icon={last ? <Check size={16} aria-hidden /> : <ArrowRight size={16} aria-hidden />}>
                 {last ? "See what I may be owed" : "Next"}
               </Button>
+              <span className="plain-hide hidden items-center gap-1 text-xs text-slate-400 sm:inline-flex">
+                <CornerDownLeft size={12} aria-hidden /> Enter also means Next
+              </span>
             </div>
           </form>
         </Card>
       )}
 
-      {busy && <Spinner label="Checking the figures" />}
+      {busy && <SkeletonCards count={2} label="Checking the figures" />}
 
       {result && (
         <section aria-labelledby="results-heading" aria-live="polite" className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <SectionTitle id="results-heading" className="mb-0">
+            <h2 id="results-heading" ref={resultsRef} tabIndex={-1} className="text-xl font-semibold text-slate-100 focus:outline-none">
               What looks worth claiming
-            </SectionTitle>
+            </h2>
             <div className="flex flex-wrap gap-2">
-              <Button variant="quiet" size="sm" onClick={() => speak(spokenSummary(result))} icon={<Volume2 size={14} aria-hidden />}>
-                Speak the results
+              <Button onClick={() => speak(spokenSummary(result))} icon={<Volume2 size={16} aria-hidden />} className={TAP}>
+                Read the results to me
               </Button>
-              <Button variant="quiet" size="sm" onClick={restart} icon={<RotateCcw size={14} aria-hidden />}>
+              <Button variant="quiet" onClick={restart} icon={<RotateCcw size={14} aria-hidden />} className={TAP}>
                 Start again
               </Button>
             </div>
           </div>
+
+          {total && (
+            <Card tone="emerald" className="flex flex-wrap items-center gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-200">
+                <PoundSterling size={24} aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-3xl font-bold text-emerald-100">
+                  about £{total} <span className="text-base font-normal text-emerald-200/80">a week</span>
+                </p>
+                <p className="text-sm text-emerald-50">if all of these apply. Screening only: the official pages and DWP decide.</p>
+              </div>
+            </Card>
+          )}
 
           <Card tone="amber" className="flex gap-3">
             <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-300" aria-hidden />
@@ -372,7 +449,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
                       </p>
                     )}
                     <p className="text-sm text-slate-200">{flag.why}</p>
-                    <a href={flag.signpost} rel="noopener noreferrer" target="_blank" className={`mt-auto inline-flex items-center gap-1 text-sm text-indigo-300 underline ${FOCUS}`}>
+                    <a href={flag.signpost} rel="noopener noreferrer" target="_blank" className={`mt-auto inline-flex ${TAP} items-center gap-1 text-sm text-indigo-300 underline ${FOCUS}`}>
                       The official page <ExternalLink size={12} aria-hidden />
                       <span className="sr-only"> for {flag.benefit} (opens in a new tab)</span>
                     </a>
@@ -384,7 +461,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
 
           {pack && (
             <details className="rounded-2xl border border-white/10 bg-nexus-card p-4">
-              <summary className={`cursor-pointer text-sm font-medium text-indigo-300 ${FOCUS}`}>Your answers and the check, as text to keep or hand to an adviser</summary>
+              <summary className={`flex min-h-[44px] cursor-pointer items-center text-sm font-medium text-indigo-300 ${FOCUS}`}>Your answers and the check, as text to keep or hand to an adviser</summary>
               <pre className="mt-3 whitespace-pre-wrap font-sans text-xs text-slate-200">{pack}</pre>
             </details>
           )}

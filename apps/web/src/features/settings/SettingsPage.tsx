@@ -1,8 +1,8 @@
 // Settings (plan.md §2): the Gateway, the showcase switch, accessibility, language, and the
 // teammate's model and voice keys with an honest label about what they change.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { AudioLines, Check, Eye, Key, Lock, Pencil, Server, ShieldAlert, ShieldCheck, Sparkles, Type, Languages } from "lucide-react";
-import { Badge, Button, Card, PageTitle, SectionTitle, Switch } from "@/components/ui";
+import { Badge, Button, Card, FOCUS, PageTitle, SectionTitle, Switch, toast } from "@/components/ui";
 import { TEXT_SIZES, getPrefs, setPrefs, subscribe, type TextSize } from "@/lib/a11y-prefs";
 import type { Health } from "@/lib/api";
 import { LANGUAGES, type Language } from "@/lib/shield";
@@ -34,6 +34,9 @@ export const AVAILABLE_MODELS: ModelOption[] = [
     requiresApiKey: true,
   },
 ];
+
+const TAP = "min-h-[44px]";
+const FIELD = `mt-1 min-h-[44px] w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-slate-500 disabled:opacity-50 ${FOCUS}`;
 
 const PROVIDER_LABELS: Record<ApiKeyProvider, string> = {
   claude: "Claude",
@@ -85,6 +88,8 @@ export function SettingsPage({
   const [url, setUrl] = useState(gatewayUrl);
   const [tok, setTok] = useState(token);
   const [saved, setSaved] = useState(false);
+  const sizeRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const opener = useRef<HTMLElement | null>(null);
   const [prefs, setPrefsState] = useState(getPrefs);
   const [reduceMotion, setReduceMotion] = useState(() => readFlag(REDUCE_MOTION_KEY));
 
@@ -107,6 +112,41 @@ export function SettingsPage({
     }
     if (on) document.documentElement.setAttribute("data-reduce-motion", "");
     else document.documentElement.removeAttribute("data-reduce-motion");
+    toast.success(on ? "Motion reduced: nothing pulses or slides." : "Motion back on.");
+  };
+
+  const toggleShowcase = (on: boolean) => {
+    onToggleShowcase(on);
+    if (on) toast.success("Showcase on: every page now answers from recorded replies, with no Gateway.");
+    else toast.success(`Showcase off: Tempo talks to the Gateway at ${gatewayUrl}.`);
+  };
+
+  const chooseSize = (id: TextSize, words: string) => {
+    setPrefs({ textSize: id });
+    toast.success(`Text size: ${words.toLowerCase()}.`);
+  };
+
+  // The text-size choices are one radio group: arrow keys move and choose, as the pattern expects.
+  const onSizeKey = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const delta = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!delta) return;
+    e.preventDefault();
+    const next = (index + delta + TEXT_SIZES.length) % TEXT_SIZES.length;
+    const size = TEXT_SIZES[next]!;
+    chooseSize(size.id as TextSize, size.words);
+    sizeRefs.current[next]?.focus();
+  };
+
+  const openKey = (provider: ApiKeyProvider, current: string) => {
+    opener.current = document.activeElement as HTMLElement | null;
+    setEditingProvider(provider);
+    setTempKeyInput(current);
+  };
+
+  const closeKey = () => {
+    setEditingProvider(null);
+    setTempKeyInput("");
+    opener.current?.focus();
   };
 
   const elevenLabsKey = apiKeys.elevenlabs;
@@ -119,22 +159,23 @@ export function SettingsPage({
       const key = apiKeys[provider];
       if (!key || key.trim().length === 0) {
         setErrorMsg(`A key is needed to turn on ${model.name}. Add one below.`);
-        setEditingProvider(provider);
-        setTempKeyInput("");
+        openKey(provider, "");
         return;
       }
     }
     onToggleActiveModel(model.id, enable);
+    toast.success(enable ? `${model.name} is on. It labels the reply; it never sets an amount.` : `${model.name} is off.`);
   };
 
   const handleSaveKey = (provider: ApiKeyProvider) => {
-    onUpdateApiKey(provider, tempKeyInput.trim());
-    if (provider !== "elevenlabs" && tempKeyInput.trim().length > 0) {
+    const key = tempKeyInput.trim();
+    onUpdateApiKey(provider, key);
+    if (provider !== "elevenlabs" && key.length > 0) {
       onToggleActiveModel(provider, true);
       setErrorMsg(null);
     }
-    setEditingProvider(null);
-    setTempKeyInput("");
+    toast.success(key ? `${PROVIDER_LABELS[provider]} key saved on this device only.` : `${PROVIDER_LABELS[provider]} key removed from this device.`);
+    closeKey();
   };
 
   const isVoiceEdit = editingProvider === "elevenlabs";
@@ -153,23 +194,30 @@ export function SettingsPage({
           className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]"
           onSubmit={(e) => {
             e.preventDefault();
-            onSaveGateway(url.trim(), tok.trim());
+            const target = url.trim();
+            if (target && !/^https?:\/\//i.test(target)) {
+              toast.error("The Gateway address should start with http:// or https://, for example http://127.0.0.1:8000.");
+              return;
+            }
+            onSaveGateway(target, tok.trim());
             setSaved(true);
+            toast.success(`Gateway saved and reconnected: ${target || "the build's default address"}. The badge at the top shows whether it answers.`);
             setTimeout(() => setSaved(false), 2000);
           }}
         >
-          <label className="text-xs text-slate-400">
+          <label className="text-xs text-slate-300">
             URL
-            <input value={url} onChange={(e) => setUrl(e.target.value)} disabled={showcase} className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none disabled:opacity-50" placeholder="http://127.0.0.1:8000" />
+            <input value={url} onChange={(e) => setUrl(e.target.value)} disabled={showcase} inputMode="url" autoComplete="off" className={FIELD} placeholder="http://127.0.0.1:8000" />
           </label>
-          <label className="text-xs text-slate-400">
+          <label className="text-xs text-slate-300">
             Bearer token (demo only)
-            <input type="password" value={tok} onChange={(e) => setTok(e.target.value)} disabled={showcase} className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none disabled:opacity-50" />
+            <input type="password" value={tok} onChange={(e) => setTok(e.target.value)} disabled={showcase} autoComplete="off" className={FIELD} />
           </label>
           <div className="flex items-end">
-            <Button type="submit" disabled={showcase} icon={saved ? <Check size={14} aria-hidden /> : undefined}>{saved ? "Saved" : "Save and reconnect"}</Button>
+            <Button type="submit" disabled={showcase} icon={saved ? <Check size={14} aria-hidden /> : undefined} className={TAP}>{saved ? "Saved" : "Save and reconnect"}</Button>
           </div>
         </form>
+        {showcase && <p className="mt-2 text-xs text-slate-400">Switch the showcase off to change the Gateway.</p>}
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/5 pt-3">
           <div>
             <p className="text-sm text-slate-100">Showcase mode</p>
@@ -179,7 +227,7 @@ export function SettingsPage({
                 : "No Gateway: every page answers from replies recorded from a real replay-mode run."}
             </p>
           </div>
-          <Switch checked={showcase} disabled={showcaseForced} onChange={onToggleShowcase} label="Showcase mode" />
+          <Switch checked={showcase} disabled={showcaseForced} onChange={toggleShowcase} label="Showcase mode" />
         </div>
         {health && (
           <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-400 sm:grid-cols-4">
@@ -195,26 +243,44 @@ export function SettingsPage({
       <Card as="section" aria-labelledby="a11y-heading">
         <SectionTitle id="a11y-heading"><span className="inline-flex items-center gap-1.5"><Eye size={12} aria-hidden /> Reading and seeing</span></SectionTitle>
         <div className="flex flex-wrap items-center gap-6">
-          <div role="radiogroup" aria-labelledby="text-size-label" className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span id="text-size-label" className="inline-flex items-center gap-1 text-sm text-slate-200"><Type size={14} aria-hidden /> Text size</span>
-            {TEXT_SIZES.map((size) => (
-              <button
-                key={size.id}
-                role="radio"
-                aria-checked={prefs.textSize === size.id}
-                aria-label={size.words}
-                onClick={() => setPrefs({ textSize: size.id as TextSize })}
-                className={`rounded-full px-3 py-1 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${prefs.textSize === size.id ? "bg-indigo-600 text-white" : "bg-white/5 text-slate-200 hover:bg-white/10"}`}
-              >
-                {size.label}
-              </button>
-            ))}
+            <div role="radiogroup" aria-labelledby="text-size-label" className="flex items-center gap-2">
+              {TEXT_SIZES.map((size, i) => {
+                const on = prefs.textSize === size.id;
+                return (
+                  <button
+                    key={size.id}
+                    ref={(el) => {
+                      sizeRefs.current[i] = el;
+                    }}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    aria-label={size.words}
+                    tabIndex={on ? 0 : -1}
+                    onClick={() => chooseSize(size.id as TextSize, size.words)}
+                    onKeyDown={(e) => onSizeKey(e, i)}
+                    className={`${TAP} min-w-[44px] rounded-full px-3 text-sm font-semibold ${FOCUS} ${on ? "bg-indigo-600 text-white" : "bg-white/5 text-slate-200 hover:bg-white/10"}`}
+                  >
+                    {size.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <label className="flex items-center gap-3 text-sm text-slate-200">
-            <Switch checked={prefs.plain} onChange={(on) => setPrefs({ plain: on })} label="Plain mode" />
+          <label className="flex min-h-[44px] items-center gap-3 text-sm text-slate-200">
+            <Switch
+              checked={prefs.plain}
+              onChange={(on) => {
+                setPrefs({ plain: on });
+                toast.success(on ? "Plain mode on: bigger targets, fewer extras." : "Plain mode off.");
+              }}
+              label="Plain mode"
+            />
             Plain mode <span className="text-xs text-slate-400">(bigger targets, fewer extras)</span>
           </label>
-          <label className="flex items-center gap-3 text-sm text-slate-200">
+          <label className="flex min-h-[44px] items-center gap-3 text-sm text-slate-200">
             <Switch checked={reduceMotion} onChange={toggleReduceMotion} label="Reduce motion" />
             Reduce motion
           </label>
@@ -228,10 +294,14 @@ export function SettingsPage({
           {LANGUAGES.map((l) => (
             <button
               key={l.code}
+              type="button"
               aria-pressed={language === l.code}
-              onClick={() => onLanguage(l.code)}
+              onClick={() => {
+                onLanguage(l.code);
+                if (language !== l.code) toast.success(`Scam warnings will be spoken in ${l.name}.`);
+              }}
               lang={l.bcp47}
-              className={`rounded-full px-3 py-1.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${language === l.code ? "bg-indigo-600 text-white" : "bg-white/5 text-slate-200 hover:bg-white/10"}`}
+              className={`${TAP} rounded-full px-4 text-sm ${FOCUS} ${language === l.code ? "bg-indigo-600 text-white" : "bg-white/5 text-slate-200 hover:bg-white/10"}`}
             >
               {l.name}
             </button>
@@ -253,7 +323,7 @@ export function SettingsPage({
             <Key size={14} className="text-slate-500" aria-hidden />
             <span>{hasElevenLabsKey ? `ElevenLabs key: ••••••••${elevenLabsKey?.slice(-4)}` : "ElevenLabs key: not set (optional)"}</span>
           </div>
-          <Button variant="quiet" size="sm" icon={<Pencil size={12} aria-hidden />} onClick={() => { setEditingProvider("elevenlabs"); setTempKeyInput(elevenLabsKey || ""); }}>
+          <Button variant="quiet" icon={<Pencil size={12} aria-hidden />} onClick={() => openKey("elevenlabs", elevenLabsKey || "")} className={TAP} aria-label={hasElevenLabsKey ? "Edit the ElevenLabs key" : "Add an ElevenLabs key"}>
             {hasElevenLabsKey ? "Edit key" : "Add key"}
           </Button>
         </div>
@@ -297,7 +367,7 @@ export function SettingsPage({
                     <Key size={14} className="text-slate-500" aria-hidden />
                     <span>{hasKey ? `Key: ••••••••${providerKey?.slice(-4)}` : "Key: not set"}</span>
                   </div>
-                  <Button variant="quiet" size="sm" icon={<Pencil size={12} aria-hidden />} onClick={() => { const provider = model.id as ApiKeyProvider; setEditingProvider(provider); setTempKeyInput(apiKeys[provider] || ""); }}>
+                  <Button variant="quiet" icon={<Pencil size={12} aria-hidden />} onClick={() => { const provider = model.id as ApiKeyProvider; openKey(provider, apiKeys[provider] || ""); }} className={TAP} aria-label={`${hasKey ? "Edit the" : "Add a"} ${model.name} key`}>
                     {hasKey ? "Edit key" : "Add key"}
                   </Button>
                 </div>
@@ -308,7 +378,18 @@ export function SettingsPage({
       </section>
 
       {editingProvider && (
-        <div role="dialog" aria-modal="true" aria-labelledby="key-dialog-heading" className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="key-dialog-heading"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              closeKey();
+            }
+          }}
+        >
           <div className="w-full max-w-md rounded-2xl border border-white/10 bg-nexus-card p-6 shadow-2xl">
             <div className="mb-2 flex items-center gap-2 text-slate-100">
               <Lock size={18} className="text-indigo-400" aria-hidden />
@@ -317,19 +398,27 @@ export function SettingsPage({
             <p className="mb-4 text-xs text-slate-400">
               Kept in this browser only. {isVoiceEdit && "Leave it empty and save to remove the key."}
             </p>
-            <input
-              type="password"
-              aria-label={`${PROVIDER_LABELS[editingProvider]} key`}
-              placeholder={`${PROVIDER_LABELS[editingProvider]} key`}
-              value={tempKeyInput}
-              onChange={(e) => setTempKeyInput(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
-              autoFocus
-            />
-            <div className="mt-5 flex justify-end gap-2">
-              <Button variant="quiet" onClick={() => { setEditingProvider(null); setTempKeyInput(""); }}>Cancel</Button>
-              <Button onClick={() => handleSaveKey(editingProvider)} icon={<Check size={14} aria-hidden />}>{isVoiceEdit ? "Save" : "Save and turn on"}</Button>
-            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveKey(editingProvider);
+              }}
+            >
+              <input
+                type="password"
+                aria-label={`${PROVIDER_LABELS[editingProvider]} key`}
+                placeholder={`${PROVIDER_LABELS[editingProvider]} key`}
+                value={tempKeyInput}
+                onChange={(e) => setTempKeyInput(e.target.value)}
+                autoComplete="off"
+                className={FIELD}
+                autoFocus
+              />
+              <div className="mt-5 flex flex-wrap justify-end gap-2">
+                <Button variant="quiet" onClick={closeKey} className={TAP}>Cancel</Button>
+                <Button type="submit" icon={<Check size={14} aria-hidden />} className={TAP}>{isVoiceEdit ? "Save" : "Save and turn on"}</Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

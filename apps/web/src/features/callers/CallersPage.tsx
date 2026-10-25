@@ -1,12 +1,13 @@
 // Who's calling? (plan.md §2): the Patience Profile for Margaret, Dilip and Joan: language, pace,
 // voice, the words the voice agent is given, and the memories behind them. Ported from the old
 // WhoIsCalling; dark theme. Voice ids never reach the browser.
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Ear, Languages, MessageSquareText, PhoneCall, Timer, Volume2 } from "lucide-react";
-import { Badge, Button, Card, EmptyState, FOCUS, PageTitle, SectionTitle, Spinner } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, FOCUS, PageTitle, SectionTitle, Skeleton } from "@/components/ui";
 import type { VoiceProfileView } from "@/lib/api";
 import { LANGUAGE_NAMES } from "@/lib/profiles";
 import type { PageProps } from "@/types/page";
+import { TAP } from "../story/demo";
 
 /** The demo's callers (seeded by `make seed`): each told Tempo how they need to be spoken to. */
 export const CALLERS = [
@@ -25,8 +26,10 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
   const [caller, setCaller] = useState<string>(CALLERS[0].id);
   const [view, setView] = useState<VoiceProfileView | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const applied = useMemo(() => events.filter((e) => e.type === "profile_applied"), [events]);
   const lastCall = applied.find((e) => e.user_id === caller);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   useEffect(() => {
     let live = true;
@@ -43,7 +46,7 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
     return () => {
       live = false;
     };
-  }, [gateway, caller, applied.length]);
+  }, [gateway, caller, applied.length, attempt]);
 
   const profile = view?.profile;
   const override = view?.initiation.conversation_config_override;
@@ -57,15 +60,18 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
         Who's calling?
       </PageTitle>
 
-      <div role="group" aria-label="Caller" className="inline-flex flex-wrap gap-1 rounded-full border border-white/10 bg-white/5 p-1">
+      <div role="group" aria-label="Caller" className="inline-flex max-w-full flex-wrap gap-1 rounded-full border border-white/10 bg-white/5 p-1">
         {CALLERS.map((c) => (
           <button
             key={c.id}
             type="button"
             aria-pressed={caller === c.id}
             onClick={() => setCaller(c.id)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors motion-reduce:transition-none ${FOCUS} ${caller === c.id ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-white/10"}`}
+            className={`inline-flex ${TAP} items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4 text-sm font-medium transition-colors motion-reduce:transition-none ${FOCUS} ${caller === c.id ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-white/10"}`}
           >
+            <span aria-hidden className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${caller === c.id ? "bg-white/20" : "bg-nexus-badge text-white"}`}>
+              {c.name.charAt(0)}
+            </span>
             {c.name}
           </button>
         ))}
@@ -84,8 +90,23 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
         {!lastCall && !showcase && applied.length === 0 && <p className="text-slate-400">No live call yet. When the voice line answers, the profile it applied appears here.</p>}
       </div>
 
-      {error && <EmptyState title={`Can't load ${name}'s settings right now`} tone="error">{error}</EmptyState>}
-      {!error && !view && <Spinner label={`Loading how Tempo speaks with ${name}`} />}
+      {error && (
+        <EmptyState title={`Can't load ${name}'s settings right now`} tone="error" action={<Button variant="quiet" onClick={retry} className={TAP}>Try again</Button>}>
+          {error.replace(/\.?$/, ".")} Check the Gateway in Settings, or switch on the showcase there.
+        </EmptyState>
+      )}
+      {!error && !view && (
+        <div role="status" aria-label={`Loading how Tempo speaks with ${name}`} className="grid gap-4 lg:grid-cols-2">
+          {[0, 1].map((i) => (
+            <div key={i} className="rounded-2xl border border-white/10 bg-nexus-card p-5">
+              <Skeleton className="mb-4 h-3 w-1/3" />
+              <Skeleton className="mb-2 h-4 w-full" />
+              <Skeleton className="mb-2 h-4 w-5/6" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {view && profile && (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -133,7 +154,7 @@ export default function CallersPage({ gateway, events, speak, showcase }: PagePr
             <SectionTitle
               id="words-heading"
               right={
-                <Button variant="quiet" size="sm" onClick={() => speak(view.how_to_speak)} icon={<Volume2 size={14} aria-hidden />}>
+                <Button variant="quiet" onClick={() => speak(view.how_to_speak)} icon={<Volume2 size={14} aria-hidden />} className={TAP}>
                   Speak it
                 </Button>
               }

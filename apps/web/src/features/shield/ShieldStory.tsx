@@ -276,7 +276,7 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
                   type="button"
                   aria-current={i === step ? "step" : undefined}
                   onClick={() => go(i)}
-                  className={`rounded-full border px-3 py-1 text-xs transition-colors motion-reduce:transition-none ${FOCUS} ${i === step ? "border-indigo-400 bg-indigo-600 text-white" : "border-white/15 bg-white/5 text-slate-200 hover:bg-white/10"}`}
+                  className={`min-h-[44px] rounded-full border px-3.5 py-1 text-sm transition-colors motion-reduce:transition-none ${FOCUS} ${i === step ? "border-indigo-400 bg-indigo-600 text-white" : "border-white/15 bg-white/5 text-slate-200 hover:bg-white/10"}`}
                 >
                   <span className="sr-only">
                     Step {i + 1} of {SCENES.length}:{" "}
@@ -293,7 +293,7 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
           <div style={visual} aria-label={`Margaret's phone: ${scene.title}`} role="img" className="mx-auto w-full max-w-[20rem] motion-reduce:transition-none">
             <div className="rounded-[2.5rem] border-[8px] border-slate-800 bg-slate-800 p-2 shadow-xl">
               <div className="min-h-[30rem] rounded-[2rem] bg-slate-950 p-4 text-slate-100">
-                <p className="text-center text-xs text-slate-500">Tuesday 14:07</p>
+                <p className="text-center text-xs text-slate-400">Tuesday 14:07</p>
                 {scene.screen === "card" || scene.screen === "settled" || scene.screen === "hold" ? (
                   <div className={`mt-3 rounded-2xl p-4 text-white ${scene.screen === "hold" ? "bg-amber-700" : "bg-rose-800"}`} aria-hidden="true">
                     <p className="text-2xl font-bold">{scene.screen === "hold" ? "Wait" : "Stop"}</p>
@@ -349,13 +349,13 @@ export function ShieldStory({ narrator, language, onLanguage }: ShieldStoryProps
               <Card role="group" aria-label="The Shield card's buttons, working" tone="rose" style={visual}>
                 <p className="text-sm font-medium text-rose-100">The card's three buttons, live:</p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  <Button variant="quiet" size="sm" onClick={sayAgain}>
+                  <Button variant="quiet" onClick={sayAgain} className="min-h-[44px]">
                     Read it again
                   </Button>
-                  <Button variant="quiet" size="sm" onClick={knowSender}>
+                  <Button variant="quiet" onClick={knowSender} className="min-h-[44px]">
                     I know this sender
                   </Button>
-                  <Button variant="quiet" size="sm" onClick={() => setCardNote("The card closes. The log keeps the verdict, never the message.")}>
+                  <Button variant="quiet" onClick={() => setCardNote("The card closes. The log keeps the verdict, never the message.")} className="min-h-[44px]">
                     I'm fine
                   </Button>
                 </div>

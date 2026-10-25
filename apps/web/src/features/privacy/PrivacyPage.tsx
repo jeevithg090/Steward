@@ -4,9 +4,10 @@
 // the old PrivacyProof; dark theme. The gaps are stated, not hidden.
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { AlertTriangle, CheckCircle2, Cloud, Fingerprint, Globe, KeyRound, Lock, ShieldCheck, TestTube2 } from "lucide-react";
-import { Badge, Button, Card, EmptyState, PageTitle, SectionTitle, Spinner } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, PageTitle, SectionTitle, Skeleton } from "@/components/ui";
 import type { PrivacyProofData } from "@/lib/api";
 import type { PageProps } from "@/types/page";
+import { TAP } from "../story/demo";
 
 const MODE_WORDS: Record<string, string> = {
   local: "on this machine",
@@ -28,8 +29,8 @@ type Verdict = "ok" | "gap" | "info";
 function Line({ icon, label, verdict, children }: { icon: ReactNode; label: string; verdict: Verdict; children: ReactNode }) {
   return (
     <div className="py-3 first:pt-0 last:pb-0">
-      <dt className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-        <span className="text-slate-400" aria-hidden>
+      <dt className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-300">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-indigo-200" aria-hidden>
           {icon}
         </span>
         {label}
@@ -45,7 +46,7 @@ function Line({ icon, label, verdict, children }: { icon: ReactNode; label: stri
         )}
         {verdict === "info" && <Badge tone="purple">stated</Badge>}
       </dt>
-      <dd className="mt-0.5 pl-6 text-sm text-slate-100">{children}</dd>
+      <dd className="mt-1 min-w-0 break-words pl-9 text-sm text-slate-100">{children}</dd>
     </div>
   );
 }
@@ -77,11 +78,23 @@ export default function PrivacyPage({ gateway, user, health, showcase }: PagePro
       </PageTitle>
 
       {error && (
-        <EmptyState title="Couldn't fetch the proof" tone="error" action={<Button variant="quiet" size="sm" onClick={() => void load()}>Try again</Button>}>
-          {error}
+        <EmptyState title="Couldn't fetch the proof" tone="error" action={<Button variant="quiet" onClick={() => void load()} className={TAP}>Try again</Button>}>
+          {error.replace(/\.?$/, ".")} Check the Gateway in Settings, or switch on the showcase there.
         </EmptyState>
       )}
-      {!error && !proof && <Spinner label="Asking the Gateway what is true" />}
+      {!error && !proof && (
+        <div role="status" aria-label="Asking the Gateway what is true" className="space-y-4 rounded-2xl border border-white/10 bg-nexus-card p-5">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-start gap-3">
+              <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
+              <div className="flex-1">
+                <Skeleton className="mb-2 h-3 w-1/3" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {proof && (
         <Card as="section" aria-labelledby="proof-heading" tone="default">
@@ -130,7 +143,13 @@ export default function PrivacyPage({ gateway, user, health, showcase }: PagePro
               {proof.key_held_on.length ? (
                 <>{proof.key_held_on.join(", ")} (a passkey on the device; the Gateway never holds it)</>
               ) : (
-                <>no device yet: pairing a phone with a passkey is what puts the key on it. Tempo Mesh is not wired into this UI tonight.</>
+                <>
+                  no device yet: pairing a phone with a passkey is what puts the key on it.{" "}
+                  <a href="#/devices" className="text-indigo-300 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                    Set one up on Devices
+                  </a>
+                  .
+                </>
               )}
             </Line>
 

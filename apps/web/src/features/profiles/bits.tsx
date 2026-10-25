@@ -49,7 +49,8 @@ export function AccessChips({ access }: { access: ProfileAccess }) {
   );
 }
 
-export function MayNever({ actions, id, as: Tag = "h3" }: { actions: Action[]; id: string; as?: "h2" | "h3" }) {
+export function MayNever({ actions, id, as: Tag = "h3", limit }: { actions: Action[]; id: string; as?: "h2" | "h3"; limit?: number }) {
+  const shown = limit ? actions.slice(0, limit) : actions;
   return (
     <div>
       <Tag id={id} className="text-[10px] font-semibold uppercase tracking-wider text-rose-300">
@@ -59,7 +60,7 @@ export function MayNever({ actions, id, as: Tag = "h3" }: { actions: Action[]; i
         <p className="mt-1 text-sm text-slate-300">Nothing is ruled out, but nothing binding happens without your signed yes.</p>
       ) : (
         <ul className="mt-1 space-y-1 text-sm text-slate-200">
-          {actions.map((a) => (
+          {shown.map((a) => (
             <li key={a} className="flex items-start gap-2">
               <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400" />
               {capital(ACTION_WORDS[a])}
@@ -67,6 +68,7 @@ export function MayNever({ actions, id, as: Tag = "h3" }: { actions: Action[]; i
           ))}
         </ul>
       )}
+      {limit && actions.length > limit && <p className="mt-1 text-xs text-slate-400">and {actions.length - limit} more</p>}
     </div>
   );
 }

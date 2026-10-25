@@ -1,14 +1,25 @@
 // Skills (plan.md §2): the manifests in plain words: jobs, capabilities needed, status, operators,
 // and how to add one. Ported from the old SkillsPage; dark theme.
-import { useEffect, useMemo, useState } from "react";
-import { BookOpen, ExternalLink, FolderPlus, Puzzle } from "lucide-react";
-import { Badge, Card, EmptyState, FOCUS, PageTitle, SectionTitle, Spinner } from "@/components/ui";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowRight, BookOpen, ExternalLink, FolderPlus, MessageCircle, Puzzle } from "lucide-react";
+import { Badge, Button, Card, EmptyState, FOCUS, PageTitle, SectionTitle, SkeletonCards } from "@/components/ui";
 import { CatalogClient, type CatalogSource } from "@/lib/catalog-client";
 import { ACTION_WORDS, type SkillManifest } from "@/lib/profiles";
 import { ShowcaseCatalog } from "@/lib/showcase";
 import { useCatalog } from "@/lib/use-showcase";
+import { linkProps } from "@/router";
 import type { PageProps } from "@/types/page";
 import { DOCS, GITHUB, StatusBadge } from "../profiles/bits";
+import { SAY, TAP, chatSay, shortSay } from "../story/demo";
+
+/** Where a skill can be tried right now: a sentence in the chat, or its own page. */
+export const TRY_SKILL: Record<string, { href: string; hint: string }> = {
+  "clawback-uk-rail": { href: chatSay(SAY.lateTrain), hint: `Sends “${shortSay(SAY.lateTrain)}” in the chat.` },
+  "clawback-ofcom": { href: chatSay(SAY.broadband), hint: `Sends “${SAY.broadband}” in the chat.` },
+  "scam-shield": { href: chatSay(SAY.scam), hint: "Sends a fake HMRC refund text to the chat to check." },
+  "entitlement-check": { href: chatSay(SAY.owed), hint: `Asks “${SAY.owed}” in the chat.` },
+  "letter-explainer": { href: "#/read", hint: "Opens Read It To Me: press a sample photo." },
+};
 
 const CHANNEL_WORDS: Record<string, string> = { web: "web", sms: "text message", voice: "phone" };
 
@@ -18,7 +29,7 @@ const WAYS_IN = [
   { title: "A mission in Python", body: "A multi-step workflow with its own tools, waits and consent points: copy clawback_ofcom under packages/tempo_missions/." },
 ];
 
-const LINK = `inline-flex items-center gap-1 text-indigo-300 underline ${FOCUS}`;
+const LINK = `inline-flex min-h-[44px] items-center gap-1 text-indigo-300 underline ${FOCUS}`;
 
 export default function SkillsPage({ showcase }: PageProps) {
   const injected = useMemo<CatalogSource>(() => (showcase ? new ShowcaseCatalog() : new CatalogClient()), [showcase]);
@@ -26,8 +37,9 @@ export default function SkillsPage({ showcase }: PageProps) {
   const [skills, setSkills] = useState<SkillManifest[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     let live = true;
+    setError(null);
     source
       .skills()
       .then((s) => live && setSkills(s))
@@ -36,6 +48,7 @@ export default function SkillsPage({ showcase }: PageProps) {
       live = false;
     };
   }, [source]);
+  useEffect(load, [load]);
 
   return (
     <div className="space-y-5">
@@ -43,15 +56,21 @@ export default function SkillsPage({ showcase }: PageProps) {
         Skills
       </PageTitle>
 
-      {error && <EmptyState title="Couldn't load the skills" tone="error">{error}</EmptyState>}
-      {!error && skills === null && <Spinner label="Loading skills" />}
+      {error && (
+        <EmptyState title="Couldn't load the skills" tone="error" action={<Button variant="quiet" onClick={load} className={TAP}>Try again</Button>}>
+          {error.replace(/\.?$/, ".")} Check the Gateway in Settings, or switch on the showcase there.
+        </EmptyState>
+      )}
+      {!error && skills === null && <SkeletonCards count={4} label="Loading skills" />}
       {skills && skills.length === 0 && <EmptyState title="No skills yet">Add a folder under skills/ with a skill.yaml and it appears here.</EmptyState>}
       {skills && skills.length > 0 && (
         <ul className="grid gap-4 md:grid-cols-2">
-          {skills.map((s) => (
+          {skills.map((s) => {
+            const tryIt = TRY_SKILL[s.id];
+            return (
             <Card key={s.id} as="li" id={s.id} className="flex flex-col gap-3 scroll-mt-24">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="text-base font-semibold text-slate-100">{s.name}</h2>
+                <h2 className="text-lg font-semibold text-slate-100">{s.name}</h2>
                 <StatusBadge status={s.status} />
               </div>
               <p className="text-sm text-slate-300">{s.summary}</p>
@@ -116,8 +135,24 @@ export default function SkillsPage({ showcase }: PageProps) {
                   <span className="font-semibold">Note:</span> {s.notes}
                 </p>
               )}
+              {tryIt && (
+                <div className="mt-auto space-y-1.5 border-t border-white/10 pt-3">
+                  <a
+                    {...linkProps(tryIt.href)}
+                    aria-describedby={`${s.id}-try-hint`}
+                    className={`inline-flex ${TAP} items-center gap-1.5 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 ${FOCUS}`}
+                  >
+                    {tryIt.href.startsWith("#/chat") ? <MessageCircle size={14} aria-hidden /> : <ArrowRight size={14} aria-hidden />}
+                    Try it<span className="sr-only">: {s.name}</span>
+                  </a>
+                  <p id={`${s.id}-try-hint`} className="text-xs text-slate-400">
+                    {tryIt.hint}
+                  </p>
+                </div>
+              )}
             </Card>
-          ))}
+            );
+          })}
         </ul>
       )}
 
@@ -153,7 +188,7 @@ export default function SkillsPage({ showcase }: PageProps) {
           </a>
         </p>
       </Card>
-      {showcase && skills && <p className="text-xs text-slate-500">Showcase: read from the committed catalogue (skills/*/skill.yaml), not from a Gateway.</p>}
+      {showcase && skills && <p className="text-xs text-slate-400">Showcase: read from the committed catalogue (skills/*/skill.yaml), not from a Gateway.</p>}
     </div>
   );
 }
