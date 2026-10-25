@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Key, Lock, Pencil, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
+import { AudioLines, Check, Key, Lock, Pencil, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
 import { Switch } from "../../components/ui/Switch";
 import type { ApiKeyProvider, ApiKeys, ModelOption, ModelProvider } from "../../types/types";
 
@@ -30,6 +30,12 @@ export const AVAILABLE_MODELS: ModelOption[] = [
   },
 ];
 
+const PROVIDER_LABELS: Record<ApiKeyProvider, string> = {
+  claude: "Claude",
+  openai: "OpenAI",
+  elevenlabs: "ElevenLabs",
+};
+
 interface SettingsPageProps {
   activeModels: ModelProvider[];
   onToggleActiveModel: (model: ModelProvider, active: boolean) => void;
@@ -46,6 +52,9 @@ export function SettingsPage({
   const [editingProvider, setEditingProvider] = useState<ApiKeyProvider | null>(null);
   const [tempKeyInput, setTempKeyInput] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const elevenLabsKey = apiKeys.elevenlabs;
+  const hasElevenLabsKey = Boolean(elevenLabsKey && elevenLabsKey.trim().length > 0);
 
   const handleToggle = (model: ModelOption, enable: boolean) => {
     setErrorMsg(null);
@@ -67,7 +76,8 @@ export function SettingsPage({
   const handleSaveKey = (provider: ApiKeyProvider) => {
     onUpdateApiKey(provider, tempKeyInput.trim());
 
-    if (tempKeyInput.trim().length > 0) {
+    // Only model providers have an on/off switch; voice just stores the key.
+    if (provider !== "elevenlabs" && tempKeyInput.trim().length > 0) {
       onToggleActiveModel(provider, true);
       setErrorMsg(null);
     }
@@ -75,6 +85,8 @@ export function SettingsPage({
     setEditingProvider(null);
     setTempKeyInput("");
   };
+
+  const isVoiceEdit = editingProvider === "elevenlabs";
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 pb-8">
@@ -169,20 +181,75 @@ export function SettingsPage({
         })}
       </div>
 
+      {/* Voice output (ElevenLabs) */}
+      <div>
+        <h2 className="text-sm font-semibold text-slate-100">Voice</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          Used when the avatar panel is in Avatar or Voice mode to read replies aloud.
+        </p>
+      </div>
+
+      <div
+        className={`flex flex-col gap-4 rounded-xl border p-5 transition-colors ${
+          hasElevenLabsKey ? "border-indigo-500/50 bg-indigo-950/30" : "border-slate-800 bg-slate-900/90"
+        }`}
+      >
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <AudioLines size={16} className="text-indigo-300" />
+            <span className="font-medium text-slate-100">ElevenLabs Text-to-Speech</span>
+            {hasElevenLabsKey && (
+              <span className="flex items-center gap-1 rounded-full bg-indigo-500/20 px-2 py-0.5 text-xs text-indigo-300">
+                <Sparkles size={12} /> Key set
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-400">
+            Gives each agent persona its own spoken voice. Without a key here, the Gateway's own ElevenLabs key
+            is used if it has one.
+          </p>
+        </div>
+
+        <div className="border-t border-slate-800/80 pt-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+              <Key size={14} className="text-slate-500" />
+              <span>
+                {hasElevenLabsKey
+                  ? `API Key: ••••••••••••${elevenLabsKey?.slice(-4)}`
+                  : "API Key: Not configured (Optional)"}
+              </span>
+            </div>
+
+            <button
+              onClick={() => {
+                setEditingProvider("elevenlabs");
+                setTempKeyInput(elevenLabsKey || "");
+              }}
+              className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-xs text-slate-200 hover:bg-white/10"
+            >
+              <Pencil size={12} />
+              {hasElevenLabsKey ? "Edit Key" : "Add Key"}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {editingProvider && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <div className="mb-2 flex items-center gap-2 text-slate-100">
               <Lock size={18} className="text-indigo-400" />
-              <h2 className="font-semibold capitalize">Set {editingProvider} API Key</h2>
+              <h2 className="font-semibold">Set {PROVIDER_LABELS[editingProvider]} API Key</h2>
             </div>
             <p className="mb-4 text-xs text-slate-400">
               Keys are stored locally on your desktop device.
+              {isVoiceEdit && " Leave the field empty and save to remove the key."}
             </p>
 
             <input
               type="password"
-              placeholder={`Enter ${editingProvider} API Key...`}
+              placeholder={`Enter ${PROVIDER_LABELS[editingProvider]} API Key...`}
               value={tempKeyInput}
               onChange={(e) => setTempKeyInput(e.target.value)}
               className="w-full rounded-xl border border-slate-700 bg-black/50 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
@@ -203,7 +270,7 @@ export function SettingsPage({
                 onClick={() => handleSaveKey(editingProvider)}
                 className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-500"
               >
-                <Check size={14} /> Save & Activate
+                <Check size={14} /> {isVoiceEdit ? "Save" : "Save & Activate"}
               </button>
             </div>
           </div>

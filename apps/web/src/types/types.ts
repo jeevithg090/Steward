@@ -1,5 +1,5 @@
 export type ModelProvider = "gemini" | "claude" | "openai" | "local";
-export type ApiKeyProvider = "claude" | "openai";
+export type ApiKeyProvider = "claude" | "openai" | "elevenlabs";
 
 export interface ModelOption {
   id: ModelProvider;
@@ -8,7 +8,7 @@ export interface ModelOption {
   requiresApiKey: boolean;
 }
 
-export type ApiKeys = Record<ApiKeyProvider, string>;
+export type ApiKeys = Partial<Record<ApiKeyProvider, string>>;
 
 export type View = "chat" | "memory" | "settings";
 
@@ -49,6 +49,7 @@ export interface TemporalFact {
   superseded_by: string | null;
   episode_id: string;
 }
+
 export type MissionState =
   | "received"
   | "understood"
@@ -96,7 +97,6 @@ export type LiveEvent =
       [k: string]: string | undefined;
     }
   | { type: "record_reference" | "request_human"; [k: string]: string };
-
 
 export interface ProofStep {
   fact_keys: string[];
@@ -152,8 +152,6 @@ export interface MemoryNode {
   rawType?: "memory" | "timeline";
   episodeId?: string;
 }
-
-
 
 export interface ChatMessage {
   id: string;

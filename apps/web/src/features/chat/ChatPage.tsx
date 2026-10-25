@@ -4,7 +4,7 @@ import { ResizeHandle } from "../../components/ui/ResizeHandle";
 import type { Recording } from "../../hooks/useAudioRecorder";
 import { useResizable } from "../../hooks/useResizable";
 import type { ChatMessage, ConsentAsk, LiveEvent, ModelProvider } from "../../types/types";
-import { AvatarPanel } from "./AvatarPanel";
+import { AvatarPanel, type SpeechRequest } from "./AvatarPanel";
 import { ChatInput } from "./ChatInput";
 import { TaskMessages } from "./TaskMessages";
 
@@ -15,7 +15,7 @@ interface MissionResponse {
   state?: string;
 }
 
-// States after which a mission is no longer running (the kill switch hides). Adjust to your backend's names.
+// States after which a mission is no longer running (the kill switch hides).
 const TERMINAL_STATES = new Set(["done", "completed", "complete", "stopped", "failed", "cancelled", "paid", "refused"]);
 
 interface ChatPageProps {
@@ -29,6 +29,8 @@ interface ChatPageProps {
   setActiveMissionId: (id: string | null) => void;
   onSendMessage: (task: string, responseData?: unknown) => void;
   onSendAudio: (clip: Recording) => void;
+  speech?: SpeechRequest | null;
+  elevenLabsKey?: string;
   apiBaseUrl?: string;
   apiToken?: string;
 }
@@ -38,18 +40,20 @@ export function ChatPage({
   selectedModel,
   onSelectModel,
   messages,
-  // Consent state now lives per-conversation in App, so each chat shows only its own ask.
   activeAsk,
   setActiveAsk,
   activeMissionId,
   onSendMessage,
   onSendAudio,
+  speech,
+  elevenLabsKey,
   apiBaseUrl = "http://127.0.0.1:8000",
   apiToken = "devtoken",
 }: ChatPageProps) {
   const [volume, setVolume] = useState(80);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+
   // Live status text per mission, so one chat's progress never shows up in another chat.
   const [statusByMission, setStatusByMission] = useState<Record<string, string>>({});
   const setMissionStatus = (missionId: string | null | undefined, text: string | null) => {
@@ -61,20 +65,19 @@ export function ChatPage({
       return next;
     });
   };
+
   const [isRespondingConsent, setIsRespondingConsent] = useState(false);
-  // Mission that is still in flight after the POST returned. Drives the kill switch in ChatInput.
   const [runningMissionId, setRunningMissionId] = useState<string | null>(null);
 
   const avatar = useResizable({ initial: 320, min: 96, max: 520 });
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // The WebSocket effect only re-runs when the URL changes, so it would keep calling the
-  // callbacks from the first render (with a stale active conversation). Read them via refs instead.
   const onSendMessageRef = useRef(onSendMessage);
   const setActiveAskRef = useRef(setActiveAsk);
   const runningMissionIdRef = useRef(runningMissionId);
   const activeMissionIdRef = useRef(activeMissionId);
+
   useEffect(() => {
     onSendMessageRef.current = onSendMessage;
     setActiveAskRef.current = setActiveAsk;
@@ -109,7 +112,6 @@ export function ChatPage({
           if (isUnmounted) return;
           try {
             const liveEvent: LiveEvent = JSON.parse(event.data);
-            // Which mission (and so which chat) this event belongs to.
             const eventMissionId =
               ("mission_id" in liveEvent ? liveEvent.mission_id : undefined) ?? runningMissionIdRef.current;
             switch (liveEvent.type) {
@@ -132,7 +134,6 @@ export function ChatPage({
                 setIsProcessing(false);
                 setMissionStatus(eventMissionId, null);
                 if (liveEvent.message) {
-                  // Carry the mission id so App files the result under the chat that owns it.
                   onSendMessageRef.current("", { id: eventMissionId ?? undefined, message: liveEvent.message, state: liveEvent.state });
                 } else if (!eventMissionId || eventMissionId === activeMissionIdRef.current) {
                   setActiveAskRef.current(null);
@@ -189,7 +190,6 @@ export function ChatPage({
 
     try {
       if (approved) {
-        // Approve via POST /approvals/{request_id}
         const res = await fetch(`${apiBaseUrl}/approvals/${activeAsk.request_id}`, {
           method: "POST",
           headers: {
@@ -207,7 +207,6 @@ export function ChatPage({
         setMissionStatus(updatedMission.id ?? activeMissionId, "Claim submitted. Waiting for payment verification...");
         onSendMessage("", updatedMission);
       } else {
-        // Reject/Stop via POST /missions/{id}/stop
         if (activeMissionId) {
           await fetch(`${apiBaseUrl}/missions/${activeMissionId}/stop`, {
             method: "POST",
@@ -229,22 +228,17 @@ export function ChatPage({
 
   const handleTaskSubmit = (text: string, responseData?: unknown) => {
     setIsProcessing(false);
-
-    // App.handleSendMessage stores the ask and mission id on the active conversation,
-    // so there's no need to set them here as well.
     onSendMessage(text, responseData);
 
-    // The POST has returned but the mission usually keeps running; keep the kill switch up until it ends.
     if (responseData && typeof responseData === "object") {
       const res = responseData as MissionResponse;
       if (res.id && !TERMINAL_STATES.has(String(res.state))) setRunningMissionId(res.id);
     }
   };
 
-  // Kill switch: stop the in-flight mission on the backend and note it in the chat.
   const handleStopMission = async () => {
     const id = runningMissionId;
-    if (!id) return; // aborted mid-request: ChatInput already cancelled the fetch
+    if (!id) return;
     setRunningMissionId(null);
     setActiveAsk(null);
     setMissionStatus(id, null);
@@ -260,10 +254,7 @@ export function ChatPage({
     onSendMessage("", { message: "Stopped: you aborted the mission." });
   };
 
-  // Only show the kill switch in the chat the running mission belongs to.
   const isMissionRunning = runningMissionId !== null && runningMissionId === activeMissionId;
-
-  // Status text for the chat that's open right now (undefined for chats with no live mission).
   const latestEventStatus = activeMissionId ? (statusByMission[activeMissionId] ?? null) : null;
 
   return (
@@ -275,6 +266,10 @@ export function ChatPage({
         className="shrink-0 [@media(max-height:640px)]:max-lg:hidden"
         volume={volume}
         onVolumeChange={setVolume}
+        speech={speech}
+        elevenLabsKey={elevenLabsKey}
+        apiBaseUrl={apiBaseUrl}
+        apiToken={apiToken}
       />
       <ResizeHandle
         label="Resize avatar panel"

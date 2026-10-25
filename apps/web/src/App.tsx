@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { SetStateAction } from "react";
 import { AppShell } from "./components/layout/AppShell";
+import type { SpeechRequest } from "./features/chat/AvatarPanel";
 import { ChatPage } from "./features/chat/ChatPage";
 import { MemoryPage } from "./features/memory/MemoryPage";
 import { SettingsPage } from "./features/settings/SettingsPage";
@@ -38,6 +39,18 @@ interface Conversation {
 }
 
 const EMPTY_MESSAGES: ChatMessage[] = [];
+
+// API keys entered in Settings, kept on this device so they survive a reload.
+const API_KEYS_STORAGE = "tempo_api_keys";
+const EMPTY_KEYS: ApiKeys = { claude: "", openai: "", elevenlabs: "" };
+
+function loadApiKeys(): ApiKeys {
+  try {
+    return { ...EMPTY_KEYS, ...JSON.parse(localStorage.getItem(API_KEYS_STORAGE) || "{}") };
+  } catch {
+    return EMPTY_KEYS;
+  }
+}
 
 // The backend doesn't return what the user typed (no `intent`), so we remember it locally by mission id.
 const INTENT_KEY = "tempo_mission_intents";
@@ -120,13 +133,19 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
   const [activeModels, setActiveModels] = useState<ModelProvider[]>(["local"]);
   const [selectedModel, setSelectedModel] = useState<ModelProvider>("local");
 
-  const [apiKeys, setApiKeys] = useState<ApiKeys>({
-    claude: "",
-    openai: "",
-  });
+  const [apiKeys, setApiKeys] = useState<ApiKeys>(loadApiKeys);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(API_KEYS_STORAGE, JSON.stringify(apiKeys));
+    } catch {
+      /* storage unavailable: keys last until reload */
+    }
+  }, [apiKeys]);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null); // null = fresh, empty chat
+  const [speech, setSpeech] = useState<SpeechRequest | null>(null); // latest live agent reply, read aloud by AvatarPanel
 
   const activeConversation = conversations.find((c) => c.id === activeId) ?? null;
   const messages = activeConversation?.messages ?? EMPTY_MESSAGES;
@@ -164,13 +183,28 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
       setConversations((prev) => {
         const known = new Set(prev.flatMap((c) => c.missionIds));
         const incoming = missions
-          .filter((m) => !known.has(m.id) && !dismissed.has(m.id)).map((m) => missionToConversation(m, storedIntents));
-        return incoming.length > 0 ? [...prev, ...incoming] : prev;
+          .filter((m) => !known.has(m.id) && !dismissed.has(m.id))
+          .map((m) => missionToConversation(m, storedIntents));
+
+        if (incoming.length > 0) {
+          // If no chat is active, set active to the newest mission and trigger speech
+          const updated = [...prev, ...incoming];
+          if (!activeId) {
+            const newest = incoming[0];
+            setActiveId(newest.id);
+            const agentMsg = newest.messages.find((m) => m.role === "agent");
+            if (agentMsg) {
+              setSpeech({ id: agentMsg.id, text: agentMsg.text });
+            }
+          }
+          return updated;
+        }
+        return prev;
       });
     } catch (err) {
       console.error("Failed to sync missions with backend:", err);
     }
-  }, [apiBaseUrl, apiToken]);
+  }, [apiBaseUrl, apiToken, activeId]);
 
   useEffect(() => {
     void fetchBackendMissions();
@@ -202,7 +236,7 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
     newMessages: ChatMessage[],
     patch: Partial<Pick<Conversation, "ask" | "missionId">> = {},
     newMissionId?: string,
-    ownerId?: string, // chat that already owns this mission (e.g. a result for a chat that isn't open)
+    ownerId?: string // chat that already owns this mission (e.g. a result for a chat that isn't open)
   ) => {
     const targetId = ownerId ?? activeId ?? crypto.randomUUID();
     if (!ownerId) setActiveId(targetId); // don't yank the user to another chat when filing a background result
@@ -226,9 +260,12 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
               ...c,
               ...patch,
               messages: [...c.messages, ...newMessages],
-              missionIds: newMissionId && !c.missionIds.includes(newMissionId) ? [...c.missionIds, newMissionId] : c.missionIds,
+              missionIds:
+                newMissionId && !c.missionIds.includes(newMissionId)
+                  ? [...c.missionIds, newMissionId]
+                  : c.missionIds,
             }
-          : c,
+          : c
       );
     });
   };
@@ -261,10 +298,14 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
     if (cleanTask) {
       newMessages.push({ id: crypto.randomUUID(), role: "user", text: cleanTask });
     }
-    newMessages.push({ id: crypto.randomUUID(), role: "agent", text: replyText });
+    const agentMessage: ChatMessage = { id: crypto.randomUUID(), role: "agent", text: replyText };
+    newMessages.push(agentMessage);
 
     // A result for a mission that belongs to an existing chat goes to that chat, not whichever is open.
     const owner = missionId ? conversations.find((c) => c.missionIds.includes(missionId)) : undefined;
+
+    // Read live replies aloud, but not results filed into a chat that isn't open.
+    if (!owner || owner.id === activeId) setSpeech({ id: agentMessage.id, text: replyText });
 
     appendToChat(cleanTask || replyText.slice(0, 40), newMessages, patch, missionId, owner?.id);
   };
@@ -280,18 +321,21 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
       timestamp: Date.now(),
     };
 
+    const replyText = `Voice message processed on ${MODEL_LABELS[selectedModel]}.`;
     const agentMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "agent",
-      text: `Voice message processed on ${MODEL_LABELS[selectedModel]}.`,
+      text: replyText,
     };
 
+    setSpeech({ id: agentMessage.id, text: replyText });
     appendToChat(audioTitle, [userMessage, agentMessage]);
   };
 
   // New chat just deselects the current conversation. Nothing is deleted.
   const handleNewChat = () => {
     setActiveId(null);
+    setSpeech(null);
     setView("chat");
   };
 
@@ -321,6 +365,7 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
     }
     setConversations([]);
     setActiveId(null);
+    setSpeech(null);
   };
 
   // `selected` is the sidebar item's index (or its title). AppShell must pass one of them.
@@ -329,7 +374,14 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
     if (typeof selected === "number") target = conversations[selected];
     else if (typeof selected === "string") target = conversations.find((c) => c.title === selected);
 
-    if (target) setActiveId(target.id);
+    if (target) {
+      setActiveId(target.id);
+      // Trigger speech for the latest agent reply in the selected chat
+      const lastAgentMsg = [...target.messages].reverse().find((m) => m.role === "agent");
+      if (lastAgentMsg) {
+        setSpeech({ id: lastAgentMsg.id, text: lastAgentMsg.text });
+      }
+    }
     setView("chat");
     void fetchBackendMissions();
   };
@@ -354,6 +406,8 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
           setActiveMissionId={setActiveMissionId}
           onSendMessage={handleSendMessage}
           onSendAudio={handleSendAudio}
+          speech={speech}
+          elevenLabsKey={apiKeys.elevenlabs?.trim() || undefined}
           apiBaseUrl={apiBaseUrl}
           apiToken={apiToken}
         />
