@@ -525,3 +525,86 @@ only whether it is configured, and the badge says "(not answering yet)" when the
 - [x] 10:05 Juror roster from measurements on the real question: Gemini 3.1 Flash-Lite 1.5 s, 3.5 Flash-Lite 1.0 s, 3 Flash Preview 5.2 s, all correct, so these three are the default; OpenRouter's free Dots 3 is correct but 17.7 s (beyond the 20 s juror limit under load) and its free tier allows about 50 requests a day, so it is an opt-in seat (`OPENROUTER_MODELS`, with `JUROR_TIMEOUT_S`). The Privacy Proof names OpenRouter only when it sits on the Court (`Profile.extra_ai`)
 - [x] 10:10 **The GPU answered**: after the team raised the container disk, a job completed on `tempo-private` (vLLM 0.32.0) in 0.6 s, after a 5 min 47 s cold start
 
+---
+
+## 14. Connectors and MCP (started 10:30)
+
+*Asked at 10:25: "add more features like connectors, MCP etc to make the demo better".*
+
+### 14.1 The idea, in two directions
+
+1. **Tempo as an MCP server: "your AI can ask Tempo, never act for you".** Any MCP client (Claude
+   Code, Claude Desktop, Zed, Cursor) connects to the Gateway's `/mcp`. It can check a suspicious
+   text, read a letter, start a claim, see its status, screen entitlements and verify an Agent
+   Passport mandate. **No tool approves anything**: a started claim waits for the person's own yes
+   (Face ID, SMS YES, or the web), so an agent that asks Tempo can never spend her consent. The rule
+   packs and profiles are MCP resources; two MCP prompts start the common jobs.
+2. **Tempo as an MCP client: connectors that find money you're owed.** The person connects the
+   places her life already is: her mailbox, her calendar, her bank statement (plus Tempo's own rail
+   lookup). Each is a small, read-only MCP server Tempo talks to over stdio. Then **"Sweep my
+   inbox"** finds things worth a look, with what Tempo read listed and never kept:
+   - the 08:12 e-ticket from Trainline, then the rail records saying 38 minutes late, so a claim of £14.20 is waiting;
+   - the Broadbandly engineer booking in her calendar on 19 October, with the question "Did they come?";
+   - a "HMRC tax refund" email that Scam Shield calls a trick;
+   - a Thames Water refund that already reached her bank, so nothing needs doing.
+
+   Connector output is **evidence, never instructions**. It is parsed by code. It never goes to
+   memory except as evidence. The only tools used are read-only ones on an allowlist.
+
+### 14.2 Contracts
+
+**MCP server** (`tempo_gateway/mcp_server.py`, mounted at `/mcp`, Streamable HTTP, the same bearer
+as the web; `GET /mcp/info` (bearer) returns `{url, transport: "streamable-http", tools: [{name,
+description, read_only}], resources: [...], prompts: [...]}` for the web page):
+
+| Tool | Input | Output | Annotations |
+|---|---|---|---|
+| `check_message` | `text`, `language?` | Scam Shield's verdict: `level`, `zone`, `say`, `reasons` | read-only |
+| `read_letter` | `image_base64`, `filename?`, `mime_type?` | the letter reading (`kind`, `sender`, `money`, `must_do`, `by`, `unsure`, `reading_text`) | read-only |
+| `start_rail_claim` | `user_id`, `display_name`, `origin_crs`, `destination_crs`, `travel_date`, `departure`, `fare_gbp`, `profile_id?` | `{mission_id, state, amount_gbp, proof, court, needs_consent_from: "the person, on their own device", how_to_approve}` | not read-only, not destructive |
+| `start_missed_visit_claim` | `user_id`, `display_name`, `provider`, `visit_date`, `notice_hours?` | the same shape | not read-only, not destructive |
+| `claim_status` | `mission_id` | `{state, message, amount_gbp, timeline}` | read-only |
+| `money_returned` | none | the Time Ledger | read-only |
+| `screen_entitlements` | the ten answers | the flags and the disclaimer | read-only |
+| `verify_mandate` | `envelope`, `counterparty`, `action`, `amount_gbp?` | Agent Passport's verdict (for a company's agent) | read-only |
+
+Resources: `tempo://rules/{rule_id}` (the rule in words plus its YAML), `tempo://profiles/{id}`.
+Prompts: `claim-a-late-train`, `is-this-a-scam`. Profiles still bind: a profile that may not claim
+refuses through MCP too. Every call publishes `{"type": "mcp_call", "tool": ..., "ok": ...}` on the
+bus (never the arguments).
+
+**Connector servers** (`mcp-servers/{mail,calendar,bank}`, workspace packages like `rail`, stdio,
+read-only, data folder from `TEMPO_CONNECTOR_DATA`, default `fixtures/connectors/<kind>/`):
+- mail: `search_messages(query="", since=None, limit=20) -> [{id, from, subject, date, snippet}]`,
+  `get_message(id) -> {id, from, to, subject, date, text, attachments: [{filename, mime_type}]}`
+  over a folder of `.eml` files
+- calendar: `list_events(start, end) -> [{uid, title, start, end, location, description}]` over `.ics`
+- bank: `list_transactions(since=None, limit=50) -> [{id, date, description, amount_gbp}]` over a
+  CSV statement (`amount_gbp` signed, as a string)
+
+**Gateway connectors** (`tempo_gateway/connectors.py`, `tempo_core/findings.py`, config
+`connectors/connectors.yaml`):
+- `GET /connectors?user_id=` returns `{connectors: [{id, name, kind, connected, scopes: [plain words], tools: [read-only tool names], last_read_at, items_read}], simulated: bool}`.
+- `POST /connectors/{id}/connect` and `/disconnect` (`{user_id}`) return the connector.
+- `POST /connectors/sweep` (`{user_id}`) returns `{findings: [{id, kind: "late_train" | "engineer_visit" | "scam" | "money_arrived" | "letter", title, why, amount_gbp?, source: {connector, item}, say, action: {label, href}}], read: {connector: count}, took_ms}`.
+- Events: `connector_read {connector, items}` and `sweep_done {findings}`, never contents.
+- Findings are found by code (`tempo_core.findings`). A late train is checked against the rail records the way a claim is. A suspicious email goes to `ShieldService.check`. Nothing is started automatically.
+
+**Chat door**: a new intent, `sweep`, triggered by "check my email", "find what I'm owed" or
+"sweep". The reply carries `findings` (a new `ChatReply.findings`) and a suggestion chip per finding.
+
+### 14.3 Tracks
+
+| Track | Files (only these) | Done when |
+|---|---|---|
+| **MCP. Tempo as an MCP server** | `apps/gateway/src/tempo_gateway/mcp_server.py`, `scripts/mcp_demo_client.py`, `docs/mcp.md`, `tests/integration/test_mcp_server.py` | the integration test drives `/mcp` with the SDK's own client: list tools, check the HMRC text (warn), start Margaret's claim, see no tool can approve, verify a mandate; `mcp_demo_client.py` runs the same against a live Gateway; docs give working configs for Claude Code, Zed, Cursor and Claude Desktop |
+| **SRV. Connector MCP servers and data** | `mcp-servers/{mail,calendar,bank}/**`, `fixtures/connectors/**`, root `pyproject.toml` (workspace member lines only) and `uv.lock`, `tests/contract/test_connector_servers.py` | each server lists and serves its tools over stdio against its fixtures; contract tests through the SDK's stdio client |
+| **CON. Gateway connectors, the sweep, the chat intent** | `apps/gateway/src/tempo_gateway/connectors.py`, `packages/tempo_core/src/tempo_core/findings.py`, `connectors/connectors.yaml`, `tempo_core/intent.py` and `tempo_gateway/chat.py` (the `sweep` intent only; check `git status` first, another session may be fixing chat.py), `fixtures/chat/intents.json` (new vectors only), tests | `make check` green; an integration test sweeps the fixtures and gets the four findings above, in order, with exact amounts |
+| **WEB. Connectors page, MCP section, findings in the chat** | `apps/web/src/features/connectors/**`, `src/lib/connectors.ts`, `src/showcase/connectors*.json` + `mcp-info.json`, additive edits to `src/lib/api.ts` and `src/lib/showcase.ts`, the chat's findings rendering (`features/chat/TaskMessages.tsx`, `WelcomeCard.tsx` chip, `lib/showcase-chat.ts` sweep intent) | `#/connectors` works live and in showcase, axe-clean; "Sweep my inbox" shows the four findings with one-tap actions; the MCP section shows the URL, the tools and copyable configs; tests green |
+| **Lead** | `app.py`/`main.py` wiring, `router.ts`, `App.tsx`, `Sidebar.tsx`, README, `docs/demo.md`, this file | everything wired, `make check` and the web check green, a browser walk, committed and pushed |
+
+### 14.4 Status log
+
+- [x] 10:30 Surveyed: MCP SDK 2.3 (`MCPServer`, `streamable_http_app`, `stdio_client`, `streamable_http_client`); `mcp-servers/rail` exists and is unused by the Gateway; this plan written
+
+- [x] 10:40 Four tracks launched in parallel (MCP, SRV, CON, WEB); the lead wires routes and the page
