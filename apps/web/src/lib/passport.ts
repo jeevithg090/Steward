@@ -4,13 +4,15 @@
 // shared test vector). Reason codes are the shared ones; scope and revocation checks are the
 // Gateway's job (POST /mandates/verify), this is the signature and the time window.
 
+import type { MandateView } from "./api";
+
 export type Reason = "ok" | "bad_signature" | "bad_key" | "unknown_version" | "expired" | "not_yet_valid";
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 export interface Envelope {
   mandate: { [key: string]: Json };
-  signature: { kind: string; credential?: { [key: string]: Json } | null };
+  signature: { kind: string; credential?: { [key: string]: Json } | null; key_id?: string | null; sig?: string | null };
 }
 
 const subtle = () => globalThis.crypto.subtle;
@@ -132,4 +134,79 @@ export async function verifyMandate(envelope: Envelope, now: Date): Promise<Reas
   if (now < new Date(String(m.issued_at))) return "not_yet_valid";
   if (now >= new Date(String(m.expires_at))) return "expired";
   return "ok";
+}
+
+/** What Tempo's public check answers a company (tempo_passport.Verdict). */
+export interface CompanyVerdict {
+  ok: boolean;
+  /** The shared reason code: ok, revoked, action_not_allowed, wrong_counterparty, amount_above_max, ... */
+  reason: string;
+  /** Plain words, e.g. "This mandate does not cover other accounts." */
+  message: string;
+  assurance: string;
+  checked_at: string;
+  latency_ms: number;
+}
+
+export interface CompanyCheck {
+  envelope: Envelope;
+  counterparty: string;
+  action: string;
+  amount_gbp?: string | null;
+}
+
+/**
+ * Ask Tempo what a company's agent asks (POST /mandates/verify, no login): is this mandate genuine,
+ * live, issued by Tempo, and does it cover this action for this company and amount?
+ */
+export async function verifyWithCompany(gatewayUrl: string, check: CompanyCheck, fetchImpl: typeof fetch = (...args) => fetch(...args)): Promise<CompanyVerdict> {
+  const response = await fetchImpl(`${gatewayUrl.replace(/\/$/, "")}/mandates/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...check, amount_gbp: check.amount_gbp ?? null }),
+  });
+  if (!response.ok) {
+    const detail = await response
+      .json()
+      .then((b: { detail?: unknown }) => b.detail)
+      .catch(() => undefined);
+    throw new Error(typeof detail === "string" ? detail : `POST /mandates/verify: HTTP ${response.status}`);
+  }
+  return (await response.json()) as CompanyVerdict;
+}
+
+function hex(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** The Passport card's view of an envelope, before the Gateway's own summary arrives. */
+export async function summarise(envelope: Envelope): Promise<MandateView> {
+  const m = envelope.mandate as {
+    mandate_id: string;
+    counterparty: string;
+    may?: string[];
+    may_not?: string[];
+    amount?: { max_gbp?: string | number };
+    expires_at: string;
+    matter?: { account_ref?: string | null };
+    principal?: { key?: { kind?: string } };
+  };
+  return {
+    id: m.mandate_id,
+    status: new Date() >= new Date(m.expires_at) ? "expired" : "active",
+    counterparty: m.counterparty,
+    may: m.may ?? [],
+    may_not: m.may_not ?? [],
+    max_gbp: String(m.amount?.max_gbp ?? ""),
+    expires_at: m.expires_at,
+    account_ref: m.matter?.account_ref ?? null,
+    assurance: m.principal?.key?.kind === "webauthn-es256" ? "device-biometric" : "gateway-attested",
+    digest: hex(await digest(envelope.mandate)),
+  };
+}
+
+/** The name the signing device gave itself (the mandate's principal), e.g. "Safari on iPhone". */
+export function signedOn(envelope: Envelope | null | undefined): string | null {
+  const name = (envelope?.mandate.principal as { display_name?: unknown } | undefined)?.display_name;
+  return typeof name === "string" && name ? name : null;
 }

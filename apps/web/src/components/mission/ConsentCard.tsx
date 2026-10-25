@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { ChevronDown, ChevronRight, HandCoins } from "lucide-react";
+import { ChevronDown, ChevronRight, Fingerprint, HandCoins } from "lucide-react";
 import { Badge, Button, Card, FOCUS } from "@/components/ui";
 import type { ConsentAsk, CourtDecision } from "@/lib/api";
 import { CourtVotes } from "./CourtVotes";
@@ -17,13 +17,16 @@ export interface ConsentCardProps {
   onAnswer: (approved: boolean) => void;
   /** Hide the "Why this amount" section (the detail page shows Proof Trace and the Court on their own). */
   why?: boolean;
+  /** This device answers with its passkey (useMesh().signs): the yes says Face ID, and why. */
+  signed?: boolean;
 }
 
 /** "Tempo is asking you": the one question, the exact amount, and why (Proof Trace, the Court). */
-export function ConsentCard({ ask, court, busy = false, onAnswer, why = true }: ConsentCardProps) {
+export function ConsentCard({ ask, court, busy = false, onAnswer, why = true, signed = false }: ConsentCardProps) {
   const [open, setOpen] = useState(false);
   const headingId = useId();
   const whyId = useId();
+  const signedId = useId();
   const demoValues = /demo values/i.test(ask.summary);
   const theCourt = (ask as AskWithCourt).court ?? court ?? null;
   const amount = gbp(ask.amount_gbp).replace("£", "");
@@ -44,9 +47,22 @@ export function ConsentCard({ ask, court, busy = false, onAnswer, why = true }: 
         </div>
       </div>
       <p className="text-sm leading-relaxed text-slate-200">{ask.summary}</p>
+      {signed && (
+        <p id={signedId} className="flex items-start gap-2 text-xs leading-relaxed text-indigo-100">
+          <Fingerprint size={14} aria-hidden className="mt-0.5 shrink-0 text-indigo-300" />
+          You&apos;ll confirm with Face ID or your fingerprint. Your answer is signed on this device.
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
-        <Button variant="ok" size="lg" busy={busy} onClick={() => onAnswer(true)}>
-          {`Yes, claim £${amount}`}
+        <Button
+          variant="ok"
+          size="lg"
+          busy={busy}
+          icon={signed ? <Fingerprint size={18} aria-hidden /> : undefined}
+          aria-describedby={signed ? signedId : undefined}
+          onClick={() => onAnswer(true)}
+        >
+          {signed ? `Yes, claim £${amount} with Face ID` : `Yes, claim £${amount}`}
         </Button>
         <Button variant="quiet" size="lg" disabled={busy} onClick={() => onAnswer(false)}>
           No
