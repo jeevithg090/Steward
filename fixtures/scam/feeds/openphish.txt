@@ -1,0 +1,6 @@
+# SYNTHETIC slice in the shape of the OpenPhish community feed (one URL per line). Real entries
+# come from `make refresh-feeds` into .data/scam/feeds/; see docs/scam-shield.md §6.
+# fetched_at: 2026-10-24T22:00:00+00:00
+http://evri-redelivery.co/pay
+https://secure-update.xyz/netflix/renew
+http://crownyield.io/invest

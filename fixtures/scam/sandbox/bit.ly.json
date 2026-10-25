@@ -1,0 +1,11 @@
+{
+ "source": "SYNTHETIC recording in the shape of tempo_adapters.scam.sandbox.LiveSandbox",
+ "host": "bit.ly",
+ "findings": [
+  "redirects_to:lloyds-online-help.co",
+  "password_form",
+  "brand_page:lloyds",
+  "new_domain:4"
+ ],
+ "official": false
+}

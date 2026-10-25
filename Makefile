@@ -7,7 +7,7 @@ define pytest_marker
 	uv run pytest -m "$(1)" $(2) || [ $$? -eq 5 ]
 endef
 
-.PHONY: help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web
+.PHONY: help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web scam-train refresh-feeds
 
 help: ## List the commands
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-14s %s\n", $$1, $$2}'
@@ -89,3 +89,10 @@ ship-check: check validate-skills web-check ## Everything CI runs, locally
 deploy-web: ## Deploy apps/web to Vercel from this machine (run `npx vercel login` once first)
 	npx vercel --cwd apps/web --prod
 
+# --- Scam Shield (docs/scam-shield.md): the text model and the public phishing lists ---------------
+
+scam-train: ## Train Scam Shield's text model from two open SMS corpora; writes model.json and docs/scam_backtest.md
+	uv run --with scikit-learn python -I scripts/scam_train.py
+
+refresh-feeds: ## Refresh the cached phishing lists (URLhaus, OpenPhish) in fixtures/scam/feeds; keys optional
+	uv run python scripts/refresh_threat_feeds.py

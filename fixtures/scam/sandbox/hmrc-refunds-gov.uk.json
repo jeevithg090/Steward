@@ -1,0 +1,10 @@
+{
+ "source": "SYNTHETIC recording in the shape of tempo_adapters.scam.sandbox.LiveSandbox",
+ "host": "hmrc-refunds-gov.uk",
+ "findings": [
+  "card_form",
+  "brand_page:hmrc",
+  "new_domain:12"
+ ],
+ "official": false
+}

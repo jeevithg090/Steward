@@ -1,0 +1,260 @@
+# Scam Shield's on-device filter (docs/scam-shield.md §5.1, spec §15.9): what the phone watches
+# for in texts and notifications, decided ON the phone. The device applies it to senders who are
+# NOT in the person's contacts (a known sender is the rail rule's job, not this one).
+# `sender_any: [""]` means any sender: the loader matches substrings, and the empty string is in
+# every sender.
+#
+# One signal, three gates. A message matches when any keyword family fires, when a link carries
+# a strong finding (tempo_core.links: a shortener, a bare address, look-alike letters, a brand's
+# name in a domain that is not the brand's, a cheap ending, an app download), or when the text
+# model (skills/scam-shield/model.json, run on the phone) scores it in the warn or sandbox zone.
+#
+# Privacy rule: when it matches, only the four declared fields leave the device: `rules` (the
+# family ids that fired, sorted, comma-joined), `sender_domain` (after "@" of an email sender;
+# empty, and so omitted, for a number or short code), `link_hosts` (the registrable domains of
+# the links, at most five) and `score` (the model's probability, two decimals). The message body
+# never leaves the phone, so the spoken warning is built from these alone.
+#
+# tests/unit/test_signals_scam.py runs this against fixtures/signals/scam_messages.json; the
+# Android node (apps/android-signal) must agree on every vector. Phrases are plain substrings,
+# case-folded. A family firing is a reason to check, never a verdict: the Gateway decides.
+signals:
+  - id: scam_text
+    sources: [android.notifications, ios.shortcut_forward, sms.forward, email.forward]
+    match:
+      sender_any: [""]
+      families:
+        # No bank asks you to move money to another account. Either ask alone is a big ask.
+        scam_safe_account:
+          - "safe account"
+          - "secure account"
+          - "holding account"
+          - "move your money"
+          - "move your savings"
+          - "move your funds"
+          - "transfer your money"
+          - "transfer your savings"
+          - "transfer your funds"
+          - "protect your money by moving"
+          - "account we have set up for you"
+          - "surakshit khate"           # Hinglish: safe account
+          - "सुरक्षित खाते"
+          - "bezpieczne konto"           # Polish
+          - "محفوظ اکاؤنٹ"               # Urdu
+        # A request to hand over a code, PIN or password. Not the mere presence of a code: a
+        # bank's own "your code is 482913, never share it" must stay quiet.
+        scam_code_request:
+          - "read me the code"
+          - "read out the code"
+          - "read the code to"
+          - "send us the code"
+          - "send the code"
+          - "send me the code"
+          - "reply with the code"
+          - "reply with your code"
+          - "text us the code"
+          - "forward the code"
+          - "share the otp"
+          - "share your otp"
+          - "share the code"
+          - "share your code"
+          - "tell us the code"
+          - "give us the code"
+          - "give me the code"
+          - "confirm the code"
+          - "enter your pin"
+          - "confirm your pin"
+          - "your pin number"
+          - "send your pin"
+          - "provide your password"
+          - "send your password"
+          - "confirm your password"
+          - "enter your password"
+          - "otp batao"                  # Hinglish: tell me the OTP
+          - "otp bhejo"
+          - "otp share"
+          - "pin batao"
+          - "podaj kod"                  # Polish: give the code
+          - "podaj pin"
+          - "کوڈ بتائیں"                  # Urdu
+        scam_urgency:
+          - "act now"
+          - "act today"
+          - "today only"
+          - "within 24 hours"
+          - "within 2 hours"
+          - "within 1 hour"
+          - "within the hour"
+          - "immediately"
+          - "final notice"
+          - "final warning"
+          - "last chance"
+          - "urgent action"
+          - "respond now"
+          - "right away"
+          - "expires today"
+          - "expires tonight"
+          - "before midnight"
+          - "limited time"
+          - "turant"                     # Hinglish: immediately
+          - "jaldi karo"
+          - "natychmiast"                # Polish
+          - "pilne"
+          - "ostatnia szansa"
+          - "ar unwaith"                 # Welsh
+          - "فوری"                        # Urdu
+        scam_account_threat:
+          - "account will be closed"
+          - "account will be suspended"
+          - "account has been suspended"
+          - "account is suspended"
+          - "account has been locked"
+          - "account is locked"
+          - "account will be blocked"
+          - "account will be terminated"
+          - "account has been compromised"
+          - "card has been blocked"
+          - "card will be blocked"
+          - "unusual activity"
+          - "suspicious activity"
+          - "verify your account"
+          - "verify your identity"
+          - "reactivate your account"
+          - "re-activate"
+          - "sim will be blocked"
+          - "khata band"                 # Hinglish: account closed
+          - "account band ho"
+          - "konto zostanie zablokowane" # Polish
+          - "konto zablokowane"
+          - "اکاؤنٹ بند"                   # Urdu
+        # Shortened or insecure links the words alone reveal; look-alike domains are found by
+        # tempo_core.links and reported as link findings, not here.
+        scam_short_link:
+          - "bit.ly"
+          - "tinyurl"
+          - "t.co/"
+          - "is.gd/"
+          - "cutt.ly"
+          - "rb.gy/"
+          - "shorturl"
+          - "tiny.cc"
+          - "bit.do"
+          - "ow.ly"
+          - "t.ly/"
+          - "hmrc-"
+          - "gov-uk"
+          - "govuk-"
+          - "royalmail-"
+          - "royal-mail"
+          - "evri-"
+          - "dpd-"
+          - "-refund."
+          - "refund-"
+          - "http://"
+        scam_official_pretext:
+          - "tax refund"
+          - "tax rebate"
+          - "due a refund"
+          - "rebate of"
+          - "refund is ready"
+          - "income tax refund"
+          - "could not be delivered"
+          - "redelivery fee"
+          - "unpaid customs"
+          - "customs fee"
+          - "customs charge"
+          - "shipping fee"
+          - "we tried to deliver"
+          - "missed delivery"
+          - "delivery attempt"
+          - "parcel is waiting"
+          - "reschedule your delivery"
+          - "your vehicle tax"
+          - "tv licence"
+          - "licence has expired"
+          - "energy rebate"
+          - "cost of living payment"
+          - "winter fuel"
+          - "fraud team"
+          - "fraud department"
+          - "security team"
+          - "new device"
+          - "new payee"
+          - "did you make this payment"
+          - "did you make a payment"
+          - "confirm this payment"
+          - "kyc update"
+          - "kyc expired"
+          - "update your kyc"
+          - "pan card"
+          - "aadhaar"
+          - "electricity will be disconnected"
+          - "bijli connection"           # Hinglish: electricity connection
+          - "zwrot podatku"              # Polish: tax refund
+          - "opłata celna"               # Polish: customs charge
+          - "ad-daliad treth"            # Welsh: tax refund
+          - "ٹیکس ریفنڈ"                   # Urdu
+        # Predatory loan apps: instant money, no checks, a fee first, an app file to install.
+        scam_loan_app:
+          - "instant loan"
+          - "loan approved"
+          - "pre-approved loan"
+          - "pre approved loan"
+          - "loan is approved"
+          - "no documents"
+          - "no paperwork"
+          - "no credit check"
+          - "without cibil"
+          - "cibil score not required"
+          - "processing fee"
+          - "disbursed"
+          - "disbursal"
+          - "loan in 5 minutes"
+          - "loan within minutes"
+          - "download the app"
+          - ".apk"
+          - "quick cash"
+          - "cash advance"
+          - "guaranteed approval"
+          - "guaranteed loan"
+          - "100% approval"
+          - "turant loan"                # Hinglish
+          - "loan chahiye"
+          - "paisa chahiye"
+          - "तुरंत लोन"
+          - "szybka pożyczka"            # Polish: quick loan
+          - "pożyczka bez bik"
+          - "chwilówka"
+          - "فوری قرض"                    # Urdu
+        # "Hi Mum, new number": a relative on a strange number who needs money today.
+        scam_family_emergency:
+          - "hi mum"
+          - "hi dad"
+          - "hello mum"
+          - "hello dad"
+          - "hi mom"
+          - "this is my new number"
+          - "my new number"
+          - "new phone"
+          - "phone is broken"
+          - "phone broke"
+          - "dropped my phone"
+          - "lost my phone"
+          - "can't talk right now"
+          - "cant talk right now"
+          - "pay this bill for me"
+          - "send me money"
+          - "transfer me"
+          - "i'm in trouble"
+          - "im in trouble"
+          - "in hospital"
+          - "been arrested"
+          - "naya number"                # Hinglish: new number
+          - "नया नंबर"
+          - "mam nowy numer"             # Polish: I have a new number
+          - "zepsuł mi się telefon"
+          - "نیا نمبر"                     # Urdu
+      links: true
+      model: scam-shield/model.json
+    extract: [rules, sender_domain, link_hosts, score]
+    retention_days: 7

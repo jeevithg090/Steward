@@ -1,0 +1,10 @@
+{
+ "source": "SYNTHETIC recording in the shape of tempo_adapters.scam.sandbox.LiveSandbox",
+ "host": "evri-redelivery.co",
+ "findings": [
+  "card_form",
+  "brand_page:evri",
+  "new_domain:9"
+ ],
+ "official": false
+}

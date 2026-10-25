@@ -137,6 +137,19 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         "properties": _MISSION,
         "required": ["mission_id"],
     },
+    "check_message": {
+        "description": "Scam Shield: the caller reads out a text or message they are unsure of. "
+        "Pass their words; say back exactly what the tool returns in `say`.",
+        "properties": {
+            **_CALLER,
+            "text": {"type": "string", "description": "The message, as the caller read it out"},
+            "sender": {
+                "type": "string",
+                "description": "Who it says it is from, if they said (a bank, HMRC, a number)",
+            },
+        },
+        "required": ["text"],
+    },
     "verify_mandate": {
         "description": "Company line: check the caller's mandate before you do anything it asks.",
         "properties": {

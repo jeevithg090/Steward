@@ -67,10 +67,16 @@ class Settings(BaseSettings):
     hsp_user: str | None = None
     hsp_pass: SecretStr | None = None
 
-    # Scam Shield registers
+    # Scam Shield registers, phishing lists and the link sandbox (docs/scam-shield.md)
     companies_house_api_key: SecretStr | None = None
     fca_api_email: str | None = None
     fca_api_key: SecretStr | None = None
+    scam_feeds_dir: str | None = (
+        None  # refreshed lists (make refresh-feeds); else fixtures/scam/feeds
+    )
+    urlhaus_auth_key: SecretStr | None = None
+    phishtank_api_key: SecretStr | None = None
+    scam_sandbox: Literal["replay", "live"] | None = None  # None: live when TEMPO_MODE=live
 
     # Vision
     gemini_api_key: SecretStr | None = None

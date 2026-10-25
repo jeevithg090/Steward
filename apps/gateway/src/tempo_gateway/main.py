@@ -24,7 +24,14 @@ from tempo_adapters.db.vault import SqlVaultStore
 from tempo_adapters.elevenlabs import load_greetings
 from tempo_adapters.factory import NotConfigured, build_adapters, chat_client
 from tempo_adapters.rail import rail_port
-from tempo_adapters.scam import Registers, WarningList, registers_from_fixtures
+from tempo_adapters.scam import (
+    LiveSandbox,
+    Registers,
+    ReplaySandbox,
+    ThreatFeeds,
+    WarningList,
+    registers_from_fixtures,
+)
 from tempo_adapters.settings import Settings
 from tempo_adapters.telemetry import (
     configure_logging,
@@ -37,6 +44,8 @@ from tempo_core.entitlement import Figures
 from tempo_core.hazard import load_hazards
 from tempo_core.profiles import ProfileCatalog
 from tempo_core.rules import RulePackRegistry
+from tempo_core.scam_model import ScamModel
+from tempo_core.scam_voice import load_warnings
 from tempo_core.signals import SignalSpec, load_signals
 from tempo_crypto.vault import MemoryVaultStore, VaultStore
 from tempo_gateway.app import create_app
@@ -46,6 +55,7 @@ from tempo_gateway.mandates import MandateService, gateway_key
 from tempo_gateway.memory import Memory, build_memory
 from tempo_gateway.mesh import Mesh, WebPushSender
 from tempo_gateway.missions import MissionService
+from tempo_gateway.shield import ShieldService
 from tempo_missions.clawback_rail import ClawbackDeps
 from tempo_missions.court import ConsensusCourt
 from tempo_ports.claims import SimulatedClaims
@@ -142,6 +152,8 @@ def build(
     configure_tracing(settings)  # exports to Langfuse when its keys are set
     service, bus, memory, vault = _build(settings)
     registers, simulated = build_registers(settings)
+    signals = _signals()
+    shield = build_shield(settings, bus, service.deps.clock, registers, simulated, signals)
     seed = settings.mandate_signing_key
     mandates = MandateService(
         service.deps.repo, service.deps.clock, public_url=settings.public_url,
@@ -153,7 +165,7 @@ def build(
         registers=registers, registers_simulated=simulated,
         holidays=HOLIDAYS(),
         entitlement=Figures.from_file(REPO / "skills" / "entitlement-check" / "figures.yaml"),
-        signals=_signals(),
+        signals=signals, shield=shield,
         transparency=REPO / "deploy" / "transparency", scheduler_interval_s=scheduler_interval_s,
         mandates=mandates, vision=build_vision(settings),
         greetings=load_greetings(REPO / "voice" / "greetings.yaml"),
@@ -164,6 +176,39 @@ def build(
 def _signals() -> dict[str, SignalSpec]:
     """Every skill's on-device signal filters (skills/*/signals.yaml)."""
     return {s.id: s for p in sorted(REPO.glob("skills/*/signals.yaml")) for s in load_signals(p)}
+
+
+def build_shield(
+    settings: Settings,
+    bus: EventBus,
+    clock: Callable[[], datetime],
+    registers: Registers | None,
+    registers_simulated: bool,
+    signals: dict[str, SignalSpec],
+) -> ShieldService:
+    """Scam Shield (docs/scam-shield.md): the shipped text model, the one `scam_text` signal, the
+    cached phishing lists, the spoken warnings, and a link sandbox that is live only when asked
+    (SCAM_SANDBOX=live, or TEMPO_MODE=live) and otherwise answers from recordings."""
+    live = settings.scam_sandbox == "live" or (
+        settings.scam_sandbox is None and settings.tempo_mode == "live"
+    )
+    sandbox = (
+        LiveSandbox(httpx.AsyncClient())
+        if live
+        else ReplaySandbox(REPO / "fixtures" / "scam" / "sandbox")
+    )
+    feeds_dir = (
+        Path(settings.scam_feeds_dir)
+        if settings.scam_feeds_dir
+        else REPO / "fixtures" / "scam" / "feeds"
+    )
+    model_path = REPO / "skills" / "scam-shield" / "model.json"
+    return ShieldService(
+        model=ScamModel.load(model_path) if model_path.exists() else None,
+        spec=signals.get("scam_text"), registers=registers, registers_simulated=registers_simulated,
+        feeds=ThreatFeeds.from_directory(feeds_dir), sandbox=sandbox, sandbox_simulated=not live,
+        warnings=load_warnings(REPO / "voice" / "warnings.yaml"), bus=bus, clock=clock,
+    )  # fmt: skip
 
 
 def build_vision(settings: Settings) -> VisionPort:

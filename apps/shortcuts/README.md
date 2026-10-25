@@ -542,3 +542,39 @@ Authorization: Bearer <per-device signal token>
 | `delay_spotter.py` | replays the shortcut on the fixtures and sends the identical POST |
 | `build_shortcut.py` | generates and signs `Tempo-Delay-Spotter.shortcut` from the YAML |
 | `Tempo-Delay-Spotter.shortcut` | the signed shortcut, with placeholders (experimental) |
+
+
+## Tempo Scam Spotter (Scam Shield on an iPhone)
+
+iOS gives no app a way to read other apps' notifications, so an iPhone cannot run Scam Shield's
+filter in the background the way the Android node does (`apps/android-signal`). What it can do,
+with no native app, no paid developer account and no review, is **Tempo Scam Spotter**
+(`build_scam_spotter.py`, `Tempo-Scam-Spotter.shortcut`, signed for anyone):
+
+- **Share sheet.** On any text, email or web page: Share → *Tempo Scam Spotter*. The message goes
+  to the Gateway's `POST /scam/check` (the same code that answers the Android node, the SMS `CHECK`
+  word and the voice line) and the phone **speaks the answer** with its own voice (Speak Text,
+  offline), slowly, in the language set at build time (`--language hi`, `pa`, `pl`, `ur`, `cy`),
+  then shows it as a notification. For a likely scam that is *"Do not touch that message. It is a
+  trick trying to take your money."*, then why, then *"Ring the firm on a number you already know."*
+- **Automation.** Shortcuts → Automation → **Message** → *Message Contains* `http` → *Run
+  Immediately* → **Run Shortcut** → *Tempo Scam Spotter* with the message as input. Every text
+  with a link is then checked as it arrives; add a second automation for `www.` **(check on
+  device)**. Apple's Message trigger does not fire for other apps' notifications, so WhatsApp and
+  email need the share sheet.
+- **Honesty.** Unlike the Android node, which sends only four derived fields, the shortcut sends
+  the **message text** to the Gateway: Shortcuts cannot run the model or the link rules itself. The
+  Gateway keeps nothing but the verdict (docs/scam-shield.md §5.3). If that is not acceptable, use
+  the share sheet only for messages you are already unsure about.
+
+Build it with your Gateway and token (the file then holds a real token: don't share or commit it):
+
+```bash
+uv run python apps/shortcuts/build_scam_spotter.py --url https://YOUR-GATEWAY/scam/check --token YOUR-TOKEN --language en
+```
+
+| Part | Status |
+|---|---|
+| The actions and the plist | ✅ Built and signed on this Mac (`shortcuts sign --mode anyone`). |
+| `POST /scam/check` and the `say` field | ✅ The same route the integration tests cover (`tests/integration/test_scam_shield.py`). |
+| Import, Speak Text and the Message automation on an iPhone | ❌ **Not run on an iPhone yet:** no device was available tonight. Items marked **(check on device)** are from Apple's Shortcuts guide, not from a test. |

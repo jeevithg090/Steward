@@ -1,0 +1,9 @@
+{
+ "source": "SYNTHETIC recording in the shape of tempo_adapters.scam.sandbox.LiveSandbox",
+ "host": "tinyurl.com",
+ "findings": [
+  "redirects_to:oxford.gov.uk"
+ ],
+ "official": true,
+ "note": "a shortener that lands on the council's own site"
+}

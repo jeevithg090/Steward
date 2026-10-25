@@ -39,6 +39,7 @@ def test_server_tools_point_at_the_gateway_with_the_secret() -> None:
         "recall_memories",
         "forget_memory",
         "confirm_memory",
+        "check_message",  # Scam Shield (docs/scam-shield.md §5.3)
     }
     consent = webhooks["record_consent"]["api_schema"]
     assert consent["url"] == "https://tempo.example.test/voice/tools/record_consent"

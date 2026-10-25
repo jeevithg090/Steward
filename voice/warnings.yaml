@@ -1,0 +1,42 @@
+# What Scam Shield says out loud, by language (docs/scam-shield.md §5.4). English is the source
+# of truth in tempo_core.scam_voice; a language here may give any subset of the keys and falls
+# back to English for the rest. Only English carries the reasons; the other languages say the
+# warning and what to do, and the reasons are shown in writing.
+# checked: false until someone who speaks each language has read it.
+checked: false
+warnings:
+  hi:
+    warn: "उस मैसेज को मत छुएँ। यह आपका पैसा लेने की एक चाल है।"
+    hold: "मैं उस मैसेज की जाँच कर रहा हूँ। अभी उसमें कुछ भी मत दबाएँ।"
+    cleared: "मैंने उस मैसेज की जाँच की। मुझे खतरे का कोई संकेत नहीं मिला। इससे यह साबित नहीं होता कि वह असली है।"
+    caution: "उस मैसेज से सावधान रहें। यह आपको जल्दी करने के लिए दबाव डाल रहा है। किसी भरोसेमंद व्यक्ति से पूछे बिना कुछ न करें।"
+    unknown: "मैं उस मैसेज की जाँच नहीं कर सका। जब तक मैं जाँच न कर लूँ, उस पर कुछ न करें।"
+    ring: "कंपनी को उस नंबर पर फ़ोन करें जो आप पहले से जानते हैं।"
+  pa:
+    warn: "ਉਸ ਮੈਸੇਜ ਨੂੰ ਹੱਥ ਨਾ ਲਾਓ। ਇਹ ਤੁਹਾਡੇ ਪੈਸੇ ਲੈਣ ਦੀ ਇੱਕ ਚਾਲ ਹੈ।"
+    hold: "ਮੈਂ ਉਸ ਮੈਸੇਜ ਦੀ ਜਾਂਚ ਕਰ ਰਿਹਾ ਹਾਂ। ਹਾਲੇ ਉਸ ਵਿੱਚ ਕੁਝ ਨਾ ਦਬਾਓ।"
+    cleared: "ਮੈਂ ਉਸ ਮੈਸੇਜ ਦੀ ਜਾਂਚ ਕੀਤੀ। ਮੈਨੂੰ ਖ਼ਤਰੇ ਦਾ ਕੋਈ ਨਿਸ਼ਾਨ ਨਹੀਂ ਮਿਲਿਆ। ਇਸ ਨਾਲ ਇਹ ਸਾਬਤ ਨਹੀਂ ਹੁੰਦਾ ਕਿ ਇਹ ਅਸਲੀ ਹੈ।"
+    caution: "ਉਸ ਮੈਸੇਜ ਤੋਂ ਸਾਵਧਾਨ ਰਹੋ। ਇਹ ਤੁਹਾਨੂੰ ਜਲਦੀ ਕਰਨ ਲਈ ਦਬਾਅ ਪਾ ਰਿਹਾ ਹੈ। ਕਿਸੇ ਭਰੋਸੇਯੋਗ ਵਿਅਕਤੀ ਨੂੰ ਪੁੱਛੇ ਬਿਨਾਂ ਕੁਝ ਨਾ ਕਰੋ।"
+    unknown: "ਮੈਂ ਉਸ ਮੈਸੇਜ ਦੀ ਜਾਂਚ ਨਹੀਂ ਕਰ ਸਕਿਆ। ਜਦ ਤੱਕ ਮੈਂ ਜਾਂਚ ਨਾ ਕਰ ਲਵਾਂ, ਉਸ ਉੱਤੇ ਕੁਝ ਨਾ ਕਰੋ।"
+    ring: "ਕੰਪਨੀ ਨੂੰ ਉਸ ਨੰਬਰ ਉੱਤੇ ਫ਼ੋਨ ਕਰੋ ਜੋ ਤੁਸੀਂ ਪਹਿਲਾਂ ਤੋਂ ਜਾਣਦੇ ਹੋ।"
+  pl:
+    warn: "Nie dotykaj tej wiadomości. To podstęp, żeby zabrać Twoje pieniądze."
+    hold: "Sprawdzam tę wiadomość. Nie klikaj w niej niczego."
+    cleared: "Sprawdziłem tę wiadomość. Nie znalazłem sygnałów ostrzegawczych. To nie dowodzi, że jest prawdziwa."
+    caution: "Uważaj na tę wiadomość. Naciska, żebyś działał szybko. Nie rób nic, dopóki nie sprawdzisz z kimś, komu ufasz."
+    unknown: "Nie mogłem sprawdzić tej wiadomości. Nie reaguj na nią, dopóki tego nie zrobię."
+    ring: "Zadzwoń do firmy na numer, który już znasz."
+  ur:
+    warn: "اس پیغام کو ہاتھ نہ لگائیں۔ یہ آپ کا پیسہ لینے کی ایک چال ہے۔"
+    hold: "میں اس پیغام کی جانچ کر رہا ہوں۔ ابھی اس میں کچھ نہ دبائیں۔"
+    cleared: "میں نے اس پیغام کی جانچ کی۔ مجھے خطرے کی کوئی نشانی نہیں ملی۔ اس سے یہ ثابت نہیں ہوتا کہ یہ اصلی ہے۔"
+    caution: "اس پیغام سے محتاط رہیں۔ یہ آپ پر جلدی کرنے کا دباؤ ڈال رہا ہے۔ کسی بھروسے مند شخص سے پوچھے بغیر کچھ نہ کریں۔"
+    unknown: "میں اس پیغام کی جانچ نہیں کر سکا۔ جب تک میں جانچ نہ کر لوں، اس پر کچھ نہ کریں۔"
+    ring: "کمپنی کو اس نمبر پر فون کریں جو آپ پہلے سے جانتے ہیں۔"
+  cy:
+    warn: "Peidiwch â chyffwrdd â'r neges yna. Twyll ydy hi, i gymryd eich arian."
+    hold: "Rydw i'n gwirio'r neges yna. Peidiwch â thapio dim ynddi eto."
+    cleared: "Gwiriais y neges yna. Ni welais unrhyw arwyddion o berygl. Nid yw hynny'n profi ei bod yn ddilys."
+    caution: "Byddwch yn ofalus gyda'r neges yna. Mae'n eich gwthio i weithredu ar frys. Peidiwch â gwneud dim nes ichi holi rhywun rydych yn ei drystio."
+    unknown: "Ni allwn wirio'r neges yna. Peidiwch â gweithredu arni nes imi allu gwneud."
+    ring: "Ffoniwch y cwmni ar rif rydych chi'n ei wybod yn barod."

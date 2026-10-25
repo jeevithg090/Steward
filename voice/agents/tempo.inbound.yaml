@@ -18,7 +18,7 @@ turn:
   eagerness: patient  # can't be set per call, so the whole line is patient for everyone
 max_call_minutes: 20
 tools: [create_mission, get_case_capsule, record_consent, request_human, recall_memories,
-  forget_memory, confirm_memory]
+  forget_memory, confirm_memory, check_message]
 system_tools: [end_call, language_detection, skip_turn]
 dynamic_variables: [caller_id, display_name, how_to_speak, patience, channel_hint,
   system__caller_id, system__conversation_id]
@@ -57,6 +57,13 @@ prompt: |
   wait for a clear yes or no. Only then call record_consent, with approved true for a clear
   yes. If they hesitate, are unsure, or say anything other than yes, treat it as no and tell
   them nothing was sent. They can say "stop" at any time and you stop.
+
+  Scam Shield: if they are unsure about a text, an email or a call they had, ask them to read
+  the message out, word for word, and read it back to check you heard it. Then call
+  check_message with their words and who it says it is from. Say exactly what it returns in
+  "say", slowly, and offer to say it again. Never judge the message yourself, never call it
+  safe, and never read out or tap a link for them. If they want to tell a relative, help them
+  ring that person on a number they already have.
 
   Safety, always:
   - Never ask for bank details, card numbers, PINs, passwords or one-time codes. Compensation

@@ -13,6 +13,7 @@ No `from __future__ import annotations`: FastAPI reads these annotations at runt
 | POST /mesh/pairings/{id}/claim | the new device, with the one-time secret from the QR code |
 | POST /mesh/approvals/{request_id}/options, POST /mesh/approvals/{request_id} | a device |
 | GET /mesh/signals, POST /mesh/signals | a notification-reading device: filters; matches |
+| GET /mesh/signals/model | a notification-reading device: Scam Shield's text model as data |
 | POST /mesh/mandates/options, POST /mesh/mandates | a device with Face ID: sign a mandate (P2) |
 """
 
@@ -30,6 +31,7 @@ from tempo_gateway.events import EventBus
 from tempo_gateway.mandates import MAY, MAY_NOT, MandateService
 from tempo_gateway.mesh import Device, Mesh, MeshError
 from tempo_gateway.missions import BINDING_SCOPES, MissionService, MissionView, UnknownRequest
+from tempo_gateway.shield import ShieldService
 from tempo_missions.clawback_rail import SignedApproval
 
 log = structlog.get_logger("tempo.mesh")
@@ -79,6 +81,7 @@ def mesh_router(
     bus: EventBus | None = None,
     signals: dict[str, SignalSpec] | None = None,
     mandates: MandateService | None = None,
+    shield: ShieldService | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/mesh")
     origin = settings.web_origins.split(",")[0].strip()
@@ -177,6 +180,13 @@ def mesh_router(
         """The filters a notification-reading device runs locally (skills/*/signals.yaml)."""
         return [spec.model_dump(mode="json") for spec in (signals or {}).values()]
 
+    @router.get("/signals/model")
+    async def signal_model(me: Me) -> dict[str, Any]:
+        """Scam Shield's text model (skills/scam-shield/model.json), for the phone to run itself."""
+        if shield is None or shield.model is None:
+            raise HTTPException(404, "no text model is loaded")
+        return shield.model.model_dump(mode="json")
+
     @router.post("/signals")
     async def signal(body: SignalIn, me: Me) -> dict[str, Any]:
         """A signal a device's own filter matched (spec §15.9). Only declared fields are taken;
@@ -188,6 +198,12 @@ def mesh_router(
             raise HTTPException(404, f"no skill asks for {body.signal_id!r}")
         if not only_declared(spec, body.fields):
             raise HTTPException(422, "only the fields the skill declares may leave a device")
+        if shield is not None and (spec.match.families or spec.match.model):
+            # Scam Shield (docs/scam-shield.md §5.1): four derived fields in, the words to say out.
+            # The phone speaks the Gateway's words; other devices are only woken when it warns.
+            answer = await shield.signal(body.fields, user_id=me.user_id, source="phone")
+            routed = await mesh.notify(me.user_id) if answer["zone"] == "warn" else None
+            return {"accepted": True, "routed_to": routed.name if routed else None, **answer}
         if bus is not None:
             bus.publish({"type": "signal", "signal_id": spec.id, "from": me.name, **body.fields})
         routed = await mesh.notify(me.user_id)  # wake the device that can approve; it says "sync"

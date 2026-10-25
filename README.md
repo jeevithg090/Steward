@@ -81,8 +81,14 @@ act without your signed yes.
 - **Before You Pay.** Tempo never moves money. It stands between you and a transfer to someone new:
   who, how much, why, the pressure signs, the registers, a cooling-off rule, and then plain words:
   "wait, and ring them on a number you already know".
-- **Scam signals.** On-device filter rules for suspicious texts; only the matched pattern names
-  leave the phone, never the message. Tempo's warning is spoken in plain words.
+- **Scam Shield.** On the phone, Tempo reads incoming texts on the device and speaks when one is a
+  trick: "Do not touch that message. It is a trick trying to take your money." Keyword families,
+  link rules (a brand's name in a domain that is not the brand's, look-alike letters, shorteners,
+  app files) and a small calibrated text model shipped as a 400 KB JSON file decide in
+  milliseconds; only four derived fields ever leave the phone, never the message. Doubtful links
+  are held ("I'm checking that message") and looked behind from the Gateway's sandbox, then settled
+  by code. The same check answers `CHECK <message>` by SMS, a message read out on the voice line,
+  and `/shield` on the web, in six languages. [docs/scam-shield.md](docs/scam-shield.md).
 - **Everywhere:** voice and SMS first; one question at a time with read-back; every sentence Tempo
   says scores Flesch ≥ 60 in CI; large text and a plain mode on the web; keyboard, screen-reader
   and reduced-motion paths checked with axe. [docs/accessibility.md](docs/accessibility.md).
@@ -171,7 +177,8 @@ flowchart LR
 | Tempo Profiles: a shareable YAML that says who Tempo works for, which skills are on, how it must speak with the person and what it may never do; seven starters; share links that are validated, size-capped and never stored; enforced by `CapabilityGuard` and `BudgetGuard` in the Harness | ✅ ([docs/profiles.md](docs/profiles.md)) |
 | Skill manifests (`skills/<id>/skill.yaml`) for all seven skills, `make new-skill` and `make validate-skills` | ✅ ([docs/add-a-usecase.md](docs/add-a-usecase.md)) |
 | Read It To Me: a photo of any official letter becomes a plain spoken reading (what it is, what it says, what you must do, by when, which rights clocks it starts) with a read-back for anything unsure, and a reply drafted from your own words that adds no facts | ✅ replay fixtures (a water overpayment, a council-tax reminder); live reading needs a Gemini key |
-| Before You Pay and scam signals: a deterministic check before a transfer to someone new (Tempo never moves money) and on-device filter rules for suspicious texts, tested against shared vectors | ✅ rules and tests; the Android node that would run the filters is not yet built |
+| Before You Pay: a deterministic check before a transfer to someone new (Tempo never moves money) | ✅ rules and tests |
+| Scam Shield: a background agent for SMS scams, phishing links and loan apps. On the phone: eight keyword families, link look-alike rules and a calibrated text model (trained on two CC BY 4.0 SMS corpora plus a declared synthetic set of genuine bank, NHS and council texts) speak the warning offline in six languages; four derived fields go to the Gateway, which adds the FCA and Companies House registers, public phishing lists and an isolated link sandbox, and settles the grey zone by code. Spoken, by SMS `CHECK`, by the voice tool and on `/shield` | ✅ model, rules, sandbox, Gateway, web and iPhone shortcut; on the corpora's test fold precision 97.8% / recall 95.8% at the warn threshold, 0.0% of held-out genuine transactional texts spoken on ([backtest](docs/scam_backtest.md)); the Android node is written against the shared vectors but not compiled here ([plan](docs/scam-shield.md)) |
 | Showcase mode: the whole of Mission Control on recorded replay data with no backend, so the Vercel deployment works on its own; a landing page that tells the story | ✅ (`make showcase`, `NEXT_PUBLIC_TEMPO_SHOWCASE=1`) |
 | GitHub Actions CI (lint, types, tests, web, skills, gitleaks, dependency audits), issue and PR templates, Dependabot, Render and Fly configs for the Gateway | ✅ ([docs/deploy.md](docs/deploy.md), [docs/github-setup.md](docs/github-setup.md)) |
 | Skill Forge: narrate a skill and get a draft pack, manifest, MCP server and tests | ⚠️ work in progress on branch `skill-forge-wip` |

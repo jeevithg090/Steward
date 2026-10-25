@@ -1,0 +1,5 @@
+# SYNTHETIC slice in the shape of URLhaus's plain-text URL list (abuse.ch). Real entries come
+# from `make refresh-feeds` with URLHAUS_AUTH_KEY set; see docs/scam-shield.md §6.
+# fetched_at: 2026-10-24T22:00:00+00:00
+http://quick-rupee-loan.top/app.apk
+http://barclays-wealthdesk.co/secure

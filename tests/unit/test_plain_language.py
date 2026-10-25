@@ -19,7 +19,8 @@ from tempo_core.models import Fact
 from tempo_core.readability import flesch_reading_ease, syllables
 from tempo_core.rights_decay import Right, plan
 from tempo_core.rules import NotEligible, RulePackRegistry, evaluate_delay_repay
-from tempo_core.scam import ADVICE
+from tempo_core.scam import ADVICE, Evidence, assess
+from tempo_core.scam_voice import ENGLISH, say
 from tempo_core.time_value import TimeProfile, time_value
 from tempo_gateway.memory import readback_question
 from tempo_memory.models import MemoryCandidate
@@ -85,6 +86,15 @@ def messages() -> dict[str, str]:
         ),
         "forgot": "Done. I've forgotten: lives in Didcot. It's gone from all your devices.",
         **{f"scam_{level.value}": advice for level, advice in ADVICE.items()},
+        **{f"shield_{key}": line for key, line in ENGLISH.items() if key != "why"},
+        "shield_spoken_warning": say(
+            assess(
+                "HMRC: You are due a tax refund of 248.20 GBP. Claim within 24 hours at "
+                "http://hmrc-refunds-gov.uk/claim",
+                None,
+                Evidence(families=("scam_official_pretext", "scam_urgency")),
+            )
+        ),
         **rights_decay_messages(),
     }
 
@@ -130,7 +140,7 @@ def test_tempo_speaks_plainly(name: str, text: str) -> None:
 
 
 def test_every_message_family_is_in_the_eval() -> None:
-    assert len(messages()) == 21
+    assert len(messages()) == 29
 
 
 def test_jargon_scores_lower_than_plain_words() -> None:

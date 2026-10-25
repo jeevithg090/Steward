@@ -17,10 +17,10 @@ runtime, and the per-app dependencies below are local names.
 | POST /voice/post-call | transcripts after a call | HMAC signature |
 | GET /memories, POST /memories/{id}/correct | the Memory Card | bearer token |
 | DELETE /memories/{id}, DELETE /timeline/{id} | forget, everywhere | bearer token |
-| POST /sms/inbound | YES, NO, STOP, HELP, MEMORY, FORGET <thing>, CHECK <message> | Twilio |
+| POST /sms/inbound | YES, NO, STOP, HELP, MEMORY, FORGET <thing>, CHECK <message>, TEACH | Twilio |
 | POST /entitlement/screen | ten answers in, what's worth claiming out (not a decision) | bearer |
 | POST /letters/pip | a PIP decision explained, its deadline, a drafted reconsideration | bearer |
-| POST /scam/check | Scam Shield: registers plus pressure signs, never "safe" | bearer token |
+| POST /scam/check, GET /scam/shield, POST /scam/feedback | Scam Shield (shield.py) | bearer |
 | WS /events | live updates | token query parameter |
 | /mesh/... | devices, pairing, passkey approvals, push (mesh_routes.py) | device token |
 | GET /privacy | the Privacy Proof panel's facts | bearer token |
@@ -73,7 +73,6 @@ from tempo_core.errors import MissionNotFound, VisionUnavailable
 from tempo_core.intake import follow_up
 from tempo_core.ledger import summarise
 from tempo_core.profiles import ProfileCatalog
-from tempo_core.scam import Level, assess
 from tempo_core.signals import SignalSpec
 from tempo_core.stalls import COUNTER_PLAY, Stall, classify
 from tempo_core.voice_profile import VoiceProfile, how_to_speak, profile_from, to_initiation
@@ -108,6 +107,7 @@ from tempo_gateway.security import (
     secret_matches,
     twilio_signature_ok,
 )
+from tempo_gateway.shield import ShieldService, shield_router
 from tempo_memory.entities import VoiceSet
 from tempo_memory.extract import extract_candidates
 from tempo_memory.service import MemoryCard, NeedsConsent, say_recalled
@@ -130,6 +130,7 @@ VOICE_TOOLS = (
     "issue_mandate",  # a spoken yes on the landline becomes a Gateway-signed mandate
     "present_mandate",  # the Negotiator shows the company its authority
     "verify_mandate",  # the company's line checks it (the Sludge Arena verifier)
+    "check_message",  # Scam Shield: the caller reads a message out; code answers (shield.py)
 )
 
 
@@ -190,13 +191,6 @@ class ClockMove(BaseModel):
     advance_days: int = Field(ge=0, le=400)
 
 
-class ScamCheck(BaseModel):
-    text: str = Field(max_length=2000)
-    firm: str | None = Field(default=None, max_length=120)
-    phone: str | None = Field(default=None, max_length=40)
-    website: str | None = Field(default=None, max_length=200)
-
-
 class PipLetter(BaseModel):
     decision_date: date  # the date on the decision letter
     daily_living_points: int = Field(ge=0, le=60)
@@ -233,6 +227,7 @@ def create_app(
     vision: VisionPort | None = None,
     greetings: Mapping[str, str] | None = None,
     profiles: ProfileCatalog | None = None,
+    shield: ShieldService | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -295,20 +290,6 @@ def create_app(
             "region": deployment.region,
             "third_parties": sorted(deployment.third_parties),
             "clock_offset_days": demo_clock.offset_days if demo_clock else 0,
-        }
-
-    @app.post("/scam/check")
-    async def scam_check(body: ScamCheck, caller: Caller) -> dict[str, Any]:
-        """Scam Shield: who the firm really is, and how hard the message pushes. Never "safe"."""
-        firm = None
-        if body.firm and registers is not None:
-            firm = await registers.check(body.firm, phone=body.phone, website=body.website)
-        verdict = assess(body.text, firm)
-        return {
-            "level": verdict.level.value,
-            "reasons": list(verdict.reasons),
-            "advice": verdict.advice,
-            "simulated": registers is None or registers_simulated,
         }
 
     @app.post("/entitlement/screen")
@@ -654,6 +635,18 @@ def create_app(
             raise HTTPException(422, exc.errors(include_url=False)) from None
 
     async def _voice(name: str, body: dict[str, Any]) -> dict[str, Any]:
+        if name == "check_message":  # Scam Shield: the caller's words in, the words to say out
+            if shield is None:
+                return {"say": "I can't check messages on this line yet."}
+            user_id = str(
+                body.get("user_id") or service.user_for_phone(str(body.get("phone", ""))) or ""
+            )
+            language = (await _voice_profile(user_id)).language if user_id else "en"
+            checked = await shield.check(
+                str(body.get("text", ""))[:2000], sender=str(body.get("sender") or "") or None,
+                language=language, user_id=user_id or None, source="voice",
+            )  # fmt: skip
+            return {k: checked[k] for k in ("say", "level", "zone", "why", "confidence")}
         if name == "create_mission":
             view = await service.start(StartMission.model_validate(body))
             return {"mission_id": view.id, "state": view.state, "say": view.message}
@@ -802,10 +795,35 @@ def create_app(
 
     async def _sms(sender: str, text: str, sid: str) -> str:
         word = text.strip().split(" ")[0].upper() if text.strip() else ""
-        if word == "CHECK":  # a forwarded message: how hard does it push?
-            verdict = assess(text.strip()[len("CHECK") :], None)
-            why = f" ({'; '.join(verdict.reasons)})" if verdict.reasons else ""
-            return f"Tempo: {LEVEL_WORDS[verdict.level]}{why}. {verdict.advice}"
+        if word == "CHECK":  # a forwarded message, checked the same way as every other door
+            if shield is None:
+                return "Tempo: I can't check messages right now."
+            message = text.strip()[len("CHECK") :].strip()
+            if not message:
+                return "Tempo: text CHECK, then the message you're unsure about."
+            user_id = service.user_for_phone(sender)
+            language = (await _voice_profile(user_id)).language if user_id else "en"
+            checked = await shield.check(message, language=language, user_id=user_id, source="sms")
+            shield.remember_checked(sender, message)
+            return (
+                f"Tempo: {checked['say']} (Text TEACH within ten minutes if I may keep this "
+                "message to learn from.)"
+            )
+        if word == "TEACH":  # keep the last checked message as a labelled example, by request
+            kept = shield.teach(sender) if shield is not None else None
+            if kept is None:
+                return "Tempo: nothing to keep. Text CHECK and a message first, then TEACH."
+            return (
+                "Tempo: Thank you. I've kept that one message to learn from. "
+                "FORGET TEACH removes it."
+            )
+        if text.strip().upper() == "FORGET TEACH":
+            gone = shield.forget_teaching(sender) if shield is not None else 0
+            return (
+                f"Tempo: forgotten. The {gone} message(s) you taught me are gone."
+                if gone
+                else ("Tempo: nothing you taught me is kept, so nothing to forget.")
+            )
         if word in ("MEMORY", "FORGET") and memory is not None:
             user_id = service.user_for_phone(sender)
             if user_id is None:
@@ -841,9 +859,12 @@ def create_app(
     if mesh is not None:
         app.include_router(
             mesh_router(
-                mesh, service, settings, web_caller, bus=bus, signals=signals, mandates=mandates
+                mesh, service, settings, web_caller, bus=bus, signals=signals, mandates=mandates,
+                shield=shield,
             )
-        )
+        )  # fmt: skip
+    if shield is not None:  # Scam Shield: the check, the Shield log and feedback (shield.py)
+        app.include_router(shield_router(shield, web_caller))
     if profiles is not None:  # Tempo Profiles: the catalogue, share codes and the import check
         app.include_router(
             profiles_router(
@@ -871,14 +892,6 @@ def create_app(
                 return
 
     return app
-
-
-LEVEL_WORDS = {
-    Level.LIKELY_SCAM: "this looks like a scam",
-    Level.CAUTION: "be careful with this one",
-    Level.UNKNOWN: "I can't tell yet",
-    Level.NO_FLAGS: "no warning signs",
-}
 
 
 def _known(category: str) -> Stall | None:
