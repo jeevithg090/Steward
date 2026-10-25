@@ -1,16 +1,35 @@
-import { History as HistoryIcon, Plus, Sparkles, X } from "lucide-react";
+import type { ReactNode } from "react";
+import { Brain, History as HistoryIcon, Plus, Sparkles, X } from "lucide-react";
+import { STATUS_WORDS, type ChatStatus } from "@/features/chat/store";
 import { linkProps } from "@/router";
 import { TempoMark } from "../ui/TempoMark";
-import { NAV_DOING, NAV_SETTINGS, NAV_TRUST, type NavEntry } from "./nav";
+import { NAV_MEMORY, NAV_SETTINGS, navGroups, type NavEntry } from "./nav";
 
 export { NAV_DOING, NAV_TRUST, type NavEntry } from "./nav";
+
+/** One conversation in History: its title and how it stands (plan.md §19). */
+export interface HistoryItem {
+  title: string;
+  status: ChatStatus;
+  /** It is the conversation open in the chat now. */
+  current?: boolean;
+}
+
+/** Yellow while Tempo works, green when done with news to read, grey when done and seen. */
+const DOT: Record<ChatStatus, string> = {
+  live: "bg-amber-400 shadow-[0_0_8px_rgb(251_191_36/0.7)] motion-safe:animate-pulse",
+  finished: "bg-emerald-400 shadow-[0_0_8px_rgb(52_211_153/0.6)]",
+  read: "bg-slate-500",
+};
 
 interface SidebarProps {
   /** The current route's first segment, e.g. `/missions`. */
   section: string;
   onNewChat?: () => void;
   onSelectChat?: (index: number) => void;
-  history: string[];
+  history: HistoryItem[];
+  /** L was pressed: the hidden pages are back (plan.md §19). */
+  revealed?: boolean;
   onClose?: () => void;
   width?: number;
   /** Who Tempo is working for, shown under the brand. */
@@ -60,7 +79,15 @@ function Group({ title, entries, section, compact, onClose }: { title: string; e
   );
 }
 
-export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, width, profileName, ledger }: SidebarProps) {
+function Heading({ id, icon, children }: { id: string; icon: ReactNode; children: ReactNode }) {
+  return (
+    <h2 id={id} className="mb-1.5 flex items-center gap-2 px-3 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+      {icon} {children}
+    </h2>
+  );
+}
+
+export function Sidebar({ section, onNewChat, onSelectChat, history, revealed = false, onClose, width, profileName, ledger }: SidebarProps) {
   const compact = width !== undefined && width < COMPACT_BELOW;
   const onChat = section === "/chat";
 
@@ -115,52 +142,98 @@ export function Sidebar({ section, onNewChat, onSelectChat, history, onClose, wi
       </button>
 
       <div className="relative -mx-1 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-1">
-        <Group title="Doing" entries={NAV_DOING} section={section} compact={compact} onClose={onClose} />
-        <Group title="Trust" entries={NAV_TRUST} section={section} compact={compact} onClose={onClose} />
-
-        {onChat && !compact && history.length > 0 && (
+        {!compact && (
           <section aria-labelledby="history-heading">
-            <h2 id="history-heading" className="mb-1.5 flex items-center gap-2 px-3 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              <HistoryIcon size={12} aria-hidden /> History
-            </h2>
-            <ul className="flex flex-col gap-0.5">
-              {history.map((title, index) => (
-                <li key={`${title}-${index}`}>
-                  <button
-                    onClick={() => {
-                      onSelectChat?.(index);
-                      onClose?.();
-                    }}
-                    className={`w-full truncate rounded-xl px-3 py-2 text-left text-[13px] text-slate-400 hover:bg-white/[0.04] hover:text-slate-100 ${focus}`}
-                  >
-                    {title}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <Heading id="history-heading" icon={<HistoryIcon size={12} aria-hidden />}>
+              History
+            </Heading>
+            {history.length === 0 ? (
+              <p className="px-3 text-[12.5px] text-slate-500">Your chats will appear here.</p>
+            ) : (
+              <>
+                <ul className="flex max-h-[42vh] flex-col gap-0.5 overflow-y-auto">
+                  {history.map((item, index) => {
+                    const words = STATUS_WORDS[item.status];
+                    const open = onChat && item.current;
+                    return (
+                      <li key={`${item.title}-${index}`}>
+                        <button
+                          onClick={() => {
+                            onSelectChat?.(index);
+                            onClose?.();
+                          }}
+                          aria-current={open ? "page" : undefined}
+                          title={`${item.title} · ${words.label}: ${words.hint}`}
+                          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] transition-colors ${focus} ${open ? "bg-white/[0.06] text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"}`}
+                        >
+                          <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${DOT[item.status]}`} />
+                          <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                          <span className="sr-only">, {words.label}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p aria-hidden className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 px-3 text-[10.5px] text-slate-500">
+                  {(["live", "finished", "read"] as const).map((status) => (
+                    <span key={status} className="flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full ${DOT[status].split(" ")[0]}`} /> {status === "read" ? "Read" : STATUS_WORDS[status].label}
+                    </span>
+                  ))}
+                </p>
+              </>
+            )}
           </section>
         )}
+
+        <section aria-labelledby={compact ? undefined : "memory-heading"} aria-label={compact ? "Memory" : undefined}>
+          {!compact && (
+            <Heading id="memory-heading" icon={<Brain size={12} aria-hidden />}>
+              Memory
+            </Heading>
+          )}
+          <NavItem entry={NAV_MEMORY} active={section === NAV_MEMORY.to} compact={compact} onClick={onClose} />
+        </section>
+
+        {navGroups(revealed).map((group) => (
+          <Group key={group.title} title={group.title} entries={group.entries} section={section} compact={compact} onClose={onClose} />
+        ))}
       </div>
 
       <div className="relative flex flex-col gap-2 border-t border-white/[0.06] pt-4">
-        {ledger && !compact && (
-          <a
-            {...linkProps("/missions")}
-            onClick={(e) => {
-              linkProps("/missions").onClick(e);
-              onClose?.();
-            }}
-            className={`group relative overflow-hidden rounded-2xl border border-gold-400/20 bg-gradient-to-br from-gold-400/[0.12] via-gold-400/[0.04] to-transparent px-3.5 py-3 transition-colors hover:border-gold-400/35 ${focus}`}
-            aria-label={`So far Tempo has got back £${ledger.gbp} and ${ledger.hours} hours of your time. Open Mission Control.`}
-          >
-            <span aria-hidden className="absolute -right-6 -top-6 h-20 w-20 rounded-full border-[6px] border-gold-400/15" />
-            <span className="block text-[10.5px] font-semibold uppercase tracking-[0.16em] text-gold-200/80">Returned so far</span>
-            <span className="num mt-1 block text-xl font-semibold leading-tight text-gold">£{ledger.gbp}</span>
-            <span className="text-[12px] text-slate-400">{ledger.hours} h of your time</span>
-          </a>
-        )}
+        {ledger && !compact && <Returned ledger={ledger} revealed={revealed} onClose={onClose} />}
         <NavItem entry={NAV_SETTINGS} active={section === "/settings"} compact={compact} onClick={onClose} />
       </div>
     </nav>
+  );
+}
+
+const RETURNED = "group relative block overflow-hidden rounded-2xl border border-gold-400/20 bg-gradient-to-br from-gold-400/[0.12] via-gold-400/[0.04] to-transparent px-3.5 py-3";
+
+/** Money and time returned so far. It opens Mission Control only when that page is shown (L). */
+function Returned({ ledger, revealed, onClose }: { ledger: { gbp: string; hours: string }; revealed: boolean; onClose?: () => void }) {
+  const said = `So far Tempo has got back £${ledger.gbp} and ${ledger.hours} hours of your time.`;
+  const body = (
+    <>
+      <span aria-hidden className="absolute -right-6 -top-6 h-20 w-20 rounded-full border-[6px] border-gold-400/15" />
+      <span className="block text-[10.5px] font-semibold uppercase tracking-[0.16em] text-gold-200/80">Returned so far</span>
+      <span className="num mt-1 block text-xl font-semibold leading-tight text-gold">£{ledger.gbp}</span>
+      <span className="text-[12px] text-slate-400">{ledger.hours} h of your time</span>
+    </>
+  );
+  if (!revealed) return <div className={RETURNED}>{body}</div>;
+  const link = linkProps("/missions");
+  return (
+    <a
+      {...link}
+      onClick={(e) => {
+        link.onClick(e);
+        onClose?.();
+      }}
+      className={`${RETURNED} transition-colors hover:border-gold-400/35 ${focus}`}
+      aria-label={`${said} Open Mission Control.`}
+    >
+      {body}
+    </a>
   );
 }

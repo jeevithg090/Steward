@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from tempo_adapters.settings import Settings
@@ -124,6 +125,32 @@ def test_a_photo_it_has_no_reading_for_is_said_plainly(gateway: TestClient) -> N
 
     assert unknown.status_code == 503 and "tell me what it says" in unknown.json()["detail"]
     assert broken.status_code == 400
+
+
+def test_a_pdf_it_cannot_read_asks_for_a_photo_of_the_page(gateway: TestClient) -> None:
+    r = gateway.post("/letters/read", json=photo(b"%PDF-1.7 unknown", "bill.pdf"), headers=AUTH)
+
+    assert r.status_code == 503
+    assert r.json()["detail"] == (
+        "I couldn't read that PDF. Send a photo of the page instead, or tell me what it says."
+    )
+
+
+def test_a_pdf_goes_to_vision_as_a_pdf() -> None:
+    seen: list[str] = []
+
+    class Vision:
+        async def extract(self, image: bytes, *, mime_type: str, kind: Any, filename: str) -> Any:
+            seen.append(mime_type)
+            return ()
+
+    app = FastAPI()
+    app.include_router(letters_router(Vision(), lambda _: [], frozenset(), bearer_caller(TOKEN)))  # type: ignore[arg-type]
+    with TestClient(app) as client:
+        r = client.post("/letters/read", json=photo(b"%PDF-1.7", "Council tax.PDF"), headers=AUTH)
+
+    assert r.status_code == 200, r.text
+    assert seen == ["application/pdf"]
 
 
 def test_before_you_pay_stops_a_safe_account_and_a_warned_firm(gateway: TestClient) -> None:

@@ -216,7 +216,10 @@ def test_the_other_doors_answer_in_plain_words_with_a_link(gateway: TestClient) 
     assert profiles["intent"] == "profiles" and "The Commuter" in profiles["reply"]
     assert profiles["actions"] == [{"label": "Open Profiles", "href": "#/profiles"}]
     assert letter["intent"] == "letter" and letter["actions"][0]["href"] == "#/read"
-    assert letter["reply"] == "Show me the letter: tap the camera button and I'll read it to you."
+    assert (
+        letter["reply"]
+        == "Show me the letter: upload a photo or PDF with the paperclip and I'll read it to you."
+    )
     assert helped["intent"] == "help" and helped["reply"].startswith("I'm Tempo.")
     assert hello["intent"] == "smalltalk"  # replay: the canned line, never a model
     assert hello["reply"].startswith("I'm Tempo. I win back money and time you're owed.")

@@ -11,7 +11,7 @@ from typing import Any
 import httpx
 import pytest
 
-from tempo_adapters.vision import GeminiVision, ReplayVision, to_facts
+from tempo_adapters.vision import GeminiVision, OpenAIVision, ReplayVision, to_facts
 from tempo_core.errors import VisionUnavailable
 from tempo_ports.vision import DocumentKind
 
@@ -146,3 +146,35 @@ async def test_replay_of_an_unrecorded_photo_is_unavailable() -> None:
         await ReplayVision(VISION).extract(
             b"other", mime_type="image/png", kind=DocumentKind.TICKET, filename="x.png"
         )
+
+
+async def test_gemini_is_sent_a_pdf_as_a_pdf() -> None:
+    seen: list[httpx.Request] = []
+    vision = gemini_says(
+        {"facts": [{"key": "sender", "value": "Thames Water", "confidence": 0.9}]}, seen
+    )
+    await vision.extract(
+        b"%PDF-1.7 letter",
+        mime_type="application/pdf",
+        kind=DocumentKind.OFFICIAL_LETTER,
+        filename="bill.pdf",
+    )
+    part = json.loads(seen[0].content)["contents"][0]["parts"][0]["inline_data"]
+    assert part["mime_type"] == "application/pdf"
+    assert base64.b64decode(part["data"]) == b"%PDF-1.7 letter"
+
+
+async def test_our_gpu_model_refuses_a_pdf_without_calling_it() -> None:
+    calls: list[httpx.Request] = []
+    http = httpx.AsyncClient(
+        transport=httpx.MockTransport(lambda r: calls.append(r) or httpx.Response(500))
+    )
+    vision = OpenAIVision(http, base_url="https://gpu.example/v1", api_key="k", model="m")
+    with pytest.raises(VisionUnavailable, match="not an image"):
+        await vision.extract(
+            b"%PDF-1.7",
+            mime_type="application/pdf",
+            kind=DocumentKind.OFFICIAL_LETTER,
+            filename="bill.pdf",
+        )
+    assert calls == []

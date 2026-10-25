@@ -161,6 +161,8 @@ class OpenAIVision:
     async def extract(
         self, image: bytes, *, mime_type: str, kind: DocumentKind, filename: str
     ) -> tuple[Fact, ...]:
+        if not mime_type.startswith("image/"):  # the model sees pictures; Gemini reads PDFs
+            raise VisionUnavailable(f"vLLM: {mime_type} is not an image")
         data_url = f"data:{mime_type};base64,{base64.b64encode(image).decode()}"
         shape = '{"facts": [{"key": ..., "value": ..., "confidence": 0 to 1}]}'
         ask = f"{_prompt(kind, _today())}\n\nReply with only JSON: {shape}"

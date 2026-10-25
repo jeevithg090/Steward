@@ -1,11 +1,12 @@
 // The chat door (plan.md §2, §4.1, §12.2): free text goes to `gateway.chat()`, replies become
 // messages (with suggestion chips), the one pending question keeps the conversation waiting,
 // consent is answered inline through `answerAsk` (a passkey when this device has one), live
-// Gateway events (from App's one socket) update the thread, the camera reads a letter, and
-// `#/chat?say=<text>` sends a sentence once, as if typed.
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+// Gateway events (from App's one socket) update the thread, the paperclip reads a letter (a photo
+// or a PDF), and `#/chat?say=<text>` sends a sentence once, as if typed. The owed questions and
+// the scam check open here as cards (plan.md §19).
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { afterYes, duration, isUnreachable, plainError, rememberAmount, rememberAsks, shortDateTime, toastError } from "@/components/mission";
-import { toast } from "@/components/ui";
+import { Spinner, toast } from "@/components/ui";
 import type { Recording } from "@/hooks/useAudioRecorder";
 import type { ChatReply, Health, Intent, MissionState } from "@/lib/api";
 import { answerAsk } from "@/lib/approve";
@@ -15,7 +16,8 @@ import { STATE_LABELS } from "@/lib/labels";
 import type { LetterReading } from "@/lib/letters";
 import type { LiveEvent } from "@/lib/live";
 import { useMesh } from "@/lib/mesh-context";
-import { ShieldClient, type ShieldVerdict, ShowcaseShield } from "@/lib/shield";
+import { reveal, useRevealed } from "@/lib/reveal";
+import { type Language, ShieldClient, type ShieldVerdict, ShowcaseShield } from "@/lib/shield";
 import { ShowcaseCatalog } from "@/lib/showcase";
 import { SUGGESTIONS } from "@/lib/showcase-chat";
 import { useRoute } from "@/router";
@@ -23,6 +25,11 @@ import type { PageProps } from "@/types/page";
 import type { ModelProvider } from "@/types/types";
 import { ChatPage, type Link } from "./ChatPage";
 import { type Conversation, type ThreadMessage, chatStore, onQueuedPrompt, saveIntent, takeQueuedPrompt, useChatStore } from "./store";
+import { type ChatTool, TOOL_INTRO, isPdf } from "./tools";
+
+// The tools' cards load when first opened, so the chat itself stays small.
+const OwedCheck = lazy(() => import("../owed/OwedPage"));
+const ShieldCheck = lazy(() => import("../shield/ShieldPanel").then((m) => ({ default: m.ShieldPanel })));
 
 export interface ChatContainerProps extends PageProps {
   config: GatewayConfig;
@@ -53,7 +60,7 @@ async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result).replace(/^data:[^;]+;base64,/, ""));
-    reader.onerror = () => reject(new Error("The photo could not be read."));
+    reader.onerror = () => reject(new Error("The file could not be read."));
     reader.readAsDataURL(file);
   });
 }
@@ -67,6 +74,9 @@ export function gatewayModelWords(health: Health | null): string | null {
   return model.processor || model.name || null;
 }
 
+/** The Gateway reads files up to 8 MB (letters.py). */
+const MAX_FILE_BYTES = 8 * 1024 * 1024;
+
 /** How many earlier lines go with each turn: enough for the brain to follow (plan.md §16). */
 const HISTORY_LINES = 16;
 
@@ -78,7 +88,15 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
   const [ttsAvailable, setTtsAvailable] = useState(false);
   const { mesh, signs } = useMesh();
   const route = useRoute();
+  const revealed = useRevealed();
+  const [shieldLanguage, setShieldLanguage] = useState<Language>(language);
   const link: Link = showcase ? "showcase" : connected ? "live" : health ? "gateway" : "offline";
+
+  // While the chat is on screen, the conversation it shows counts as read (History's status).
+  useEffect(() => {
+    chatStore.setViewing(true);
+    return () => chatStore.setViewing(false);
+  }, []);
 
   // Clients for the two doors the chat uses directly (plan.md §4.1: the camera posts to /letters/read).
   const catalog = useMemo(() => (showcase ? new ShowcaseCatalog() : new CatalogClient(config)), [showcase, config]);
@@ -190,7 +208,7 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
         .filter((m) => (m.role === "user" || m.role === "agent") && m.text.trim())
         .slice(-HISTORY_LINES)
         .map((m) => ({ role: m.role === "user" ? ("user" as const) : ("tempo" as const), text: m.text.slice(0, 1500) }));
-      chatStore.appendTo(convId, [{ id: uid(), role: "user", text, timestamp: Date.now() }]);
+      chatStore.appendTo(convId, [{ id: uid(), role: "user", text, timestamp: Date.now() }], { pending: true });
       setBusy(true);
       setThinking(true);
       try {
@@ -209,6 +227,7 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
         if (isUnreachable(err)) toastError(err);
         throw new Error(plainError(err));
       } finally {
+        chatStore.update(convId, (c) => ({ ...c, pending: false }));
         setBusy(false);
         setThinking(false);
       }
@@ -297,8 +316,9 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
 
   const readLetter = useCallback(
     async (file: File) => {
-      const convId = chatStore.ensureActive("Read this letter");
-      chatStore.appendTo(convId, [{ id: uid(), role: "user", text: `Photo of a letter: ${file.name}`, timestamp: Date.now() }]);
+      const pdf = isPdf(file);
+      const convId = chatStore.ensureActive(pdf ? `Read ${file.name}` : "Read this letter");
+      chatStore.appendTo(convId, [{ id: uid(), role: "user", text: pdf ? `PDF to read: ${file.name}` : `Photo of a letter: ${file.name}`, timestamp: Date.now() }], { pending: true });
       setBusy(true);
       try {
         let reading: LetterReading;
@@ -311,16 +331,20 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
           reading = sample.reading;
           lead = "There's no Gateway in the showcase, so I can't read your photo. Here is a recorded reading of a sample letter instead.";
         } else {
+          if (file.size > MAX_FILE_BYTES) throw new Error("That file is too big. 8 MB is the most I can read.");
           reading = await catalog.readLetter({ image_b64: await fileToBase64(file), filename: file.name, user_id: user.id, display_name: user.name, language });
           lead = reading.says;
         }
-        chatStore.appendTo(convId, [{ id: uid(), role: "agent", text: lead, intent: "letter", letter: reading, actions: [{ label: "Open Read It To Me", href: "#/read" }], timestamp: Date.now() }]);
+        // Read It To Me's page is only offered once L has brought it back (plan.md §19).
+        const actions = reveal.get() ? [{ label: "Open Read It To Me", href: "#/read" }] : undefined;
+        chatStore.appendTo(convId, [{ id: uid(), role: "agent", text: lead, intent: "letter", letter: reading, actions, timestamp: Date.now() }]);
         say(reading.reading_text);
-        toast.success(showcase ? "Here is a recorded reading of a sample letter." : "Letter read. Tempo will read it to you.");
+        toast.success(showcase ? "Here is a recorded reading of a sample letter." : `${pdf ? "PDF" : "Letter"} read. Tempo will read it to you.`);
       } catch (err) {
         if (isUnreachable(err)) toastError(err);
         throw new Error(plainError(err));
       } finally {
+        chatStore.update(convId, (c) => ({ ...c, pending: false }));
         setBusy(false);
       }
     },
@@ -328,6 +352,30 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
   );
 
   const feedback = useCallback((alertId: string, label: "scam" | "real") => shield.feedback(alertId, label), [shield]);
+
+  /** A tool as a card in the conversation: Tempo's line, then the owed questions or the scam check. */
+  const openTool = useCallback(
+    (tool: ChatTool) => {
+      const intro = TOOL_INTRO[tool];
+      const convId = chatStore.ensureActive(intro.title);
+      chatStore.appendTo(convId, [{ id: uid(), role: "agent", text: intro.text, intent: tool === "owed" ? "entitlement" : "scam_check", tool, timestamp: Date.now() }]);
+      say(intro.text);
+    },
+    [say],
+  );
+
+  const renderTool = useCallback(
+    (tool: ChatTool) => (
+      <Suspense fallback={<Spinner label="Opening" />}>
+        {tool === "owed" ? (
+          <OwedCheck embedded gateway={gateway} showcase={showcase} speak={say} />
+        ) : (
+          <ShieldCheck embedded source={shield} language={shieldLanguage} onLanguage={setShieldLanguage} userId={user.id} speak={say} />
+        )}
+      </Suspense>
+    ),
+    [gateway, say, shield, shieldLanguage, showcase, user.id],
+  );
 
   // Live events from App's socket (newest first). Older events are primed as seen so a reload does not replay them.
   const seen = useRef(new WeakSet<LiveEvent>());
@@ -430,6 +478,9 @@ export default function ChatContainer({ gateway, user, showcase, health, connect
       onSpeak={say}
       speech={speech}
       elevenLabsKey={elevenLabsKey}
+      revealed={revealed}
+      onOpenTool={openTool}
+      renderTool={renderTool}
     />
   );
 }

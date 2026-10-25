@@ -39,7 +39,7 @@ test("the catalogue says who each profile is for, what it will and may never do,
   const setProfile = vi.fn();
   const { container } = render(<main><ProfilesPage {...props({ setProfile })} /><Toaster /></main>);
 
-  expect(screen.getByRole("heading", { level: 1, name: "Profiles" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 1, name: "Summary" })).toBeInTheDocument(); // was "Profiles" (plan.md §19)
   expect(screen.getByRole("status", { name: "Loading profiles" })).toBeInTheDocument();
   expect(await screen.findByRole("link", { name: "The Commuter" })).toHaveAttribute("href", "#/profiles/commuter");
   expect(screen.getByRole("link", { name: "Read It To Me" })).toHaveAttribute("href", "#/profiles/read-it-to-me");

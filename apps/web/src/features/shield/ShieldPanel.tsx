@@ -1,7 +1,7 @@
 // Scam Shield's "check a message" panel (docs/scam-shield.md §8): paste a message, hear the
 // verdict in your language, see why, and tell Tempo if it got it wrong. Ported from the old
 // ShieldPanel; dark theme. The same code path answers the phone, the SMS CHECK word and the voice agent.
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
 import {
   Banknote,
   Check,
@@ -39,6 +39,8 @@ export interface ShieldPanelProps {
   onLanguage: (language: Language) => void;
   userId: string;
   speak: (text: string) => void;
+  /** Shown as a card in the chat (plan.md §19): the check only, without the Shield log. */
+  embedded?: boolean;
 }
 
 const ZONE_BADGE: Record<ShieldVerdict["zone"], { tone: BadgeTone; words: string; rail: string }> = {
@@ -155,7 +157,8 @@ function PanelTitle({ id, icon, children, tone = "violet" }: { id: string; icon:
   );
 }
 
-export function ShieldPanel({ source, language, onLanguage, userId, speak }: ShieldPanelProps) {
+export function ShieldPanel({ source, language, onLanguage, userId, speak, embedded = false }: ShieldPanelProps) {
+  const uid = useId(); // the chat may show this panel more than once
   const [text, setText] = useState("");
   const [verdict, setVerdict] = useState<ShieldVerdict | null>(null);
   const [status, setStatus] = useState<ShieldStatus | null>(null);
@@ -195,8 +198,8 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
   };
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    if (!embedded) void refresh(); // the log's figures; the chat's card has no log
+  }, [refresh, embedded]);
 
   const check = async (message: string) => {
     if (!message.trim()) return;
@@ -205,7 +208,7 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
     setLabel(null);
     try {
       setVerdict(await source.check(message, language, userId));
-      await refresh();
+      if (!embedded) await refresh();
     } catch (e) {
       setVerdict(null);
       setError(e instanceof Error ? e.message : String(e));
@@ -235,10 +238,10 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
 
   return (
     <div className="space-y-6">
-      <Card as="section" aria-labelledby="check-heading" className="relative overflow-hidden">
+      <Card as="section" aria-labelledby={`${uid}-check-heading`} className="relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent-600/15 blur-3xl" />
         <div className="relative">
-          <PanelTitle id="check-heading" icon={<ScanSearch size={19} strokeWidth={1.85} />}>
+          <PanelTitle id={`${uid}-check-heading`} icon={<ScanSearch size={19} strokeWidth={1.85} />}>
             Check a message
           </PanelTitle>
           <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-300">
@@ -273,7 +276,7 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
           </div>
 
           <div className="mt-6 flex flex-wrap items-end justify-between gap-2">
-            <label htmlFor="shield-text" className="block text-sm font-medium text-slate-200">
+            <label htmlFor={`${uid}-shield-text`} className="block text-sm font-medium text-slate-200">
               Paste the text you're unsure of
             </label>
             <Button variant="ghost" size="sm" onClick={() => void paste()} icon={<ClipboardPaste size={14} aria-hidden />} className={TAP}>
@@ -281,7 +284,7 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
             </Button>
           </div>
           <textarea
-            id="shield-text"
+            id={`${uid}-shield-text`}
             ref={textRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -298,7 +301,7 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
           )}
           <div className="mt-5 flex flex-col gap-4 border-t border-white/[0.06] pt-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="sm:w-64">
-              <LanguagePicker id="shield-language" label="Say it in" value={language} onChange={onLanguage} />
+              <LanguagePicker id={`${uid}-shield-language`} label="Say it in" value={language} onChange={onLanguage} />
             </div>
             <Button size="lg" disabled={busy || !text.trim()} busy={busy} onClick={() => void check(text)} icon={<ShieldAlert size={17} aria-hidden />} className="w-full sm:w-auto">
               Check this message
@@ -324,7 +327,7 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
           </div>
         )}
         {verdict && look && (
-          <section aria-labelledby="verdict-heading" className={`overflow-hidden rounded-3xl border bg-ink-900 text-slate-200 motion-safe:animate-scale-in ${look.border} ${look.glow}`}>
+          <section aria-labelledby={`${uid}-verdict-heading`} className={`overflow-hidden rounded-3xl border bg-ink-900 text-slate-200 motion-safe:animate-scale-in ${look.border} ${look.glow}`}>
             <div className={`relative overflow-hidden px-5 py-7 sm:px-8 sm:py-8 ${look.band}`}>
               <LevelIcon size={168} strokeWidth={1.25} aria-hidden className="pointer-events-none absolute -right-6 top-1/2 hidden -translate-y-1/2 rotate-[-8deg] opacity-[0.13] sm:block" />
               <div className="relative flex items-start gap-4">
@@ -336,7 +339,7 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em] ${look.chip}`}>{ZONE_BADGE[verdict.zone].words}</span>
                     {verdict.held && <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${look.chip}`}>held, looked behind the link</span>}
                   </div>
-                  <h2 id="verdict-heading" className="mt-2 font-display text-[2.15rem] leading-[1.05] sm:text-[2.75rem]">
+                  <h2 id={`${uid}-verdict-heading`} className="mt-2 font-display text-[2.15rem] leading-[1.05] sm:text-[2.75rem]">
                     {LEVEL_WORDS[verdict.level]}
                   </h2>
                 </div>
@@ -480,9 +483,10 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
         )}
       </div>
 
-      <Card as="section" aria-labelledby="log-heading">
+      {!embedded && (
+      <Card as="section" aria-labelledby={`${uid}-log-heading`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <PanelTitle id="log-heading" tone="emerald" icon={<ShieldCheck size={19} strokeWidth={1.85} />}>
+          <PanelTitle id={`${uid}-log-heading`} tone="emerald" icon={<ShieldCheck size={19} strokeWidth={1.85} />}>
             The Shield log
           </PanelTitle>
           <Button variant="quiet" size="sm" onClick={() => void refresh()} busy={refreshing} icon={<RefreshCw size={13} aria-hidden />} className={TAP}>
@@ -550,6 +554,7 @@ export function ShieldPanel({ source, language, onLanguage, userId, speak }: Shi
           </>
         )}
       </Card>
+      )}
     </div>
   );
 }

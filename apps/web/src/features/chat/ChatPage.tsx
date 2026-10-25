@@ -1,11 +1,12 @@
 // The chat (plan.md §2): the avatar panel on the left, the thread on the right, the rounded input
 // bar, the stream badge. Below `lg` the panel becomes a strip at most 72px tall at the top, so the
 // conversation gets the screen (plan.md §12.1 finding 5). State lives in ChatContainer and the
-// store; this file only renders.
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Radio } from "lucide-react";
+// store; this file only renders. Above the input bar, the chat's tools (plan.md §19): upload a
+// letter or PDF, Am I owed anything?, and Is this a scam?.
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Paperclip, PoundSterling, Radio, ShieldAlert, type LucideIcon } from "lucide-react";
 import { ConsentCard } from "@/components/mission";
-import { ResizeHandle } from "@/components/ui";
+import { FOCUS, ResizeHandle } from "@/components/ui";
 import type { Recording } from "@/hooks/useAudioRecorder";
 import { useMediaQuery, WIDE } from "@/hooks/useMediaQuery";
 import { useResizable } from "@/hooks/useResizable";
@@ -17,6 +18,7 @@ import { AvatarPanel, type SpeechRequest } from "./AvatarPanel";
 import { ChatInput } from "./ChatInput";
 import type { Conversation } from "./store";
 import { TaskMessages, TypingIndicator } from "./TaskMessages";
+import { type ActionRoute, type ChatTool, routeAction } from "./tools";
 import { WelcomeCard } from "./WelcomeCard";
 
 /** How the page reaches Tempo right now: the recordings, the live stream, the Gateway without its stream, or nothing. */
@@ -51,7 +53,19 @@ export interface ChatPageProps {
   onSpeak: (text: string) => void;
   speech: SpeechRequest | null;
   elevenLabsKey?: string;
+  /** L was pressed: reply buttons go to their pages again (plan.md §19). */
+  revealed?: boolean;
+  /** Open a tool as a card in the conversation. */
+  onOpenTool?: (tool: ChatTool) => void;
+  /** The card for a tool message. */
+  renderTool?: (tool: ChatTool) => ReactNode;
 }
+
+const TOOLS: { label: string; Icon: LucideIcon; run: "attach" | ChatTool }[] = [
+  { label: "Upload a letter or PDF", Icon: Paperclip, run: "attach" },
+  { label: "Am I owed anything?", Icon: PoundSterling, run: "owed" },
+  { label: "Is this a scam?", Icon: ShieldAlert, run: "shield" },
+];
 
 const RUNNING = new Set(["running", "waiting", "checkpoint"]);
 
@@ -102,7 +116,15 @@ export function ChatPage({
   onSpeak,
   speech,
   elevenLabsKey,
+  revealed = false,
+  onOpenTool,
+  renderTool,
 }: ChatPageProps) {
+  const attachRef = useRef<(() => void) | null>(null);
+  const runAction = (route: ActionRoute) => {
+    if (route.kind === "attach") attachRef.current?.();
+    else if (route.kind === "tool") onOpenTool?.(route.tool);
+  };
   const [volume, setVolume] = useState(80);
   // A sample or suggestion chip bypasses the input bar, so its error has its own alert line.
   const [chipError, setChipError] = useState<string | null>(null);
@@ -159,7 +181,18 @@ export function ChatPage({
               {thinking && <TypingIndicator />}
             </>
           ) : (
-            <TaskMessages messages={messages} pendingSummary={conversation?.ask?.summary ?? null} onSpeak={onSpeak} onFeedback={onFeedback} onSuggest={pick} thinking={thinking} busy={busy} />
+            <TaskMessages
+              messages={messages}
+              pendingSummary={conversation?.ask?.summary ?? null}
+              onSpeak={onSpeak}
+              onFeedback={onFeedback}
+              onSuggest={pick}
+              thinking={thinking}
+              busy={busy}
+              routeAction={(href) => routeAction(href, revealed)}
+              onAction={runAction}
+              renderTool={renderTool}
+            />
           )}
           {chipError && (
             <p role="alert" className="my-2 rounded-2xl border border-rose-400/30 bg-rose-500/[0.08] px-3.5 py-2.5 text-sm text-rose-200">
@@ -184,6 +217,24 @@ export function ChatPage({
           <div ref={endRef} />
         </div>
 
+        {onOpenTool && (
+          <ul aria-label="Chat tools" className="-mx-1 flex shrink-0 gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]">
+            {TOOLS.map(({ label, Icon, run }) => (
+              <li key={label} className="shrink-0">
+                <button
+                  type="button"
+                  disabled={busy && run === "attach"}
+                  onClick={() => (run === "attach" ? attachRef.current?.() : onOpenTool(run))}
+                  className={`flex min-h-10 items-center gap-2 whitespace-nowrap rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 text-[13px] font-medium text-slate-200 transition-colors hover:border-accent-300/35 hover:bg-accent-500/[0.1] hover:text-white disabled:opacity-50 motion-reduce:transition-none ${FOCUS}`}
+                >
+                  <Icon size={15} aria-hidden className="text-accent-300" />
+                  {label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
         <ChatInput
           activeModels={activeModels}
           selectedModel={selectedModel}
@@ -192,6 +243,7 @@ export function ChatPage({
           onSend={onSend}
           onSendAudio={onSendAudio}
           onReadLetter={onReadLetter}
+          attachRef={attachRef}
           onStop={onStop}
           isMissionRunning={isMissionRunning}
           onMicPress={() => setVolume(0)}

@@ -7,13 +7,15 @@ import { Button, EmptyState, HonestyBadge, Spinner, Toaster, toast } from "./com
 import { GatewayBanner } from "./components/layout/GatewayBanner";
 import catalogJson from "./showcase/catalog.json";
 import ChatContainer from "./features/chat/ChatContainer";
-import { chatStore, queuePrompt, useChatStore } from "./features/chat/store";
+import { chatStatus, chatStore, queuePrompt, useChatStore } from "./features/chat/store";
 import { BEATS } from "./features/chat/WelcomeCard";
 import type { Command } from "./components/layout/CommandPalette";
+import { HIDDEN } from "./components/layout/nav";
 import { LANGUAGE_KEY, SettingsPage, readLanguage } from "./features/settings/SettingsPage";
 import { Gateway, type Health, type LedgerTotals } from "./lib/api";
 import { gatewayConfig, setGatewayOverride, setShowcaseOverride, showcaseEnabled, showcaseForcedByBuild } from "./lib/config";
 import { useLiveEvents } from "./lib/live";
+import { useRevealKey, useRevealed } from "./lib/reveal";
 import { MeshProvider } from "./lib/mesh-context";
 import type { Language } from "./lib/shield";
 import { ShowcaseGateway } from "./lib/showcase";
@@ -56,7 +58,7 @@ function loadProfile(): string | null {
 }
 
 const PAGE_TITLES: Record<string, string> = {
-  "/chat": "Chat", "/missions": "Mission Control", "/memory": "Memory", "/profiles": "Profiles", "/skills": "Skills",
+  "/chat": "Chat", "/missions": "Mission Control", "/memory": "Memory", "/profiles": "Summary", "/skills": "Skills",
   "/shield": "Scam Shield", "/read": "Read It To Me", "/owed": "Am I Owed Anything?", "/callers": "Who's calling?",
   "/privacy": "Privacy Proof", "/story": "The story", "/settings": "Settings", "/devices": "Devices", "/pair": "Join Tempo", "/connectors": "Connectors",
 };
@@ -164,9 +166,25 @@ export default function App() {
   };
   const handleUpdateApiKey = (provider: ApiKeyProvider, key: string) => setApiKeys((prev) => ({ ...prev, [provider]: key }));
 
-  // Sidebar history comes from the chat store.
-  const { conversations } = useChatStore();
-  const history = conversations.map((c) => c.title);
+  // Sidebar history comes from the chat store, each conversation with its status (plan.md §19).
+  const { conversations, activeId } = useChatStore();
+  const history = conversations.map((c) => ({ title: c.title, status: chatStatus(c), current: c.id === activeId }));
+
+  // L shows or hides the pages kept out of sight (plan.md §19); hiding them leaves a hidden page.
+  const revealed = useRevealed();
+  const hereRef = useRef(current);
+  useEffect(() => {
+    hereRef.current = current;
+  }, [current]);
+  useRevealKey(
+    useCallback((on: boolean) => {
+      if (on) toast.info("All pages are back in the menu. Press L to hide them again.");
+      else {
+        toast.info("Extra pages hidden. Press L to bring them back.");
+        if (HIDDEN.has(hereRef.current)) navigate("/chat");
+      }
+    }, []),
+  );
 
   const speak = useCallback((text: string) => chatStore.setSpeech({ id: crypto.randomUUID(), text }), []);
 
@@ -305,6 +323,7 @@ export default function App() {
     <AppShell
       section={current}
       history={history}
+      revealed={revealed}
       profileName={profileName}
       ledger={ledger ? { gbp: ledger.gbp_recovered, hours: ledger.hours_returned } : null}
       commands={askCommands}

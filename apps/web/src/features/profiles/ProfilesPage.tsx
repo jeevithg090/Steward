@@ -217,7 +217,7 @@ function ProfileList({ source, user, setProfile, showcase, banner }: Sub) {
           </a>
         }
       >
-        Profiles
+        Summary
       </PageTitle>
 
       {banner}
@@ -391,7 +391,7 @@ function ProfileDetail({ source, id, user, setProfile, showcase, banner }: Sub &
       <BackLink />
       {error && (
         <>
-          <PageTitle>Profiles</PageTitle>
+          <PageTitle>Summary</PageTitle>
           {banner}
           <EmptyState title="There's no such profile" tone="error" action={<a {...linkProps("/profiles")} className={QUIET_LINK}>See all profiles</a>}>
             {error}
@@ -400,14 +400,14 @@ function ProfileDetail({ source, id, user, setProfile, showcase, banner }: Sub &
       )}
       {!error && !profile && (
         <>
-          <PageTitle>Profiles</PageTitle>
+          <PageTitle>Summary</PageTitle>
           {banner}
           <SkeletonCards count={3} label="Loading the profile" />
         </>
       )}
       {profile && (
         <>
-          <PageTitle lede={profile.summary}>Profiles</PageTitle>
+          <PageTitle lede={profile.summary}>Summary</PageTitle>
           {banner}
           <Card tone="indigo" padding="none" className={`relative overflow-hidden motion-safe:animate-fade-up ${active ? "shadow-glow ring-1 ring-accent-400/50" : ""}`}>
             <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent-500/20 blur-3xl" />
@@ -688,7 +688,7 @@ function ImportProfile({ source, code, user, setProfile, showcase, banner }: Sub
     <div className="space-y-6">
       <BackLink />
       <PageTitle lede="Somebody sent you a Tempo profile. The link holds the whole profile; this page only reads it and shows it. Nothing is saved, here or anywhere else, unless you download the file yourself.">
-        Profiles
+        Summary
       </PageTitle>
       {banner}
 

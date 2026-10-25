@@ -97,8 +97,10 @@ CANNED: dict[str, str] = {
         "worth claiming, with the official page for each."
     ),
     "profiles_none": "No profiles are installed yet.",
-    "profiles_pick": "Pick one on the Profiles page, and I'll work that way for you.",
-    "letter": "Show me the letter: tap the camera button and I'll read it to you.",
+    "profiles_pick": "Pick one on the Summary page, and I'll work that way for you.",
+    "letter": (
+        "Show me the letter: upload a photo or PDF with the paperclip and I'll read it to you."
+    ),
     "help": (
         "I'm Tempo. I win back money and time you're owed. Tell me about a late train and I'll "
         "claim for you. Tell me about an engineer who never came. Paste a text you're not sure "

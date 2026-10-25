@@ -1,5 +1,5 @@
-import { useRef, useState, type FormEvent } from "react";
-import { Camera, ChevronDown, Loader2, Mic, SendHorizontal, Square, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent, type MutableRefObject } from "react";
+import { ChevronDown, Loader2, Mic, Paperclip, SendHorizontal, Square, Trash2 } from "lucide-react";
 import { FOCUS } from "@/components/ui";
 import { useAudioRecorder, type Recording } from "@/hooks/useAudioRecorder";
 import { useElementWidth } from "@/hooks/useElementWidth";
@@ -7,6 +7,7 @@ import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { formatDuration } from "@/lib/formatDuration";
 import type { Language } from "@/lib/shield";
 import type { ModelProvider } from "@/types/types";
+import { ATTACH_ACCEPT } from "./tools";
 
 // Local Model is the primary default choice
 const MODEL_LABELS: Record<ModelProvider, string> = {
@@ -27,8 +28,10 @@ export interface ChatInputProps {
   onSend: (text: string) => Promise<void>;
   /** A recorded clip, when the browser cannot turn speech into text. */
   onSendAudio: (clip: Recording) => void;
-  /** A photo of a letter for Read It To Me; rejects with a plain-words error. */
+  /** A photo or PDF of a letter or bill, read aloud; rejects with a plain-words error. */
   onReadLetter: (file: File) => Promise<void>;
+  /** Filled with a function that opens the file picker (a reply's "Upload a letter" button, the tools row). */
+  attachRef?: MutableRefObject<(() => void) | null>;
   /** The kill switch while a mission is running. */
   onStop?: () => Promise<void>;
   isMissionRunning?: boolean;
@@ -50,6 +53,7 @@ export function ChatInput({
   onSend,
   onSendAudio,
   onReadLetter,
+  attachRef,
   onStop,
   isMissionRunning = false,
   onMicPress,
@@ -63,6 +67,15 @@ export function ChatInput({
   const [error, setError] = useState<string | null>(null);
   const [formRef, width] = useElementWidth<HTMLFormElement>();
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Others can open the picker; a click still starts it, so the browser allows it.
+  useEffect(() => {
+    if (!attachRef) return;
+    attachRef.current = () => fileRef.current?.click();
+    return () => {
+      attachRef.current = null;
+    };
+  }, [attachRef]);
 
   const recorder = useAudioRecorder();
   const { status, elapsedMs, clip, error: recorderError } = recorder;
@@ -150,7 +163,7 @@ export function ChatInput({
         </p>
       )}
 
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" aria-hidden tabIndex={-1} onChange={(e) => void handleFile(e.target.files?.[0])} />
+      <input ref={fileRef} type="file" accept={ATTACH_ACCEPT} className="hidden" aria-hidden tabIndex={-1} onChange={(e) => void handleFile(e.target.files?.[0])} />
 
       {status === "idle" && (
         <>
@@ -158,11 +171,11 @@ export function ChatInput({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={busy || disabled}
-            aria-label="Photograph or pick a letter to read"
-            title="Read a letter: photograph it or pick a photo"
+            aria-label="Upload a letter, bill or PDF to read"
+            title="Upload a letter, bill or PDF: a photo or the file. I'll read it to you."
             className={`${roundBtn} text-white hover:bg-white/10 disabled:opacity-50`}
           >
-            {isReading ? <Loader2 size={18} className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Camera size={18} aria-hidden />}
+            {isReading ? <Loader2 size={18} className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Paperclip size={18} aria-hidden />}
           </button>
           <input
             value={text}

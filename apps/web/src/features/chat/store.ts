@@ -3,6 +3,8 @@
 // understood so far (plan.md §4.1: the client echoes them back each turn). Track C2 owns this file.
 // Conversations survive a reload (plan.md §12.3): they are kept in localStorage under
 // `tempo.chat.v1`, at most 30 conversations of 100 messages each, without audio clips.
+// Each one has a status for the sidebar's History (plan.md §19): live, finished (news not yet
+// seen) or read.
 import { useSyncExternalStore } from "react";
 import type { ChatNeed, ConsentAsk, CourtDecision, Finding, MissionState, MissionView, ChatSource, ChatStep } from "@/lib/api";
 import type { ChatMessage } from "@/types/types";
@@ -39,7 +41,20 @@ export interface Conversation {
   status: string | null;
   /** The honesty line ("simulated: company, rail data…") has been shown once. */
   simulatedShown: boolean;
+  /** Something new arrived (a reply, an outcome) while the person wasn't looking at it. */
+  unread?: boolean;
+  /** A turn is on its way to Tempo (not kept across a reload). */
+  pending?: boolean;
 }
+
+/** How a conversation stands in History: Tempo is still on it, it's done with news, or done and seen. */
+export type ChatStatus = "live" | "finished" | "read";
+
+export const STATUS_WORDS: Record<ChatStatus, { label: string; hint: string }> = {
+  live: { label: "Live", hint: "Tempo is still working on this" },
+  finished: { label: "Finished", hint: "Done, with something you haven't read yet" },
+  read: { label: "Completed and read", hint: "Done, and you've seen it" },
+};
 
 export interface SpeechRequest {
   id: string;
@@ -61,6 +76,11 @@ export const STORE_KEY = "tempo.chat.v1";
 export const MAX_CONVERSATIONS = 30;
 export const MAX_MESSAGES = 100;
 const TERMINAL = new Set<MissionState>(["declined", "failed_safe", "verified", "completed"]);
+
+export function chatStatus(c: Conversation): ChatStatus {
+  if (c.pending || c.ask || (c.missionId && c.missionState && !TERMINAL.has(c.missionState))) return "live";
+  return c.unread ? "finished" : "read";
+}
 
 function loadJson<T>(key: string, fallback: T): T {
   try {
@@ -109,6 +129,8 @@ export function missionToConversation(m: MissionView, storedIntents: Record<stri
     missionIds: [m.id],
     missionState: m.state,
     simulatedShown: true,
+    // Finished while this device wasn't looking: news to read.
+    unread: TERMINAL.has(m.state),
   };
 }
 
@@ -132,17 +154,33 @@ function restore(): Pick<State, "conversations" | "activeId"> {
   const conversations = list
     .filter((c): c is Conversation => Boolean(c) && typeof (c as Conversation).id === "string" && Array.isArray((c as Conversation).messages))
     .slice(0, MAX_CONVERSATIONS)
-    .map((c) => ({ ...blank(c.id, String(c.title ?? "")), ...c, missionIds: Array.isArray(c.missionIds) ? c.missionIds : [], messages: c.messages.slice(-MAX_MESSAGES) }));
+    .map((c) => ({ ...blank(c.id, String(c.title ?? "")), ...c, pending: false, missionIds: Array.isArray(c.missionIds) ? c.missionIds : [], messages: c.messages.slice(-MAX_MESSAGES) }));
   const activeId = typeof saved.activeId === "string" && conversations.some((c) => c.id === saved.activeId) ? saved.activeId : null;
   return { conversations, activeId };
 }
 
 let state: State = { ...restore(), speech: null };
 const listeners = new Set<() => void>();
+/** The chat page is on screen, so its active conversation is being read. */
+let viewing = false;
+
+function onScreen(id: string): boolean {
+  return viewing && state.activeId === id;
+}
+
+/** News (a reply from Tempo, a claim that ended) in a conversation no one is looking at is unread. */
+function marked(before: Conversation, after: Conversation): Conversation {
+  const replied = after.messages.length > before.messages.length && after.messages.slice(before.messages.length).some((m) => m.role !== "user");
+  const ended = after.missionState !== before.missionState && Boolean(after.missionState && TERMINAL.has(after.missionState));
+  return (replied || ended) && !onScreen(after.id) ? { ...after, unread: true } : after;
+}
 
 function set(next: Partial<State>): void {
   const before = state;
   state = { ...state, ...next };
+  // The conversation on screen is read.
+  const shown = viewing && state.activeId ? state.conversations.find((c) => c.id === state.activeId) : undefined;
+  if (shown?.unread) state = { ...state, conversations: state.conversations.map((c) => (c.id === shown.id ? { ...c, unread: false } : c)) };
   if (state.conversations !== before.conversations || state.activeId !== before.activeId) persist(state.conversations, state.activeId);
   for (const l of listeners) l();
 }
@@ -181,6 +219,11 @@ export const chatStore = {
   setSpeech(speech: SpeechRequest | null): void {
     set({ speech });
   },
+  /** The chat page says when it is on screen, so what it shows counts as read. */
+  setViewing(on: boolean): void {
+    viewing = on;
+    set({});
+  },
   newChat(): void {
     set({ activeId: null, speech: null });
   },
@@ -198,7 +241,7 @@ export const chatStore = {
     return id;
   },
   update(id: string, fn: (c: Conversation) => Conversation): void {
-    set({ conversations: state.conversations.map((c) => (c.id === id ? fn(c) : c)) });
+    set({ conversations: state.conversations.map((c) => (c.id === id ? marked(c, fn(c)) : c)) });
   },
   updateActive(fn: (c: Conversation) => Conversation): void {
     if (state.activeId) this.update(state.activeId, fn);
@@ -234,7 +277,7 @@ export const chatStore = {
       }
       if (m.state === c.missionState && (m.ask?.request_id ?? null) === (c.ask?.request_id ?? null)) return c;
       changed = true;
-      return { ...c, missionState: m.state, ask: m.ask ?? null, court: m.court ?? c.court };
+      return marked(c, { ...c, missionState: m.state, ask: m.ask ?? null, court: m.court ?? c.court });
     });
     const incoming = missions.filter((m) => !known.has(m.id) && !dismissed.has(m.id)).map((m) => missionToConversation(m, storedIntents));
     if (incoming.length > 0 || changed) set({ conversations: [...refreshed, ...incoming] });

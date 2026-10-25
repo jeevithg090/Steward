@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { LayoutList, Menu, MessageSquare, MoreHorizontal, Search, ShieldAlert, FileText } from "lucide-react";
+import { Brain, FileText, LayoutList, Menu, MessageSquare, MoreHorizontal, Plug, Search, ShieldAlert, Users } from "lucide-react";
 import { useResizable } from "@/hooks/useResizable";
 import { linkProps } from "@/router";
 import { Kbd } from "../ui/Kbd";
@@ -7,13 +7,15 @@ import { ResizeHandle } from "../ui/ResizeHandle";
 import { TempoMark } from "../ui/TempoMark";
 import { CommandPalette, baseCommands, newChatCommand, type Command } from "./CommandPalette";
 import { navFor } from "./nav";
-import { Sidebar } from "./Sidebar";
+import { Sidebar, type HistoryItem } from "./Sidebar";
 
 interface AppShellProps {
   section: string;
   onNewChat?: () => void;
   onSelectChat?: (index: number) => void;
-  history: string[];
+  history: HistoryItem[];
+  /** L was pressed: the hidden pages are back in the menus (plan.md §19). */
+  revealed?: boolean;
   profileName?: string | null;
   /** The honesty badge and anything else that belongs in every page's header. */
   badge?: ReactNode;
@@ -28,15 +30,22 @@ interface AppShellProps {
 
 const MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
-/** The four places people go most on a phone, and "More" for the rest (the drawer). */
+/** The four places people go most on a phone, and "More" for the rest (the drawer). The chat does
+ * the reading, the owed check and the scam check, so those pages only come back with L. */
 const TABS = [
+  { to: "/chat", label: "Chat", Icon: MessageSquare },
+  { to: "/memory", label: "Memory", Icon: Brain },
+  { to: "/connectors", label: "Connectors", Icon: Plug },
+  { to: "/profiles", label: "Summary", Icon: Users },
+];
+const ALL_TABS = [
   { to: "/chat", label: "Chat", Icon: MessageSquare },
   { to: "/missions", label: "Missions", Icon: LayoutList },
   { to: "/shield", label: "Shield", Icon: ShieldAlert },
   { to: "/read", label: "Read", Icon: FileText },
 ];
 
-export function AppShell({ section, onNewChat, onSelectChat, history, profileName, badge, banner, ledger, commands = [], children }: AppShellProps) {
+export function AppShell({ section, onNewChat, onSelectChat, history, revealed = false, profileName, badge, banner, ledger, commands = [], children }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const sidebar = useResizable({ initial: 272, min: 72, max: 420 });
@@ -57,10 +66,10 @@ export function AppShell({ section, onNewChat, onSelectChat, history, profileNam
   useEffect(() => setDrawerOpen(false), [section]);
 
   const allCommands = useMemo(
-    () => baseCommands([...(onNewChat ? [newChatCommand(onNewChat)] : []), ...commands]),
+    () => baseCommands([...(onNewChat ? [newChatCommand(onNewChat)] : []), ...commands], revealed),
     // Rebuilt each time the palette opens, so toggles show their current state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [paletteOpen, commands, onNewChat],
+    [paletteOpen, commands, onNewChat, revealed],
   );
 
   return (
@@ -68,14 +77,14 @@ export function AppShell({ section, onNewChat, onSelectChat, history, profileNam
       <a href="#main" className="skip-link">Skip to content</a>
 
       <div className="hidden lg:flex">
-        <Sidebar section={section} onNewChat={onNewChat} onSelectChat={onSelectChat} history={history} width={sidebar.width} profileName={profileName} ledger={ledger} />
+        <Sidebar section={section} onNewChat={onNewChat} onSelectChat={onSelectChat} history={history} revealed={revealed} width={sidebar.width} profileName={profileName} ledger={ledger} />
         <ResizeHandle label="Resize sidebar" value={sidebar.width} min={sidebar.min} max={sidebar.max} handleProps={sidebar.handleProps} />
       </div>
 
       {drawerOpen && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
           <div className="motion-safe:animate-[fade-up_260ms_cubic-bezier(0.22,1,0.36,1)]">
-            <Sidebar section={section} onNewChat={onNewChat} onSelectChat={onSelectChat} history={history} onClose={() => setDrawerOpen(false)} profileName={profileName} ledger={ledger} />
+            <Sidebar section={section} onNewChat={onNewChat} onSelectChat={onSelectChat} history={history} revealed={revealed} onClose={() => setDrawerOpen(false)} profileName={profileName} ledger={ledger} />
           </div>
           <button className="flex-1 bg-ink/70 backdrop-blur-sm motion-safe:animate-fade-in" aria-label="Close menu" onClick={() => setDrawerOpen(false)} />
         </div>
@@ -121,7 +130,7 @@ export function AppShell({ section, onNewChat, onSelectChat, history, profileNam
         </main>
 
         <nav aria-label="Quick" className="flex shrink-0 items-stretch border-t border-white/[0.06] bg-ink-900/85 px-2 pb-[max(env(safe-area-inset-bottom),0.25rem)] pt-1 backdrop-blur-xl lg:hidden">
-          {TABS.map((tab) => {
+          {(revealed ? ALL_TABS : TABS).map((tab) => {
             const on = section === tab.to;
             return (
               <a

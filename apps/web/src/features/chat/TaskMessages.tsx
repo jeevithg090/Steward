@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { CornerDownRight } from "lucide-react";
 import { Badge, type BadgeTone, FOCUS } from "@/components/ui";
 import { LedgerCounter } from "@/components/mission";
@@ -9,12 +10,13 @@ import { LetterReadingCard } from "./LetterReadingCard";
 import { ScamVerdictCard } from "./ScamVerdictCard";
 import { Sources, StepsRow } from "./TurnTrace";
 import type { ThreadMessage } from "./store";
+import type { ActionRoute, ChatTool } from "./tools";
 
 export const INTENT_WORDS: Record<Intent, string> = {
   rail_delay: "Delay Repay",
   missed_visit: "Missed visit",
   scam_check: "Scam Shield",
-  letter: "Read It To Me",
+  letter: "Read a letter",
   memory_recall: "Memory",
   memory_forget: "Memory",
   ledger: "Time Ledger",
@@ -22,7 +24,7 @@ export const INTENT_WORDS: Record<Intent, string> = {
   approve: "Yes",
   decline: "No",
   stop: "STOP",
-  profiles: "Profiles",
+  profiles: "Summary",
   help: "Help",
   smalltalk: "Chat",
   sweep: "Connectors",
@@ -68,7 +70,15 @@ interface TaskMessagesProps {
   thinking?: boolean;
   /** Something is in flight: suggestion chips wait. */
   busy?: boolean;
+  /** Where a reply's button goes (plan.md §19); every button is a link when this is not given. */
+  routeAction?: (href: string) => ActionRoute;
+  /** Run a button that stays in the chat: open a tool, or pick a file. */
+  onAction?: (route: ActionRoute) => void;
+  /** The card for a tool message (the owed questions, the scam check). */
+  renderTool?: (tool: ChatTool) => ReactNode;
 }
+
+const ACTION = `inline-flex min-h-9 items-center rounded-full border border-accent-300/30 bg-accent-500/[0.12] px-3.5 py-1.5 text-xs font-medium text-accent-50 transition-colors hover:bg-accent-500/25 ${FOCUS}`;
 
 /** Three dots in an agent bubble while Tempo works out the reply; read out once as "Tempo is thinking". */
 export function TypingIndicator() {
@@ -82,7 +92,7 @@ export function TypingIndicator() {
   );
 }
 
-export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedback, onSuggest, thinking = false, busy = false }: TaskMessagesProps) {
+export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedback, onSuggest, thinking = false, busy = false, routeAction, onAction, renderTool }: TaskMessagesProps) {
   const last = messages[messages.length - 1];
 
   return (
@@ -97,6 +107,24 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
             </li>
           );
         }
+        if (message.tool && renderTool) {
+          // A tool in the conversation: Tempo's line, then the card at the thread's full width.
+          return (
+            <li key={message.id} className="space-y-3 motion-safe:animate-fade-up">
+              <div className="surface w-fit max-w-[88%] rounded-3xl rounded-bl-md px-5 py-4 text-[14.5px] text-white lg:max-w-[78%]">
+                <span className="sr-only">Tempo said: </span>
+                {message.intent && (
+                  <Badge tone={INTENT_TONE[message.intent] ?? "indigo"} className="mb-1.5">
+                    {INTENT_WORDS[message.intent]}
+                  </Badge>
+                )}
+                <p className="whitespace-pre-wrap leading-relaxed">{message.text}</p>
+              </div>
+              <div className="min-w-0">{renderTool(message.tool)}</div>
+            </li>
+          );
+        }
+        const actions = (message.actions ?? []).map((a) => ({ a, route: routeAction?.(a.href) ?? ({ kind: "link" } as ActionRoute) })).filter((x) => x.route.kind !== "hide");
         return (
           <li key={message.id} className={`max-w-[88%] px-4 py-3 text-[14.5px] text-white motion-safe:animate-fade-up lg:max-w-[78%] ${isUser ? "ml-auto w-fit rounded-3xl rounded-br-md bg-gradient-to-b from-accent-600 to-accent-700 shadow-[0_1px_0_0_rgb(255_255_255/0.18)_inset,0_14px_30px_-16px_rgb(var(--accent-600)/0.9)]" : "surface rounded-3xl rounded-bl-md px-5 py-4"}`}>
             <span className="sr-only">{isUser ? "You said: " : "Tempo said: "}</span>
@@ -152,13 +180,19 @@ export function TaskMessages({ messages, pendingSummary = null, onSpeak, onFeedb
                 ))}
               </ul>
             )}
-            {message.actions && message.actions.length > 0 && (
-              <ul aria-label="Open the page" className="mt-3 flex flex-wrap gap-2">
-                {message.actions.map((a) => (
+            {actions.length > 0 && (
+              <ul aria-label="What you can do next" className="mt-3 flex flex-wrap gap-2">
+                {actions.map(({ a, route }) => (
                   <li key={a.href}>
-                    <a {...linkProps(a.href)} className={`inline-flex min-h-9 items-center rounded-full border border-accent-300/30 bg-accent-500/[0.12] px-3.5 py-1.5 text-xs font-medium text-accent-50 transition-colors hover:bg-accent-500/25 ${FOCUS}`}>
-                      {a.label}
-                    </a>
+                    {route.kind === "link" || !onAction ? (
+                      <a {...linkProps(a.href)} className={ACTION}>
+                        {a.label}
+                      </a>
+                    ) : (
+                      <button type="button" onClick={() => onAction(route)} className={ACTION}>
+                        {route.kind === "attach" ? "Upload a letter or PDF" : a.label}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

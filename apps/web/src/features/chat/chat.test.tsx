@@ -1,15 +1,18 @@
 import { StrictMode } from "react";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Toaster, toast } from "@/components/ui";
 import { Gateway, type ChatReply, type ChatTurn, type Health, type MissionView } from "@/lib/api";
 import { ZONE_WORDS, recordedVerdict } from "@/lib/shield";
 import { ShowcaseGateway } from "@/lib/showcase";
 import { SUGGESTIONS } from "@/lib/showcase-chat";
+import lettersJson from "@/showcase/letters.json";
+import { reveal } from "@/lib/reveal";
 import { expectNoA11yViolations } from "@/test/a11y";
 import type { PageProps } from "@/types/page";
 import ChatContainer, { gatewayModelWords } from "./ChatContainer";
 import { MAX_CONVERSATIONS, STORE_KEY, chatStore } from "./store";
+import { TOOL_INTRO } from "./tools";
 import { BEATS, SAMPLE_CHIPS } from "./WelcomeCard";
 
 // This device's Mesh state (plan.md §12.2): by default it does not sign; one test makes it sign.
@@ -41,6 +44,7 @@ beforeAll(() => {
 });
 beforeEach(() => {
   localStorage.clear();
+  reveal.set(false);
   chatStore.reset();
   toast.clear();
   meshMock.signs = false;
@@ -263,8 +267,67 @@ test("a verdict reply renders the Scam Shield card with the level and zone words
   const card = await screen.findByRole("region", { name: "Scam Shield verdict" });
   expect(within(card).getByText("This looks like a scam")).toBeInTheDocument();
   expect(within(card).getByText(ZONE_WORDS[verdict.zone])).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Open Scam Shield" })).toHaveAttribute("href", "#/shield");
   await expectNoA11yViolations(container);
+  // Scam Shield's page is hidden (plan.md §19): its button opens the checker here instead.
+  await userEvent.click(screen.getByRole("button", { name: "Open Scam Shield" }));
+  expect(await screen.findByRole("heading", { name: "Check a message" })).toBeInTheDocument();
+  // After L, the button is a link to the page again.
+  act(() => reveal.set(true));
+  expect(screen.getByRole("link", { name: "Open Scam Shield" })).toHaveAttribute("href", "#/shield");
+});
+
+test("by default a reply's button to Mission Control is left out: History shows the status instead", async () => {
+  const { gateway } = fakeGateway(() => ({ ...blank("help", "Filed."), actions: [{ label: "Open Mission Control", href: "#/missions/m_1" }, { label: "Open Connectors", href: "#/connectors" }] }));
+  renderChat(gateway);
+  await userEvent.type(screen.getByRole("textbox", { name: "Your message" }), "What happened?{enter}");
+  expect(await screen.findByRole("link", { name: "Open Connectors" })).toHaveAttribute("href", "#/connectors");
+  expect(screen.queryByText("Open Mission Control")).not.toBeInTheDocument();
+  act(() => reveal.set(true));
+  expect(screen.getByRole("link", { name: "Open Mission Control" })).toHaveAttribute("href", "#/missions/m_1");
+});
+
+test("the chat's tools: the ten owed questions and the scam check open as cards in the conversation", async () => {
+  const { gateway } = fakeGateway(() => blank("help", ""));
+  const { container, speak } = renderChat(gateway);
+  const tools = screen.getByRole("list", { name: "Chat tools" });
+  expect(within(tools).getAllByRole("button").map((b) => b.textContent)).toEqual(["Upload a letter or PDF", "Am I owed anything?", "Is this a scam?"]);
+
+  await userEvent.click(within(tools).getByRole("button", { name: "Am I owed anything?" }));
+  expect(await screen.findByRole("heading", { name: "How old are you?" })).toBeInTheDocument();
+  expect(screen.getByText(TOOL_INTRO.owed.text)).toBeInTheDocument();
+  expect(speak).toHaveBeenCalledWith(TOOL_INTRO.owed.text);
+
+  await userEvent.click(within(tools).getByRole("button", { name: "Is this a scam?" }));
+  expect(await screen.findByRole("heading", { name: "Check a message" })).toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "The Shield log" })).not.toBeInTheDocument(); // the page's log stays on the page
+  expect(chatStore.get().conversations).toHaveLength(1);
+  await expectNoA11yViolations(container);
+});
+
+test("a PDF from the paperclip is read by the Gateway's letter reader and read aloud", async () => {
+  const reading = lettersJson.letters[0]!.reading;
+  const sent: { filename: string; image_b64: string }[] = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = (async (url: RequestInfo | URL, init?: RequestInit) => {
+    if (!String(url).endsWith("/letters/read")) return new Response("{}", { status: 404 });
+    sent.push(JSON.parse(String(init?.body)));
+    return new Response(JSON.stringify(reading), { status: 200 });
+  }) as typeof fetch;
+  try {
+    const { gateway } = fakeGateway(() => blank("help", ""));
+    const { container, speak } = renderChat(gateway);
+    const picker = container.querySelector<HTMLInputElement>('input[type="file"]')!;
+    expect(picker.accept).toContain("application/pdf");
+    expect(screen.getByRole("button", { name: "Upload a letter, bill or PDF to read" })).toBeInTheDocument();
+    await userEvent.upload(picker, new File(["%PDF-1.7"], "water bill.pdf", { type: "application/pdf" }));
+    expect(await screen.findByText("PDF to read: water bill.pdf")).toBeInTheDocument();
+    await waitFor(() => expect(speak).toHaveBeenCalledWith(reading.reading_text));
+    expect(sent[0]?.filename).toBe("water bill.pdf");
+    expect(atob(sent[0]!.image_b64)).toBe("%PDF-1.7");
+    expect(screen.queryByRole("link", { name: "Open Read It To Me" })).not.toBeInTheDocument();
+  } finally {
+    globalThis.fetch = original;
+  }
 });
 
 test("suggestions become chips under the reply; a chip sends its text", async () => {

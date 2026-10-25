@@ -57,4 +57,6 @@ export interface ChatMessage {
   ask?: ConsentAsk | null;
   /** A quiet status line (state change, timer) rather than a spoken reply. */
   kind?: "status";
+  /** A tool shown as a card in the conversation: the owed questions or the scam check (plan.md §19). */
+  tool?: "owed" | "shield";
 }

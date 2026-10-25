@@ -866,3 +866,53 @@ our agent".*
   | The next bank holiday | — | Christmas Day |
   | Walking from Oxford station to the Radcliffe Camera | 4.3 s | 17 min and 1.4 km, via Park End Street, New Road, Queen Street, Carfax, High Street and St Mary's Passage |
   | Cycling from the station to Headington | — | 20 min and 5.7 km |
+
+## 19. A simpler app: fewer tabs, everything through the chat, L for the rest (25 Oct)
+
+*Asked: hide Devices, Who's calling?, The story, Read It To Me, Am I owed anything?, Scam Shield
+and Mission Control by default ("if I type the letter 'L' it comes back"). Put History under
+New chat, then Memory with its own title. Move reading a letter (PDFs too), Am I owed anything?
+and Scam Shield into the chat. Show each chat's status: yellow for live, green for finished, grey
+for completed and read. Rename Profiles to Summary.*
+
+### 19.1 What the person sees by default
+
+- **The sidebar, top to bottom:**
+  1. Tempo.
+  2. "Working for".
+  3. **New chat.**
+  4. **History:** every conversation, each a button with a status dot.
+  5. **Memory**, under its own title.
+  6. **More:** Connectors, Summary (was Profiles), Skills and Privacy Proof.
+  7. "Returned so far" and Settings at the foot.
+- **Status dots** (also said in words for screen readers and on hover):
+  - **Yellow, "Live":** Tempo is still working on it. A claim is running or waiting, or a question is waiting for the person's yes.
+  - **Green, "Finished":** done, with something new the person hasn't opened yet: an outcome, or a reply that arrived while they were elsewhere.
+  - **Grey, "Completed and read":** done, and seen.
+- **In the chat:** a row of tools above the message bar, plus a paperclip in the bar:
+  - **Upload a letter or PDF:** a photo (JPEG, PNG, WebP, HEIC) or a PDF. It's read on the Gateway and read aloud, with the same letter card as before.
+  - **Am I owed anything?:** the ten questions open as a card in the conversation, and the answer is read aloud.
+  - **Is this a scam?:** the Scam Shield checker opens as a card in the conversation.
+  - **Replies that pointed at the hidden pages** ("Answer ten questions", "Read a letter", "Open Scam Shield") now open those tools in place. "Open Mission Control" buttons are left out, because History shows the status.
+- **The phone's bottom bar:** Chat, Memory, Connectors, Summary and More.
+
+### 19.2 Pressing L
+
+- **L brings back** every hidden tab: Mission Control, Read It To Me, Am I owed anything?, Scam Shield, Who's calling?, Devices and The story. They return to the sidebar, the ⌘K palette and the phone's bottom bar, and the chat's buttons go to the pages again.
+- **L again hides them.** A short note says which.
+- **The rules:**
+  - It never fires while typing in a box, or with Ctrl, ⌘ or Alt held.
+  - A reload starts hidden again ("by default no").
+- **The pages are hidden, not deleted.** A direct link still opens them: the phone-pairing QR code (`#pair=`, then Devices) and the live tests rely on that.
+
+### 19.3 The Gateway
+
+- **`/letters/read` takes PDFs:** `.pdf` is sent to Gemini as `application/pdf`, so cloud-apis reads it natively.
+- **Our own GPU model reads images only,** so it refuses a PDF at once, in plain words: "send a photo of the page".
+- **The canned letter reply** says "Upload it with the paperclip" (not "tap the camera button"), and "the Profiles page" becomes "the Summary page".
+
+### 19.4 Checks
+
+- Web unit tests: the status rules, the L key (and that it doesn't fire while typing), the sidebar order, the in-chat tools, and the PDF attach.
+- Gateway tests: a PDF letter goes to vision as `application/pdf`, and the GPU reader refuses a PDF in plain words.
+- Then `make check`, the web suite, the live site redeployed, and a look at it.

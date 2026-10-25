@@ -1,7 +1,9 @@
 // Am I Owed Anything? (plan.md §2): the Entitlement Check as ten plain questions, one at a time
 // with big controls, then what is worth claiming with the official page for each. Screening, not
-// a decision. New page; the questions mirror tempo_core.entitlement.QUESTIONS.
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+// a decision. New page; the questions mirror tempo_core.entitlement.QUESTIONS. The chat shows the
+// same check as a card (`embedded`, plan.md §19): no page title, smaller headings, and the
+// results are read aloud as soon as they arrive.
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, ChevronDown, ExternalLink, FileText, Info, PoundSterling, RotateCcw, Volume2 } from "lucide-react";
 import { Badge, type BadgeTone, Button, Card, EmptyState, FOCUS, Kbd, PageTitle, SkeletonCards } from "@/components/ui";
 import type { EntitlementAnswers, EntitlementFlag, EntitlementResult } from "@/lib/api";
@@ -134,9 +136,9 @@ const CHOICE_ON = "border-accent-300/70 bg-gradient-to-b from-accent-500/25 to-a
 const CHOICE_OFF = "border-white/10 bg-white/[0.03] text-slate-100 hover:border-accent-300/40 hover:bg-white/[0.06]";
 
 /** Two big radio cards. Arrow keys move between them, as for any radio group; Enter goes on. */
-function YesNo({ value, onChange, name }: { value: boolean | null; onChange: (v: boolean) => void; name: string }) {
+function YesNo({ value, onChange, name, labelledBy }: { value: boolean | null; onChange: (v: boolean) => void; name: string; labelledBy: string }) {
   return (
-    <div role="radiogroup" aria-labelledby="question-heading" className="grid max-w-lg grid-cols-2 gap-3">
+    <div role="radiogroup" aria-labelledby={labelledBy} className="grid max-w-lg grid-cols-2 gap-3">
       {[
         { v: true, label: "Yes" },
         { v: false, label: "No" },
@@ -199,7 +201,11 @@ export function spokenSummary(result: EntitlementResult): string {
   return `Worth checking: ${parts.join(". ")}.${total ? ` If all of these apply, that is about £${total} a week.` : ""} This is screening, not a decision; use the official pages to claim.`;
 }
 
-export default function OwedPage({ gateway, showcase, speak }: PageProps) {
+export default function OwedPage({ gateway, showcase, speak, embedded = false }: Pick<PageProps, "gateway" | "showcase" | "speak"> & { embedded?: boolean }) {
+  const ids = useId();
+  const questionId = `${ids}-question`;
+  const resultsId = `${ids}-results`;
+  const heading = embedded ? "text-[1.5rem] sm:text-[1.8rem]" : "text-[2rem] sm:text-[2.6rem]";
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [result, setResult] = useState<EntitlementResult | null>(null);
@@ -223,8 +229,10 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
   }, [step, result]);
 
   useEffect(() => {
-    if (result) resultsRef.current?.focus();
-  }, [result]);
+    if (!result) return;
+    resultsRef.current?.focus();
+    if (embedded) speak(spokenSummary(result)); // in the chat, an answer is read aloud like any other
+  }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const submit = async () => {
     setBusy(true);
@@ -324,7 +332,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
       case "terminally_ill":
         return (
           <div className="space-y-3">
-            <YesNo value={draft.terminally_ill} onChange={(v) => set("terminally_ill", v)} name="terminally_ill" />
+            <YesNo value={draft.terminally_ill} onChange={(v) => set("terminally_ill", v)} name={`${ids}-terminally_ill`} labelledBy={questionId} />
             <button type="button" onClick={() => set("terminally_ill", false)} className={`${TAP} rounded-full px-2 text-sm text-slate-300 underline decoration-slate-500 underline-offset-4 hover:text-white hover:decoration-slate-300 ${FOCUS}`}>
               I'd rather not say
             </button>
@@ -334,7 +342,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
       case "care_day":
       case "care_night":
       case "broadband":
-        return <YesNo value={draft[q.key]} onChange={(v) => set(q.key as "couple" | "care_day" | "care_night" | "broadband", v)} name={q.key} />;
+        return <YesNo value={draft[q.key]} onChange={(v) => set(q.key as "couple" | "care_day" | "care_night" | "broadband", v)} name={`${ids}-${q.key}`} labelledBy={questionId} />;
       default:
         return null;
     }
@@ -343,12 +351,14 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <PageTitle lede="Ten plain questions, then what looks worth claiming, with the official page for each. Tempo only looks and explains here; it never files anything for you.">
-        Am I Owed Anything?
-      </PageTitle>
+      {!embedded && (
+        <PageTitle lede="Ten plain questions, then what looks worth claiming, with the official page for each. Tempo only looks and explains here; it never files anything for you.">
+          Am I Owed Anything?
+        </PageTitle>
+      )}
 
       {!result && (
-        <Card as="section" aria-labelledby="question-heading" className="relative overflow-hidden !p-0">
+        <Card as="section" aria-labelledby={questionId} className="relative overflow-hidden !p-0">
           <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-accent-600/15 blur-3xl" />
           <div className="relative border-b border-white/[0.06] px-5 pb-5 pt-5 sm:px-8 sm:pt-6">
             <div className="flex items-center justify-between gap-3">
@@ -379,7 +389,7 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
 
           <div className="relative px-5 pb-6 pt-7 sm:px-8 sm:pb-8 sm:pt-9">
             <div key={`q-${q.key}`} className="max-w-2xl motion-safe:animate-fade-up">
-              <h2 id="question-heading" className="font-display text-[2rem] leading-[1.1] text-white sm:text-[2.6rem]">
+              <h2 id={questionId} className={`font-display leading-[1.1] text-white ${heading}`}>
                 {q.question}
               </h2>
               {q.help && <p className="mt-3 text-[15px] leading-relaxed text-slate-300">{q.help}</p>}
@@ -421,9 +431,9 @@ export default function OwedPage({ gateway, showcase, speak }: PageProps) {
       {busy && <SkeletonCards count={2} label="Checking the figures" />}
 
       {result && (
-        <section aria-labelledby="results-heading" aria-live="polite" className="space-y-5 motion-safe:animate-fade-up">
+        <section aria-labelledby={resultsId} aria-live="polite" className="space-y-5 motion-safe:animate-fade-up">
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h2 id="results-heading" ref={resultsRef} tabIndex={-1} className="font-display text-[2rem] leading-[1.1] text-white focus:outline-none sm:text-[2.4rem]">
+            <h2 id={resultsId} ref={resultsRef} tabIndex={-1} className={`font-display leading-[1.1] text-white focus:outline-none ${heading}`}>
               What looks worth claiming
             </h2>
             <div className="flex flex-wrap gap-2">

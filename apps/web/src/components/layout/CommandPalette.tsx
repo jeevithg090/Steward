@@ -6,7 +6,7 @@ import { ArrowRight, BookOpen, CornerDownLeft, Eye, Plus, Search, Type, Waves } 
 import { getPrefs, setPrefs, type TextSize } from "@/lib/a11y-prefs";
 import { navigate } from "@/router";
 import { Kbd } from "../ui/Kbd";
-import { NAV_ALL } from "./nav";
+import { visibleNav } from "./nav";
 
 export interface Command {
   id: string;
@@ -35,9 +35,10 @@ function setReduceMotion(on: boolean): void {
   else document.documentElement.removeAttribute("data-reduce-motion");
 }
 
-/** The built-in commands; `extra` adds the app's own (e.g. a new chat, prompts for the chat). */
-export function baseCommands(extra: Command[] = []): Command[] {
-  const pages: Command[] = NAV_ALL.map((entry) => ({
+/** The built-in commands; `extra` adds the app's own (e.g. a new chat, prompts for the chat). The
+ * hidden pages (plan.md §19) are listed only once L has been pressed. */
+export function baseCommands(extra: Command[] = [], revealed = true): Command[] {
+  const pages: Command[] = visibleNav(revealed).map((entry) => ({
     id: `go:${entry.to}`,
     label: entry.label,
     hint: entry.hint,
@@ -81,7 +82,7 @@ export function baseCommands(extra: Command[] = []): Command[] {
     keywords: "tour walkthrough",
     run: () => navigate("/story"),
   };
-  return [...extra, demo, ...pages, ...comfort];
+  return [...extra, ...(revealed ? [demo] : []), ...pages, ...comfort];
 }
 
 export function newChatCommand(onNewChat: () => void): Command {

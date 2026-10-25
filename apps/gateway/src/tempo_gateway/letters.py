@@ -38,17 +38,23 @@ from tempo_ports.vision import DocumentKind, VisionPort
 log = structlog.get_logger("tempo.letters")
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 MAX_IMAGE_B64 = (MAX_IMAGE_BYTES + 2) // 3 * 4  # the same 8 MiB once base64-encoded
-TOO_BIG = "That photo is too big. 8 MB is the most I can read."
+TOO_BIG = "That file is too big. 8 MB is the most I can read."
+# Photos, and PDFs (plan.md §19): Gemini reads a PDF itself; a reader that only sees pictures
+# refuses one, and the person is asked for a photo of the page instead.
 MIME = {
     "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "webp": "image/webp",
-    "heic": "image/heic",
+    "heic": "image/heic", "pdf": "application/pdf",
 }  # fmt: skip
+CANT_READ = "I couldn't read that letter. Try a clearer photo, or tell me what it says."
+CANT_READ_PDF = (
+    "I couldn't read that PDF. Send a photo of the page instead, or tell me what it says."
+)
 Clocks = Callable[[str], list[ClockPack]]
 Caller = Callable[..., str]
 
 
 class LetterPhoto(BaseModel):
-    """A photo of a letter. Vision reads it once; the bytes are never kept."""
+    """A photo or PDF of a letter. Vision reads it once; the bytes are never kept."""
 
     image_b64: str = Field(min_length=1)
     filename: str = Field(default="letter.png", max_length=80)
@@ -152,9 +158,8 @@ async def _facts(vision: VisionPort, image: bytes, filename: str) -> tuple[Fact,
             image, mime_type=_mime(filename), kind=DocumentKind.OFFICIAL_LETTER, filename=filename
         )
     except VisionUnavailable:
-        raise HTTPException(
-            503, "I couldn't read that letter. Try a clearer photo, or tell me what it says."
-        ) from None
+        pdf = _mime(filename) == "application/pdf"
+        raise HTTPException(503, CANT_READ_PDF if pdf else CANT_READ) from None
 
 
 def _image(image_b64: str) -> bytes:
@@ -163,7 +168,7 @@ def _image(image_b64: str) -> bytes:
     try:
         image = base64.b64decode(image_b64, validate=True)
     except binascii.Error:
-        raise HTTPException(400, "That photo didn't arrive whole. Please send it again.") from None
+        raise HTTPException(400, "That file didn't arrive whole. Please send it again.") from None
     if len(image) > MAX_IMAGE_BYTES:
         raise HTTPException(413, TOO_BIG)
     return image
