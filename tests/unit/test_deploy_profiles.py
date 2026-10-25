@@ -25,6 +25,8 @@ def settings(mode: str, **extra: Any) -> Settings:
         ("local", "ollama", "elevenlabs", "off", {"elevenlabs"}),  # only with the user's own key
         ("cloud-standard", "cortex", "elevenlabs", "gemini", {"cortex", "elevenlabs", "gemini"}),
         ("cloud-private", "runpod-vllm", "off", "off", set()),
+        # The GPU demo (plan.md §13): our own model and vision on RunPod, ElevenLabs for the voice.
+        ("cloud-gpu", "runpod-vllm", "elevenlabs", "runpod-vllm", {"elevenlabs"}),
         ("cloud-confidential", "tee-vllm", "off", "off", set()),
     ],
 )

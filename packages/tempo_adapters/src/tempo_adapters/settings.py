@@ -28,9 +28,13 @@ class Settings(BaseSettings):
     tempo_mode: Literal["live", "replay"] = "replay"
     tempo_demo: bool = False
     tempo_hooks: Literal["agent_hooks", "fallback"] = "agent_hooks"
-    tempo_deploy: Literal["local", "cloud-standard", "cloud-private", "cloud-confidential"] = (
-        "cloud-standard"
-    )
+    tempo_deploy: Literal[
+        "local", "cloud-standard", "cloud-private", "cloud-confidential", "cloud-gpu"
+    ] = "cloud-standard"
+    # The model-backed parts (jurors, small talk, reading photos): live or recorded. Unset, they
+    # follow TEMPO_MODE; `live` with TEMPO_MODE=replay is the GPU demo (plan.md §13): real model,
+    # recorded rail data, company and registers, and /health says exactly that.
+    tempo_models: Literal["live", "replay"] | None = None
     tempo_temporal: Literal["sql", "graphiti"] = "sql"
     tempo_region: str | None = None  # where the data actually lives (e.g. us-east-1); shown as is
     image_digest: str | None = None  # set by the deploy: the running image (Privacy Proof panel)

@@ -84,3 +84,25 @@ def chat_client(settings: Settings, adapters: Adapters) -> OpenAIChatCompletionC
         raise NotConfigured(f"{adapters.profile.mode} needs a model URL")
     openai = AsyncOpenAI(api_key="local", base_url=endpoint.base_url)  # Ollama or the TEE
     return OpenAIChatCompletionClient(endpoint.model, async_client=openai)
+
+
+def models_live(settings: Settings) -> bool:
+    """The model-backed parts run on a real model: TEMPO_MODELS, else TEMPO_MODE."""
+    return (settings.tempo_models or settings.tempo_mode) == "live"
+
+
+def model_ready(settings: Settings) -> bool:
+    """The deployment's model can be called now (its settings are there). No network."""
+    try:
+        chat_client(settings, build_adapters(settings))
+    except NotConfigured:
+        return False
+    return True
+
+
+def vision_ready(settings: Settings) -> bool:
+    """Photos are read by a real model now: our own vLLM (cloud-gpu) or Gemini with its key."""
+    chosen = profile(settings.tempo_deploy)
+    if chosen.vision == "runpod-vllm":
+        return bool(settings.runpod_endpoint_id and settings.runpod_api_key)
+    return settings.gemini_api_key is not None

@@ -443,3 +443,64 @@ working. Everything else in §1 stands.*
 4. **Push notifications:** generate VAPID keys (`scripts/gen_vapid.py`) and set them on the Gateway.
 5. **Known limits, stated:** ~~SMS `YES` and the voice `record_consent` tool still answer without a passkey (separate channels); two chat turns sent at the same instant could both start a claim (no lock between the check and the start)~~ (both closed 25 Oct 06:25 GMT, §12.4); the one-claim lock holds within one Gateway process (several processes would need a unique index on the live claim in the database); Face ID was tested with Chrome's virtual authenticator, not a real iPhone; Tauri is not built here; the rule packs are demo values until a person checks each source.
 
+---
+
+## 13. A real GPU behind the live demo (started 07:45)
+
+*Asked at 07:40, with a screenshot of RunPod Serverless: "for this demo let's run a real one, no
+mock: run the GPU on RunPod and route that to Vercel, serverless pod."*
+
+### 13.1 What becomes real, and what cannot
+
+| Part | Before | Now | Why |
+|---|---|---|---|
+| Consensus Court (three jurors) | recorded verdicts | **three votes from our own model on a RunPod GPU** | the model reads the rule and the facts; it still never sets an amount |
+| Chat small talk | canned line | **one sentence from the same model**, under the existing word rules | |
+| Reading photos (letters, the missed-visit card) | recorded readings for two sample photos | **the same model reads any photo** (a vision-language model) | |
+| Voice | ElevenLabs (real since 07:25) | unchanged | |
+| Scam Shield's text model | already real (runs on the Gateway) | unchanged | |
+| Rail data, the company, registers, link sandbox | recorded | **still recorded, and the badge says so** | a GPU can't stand in for National Rail, GWR, Companies House or the FCA; those need their own keys (`make doctor`) |
+
+### 13.2 Architecture
+
+```
+Vercel (tempo live site) ──https──▶ Cloudflare quick tunnel ──▶ Gateway on this Mac (port 8100)
+                                                                   │  bearer token (fresh, per run)
+                                                                   ├──▶ ElevenLabs (voice)
+                                                                   └──▶ RunPod Serverless vLLM (GPU)
+                                                                          Qwen2.5-VL-7B-Instruct,
+                                                                          served as "tempo-private"
+```
+
+- **The GPU is a RunPod Serverless queue endpoint** running the official vLLM worker
+  (`runpod/worker-v1-vllm:v2.30.1`), OpenAI-compatible at
+  `https://api.runpod.ai/v2/<endpoint>/openai/v1`. Its key stays on the Gateway; no browser or
+  Vercel build ever sees it.
+- **The Gateway is not on RunPod or Vercel**: it holds a WebSocket, a scheduler and the missions in
+  memory, which serverless workers would lose between requests. It runs here, from a scratch folder
+  (`../.tempo-live`), and a Cloudflare quick tunnel gives it a public https address with WebSockets.
+- **A new deployment mode, `cloud-gpu`**: the model and vision are our own vLLM on RunPod, the
+  voice is ElevenLabs. It is not `cloud-private` (that mode promises no outside AI company, and
+  ElevenLabs is one).
+- **`TEMPO_MODELS=live`** makes the model-backed parts real while `TEMPO_MODE=replay` keeps the
+  data recorded. `/health` drops "jurors" and "vision" from `simulated` only when they really ran
+  on the model, and names the model.
+- **A second Vercel project, `tempo-live`**, built with the tunnel's address; the showcase
+  (`tempo-showcase`) stays as the no-backend fallback.
+
+### 13.3 Work
+
+| # | Piece | Files |
+|---|---|---|
+| 1 | `cloud-gpu` profile; `TEMPO_MODELS`; jurors, small talk and vision on the model when live; `/health` honesty | `tempo_core/config.py`, `tempo_adapters/settings.py`, `tempo_adapters/vision.py` (an OpenAI-compatible vision reader), `tempo_gateway/main.py`, `chat.py` (`simulated_in`), tests |
+| 2 | The worker settings and a Dockerfile for RunPod's GitHub flow | `deploy/runpod/worker.gpu-demo.env`, `deploy/runpod/Dockerfile` |
+| 3 | `make live-demo`: Gateway on 8100 with the scheduler, a warm-up call, the tunnel, the Vercel deploy, one printed URL; `--stop` | `scripts/live_demo.sh`, `Makefile`, `tempo_gateway/main.py` (`TEMPO_PORT`) |
+| 4 | The badge says "AI: our GPU" when the model is real | `apps/web/src/components/ui/HonestyBadge.tsx`, `lib/api.ts` |
+| 5 | Docs: the RunPod form, costs, the run, honesty | `docs/gpu-demo.md`, `deploy/runpod/README.md`, README |
+
+### 13.4 Status log
+
+- [x] 07:45 Surveyed: Private mode already talks to RunPod vLLM (`tempo_adapters/runpod_llm.py`, `deploy/runpod/`); jurors already ask for JSON by schema (vLLM enforces it); live mode would also switch rail, registers and the sandbox to services with no keys here, hence `TEMPO_MODELS`
+- [x] 08:20 Built: the `cloud-gpu` profile and `TEMPO_MODELS` (jurors, small talk and photo reading on the model while the data stays recorded); `OpenAIVision` for our own vision-language model; `/health` names the model and drops "jurors"/"vision" only when they really run on it; the RunPod client always goes through our own httpx client (its timeout, and testable); the badge says "AI: our own model on a RunPod GPU"; `deploy/runpod/{worker.gpu-demo.env,Dockerfile}` (Qwen2.5-VL-7B-Instruct as `tempo-private`, `runpod/worker-v1-vllm:v2.30.1`); `scripts/live_demo.sh` (`make live-demo`, `live-demo-stop`); `docs/gpu-demo.md`. Tests: 1,365 fast, 173 integration (4 new against a stand-in RunPod route), 205 web. Checked by hand: a quick tunnel carries `/health` and the event WebSocket
+- [ ] Waiting on the team: the RunPod endpoint (the console form, `docs/gpu-demo.md` §1) and its endpoint id and API key in `../.tempo-live/.env`; then `make live-demo` and a walk of the beats on the live site
+

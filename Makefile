@@ -7,7 +7,7 @@ define pytest_marker
 	uv run pytest -m "$(1)" $(2) || [ $$? -eq 5 ]
 endef
 
-.PHONY: help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo demo-gateway demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web scam-train refresh-feeds
+.PHONY: live-demo live-demo-stop help setup check fmt test-int e2e evals doctor local calibrate rights-backtest demo demo-gateway demo-dry-run demo-rehearsal db-migrate sync-voice seed new-skill validate-skills catalog showcase web-check ship-check deploy-web scam-train refresh-feeds
 
 help: ## List the commands
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-14s %s\n", $$1, $$2}'
@@ -102,3 +102,11 @@ scam-train: ## Train Scam Shield's text model from two open SMS corpora; writes 
 
 refresh-feeds: ## Refresh the cached phishing lists (URLhaus, OpenPhish) in fixtures/scam/feeds; keys optional
 	uv run python scripts/refresh_threat_feeds.py
+
+# --- The live GPU demo (plan.md §13, docs/gpu-demo.md) --------------------------------------------
+
+live-demo: ## Real model on a RunPod GPU: Gateway on 8100 + public tunnel + the web app on Vercel (needs ../.tempo-live/.env)
+	./scripts/live_demo.sh
+
+live-demo-stop: ## Stop the live demo's Gateway and tunnel
+	./scripts/live_demo.sh --stop

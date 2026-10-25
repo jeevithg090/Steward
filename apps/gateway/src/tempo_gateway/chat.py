@@ -33,6 +33,7 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
+from tempo_adapters.factory import model_ready, models_live, vision_ready
 from tempo_adapters.settings import Settings
 from tempo_core.delays import LONDON
 from tempo_core.intent import (
@@ -247,10 +248,17 @@ def small_talk_ok(sentence: str | None) -> str | None:
 
 
 def simulated_in(settings: Settings) -> list[str]:
-    """The honesty badge's list, the same one `/health` shows."""
-    return ["company"] + (
-        ["rail data", "jurors", "vision"] if settings.tempo_mode == "replay" else []
-    )
+    """The honesty badge's list, the same one `/health` shows. With TEMPO_MODELS=live and the data
+    replayed (the GPU demo, plan.md §13), jurors and vision leave the list only if they really
+    run on a model now."""
+    if settings.tempo_mode == "live":
+        return ["company"]
+    simulated = ["company", "rail data"]
+    if not (models_live(settings) and model_ready(settings)):
+        simulated.append("jurors")
+    if not (models_live(settings) and vision_ready(settings)):
+        simulated.append("vision")
+    return simulated
 
 
 class Chat:

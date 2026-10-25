@@ -23,8 +23,15 @@ from tempo_adapters.cortex import (
 from tempo_adapters.db import SqlRepo, make_engine
 from tempo_adapters.db.vault import SqlVaultStore
 from tempo_adapters.elevenlabs import load_greetings
-from tempo_adapters.factory import NotConfigured, build_adapters, chat_client
+from tempo_adapters.factory import (
+    NotConfigured,
+    build_adapters,
+    chat_client,
+    models_live,
+    vision_ready,
+)
 from tempo_adapters.rail import rail_port
+from tempo_adapters.runpod_llm import PRIVATE_MODEL, runpod_base_url
 from tempo_adapters.scam import (
     LiveSandbox,
     Registers,
@@ -40,7 +47,7 @@ from tempo_adapters.telemetry import (
     quiet_server_logs,
     trace_url,
 )
-from tempo_adapters.vision import GeminiVision, ReplayVision
+from tempo_adapters.vision import GeminiVision, OpenAIVision, ReplayVision
 from tempo_core.entitlement import Figures
 from tempo_core.hazard import load_hazards
 from tempo_core.profiles import ProfileCatalog
@@ -120,9 +127,9 @@ def _build(settings: Settings) -> tuple[MissionService, EventBus, Memory, VaultS
 
 
 def _court(settings: Settings) -> ConsensusCourt | None:
-    """Replay jurors in replay mode (labelled simulated); otherwise only the deployment mode's own
-    model: three Cortex models in cloud-standard, or three jurors on the private model."""
-    if settings.tempo_mode == "replay":
+    """Replay jurors unless the models are live (labelled simulated); otherwise only the deployment
+    mode's own model: three Cortex models in cloud-standard, or three jurors on our own model."""
+    if not models_live(settings):
         return ConsensusCourt(replay_jurors(REPO / "fixtures" / "court" / "replay.yaml"))
     adapters = build_adapters(settings)
     if adapters.model.kind != "cortex":
@@ -151,7 +158,7 @@ def build_chat_llm(
     """The one thing a model may write in the chat: a small-talk sentence (plan.md §1.3). Only
     outside replay mode, and only on the deployment mode's own model; otherwise the chat uses its
     canned line and `/health` says `"chat": {"llm": "off"}`."""
-    if settings.tempo_mode == "replay":
+    if not models_live(settings):
         return None, None
     adapters = build_adapters(settings)
     try:
@@ -237,9 +244,22 @@ def build_shield(
 
 
 def build_vision(settings: Settings) -> VisionPort:
-    """Gemini reads photos in live mode with a key; otherwise recorded readings (labelled)."""
+    """Our own vision-language model on RunPod (cloud-gpu), or Gemini with a key, when the models
+    are live; otherwise recorded readings (labelled)."""
     key = settings.gemini_api_key
-    if settings.tempo_mode == "live" and key:
+    if (
+        models_live(settings)
+        and vision_ready(settings)
+        and build_adapters(settings).vision == ("runpod-vllm")
+    ):
+        assert settings.runpod_endpoint_id and settings.runpod_api_key  # noqa: S101 (vision_ready)
+        return OpenAIVision(
+            httpx.AsyncClient(),
+            base_url=runpod_base_url(settings.runpod_endpoint_id),
+            api_key=settings.runpod_api_key.get_secret_value(),
+            model=PRIVATE_MODEL,
+        )
+    if models_live(settings) and key:
         return GeminiVision(
             httpx.AsyncClient(), api_key=key.get_secret_value(), model=settings.gemini_model
         )
@@ -279,4 +299,6 @@ def build_mesh(settings: Settings, clock: Callable[[], datetime] | None = None) 
 
 
 def run() -> None:
-    uvicorn.run(build(scheduler_interval_s=30.0), host="127.0.0.1", port=8000, access_log=False)
+    """127.0.0.1:8000 with the 30-second scheduler; TEMPO_PORT moves it (the GPU demo uses 8100)."""
+    port = int(os.environ.get("TEMPO_PORT", "8000"))
+    uvicorn.run(build(scheduler_interval_s=30.0), host="127.0.0.1", port=port, access_log=False)

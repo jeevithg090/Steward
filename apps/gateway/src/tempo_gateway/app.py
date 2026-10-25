@@ -60,6 +60,7 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from tempo_adapters.factory import build_adapters, model_ready, models_live
 from tempo_adapters.scam import Registers
 from tempo_adapters.settings import Settings
 from tempo_core.config import profile
@@ -303,8 +304,14 @@ def create_app(
     clock = service.deps.clock
     demo_clock = clock if isinstance(clock, DemoClock) and settings.tempo_demo else None
     simulated = simulated_in(settings)  # the honesty badge's list, shared with /chat
-    replay = settings.tempo_mode == "replay"
+    replay = not models_live(settings)  # the model-backed parts are recorded
     small_talk = "replay" if replay else ("off" if chat_llm is None else chat_llm_kind or "model")
+    endpoint = build_adapters(settings).model
+    model = (  # the model behind the jurors, small talk and (cloud-gpu) photos, when it is real
+        {"kind": endpoint.kind, "name": endpoint.model, "processor": endpoint.processor}
+        if not replay and model_ready(settings)
+        else None
+    )
 
     @app.exception_handler(MissionNotFound)
     async def not_found(request: Request, exc: MissionNotFound) -> Response:
@@ -323,6 +330,7 @@ def create_app(
             "third_parties": sorted(deployment.third_parties),
             "clock_offset_days": demo_clock.offset_days if demo_clock else 0,
             "chat": {"llm": small_talk},  # what phrases small talk: replay, off, or the model
+            "model": model,  # e.g. our own model on a RunPod GPU (plan.md §13), else null
         }
 
     @app.post("/entitlement/screen")

@@ -1,5 +1,9 @@
 # Private mode on RunPod (build plan S8.2)
 
+> **The live GPU demo** (a vision-language model for the jurors, small talk and photos, with
+> ElevenLabs for the voice) uses `worker.gpu-demo.env` or `Dockerfile` here and `make live-demo`:
+> see [docs/gpu-demo.md](../../docs/gpu-demo.md). Private mode below keeps voice and vision off.
+
 Tempo's model calls go to **our own open-weight model** on a RunPod Serverless vLLM endpoint
 instead of an AI company's API. `TEMPO_DEPLOY=cloud-private` makes it the only model client the
 Gateway can build (`tempo_adapters/factory.py`); voice and vision, which would send words to

@@ -7,6 +7,9 @@ picks what sits behind each port, and so which outside companies ever see person
 - cloud-private: our own vLLM on RunPod; no outside AI company sees personal data (voice and
   vision are off until self-hosted speech, P2); a per-user encrypted vault.
 - cloud-confidential: vLLM inside a TEE; the vault is decrypted only in the enclave.
+- cloud-gpu: the live demo (plan.md §13): our own vision-language model on a RunPod GPU for the
+  jurors, small talk and reading photos; ElevenLabs for the voice. Not private: ElevenLabs is an
+  outside AI company, and the Privacy Proof panel says so.
 """
 
 from __future__ import annotations
@@ -23,6 +26,7 @@ class DeployMode(StrEnum):
     STANDARD = "cloud-standard"
     PRIVATE = "cloud-private"
     CONFIDENTIAL = "cloud-confidential"
+    GPU = "cloud-gpu"
 
 
 class UnknownDeployMode(ValueError):
@@ -34,7 +38,7 @@ class Profile:
     mode: DeployMode
     model: str  # "ollama" | "cortex" | "runpod-vllm" | "tee-vllm"
     voice: str  # "elevenlabs" | "off"
-    vision: str  # "gemini" | "off"
+    vision: str  # "gemini" | "runpod-vllm" | "off"
     memory: str
     vault: str
     region: str
@@ -54,6 +58,8 @@ PROFILES: dict[DeployMode, Profile] = {
                                 "encrypted-vault", "ciphertext-store", "eu (RunPod Secure Cloud)"),
     DeployMode.CONFIDENTIAL: Profile(DeployMode.CONFIDENTIAL, "tee-vllm", "off", "off",
                                      "enclave-vault", "ciphertext-store", "confidential GPU"),
+    DeployMode.GPU: Profile(DeployMode.GPU, "runpod-vllm", "elevenlabs", "runpod-vllm",
+                            "encrypted-vault", "ciphertext-store", "this machine + RunPod GPU"),
 }  # fmt: skip
 
 

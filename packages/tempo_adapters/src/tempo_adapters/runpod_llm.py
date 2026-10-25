@@ -27,8 +27,9 @@ def runpod_client(
     model: str = PRIVATE_MODEL,
     transport: httpx.AsyncBaseTransport | None = None,
 ) -> OpenAIChatCompletionClient:
-    """A MAF chat client for the private endpoint. `transport` is for tests."""
-    http = httpx.AsyncClient(transport=transport, timeout=TIMEOUT) if transport else None
+    """A MAF chat client for the private endpoint. Always over our own httpx client, so the
+    timeout is ours and tests can intercept it; `transport` is for tests."""
+    http = httpx.AsyncClient(transport=transport, timeout=TIMEOUT)
     openai = AsyncOpenAI(
         api_key=api_key, base_url=runpod_base_url(endpoint_id), http_client=http, timeout=TIMEOUT
     )

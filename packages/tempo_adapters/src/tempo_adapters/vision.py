@@ -1,4 +1,6 @@
-"""Gemini vision: photos of tickets and letters become facts, each with a source and confidence.
+"""Vision: photos of tickets and letters become facts, each with a source and confidence. Gemini
+(cloud-standard), or our own vision-language model on vLLM (cloud-gpu, plan.md §13), with the
+same prompt and the same checks.
 
 Document text is data, never instructions. Values the model returns as text are converted here
 (money to Decimal, dates to ISO); a value that won't convert keeps its text but its confidence is
@@ -25,6 +27,8 @@ from tempo_ports.vision import DocumentKind
 
 API = "https://generativelanguage.googleapis.com/v1beta/models"
 TIMEOUT = httpx.Timeout(30.0, connect=10.0)
+# A Serverless GPU may be waking from zero: loading the model takes a minute or two.
+GPU_TIMEOUT = httpx.Timeout(150.0, connect=10.0)
 UNPARSED_CONFIDENCE = 0.5
 
 KEYS: dict[DocumentKind, tuple[str, ...]] = {
@@ -114,6 +118,84 @@ class GeminiVision:
         if response.status_code != 200:
             raise VisionUnavailable(f"Gemini: HTTP {response.status_code}")
         return to_facts(_answer(response.json()), kind=kind, source=f"{filename}#vision")
+
+
+def _json_schema(kind: DocumentKind) -> dict[str, Any]:
+    """The same answer shape as `_schema`, as standard JSON Schema (vLLM's guided decoding)."""
+    fact = {
+        "type": "object",
+        "properties": {
+            "key": {"type": "string", "enum": list(KEYS[kind])},
+            "value": {"type": "string"},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        },
+        "required": ["key", "value", "confidence"],
+        "additionalProperties": False,
+    }
+    return {
+        "type": "object",
+        "properties": {"facts": {"type": "array", "items": fact}},
+        "required": ["facts"],
+        "additionalProperties": False,
+    }
+
+
+class OpenAIVision:
+    """An OpenAI-compatible vision-language model: our own vLLM on a RunPod GPU (cloud-gpu). The
+    photo goes as a data URL; the answer is held to a JSON schema, then checked by `to_facts`."""
+
+    def __init__(self, http: httpx.AsyncClient, *, base_url: str, api_key: str, model: str) -> None:
+        self._http = http
+        self._url = f"{base_url.rstrip('/')}/chat/completions"
+        self._api_key = api_key
+        self._model = model
+
+    async def extract(
+        self, image: bytes, *, mime_type: str, kind: DocumentKind, filename: str
+    ) -> tuple[Fact, ...]:
+        data_url = f"data:{mime_type};base64,{base64.b64encode(image).decode()}"
+        shape = '{"facts": [{"key": ..., "value": ..., "confidence": 0 to 1}]}'
+        ask = f"{_prompt(kind)}\n\nReply with only JSON: {shape}"
+        body = {
+            "model": self._model,
+            "temperature": 0,
+            "max_tokens": 700,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image_url", "image_url": {"url": data_url}},
+                        {"type": "text", "text": ask},
+                    ],
+                }
+            ],
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": "facts", "schema": _json_schema(kind)},
+            },
+        }
+        try:
+            response = await self._http.post(
+                self._url,
+                json=body,
+                headers={"Authorization": f"Bearer {self._api_key}"},
+                timeout=GPU_TIMEOUT,
+            )
+        except httpx.HTTPError as exc:
+            raise VisionUnavailable(f"vision model: {type(exc).__name__}") from exc
+        if response.status_code != 200:
+            raise VisionUnavailable(f"vision model: HTTP {response.status_code}")
+        return to_facts(_openai_answer(response.json()), kind=kind, source=f"{filename}#vision")
+
+
+def _openai_answer(body: Any) -> Any:
+    try:
+        text = body["choices"][0]["message"]["content"].strip()
+        if text.startswith("```"):
+            text = text.strip("`").removeprefix("json").strip()
+        return json.loads(text)
+    except (KeyError, IndexError, TypeError, ValueError, AttributeError) as exc:
+        raise VisionUnavailable("the vision model returned no readable answer") from exc
 
 
 def _prompt(kind: DocumentKind) -> str:

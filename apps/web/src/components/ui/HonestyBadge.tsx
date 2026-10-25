@@ -19,7 +19,8 @@ export function HonestyBadge({ health, showcase, connected }: { health: Health |
   }
   const simulated = health.simulated.length ? `SIMULATED ${health.simulated.join(", ")}` : "nothing simulated";
   const clock = health.clock_offset_days ? ` · DEMO CLOCK +${health.clock_offset_days} DAYS` : "";
-  const full = `${health.mode.toUpperCase()} data · ${simulated}${clock}`;
+  const gpu = health.model?.kind === "runpod-vllm" ? " · AI: our own model on a RunPod GPU" : health.model ? ` · AI: ${health.model.processor}` : "";
+  const full = `${health.mode.toUpperCase()} data · ${simulated}${clock}${gpu}`;
   return (
     <Badge tone={health.mode === "replay" ? "amber" : "emerald"} title={`The honesty badge: ${full}`}>
       <ShieldCheck size={12} aria-hidden />
@@ -28,6 +29,7 @@ export function HonestyBadge({ health, showcase, connected }: { health: Health |
         {health.mode.toUpperCase()}
         {health.simulated.length ? " · simulated" : ""}
         {health.clock_offset_days ? ` · +${health.clock_offset_days}d` : ""}
+        {health.model ? " · real AI" : ""}
       </span>
     </Badge>
   );
