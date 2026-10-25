@@ -1,5 +1,13 @@
-# Build plan A6. On GitLab Free this documents ownership; assign reviewers manually.
-# A = Voice, B = Brains, C = Data/Core, D = Product. Replace with GitLab usernames.
+# Code owners. GitHub reads this file to request reviews automatically and, with branch
+# protection on, to require a code owner's approval (docs/github-setup.md). GitLab reads the same
+# syntax; on GitLab Free it documents ownership and reviewers are assigned by hand.
+#
+# Build plan A6: A = Voice, B = Brains, C = Data/Core, D = Product. Replace the @owner-* names
+# with GitHub usernames (the GitLab mirror uses the same handles if they match). GitHub ignores a
+# rule whose owner it cannot resolve, so until they are replaced only the default line applies.
+
+# Default: the repository owner on GitHub reviews anything not listed below.
+*                                               @jeevithg090
 
 /voice/                                         @owner-a
 /packages/tempo_adapters/src/tempo_adapters/elevenlabs.py  @owner-a
@@ -15,3 +23,11 @@
 
 /apps/web/                                      @owner-d
 /tests/e2e/                                     @owner-d
+
+# Shipping (SHIPPING.md): what a profile may do is a data/core decision; how it reads is product.
+/skills/                                        @owner-c
+/profiles/                                      @owner-c @owner-d
+/docs/                                          @owner-d
+/.github/                                       @owner-d
+/deploy/                                        @owner-c
+/SECURITY.md                                    @owner-b @owner-c

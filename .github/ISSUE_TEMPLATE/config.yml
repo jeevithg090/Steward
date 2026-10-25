@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem (privately)
+    url: https://github.com/jeevithg090/Tempo/security/policy
+    about: Never open a public issue for a vulnerability. SECURITY.md explains private reporting on GitHub and GitLab.
+  - name: Add a use case (the guide)
+    url: https://github.com/jeevithg090/Tempo/blob/main/docs/add-a-usecase.md
+    about: A new operator is one YAML file; a new skill is a folder. Ten minutes from idea to pull request.

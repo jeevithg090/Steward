@@ -1,0 +1,58 @@
+# Dependabot: weekly, grouped, so one PR per ecosystem carries the minor and patch bumps and
+# only a major arrives on its own. CI (pip-audit, pnpm audit, the test suites) is the gate.
+version: 2
+updates:
+  - package-ecosystem: "uv" # uv.lock at the repo root (every workspace member)
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python"]
+    groups:
+      python-minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "npm" # apps/web/pnpm-lock.yaml (Mission Control)
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "web"]
+    groups:
+      web-minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "npm" # tests/e2e/pnpm-lock.yaml (Playwright)
+    directory: "/tests/e2e"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 2
+    labels: ["dependencies", "e2e"]
+    groups:
+      e2e-minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions" # .github/workflows/*.yml
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 2
+    labels: ["dependencies", "ci"]
+    groups:
+      actions:
+        patterns: ["*"]

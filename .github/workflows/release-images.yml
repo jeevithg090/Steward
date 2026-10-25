@@ -1,0 +1,87 @@
+# Signed, reproducible images (build plan S8.6): the GitHub mirror of .gitlab-ci.yml's
+# release-images job, with the same two Dockerfiles. It builds the worker and the Gateway for
+# linux/amd64, pushes them to GHCR, records each digest, writes an SPDX SBOM per image, signs
+# both images and the transparency allowlist with cosign, verifies the allowlist against the
+# committed public key, and points the RunPod worker template at the worker digest.
+#
+# Manual by design, like GitLab's `when: manual`: it runs for a version tag only after someone
+# approves the `release` environment (docs/github-setup.md), or by hand from the Actions tab.
+#
+# Needs, in the `release` environment: secrets COSIGN_PRIVATE_KEY, COSIGN_PASSWORD and
+# RUNPOD_API_KEY, the variable RUNPOD_TEMPLATE_ID, and deploy/transparency/cosign.pub committed.
+# Until the cosign key pair exists this job stops at `cosign verify-blob`, exactly as the GitLab
+# job does: there is no allowlist yet, so devices refuse every worker (deploy/transparency/README.md).
+name: release-images
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  release-images:
+    name: release-images
+    runs-on: ubuntu-latest
+    environment: release
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Image names (GHCR wants lower case) and the commit time for reproducible layers
+        run: |
+          echo "IMAGE_BASE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: sigstore/cosign-installer@v4
+      - id: syft
+        uses: anchore/sbom-action/download-syft@v0
+      - name: Build, push, SBOM and sign the worker and the Gateway
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          SYFT: ${{ steps.syft.outputs.cmd }}
+        run: |
+          set -euo pipefail
+          for name in worker gateway; do
+            docker buildx build --file "deploy/$name.Dockerfile" --platform linux/amd64 --provenance=false \
+              --output "type=image,name=$IMAGE_BASE/tempo-$name:$TAG,push=true,rewrite-timestamp=true" \
+              --metadata-file "$name.json" .
+            DIGEST="$(python3 -c "import json; print(json.load(open('$name.json'))['containerimage.digest'])")"
+            "$SYFT" "$IMAGE_BASE/tempo-$name@$DIGEST" -o spdx-json > "sbom-$name.spdx.json"
+            cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$IMAGE_BASE/tempo-$name@$DIGEST"
+          done
+      - name: Write, sign and verify the transparency allowlist
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          python3 deploy/transparency/write_allowlist.py worker.json gateway.json > deploy/transparency/allowlist.json
+          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY \
+            --output-signature deploy/transparency/allowlist.json.sig deploy/transparency/allowlist.json
+          cosign verify-blob --key deploy/transparency/cosign.pub \
+            --signature deploy/transparency/allowlist.json.sig deploy/transparency/allowlist.json
+      - name: Point the RunPod worker template at the worker digest (never a tag)
+        env:
+          RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+        run: |
+          set -euo pipefail
+          DIGEST="$(python3 -c "import json; print(json.load(open('worker.json'))['containerimage.digest'])")"
+          python3 deploy/runpod/deploy.py "${{ vars.RUNPOD_TEMPLATE_ID }}" "$IMAGE_BASE/tempo-worker@$DIGEST"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: release-${{ github.ref_name }}
+          path: |
+            deploy/transparency/allowlist.json
+            deploy/transparency/allowlist.json.sig
+            sbom-*.spdx.json

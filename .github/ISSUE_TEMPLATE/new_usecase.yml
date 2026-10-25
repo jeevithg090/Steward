@@ -1,0 +1,100 @@
+name: New use case
+description: A company, scheme or kind of person Tempo should work for. No code needed to ask.
+title: "use case: "
+labels: ["use-case", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Most use cases are **one YAML file**: a new train operator, a new compensation scheme, a new
+        deadline. [docs/add-a-usecase.md](../blob/main/docs/add-a-usecase.md) shows the three paths and
+        a ten-minute walkthrough. Fill in what you know; a maintainer or you can turn it into a pull
+        request from here. The honesty rule applies to everything Tempo prices: it ships as
+        `demo_values: true` until a person has checked the published source.
+  - type: textarea
+    id: who
+    attributes:
+      label: Who is it for
+      description: The kind of person, in a sentence or two. What goes wrong for them today?
+      placeholder: Anyone who takes LNER trains to work and never claims when they are late.
+    validations:
+      required: true
+  - type: input
+    id: company
+    attributes:
+      label: Which company or scheme
+      description: The operator, firm, regulator or scheme that owes the money or sets the deadline.
+      placeholder: LNER (TOC code GR), Delay Repay
+    validations:
+      required: true
+  - type: textarea
+    id: rule
+    attributes:
+      label: The published rule and its URL
+      description: |
+        Quote the rule as the company or regulator publishes it, with the https URL you read it on.
+        Amounts as written there (percentages, pounds, bands, minutes, days). Tempo's rule packs need
+        a `citation_url` and the engine shows it in every Proof Trace.
+      placeholder: |
+        https://www.lner.co.uk/.../delay-repay
+        15-29 min: 25% of the single fare; 30-59: 50%; 60-119: 100%; 120+: 100% of a return. Claim within 28 days.
+    validations:
+      required: true
+  - type: textarea
+    id: says
+    attributes:
+      label: What Tempo should say
+      description: The one or two sentences Tempo should say to the person, in plain words (Flesch 60 or more; short words, short sentences).
+      placeholder: Your 07:45 to King's Cross was 42 minutes late. LNER owes you half the fare, £23.50. Shall I claim it?
+    validations:
+      required: true
+  - type: dropdown
+    id: path
+    attributes:
+      label: Which path does it look like
+      description: See docs/add-a-usecase.md. Pick the shortest that fits; a maintainer can correct it.
+      options:
+        - A new operator or scheme for an existing skill (one rule pack YAML)
+        - A new skill (a folder with skill.yaml and optional rule packs)
+        - A new mission (Python, copies the shape of clawback_ofcom)
+        - A new profile (one YAML that composes existing skills for a kind of person)
+        - Not sure
+    validations:
+      required: true
+  - type: checkboxes
+    id: capabilities
+    attributes:
+      label: Which capabilities does it need
+      description: |
+        The eight words every mandate, profile and guard share (`tempo_passport.ACTIONS`). Tick only
+        what the skill's binding tools need; a skill that only reads and explains needs none.
+      options:
+        - label: "`claim`: file a claim or complaint in the person's name"
+        - label: "`call`: phone the company for the person"
+        - label: "`accept_cash`: accept a cash settlement"
+        - label: "`accept_voucher`: accept a voucher, credit or points (most profiles forbid this)"
+        - label: "`discuss_other_accounts`: talk about the person's other accounts or products"
+        - label: "`change_contract`: change a tariff, plan or contract"
+        - label: "`share_personal_data`: tell a helper or third party personal details"
+        - label: "`escalate`: take the matter to an ombudsman or regulator"
+  - type: dropdown
+    id: channels
+    attributes:
+      label: Channels
+      multiple: true
+      options:
+        - web
+        - sms
+        - voice
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Exceptions, edge cases, a date the figures change (many are uprated each April), or a willingness to write the YAML yourself.
+  - type: checkboxes
+    id: honesty
+    attributes:
+      label: The honesty rule
+      options:
+        - label: "I understand the pack ships with `demo_values: true` and the explanation says so, until a person checks the source and sets `last_verified`."
+          required: true

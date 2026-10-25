@@ -1,0 +1,76 @@
+# Render Blueprint for Tempo's Gateway (SHIPPING.md §5; the walkthrough is docs/deploy.md).
+#
+# One Docker web service built from deploy/gateway.Dockerfile, a 1 GB disk at /data for mission
+# checkpoints and the Mesh device list (the image sets CHECKPOINT_DIR=/data/checkpoints and
+# MESH_FILE=/data/mesh.json), and a managed Postgres wired to DATABASE_URL.
+#
+# Render asks for the `sync: false` values when you create the Blueprint:
+#   TEMPO_API_TOKEN  any long random string; Mission Control sends it as a bearer token
+#   WEB_ORIGINS      your Vercel URL, scheme and host, no trailing slash: https://tempo.vercel.app
+#                    (comma-separated if several). CORS and the passkey origin check both use it.
+#   MESH_RP_ID       the Vercel host alone: tempo.vercel.app. Passkeys are bound to it; a mismatch
+#                    makes every Face ID registration and approval fail.
+#   PUBLIC_URL       this service's own URL, e.g. https://tempo-gateway.onrender.com. Twilio and
+#                    ElevenLabs sign their webhooks against it.
+# Replay mode needs nothing else. Vendor keys (.env.example) are added one at a time in the
+# dashboard; `make doctor` says which are live.
+#
+# Migrations: the runtime image has no uv, only the virtualenv at /app/.venv, so the pre-deploy
+# command calls alembic from there. Migration 0003 runs `CREATE EXTENSION IF NOT EXISTS vector`;
+# pgvector is on Render's extension list for Postgres 13 and later and the Blueprint's user owns
+# the database, so no manual step is expected. To migrate by hand instead, delete
+# `preDeployCommand` and run `DATABASE_URL=<external connection string> make db-migrate` locally.
+#
+# Limits worth knowing: a persistent disk needs a paid instance (free instances can't have one),
+# turns off zero-downtime deploys and keeps the service at one instance. The Gateway wants one
+# instance anyway: it holds WebSockets open, runs a 30-second scheduler and writes checkpoints.
+#
+# One thing to check on the first deploy: the image runs as uid 10001 and does not create /data,
+# and Render's docs don't say who owns a fresh disk's mount path. If the deploy log shows a
+# PermissionError on /data/checkpoints or /data/mesh.json, the fix belongs in the Dockerfile
+# (create /data owned by 10001), not here.
+services:
+  - type: web
+    name: tempo-gateway
+    runtime: docker
+    region: frankfurt # keep personal data in the EU; the database below must be in the same region
+    plan: 0.5c-512mb # the Gateway builds in about 140 MB in replay mode (measured 25 Oct 2026)
+    dockerfilePath: ./deploy/gateway.Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    preDeployCommand: /app/.venv/bin/alembic -c /app/alembic.ini upgrade head
+    disk:
+      name: tempo-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tempo-postgres
+          property: connectionString
+      - key: TEMPO_API_TOKEN
+        sync: false
+      - key: WEB_ORIGINS
+        sync: false
+      - key: MESH_RP_ID
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: TEMPO_MODE
+        value: replay # live once vendor keys are in
+      - key: TEMPO_DEPLOY
+        value: cloud-standard
+      - key: TEMPO_REGION
+        value: frankfurt # shown as is on /health
+      - key: TEMPO_DEMO
+        value: "1" # the honesty badge and the /demo routes; set 0 for anything real
+      - key: PAYMENT_CHECK_AFTER_S
+        value: "10" # demo pace; the default is a week (604800)
+
+databases:
+  - name: tempo-postgres
+    region: frankfurt
+    plan: free # Render's free Postgres expires after 30 days; 0.1c-256mb is the smallest that stays
+    databaseName: tempo
+    user: tempo
+    postgresMajorVersion: "16" # the same major as pgvector/pgvector:pg16 in CI and docker-compose.yml

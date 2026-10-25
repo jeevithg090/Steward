@@ -1,0 +1,193 @@
+# GitHub Actions for Tempo: the same jobs as .gitlab-ci.yml, plus the dependency audits
+# (SHIPPING.md §3, track 4). The lint, unit, contract, policy, workflow and web jobs need no
+# secrets: everything runs on recorded fixtures in replay mode.
+#
+# Branch protection on `main` requires these six checks by name (docs/github-setup.md):
+#   lint-type, fast-tests, integration, web, skills, security
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same branch or PR cancels the run it supersedes (GitLab: interruptible).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  UV_VERSION: "0.13.1" # the same uv as deploy/*.Dockerfile and .gitlab-ci.yml
+  UV_FROZEN: "1" # every `uv run` uses uv.lock as it is; CI never re-resolves
+  UV_LINK_MODE: copy
+  NEXT_TELEMETRY_DISABLED: "1"
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: "0" # corepack fetches the pnpm pinned in package.json silently
+
+jobs:
+  lint-type:
+    name: lint-type
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+
+  fast-tests:
+    name: fast-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Unit, contract, policy and workflow tests
+        run: >-
+          uv run pytest -m "unit or contract or policy or workflow"
+          --junitxml=report.xml --cov --cov-report=xml --cov-report=term
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: fast-tests-reports
+          path: |
+            report.xml
+            coverage.xml
+
+  integration:
+    name: integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: tempo
+          POSTGRES_USER: tempo
+          POSTGRES_PASSWORD: tempo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tempo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      neo4j:
+        image: neo4j:5.26
+        env:
+          NEO4J_AUTH: neo4j/tempo-ci-password
+        ports:
+          - 7474:7474
+          - 7687:7687
+    env:
+      # Services are reachable on localhost here, not by alias as on GitLab.
+      TEST_DATABASE_URL: postgresql+asyncpg://tempo:tempo@localhost:5432/tempo
+      NEO4J_URI: bolt://localhost:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: tempo-ci-password
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: The migrations apply cleanly
+        run: uv run alembic -x url="$TEST_DATABASE_URL" upgrade head
+      - name: Integration tests (Gateway + Postgres)
+        # pytest exits 5 when a marker selects no tests; that is not a failure.
+        run: |
+          rc=0
+          uv run pytest -m integration --junitxml=report.xml || rc=$?
+          [ "$rc" -eq 0 ] || [ "$rc" -eq 5 ]
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: integration-report
+          path: report.xml
+
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: pnpm, at the version pinned in package.json (through corepack, as on GitLab)
+        run: npm install -g corepack@latest && corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Build the showcase (recorded data, no Gateway)
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_TEMPO_SHOWCASE: "1"
+
+  skills:
+    name: skills
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Rule packs, skill manifests and profiles load and agree
+        run: |
+          if [ -f scripts/validate_skills.py ]; then
+            uv run python scripts/validate_skills.py
+          else
+            echo "scripts/validate_skills.py is not in the tree yet (SHIPPING.md track 1)."
+            echo "Rule packs are still checked by tests/unit/test_rules.py in fast-tests."
+          fi
+
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # gitleaks-action comments on a pull request that leaks a secret
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # scan every commit, not just the shallow clone (GitLab: GIT_DEPTH 0)
+      - name: gitleaks (secrets, whole history; .gitleaks.toml and .gitleaksignore apply)
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: ${{ github.workspace }}/.gitleaks.toml
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # only needed once the repo is in an organisation
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.12"
+          enable-cache: true
+      - name: pip-audit (every locked Python dependency; workspace members are our own code)
+        run: |
+          uv export --frozen --no-dev --no-emit-project --no-emit-workspace -o requirements.txt
+          uvx pip-audit -r requirements.txt --strict
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - run: npm install -g corepack@latest && corepack enable
+      - name: pnpm audit (web app, production dependencies)
+        working-directory: apps/web
+        run: pnpm audit --prod --audit-level high

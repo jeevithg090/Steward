@@ -1,0 +1,9 @@
+# Fingerprints gitleaks skips (commit:path:rule:line). `gitleaks git` reads this file from the
+# repo root in pre-commit, GitLab CI and GitHub Actions. Only false positives belong here; a real
+# leak is rotated, never ignored. Both checked by hand on 25 Oct 2026 (docs/security.md, "CI audits").
+
+# doc.md: a memory item's hashed `key` inside a documented example API response, not a credential.
+bf6b7352927c2a28cdf2892ea6efaa4e853a3da8:doc.md:generic-api-key:729
+
+# mandates.py: the type annotation `signing_key: Ed25519PrivateKey | None` tripped generic-api-key.
+04b1b9231f1a6465147a0ab77fd11e5678ce7276:apps/gateway/src/tempo_gateway/mandates.py:generic-api-key:82
