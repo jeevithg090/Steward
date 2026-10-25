@@ -19,6 +19,8 @@ Actions workflow for forks. [SHIPPING.md](SHIPPING.md) is the plan that turned t
 
 ## Try it in sixty seconds
 
+New to the project? [docs/local-setup.md](docs/local-setup.md) takes you from a fresh clone to the app on localhost:3000, step by step: what to install on macOS, Linux or Windows, what `make setup` does, optional keys, tests and troubleshooting.
+
 | Want | Do |
 |---|---|
 | **The real thing, offline** | `make setup && make demo`: the Gateway starts from a scratch folder on 8000 (replay mode, no keys), the demo's people are seeded, and the web app opens on http://localhost:3000. Rail data, jurors and the company are simulated, and the badge says so. [docs/demo.md](docs/demo.md) has the beats. |

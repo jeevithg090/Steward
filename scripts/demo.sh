@@ -52,11 +52,16 @@ say() { printf '%s\n' "$*"; }
 die() { printf 'demo.sh: %s\n' "$*" >&2; exit 1; }
 healthy() { curl -sf -m 2 "$GATEWAY/health" >/dev/null 2>&1; }
 
-# End a process and whatever it spawned (`uv run` keeps the server as its child).
+# End a process and whatever it spawned (`uv run` keeps the server as its child). uvicorn's graceful
+# shutdown waits for open WebSockets (the web app keeps one on /events), so give it ten seconds,
+# then force it.
 stop_tree() {
   local pid="$1"
   pkill -TERM -P "$pid" 2>/dev/null || true
   kill -TERM "$pid" 2>/dev/null || true
+  for _ in $(seq 1 20); do kill -0 "$pid" 2>/dev/null || return 0; sleep 0.5; done
+  pkill -KILL -P "$pid" 2>/dev/null || true
+  kill -KILL "$pid" 2>/dev/null || true
 }
 
 mkdir -p "$DEMO_DIR"
@@ -84,7 +89,7 @@ done
 # A .env in the scratch folder is how the demo gets a real voice (ELEVENLABS_API_KEY); it must never
 # point the demo at a hosted database.
 if [ -e "$DEMO_DIR/.env" ]; then
-  grep -q '^[[:space:]]*DATABASE_URL=' "$DEMO_DIR/.env" \
+  grep -Eiq '^[[:space:]]*(export[[:space:]]+)?DATABASE_URL[[:space:]]*=' "$DEMO_DIR/.env" \
     && die "$DEMO_DIR/.env sets DATABASE_URL; the demo must not write to a hosted database. Remove that line."
   say "Reading $DEMO_DIR/.env (for example ELEVENLABS_API_KEY for Tempo's real voice)."
 fi
@@ -113,9 +118,13 @@ else
   else
     CMD=(uv run --project "$ROOT" --no-sync uvicorn tempo_gateway.main:build --factory --host 127.0.0.1 --port "$PORT")
   fi
-  say "Starting the Gateway from $DEMO_DIR (no .env there) on $GATEWAY; log: $LOG"
+  if [ -e "$DEMO_DIR/.env" ]; then env_note="with its .env"; else env_note="no .env there"; fi
+  # A DATABASE_URL in this shell would reach the Gateway too: the demo keeps its data in its folder.
+  [ -z "${DATABASE_URL:-}" ] || say "Ignoring DATABASE_URL from this shell: the demo keeps its data on this machine."
+  say "Starting the Gateway from $DEMO_DIR ($env_note) on $GATEWAY; log: $LOG"
   (
     cd "$DEMO_DIR"
+    unset DATABASE_URL
     TEMPO_API_TOKEN="$TOKEN" TEMPO_DEMO=1 TEMPO_MODE=replay PAYMENT_CHECK_AFTER_S=0 \
       WEB_ORIGINS="http://localhost:3000,http://127.0.0.1:3000" TEMPO_HOME="$ROOT" \
       CHECKPOINT_DIR=checkpoints MESH_FILE=mesh.json \
