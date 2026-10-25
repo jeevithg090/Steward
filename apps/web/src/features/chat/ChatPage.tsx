@@ -50,7 +50,17 @@ export function ChatPage({
   const [volume, setVolume] = useState(80);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const [latestEventStatus, setLatestEventStatus] = useState<string | null>(null);
+  // Live status text per mission, so one chat's progress never shows up in another chat.
+  const [statusByMission, setStatusByMission] = useState<Record<string, string>>({});
+  const setMissionStatus = (missionId: string | null | undefined, text: string | null) => {
+    if (!missionId) return;
+    setStatusByMission((prev) => {
+      const next = { ...prev };
+      if (text === null) delete next[missionId];
+      else next[missionId] = text;
+      return next;
+    });
+  };
   const [isRespondingConsent, setIsRespondingConsent] = useState(false);
   // Mission that is still in flight after the POST returned. Drives the kill switch in ChatInput.
   const [runningMissionId, setRunningMissionId] = useState<string | null>(null);
@@ -63,9 +73,13 @@ export function ChatPage({
   // callbacks from the first render (with a stale active conversation). Read them via refs instead.
   const onSendMessageRef = useRef(onSendMessage);
   const setActiveAskRef = useRef(setActiveAsk);
+  const runningMissionIdRef = useRef(runningMissionId);
+  const activeMissionIdRef = useRef(activeMissionId);
   useEffect(() => {
     onSendMessageRef.current = onSendMessage;
     setActiveAskRef.current = setActiveAsk;
+    runningMissionIdRef.current = runningMissionId;
+    activeMissionIdRef.current = activeMissionId;
   });
 
   const wsUrl = `${apiBaseUrl.replace(/^http/, "ws")}/events?token=${encodeURIComponent(apiToken)}`;
@@ -95,26 +109,33 @@ export function ChatPage({
           if (isUnmounted) return;
           try {
             const liveEvent: LiveEvent = JSON.parse(event.data);
+            // Which mission (and so which chat) this event belongs to.
+            const eventMissionId =
+              ("mission_id" in liveEvent ? liveEvent.mission_id : undefined) ?? runningMissionIdRef.current;
             switch (liveEvent.type) {
               case "state_changed":
-                setLatestEventStatus(`Mission ${liveEvent.mission_id.slice(0, 8)} → ${liveEvent.to}`);
                 if (TERMINAL_STATES.has(String(liveEvent.to))) {
+                  setMissionStatus(liveEvent.mission_id, null);
                   setRunningMissionId((prev) => (prev === liveEvent.mission_id ? null : prev));
+                } else {
+                  setMissionStatus(liveEvent.mission_id, `Mission ${liveEvent.mission_id.slice(0, 8)} → ${liveEvent.to}`);
                 }
                 break;
               case "consent_requested":
-                setLatestEventStatus("Action required: Consent requested");
+                setMissionStatus(eventMissionId, "Action required: Consent requested");
                 break;
               case "timer_set":
-                setLatestEventStatus("Payment check scheduled");
+                setMissionStatus(eventMissionId, "Payment check scheduled");
                 break;
               case "outcome":
-                setRunningMissionId(null);
+                setRunningMissionId((prev) => (!eventMissionId || prev === eventMissionId ? null : prev));
                 setIsProcessing(false);
-                setLatestEventStatus(null);
-                setActiveAskRef.current(null);
+                setMissionStatus(eventMissionId, null);
                 if (liveEvent.message) {
-                  onSendMessageRef.current("", { message: liveEvent.message, state: liveEvent.state });
+                  // Carry the mission id so App files the result under the chat that owns it.
+                  onSendMessageRef.current("", { id: eventMissionId ?? undefined, message: liveEvent.message, state: liveEvent.state });
+                } else if (!eventMissionId || eventMissionId === activeMissionIdRef.current) {
+                  setActiveAskRef.current(null);
                 }
                 break;
               default:
@@ -183,7 +204,7 @@ export function ChatPage({
 
         setActiveAsk(null);
         setRunningMissionId(updatedMission.id ?? activeMissionId);
-        setLatestEventStatus("Claim submitted. Waiting for payment verification...");
+        setMissionStatus(updatedMission.id ?? activeMissionId, "Claim submitted. Waiting for payment verification...");
         onSendMessage("", updatedMission);
       } else {
         // Reject/Stop via POST /missions/{id}/stop
@@ -195,7 +216,7 @@ export function ChatPage({
         }
         setActiveAsk(null);
         setRunningMissionId(null);
-        setLatestEventStatus(null);
+        setMissionStatus(activeMissionId, null);
         setIsProcessing(false);
         onSendMessage("", { message: "Stopped: You declined the claim." });
       }
@@ -226,7 +247,7 @@ export function ChatPage({
     if (!id) return; // aborted mid-request: ChatInput already cancelled the fetch
     setRunningMissionId(null);
     setActiveAsk(null);
-    setLatestEventStatus(null);
+    setMissionStatus(id, null);
     setIsProcessing(false);
     try {
       await fetch(`${apiBaseUrl}/missions/${id}/stop`, {
@@ -241,6 +262,9 @@ export function ChatPage({
 
   // Only show the kill switch in the chat the running mission belongs to.
   const isMissionRunning = runningMissionId !== null && runningMissionId === activeMissionId;
+
+  // Status text for the chat that's open right now (undefined for chats with no live mission).
+  const latestEventStatus = activeMissionId ? (statusByMission[activeMissionId] ?? null) : null;
 
   return (
     <div

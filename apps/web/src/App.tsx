@@ -202,9 +202,10 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
     newMessages: ChatMessage[],
     patch: Partial<Pick<Conversation, "ask" | "missionId">> = {},
     newMissionId?: string,
+    ownerId?: string, // chat that already owns this mission (e.g. a result for a chat that isn't open)
   ) => {
-    const targetId = activeId ?? crypto.randomUUID();
-    setActiveId(targetId);
+    const targetId = ownerId ?? activeId ?? crypto.randomUUID();
+    if (!ownerId) setActiveId(targetId); // don't yank the user to another chat when filing a background result
 
     setConversations((prev) => {
       const exists = prev.some((c) => c.id === targetId);
@@ -262,7 +263,10 @@ export default function App({ apiBaseUrl = "http://127.0.0.1:8000", apiToken = "
     }
     newMessages.push({ id: crypto.randomUUID(), role: "agent", text: replyText });
 
-    appendToChat(cleanTask || replyText.slice(0, 40), newMessages, patch, missionId);
+    // A result for a mission that belongs to an existing chat goes to that chat, not whichever is open.
+    const owner = missionId ? conversations.find((c) => c.missionIds.includes(missionId)) : undefined;
+
+    appendToChat(cleanTask || replyText.slice(0, 40), newMessages, patch, missionId, owner?.id);
   };
 
   const handleSendAudio = (clip: Recording) => {
