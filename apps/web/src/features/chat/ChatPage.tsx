@@ -126,6 +126,9 @@ export function ChatPage({
     else if (route.kind === "tool") onOpenTool?.(route.tool);
   };
   const [volume, setVolume] = useState(80);
+  // The mic stops Tempo mid-sentence; it used to set the volume to 0 and never back, so every
+  // reply after the first spoken message was silent.
+  const [hush, setHush] = useState(0);
   // A sample or suggestion chip bypasses the input bar, so its error has its own alert line.
   const [chipError, setChipError] = useState<string | null>(null);
   const avatar = useResizable({ initial: 320, min: 96, max: 520 });
@@ -158,6 +161,7 @@ export function ChatPage({
         extra={!wide ? <StreamBadge link={link} short /> : undefined}
         volume={volume}
         onVolumeChange={setVolume}
+        hush={hush}
         speech={speech}
         elevenLabsKey={elevenLabsKey}
         tts={tts}
@@ -246,7 +250,7 @@ export function ChatPage({
           attachRef={attachRef}
           onStop={onStop}
           isMissionRunning={isMissionRunning}
-          onMicPress={() => setVolume(0)}
+          onMicPress={() => setHush((n) => n + 1)}
           language={language}
           placeholder={conversation?.need?.question ?? null}
           disabled={busy}

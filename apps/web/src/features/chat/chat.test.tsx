@@ -524,3 +524,58 @@ test("the chat names the Gateway's real model, not a picker that chooses nothing
   expect(gatewayModelWords({ ...base, model: null })).toBeNull(); // an older Gateway: the picker stays
   expect(gatewayModelWords(null)).toBeNull();
 });
+
+test("pressing the mic stops Tempo talking but never mutes it: the next reply is still read aloud", async () => {
+  // jsdom has no voices: a stand-in records what the browser's own voice would say.
+  const said: string[] = [];
+  class Utterance {
+    text: string;
+    lang = "";
+    rate = 1;
+    pitch = 1;
+    volume = 1;
+    voice = null;
+    onstart: (() => void) | null = null;
+    onend: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    onboundary: (() => void) | null = null;
+    constructor(text: string) {
+      this.text = text;
+    }
+  }
+  const synth = { speaking: false, paused: false, speak: (u: Utterance) => void said.push(u.text), cancel: () => undefined, pause: () => undefined, resume: () => undefined, getVoices: () => [], addEventListener: () => undefined, removeEventListener: () => undefined };
+  vi.stubGlobal("SpeechSynthesisUtterance", Utterance);
+  vi.stubGlobal("speechSynthesis", synth);
+  try {
+    const { gateway } = fakeGateway((turn) => blank("smalltalk", turn.text === "One" ? "First reply." : "Second reply."));
+    const tree = (speak: (text: string) => void) => (
+      <ChatContainer
+        gateway={gateway}
+        user={{ id: "u_margaret", name: "Margaret", profileId: null }}
+        showcase={false}
+        health={null}
+        connected={false}
+        events={[]}
+        language="en"
+        params={{}}
+        speak={speak}
+        setProfile={() => undefined}
+        config={{ url: "http://gw.test", token: "t" }}
+        activeModels={["local"]}
+        selectedModel="local"
+        onSelectModel={() => undefined}
+      />
+    );
+    render(tree((text) => chatStore.setSpeech({ id: crypto.randomUUID(), text })));
+    const box = screen.getByRole("textbox", { name: "Your message" });
+    await userEvent.type(box, "One{enter}");
+    await waitFor(() => expect(said).toContain("First reply."));
+    await userEvent.click(screen.getByRole("button", { name: /Speak your message|Record a voice clip/ }));
+    await userEvent.click(screen.queryByRole("button", { name: "Stop recording" }) ?? document.body);
+    await userEvent.type(screen.getByRole("textbox", { name: "Your message" }), "Two{enter}");
+    await waitFor(() => expect(said).toContain("Second reply."));
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+

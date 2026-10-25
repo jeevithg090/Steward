@@ -81,6 +81,8 @@ interface AvatarPanelProps {
   volume: number;
   onVolumeChange: (volume: number) => void;
   speech?: SpeechRequest | null;
+  /** Changes when the person starts speaking: Tempo stops talking (without being muted). */
+  hush?: number;
   /** A key pasted in Settings (second path, for the desktop app). */
   elevenLabsKey?: string;
   /** The Gateway's voice (`gateway.tts`), tried first when the Gateway reports it is configured. */
@@ -248,6 +250,7 @@ export function AvatarPanel({
   volume,
   onVolumeChange,
   speech,
+  hush = 0,
   elevenLabsKey,
   tts,
   ttsAvailable = false,
@@ -307,6 +310,10 @@ export function AvatarPanel({
   useEffect(() => {
     if (mode === "text" || volume === 0) stop();
   }, [mode, volume, stop]);
+
+  useEffect(() => {
+    if (hush) stop();
+  }, [hush, stop]);
 
   useEffect(() => {
     setPlaybackVolume(volume);

@@ -77,6 +77,9 @@ export interface UseSpeechOptions {
   lang?: string;
 }
 
+/** How long to wait for the browser to allow sound before falling back to its own voice. */
+const RESUME_WAIT_MS = 1500;
+
 export function useSpeech({ elevenLabsKey, tts, ttsAvailable = false, lang = "en-GB" }: UseSpeechOptions) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -186,6 +189,34 @@ export function useSpeech({ elevenLabsKey, tts, ttsAvailable = false, lang = "en
     return ctxRef.current;
   }, []);
 
+  // Browsers only let a page play sound it was allowed to start in a click or a key press, and a
+  // reply arrives after an await. So the audio is unlocked on the person's first click or key
+  // (Safari keeps a context made later "suspended", and its resume() can wait for ever).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const unlock = () => {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      if (ctx.state === "suspended") void ctx.resume().catch(() => undefined);
+      try {
+        const blip = ctx.createBufferSource(); // one silent sample: what iOS needs to call it started
+        blip.buffer = ctx.createBuffer(1, 1, 22050);
+        blip.connect(ctx.destination);
+        blip.start(0);
+      } catch {
+        /* nothing to unlock */
+      }
+      if (ctx.state === "running") remove();
+    };
+    const remove = () => {
+      document.removeEventListener("pointerdown", unlock, true);
+      document.removeEventListener("keydown", unlock, true);
+    };
+    document.addEventListener("pointerdown", unlock, true);
+    document.addEventListener("keydown", unlock, true);
+    return remove;
+  }, [getAudioContext]);
+
   const stopPlayback = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
@@ -272,7 +303,11 @@ export function useSpeech({ elevenLabsKey, tts, ttsAvailable = false, lang = "en
     async (arrayBuffer: ArrayBuffer, text: string, myId: number, from: SpeechSource) => {
       const ctx = getAudioContext();
       if (!ctx) throw new Error("AudioContext not supported");
-      if (ctx.state === "suspended") await ctx.resume();
+      if (ctx.state === "suspended") {
+        // Never wait for ever: still blocked after a moment, the browser's own voice speaks instead.
+        await Promise.race([ctx.resume(), new Promise((resolve) => setTimeout(resolve, RESUME_WAIT_MS))]);
+        if ((ctx.state as AudioContextState) !== "running") throw new Error("The browser has not allowed sound yet");
+      }
       const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
       if (myId !== requestIdRef.current) return;
 
