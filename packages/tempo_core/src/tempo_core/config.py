@@ -8,7 +8,7 @@ picks what sits behind each port, and so which outside companies ever see person
   vision are off until self-hosted speech, P2); a per-user encrypted vault.
 - cloud-confidential: vLLM inside a TEE; the vault is decrypted only in the enclave.
 - cloud-apis: the live demo's fallback (plan.md §13.5): the three jurors are three Gemini models
-  (an OpenRouter model may take one seat), Gemini reads photos, ElevenLabs speaks.
+  (an NVIDIA or OpenRouter model may take a seat), Gemini reads photos, ElevenLabs speaks.
 - cloud-gpu: the live demo (plan.md §13): our own vision-language model on a RunPod GPU for the
   jurors, small talk and reading photos; ElevenLabs for the voice. Not private: ElevenLabs is an
   outside AI company, and the Privacy Proof panel says so.
@@ -20,9 +20,11 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 # Outside AI companies that would process a person's words, if their adapter is in use.
-THIRD_PARTY_AI: frozenset[str] = frozenset({"cortex", "elevenlabs", "gemini", "openrouter"})
-# A model that is really an outside provider (cloud-apis: Gemini; OpenRouter joins only when an
-# OpenRouter juror is configured, through Profile.extra_ai).
+THIRD_PARTY_AI: frozenset[str] = frozenset(
+    {"cortex", "elevenlabs", "gemini", "nvidia", "openrouter"}
+)
+# A model that is really an outside provider (cloud-apis: Gemini; NVIDIA or OpenRouter join only
+# when one of their models sits on the Court, through Profile.extra_ai).
 MODEL_PROVIDERS: dict[str, frozenset[str]] = {"apis": frozenset({"gemini"})}
 
 
@@ -48,7 +50,7 @@ class Profile:
     memory: str
     vault: str
     region: str
-    extra_ai: frozenset[str] = frozenset()  # providers this run adds (e.g. an OpenRouter juror)
+    extra_ai: frozenset[str] = frozenset()  # providers this run adds (e.g. an NVIDIA juror)
 
     @property
     def third_parties(self) -> frozenset[str]:

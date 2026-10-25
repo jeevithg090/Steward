@@ -85,9 +85,17 @@ class Settings(BaseSettings):
     # Vision
     gemini_api_key: SecretStr | None = None
     gemini_model: str = "gemini-flash-latest"  # (check) the Flash model your key can use
-    # cloud-apis (plan.md §13.5): three different Gemini models judge; small talk uses the first.
-    # Measured 25 Oct 2026 on the real Court question: 1.0 to 5.2 s each, all correct.
-    gemini_juror_models: str = "gemini-3.1-flash-lite,gemini-3.5-flash-lite,gemini-3-flash-preview"
+    # cloud-apis (plan.md §13.5): three different Gemini checkpoints judge; small talk uses the
+    # first. Measured 25 Oct 2026 with six Court questions at once on the free tier: all 6/6, the
+    # slowest 1.3 s, 4.7 s and 17.2 s. gemini-3-flash-preview and gemini-3.5-flash hit 429 there.
+    gemini_juror_models: str = (
+        "gemini-3.5-flash-lite,gemini-3.1-flash-lite-preview,gemini-3.1-flash-lite"
+    )
+    # With NVIDIA's key (build.nvidia.com), its model takes the second seat on its own rate limit.
+    # Measured 25 Oct 2026 on the real Court question, six at once: all right, 2.9 to 6.3 s, and it
+    # rejected a 10-minute delay. NVIDIA_MODELS="" keeps the Court on Gemini alone.
+    nvidia_api_key: SecretStr | None = None
+    nvidia_models: str = "nvidia/nemotron-3.5-bolt-e4b"
     openrouter_api_key: SecretStr | None = None
     # Opt-in: an OpenRouter model takes the second seat (e.g. dots-studio/dots-3-note-preview:free:
     # correct, but 17.7 s and about 50 free requests a day; raise JUROR_TIMEOUT_S to 35 with it).
@@ -95,6 +103,9 @@ class Settings(BaseSettings):
     juror_timeout_s: float = (
         20.0  # the Consensus Court's per-juror limit; an absent juror is flagged
     )
+    # How long the third juror gets once two agree. Live on 25 Oct 2026 the two Gemini jurors agreed
+    # in 1 to 3 s and NVIDIA's in 3 to 6 s: at 2 s a correct third model was cut off most times.
+    juror_grace_s: float = 5.0
 
     # Tracing
     langfuse_host: str = "https://cloud.langfuse.com"

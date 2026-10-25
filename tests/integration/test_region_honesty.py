@@ -46,6 +46,14 @@ def test_an_openrouter_juror_is_named(tmp_path: Path, monkeypatch: pytest.Monkey
     assert "openrouter" in body["third_parties"]
 
 
+def test_an_nvidia_juror_is_named(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    body = health(tmp_path, nvidia_api_key="nv-test")  # its key seats its default model
+
+    assert body["region"] == "this machine + Google and NVIDIA"
+    assert "nvidia" in body["third_parties"]
+
+
 def test_a_stated_region_wins(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     body = health(

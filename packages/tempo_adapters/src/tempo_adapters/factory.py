@@ -24,6 +24,8 @@ from tempo_core.config import Profile, profile
 GEMINI_OPENAI = "https://generativelanguage.googleapis.com/v1beta/openai/"
 OPENROUTER = "https://openrouter.ai/api/v1"
 OPENROUTER_HEADERS = {"HTTP-Referer": "https://github.com/jeevithg090/Tempo", "X-Title": "Tempo"}
+NVIDIA = "https://integrate.api.nvidia.com/v1"
+PROVIDER_NAMES = {"nvidia": "NVIDIA", "openrouter": "OpenRouter"}
 
 
 def _names(csv: str) -> list[str]:
@@ -62,8 +64,8 @@ def model_endpoint(settings: Settings, chosen: Profile) -> ModelEndpoint:
                                  "this machine (Ollama)")  # fmt: skip
         case "apis":
             first = (_names(settings.gemini_juror_models) or ["gemini-3.1-flash-lite"])[0]
-            who = "Google Gemini and OpenRouter" if openrouter_used(settings) else "Google Gemini"
-            return ModelEndpoint("apis", GEMINI_OPENAI, first, who)
+            who = ["Google Gemini", *(PROVIDER_NAMES[p] for p in sorted(court_providers(settings)))]
+            return ModelEndpoint("apis", GEMINI_OPENAI, first, " and ".join(who))
         case "runpod-vllm":
             url = (
                 runpod_base_url(settings.runpod_endpoint_id)
@@ -109,13 +111,34 @@ def chat_client(settings: Settings, adapters: Adapters) -> OpenAIChatCompletionC
     return OpenAIChatCompletionClient(endpoint.model, async_client=openai)
 
 
-def openrouter_used(settings: Settings) -> bool:
-    """An OpenRouter model sits on the Court (cloud-apis with OPENROUTER_MODELS and its key)."""
-    return (
-        profile(settings.tempo_deploy).model == "apis"
-        and settings.openrouter_api_key is not None
-        and bool(_names(settings.openrouter_models))
-    )
+@dataclass(frozen=True)
+class Seat:
+    juror: str  # the name the Court shows
+    provider: str  # gemini, nvidia or openrouter
+    model: str  # the provider's model id
+
+
+def court_seats(settings: Settings) -> list[Seat]:
+    """cloud-apis' three jurors: Gemini models, with outside models (NVIDIA's first, then
+    OpenRouter's) taking every other seat, so each provider's rate limit carries less."""
+    gemini = [Seat(m, "gemini", m) for m in _names(settings.gemini_juror_models)]
+    outside: list[Seat] = []
+    if settings.nvidia_api_key is not None:
+        outside += [Seat(m.split("/")[-1], "nvidia", m) for m in _names(settings.nvidia_models)]
+    if settings.openrouter_api_key is not None:
+        outside += [Seat(m.split("/")[-1].removesuffix(":free"), "openrouter", m)
+                    for m in _names(settings.openrouter_models)]  # fmt: skip
+    mixed = [s for pair in zip(gemini, outside, strict=False) for s in pair]
+    mixed += gemini[len(outside) :] + outside[len(gemini) :]
+    return mixed[:3]
+
+
+def court_providers(settings: Settings) -> frozenset[str]:
+    """The outside AI companies, beyond Gemini, that really sit on the Court (a key alone seats
+    nobody): the Privacy Proof names them."""
+    if profile(settings.tempo_deploy).model != "apis":
+        return frozenset()
+    return frozenset(s.provider for s in court_seats(settings)) - {"gemini"}
 
 
 def models_live(settings: Settings) -> bool:
@@ -142,25 +165,22 @@ def vision_ready(settings: Settings) -> bool:
 
 def juror_clients(settings: Settings) -> list[tuple[str, OpenAIChatCompletionClient]]:
     """The Consensus Court's three jurors on this mode's own model (not Cortex, which names its
-    own three). cloud-apis seats three different Gemini models, or Gemini and OpenRouter in turn
-    when an OpenRouter model is configured; elsewhere three jurors share the mode's one model."""
+    own three). cloud-apis seats `court_seats`; elsewhere three jurors share the mode's one
+    model."""
     adapters = build_adapters(settings)
     if adapters.model.kind != "apis":
         client = chat_client(settings, adapters)
         return [(f"{adapters.model.kind}-{i}", client) for i in (1, 2, 3)]
     if settings.gemini_api_key is None:
         raise NotConfigured("cloud-apis needs GEMINI_API_KEY")
-    gemini_key = settings.gemini_api_key.get_secret_value()
-    gemini = [(m, openai_compat_client(GEMINI_OPENAI, gemini_key, m))
-              for m in _names(settings.gemini_juror_models)]  # fmt: skip
-    hosted: list[tuple[str, OpenAIChatCompletionClient]] = []
-    if settings.openrouter_api_key is not None:
-        key = settings.openrouter_api_key.get_secret_value()
-        hosted = [
-            (m.split("/")[-1].removesuffix(":free"),
-             openai_compat_client(OPENROUTER, key, m, headers=OPENROUTER_HEADERS))
-            for m in _names(settings.openrouter_models)
-        ]  # fmt: skip
-    mixed = [j for pair in zip(gemini, hosted, strict=False) for j in pair]
-    mixed += gemini[len(hosted) :] + hosted[len(gemini) :]
-    return mixed[:3]
+    keys = {"gemini": settings.gemini_api_key, "nvidia": settings.nvidia_api_key,
+            "openrouter": settings.openrouter_api_key}  # fmt: skip
+    routes = {"gemini": (GEMINI_OPENAI, None), "nvidia": (NVIDIA, None),
+              "openrouter": (OPENROUTER, OPENROUTER_HEADERS)}  # fmt: skip
+    jurors = []
+    for seat in court_seats(settings):
+        key, (url, headers) = keys[seat.provider], routes[seat.provider]
+        assert key is not None  # noqa: S101 (court_seats seats a provider only with its key)
+        client = openai_compat_client(url, key.get_secret_value(), seat.model, headers=headers)
+        jurors.append((seat.juror, client))
+    return jurors

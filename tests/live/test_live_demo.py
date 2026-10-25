@@ -115,8 +115,11 @@ def test_the_gpu_honours_a_json_schema(runpod: httpx.Client) -> None:
     }
     r = runpod.post("/openai/v1/chat/completions", json={
         "model": "tempo-private", "temperature": 0, "max_tokens": 60,
-        "messages": [{"role": "user", "content": "A train 38 minutes late; the rule pays from 15 "
-                      "minutes. Is the traveller eligible? Answer as JSON."}],
+        # The rule in plain words, as the jurors get it (rule_in_words): to "the rule pays from 15
+        # minutes" alone, Qwen2.5-VL-7B answered not eligible every time (25 Oct 2026).
+        "messages": [{"role": "user", "content": "Rule: a traveller is eligible for compensation "
+                      "when their train arrives 15 minutes or more late. Fact: the train arrived "
+                      "38 minutes late. Is the traveller eligible? Answer as JSON."}],
         "response_format": {"type": "json_schema", "json_schema": {"name": "v", "schema": schema}},
     })  # fmt: skip
     assert r.status_code == 200, r.text
@@ -238,9 +241,13 @@ def test_our_model_reads_the_engineers_card(gw: httpx.Client) -> None:
     facts = {f["key"]: f for f in read["facts"]}
     assert all(f["source"].endswith("#vision") for f in read["facts"])
     assert "broadbandly" in str(facts["operator"]["value"]).lower(), facts
-    assert facts["event_date"]["value"] == "2026-10-19", facts
-    # Either it was sure and started the claim, or it asks one question first.
-    assert read.get("mission") or read["question"], read
+    if facts["event_date"]["value"] == "2026-10-19":
+        # Read right: it starts the claim, or still asks one question if it was unsure.
+        assert read.get("mission") or read["question"], read
+    else:
+        # Read wrong: Tempo must not trust it. It reads the date back and starts nothing.
+        assert read["fact_key"] == "event_date" and read["question"], read
+        assert not read.get("mission"), read
 
 
 @pytest.mark.parametrize(

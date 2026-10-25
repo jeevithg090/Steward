@@ -138,7 +138,8 @@ def _build(settings: Settings) -> tuple[MissionService, EventBus, Memory, VaultS
 def _court(settings: Settings, status: ModelStatus | None = None) -> ConsensusCourt | None:
     """Replay jurors unless the models are live (labelled simulated); otherwise only the deployment
     mode's own model: three Cortex models in cloud-standard, three jurors on our own model, or
-    (cloud-apis) Gemini and OpenRouter models in turn. `status` notes whether they answer."""
+    (cloud-apis) Gemini models with NVIDIA's or OpenRouter's in turn. `status` notes whether they
+    answer."""
     if not models_live(settings):
         return ConsensusCourt(replay_jurors(REPO / "fixtures" / "court" / "replay.yaml"))
     adapters = build_adapters(settings)
@@ -153,6 +154,7 @@ def _court(settings: Settings, status: ModelStatus | None = None) -> ConsensusCo
                 for name, client in jurors
             ],
             timeout_s=settings.juror_timeout_s,
+            grace_s=settings.juror_grace_s,
         )
     if settings.snowflake_account and settings.snowflake_pat:
         tokens = PatTokenProvider(lambda: settings.snowflake_pat)

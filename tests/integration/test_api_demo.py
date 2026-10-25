@@ -1,6 +1,6 @@
 """The live demo's fallback (plan.md §13.5): TEMPO_DEPLOY=cloud-apis, TEMPO_MODELS=live. The three
-jurors are Gemini and OpenRouter models in turn, Gemini reads photos, and /health names every outside
-company and says whether the model is really answering (here: stand-ins for both providers)."""
+jurors are Gemini models with NVIDIA's or OpenRouter's in turn, Gemini reads photos, and /health names
+every outside company and says whether the model is really answering (here: stand-ins for all)."""
 
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ GEMINI_VISION = re.compile(
     r"https://generativelanguage\.googleapis\.com/v1beta/models/.+:generateContent"
 )
 OPENROUTER = "https://openrouter.ai/api/v1/chat/completions"
+NVIDIA = "https://integrate.api.nvidia.com/v1/chat/completions"
 RUNPOD = "https://api.runpod.ai/v2/ep123/openai/v1/chat/completions"
 CARD = Path(__file__).resolve().parents[2] / "fixtures" / "vision" / "missed_visit_card.png"
 LATE_TRAIN = "My 08:12 Oxford to Paddington was 38 minutes late on 23 October 2026, ticket £28.40"
@@ -107,7 +108,7 @@ def test_by_default_three_different_gemini_models_judge(gemini_only: TestClient)
         "/chat", headers=AUTH, json={"user_id": "u_d", "text": LATE_TRAIN}
     ).json()
     assert [v["juror"] for v in reply["mission"]["court"]["verdicts"]] == [
-        "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3-flash-preview",
+        "gemini-3.5-flash-lite", "gemini-3.1-flash-lite-preview", "gemini-3.1-flash-lite",
     ]  # fmt: skip
     health = gemini_only.get("/health").json()
     assert health["third_parties"] == [
@@ -122,9 +123,40 @@ def test_an_openrouter_model_takes_the_second_seat(apis: TestClient) -> None:
     assert reply["ask"]["amount_gbp"] == "14.20"  # the rules, never a model
     court = reply["mission"]["court"]
     assert [v["juror"] for v in court["verdicts"]] == [
-        "gemini-3.1-flash-lite", "dots-3-note-preview", "gemini-3.5-flash-lite",
+        "gemini-3.5-flash-lite", "dots-3-note-preview", "gemini-3.1-flash-lite-preview",
     ]  # fmt: skip
     assert court["absent"] == [] and court["eligible"] is True
+
+
+@pytest.fixture
+def nvidia(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+    """NVIDIA's key seats its default model; with OpenRouter's too, NVIDIA's goes first."""
+    monkeypatch.chdir(tmp_path)
+    with respx.mock(assert_all_called=False) as mock:
+        mock.post(GEMINI_CHAT).mock(side_effect=a_model)
+        mock.post(NVIDIA).mock(side_effect=a_model)
+        openrouter = mock.post(OPENROUTER).mock(side_effect=a_model)
+        mock.route(host="testserver").pass_through()
+        with gateway_with(
+            tmp_path, tempo_deploy="cloud-apis", gemini_api_key="g-test", nvidia_api_key="nv-test",
+            openrouter_api_key="or-test", openrouter_models="dots-studio/dots-3-note-preview:free",
+        ) as client:  # fmt: skip
+            client.openrouter = openrouter  # type: ignore[attr-defined]
+            yield client
+
+
+def test_an_nvidia_model_takes_the_second_seat_on_its_own_rate_limit(nvidia: TestClient) -> None:
+    reply = nvidia.post("/chat", headers=AUTH, json={"user_id": "u_n", "text": LATE_TRAIN}).json()
+    assert reply["ask"]["amount_gbp"] == "14.20"  # the rules, never a model
+    court = reply["mission"]["court"]
+    assert [v["juror"] for v in court["verdicts"]] == [
+        "gemini-3.5-flash-lite", "nemotron-3.5-bolt-e4b", "gemini-3.1-flash-lite-preview",
+    ]  # fmt: skip
+    assert court["absent"] == [] and court["eligible"] is True
+    assert not nvidia.openrouter.called  # type: ignore[attr-defined]  # no seat left for it
+    health = nvidia.get("/health").json()
+    assert health["third_parties"] == ["elevenlabs", "gemini", "nvidia"]  # not OpenRouter
+    assert health["model"]["processor"] == "Google Gemini and NVIDIA"
 
 
 def test_health_names_every_outside_company_and_says_the_model_answers(apis: TestClient) -> None:

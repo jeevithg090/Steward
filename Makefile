@@ -115,6 +115,10 @@ live-test: ## Every feature, for real, against the running live demo (Gateway su
 	@status=0; \
 	uv run --no-sync pytest tests/live/test_live_demo.py -v -o addopts="--import-mode=importlib --strict-markers" || status=1; \
 	(cd tests/e2e && npx playwright test -c playwright.live.config.ts) || status=1; \
+	if grep -q '"deploy": "cloud-apis"' ../.tempo-live/live.json 2>/dev/null; then \
+	  echo "Waiting 60 s: the free Gemini tier counts requests per minute, so the fresh demo's courts get all three jurors"; \
+	  sleep 60; \
+	fi; \
 	./scripts/live_demo.sh --restart-gateway; \
 	exit $$status
 

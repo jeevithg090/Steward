@@ -116,6 +116,25 @@ def test_a_photo_of_the_card_is_read_by_our_model(gateway: TestClient) -> None:
     assert read["mission"]["skill_id"].endswith("ofcom-missed-appointment")
 
 
+def test_a_notice_period_in_words_is_read_back_never_a_crash(gateway: TestClient) -> None:
+    """Live, Qwen gave the card's notice period as text; Decimal() on it was a 500."""
+    gateway.runpod.post(RUNPOD).mock(return_value=completion(json.dumps({"facts": [  # type: ignore[attr-defined]
+        {"key": "operator", "value": "Broadbandly", "confidence": 0.97},
+        {"key": "event_date", "value": "2026-10-19", "confidence": 0.95},
+        {"key": "notice_hours", "value": "not stated", "confidence": 0.9},
+    ]})))  # fmt: skip
+    photo = base64.b64encode(CARD.read_bytes()).decode()
+    r = gateway.post(
+        "/missions/ofcom/read", headers=AUTH,
+        json={"image_b64": photo, "filename": "card.png", "user_id": "u_margaret",
+              "display_name": "Margaret"},
+    )  # fmt: skip
+    assert r.status_code == 200, r.text
+    read = r.json()
+    assert read["fact_key"] == "notice_hours" and "not stated" in read["question"]
+    assert read["visit"]["notice_hours"] is None and "mission" not in read
+
+
 def test_small_talk_is_one_sentence_from_the_model(gateway: TestClient) -> None:
     reply = gateway.post(
         "/chat", headers=AUTH, json={"user_id": "u_margaret", "text": "hello there"},

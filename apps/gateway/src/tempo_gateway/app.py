@@ -60,7 +60,13 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from tempo_adapters.factory import build_adapters, model_ready, models_live, openrouter_used
+from tempo_adapters.factory import (
+    PROVIDER_NAMES,
+    build_adapters,
+    court_providers,
+    model_ready,
+    models_live,
+)
 from tempo_adapters.scam import Registers
 from tempo_adapters.settings import Settings
 from tempo_core.config import profile
@@ -291,11 +297,11 @@ def create_app(
     deployment = profile(settings.tempo_deploy)  # an unknown mode fails here, at start-up
     if settings.tempo_region:  # the profile's region is a default; the real one wins
         deployment = replace(deployment, region=settings.tempo_region)
-    if openrouter_used(settings):  # an OpenRouter juror makes OpenRouter an outside AI company too
+    if extra := court_providers(settings):  # an NVIDIA or OpenRouter juror sees the case too
         region = deployment.region
         if not settings.tempo_region:  # name it where the data goes, only when it really does
-            region = f"{region} and OpenRouter"
-        deployment = replace(deployment, extra_ai=frozenset({"openrouter"}), region=region)
+            region = " and ".join([region, *(PROVIDER_NAMES[p] for p in sorted(extra))])
+        deployment = replace(deployment, extra_ai=extra, region=region)
 
     def web_caller(authorization: Annotated[str | None, Header()] = None) -> str:
         token = (authorization or "").removeprefix("Bearer ").strip()
@@ -454,10 +460,11 @@ def create_app(
             return {"facts": read, "question": "I couldn't read the provider or the date. What "
                     "does the card say?", "fact_key": "event_date", "visit": None}  # fmt: skip
         notice, ref = found.get("notice_hours"), found.get("account_ref")
+        # A notice period the model gave in words stays text and unsure: read back, never a number.
+        hours = notice.value if notice and isinstance(notice.value, Decimal) else None
         visit = StartOfcom(
             user_id=body.user_id, display_name=body.display_name, phone=body.phone,
-            operator=str(who.value), event_date=str(when.value),
-            notice_hours=Decimal(str(notice.value)) if notice else None,
+            operator=str(who.value), event_date=str(when.value), notice_hours=hours,
             account_ref=str(ref.value) if ref else None, time_value_gbp_h=body.time_value_gbp_h,
             source=f"{body.filename}#vision",
         )  # fmt: skip

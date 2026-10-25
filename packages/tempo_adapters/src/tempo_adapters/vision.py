@@ -13,7 +13,7 @@ import base64
 import hashlib
 import json
 import re
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
@@ -30,6 +30,12 @@ TIMEOUT = httpx.Timeout(30.0, connect=10.0)
 # A Serverless GPU may be waking from zero: loading the model takes a minute or two.
 GPU_TIMEOUT = httpx.Timeout(150.0, connect=10.0)
 UNPARSED_CONFIDENCE = 0.5
+# A real model can misread a year (a live read of the engineer's card gave 2020-10-19 for
+# 2026-10-19, at confidence 0.9). Dates a person couldn't be telling us about are read back, never
+# trusted: a past event more than a year ago or in the future, a deadline wildly out of range.
+PAST_EVENTS = frozenset({"travel_date", "event_date", "letter_date", "decision_date"})
+DEADLINES = frozenset({"deadline", "due_date"})
+YEAR = timedelta(days=366)
 
 KEYS: dict[DocumentKind, tuple[str, ...]] = {
     DocumentKind.TICKET: (
@@ -96,7 +102,7 @@ class GeminiVision:
                                 "data": base64.b64encode(image).decode(),
                             }
                         },
-                        {"text": _prompt(kind)},
+                        {"text": _prompt(kind, _today())},
                     ],
                 }
             ],
@@ -117,7 +123,9 @@ class GeminiVision:
             raise VisionUnavailable(f"Gemini: {type(exc).__name__}") from exc
         if response.status_code != 200:
             raise VisionUnavailable(f"Gemini: HTTP {response.status_code}")
-        return to_facts(_answer(response.json()), kind=kind, source=f"{filename}#vision")
+        return to_facts(
+            _answer(response.json()), kind=kind, source=f"{filename}#vision", today=_today()
+        )
 
 
 def _json_schema(kind: DocumentKind) -> dict[str, Any]:
@@ -155,7 +163,7 @@ class OpenAIVision:
     ) -> tuple[Fact, ...]:
         data_url = f"data:{mime_type};base64,{base64.b64encode(image).decode()}"
         shape = '{"facts": [{"key": ..., "value": ..., "confidence": 0 to 1}]}'
-        ask = f"{_prompt(kind)}\n\nReply with only JSON: {shape}"
+        ask = f"{_prompt(kind, _today())}\n\nReply with only JSON: {shape}"
         body = {
             "model": self._model,
             "temperature": 0,
@@ -185,7 +193,9 @@ class OpenAIVision:
             raise VisionUnavailable(f"vision model: {type(exc).__name__}") from exc
         if response.status_code != 200:
             raise VisionUnavailable(f"vision model: HTTP {response.status_code}")
-        return to_facts(_openai_answer(response.json()), kind=kind, source=f"{filename}#vision")
+        return to_facts(
+            _openai_answer(response.json()), kind=kind, source=f"{filename}#vision", today=_today()
+        )
 
 
 def _openai_answer(body: Any) -> Any:
@@ -198,12 +208,20 @@ def _openai_answer(body: Any) -> Any:
         raise VisionUnavailable("the vision model returned no readable answer") from exc
 
 
-def _prompt(kind: DocumentKind) -> str:
+def _prompt(kind: DocumentKind, today: date | None = None) -> str:
     hint = HINTS.get(kind)
-    return PROMPT.format(
+    prompt = PROMPT.format(
         kind=kind.value.replace("_", " "),
         keys=", ".join(KEYS[kind]),
         hint=f"\n{hint}" if hint else "",
+    )
+    if today is None:
+        return prompt
+    # Cards and letters often leave the year out ("Mon 19 Oct"); a weekday alone can match years
+    # far apart (19 Oct was a Monday in 2020 and 2026), so say what today is.
+    return (
+        f"{prompt}\nToday is {today.isoformat()}. If a date has no year, give the most recent such "
+        "date that is not after today, and lower its confidence."
     )
 
 
@@ -215,8 +233,28 @@ def _answer(body: Any) -> Any:
         raise VisionUnavailable("Gemini returned no readable answer") from exc
 
 
-def to_facts(answer: Any, *, kind: DocumentKind, source: str) -> tuple[Fact, ...]:
-    """Validate and convert the model's answer. Unknown or repeated keys are dropped."""
+def _today() -> date:
+    return datetime.now(UTC).date()
+
+
+def plausible(key: str, value: str | Decimal, today: date) -> bool:
+    """A date a person could be telling us about today. Other keys are always plausible."""
+    if key not in PAST_EVENTS | DEADLINES or not isinstance(value, str):
+        return True
+    try:
+        when = date.fromisoformat(value)
+    except ValueError:
+        return True  # unparsed values are already capped by _convert
+    if key in PAST_EVENTS:
+        return today - YEAR <= when <= today + timedelta(days=1)
+    return today - YEAR <= when <= today + 3 * YEAR
+
+
+def to_facts(
+    answer: Any, *, kind: DocumentKind, source: str, today: date | None = None
+) -> tuple[Fact, ...]:
+    """Validate and convert the model's answer. Unknown or repeated keys are dropped. With
+    `today` (a live reading, not a recording), an implausible date is capped so it is read back."""
     facts: dict[str, Fact] = {}
     for item in answer.get("facts") or []:
         key = item.get("key")
@@ -224,7 +262,7 @@ def to_facts(answer: Any, *, kind: DocumentKind, source: str) -> tuple[Fact, ...
             continue
         confidence = min(max(float(item.get("confidence", 0)), 0.0), 1.0)
         value, parsed = _convert(key, str(item.get("value", "")).strip())
-        if not parsed:
+        if not parsed or (today is not None and not plausible(key, value, today)):
             confidence = min(confidence, UNPARSED_CONFIDENCE)
         facts[key] = Fact(key=key, value=value, source=source, confidence=confidence)
     return tuple(facts.values())

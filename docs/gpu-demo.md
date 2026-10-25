@@ -69,14 +69,16 @@ The script runs five steps (`scripts/live_demo.sh`):
 1. It opens a Cloudflare quick tunnel to port 8100.
 2. It deploys the web app to the Vercel project `tempo-live`, built against the tunnel's address and a fresh demo token.
 3. It starts the Gateway with `TEMPO_DEPLOY=cloud-gpu TEMPO_MODELS=live TEMPO_MODE=replay`, allowing only the Vercel site as its web origin and binding Face ID to that site.
-4. It seeds the demo's people.
-5. It wakes the GPU through the Gateway's own model client.
+4. It wakes the GPU, waiting up to 15 minutes until the model answers, and straight away seeds the demo's people, so no seeded court sits with a cold GPU.
+5. It asks the model once more through the Gateway's own model client, which proves the key and the endpoint.
 
-It prints one URL to open.
+It prints one URL to open. `--restart-gateway` (and so `make live-switch` and the end of
+`make live-test`) wakes the GPU first too.
 
-A cold worker downloads and loads the model before its first answer, which can take several
-minutes the first time; an always-on worker answers in seconds. While the GPU wakes, the jurors may
-time out: the Court then says a juror was absent and asks you, which is the designed behaviour.
+A cold worker loads the model before its first answer: 2.5 to 6 minutes on 25 Oct 2026, even
+when RunPod listed the workers as idle and ready. An always-on worker answers in seconds. If the
+GPU goes cold mid-demo, the jurors time out after 20 s: the Court then says a juror was absent and
+asks you, which is the designed behaviour.
 
 `make live-demo-stop` stops the Gateway and the tunnel. Then set the endpoint's active workers
 back to 0 in RunPod.
@@ -116,3 +118,14 @@ are on facts and structure, and the amounts must match exactly.
   localhost keeps its own Gateway on port 8000.
 - **Costs:** you pay RunPod per second a worker runs; with active workers at 0, nothing is billed
   while idle. Check the console's price for the GPU you pick.
+- **Keep one worker active during the demo.** With 0 active workers and RunPod's default idle
+  timeout of about 5 s, every request after a pause queued for about 2 minutes while a fresh worker
+  loaded the model (measured 25 Oct 2026: 107 s queued, 1.4 s to run). With one active worker,
+  jobs queue 1 s and run in 0.5 s.
+- **Without a GPU: `make live-switch MODE=apis`** puts the same site on hosted models
+  (`cloud-apis`). It needs `GEMINI_API_KEY`. With `NVIDIA_API_KEY` too (build.nvidia.com), NVIDIA's
+  Nemotron 3.5 Bolt takes the second juror seat on its own rate limit; on Gemini's free tier the
+  two Flash-Lite families are the only fast, separate rate limits. `OPENROUTER_API_KEY` with
+  `OPENROUTER_MODELS` is an opt-in seat. The Privacy Proof names each provider that really sits on
+  the Court. `make live-switch MODE=gpu` switches back.
+- **Web Push** on the live site uses a VAPID key pair the script makes once in `../.tempo-live/.env`.

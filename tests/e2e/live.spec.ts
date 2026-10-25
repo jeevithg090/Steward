@@ -72,8 +72,13 @@ test("the chat: Margaret's late train, three real jurors, Yes, and the money arr
 
   await page.goto("/#/missions");
   await page.getByRole("link", { name: /Delay Repay for Margaret.*Waiting for the company/ }).first().click();
-  await page.getByRole("button", { name: "Check the payment now" }).click();
-  await expect(page.getByText(/Money arrived/).first()).toBeVisible();
+  // The payment check also runs on its own (PAYMENT_CHECK_AFTER_S=0): it may already have landed.
+  const check = page.getByRole("button", { name: "Check the payment now" });
+  const arrived = page.getByText(/Money arrived/).first();
+  await expect(check.or(arrived)).toBeVisible();
+  if (await check.isVisible()) await check.click();
+  await expect(arrived).toBeVisible();
+  await expect(page.getByText(/has paid you £14\.20/).first()).toBeVisible();
 });
 
 test("Read It To Me: our model reads a sample photo of a water bill", async ({ page }) => {
