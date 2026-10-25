@@ -102,7 +102,7 @@ Gate).
 3. **The wait.** The mission waits for the money, not for a webhook: it sleeps in its checkpoint.
    Press "Check the payment now" (or let the scheduler do it within 30 s).
 4. **The proof.** "Money arrived", the ledger ticks up, and the timeline shows how long each stage
-   took, including how long Margaret took to decide.
+   took, including "How long you took to decide".
 
 5. **It remembers you, and when.** The Memory Card shows what Tempo knows about Margaret, each
    line with where it came from and when. Its timeline shows the Broadbandly engineer visit that
@@ -114,7 +114,7 @@ Gate).
 6. **Two screens, one Tempo** (Tempo Mesh, the **Devices** page `#/devices`). On the phone:
    "Use this browser for approvals", then "Add Face ID or fingerprint". "Add another device" shows a
    QR code; open it on the laptop (it lands on `#/pair`), and both show the same 6-digit code: press
-   "Yes, the codes match". Start Margaret's claim, then press "Yes, claim £14.20 with Face ID" on the
+   "Yes, the codes match". Press "Start the demo claim", then "Yes, claim £14.20 with Face ID" on the
    phone: the question disappears from the laptop at the same moment (115 to 170 ms in the e2e run).
    Once a browser has Face ID, the Gateway refuses unsigned answers for Margaret, and a typed "yes"
    in the chat asks for Face ID instead. Pushes carry no details, only "sync" (they need a VAPID key).
@@ -126,7 +126,7 @@ Gate).
    (ciphertext). Say the gaps out loud: until the cosign key exists there is no signed
    allowlist, and the panel says so.
 
-8. **Rights Decay: wait, on purpose.** Press "Read Margaret's missed-visit card". Vision reads the
+8. **Rights Decay: wait, on purpose.** Press "Read the demo missed-visit card". Vision reads the
    simulated Broadbandly card and asks one thing: "I read the date of the missed visit as 19
    October 2026. Is that right?" (its confidence is below 0.8 on purpose). Say yes. The Rights
    Engine prices £32.31, the Court votes, and the Rights Portfolio says **Waiting, on purpose**:
