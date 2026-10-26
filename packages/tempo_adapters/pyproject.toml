@@ -15,7 +15,7 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-http>=1.39",
     "opentelemetry-sdk>=1.39",
     "pydantic-settings>=2.11",
-    "sqlalchemy[asyncio]>=2.0.40",
+    "sqlalchemy[asyncio]>=2.1.6",
     "structlog>=25.4",
 ]
 
