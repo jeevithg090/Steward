@@ -10,5 +10,5 @@ dependencies = ["mcp>=2.3"]
 tempo-mcp-mail = "tempo_mcp_mail.server:main"
 
 [build-system]
-requires = ["uv_build>=0.13.1,<0.14"]
+requires = ["uv_build>=0.13.5,<0.14"]
 build-backend = "uv_build"
