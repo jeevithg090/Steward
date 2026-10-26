@@ -3936,7 +3936,7 @@ requires-dist = [
     { name = "graphiti-core", specifier = ">=0.30.2" },
     { name = "mem0ai", specifier = ">=2.2.1" },
     { name = "pgvector", specifier = ">=0.5.1" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.3" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.3.6" },
     { name = "psycopg-pool", specifier = ">=3.3" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.40" },
     { name = "structlog", specifier = ">=25.4" },
