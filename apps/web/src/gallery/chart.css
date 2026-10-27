@@ -1,0 +1,39 @@
+/*
+ * Chart colours. The eight categorical hues are a validated palette (every adjacent pair stays apart
+ * for colour-blind readers, light and dark each stepped for their own surface), used in this fixed
+ * order and never cycled. Text never wears these colours: values and labels use the ink tokens.
+ * `light-dark()` follows the colour scheme the shell sets, as every other Steward token does.
+ */
+.st-chart {
+  --chart-1: light-dark(#2a78d6, #3987e5);
+  --chart-2: light-dark(#eb6834, #d95926);
+  --chart-3: light-dark(#1baf7a, #199e70);
+  --chart-4: light-dark(#eda100, #c98500);
+  --chart-5: light-dark(#e87ba4, #d55181);
+  --chart-6: light-dark(#008300, #008300);
+  --chart-7: light-dark(#6250d6, #9085e9);
+  --chart-8: light-dark(#e34948, #e66767);
+  --chart-surface: var(--st-card, Canvas);
+  --chart-grid: var(--st-hair-2, rgb(0 0 0 / 8%));
+  --chart-axis: var(--st-hair, rgb(0 0 0 / 15%));
+}
+
+.st-chart [data-mark] {
+  transition: opacity var(--st-dur-swap, 200ms) ease-out;
+}
+
+/* While one category is active, the others step back so the reader sees which one responded. */
+.st-chart[data-active] [data-mark]:not([data-active-mark]) {
+  opacity: 0.45;
+}
+
+/* Windows High Contrast and other forced palettes: marks become plain ink, and the table carries identity. */
+@media (forced-colors: active) {
+  .st-chart [data-mark] {
+    fill: CanvasText;
+    stroke: Canvas;
+  }
+  .st-chart [data-line] {
+    stroke: CanvasText;
+  }
+}

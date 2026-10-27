@@ -1,0 +1,6 @@
+# Tempo reads a lot of small print and judges scams, so it uses a strong model. Environment variables
+# (STEWARD_MODEL_PROVIDER, STEWARD_MODEL, STEWARD_MODEL_BASE_URL) and the Settings page override this.
+
+provider: openrouter
+model: anthropic/claude-sonnet-5.5
+apiKeyEnv: OPENROUTER_API_KEY

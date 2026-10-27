@@ -1,0 +1,38 @@
+{
+  "$comment": "Steward's scripted demo model. aimock fixture shape: the first entry whose userMessage appears in the person's last message (ignoring case) answers, but only before any tool has returned in that turn, and only when every tool it calls is offered. Everything else is handled in src/scripted.ts. Never address the person by name here.",
+  "fixtures": [
+    {
+      "match": { "userMessage": "what can you do" },
+      "response": {
+        "content": "I read your mail and calendar, tell you each morning what needs you, and do work on a computer of my own: a browser, a workspace and a shell. I ask before I send, pay, sign or delete anything, and I keep a record you can read.\n\nRight now I'm the scripted demo model, so I only understand a few requests. Try “What needs me today?” or “Open news.ycombinator.com and tell me the top story.”"
+      }
+    },
+    {
+      "match": { "userMessage": "who are you" },
+      "response": {
+        "content": "I'm your steward: I do the work, ask before I act, and keep a record you can read.\n\nAt the moment I'm running on the scripted demo model, so my answers are canned. Add a model key to talk to a real one."
+      }
+    },
+    {
+      "match": { "userMessage": "are you real" },
+      "response": {
+        "content": "No. This is the scripted demo model: a fixed script for trying Steward without a key. Add a model key, such as OPENROUTER_API_KEY in your .env file, and restart Steward to talk to a real model."
+      }
+    },
+    {
+      "match": { "userMessage": "what needs me today" },
+      "response": { "toolCalls": [{ "name": "brief_today", "arguments": {} }] }
+    },
+    {
+      "match": { "userMessage": "open news.ycombinator.com" },
+      "response": {
+        "toolCalls": [
+          {
+            "name": "browser_navigate",
+            "arguments": { "url": "https://news.ycombinator.com", "intent": "Read the top story" }
+          }
+        ]
+      }
+    }
+  ]
+}

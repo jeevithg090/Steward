@@ -1,0 +1,33 @@
+# Steward's own rules, layered on the presets the gateway ships with.
+#
+# Each rule is a CEL expression over the variables listed in docs/governance.md, with one effect:
+#   deny   refuse, whatever any other rule says. Checked first.
+#   ask    show the person the exact call and wait for Refuse or Allow once. "Always allow" is not
+#          offered for a call an ask rule caught, because no standing rule could lift it.
+#   allow  go ahead without asking. Never lifts the safety floor (payments and passwords) or taint.
+#
+# These rules are stored with source `tenant`, matched by name, and refreshed on every start. A rule
+# that does not compile stops the server at start-up with the file and the reason, rather than
+# refusing every call later. The person can switch each one off on the Rules page.
+
+rules:
+  - name: Calendar changes always ask
+    effect: ask
+    when: 'tool.surface == "calendar" && tool.kind != "read"'
+    description: >-
+      Your calendar is shared with other people, so Steward shows you every event before it adds
+      it, every time.
+
+  - name: Routines never send
+    effect: deny
+    when: 'initiator.kind == "routine" && tool.kind == "send"'
+    description: >-
+      A routine runs while you are away. It can read, sort, research and draft, and it tells you
+      what it found; sending waits until you ask for it in a conversation.
+
+  - name: Mail to a crowd asks every time
+    effect: ask
+    when: 'tool.kind == "send" && size(target.recipients) > 5'
+    description: >-
+      A message to more than five people is easy to regret, so it always asks, even when you have
+      allowed messages to some of them before.

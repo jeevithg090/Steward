@@ -1,0 +1,113 @@
+# Tempo's skills, called with `/name` in the composer. A skill adds no permission: every call it
+# leads to still goes through the gateway and Tempo's rules. `tools:` declares what each one needs.
+
+skills:
+  - name: delay-repay-claim
+    description: Find train journeys in your mail, check whether any were late enough to claim Delay Repay, and fill in the claim for you to submit.
+    tools:
+      - mail_list
+      - mail_read
+      - web_search
+      - web_fetch
+      - browser_navigate
+      - browser_snapshot
+      - browser_click
+      - browser_type
+      - request_help
+      - show_table
+      - task_create
+      - routine_create
+    instructions: |-
+      Find train journeys the person can claim for, and get each claim to the point where they
+      only have to check it and press submit.
+
+      1. Find tickets and bookings with mail_list (try "ticket", "booking", "e-ticket" and the names
+         of rail retailers). Read each with mail_read. For every journey note: the date, the
+         departure and arrival stations and times, the booking reference, the price paid and the
+         ticket type.
+      2. Split them: journeys still to come, journeys in the last 28 days, and older ones. For
+         journeys still to come, offer a routine (routine_create) to check them the day after travel.
+      3. For each past journey, find out how late it really was. Ask the person if they remember.
+         Otherwise look the train up on a public train-running history site with the browser, and
+         say which site and what it showed. If you cannot find it, say so; never guess a delay.
+      4. Find the operator (the company that ran the train, which may not be the retailer) and read
+         its own Delay Repay page with web_fetch: how many minutes of delay start compensation,
+         how much each band pays, the deadline, and the proof it wants. Cite the page.
+      5. Show the result with show_table: journey, delay, what it pays by the operator's rules,
+         deadline, and status ("can claim", "not late enough", "too old", "couldn't check").
+      6. For each claim they want: open the operator's claim form in the browser, fill in what you
+         know, and stop before the final submit, which asks them. If the form wants bank details,
+         call request_help and say which fields; never type them yourself. If it wants a photo of
+         the ticket, say so: you cannot upload one.
+      7. For anything left to do, call task_create with the deadline in the title.
+
+      Never say a claim was made until the operator's confirmation page or email says so.
+
+  - name: scam-check
+    description: Check a message, email or link for signs of a scam, without clicking anything, and say what to do about it.
+    tools:
+      - mail_list
+      - mail_read
+      - web_search
+      - web_fetch
+    instructions: |-
+      Decide whether a message is a scam, using only what can be seen without engaging with it.
+
+      1. Get the message. If they pasted it, use that. If they describe an email, find it with
+         mail_list and read it with mail_read.
+      2. Look at the evidence, without opening any link in it:
+         - Sender: the real address and its domain, not the display name. Does the domain belong to
+           the organisation it claims to be? Look for lookalikes (extra words, swapped letters,
+           odd endings such as .test, -secure, -verify).
+         - Links: where each one really points. A link whose text says one site and whose address
+           is another is a strong sign.
+         - The ask: a password, a code, card or bank details, a payment, a gift card, or "verify
+           your account". Genuine organisations rarely ask for any of these by message.
+         - Pressure: deadlines in hours, threats of closure or deletion, prizes, refunds out of
+           the blue.
+      3. If it is still unclear, check the organisation's own official website (found with
+         web_search, not from the message) for its warnings about scams or how it contacts people.
+         You may also search for the sender's domain together with the word "scam". Never fetch
+         the message's own links: they can carry a code that tells the sender the address is live.
+      4. Answer with a verdict first: "This is a scam", "This looks genuine" or "I can't tell".
+         Then the two or three reasons that decided it, then what to do: delete it, or contact the
+         organisation through its official website or the number on their card or statement.
+         In the UK, scam emails can be forwarded to report@phishing.gov.uk and scam texts to 7726.
+      5. If they already clicked, typed a password or paid, say in one sentence what to do first:
+         change that password from the real site, or call their bank using the number on their card.
+
+      Never reply to the message, never call a number in it, and never send it anywhere yourself.
+
+  - name: subscription-audit
+    description: Find the subscriptions, bills and renewals in your mail, total what they cost a year, and flag the ones worth cutting.
+    tools:
+      - mail_list
+      - mail_read
+      - show_table
+      - show_chart
+      - make_page
+      - task_create
+      - browser_navigate
+      - browser_snapshot
+      - request_help
+    instructions: |-
+      Show the person every regular payment you can find in their mail and what it costs them in
+      a year, then help them cut what they do not want.
+
+      1. Search the last three months with mail_list: try "receipt", "subscription", "renewal",
+         "your bill", "direct debit", "membership", "free trial" and "price". Read the likely ones
+         with mail_read.
+      2. For each regular payment, note: who it is to, the amount, how often, the last date it was
+         taken, the next date if the mail says, and the message you found it in.
+      3. Show them with show_table, most expensive per year first, with a total per month and per
+         year. Use show_chart for the yearly cost by payee when there are more than five.
+      4. Flag, one line each: price rises, free trials about to start charging, two payments that
+         look like the same service, and bills noticeably higher than the one before.
+      5. Ask which they want to cancel or question. For each, find the company's own cancellation
+         or contact page, open it in the browser, and stop before the final button, which asks
+         them. If it needs a sign-in, call request_help. If it can only be done by phone, say so
+         and create a task with task_create.
+      6. Save the audit with make_page so they can come back to it.
+
+      Mail shows only what was emailed: say that payments without emails (many direct debits,
+      card payments) will be missing, and that their bank statement is the full list.

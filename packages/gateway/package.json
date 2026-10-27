@@ -4,8 +4,17 @@
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
-  "exports": { ".": "./src/index.ts"  },
-  "scripts": { "typecheck": "tsc -p tsconfig.json"  },
-  "dependencies": {"@steward/shared":"workspace:*","@steward/db":"workspace:*","cel-js":"0.8.2","zod":"3.25.76"},
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@steward/shared": "workspace:*",
+    "@steward/db": "workspace:*",
+    "cel-js": "0.8.2",
+    "zod": "3.25.76"
+  },
   "devDependencies": {}
 }

@@ -1,0 +1,32 @@
+# Tempo's promises, kept by the gateway rather than by the prompt. A prompt can be argued with; a deny
+# rule cannot. Deny rules are checked before anything else, including "Always allow".
+#
+# Regexes inside matches() are case-insensitive. In single-quoted YAML a backslash is just a
+# backslash, so `\b` reaches the rule as a word boundary.
+
+rules:
+  - name: Tempo never pays
+    effect: deny
+    when: 'tool.kind == "pay"'
+    description: >-
+      Tempo never pays for anything. It takes you to the page and tells you what to pay and why;
+      you pay yourself.
+
+  - name: Tempo never types bank or card details
+    effect: deny
+    when: >-
+      (tool.name == "browser_type" || tool.name == "request_secret") &&
+      (matches(target.element.name, "sort.?code|account.?(number|no)\b|\biban\b|\bbic\b|swift|routing.?number|card.?(number|no)\b|\bcvv\b|\bcvc\b|security.?code|expiry|expiration")
+      || matches(args.label, "sort.?code|account.?(number|no)\b|\biban\b|\bbic\b|swift|routing.?number|card.?(number|no)\b|\bcvv\b|\bcvc\b|security.?code|expiry|expiration"))
+    description: >-
+      Bank and card details are yours to type. When a form needs them, Tempo hands you the wheel
+      and you type them yourself.
+
+  - name: Bank and card numbers never leave
+    effect: deny
+    when: >-
+      tool.kind != "read" &&
+      (contains(findings, "card_number") || contains(findings, "iban") || contains(findings, "bank_account"))
+    description: >-
+      A card number, IBAN or sort code and account number in anything Tempo would send, type or
+      save is refused, so your bank details never leave by accident.

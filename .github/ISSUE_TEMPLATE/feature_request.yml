@@ -1,0 +1,58 @@
+name: Feature request
+description: An idea for something Steward should do, or do better.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. The best requests start from the problem, not the solution: what are you trying to get done, and where does Steward get in the way?
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and what is hard or impossible today.
+      placeholder: Every Monday I forward the same three reports to my team, and Steward can't...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: How it could work, from the point of view of someone using Steward.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you have tried
+      description: Workarounds, a skill, a rule, a tenant package, or another tool.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where
+      multiple: true
+      options:
+        - The brief and triage
+        - Chat
+        - Approvals and rules
+        - The computer
+        - Routines and tasks
+        - Mail, calendar and connections
+        - Models
+        - Accessibility
+        - Tenant packages
+        - Docs
+        - Something else
+
+  - type: checkboxes
+    id: promises
+    attributes:
+      label: Steward's promises
+      description: Every tool call goes through the gateway, it fails closed, secrets never reach the transcript or the record, it never uses a name it was not given, and demo data says so.
+      options:
+        - label: My idea keeps all of these true, or I have said above which one it touches and why.
+          required: true

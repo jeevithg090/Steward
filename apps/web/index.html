@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Steward does the work, asks before it acts, and keeps a record you can read." />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f6f7f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101413" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Steward</title>
+    <script>
+      // Apply the person's display settings before the first paint, so a dark or large-text
+      // setting never flashes the defaults. The same key and attributes as src/app/accessibility.tsx.
+      (function () {
+        try {
+          var s = JSON.parse(localStorage.getItem("steward.accessibility") || "{}");
+          var root = document.documentElement;
+          if ([100, 115, 130, 150].indexOf(s.textSize) > -1) root.dataset.text = String(s.textSize);
+          if (s.contrast === "more") root.dataset.contrast = "more";
+          if (s.motion === "reduce") root.dataset.motion = "reduce";
+          if (s.font === "readable") root.dataset.font = "readable";
+          if (s.theme === "light" || s.theme === "dark") root.dataset.theme = s.theme;
+          var dark =
+            s.theme === "dark" ||
+            (s.theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          root.classList.toggle("dark", dark);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <p style="font: 1.125rem/1.5 system-ui, sans-serif; max-width: 36rem; margin: 3rem auto; padding: 0 1rem">
+        Steward needs JavaScript to run. Turn it on for this page, then reload.
+      </p>
+    </noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

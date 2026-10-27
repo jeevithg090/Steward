@@ -1,0 +1,109 @@
+name: Bug report
+description: Something does not work the way it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting this. Please **never paste keys, passwords, real mail or anything from `.steward-data/`**.
+
+        If this is a security problem (a call that skips the gateway, a secret that leaks, a way past an approval), please do not file it here: follow SECURITY.md instead.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected to see instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen
+      description: Step by step. If you can, use the scripted model and the demo inbox (`STEWARD_MODEL_PROVIDER=scripted pnpm dev`) so anyone can repeat it.
+      placeholder: |
+        1. Open Chat
+        2. Send "Email sam@example.com about Friday: see you at 10"
+        3. Press Refuse
+        4. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where
+      options:
+        - Today and the brief
+        - Chat
+        - Approvals
+        - Tasks
+        - The computer (browser, files, shell)
+        - Routines
+        - Rules
+        - The record
+        - Connections and MCP
+        - Skills or memory
+        - Settings or the welcome
+        - Accessibility
+        - A tenant package
+        - Installing or starting
+        - Something else
+    validations:
+      required: true
+
+  - type: dropdown
+    id: model
+    attributes:
+      label: Model provider
+      options:
+        - scripted
+        - openrouter
+        - openai
+        - anthropic
+        - gemini
+        - nvidia
+        - ollama
+        - openai-compatible
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Steward version or commit
+      placeholder: 0.1.0, or the output of git rev-parse --short HEAD
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system, Node version and browser
+      placeholder: macOS 26.1, Node 26.9.0, Safari 26
+    validations:
+      required: true
+
+  - type: input
+    id: assistive
+    attributes:
+      label: Assistive technology, if any
+      description: For example VoiceOver, NVDA, JAWS, Dragon, a switch, or browser zoom.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server log
+      description: The relevant lines from the terminal running `pnpm dev`. Check them for anything private first.
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: I removed keys, passwords, real mail and personal details from everything above.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

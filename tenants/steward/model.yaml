@@ -1,0 +1,10 @@
+# The model Steward uses unless the environment says otherwise. STEWARD_MODEL_PROVIDER,
+# STEWARD_MODEL and STEWARD_MODEL_BASE_URL override these values, and a choice saved on the Settings
+# page overrides both. With no key for the provider, Steward runs the scripted demo model and says so
+# on every page. See docs/models.md for every provider.
+#
+# `apiKeyEnv` names the environment variable that holds the key. Never put a key in this file.
+
+provider: openrouter
+model: anthropic/claude-sonnet-5.5
+apiKeyEnv: OPENROUTER_API_KEY

@@ -1,0 +1,359 @@
+@import "tailwindcss";
+
+/*
+ * Steward's design system. Tokens are adapted from OpenDuet's (MIT, CopilotKit): neutral greys, one
+ * accent used in a few fixed places, and four status tones for how work stands. Steward's accent is
+ * teal, and every size is in rem so the person's text size scales the whole app.
+ *
+ * Every colour is written once with `light-dark()`, so a token has its light and dark value side
+ * by side. Which one applies follows `color-scheme`: the system's by default, or the person's
+ * choice through `data-theme` on <html>. `src/app/accessibility.tsx` sets these attributes:
+ *
+ *   data-theme="light|dark"     colour scheme (absent: follow the system)
+ *   data-contrast="more"        stronger ink, borders and focus rings, no translucent glass
+ *   data-motion="reduce"        no animation (also honoured from prefers-reduced-motion)
+ *   data-text="100|115|130|150" root font size, in percent of the browser's own
+ *   data-font="readable"        a high-legibility face with wider spacing
+ *
+ * The `dark` class on <html> mirrors the resolved scheme for CopilotKit, whose chat styles are
+ * driven by that class.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces and ink. Ink-3 keeps 4.5:1 on surface, card and tile in both schemes. */
+  --st-surface: light-dark(#f6f7f7, #101413);
+  --st-card: light-dark(#ffffff, #1a1f1e);
+  --st-tile: light-dark(#eef1f0, #232a29);
+  --st-ink: light-dark(#151a19, #eef2f1);
+  --st-ink-2: light-dark(#4f5856, #a9b3b1);
+  --st-ink-3: light-dark(#5f6967, #8f9a98);
+  --st-hair: light-dark(rgb(21 26 25 / 11%), rgb(255 255 255 / 11%));
+  --st-hair-2: light-dark(rgb(21 26 25 / 6%), rgb(255 255 255 / 7%));
+  /* The edge of a form control: 3:1 against the card, as WCAG asks of control boundaries. */
+  --st-line: light-dark(#7b8583, #7d8886);
+
+  /* The one accent: primary buttons, the current nav item, the Tasks badge, links, focus. */
+  --st-accent: light-dark(#0f6e66, #6ad3c5);
+  --st-accent-hover: light-dark(#0b5a53, #8fe0d5);
+  --st-accent-soft: light-dark(#e6f4f2, #12302d);
+  --st-on-accent: light-dark(#ffffff, #06201d);
+  --st-focus: light-dark(#0f6e66, #6ad3c5);
+
+  /* How work stands. Only on status words and pills, always with an icon and a word. */
+  --st-done: light-dark(#147a3a, #4ade80);
+  --st-done-soft: light-dark(#e6f4ea, #14301f);
+  --st-needs: light-dark(#a34a06, #fbbf24);
+  --st-needs-soft: light-dark(#fdf3e1, #3a2a0c);
+  --st-working: light-dark(#1d4ed8, #7aa2ff);
+  --st-working-soft: light-dark(#eaf0fd, #18233d);
+  --st-problem: light-dark(#b91c1c, #f87171);
+  --st-problem-soft: light-dark(#fbeaea, #3a1717);
+  --st-on-problem: light-dark(#ffffff, #2a0b0b);
+
+  /* Depth. Dark mode draws hairlines only; a shadow on near-black reads as dirt. */
+  --st-shade: light-dark(rgb(1 5 7 / 18%), rgb(0 0 0 / 0%));
+  --st-shade-strong: light-dark(rgb(1 5 7 / 22%), rgb(0 0 0 / 55%));
+  --st-glass: light-dark(rgb(255 255 255 / 82%), rgb(26 31 30 / 84%));
+  --st-glass-blur: blur(20px) saturate(170%);
+  --st-shadow-card: 0 0 0 1px var(--st-hair), 0 6px 18px -12px var(--st-shade);
+  --st-shadow-raised: 0 0 0 1px var(--st-hair), 0 10px 26px -14px var(--st-shade-strong);
+  --st-shadow-float: 0 0 0 0.5px var(--st-hair), 0 4px 14px -4px var(--st-shade-strong);
+
+  /* Shape, and the smallest thing a finger can hit. */
+  --st-radius-card: 1rem;
+  --st-radius-field: 0.75rem;
+  --st-radius-tile: 0.625rem;
+  --st-target: 2.75rem;
+  --st-focus-width: 2px;
+  --st-focus-offset: 2px;
+
+  /* Motion. Zeroed below when the person asks for less. */
+  --st-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --st-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --st-dur-tap: 120ms;
+  --st-dur-swap: 200ms;
+  --st-dur-enter: 250ms;
+  --st-dur-sheet: 350ms;
+
+  /* Type. No web font is fetched: Inter when it is installed, else the system's own sans. */
+  --st-font:
+    "Inter", "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --st-font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  --st-tracking: -0.006em;
+  --st-leading: 1.5;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* More contrast: ink goes to full strength, hairlines become real borders, no glass. */
+:root[data-contrast="more"] {
+  --st-ink: light-dark(#000000, #ffffff);
+  --st-ink-2: light-dark(#1c2120, #e4e9e8);
+  --st-ink-3: light-dark(#2b3230, #d3dad8);
+  --st-hair: light-dark(rgb(0 0 0 / 55%), rgb(255 255 255 / 60%));
+  --st-hair-2: light-dark(rgb(0 0 0 / 35%), rgb(255 255 255 / 40%));
+  --st-line: light-dark(#303735, #c9d1cf);
+  --st-accent: light-dark(#084c46, #9ff0e5);
+  --st-accent-hover: light-dark(#053a35, #c2f7f0);
+  --st-on-accent: light-dark(#ffffff, #001412);
+  --st-focus: light-dark(#000000, #ffffff);
+  --st-done: light-dark(#0b5c2b, #86efac);
+  --st-needs: light-dark(#7a3700, #fcd34d);
+  --st-working: light-dark(#1e3a8a, #a5c0ff);
+  --st-problem: light-dark(#8f1414, #fca5a5);
+  --st-glass: var(--st-card);
+  --st-glass-blur: none;
+  --st-focus-width: 3px;
+  --st-focus-offset: 3px;
+}
+
+/* Text size scales the root, so every rem follows. 100 is the browser's own size. */
+:root[data-text="115"] {
+  font-size: 115%;
+}
+:root[data-text="130"] {
+  font-size: 130%;
+}
+:root[data-text="150"] {
+  font-size: 150%;
+}
+
+/* The readable face: Atkinson Hyperlegible when installed, else wide, open system faces. */
+:root[data-font="readable"] {
+  --st-font:
+    "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", Verdana, "Segoe UI", Tahoma, ui-sans-serif,
+    system-ui, sans-serif;
+  --st-tracking: 0.012em;
+  --st-leading: 1.65;
+}
+
+@theme inline {
+  --font-sans: var(--st-font);
+  --font-mono: var(--st-font-mono);
+
+  --color-surface: var(--st-surface);
+  --color-card: var(--st-card);
+  --color-tile: var(--st-tile);
+  --color-ink: var(--st-ink);
+  --color-ink-2: var(--st-ink-2);
+  --color-ink-3: var(--st-ink-3);
+  --color-hair: var(--st-hair);
+  --color-hair-2: var(--st-hair-2);
+  --color-line: var(--st-line);
+  --color-accent: var(--st-accent);
+  --color-accent-hover: var(--st-accent-hover);
+  --color-accent-soft: var(--st-accent-soft);
+  --color-on-accent: var(--st-on-accent);
+  --color-focus: var(--st-focus);
+  --color-done: var(--st-done);
+  --color-done-soft: var(--st-done-soft);
+  --color-needs: var(--st-needs);
+  --color-needs-soft: var(--st-needs-soft);
+  --color-working: var(--st-working);
+  --color-working-soft: var(--st-working-soft);
+  --color-problem: var(--st-problem);
+  --color-problem-soft: var(--st-problem-soft);
+  --color-on-problem: var(--st-on-problem);
+
+  --radius-card: var(--st-radius-card);
+  --radius-field: var(--st-radius-field);
+  --radius-tile: var(--st-radius-tile);
+
+  --shadow-card: var(--st-shadow-card);
+  --shadow-raised: var(--st-shadow-raised);
+  --shadow-float: var(--st-shadow-float);
+
+  --spacing-target: var(--st-target);
+
+  --ease-out-soft: var(--st-ease-out);
+  --ease-in-soft: var(--st-ease-in);
+}
+
+/* The type scale. Five sizes, all rem. Weights: 600 titles, 500 rows and buttons, 400 otherwise. */
+@theme {
+  --text-display: 1.75rem;
+  --text-display--line-height: 2.125rem;
+  --text-display--letter-spacing: -0.018em;
+  --text-title: 1.1875rem;
+  --text-title--line-height: 1.5rem;
+  --text-title--letter-spacing: -0.011em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-sub: 0.9375rem;
+  --text-sub--line-height: 1.375rem;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.125rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: 4rem;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--st-surface);
+    color: var(--st-ink);
+    font-family: var(--st-font);
+    font-feature-settings: "cv11", "ss03";
+    letter-spacing: var(--st-tracking);
+    line-height: var(--st-leading);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--st-accent-soft);
+    color: var(--st-ink);
+  }
+
+  /* Visible focus everywhere a keyboard lands, never on mouse clicks. */
+  :focus-visible {
+    outline: var(--st-focus-width) solid var(--st-focus);
+    outline-offset: var(--st-focus-offset);
+  }
+
+  /*
+   * Headings and regions focused by script (route changes, onboarding steps) show no ring: they are
+   * not controls, and the move is for screen readers, which announce them.
+   */
+  [tabindex="-1"]:focus {
+    outline: none;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--st-font-mono);
+  }
+
+  dialog {
+    color: inherit;
+  }
+
+  dialog::backdrop {
+    background: rgb(5 10 9 / 45%);
+  }
+}
+
+/* Frosted chrome over a scrolling page. Opaque when blur is unsupported or contrast is raised. */
+@utility glass {
+  background-color: var(--st-card);
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    background-color: var(--st-glass);
+    -webkit-backdrop-filter: var(--st-glass-blur);
+    backdrop-filter: var(--st-glass-blur);
+  }
+}
+
+/* A line of prose at a comfortable measure. */
+@utility measure {
+  max-width: 65ch;
+}
+
+@utility animate-enter {
+  animation: st-enter var(--st-dur-enter) var(--st-ease-out) both;
+}
+
+@keyframes st-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Less motion: from the system, or from Settings. Transitions end at once; nothing loops. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --st-dur-tap: 0ms;
+    --st-dur-swap: 0ms;
+    --st-dur-enter: 0ms;
+    --st-dur-sheet: 0ms;
+  }
+  *,
+  ::before,
+  ::after {
+    /* biome-ignore lint/complexity/noImportantStyles: less motion must beat every utility. */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: less motion must beat every utility. */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: less motion must beat every utility. */
+    transition-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: less motion must beat every utility. */
+    scroll-behavior: auto !important;
+  }
+}
+
+:root[data-motion="reduce"] {
+  --st-dur-tap: 0ms;
+  --st-dur-swap: 0ms;
+  --st-dur-enter: 0ms;
+  --st-dur-sheet: 0ms;
+}
+
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] ::before,
+:root[data-motion="reduce"] ::after {
+  /* biome-ignore lint/complexity/noImportantStyles: less motion must beat every utility. */
+  animation-duration: 0.01ms !important;
+  /* biome-ignore lint/complexity/noImportantStyles: less motion must beat every utility. */
+  animation-iteration-count: 1 !important;
+  /* biome-ignore lint/complexity/noImportantStyles: less motion must beat every utility. */
+  transition-duration: 0.01ms !important;
+  /* biome-ignore lint/complexity/noImportantStyles: less motion must beat every utility. */
+  scroll-behavior: auto !important;
+}
+
+/*
+ * CopilotKit's chat declares its tokens on `[data-copilotkit]` itself, so they are overridden there,
+ * unlayered and with higher specificity than its own `.dark [data-copilotkit]`. This makes the chat
+ * wear Steward's colours in every theme and contrast setting.
+ */
+html [data-copilotkit],
+html.dark [data-copilotkit],
+html [data-copilotkit].dark {
+  --background: var(--st-surface);
+  --foreground: var(--st-ink);
+  --card: var(--st-card);
+  --card-foreground: var(--st-ink);
+  --popover: var(--st-card);
+  --popover-foreground: var(--st-ink);
+  --primary: var(--st-accent);
+  --primary-foreground: var(--st-on-accent);
+  --secondary: var(--st-tile);
+  --secondary-foreground: var(--st-ink);
+  --muted: var(--st-tile);
+  --muted-foreground: var(--st-ink-2);
+  --accent: var(--st-accent-soft);
+  --accent-foreground: var(--st-ink);
+  --destructive: var(--st-problem);
+  --border: var(--st-hair);
+  --input: var(--st-line);
+  --ring: var(--st-focus);
+  --radius: 0.75rem;
+  font-family: var(--st-font);
+}

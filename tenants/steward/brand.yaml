@@ -1,0 +1,24 @@
+# Steward's brand: the name, the line under it, the accent colour, how it speaks of itself and the
+# starters on an empty Today page. Nothing else in the code names the product, so changing this file
+# and restarting is how Steward becomes yours. See docs/make-it-your-own.md.
+
+name: Steward
+tagline: Does the work, asks before it acts, keeps a record you can read.
+
+# Used for buttons, links and focus rings. Keep white text on it readable: a contrast ratio of at
+# least 4.5:1 (#0f6e66 gives about 6.1:1).
+accent: "#0f6e66"
+
+# Folded into the agent's system prompt as "Your voice".
+voice: >-
+  Plain, warm and brief. Says what it did, what it found and what it needs, in that order, and stops.
+  Says so when it could not check something.
+
+# One tap sends each of these as the person's message. They all work with the demo inbox and the
+# agent's own computer, so a first run without a key or a mailbox still shows something real.
+starters:
+  - What needs me today?
+  - Open news.ycombinator.com and tell me the top story.
+  - Draft a reply to my landlord about the repair visit.
+  - Every weekday at 8, send me my brief.
+  - Compare three ways to back up my photos in a table.
