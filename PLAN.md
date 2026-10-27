@@ -292,7 +292,11 @@ default.
 
 ## 8. Out of scope for v0.1
 
-(The phone and Shortcuts work is planned in [docs/plans/phone-and-shortcuts.md](docs/plans/phone-and-shortcuts.md).)
+Planned next, each in its own file under `docs/plans/`:
+
+- [phone-and-shortcuts.md](docs/plans/phone-and-shortcuts.md): Steward on your phone and personalised iPhone Shortcuts.
+- [bot-directory.md](docs/plans/bot-directory.md): a free directory of ready-made bots, seeded by AI, one tap to add.
+- [orchestration.md](docs/plans/orchestration.md): several agents and models in one app, with delegation.
 
 Multi-user sign-in, Slack/Teams channels, mobile apps, real Google OAuth verification (the client
 speaks Google's API shape; pointing it at Google needs your own OAuth client), container isolation
@@ -367,3 +371,9 @@ for the computer.
 
   Research is in `docs/research/`. Nothing is built yet, and it needs a real iPhone for the
   device checks.
+- **28 Oct 2026, bot directory plan.** [docs/plans/bot-directory.md](docs/plans/bot-directory.md),
+  modelled on meetmybot.ai: bots as packs (profile, Agent Skills `SKILL.md`, rules that can only
+  tighten, starters, routines, shortcuts), a static catalogue repository plus a small directory
+  server with the same MCP tools meetmybot exposes, one-tap Add to Steward, and an AI generation
+  pipeline that seeds about 2,000 bots behind validators and the gateway's dry run. Seeds from
+  LobeChat's MIT agent index and OpenBot's catalogue. Nothing built yet.
