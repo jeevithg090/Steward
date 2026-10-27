@@ -150,7 +150,8 @@ export interface Routine {
   threadId: string;
   consecutiveFailures: number;
   lastRunAt?: string;
-  lastStatus?: "ok" | "failed" | "refused";
+  /** `skipped`: the firing did not start because the last run still waits for an answer. Not a failure. */
+  lastStatus?: "ok" | "failed" | "refused" | "skipped";
   lastError?: string;
   nextRunAt?: string;
   createdAt: string;

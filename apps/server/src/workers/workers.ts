@@ -114,7 +114,7 @@ export class Workers {
       } catch (err) {
         if (err instanceof ThreadWaitingError) {
           this.record(routine, {
-            status: "refused",
+            status: "skipped",
             error: "Its last run is still waiting for your answer, so this run was skipped.",
           });
           return;
@@ -173,7 +173,7 @@ export class Workers {
    */
   private record(
     routine: Routine,
-    outcome: { status: "ok" | "failed" | "refused"; error?: string },
+    outcome: { status: "ok" | "failed" | "refused" | "skipped"; error?: string },
     result?: RunResult,
   ): void {
     const { notifications, routines } = this.deps;

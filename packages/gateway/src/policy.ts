@@ -41,7 +41,16 @@ const SECRET_TOOLS = new Set(["request_secret"]);
  * Typing into a secret field: one the computer judged secret by its type or autocomplete (so a
  * "Passwort" or unlabelled password box counts), or one named like a secret.
  */
-export function typesIntoSecret(toolName: string, element: Target["element"] | undefined): boolean {
+export function typesIntoSecret(
+  toolName: string,
+  element: Target["element"] | undefined,
+  args: Record<string, unknown> = {},
+): boolean {
+  // A single printable key pressed into a secret field is typing a secret one character at a time.
+  if (toolName === "browser_press") {
+    const key = typeof args.key === "string" ? args.key : "";
+    return [...key].length === 1 && key !== " " && element?.sensitive === true;
+  }
   if (toolName !== "browser_type") return false;
   if (element?.sensitive === true) return true;
   return typeof element?.name === "string" && CREDENTIAL_FIELD.test(element.name);
@@ -54,15 +63,16 @@ export function prepareCall(call: GateCall): PreparedCall {
   const escalated = escalateKind(tool.name, args, target.element);
   const kind = escalated ? stricterKind(tool.kind, escalated) : tool.kind;
 
-  const typingIntoSecret = typesIntoSecret(tool.name, target.element);
+  const typingIntoSecret = typesIntoSecret(tool.name, target.element, args);
   const credentialEntry = SECRET_TOOLS.has(tool.name) || typingIntoSecret;
   const hiddenArgs = new Set<string>();
   if (SECRET_TOOLS.has(tool.name)) hiddenArgs.add("value");
   if (typingIntoSecret) {
     hiddenArgs.add("text");
     hiddenArgs.add("value");
+    if (tool.name === "browser_press") hiddenArgs.add("key");
   }
-  const keptArgs = new Set<string>(tool.name === "browser_press" ? ["key"] : []);
+  const keptArgs = new Set<string>(tool.name === "browser_press" && !typingIntoSecret ? ["key"] : []);
 
   return {
     ...call,

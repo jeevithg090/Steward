@@ -94,7 +94,7 @@ describe.runIf(missing.length === 0)("background workers", () => {
       const r = proactive.routines.get(routine.id);
       return r?.lastStatus ? r : undefined;
     });
-    expect(recorded.lastStatus).toBe("refused");
+    expect(recorded.lastStatus).toBe("skipped");
     expect(recorded.lastError).toMatch(/still waiting for your answer/);
     expect(runner.getThreadMessages(routine.threadId)).toEqual(before);
   });

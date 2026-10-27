@@ -53,13 +53,24 @@ function elementFacts(target: Target): string {
  * the tool and its arguments, and a ref such as e20 can name a different element after a restart,
  * so the page, the element and what they make of the call are checked too.
  */
+/**
+ * Whether the approval was asked as credential entry. Its stored arguments are redacted (a key
+ * pressed into a secret field is hidden), so the deciding rule settles it when the facts cannot.
+ */
+function approvedAsSecret(approval: Approval): boolean {
+  return (
+    typesIntoSecret(approval.tool.name, approval.target?.element, approval.args) ||
+    approval.decision.rule?.id === "default:floor-credential"
+  );
+}
+
 function sameTarget(approval: Approval, call: PreparedCall): boolean {
   const was = approval.target ?? {};
   const now = call.target ?? {};
   if ((was.host ?? "") !== (now.host ?? "") || (was.url ?? "") !== (now.url ?? "")) return false;
   if (elementFacts(was) !== elementFacts(now)) return false;
   if (approval.tool.kind !== call.tool.kind) return false;
-  return typesIntoSecret(approval.tool.name, was.element) === call.credentialEntry;
+  return approvedAsSecret(approval) === call.credentialEntry;
 }
 
 const RELAY = "Tell the person; do not try another way around it.";
@@ -137,9 +148,9 @@ export class GatewayGovernance implements Governance {
     try {
       approvals.expireDue();
       let found = approvals.recordFor(prepared.toolCallId);
-      if (found && typesIntoSecret(found.approval.tool.name, found.approval.target?.element)) {
+      if (found && approvedAsSecret(found.approval)) {
         // It was approved as a secret: whatever the field is now, the typed text stays out of the record.
-        prepared = { ...prepared, hiddenArgs: new Set([...prepared.hiddenArgs, "text", "value"]) };
+        prepared = { ...prepared, hiddenArgs: new Set([...prepared.hiddenArgs, "text", "value", "key"]) };
         summary = this.summaryOf(prepared);
       }
       if (!found) {

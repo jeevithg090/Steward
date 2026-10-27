@@ -49,7 +49,7 @@ import { registerNotificationRoutes } from "./routes/notifications.ts";
 import { registerRoutineRoutes } from "./routes/routines.ts";
 import { registerTaskRoutes } from "./routes/tasks.ts";
 import { registerThreadRoutes } from "./routes/threads.ts";
-import { AgentHost } from "./runtime/agents.ts";
+import { AgentHost, maxOutputTokens } from "./runtime/agents.ts";
 import { wireRunLifecycle } from "./runtime/lifecycle.ts";
 import { interruptSummary } from "./runtime/run-summary.ts";
 import { NodeSqliteAgentRunner } from "./runtime/runner.ts";
@@ -250,6 +250,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       agentId: defaultAgentId,
       mcp,
       brandName: tenant.brand.name,
+      maxOutputTokens: maxOutputTokens(config.env),
     });
     const unwire = wireRunLifecycle({
       runner,

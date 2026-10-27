@@ -147,15 +147,15 @@ package shows stricter ones: it never pays and never types bank or card details.
 The gateway checks these in order and stops at the first that decides. Within one step, rules are
 tried presets first, then tenant, then yours, then Always allow, oldest first.
 
-| Step                  | What is checked                                                                                                                                                                                                         | Effect                             | Always allow offered? |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------- |
-| 1. Deny rules         | Every enabled `deny` rule.                                                                                                                                                                                              | deny                               | —                     |
-| 2. The safety floor   | Payments (`tool.kind == "pay"`, including [escalated](#escalation-when-a-click-is-not-just-a-click) clicks) and credential entry (`request_secret`, or typing into a field named like a password, code or card number). | ask                                | No, ever              |
-| 3. Taint              | A tainted conversation making a `send`, `pay`, `sign`, `delete` or `shell` call.                                                                                                                                        | ask                                | No                    |
-| 4. The outbound check | Anything sensitive found in what would leave.                                                                                                                                                                           | ask, with the findings on the card | No                    |
-| 5. Ask rules          | Every enabled `ask` rule.                                                                                                                                                                                               | ask                                | No                    |
-| 6. Allow rules        | Every enabled `allow` rule: presets, tenant, yours, and the ones Always allow wrote.                                                                                                                                    | allow                              | —                     |
-| 7. Defaults by kind   | `read` and `ui` run. `write` runs on Steward's own browser, files, memory and tasks, and asks anywhere else (calendar, mail, connected apps). `send`, `pay`, `sign`, `delete` and `shell` ask.                          | allow or ask                       | Yes, for the asks     |
+| Step                  | What is checked                                                                                                                                                                                                                                                                                                              | Effect                             | Always allow offered? |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------- |
+| 1. Deny rules         | Every enabled `deny` rule.                                                                                                                                                                                                                                                                                                   | deny                               | —                     |
+| 2. The safety floor   | Payments (`tool.kind == "pay"`, including [escalated](#escalation-when-a-click-is-not-just-a-click) clicks) and credential entry (`request_secret`, or typing into a field the computer judged secret by its type or autocomplete, or one named like a password, code or card number, including keys pressed one at a time). | ask                                | No, ever              |
+| 3. Taint              | A tainted conversation making a `send`, `pay`, `sign`, `delete` or `shell` call.                                                                                                                                                                                                                                             | ask                                | No                    |
+| 4. The outbound check | Anything sensitive found in what would leave.                                                                                                                                                                                                                                                                                | ask, with the findings on the card | No                    |
+| 5. Ask rules          | Every enabled `ask` rule.                                                                                                                                                                                                                                                                                                    | ask                                | No                    |
+| 6. Allow rules        | Every enabled `allow` rule: presets, tenant, yours, and the ones Always allow wrote.                                                                                                                                                                                                                                         | allow                              | —                     |
+| 7. Defaults by kind   | `read` and `ui` run. `write` runs on Steward's own browser, files, memory and tasks, and asks anywhere else (calendar, mail, connected apps). `send`, `pay`, `sign`, `delete` and `shell` ask.                                                                                                                               | allow or ask                       | Yes, for the asks     |
 
 Two consequences worth knowing:
 
@@ -174,8 +174,11 @@ wrong while deciding, the call is refused as "Could not check".
 Clicking on Steward's own browser is a `write`, and writes there run freely. But a button named
 "Place order" pays, "Send" sends and "Delete account" deletes. Before deciding, the gateway reads
 the name of the element a click touches (from the computer's own snapshot, never from the model)
-and raises the call's kind to match. The same applies to pressing Enter and to typing with
-`submit: true`.
+and raises the call's kind to match. The same applies to pressing Enter or Space and to typing with
+`submit: true`: there the gateway judges the control the key would activate, which the computer
+reports (the focused button, or the form's default submit button), so tabbing to "Place order" and
+pressing Enter pays just as a click does. When the computer cannot name that control, a committing
+key press counts as at least `send`, so it asks rather than slipping through.
 
 | Raised to | When the element is named like                                                                                               |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -186,6 +189,10 @@ and raises the call's kind to match. The same applies to pressing Enter and to t
 
 The first match wins, so "Submit payment" pays rather than sends. A kind is only ever raised, never
 lowered. The list lives in `packages/gateway/src/escalate.ts`, with tests.
+
+When a person answers a parked browser action, the gateway checks the page again before it acts:
+if the address, the element or the control it would activate changed in the meantime, the action
+is refused with "The page changed since you approved this. Ask again."
 
 ## Always allow
 

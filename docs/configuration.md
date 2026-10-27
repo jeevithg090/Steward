@@ -25,17 +25,19 @@ and `pnpm --filter @steward/server dev` find the same data.
 
 ### The model
 
-| Variable                 | Default                                       | Read by                                        | What it does                                                                                          |
-| ------------------------ | --------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `STEWARD_MODEL_PROVIDER` | the tenant's `model.yaml` (`openrouter`)      | `packages/agent/src/model.ts`                  | `openrouter`, `openai`, `anthropic`, `nvidia`, `gemini`, `ollama`, `openai-compatible` or `scripted`. |
-| `STEWARD_MODEL`          | the tenant's model, or the provider's default | `packages/agent/src/model.ts`                  | The model id, such as `anthropic/claude-sonnet-5.5`.                                                  |
-| `STEWARD_MODEL_BASE_URL` | the provider's endpoint                       | `packages/agent/src/model.ts`                  | Overrides the endpoint. Required for `openai-compatible`.                                             |
-| `OPENROUTER_API_KEY`     | none                                          | `packages/agent/src/model.ts`, the triage eval | Key for OpenRouter.                                                                                   |
-| `OPENAI_API_KEY`         | none                                          | `packages/agent/src/model.ts`                  | Key for OpenAI.                                                                                       |
-| `ANTHROPIC_API_KEY`      | none                                          | `packages/agent/src/model.ts`                  | Key for Anthropic.                                                                                    |
-| `GEMINI_API_KEY`         | none                                          | `packages/agent/src/model.ts`                  | Key for Gemini.                                                                                       |
-| `NVIDIA_API_KEY`         | none                                          | `packages/agent/src/model.ts`                  | Key for NVIDIA.                                                                                       |
-| `STEWARD_MODEL_API_KEY`  | none                                          | `packages/agent/src/model.ts`                  | Key for an `openai-compatible` server.                                                                |
+| Variable                   | Default                                       | Read by                                        | What it does                                                                                                             |
+| -------------------------- | --------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `STEWARD_MODEL_PROVIDER`   | the tenant's `model.yaml` (`openrouter`)      | `packages/agent/src/model.ts`                  | `openrouter`, `openai`, `anthropic`, `nvidia`, `gemini`, `ollama`, `openai-compatible` or `scripted`.                    |
+| `STEWARD_MODEL`            | the tenant's model, or the provider's default | `packages/agent/src/model.ts`                  | The model id, such as `anthropic/claude-sonnet-5.5`.                                                                     |
+| `STEWARD_MODEL_BASE_URL`   | the provider's endpoint                       | `packages/agent/src/model.ts`                  | Overrides the endpoint. Required for `openai-compatible`.                                                                |
+| `OPENROUTER_API_KEY`       | none                                          | `packages/agent/src/model.ts`, the triage eval | Key for OpenRouter.                                                                                                      |
+| `OPENAI_API_KEY`           | none                                          | `packages/agent/src/model.ts`                  | Key for OpenAI.                                                                                                          |
+| `ANTHROPIC_API_KEY`        | none                                          | `packages/agent/src/model.ts`                  | Key for Anthropic.                                                                                                       |
+| `GEMINI_API_KEY`           | none                                          | `packages/agent/src/model.ts`                  | Key for Gemini.                                                                                                          |
+| `NVIDIA_API_KEY`           | none                                          | `packages/agent/src/model.ts`                  | Key for NVIDIA.                                                                                                          |
+| `STEWARD_MODEL_API_KEY`    | none                                          | `packages/agent/src/model.ts`                  | Key for an `openai-compatible` server.                                                                                   |
+| `STEWARD_MODEL_MAX_TOKENS` | 4096                                          | `apps/server/src/runtime/agents.ts`            | The most one reply may write (256 to 65536). Providers judge credit against it, so lower it on a small balance.          |
+| `STEWARD_NVIDIA_THINKING`  | off                                           | `packages/agent/src/model.ts`                  | `1` lets NVIDIA's reasoning models think before replying. Off by default: thinking makes each tool call take about 20 s. |
 
 With no key for the chosen provider, Steward runs the scripted demo model and labels it. See
 [models.md](models.md).
@@ -126,7 +128,7 @@ of your browser profile.
 | ------ | ------------------------------------------------------------------------------------------------------- | ---------------------------- |
 | `5173` | The web app in development (Vite).                                                                      | `127.0.0.1`                  |
 | `8787` | The server: `/api`, the CopilotKit runtime at `/api/copilotkit`, `/ws/computer/:agent`, `/demo-google`. | `127.0.0.1` (`STEWARD_HOST`) |
-| `4173` | `vite preview` of a built web app, if you use it.                                                       | `127.0.0.1`                  |
+| `4173` | `vite preview` of a built web app, if you use it. Its origin is allowed like the dev server's.          | `127.0.0.1`                  |
 
 Once `pnpm build` has made `apps/web/dist`, the server also serves the web app itself at `/` on
 port 8787, so one process is all you need.

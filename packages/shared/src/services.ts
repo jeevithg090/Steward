@@ -232,7 +232,7 @@ export interface RoutineStore {
   ): Routine;
   remove(id: string): void;
   /** Records one run. Ten failures in a row switch the routine off. */
-  recordRun(id: string, status: "ok" | "failed" | "refused", error?: string): Routine;
+  recordRun(id: string, status: "ok" | "failed" | "refused" | "skipped", error?: string): Routine;
   due(now?: Date): Routine[];
 }
 

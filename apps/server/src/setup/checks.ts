@@ -16,6 +16,11 @@ export interface SetupDeps {
   agentId: string;
   mcp: McpManager;
   brandName: string;
+  /**
+   * The most one reply may write. The check asks for the same room a real reply does: providers
+   * judge an account's credit against it, so a 16-token check passed while every reply was refused.
+   */
+  maxOutputTokens?: number;
   now?: () => number;
 }
 
@@ -142,7 +147,7 @@ export class SetupService {
       await text.complete({
         system: "Reply with the single word OK.",
         prompt: "OK?",
-        maxTokens: 16,
+        maxTokens: this.deps.maxOutputTokens ?? 4096,
         signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
       });
       return { ...base, status: "ready", detail: `${name} can answer you. It uses ${info.model}.` };

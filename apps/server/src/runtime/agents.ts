@@ -107,7 +107,7 @@ function givenAddress(
 }
 
 /** `STEWARD_MODEL_MAX_TOKENS`, between 256 and 64k; 4096 when unset or unreadable. */
-function maxOutputTokens(env: NodeJS.ProcessEnv): number {
+export function maxOutputTokens(env: NodeJS.ProcessEnv): number {
   const n = Number(env.STEWARD_MODEL_MAX_TOKENS);
   return Number.isInteger(n) && n >= 256 && n <= 65_536 ? n : 4096;
 }

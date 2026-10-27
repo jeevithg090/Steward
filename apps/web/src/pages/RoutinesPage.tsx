@@ -81,6 +81,8 @@ function LastResult({ routine }: { routine: Routine }) {
       <Pill tone="done">Worked</Pill>
     ) : routine.lastStatus === "refused" ? (
       <Pill tone="needs">Refused</Pill>
+    ) : routine.lastStatus === "skipped" ? (
+      <Pill tone="needs">Waiting for you</Pill>
     ) : (
       <Pill tone="problem">Failed</Pill>
     );

@@ -4,7 +4,7 @@ import { newId, ROUTINE_LIMITS } from "@steward/shared";
 import { ProactiveError, requireText } from "./errors.ts";
 import { checkSchedule, describeSchedule, nextRun } from "./schedule.ts";
 
-const RUN_STATUSES: readonly NonNullable<Routine["lastStatus"]>[] = ["ok", "failed", "refused"];
+const RUN_STATUSES: readonly NonNullable<Routine["lastStatus"]>[] = ["ok", "failed", "refused", "skipped"];
 const ERROR_MAX = 400;
 /** A claimed run that has not reported back after this long is taken to have died with the server. */
 const RUN_STALE_MS = 60 * 60_000;
@@ -224,19 +224,25 @@ export function createRoutineStore(opts: {
      * Records one run. `failed` and `refused` both count towards the ten in a row: either way the
      * routine did not do its job, and one refused every time will not start working by itself.
      * Only the first failure after a success notifies; the tenth switches it off and says so.
+     * `skipped` (the last run still waits for the person's answer) is neither a success nor a
+     * failure: the count stays where it was, so an unanswered approval never switches a routine off.
      */
     recordRun(id, status, error) {
       if (!RUN_STATUSES.includes(status)) {
-        throw new ProactiveError("invalid", "A run is ok, failed or refused.");
+        throw new ProactiveError("invalid", "A run is ok, failed, refused or skipped.");
       }
       const current = row(id);
       const at = now();
       const ok = status === "ok";
-      const failures = ok ? 0 : current.consecutive_failures + 1;
+      const skipped = status === "skipped";
+      const failures = ok ? 0 : skipped ? current.consecutive_failures : current.consecutive_failures + 1;
       const given = error?.trim().replace(/\s+/g, " ").slice(0, ERROR_MAX);
       const fallback = status === "refused" ? "Steward's rules refused part of it." : "It didn't finish.";
-      const reason = ok ? null : given || fallback;
-      const switchOff = !ok && current.enabled === 1 && failures >= ROUTINE_LIMITS.maxConsecutiveFailures;
+      const reason = ok
+        ? null
+        : given || (skipped ? "Its last run is still waiting for your answer." : fallback);
+      const switchOff =
+        !ok && !skipped && current.enabled === 1 && failures >= ROUTINE_LIMITS.maxConsecutiveFailures;
       const enabled = switchOff ? 0 : current.enabled;
       const previousFiring =
         current.next_run_at && current.next_run_at <= at.toISOString()
@@ -256,7 +262,7 @@ export function createRoutineStore(opts: {
           href: "/routines",
           level: "problem",
         });
-      } else if (!ok && failures === 1) {
+      } else if (!ok && !skipped && failures === 1) {
         notifications.add({
           title: "A routine didn't finish",
           body: `“${current.title}”: ${reason}`,

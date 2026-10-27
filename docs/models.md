@@ -127,3 +127,16 @@ server switches CopilotKit's off at boot. What reaches the provider is the conve
 instructions, the tool definitions and tool results, which can include your mail and pages the
 agent read. Secrets typed into the secret box never do. If that matters, use Ollama or another
 model you run yourself.
+
+## Provider notes
+
+- **NVIDIA.** Nemotron models think before every reply unless told not to, which makes each tool
+  call take about 20 seconds. Steward turns thinking off (`chat_template_kwargs.enable_thinking`);
+  set `STEWARD_NVIDIA_THINKING=1` to turn it back on.
+- **Credit.** Some providers judge an account's balance against the most a reply may write, not
+  what it does write. Steward reserves 4096 tokens per reply (`STEWARD_MODEL_MAX_TOKENS`). If
+  replies fail with "out of credit", add credit or lower that number. The setup checklist makes the
+  same reservation, so it says "needs credit" before a conversation does.
+- **Gemini.** Gemini's OpenAI-compatible endpoint returns "thought signatures" with tool calls that
+  must be sent back on the next turn. Steward's OpenAI-shaped client does not keep them yet, so
+  long tool loops on Gemini may fail; prefer OpenRouter, NVIDIA or OpenAI for now.

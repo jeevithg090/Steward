@@ -126,6 +126,27 @@ describe("precedence", () => {
     expect(decide(gw, typing({ name: "Search" })).effect).toBe("allow");
   });
 
+  it("pressing printable keys one at a time into a secret field is credential entry too", () => {
+    const gw = gateway();
+    addRule(gw, "allow", "true", "Allow everything");
+    const press = (key: string, sensitive: boolean) =>
+      gateCall(
+        "browser_press",
+        { key },
+        {
+          target: {
+            host: "bank.example",
+            element: { ref: "", role: "textbox", name: "Passwort", sensitive },
+          },
+        },
+      );
+    expect(decide(gw, press("x", true)).rule?.id).toBe("default:floor-credential");
+    expect(decide(gw, press("7", true)).rule?.id).toBe("default:floor-credential");
+    // Moving around is not typing, and a key into an ordinary field is not a secret.
+    expect(decide(gw, press("Tab", true)).effect).toBe("allow");
+    expect(decide(gw, press("x", false)).effect).toBe("allow");
+  });
+
   it("deny rules still beat the safety floor", () => {
     const gw = gateway();
     addRule(gw, "deny", 'tool.kind == "pay"', "Never pay");

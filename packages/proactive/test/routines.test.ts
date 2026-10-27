@@ -185,6 +185,20 @@ describe("routine store", () => {
     expect(bus.of("notification")[0]?.notification.id).toBe(latest.id);
   });
 
+  it("a firing skipped because an answer is still owed never counts as a failure", () => {
+    const { routines, notifications } = setup();
+    const routine = routines.create({ ...base, schedule: "0 8 * * *", timezone: "UTC", enabled: true });
+    routines.recordRun(routine.id, "failed");
+    for (let i = 0; i < 20; i++) routines.recordRun(routine.id, "skipped");
+    const after = routines.get(routine.id)!;
+    expect(after.enabled).toBe(true);
+    expect(after.consecutiveFailures).toBe(1);
+    expect(after.lastStatus).toBe("skipped");
+    expect(after.lastError).toBe("Its last run is still waiting for your answer.");
+    // Only the one real failure notified.
+    expect(notifications.list().map((n) => n.title)).toEqual(["A routine didn't finish"]);
+  });
+
   it("an ok run resets the count, and switching back on starts the count again", () => {
     const { routines } = setup();
     const routine = routines.create({ ...base, schedule: "0 8 * * *", timezone: "UTC", enabled: true });
