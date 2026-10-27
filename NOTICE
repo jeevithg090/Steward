@@ -1,0 +1,10 @@
+Steward includes ideas, designs and code adapted from the following MIT-licensed projects.
+Their copyright notices and licence terms apply to the adapted portions.
+
+- OpenBot — https://github.com/CopilotKit/openbot — Copyright (c) CopilotKit — MIT
+- OpenDuet — https://github.com/CopilotKit/OpenDuet — Copyright (c) CopilotKit — MIT
+- CopilotKit — https://github.com/CopilotKit/CopilotKit — Copyright (c) CopilotKit — MIT
+- AG-UI — https://github.com/ag-ui-protocol/ag-ui — Copyright (c) the AG-UI authors — MIT
+
+Files that adapt code from these projects say so in a header comment naming the source file.
+Steward is an independent project and is not affiliated with or endorsed by CopilotKit or Anthropic.

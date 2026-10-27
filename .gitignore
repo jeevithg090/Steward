@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.steward-data/
+*.db
+*.db-*
+coverage/
+test-results/
+playwright-report/
+.DS_Store
+*.log
+.vite/

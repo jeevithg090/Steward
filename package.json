@@ -1,0 +1,42 @@
+{
+  "name": "steward",
+  "private": true,
+  "version": "0.1.0",
+  "description": "An open-source, proactive AI steward with a computer of its own. It does the work, asks before it acts, and keeps a record you can read.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.20.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:server": "pnpm --filter @steward/server dev",
+    "dev:web": "pnpm --filter @steward/web dev",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "e2e": "playwright test -c tests/e2e/playwright.config.ts",
+    "eval:triage": "pnpm --filter @steward/proactive eval:triage",
+    "check": "pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.3",
+    "@playwright/test": "1.64.0",
+    "@types/node": "26.6.5",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
+  },
+  "pnpm": {
+    "overrides": {
+      "@ag-ui/client": "1.0.2",
+      "@ag-ui/core": "1.0.2",
+      "@ag-ui/encoder": "1.0.2",
+      "rxjs": "7.8.1"
+    }
+  }
+}

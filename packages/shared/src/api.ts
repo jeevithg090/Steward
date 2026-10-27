@@ -1,0 +1,253 @@
+import { z } from "zod";
+import type {
+  Brief,
+  CalendarEvent,
+  EmailSummary,
+  MemoryFact,
+  Routine,
+  SetupCheck,
+  Skill,
+  Task,
+  TaskState,
+  ThreadSummary,
+  AgentProfile,
+  Brand,
+} from "./domain.ts";
+import type {
+  AppNotification,
+  Approval,
+  ApprovalAnswer,
+  AuditEvent,
+  ChainCheck,
+  Decision,
+  Rule,
+} from "./governance.ts";
+import type { ActivityItem, ComputerStatus, WorkspaceFile } from "./computer.ts";
+
+/**
+ * The REST surface between the web app and the server. Every route is under `/api`.
+ * Request bodies are validated with the zod schemas here; responses use the types.
+ * The CopilotKit runtime is mounted at `/api/copilotkit` and is not described here.
+ */
+
+export const DEFAULT_SERVER_PORT = 8787;
+export const COPILOTKIT_PATH = "/api/copilotkit";
+
+// ── Request bodies ─────────────────────────────────────────────────────────────────────────────
+
+export const ApprovalDecisionBody = z.object({
+  answer: z.enum(["once", "always", "refuse"]),
+  /** Optional words from the person, passed to the agent with a refusal. */
+  note: z.string().max(500).optional(),
+});
+
+export const RuleBody = z.object({
+  name: z.string().min(1).max(120),
+  effect: z.enum(["allow", "ask", "deny"]),
+  when: z.string().min(1).max(2000),
+  description: z.string().max(500).default(""),
+  enabled: z.boolean().default(true),
+});
+
+export const DryRunBody = z.object({
+  tool: z.string().min(1),
+  args: z.record(z.unknown()).default({}),
+  tainted: z.boolean().default(false),
+  initiator: z.enum(["person", "routine", "task"]).default("person"),
+});
+
+export const TaskPatchBody = z.object({
+  state: z
+    .enum(["needs_you", "suggested", "working", "ready_for_review", "needs_input", "resolved", "failed", "hidden"])
+    .optional(),
+  title: z.string().min(1).max(200).optional(),
+});
+
+export const TaskStartBody = z.object({
+  /** Extra words from the person to start the task with. */
+  note: z.string().max(2000).optional(),
+});
+
+export const RoutineBody = z.object({
+  title: z.string().min(1).max(120),
+  prompt: z.string().min(1).max(4000),
+  schedule: z.string().min(1).max(120),
+  timezone: z.string().default("UTC"),
+  enabled: z.boolean().default(true),
+});
+
+export const MemoryBody = z.object({ text: z.string().min(1).max(1000) });
+
+export const SkillBody = z.object({
+  name: z.string().regex(/^[a-z0-9][a-z0-9-]{0,40}$/),
+  description: z.string().min(1).max(300),
+  instructions: z.string().min(1).max(8000),
+  tools: z.array(z.string()).default([]),
+});
+
+export const McpServerBody = z.object({
+  id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,40}$/),
+  name: z.string().min(1).max(120),
+  transport: z.enum(["stdio", "http"]),
+  /** For stdio: the command and args. */
+  command: z.string().optional(),
+  args: z.array(z.string()).default([]),
+  /** For http: the endpoint. */
+  url: z.string().url().optional(),
+  /** Tools to grant to the default agent. Empty grants none. */
+  granted: z.array(z.string()).default([]),
+  /** Tools the person marked as reads. Everything else is treated as a write. */
+  reads: z.array(z.string()).default([]),
+});
+
+export const SettingsBody = z.object({
+  model: z
+    .object({
+      provider: z.enum(["openrouter", "openai", "anthropic", "nvidia", "gemini", "ollama", "openai-compatible", "scripted"]),
+      model: z.string().min(1),
+      baseUrl: z.string().url().optional(),
+    })
+    .optional(),
+  plainLanguage: z.boolean().optional(),
+  briefTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  timezone: z.string().optional(),
+  approvalExpiryHours: z.number().int().min(1).max(168).optional(),
+});
+
+export const ThreadCreateBody = z.object({
+  title: z.string().max(200).optional(),
+  agentId: z.string().default("steward"),
+});
+
+// ── Responses ──────────────────────────────────────────────────────────────────────────────────
+
+export interface AppInfo {
+  brand: Brand;
+  agents: AgentProfile[];
+  starters: string[];
+  model: { provider: string; model: string; scripted: boolean };
+  mail: { connected: boolean; label: string; isDemo: boolean };
+  version: string;
+  singleUser: boolean;
+}
+
+export interface Settings {
+  model: { provider: string; model: string; baseUrl?: string };
+  plainLanguage: boolean;
+  briefTime: string;
+  timezone: string;
+  approvalExpiryHours: number;
+}
+
+export interface McpServerInfo {
+  id: string;
+  name: string;
+  transport: "stdio" | "http";
+  status: "connected" | "error" | "disabled";
+  error?: string;
+  tools: { name: string; description: string; granted: boolean; kind: "read" | "write" }[];
+}
+
+export interface ConnectionsInfo {
+  mail: { connected: boolean; label: string; isDemo: boolean };
+  mcp: McpServerInfo[];
+  builtin: { name: string; description: string; kind: string; surface: string }[];
+}
+
+export interface AuditPage {
+  events: AuditEvent[];
+  /** Pass as `before` for the next page. */
+  nextBefore?: number;
+  total: number;
+}
+
+export interface TasksResponse {
+  tasks: Task[];
+  counts: Record<TaskState, number>;
+}
+
+/**
+ * Every route, for the client and the server to agree on. `:id` segments are replaced by callers.
+ * GET unless noted.
+ */
+export const ROUTES = {
+  info: "/api/info", // AppInfo
+  health: "/api/health", // { ok: true }
+  settings: "/api/settings", // GET Settings · PUT SettingsBody → Settings
+  setup: "/api/setup", // SetupCheck[] · POST /api/setup/check re-runs them
+  events: "/api/events", // SSE stream of LiveEvent
+
+  threads: "/api/threads", // ThreadSummary[] · POST ThreadCreateBody → ThreadSummary
+  thread: "/api/threads/:id", // ThreadSummary · DELETE
+
+  approvals: "/api/approvals", // ?status=pending → Approval[]
+  approval: "/api/approvals/:id", // Approval
+  approvalDecide: "/api/approvals/:id/decision", // POST ApprovalDecisionBody → Approval
+
+  rules: "/api/rules", // Rule[] · POST RuleBody → Rule
+  rule: "/api/rules/:id", // PUT RuleBody → Rule · DELETE
+  rulesDryRun: "/api/rules/dry-run", // POST DryRunBody → Decision
+  rulesPresets: "/api/rules/presets", // Rule[] (the shipped presets, read only)
+
+  audit: "/api/audit", // ?before=&limit=&type=&effect=&q= → AuditPage
+  auditVerify: "/api/audit/verify", // ChainCheck
+
+  tasks: "/api/tasks", // ?state= → TasksResponse
+  task: "/api/tasks/:id", // PATCH TaskPatchBody → Task
+  taskStart: "/api/tasks/:id/start", // POST TaskStartBody → { task: Task; threadId: string }
+
+  brief: "/api/brief", // ?date=YYYY-MM-DD → Brief | null
+  briefGenerate: "/api/brief/generate", // POST → Brief
+
+  inbox: "/api/inbox", // EmailSummary[] with triage
+  calendar: "/api/calendar", // ?from=&to= → CalendarEvent[]
+
+  routines: "/api/routines", // Routine[] · POST RoutineBody → Routine
+  routine: "/api/routines/:id", // PATCH Partial<RoutineBody> → Routine · DELETE
+  routineRun: "/api/routines/:id/run", // POST → { threadId: string }
+
+  memory: "/api/memory", // MemoryFact[] · POST MemoryBody → MemoryFact
+  memoryItem: "/api/memory/:id", // DELETE
+
+  skills: "/api/skills", // Skill[] · POST SkillBody → Skill
+  skill: "/api/skills/:id", // PUT SkillBody → Skill · DELETE
+
+  connections: "/api/connections", // ConnectionsInfo
+  mcpServers: "/api/connections/mcp", // POST McpServerBody → McpServerInfo
+  mcpServer: "/api/connections/mcp/:id", // PUT McpServerBody · DELETE
+
+  computer: "/api/computer/:agentId", // ComputerStatus
+  computerActivity: "/api/computer/:agentId/activity", // ActivityItem[]
+  computerFiles: "/api/computer/:agentId/files", // ?dir= → WorkspaceFile[]
+  computerReset: "/api/computer/:agentId/reset", // POST → ComputerStatus
+  computerWs: "/ws/computer/:agentId", // WebSocket, see computer.ts
+
+  notifications: "/api/notifications", // AppNotification[] · POST /api/notifications/read-all
+} as const;
+
+export function route(path: string, params: Record<string, string> = {}): string {
+  return path.replace(/:([a-zA-Z]+)/g, (_, k: string) => encodeURIComponent(params[k] ?? `:${k}`));
+}
+
+/** Re-exported so callers can type responses without importing three modules. */
+export type {
+  Approval,
+  ApprovalAnswer,
+  AuditEvent,
+  ChainCheck,
+  Decision,
+  Rule,
+  AppNotification,
+  Brief,
+  CalendarEvent,
+  EmailSummary,
+  MemoryFact,
+  Routine,
+  SetupCheck,
+  Skill,
+  Task,
+  ThreadSummary,
+  ActivityItem,
+  ComputerStatus,
+  WorkspaceFile,
+};
