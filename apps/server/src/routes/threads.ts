@@ -23,9 +23,10 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
 
   app.post(ROUTES.threads, async (c) => {
     const body = await readBody(c, ThreadCreateBody);
-    if (!s.hasAgent(body.agentId)) throw new HttpError(400, "Choose one of your agents.");
+    const agentId = body.agentId ?? s.defaultAgentId;
+    if (!s.hasAgent(agentId)) throw new HttpError(400, "Choose one of your agents.");
     const id = newId("thr");
-    s.threads.upsertMeta({ id, agentId: body.agentId, kind: "chat", title: body.title?.trim() ?? "" });
+    s.threads.upsertMeta({ id, agentId, kind: "chat", title: body.title?.trim() ?? "" });
     return c.json(s.threads.summary(id), 201);
   });
 

@@ -19,16 +19,16 @@ OpenBot and OpenDuet are excellent, but they need Docker, Bun, PostgreSQL and a 
 Intelligence account before the first message. Steward keeps their best ideas and removes the
 setup wall:
 
-| | OpenBot / OpenDuet | Steward |
-|---|---|---|
-| Runs with | Docker, Bun, Postgres, Intelligence project | `pnpm install && pnpm dev` on Node ≥ 24. SQLite file, no containers |
-| Model | OpenAI by default | Any OpenAI-compatible endpoint: OpenRouter, NVIDIA, OpenAI, Anthropic, Gemini, Ollama, or a scripted model for tests |
-| Computer | One container per Bot | One Playwright Chromium profile + workspace per agent, in-process |
-| Record | Audit table | **Hash-chained** audit: every row seals the one before; the UI verifies the chain |
-| Injection | Untrusted-content guidance | Guidance **plus taint**: once a run has read the web or an email, anything that sends, pays, signs or deletes asks you, whatever the rules say |
-| What leaves | Sensitive-data check on messages | Same, with named findings (card number by Luhn, IBAN by mod-97, NI/SSN, keys, health words) shown on the approval card |
-| Access | Web, Slack, Teams | Web first, **accessible first**: voice in and out, large text, high contrast, reduced motion, plain-language mode, full keyboard and screen-reader paths |
-| Make it yours | Tenant package folder | Same idea: `tenants/<name>/` YAML. Ships `steward` and `tempo` |
+|               | OpenBot / OpenDuet                          | Steward                                                                                                                                                  |
+| ------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runs with     | Docker, Bun, Postgres, Intelligence project | `pnpm install && pnpm dev` on Node ≥ 24. SQLite file, no containers                                                                                      |
+| Model         | OpenAI by default                           | Any OpenAI-compatible endpoint: OpenRouter, NVIDIA, OpenAI, Anthropic, Gemini, Ollama, or a scripted model for tests                                     |
+| Computer      | One container per Bot                       | One Playwright Chromium profile + workspace per agent, in-process                                                                                        |
+| Record        | Audit table                                 | **Hash-chained** audit: every row seals the one before; the UI verifies the chain                                                                        |
+| Injection     | Untrusted-content guidance                  | Guidance **plus taint**: once a run has read the web or an email, anything that sends, pays, signs or deletes asks you, whatever the rules say           |
+| What leaves   | Sensitive-data check on messages            | Same, with named findings (card number by Luhn, IBAN by mod-97, NI/SSN, keys, health words) shown on the approval card                                   |
+| Access        | Web, Slack, Teams                           | Web first, **accessible first**: voice in and out, large text, high contrast, reduced motion, plain-language mode, full keyboard and screen-reader paths |
+| Make it yours | Tenant package folder                       | Same idea: `tenants/<name>/` YAML. Ships `steward` and `tempo`                                                                                           |
 
 ## 2. Product
 
@@ -47,20 +47,20 @@ without showing you exactly what and waiting for your answer.
 
 **Screens** (web app, `apps/web`)
 
-| Route | What it shows |
-|---|---|
-| `/` Today | The morning brief (needs you / can wait / today's calendar / could not check), the newest suggestion with **Start** and **Hide**, a composer |
+| Route              | What it shows                                                                                                                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/` Today          | The morning brief (needs you / can wait / today's calendar / could not check), the newest suggestion with **Start** and **Hide**, a composer                                                        |
 | `/chat/:threadId?` | The conversation. Every tool call renders as an action card; ones that need you show **Refuse / Allow once / Always allow**. Side panel: the live **Computer** with Activity and **Take the wheel** |
-| `/tasks` | Needs you · Suggested · Working · Ready for review · Needs input · Resolved |
-| `/computer` | The agent's screen full size, its workspace files, its shell history, take the wheel |
-| `/routines` | Standing routines, next run, last result; stop or delete |
-| `/rules` | What Steward may do without asking: presets, your standing rules, deny rules, a "would this be allowed?" tester |
-| `/record` | The audit trail: permitted, asked, refused, failed; each refusal names its rule; chain verification badge |
-| `/connections` | Google (demo inbox or real), MCP servers, built-in tools; grant tools to agents |
-| `/skills` | Instructions written once and called with `/` |
-| `/memory` | What it remembers about you; add or forget facts |
-| `/settings` | Model, voice, accessibility, setup checklist |
-| `/welcome` | First run: what Steward is, connect mail, choose voice/text size, ends on the setup checklist |
+| `/tasks`           | Needs you · Suggested · Working · Ready for review · Needs input · Resolved                                                                                                                         |
+| `/computer`        | The agent's screen full size, its workspace files, its shell history, take the wheel                                                                                                                |
+| `/routines`        | Standing routines, next run, last result; stop or delete                                                                                                                                            |
+| `/rules`           | What Steward may do without asking: presets, your standing rules, deny rules, a "would this be allowed?" tester                                                                                     |
+| `/record`          | The audit trail: permitted, asked, refused, failed; each refusal names its rule; chain verification badge                                                                                           |
+| `/connections`     | Google (demo inbox or real), MCP servers, built-in tools; grant tools to agents                                                                                                                     |
+| `/skills`          | Instructions written once and called with `/`                                                                                                                                                       |
+| `/memory`          | What it remembers about you; add or forget facts                                                                                                                                                    |
+| `/settings`        | Model, voice, accessibility, setup checklist                                                                                                                                                        |
+| `/welcome`         | First run: what Steward is, connect mail, choose voice/text size, ends on the setup checklist                                                                                                       |
 
 ## 3. Architecture
 
@@ -142,17 +142,17 @@ other's internals; `apps/server` wires them.
 Each track owns its directories exclusively. Nobody runs `pnpm install`; missing dependencies are
 reported back to the lead, who adds them.
 
-| Track | Owns | Done when |
-|---|---|---|
-| gateway | `packages/gateway` | policy, approvals with waiters, hash-chained audit, outbound check, target checks, taint, dry run; unit tests |
-| computer | `packages/computer` | Playwright manager, snapshot+refs, browser tools, screencast, input, secret fill, files, shell; tests against a local page |
-| connectors | `packages/connectors` | demo Google server + client, MCP manager, web_fetch/web_search; tests |
-| agent | `packages/agent` | model providers, tool registry, prompt, AG-UI agent with the gate, tenant loader; tests with a scripted model |
-| proactive | `packages/proactive`, `evals/triage` | tasks, triage, brief, suggestions, routines, memory; eval set + runner |
-| server | `apps/server` | wiring, REST, runtime endpoint, WS, SSE, worker; integration tests |
-| web shell | `apps/web` (app, ui, lib, pages) | layout, theming, accessibility settings, every page but chat |
-| web chat | `apps/web` (features/chat, features/computer, features/voice, gallery) | chat, generative UI, approval cards, computer panel, voice |
-| docs | `README.md`, `docs/`, `tenants/`, `.github/`, `tests/e2e` | quick start, guides, tenant packages, CI, e2e specs |
+| Track      | Owns                                                                   | Done when                                                                                                                  |
+| ---------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| gateway    | `packages/gateway`                                                     | policy, approvals with waiters, hash-chained audit, outbound check, target checks, taint, dry run; unit tests              |
+| computer   | `packages/computer`                                                    | Playwright manager, snapshot+refs, browser tools, screencast, input, secret fill, files, shell; tests against a local page |
+| connectors | `packages/connectors`                                                  | demo Google server + client, MCP manager, web_fetch/web_search; tests                                                      |
+| agent      | `packages/agent`                                                       | model providers, tool registry, prompt, AG-UI agent with the gate, tenant loader; tests with a scripted model              |
+| proactive  | `packages/proactive`, `evals/triage`                                   | tasks, triage, brief, suggestions, routines, memory; eval set + runner                                                     |
+| server     | `apps/server`                                                          | wiring, REST, runtime endpoint, WS, SSE, worker; integration tests                                                         |
+| web shell  | `apps/web` (app, ui, lib, pages)                                       | layout, theming, accessibility settings, every page but chat                                                               |
+| web chat   | `apps/web` (features/chat, features/computer, features/voice, gallery) | chat, generative UI, approval cards, computer panel, voice                                                                 |
+| docs       | `README.md`, `docs/`, `tenants/`, `.github/`, `tests/e2e`              | quick start, guides, tenant packages, CI, e2e specs                                                                        |
 
 ### 5.1 Wiring contract (what each package exports for `apps/server`)
 
@@ -161,49 +161,84 @@ Every package with tables exports `migrations: Migration[]` (ids prefixed with t
 ```ts
 // @steward/gateway
 export function createGateway(opts: {
-  db: Db; bus?: EventBus; tenantRules?: TenantPackage["rules"]; expiryHours?: number;
+  db: Db;
+  bus?: EventBus;
+  tenantRules?: TenantPackage["rules"];
+  expiryHours?: number;
 }): GatewayServices; // { governance, rules, approvals, audit }
 
 // @steward/computer
 export function createComputerManager(opts: {
-  dataDir: string;               // computers/<agentId>/{profile,workspace} live under it
-  headful?: boolean; allowPrivateHosts?: boolean;
-  audit?: AuditLog;              // writes computer.help_requested / control_taken / control_released / secret.*
+  dataDir: string; // computers/<agentId>/{profile,workspace} live under it
+  headful?: boolean;
+  allowPrivateHosts?: boolean;
+  audit?: AuditLog; // writes computer.help_requested / control_taken / control_released / secret.*
 }): ComputerManager;
 
 // @steward/connectors
-export function createDemoGoogleApp(opts?: { now?: () => Date }): Hono;   // mounted at /demo-google
-export function createGoogleMailCalendar(opts: { baseUrl: string; accessToken?: string; label: string; isDemo: boolean }): MailCalendar;
+export function createDemoGoogleApp(opts?: { now?: () => Date }): Hono; // mounted at /demo-google
+export function createGoogleMailCalendar(opts: {
+  baseUrl: string;
+  accessToken?: string;
+  label: string;
+  isDemo: boolean;
+}): MailCalendar;
 export function createMcpManager(opts: { db: Db; allowPrivateHosts?: boolean }): McpManager;
 export function createWebTools(opts?: { allowPrivateHosts?: boolean }): WebTools;
 
 // @steward/proactive
 export function createProactive(opts: {
-  db: Db; bus?: EventBus;
+  db: Db;
+  bus?: EventBus;
   mail: () => MailCalendar | undefined;
   model: () => TextModel | undefined;
   timezone: () => string;
   tenantSkills?: Skill[];
-}): { tasks: TaskStore; memory: MemoryStore; skills: SkillStore; routines: RoutineStore;
-      triage: Triage; brief: BriefService; notifications: NotificationStore };
+}): {
+  tasks: TaskStore;
+  memory: MemoryStore;
+  skills: SkillStore;
+  routines: RoutineStore;
+  triage: Triage;
+  brief: BriefService;
+  notifications: NotificationStore;
+};
 
 // @steward/agent
 export function loadTenant(dir: string): TenantPackage;
 export function resolveModelConfig(tenant: TenantPackage, env: NodeJS.ProcessEnv): ModelConfig;
-export function createModel(cfg: ModelConfig, env: NodeJS.ProcessEnv): Promise<{
-  model: LanguageModel; label: string; scripted: boolean; close(): Promise<void> }>;
+export function createModel(
+  cfg: ModelConfig,
+  env: NodeJS.ProcessEnv,
+): Promise<{
+  model: LanguageModel;
+  label: string;
+  scripted: boolean;
+  close(): Promise<void>;
+}>;
 export function createTextModel(model: LanguageModel, label: string): TextModel;
-export function createStewardAgent(deps: AgentDeps): AbstractAgent;  // a BuiltInAgent with the governed middleware
+export function createStewardAgent(deps: AgentDeps): AbstractAgent; // a BuiltInAgent with the governed middleware
 export interface AgentDeps {
-  profile: AgentProfile; tenant: TenantPackage; model: LanguageModel;
-  governance: Governance; computers: ComputerManager; mail: () => MailCalendar | undefined;
-  web: WebTools; mcp: McpManager;
-  stores: { tasks: TaskStore; memory: MemoryStore; skills: SkillStore; routines: RoutineStore;
-            brief: BriefService; triage: Triage };
+  profile: AgentProfile;
+  tenant: TenantPackage;
+  model: LanguageModel;
+  governance: Governance;
+  computers: ComputerManager;
+  mail: () => MailCalendar | undefined;
+  web: WebTools;
+  mcp: McpManager;
+  stores: {
+    tasks: TaskStore;
+    memory: MemoryStore;
+    skills: SkillStore;
+    routines: RoutineStore;
+    brief: BriefService;
+    triage: Triage;
+  };
   bus?: EventBus;
   settings: () => { plainLanguage: boolean; timezone: string };
-  actorId: string;               // "local" in single-user mode
-  serverRunToken: string;        // random per boot; see below
+  actorId: string; // "local" in single-user mode
+  serverRunToken: string; // random per boot; see below
 }
 ```
 

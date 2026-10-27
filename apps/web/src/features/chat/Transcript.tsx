@@ -9,6 +9,7 @@
  * is still loading), the generic line stands in.
  */
 import { type Message, type ToolCall, type ToolMessage, useRenderToolCall } from "@copilotkit/react-core/v2";
+import { describeFrame } from "@steward/shared";
 import { memo } from "react";
 import { cn } from "@/lib/utils.ts";
 import { Markdown } from "./Markdown.tsx";
@@ -45,6 +46,15 @@ export function Transcript({
         if (message.role === "user") {
           const content = textOf(message.content);
           if (!content.trim()) return null;
+          // A routine firing or a task start: Steward's own turn, drawn as a quiet line.
+          const framed = describeFrame(content);
+          if (framed) {
+            return (
+              <li key={message.id} className="flex justify-center">
+                <p className="m-0 rounded-full bg-tile px-3 py-1 text-caption text-ink-2">{framed}</p>
+              </li>
+            );
+          }
           return (
             <li key={message.id} className="flex justify-end">
               <div className="max-w-[min(85%,36rem)] whitespace-pre-wrap break-words rounded-card rounded-br-md bg-accent-soft px-4 py-2.5 text-body text-ink">

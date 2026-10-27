@@ -69,7 +69,7 @@ export interface GateCall {
   target: Target;
   /** The model's one-line reason for the call, when it gave one. */
   intent?: string;
-  /** True once this run has read content Steward does not trust (web pages, emails, MCP output). */
+  /** True once this conversation has read content Steward does not trust (web pages, emails, MCP output). */
   tainted: boolean;
   /** Text that will leave Steward if this call runs (a message body, a form value). Checked for sensitive data. */
   outbound?: string;
@@ -100,7 +100,7 @@ export interface OutboundFinding {
 
 export interface Decision {
   effect: Effect;
-  /** The rule that decided. Absent only for the built-in defaults, which name themselves in `reason`. */
+  /** What decided: a rule, or a built-in step named like `default:send-asks` (source `preset`). */
   rule?: Pick<Rule, "id" | "name" | "source">;
   reason: string;
   findings: OutboundFinding[];
@@ -131,6 +131,8 @@ export interface Approval {
   answer?: ApprovalAnswer;
   /** Set once a resume run has claimed the answer. A claimed approval never acts twice. */
   claimedAt?: string;
+  /** What started the run that asked. A resumed run keeps it, so a routine stays a routine. */
+  initiator?: Initiator;
   /** When `answer` is `always`, the standing rule it created. */
   createdRuleId?: string;
   createdAt: string;

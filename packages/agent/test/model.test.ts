@@ -36,7 +36,7 @@ describe("resolveModelConfig", () => {
     });
     expect(cfg).toEqual({
       provider: "nvidia",
-      model: "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+      model: "nvidia/nemotron-3-ultra-550b-a55b",
       baseUrl: "https://integrate.api.nvidia.com/v1",
       apiKeyEnv: "NVIDIA_API_KEY",
     });

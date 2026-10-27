@@ -19,10 +19,10 @@ pnpm dev:web        # only this app; it proxies /api and /ws to the server
 
 Open <http://127.0.0.1:5173>. The first visit shows a short welcome; Today follows.
 
-| Variable | Default | What it does |
-|---|---|---|
-| `STEWARD_SERVER_URL` | `http://127.0.0.1:8787` | Where the dev server's proxy sends `/api` and `/ws`. |
-| `VITE_STEWARD_API_URL` | *(empty: same origin)* | Call a server on another origin from the built app. |
+| Variable               | Default                 | What it does                                         |
+| ---------------------- | ----------------------- | ---------------------------------------------------- |
+| `STEWARD_SERVER_URL`   | `http://127.0.0.1:8787` | Where the dev server's proxy sends `/api` and `/ws`. |
+| `VITE_STEWARD_API_URL` | _(empty: same origin)_  | Call a server on another origin from the built app.  |
 
 The proxy passes streams straight through (no compression, no buffering), so the CopilotKit
 runtime's events and the live `/api/events` stream arrive as they are sent.
@@ -92,12 +92,12 @@ A page hands a message to the chat with `/chat?prompt=…` (`chatPromptHref()` i
 `src/styles/app.css` defines Steward's tokens, adapted from OpenDuet's (MIT, CopilotKit): neutral
 greys, one teal accent, and four status tones.
 
-| Token (`--st-*`) | Utility | Light | Dark |
-|---|---|---|---|
-| surface / card / tile | `bg-surface` `bg-card` `bg-tile` | #f6f7f7 / #fff / #eef1f0 | #101413 / #1a1f1e / #232a29 |
-| ink / ink-2 / ink-3 | `text-ink` … | #151a19 / #4f5856 / #5f6967 | #eef2f1 / #a9b3b1 / #8f9a98 |
-| accent / accent-soft | `bg-accent` `bg-accent-soft` | #0f6e66 / #e6f4f2 | #6ad3c5 / #12302d |
-| done · needs · working · problem | `text-done` `bg-needs-soft` … | green · amber · blue · red | lighter on dark |
+| Token (`--st-*`)                 | Utility                          | Light                       | Dark                        |
+| -------------------------------- | -------------------------------- | --------------------------- | --------------------------- |
+| surface / card / tile            | `bg-surface` `bg-card` `bg-tile` | #f6f7f7 / #fff / #eef1f0    | #101413 / #1a1f1e / #232a29 |
+| ink / ink-2 / ink-3              | `text-ink` …                     | #151a19 / #4f5856 / #5f6967 | #eef2f1 / #a9b3b1 / #8f9a98 |
+| accent / accent-soft             | `bg-accent` `bg-accent-soft`     | #0f6e66 / #e6f4f2           | #6ad3c5 / #12302d           |
+| done · needs · working · problem | `text-done` `bg-needs-soft` …    | green · amber · blue · red  | lighter on dark             |
 
 Every colour is written once with `light-dark()`; the scheme follows the system, or the person's
 choice through `data-theme`. Every pair used for text meets WCAG AA (4.5:1) in both schemes, and
@@ -113,15 +113,15 @@ Colour appears only on status, and a status always carries an icon and a word (`
 The person's settings live in this browser and are written to `<html>` as attributes, which the
 stylesheet reads. `index.html` applies them before the first paint.
 
-| Setting | Attribute | Effect |
-|---|---|---|
-| Text size 100 / 115 / 130 / 150 | `data-text` | Scales the root font size; everything is in rem. The desktop layout's breakpoint scales too, so large text gets the roomier phone layout sooner. |
-| More contrast | `data-contrast="more"` | Full-strength ink, real borders, thicker focus rings, no translucent glass. |
-| Reduce motion | `data-motion="reduce"` | No animation. `prefers-reduced-motion` is honoured as well. |
-| Light / dark | `data-theme` (+ `.dark` for CopilotKit) | Otherwise follows the system. |
-| Easier-to-read lettering | `data-font="readable"` | Atkinson Hyperlegible when installed, else wide system faces. No font is downloaded. |
-| Read replies aloud | — | Read by the chat's voice feature. |
-| Plain language | — | Also saved on the server (`PUT /api/settings`) so the agent uses it. |
+| Setting                         | Attribute                               | Effect                                                                                                                                           |
+| ------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Text size 100 / 115 / 130 / 150 | `data-text`                             | Scales the root font size; everything is in rem. The desktop layout's breakpoint scales too, so large text gets the roomier phone layout sooner. |
+| More contrast                   | `data-contrast="more"`                  | Full-strength ink, real borders, thicker focus rings, no translucent glass.                                                                      |
+| Reduce motion                   | `data-motion="reduce"`                  | No animation. `prefers-reduced-motion` is honoured as well.                                                                                      |
+| Light / dark                    | `data-theme` (+ `.dark` for CopilotKit) | Otherwise follows the system.                                                                                                                    |
+| Easier-to-read lettering        | `data-font="readable"`                  | Atkinson Hyperlegible when installed, else wide system faces. No font is downloaded.                                                             |
+| Read replies aloud              | —                                       | Read by the chat's voice feature.                                                                                                                |
+| Plain language                  | —                                       | Also saved on the server (`PUT /api/settings`) so the agent uses it.                                                                             |
 
 Throughout the app:
 

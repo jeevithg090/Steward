@@ -36,9 +36,7 @@ export class Db {
     this.db.exec("PRAGMA journal_mode = WAL;");
     this.db.exec("PRAGMA foreign_keys = ON;");
     this.db.exec("PRAGMA busy_timeout = 5000;");
-    this.db.exec(
-      "CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)",
-    );
+    this.db.exec("CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)");
   }
 
   /** Applies each migration once, in the order given, each in its own transaction. */
@@ -48,10 +46,7 @@ export class Db {
       if (done) continue;
       this.tx(() => {
         this.db.exec(m.sql);
-        this.run("INSERT INTO _migrations (id, applied_at) VALUES (?, ?)", [
-          m.id,
-          new Date().toISOString(),
-        ]);
+        this.run("INSERT INTO _migrations (id, applied_at) VALUES (?, ?)", [m.id, new Date().toISOString()]);
       });
     }
   }

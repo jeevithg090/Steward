@@ -192,3 +192,25 @@ describe("HostPolicy", () => {
     });
   });
 });
+
+describe("protected ports", () => {
+  it("refuses Steward's own server on loopback even when private hosts are allowed", async () => {
+    const policy = new HostPolicy({
+      allowPrivateHosts: true,
+      protectedPorts: [8787],
+      lookup: fakeLookup({
+        localhost: ["127.0.0.1", "::1"],
+        "steward.test": ["127.0.0.1"],
+        "nas.test": ["192.168.1.20"],
+      }),
+    });
+    const own = policy.checkPort(await policy.checkHost("localhost"), 8787);
+    expect(own.ok).toBe(false);
+    if (!own.ok) expect(own.message).toMatch(/Steward's own server/);
+    // A name that resolves to loopback is caught too, not only the literal address.
+    expect(policy.checkPort(await policy.checkHost("steward.test"), 8787).ok).toBe(false);
+    // Other loopback ports, and the protected port on another machine, are still allowed.
+    expect(policy.checkPort(await policy.checkHost("127.0.0.1"), 3000).ok).toBe(true);
+    expect(policy.checkPort(await policy.checkHost("nas.test"), 8787).ok).toBe(true);
+  });
+});

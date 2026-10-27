@@ -260,12 +260,17 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
 
   function info(state: ServerState): McpServerInfo {
     const { config } = state;
+    const connecting =
+      state.status === "error" && (state.connecting !== undefined || state.error === "Connecting…");
     return {
       id: config.id,
       name: config.name,
       transport: config.transport,
-      status: state.status,
-      ...(state.status === "error" && state.error ? { error: state.error } : {}),
+      status: connecting ? "connecting" : state.status,
+      ...(state.status === "error" && state.error && !connecting ? { error: state.error } : {}),
+      ...(config.command ? { command: config.command } : {}),
+      ...(config.transport === "stdio" ? { args: config.args } : {}),
+      ...(config.url ? { url: config.url } : {}),
       tools: state.tools.map((t) => ({
         name: t.name,
         description: t.description,

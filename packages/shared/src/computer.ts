@@ -36,7 +36,18 @@ export interface ActivityItem {
   at: string;
   agentId: string;
   toolCallId?: string;
-  kind: "navigate" | "click" | "type" | "key" | "scroll" | "snapshot" | "file" | "shell" | "secret" | "help" | "control";
+  kind:
+    | "navigate"
+    | "click"
+    | "type"
+    | "key"
+    | "scroll"
+    | "snapshot"
+    | "file"
+    | "shell"
+    | "secret"
+    | "help"
+    | "control";
   /** "Opened news.ycombinator.com", "Ran `ls -la`", "Saved report.md (2.1 KB)". */
   text: string;
   /** Short output preview for shell commands and reads; never secrets, never file contents. */
@@ -62,7 +73,13 @@ export type ComputerServerMessage =
 export type ComputerClientMessage =
   | { type: "take" }
   | { type: "release" }
-  | { type: "mouse"; action: "move" | "down" | "up" | "click"; x: number; y: number; button?: "left" | "right" | "middle" }
+  | {
+      type: "mouse";
+      action: "move" | "down" | "up" | "click";
+      x: number;
+      y: number;
+      button?: "left" | "right" | "middle";
+    }
   | { type: "wheel"; x: number; y: number; deltaX: number; deltaY: number }
   | { type: "key"; action: "down" | "up" | "press"; key: string; text?: string }
   | { type: "text"; text: string }
@@ -106,7 +123,11 @@ export interface Computer {
   /** Asks the person to take the wheel; resolves when they release it. */
   requestHelp(reason: string, opts?: { signal?: AbortSignal }): Promise<{ released: boolean }>;
   /** Asks for a secret via the secret box; resolves once it has been typed into the field. Never returns the value. */
-  requestSecret(ref: string, label: string, opts?: { signal?: AbortSignal }): Promise<{ filled: boolean; length: number }>;
+  requestSecret(
+    ref: string,
+    label: string,
+    opts?: { signal?: AbortSignal },
+  ): Promise<{ filled: boolean; length: number }>;
   listFiles(dir?: string): Promise<WorkspaceFile[]>;
   readFile(path: string, opts?: { maxBytes?: number }): Promise<string>;
   writeFile(path: string, content: string): Promise<WorkspaceFile>;

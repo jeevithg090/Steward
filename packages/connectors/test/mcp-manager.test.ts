@@ -259,7 +259,7 @@ describe("MCP manager with an in-process server", () => {
     await manager({ createTransport: inMemory().createTransport }).upsert(NOTES);
 
     const restarted = manager({ createTransport: inMemory().createTransport });
-    expect(restarted.list()[0]).toMatchObject({ status: "error", error: "Connecting…" });
+    expect(restarted.list()[0]).toMatchObject({ status: "connecting" });
     await restarted.ready();
     expect(restarted.list()[0]?.status).toBe("connected");
 

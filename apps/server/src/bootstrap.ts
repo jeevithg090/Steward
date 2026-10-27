@@ -149,12 +149,14 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       db,
       bus,
       tenantRules: tenant.rules,
-      expiryHours: settings.approvalExpiryHours(),
+      expiryHours: () => settings.approvalExpiryHours(),
     });
     const computers = createComputerManager({
       dataDir: config.dataDir,
       headful: config.headful,
       allowPrivateHosts: config.allowPrivateHosts,
+      // Steward's own server and the Vite dev server, whatever STEWARD_ALLOW_PRIVATE_HOSTS says.
+      protectedPorts: [config.port, 5173],
       audit: gateway.audit,
       actorId: LOCAL_ACTOR,
     });

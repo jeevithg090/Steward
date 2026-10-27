@@ -95,6 +95,12 @@ export const BUILTIN = {
     reason:
       "This conversation has read web pages, mail or other content that could carry someone else's instructions, so anything that sends, pays, signs, deletes or runs a command needs your answer",
   },
+  taintPersists: {
+    id: "default:taint-persists",
+    name: "Untrusted content asks before anything lasting",
+    reason:
+      "This conversation has read content that could carry someone else's instructions, so saving a memory or a routine that would shape later work needs your answer",
+  },
   outbound: {
     id: "default:outbound-check",
     name: "Sensitive details ask",
@@ -138,6 +144,11 @@ export const BUILTIN = {
 /** Surfaces where a write is Steward's own business: its browser, its files, its memory, its tasks. */
 const OWN_SURFACES = new Set(["browser", "file", "memory", "task"]);
 const TAINT_KINDS = new Set<ToolKind>(["send", "pay", "sign", "delete", "shell"]);
+/**
+ * Tools whose effect outlives the conversation: injected text saved as a memory or a routine would
+ * reach every later run. After untrusted content they ask too.
+ */
+const TAINT_PERSISTS = new Set(["memory_remember", "routine_create"]);
 
 /** The outcome of deciding: the decision itself, plus what the approval layer needs. */
 export interface Verdict {
@@ -289,6 +300,7 @@ export function decidePrepared(engine: CelEngine, rules: readonly Rule[], call: 
 
     // 3. Taint.
     if (call.tainted && TAINT_KINDS.has(call.tool.kind)) return ask(BUILTIN.taint);
+    if (call.tainted && TAINT_PERSISTS.has(call.tool.name)) return ask(BUILTIN.taintPersists);
 
     // 4. What leaves.
     if (findings.length > 0) {

@@ -91,6 +91,7 @@ function rowToApproval(row: ApprovalRow): Approval {
   if (row.claimed_at) approval.claimedAt = row.claimed_at;
   if (row.created_rule_id) approval.createdRuleId = row.created_rule_id;
   if (row.decided_at) approval.decidedAt = row.decided_at;
+  approval.initiator = fromJson<Initiator>(row.initiator_json, { kind: "person", id: row.actor_id });
   return approval;
 }
 

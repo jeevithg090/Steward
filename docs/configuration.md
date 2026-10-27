@@ -77,9 +77,8 @@ Google account (OAuth) is not wired up in v0.1. See the [roadmap](../README.md#r
 
 ### Voice
 
-| Variable             | Default | Read by     | What it does                                                                                                                                                                                                  |
-| -------------------- | ------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ELEVENLABS_API_KEY` | none    | nothing yet | Listed in `.env.example` for a future voice option. Today Steward reads replies aloud with the browser's own speech synthesis and takes dictation with the browser's speech recognition; neither needs a key. |
+| Variable | Default | Read by | What it does |
+| -------- | ------- | ------- | ------------ |
 
 ### The triage eval
 

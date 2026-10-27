@@ -1,5 +1,8 @@
 import { z } from "zod";
+import type { ActivityItem, ComputerStatus, WorkspaceFile } from "./computer.ts";
 import type {
+  AgentProfile,
+  Brand,
   Brief,
   CalendarEvent,
   EmailSummary,
@@ -10,8 +13,7 @@ import type {
   Task,
   TaskState,
   ThreadSummary,
-  AgentProfile,
-  Brand,
+  TriageItem,
 } from "./domain.ts";
 import type {
   AppNotification,
@@ -22,7 +24,6 @@ import type {
   Decision,
   Rule,
 } from "./governance.ts";
-import type { ActivityItem, ComputerStatus, WorkspaceFile } from "./computer.ts";
 
 /**
  * The REST surface between the web app and the server. Every route is under `/api`.
@@ -58,7 +59,16 @@ export const DryRunBody = z.object({
 
 export const TaskPatchBody = z.object({
   state: z
-    .enum(["needs_you", "suggested", "working", "ready_for_review", "needs_input", "resolved", "failed", "hidden"])
+    .enum([
+      "needs_you",
+      "suggested",
+      "working",
+      "ready_for_review",
+      "needs_input",
+      "resolved",
+      "failed",
+      "hidden",
+    ])
     .optional(),
   title: z.string().min(1).max(200).optional(),
 });
@@ -103,20 +113,33 @@ export const McpServerBody = z.object({
 export const SettingsBody = z.object({
   model: z
     .object({
-      provider: z.enum(["openrouter", "openai", "anthropic", "nvidia", "gemini", "ollama", "openai-compatible", "scripted"]),
+      provider: z.enum([
+        "openrouter",
+        "openai",
+        "anthropic",
+        "nvidia",
+        "gemini",
+        "ollama",
+        "openai-compatible",
+        "scripted",
+      ]),
       model: z.string().min(1),
       baseUrl: z.string().url().optional(),
     })
     .optional(),
   plainLanguage: z.boolean().optional(),
-  briefTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  briefTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .optional(),
   timezone: z.string().optional(),
   approvalExpiryHours: z.number().int().min(1).max(168).optional(),
 });
 
 export const ThreadCreateBody = z.object({
   title: z.string().max(200).optional(),
-  agentId: z.string().default("steward"),
+  /** Defaults to the tenant's first agent. */
+  agentId: z.string().min(1).max(64).optional(),
 });
 
 // ── Responses ──────────────────────────────────────────────────────────────────────────────────
@@ -143,8 +166,12 @@ export interface McpServerInfo {
   id: string;
   name: string;
   transport: "stdio" | "http";
-  status: "connected" | "error" | "disabled";
+  status: "connected" | "connecting" | "error" | "disabled";
   error?: string;
+  /** The saved configuration, so the Connections page can edit it. None of it is secret. */
+  command?: string;
+  args?: string[];
+  url?: string;
   tools: { name: string; description: string; granted: boolean; kind: "read" | "write" }[];
 }
 
@@ -161,6 +188,9 @@ export interface AuditPage {
   total: number;
 }
 
+/** One row of `GET /api/inbox`: the email and, when it has been sorted, its triage. */
+export type InboxEmail = EmailSummary & { triage?: TriageItem };
+
 export interface TasksResponse {
   tasks: Task[];
   counts: Record<TaskState, number>;
@@ -174,7 +204,8 @@ export const ROUTES = {
   info: "/api/info", // AppInfo
   health: "/api/health", // { ok: true }
   settings: "/api/settings", // GET Settings · PUT SettingsBody → Settings
-  setup: "/api/setup", // SetupCheck[] · POST /api/setup/check re-runs them
+  setup: "/api/setup", // SetupCheck[]
+  setupCheck: "/api/setup/check", // POST → SetupCheck[] (runs the checks again)
   events: "/api/events", // SSE stream of LiveEvent
 
   threads: "/api/threads", // ThreadSummary[] · POST ThreadCreateBody → ThreadSummary
@@ -222,7 +253,8 @@ export const ROUTES = {
   computerReset: "/api/computer/:agentId/reset", // POST → ComputerStatus
   computerWs: "/ws/computer/:agentId", // WebSocket, see computer.ts
 
-  notifications: "/api/notifications", // AppNotification[] · POST /api/notifications/read-all
+  notifications: "/api/notifications", // AppNotification[]
+  notificationsReadAll: "/api/notifications/read-all", // POST → 204
 } as const;
 
 export function route(path: string, params: Record<string, string> = {}): string {
@@ -231,23 +263,23 @@ export function route(path: string, params: Record<string, string> = {}): string
 
 /** Re-exported so callers can type responses without importing three modules. */
 export type {
+  ActivityItem,
+  AppNotification,
   Approval,
   ApprovalAnswer,
   AuditEvent,
-  ChainCheck,
-  Decision,
-  Rule,
-  AppNotification,
   Brief,
   CalendarEvent,
+  ChainCheck,
+  ComputerStatus,
+  Decision,
   EmailSummary,
   MemoryFact,
   Routine,
+  Rule,
   SetupCheck,
   Skill,
   Task,
   ThreadSummary,
-  ActivityItem,
-  ComputerStatus,
   WorkspaceFile,
 };

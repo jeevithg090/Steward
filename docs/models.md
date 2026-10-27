@@ -22,16 +22,16 @@ and never shown in the app.
 
 ## Providers
 
-| `STEWARD_MODEL_PROVIDER` | Key                     | Endpoint                                                  | Model if you name none                     |
-| ------------------------ | ----------------------- | --------------------------------------------------------- | ------------------------------------------ |
-| `openrouter`             | `OPENROUTER_API_KEY`    | `https://openrouter.ai/api/v1`                            | `anthropic/claude-sonnet-5.5`              |
-| `openai`                 | `OPENAI_API_KEY`        | `https://api.openai.com/v1`                               | `gpt-5-mini`                               |
-| `anthropic`              | `ANTHROPIC_API_KEY`     | `https://api.anthropic.com/v1` (OpenAI-compatible)        | `claude-sonnet-4-5`                        |
-| `gemini`                 | `GEMINI_API_KEY`        | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.5-flash`                         |
-| `nvidia`                 | `NVIDIA_API_KEY`        | `https://integrate.api.nvidia.com/v1`                     | `nvidia/llama-3.3-nemotron-super-49b-v1.5` |
-| `ollama`                 | none                    | `http://127.0.0.1:11434/v1`                               | `llama3.2`                                 |
-| `openai-compatible`      | `STEWARD_MODEL_API_KEY` | `STEWARD_MODEL_BASE_URL` (required)                       | set `STEWARD_MODEL`                        |
-| `scripted`               | none                    | in-process                                                | the scripted demo model                    |
+| `STEWARD_MODEL_PROVIDER` | Key                     | Endpoint                                                  | Model if you name none              |
+| ------------------------ | ----------------------- | --------------------------------------------------------- | ----------------------------------- |
+| `openrouter`             | `OPENROUTER_API_KEY`    | `https://openrouter.ai/api/v1`                            | `anthropic/claude-sonnet-5.5`       |
+| `openai`                 | `OPENAI_API_KEY`        | `https://api.openai.com/v1`                               | `gpt-5.6-terra`                     |
+| `anthropic`              | `ANTHROPIC_API_KEY`     | `https://api.anthropic.com/v1` (OpenAI-compatible)        | `claude-sonnet-5-5`                 |
+| `gemini`                 | `GEMINI_API_KEY`        | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-3.5-flash`                  |
+| `nvidia`                 | `NVIDIA_API_KEY`        | `https://integrate.api.nvidia.com/v1`                     | `nvidia/nemotron-3-ultra-550b-a55b` |
+| `ollama`                 | none                    | `http://127.0.0.1:11434/v1`                               | `llama3.2`                          |
+| `openai-compatible`      | `STEWARD_MODEL_API_KEY` | `STEWARD_MODEL_BASE_URL` (required)                       | set `STEWARD_MODEL`                 |
+| `scripted`               | none                    | in-process                                                | the scripted demo model             |
 
 The defaults live in `PROVIDERS` in `packages/agent/src/model.ts`; check there for the current list.
 `STEWARD_MODEL_BASE_URL` overrides any provider's endpoint, which is how you reach a proxy, a

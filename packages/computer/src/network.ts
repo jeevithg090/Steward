@@ -236,6 +236,11 @@ export function displayUrl(url: string | URL, max = 80): string {
 
 export interface HostPolicyOptions {
   allowPrivateHosts?: boolean;
+  /**
+   * Ports on this machine the browser never reaches, whatever `allowPrivateHosts` says: Steward's
+   * own server, so a page in the agent's browser cannot call its API or take over the screen.
+   */
+  protectedPorts?: readonly number[];
   /** Injectable for tests. Defaults to the system resolver. */
   lookup?: LookupFn;
   /** How long a DNS answer is trusted. Short on purpose. */
@@ -253,6 +258,7 @@ async function systemLookup(hostname: string): Promise<ResolvedAddress[]> {
 
 export class HostPolicy {
   readonly allowPrivateHosts: boolean;
+  readonly protectedPorts: ReadonlySet<number>;
   private readonly lookup: LookupFn;
   private readonly cacheMs: number;
   private readonly now: () => number;
@@ -261,6 +267,7 @@ export class HostPolicy {
 
   constructor(opts: HostPolicyOptions = {}) {
     this.allowPrivateHosts = opts.allowPrivateHosts ?? false;
+    this.protectedPorts = new Set(opts.protectedPorts ?? []);
     this.lookup = opts.lookup ?? systemLookup;
     this.cacheMs = opts.cacheMs ?? 30_000;
     this.now = opts.now ?? Date.now;
@@ -303,6 +310,22 @@ export class HostPolicy {
     // IPv4 first: it is what most sites serve reliably.
     const ordered = [...addresses].sort((a, b) => a.family - b.family);
     return { ok: true, host, addresses: ordered };
+  }
+
+  /**
+   * A second check once the port is known: loopback on a protected port is Steward itself. Returns
+   * the verdict unchanged when it is fine.
+   */
+  checkPort(verdict: HostVerdict, port: number): HostVerdict {
+    if (!verdict.ok || !this.protectedPorts.has(port)) return verdict;
+    const loopback = verdict.addresses.some((a) => a.address === "::1" || a.address.startsWith("127."));
+    if (!loopback) return verdict;
+    return {
+      ok: false,
+      host: verdict.host,
+      reason: "private",
+      message: "That address is Steward's own server. Steward's browser never opens it.",
+    };
   }
 
   private refuse(host: string, reason: "metadata" | "private"): HostVerdict {

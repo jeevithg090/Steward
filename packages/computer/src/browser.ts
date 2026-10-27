@@ -88,6 +88,17 @@ export async function launchBrowser(opts: LaunchOptions): Promise<BrowserContext
       // Without it the first screencast frames are 1280×713 until the first navigation.
       `--window-size=${VIEWPORT.width},${VIEWPORT.height}`,
       "--disable-blink-features=AutomationControlled",
+      // Quiet Chromium's own traffic to Google (sync, pings, field trials, safe-browsing pings,
+      // translation, optimisation hints). The agent may still browse Google on purpose.
+      "--disable-background-networking",
+      "--disable-component-update",
+      "--disable-sync",
+      "--no-pings",
+      "--disable-domain-reliability",
+      "--disable-client-side-phishing-detection",
+      "--metrics-recording-only",
+      // No --disable-features here: Chromium honours only the last one, and Playwright's own list
+      // (Translate, MediaRouter, certificate-transparency updates, ...) must stay in force.
       // Playwright already passes --use-mock-keychain and --password-store=basic, so macOS never
       // shows a keychain prompt; repeated here so it stays true if those defaults change.
       ...(process.platform === "darwin" ? ["--use-mock-keychain"] : []),

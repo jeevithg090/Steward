@@ -171,8 +171,15 @@ const get = <T>(path: string, query?: Query, signal?: AbortSignal) =>
 const send = <T>(method: Exclude<Method, "GET">, path: string, body?: unknown) =>
   request<T>(method, path, { body });
 
-/** The default agent. Single-user Steward has one; tenants may add more. */
-export const DEFAULT_AGENT_ID = "steward";
+/**
+ * The agent the app talks to unless told otherwise: the tenant's first agent, from `/api/info`.
+ * `steward` until the info has loaded. A live binding, so readers always see the current value.
+ */
+export let DEFAULT_AGENT_ID = "steward";
+
+export function setDefaultAgentId(id: string): void {
+  DEFAULT_AGENT_ID = id;
+}
 
 // ── The client: one function per route ────────────────────────────────────────────────────────
 

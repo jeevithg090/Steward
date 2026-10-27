@@ -10,7 +10,7 @@ import { CopilotKitCoreErrorCode, CopilotKitProvider } from "@copilotkit/react-c
 import { COPILOTKIT_PATH } from "@steward/shared";
 import { type ReactNode, useCallback } from "react";
 import { toast } from "sonner";
-import { DEFAULT_AGENT_ID } from "@/lib/api.ts";
+import { DEFAULT_AGENT_ID, setDefaultAgentId, useInfo } from "@/lib/api.ts";
 import { StewardToolRenderers } from "./tools.tsx";
 
 /** How many conversations on screen show their own run errors. */
@@ -54,13 +54,13 @@ export function copilotErrorMessage(code: string): string {
 /** The runtime's address: on this origin, or on `VITE_STEWARD_API_URL` like the rest of the API. */
 const RUNTIME_URL = `${String(import.meta.env.VITE_STEWARD_API_URL ?? "").replace(/\/$/, "")}${COPILOTKIT_PATH}`;
 
-export function StewardCopilotProvider({
-  children,
-  agentId = DEFAULT_AGENT_ID,
-}: {
-  children: ReactNode;
-  agentId?: string;
-}) {
+export function StewardCopilotProvider({ children, agentId }: { children: ReactNode; agentId?: string }) {
+  // The tenant decides the agents, so wait for /api/info before choosing one. A tenant such as
+  // `tempo` has no agent called `steward`.
+  const info = useInfo();
+  const first = info.data?.agents[0]?.id;
+  if (first) setDefaultAgentId(first);
+  const resolved = agentId ?? first ?? (info.isError ? DEFAULT_AGENT_ID : undefined);
   const onError = useCallback(({ code, error }: { code: string; error: Error }) => {
     // The console keeps the detail for whoever is debugging; the person gets a sentence.
     console.warn(`[copilotkit] ${code}`, error);
@@ -68,8 +68,9 @@ export function StewardCopilotProvider({
     toast.error(copilotErrorMessage(code), { id: `copilotkit-${code}` });
   }, []);
 
+  if (!resolved) return null;
   return (
-    <CopilotKitProvider runtimeUrl={RUNTIME_URL} agentId={agentId} enableInspector={false} onError={onError}>
+    <CopilotKitProvider runtimeUrl={RUNTIME_URL} agentId={resolved} enableInspector={false} onError={onError}>
       <StewardToolRenderers />
       {children}
     </CopilotKitProvider>

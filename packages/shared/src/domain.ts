@@ -21,6 +21,13 @@ export interface EmailSummary {
   receivedAt: string;
   unread: boolean;
   labels: string[];
+  /** Copied recipients, when the connector has them. */
+  cc?: EmailAddress[];
+  /**
+   * The headers triage reads, when the connector has them: `List-Unsubscribe`, `List-Id`,
+   * `Precedence`, `Auto-Submitted`.
+   */
+  headers?: Record<string, string>;
 }
 
 export interface Email extends EmailSummary {
@@ -202,7 +209,15 @@ export interface Brand {
 }
 
 export interface ModelConfig {
-  provider: "openrouter" | "openai" | "anthropic" | "nvidia" | "gemini" | "ollama" | "openai-compatible" | "scripted";
+  provider:
+    | "openrouter"
+    | "openai"
+    | "anthropic"
+    | "nvidia"
+    | "gemini"
+    | "ollama"
+    | "openai-compatible"
+    | "scripted";
   model: string;
   baseUrl?: string;
   /** Name of the env var holding the key. Never the key itself. */

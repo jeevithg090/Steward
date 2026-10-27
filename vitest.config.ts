@@ -7,7 +7,7 @@ export default defineConfig({
         test: {
           name: "node",
           environment: "node",
-          include: ["packages/*/test/**/*.test.ts", "apps/server/test/**/*.test.ts"],
+          include: ["packages/*/test/**/*.test.ts", "apps/server/test/**/*.test.ts", "tenants/*.test.ts"],
           testTimeout: 30_000,
           hookTimeout: 60_000,
         },
@@ -19,6 +19,7 @@ export default defineConfig({
           root: "./apps/web",
           environment: "happy-dom",
           include: ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
+          server: { deps: { inline: [/@copilotkit\//] } },
         },
       },
     ],

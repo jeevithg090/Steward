@@ -455,6 +455,8 @@ export interface OutboundInput {
   tool: { name: string; kind: string; surface: string };
   args: Record<string, unknown>;
   target?: { url?: string };
+  /** After reading untrusted content, a URL is checked for personal values too, not only keys. */
+  tainted?: boolean;
   outbound?: string;
 }
 
@@ -464,8 +466,9 @@ export interface OutboundInput {
  * - `outbound` (the text that leaves, as the agent states it) is always scanned in full.
  * - Every string argument is scanned in full when the call sends, pays or signs, or writes through
  *   an MCP server; for `browser_type` the typed text is scanned for values but not health words.
- * - A target URL is scanned for keys and passwords only, so a fetch cannot carry a key out in a
- *   query string.
+ * - A target URL is scanned for keys and passwords, so a fetch cannot carry a key out in a query
+ *   string. Once the conversation is tainted it is scanned for personal values too (card, IBAN,
+ *   national ids), because an injected page may try to smuggle them out by opening a link.
  */
 export function scanOutbound(call: OutboundInput): OutboundFinding[] {
   const findings: OutboundFinding[] = [];
@@ -491,13 +494,20 @@ export function scanOutbound(call: OutboundInput): OutboundFinding[] {
     for (const text of collected.texts) findings.push(...scanText(text, level));
   }
 
-  scan(call.target?.url, "secrets");
+  scan(call.target?.url, call.tainted ? "values" : "secrets");
   return dedupe(findings);
+}
+
+/** Lower-cases the first letter for use mid-sentence, leaving acronyms such as IBAN alone. */
+function lowerFirst(label: string): string {
+  const second = label.charAt(1);
+  if (second && second === second.toUpperCase() && second !== second.toLowerCase()) return label;
+  return label.charAt(0).toLowerCase() + label.slice(1);
 }
 
 /** "a card number and a health detail", for a reason sentence. */
 export function describeFindings(findings: readonly OutboundFinding[]): string {
-  const labels = [...new Set(findings.map((f) => f.label.toLowerCase()))];
+  const labels = [...new Set(findings.map((f) => lowerFirst(f.label)))];
   if (labels.length === 0) return "";
   if (labels.length === 1) return labels[0] ?? "";
   return `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}`;

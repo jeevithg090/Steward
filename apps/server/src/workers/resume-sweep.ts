@@ -82,7 +82,11 @@ export class ResumeSweep {
         agentId: approval.agentId,
         threadId: approval.threadId,
         resume,
-        initiator: { kind: "resume", id: approval.id },
+        // A routine's or task's run stays one when resumed, so their stricter rules still apply.
+        initiator:
+          approval.initiator && approval.initiator.kind !== "person"
+            ? approval.initiator
+            : { kind: "resume", id: approval.id },
       });
       result = await run.done;
     } catch (err) {

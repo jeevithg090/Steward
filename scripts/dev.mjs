@@ -21,7 +21,7 @@ const procs = [
   const tag = `${colour}${name.padEnd(6)}\x1b[0m│ `;
   const pipe = (stream, out) =>
     stream.on("data", (buf) => {
-      for (const line of buf.toString().split("\n")) if (line.trim()) out.write(tag + line + "\n");
+      for (const line of buf.toString().split("\n")) if (line.trim()) out.write(`${tag}${line}\n`);
     });
   pipe(child.stdout, process.stdout);
   pipe(child.stderr, process.stderr);

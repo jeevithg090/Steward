@@ -47,8 +47,18 @@ export interface RuleStore {
   list(): Rule[];
   presets(): Rule[];
   get(id: string): Rule | undefined;
-  create(input: { name: string; effect: Effect; when: string; description: string; enabled: boolean; source: Rule["source"] }): Rule;
-  update(id: string, patch: Partial<Pick<Rule, "name" | "effect" | "when" | "description" | "enabled">>): Rule;
+  create(input: {
+    name: string;
+    effect: Effect;
+    when: string;
+    description: string;
+    enabled: boolean;
+    source: Rule["source"];
+  }): Rule;
+  update(
+    id: string,
+    patch: Partial<Pick<Rule, "name" | "effect" | "when" | "description" | "enabled">>,
+  ): Rule;
   remove(id: string): void;
   /** Throws a readable error when the CEL expression does not compile. */
   validate(when: string): void;
@@ -126,7 +136,12 @@ export interface McpManager {
   list(): McpServerInfo[];
   /** Tools granted to the agent, ready to offer to the model. */
   grantedTools(agentId: string): McpToolDefinition[];
-  call(server: string, tool: string, args: Record<string, unknown>, opts?: { signal?: AbortSignal }): Promise<unknown>;
+  call(
+    server: string,
+    tool: string,
+    args: Record<string, unknown>,
+    opts?: { signal?: AbortSignal },
+  ): Promise<unknown>;
   upsert(config: {
     id: string;
     name: string;
@@ -143,8 +158,14 @@ export interface McpManager {
 
 export interface WebTools {
   /** Fetches a public page as readable text. Refuses private and metadata addresses. */
-  fetch(url: string, opts?: { signal?: AbortSignal; maxChars?: number }): Promise<{ url: string; title: string; text: string; truncated: boolean }>;
-  search(query: string, opts?: { signal?: AbortSignal; limit?: number }): Promise<{ title: string; url: string; snippet: string }[]>;
+  fetch(
+    url: string,
+    opts?: { signal?: AbortSignal; maxChars?: number },
+  ): Promise<{ url: string; title: string; text: string; truncated: boolean }>;
+  search(
+    query: string,
+    opts?: { signal?: AbortSignal; limit?: number },
+  ): Promise<{ title: string; url: string; snippet: string }[]>;
 }
 
 // ── @steward/proactive ─────────────────────────────────────────────────────────────────────────
@@ -153,8 +174,16 @@ export interface TaskStore {
   list(filter?: { state?: TaskState | TaskState[]; limit?: number }): Task[];
   counts(): Record<TaskState, number>;
   get(id: string): Task | undefined;
-  create(input: Pick<Task, "title" | "detail" | "source"> & Partial<Pick<Task, "state" | "threadId" | "approvalId" | "emailId" | "nextStep">>): Task;
-  update(id: string, patch: Partial<Pick<Task, "title" | "detail" | "state" | "threadId" | "nextStep" | "error" | "approvalId">>): Task;
+  create(
+    input: Pick<Task, "title" | "detail" | "source"> &
+      Partial<Pick<Task, "state" | "threadId" | "approvalId" | "emailId" | "nextStep">>,
+  ): Task;
+  update(
+    id: string,
+    patch: Partial<
+      Pick<Task, "title" | "detail" | "state" | "threadId" | "nextStep" | "error" | "approvalId">
+    >,
+  ): Task;
   /** The task whose conversation this is, if any. */
   byThread(threadId: string): Task | undefined;
 }
@@ -189,8 +218,18 @@ export interface RoutineStore {
   list(): Routine[];
   get(id: string): Routine | undefined;
   /** Refuses schedules more often than every 15 minutes, and more than 20 enabled routines. */
-  create(input: { title: string; prompt: string; schedule: string; timezone: string; enabled: boolean; agentId: string }): Routine;
-  update(id: string, patch: Partial<Pick<Routine, "title" | "prompt" | "schedule" | "timezone" | "enabled">>): Routine;
+  create(input: {
+    title: string;
+    prompt: string;
+    schedule: string;
+    timezone: string;
+    enabled: boolean;
+    agentId: string;
+  }): Routine;
+  update(
+    id: string,
+    patch: Partial<Pick<Routine, "title" | "prompt" | "schedule" | "timezone" | "enabled">>,
+  ): Routine;
   remove(id: string): void;
   /** Records one run. Ten failures in a row switch the routine off. */
   recordRun(id: string, status: "ok" | "failed" | "refused", error?: string): Routine;
@@ -204,7 +243,12 @@ export interface RoutineStore {
 export interface TextModel {
   readonly label: string;
   /** Returns the model's raw text. Callers parse JSON themselves and treat failure as "could not". */
-  complete(opts: { system: string; prompt: string; maxTokens?: number; signal?: AbortSignal }): Promise<string>;
+  complete(opts: {
+    system: string;
+    prompt: string;
+    maxTokens?: number;
+    signal?: AbortSignal;
+  }): Promise<string>;
 }
 
 export interface NotificationStore {

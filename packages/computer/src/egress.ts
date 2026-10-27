@@ -126,7 +126,7 @@ export async function startEgressProxy(opts: {
       res.writeHead(400, { "content-type": "text/plain" }).end("This proxy only forwards http:// requests.");
       return;
     }
-    const verdict = await policy.checkUrl(target);
+    const verdict = policy.checkPort(await policy.checkUrl(target), target.port ? Number(target.port) : 80);
     if (!verdict.ok) {
       refuse(target.href, verdict);
       const status = verdict.reason === "unresolved" ? 502 : 403;
@@ -184,7 +184,7 @@ export async function startEgressProxy(opts: {
       client.end("HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n");
       return;
     }
-    const verdict = await policy.checkHost(match[1]);
+    const verdict = policy.checkPort(await policy.checkHost(match[1]), port);
     if (!verdict.ok) {
       refuse(`https://${authority}/`, verdict);
       const status = verdict.reason === "unresolved" ? "502 Bad Gateway" : "403 Forbidden";

@@ -11,6 +11,8 @@ export interface ComputerManagerOptions {
   headful?: boolean;
   /** Let the agent's browser reach loopback and private networks. Cloud metadata stays refused. */
   allowPrivateHosts?: boolean;
+  /** Loopback ports the browser never reaches even then: Steward's own server and dev server. */
+  protectedPorts?: readonly number[];
   /** Receives computer.help_requested, computer.control_taken/released and secret.requested/filled. */
   audit?: AuditLog;
   /** Who the record names for the person's actions. `local` in single-user mode. */
@@ -30,6 +32,7 @@ export function createComputerManager(opts: ComputerManagerOptions): ComputerMan
   const root = join(resolve(opts.dataDir), "computers");
   const policy = new HostPolicy({
     allowPrivateHosts: opts.allowPrivateHosts ?? false,
+    ...(opts.protectedPorts ? { protectedPorts: opts.protectedPorts } : {}),
     ...(opts.lookup ? { lookup: opts.lookup } : {}),
   });
   const computers = new Map<string, AgentComputer>();

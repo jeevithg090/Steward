@@ -113,6 +113,15 @@ export class SetupService {
   private async checkModel(info: ModelInfo, text: TextModel | undefined): Promise<SetupCheck> {
     const name = this.deps.brandName;
     const base = { id: "model" as const, label: "AI model", href: "/settings", optional: false };
+    // The scripted model answers but does not think; it has no text model for triage on purpose.
+    if (info.scripted && info.problem !== "unavailable") {
+      return {
+        ...base,
+        status: "needs_setup",
+        detail: `${name} is using its scripted demo model. It follows a script and does not really think.`,
+        fix: "Add a model key in .env, then restart.",
+      };
+    }
     if (info.problem === "no_key" || (!text && !info.problem)) {
       return {
         ...base,
@@ -127,14 +136,6 @@ export class SetupService {
         status: "needs_setup",
         detail: `The model could not be started, so ${name} can't answer.`,
         fix: "Check the model settings, then restart. The server log says what went wrong.",
-      };
-    }
-    if (info.scripted) {
-      return {
-        ...base,
-        status: "needs_setup",
-        detail: `${name} is using its scripted demo model. It follows a script and does not really think.`,
-        fix: "Add a model key in .env, then restart.",
       };
     }
     try {

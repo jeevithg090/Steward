@@ -90,7 +90,8 @@ export function modelEnv(env: NodeJS.ProcessEnv, choice?: ModelChoice): NodeJS.P
 }
 
 function hasKey(cfg: ModelConfig, env: NodeJS.ProcessEnv): boolean {
-  if (KEYLESS.has(cfg.provider) || !cfg.apiKeyEnv) return true;
+  // A local OpenAI-compatible server (LM Studio, vLLM, llama.cpp) often needs no key at all.
+  if (KEYLESS.has(cfg.provider) || cfg.provider === "openai-compatible" || !cfg.apiKeyEnv) return true;
   return Boolean(env[cfg.apiKeyEnv]?.trim());
 }
 
@@ -202,7 +203,8 @@ export class AgentHost {
       config,
       info,
       agents,
-      ...(primary ? { text: createTextModel(primary.model, primary.label) } : {}),
+      // The scripted model has no real answers for triage or the brief, so those fall back to rules.
+      ...(primary && !primary.scripted ? { text: createTextModel(primary.model, primary.label) } : {}),
       loaded,
     };
 
