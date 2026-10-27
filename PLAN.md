@@ -377,3 +377,10 @@ for the computer.
   server with the same MCP tools meetmybot exposes, one-tap Add to Steward, and an AI generation
   pipeline that seeds about 2,000 bots behind validators and the gateway's dry run. Seeds from
   LobeChat's MIT agent index and OpenBot's catalogue. Nothing built yet.
+- **28 Oct 2026, orchestration plan.** [docs/plans/orchestration.md](docs/plans/orchestration.md):
+  Claude, Codex, Grok and ~40 other agents in one app. External coding agents arrive as AG-UI
+  agents through one Agent Client Protocol client (plus a Codex app-server client ported from
+  Happy), every permission prompt parks as a Steward approval, delegation through a governed
+  `delegate_task` tool with AG-UI subagent events, usage in the record. "Use your subscription"
+  means running the vendor's own unmodified tool with your own login; Steward never touches a
+  vendor credential. Research in `docs/research/happy-orchestration.md`. Nothing built yet.

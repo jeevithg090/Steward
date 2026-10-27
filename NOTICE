@@ -8,3 +8,10 @@ Their copyright notices and licence terms apply to the adapted portions.
 
 Files that adapt code from these projects say so in a header comment naming the source file.
 Steward is an independent project and is not affiliated with or endorsed by CopilotKit or Anthropic.
+
+Seed bots in the directory (`directory/`) are adapted from:
+
+- LobeChat agent index — https://github.com/lobehub/lobe-chat-agents — Copyright (c) LobeHub and each listed author — MIT
+- OpenBot's coworker catalogue (`examples/fintech/catalog`) — https://github.com/CopilotKit/openbot — Copyright (c) CopilotKit — MIT
+
+Skills follow the Agent Skills specification — https://agentskills.io — Apache-2.0.
