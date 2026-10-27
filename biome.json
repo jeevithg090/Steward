@@ -11,7 +11,8 @@
       "!test-results",
       "!playwright-report",
       "!pnpm-lock.yaml",
-      "!evals/triage/results.md"
+      "!evals/triage/results.md",
+      "!docs/research"
     ]
   },
   "formatter": {
@@ -48,7 +49,9 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.html"],
+      "includes": [
+        "**/*.html"
+      ],
       "linter": {
         "enabled": false
       }

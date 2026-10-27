@@ -292,6 +292,8 @@ default.
 
 ## 8. Out of scope for v0.1
 
+(The phone and Shortcuts work is planned in [docs/plans/phone-and-shortcuts.md](docs/plans/phone-and-shortcuts.md).)
+
 Multi-user sign-in, Slack/Teams channels, mobile apps, real Google OAuth verification (the client
 speaks Google's API shape; pointing it at Google needs your own OAuth client), container isolation
 for the computer.
@@ -355,3 +357,13 @@ for the computer.
   - typecheck clean, biome clean, about 1,170 unit tests, e2e 25/25 with axe;
   - a live walk on NVIDIA Nemotron 3 Ultra (brief, computer, approval, injection, table with
     sources).
+- **27 Oct 2026, phone plan.** [docs/plans/phone-and-shortcuts.md](docs/plans/phone-and-shortcuts.md)
+  covers remote control on the phone, adapted from Happy (MIT), and personalised iPhone Shortcuts.
+  - Phase 0 is a devices layer: a device-only port, scoped tokens and pairing.
+  - Phase 1 is Shortcuts: a generic signed thin client, pairing through `run-shortcut`, and a
+    catalogue built from the person's profile.
+  - Phase 2 is an encrypted relay and a PWA.
+  - Phase 3 is an Expo app with App Intents.
+
+  Research is in `docs/research/`. Nothing is built yet, and it needs a real iPhone for the
+  device checks.
