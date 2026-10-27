@@ -10,7 +10,15 @@ export type SettingsPatch = z.infer<typeof SettingsBody>;
 export interface ModelChoice {
   provider: ModelConfig["provider"];
   model: string;
+  /** Only for a provider that takes an address (`takesAddress`). */
   baseUrl?: string;
+}
+
+/** Providers whose address the person gives. Every other one has its own endpoint for its key. */
+const ADDRESS_PROVIDERS: ReadonlySet<string> = new Set(["ollama", "openai-compatible"]);
+
+export function takesAddress(provider: string): boolean {
+  return ADDRESS_PROVIDERS.has(provider);
 }
 
 export const SETTINGS_DEFAULTS = {
@@ -84,8 +92,12 @@ export class SettingsStore {
     return this.get("approvalExpiryHours", SETTINGS_DEFAULTS.approvalExpiryHours);
   }
 
+  /** The saved choice. An address saved with a provider that takes none (an older bug) is left out. */
   modelChoice(): ModelChoice | undefined {
-    return this.get<ModelChoice | undefined>("model", undefined);
+    const choice = this.get<ModelChoice | undefined>("model", undefined);
+    if (!choice?.baseUrl || takesAddress(choice.provider)) return choice;
+    const { baseUrl: _ignored, ...rest } = choice;
+    return rest;
   }
 
   /** The settings as the web app sees them, with the model actually in use. */
@@ -117,10 +129,13 @@ export class SettingsStore {
       if (patch.timezone !== undefined) this.set("timezone", patch.timezone);
       if (patch.approvalExpiryHours !== undefined) this.set("approvalExpiryHours", patch.approvalExpiryHours);
       if (patch.model !== undefined) {
+        // The choice is replaced whole, so a new provider never inherits the old one's address, and
+        // an address sent with a provider that takes none (a stale form field) is dropped.
+        const { provider, model, baseUrl } = patch.model;
         const choice: ModelChoice = {
-          provider: patch.model.provider,
-          model: patch.model.model,
-          ...(patch.model.baseUrl ? { baseUrl: patch.model.baseUrl } : {}),
+          provider,
+          model,
+          ...(baseUrl && takesAddress(provider) ? { baseUrl } : {}),
         };
         this.set("model", choice);
       }

@@ -80,6 +80,45 @@ export function currentStep(messages: readonly Message[]): string {
   return "Thinking";
 }
 
+/** Ids of what a conversation already shows: its messages and the calls in them. */
+export function shownIds(messages: readonly Message[]): Set<string> {
+  const ids = new Set<string>();
+  for (const message of messages) {
+    ids.add(message.id);
+    if (message.role === "assistant") for (const call of message.toolCalls ?? []) ids.add(call.id);
+  }
+  return ids;
+}
+
+/** Events that write into a message, by its id. A tool result is a message of its own. */
+const WRITES_MESSAGE = new Set([
+  "TEXT_MESSAGE_START",
+  "TEXT_MESSAGE_CONTENT",
+  "TEXT_MESSAGE_END",
+  "TEXT_MESSAGE_CHUNK",
+  "TOOL_CALL_RESULT",
+  "REASONING_MESSAGE_START",
+  "REASONING_MESSAGE_CONTENT",
+  "REASONING_MESSAGE_END",
+  "REASONING_MESSAGE_CHUNK",
+]);
+/** Events that write into a tool call, by its id. */
+const WRITES_CALL = new Set(["TOOL_CALL_START", "TOOL_CALL_ARGS", "TOOL_CALL_END", "TOOL_CALL_CHUNK"]);
+
+/**
+ * The message or tool call an event writes into, if any. Replaying a thread over messages already
+ * shown would append their text and calls a second time, so a reconnect skips these.
+ */
+export function replayedId(event: { type: string }): string | undefined {
+  const ids = event as { messageId?: unknown; toolCallId?: unknown };
+  const id = WRITES_MESSAGE.has(event.type)
+    ? ids.messageId
+    : WRITES_CALL.has(event.type)
+      ? ids.toolCallId
+      : undefined;
+  return typeof id === "string" ? id : undefined;
+}
+
 /** The newest assistant message with words in it, after a given index. */
 export function newestAssistantText(
   messages: readonly Message[],

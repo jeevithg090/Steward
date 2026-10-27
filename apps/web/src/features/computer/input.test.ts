@@ -19,6 +19,18 @@ describe("toViewport", () => {
     expect(toViewport({ clientX: 100, clientY: 200 }, wide, DEFAULT_VIEWPORT)).toBeUndefined();
   });
 
+  it("clamps a point outside the picture to its edge when asked, so a let-go button still comes up", () => {
+    const wide = { left: 0, top: 0, width: 1000, height: 400 };
+    expect(toViewport({ clientX: 100, clientY: 200 }, wide, DEFAULT_VIEWPORT, { clamp: true })).toEqual({
+      x: 0,
+      y: 400,
+    });
+    expect(toViewport({ clientX: 2000, clientY: -50 }, wide, DEFAULT_VIEWPORT, { clamp: true })).toEqual({
+      x: 1279,
+      y: 0,
+    });
+  });
+
   it("uses the frame's own size when it differs from the viewport", () => {
     expect(toViewport({ clientX: 420, clientY: 250 }, box, { width: 1280, height: 713 })).toEqual({
       x: 640,

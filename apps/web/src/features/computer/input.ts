@@ -24,12 +24,14 @@ export const DEFAULT_VIEWPORT: Size = { width: 1280, height: 800 };
 
 /**
  * Maps a point on the drawn canvas to viewport coordinates. Returns undefined for a point in the
- * letterbox around the picture, or when nothing has a size yet.
+ * letterbox around the picture, or when nothing has a size yet. With `clamp`, a point outside the
+ * picture maps to its nearest edge instead: a button let go out there must still come up.
  */
 export function toViewport(
   point: { clientX: number; clientY: number },
   box: Box,
   size: Size,
+  { clamp = false }: { clamp?: boolean } = {},
 ): { x: number; y: number } | undefined {
   if (box.width <= 0 || box.height <= 0 || size.width <= 0 || size.height <= 0) return undefined;
   const scale = Math.min(box.width / size.width, box.height / size.height);
@@ -37,9 +39,13 @@ export function toViewport(
   const drawnHeight = size.height * scale;
   const offsetX = (box.width - drawnWidth) / 2;
   const offsetY = (box.height - drawnHeight) / 2;
-  const localX = point.clientX - box.left - offsetX;
-  const localY = point.clientY - box.top - offsetY;
-  if (localX < 0 || localY < 0 || localX > drawnWidth || localY > drawnHeight) return undefined;
+  let localX = point.clientX - box.left - offsetX;
+  let localY = point.clientY - box.top - offsetY;
+  if (localX < 0 || localY < 0 || localX > drawnWidth || localY > drawnHeight) {
+    if (!clamp) return undefined;
+    localX = Math.min(drawnWidth, Math.max(0, localX));
+    localY = Math.min(drawnHeight, Math.max(0, localY));
+  }
   return {
     x: Math.min(size.width - 1, Math.max(0, Math.round(localX / scale))),
     y: Math.min(size.height - 1, Math.max(0, Math.round(localY / scale))),

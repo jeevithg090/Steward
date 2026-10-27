@@ -22,6 +22,8 @@ const EVENT_TYPES: LiveEvent["type"][] = [
   "task.updated",
   "brief.ready",
   "routine.updated",
+  "run.started",
+  "run.finished",
   "notification",
 ];
 
@@ -197,6 +199,11 @@ export function applyLiveEvent(qc: QueryClient, event: LiveEvent): void {
       return;
     case "routine.updated":
       void qc.invalidateQueries({ queryKey: queryKeys.routines });
+      return;
+    // The thread list shows which conversations are running. An open one follows the run itself.
+    case "run.started":
+    case "run.finished":
+      void qc.invalidateQueries({ queryKey: queryKeys.threads });
       return;
     case "notification":
       void qc.invalidateQueries({ queryKey: queryKeys.notifications });

@@ -82,6 +82,19 @@ function messageIdOf(event: BaseEvent): string | undefined {
   return typeof id === "string" ? id : undefined;
 }
 
+/**
+ * The stored conversation with what `incoming` adds to it. A browser that missed a run the server
+ * started (a routine, a resume) sends a stale history; when it lacks stored messages, the stored
+ * order comes first and the messages only the browser has follow it. Otherwise `incoming` itself
+ * is returned.
+ */
+export function mergeHistory(stored: readonly Message[], incoming: Message[]): Message[] {
+  const incomingIds = new Set(incoming.map((m) => m.id));
+  if (stored.every((m) => incomingIds.has(m.id))) return incoming;
+  const storedIds = new Set(stored.map((m) => m.id));
+  return [...stored, ...incoming.filter((m) => !storedIds.has(m.id))];
+}
+
 /** A short plain-text preview of the last message with words in it. */
 export function previewOf(messages: readonly Message[], max = 140): string | undefined {
   for (let i = messages.length - 1; i >= 0; i--) {
@@ -127,6 +140,12 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
   run(request: AgentRunnerRunRequest): Observable<BaseEvent> {
     const { threadId } = request;
     if (this.live.has(threadId)) throw new ThreadAlreadyRunningError();
+
+    // Turns only the server saw (a routine's parked call, a sweep's resume) must reach the model,
+    // or it answers without them and the snapshot the sweep reads loses them.
+    const given = Array.isArray(request.agent.messages) ? request.agent.messages : [];
+    const merged = mergeHistory(this.getThreadMessages(threadId), given);
+    if (merged !== given) request.agent.setMessages(merged);
 
     const input = withoutServerProps(request.input);
     const runId = input.runId;
@@ -182,7 +201,17 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
       });
       for (const event of appended) emit(event);
 
-      const messages = Array.isArray(request.agent.messages) ? [...request.agent.messages] : [];
+      // Merged again, so the snapshot never drops a turn only the server saw, whatever the agent did
+      // with its messages.
+      let stored: Message[] = [];
+      try {
+        stored = this.getThreadMessages(threadId);
+      } catch (err) {
+        console.error("[steward] could not read a thread:", err instanceof Error ? err.message : err);
+      }
+      const messages = [
+        ...mergeHistory(stored, Array.isArray(request.agent.messages) ? request.agent.messages : []),
+      ];
       // An immediate failure that produced nothing is not history.
       if (interruptionMessage === undefined || agentEventCount > 0 || live.stopRequested) {
         try {

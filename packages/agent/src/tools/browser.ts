@@ -1,5 +1,5 @@
 // Descriptions adapted from openbot/app/src/lib/copilot/computer-tools.tsx and shared/bot-prompt.ts (MIT, CopilotKit)
-import type { Target } from "@steward/shared";
+import type { ElementFacts, Target } from "@steward/shared";
 import { builtin } from "./define.ts";
 import {
   bool,
@@ -26,18 +26,32 @@ function currentPage(ctx: ToolContext): Target {
   return pageTarget(ctx.services.computers.status(ctx.agentId).url);
 }
 
+type Element = NonNullable<Target["element"]>;
+
+/** Only what the computer actually reported. `sensitive` only ever adds strictness, so false is left out. */
+function facts(found: ElementFacts | undefined): Omit<Element, "ref" | "submitter"> {
+  return {
+    ...(found?.role ? { role: found.role } : {}),
+    ...(found?.name ? { name: found.name } : {}),
+    ...(found?.sensitive === true ? { sensitive: true } : {}),
+  };
+}
+
+function submitterFacts(found: Pick<ElementFacts, "role" | "name"> | undefined): Pick<Element, "submitter"> {
+  if (!found?.role && !found?.name) return {};
+  return {
+    submitter: {
+      ...(found.role ? { role: found.role } : {}),
+      ...(found.name ? { name: found.name } : {}),
+    },
+  };
+}
+
 /** The page plus the element a ref names, read from the computer's own snapshot, never from the model. */
 async function elementTarget(args: ToolArgs, ctx: ToolContext): Promise<Target> {
   const ref = readString(args, "ref");
   const described = await (await computer(ctx)).describe(ref);
-  return {
-    ...currentPage(ctx),
-    element: {
-      ref,
-      ...(described?.role ? { role: described.role } : {}),
-      ...(described?.name ? { name: described.name } : {}),
-    },
-  };
+  return { ...currentPage(ctx), element: { ref, ...facts(described) } };
 }
 
 export const browserNavigate = builtin("browser_navigate", {
@@ -82,10 +96,16 @@ export const browserType = builtin("browser_type", {
     },
     ["ref", "text"],
   ),
-  toGateCall: async (args, ctx) => ({
-    target: await elementTarget(args, ctx),
-    outbound: readString(args, "text"),
-  }),
+  toGateCall: async (args, ctx) => {
+    const target = await elementTarget(args, ctx);
+    // Enter in a field submits its form, so the gateway judges the form's submit button too. The
+    // field stays the element: typing into a secret field is credential entry whatever submits it.
+    if (readOptionalBoolean(args, "submit") === true && target.element) {
+      const submitter = await (await computer(ctx)).submitterFor(target.element.ref);
+      target.element = { ...target.element, ...submitterFacts(submitter) };
+    }
+    return { target, outbound: readString(args, "text") };
+  },
   execute: async (args, ctx) => {
     const submit = readOptionalBoolean(args, "submit") ?? false;
     return (await computer(ctx)).type(readString(args, "ref"), readString(args, "text"), { submit });
@@ -96,7 +116,17 @@ export const browserPress = builtin("browser_press", {
   description:
     "Press one key on the page, such as Enter, Tab, Escape, ArrowDown or PageDown. Pressing Enter in a form can submit it, just like clicking its button.",
   parameters: object({ key: str("The key name, such as Enter, Tab or Escape."), intent: INTENT }, ["key"]),
-  toGateCall: async (_args, ctx) => ({ target: currentPage(ctx) }),
+  // A key acts on whatever has focus, so the gateway judges the focused element and the control
+  // Enter or Space would activate. Nothing focused leaves no element, and a committing key then
+  // fails closed in the gateway. A focused element has no snapshot ref, hence the empty one.
+  toGateCall: async (_args, ctx) => {
+    const focused = await (await computer(ctx)).focused();
+    const page = currentPage(ctx);
+    if (!focused) return { target: page };
+    return {
+      target: { ...page, element: { ref: "", ...facts(focused), ...submitterFacts(focused.submitter) } },
+    };
+  },
   execute: async (args, ctx) => (await computer(ctx)).press(readString(args, "key", { max: 40 })),
 });
 

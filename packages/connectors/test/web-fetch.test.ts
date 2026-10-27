@@ -156,6 +156,18 @@ describe("web fetch: content", () => {
     expect(page.truncated).toBe(true);
   });
 
+  it("converts a page only as far as maxChars needs, and says when it stopped early", async () => {
+    // Line breaks fill the converter's budget before any text, so it stops before "Later".
+    const { fetch } = routes({
+      "https://news.example/breaks": () => html(`${"<br>".repeat(10_000)}<p>Later</p>`),
+    });
+    const page = await createWebTools({ fetch, lookup: dns }).fetch("https://news.example/breaks", {
+      maxChars: 300,
+    });
+    expect(page.text).not.toContain("Later");
+    expect(page.truncated).toBe(true);
+  });
+
   it("returns plain text and JSON as they are, titled by the path", async () => {
     const { fetch } = routes({
       "https://news.example/data/report.json": () =>

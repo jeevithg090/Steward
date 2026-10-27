@@ -124,6 +124,9 @@ export function alwaysRuleFor(approval: Pick<Approval, "tool" | "target" | "summ
     parts.push(`target.element.name == ${celString(target.element.name)}`);
     scope.unshift(`'${truncate(target.element.name, 40)}'`);
   }
+  // A key press is judged by the control it activates, which the rule cannot name: pin the kind,
+  // so Enter in the same field never runs unasked once it would delete or sign instead.
+  if (tool.surface === "browser") parts.push(`tool.kind == ${celString(tool.kind)}`);
   if ((tool.kind === "shell" || tool.surface === "shell") && target.command) {
     parts.push(`target.command == ${celString(target.command)}`);
     scope.push(`\`${truncate(target.command, 60)}\``);

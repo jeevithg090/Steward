@@ -35,4 +35,12 @@ describe("modelEnv", () => {
       STEWARD_MODEL_BASE_URL: "http://127.0.0.1:11434/v1",
     });
   });
+
+  it("never pairs a provider's key with an address chosen for another", () => {
+    const env = { STEWARD_MODEL_PROVIDER: "openrouter", OPENAI_API_KEY: "sk-openai" };
+    // A choice saved with the previous provider's address in it.
+    const out = modelEnv(env, { provider: "openai", model: "g", baseUrl: "https://openrouter.ai/api/v1" });
+    expect(out.STEWARD_MODEL_PROVIDER).toBe("openai");
+    expect(out.STEWARD_MODEL_BASE_URL).toBeUndefined();
+  });
 });

@@ -61,6 +61,44 @@ describe.runIf(missing.length === 0)("background workers", () => {
     expect((await t.api<{ kind: string }>(`/api/threads/${routine.threadId}`)).body.kind).toBe("routine");
   });
 
+  it("skips a firing while the routine's last run waits for an answer, and says so", async () => {
+    const { proactive, runner, gateway } = t.server.services;
+    const routine = proactive.routines.create({
+      title: "Mail sender",
+      prompt: "Send the weekly note.",
+      schedule: "0 9 * * *",
+      timezone: "UTC",
+      enabled: true,
+      agentId: "steward",
+    });
+    // The routine's conversation ends with a parked send nobody has answered yet.
+    const res = await fetch(`${t.base}/api/copilotkit/agent/steward/run`, {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "text/event-stream" },
+      body: JSON.stringify({
+        threadId: routine.threadId,
+        runId: "parks-a-send",
+        messages: [{ id: "u1", role: "user", content: "Email sam@example.com about Friday: see you at 10" }],
+        tools: [],
+        context: [],
+        state: {},
+        forwardedProps: {},
+      }),
+    });
+    await res.text();
+    expect(gateway.approvals.list({ status: "pending", threadId: routine.threadId })).toHaveLength(1);
+    const before = runner.getThreadMessages(routine.threadId);
+
+    await workersAt(new Date(Date.now() + 2 * 86_400_000)).tickRoutines();
+    const recorded = await waitFor(() => {
+      const r = proactive.routines.get(routine.id);
+      return r?.lastStatus ? r : undefined;
+    });
+    expect(recorded.lastStatus).toBe("refused");
+    expect(recorded.lastError).toMatch(/still waiting for your answer/);
+    expect(runner.getThreadMessages(routine.threadId)).toEqual(before);
+  });
+
   it("makes today's brief once the brief time has passed, once a day", async () => {
     const { settings, proactive } = t.server.services;
     settings.update({ briefTime: "00:00", timezone: "UTC" });

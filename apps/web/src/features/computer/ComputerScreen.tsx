@@ -6,6 +6,10 @@
  * wheel, typing and pasting go to the agent's browser at the right coordinates. Escape always leaves
  * the screen, so the keyboard is never trapped. While Steward drives, the canvas is a picture.
  *
+ * The agent's browser keeps a modifier or a mouse button down until it hears it come up, and a
+ * key let go in another window never reaches this page. So whatever is held is let go here when the
+ * screen loses focus, the tab is hidden, the pointer is lost, or driving ends.
+ *
  * Frame handling follows OpenBot's app/src/components/computer/live-screen.tsx (MIT, CopilotKit).
  */
 import { MonitorPause } from "lucide-react";
@@ -22,6 +26,11 @@ import { cn } from "@/lib/utils.ts";
 import { keyMessage, mouseButton, toViewport } from "./input.ts";
 import { useComputer } from "./session.tsx";
 import type { Frame } from "./socket.ts";
+
+/** Keys the agent's browser holds as modifiers. A held Meta would turn typing into shortcuts. */
+const MODIFIERS = new Set(["Shift", "Control", "Alt", "Meta"]);
+
+type MouseButton = ReturnType<typeof mouseButton>;
 
 /** Decodes a frame to something drawable. `createImageBitmap` keeps decoding off the main thread. */
 async function decode(frame: Frame): Promise<CanvasImageSource & { close?: () => void }> {
@@ -97,10 +106,29 @@ export function ComputerScreen({
     };
   }, [subscribeFrames, lastFrame]);
 
-  const pointAt = useCallback((event: { clientX: number; clientY: number }) => {
+  const pointAt = useCallback((event: { clientX: number; clientY: number }, clamp = false) => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
-    return toViewport(event, canvas.getBoundingClientRect(), sizeRef.current);
+    return toViewport(event, canvas.getBoundingClientRect(), sizeRef.current, { clamp });
+  }, []);
+
+  // What is down on the agent's browser because of this screen, and where the pointer last was.
+  const heldButtons = useRef(new Set<MouseButton>());
+  const heldKeys = useRef(new Set<string>());
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
+  const sendRef = useRef(send);
+  sendRef.current = send;
+
+  /** Lets go of the held buttons, and of the held keys too unless only the pointer was lost. */
+  const releaseHeld = useCallback((keys = true) => {
+    const point = lastPoint.current;
+    for (const button of heldButtons.current) {
+      if (point) sendRef.current({ type: "mouse", action: "up", ...point, button });
+    }
+    heldButtons.current.clear();
+    if (!keys) return;
+    for (const key of heldKeys.current) sendRef.current({ type: "key", action: "up", key });
+    heldKeys.current.clear();
   }, []);
 
   // Pointer moves are many; at most one goes per animation frame.
@@ -113,18 +141,26 @@ export function ComputerScreen({
     const point = pointAt(event);
     if (!point) return;
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    send({ type: "mouse", action: "down", ...point, button: mouseButton(event.button) });
+    const button = mouseButton(event.button);
+    heldButtons.current.add(button);
+    lastPoint.current = point;
+    send({ type: "mouse", action: "down", ...point, button });
   };
   const onPointerUp = (event: PointerEvent<HTMLCanvasElement>) => {
     if (!driving) return;
-    const point = pointAt(event);
+    const button = mouseButton(event.button);
+    // A button that went down comes up, even when let go in the letterbox or off the canvas.
+    const point = pointAt(event, heldButtons.current.has(button));
     if (!point) return;
-    send({ type: "mouse", action: "up", ...point, button: mouseButton(event.button) });
+    heldButtons.current.delete(button);
+    lastPoint.current = point;
+    send({ type: "mouse", action: "up", ...point, button });
   };
   const onPointerMove = (event: PointerEvent<HTMLCanvasElement>) => {
     if (!driving) return;
     const point = pointAt(event);
     if (!point) return;
+    lastPoint.current = point;
     pendingMove.current = point;
     if (moveFrame.current !== null) return;
     moveFrame.current = requestAnimationFrame(() => {
@@ -151,6 +187,10 @@ export function ComputerScreen({
     if (!message) return;
     event.preventDefault();
     event.stopPropagation();
+    if (MODIFIERS.has(event.key)) {
+      if (action === "down") heldKeys.current.add(event.key);
+      else heldKeys.current.delete(event.key);
+    }
     send(message);
   };
 
@@ -181,6 +221,23 @@ export function ComputerScreen({
     if (driving) canvasRef.current?.focus({ preventScroll: true });
   }, [driving]);
 
+  // Cmd+Tab and the like take the keyup elsewhere. Handing back, losing the wheel or leaving the
+  // screen lets go of everything too.
+  useEffect(() => {
+    if (!driving) return;
+    const onWindowBlur = () => releaseHeld();
+    const onVisibility = () => {
+      if (document.hidden) releaseHeld();
+    };
+    window.addEventListener("blur", onWindowBlur);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("blur", onWindowBlur);
+      document.removeEventListener("visibilitychange", onVisibility);
+      releaseHeld();
+    };
+  }, [driving, releaseHeld]);
+
   const resting = !computer.hasFrame;
   const { width, height } = computer.frameSize;
 
@@ -199,6 +256,9 @@ export function ComputerScreen({
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerMove={onPointerMove}
+        onPointerCancel={() => releaseHeld(false)}
+        onLostPointerCapture={() => releaseHeld(false)}
+        onBlur={() => releaseHeld()}
         onKeyDown={onKey("down")}
         onKeyUp={onKey("up")}
         onPaste={onPaste}

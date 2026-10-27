@@ -46,6 +46,13 @@ function element(target: Target, fallback: string): string {
   return target.element?.ref ? `${fallback} (${target.element.ref})` : fallback;
 }
 
+/** ", which clicks 'Place order'": what Enter or Space will press, when that is another control. */
+function presses(target: Target): string {
+  const name = text(target.element?.submitter?.name, 60);
+  if (!name || name === text(target.element?.name, 60)) return "";
+  return `, which clicks '${name}'`;
+}
+
 function when(value: unknown): string {
   const t = text(value, 40);
   if (!t) return "";
@@ -90,11 +97,11 @@ export function summarize(input: SummaryInput): string {
       const typed = quoted(shown("text"), 60);
       const field = element(target, "a field");
       sentence = typed ? `Type ${typed} into ${field}${on(target)}` : `Type into ${field}${on(target)}`;
-      if (args.submit === true) sentence += " and press Enter";
+      if (args.submit === true) sentence += ` and press Enter${presses(target)}`;
       break;
     }
     case "browser_press":
-      sentence = `Press ${text(args.key, 30) ?? "a key"}${target.element?.name ? ` in ${element(target, "")}` : ""}${on(target)}`;
+      sentence = `Press ${text(args.key, 30) ?? "a key"}${target.element?.name ? ` in ${element(target, "")}` : ""}${on(target)}${presses(target)}`;
       break;
     case "browser_scroll":
       sentence = `Scroll ${text(args.direction, 10) ?? "the page"}${on(target)}`;

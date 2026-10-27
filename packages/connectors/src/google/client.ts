@@ -55,6 +55,8 @@ export class GoogleApiError extends Error {
 const TRIAGE_HEADERS = ["List-Unsubscribe", "List-Id", "Precedence", "Auto-Submitted"] as const;
 const SUMMARY_HEADERS = ["From", "To", "Cc", "Subject", "Date", "Message-ID", ...TRIAGE_HEADERS];
 const MAX_BODY_CHARS = 20_000;
+/** The most HTML read from one body: far more than MAX_BODY_CHARS of text ever needs. */
+const MAX_HTML_CHARS = 1_000_000;
 const LOOKUP_CONCURRENCY = 8;
 
 /**
@@ -308,10 +310,11 @@ function bodyOf(payload: GmailPart | undefined): string {
   const charset =
     /charset="?([^";\s]+)"?/i.exec(headerValue(part.headers ?? [], "Content-Type") ?? "")?.[1] ?? "utf-8";
   const decoded = base64UrlDecode(part.body.data, charset).replace(/\r\n/g, "\n");
-  const text = html ? htmlToText(decoded).text : decoded.trim();
-  return text.length > MAX_BODY_CHARS
-    ? `${text.slice(0, MAX_BODY_CHARS)}\n\n[truncated: the message is longer than this]`
-    : text;
+  // Anyone can send HTML, so it is read only as far as the body that is kept.
+  const page = html ? htmlToText(decoded.slice(0, MAX_HTML_CHARS), { maxChars: MAX_BODY_CHARS }) : undefined;
+  const text = page ? page.text : decoded.trim();
+  const cut = page ? page.truncated || decoded.length > MAX_HTML_CHARS : text.length > MAX_BODY_CHARS;
+  return cut ? `${text.slice(0, MAX_BODY_CHARS)}\n\n[truncated: the message is longer than this]` : text;
 }
 
 function findPart(part: GmailPart, mimeType: string): GmailPart | undefined {

@@ -38,6 +38,14 @@ describe("small formatters", () => {
   it("uses the local date, not UTC", () => {
     expect(localDate(new Date(2026, 9, 27, 23, 30))).toBe("2026-10-27");
   });
+  it("gives the date in a time zone when asked", () => {
+    const at = new Date("2026-10-27T01:00:00Z");
+    expect(localDate(at, "America/New_York")).toBe("2026-10-26");
+    expect(localDate(at, "Europe/London")).toBe("2026-10-27");
+    expect(localDate(at, "Pacific/Kiritimati")).toBe("2026-10-27");
+    expect(localDate(new Date("2026-10-27T10:30:00Z"), "Pacific/Kiritimati")).toBe("2026-10-28");
+    expect(localDate(new Date(2026, 9, 27, 23, 30), "Not/AZone")).toBe("2026-10-27");
+  });
   it("greets without a name", () => {
     expect(greeting(new Date(2026, 9, 27, 8))).toBe("Good morning");
     expect(greeting(new Date(2026, 9, 27, 14))).toBe("Good afternoon");

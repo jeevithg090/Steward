@@ -15,12 +15,16 @@ import {
 } from "@steward/agent";
 import type { ModelConfig, TenantPackage, TextModel } from "@steward/shared";
 import { Observable } from "rxjs";
-import type { ModelChoice } from "../store/settings.ts";
+import { type ModelChoice, takesAddress } from "../store/settings.ts";
 
 /** What the info route and the setup checklist say about the model in use. */
 export interface ModelInfo {
   provider: ModelConfig["provider"];
   model: string;
+  /**
+   * The address someone gave (`STEWARD_MODEL_BASE_URL` or model.yaml), for a provider that takes
+   * one. Never a provider's own endpoint: Settings shows it and sends it back with the next choice.
+   */
   baseUrl?: string;
   label: string;
   scripted: boolean;
@@ -75,7 +79,8 @@ export class UnconfiguredAgent extends AbstractAgent {
 
 /**
  * Applies the person's model choice from Settings on top of the environment: the choice wins, so
- * changing the model in the app works even when `.env` names one.
+ * changing the model in the app works even when `.env` names one. A chosen address counts only for
+ * a provider that takes one, so another provider's key is never sent to it.
  */
 export function modelEnv(env: NodeJS.ProcessEnv, choice?: ModelChoice): NodeJS.ProcessEnv {
   if (!choice) return env;
@@ -84,9 +89,21 @@ export function modelEnv(env: NodeJS.ProcessEnv, choice?: ModelChoice): NodeJS.P
     STEWARD_MODEL_PROVIDER: choice.provider,
     STEWARD_MODEL: choice.model,
   };
-  if (choice.baseUrl) out.STEWARD_MODEL_BASE_URL = choice.baseUrl;
+  if (choice.baseUrl && takesAddress(choice.provider)) out.STEWARD_MODEL_BASE_URL = choice.baseUrl;
   else if (env.STEWARD_MODEL_PROVIDER !== choice.provider) delete out.STEWARD_MODEL_BASE_URL;
   return out;
+}
+
+/** The address someone gave for this provider, as `resolveModelConfig` reads it, without the provider's own. */
+function givenAddress(
+  config: ModelConfig,
+  tenant: TenantPackage,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
+  if (!takesAddress(config.provider)) return undefined;
+  const fromEnv = env.STEWARD_MODEL_BASE_URL?.trim();
+  if (fromEnv) return fromEnv;
+  return config.provider === tenant.model.provider ? tenant.model.baseUrl?.trim() || undefined : undefined;
 }
 
 /** `STEWARD_MODEL_MAX_TOKENS`, between 256 and 64k; 4096 when unset or unreadable. */
@@ -198,10 +215,11 @@ export class AgentHost {
       }
     }
 
+    const address = givenAddress(config, tenant, env);
     const info: ModelInfo = {
       provider: config.provider,
       model: config.model,
-      ...(config.baseUrl ? { baseUrl: config.baseUrl } : {}),
+      ...(address ? { baseUrl: address } : {}),
       label: primary?.label ?? config.model,
       scripted: primary?.scripted ?? config.provider === "scripted",
       ...(problem ? { problem } : {}),

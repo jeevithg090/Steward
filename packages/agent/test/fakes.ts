@@ -12,12 +12,14 @@ import type {
   ComputerServerMessage,
   ComputerStatus,
   Decision,
+  ElementFacts,
   Email,
   EmailDraft,
   EmailSummary,
   GateCall,
   GateOutcome,
   Governance,
+  Initiator,
   MailCalendar,
   McpManager,
   McpToolDefinition,
@@ -100,6 +102,11 @@ export class FakeGovernance implements Governance {
     return { effect: this.decide(call), reason: "dry run", findings: [] };
   }
 
+  initiatorFor(toolCallId: string, threadId: string): Initiator | undefined {
+    const approval = this.approvals.get(toolCallId);
+    return approval?.threadId === threadId ? approval.initiator : undefined;
+  }
+
   callsFor(tool: string): GateCall[] {
     return this.calls.filter((c) => c.call.tool.name === tool).map((c) => c.call);
   }
@@ -127,6 +134,7 @@ export function fakeApproval(call: GateCall, decision: Decision): Approval {
     target: call.target,
     decision,
     canAlways: !call.tainted,
+    initiator: call.initiator,
     createdAt: "2026-10-27T09:00:00.000Z",
     expiresAt: "2099-10-28T09:00:00.000Z",
   };
@@ -147,6 +155,10 @@ export class FakeComputer implements Computer {
   readonly files = new Map<string, string>();
   readonly actions: string[] = [];
   url = "about:blank";
+  /** What `focused()` reports: the element with focus, and the control Enter or Space would activate. */
+  focus: (ElementFacts & { submitter?: Pick<ElementFacts, "role" | "name"> }) | undefined;
+  /** Default submit buttons by the ref of a field in their form. */
+  readonly forms = new Map<string, Pick<ElementFacts, "role" | "name">>();
 
   constructor(agentId: string) {
     this.agentId = agentId;
@@ -198,10 +210,18 @@ export class FakeComputer implements Computer {
   async back() {
     return this.page();
   }
-  async describe(ref: string) {
+  async describe(ref: string): Promise<ElementFacts | undefined> {
     if (ref === "e20") return { role: "button", name: "Send" };
     if (ref === "e11") return { role: "link", name: "A tiny SQLite trick that saves an hour a day" };
+    if (ref === "e30") return { role: "textbox", name: "Passwort", sensitive: true };
+    if (ref === "e31") return { role: "textbox", name: "Promo code", sensitive: false };
     return undefined;
+  }
+  async focused() {
+    return this.focus;
+  }
+  async submitterFor(ref: string) {
+    return this.forms.get(ref);
   }
   async requestHelp(_reason: string, _opts?: { signal?: AbortSignal }): Promise<{ released: boolean }> {
     return { released: true };

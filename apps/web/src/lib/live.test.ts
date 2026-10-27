@@ -69,6 +69,16 @@ describe("the live stream", () => {
     stop();
   });
 
+  it("delivers the runs the server starts and finishes", () => {
+    const seen: LiveEvent[] = [];
+    const stop = subscribeLive((e) => seen.push(e));
+    const source = FakeEventSource.instances[0]!;
+    source.emit({ type: "run.started", threadId: "thr_1", runId: "run_1", agentId: "steward" });
+    source.emit({ threadId: "thr_1", runId: "run_1", agentId: "steward" }, "run.finished");
+    expect(seen.map((e) => e.type)).toEqual(["run.started", "run.finished"]);
+    stop();
+  });
+
   it("reconnects with backoff and refreshes caches once back", () => {
     vi.useFakeTimers();
     const onReconnect = vi.fn();
@@ -108,6 +118,8 @@ describe("applyLiveEvent", () => {
     [{ type: "routine.updated", routineId: "r" } as LiveEvent, queryKeys.routines],
     [{ type: "notification", notification: {} } as LiveEvent, queryKeys.notifications],
     [{ type: "task.updated", taskId: "t" } as LiveEvent, queryKeys.tasks],
+    [{ type: "run.started", threadId: "t", runId: "r", agentId: "a" } as LiveEvent, queryKeys.threads],
+    [{ type: "run.finished", threadId: "t", runId: "r", agentId: "a" } as LiveEvent, queryKeys.threads],
   ])("%o refreshes %o", (event, key) => {
     const qc = new QueryClient();
     const spy = vi.spyOn(qc, "invalidateQueries");

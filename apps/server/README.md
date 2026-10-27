@@ -22,8 +22,9 @@ checklist says what to add. It listens on `http://127.0.0.1:8787` by default.
 
 ## Settings
 
-The server reads `.env` from the repository root (and `STEWARD_ENV_FILE`, when set). Values already in
-the environment win. Relative paths resolve from the repository root, not the working directory.
+The server reads `STEWARD_ENV_FILE` (when set), then `.env` from the repository root. Values already in
+the environment win, then the first file; a blank value (`KEY=`) counts as unset wherever it is.
+Relative paths resolve from the repository root, not the working directory.
 
 | Variable                                                                           | Default         | What it does                                                                                                         |
 | ---------------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -69,7 +70,7 @@ createApp(config)
 | `runtime/runner.ts`                     | `NodeSqliteAgentRunner`, adapted from `@copilotkit/sqlite-runner` (MIT).                                                                             |
 | `runtime/server-runs.ts`                | `runOnThread`: runs the server starts itself.                                                                                                        |
 | `runtime/agents.ts`                     | The model and the agents; swaps them when the model changes in Settings.                                                                             |
-| `runtime/lifecycle.ts`                  | Thread titles and task states follow each run.                                                                                                       |
+| `runtime/lifecycle.ts`                  | Thread titles and task states follow each run; `run.started` and `run.finished` go out as live events.                                               |
 | `runtime/frames.ts`                     | The fixed opening words of turns nobody typed (a routine firing, a task starting).                                                                   |
 | `routes/*`                              | The REST API.                                                                                                                                        |
 | `live/*`                                | The event bus, the SSE route and the computer's WebSocket.                                                                                           |
@@ -83,8 +84,14 @@ createApp(config)
 Routines, **Start** on a task and the resume sweep all go through `ServerRuns.start` (the
 `runOnThread` of the plan). It clones the agent, loads the thread's history from the runner, adds the
 new user message (framed, so the model and the app know nobody typed it), and runs it **through the
-runner**, so it lands in the thread's history and any browser watching that thread sees it live. A
-thread with a run in flight is refused (409); a due routine waits for its thread to be free.
+runner**, so it lands in the thread's history and any browser watching that thread sees it live
+(`run.started` and `run.finished` tell an open conversation to follow it). A thread with a run in
+flight is refused (409); a due routine waits for its thread to be free. A new turn is also refused
+(409) while the thread's last run still waits for an answer, since the answer would then land after
+it: a due routine records that firing as skipped (`refused`). Resume runs always go through.
+
+A browser that missed one of these runs sends a stale history with its next message. The runner puts
+the stored turns back first, so the model sees them and the stored snapshot never loses them.
 
 The run carries `forwardedProps.steward = { token, initiator }`. The token is random per boot and
 only the server knows it, so a browser cannot claim to be a routine. The runner strips it before
@@ -105,13 +112,15 @@ Steward is one person's assistant on one machine. The server:
 
 - listens on loopback by default and answers only requests addressed to a loopback name, the bound
   address or `STEWARD_ALLOWED_HOSTS` (no DNS rebinding);
-- refuses state-changing requests from other sites (`Origin` / `Sec-Fetch-Site`), takes only JSON
-  bodies on the API, and allows CORS only for the Vite dev server (`localhost:5173`);
+- refuses state-changing requests from other sites (`Origin` / `Sec-Fetch-Site`) and takes only JSON
+  bodies, on the API and on the demo inbox; allows CORS only for the Vite dev and preview servers
+  (`:5173`, `:4173`);
 - checks the `Origin` of WebSocket upgrades (browsers do not apply CORS to them);
 - limits body sizes (256 KiB for the API, 10 MiB for agent runs) and computer input frames (64 KiB);
 - answers every error as `{ "error": "<a sentence>" }`, never with a stack trace;
 - never logs what was typed into the computer, and never echoes a secret in an error;
-- sends `X-Frame-Options: DENY` so approval cards cannot be clickjacked.
+- sends `X-Frame-Options: DENY` so approval cards cannot be clickjacked, and a CSP that loads images
+  only from itself, `data:` and `blob:`, so an image in a reply cannot carry data to another host.
 
 Adding an MCP server with a `stdio` command runs that command on this machine. That is why the guards
 above matter: only this machine's own pages may add one.

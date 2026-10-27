@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -6,7 +8,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { type Db, fromJson, memoryDb } from "@steward/db";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
   createMcpManager,
@@ -419,6 +421,128 @@ describe("MCP manager over real transports", () => {
       await expect(mcp.call("remote", "search_notes", { query: "invoices" })).resolves.toMatchObject({
         text: "Found 2 notes about invoices.",
       });
+    });
+  });
+
+  describe("streamable http with sessions", () => {
+    /**
+     * A stateful server, the SDK's default: sessions live in its memory, so a restart forgets them and
+     * it answers the old session id with 404 (the spec) or 400 (the SDK's example servers).
+     */
+    async function listen(fetch: (req: Request) => Promise<Response>, port = 0) {
+      const server = serve({ fetch, hostname: "127.0.0.1", port }) as Server;
+      await new Promise<void>((resolve) => server.once("listening", () => resolve()));
+      const bound = (server.address() as AddressInfo).port;
+      return {
+        port: bound,
+        url: `http://127.0.0.1:${bound}/mcp`,
+        stop: () =>
+          new Promise<void>((resolve) => {
+            // The client holds a standing event stream open; drop it so the port frees at once.
+            server.closeAllConnections();
+            server.close(() => resolve());
+          }),
+      };
+    }
+
+    async function sessionServer(port = 0, unknownSession: 400 | 404 = 404) {
+      const sessions = new Map<string, WebStandardStreamableHTTPServerTransport>();
+      return listen(async (req) => {
+        const id = req.headers.get("mcp-session-id");
+        if (id) {
+          const known = sessions.get(id);
+          if (known) return known.handleRequest(req);
+          const error = { code: -32001, message: "Session not found" };
+          return Response.json({ jsonrpc: "2.0", error, id: null }, { status: unknownSession });
+        }
+        const transport = new WebStandardStreamableHTTPServerTransport({
+          sessionIdGenerator: () => randomUUID(),
+          enableJsonResponse: true,
+          onsessioninitialized: (sid) => {
+            sessions.set(sid, transport);
+          },
+        });
+        await notesServer().connect(transport);
+        return transport.handleRequest(req);
+      }, port);
+    }
+
+    const remote = (mcp: { list(): { id: string }[] }) => mcp.list().find((s) => s.id === "remote");
+
+    let running: { stop(): Promise<void> } | undefined;
+    beforeEach(() => {
+      db.run("DELETE FROM connectors_mcp_servers");
+    });
+    afterEach(async () => {
+      await running?.stop();
+      running = undefined;
+    });
+
+    it.each([404, 400] as const)(
+      "starts a fresh session when the server restarts and answers the old one with %i",
+      async (status) => {
+        const first = await sessionServer(0, status);
+        running = first;
+        const mcp = manager({ allowPrivateHosts: true });
+        await mcp.upsert({ ...NOTES, id: "remote", transport: "http", url: first.url, command: undefined });
+        await expect(mcp.call("remote", "search_notes", { query: "rent" })).resolves.toMatchObject({
+          text: "Found 2 notes about rent.",
+        });
+
+        await first.stop();
+        running = await sessionServer(first.port, status);
+        // The server never ran the call on the forgotten session, so it is retried once on a new one.
+        await expect(mcp.call("remote", "search_notes", { query: "gas" })).resolves.toMatchObject({
+          text: "Found 2 notes about gas.",
+        });
+        expect(remote(mcp)).toMatchObject({ status: "connected" });
+      },
+    );
+
+    it("shows an http server as down when it stops answering, and reconnects when it is back", async () => {
+      const first = await sessionServer();
+      running = first;
+      const mcp = manager({ allowPrivateHosts: true });
+      await mcp.upsert({ ...NOTES, id: "remote", transport: "http", url: first.url, command: undefined });
+
+      await first.stop();
+      running = undefined;
+      const err = await mcp.call("remote", "search_notes", { query: "rent" }).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(McpCallError);
+      expect((err as Error).message).toBe(
+        "The connection to Notes failed (ECONNREFUSED). It reconnects on the next call.",
+      );
+      expect(remote(mcp)).toMatchObject({ status: "error", error: (err as Error).message });
+
+      running = await sessionServer(first.port);
+      await expect(mcp.call("remote", "search_notes", { query: "rent" })).resolves.toMatchObject({
+        text: "Found 2 notes about rent.",
+      });
+      expect(remote(mcp)).toMatchObject({ status: "connected" });
+    });
+
+    it("does not retry a call the server failed for any other reason", async () => {
+      let failing = false;
+      let posts = 0;
+      const server = await sessionServer();
+      running = server;
+      const flaky = await listen(async (req) => {
+        if (req.method === "POST" && failing) {
+          posts++;
+          return new Response("boom", { status: 500 });
+        }
+        // Healthy for the handshake: pass it through to the real server.
+        return fetch(new Request(server.url, req));
+      });
+      running = { stop: () => Promise.all([server.stop(), flaky.stop()]).then(() => {}) };
+      const mcp = manager({ allowPrivateHosts: true });
+      await mcp.upsert({ ...NOTES, id: "remote", transport: "http", url: flaky.url, command: undefined });
+      failing = true;
+      await expect(mcp.call("remote", "create_note", { title: "x", body: "y" })).rejects.toThrow(
+        "Notes answered 500.",
+      );
+      expect(posts).toBe(1);
+      expect(remote(mcp)).toMatchObject({ status: "connected" });
     });
   });
 });

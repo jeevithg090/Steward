@@ -1,7 +1,7 @@
-import { EventType, type RunStartedEvent } from "@ag-ui/client";
+import { EventType, type Message, type RunStartedEvent } from "@ag-ui/client";
 import { ThreadAlreadyRunningError } from "@copilotkit/runtime/v2";
 import { describe, expect, it } from "vitest";
-import { previewOf, type RunFinished, SERVER_PROPS_KEY } from "../src/runtime/runner.ts";
+import { mergeHistory, previewOf, type RunFinished, SERVER_PROPS_KEY } from "../src/runtime/runner.ts";
 import { collect, EchoAgent, runInput, runnerOnMemoryDb, startRun } from "./helpers.ts";
 
 describe("NodeSqliteAgentRunner", () => {
@@ -32,7 +32,8 @@ describe("NodeSqliteAgentRunner", () => {
     await first;
     expect(runner.isThreadBusy("t1")).toBe(false);
     await collect(startRun(runner, agent, runInput("t1", "r2", "two")));
-    expect(runner.getThreadMessages("t1")).toHaveLength(2);
+    // The second run sent only its own message; the first run's turn is kept.
+    expect(runner.getThreadMessages("t1")).toHaveLength(4);
   });
 
   it("replays history on connect, with only new input messages in each RUN_STARTED", async () => {
@@ -52,6 +53,31 @@ describe("NodeSqliteAgentRunner", () => {
     expect(starts).toHaveLength(2);
     expect(starts[1]?.input?.messages.map((m) => m.id)).toEqual(["u-r2"]);
     expect(runner.getThreadEvents("t1").length).toBeGreaterThan(0);
+  });
+
+  it("puts turns only the server saw back into a browser's stale history", async () => {
+    const { runner } = runnerOnMemoryDb();
+    const agent = new EchoAgent({ agentId: "steward" });
+    await collect(startRun(runner, agent, runInput("t1", "r1", "one")));
+    const browserCopy = runner.getThreadMessages("t1");
+    // A routine runs while the open page is not following the thread.
+    await collect(
+      startRun(runner, agent, {
+        ...runInput("t1", "r2", "routine"),
+        messages: [...browserCopy, { id: "u-r2", role: "user", content: "routine" }],
+      }),
+    );
+    // The page's next message carries the history it had, without the routine's turn.
+    await collect(
+      startRun(runner, agent, {
+        ...runInput("t1", "r3", "three"),
+        messages: [...browserCopy, { id: "u-r3", role: "user", content: "three" }],
+      }),
+    );
+
+    const order = ["u-r1", "msg-r1", "u-r2", "msg-r2", "u-r3"];
+    expect(agent.seen.at(-1)?.messages.map((m) => m.id)).toEqual(order);
+    expect(runner.getThreadMessages("t1").map((m) => m.id)).toEqual([...order, "msg-r3"]);
   });
 
   it("bridges a live run to a late connect", async () => {
@@ -155,6 +181,22 @@ describe("NodeSqliteAgentRunner", () => {
         .map((t) => t.id)
         .sort(),
     ).toEqual(["t1", "t2"]);
+  });
+});
+
+describe("mergeHistory", () => {
+  const m = (id: string): Message => ({ id, role: "user", content: id });
+
+  it("keeps the given history when it holds everything stored, and fills in what it lacks", () => {
+    const given = [m("a"), m("b"), m("c")];
+    expect(mergeHistory([m("a"), m("b")], given)).toBe(given);
+    expect(mergeHistory([], given)).toBe(given);
+    expect(mergeHistory([m("a"), m("x"), m("y")], [m("a"), m("c")]).map((x) => x.id)).toEqual([
+      "a",
+      "x",
+      "y",
+      "c",
+    ]);
   });
 });
 

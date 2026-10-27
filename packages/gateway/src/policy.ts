@@ -11,7 +11,7 @@
  *   7. defaults by kind
  * A rule that cannot be evaluated refuses the call and names itself. Any other error refuses.
  */
-import type { Decision, GateCall, OutboundFinding, Rule, ToolKind } from "@steward/shared";
+import type { Decision, GateCall, OutboundFinding, Rule, Target, ToolKind } from "@steward/shared";
 import { type CelEngine, RuleEvaluationError } from "./cel.ts";
 import { buildContext } from "./context.ts";
 import { messageOf } from "./errors.ts";
@@ -37,6 +37,16 @@ const CREDENTIAL_FIELD =
 
 const SECRET_TOOLS = new Set(["request_secret"]);
 
+/**
+ * Typing into a secret field: one the computer judged secret by its type or autocomplete (so a
+ * "Passwort" or unlabelled password box counts), or one named like a secret.
+ */
+export function typesIntoSecret(toolName: string, element: Target["element"] | undefined): boolean {
+  if (toolName !== "browser_type") return false;
+  if (element?.sensitive === true) return true;
+  return typeof element?.name === "string" && CREDENTIAL_FIELD.test(element.name);
+}
+
 export function prepareCall(call: GateCall): PreparedCall {
   const args = call.args && typeof call.args === "object" ? call.args : {};
   const tool = toolInfo(call.tool?.name ?? "", call.tool);
@@ -44,10 +54,7 @@ export function prepareCall(call: GateCall): PreparedCall {
   const escalated = escalateKind(tool.name, args, target.element);
   const kind = escalated ? stricterKind(tool.kind, escalated) : tool.kind;
 
-  const typingIntoSecret =
-    tool.name === "browser_type" &&
-    typeof target.element?.name === "string" &&
-    CREDENTIAL_FIELD.test(target.element.name);
+  const typingIntoSecret = typesIntoSecret(tool.name, target.element);
   const credentialEntry = SECRET_TOOLS.has(tool.name) || typingIntoSecret;
   const hiddenArgs = new Set<string>();
   if (SECRET_TOOLS.has(tool.name)) hiddenArgs.add("value");

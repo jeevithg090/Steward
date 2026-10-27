@@ -5,8 +5,17 @@ import { DEFAULT_SERVER_PORT } from "@steward/shared";
 /** The repository root, found from this file rather than the working directory. */
 export const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
-/** Origins of the Vite dev server, the only cross-origin callers the API answers. */
-export const DEV_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"];
+/** Ports of the Vite dev server (`vite`) and of `vite preview`, which both proxy `/api` here. */
+export const DEV_PORTS = [5173, 4173] as const;
+
+/**
+ * Origins of the Vite dev and preview servers, the only cross-origin callers the API answers. Their
+ * proxy keeps the browser's Origin, so without them every POST through it would be refused.
+ */
+export const DEV_ORIGINS = DEV_PORTS.flatMap((port) => [
+  `http://localhost:${port}`,
+  `http://127.0.0.1:${port}`,
+]);
 
 export interface ServerConfig {
   repoRoot: string;

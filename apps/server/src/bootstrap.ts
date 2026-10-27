@@ -22,7 +22,7 @@ import { createGateway, migrations as gatewayMigrations } from "@steward/gateway
 import { createProactive, migrations as proactiveMigrations } from "@steward/proactive";
 import { COPILOTKIT_PATH, type MailCalendar, ROUTES, type TenantPackage } from "@steward/shared";
 import { Hono } from "hono";
-import { ConfigError, isLoopbackHost, type ServerConfig } from "./config.ts";
+import { ConfigError, DEV_PORTS, isLoopbackHost, type ServerConfig } from "./config.ts";
 import type { ProactiveServices, StewardServices } from "./context.ts";
 import { onError } from "./http/errors.ts";
 import {
@@ -155,8 +155,9 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       dataDir: config.dataDir,
       headful: config.headful,
       allowPrivateHosts: config.allowPrivateHosts,
-      // Steward's own server and the Vite dev server, whatever STEWARD_ALLOW_PRIVATE_HOSTS says.
-      protectedPorts: [config.port, 5173],
+      // Steward's own server and the Vite dev and preview servers (they proxy the API), whatever
+      // STEWARD_ALLOW_PRIVATE_HOSTS says.
+      protectedPorts: [config.port, ...DEV_PORTS],
       audit: gateway.audit,
       actorId: LOCAL_ACTOR,
     });
@@ -210,7 +211,12 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     cleanups.push(() => host.close());
     await host.configure(settings.modelChoice());
 
-    const runs = new ServerRuns({ runner, agent: (id) => host.agent(id), serverRunToken });
+    const runs = new ServerRuns({
+      runner,
+      agent: (id) => host.agent(id),
+      serverRunToken,
+      approvals: gateway.approvals,
+    });
     const sweep = new ResumeSweep({
       approvals: gateway.approvals,
       runner,
@@ -251,6 +257,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       tasks: proactive.tasks,
       notifications: proactive.notifications,
       runs,
+      bus,
     });
 
     const security: SecurityOptions = {
@@ -299,6 +306,9 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     );
     app.use("/api/*", originGuard(security));
     app.use("/demo-google/*", limitBody(BODY_LIMITS.demo));
+    // The demo inbox is the brief's inbox: another site's page must not plant mail or events in it.
+    // Steward's own client sends JSON with no Origin, so it still passes.
+    app.use("/demo-google/*", originGuard(security));
 
     // The CopilotKit runtime (AG-UI over SSE). Mounted with app.all, never at a prefix: a mounted
     // Hono handler strips the prefix and the routes land at /api/copilotkit/api/copilotkit/*.

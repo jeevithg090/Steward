@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   type AriaItem,
+  buttonRefs,
   cutAtCodeUnits,
+  fieldRefs,
+  focusedNode,
   indexRefs,
   MASKED_VALUE,
   RefBook,
+  refFrame,
   renderSnapshot,
   toAriaItems,
-  valueFieldRefs,
 } from "../src/snapshot.ts";
 
 /** Shaped like Playwright 1.64's `ariaSnapshotJSON({ mode: "ai" })` output. */
@@ -69,7 +72,7 @@ describe("renderSnapshot", () => {
         '- img "A cat"',
       ].join("\n"),
     );
-    expect(entries.get("e5")).toEqual({ pwRef: "e8", role: "link", name: "Help" });
+    expect(entries.get("e5")).toEqual({ pwRef: "e8", role: "link", name: "Help", sensitive: false });
     expect(entries.size).toBe(7);
   });
 
@@ -89,12 +92,56 @@ describe("renderSnapshot", () => {
     expect(render(items).text).toBe(`- textbox "Hidden": ${MASKED_VALUE}`);
   });
 
-  it("masks the values of sensitive fields", () => {
+  it("masks the values of sensitive fields and marks their entries sensitive", () => {
     const items = toAriaItems(FORM);
-    expect(valueFieldRefs(items)).toEqual(["e4", "e5"]);
-    const { text } = render(items, new RefBook(), new Set(["e5"]));
+    const { text, entries } = render(items, new RefBook(), new Set(["e5"]));
     expect(text).not.toContain("hunter2");
     expect(text).toContain(`- textbox "Pass" [ref=e2]: ${MASKED_VALUE}`);
+    // The gateway reads this, so a password field counts whatever language its label is in.
+    expect(entries.get("e2")).toMatchObject({ name: "Pass", sensitive: true });
+    expect(entries.get("e1")).toMatchObject({ name: "Name", sensitive: false });
+  });
+
+  it("checks every field for secrets, empty ones too", () => {
+    const items = toAriaItems([
+      { role: "textbox", name: "Name", ref: "e1", text: "Ada" },
+      // An empty password field holds no value to mask, but typing into it is credential entry.
+      { role: "textbox", name: "Passwort", ref: "e2" },
+      { role: "combobox", name: "Size", ref: "e3" },
+      { role: "button", name: "Go", ref: "e4" },
+    ]);
+    expect(fieldRefs(items)).toEqual(["e1", "e2", "e3"]);
+    expect(render(items, new RefBook(), new Set(["e2"])).entries.get("e2")).toMatchObject({
+      sensitive: true,
+    });
+  });
+
+  it("finds the focused node, and tells nothing focused from focus it cannot see", () => {
+    const page = (inner: Record<string, unknown>[], bodyActive = false) =>
+      toAriaItems([{ role: "generic", ref: "e1", ...(bodyActive ? { active: true } : {}), children: inner }]);
+    const field = { role: "textbox", name: "Promo", ref: "e2" };
+    expect(focusedNode(page([{ ...field, active: true }]))).toMatchObject({ name: "Promo", ref: "e2" });
+    // Only the body is active: nothing has focus.
+    expect(focusedNode(page([field], true))).toBe("none");
+    // Nothing is active: focus is on an element the snapshot leaves out.
+    expect(focusedNode(page([field]))).toBe("unknown");
+    // Inside a frame, the frame and the element both say active; the element is the one.
+    const framed = page([
+      { role: "iframe", ref: "e3", active: true, children: [{ ...field, ref: "f1e2", active: true }] },
+    ]);
+    expect(focusedNode(framed)).toMatchObject({ ref: "f1e2" });
+  });
+
+  it("lists the buttons of one frame as candidates for a form's default button", () => {
+    const items = toAriaItems([
+      { role: "button", name: "Place order", ref: "e2" },
+      { role: "link", name: "Help", ref: "e3" },
+      { role: "iframe", ref: "e4", children: [{ role: "button", name: "Pay", ref: "f1e5" }] },
+    ]);
+    expect(refFrame("e2")).toBe("");
+    expect(refFrame("f12e5")).toBe("f12");
+    expect([...buttonRefs(items, "").entries()]).toEqual([["e2", { role: "button", name: "Place order" }]]);
+    expect([...buttonRefs(items, "f1").keys()]).toEqual(["f1e5"]);
   });
 
   it("keeps a ref stable within a document and never reuses one after it", () => {

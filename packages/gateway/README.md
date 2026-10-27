@@ -18,13 +18,23 @@ call ─► prepare (catalogue kind, escalation, target) ─► decide (CEL rule
   names itself. Any internal error refuses. A tenant rule that does not compile stops the server at
   start.
 - **Payments and secrets always ask.** Kind `pay`, `request_secret` and typing into a password, PIN,
-  card or code field ask every time. No rule can lift that, and "Always allow" is never offered.
+  card or code field ask every time. A field counts when the computer marks it secret
+  (`target.element.sensitive`, from its type or autocomplete, so "Passwort" or an unlabelled password
+  box counts) or when its name says so. No rule can lift that, and "Always allow" is never offered.
 - **Taint.** Once a conversation has read the web, mail or MCP output, anything that sends, pays,
   signs, deletes or runs a command asks, whatever the rules say, without "Always allow".
 - **What leaves is checked.** Card numbers, IBANs, national ids, keys, passwords, bank details and
   health words in outgoing text make the call ask, with masked findings on the card.
 - **An answer acts once.** A resume claims the approval atomically; a second resume, a resume from a
   different conversation, or a resume with different arguments (checked by digest) is refused.
+- **An answer acts on what was approved.** A resume whose page or element changed is refused with
+  "The page changed since you approved this. Ask again.": a different host or URL, an element whose
+  role or name differs or is gone, a key that would now press a different button, a different kind,
+  or typing that has become credential entry.
+- **A routine stays a routine.** A call a routine or task parked is judged on resume with the
+  initiator stored on its approval, even when the person's browser resumes it, so their rules still
+  apply. `governance.initiatorFor(toolCallId, threadId)` gives the agent the same initiator for the
+  rest of the resumed run.
 - **The record is tamper-evident.** Append-only at the database (triggers refuse UPDATE and DELETE),
   hash-chained row to row, and `verify()` names the first row that no longer matches.
 - **Secrets stay out.** Arguments are redacted by key name before any rule, approval or record sees
@@ -56,6 +66,9 @@ gateway.approvals.decide(approvalId, "once", actorId, note); // or "always", "re
 // the resume run (browser or server sweep), with the same tool call from the transcript
 const resumed = await gateway.governance.resume(call, () => computer.click(ref));
 
+// who started the run that parked this call, so a routine resumed from the browser stays a routine
+gateway.governance.initiatorFor(toolCallId, threadId); // → Initiator, or undefined for another thread
+
 // "would this be allowed?" (POST /api/rules/dry-run)
 gateway.governance.dryRun(gateCallFor({ tool, args, tainted, initiator })); // → Decision, writes nothing
 ```
@@ -72,15 +85,15 @@ and a message meant for the person.
 
 The first step that matches decides.
 
-| #   | Step                                                                                                               | Result             | "Always allow" offered                                                              |
-| --- | ------------------------------------------------------------------------------------------------------------------ | ------------------ | ----------------------------------------------------------------------------------- |
-| 1   | Deny rules                                                                                                         | deny               | no                                                                                  |
-| 2   | Safety floor: kind `pay`; `request_secret`; `browser_type` into a password, PIN, code, card, IBAN or account field | ask                | no                                                                                  |
-| 3   | Taint: `tainted` and kind is `send`, `pay`, `sign`, `delete` or `shell`                                            | ask                | no                                                                                  |
-| 4   | Outbound check: any finding                                                                                        | ask, with findings | no                                                                                  |
-| 5   | Ask rules                                                                                                          | ask                | no (an ask rule outranks every allow rule, so a standing allow could never lift it) |
-| 6   | Allow rules: presets, tenant, person, always (in that order, oldest first)                                         | allow              | —                                                                                   |
-| 7   | Defaults by kind (below)                                                                                           | allow or ask       | yes, when it asks                                                                   |
+| #   | Step                                                                                                                                                        | Result             | "Always allow" offered                                                              |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------- |
+| 1   | Deny rules                                                                                                                                                  | deny               | no                                                                                  |
+| 2   | Safety floor: kind `pay`; `request_secret`; `browser_type` into a field marked `sensitive` or named like a password, PIN, code, card, IBAN or account field | ask                | no                                                                                  |
+| 3   | Taint: `tainted` and kind is `send`, `pay`, `sign`, `delete` or `shell`                                                                                     | ask                | no                                                                                  |
+| 4   | Outbound check: any finding                                                                                                                                 | ask, with findings | no                                                                                  |
+| 5   | Ask rules                                                                                                                                                   | ask                | no (an ask rule outranks every allow rule, so a standing allow could never lift it) |
+| 6   | Allow rules: presets, tenant, person, always (in that order, oldest first)                                                                                  | allow              | —                                                                                   |
+| 7   | Defaults by kind (below)                                                                                                                                    | allow or ask       | yes, when it asks                                                                   |
 
 Defaults: `read` and `ui` run. `write` runs on Steward's own surfaces (`browser`, `file`, `memory`,
 `task`) and asks anywhere else (`calendar`, `mail`, `mcp`, …). `send`, `sign`, `delete` and `shell` ask.
@@ -99,8 +112,12 @@ A refusal reads: `Refused by the rule '<name>': <reason>. Tell the person; do no
 ### Escalation
 
 A browser action that commits something is judged by the element it touches (from the computer's
-own snapshot, never the model's words): `browser_click`, `browser_press` of Enter, and
-`browser_type` with `submit: true`. The first match wins:
+own snapshot, never the model's words): `browser_click`, `browser_press` of Enter or Space (alone or
+with modifiers, so `Control+Enter` counts), and `browser_type` with `submit: true`. A key press and
+a submitting type are judged by the control the key activates (`target.element.submitter`, the
+focused button or the form's default submit button) and by the focused or typed-into element; the
+stricter wins. When the computer named neither, the key is at least a `send`, so it asks by default
+and always after untrusted content. The first match wins:
 
 | Kind   | Element names like                                                                                                           |
 | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -197,11 +214,14 @@ never refuses. Text over 2,000,000 characters is not scanned; the call is refuse
 
 `pending → allowed | refused | expired | cancelled`, answered once.
 
-- The action digest is sha256 of the canonical tool name and arguments. A resume must match it.
+- The action digest is sha256 of the canonical tool name and arguments. A resume must match it, and
+  must still act on the approved page and element: host, URL, the element's role and name, the
+  button a key presses, the kind, and whether it is credential entry.
 - `decide(id, "always", …)` writes a standing allow rule in the same transaction, scoped as narrowly
-  as the call allows: the tool name, plus the host, the MCP server, the element name for browser
-  actions, the exact command for shell, and the recipients for mail (every recipient must be one of
-  those approved). It is refused when `canAlways` is false.
+  as the call allows: the tool name, plus the host, the MCP server, the element name and the kind
+  for browser actions (a key press is judged by a button the rule cannot name, so Enter that would
+  now delete still asks), the exact command for shell, and the recipients for mail (every recipient
+  must be one of those approved). It is refused when `canAlways` is false.
 - Answering the same way twice returns the approval unchanged; answering differently, or after it
   expired, is a `conflict`.
 - Pending approvals expire after `expiryHours` (default 24). `expireDue()` sweeps; `list()`,
@@ -209,7 +229,8 @@ never refuses. Text over 2,000,000 characters is not scanned; the call is refuse
 - A resume that finds the approval still pending cancels it ("the person moved on") so it can never
   act later.
 - Every summary is one plain sentence: "Send an email to sam@example.com: 'Re: Friday'", "Run a
-  command: ls -la", "Click 'Place order' on shop.example.com".
+  command: ls -la", "Click 'Place order' on shop.example.com", "Press Enter in 'Promo code' on
+  shop.example, which clicks 'Place order'".
 
 Live events on the bus: `approval.created`, `approval.decided` (answered, expired or cancelled),
 `audit.appended`.
@@ -224,7 +245,8 @@ the end; keep a copy of the latest hash elsewhere if that matters to you.
 
 Redaction before hashing: values under keys such as password, secret, token, key, authorization,
 cookie, otp, pin, cvv (in any spelling: `apiKey`, `x-auth-token`) become `[redacted]`; the text
-typed into a password field and a secret tool's `value` are hidden; card numbers, IBANs, keys and
+typed into a secret field (marked `sensitive` or named like one) and a secret tool's `value` are
+hidden, and stay hidden on a resume even if the field has changed since; card numbers, IBANs, keys and
 the like inside strings are masked; strings are cut to 200 characters; query values with secret
 names are dropped from URLs.
 

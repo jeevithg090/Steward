@@ -10,7 +10,8 @@ export type { ServerConfig } from "./config.ts";
 export { loadConfig } from "./config.ts";
 
 async function main(): Promise<void> {
-  // Values already in the environment win over the files; then blank base URLs go again.
+  // Every script reads `.env` here and nowhere else (Node's --env-file would let a blank key in
+  // `.env` hide STEWARD_ENV_FILE's). Values already set win; then blank base URLs go again.
   const loadedEnvFiles = loadEnvFiles(REPO_ROOT, process.env);
   normaliseEnv(process.env);
 

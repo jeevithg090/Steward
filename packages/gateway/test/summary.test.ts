@@ -37,6 +37,21 @@ describe("summarize", () => {
       { host: "chat.example", element: { ref: "e2", name: "Reply" } },
       "Type 'On my way' into 'Reply' on chat.example and press Enter",
     ],
+    [
+      "browser_type",
+      { ref: "e5", text: "SAVE10", submit: true },
+      {
+        host: "shop.example",
+        element: { ref: "e5", name: "Promo code", submitter: { role: "button", name: "Place order" } },
+      },
+      "Type 'SAVE10' into 'Promo code' on shop.example and press Enter, which clicks 'Place order'",
+    ],
+    [
+      "browser_press",
+      { key: "Enter" },
+      { host: "shop.example", element: { ref: "", name: "Place order", submitter: { name: "Place order" } } },
+      "Press Enter in 'Place order' on shop.example",
+    ],
     ["browser_navigate", { url: "https://news.ycombinator.com" }, {}, "Open https://news.ycombinator.com"],
     [
       "calendar_create",

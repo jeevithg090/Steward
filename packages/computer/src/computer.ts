@@ -17,13 +17,14 @@ import type {
   ComputerClientMessage,
   ComputerServerMessage,
   ComputerStatus,
+  ElementFacts,
   PageObservation,
   SecretRequest,
   ShellResult,
   WorkspaceFile,
 } from "@steward/shared";
 import { newId, nowIso } from "@steward/shared";
-import type { BrowserContext, Download, Locator, Page } from "playwright";
+import type { BrowserContext, Download, ElementHandle, Locator, Page } from "playwright";
 import { ActivityLog, commandLabel, currentToolCall, durationLabel, elementLabel } from "./activity.ts";
 import { installRouteGuard, launchBrowser, VIEWPORT } from "./browser.ts";
 import { WheelControl } from "./control.ts";
@@ -42,15 +43,18 @@ import { type FrameMessage, PersonInput, Screencast } from "./screen.ts";
 import { runShell } from "./shell.ts";
 import {
   type AriaItem,
+  buttonRefs,
   FIELD_ROLES,
+  fieldRefs,
+  focusedNode,
   indexRefs,
   RefBook,
   type RefEntry,
+  refFrame,
   renderSnapshot,
   SECRET_ATTRIBUTE,
   SENSITIVE_FIELD_SELECTOR,
   toAriaItems,
-  valueFieldRefs,
 } from "./snapshot.ts";
 import { DEFAULT_READ_BYTES, formatBytes, Workspace } from "./workspace.ts";
 
@@ -67,6 +71,18 @@ const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
 const BLOCK_NOTICE_MS = 60_000;
 
 type Listener = (msg: ComputerServerMessage) => void;
+type Submitter = Pick<ElementFacts, "role" | "name">;
+type Focused = ElementFacts & { submitter?: Submitter };
+
+/** A submitter Steward knows is there but cannot name. The gateway treats it as committing. */
+const unnamedSubmitter = (): Submitter => ({});
+/** Something has focus that the snapshot cannot name: assume it is secret and that Enter commits. */
+const unknownFocus = (): Focused => ({ sensitive: true, submitter: unnamedSubmitter() });
+/**
+ * Roles that Enter or Space activate themselves, so they are their own submitter. Implicit
+ * submission comes only from form fields, so a focused menu item in a form is not the form's.
+ */
+const ACTIVATED_ROLES = new Set(["button", "link", "menuitem", "menuitemcheckbox", "menuitemradio", "tab"]);
 
 export interface AgentComputerOptions {
   agentId: string;
@@ -386,13 +402,8 @@ export class AgentComputer implements Computer {
   private async sensitiveRefs(page: Page, items: AriaItem[]): Promise<Set<string>> {
     const masked = new Set<string>();
     await Promise.all(
-      valueFieldRefs(items).map(async (pwRef) => {
-        const sensitive = await page
-          .getByRef(pwRef)
-          .evaluate((el, selector) => el.matches(selector), SENSITIVE_FIELD_SELECTOR, { timeout: 1_000 })
-          // If the check fails, hide the value: fail closed.
-          .catch(() => true);
-        if (sensitive) masked.add(pwRef);
+      fieldRefs(items).map(async (pwRef) => {
+        if (await isSensitive(page, pwRef)) masked.add(pwRef);
       }),
     );
     return masked;
@@ -658,9 +669,91 @@ export class AgentComputer implements Computer {
     });
   }
 
-  async describe(ref: string): Promise<{ role?: string; name?: string } | undefined> {
+  async describe(ref: string): Promise<ElementFacts | undefined> {
     const entry = typeof ref === "string" ? this.snap?.entries.get(ref.trim()) : undefined;
-    return entry ? { role: entry.role, name: entry.name } : undefined;
+    return entry ? { role: entry.role, name: entry.name, sensitive: entry.sensitive } : undefined;
+  }
+
+  /**
+   * What a key press would act on, read from a fresh look the same way a snapshot reads the page.
+   * Anything Steward cannot tell comes back as secret and committing, so the gateway fails closed.
+   */
+  async focused(): Promise<Focused | undefined> {
+    const page = this.livePage;
+    if (!this.context || !page || page.isClosed()) return undefined;
+    let items: AriaItem[];
+    try {
+      items = await this.capture(page, false);
+    } catch {
+      return unknownFocus();
+    }
+    const node = focusedNode(items);
+    if (node === "none") return undefined;
+    // Focus on something the snapshot leaves out, or inside a frame it could not see into.
+    if (node === "unknown" || node.role === "iframe") return unknownFocus();
+    const role = node.role;
+    const name = node.name ?? "";
+    // Without a ref (covered, off screen) the element cannot be checked: fail closed.
+    const sensitive = FIELD_ROLES.has(role) && (node.ref ? await isSensitive(page, node.ref) : true);
+    if (ACTIVATED_ROLES.has(role)) return { role, name, sensitive, submitter: { role, name } };
+    if (!node.ref) return { role, name, sensitive, submitter: unnamedSubmitter() };
+    const submitter = await this.submitterOf(page, items, node.ref);
+    return submitter ? { role, name, sensitive, submitter } : { role, name, sensitive };
+  }
+
+  /** The default submit button of the form that holds `ref`: what Enter after typing would press. */
+  async submitterFor(ref: string): Promise<Submitter | undefined> {
+    const snap = this.snap;
+    const entry = typeof ref === "string" ? snap?.entries.get(ref.trim()) : undefined;
+    const page = this.livePage;
+    // A ref that no longer names the same element is refused as stale when the action runs.
+    if (!entry || snap?.generation !== this.generation) return undefined;
+    if (!this.context || !page || page.isClosed()) return undefined;
+    let items: AriaItem[];
+    try {
+      items = await this.capture(page, false);
+    } catch {
+      return unnamedSubmitter();
+    }
+    const now = indexRefs(items).get(entry.pwRef);
+    if (!now || now.role !== entry.role || now.name !== entry.name) return undefined;
+    return this.submitterOf(page, items, entry.pwRef);
+  }
+
+  /**
+   * The default button of `pwRef`'s form, named from the snapshot `items`: the browser finds the
+   * button, and each button in the same frame is compared with it, so the name is the snapshot's.
+   * A button that exists but has no ref (hidden, covered) is unnamed rather than missing.
+   */
+  private async submitterOf(page: Page, items: AriaItem[], pwRef: string): Promise<Submitter | undefined> {
+    let button: ElementHandle | null;
+    try {
+      const handle = await page
+        .getByRef(pwRef)
+        .evaluateHandle(defaultButtonOf, undefined, { timeout: 1_000 });
+      button = handle.asElement();
+      if (!button) {
+        await handle.dispose();
+        return undefined;
+      }
+    } catch {
+      return unnamedSubmitter();
+    }
+    try {
+      const candidates = [...buttonRefs(items, refFrame(pwRef))];
+      const same = await Promise.all(
+        candidates.map(([candidate]) =>
+          page
+            .getByRef(candidate)
+            .evaluate((el, target) => el === target, button, { timeout: 1_000 })
+            .catch(() => false),
+        ),
+      );
+      const hit = candidates[same.indexOf(true)];
+      return hit ? { role: hit[1].role, name: hit[1].name } : unnamedSubmitter();
+    } finally {
+      await button.dispose().catch(() => {});
+    }
   }
 
   // ── Help and the secret box ──────────────────────────────────────────────────────────────────
@@ -1110,6 +1203,31 @@ export class AgentComputer implements Computer {
       await download.delete().catch(() => {});
     }
   }
+}
+
+/** Whether a field holds a secret. If the check fails, it counts as one: fail closed. */
+async function isSensitive(page: Page, pwRef: string): Promise<boolean> {
+  return page
+    .getByRef(pwRef)
+    .evaluate((el, selector) => el.matches(selector), SENSITIVE_FIELD_SELECTOR, { timeout: 1_000 })
+    .catch(() => true);
+}
+
+/**
+ * Runs in the page. The form's default button, which implicit submission (Enter in a field) presses:
+ * the first submit button in tree order whose form is this one. Null outside a form or without one.
+ * No named inner functions: tsx would wrap them in a helper the page does not have.
+ */
+function defaultButtonOf(el: Element): Element | null {
+  const form = "form" in el ? (el as HTMLInputElement).form : el.closest("form");
+  if (!form) return null;
+  const root = form.getRootNode() as Document | ShadowRoot;
+  for (const c of Array.from(root.querySelectorAll("button, input"))) {
+    const type = (c as HTMLButtonElement | HTMLInputElement).type;
+    const submits = c.localName === "button" ? type === "submit" : type === "submit" || type === "image";
+    if (submits && (c as HTMLButtonElement).form === form) return c;
+  }
+  return null;
 }
 
 async function settleScroll(page: Page): Promise<void> {

@@ -6,6 +6,7 @@ import {
   GoogleApiError,
 } from "../src/google/client.ts";
 import { createDemoGoogleApp } from "../src/google/demo-app.ts";
+import { base64UrlEncode } from "../src/google/mime.ts";
 import type { FetchLike } from "../src/net/guarded-fetch.ts";
 
 const TUESDAY = new Date("2026-10-27T08:30:00Z");
@@ -97,6 +98,39 @@ describe("MailCalendar over the demo server: mail", () => {
     expect(email?.body).toContain("Cast-iron casserole, 24 cm, sage | £64.00");
     expect(email?.body).toContain("[Track your order](https://kitchenly.example/orders/KL-20417)");
     expect(email?.body).not.toMatch(/<td|font-family/);
+  });
+
+  it("reads an HTML-only email only as far as the body it keeps", async () => {
+    const message = (html: string) => ({
+      id: "m1",
+      threadId: "t1",
+      labelIds: ["INBOX"],
+      internalDate: String(TUESDAY.getTime()),
+      payload: {
+        mimeType: "text/html",
+        headers: [{ name: "Content-Type", value: "text/html; charset=utf-8" }],
+        body: { data: base64UrlEncode(html) },
+      },
+    });
+    const read = async (html: string) => {
+      const fetch: FetchLike = async (input) =>
+        String(input).includes("/labels") ? Response.json({ labels: [] }) : Response.json(message(html));
+      const mail = createGoogleMailCalendar({
+        baseUrl: "https://gmail.test",
+        label: "x",
+        isDemo: false,
+        fetch,
+      });
+      return (await mail.getEmail("m1"))?.body ?? "";
+    };
+    const note = "[truncated: the message is longer than this]";
+    // Past the first million characters of HTML nothing is read.
+    const padded = await read(`<p>Early</p>${"<b></b>".repeat(200_000)}<p>Late</p>`);
+    expect(padded).toBe(`Early\n\n${note}`);
+    // Conversion stops once the kept body is full, before text that would only follow it.
+    const breaks = await read(`${"<br>".repeat(50_000)}<p>Later</p>`);
+    expect(breaks).toBe(`\n\n${note}`);
+    expect(await read("<p>Short</p>")).toBe("Short");
   });
 
   it("returns undefined for an email that does not exist", async () => {

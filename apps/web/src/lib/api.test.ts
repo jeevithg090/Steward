@@ -94,6 +94,13 @@ describe("api: every route in ROUTES", () => {
     ["task start", () => api.tasks.start("tsk_1"), "POST", "/api/tasks/tsk_1/start", {}],
     ["brief", () => api.brief.get("2026-10-27"), "GET", "/api/brief?date=2026-10-27"],
     ["brief generate", () => api.brief.generate(), "POST", "/api/brief/generate"],
+    [
+      "brief generate (for a day)",
+      () => api.brief.generate({ date: "2026-10-28" }),
+      "POST",
+      "/api/brief/generate",
+      { date: "2026-10-28" },
+    ],
     ["inbox", () => api.inbox(), "GET", "/api/inbox"],
     [
       "calendar",

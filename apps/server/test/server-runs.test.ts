@@ -1,7 +1,8 @@
+import type { Approval } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import { ROUTINE_FRAME, routineFiring, taskStart, unframe } from "../src/runtime/frames.ts";
 import { SERVER_PROPS_KEY } from "../src/runtime/runner.ts";
-import { ServerRuns, ThreadBusyError } from "../src/runtime/server-runs.ts";
+import { ServerRuns, ThreadBusyError, ThreadWaitingError, waitingCalls } from "../src/runtime/server-runs.ts";
 import { collect, EchoAgent, runInput, runnerOnMemoryDb, startRun } from "./helpers.ts";
 
 function setup() {
@@ -80,6 +81,62 @@ describe("ServerRuns", () => {
       runs.start({ agentId: "nobody", threadId: "t4", initiator: { kind: "task", id: "x" } }),
     ).toThrow("Couldn't find that agent.");
     await first.done;
+  });
+});
+
+describe("a new turn over an unanswered approval", () => {
+  /** A thread whose last run parked `call_1`, as the agent leaves it in history. */
+  async function parked() {
+    const env = setup();
+    await collect(
+      startRun(env.runner, env.agent, {
+        ...runInput("t1", "r1", "Email Sam"),
+        messages: [
+          { id: "u1", role: "user", content: "Email Sam" },
+          {
+            id: "a1",
+            role: "assistant",
+            toolCalls: [{ id: "call_1", type: "function", function: { name: "mail_send", arguments: "{}" } }],
+          },
+        ],
+      }),
+    );
+    env.agent.seen.length = 0;
+    return env;
+  }
+
+  it("is refused, so the answer never lands after it; a resume still runs", async () => {
+    const { runner, runs, agent } = await parked();
+    const firing = {
+      agentId: "steward",
+      threadId: "t1",
+      initiator: { kind: "routine", id: "rtn_1" },
+    } as const;
+    expect(() => runs.start({ ...firing, userText: routineFiring("Check my mail") })).toThrow(
+      ThreadWaitingError,
+    );
+    expect(agent.seen).toHaveLength(0);
+    expect(runner.getThreadMessages("t1").filter((m) => m.role === "user")).toHaveLength(1);
+
+    const resumed = await runs.start({ ...firing, resume: [{ interruptId: "call_1", status: "resolved" }] })
+      .done;
+    expect(resumed.outcome).toBe("success");
+  });
+
+  it("counts only calls whose approval no run has claimed", async () => {
+    const messages = (await parked()).runner.getThreadMessages("t1");
+    const approval = (over: Partial<Approval>) => ({
+      byToolCall: (id: string) => ({ toolCallId: id, threadId: "t1", ...over }) as Approval,
+    });
+    expect(waitingCalls(messages, "t1")).toEqual(["call_1"]);
+    expect(waitingCalls(messages, "t1", approval({ status: "pending" }))).toEqual(["call_1"]);
+    expect(waitingCalls(messages, "t1", approval({ status: "allowed" }))).toEqual(["call_1"]);
+    expect(waitingCalls(messages, "t1", approval({ claimedAt: "2026-10-27T09:00:00Z" }))).toEqual([]);
+    expect(waitingCalls(messages, "t1", approval({ threadId: "elsewhere" }))).toEqual([]);
+    // A call left behind by a stopped run has no approval and will never be answered.
+    expect(waitingCalls(messages, "t1", { byToolCall: () => undefined })).toEqual([]);
+    // Once the person has written past it, it is no longer the last turn's.
+    expect(waitingCalls([...messages, { id: "u2", role: "user", content: "never mind" }], "t1")).toEqual([]);
   });
 });
 

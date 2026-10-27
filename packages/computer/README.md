@@ -63,11 +63,33 @@ unique for the life of the computer, and keeps the map to Playwright's. Before a
 Any failure is a `ComputerError` with code `stale_ref` and a message starting
 `Stale ref e5: … take a new snapshot and use the refs it returns.`
 
-`describe(ref)` returns the role and name from the latest snapshot, for the gateway's target.
-
 > Never take a default-mode snapshot of the agent's page (`page.ariaSnapshot()` or
 > `locator.ariaSnapshot()` without `mode: "ai"`). Playwright resolves refs against the latest
 > snapshot of a frame, so it silently invalidates every ref. Verified on Playwright 1.64.
+
+## What the gateway is told
+
+The gateway judges an action by the element it touches, so the computer reports that element as the
+page really has it:
+
+- `describe(ref)` returns the role and name from the latest snapshot, and `sensitive`: the field is
+  a password, one-time code or card field by its type or `autocomplete` (or one the secret box
+  filled), whatever its label says. A field that could not be checked counts as sensitive. Typing
+  into a sensitive field is credential entry, so a `Passwort` or unlabelled password field gets the
+  same floor as one labelled `Password`.
+- `focused()` is what a key press acts on: the role, name and `sensitive` of the focused element,
+  read from a fresh snapshot the same way, plus `submitter`, the control Enter or Space would
+  activate. A focused button or link is its own submitter; a field in a form has the form's
+  default button (the first submit button in tree order). It is `undefined` when nothing has
+  focus. When focus is on something the snapshot cannot name, it comes back as
+  `{ sensitive: true, submitter: {} }`.
+- `submitterFor(ref)` is the default button of the form holding `ref`, for `type` with `submit`.
+  `undefined` when the field is in no form, its form has no submit button, or the ref is not in the
+  latest snapshot (the action will refuse it as stale anyway).
+
+A submit button that exists but has no ref (hidden, or covered) comes back as `{}`: something will
+be submitted and nothing names it, for the gateway to fail closed on. The button is matched to the
+snapshot by identity in the browser, not by its text, so the name is the one the snapshot shows.
 
 ## Methods
 

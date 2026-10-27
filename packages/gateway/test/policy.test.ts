@@ -104,6 +104,28 @@ describe("precedence", () => {
     expect(decide(gw, typing).rule?.id).toBe("default:floor-credential");
   });
 
+  it("the floor covers a field the computer judged secret, whatever its label says", () => {
+    const gw = gateway();
+    addRule(gw, "allow", "true", "Allow everything");
+    const typing = (element: Record<string, unknown>, tainted = false) =>
+      gateCall(
+        "browser_type",
+        { ref: "e2", text: "Tr0ub4dor&3", submit: true },
+        { tainted, target: { host: "bank.example", element: { ref: "e2", role: "textbox", ...element } } },
+      );
+    for (const name of ["Passwort", "Mot de passe", "Contraseña", "Kennwort", "パスワード", undefined]) {
+      for (const tainted of [false, true]) {
+        const d = decide(gw, typing({ ...(name ? { name } : {}), sensitive: true }, tainted));
+        expect(d.rule?.id, `${name} tainted=${tainted}`).toBe("default:floor-credential");
+      }
+    }
+    // The flag can only make it stricter: a field named like a password still counts without it.
+    expect(decide(gw, typing({ name: "Password", sensitive: false })).rule?.id).toBe(
+      "default:floor-credential",
+    );
+    expect(decide(gw, typing({ name: "Search" })).effect).toBe("allow");
+  });
+
   it("deny rules still beat the safety floor", () => {
     const gw = gateway();
     addRule(gw, "deny", 'tool.kind == "pay"', "Never pay");
@@ -273,6 +295,46 @@ describe("escalation and targets", () => {
     );
     expect(d.effect).toBe("ask");
     expect(d.rule?.id).toBe("default:send-asks");
+  });
+
+  it("Enter or Space on a checkout form pays, judged by the button it presses", () => {
+    const gw = gateway();
+    const promo = {
+      host: "shop.example",
+      element: {
+        ref: "e5",
+        role: "textbox",
+        name: "Promo code",
+        submitter: { role: "button", name: "Place order" },
+      },
+    };
+    for (const tainted of [false, true]) {
+      for (const key of ["Enter", " ", "Space"]) {
+        const d = decide(gw, gateCall("browser_press", { key }, { tainted, target: promo }));
+        expect(d.rule?.id, `${key} tainted=${tainted}`).toBe("default:floor-pay");
+      }
+      const typed = decide(
+        gw,
+        gateCall("browser_type", { ref: "e5", text: "SAVE10", submit: true }, { tainted, target: promo }),
+      );
+      expect(typed.rule?.id).toBe("default:floor-pay");
+    }
+    expect(decide(gw, gateCall("browser_press", { key: "Tab" }, { target: promo })).effect).toBe("allow");
+  });
+
+  it("Enter with nothing named fails closed: it asks, and always after untrusted content", () => {
+    const gw = gateway();
+    const page = { host: "shop.example", url: "https://shop.example/checkout" };
+    const plain = decide(gw, gateCall("browser_press", { key: "Enter" }, { target: page }));
+    expect(plain.effect).toBe("ask");
+    expect(plain.rule?.id).toBe("default:send-asks");
+    const tainted = decide(gw, gateCall("browser_press", { key: "Enter" }, { tainted: true, target: page }));
+    expect(tainted.rule?.id).toBe("default:taint");
+    const typed = decide(
+      gw,
+      gateCall("browser_type", { ref: "e5", text: "x", submit: true }, { tainted: true, target: page }),
+    );
+    expect(typed.rule?.id).toBe("default:taint");
   });
 
   it("rules see the escalated kind", () => {

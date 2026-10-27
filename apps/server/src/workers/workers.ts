@@ -1,7 +1,12 @@
 import type { ApprovalStore, BriefService, NotificationStore, Routine, RoutineStore } from "@steward/shared";
 import { routineFiring } from "../runtime/frames.ts";
 import { clip, interruptSummary } from "../runtime/run-summary.ts";
-import type { RunResult, ServerRun, ServerRuns } from "../runtime/server-runs.ts";
+import {
+  type RunResult,
+  type ServerRun,
+  type ServerRuns,
+  ThreadWaitingError,
+} from "../runtime/server-runs.ts";
 import type { SettingsStore } from "../store/settings.ts";
 import type { ThreadStore } from "../store/threads.ts";
 import { localDate, localMinutes, parseClock } from "../util/time.ts";
@@ -98,7 +103,8 @@ export class Workers {
 
   /**
    * Fires a claimed routine. When its conversation is busy (a resume, or the person chatting in it)
-   * the firing waits for the conversation to be free rather than being lost.
+   * the firing waits for the conversation to be free rather than being lost. When its last run still
+   * waits for the person's answer, the firing is skipped and recorded as such.
    */
   private async fire(routine: Routine): Promise<void> {
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -106,6 +112,13 @@ export class Workers {
         this.runRoutine(routine);
         return;
       } catch (err) {
+        if (err instanceof ThreadWaitingError) {
+          this.record(routine, {
+            status: "refused",
+            error: "Its last run is still waiting for your answer, so this run was skipped.",
+          });
+          return;
+        }
         if ((err as { status?: number }).status !== 409 || attempt > 0) {
           this.record(routine, {
             status: "failed",
@@ -127,7 +140,10 @@ export class Workers {
     }
   }
 
-  /** Fires one routine now. Used by the schedule and by "Run now". Throws 409 when its thread is busy. */
+  /**
+   * Fires one routine now. Used by the schedule and by "Run now". Throws 409 when its thread is
+   * busy or its last run still waits for an answer.
+   */
   runRoutine(routine: Routine): ServerRun {
     this.deps.threads.upsertMeta({
       id: routine.threadId,

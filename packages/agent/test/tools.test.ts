@@ -154,6 +154,53 @@ describe("targets the gateway decides on", () => {
     );
   });
 
+  it("gives a key press the focused element, or none when nothing has focus", async () => {
+    const computer = fakes.computers.computer("steward");
+    computer.url = "https://mail.example.com/compose";
+    expect(await target("browser_press", { key: "Enter" })).toEqual({
+      target: { url: "https://mail.example.com/compose", host: "mail.example.com" },
+    });
+    computer.focus = { role: "button", name: "Send", sensitive: false };
+    expect((await target("browser_press", { key: "Space" })).target.element).toEqual({
+      ref: "",
+      role: "button",
+      name: "Send",
+    });
+  });
+
+  it("asks for the form's submit button only when typing submits, and passes a secret field on", async () => {
+    const computer = fakes.computers.computer("steward");
+    computer.forms.set("e31", { role: "button", name: "Place order" });
+    let asked = 0;
+    const submitterFor = computer.submitterFor.bind(computer);
+    computer.submitterFor = (ref) => {
+      asked++;
+      return submitterFor(ref);
+    };
+    expect((await target("browser_type", { ref: "e31", text: "SAVE10" })).target.element).toEqual({
+      ref: "e31",
+      role: "textbox",
+      name: "Promo code",
+    });
+    expect(asked).toBe(0);
+    expect(
+      (await target("browser_type", { ref: "e31", text: "SAVE10", submit: true })).target.element,
+    ).toEqual({
+      ref: "e31",
+      role: "textbox",
+      name: "Promo code",
+      submitter: { role: "button", name: "Place order" },
+    });
+    // No form around the field: nothing to add; the gateway judges the field alone.
+    expect((await target("browser_type", { ref: "e30", text: "x", submit: true })).target.element).toEqual({
+      ref: "e30",
+      role: "textbox",
+      name: "Passwort",
+      sensitive: true,
+    });
+    expect((await target("browser_click", { ref: "e30" })).target.element?.sensitive).toBe(true);
+  });
+
   it("names paths, commands, recipients and outbound text", async () => {
     expect(await target("file_read", { path: "notes/a.md" })).toEqual({ target: { path: "notes/a.md" } });
     expect(await target("file_list", {})).toEqual({ target: { path: "." } });

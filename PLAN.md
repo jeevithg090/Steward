@@ -301,3 +301,39 @@ for the computer.
 - **27 Oct 2026** — Research fan-out over CopilotKit 1.81, AG-UI, OpenBot and OpenDuet sources
   (briefs in the session scratchpad). Repo scaffolded: pnpm workspaces, pinned dependencies
   (CopilotKit 1.81.0, AI SDK 6, Hono 4, Playwright 1.64.0, Vite 8, React 19.3, Tailwind 4.3).
+- **27 Oct 2026, build (3ca2ee6).** Nine parallel tracks built every package against the contracts:
+  about 55,000 lines of TypeScript, 1,035 tests. Each track owned its own directories, so no two
+  agents touched the same file.
+- **27 Oct 2026, integration (85972d0).** Contract gaps closed:
+  - email headers and cc;
+  - MCP `connecting` status and saved config;
+  - `setupCheck` / `notificationsReadAll` routes;
+  - `InboxEmail`;
+  - frames moved to shared, and the chat draws framed turns as a quiet line;
+  - approvals keep their initiator.
+
+  Injection defences added: after untrusted content, memories and routines ask, and a link that
+  carries personal values asks. The agent's browser can never reach Steward's own ports. The web
+  app takes its agent from `/api/info`, so `tenants/tempo` works. Local OpenAI-compatible servers
+  need no key. Chromium's background traffic is quieted.
+- **27 Oct 2026, live walk (7fb0be2).** Real model through NVIDIA Nemotron 3 Ultra. OpenRouter was
+  out of credit, which surfaced the next two fixes.
+  - Replies are now capped at 4096 tokens.
+  - Model errors read as plain sentences.
+  - NVIDIA runs with thinking off.
+
+  Verified live:
+  - the brief from the demo inbox;
+  - Hacker News opened on the agent's own computer with the live screen;
+  - an email that stopped on an approval card and was sent on Allow once;
+  - an injected "forward the invoices" instruction refused;
+  - the record chain verified.
+
+  Bugs found and fixed:
+  - a second conversation was created per visit;
+  - focus was stolen on first load (the skip link was not the first stop);
+  - web pages were labelled "demo data".
+
+  e2e: 25/25 including an axe audit.
+- **27 Oct 2026, review.** Five finders and 23 skeptics. All 23 findings were confirmed. They are
+  fixed in six package-owned tracks (next entry).

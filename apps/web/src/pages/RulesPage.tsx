@@ -23,6 +23,7 @@ import {
   useUpdateRule,
 } from "@/lib/api.ts";
 import { EFFECT_LABELS, toolLabel } from "@/lib/labels.ts";
+import { RULE_EXAMPLES } from "@/lib/rule-examples.ts";
 
 /** The variables a rule's `when` can read. They mirror the gateway's call (`GateCall` in governance.ts). */
 const VARIABLES: { name: string; meaning: string }[] = [
@@ -45,19 +46,6 @@ const VARIABLES: { name: string; meaning: string }[] = [
   { name: "args", meaning: "The tool's arguments, as the model sent them." },
   { name: "initiator.kind", meaning: '"person", "routine", "task", "resume" or "system".' },
   { name: "tainted", meaning: "True once the conversation has read a web page, an email or app output." },
-];
-
-const EXAMPLES: { when: string; meaning: string }[] = [
-  { when: 'tool.surface == "calendar"', meaning: "Anything touching your calendar" },
-  {
-    when: 'tool.name == "browser_navigate" && target.host.endsWith("example.com")',
-    meaning: "Opening pages on one site",
-  },
-  {
-    when: 'tool.kind == "send" && target.recipients.all(r, r.endsWith("@mycompany.com"))',
-    meaning: "Emails only to your own company",
-  },
-  { when: 'initiator.kind == "routine" && tool.kind != "read"', meaning: "A routine changing anything" },
 ];
 
 const EFFECT_CHOICES: { value: Effect; label: string; description: string }[] = [
@@ -131,16 +119,16 @@ export function RulesPage() {
         <RuleSection
           id="rules-tenant"
           title="From your setup"
-          description="Rules that came with this Steward's package. Change them in its rules.yaml."
+          description="Rules that came with this Steward's package. Switch one off here; change it in the package's rules.yaml."
           rules={tenant}
-          render={(rule) => <ReadOnlyRule rule={rule} />}
+          render={(rule) => <ShippedRule rule={rule} />}
         />
       ) : null}
 
       <RuleSection
         id="rules-presets"
         title="Built in"
-        description="Steward's own safety rules. They can't be changed here."
+        description="Steward's own safety rules. You can switch one off here, but not change it."
         loading={presets.isPending}
         rules={builtIn}
         empty={
@@ -148,7 +136,7 @@ export function RulesPage() {
             <ErrorNotice title="Couldn't load the built-in rules" error={presets.error} />
           ) : null
         }
-        render={(rule) => <ReadOnlyRule rule={rule} />}
+        render={(rule) => <ShippedRule rule={rule} />}
       />
 
       <DryRunTester />
@@ -221,39 +209,54 @@ function RuleBody({ rule, children }: { rule: Rule; children?: ReactNode }) {
   );
 }
 
-function ReadOnlyRule({ rule }: { rule: Rule }) {
-  return <RuleBody rule={rule} />;
+/**
+ * Switches a rule on or off. It sends the rule's own fields back unchanged, which is all the server
+ * lets a preset or tenant rule do.
+ */
+function InUseSwitch({ rule }: { rule: Rule }) {
+  const update = useUpdateRule();
+  return (
+    <Switch
+      checked={rule.enabled}
+      disabled={update.isPending}
+      label={
+        <>
+          In use<span className="sr-only">: {rule.name}</span>
+        </>
+      }
+      onCheckedChange={(enabled) =>
+        update.mutate(
+          {
+            id: rule.id,
+            name: rule.name,
+            effect: rule.effect,
+            when: rule.when,
+            description: rule.description,
+            enabled,
+          },
+          { onError: (error) => toast.error("Couldn't change the rule", { description: error.message }) },
+        )
+      }
+    />
+  );
+}
+
+/** A preset or tenant rule: it can be switched off here, never edited or deleted. */
+function ShippedRule({ rule }: { rule: Rule }) {
+  return (
+    <RuleBody rule={rule}>
+      <InUseSwitch rule={rule} />
+    </RuleBody>
+  );
 }
 
 function EditableRule({ rule, onEdit }: { rule: Rule; onEdit: () => void }) {
-  const update = useUpdateRule();
   const remove = useDeleteRule();
   const [confirming, setConfirming] = useState(false);
   return (
     <RuleBody rule={rule}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Switch
-          checked={rule.enabled}
-          disabled={update.isPending}
-          label={
-            <>
-              In use<span className="sr-only">: {rule.name}</span>
-            </>
-          }
-          onCheckedChange={(enabled) =>
-            update.mutate(
-              {
-                id: rule.id,
-                name: rule.name,
-                effect: rule.effect,
-                when: rule.when,
-                description: rule.description,
-                enabled,
-              },
-              { onError: (error) => toast.error("Couldn't change the rule", { description: error.message }) },
-            )
-          }
-        />
+        <InUseSwitch rule={rule} />
         <div className="flex gap-2">
           <Button icon={<Pencil />} onClick={onEdit} aria-label={`Edit ${rule.name}`}>
             Edit
@@ -419,7 +422,7 @@ function RuleForm({ rule, onDone }: { rule?: Rule; onDone: () => void }) {
       <div className="flex flex-col gap-2">
         <p className="font-medium text-ink text-sub">Examples</p>
         <ul className="flex flex-col gap-1.5">
-          {EXAMPLES.map((example) => (
+          {RULE_EXAMPLES.map((example) => (
             <li key={example.when}>
               <button
                 type="button"

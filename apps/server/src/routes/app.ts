@@ -29,6 +29,8 @@ export function registerAppRoutes(app: Hono, s: StewardServices): void {
 
   // Settings show the model the person chose; /api/info and the checklist show the one running
   // (they differ when the chosen provider has no key and Steward fell back to the scripted model).
+  // Either carries an address only when someone gave one for a provider that takes one, never a
+  // provider's own endpoint: the page sends it back with the next choice, whatever the provider.
   const shown = () => s.settings.modelChoice() ?? s.models.info;
 
   app.get(ROUTES.settings, (c) => c.json(s.settings.read(shown())));

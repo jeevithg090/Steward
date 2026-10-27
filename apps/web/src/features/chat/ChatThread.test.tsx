@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACCESSIBILITY_STORAGE_KEY, AccessibilityProvider } from "@/app/accessibility.tsx";
+import { live } from "@/lib/live.ts";
 import { ChatThread } from "./ChatThread.tsx";
 
 /**
@@ -93,6 +94,15 @@ vi.mock("@/components/cards/ApprovalCard.tsx", () => ({
   ApprovalCard: ({ approvalId }: { approvalId: string }) => <p>Approval {approvalId}</p>,
 }));
 
+// The live event stream; the tests deliver events with `live.dispatch`.
+class QuietEventSource {
+  onopen = null;
+  onmessage = null;
+  onerror = null;
+  addEventListener() {}
+  close() {}
+}
+
 // The conversation's computer connection; nothing answers it here.
 class QuietSocket {
   readyState = 0;
@@ -125,10 +135,12 @@ beforeEach(() => {
   kit.state.isRunning = false;
   kit.state.subscribers.clear();
   kit.state.interrupts = [];
-  kit.copilotkit.connectAgent.mockClear();
+  kit.copilotkit.connectAgent.mockReset();
+  kit.copilotkit.connectAgent.mockImplementation(async () => ({ newMessages: [] }));
   kit.copilotkit.runAgent.mockClear();
   kit.copilotkit.stopAgent.mockClear();
   vi.stubGlobal("WebSocket", QuietSocket);
+  vi.stubGlobal("EventSource", QuietEventSource);
   localStorage.clear();
   sessionStorage.clear();
 });
@@ -264,5 +276,108 @@ describe("ChatThread", () => {
     expect(speak).toHaveBeenCalledTimes(1);
     const [utterance] = speak.mock.calls[0] ?? [];
     expect((utterance as { text: string } | undefined)?.text).toBe("Your brief is ready.");
+  });
+
+  describe("runs the server starts in the conversation", () => {
+    const run = (type: "run.started" | "run.finished", runId: string, threadId = "thr_1") =>
+      act(() => live.dispatch({ type, threadId, runId, agentId: "steward" }));
+    const loaded = () => screen.findByRole("heading", { name: /What can Steward do for you/ });
+
+    it("connects again to follow a run it did not start, so its messages and approvals appear", async () => {
+      draw();
+      await loaded();
+      expect(kit.copilotkit.connectAgent).toHaveBeenCalledTimes(1);
+      run("run.started", "run_routine");
+      expect(kit.copilotkit.connectAgent).toHaveBeenCalledTimes(2);
+      // The followed run is now on screen; its end needs no second connect.
+      act(() => kit.emit("onRunStartedEvent", { event: { type: "RUN_STARTED", runId: "run_routine" } }));
+      run("run.finished", "run_routine");
+      expect(kit.copilotkit.connectAgent).toHaveBeenCalledTimes(2);
+    });
+
+    it("catches up when only the end of a run is heard", async () => {
+      draw();
+      await loaded();
+      run("run.finished", "run_sweep");
+      expect(kit.copilotkit.connectAgent).toHaveBeenCalledTimes(2);
+    });
+
+    it("leaves its own runs, other conversations, and a run that is streaming here alone", async () => {
+      draw();
+      await loaded();
+      act(() => kit.emit("onRunInitialized", { input: { runId: "run_mine" } }));
+      run("run.started", "run_mine");
+      run("run.finished", "run_mine");
+      run("run.started", "run_elsewhere", "thr_2");
+      act(() => {
+        kit.state.isRunning = true;
+        kit.state.rerender();
+      });
+      run("run.started", "run_other");
+      expect(kit.copilotkit.connectAgent).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not write what is already on screen a second time when it connects again", async () => {
+      kit.state.messages = [
+        {
+          id: "a1",
+          role: "assistant",
+          content: "Checked.",
+          toolCalls: [{ id: "c1", type: "function", function: { name: "mail_list", arguments: "{}" } }],
+        },
+      ];
+      draw();
+      await screen.findByText("Checked.");
+      let finish = () => {};
+      kit.copilotkit.connectAgent.mockImplementation(
+        () => new Promise((resolve) => (finish = () => resolve({ newMessages: [] }))),
+      );
+      run("run.finished", "run_routine");
+      const replay = (event: Record<string, unknown>) =>
+        [...kit.state.subscribers].map((subscriber) => subscriber.onEvent?.({ event }))[0];
+      expect(replay({ type: "TEXT_MESSAGE_CONTENT", messageId: "a1", delta: "Checked." })).toEqual({
+        stopPropagation: true,
+      });
+      expect(replay({ type: "TOOL_CALL_ARGS", toolCallId: "c1", delta: "{}" })).toEqual({
+        stopPropagation: true,
+      });
+      expect(replay({ type: "TEXT_MESSAGE_CONTENT", messageId: "a2", delta: "New" })).toBeUndefined();
+      await act(async () => finish());
+      // Outside a connect, nothing is held back.
+      expect(replay({ type: "TEXT_MESSAGE_CONTENT", messageId: "a1", delta: "!" })).toBeUndefined();
+    });
+
+    it("reads a followed run's reply aloud, but never the history it loads", async () => {
+      localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify({ readAloud: true }));
+      const speak = vi.fn();
+      vi.stubGlobal("speechSynthesis", { speak, cancel: vi.fn(), getVoices: () => [] });
+      vi.stubGlobal(
+        "SpeechSynthesisUtterance",
+        class {
+          constructor(readonly text: string) {}
+        },
+      );
+      kit.state.messages = [{ id: "old", role: "assistant", content: "An old reply." }];
+      // A real connect ends its replay with onRunFinalized, as a run does.
+      kit.copilotkit.connectAgent.mockImplementation(async () => {
+        kit.emit("onRunFinalized");
+        return { newMessages: [] };
+      });
+      draw();
+      await screen.findByText("An old reply.");
+      expect(speak).not.toHaveBeenCalled();
+      kit.copilotkit.connectAgent.mockImplementation(async () => {
+        kit.state.messages = [
+          ...(kit.state.messages as Message[]),
+          { id: "new", role: "assistant", content: "Your routine is done." },
+        ];
+        kit.emit("onRunFinalized");
+        return { newMessages: [] };
+      });
+      run("run.finished", "run_routine");
+      await act(async () => {});
+      expect(speak).toHaveBeenCalledTimes(1);
+      expect((speak.mock.calls[0]?.[0] as { text: string } | undefined)?.text).toBe("Your routine is done.");
+    });
   });
 });

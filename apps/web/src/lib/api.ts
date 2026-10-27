@@ -237,7 +237,8 @@ export const api = {
 
   brief: {
     get: (date: string, signal?: AbortSignal) => get<Brief | null>(ROUTES.brief, { date }, signal),
-    generate: () => send<Brief>("POST", ROUTES.briefGenerate),
+    /** Without a date, the server picks today in the Settings time zone. */
+    generate: (body?: { date?: string; force?: boolean }) => send<Brief>("POST", ROUTES.briefGenerate, body),
   },
 
   inbox: (signal?: AbortSignal) => get<InboxEmail[]>(ROUTES.inbox, undefined, signal),
@@ -486,7 +487,8 @@ function useRulesMutation<TVars, TResult>(fn: (vars: TVars) => Promise<TResult>)
   return useMutation<TResult, ApiError, TVars>({
     mutationFn: fn,
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: queryKeys.ruleList });
+      // The list and the built-in presets both: switching a preset off shows on the presets list.
+      void qc.invalidateQueries({ queryKey: queryKeys.rules });
       void qc.invalidateQueries({ queryKey: queryKeys.audit });
     },
   });
@@ -554,20 +556,34 @@ export function useStartTask() {
 
 // ── Brief, mail, calendar ──────────────────────────────────────────────────────────────────────
 
-export function useBrief(date: string = localDate(), opts?: QueryOpts<Brief | null>) {
+/**
+ * Today, as the server counts days: in the Settings time zone, which can differ from this browser's.
+ * Undefined until the settings have loaded; if they cannot be read, this browser's day stands in.
+ */
+export function useBriefDate(): string | undefined {
+  const settings = useSettings();
+  if (settings.isPending) return undefined;
+  return localDate(new Date(), settings.data?.timezone);
+}
+
+/** The brief for a day. Waits while the day is not known yet. */
+export function useBrief(date: string | undefined, opts?: QueryOpts<Brief | null>) {
   return useQuery<Brief | null, ApiError>({
-    queryKey: queryKeys.briefFor(date),
-    queryFn: async ({ signal }) => (await api.brief.get(date, signal)) ?? null,
+    queryKey: queryKeys.briefFor(date ?? ""),
+    queryFn: async ({ signal }) => (date ? ((await api.brief.get(date, signal)) ?? null) : null),
     ...opts,
+    enabled: Boolean(date) && opts?.enabled !== false,
   });
 }
 
+/** Makes the brief for the day the page shows, so it is read back under the same date. */
 export function useGenerateBrief() {
   const qc = useQueryClient();
-  return useMutation<Brief, ApiError, void>({
-    mutationFn: () => api.brief.generate(),
+  return useMutation<Brief, ApiError, string | undefined>({
+    mutationFn: (date) => api.brief.generate(date ? { date } : undefined),
     onSuccess: (brief) => {
       qc.setQueryData(queryKeys.briefFor(brief.date), brief);
+      void qc.invalidateQueries({ queryKey: queryKeys.brief });
       void qc.invalidateQueries({ queryKey: queryKeys.tasks });
     },
   });

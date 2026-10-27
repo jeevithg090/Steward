@@ -2,7 +2,10 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import {
+  StreamableHTTPClientTransport,
+  StreamableHTTPError,
+} from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { ErrorCode, McpError, type Tool } from "@modelcontextprotocol/sdk/types.js";
 import { type Db, fromJson, toJson } from "@steward/db";
@@ -90,6 +93,20 @@ const MODEL_TOOL_NAME = /^[A-Za-z0-9_-]{1,64}$/;
 /** The only parts of Steward's environment a stdio server sees. No keys, no tokens. */
 const PASSED_ENV = ["PATH", "HOME", "LANG", "TERM"] as const;
 const MAX_TOOL_PAGES = 20;
+/** Socket failures that mean the server is gone, not that it refused this one call. */
+const NETWORK_CODES = new Set([
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ECONNABORTED",
+  "EPIPE",
+  "ETIMEDOUT",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "UND_ERR_SOCKET",
+  "UND_ERR_CONNECT_TIMEOUT",
+]);
 /** ANSI colour codes in a server's stderr, removed before it is shown. */
 const TERMINAL_COLOURS = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
 
@@ -243,6 +260,21 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
     return attempt;
   }
 
+  /**
+   * A failed call as the error to throw. When the connection itself is gone, the client is dropped so
+   * the next call connects afresh: an http transport never reports a lost session as closed.
+   */
+  function failed(state: ServerState, client: Client, err: unknown): McpCallError {
+    const message = plainError(err, state);
+    if (lostConnection(err, client) && state.client === client) {
+      state.client = undefined;
+      state.status = "error";
+      state.error = message;
+      void client.close().catch(() => {});
+    }
+    return new McpCallError(message);
+  }
+
   function persistListing(state: ServerState): void {
     const now = new Date().toISOString();
     db.run(
@@ -321,22 +353,32 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       if (!state.tools.some((t) => t.name === tool)) {
         throw new McpCallError(`${state.config.name} doesn't offer a tool called "${tool}".`);
       }
-      let result: { content?: unknown; structuredContent?: unknown; isError?: boolean; toolResult?: unknown };
-      try {
-        result = await client.callTool({ name: tool, arguments: args }, undefined, {
+      const invoke = (c: Client) =>
+        c.callTool({ name: tool, arguments: args }, undefined, {
           timeout: callTimeoutMs,
           maxTotalTimeout: callTimeoutMs,
           signal: o.signal,
         });
+      let result: { content?: unknown; structuredContent?: unknown; isError?: boolean; toolResult?: unknown };
+      try {
+        result = await invoke(client);
       } catch (err) {
         if (o.signal?.aborted) throw err;
-        const message = plainError(err, state);
-        if (err instanceof McpError && err.code === ErrorCode.ConnectionClosed) {
-          state.client = undefined;
-          state.status = "error";
-          state.error = message;
+        // A server that restarted has forgotten the session and refuses it before running anything,
+        // so one retry on a fresh session cannot repeat a write. Anything else is not retried.
+        const retry = sessionForgotten(err, client);
+        const failure = failed(state, client, err);
+        if (!retry) throw failure;
+        if (!state.client) await connect(state);
+        const fresh = state.client;
+        if (!fresh)
+          throw new McpCallError(`Couldn't reach ${state.config.name}. ${state.error ?? ""}`.trim());
+        try {
+          result = await invoke(fresh);
+        } catch (again) {
+          if (o.signal?.aborted) throw again;
+          throw failed(state, fresh, again);
         }
-        throw new McpCallError(message);
       }
       const output =
         result.content === undefined && result.toolResult !== undefined
@@ -418,6 +460,42 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       await Promise.all([...servers.values()].map((s) => s.connecting));
     },
   };
+}
+
+/** The http session this client was using, if any. */
+function sessionOf(client: Client): string | undefined {
+  return client.transport?.sessionId;
+}
+
+/** The server answered as if it had never seen this session (404, or 400 as the SDK's examples do). */
+function sessionForgotten(err: unknown, client: Client): boolean {
+  return (
+    err instanceof StreamableHTTPError &&
+    (err.code === 404 || err.code === 400) &&
+    sessionOf(client) !== undefined
+  );
+}
+
+/** The connection is unusable, as opposed to this one call having failed. */
+function lostConnection(err: unknown, client: Client): boolean {
+  if (err instanceof McpError) return err.code === ErrorCode.ConnectionClosed;
+  if (err instanceof StreamableHTTPError) return err.code === 404 || sessionForgotten(err, client);
+  return networkFailure(err);
+}
+
+function networkFailure(err: unknown): boolean {
+  return networkCode(err) !== undefined;
+}
+
+/** The socket error code behind a failed request, or undefined when it wasn't a socket failure. */
+function networkCode(err: unknown): string | undefined {
+  const code = codeOf(err) ?? codeOf((err as { cause?: unknown } | null)?.cause);
+  if (typeof code === "string" && NETWORK_CODES.has(code)) return code;
+  return err instanceof TypeError && err.message === "fetch failed" ? "fetch failed" : undefined;
+}
+
+function codeOf(err: unknown): unknown {
+  return typeof err === "object" && err !== null ? (err as { code?: unknown }).code : undefined;
 }
 
 /** Lists every tool, following pagination. */
@@ -537,7 +615,7 @@ function stderrHint(state: ServerState): string {
 /** Any failure as one sentence a person can act on. */
 function plainError(err: unknown, state: ServerState): string {
   const { name, command } = state.config;
-  const code = (err as { code?: unknown }).code;
+  const code = codeOf(err);
   if (err instanceof McpError) {
     if (err.code === ErrorCode.RequestTimeout) return `${name} didn't answer in time.`;
     if (err.code === ErrorCode.ConnectionClosed) return closedMessage(state);
@@ -545,6 +623,8 @@ function plainError(err: unknown, state: ServerState): string {
   if (code === "ENOENT")
     return `Couldn't start "${command}": the program wasn't found. Check it is installed and on the PATH.`;
   if (code === "EACCES") return `Couldn't start "${command}": it isn't allowed to run.`;
+  const network = networkCode(err);
+  if (network) return `The connection to ${name} failed (${network}). It reconnects on the next call.`;
   if (code === 401)
     return `${name} turned the connection down (401). It needs a sign-in Steward can't do yet.`;
   if (code === 403) return `${name} refused the connection (403).`;

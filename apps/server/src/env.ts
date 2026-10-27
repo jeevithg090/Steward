@@ -1,5 +1,6 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, resolve } from "node:path";
+import { parseEnv } from "node:util";
 
 /**
  * Environment fixes that must happen before the CopilotKit runtime is imported.
@@ -17,8 +18,9 @@ export function normaliseEnv(env: NodeJS.ProcessEnv): void {
 }
 
 /**
- * Loads `<repo>/.env`, then `STEWARD_ENV_FILE` when set (relative to the repo root). Values already
- * in the environment always win, so a shell export or `--env-file` beats the file.
+ * Loads `STEWARD_ENV_FILE` when set (relative to the repo root), then `<repo>/.env`, into `env`.
+ * A value already set wins over the files, and the first file wins over the second. A blank value
+ * counts as unset wherever it is, so `KEY=` (as `.env.example` has) never hides a key set elsewhere.
  * Returns the files it read, for the startup log.
  */
 export function loadEnvFiles(repoRoot: string, env: NodeJS.ProcessEnv = process.env): string[] {
@@ -29,7 +31,10 @@ export function loadEnvFiles(repoRoot: string, env: NodeJS.ProcessEnv = process.
   const loaded: string[] = [];
   for (const file of files) {
     if (!existsSync(file)) continue;
-    process.loadEnvFile(file);
+    // Parsed rather than `process.loadEnvFile`, which never replaces a blank value already set.
+    for (const [key, value] of Object.entries(parseEnv(readFileSync(file, "utf8")))) {
+      if (value !== undefined && !env[key]?.trim()) env[key] = value;
+    }
     loaded.push(file);
   }
   return loaded;

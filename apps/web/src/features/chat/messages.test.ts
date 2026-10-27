@@ -6,6 +6,8 @@ import {
   newestAssistantText,
   openToolCall,
   plainRunError,
+  replayedId,
+  shownIds,
   textOf,
 } from "./messages.ts";
 import { matchSkills, slashQuery } from "./skill-match.ts";
@@ -53,6 +55,22 @@ describe("messages", () => {
       id: "a2",
       text: "The top story is about compilers.",
     });
+  });
+
+  it("knows what a replay would write a second time", () => {
+    const shown = shownIds(conversation);
+    expect([...shown]).toEqual(["u1", "a1", "c1", "t1", "a2", "u2", "a3", "c2"]);
+    expect(
+      replayedId({ type: "TEXT_MESSAGE_CONTENT", messageId: "a2", delta: "The" } as { type: string }),
+    ).toBe("a2");
+    expect(replayedId({ type: "TOOL_CALL_ARGS", toolCallId: "c2", delta: "{}" } as { type: string })).toBe(
+      "c2",
+    );
+    // A result answers a known call but is a message of its own: new when its id is new.
+    expect(
+      replayedId({ type: "TOOL_CALL_RESULT", messageId: "t9", toolCallId: "c2" } as { type: string }),
+    ).toBe("t9");
+    expect(replayedId({ type: "RUN_FINISHED", runId: "run_1" } as { type: string })).toBeUndefined();
   });
 
   it("turns run failures into sentences", () => {

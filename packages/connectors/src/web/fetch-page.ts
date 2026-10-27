@@ -108,8 +108,12 @@ export async function fetchPage(
 
     let title: string;
     let text: string;
+    let truncated = capped;
     if (isHtml) {
-      ({ title, text } = htmlToText(decoded, { baseUrl: finalUrl }));
+      // Only maxChars are kept, so the page is converted only that far.
+      const page = htmlToText(decoded, { baseUrl: finalUrl, maxChars });
+      ({ title, text } = page);
+      truncated ||= page.truncated;
     } else {
       title = "";
       text = decoded.replace(/\r\n/g, "\n").trim();
@@ -117,7 +121,7 @@ export async function fetchPage(
     if (!title) title = fallbackTitle(current);
 
     const cut = cutText(text, maxChars);
-    return { url: finalUrl, title, text: cut.text, truncated: capped || cut.truncated };
+    return { url: finalUrl, title, text: cut.text, truncated: truncated || cut.truncated };
   } catch (err) {
     if (timeout.aborted && !opts.signal?.aborted) {
       throw new WebFetchError(

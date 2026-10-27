@@ -126,6 +126,73 @@ describe("ComputerPanel", () => {
     expect(socket.sent).toContainEqual({ type: "release" });
   });
 
+  describe("what is held down on Steward's browser", () => {
+    function driving() {
+      const { socket, status } = setup();
+      status({ controller: "person" });
+      const canvas = screen.getByRole("application", { name: /You have control/ }) as HTMLCanvasElement;
+      // The canvas is 640x400 and shows the 1280x800 page at half size, filling it.
+      canvas.getBoundingClientRect = () =>
+        ({ left: 0, top: 0, width: 640, height: 400, right: 640, bottom: 400, x: 0, y: 0 }) as DOMRect;
+      canvas.focus();
+      const ups = () =>
+        socket.sent.filter(
+          (message) => (message.type === "mouse" || message.type === "key") && message.action === "up",
+        );
+      return { socket, status, canvas, ups };
+    }
+
+    it("lets a button go even when it is released outside the picture", () => {
+      const { canvas, ups } = driving();
+      fireEvent.pointerDown(canvas, { clientX: 320, clientY: 200, button: 0, pointerId: 1 });
+      fireEvent.pointerUp(canvas, { clientX: 900, clientY: 650, button: 0, pointerId: 1 });
+      expect(ups()).toEqual([{ type: "mouse", action: "up", x: 1279, y: 799, button: "left" }]);
+    });
+
+    it("lets go of held modifiers and buttons when the window loses focus", () => {
+      const { canvas, ups } = driving();
+      fireEvent.keyDown(canvas, { key: "Meta", metaKey: true });
+      fireEvent.pointerDown(canvas, { clientX: 100, clientY: 50, button: 0, pointerId: 1 });
+      // Cmd+Tab: the keyup goes to another app.
+      fireEvent.blur(window);
+      expect(ups()).toEqual([
+        { type: "mouse", action: "up", x: 200, y: 100, button: "left" },
+        { type: "key", action: "up", key: "Meta" },
+      ]);
+      // Nothing is let go twice.
+      fireEvent.blur(canvas);
+      expect(ups()).toHaveLength(2);
+    });
+
+    it("lets go when the screen loses focus or the tab is hidden", () => {
+      const { canvas, ups } = driving();
+      fireEvent.keyDown(canvas, { key: "Shift", shiftKey: true });
+      fireEvent.blur(canvas);
+      expect(ups()).toEqual([{ type: "key", action: "up", key: "Shift" }]);
+
+      fireEvent.keyDown(canvas, { key: "Alt", altKey: true });
+      const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+      fireEvent(document, new Event("visibilitychange"));
+      hidden.mockRestore();
+      expect(ups()).toContainEqual({ type: "key", action: "up", key: "Alt" });
+    });
+
+    it("lets go of the button, not the keys, when the pointer is cancelled", () => {
+      const { canvas, ups } = driving();
+      fireEvent.keyDown(canvas, { key: "Shift", shiftKey: true });
+      fireEvent.pointerDown(canvas, { clientX: 320, clientY: 200, button: 0, pointerId: 1 });
+      fireEvent.pointerCancel(canvas, { pointerId: 1 });
+      expect(ups()).toEqual([{ type: "mouse", action: "up", x: 640, y: 400, button: "left" }]);
+    });
+
+    it("lets go of everything when driving ends", () => {
+      const { canvas, status, ups } = driving();
+      fireEvent.keyDown(canvas, { key: "Control", ctrlKey: true });
+      status({ controller: "agent" });
+      expect(ups()).toContainEqual({ type: "key", action: "up", key: "Control" });
+    });
+  });
+
   it("ignores input while Steward drives", () => {
     const { socket, status } = setup();
     status({});

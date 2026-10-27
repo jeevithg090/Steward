@@ -121,6 +121,7 @@ describe("the computer, in real Chromium", () => {
     expect(await c.describe(refOf(searched.snapshot, 'button "Save"'))).toEqual({
       role: "button",
       name: "Save",
+      sensitive: false,
     });
     expect(await c.describe("e99999")).toBeUndefined();
 
@@ -142,6 +143,118 @@ describe("the computer, in real Chromium", () => {
     expect(line("Password")?.endsWith(`: ${MASKED_VALUE}`)).toBe(true);
     expect(line("Code")?.endsWith(`: ${MASKED_VALUE}`)).toBe(true);
     expect(line("Name")?.endsWith(": Ada")).toBe(true);
+    const sensitive = async (name: string) =>
+      (await c.describe(refOf(page.snapshot, `textbox "${name}"`)))?.sensitive;
+    expect(await sensitive("Password")).toBe(true);
+    expect(await sensitive("Code")).toBe(true);
+    expect(await sensitive("Name")).toBe(false);
+  });
+
+  it("tells the gateway a password field is one by its type, whatever its label says", async () => {
+    const c = await manager.get("alpha");
+    const page = await c.navigate(`${site.base}/checkout`);
+    // Empty, so nothing is masked, and labelled in German: only the field's type says it is secret.
+    expect(await c.describe(refOf(page.snapshot, 'textbox "Passwort"'))).toEqual({
+      role: "textbox",
+      name: "Passwort",
+      sensitive: true,
+    });
+    const bare = page.snapshot.match(/- textbox \[ref=(e\d+)\]$/m)?.[1];
+    expect(bare).toBeDefined();
+    expect(await c.describe(bare as string)).toEqual({ role: "textbox", name: "", sensitive: true });
+    expect((await c.describe(refOf(page.snapshot, 'textbox "Promo code"')))?.sensitive).toBe(false);
+  });
+
+  it("reports what a key press would act on: the focused element and the button Enter presses", async () => {
+    const c = await manager.get("alpha");
+    const page = await c.navigate(`${site.base}/checkout`);
+    expect(await c.focused()).toBeUndefined();
+
+    const placeOrder = { role: "button", name: "Place order" };
+    await c.click(refOf(page.snapshot, 'textbox "Promo code"'));
+    expect(await c.focused()).toEqual({
+      role: "textbox",
+      name: "Promo code",
+      sensitive: false,
+      submitter: placeOrder,
+    });
+    await c.press("Tab");
+    expect(await c.focused()).toEqual({
+      role: "textbox",
+      name: "Passwort",
+      sensitive: true,
+      submitter: placeOrder,
+    });
+    await c.press("Tab");
+    expect(await c.focused()).toEqual({ role: "textbox", name: "", sensitive: true, submitter: placeOrder });
+    // A focused button is what Enter or Space presses, even a plain one inside the form.
+    await c.press("Tab");
+    expect(await c.focused()).toEqual({
+      role: "button",
+      name: "Apply",
+      sensitive: false,
+      submitter: { role: "button", name: "Apply" },
+    });
+    await c.press("Tab");
+    expect(await c.focused()).toEqual({ ...placeOrder, sensitive: false, submitter: placeOrder });
+    // And it is what really happens: Enter on it places the order.
+    expect((await c.press("Enter")).snapshot).toContain("Order placed");
+
+    const look = await c.snapshot();
+    // A menu item in the form is what Enter activates; only form fields submit the form.
+    await c.click(refOf(look.snapshot, 'menuitem "Remove item"'));
+    expect(await c.focused()).toEqual({
+      role: "menuitem",
+      name: "Remove item",
+      sensitive: false,
+      submitter: { role: "menuitem", name: "Remove item" },
+    });
+    // A form whose default button is hidden still submits on Enter: unnamed, so the gateway fails closed.
+    await c.click(refOf(look.snapshot, 'textbox "Coupon"'));
+    expect(await c.focused()).toEqual({ role: "textbox", name: "Coupon", sensitive: false, submitter: {} });
+    await c.click(refOf(look.snapshot, 'button "Help"'));
+    expect(await c.focused()).toEqual({
+      role: "button",
+      name: "Help",
+      sensitive: false,
+      submitter: { role: "button", name: "Help" },
+    });
+    // Focus on something the snapshot leaves out: unknown, so secret and committing.
+    await c.press("Tab");
+    expect(await c.focused()).toEqual({ sensitive: true, submitter: {} });
+  });
+
+  it("finds the button Enter presses inside a frame, from the frame's own buttons", async () => {
+    const c = await manager.get("alpha");
+    const page = await c.navigate(`${site.base}/framed`);
+    const promo = refOf(page.snapshot, 'textbox "Promo code"');
+    expect(await c.submitterFor(promo)).toEqual({ role: "button", name: "Place order" });
+    await c.click(promo);
+    expect(await c.focused()).toEqual({
+      role: "textbox",
+      name: "Promo code",
+      sensitive: false,
+      submitter: { role: "button", name: "Place order" },
+    });
+  });
+
+  it("names the default submit button of a typed field's form", async () => {
+    const c = await manager.get("alpha");
+    const page = await c.navigate(`${site.base}/checkout`);
+    // The first submit button in the form, not the field's own name and not the later one.
+    expect(await c.submitterFor(refOf(page.snapshot, 'textbox "Promo code"'))).toEqual({
+      role: "button",
+      name: "Place order",
+    });
+    expect(await c.submitterFor(refOf(page.snapshot, 'textbox "Coupon"'))).toEqual({});
+    expect(await c.submitterFor("e99999")).toBeUndefined();
+
+    const form = await c.navigate(`${site.base}/form`);
+    // A form with no submit button, and a field in no form, have none.
+    expect(await c.submitterFor(refOf(form.snapshot, 'textbox "Search"'))).toBeUndefined();
+    expect(await c.submitterFor(refOf(form.snapshot, 'textbox "Name"'))).toBeUndefined();
+    // A ref from the page before is not resolved against this one.
+    expect(await c.submitterFor(refOf(page.snapshot, 'textbox "Promo code"'))).toBeUndefined();
   });
 
   it("refuses a stale ref instead of acting on the wrong element", async () => {

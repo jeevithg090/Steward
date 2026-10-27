@@ -1,3 +1,5 @@
+import type { ElementFacts } from "./governance.ts";
+
 /**
  * The agent's computer: a Chromium profile, a workspace folder and a restricted shell.
  * Implemented by `@steward/computer`; the live screen reaches the web app over
@@ -119,7 +121,14 @@ export interface Computer {
   scroll(direction: "up" | "down", amount?: number): Promise<PageObservation>;
   back(): Promise<PageObservation>;
   /** Resolves a ref to the element it names, for the gateway's target. */
-  describe(ref: string): Promise<{ role?: string; name?: string } | undefined>;
+  describe(ref: string): Promise<ElementFacts | undefined>;
+  /**
+   * What a key press would act on: the focused element and, when it sits in a form, the control that
+   * Enter would activate (its default submit button). Undefined when nothing on the page has focus.
+   */
+  focused(): Promise<(ElementFacts & { submitter?: Pick<ElementFacts, "role" | "name"> }) | undefined>;
+  /** The default submit button of the form that holds this ref, when there is one. */
+  submitterFor(ref: string): Promise<Pick<ElementFacts, "role" | "name"> | undefined>;
   /** Asks the person to take the wheel; resolves when they release it. */
   requestHelp(reason: string, opts?: { signal?: AbortSignal }): Promise<{ released: boolean }>;
   /** Asks for a secret via the secret box; resolves once it has been typed into the field. Never returns the value. */

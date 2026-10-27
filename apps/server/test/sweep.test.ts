@@ -2,7 +2,7 @@ import type { Approval, ApprovalStore } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import { ServerRuns } from "../src/runtime/server-runs.ts";
 import { ResumeSweep } from "../src/workers/resume-sweep.ts";
-import { collect, EchoAgent, runnerOnMemoryDb, startRun } from "./helpers.ts";
+import { collect, EchoAgent, runInput, runnerOnMemoryDb, startRun } from "./helpers.ts";
 
 /** The parked call a thread's last run ended on, as the agent left it in history. */
 async function threadWithParkedCall(threadId: string, toolCallIds: string[]) {
@@ -141,16 +141,35 @@ describe("ResumeSweep", () => {
     const { runner, agent } = await threadWithParkedCall("t1", ["call_1"]);
     agent.delayMs = 100;
     const runs = new ServerRuns({ runner, agent: () => agent, serverRunToken: "tok" });
-    const busy = runs.start({
-      agentId: "steward",
-      threadId: "t1",
-      userText: "something else",
-      initiator: { kind: "task", id: "x" },
-    });
+    // The person writes in the conversation from the browser.
+    const busy = collect(startRun(runner, agent, runInput("t1", "r2", "something else")));
     const sweep = new ResumeSweep({ approvals: store([approval({})]), runner, runs, delayMs: 0 });
     expect(await sweep.sweep("apr_1")).toBeUndefined();
-    await busy.done;
+    await busy;
     expect(agent.seen.some((i) => i.resume)).toBe(false);
     sweep.stop();
+  });
+
+  it("still resumes an allowed call after a browser run that never saw it", async () => {
+    const { runner, agent } = await threadWithParkedCall("t1", ["call_1"]);
+    const runs = new ServerRuns({ runner, agent: () => agent, serverRunToken: "tok" });
+    // The page did not follow the run that parked the call, so its history stops before it.
+    await collect(
+      startRun(runner, agent, {
+        ...runInput("t1", "r2", "and another thing"),
+        messages: [
+          { id: "u1", role: "user", content: "Email sam@example.com about Friday" },
+          { id: "u-r2", role: "user", content: "and another thing" },
+        ],
+      }),
+    );
+    const sweep = new ResumeSweep({
+      approvals: store([approval({ status: "allowed" })]),
+      runner,
+      runs,
+      delayMs: 0,
+    });
+    expect((await sweep.sweep("apr_1"))?.outcome).toBe("success");
+    expect(agent.seen.at(-1)?.resume).toEqual([{ interruptId: "call_1", status: "resolved" }]);
   });
 });

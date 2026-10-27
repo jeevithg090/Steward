@@ -72,6 +72,8 @@ export interface AriaNode {
   expanded?: boolean;
   pressed?: boolean | "mixed";
   level?: number;
+  /** Has keyboard focus. Playwright marks the focused element and every frame and body above it. */
+  active?: boolean;
   box?: { x: number; y: number; width: number; height: number };
   children?: AriaItem[];
 }
@@ -83,6 +85,11 @@ export interface RefEntry {
   pwRef: string;
   role: string;
   name: string;
+  /**
+   * A password, one-time code or card field (by type or autocomplete, whatever its label says), one
+   * the secret box filled, or a field that could not be checked. Typing into it is credential entry.
+   */
+  sensitive: boolean;
 }
 
 export interface RenderedSnapshot {
@@ -145,6 +152,7 @@ function toAriaItem(value: unknown): AriaItem | undefined {
   if (v.pressed === true || v.pressed === "mixed") node.pressed = v.pressed;
   if (v.disabled === true) node.disabled = true;
   if (v.selected === true) node.selected = true;
+  if (v.active === true) node.active = true;
   if (typeof v.expanded === "boolean") node.expanded = v.expanded;
   if (typeof v.level === "number") node.level = v.level;
   const box = v.box as Record<string, unknown> | undefined;
@@ -172,11 +180,44 @@ export function indexRefs(items: readonly AriaItem[]): Map<string, { role: strin
   return out;
 }
 
-/** Playwright refs of fields that report a value, which must be checked for masking. */
-export function valueFieldRefs(items: readonly AriaItem[]): string[] {
+/**
+ * Playwright refs of every field, which must be checked for secrets: a filled one for masking, an
+ * empty one too, because typing into a password field is credential entry whatever its label says.
+ */
+export function fieldRefs(items: readonly AriaItem[]): string[] {
   const out: string[] = [];
   for (const node of walk(items)) {
-    if (node.ref && FIELD_ROLES.has(node.role) && node.text) out.push(node.ref);
+    if (node.ref && FIELD_ROLES.has(node.role)) out.push(node.ref);
+  }
+  return out;
+}
+
+/**
+ * The node with keyboard focus: the deepest one marked active. `"none"` when only a top-level node
+ * is, which is the page's body: nothing has focus. `"unknown"` when no node is, because what has
+ * focus is something the snapshot leaves out (hidden, or role `none`).
+ */
+export function focusedNode(items: readonly AriaItem[]): AriaNode | "none" | "unknown" {
+  let found: AriaNode | undefined;
+  for (const node of walk(items)) if (node.active) found = node;
+  if (!found) return "unknown";
+  return items.includes(found) ? "none" : found;
+}
+
+/** The frame part of a Playwright ref: `f2` for `f2e7`, empty for the main frame's `e7`. */
+export function refFrame(pwRef: string): string {
+  return /^f\d+(?=e)/.exec(pwRef)?.[0] ?? "";
+}
+
+/** Playwright ref → role and name of every button in one frame, the candidates for a form's default button. */
+export function buttonRefs(
+  items: readonly AriaItem[],
+  frame: string,
+): Map<string, { role: string; name: string }> {
+  const out = new Map<string, { role: string; name: string }>();
+  for (const node of walk(items)) {
+    if (node.ref && node.role === "button" && refFrame(node.ref) === frame)
+      out.set(node.ref, { role: node.role, name: node.name ?? "" });
   }
   return out;
 }
@@ -211,7 +252,7 @@ interface Line {
 
 export interface RenderOptions {
   refFor: (pwRef: string) => string;
-  /** Playwright refs whose value must be hidden. */
+  /** Playwright refs of secret fields: their value is hidden and their entry marked sensitive. */
   masked: ReadonlySet<string>;
   charLimit?: number;
 }
@@ -269,7 +310,12 @@ export function renderSnapshot(items: readonly AriaItem[], opts: RenderOptions):
       head += ` [placeholder=${JSON.stringify(oneLine(node.placeholder, 80))}]`;
     if (showRef && node.ref) {
       const ref = opts.refFor(node.ref);
-      entries.set(ref, { pwRef: node.ref, role: node.role, name: node.name ?? "" });
+      entries.set(ref, {
+        pwRef: node.ref,
+        role: node.role,
+        name: node.name ?? "",
+        sensitive: opts.masked.has(node.ref),
+      });
       head += ` [ref=${ref}]`;
     }
     if (node.url) head += ` [url=${oneLine(node.url, URL_LIMIT)}]`;

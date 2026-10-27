@@ -8,7 +8,9 @@ import { createStewardAgent, StewardAgent } from "../src/agent.ts";
 import {
   CANCELLED_BY_PERSON,
   GATE_UNAVAILABLE,
+  INITIATOR_UNKNOWN,
   NO_LONGER_GRANTED,
+  STOPPED,
   TOO_MANY_STEPS,
 } from "../src/middleware.ts";
 import { depsFrom, type Fakes, makeFakes, runTurn, SERVER_TOKEN, user } from "./fakes.ts";
@@ -159,6 +161,60 @@ describe("a tool the gateway allows", () => {
       host: "shop.example.com",
       element: { ref: "e20", role: "button", name: "Send" },
     });
+  });
+
+  it("judges a key press by the focused element and the button Enter would activate", async () => {
+    const computer = fakes.computers.computer("steward");
+    computer.url = "https://shop.example.com/checkout";
+    computer.focus = {
+      role: "textbox",
+      name: "Promo code",
+      submitter: { role: "button", name: "Place order" },
+    };
+    script((req) =>
+      lastIsTool(req) ? { content: "Pressed." } : toolCall("browser_press", { key: "Enter" }),
+    );
+    await runTurn(agent(), [user("press enter")]);
+    const [call] = fakes.governance.callsFor("browser_press");
+    expect(call?.target).toEqual({
+      url: "https://shop.example.com/checkout",
+      host: "shop.example.com",
+      element: {
+        ref: "",
+        role: "textbox",
+        name: "Promo code",
+        submitter: { role: "button", name: "Place order" },
+      },
+    });
+  });
+
+  it("adds the form's submit button to typing that submits, keeping the field as the element", async () => {
+    const computer = fakes.computers.computer("steward");
+    computer.url = "https://shop.example.com/checkout";
+    computer.forms.set("e31", { role: "button", name: "Place order" });
+    script((req) =>
+      lastIsTool(req)
+        ? { content: "Typed." }
+        : toolCall("browser_type", { ref: "e31", text: "SAVE10", submit: true }),
+    );
+    await runTurn(agent(), [user("use the code")]);
+    const [call] = fakes.governance.callsFor("browser_type");
+    expect(call?.target.element).toEqual({
+      ref: "e31",
+      role: "textbox",
+      name: "Promo code",
+      submitter: { role: "button", name: "Place order" },
+    });
+  });
+
+  it("tells the gateway a field is secret when the computer says so, whatever its label", async () => {
+    fakes.computers.computer("steward").url = "https://bank.example.de/login";
+    script((req) =>
+      lastIsTool(req) ? { content: "Typed." } : toolCall("browser_type", { ref: "e30", text: "hunter2" }),
+    );
+    await runTurn(agent(), [user("log in")]);
+    const [call] = fakes.governance.callsFor("browser_type");
+    expect(call?.target.element).toEqual({ ref: "e30", role: "textbox", name: "Passwort", sensitive: true });
   });
 
   it("routes a granted MCP tool through the gateway with its server and tool", async () => {
@@ -374,6 +430,57 @@ describe("approvals", () => {
     expect((turn.events.at(-1) as unknown as { outcome: { type: string } }).outcome.type).toBe("interrupt");
     expect(fakes.mail.sent).toHaveLength(0);
   });
+
+  it("puts a late resume's result after its own call, so the model sees it in order", async () => {
+    // A routine fires again while its first send still waits: park A, a new turn, park B.
+    fakes.governance.decide = (c) => (c.tool.kind === "send" ? "ask" : "allow");
+    script((req) =>
+      req.messages.some((m) => m.role === "tool")
+        ? { content: "Done with that." }
+        : toolCall("mail_send", { to: ["sam@example.com"], subject: "Friday", body: "See you." }),
+    );
+    const startOf = (events: BaseEvent[]) =>
+      (events.find((e) => e.type === "TOOL_CALL_START") as unknown as { toolCallId: string }).toolCallId;
+    const first = await runTurn(agent(), [user("firing 1")], {}, "thr_late");
+    const a = startOf(first.events);
+    const second = await runTurn(agent(), [...first.messages, user("firing 2")], {}, "thr_late");
+    const b = startOf(second.events);
+    expect(a).not.toBe(b);
+
+    // The answer to A arrives late. The model must read A's result after A's call.
+    fakes.governance.answers.set(a, "once");
+    llm.clearRequests();
+    const resumedA = await runTurn(
+      agent(),
+      second.messages,
+      { resume: [{ interruptId: a, status: "resolved" }] },
+      "thr_late",
+    );
+    expect(resumedA.error).toBeUndefined();
+    expect(fakes.mail.sent).toHaveLength(1);
+    const sawA = requests()[0]?.messages ?? [];
+    const callA = sawA.findIndex((m) => (m.tool_calls ?? []).some((c) => c.id === a));
+    expect(callA).toBeGreaterThan(-1);
+    expect(sawA[callA + 1]).toMatchObject({ role: "tool", tool_call_id: a });
+    // Without A's result in view, the model would propose the send again instead.
+    expect(text(resumedA.events)).toBe("Done with that.");
+
+    // Then B, after the model already spoke: B's result goes before those words, not after them.
+    fakes.governance.answers.set(b, "once");
+    llm.clearRequests();
+    const resumedB = await runTurn(
+      agent(),
+      resumedA.messages,
+      { resume: [{ interruptId: b, status: "resolved" }] },
+      "thr_late",
+    );
+    expect(resumedB.error).toBeUndefined();
+    expect(fakes.mail.sent).toHaveLength(2);
+    const sawB = requests()[0]?.messages ?? [];
+    const callB = sawB.findIndex((m) => (m.tool_calls ?? []).some((c) => c.id === b));
+    expect(callB).toBeGreaterThan(-1);
+    expect(sawB[callB + 1]).toMatchObject({ role: "tool", tool_call_id: b });
+  });
 });
 
 describe("taint", () => {
@@ -453,6 +560,122 @@ describe("who started the run", () => {
     });
     expect(fakes.governance.callsFor("brief_today")[0]?.initiator).toEqual({ kind: "person", id: "local" });
     expect(systemOf(requests()[0])).not.toContain("A routine is running");
+  });
+
+  /** A routine's run parks calendar_create; the model sends mail once the calendar call is answered. */
+  async function parkForRoutine(threadId: string): Promise<{ messages: Message[]; toolCallId: string }> {
+    fakes.governance.decide = (c) => (c.tool.name === "calendar_create" ? "ask" : "allow");
+    script((req) => {
+      const tools = req.messages.filter((m) => m.role === "tool").length;
+      if (tools === 0)
+        return toolCall("calendar_create", {
+          title: "Friday sync",
+          start: "2026-10-30T10:00:00Z",
+          end: "2026-10-30T10:30:00Z",
+        });
+      if (tools === 1)
+        return toolCall("mail_send", { to: ["boss@example.com"], subject: "Booked", body: "Friday." });
+      return { content: "Booked and sent." };
+    });
+    const turn = await runTurn(
+      agent(),
+      [user("Add a Friday sync, then email my boss.")],
+      { forwardedProps: { steward: { token: SERVER_TOKEN, initiator: { kind: "routine", id: "rtn_1" } } } },
+      threadId,
+    );
+    const start = turn.events.find((e) => e.type === "TOOL_CALL_START") as unknown as { toolCallId: string };
+    return { messages: turn.messages, toolCallId: start.toolCallId };
+  }
+
+  it("stays the routine when the browser resumes the routine's parked run without the token", async () => {
+    const parked = await parkForRoutine("thr_routine");
+    fakes.governance.answers.set(parked.toolCallId, "once");
+    llm.clearRequests();
+    await runTurn(
+      agent(),
+      parked.messages,
+      { resume: [{ interruptId: parked.toolCallId, status: "resolved" }] },
+      "thr_routine",
+    );
+    const routine = { kind: "routine", id: "rtn_1" };
+    const resumed = fakes.governance.calls.find((c) => c.mode === "resume");
+    expect(resumed?.call.initiator).toEqual(routine);
+    expect(fakes.governance.callsFor("mail_send")[0]?.initiator).toEqual(routine);
+    expect(systemOf(requests()[0])).toContain("A routine is running on its schedule");
+  });
+
+  it("takes the strictest initiator among the resumed calls", async () => {
+    fakes.governance.decide = (c) => (c.tool.kind === "send" ? "ask" : "allow");
+    script((req) =>
+      lastIsTool(req)
+        ? { content: "Both sent." }
+        : {
+            toolCalls: [
+              {
+                name: "mail_send",
+                arguments: JSON.stringify({ to: ["a@example.com"], subject: "A", body: "a" }),
+              },
+              {
+                name: "mail_send",
+                arguments: JSON.stringify({ to: ["b@example.com"], subject: "B", body: "b" }),
+              },
+            ],
+          },
+    );
+    const turn = await runTurn(agent(), [user("send both")], {}, "thr_two");
+    const ids = [...fakes.governance.approvals.keys()];
+    expect(ids).toHaveLength(2);
+    const [byTask, byRoutine] = ids.map((id) => fakes.governance.approvals.get(id));
+    if (!byTask || !byRoutine) throw new Error("both calls should be parked");
+    byTask.initiator = { kind: "task", id: "tsk_1" };
+    byRoutine.initiator = { kind: "routine", id: "rtn_1" };
+    for (const id of ids) fakes.governance.answers.set(id, "once");
+    await runTurn(
+      agent(),
+      turn.messages,
+      { resume: ids.map((interruptId) => ({ interruptId, status: "resolved" as const })) },
+      "thr_two",
+    );
+    const resumed = fakes.governance.calls.filter((c) => c.mode === "resume").map((c) => c.call.initiator);
+    expect(resumed).toEqual([
+      { kind: "routine", id: "rtn_1" },
+      { kind: "routine", id: "rtn_1" },
+    ]);
+  });
+
+  it("stops before acting when it cannot read whose run it resumes, rather than becoming the person's", async () => {
+    const parked = await parkForRoutine("thr_routine");
+    fakes.governance.answers.set(parked.toolCallId, "once");
+    fakes.governance.initiatorFor = () => {
+      throw new Error("database is locked");
+    };
+    llm.clearRequests();
+    const turn = await runTurn(
+      agent(),
+      parked.messages,
+      { resume: [{ interruptId: parked.toolCallId, status: "resolved" }] },
+      "thr_routine",
+    );
+    expect(turn.types[0]).toBe("RUN_STARTED");
+    const errors = turn.events.filter((e) => e.type === "RUN_ERROR") as unknown as { message: string }[];
+    expect(errors.map((e) => e.message)).toEqual([INITIATOR_UNKNOWN]);
+    // Unclaimed, so the resume sweep can still continue it as the routine.
+    expect(fakes.governance.calls.filter((c) => c.mode === "resume")).toHaveLength(0);
+    expect(fakes.governance.claimed.size).toBe(0);
+    expect(requests()).toHaveLength(0);
+  });
+
+  it("ignores an approval's initiator from another thread", async () => {
+    const parked = await parkForRoutine("thr_routine");
+    fakes.governance.answers.set(parked.toolCallId, "once");
+    await runTurn(
+      agent(),
+      parked.messages,
+      { resume: [{ interruptId: parked.toolCallId, status: "resolved" }] },
+      "thr_elsewhere",
+    );
+    const resumed = fakes.governance.calls.find((c) => c.mode === "resume");
+    expect(resumed?.call.initiator).toEqual({ kind: "person", id: "local" });
   });
 });
 
@@ -548,6 +771,50 @@ describe("history and errors", () => {
     expect(results(events)[0]?.content).toEqual({ ok: false, error: "Stopped." });
     expect(events.at(-1)?.type).toBe("RUN_FINISHED");
     expect(requests()).toHaveLength(1);
+  });
+
+  it("closes a call the model was still writing when the run is stopped, and finishes cleanly", async () => {
+    // Long arguments streamed slowly, so the stop lands between TOOL_CALL_START and TOOL_CALL_END.
+    llm.on(
+      { predicate: () => true },
+      toolCall("file_write", { path: "notes/long.md", content: "x".repeat(400) }),
+      { chunkSize: 8, latency: 20 },
+    );
+    const clone = agent().clone();
+    clone.setMessages([user("write a long note")]);
+    clone.threadId = "thr_stop_args";
+    const events: BaseEvent[] = [];
+    let error: unknown;
+    try {
+      await clone.runAgent(
+        { runId: "run_stop_args" },
+        {
+          onEvent: ({ event }) => {
+            events.push(event);
+            if (
+              event.type === "TOOL_CALL_ARGS" &&
+              events.filter((e) => e.type === "TOOL_CALL_ARGS").length === 2
+            )
+              clone.abortRun();
+          },
+        },
+      );
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeUndefined();
+    const id = (events.find((e) => e.type === "TOOL_CALL_START") as unknown as { toolCallId: string })
+      .toolCallId;
+    const tail = events.map((e) => e.type).slice(events.findIndex((e) => e.type === "TOOL_CALL_START"));
+    expect(tail.filter((t) => t !== "TOOL_CALL_ARGS")).toEqual([
+      "TOOL_CALL_START",
+      "TOOL_CALL_END",
+      "TOOL_CALL_RESULT",
+      "RUN_FINISHED",
+    ]);
+    expect(results(events)).toEqual([{ toolCallId: id, content: { ok: false, error: STOPPED } }]);
+    expect(fakes.governance.calls).toHaveLength(0);
+    expect(fakes.computers.computer("steward").files.size).toBe(0);
   });
 });
 

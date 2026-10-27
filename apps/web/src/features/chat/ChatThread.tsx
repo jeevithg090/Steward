@@ -9,6 +9,10 @@
  * Patterns follow OpenBot's app/src/components/channels/channel-chat.tsx (MIT, CopilotKit): a
  * thread-scoped agent, failures read from the agent's own events (a run that fails still resolves),
  * and nothing captured across an await.
+ *
+ * Runs the server starts here (a routine, a task, the resume sweep after an answer) are followed:
+ * their `run.started` and `run.finished` live events make the conversation connect again, so their
+ * messages and any request for an answer appear without a reload.
  */
 import {
   CopilotChatConfigurationProvider,
@@ -27,6 +31,7 @@ import { Notice } from "@/components/ui/Notice.tsx";
 import { useDocumentTitle } from "@/components/ui/PageHeader.tsx";
 import { useApprovals, useInfo } from "@/lib/api.ts";
 import { claimRouteFocus } from "@/lib/focus.ts";
+import { useLiveEvents } from "@/lib/live.ts";
 import { storage } from "@/lib/utils.ts";
 import { ComputerPanel } from "../computer/ComputerPanel.tsx";
 import { ComputerSession, useOptionalComputer } from "../computer/session.tsx";
@@ -34,7 +39,7 @@ import { useSpeak } from "../voice/useSpeak.ts";
 import { ApprovalInterrupts, type PendingApproval } from "./ApprovalInterrupts.tsx";
 import { Composer } from "./Composer.tsx";
 import { type ChatActions, ChatActionsContext } from "./chat-context.tsx";
-import { currentStep, latestTurnToolCalls, plainRunError, textOf } from "./messages.ts";
+import { currentStep, latestTurnToolCalls, plainRunError, replayedId, shownIds, textOf } from "./messages.ts";
 import { claimInlineRunErrors } from "./provider.tsx";
 import { RunStatus } from "./RunStatus.tsx";
 import { Starters } from "./Starters.tsx";
@@ -90,6 +95,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
 
   const [load, setLoad] = useState<"loading" | "ready" | "failed">("loading");
   const [connectAttempt, setConnectAttempt] = useState(0);
+  const [follow, setFollow] = useState(0);
   const [runError, setRunError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingApproval[]>([]);
   const [panelOpen, setPanelOpen] = useState(() => storage.get(PANEL_KEY) !== "closed");
@@ -100,6 +106,11 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
   const headingRef = useRef<HTMLHeadingElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const spoken = useRef(new Set<string>());
+  /** Runs this page already shows: the ones it started, and the ones it has replayed or followed. */
+  const shownRuns = useRef(new Set<string>());
+  /** While connecting: what was on screen before (a replay skips it), and whether to stay quiet. */
+  const connecting = useRef<{ shown: Set<string>; quiet: boolean } | null>(null);
+  const loaded = useRef(false);
   const readAloudRef = useRef(readAloud);
   readAloudRef.current = readAloud;
   const speak = speaker.speak;
@@ -131,13 +142,28 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
   useEffect(() => {
     if (!isReady) return;
     const subscription = agent.subscribe({
-      onRunInitialized: () => setRunError(null),
+      onRunInitialized: ({ input }) => {
+        shownRuns.current.add(input.runId);
+        setRunError(null);
+      },
+      onRunStartedEvent: ({ event }) => {
+        shownRuns.current.add(event.runId);
+      },
+      onEvent: ({ event }) => {
+        const id = connecting.current ? replayedId(event) : undefined;
+        if (id && connecting.current?.shown.has(id)) return { stopPropagation: true };
+      },
       onRunFailed: ({ error }) => setRunError(plainRunError(error)),
       onRunErrorEvent: ({ event }) => setRunError(plainRunError(event.message)),
       onRunFinalized: ({ messages: finished }) => {
+        // A connect ends here too. Loading the history is quiet; a run followed live is not.
+        const quiet = connecting.current?.quiet ?? false;
         const fresh = finished.filter(
           (message) =>
-            message.role === "assistant" && !spoken.current.has(message.id) && textOf(message.content).trim(),
+            !quiet &&
+            message.role === "assistant" &&
+            !spoken.current.has(message.id) &&
+            textOf(message.content).trim(),
         );
         for (const message of finished) spoken.current.add(message.id);
         if (readAloudRef.current && fresh.length > 0)
@@ -147,26 +173,43 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
     return () => subscription.unsubscribe();
   }, [agent, isReady, speak]);
 
-  // Load the thread's history. History is never read aloud: only replies that arrive while here.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `connectAttempt` is the Try again button.
+  // Load the thread's history, and connect again to follow a run the server starts here. History is
+  // never read aloud: only replies that arrive while here.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `connectAttempt` is Try again; `follow` a server run.
   useEffect(() => {
     if (!isReady) return;
     let current = true;
-    setLoad("loading");
+    const first = !loaded.current;
+    if (first) setLoad("loading");
+    // The server replays the whole thread, and what is on screen must not be written twice.
+    connecting.current = { shown: shownIds(agent.messages), quiet: first };
     copilotkit
       .connectAgent({ agent })
       .then(() => {
         if (!current) return;
         for (const message of agent.messages) spoken.current.add(message.id);
+        loaded.current = true;
         setLoad("ready");
       })
       .catch(() => {
-        if (current) setLoad("failed");
+        if (current && !loaded.current) setLoad("failed");
+      })
+      .finally(() => {
+        if (current) connecting.current = null;
       });
     return () => {
       current = false;
     };
-  }, [agent, isReady, copilotkit, connectAttempt]);
+  }, [agent, isReady, copilotkit, connectAttempt, follow]);
+
+  // A run this page did not start began or ended in this conversation. Not while this page's own run
+  // streams (it shows everything already), and not for a run it already shows, so this cannot loop.
+  useLiveEvents((event) => {
+    if (event.type !== "run.started" && event.type !== "run.finished") return;
+    if (event.threadId !== threadId || shownRuns.current.has(event.runId)) return;
+    if (!isReady || agent.isRunning) return;
+    setFollow((n) => n + 1);
+  });
 
   const send = useCallback(
     (text: string) => {

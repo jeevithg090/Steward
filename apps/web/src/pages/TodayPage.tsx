@@ -14,6 +14,7 @@ import { Page } from "@/components/ui/PageHeader.tsx";
 import {
   useApprovals,
   useBrief,
+  useBriefDate,
   useGenerateBrief,
   useInfo,
   usePatchTask,
@@ -131,7 +132,9 @@ function WaitingOnYou() {
 
 function TodaysBrief() {
   const navigate = useNavigate();
-  const brief = useBrief();
+  // The server keeps days in the Settings time zone; asking by this browser's day can miss the brief.
+  const date = useBriefDate();
+  const brief = useBrief(date);
   const generate = useGenerateBrief();
   const settings = useSettings();
 
@@ -158,7 +161,12 @@ function TodaysBrief() {
       <div className="flex flex-col gap-2">
         <BriefCard brief={brief.data} onStart={startEmail} timeZone={settings.data?.timezone} />
         <div className="flex justify-end">
-          <Button variant="ghost" size="sm" loading={generate.isPending} onClick={() => generate.mutate()}>
+          <Button
+            variant="ghost"
+            size="sm"
+            loading={generate.isPending}
+            onClick={() => generate.mutate(date)}
+          >
             Check again
           </Button>
         </div>
@@ -186,7 +194,7 @@ function TodaysBrief() {
           variant="primary"
           icon={<Sunrise />}
           loading={generate.isPending}
-          onClick={() => generate.mutate()}
+          onClick={() => generate.mutate(date)}
         >
           {generate.isPending ? "Reading your mail and calendar…" : "Make my brief"}
         </Button>

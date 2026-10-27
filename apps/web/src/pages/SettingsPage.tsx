@@ -62,12 +62,21 @@ const PROVIDERS: { value: NonNullable<SettingsInput["model"]>["provider"]; label
   { value: "scripted", label: "Scripted (for demos and tests)" },
 ];
 
+type Provider = (typeof PROVIDERS)[number]["value"];
+
+/**
+ * Only these take a server address. Every other provider has its own fixed endpoint, and an address
+ * left over from another provider would send this provider's key there.
+ */
+const takesAddress = (provider: Provider | undefined) =>
+  provider === "ollama" || provider === "openai-compatible";
+
 function ModelSection() {
   const info = useInfo();
   const settings = useSettings();
   const update = useUpdateSettings();
   const [editing, setEditing] = useState(false);
-  const [provider, setProvider] = useState<NonNullable<SettingsInput["model"]>["provider"]>("openrouter");
+  const [provider, setProvider] = useState<Provider>("openrouter");
   const [model, setModel] = useState("");
   const [baseUrl, setBaseUrl] = useState("");
 
@@ -78,15 +87,22 @@ function ModelSection() {
     const known = PROVIDERS.find((p) => p.value === current?.provider);
     setProvider(known?.value ?? "openrouter");
     setModel(current?.model ?? "");
-    setBaseUrl(settings.data?.model.baseUrl ?? "");
+    setBaseUrl(takesAddress(known?.value) ? (settings.data?.model.baseUrl ?? "") : "");
     setEditing(true);
+  }
+
+  function changeProvider(next: Provider) {
+    // An address belongs to the provider it was typed for.
+    if (next !== provider) setBaseUrl("");
+    setProvider(next);
   }
 
   function submit(event: FormEvent) {
     event.preventDefault();
     if (!model.trim()) return;
+    const address = takesAddress(provider) ? baseUrl.trim() : "";
     update.mutate(
-      { model: { provider, model: model.trim(), baseUrl: baseUrl.trim() || undefined } },
+      { model: { provider, model: model.trim(), ...(address ? { baseUrl: address } : {}) } },
       {
         onSuccess: () => {
           toast.success("Model saved", { description: `${provider} · ${model.trim()}` });
@@ -132,7 +148,7 @@ function ModelSection() {
         <form onSubmit={submit} className="mt-5 flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Provider">
-              <Select value={provider} onChange={(e) => setProvider(e.target.value as typeof provider)}>
+              <Select value={provider} onChange={(e) => changeProvider(e.target.value as Provider)}>
                 {PROVIDERS.map((p) => (
                   <option key={p.value} value={p.value}>
                     {p.label}
@@ -150,7 +166,7 @@ function ModelSection() {
               />
             </Field>
           </div>
-          {provider === "ollama" || provider === "openai-compatible" ? (
+          {takesAddress(provider) ? (
             <Field label="Server address" description="For example http://127.0.0.1:11434/v1">
               <Input
                 type="url"

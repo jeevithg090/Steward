@@ -3,15 +3,75 @@
  * `raw` plugin is left out and `skipHtml` is on, and what remains is sanitised and hardened. Links
  * open only after a confirmation (Streamdown's link safety), since a reply can quote a page that
  * was written to mislead.
+ *
+ * Images are never loaded. Fetching one would send its address, and whatever a prompt injection
+ * packed into it, to any host with no tool call, no decision and no record. Each image shows as
+ * "[Image not loaded: …]" with its address as a link, behind the same confirmation.
  */
 import { memo } from "react";
 import { defaultRehypePlugins, Streamdown } from "streamdown";
 import { cn } from "@/lib/utils.ts";
 
+type Pluggable = (typeof defaultRehypePlugins)[string];
+
+/** A hast node, as far as this file looks into it. */
+interface HastNode {
+  type: string;
+  tagName?: string;
+  properties?: Record<string, unknown>;
+  children?: HastNode[];
+  value?: string;
+}
+
+const text = (value: string): HastNode => ({ type: "text", value });
+
+function blockedImage(image: HastNode, insideLink: boolean): HastNode {
+  const alt = typeof image.properties?.alt === "string" ? image.properties.alt.trim() : "";
+  const src = typeof image.properties?.src === "string" ? image.properties.src : "";
+  const children = [text(alt ? `[Image not loaded: ${alt}]` : "[Image not loaded]")];
+  // A link inside a link would nest; the outer one already leads somewhere.
+  if (/^https?:\/\//i.test(src) && !insideLink) {
+    children.push(text(" "), {
+      type: "element",
+      tagName: "a",
+      properties: { href: src },
+      children: [text(src)],
+    });
+  }
+  return {
+    type: "element",
+    tagName: "span",
+    properties: { className: ["text-ink-2", "break-all"] },
+    children,
+  };
+}
+
+function replaceImages(node: HastNode, insideLink: boolean): void {
+  if (!node.children) return;
+  const linked = insideLink || node.tagName === "a";
+  node.children = node.children.map((child) => {
+    if (child.type === "element" && child.tagName === "img") return blockedImage(child, linked);
+    replaceImages(child, linked);
+    return child;
+  });
+}
+
+/** Turns every image into text and a link. Runs before hardening, so that link is hardened too. */
+function imagesAsLinks() {
+  return (tree: HastNode) => replaceImages(tree, false);
+}
+
+/** Hardening that lets no image through, not even a `data:` one, should anything still carry one. */
+function withoutImages(harden: Pluggable): Pluggable {
+  if (!Array.isArray(harden)) return harden;
+  const [plugin, options] = harden;
+  return [plugin, { ...(options as object), allowedImagePrefixes: [], allowDataImages: false }];
+}
+
 /** Sanitise and harden, in Streamdown's order, without the plugin that would pass raw HTML through. */
-const REHYPE = Object.entries(defaultRehypePlugins)
+const REHYPE: Pluggable[] = Object.entries(defaultRehypePlugins)
   .filter(([name]) => name !== "raw")
-  .map(([, plugin]) => plugin);
+  .flatMap(([name, plugin]) => (name === "harden" ? [imagesAsLinks, withoutImages(plugin)] : [plugin]));
 
 export const Markdown = memo(function Markdown({
   children,

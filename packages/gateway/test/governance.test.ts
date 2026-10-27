@@ -140,6 +140,35 @@ describe("execute", () => {
     ]);
     expect(everything).not.toContain("hunter2");
   });
+
+  it("never stores or records what was typed into a field the computer judged secret", async () => {
+    const { gw, db } = setup();
+    for (const name of ["Passwort", undefined]) {
+      const call = gateCall(
+        "browser_type",
+        { ref: "e2", text: "Tr0ub4dor&3" },
+        {
+          target: {
+            host: "bank.example",
+            element: { ref: "e2", role: "textbox", ...(name ? { name } : {}), sensitive: true },
+          },
+        },
+      );
+      const approval = parked(await gw.governance.execute(call, async () => null));
+      expect(approval.decision.rule?.id).toBe("default:floor-credential");
+      expect(approval.args).toEqual({ ref: "e2", text: "[redacted]" });
+      expect(approval.summary).toBe(
+        name ? "Type into 'Passwort' on bank.example" : "Type into a field (e2) on bank.example",
+      );
+      gw.approvals.decide(approval.id, "once", "local");
+      expect((await gw.governance.resume(call, async () => null)).status).toBe("done");
+    }
+    const everything = JSON.stringify([
+      db.all("SELECT * FROM gateway_audit"),
+      db.all("SELECT * FROM gateway_approvals"),
+    ]);
+    expect(everything).not.toContain("Tr0ub4dor");
+  });
 });
 
 describe("decide and resume", () => {
@@ -262,6 +291,177 @@ describe("decide and resume", () => {
     expect(spy.calls).toHaveLength(0);
   });
 
+  it("tells a resume who started the run that asked, for that conversation only", async () => {
+    const { gw } = setup();
+    const call = gateCall(
+      "calendar_create",
+      { title: "Friday sync" },
+      { initiator: { kind: "routine", id: "rtn_1" } },
+    );
+    parked(await gw.governance.execute(call, async () => null));
+    expect(gw.governance.initiatorFor(call.toolCallId, "thr_1")).toEqual({ kind: "routine", id: "rtn_1" });
+    expect(gw.governance.initiatorFor(call.toolCallId, "thr_other")).toBeUndefined();
+    expect(gw.governance.initiatorFor("call_never", "thr_1")).toBeUndefined();
+    const person = mail();
+    parked(await gw.governance.execute(person, async () => null));
+    expect(gw.governance.initiatorFor(person.toolCallId, "thr_1")).toEqual({ kind: "person", id: "local" });
+  });
+
+  it("judges a routine's resumed call as the routine's, whoever resumes it", async () => {
+    const { gw } = setup();
+    const routine = { kind: "routine" as const, id: "rtn_1" };
+    const call = gateCall("calendar_create", { title: "Friday sync" }, { initiator: routine });
+    const approval = parked(await gw.governance.execute(call, async () => null));
+    gw.approvals.decide(approval.id, "once", "local");
+    gw.rules.create({
+      name: "Routines keep off the calendar",
+      effect: "deny",
+      when: 'initiator.kind == "routine" && tool.surface == "calendar"',
+      description: "",
+      enabled: true,
+      source: "person",
+    });
+    const spy = spyAction(null);
+    const outcome = await gw.governance.resume(
+      { ...call, initiator: { kind: "person", id: "local" } },
+      spy.act,
+    );
+    expect(outcome.status).toBe("refused");
+    if (outcome.status === "refused") {
+      expect(outcome.message).toMatch(/^Refused by the rule 'Routines keep off the calendar'/);
+    }
+    expect(spy.calls).toHaveLength(0);
+    expect(gw.audit.forToolCall(call.toolCallId).at(-1)?.detail.initiator).toEqual(routine);
+  });
+
+  describe("a browser call acts only on the page and element that were approved", () => {
+    const sendOn = (target: Record<string, unknown>, over = {}) =>
+      gateCall("browser_click", { ref: "e20" }, { toolCallId: "call_click", target, ...over });
+    const approved = {
+      host: "mail.example.com",
+      url: "https://mail.example.com/compose",
+      element: { ref: "e20", role: "button", name: "Send" },
+    };
+
+    async function approve(gw: ReturnType<typeof setup>["gw"], call = sendOn(approved)) {
+      const approval = parked(await gw.governance.execute(call, async () => null));
+      gw.approvals.decide(approval.id, "once", "local");
+      return approval;
+    }
+
+    it("acts when nothing changed", async () => {
+      const { gw } = setup();
+      await approve(gw);
+      const spy = spyAction("clicked");
+      expect((await gw.governance.resume(sendOn(approved), spy.act)).status).toBe("done");
+      expect(spy.calls).toHaveLength(1);
+    });
+
+    it.each([
+      [
+        "another element now has the ref",
+        { ...approved, element: { ref: "e20", role: "button", name: "Delete account" } },
+      ],
+      ["same name, another role", { ...approved, element: { ref: "e20", role: "link", name: "Send" } }],
+      ["the element is gone", { host: approved.host, url: approved.url }],
+      ["another site", { ...approved, host: "bank.example", url: "https://bank.example/compose" }],
+      ["another page on the same site", { ...approved, url: "https://mail.example.com/settings" }],
+    ])("refuses when %s", async (_why, now) => {
+      const { gw } = setup();
+      const approval = await approve(gw);
+      const spy = spyAction(null);
+      const outcome = await gw.governance.resume(sendOn(now), spy.act);
+      expect(outcome.status).toBe("refused");
+      if (outcome.status === "refused") {
+        expect(outcome.message).toBe("The page changed since you approved this. Ask again.");
+        expect(outcome.decision.rule?.id).toBe("default:answer-check");
+      }
+      expect(spy.calls).toHaveLength(0);
+      // The answer is spent: the original call cannot use it afterwards either.
+      expect(gw.approvals.get(approval.id)?.claimedAt).toBeDefined();
+      expect((await gw.governance.resume(sendOn(approved), spy.act)).status).toBe("refused");
+    });
+
+    it("refuses when Enter would now press a different button", async () => {
+      const { gw } = setup();
+      const field = (submitter: string) => ({
+        ...approved,
+        element: {
+          ref: "",
+          role: "textbox",
+          name: "Message",
+          submitter: { role: "button", name: submitter },
+        },
+      });
+      const press = (submitter: string) =>
+        gateCall("browser_press", { key: "Enter" }, { toolCallId: "call_press", target: field(submitter) });
+      await approve(gw, press("Send"));
+      const spy = spyAction(null);
+      const outcome = await gw.governance.resume(press("Post"), spy.act);
+      expect(outcome.status).toBe("refused");
+      expect(spy.calls).toHaveLength(0);
+    });
+
+    it("refuses when the kind changed, even with the same element facts", async () => {
+      const { gw } = setup();
+      const call = gateCall(
+        "mcp__crm__update",
+        { id: "1" },
+        {
+          toolCallId: "call_mcp",
+          tool: { name: "mcp__crm__update", kind: "write", surface: "mcp", source: "mcp:crm" },
+        },
+      );
+      await approve(gw, call);
+      const spy = spyAction(null);
+      const outcome = await gw.governance.resume(
+        { ...call, tool: { ...call.tool, kind: "delete" } },
+        spy.act,
+      );
+      expect(outcome.status).toBe("refused");
+      expect(spy.calls).toHaveLength(0);
+    });
+
+    it("refuses typing that would now go into a secret field, and keeps approved secrets out of the record", async () => {
+      const { gw, db } = setup();
+      gw.rules.create({
+        name: "Ask before typing on the bank",
+        effect: "ask",
+        when: 'tool.name == "browser_type" && target.host == "bank.example"',
+        description: "",
+        enabled: true,
+        source: "person",
+      });
+      const typing = (element: Record<string, unknown>, toolCallId: string) =>
+        gateCall(
+          "browser_type",
+          { ref: "e3", text: "Tr0ub4dor&3" },
+          {
+            toolCallId,
+            target: { host: "bank.example", element: { ref: "e3", role: "textbox", ...element } },
+          },
+        );
+      // Approved into a plain field; on resume the computer says the field is secret.
+      await approve(gw, typing({ name: "Notes" }, "call_plain"));
+      const spy = spyAction(null);
+      const toSecret = await gw.governance.resume(
+        typing({ name: "Notes", sensitive: true }, "call_plain"),
+        spy.act,
+      );
+      expect(toSecret.status).toBe("refused");
+      // Approved as a secret; on resume the field is a plain one.
+      await approve(gw, typing({ name: "Passwort", sensitive: true }, "call_secret"));
+      const fromSecret = await gw.governance.resume(typing({ name: "Search" }, "call_secret"), spy.act);
+      expect(fromSecret.status).toBe("refused");
+      expect(spy.calls).toHaveLength(0);
+      const secretRows = JSON.stringify([
+        gw.audit.forToolCall("call_secret"),
+        db.all("SELECT * FROM gateway_approvals WHERE tool_call_id = 'call_secret'"),
+      ]);
+      expect(secretRows).not.toContain("Tr0ub4dor");
+    });
+  });
+
   it("answering the same way twice is fine; answering differently is a conflict", async () => {
     const { gw } = setup();
     const approval = parked(await gw.governance.execute(mail(), async () => null));
@@ -325,6 +525,34 @@ describe("always allow", () => {
     expect(gw.governance.dryRun(post("x.example", "Post")).effect).toBe("allow");
     expect(gw.governance.dryRun(post("x.example", "Delete post")).effect).toBe("ask");
     expect(gw.governance.dryRun(post("y.example", "Post")).effect).toBe("ask");
+  });
+
+  it("pins a key press to the kind it was approved as, since the rule cannot name the button", async () => {
+    const { gw } = setup();
+    const press = (submitter: string) =>
+      gateCall(
+        "browser_press",
+        { key: "Enter" },
+        {
+          target: {
+            host: "mail.example",
+            element: {
+              ref: "",
+              role: "textbox",
+              name: "Message",
+              submitter: { role: "button", name: submitter },
+            },
+          },
+        },
+      );
+    const approval = parked(await gw.governance.execute(press("Send"), async () => null));
+    expect(approval.summary).toBe("Press Enter in 'Message' on mail.example, which clicks 'Send'");
+    const decided = gw.approvals.decide(approval.id, "always", "local");
+    expect(gw.rules.get(decided.createdRuleId ?? "")?.when).toBe(
+      'tool.name == "browser_press" && target.host == "mail.example" && target.element.name == "Message" && tool.kind == "send"',
+    );
+    expect(gw.governance.dryRun(press("Post reply")).effect).toBe("allow");
+    expect(gw.governance.dryRun(press("Delete conversation")).effect).toBe("ask");
   });
 
   it("scopes MCP tools to the server", async () => {

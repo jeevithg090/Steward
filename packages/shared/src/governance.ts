@@ -31,6 +31,17 @@ export interface Initiator {
   id: string;
 }
 
+/** What the computer knows about one element on its page. */
+export interface ElementFacts {
+  role?: string;
+  name?: string;
+  /**
+   * The computer judged the field secret (a password, one-time code or card field, by type or
+   * autocomplete, whatever its label says). Typing into it is credential entry.
+   */
+  sensitive?: boolean;
+}
+
 /** The resolved thing a tool call acts on. Every field optional; resolvers fill what applies. */
 export interface Target {
   url?: string;
@@ -42,7 +53,14 @@ export interface Target {
   /** Money, in minor units, with an ISO currency. */
   amount?: { value: number; currency: string };
   /** The element a browser action touches, from the page snapshot. */
-  element?: { ref: string; role?: string; name?: string };
+  element?: ElementFacts & {
+    ref: string;
+    /**
+     * For a key press or a typed `submit`: the control that Enter or Space will actually activate
+     * (the focused button, or the form's default submit button). Escalation judges this one.
+     */
+    submitter?: Pick<ElementFacts, "role" | "name">;
+  };
   /** Free-form extras for MCP tools: the server id and tool name. */
   mcp?: { server: string; tool: string };
 }
@@ -215,6 +233,11 @@ export interface Governance {
   resume<T>(call: GateCall, act: () => Promise<T>): Promise<GateOutcome<T>>;
   /** Decide without acting or recording. Powers the "would this be allowed?" tester. */
   dryRun(call: GateCall): Decision;
+  /**
+   * The initiator stored with the approval for this tool call, when it belongs to this thread. A
+   * browser that resumes a routine's parked run must not turn it into the person's run.
+   */
+  initiatorFor(toolCallId: string, threadId: string): Initiator | undefined;
 }
 
 /** The interrupt Steward's middleware emits when a call is parked. `id` and `toolCallId` are the tool call id. */
@@ -238,6 +261,9 @@ export type LiveEvent =
   | { type: "task.updated"; taskId: string }
   | { type: "brief.ready"; briefId: string }
   | { type: "routine.updated"; routineId: string }
+  /** A run began or ended on a thread, whoever started it. An open conversation reconnects to follow it. */
+  | { type: "run.started"; threadId: string; runId: string; agentId: string }
+  | { type: "run.finished"; threadId: string; runId: string; agentId: string }
   | { type: "notification"; notification: AppNotification };
 
 export interface AppNotification {

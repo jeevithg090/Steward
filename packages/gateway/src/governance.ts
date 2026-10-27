@@ -3,17 +3,35 @@
  *
  * execute: decide → record `tool.decided` → allow: act, record `tool.completed` / `tool.failed`;
  *          deny: refuse with a sentence the model relays; ask: open the approval and park.
- * resume:  claim the answer once → check it is the same call → re-check deny rules → act.
+ * resume:  claim the answer once → check it is the same call on the same page → re-check deny rules → act.
  *
  * Nothing acts unless its decision is already in the record. Any internal error refuses.
  */
-import type { Decision, GateCall, GateOutcome, Governance, OutboundFinding } from "@steward/shared";
+import type {
+  Approval,
+  Decision,
+  GateCall,
+  GateOutcome,
+  Governance,
+  Initiator,
+  OutboundFinding,
+  Target,
+} from "@steward/shared";
 import { alwaysRuleFor, type SqliteApprovalStore } from "./approvals.ts";
 import type { SqliteAuditLog } from "./audit.ts";
 import type { CelEngine } from "./cel.ts";
 import { messageOf } from "./errors.ts";
 import { scanOutbound } from "./outbound.ts";
-import { BUILTIN, bare, builtinRef, decide, denyCheck, type PreparedCall, prepareCall } from "./policy.ts";
+import {
+  BUILTIN,
+  bare,
+  builtinRef,
+  decide,
+  denyCheck,
+  type PreparedCall,
+  prepareCall,
+  typesIntoSecret,
+} from "./policy.ts";
 import { canonicalJson, previewOf, redactForApproval, sha256Hex, truncate, underKey } from "./redact.ts";
 import type { SqliteRuleStore } from "./rules.ts";
 import { summarize } from "./summary.ts";
@@ -21,6 +39,27 @@ import { summarize } from "./summary.ts";
 /** sha256 of the canonical tool name and arguments. A resumed call must match it exactly. */
 export function actionDigest(call: Pick<GateCall, "tool" | "args">): string {
   return sha256Hex(canonicalJson({ tool: call.tool.name, args: call.args ?? {} }));
+}
+
+/** What a person approved about the element: its role and name, and the control a key activates. */
+function elementFacts(target: Target): string {
+  const e = target.element;
+  if (!e) return "";
+  return canonicalJson({ role: e.role ?? "", name: e.name ?? "", submitter: e.submitter?.name ?? "" });
+}
+
+/**
+ * Whether the call about to act still touches what the person approved. The digest covers only
+ * the tool and its arguments, and a ref such as e20 can name a different element after a restart,
+ * so the page, the element and what they make of the call are checked too.
+ */
+function sameTarget(approval: Approval, call: PreparedCall): boolean {
+  const was = approval.target ?? {};
+  const now = call.target ?? {};
+  if ((was.host ?? "") !== (now.host ?? "") || (was.url ?? "") !== (now.url ?? "")) return false;
+  if (elementFacts(was) !== elementFacts(now)) return false;
+  if (approval.tool.kind !== call.tool.kind) return false;
+  return typesIntoSecret(approval.tool.name, was.element) === call.credentialEntry;
 }
 
 const RELAY = "Tell the person; do not try another way around it.";
@@ -49,6 +88,13 @@ export class GatewayGovernance implements Governance {
 
   dryRun(call: GateCall): Decision {
     return decide(this.deps.engine, this.deps.rules.current(), call).decision;
+  }
+
+  /** A database error throws rather than answering "unknown", which would make the run a person's. */
+  initiatorFor(toolCallId: string, threadId: string): Initiator | undefined {
+    const found = this.deps.approvals.recordFor(toolCallId);
+    if (!found || found.approval.threadId !== threadId) return undefined;
+    return found.initiator;
   }
 
   async execute<T>(call: GateCall, act: () => Promise<T>): Promise<GateOutcome<T>> {
@@ -85,12 +131,17 @@ export class GatewayGovernance implements Governance {
         "Not done: this call could not be read.",
       ]);
     }
-    const summary = this.summaryOf(prepared);
+    let summary = this.summaryOf(prepared);
     const { approvals } = this.deps;
 
     try {
       approvals.expireDue();
       let found = approvals.recordFor(prepared.toolCallId);
+      if (found && typesIntoSecret(found.approval.tool.name, found.approval.target?.element)) {
+        // It was approved as a secret: whatever the field is now, the typed text stays out of the record.
+        prepared = { ...prepared, hiddenArgs: new Set([...prepared.hiddenArgs, "text", "value"]) };
+        summary = this.summaryOf(prepared);
+      }
       if (!found) {
         return this.refuseResume(prepared, summary, "Nothing was waiting for an answer on this call", [
           "Not done: nothing was waiting for an answer on this call.",
@@ -100,6 +151,10 @@ export class GatewayGovernance implements Governance {
         return this.refuseResume(prepared, summary, "This answer belongs to a different conversation", [
           "Not done: this answer belongs to a different conversation.",
         ]);
+      }
+      // A routine's or task's call stays theirs when a browser resumes it, so their rules still apply.
+      if (found.initiator.kind !== "person" && ["person", "resume"].includes(prepared.initiator.kind)) {
+        prepared = { ...prepared, initiator: found.initiator };
       }
       if (found.approval.status === "pending") {
         const cancelled = approvals.cancel(
@@ -155,6 +210,12 @@ export class GatewayGovernance implements Governance {
         return this.refuseResume(prepared, summary, "The call changed after it was approved", [
           "Not done: the call changed after the person approved it.",
           "Ask again with the new details.",
+        ]);
+      }
+      if (!sameTarget(approval, prepared)) {
+        return this.refuseResume(prepared, summary, "The page changed after it was approved", [
+          "The page changed since you approved this.",
+          "Ask again.",
         ]);
       }
 

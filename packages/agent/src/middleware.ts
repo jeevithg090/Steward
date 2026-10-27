@@ -41,6 +41,13 @@ export const CANCELLED_BY_PERSON =
 /** What the model reads when the gateway itself could not decide. Fail closed: nothing happened. */
 export const GATE_UNAVAILABLE = "Steward could not check this action, so it was not done.";
 
+/** What the person reads when a resume cannot tell whose run it continues. Nothing was done. */
+export const INITIATOR_UNKNOWN =
+  "Steward could not check who started this run, so it stopped before doing anything.";
+
+/** What the model reads for a call it was still writing when the run was stopped. It never ran. */
+export const STOPPED = "Stopped.";
+
 /** The assistant's last words when a run hits the step limit. */
 export const TOO_MANY_STEPS =
   "I stopped here: this took more steps than I take in one go. Ask me to carry on if you want me to continue.";
@@ -51,6 +58,9 @@ const BAD_JSON = "The arguments were not a JSON object. Call the tool again with
 const MAX_RESULT_CHARS = 120_000;
 
 const INITIATOR_KINDS: readonly Initiator["kind"][] = ["person", "routine", "task", "resume", "system"];
+
+/** Who a resumed run belongs to, strictest first: routines have the most rules against them. */
+const RESUMED_RANK: readonly Initiator["kind"][] = ["routine", "task", "resume", "system"];
 
 /**
  * The stop button. `StewardAgent` registers each run's input here with a signal it aborts from
@@ -225,19 +235,18 @@ export class GovernedToolsMiddleware extends Middleware {
 
   private async work(input: RunAgentInput, next: AbstractAgent, io: Io): Promise<void> {
     const { emit, signal } = io;
-    const initiator = this.initiatorOf(input);
+    emit({ type: EventType.RUN_STARTED, threadId: input.threadId, runId: input.runId } as BaseEvent);
+
+    let messages: Message[] = [...input.messages];
+    const resume = (input.resume ?? []).filter(
+      (entry) => findCall(messages, entry.interruptId) !== undefined,
+    );
+    const initiator = this.resumedInitiator(this.initiatorOf(input), resume, input.threadId);
     const tools = this.toolsForRun();
     const owned = new Map(tools.map((t) => [t.name, t]));
     const scope: RunScope = { input, initiator, owned, io };
 
-    emit({ type: EventType.RUN_STARTED, threadId: input.threadId, runId: input.runId } as BaseEvent);
-
-    let messages: Message[] = [...input.messages];
-
     // 1. Resume: the person answered an approval. The database decides, not the payload.
-    const resume = (input.resume ?? []).filter(
-      (entry) => findCall(messages, entry.interruptId) !== undefined,
-    );
     const answered = answeredIds(messages);
     if (resume.length > 0 && resume.every((entry) => answered.has(entry.interruptId))) {
       emit(this.finished(input));
@@ -296,6 +305,12 @@ export class GovernedToolsMiddleware extends Middleware {
       messages = mergeHistory(messages, request.messages, seg.messages);
       state = seg.state;
       if (!seg.terminal || seg.terminal.outcome?.type === "cancelled" || signal.aborted) {
+        // A stop while the model was still writing a call's arguments leaves that call open, and
+        // AG-UI refuses to finish a run with open calls. Close each one as stopped: it never ran.
+        for (const id of seg.openCalls) {
+          emit({ type: EventType.TOOL_CALL_END, toolCallId: id } as BaseEvent);
+          this.answer(messages, id, serialise({ ok: false, error: STOPPED }), emit);
+        }
         emit(seg.terminal ?? this.cancelled(input));
         return;
       }
@@ -346,23 +361,40 @@ export class GovernedToolsMiddleware extends Middleware {
     emit(lastFinish);
   }
 
-  /** One model call. Forwards its events, holds back its RUN_STARTED and RUN_FINISHED. */
+  /**
+   * One model call. Forwards its events, holds back its RUN_STARTED and RUN_FINISHED, and notes the
+   * tool calls it started but never ended (a stop mid-arguments), so the run can close them.
+   */
   private runSegment(
     request: RunAgentInput,
     next: AbstractAgent,
     io: Io,
-  ): Promise<{ messages: Message[]; state: unknown; terminal?: RunFinishedEvent; failed: boolean }> {
+  ): Promise<{
+    messages: Message[];
+    state: unknown;
+    terminal?: RunFinishedEvent;
+    failed: boolean;
+    openCalls: Set<string>;
+  }> {
     return new Promise((resolve) => {
       let messages = request.messages;
       let state: unknown = request.state;
       let terminal: RunFinishedEvent | undefined;
       let failed = false;
-      const settle = () => resolve({ messages, state, terminal, failed });
+      const openCalls = new Set<string>();
+      const settle = () => resolve({ messages, state, terminal, failed, openCalls });
       try {
         const sub = this.runNextWithState(request, new Seed(next, request)).subscribe({
           next: ({ event, messages: updated, state: updatedState }) => {
             messages = updated;
             state = updatedState;
+            if (event.type === EventType.TOOL_CALL_START || event.type === EventType.TOOL_CALL_END) {
+              const id = (event as { toolCallId?: unknown }).toolCallId;
+              if (typeof id === "string") {
+                if (event.type === EventType.TOOL_CALL_START) openCalls.add(id);
+                else openCalls.delete(id);
+              }
+            }
             if (event.type === EventType.RUN_STARTED) return;
             if (event.type === EventType.RUN_FINISHED) {
               terminal = event as RunFinishedEvent;
@@ -496,7 +528,7 @@ export class GovernedToolsMiddleware extends Middleware {
   private answer(messages: Message[], toolCallId: string, content: string, emit: Emit): Message[] {
     const id = randomUUID();
     emit({ type: EventType.TOOL_CALL_RESULT, messageId: id, toolCallId, role: "tool", content } as BaseEvent);
-    return [...messages, { id, role: "tool", toolCallId, content } as Message];
+    return placeResult(messages, toolCallId, { id, role: "tool", toolCallId, content } as Message);
   }
 
   /** Ends the run waiting on the person: one CUSTOM event per approval, then the interrupt. */
@@ -552,6 +584,32 @@ export class GovernedToolsMiddleware extends Middleware {
       }
     }
     return { kind: "person", id: this.opts.actorId };
+  }
+
+  /**
+   * A browser that resumes a routine's or task's parked run carries no server token, but the run is
+   * still theirs: keep the initiator stored with the approvals, as the resume sweep does, so their
+   * stricter rules still apply. Several resumed calls give the strictest. Only ever stricter.
+   *
+   * Not knowing must not make it the person's run either: the run stops before anything acts, and
+   * the answer stays unclaimed for the resume sweep, which knows the initiator.
+   */
+  private resumedInitiator(initiator: Initiator, resume: ResumeEntry[], threadId: string): Initiator {
+    if (initiator.kind !== "person") return initiator;
+    let strictest: Initiator | undefined;
+    for (const entry of resume) {
+      let stored: Initiator | undefined;
+      try {
+        stored = this.opts.governance.initiatorFor(entry.interruptId, threadId);
+      } catch (error) {
+        this.report(error, "initiator");
+        throw new Error(INITIATOR_UNKNOWN);
+      }
+      const rank = stored ? RESUMED_RANK.indexOf(stored.kind) : -1;
+      if (!stored || rank < 0 || typeof stored.id !== "string") continue;
+      if (!strictest || rank < RESUMED_RANK.indexOf(strictest.kind)) strictest = stored;
+    }
+    return strictest ? { kind: strictest.kind, id: strictest.id } : initiator;
   }
 
   private toolsForRun(): StewardTool[] {
@@ -684,6 +742,22 @@ function withoutStewardProps(props: unknown): unknown {
   if (!isRecord(props) || !("steward" in props)) return props;
   const { steward: _steward, ...rest } = props;
   return rest;
+}
+
+/**
+ * Puts a tool result right after the assistant message that made the call (and any results already
+ * there), exactly where the AG-UI reducer puts it in the saved thread. A late resume, after the
+ * conversation moved on, would otherwise land after later turns: the model would never see it, or
+ * the provider would reject the order. Appends only when no message owns the call.
+ */
+function placeResult(messages: readonly Message[], toolCallId: string, result: Message): Message[] {
+  const owner = messages.findIndex(
+    (m) => m.role === "assistant" && (m.toolCalls ?? []).some((c) => c.id === toolCallId),
+  );
+  if (owner === -1) return [...messages, result];
+  let at = owner + 1;
+  while (at < messages.length && messages[at]?.role === "tool") at++;
+  return [...messages.slice(0, at), result, ...messages.slice(at)];
 }
 
 /**

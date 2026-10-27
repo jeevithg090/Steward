@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ConfigError, DEV_ORIGINS, isLoopbackHost, loadConfig, parseFlag, REPO_ROOT } from "../src/config.ts";
@@ -47,6 +47,17 @@ describe("loadConfig", () => {
     expect(() => loadConfig({ STEWARD_ALLOW_PRIVATE_HOSTS: "1", NODE_ENV: "production" })).toThrow(/refused/);
     expect(loadConfig({ STEWARD_ALLOW_PRIVATE_HOSTS: "1" }).allowPrivateHosts).toBe(true);
     expect(loadConfig({ NODE_ENV: "production" }).devOrigins).toEqual([]);
+  });
+
+  it("answers the Vite dev server and `vite preview` in development", () => {
+    expect(loadConfig({}).devOrigins).toEqual(
+      expect.arrayContaining([
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173",
+      ]),
+    );
   });
 
   it("parses flags leniently", () => {
@@ -98,5 +109,33 @@ describe("environment", () => {
         delete process.env[k];
       remove();
     }
+  });
+
+  it("counts a blank value as unset, so `KEY=` in .env never hides STEWARD_ENV_FILE's key", () => {
+    const { dir, remove } = tempDir();
+    try {
+      writeFileSync(join(dir, ".env"), "OPENROUTER_API_KEY=\nSTEWARD_TEST_D=\nSTEWARD_TEST_E=from-dotenv\n");
+      writeFileSync(join(dir, "keys.env"), "OPENROUTER_API_KEY=sk-or-real\nSTEWARD_TEST_D=\n");
+      // What Node's --env-file would already have set from .env, blank included.
+      const env: NodeJS.ProcessEnv = {
+        STEWARD_ENV_FILE: "keys.env",
+        OPENROUTER_API_KEY: "",
+        STEWARD_TEST_E: " ",
+      };
+      loadEnvFiles(dir, env);
+      expect(env.OPENROUTER_API_KEY).toBe("sk-or-real");
+      expect(env.STEWARD_TEST_D).toBe("");
+      expect(env.STEWARD_TEST_E).toBe("from-dotenv");
+      expect(process.env.OPENROUTER_API_KEY).not.toBe("sk-or-real");
+    } finally {
+      remove();
+    }
+  });
+
+  it("leaves reading .env to the server in every script, not to Node's --env-file", () => {
+    const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "apps/server/package.json"), "utf8")) as {
+      scripts: Record<string, string>;
+    };
+    for (const script of Object.values(pkg.scripts)) expect(script).not.toMatch(/--env-file/);
   });
 });

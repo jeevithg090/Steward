@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { AbstractAgent, BaseEvent, Context, Message, ResumeEntry, RunAgentInput } from "@ag-ui/client";
 import { ThreadAlreadyRunningError } from "@copilotkit/runtime/v2";
-import type { Initiator } from "@steward/shared";
+import type { ApprovalStore, Initiator } from "@steward/shared";
 import { HttpError } from "../http/errors.ts";
 import { type RunSummary, summariseRun } from "./run-summary.ts";
 import { type NodeSqliteAgentRunner, SERVER_PROPS_KEY } from "./runner.ts";
@@ -11,6 +11,43 @@ export class ThreadBusyError extends HttpError {
     super(409, "That conversation is busy right now. Try again in a moment.");
     this.name = "ThreadBusyError";
   }
+}
+
+/** A new turn would land between a parked call and its answer, so the model would never see it. */
+export class ThreadWaitingError extends HttpError {
+  constructor() {
+    super(409, "That conversation is waiting for your answer to a request. Answer it first.");
+    this.name = "ThreadWaitingError";
+  }
+}
+
+/**
+ * The calls in the thread's last turn that have no result yet. When `approvals` is given, only
+ * calls whose approval no run has claimed count: a call left behind by a stopped run has none and
+ * will never be answered.
+ */
+export function waitingCalls(
+  messages: readonly Message[],
+  threadId: string,
+  approvals?: Pick<ApprovalStore, "byToolCall">,
+): string[] {
+  let start = 0;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i]?.role === "user") {
+      start = i + 1;
+      break;
+    }
+  }
+  const turn = messages.slice(start);
+  const answered = new Set(turn.flatMap((m) => (m.role === "tool" ? [m.toolCallId] : [])));
+  return turn
+    .flatMap((m) => (m.role === "assistant" ? (m.toolCalls ?? []).map((c) => c.id) : []))
+    .filter((id) => {
+      if (answered.has(id)) return false;
+      if (!approvals) return true;
+      const approval = approvals.byToolCall(id);
+      return approval !== undefined && approval.threadId === threadId && !approval.claimedAt;
+    });
 }
 
 export interface RunOnThreadOptions {
@@ -50,6 +87,8 @@ export class ServerRuns {
       runner: NodeSqliteAgentRunner;
       agent: (agentId: string) => AbstractAgent | undefined;
       serverRunToken: string;
+      /** Tells which unanswered calls still wait for an answer. Without it, every one does. */
+      approvals?: Pick<ApprovalStore, "byToolCall">;
     },
   ) {}
 
@@ -63,16 +102,25 @@ export class ServerRuns {
     return this.deps.runner.whenIdle(threadId);
   }
 
-  /** Starts a run on a thread. Refuses (409) when the thread already has a run in flight. */
+  /**
+   * Starts a run on a thread. Refuses (409) when the thread already has a run in flight, and a new
+   * user turn while the last one still waits for an answer: the resume would then land after it,
+   * where the model never sees it. Resume runs are always allowed.
+   */
   start(opts: RunOnThreadOptions): ServerRun {
     const { runner } = this.deps;
     const base = this.deps.agent(opts.agentId);
     if (!base) throw new HttpError(404, "Couldn't find that agent.");
     if (runner.isThreadBusy(opts.threadId)) throw new ThreadBusyError();
 
+    const history = runner.getThreadMessages(opts.threadId);
+    if (opts.userText && waitingCalls(history, opts.threadId, this.deps.approvals).length > 0) {
+      throw new ThreadWaitingError();
+    }
+
     const agent = base.clone();
     agent.agentId = opts.agentId;
-    const messages: Message[] = [...runner.getThreadMessages(opts.threadId)];
+    const messages: Message[] = [...history];
     if (opts.userText) messages.push({ id: randomUUID(), role: "user", content: opts.userText });
     agent.setMessages(messages);
     agent.setState(runner.getThreadState(opts.threadId) ?? {});

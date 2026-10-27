@@ -19,6 +19,22 @@ const PAGES: Record<string, string> = {
     <a href="/next">Next page</a>
     <a href="/next" target="_blank">Open in a new tab</a>`,
   "/next": `<!doctype html><title>Next</title><h1>Next page</h1><button>Continue</button>`,
+  "/checkout": `<!doctype html><title>Checkout</title>
+    <form onsubmit="event.preventDefault(); document.getElementById('placed').textContent = 'Order placed'">
+      <label>Promo code <input id="promo"></label>
+      <label>Passwort <input type="password" id="pw"></label>
+      <input type="password" id="bare">
+      <button type="button">Apply</button>
+      <button>Place order</button>
+      <button>Save for later</button>
+      <div role="menuitem" tabindex="0">Remove item</div>
+    </form>
+    <p id="placed"></p>
+    <form><label>Coupon <input id="coupon"></label><button style="display:none">Redeem</button></form>
+    <button>Help</button>
+    <input aria-hidden="true" style="width:0;height:0;border:0;padding:0">`,
+  "/framed": `<!doctype html><title>Framed</title><h1>Pay</h1><button>Back to shop</button>
+    <iframe src="/checkout" title="Payment" width="800" height="400"></iframe>`,
   "/rename": `<!doctype html><title>Rename</title>
     <button id="target">Next</button>
     <button onclick="setTimeout(() => { document.getElementById('target').textContent = 'Pay now'; }, 800)">Arm</button>`,

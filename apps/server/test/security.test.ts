@@ -76,6 +76,12 @@ describe("origin guard", () => {
     expect((await post({})).status).toBe(200);
   });
 
+  it("allows `vite preview`, whose proxy keeps the browser's Origin", async () => {
+    expect((await post({ origin: "http://127.0.0.1:4173" })).status).toBe(200);
+    expect((await post({ origin: "http://localhost:4173" })).status).toBe(200);
+    expect((await post({ origin: "http://127.0.0.1:4174" })).status).toBe(403);
+  });
+
   it("refuses other sites, by Origin or Sec-Fetch-Site", async () => {
     const res = await post({ origin: "https://evil.example" });
     expect(res.status).toBe(403);
@@ -143,6 +149,13 @@ describe("errors and headers", () => {
     expect(res.headers.get("x-frame-options")).toBe("DENY");
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
     expect(res.headers.get("content-security-policy")).toContain("frame-ancestors 'none'");
+  });
+
+  it("loads images only from this server, data: and blob:", async () => {
+    const res = await guarded().request("http://x/api/thing", { headers: { host: "localhost" } });
+    const directives = (res.headers.get("content-security-policy") ?? "").split(";").map((d) => d.trim());
+    // An image in a reply that points at another host must not load.
+    expect(directives.find((d) => d.startsWith("img-src"))).toBe("img-src 'self' data: blob:");
   });
 });
 

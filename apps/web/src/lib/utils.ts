@@ -75,8 +75,26 @@ export function formatDateTime(iso: string | undefined): string {
   });
 }
 
-/** Today's date where the person is, `YYYY-MM-DD`. Never UTC: a UTC "today" is wrong every evening in America. */
-export function localDate(d: Date = new Date()): string {
+/**
+ * Today's date where the person is, `YYYY-MM-DD`. Never UTC: a UTC "today" is wrong every evening in
+ * America. With a time zone, the date there (the Settings zone is the one the server keeps days in);
+ * an unknown zone falls back to this browser's.
+ */
+export function localDate(d: Date = new Date(), timeZone?: string): string {
+  if (timeZone) {
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).formatToParts(d);
+      const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+      return `${part("year")}-${part("month")}-${part("day")}`;
+    } catch {
+      // An unknown zone: use this browser's.
+    }
+  }
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");

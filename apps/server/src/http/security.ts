@@ -16,7 +16,7 @@ export interface SecurityOptions {
   bindHost: string;
   /** Extra Host names accepted (`STEWARD_ALLOWED_HOSTS`). */
   allowedHosts: string[];
-  /** Origins allowed to call the API from another origin (the Vite dev server). */
+  /** Origins allowed to call the API from another origin (the Vite dev and preview servers). */
   devOrigins: string[];
 }
 
@@ -103,7 +103,7 @@ export function isAllowedUpgrade(c: Context, opts: SecurityOptions): boolean {
   return isAllowedOrigin(origin, requestHost(c), opts);
 }
 
-/** CORS for the Vite dev server only. Production serves the web app from the same origin. */
+/** CORS for the Vite dev and preview servers only. Production serves the web app from the same origin. */
 export function devCors(opts: SecurityOptions): MiddlewareHandler {
   if (opts.devOrigins.length === 0) return async (_c, next) => next();
   return cors({
@@ -113,6 +113,13 @@ export function devCors(opts: SecurityOptions): MiddlewareHandler {
   });
 }
 
+/**
+ * Images load only from this server, `data:` and `blob:` (the live screen draws its JPEG frames from
+ * data). An image in a reply that points elsewhere would otherwise send whatever its address carries
+ * out of the machine with no tool call, past the gateway.
+ */
+export const CONTENT_SECURITY_POLICY = "frame-ancestors 'none'; img-src 'self' data: blob:";
+
 /** Headers every response carries: no sniffing, no referrer, never framed (approval cards must not be clickjacked). */
 export function securityHeaders(): MiddlewareHandler {
   return async (c, next) => {
@@ -121,7 +128,7 @@ export function securityHeaders(): MiddlewareHandler {
     c.res.headers.set("Referrer-Policy", "no-referrer");
     c.res.headers.set("X-Frame-Options", "DENY");
     if (!c.res.headers.has("Content-Security-Policy")) {
-      c.res.headers.set("Content-Security-Policy", "frame-ancestors 'none'");
+      c.res.headers.set("Content-Security-Policy", CONTENT_SECURITY_POLICY);
     }
   };
 }

@@ -7,6 +7,7 @@
  * never from the model) and raises the kind to match. The list lives here, in one place, with tests.
  */
 import type { ToolKind } from "@steward/shared";
+import { stricterKind } from "./target.ts";
 
 export interface EscalationPattern {
   kind: Extract<ToolKind, "pay" | "sign" | "delete" | "send">;
@@ -42,13 +43,24 @@ export const ESCALATIONS: readonly EscalationPattern[] = [
   },
 ];
 
-const ENTER_KEYS = new Set(["enter", "numpadenter", "return"]);
+/**
+ * Keys that activate what has focus: Enter submits a form and presses a focused button; Space
+ * presses a focused button. A combination counts by its last key, so "Control+Enter" (send in
+ * many mail and chat apps) commits too.
+ */
+const COMMIT_KEYS = new Set(["enter", "numpadenter", "return", " ", "space", "spacebar"]);
+
+function isCommitKey(key: unknown): boolean {
+  if (typeof key !== "string" || key === "") return false;
+  // A combination ending in "+" ("Shift++") is the plus key, not a separator.
+  const last = key.endsWith("+") ? "+" : (key.split("+").pop() ?? "");
+  return COMMIT_KEYS.has(last.toLowerCase());
+}
 
 /** The browser actions that can commit something, and when. */
 function commits(toolName: string, args: Record<string, unknown>): boolean {
   if (toolName === "browser_click") return true;
-  if (toolName === "browser_press")
-    return typeof args.key === "string" && ENTER_KEYS.has(args.key.toLowerCase());
+  if (toolName === "browser_press") return isCommitKey(args.key);
   // Typing with `submit: true` presses Enter in the field afterwards.
   if (toolName === "browser_type") return args.submit === true;
   return false;
@@ -62,21 +74,42 @@ export function kindForElementName(name: string): EscalationPattern["kind"] | un
   return undefined;
 }
 
+/** What escalation reads of the element: its name, and for a key press the control it activates. */
+export interface EscalationElement {
+  name?: string;
+  submitter?: { name?: string };
+}
+
+function usable(name: unknown): name is string {
+  return typeof name === "string" && name.trim() !== "";
+}
+
+function kindOf(name: unknown): EscalationPattern["kind"] | undefined {
+  return usable(name) ? kindForElementName(name) : undefined;
+}
+
 /**
  * The kind a browser action really has, given the element it touches. Returns undefined when the
  * action does not commit anything or the element's name says nothing more.
  *
  * - `browser_click` on an element named like Send / Pay / Delete / Sign.
- * - `browser_press` of Enter, judged by the focused element the computer reports.
- * - `browser_type` with `submit: true`, judged by the field typed into.
+ * - `browser_press` of Enter or Space (alone or with modifiers), and `browser_type` with
+ *   `submit: true`: judged by the control the key activates (`element.submitter`, which the
+ *   computer reports) and by the focused or typed-into element itself; the stricter wins. When the
+ *   computer named neither, nobody knows what the key will do, so it is at least a send: it asks by
+ *   default and always after untrusted content.
  */
 export function escalateKind(
   toolName: string,
   args: Record<string, unknown>,
-  element: { name?: string } | undefined,
+  element: EscalationElement | undefined,
 ): EscalationPattern["kind"] | undefined {
   if (!commits(toolName, args)) return undefined;
-  const name = element?.name;
-  if (typeof name !== "string") return undefined;
-  return kindForElementName(name);
+  if (toolName === "browser_click") return kindOf(element?.name);
+  const submitterName = element?.submitter?.name;
+  if (!usable(submitterName) && !usable(element?.name)) return "send";
+  const bySubmitter = kindOf(submitterName);
+  const byElement = kindOf(element?.name);
+  if (!bySubmitter || !byElement) return bySubmitter ?? byElement;
+  return stricterKind(bySubmitter, byElement) as EscalationPattern["kind"];
 }
