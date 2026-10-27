@@ -49,9 +49,7 @@
   },
   "overrides": [
     {
-      "includes": [
-        "**/*.html"
-      ],
+      "includes": ["**/*.html"],
       "linter": {
         "enabled": false
       }
