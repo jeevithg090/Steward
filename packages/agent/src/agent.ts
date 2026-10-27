@@ -49,6 +49,11 @@ export interface AgentDeps {
   serverRunToken: string;
   /** How many model calls one run may make. Defaults to 24. */
   maxSegments?: number;
+  /**
+   * The most a single model reply may write. Without it some providers reserve their own maximum
+   * (65k tokens on OpenRouter for Sonnet) and refuse accounts with a small balance. Default 4096.
+   */
+  maxOutputTokens?: number;
   /** Where unexpected errors go. Defaults to a one-line console.error without stack or arguments. */
   onError?: (error: unknown, where: string) => void;
 }
@@ -112,6 +117,7 @@ export function createStewardAgent(deps: AgentDeps): StewardAgent {
     model: deps.model,
     prompt: buildSystemPrompt({ tenant: deps.tenant, profile: deps.profile }),
     maxSteps: 1,
+    maxOutputTokens: deps.maxOutputTokens ?? 4096,
   });
   agent.agentId = deps.profile.id;
   agent.description = deps.profile.title;

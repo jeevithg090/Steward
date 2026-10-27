@@ -121,7 +121,7 @@ export function buildRunContext(opts: {
     value: !mail
       ? "Not connected. If asked about mail or the calendar, say so, and that it can be connected on the Connections page."
       : mail.isDemo
-        ? `Connected to the demo inbox (${mail.label}): made-up mail and events for trying Steward out. Say so when you report from it, and never treat the people in it as the person's real contacts.`
+        ? `Connected to the demo inbox (${mail.label}): made-up mail and events for trying Steward out. Say so when you report from the mail or calendar (and only then: the web and the computer are real), and never treat the people in it as the person's real contacts.`
         : `Connected: ${mail.label}.`,
   });
 

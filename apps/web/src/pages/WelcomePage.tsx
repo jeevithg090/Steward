@@ -61,9 +61,14 @@ export function WelcomePage() {
 
   useDocumentTitle("Welcome", name);
 
-  // Each new step's heading takes focus, so a screen reader announces where the person is.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run on every step change.
+  // Each new step's heading takes focus, so a screen reader announces where the person is. Not on
+  // the first step of a fresh load: there the first Tab must still reach the skip link.
+  // Compared with the last step rather than a first-run flag: React runs effects twice in
+  // development, and a flag would treat the second run as a step change.
+  const shownStep = useRef(step);
   useEffect(() => {
+    if (shownStep.current === step) return;
+    shownStep.current = step;
     headingRef.current?.focus();
   }, [step]);
 

@@ -97,6 +97,9 @@ export function newestAssistantText(
 /** Turns a run failure into a sentence a person can act on. */
 export function plainRunError(error: unknown): string {
   const raw = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  // The server already words model failures for people ("The model provider says the account is
+  // out of credit..."). Show those as they are rather than a vaguer sentence.
+  if (/^(The model|Steward could not reach)/.test(raw.trim())) return raw.trim();
   const text = raw.toLowerCase();
   if (text.includes("pending interrupt")) return "Answer the request above first, then try again.";
   if (text.includes("locked") || text.includes("already running") || text.includes("busy")) {
@@ -107,6 +110,9 @@ export function plainRunError(error: unknown): string {
   }
   if (text.includes("401") || text.includes("api key") || text.includes("unauthor")) {
     return "The model provider turned the request away. Check the model key in Settings.";
+  }
+  if (text.includes("402") || text.includes("credit")) {
+    return "The model provider says the account is out of credit. Check your account with them.";
   }
   if (text.includes("429") || text.includes("rate limit"))
     return "The model provider is busy. Try again in a minute.";

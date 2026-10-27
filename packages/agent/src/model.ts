@@ -154,12 +154,14 @@ export async function createModel(cfg: ModelConfig, env: NodeJS.ProcessEnv): Pro
   const apiKey = envValue(env, keyEnv);
   if (info.keyEnv && !apiKey) return startScripted(scriptedLabel(`no key for ${cfg.provider}`));
 
+  const extraBody = cfg.provider === "nvidia" ? nvidiaExtras(env) : undefined;
   const provider = createOpenAI({
     name: cfg.provider,
     baseURL,
     // Keyless local servers still need a non-empty bearer for the client to send the request.
     apiKey: apiKey ?? "not-needed",
     ...(info.headers ? { headers: info.headers } : {}),
+    ...(extraBody ? { fetch: withExtraBody(extraBody) } : {}),
   });
   return {
     model: provider.chat(cfg.model),
@@ -167,6 +169,30 @@ export async function createModel(cfg: ModelConfig, env: NodeJS.ProcessEnv): Pro
     scripted: false,
     close: async () => {},
   };
+}
+
+/**
+ * NVIDIA's reasoning models (Nemotron) think before every reply unless told not to, which makes each
+ * tool call take about 20 s instead of 1–2 s. Thinking stays off unless STEWARD_NVIDIA_THINKING=1.
+ */
+function nvidiaExtras(env: NodeJS.ProcessEnv): Record<string, unknown> {
+  const thinking = env.STEWARD_NVIDIA_THINKING === "1";
+  return { chat_template_kwargs: { enable_thinking: thinking } };
+}
+
+/** A fetch that adds fields to every JSON request body. Used for provider switches the AI SDK has no option for. */
+export function withExtraBody(extra: Record<string, unknown>, base: typeof fetch = fetch): typeof fetch {
+  return (async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.body && typeof init.body === "string") {
+      try {
+        const body = JSON.parse(init.body) as Record<string, unknown>;
+        return base(input, { ...init, body: JSON.stringify({ ...extra, ...body }) });
+      } catch {
+        // Not JSON: send as it is.
+      }
+    }
+    return base(input, init);
+  }) as typeof fetch;
 }
 
 async function startScripted(label: string): Promise<CreatedModel> {

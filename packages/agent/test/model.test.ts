@@ -193,3 +193,22 @@ describe("createModel", () => {
     await created.close();
   });
 });
+
+describe("withExtraBody", () => {
+  it("adds provider switches to JSON bodies and leaves the rest alone", async () => {
+    const { withExtraBody } = await import("../src/model.ts");
+    const seen: unknown[] = [];
+    const base = (async (_url: unknown, init?: RequestInit) => {
+      seen.push(init?.body);
+      return new Response("{}");
+    }) as typeof fetch;
+    const f = withExtraBody({ chat_template_kwargs: { enable_thinking: false } }, base);
+    await f("https://x.test", { method: "POST", body: JSON.stringify({ model: "m" }) });
+    await f("https://x.test", { method: "POST", body: "not json" });
+    expect(JSON.parse(seen[0] as string)).toEqual({
+      model: "m",
+      chat_template_kwargs: { enable_thinking: false },
+    });
+    expect(seen[1]).toBe("not json");
+  });
+});

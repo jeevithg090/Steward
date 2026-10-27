@@ -36,10 +36,13 @@ export function ChatPage() {
       { agentId: requestedAgent ?? DEFAULT_AGENT_ID, title: titleFromPrompt(prompt) },
       {
         onSuccess: (thread) => {
+          // `creating` stays set until the address carries the new id (the effect below clears it).
+          // Clearing it here let the effect run once more before the navigation landed, which made a
+          // second conversation and swapped the composer out from under the person's typing.
           const search = prompt ? `?${new URLSearchParams({ prompt }).toString()}` : "";
           navigate(`/chat/${encodeURIComponent(thread.id)}${search}`, { replace: true });
         },
-        onSettled: () => {
+        onError: () => {
           creating.current = false;
         },
       },
@@ -47,7 +50,11 @@ export function ChatPage() {
   }, [create, navigate, prompt, requestedAgent]);
 
   useEffect(() => {
-    if (!threadId && !create.isError) startThread();
+    if (threadId) {
+      creating.current = false;
+      return;
+    }
+    if (!create.isError) startThread();
   }, [threadId, create.isError, startThread]);
 
   const dropPrompt = useCallback(() => {

@@ -12,3 +12,6 @@ playwright-report/
 .DS_Store
 *.log
 .vite/
+
+# Local editor and agent settings
+.claude/

@@ -47,12 +47,19 @@ export async function openNewChat(page: Page): Promise<Locator> {
   return composer;
 }
 
+/** The person's own bubble with exactly this text. Screen readers hear it as "You said: <text>". */
+export function personSaid(page: Page, text: string): Locator {
+  return conversation(page)
+    .getByRole("listitem")
+    .filter({ hasText: `You said: ${text}` });
+}
+
 /** Types a message into the composer and sends it with the Send button. */
 export async function sendMessage(page: Page, text: string): Promise<void> {
   const composer = page.getByRole("textbox", { name: /^Message / });
   await composer.fill(text);
   await page.getByRole("main").getByRole("button", { name: "Send", exact: true }).click();
-  await expect(conversation(page).getByText(text, { exact: true })).toBeVisible();
+  await expect(personSaid(page, text)).toBeVisible();
 }
 
 interface RuleSummary {

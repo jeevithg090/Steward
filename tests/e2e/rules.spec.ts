@@ -25,7 +25,7 @@ test.describe("Rules", () => {
     await tester.getByRole("button", { name: "Check", exact: true }).click();
 
     await expect(tester.getByText(/would be refused/i)).toBeVisible();
-    await expect(tester.getByText(name)).toBeVisible();
+    await expect(tester.getByText(name, { exact: true })).toBeVisible();
   });
 
   test("a rule that cannot be read is refused with a reason, not saved", async ({ page }) => {

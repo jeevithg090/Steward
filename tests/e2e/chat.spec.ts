@@ -1,4 +1,4 @@
-import { conversation, expect, openNewChat, sendMessage, test } from "./fixtures.ts";
+import { conversation, expect, openNewChat, personSaid, sendMessage, test } from "./fixtures.ts";
 
 test.describe("Chat", () => {
   test("a hello gets a reply that says it comes from the scripted demo model", async ({ page }) => {
@@ -17,7 +17,7 @@ test.describe("Chat", () => {
 
     await page.waitForURL(/\/chat\/[^/?#]+/);
     const log = conversation(page);
-    await expect(log.getByText("What needs me today?", { exact: true })).toBeVisible();
+    await expect(personSaid(page, "What needs me today?")).toBeVisible();
     // The scripted model reads the demo inbox and says that it is demo data.
     await expect(log.getByText(/demo inbox/i).first()).toBeVisible({ timeout: 60_000 });
   });

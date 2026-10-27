@@ -89,6 +89,12 @@ export function modelEnv(env: NodeJS.ProcessEnv, choice?: ModelChoice): NodeJS.P
   return out;
 }
 
+/** `STEWARD_MODEL_MAX_TOKENS`, between 256 and 64k; 4096 when unset or unreadable. */
+function maxOutputTokens(env: NodeJS.ProcessEnv): number {
+  const n = Number(env.STEWARD_MODEL_MAX_TOKENS);
+  return Number.isInteger(n) && n >= 256 && n <= 65_536 ? n : 4096;
+}
+
 function hasKey(cfg: ModelConfig, env: NodeJS.ProcessEnv): boolean {
   // A local OpenAI-compatible server (LM Studio, vLLM, llama.cpp) often needs no key at all.
   if (KEYLESS.has(cfg.provider) || cfg.provider === "openai-compatible" || !cfg.apiKeyEnv) return true;
@@ -181,6 +187,7 @@ export class AgentHost {
           tenant,
           model: model.model,
           serverRunToken: this.deps.serverRunToken,
+          maxOutputTokens: maxOutputTokens(this.deps.env),
         });
       } catch (err) {
         console.error(

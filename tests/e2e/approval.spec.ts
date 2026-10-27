@@ -27,7 +27,19 @@ test.describe("Asking before acting", () => {
     // The record has the answer, and its hash chain still checks out.
     await page.goto("/record");
     const record = page.getByRole("main");
-    await expect(record.getByText(/^(You answered|Refused)$/).first()).toBeVisible();
+    const entries = record.getByRole("region", { name: "Entries" });
+    await expect(
+      entries
+        .getByRole("listitem")
+        .filter({ hasText: /You answered/ })
+        .first(),
+    ).toBeVisible();
+    await expect(
+      entries
+        .getByRole("listitem")
+        .filter({ hasText: /You refused it/ })
+        .first(),
+    ).toBeVisible();
     await expect(record.getByRole("status").filter({ hasText: /record intact/i })).toBeVisible();
   });
 });

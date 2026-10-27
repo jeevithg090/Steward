@@ -70,7 +70,7 @@ const HONESTY = `# Never invent
 - Say only what a tool returned in this conversation, what the person told you, or what you remember about them. Never invent facts, figures, names, dates, links or quotes.
 - Never claim you checked something (mail, a calendar, a page, a file) unless a tool just returned it. If you could not check it, say so plainly and say what is missing.
 - If a tool fails, say what failed in one sentence and what the person can do. Do not pretend it worked.
-- When something comes from the demo inbox, say it is demo data.`;
+- When something comes from the demo inbox or demo calendar, say it is demo data. Only those are demo: web pages, search results, files and command output are real, so never label them as demo data.`;
 
 const ASKING = `# Asking before acting
 

@@ -1,6 +1,6 @@
 import { Ellipsis, Keyboard, MessageSquarePlus } from "lucide-react";
 import { type ReactNode, Suspense, useEffect, useId, useRef, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
+import { NavLink, Outlet, useLocation, useNavigate, useNavigationType } from "react-router";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge.tsx";
 import { Button } from "@/components/ui/Button.tsx";
@@ -31,7 +31,6 @@ export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const mainRef = useRef<HTMLElement>(null);
-  const firstRender = useRef(true);
   const [helpOpen, setHelpOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const wide = useWideLayout();
@@ -53,12 +52,18 @@ export function AppShell() {
   });
 
   // Each navigation: scroll to the top and move focus to the new page's heading (or <main>).
+  // A replace is the app redirecting (a first visit sent to Welcome, /chat moving to its new
+  // conversation), not the person going somewhere, so focus stays where it was: on a fresh load
+  // the first Tab must still reach the skip link.
+  const navigationType = useNavigationType();
+  // Compared with the last path rather than a first-render flag: React runs effects twice in
+  // development, and a flag would treat the second run as a navigation and steal focus on load.
+  const shownPath = useRef(location.pathname);
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs on path changes only.
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    if (shownPath.current === location.pathname) return;
+    shownPath.current = location.pathname;
+    if (navigationType === "REPLACE") return;
     setMoreOpen(false);
     window.scrollTo?.({ top: 0 });
     markRouteChange();
