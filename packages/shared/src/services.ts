@@ -21,6 +21,7 @@ import type {
   TriageItem,
 } from "./domain.ts";
 import type {
+  AppNotification,
   Approval,
   ApprovalAnswer,
   AuditEvent,
@@ -204,4 +205,10 @@ export interface TextModel {
   readonly label: string;
   /** Returns the model's raw text. Callers parse JSON themselves and treat failure as "could not". */
   complete(opts: { system: string; prompt: string; maxTokens?: number; signal?: AbortSignal }): Promise<string>;
+}
+
+export interface NotificationStore {
+  list(opts?: { unreadOnly?: boolean; limit?: number }): AppNotification[];
+  add(input: Omit<AppNotification, "id" | "createdAt" | "readAt">): AppNotification;
+  readAll(): void;
 }

@@ -82,11 +82,60 @@ apps/server (Hono on Node)
 Ports: web 5173 (dev), server 8787, demo Google mounted at `/demo-google` on the server.
 Data lives in `.steward-data/` (gitignored): `steward.db`, `computers/<agent>/{profile,workspace}`.
 
-## 4. Contracts
+## 4. Contracts and decisions
 
-`packages/shared/src` is the single source of truth for types shared across packages and the web
-app. Packages depend on the interfaces there, never on each other's internals. See §4 detail in
-`packages/shared/README.md` once written. (Filled in after the research phase, §9.)
+`packages/shared/src` is the single source of truth: `governance.ts` (calls, decisions, approvals,
+the record, live events), `domain.ts` (mail, calendar, triage, brief, tasks, routines, memory,
+skills, tenants, setup), `computer.ts` (the computer and its WebSocket protocol), `tools.ts` (the
+built-in tool catalogue with kinds and surfaces), `api.ts` (every REST route and its bodies),
+`services.ts` (the interfaces each package implements). Packages depend on these, never on each
+other's internals; `apps/server` wires them.
+
+**Decisions from the research phase (27 Oct 2026)**
+
+1. **Runtime.** CopilotKit v2 runtime in SSE mode, no Intelligence. `createCopilotRuntimeHandler({ runtime, basePath: "/api/copilotkit" })`
+   mounted with `app.all("/api/copilotkit/*", c => handler(c.req.raw))` (never `createCopilotHonoHandler`
+   at a prefix: it doubles the path). `COPILOTKIT_TELEMETRY_DISABLED=true` is set by the server at boot.
+2. **Agent.** One CopilotKit `BuiltInAgent` per agent profile, model passed as an AI SDK model built with
+   `createOpenAI({ baseURL, apiKey }).chat(id)` (always `.chat()`; OpenRouter, NVIDIA, Ollama and aimock
+   speak Chat Completions). Anthropic and Gemini go through OpenRouter or their OpenAI-compatible endpoints.
+   Blank `*_BASE_URL` env values are deleted at boot.
+3. **Governance lives in a middleware, not in tool executors.** `GovernedToolsMiddleware` (adapted from
+   OpenBot's `HeadlessToolsMiddleware`) owns every Steward tool and offers them to the model as
+   client-style AG-UI tools (no executor), so the AI SDK stops at each call; the middleware runs
+   `governance.execute`, emits `TOOL_CALL_RESULT`, and re-runs the model. No Steward tool is ever put in
+   `BuiltInAgent.tools` (those would run ungoverned).
+4. **Approvals are AG-UI interrupts.** A parked call ends the run with
+   `RUN_FINISHED.outcome = { type: "interrupt", interrupts: [{ id: toolCallId, toolCallId, reason: "steward_approval", metadata }] }`.
+   The chat renders it with `useInterrupt`; the card posts the answer to `POST /api/approvals/:id/decision`
+   and then calls `resolve`/`cancel`, which starts the resume run. The middleware trusts the database,
+   never the resume payload: `governance.resume` claims the answer exactly once. When no browser resumes
+   within 3 s of an answer (decided from Tasks, a notification, or for a routine), the server's resume
+   sweep starts the resume run itself through the runner. Double resumes are harmless.
+5. **Taint.** A conversation is tainted once any tool whose catalogue entry has `taints: true` has
+   returned in it. Tainted calls of kind `send`, `pay`, `sign`, `delete` or `shell` always ask, and
+   "Always allow" is not offered for them.
+6. **Precedence.** deny rules → the safety floor (pay and credential entry always ask, never
+   always-allowed) → taint → ask rules → allow rules (presets, tenant, person, always) → defaults by kind
+   (`read`/`ui` allow; `write` allow on browser/file/memory/task, ask on calendar and MCP; `send`/`pay`/
+   `sign`/`delete`/`shell` ask). Any error deciding refuses. Browser clicks on elements named like
+   Send/Pay/Buy/Delete/Sign/Place order are escalated to that kind before deciding.
+7. **Threads.** Our `NodeSqliteAgentRunner` (port of `@copilotkit/sqlite-runner` to `node:sqlite`, with
+   the local thread routes on) persists runs; the web app lists threads from `GET /api/threads` and
+   switches with `useAgent({ agentId, threadId })` + `connectAgent`. Server-initiated runs (routines,
+   tasks, resume sweep) go through the same runner so a connected browser sees them live.
+8. **Web client.** Only `@copilotkit/react-core/v2` (+ `v2/styles.css`). Custom chat on `useAgent`,
+   `useRenderTool` per Steward tool plus a wildcard, `useInterrupt` for approvals, `useComponent` for
+   display-only cards. `useThreads`/`CopilotThreadsDrawer` are not used (they need Intelligence).
+9. **Computer.** Playwright 1.64 persistent context per agent, `page.ariaSnapshot`-based AI snapshots with
+   `aria-ref` targeting, CDP screencast (JPEG q70, 1280×800, ack every frame), take-the-wheel state machine
+   with an action barrier, secret box (values masked in snapshots), workspace path containment with
+   `realpath`, shell via `bash -c` with an allow-listed environment, 120 s timeout, 64 KiB tail cap.
+   Loopback, private ranges and cloud metadata are refused for the agent's browser and `web_fetch`
+   unless `STEWARD_ALLOW_PRIVATE_HOSTS=1`.
+10. **Scripted model.** `STEWARD_MODEL_PROVIDER=scripted` starts aimock's `LLMock` in-process with Steward's
+    demo fixtures, so the whole product runs, and e2e tests pass, with no key.
+11. **Telemetry.** None. Steward sends nothing anywhere except to the model provider you chose.
 
 ## 5. Work breakdown (build phase)
 
@@ -104,6 +153,95 @@ reported back to the lead, who adds them.
 | web shell | `apps/web` (app, ui, lib, pages) | layout, theming, accessibility settings, every page but chat |
 | web chat | `apps/web` (features/chat, features/computer, features/voice, gallery) | chat, generative UI, approval cards, computer panel, voice |
 | docs | `README.md`, `docs/`, `tenants/`, `.github/`, `tests/e2e` | quick start, guides, tenant packages, CI, e2e specs |
+
+### 5.1 Wiring contract (what each package exports for `apps/server`)
+
+Every package with tables exports `migrations: Migration[]` (ids prefixed with the package name).
+
+```ts
+// @steward/gateway
+export function createGateway(opts: {
+  db: Db; bus?: EventBus; tenantRules?: TenantPackage["rules"]; expiryHours?: number;
+}): GatewayServices; // { governance, rules, approvals, audit }
+
+// @steward/computer
+export function createComputerManager(opts: {
+  dataDir: string;               // computers/<agentId>/{profile,workspace} live under it
+  headful?: boolean; allowPrivateHosts?: boolean;
+  audit?: AuditLog;              // writes computer.help_requested / control_taken / control_released / secret.*
+}): ComputerManager;
+
+// @steward/connectors
+export function createDemoGoogleApp(opts?: { now?: () => Date }): Hono;   // mounted at /demo-google
+export function createGoogleMailCalendar(opts: { baseUrl: string; accessToken?: string; label: string; isDemo: boolean }): MailCalendar;
+export function createMcpManager(opts: { db: Db; allowPrivateHosts?: boolean }): McpManager;
+export function createWebTools(opts?: { allowPrivateHosts?: boolean }): WebTools;
+
+// @steward/proactive
+export function createProactive(opts: {
+  db: Db; bus?: EventBus;
+  mail: () => MailCalendar | undefined;
+  model: () => TextModel | undefined;
+  timezone: () => string;
+  tenantSkills?: Skill[];
+}): { tasks: TaskStore; memory: MemoryStore; skills: SkillStore; routines: RoutineStore;
+      triage: Triage; brief: BriefService; notifications: NotificationStore };
+
+// @steward/agent
+export function loadTenant(dir: string): TenantPackage;
+export function resolveModelConfig(tenant: TenantPackage, env: NodeJS.ProcessEnv): ModelConfig;
+export function createModel(cfg: ModelConfig, env: NodeJS.ProcessEnv): Promise<{
+  model: LanguageModel; label: string; scripted: boolean; close(): Promise<void> }>;
+export function createTextModel(model: LanguageModel, label: string): TextModel;
+export function createStewardAgent(deps: AgentDeps): AbstractAgent;  // a BuiltInAgent with the governed middleware
+export interface AgentDeps {
+  profile: AgentProfile; tenant: TenantPackage; model: LanguageModel;
+  governance: Governance; computers: ComputerManager; mail: () => MailCalendar | undefined;
+  web: WebTools; mcp: McpManager;
+  stores: { tasks: TaskStore; memory: MemoryStore; skills: SkillStore; routines: RoutineStore;
+            brief: BriefService; triage: Triage };
+  bus?: EventBus;
+  settings: () => { plainLanguage: boolean; timezone: string };
+  actorId: string;               // "local" in single-user mode
+  serverRunToken: string;        // random per boot; see below
+}
+```
+
+**Initiator.** A run's initiator is `person` unless `input.forwardedProps.steward` is
+`{ token: serverRunToken, initiator: Initiator }`, which only the server can produce (routines, tasks,
+resume sweep). A browser cannot claim to be a routine or the system.
+
+**Tenant package layout** (`tenants/<id>/`, read by `loadTenant`, validated with zod):
+
+```yaml
+# brand.yaml
+name: Steward
+tagline: Does the work, asks before it acts, keeps a record you can read.
+accent: "#0f6e66"
+voice: Plain, warm, brief. Says what it did and what it needs.
+starters: ["What needs me today?", "Open news.ycombinator.com and tell me the top story."]
+# agents.yaml
+agents: [{ id: steward, name: Steward, title: Your steward, instructions: "...", skills: [], tools: ["*"] }]
+# skills.yaml
+skills: [{ name: weekly-review, description: "...", instructions: "...", tools: [] }]
+# rules.yaml
+rules: [{ name: "...", effect: ask, when: 'tool.surface == "calendar"', description: "..." }]
+# model.yaml (env STEWARD_MODEL_PROVIDER / STEWARD_MODEL / STEWARD_MODEL_BASE_URL override it)
+provider: openrouter
+model: anthropic/claude-sonnet-5.5
+```
+
+**Web app ownership.** The shell track owns `apps/web/{index.html,vite.config.ts,src/main.tsx,src/app,src/components,src/lib,src/pages,src/styles}`;
+the chat track owns `apps/web/src/{features/chat,features/computer,features/voice,gallery}`. Cross-imports
+are by these names only:
+- shell → chat: `StewardCopilotProvider` (`@/features/chat/provider`), `ChatPage` (`@/features/chat/ChatPage`),
+  `ComputerPage` (`@/features/computer/ComputerPage`), `ComputerPanel` (`@/features/computer/ComputerPanel`),
+  `useSpeak`, `useDictation` (`@/features/voice`).
+- chat → shell: `api` + query hooks (`@/lib/api`), `useLiveEvents` (`@/lib/live`), `cn` (`@/lib/utils`),
+  UI primitives (`@/components/ui/*`: `Button`, `Card`, `Badge`, `Pill`, `Dialog`, `Tabs`, `Spinner`,
+  `VisuallyHidden`), cards (`@/components/cards/*`: `ApprovalCard({ approvalId, initial?, onDecided? })`,
+  `BriefCard({ brief, onStart? })`, `TaskCard({ task })`, `EmailList({ emails })`, `CalendarDay({ events })`),
+  and `useAccessibility()` (`@/app/accessibility`).
 
 ## 6. Verification
 
