@@ -72,12 +72,32 @@ function isUntrustedWrapper(value: Record<string, unknown>): boolean {
 }
 
 /**
+ * A call the AI SDK turned away before Steward saw it comes back as plain text, `Error: ...`, not as
+ * an envelope. The usual case is arguments that did not fit the tool's schema; the model is told and
+ * tries again, so the person needs a quiet line, not the validator's dump of the arguments.
+ */
+function sdkFailure(result: string): ToolOutcome | undefined {
+  const text = result.trim();
+  if (!text.startsWith("Error:")) return undefined;
+  if (/^Error: Invalid input for tool\b/.test(text)) {
+    return { status: "error", message: "That didn't come out right the first time, so Steward tried again." };
+  }
+  const message = text.slice("Error:".length).trim();
+  return {
+    status: "error",
+    message: message.length > 200 ? `${message.slice(0, 199)}…` : message || "Something went wrong.",
+  };
+}
+
+/**
  * Turns a renderer's `result` string into a tool outcome. `undefined` means the call is still
  * running. Anything that is not an envelope is treated as successful data, so tools that return
  * plain JSON or plain text still render.
  */
 export function readToolResult(result: string | undefined | null): ToolOutcome {
   if (result === undefined || result === null) return { status: "pending" };
+  const failure = sdkFailure(result);
+  if (failure) return failure;
   let value = decodeJson(result);
   let untrusted: UntrustedMark | undefined;
 

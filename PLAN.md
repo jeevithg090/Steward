@@ -337,3 +337,21 @@ for the computer.
   e2e: 25/25 including an axe audit.
 - **27 Oct 2026, review.** Five finders and 23 skeptics. All 23 findings were confirmed. They are
   fixed in six package-owned tracks (next entry).
+- **27 Oct 2026, review fixes (63b6b33, 9b76364).** Six package-owned tracks fixed all 23 review
+  findings, each with a regression test.
+  - Enter and Space are judged by the control they activate; unknown means ask.
+  - Secret fields are recognised by type and autocomplete, and keys pressed one at a time into
+    them count as credential entry.
+  - No remote images in replies; the CSP sets `img-src 'self' data: blob:`.
+  - A resumed routine keeps its initiator.
+  - A resumed browser action is refused if the page changed.
+  - Settings never sends a key to another provider's address.
+  - Runs started by the server appear live in an open conversation.
+  - `htmlToText` is linear.
+  - Routines skipped while an answer is owed do not count as failures.
+  - The setup check reserves the same room a reply does.
+
+  Final state:
+  - typecheck clean, biome clean, about 1,170 unit tests, e2e 25/25 with axe;
+  - a live walk on NVIDIA Nemotron 3 Ultra (brief, computer, approval, injection, table with
+    sources).

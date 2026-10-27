@@ -118,3 +118,21 @@ describe("listFrom and recordFrom", () => {
     expect(recordFrom("[1]")).toBeUndefined();
   });
 });
+
+describe("results the AI SDK answered itself", () => {
+  it("reads a schema refusal as a quiet error, not as data", () => {
+    const outcome = readToolResult(
+      'Error: Invalid input for tool show_table: Type validation failed: Value: {"columns":["A"],"rows":"[[1]]"}',
+    );
+    expect(outcome).toEqual({
+      status: "error",
+      message: "That didn't come out right the first time, so Steward tried again.",
+    });
+  });
+
+  it("keeps other plain errors short", () => {
+    const outcome = readToolResult(`Error: ${"x".repeat(500)}`);
+    expect(outcome.status).toBe("error");
+    expect(outcome.status === "error" && outcome.message.length).toBe(200);
+  });
+});
