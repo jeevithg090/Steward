@@ -109,8 +109,15 @@ Then try _"Every weekday at 8, send me my brief."_ for a routine, or _"Compare t
 my photos in a table."_ with a real model.
 
 <p align="center">
-  <img src="docs/images/steward-chat.png" width="880" alt="Steward's chat: an approval card asks whether to send an email to sam@example.com, showing the subject and body, with Refuse, Allow once and Always allow. Beside it, the live screen of Steward's own browser.">
+  <img src="docs/images/steward-chat.png" width="880" alt="Steward's chat: asked to open news.ycombinator.com and give the top story, Steward opened the page on its own computer, and the live screen of its browser sits beside the conversation with a Take the wheel button.">
 </p>
+
+<p align="center">
+  <img src="docs/images/steward-record-dark.png" width="430" alt="The Record page: a green badge says Record intact, every entry verified, above a list of decisions: permitted, asked, answered and done.">
+  <img src="docs/images/steward-rules-dark.png" width="430" alt="The Rules page: the presets Steward ships with, your own rules, and a tester that says whether an action would be allowed.">
+</p>
+
+<sub>Screenshots from a live run on NVIDIA Nemotron 3 Ultra with the demo inbox. The mail and calendar are made up; the web page is real.</sub>
 
 ## How it works
 
