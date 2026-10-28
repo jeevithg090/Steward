@@ -3,7 +3,7 @@ import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { Route, Routes, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type FakeRequest, mockFetch, renderWithProviders } from "@/lib/testing.tsx";
-import { agentChoices } from "./AgentPicker.tsx";
+import { agentChoices, isHarnessAgent, modelLine } from "./AgentPicker.tsx";
 import { ChatPage } from "./ChatPage.tsx";
 import { ChatActionsContext } from "./chat-context.tsx";
 import { Starters } from "./Starters.tsx";
@@ -122,6 +122,26 @@ describe("agentChoices", () => {
       },
     ]);
     expect(agentChoices(undefined)).toEqual([]);
+  });
+});
+
+describe("a coding agent in the picker", () => {
+  it("says how it signs in instead of a model", () => {
+    const claude = {
+      id: "claude-code",
+      name: "Claude Code",
+      harness: "claude-code",
+      provider: "harness:claude-code",
+      model: "Claude Code",
+      signIn: "vendor-tool" as const,
+    };
+    expect(isHarnessAgent(claude)).toBe(true);
+    expect(modelLine(claude)).toBe("via Claude Code (your login)");
+    expect(modelLine({ ...claude, signIn: "api-key" })).toBe("via Claude Code (API key)");
+    expect(isHarnessAgent({ harness: undefined })).toBe(false);
+    expect(modelLine({ name: "Steward", provider: "xai", model: "grok-4.7", signIn: "api-key" })).toBe(
+      "xAI · grok-4.7",
+    );
   });
 });
 

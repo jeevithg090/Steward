@@ -111,6 +111,9 @@ importers:
       '@steward/gateway':
         specifier: workspace:*
         version: link:../../packages/gateway
+      '@steward/harnesses':
+        specifier: workspace:*
+        version: link:../../packages/harnesses
       '@steward/proactive':
         specifier: workspace:*
         version: link:../../packages/proactive
@@ -338,6 +341,37 @@ importers:
         specifier: 3.25.76
         version: 3.25.76
 
+  packages/harnesses:
+    dependencies:
+      '@ag-ui/client':
+        specifier: 1.0.2
+        version: 1.0.2
+      '@ag-ui/core':
+        specifier: 1.0.2
+        version: 1.0.2(zod@3.25.76)
+      '@agentclientprotocol/sdk':
+        specifier: 2.0.2
+        version: 2.0.2(zod@3.25.76)
+      '@steward/db':
+        specifier: workspace:*
+        version: link:../db
+      '@steward/shared':
+        specifier: workspace:*
+        version: link:../shared
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
+      yaml:
+        specifier: 2.9.1
+        version: 2.9.1
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@steward/gateway':
+        specifier: workspace:*
+        version: link:../gateway
+
   packages/proactive:
     dependencies:
       '@steward/db':
@@ -415,6 +449,11 @@ packages:
 
   '@ag-ui/proto@1.0.2':
     resolution: {integrity: sha512-uIp6TkQdos03Bkjl01Z46cK/D7QAKNO26RYIIX1WfxNy4penVatU0b/TFTjVrOtwSnp5mtl8Rpzkiiu9cZHwlg==}
+
+  '@agentclientprotocol/sdk@2.0.2':
+    resolution: {integrity: sha512-jLywRB42hZMRMc4aUgt0uRjkY9FQnMdybv4XgLl+ddi75QuJn8Vbl0+CHcVHJDC0+WDfi1KQXRWtHaR5vp6gHw==}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.0.0
 
   '@ai-sdk/anthropic@2.0.110':
     resolution: {integrity: sha512-nikWE1VTt3rGWhK3oUw2zAluuMg7BHC9uGlvTWZJvDbcPO3aIepM5J0gv4jaWWRcuMVonKeS+MBBuMjNB5Gerw==}
@@ -4668,6 +4707,10 @@ snapshots:
       '@ag-ui/core': 1.0.2(zod@3.25.76)
       '@bufbuild/protobuf': 2.16.0
       '@protobuf-ts/protoc': 2.11.1
+      zod: 3.25.76
+
+  '@agentclientprotocol/sdk@2.0.2(zod@3.25.76)':
+    dependencies:
       zod: 3.25.76
 
   '@ai-sdk/anthropic@2.0.110(zod@3.25.76)':

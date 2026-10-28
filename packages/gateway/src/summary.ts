@@ -10,7 +10,7 @@ import { parseMcpToolName, type Target } from "@steward/shared";
 import { truncate } from "./redact.ts";
 
 export interface SummaryInput {
-  tool: { name: string; kind: string };
+  tool: { name: string; kind: string; surface?: string; source?: string };
   args: Record<string, unknown>;
   target: Target;
   /** Arguments that must not appear, such as text typed into a password field. */
@@ -67,6 +67,8 @@ export function summarize(input: SummaryInput): string {
   const shown = (key: string) => (hidden.has(key) ? undefined : args[key]);
   const recipients = target.recipients ?? [];
   let sentence: string;
+
+  if (tool.source?.startsWith("harness:")) return truncate(harnessSentence(tool, target), 240);
 
   switch (tool.name) {
     case "mail_send": {
@@ -180,4 +182,26 @@ export function summarize(input: SummaryInput): string {
     }
   }
   return truncate(sentence, 240);
+}
+
+/**
+ * What an external coding agent wants to do, from the structured target only: the command it would
+ * run, the file it would change, the address it would fetch. Never from the harness's own title.
+ */
+function harnessSentence(tool: SummaryInput["tool"], target: Target): string {
+  const path = text(target.path, 160);
+  switch (tool.kind) {
+    case "shell":
+      return `Run a command: ${text(target.command, 120) ?? "(none given)"}`;
+    case "delete":
+      return path ? `Delete ${path}` : "Delete files";
+    case "read":
+      if (target.url) return `Fetch ${text(target.url, 120)}`;
+      return path ? `Read ${path}` : "Read files";
+    case "ui":
+      return "Think it through";
+    default:
+      if (tool.surface === "file") return path ? `Change ${path}` : "Change files";
+      return `Use ${tool.name}${path ? ` on ${path}` : ""}`;
+  }
 }

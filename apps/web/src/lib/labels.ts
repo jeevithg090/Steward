@@ -135,6 +135,8 @@ export const AUDIT_TYPE_LABELS: Record<AuditType, string> = {
   "routine.disabled": "Routine switched off",
   "run.started": "Started work",
   "run.finished": "Finished work",
+  "harness.started": "Coding agent started",
+  "harness.stopped": "Coding agent stopped",
   "bot.installed": "Bot added",
   "bot.updated": "Bot updated",
   "bot.removed": "Bot removed",

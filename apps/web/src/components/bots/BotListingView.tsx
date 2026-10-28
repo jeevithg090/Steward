@@ -188,7 +188,8 @@ export function BotListingView({
 
       <Section level={level} title="What it does">
         {pack.readme?.trim() ? (
-          <Markdown>{pack.readme}</Markdown>
+          // The readme's own headings sit under this section's, so the page keeps one h1.
+          <Markdown headingOffset={level}>{pack.readme}</Markdown>
         ) : (
           <p className="m-0 text-ink-2 text-sub">The listing has no description beyond its pitch.</p>
         )}

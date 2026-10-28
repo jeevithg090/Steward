@@ -79,7 +79,10 @@ export interface GateCall {
     name: string;
     kind: ToolKind;
     surface: ToolSurface;
-    /** `builtin`, `mcp:<server>`, `connector:<id>`. */
+    /**
+     * `builtin`, `mcp:<server>`, `connector:<id>`, or `harness:<id>` for a permission an external
+     * coding agent asked for (its kind comes from the harness's own tool kind).
+     */
     source: string;
   };
   /** Arguments as the model sent them. The gateway redacts before recording. */
@@ -177,7 +180,9 @@ export type AuditType =
   | "bot.updated"
   | "bot.removed"
   | "run.started"
-  | "run.finished";
+  | "run.finished"
+  | "harness.started"
+  | "harness.stopped";
 
 export interface AuditEvent {
   /** Monotonic, starting at 1. */

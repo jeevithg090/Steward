@@ -405,3 +405,20 @@ for the computer.
   - every finished run gets a `run.finished` row in the record, with the run's
     `RUN_FINISHED.usage` summed across model calls per provider and model; the Record page shows
     the tokens on those rows.
+- **28 Oct 2026, orchestration Phase 2 built.** `packages/harnesses` runs external coding agents
+  over the Agent Client Protocol (`@agentclientprotocol/sdk` 2.0.2, the stdout filter and process
+  handling adapted from Happy, MIT):
+  - `HarnessAgent` is an AG-UI agent with one process per conversation in
+    `computers/<agent>/workspace`. Its resume handle is in `harness_sessions`, and it reopens with
+    `session/load`. It stops after 15 idle minutes or when the conversation is deleted, and its
+    processes are kept across agent rebuilds while the profile is unchanged.
+  - Every `session/request_permission` is a `GateCall` with `tool.source` `harness:<id>`, the kind
+    from the ACP tool kind (a command is always `shell`), the target from `locations` and
+    `rawInput` only, and `tainted: true`. A parked request keeps its process open across the
+    interrupt and is answered on resume by option kind. Stop and moving on answer `cancelled`.
+  - `tenants/<id>/harnesses.yaml` (Claude Code via `claude-agent-acp`, Gemini CLI), availability
+    from PATH, `GET /api/harnesses`, and the picker line "via <tool> (your login)". The loader
+    refuses bypass flags and keys in `env`.
+  - The gateway trusts a harness call's mapped kind, as it does an MCP tool's, and summarises it
+    from the structured target.
+  - Bot listings move readme headings below the section's, so the page keeps one h1.

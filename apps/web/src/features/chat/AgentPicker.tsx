@@ -1,9 +1,10 @@
 /**
- * Who takes a new conversation: Steward, another Steward on a different model, or a bot the person
- * added. The default agent is listed first; a bot is named with "(bot)" after it. Under each name
- * is the model it runs on. An agent whose provider has no key is greyed out and says why instead
- * of its model: it cannot be chosen until the key is added. Nothing is drawn while there is only
- * one choice.
+ * Who takes a new conversation: Steward, another Steward on a different model, an external coding
+ * agent (Claude Code, Gemini CLI), or a bot the person added. The default agent is listed first; a
+ * bot is named with "(bot)" after it. Under each name is the model it runs on, or for a coding
+ * agent how it signs in ("via Claude Code (your login)"). An agent that cannot answer (no key, or
+ * its program is not installed) is greyed out and says why: it cannot be chosen until that is
+ * fixed. Nothing is drawn while there is only one choice.
  *
  * A group of radio buttons rather than a select, so every agent's model is visible at once and a
  * screen reader hears the reason an agent is unavailable as its description.
@@ -29,6 +30,21 @@ export function isBotAgent(agent: Pick<AgentInfo, "source">): boolean {
   return typeof agent.source === "string" && agent.source.startsWith("bot:");
 }
 
+/** An external coding agent: the vendor's own tool, run by Steward. */
+export function isHarnessAgent(agent: Pick<AgentInfo, "harness">): boolean {
+  return typeof agent.harness === "string" && agent.harness !== "";
+}
+
+/** The line under an agent's name: its model, or for a coding agent how it signs in. */
+export function modelLine(
+  agent: Pick<AgentInfo, "harness" | "provider" | "model" | "signIn" | "name">,
+): string {
+  if (isHarnessAgent(agent)) {
+    return `via ${agent.name} (${agent.signIn === "vendor-tool" ? "your login" : "API key"})`;
+  }
+  return `${providerLabel(agent.provider)} · ${agent.model}`;
+}
+
 /** The agents as choices: the default first, then the rest in the order the server lists them. */
 export function agentChoices(agents: readonly AgentInfo[] | undefined): AgentChoice[] {
   return (agents ?? []).map((agent) => {
@@ -38,7 +54,7 @@ export function agentChoices(agents: readonly AgentInfo[] | undefined): AgentCho
       label: bot ? `${agent.name} (bot)` : agent.name,
       bot,
       available: agent.available,
-      model: `${providerLabel(agent.provider)} · ${agent.model}`,
+      model: modelLine(agent),
       ...(agent.reason ? { reason: agent.reason } : {}),
     };
   });
@@ -109,8 +125,8 @@ export function AgentPicker({
         })}
       </ul>
       <p id={hintId} className="m-0 text-caption text-ink-2">
-        Steward on the model you chose, Steward on another, or a bot you added. Every one of them follows your
-        rules.
+        Steward on the model you chose, Steward on another, a coding agent, or a bot you added. Every one of
+        them follows your rules.
       </p>
     </fieldset>
   );

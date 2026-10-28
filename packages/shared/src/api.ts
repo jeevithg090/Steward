@@ -6,6 +6,7 @@ import type {
   Brief,
   CalendarEvent,
   EmailSummary,
+  HarnessProfile,
   MemoryFact,
   Routine,
   SetupCheck,
@@ -166,14 +167,27 @@ export interface AgentInfo extends AgentProfile {
   model: string;
   /** The provider id, e.g. `xai`, `openrouter`, `scripted`. */
   provider: string;
-  /** How the run is paid for: a key in .env, or nothing (the scripted demo model). */
-  signIn: "api-key" | "scripted";
+  /**
+   * How the run is paid for: a key in .env, nothing (the scripted demo model), or the person's own
+   * login inside an external agent's tool (`vendor-tool`).
+   */
+  signIn: "api-key" | "scripted" | "vendor-tool";
   /** Why it cannot answer, when `available` is false. */
   reason?: string;
 }
 
 export interface AgentsResponse {
   agents: AgentInfo[];
+}
+
+/** One harness profile as `GET /api/harnesses` lists it: what it runs, and whether it is installed. */
+export interface HarnessInfo extends HarnessProfile {
+  /** The program was found (on PATH, or at its absolute path). */
+  available: boolean;
+  /** Where it was found. */
+  path?: string;
+  /** Why it is not available. */
+  reason?: string;
 }
 
 export interface Settings {
@@ -225,6 +239,7 @@ export interface TasksResponse {
 export const ROUTES = {
   info: "/api/info", // AppInfo
   agents: "/api/agents", // AgentsResponse: every agent with its model and whether it can answer
+  harnesses: "/api/harnesses", // HarnessInfo[]: the external coding agents and whether each is installed
   health: "/api/health", // { ok: true }
   settings: "/api/settings", // GET Settings · PUT SettingsBody → Settings
   setup: "/api/setup", // SetupCheck[]

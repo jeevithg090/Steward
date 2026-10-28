@@ -20,8 +20,15 @@ import {
 } from "@steward/connectors";
 import { Db } from "@steward/db";
 import { createGateway, migrations as gatewayMigrations } from "@steward/gateway";
+import { HarnessSessionStore, migrations as harnessMigrations, loadHarnesses } from "@steward/harnesses";
 import { createProactive, migrations as proactiveMigrations } from "@steward/proactive";
-import { COPILOTKIT_PATH, type MailCalendar, ROUTES, type TenantPackage } from "@steward/shared";
+import {
+  COPILOTKIT_PATH,
+  type HarnessProfile,
+  type MailCalendar,
+  ROUTES,
+  type TenantPackage,
+} from "@steward/shared";
 import { Hono } from "hono";
 import { BotService, botAgentSources } from "./bots/service.ts";
 import { ConfigError, DEV_PORTS, isLoopbackHost, type ServerConfig } from "./config.ts";
@@ -119,6 +126,19 @@ async function step(name: string, work: Promise<unknown> | (() => unknown), ms =
   }
 }
 
+/** The tenant's external coding agents. A file that is there but wrong stops start-up, naming the field. */
+function loadHarnessesOrExplain(config: ServerConfig): HarnessProfile[] {
+  try {
+    return loadHarnesses(config.tenantDir);
+  } catch (err) {
+    throw new ConfigError(
+      `Couldn't load the tenant package "${config.tenantId}" from tenants/${config.tenantId}: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
+  }
+}
+
 function loadTenantOrExplain(config: ServerConfig): TenantPackage {
   try {
     const tenant = loadTenant(config.tenantDir);
@@ -142,7 +162,13 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
   const db = new Db(config.dbPath);
   const cleanups: (() => Promise<void> | void)[] = [];
   try {
-    db.migrate([...gatewayMigrations, ...connectorMigrations, ...proactiveMigrations, ...serverMigrations]);
+    db.migrate([
+      ...gatewayMigrations,
+      ...connectorMigrations,
+      ...proactiveMigrations,
+      ...harnessMigrations,
+      ...serverMigrations,
+    ]);
     const tenant = loadTenantOrExplain(config);
     const defaultAgentId = tenant.agents[0]!.id;
 
@@ -198,6 +224,14 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       env: config.env,
       serverRunToken,
       bots: () => botAgentSources(installedBots, proactive.skills),
+      harnesses: {
+        profiles: loadHarnessesOrExplain(config),
+        dataDir: config.dataDir,
+        store: new HarnessSessionStore(db),
+        audit: gateway.audit,
+        approvals: gateway.approvals,
+        version: VERSION,
+      },
       shared: {
         governance: gateway.governance,
         computers,

@@ -1,0 +1,30 @@
+# External coding agents. Each is the vendor's own, unmodified tool: Steward starts it in the
+# agent's workspace (computers/<id>/workspace) and talks to it over the Agent Client Protocol.
+#
+# - It signs in its own way, with your login or a key you name in `passEnv`. Steward never reads,
+#   stores or passes on a vendor credential, and never passes a flag that turns the tool's own
+#   permission checks off (the loader refuses one).
+# - Every permission the tool asks for is a Steward approval, decided by your rules. Its commands
+#   always ask. Reading files in its workspace is up to the tool and is not asked about.
+# - An entry appears in the agent picker only when its program is installed on this computer.
+#
+# Using your own subscription login through these tools: whether your plan allows it is the
+# vendor's call. Read their current terms first (UNVERIFIED; docs/plans/orchestration.md §4.2).
+
+harnesses:
+  # npm install -g @zed-industries/claude-agent-acp@0.23.1, and sign in to Claude Code (`claude`).
+  - id: claude-code
+    name: Claude Code
+    title: Anthropic's coding agent, through Zed's ACP adapter
+    kind: acp
+    command: claude-agent-acp
+    signIn: vendor-tool
+
+  # npm install -g @google/gemini-cli, and sign in to it once (`gemini`).
+  - id: gemini-cli
+    name: Gemini CLI
+    title: Google's coding agent
+    kind: acp
+    command: gemini
+    args: ["--experimental-acp"]
+    signIn: vendor-tool

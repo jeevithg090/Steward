@@ -47,6 +47,8 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
     }
     s.runner.deleteThread(id);
     s.threads.deleteMeta(id);
+    // A coding agent's process for this conversation stops, and its session is forgotten.
+    await s.models.closeThread(id).catch(() => {});
     return c.json({ ok: true });
   });
 }

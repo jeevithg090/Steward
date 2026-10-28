@@ -13,6 +13,7 @@ import { describe, expect, it } from "vitest";
 import { loadTenant } from "../packages/agent/src/index.ts";
 import { memoryDb } from "../packages/db/src/index.ts";
 import { createGateway } from "../packages/gateway/src/index.ts";
+import { loadHarnesses } from "../packages/harnesses/src/index.ts";
 import type { Decision, GateCall, TenantPackage } from "../packages/shared/src/index.ts";
 
 const TENANTS_DIR = fileURLToPath(new URL(".", import.meta.url));
@@ -98,6 +99,15 @@ describe.each(TENANT_IDS)("tenant package %s", (id) => {
       ...tenant.skills.map((s) => s.instructions),
     ].join("\n");
     expect(text).not.toMatch(GREETING_WITH_NAME);
+  });
+
+  it("declares only coding agents Steward can run safely, with ids no agent uses", () => {
+    const harnesses = loadHarnesses(join(TENANTS_DIR, id));
+    const agentIds = new Set(tenant.agents.map((a) => a.id));
+    for (const harness of harnesses) {
+      expect(agentIds.has(harness.id), harness.id).toBe(false);
+      expect(harness.args.join(" ")).not.toMatch(/dangerously|bypass|yolo|full-auto/i);
+    }
   });
 
   it("has rules the gateway accepts", () => {

@@ -5,6 +5,8 @@ Their copyright notices and licence terms apply to the adapted portions.
 - OpenDuet — https://github.com/CopilotKit/OpenDuet — Copyright (c) CopilotKit — MIT
 - CopilotKit — https://github.com/CopilotKit/CopilotKit — Copyright (c) CopilotKit — MIT
 - AG-UI — https://github.com/ag-ui-protocol/ag-ui — Copyright (c) the AG-UI authors — MIT
+- Happy — https://github.com/slopus/happy — Copyright (c) 2026 Happy Coder Contributors — MIT
+  (the ACP stdout filter and process handling in `packages/harnesses/src/acp`)
 
 Files that adapt code from these projects say so in a header comment naming the source file.
 Steward is an independent project and is not affiliated with or endorsed by CopilotKit or Anthropic.
@@ -15,3 +17,8 @@ Seed bots in the directory (`directory/`) are adapted from:
 - OpenBot's coworker catalogue (`examples/fintech/catalog`) — https://github.com/CopilotKit/openbot — Copyright (c) CopilotKit — MIT
 
 Skills follow the Agent Skills specification — https://agentskills.io — Apache-2.0.
+
+External coding agents are reached through the Agent Client Protocol TypeScript SDK
+(`@agentclientprotocol/sdk`, https://github.com/agentclientprotocol/typescript-sdk, Zed Industries,
+Apache-2.0), a dependency. The vendors' own tools (Claude Code, Gemini CLI, Codex) are installed by
+the person and are never bundled or modified.

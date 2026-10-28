@@ -1,6 +1,8 @@
+import { tmpdir } from "node:os";
 import { EventType } from "@ag-ui/client";
 import { StewardAgent } from "@steward/agent";
-import type { AgentProfile, BotPack, TenantPackage } from "@steward/shared";
+import { HarnessAgent } from "@steward/harnesses";
+import type { AgentProfile, BotPack, HarnessProfile, TenantPackage } from "@steward/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   AgentHost,
@@ -244,6 +246,70 @@ describe("AgentHost with an installed bot that names a model", () => {
       available: true,
       signIn: "scripted",
     });
+  });
+});
+
+describe("AgentHost with external coding agents", () => {
+  const harness = (command: string): HarnessProfile => ({
+    id: "claude-code",
+    name: "Claude Code",
+    title: "Anthropic's coding agent",
+    kind: "acp",
+    command,
+    args: [],
+    signIn: "vendor-tool",
+  });
+
+  async function harnessHost(profiles: HarnessProfile[]): Promise<AgentHost> {
+    const h = new AgentHost({
+      tenant: { ...TENANT, agents: [profile("steward", "Steward")] },
+      env: { STEWARD_MODEL_PROVIDER: "scripted", PATH: process.env.PATH ?? "" },
+      serverRunToken: "tok",
+      shared: SHARED,
+      harnesses: { profiles, dataDir: tmpdir() },
+    });
+    hosts.push(h);
+    await h.configure();
+    return h;
+  }
+
+  it("offers an installed coding agent with how it signs in, whatever the model", async () => {
+    const h = await harnessHost([harness(process.execPath)]);
+    expect(h.agent("claude-code")).toBeInstanceOf(HarnessAgent);
+    expect(h.agentInfos().find((a) => a.id === "claude-code")).toMatchObject({
+      name: "Claude Code",
+      harness: "claude-code",
+      provider: "harness:claude-code",
+      model: "Claude Code",
+      signIn: "vendor-tool",
+      available: true,
+      skills: [],
+      tools: [],
+    });
+    expect(h.harnessInfos()).toMatchObject([{ id: "claude-code", available: true, path: process.execPath }]);
+  });
+
+  it("greys out one whose program is not installed, and its chat says what to install", async () => {
+    const h = await harnessHost([harness("steward-no-such-coding-agent")]);
+    expect(h.agent("claude-code")).toBeInstanceOf(UnconfiguredAgent);
+    expect(h.agentInfos().find((a) => a.id === "claude-code")).toMatchObject({
+      available: false,
+      reason: expect.stringMatching(/^Claude Code is not installed on this computer/),
+    });
+  });
+
+  it("keeps a coding agent's processes across rebuilds while its profile is unchanged", async () => {
+    const h = await harnessHost([harness(process.execPath)]);
+    const before = (h.agent("claude-code") as unknown as { deps: { threads: unknown } }).deps.threads;
+    await h.rebuild();
+    const after = (h.agent("claude-code") as unknown as { deps: { threads: unknown } }).deps.threads;
+    expect(after).toBe(before);
+  });
+
+  it("leaves out a coding agent whose id a tenant agent already has", async () => {
+    const h = await harnessHost([{ ...harness(process.execPath), id: "steward" }]);
+    expect(h.agentInfos().filter((a) => a.id === "steward")).toHaveLength(1);
+    expect(h.agent("steward")).not.toBeInstanceOf(HarnessAgent);
   });
 });
 
