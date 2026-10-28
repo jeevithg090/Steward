@@ -9,7 +9,7 @@ It does the work, asks before it acts, and keeps a record you can read.
 [![Node ≥ 24](https://img.shields.io/badge/node-%E2%89%A5%2024-417e38.svg)](https://nodejs.org)
 ![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)
 
-[Quick start](#quick-start) · [Try it](#try-it) · [How it works](#how-it-works) · [Governance](#governance) · [Make it your own](#make-it-your-own) · [Docs](docs/README.md)
+[Quick start](#quick-start) · [Try it](#try-it) · [How it works](#how-it-works) · [Governance](#governance) · [Bots](#bots) · [Make it your own](#make-it-your-own) · [Docs](docs/README.md)
 
 </div>
 
@@ -172,6 +172,26 @@ the chain. You can verify it from the app, or from the SQLite file with a few li
 
 The full reference, with every variable and the approval lifecycle, is
 [docs/governance.md](docs/governance.md).
+
+## Bots
+
+**Bots** is a free directory of ready-made helpers, one job each: _Rent scout_, _Inbox triage_,
+_Stack trace explainer_, _Pub quiz maker_. Open one, read what it does and what it needs, and
+press **Add to Steward**. It becomes an agent you can pick for a new conversation. Nothing to
+copy, nothing to configure.
+
+- 247 bots ship with Steward in `directory/`: 60 made by a model from a job taxonomy and checked by
+  a second model and the gateway's rules (labelled **AI-made** until someone uses them), 177 adapted
+  from [LobeChat's agent index](https://github.com/lobehub/lobe-chat-agents) with their authors
+  credited, and 10 from OpenBot's coworker catalogue.
+- A bot is a pack: a profile, skills in the open [Agent Skills](https://agentskills.io) `SKILL.md`
+  format, starters, and rules that can only make the gateway stricter, never looser.
+- Before you add one, the listing shows **what it may do without asking** and **what it asks
+  before**, worked out from its tools and _your_ rules.
+- **Make a bot** describes one in a sentence and generates it on your own model. Point
+  `STEWARD_DIRECTORY_URL` at another index, or a folder, to run your own directory.
+
+The plan behind it: [docs/plans/bot-directory.md](docs/plans/bot-directory.md).
 
 ## Make it your own
 

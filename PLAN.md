@@ -384,3 +384,10 @@ for the computer.
   `delegate_task` tool with AG-UI subagent events, usage in the record. "Use your subscription"
   means running the vendor's own unmodified tool with your own login; Steward never touches a
   vendor credential. Research in `docs/research/happy-orchestration.md`. Nothing built yet.
+- **28 Oct 2026, bot directory built.** Four tracks, each owning its own directories:
+  `packages/bots` (the pack format, validators, directory client, `directory_find`),
+  `apps/server` (installed bots, routes, agents rebuilt without a restart), `apps/web` (the Bots
+  page, listing, add page, agent picker), `packages/bots-gen` and `directory/` (generator,
+  converters, 247 seeded bots). The gateway accepts rules from bots and refuses any `allow`.
+  Verified: typecheck and biome clean, 1,286 unit tests, 28/28 e2e, and a live walk on NVIDIA
+  Nemotron: open a listing, Add, and the installed bot sorted the demo inbox.
