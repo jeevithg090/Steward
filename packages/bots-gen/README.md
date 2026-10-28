@@ -83,7 +83,8 @@ dropped for a reason that would repeat (a duplicate, below the bar, retired, fai
 `generate` reads the model from the environment (never from a file): export `NVIDIA_API_KEY`, or
 `STEWARD_SEED_BASE_URL` + `STEWARD_SEED_MODEL` (+ `STEWARD_SEED_API_KEY`) for any other
 OpenAI-compatible endpoint. With no key, or a key that fails a probe call, it says so and uses the
-template generator. Each run appends to `.steward-data/seeds/generate-log.jsonl` and skips jobs
+template generator. Each run appends to `directory/generate-log.jsonl` (committed with the packs,
+so a run resumes from any checkout) and skips jobs
 that already have a bot. Packs are written with `writeBotFolder` to `directory/bots/<id>/`; a
 clash of ids gets `-2`, `-3`.
 

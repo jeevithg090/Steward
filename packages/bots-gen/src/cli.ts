@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { appendFile, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, copyFile, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { buildIndex, parseBotFolder, validatePack, writeBotFolder } from "@steward/bots";
@@ -44,7 +44,13 @@ const DIRECTORY = join(ROOT, "directory");
 const BOTS_DIR = join(DIRECTORY, "bots");
 const SEEDS = join(ROOT, ".steward-data", "seeds");
 const OPENBOT_SEEDS = resolve(import.meta.dirname, "../seeds/openbot");
-const GENERATE_LOG = join(SEEDS, "generate-log.jsonl");
+/**
+ * One line per job tried: what was written, what was dropped and why, how long it took. Kept in
+ * the directory and committed with the packs, so a run can be resumed from any checkout.
+ */
+const GENERATE_LOG = join(DIRECTORY, "generate-log.jsonl");
+/** Where the log lived before 28 Oct 2026; copied over once. */
+const OLD_GENERATE_LOG = join(SEEDS, "generate-log.jsonl");
 /** Vectors by text hash, one file per embedding model; never committed (`.steward-data`). */
 const EMBEDDINGS = join(SEEDS, "embeddings");
 
@@ -193,7 +199,13 @@ async function convertLobe(cache: string, limit: number | undefined, refresh: bo
 
 // ── shared setup: the model, the embedder, the log ─────────────────────────────────────────────
 
+async function moveOldLog(): Promise<void> {
+  if (!existsSync(GENERATE_LOG) && existsSync(OLD_GENERATE_LOG))
+    await copyFile(OLD_GENERATE_LOG, GENERATE_LOG);
+}
+
 async function readLog(): Promise<LogRow[]> {
+  await moveOldLog();
   if (!existsSync(GENERATE_LOG)) return [];
   const text = await readFile(GENERATE_LOG, "utf8");
   return text
@@ -203,7 +215,7 @@ async function readLog(): Promise<LogRow[]> {
 }
 
 async function appendLog(row: LogRow): Promise<void> {
-  await mkdir(SEEDS, { recursive: true });
+  await moveOldLog();
   await appendFile(GENERATE_LOG, `${JSON.stringify(row)}\n`, "utf8");
 }
 
