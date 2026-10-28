@@ -422,3 +422,14 @@ for the computer.
   - The gateway trusts a harness call's mapped kind, as it does an MCP tool's, and summarises it
     from the structured target.
   - Bot listings move readme headings below the section's, so the page keeps one h1.
+- **28 Oct 2026, orchestration Phase 3 built.** `packages/harnesses/src/codex`: a Codex app-server
+  client ported and trimmed from Happy's `codexAppServerClient.ts` (MIT).
+  - It speaks newline-delimited JSON-RPC to `codex app-server --listen stdio://`, with
+    `thread/start` and `thread/resume` set to `untrusted` and `workspace-write`.
+  - Command, file-change and MCP-elicitation requests become Steward approvals, answered `accept`,
+    `acceptForSession` (Always only), `decline` or `cancel`.
+  - `turn/interrupt` has a 3 s forced restart, and the next message resumes the thread.
+  - `thread/tokenUsage/updated` fills `RUN_FINISHED.usage`.
+  - Unknown server requests get a JSON-RPC error.
+  - Tests replay a transcript reconstructed from the protocol (Codex is not installed here), and a
+    live check runs only with `codex` on PATH and `STEWARD_LIVE_CODEX=1`.

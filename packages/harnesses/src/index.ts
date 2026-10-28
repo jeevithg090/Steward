@@ -14,6 +14,20 @@ export {
   permissionFrom,
   toolNameOf,
 } from "./acp/mapping.ts";
+export { CodexBackend, INTERRUPT_GRACE_MS } from "./codex/backend.ts";
+export {
+  changedFiles,
+  commandLine,
+  commandPermission,
+  decisionFor,
+  elicitationPermission,
+  elicitationResponse,
+  fileChangePermission,
+  itemCompleted,
+  itemStarted,
+  scopedId,
+  usageFrom,
+} from "./codex/mapping.ts";
 export { AgUiStream } from "./events.ts";
 export {
   HarnessAgent,

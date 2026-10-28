@@ -20,6 +20,7 @@ import {
 import { profileFromPack } from "@steward/bots";
 import {
   AcpBackend,
+  CodexBackend,
   HarnessAgent,
   type HarnessBackend,
   type HarnessSessionStore,
@@ -573,16 +574,17 @@ export class AgentHost {
       ...(deps?.audit ? { audit: deps.audit } : {}),
       actorId: this.deps.shared.actorId,
       ...(deps?.idleMs ? { idleMs: deps.idleMs } : {}),
-      backend: (opts) =>
-        deps?.backend
-          ? deps.backend(harness, opts)
-          : new AcpBackend({
-              profile: harness,
-              cwd: opts.cwd,
-              events: opts.events,
-              env,
-              ...(deps?.version ? { version: deps.version } : {}),
-            }),
+      backend: (opts) => {
+        if (deps?.backend) return deps.backend(harness, opts);
+        const common = {
+          profile: harness,
+          cwd: opts.cwd,
+          events: opts.events,
+          env,
+          ...(deps?.version ? { version: deps.version } : {}),
+        };
+        return harness.kind === "codex" ? new CodexBackend(common) : new AcpBackend(common);
+      },
     });
     this.harnessThreads.set(harness.id, { key, threads });
     return threads;

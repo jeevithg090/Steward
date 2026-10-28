@@ -1,9 +1,10 @@
 # Coding agents (harnesses)
 
-Steward can run external coding agents, such as Claude Code or Gemini CLI, as agents of its own.
-Each one is the vendor's own, unmodified tool. Steward starts it in that agent's workspace, talks
-to it over the [Agent Client Protocol](https://agentclientprotocol.com) (ACP), and turns every
-permission it asks for into a Steward approval. The chat, the approval card, the record and the
+Steward can run external coding agents, such as Claude Code, Gemini CLI or Codex, as agents of its
+own. Each one is the vendor's own, unmodified tool. Steward starts it in that agent's workspace,
+talks to it over the [Agent Client Protocol](https://agentclientprotocol.com) (ACP) or, for Codex,
+over Codex's own app-server protocol, and turns every permission it asks for into a Steward
+approval. The chat, the approval card, the record and the
 resume sweep work as they do for Steward itself.
 
 ## Adding one
@@ -23,8 +24,8 @@ harnesses:
     # env: { SOME_SETTING: "1" } # plain settings, never keys
 ```
 
-Steward's own tenant offers Claude Code (`npm install -g @zed-industries/claude-agent-acp@0.23.1`)
-and Gemini CLI (`gemini --experimental-acp`). An entry appears in the agent picker only when its
+Steward's own tenant offers Claude Code (`npm install -g @zed-industries/claude-agent-acp@0.23.1`),
+Gemini CLI (`gemini --experimental-acp`) and Codex (`codex app-server`, `kind: codex`). An entry appears in the agent picker only when its
 program is installed. Until then it is greyed out, and the reason says what to install.
 `GET /api/harnesses` lists every entry and whether its program was found.
 
@@ -91,6 +92,34 @@ browser, or from the server's resume sweep when the answer came from Tasks or a 
 message while a request waits counts as moving on: the request is cancelled and the new message
 starts a new turn.
 
+## Codex
+
+Codex runs as `codex app-server --listen stdio://` (`kind: codex`). The client is ported and trimmed
+from Happy's (MIT), because the ACP adapter lags the app-server and `@openai/codex-sdk` has no
+approvals.
+
+- Every thread starts or resumes with `approvalPolicy: "untrusted"` and
+  `sandbox: "workspace-write"`, and every turn repeats them. The loader refuses `-c` overrides of
+  `approval_policy` or `sandbox_mode`.
+- The thread id is the resume handle: the next process calls `thread/resume`.
+- `item/commandExecution/requestApproval` is a `shell` call with `target.command`.
+  `item/fileChange/requestApproval` is one approval listing every changed file: a `write`, or a
+  `delete` when it only deletes. It is on the `system` surface when a file is outside the workspace
+  or the request asks to widen the sandbox. `mcpServer/elicitation/request` is an `mcp` call on its
+  server and tool.
+- The answers are `accept`, `acceptForSession` (only for Always allow, where Steward offers it),
+  `decline`, and `cancel` when the run stops. Requests Steward does not answer (wider network or
+  file grants, user input) get a JSON-RPC error, never an empty result.
+- Stop sends `turn/interrupt`. If the turn has not ended within three seconds, the app-server is
+  restarted, and the next message resumes the thread.
+- Token usage comes from `thread/tokenUsage/updated`. Each update's last call is added up for the
+  run and shown in the record under `harness:codex` and the thread's model.
+
+The tests replay a transcript reconstructed from the protocol
+(`packages/harnesses/test/fixtures/codex-app-server.transcript.json`); it was not recorded from a
+live Codex. A live check runs only with Codex installed and `STEWARD_LIVE_CODEX=1`, because
+starting Codex uses your own sign-in.
+
 ## What Steward cannot see
 
 Every harness runs its read-only tools without asking (reading and searching files in its
@@ -108,4 +137,5 @@ first; Steward has not verified them (UNVERIFIED, see
 ## Usage
 
 ACP agents do not report token counts, so their runs show "No token count was reported." in the
-record. Steward does not estimate them.
+record. Codex reports them, and they appear per model under `harness:codex`. Steward does not
+estimate tokens, and never puts a price on a run that a subscription pays for.

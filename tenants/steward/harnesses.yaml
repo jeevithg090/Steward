@@ -28,3 +28,13 @@ harnesses:
     command: gemini
     args: ["--experimental-acp"]
     signIn: vendor-tool
+
+  # npm install -g @openai/codex (0.153 or newer), and sign in to it with ChatGPT (`codex`).
+  # Steward runs its app-server with approvalPolicy "untrusted" and sandbox "workspace-write".
+  - id: codex
+    name: Codex
+    title: OpenAI's coding agent
+    kind: codex
+    command: codex
+    args: ["app-server", "--listen", "stdio://"]
+    signIn: vendor-tool

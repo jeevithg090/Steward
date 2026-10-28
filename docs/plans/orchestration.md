@@ -7,7 +7,8 @@ Status, 28 Oct 2026. **Built:** Phase 1 (picker and profiles: the `xai` provider
 models, `GET /api/agents`, the picker with each agent's model, tokens per run in the record) and
 Phase 2 (`packages/harnesses`: the ACP client on `@agentclientprotocol/sdk` 2.0.2, `HarnessAgent`,
 `harnesses.yaml`, every `session/request_permission` as a Steward approval; see
-[docs/harnesses.md](../harnesses.md)). Phases 3 to 5 are not built. Research
+[docs/harnesses.md](../harnesses.md)) and Phase 3 (the Codex app-server client, ported from Happy,
+tested against a reconstructed transcript). Phases 4 and 5 are not built. Research
 behind every claim:
 [docs/research/happy-orchestration.md](../research/happy-orchestration.md) (Happy's harness
 integrations, its own multi-provider harness, subscriptions, subagents, and the Agent Client

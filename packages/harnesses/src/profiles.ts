@@ -29,6 +29,9 @@ const BYPASS_FLAGS = [
   /^--yolo\b/,
   /^--full-auto\b/,
   /^--auto-approve\b/,
+  // Codex config overrides (`-c approval_policy="never"`): Steward sets both itself, per thread.
+  /approval[_-]?policy\s*=\s*"?(never|on-failure|on-request)/i,
+  /sandbox[_-]?mode\s*=/i,
 ];
 
 const profileEntry = z

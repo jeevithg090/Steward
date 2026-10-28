@@ -6,7 +6,8 @@ Their copyright notices and licence terms apply to the adapted portions.
 - CopilotKit — https://github.com/CopilotKit/CopilotKit — Copyright (c) CopilotKit — MIT
 - AG-UI — https://github.com/ag-ui-protocol/ag-ui — Copyright (c) the AG-UI authors — MIT
 - Happy — https://github.com/slopus/happy — Copyright (c) 2026 Happy Coder Contributors — MIT
-  (the ACP stdout filter and process handling in `packages/harnesses/src/acp`)
+  (the ACP stdout filter and process handling in `packages/harnesses/src/acp`, and the Codex
+  app-server client in `packages/harnesses/src/codex`, ported and trimmed)
 
 Files that adapt code from these projects say so in a header comment naming the source file.
 Steward is an independent project and is not affiliated with or endorsed by CopilotKit or Anthropic.

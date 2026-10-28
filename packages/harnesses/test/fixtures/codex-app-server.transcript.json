@@ -1,0 +1,456 @@
+{
+  "about": "A transcript of `codex app-server --listen stdio://` for Steward's tests, replayed by fake-codex-app-server.mjs. RECONSTRUCTED, not recorded: Codex is not installed where this was written. The message shapes follow Happy's happy-cli/src/codex/codexAppServerClient.ts and codexAppServerTypes.ts (cherry-picked from `codex app-server generate-ts`, Codex 0.107.0) and OpenAI's app-server notes. Re-record against a real Codex before trusting a field this file does not show. `$thread`, `$turn` and `$cwd` are filled in when replayed. A `request` step waits for Steward's answer and continues with the branch for its `decision` (or `action`); `waitFor` waits for a client request and answers it with `result`; `hang` never ends the turn.",
+  "responses": {
+    "initialize": { "userAgent": "codex_cli_rs/0.160.0 (transcript)" },
+    "thread/start": {
+      "thread": { "id": "019a7c3e-codex-thread-1", "path": "$cwd/.codex/sessions/rollout.jsonl" },
+      "model": "gpt-5.6-terra",
+      "modelProvider": "openai",
+      "cwd": "$cwd",
+      "approvalPolicy": "untrusted",
+      "sandbox": { "type": "workspaceWrite" },
+      "reasoningEffort": "medium"
+    },
+    "thread/resume": {
+      "thread": { "id": "$thread", "path": "$cwd/.codex/sessions/rollout.jsonl" },
+      "model": "gpt-5.6-terra",
+      "modelProvider": "openai",
+      "cwd": "$cwd",
+      "approvalPolicy": "untrusted",
+      "sandbox": { "type": "workspaceWrite" },
+      "reasoningEffort": "medium"
+    }
+  },
+  "turns": {
+    "hello": [
+      {
+        "notify": "turn/started",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "inProgress" } }
+      },
+      {
+        "notify": "item/started",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "item": { "type": "reasoning", "id": "rs_1", "summary": [] }
+        }
+      },
+      {
+        "notify": "item/completed",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "item": { "type": "reasoning", "id": "rs_1", "summary": ["Greet them back."] }
+        }
+      },
+      {
+        "notify": "item/started",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "item": { "type": "agentMessage", "id": "msg_1", "text": "" }
+        }
+      },
+      {
+        "notify": "item/agentMessage/delta",
+        "params": { "threadId": "$thread", "turnId": "$turn", "itemId": "msg_1", "delta": "Hello " }
+      },
+      {
+        "notify": "item/agentMessage/delta",
+        "params": { "threadId": "$thread", "turnId": "$turn", "itemId": "msg_1", "delta": "from Codex." }
+      },
+      {
+        "notify": "item/completed",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "item": {
+            "type": "agentMessage",
+            "id": "msg_1",
+            "text": "Hello from Codex.",
+            "phase": "final_answer"
+          }
+        }
+      },
+      {
+        "notify": "thread/tokenUsage/updated",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "tokenUsage": {
+            "total": {
+              "inputTokens": 1200,
+              "cachedInputTokens": 800,
+              "outputTokens": 40,
+              "reasoningOutputTokens": 12,
+              "totalTokens": 1240
+            },
+            "last": {
+              "inputTokens": 1200,
+              "cachedInputTokens": 800,
+              "outputTokens": 40,
+              "reasoningOutputTokens": 12,
+              "totalTokens": 1240
+            },
+            "modelContextWindow": 400000
+          }
+        }
+      },
+      {
+        "notify": "turn/completed",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+      }
+    ],
+    "run the tests": [
+      {
+        "notify": "turn/started",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "inProgress" } }
+      },
+      {
+        "notify": "item/started",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "item": {
+            "type": "commandExecution",
+            "id": "call_1",
+            "command": "npm test",
+            "cwd": "$cwd",
+            "status": "inProgress"
+          }
+        }
+      },
+      {
+        "notify": "thread/tokenUsage/updated",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "tokenUsage": {
+            "total": {
+              "inputTokens": 2000,
+              "cachedInputTokens": 0,
+              "outputTokens": 30,
+              "reasoningOutputTokens": 0,
+              "totalTokens": 2030
+            },
+            "last": {
+              "inputTokens": 2000,
+              "cachedInputTokens": 0,
+              "outputTokens": 30,
+              "reasoningOutputTokens": 0,
+              "totalTokens": 2030
+            }
+          }
+        }
+      },
+      {
+        "request": "item/commandExecution/requestApproval",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "itemId": "call_1",
+          "command": ["npm", "test"],
+          "cwd": "$cwd",
+          "reason": "Run the test suite",
+          "approvalId": null
+        },
+        "on": {
+          "accept": [
+            {
+              "notify": "item/completed",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "item": {
+                  "type": "commandExecution",
+                  "id": "call_1",
+                  "command": "npm test",
+                  "cwd": "$cwd",
+                  "status": "completed",
+                  "aggregatedOutput": "12 passed",
+                  "exitCode": 0
+                }
+              }
+            },
+            {
+              "notify": "item/completed",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "item": { "type": "agentMessage", "id": "msg_2", "text": "All tests pass." }
+              }
+            },
+            {
+              "notify": "thread/tokenUsage/updated",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "tokenUsage": {
+                  "total": {
+                    "inputTokens": 4100,
+                    "cachedInputTokens": 1900,
+                    "outputTokens": 50,
+                    "reasoningOutputTokens": 0,
+                    "totalTokens": 4150
+                  },
+                  "last": {
+                    "inputTokens": 2100,
+                    "cachedInputTokens": 1900,
+                    "outputTokens": 20,
+                    "reasoningOutputTokens": 0,
+                    "totalTokens": 2120
+                  }
+                }
+              }
+            },
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ],
+          "acceptForSession": "accept",
+          "decline": [
+            {
+              "notify": "item/completed",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "item": {
+                  "type": "commandExecution",
+                  "id": "call_1",
+                  "command": "npm test",
+                  "cwd": "$cwd",
+                  "status": "declined"
+                }
+              }
+            },
+            {
+              "notify": "item/completed",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "item": { "type": "agentMessage", "id": "msg_2", "text": "I did not run the tests." }
+              }
+            },
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ],
+          "cancel": [
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "interrupted" } }
+            }
+          ]
+        }
+      }
+    ],
+    "edit the readme": [
+      {
+        "notify": "turn/started",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "inProgress" } }
+      },
+      {
+        "notify": "item/started",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "item": {
+            "type": "fileChange",
+            "id": "patch_1",
+            "changes": [{ "path": "README.md", "kind": { "type": "update" } }],
+            "status": "inProgress"
+          }
+        }
+      },
+      {
+        "request": "item/fileChange/requestApproval",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "itemId": "patch_1",
+          "reason": null,
+          "grantRoot": null
+        },
+        "on": {
+          "accept": [
+            {
+              "notify": "item/completed",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "item": { "type": "fileChange", "id": "patch_1", "changes": [], "status": "completed" }
+              }
+            },
+            {
+              "notify": "item/completed",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "item": { "type": "agentMessage", "id": "msg_3", "text": "Updated the README." }
+              }
+            },
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ],
+          "*": [
+            {
+              "notify": "item/completed",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "item": { "type": "fileChange", "id": "patch_1", "changes": [], "status": "declined" }
+              }
+            },
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ]
+        }
+      }
+    ],
+    "edit the project": [
+      {
+        "notify": "turn/started",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "inProgress" } }
+      },
+      {
+        "request": "item/fileChange/requestApproval",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "itemId": "patch_2",
+          "fileChanges": {
+            "/srv/project/README.md": {
+              "type": "update",
+              "unified_diff": "@@ -1 +1 @@\n-old\n+new\n",
+              "move_path": null
+            }
+          },
+          "reason": "Write outside the workspace",
+          "grantRoot": "/srv/project"
+        },
+        "on": {
+          "accept": [
+            {
+              "notify": "item/completed",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "item": { "type": "agentMessage", "id": "msg_4", "text": "Changed it once." }
+              }
+            },
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ],
+          "acceptForSession": [
+            {
+              "notify": "item/completed",
+              "params": {
+                "threadId": "$thread",
+                "turnId": "$turn",
+                "item": { "type": "agentMessage", "id": "msg_4", "text": "Changed it, and may again." }
+              }
+            },
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ],
+          "*": [
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ]
+        }
+      }
+    ],
+    "use a tool": [
+      {
+        "notify": "turn/started",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "inProgress" } }
+      },
+      {
+        "request": "mcpServer/elicitation/request",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "serverName": "notion",
+          "message": "Allow tool `search` to run?",
+          "_meta": { "tool_params": { "query": "roadmap" } }
+        },
+        "on": {
+          "accept": [
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ],
+          "*": [
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ]
+        }
+      }
+    ],
+    "widen": [
+      {
+        "notify": "turn/started",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "inProgress" } }
+      },
+      {
+        "request": "item/permissions/requestApproval",
+        "params": {
+          "threadId": "$thread",
+          "turnId": "$turn",
+          "itemId": "perm_1",
+          "permissions": { "network": true },
+          "scope": "session"
+        },
+        "on": {
+          "*": [
+            {
+              "notify": "turn/completed",
+              "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "completed" } }
+            }
+          ]
+        }
+      }
+    ],
+    "wait": [
+      {
+        "notify": "turn/started",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "inProgress" } }
+      },
+      {
+        "notify": "item/agentMessage/delta",
+        "params": { "threadId": "$thread", "turnId": "$turn", "itemId": "msg_5", "delta": "Working on it." }
+      },
+      { "waitFor": "turn/interrupt", "result": {} },
+      {
+        "notify": "turn/completed",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "interrupted" } }
+      }
+    ],
+    "wedged": [
+      {
+        "notify": "turn/started",
+        "params": { "threadId": "$thread", "turn": { "id": "$turn", "status": "inProgress" } }
+      },
+      {
+        "notify": "item/agentMessage/delta",
+        "params": { "threadId": "$thread", "turnId": "$turn", "itemId": "msg_6", "delta": "Stuck." }
+      },
+      { "hang": true }
+    ]
+  }
+}

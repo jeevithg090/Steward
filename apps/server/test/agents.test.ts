@@ -1,5 +1,6 @@
 import { tmpdir } from "node:os";
-import { EventType } from "@ag-ui/client";
+import { fileURLToPath } from "node:url";
+import { type AbstractAgent, EventType } from "@ag-ui/client";
 import { StewardAgent } from "@steward/agent";
 import { HarnessAgent } from "@steward/harnesses";
 import type { AgentProfile, BotPack, HarnessProfile, TenantPackage } from "@steward/shared";
@@ -304,6 +305,29 @@ describe("AgentHost with external coding agents", () => {
     await h.rebuild();
     const after = (h.agent("claude-code") as unknown as { deps: { threads: unknown } }).deps.threads;
     expect(after).toBe(before);
+  });
+
+  it("runs a codex profile on the Codex app-server client", async () => {
+    const fake = fileURLToPath(
+      new URL("../../../packages/harnesses/test/fixtures/fake-codex-app-server.mjs", import.meta.url),
+    );
+    const h = await harnessHost([
+      { ...harness(process.execPath), id: "codex", name: "Codex", kind: "codex", args: [fake] },
+    ]);
+    const agent = h.agent("codex")!;
+    const clone = agent.clone() as AbstractAgent;
+    clone.setMessages([{ id: "u1", role: "user", content: "hello" }]);
+    clone.threadId = "thr_codex_host";
+    let text = "";
+    await clone.runAgent(
+      { runId: "r1" },
+      {
+        onEvent: ({ event }) => {
+          if (event.type === "TEXT_MESSAGE_CONTENT") text += (event as unknown as { delta: string }).delta;
+        },
+      },
+    );
+    expect(text).toBe("Hello from Codex.");
   });
 
   it("leaves out a coding agent whose id a tenant agent already has", async () => {

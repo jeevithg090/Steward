@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import {
   AbstractAgent,
   type AgentConfig,
+  aggregateTokenUsage,
   type BaseEvent,
   EventType,
   type Interrupt,
@@ -263,10 +264,9 @@ export class HarnessAgent extends AbstractAgent {
           if (end.stopReason === "refusal") stream.say(`${this.deps.harness.name} declined to do this.`);
           stream.close(end.stopReason === "cancelled" ? STOPPED_BEFORE_FINISHING : undefined);
           const finished = end.stopReason === "cancelled" ? this.cancelled(input) : this.finished(input);
-          emit({
-            ...finished,
-            ...(end.usage && end.usage.length > 0 ? { usage: end.usage } : {}),
-          } as BaseEvent);
+          // One entry per provider and model for the whole turn, as Steward's own agent reports it.
+          const usage = end.usage && end.usage.length > 0 ? aggregateTokenUsage(end.usage) : [];
+          emit({ ...finished, ...(usage.length > 0 ? { usage } : {}) } as BaseEvent);
           return;
         }
         case "exited":
