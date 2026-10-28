@@ -79,7 +79,33 @@ export const migrations: Migration[] = [
       );
       CREATE INDEX IF NOT EXISTS reports_by_status ON reports (status, created_at);`,
   },
+  {
+    // One row per day the retirement task ran: what it retired, which categories thinned, what it
+    // made to top them up, or why it could not run.
+    id: "directory.005_retirement_runs",
+    sql: `
+      CREATE TABLE IF NOT EXISTS retirement_runs (
+        day TEXT PRIMARY KEY,
+        at TEXT NOT NULL,
+        retired_json TEXT NOT NULL DEFAULT '[]',
+        thinned_json TEXT NOT NULL DEFAULT '[]',
+        regenerated_json TEXT NOT NULL DEFAULT '[]',
+        young INTEGER NOT NULL DEFAULT 0,
+        problem TEXT
+      );`,
+  },
 ];
+
+export interface RetirementRunRecord {
+  day: string;
+  at: string;
+  retired: { id: string; category: string; name: string }[];
+  thinned: { category: string; live: number; floor: number; need: number }[];
+  regenerated: { id: string; category: string }[];
+  /** AI-made bots still inside their 90 days. */
+  young: number;
+  problem?: string;
+}
 
 export interface SessionUser {
   githubId: number;
@@ -438,6 +464,49 @@ export class DirectoryStore {
       [status, by, note, at, id],
     );
     return this.submission(id);
+  }
+
+  // ── Retirement runs ──────────────────────────────────────────────────────────────────────────
+
+  recordRetirement(run: RetirementRunRecord): void {
+    this.db.run(
+      `INSERT INTO retirement_runs (day, at, retired_json, thinned_json, regenerated_json, young, problem)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(day) DO UPDATE SET at = excluded.at, retired_json = excluded.retired_json,
+         thinned_json = excluded.thinned_json, regenerated_json = excluded.regenerated_json,
+         young = excluded.young, problem = excluded.problem`,
+      [
+        run.day,
+        run.at,
+        toJson(run.retired),
+        toJson(run.thinned),
+        toJson(run.regenerated),
+        run.young,
+        run.problem ?? null,
+      ],
+    );
+  }
+
+  lastRetirement(): RetirementRunRecord | undefined {
+    const row = this.db.get<{
+      day: string;
+      at: string;
+      retired_json: string;
+      thinned_json: string;
+      regenerated_json: string;
+      young: number;
+      problem: string | null;
+    }>("SELECT * FROM retirement_runs ORDER BY day DESC LIMIT 1");
+    if (!row) return undefined;
+    return {
+      day: row.day,
+      at: row.at,
+      retired: fromJson(row.retired_json, []),
+      thinned: fromJson(row.thinned_json, []),
+      regenerated: fromJson(row.regenerated_json, []),
+      young: row.young,
+      ...(row.problem ? { problem: row.problem } : {}),
+    };
   }
 
   // ── Reports and removal requests ─────────────────────────────────────────────────────────────

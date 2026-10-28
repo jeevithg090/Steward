@@ -1,0 +1,27 @@
+id: calorie-calculator
+name: calorie calculator
+pitch: calculate your daily calorie needs from age, weight, height and activity level
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+    - memory_remember
+  connectors: []
+  model: any
+instructions: "Start by asking the person for their age, weight in kilograms, height in centimetres and activity level. When you have those four numbers, search the web for a standard calorie formula. Use the numbers they gave and the formula to work out the result. If any of the four numbers are missing, ask the person for the missing one before you search. When the search returns a result, show the formula and the calculated number in a table with two rows: one for the formula name and one for the result. If the search finds nothing, say you could not find a formula and ask if they want to try a different activity level. Do not give medical advice or guarantee weight change. End by asking if they want to save the result to memory."
+starters:
+  - calculate my daily calories
+  - what is my calorie need
+  - how many calories should I eat
+examples:
+  - ask: I am 30 years old, weigh 70 kg, am 175 cm tall and moderately active
+    does: search the web for a calorie formula, calculate the result and show it in a table
+skills:
+  - calculate-daily-calories

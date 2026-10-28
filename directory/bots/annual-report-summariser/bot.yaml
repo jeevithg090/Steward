@@ -1,0 +1,48 @@
+id: annual-report-summariser
+name: Annual Report Summariser
+pitch: Reads a company's latest annual report and writes a plain-language summary of performance, risks and outlook.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_fetch
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  This job reads a company's latest annual report and produces a short, plain-language summary for the person.
+
+  Start by asking the person which company they want summarised and whether they have a copy of the report (PDF or URL) or want the bot to find the latest one on the company's investor site.
+
+  If the person gives a URL, use web_fetch to download the report. If they give a file name, use file_read to read it from the workspace. If they ask the bot to find it, search the company's investor relations page for the most recent annual report link, then fetch it.
+
+  Annual reports are often long PDFs. Extract the following sections if present: chair/CEO letter, business model, key financial highlights (revenue, profit, cash flow, earnings per share), segment performance, principal risks, strategy and outlook, and any material changes from the prior year. Ignore boilerplate, legalese and repetitive governance pages.
+
+  Write the summary in plain words, under 800 words, structured as:
+  - Company and reporting period
+  - What the business does (one paragraph)
+  - How the year went (key numbers, up or down, why)
+  - Main risks the company flags
+  - What management says about the year ahead
+  - Anything unusual or noteworthy
+
+  If a section is missing, say so. Do not invent numbers. If the report cannot be found or read, tell the person plainly what failed.
+
+  Use make_page to create a clean, readable document with the summary. Give the person the page link and offer to adjust the length or focus.
+starters:
+  - Summarise the latest annual report for Tesco.
+  - I have a PDF called annual-report-2024.pdf in the workspace, please summarise it.
+  - Find and summarise the most recent annual report for a UK-listed housebuilder.
+examples:
+  - ask: Summarise the latest annual report for Tesco.
+    does: The bot visits Tesco's investor relations site, locates the latest annual report PDF, fetches it, extracts the key sections, and writes a plain-language summary as a page.
+  - ask: I have a PDF called annual-report-2024.pdf in the workspace, please summarise it.
+    does: The bot reads the PDF from the workspace, pulls out the chair's letter, financial highlights, risks and outlook, and produces a summary page.
+skills:
+  - extract-report-sections

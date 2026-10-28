@@ -1,10 +1,10 @@
 import { BOT_CATEGORIES, type BotCategory, isBuiltinTool } from "@steward/shared";
 import { describe, expect, it } from "vitest";
-import { interleaveByCategory, loadJobs, parseJobs } from "../src/jobs.ts";
+import { interleaveByCategory, JOBS_FILE, loadJobs, parseJobs } from "../src/jobs.ts";
 import { isPackTool } from "../src/prompt.ts";
 
 describe("jobs.yaml", () => {
-  const jobs = loadJobs();
+  const jobs = loadJobs(JOBS_FILE, { ai: false });
 
   it("has ten or more jobs in every category, about 220 in all", () => {
     const counts = new Map<BotCategory, number>();
@@ -39,5 +39,23 @@ describe("jobs.yaml", () => {
   it("names the category and line when the file is wrong", () => {
     expect(() => parseJobs("nope:\n  - job: do a thing for me\n")).toThrow(/"nope" is not a category/);
     expect(() => parseJobs("food:\n  - job: x\n")).toThrow(/food\[0\]/);
+  });
+});
+
+describe("jobs-ai.yaml", () => {
+  it("comes after the people's jobs, marked as AI-proposed, without repeating one", async () => {
+    const { existsSync } = await import("node:fs");
+    const { AI_JOBS_PATH } = await import("../src/jobs.ts");
+    const people = loadJobs(JOBS_FILE, { ai: false });
+    const all = loadJobs();
+    expect(all.slice(0, people.length)).toEqual(people);
+    if (existsSync(AI_JOBS_PATH)) {
+      const more = all.slice(people.length);
+      expect(more.every((j) => j.source === "ai")).toBe(true);
+      const seen = new Set(people.map((j) => j.job.toLowerCase()));
+      expect(more.some((j) => seen.has(j.job.toLowerCase()))).toBe(false);
+    } else {
+      expect(all).toHaveLength(people.length);
+    }
   });
 });

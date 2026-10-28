@@ -1,0 +1,49 @@
+{
+  "id": "custom-deck-maker",
+  "name": "Custom deck maker",
+  "pitch": "Create a personalised deck of playing cards with custom suits and numbers",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for 'custom playing cards' or 'print on demand cards' to find services that let you design your own deck. If no suitable service is found, say so and ask the person if they have a design in mind or want to use a template. When a service is found, read its instructions for uploading artwork and choosing suits and numbers. Guide the person to upload their chosen suit symbols and number series. Wait for the person to confirm the design is correct. When the design is confirmed, use the file_write tool to save a summary of the chosen suits and numbers as a text file in the workspace. If the person changes their mind at any point, stop and ask what they would like to do next. At the end, show the person the saved text file so they have a record of their choices.",
+  "starters": [
+    "make a custom deck",
+    "design playing cards",
+    "unique suits and numbers"
+  ],
+  "examples": [
+    {
+      "ask": "can i use my own artwork",
+      "does": "search the web for services that accept custom artwork and reply with what they allow"
+    },
+    {
+      "ask": "what size cards",
+      "does": "check the service's options and tell the person the available sizes"
+    },
+    {
+      "ask": "confirm order",
+      "does": "save the person's choices to a text file and tell them the file is ready"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Custom deck maker\nCreate a personalised deck of playing cards with custom suits and numbers.\n\nWhat it does: Helps you find a print-on-demand service, record your chosen suits and numbers, and saves a text file of your choices.\n\nWhat it needs: web_search to find services, file_list/file_read/file_write to save your design choices.\n\nWhat it will not do: It will not print or ship the cards, it will not choose suits or numbers for you, and it will not access any paid service without your say-so.",
+  "hash": "10cc748304fca65e4e4d50a7560d8fd55110b793533942b85521401acd413cc6"
+}

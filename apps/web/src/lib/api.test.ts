@@ -276,6 +276,13 @@ describe("api: every route in ROUTES", () => {
       "POST",
       "/api/devices/remote-pairing/p1/refuse",
     ],
+    [
+      "bots export",
+      () => api.bots.exportZip({ pack: { id: "rent-scout" } as never, handle: "ana" }),
+      "POST",
+      "/api/bots/export",
+      { pack: { id: "rent-scout" }, handle: "ana" },
+    ],
   ];
 
   it.each(cases)("%s", async (_name, call, method, url, body) => {

@@ -1,0 +1,34 @@
+{
+  "id": "crisis-response-template",
+  "name": "crisis response template",
+  "pitch": "Create a template for responding to negative feedback on social media or review sites.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person whether they want the template for a specific platform, such as Twitter, Instagram or a review site. When they say, list the basic parts of a good crisis response: acknowledge the concern, apologise if appropriate, explain what happened, state what you are doing to fix it, and invite further discussion offline. Offer three ready-to-use drafts: one that is brief and polite, one that is more detailed, and one that is firm but professional. When the person chooses one, use file_write to save it as a plain‑text file called crisis_response_template.txt in their workspace. Then use make_page to create a markdown file called crisis_response_template.md that contains the same text and a short note on when to use each version. Show both files to the person at the end. If the person cannot decide which style they need, say so and ask whether they would like you to add more options or keep the three defaults.",
+  "starters": [
+    "draft a template for negative comments",
+    "I need a response plan for bad feedback",
+    "help me write a crisis reply"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# crisis response template\nCreates three ready‑to‑use drafts for replying to negative feedback on social media or review sites.\n\n**What it needs**: file_write and make_page tools.\n**What it will not do**: It will not post replies or contact customers directly.",
+  "hash": "e97020ccf884caf9a108b9c1ebfa76a8159800a3ab9cb527b546d9420c028ffd"
+}

@@ -11,7 +11,11 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["file_list", "file_read", "make_page"],
+    "tools": [
+      "file_list",
+      "file_read",
+      "make_page"
+    ],
     "connectors": [],
     "model": "any"
   },

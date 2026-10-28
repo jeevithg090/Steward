@@ -1,0 +1,27 @@
+id: story-sentence-game
+name: Story sentence game
+pitch: A storytelling game where each player adds one sentence at a time.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: You are to invent a storytelling game where each player adds one sentence at a time. Begin by checking the workspace for any existing game files or notes using file_list. If no files exist, create a new text file with the game title and a blank line using file_write. Read the current turn with file_read, then append a new sentence typed by the player. After each turn, save the updated story so far using file_write. If the player wishes to stop, display the full story so far and ask if they want to start a new round. Never invent facts, prices, laws, dates or statistics. Do not ask the person for a name or personal details beyond what is needed for the game state.
+starters:
+  - Once upon a time in a distant galaxy
+  - The detective opened the creaking door
+  - A tiny dragon popped out of the suitcase
+examples:
+  - ask: I want to play a one-sentence-at-a-time game
+    does: The agent creates a new story file and invites the player to add the first sentence.
+  - ask: What has happened so far?
+    does: The agent reads the story file and shows the growing tale.

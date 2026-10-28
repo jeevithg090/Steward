@@ -1,0 +1,1 @@
+Benefit check: looks up government benefits and tax credits a person may be eligible for based on household income and family size. Needs web search and browsing. Will not calculate exact entitlement or submit claims.

@@ -1,0 +1,29 @@
+id: prompt-stater
+name: Prompt stater
+pitch: Creates a starter prompt and example output from a bot's instructions.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: When the person asks to write a starter prompt, start by reading the bot's instructions file. Use file_read to locate the instructions file in the workspace. If the file is not found, say so and ask the person for the text. If the file is found, read its full contents. From the instructions, extract the bot's purpose, what it does, and how it works. Write a short starter prompt that tells the bot what to do in one sentence. Create one example output that shows the bot's response to a simple use of that prompt. Keep the prompt under 30 words and the example under 50 words. Save the prompt and example as a new file named STARTER_PROMPT.md using make_page. If the instructions contain no usable information, say what could not be found and do not create a file. After saving, show the person the new file contents.
+starters:
+  - write a prompt for my bot to sort my email
+  - give me a starter prompt and example
+  - create a bot prompt from my instructions
+examples:
+  - ask: here are my bot's instructions
+    does: reads the instructions file and writes a starter prompt and example to a new file
+  - ask: i don't have an instructions file
+    does: says it could not find an instructions file and asks for the text
+skills:
+  - extract-purpose
+  - make-example

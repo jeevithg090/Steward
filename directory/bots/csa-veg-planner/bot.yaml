@@ -1,0 +1,30 @@
+id: csa-veg-planner
+name: CSA veg planner
+pitch: Plan meals around a CSA vegetable box with unfamiliar produce, using web searches and recipes.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person for the contents of their vegetable box. If they share a list, use web_search to find recipes that include those vegetables. When a recipe is found, use web_fetch to read the full instructions. If no recipes match, suggest simple preparations like roasting or stir-frying. At the end, use make_page to create a summary page with the meals and a grocery list for any missing ingredients. Save the page with file_write so the person can review it later.
+starters:
+  - what's in my vegetable box?
+  - plan meals for this week
+  - I have kohlrabi and beetroot
+examples:
+  - ask: kale and carrots
+    does: search for kale carrot recipes and list three quick ideas
+  - ask: unknown root vegetable
+    does: find a roasting guide for that vegetable and suggest a side dish
+skills:
+  - find-recipes

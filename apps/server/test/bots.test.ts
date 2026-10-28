@@ -445,6 +445,46 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
       expect((await t.api("/api/bots/make", { method: "POST", json: { job: "x" } })).status).toBe(400);
     },
   );
+
+  it.runIf(haveGenerator)(
+    "exports a made bot as a zip of its folder, credited to a handle when given, ready to submit",
+    async () => {
+      const made = await t.api<BotPack>("/api/bots/make", {
+        method: "POST",
+        json: { job: "share out the week's chores fairly", name: "Chore Chart" },
+      });
+      const res = await fetch(`${t.base}/api/bots/export`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ pack: made.body, handle: "@ana-b" }),
+      });
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toBe("application/zip");
+      expect(res.headers.get("content-disposition")).toBe(`attachment; filename="${made.body.id}.zip"`);
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      const text = Buffer.from(bytes).toString("utf8");
+      expect(new DataView(bytes.buffer).getUint32(0, true)).toBe(0x04034b50);
+      expect(text).toContain(`${made.body.id}/bot.yaml`);
+      expect(text).toContain("handle: ana-b");
+      expect(text).toContain("basedOnAi: true");
+
+      const bad = await t.api<{ error: string }>("/api/bots/export", {
+        method: "POST",
+        json: {
+          pack: { ...made.body, rules: [{ name: "Pay", effect: "allow", when: "true", description: "" }] },
+        },
+      });
+      expect(bad.status).toBe(400);
+      expect(bad.body.error).toBe(
+        `This bot can't be submitted: The rule "Pay" would allow something. A bot's rules may only ask or deny.`,
+      );
+      const handle = await t.api("/api/bots/export", {
+        method: "POST",
+        json: { pack: made.body, handle: "not a handle" },
+      });
+      expect(handle.status).toBe(400);
+    },
+  );
 });
 
 if (!botRulesSupported)

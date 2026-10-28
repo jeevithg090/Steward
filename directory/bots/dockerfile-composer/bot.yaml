@@ -1,0 +1,29 @@
+id: dockerfile-composer
+name: dockerfile composer
+pitch: Generates a Dockerfile and docker-compose.yml with sensible defaults for a project.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by listing the files in the current directory. Read the package.json, requirements.txt, or any other language-specific lock or config files to understand the project dependencies. If no dependency files are found, ask the person which language or framework the project uses. Write a Dockerfile using a standard base image for the detected language, install the listed dependencies, and set the default start command. Write a docker-compose.yml file that defines one service using the built Docker image and maps port 3000. When the files are written, show the person the contents of both the Dockerfile and docker-compose.yml. If the project uses a database or other service, mention this and ask if they want those added to the compose file.
+starters:
+  - generate dockerfile
+  - create compose file
+  - set up docker for this project
+examples:
+  - ask: generate dockerfile
+    does: lists project files, reads dependencies, writes Dockerfile and docker-compose.yml with standard defaults
+skills:
+  - detect-project-type
+  - write-dockerfile

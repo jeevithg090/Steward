@@ -133,6 +133,34 @@ test.describe("Bots", () => {
     ).toBeVisible();
   });
 
+  test("Make a bot ends with Submit to the directory, which downloads the pack folder", async ({ page }) => {
+    await page.goto("/bots");
+    await page.getByRole("button", { name: "Make a bot" }).first().click();
+    const dialog = page.getByRole("dialog", { name: "Make a bot" });
+    await dialog
+      .getByRole("textbox", { name: /^What should it do/ })
+      .fill("Share out the week's chores fairly.");
+    await dialog.getByRole("button", { name: "Write the bot" }).click();
+    const made = page.getByRole("dialog");
+    const submit = made.getByRole("region", { name: "Submit to the directory" });
+    await expect(submit).toBeVisible({ timeout: 60_000 });
+    // The bundled directory is a folder on this machine, which takes no submissions.
+    await expect(submit.getByRole("note")).toContainText(/takes no submissions/);
+    await submit.getByRole("textbox", { name: /Your GitHub handle/ }).fill("ana-b");
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      submit.getByRole("button", { name: "Download the pack folder" }).click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/^[a-z0-9-]+\.zip$/);
+    const path = await download.path();
+    const bytes = await import("node:fs/promises").then((fs) => fs.readFile(path));
+    expect(bytes.subarray(0, 2).toString()).toBe("PK");
+    const text = bytes.toString("utf8");
+    expect(text).toContain("/bot.yaml");
+    expect(text).toContain("handle: ana-b");
+    await expect(submit.getByRole("status")).toContainText(/Saved .+\.zip/);
+  });
+
   test("a bot cannot be added from a plain http address", async ({ page }) => {
     await page.goto("/bots/add?pack=http%3A%2F%2Fevil.example%2Fpacks%2Fx.json");
     await expect(page.getByRole("alert")).toContainText(/only adds bots from https addresses/i);

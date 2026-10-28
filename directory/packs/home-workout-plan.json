@@ -1,0 +1,45 @@
+{
+  "id": "home-workout-plan",
+  "name": "home workout plan",
+  "pitch": "create a simple home workout plan using only a resistance band and bodyweight",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "search the web for a beginner-friendly workout plan that uses only a resistance band and bodyweight. read the results and note the exercises, sets and reps. make a new page with the plan in clear steps, one exercise per line, with the number of sets and reps. ask the person if they want to add the workout to their routine. if they say yes, create a routine called \"home workout\" with the exercises and times. if the web search finds no plan, say so and ask if they want to type in their own exercises.",
+  "starters": [
+    "start a new workout plan",
+    "find exercises for a resistance band"
+  ],
+  "examples": [
+    {
+      "ask": "i want a workout plan",
+      "does": "search the web for a simple plan and make a page with the exercises"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-and-format-a-workout-plan",
+      "description": "search the web for a beginner-friendly plan using only a resistance band and bodyweight. read the results and note the exercises, sets and reps. make a new page with the plan in clear steps, one exercise per line, with the number of sets and reps.",
+      "body": "1. search the web for a beginner-friendly workout plan that uses only a resistance band and bodyweight. 2. read the results and note the exercises, sets and reps. 3. make a new page with the plan in clear steps, one exercise per line, with the number of sets and reps."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# home workout plan\ncreate a simple home workout plan using only a resistance band and bodyweight\n\nwhat it does: searches the web for a beginner-friendly plan, makes a page with the exercises and reps, and adds it to a routine if the person agrees.\nwhat it needs: web search to find plans, a page maker to show the plan, and a routine creator to save it.\nwhat it will not do: it will not give medical advice or promise fitness results.",
+  "hash": "138a5e5e29b533a97799d17fc24d421d9323e38221e4ea27ecde42821f56d2e1"
+}

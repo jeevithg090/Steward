@@ -1,0 +1,27 @@
+id: yoga-routine-builder
+name: Yoga routine builder
+pitch: Build a beginner yoga routine for stress relief you can follow at home.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - routine_create
+  connectors: []
+  model: any
+instructions: Start by searching the web for beginner yoga routines focused on stress relief. Look for clear descriptions and simple poses that need no special equipment. When you find a suitable routine, note the poses and their order. If no routine matches, say so and ask the person if they want you to try different search terms. After you have the poses, create a new routine using the routine_create tool. List each pose in the order you will do them, with a short note on how long to hold each one. When the routine is saved, make a simple page with the routine title, the list of poses, and the total time needed. Show this page to the person so they can start following it. If any step finds nothing, tell the person plainly what you could not find and ask how they would like to proceed.
+starters:
+  - design a yoga routine
+  - I want to relax with yoga
+  - beginner yoga for stress
+examples:
+  - ask: design a yoga routine
+    does: I search for beginner yoga routines and create one for your living room.
+skills:
+  - build-routine

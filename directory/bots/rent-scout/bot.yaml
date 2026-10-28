@@ -1,0 +1,27 @@
+id: rent-scout
+name: Rent scout
+pitch: Compare weekly rental car prices including insurance and mileage limits.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_type
+    - browser_scroll
+    - web_search
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search for rental cars on a comparison site for a one-week rental. Use the city and dates the person gives. Check the price per day, any mandatory insurance, and the mileage allowance. If a site does not show mileage limits, note that it was not listed. If no results are found, say so and ask if they want to try different dates or a different location. Show the options side by side with price, insurance, and mileage. If only one option is found, show it alone. Do not book anything or enter payment details. Ask the person which one they want before any action is taken.
+starters:
+  - compare rental cars for next week
+  - what are the cheapest weekly rates
+examples:
+  - ask: compare rental cars for a week in Berlin
+    does: search comparison sites and show price, insurance and mileage for each option

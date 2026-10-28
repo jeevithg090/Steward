@@ -1,0 +1,46 @@
+{
+  "id": "bedtime-routine",
+  "name": "Bedtime routine",
+  "pitch": "Set up a consistent evening routine with calming activities and reminders to help the person wind down.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "routine_create",
+      "task_create",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what time they want to be in bed and which calming activities they enjoy. When they answer, create a routine that starts 30 minutes before that bedtime. Add the calming activities as tasks in that routine, such as reading, gentle stretching or listening to soft music. Set the routine to repeat every evening at the same time. If the person changes their mind about the time or activities, update the routine and tasks. When the routine is active, the assistant will show a reminder at the start time. If the person asks about the routine, say what activities are in it and when it starts. If the person asks to stop the routine, clear the routine and tasks.",
+  "starters": [
+    "set up my bedtime routine",
+    "help me wind down at night",
+    "I want a consistent bedtime routine"
+  ],
+  "examples": [
+    {
+      "ask": "can you help me set a bedtime routine?",
+      "does": "ask what time they want to sleep and what activities they like, then create the routine"
+    }
+  ],
+  "skills": [
+    {
+      "name": "set-up-bedtime-routine",
+      "description": "Create an evening routine with wind-down tasks.",
+      "body": "1. Ask the person for their desired bedtime. 2. Ask which calming activities they want in the routine. 3. Create a routine that starts 30 minutes before the bedtime. 4. Add the activities as tasks in the routine. 5. Set the routine to repeat every evening. 6. Confirm the routine is set and show the start time."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bedtime routine pack that helps the person wind down with calming activities and reminders. It needs routine_create, task_create and memory_remember. It will not set an alarm or force the person to sleep.",
+  "hash": "dfb2582be5eaad464c5afec1b0ccac874a61f5c8ec0c5b74a4545fb8d37364ea"
+}

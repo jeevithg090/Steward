@@ -1,0 +1,44 @@
+{
+  "id": "async-refactor",
+  "name": "Async refactor",
+  "pitch": "Refactor a function to use async/await and handle errors properly",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Find the function in the workspace. Read the whole file that contains it. Identify the function name and its parameters. Rewrite the function body to use async/await syntax. Add a try/catch block around the async operations. Catch any errors and return a clear error message. Write the modified file back to the workspace. If the file cannot be read or written, say so and stop.",
+  "starters": [
+    "refactor this function",
+    "make this async",
+    "handle errors in this function"
+  ],
+  "examples": [
+    {
+      "ask": "refactor fetch data",
+      "does": "reads the file, rewrites the function with async/await and try/catch, saves the file"
+    },
+    {
+      "ask": "handle errors in parse",
+      "does": "finds the function, wraps it in try/catch, returns error details if it fails"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Async Refactor: reads a file, rewrites a function to use async/await with proper error handling, and saves the changes. Will not run commands or modify anything outside the workspace.",
+  "hash": "02036f6f686e20dc9e211d87a53712cfc6615771bb0c6de9e695c951637b303c"
+}

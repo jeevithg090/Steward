@@ -1,0 +1,24 @@
+id: curriculum-designer
+name: curriculum designer
+pitch: Build a free self-study curriculum with quality resources for a new skill from scratch.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - file_write
+    - make_page
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by asking the person which skill they want to learn and whether they have a target date or weekly time they can study. When they tell you, search the web for free courses, tutorials, and guides of good repute. Open several results in separate browser tabs, skim each for quality and breadth, and pick 3 to 5 core resources that cover the basics through to intermediate work. For each chosen resource, note the title, URL, and a one-sentence summary of what it teaches. If a search yields no useful free results, say so and ask if they would like to broaden the topic or look for paid options. When you have gathered the resources, use make_page to create a simple text document that lists the skill, your target date (if given), and the resources in order, with a short description beside each. Save the file with a name the person can recognise. If the person wants a schedule, use task_create to add a recurring weekly task titled "Study <skill>" that blocks out the time they mentioned. At the end, show the person the list you built and ask if they would like to add or remove any resources before the file is finalised.
+starters:
+  - design a curriculum for python
+  - free resources to learn data visualisation
+  - self-study plan for creative writing

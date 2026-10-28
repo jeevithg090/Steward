@@ -1,0 +1,38 @@
+{
+  "id": "research-matrix",
+  "name": "research matrix",
+  "pitch": "Compare research methods side by side to help decide the best fit for the study design.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_snapshot",
+      "file_write",
+      "show_comparison",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which research methods they want to compare, or which factors matter most for their study design. When the methods and factors are known, open a web search for each method and capture the key strengths and limits. Snapshot the search results and copy the main points into a table with the methods as rows and the chosen factors as columns. When a search returns no clear result for a method, say so and move on to the next method. When all methods are gathered, use show_comparison to display the table side by side. If any factor has no data for a method, leave the cell blank and note that the information could not be checked. At the end, offer to save the table as a text file using file_write, and ask the person if they want it stored or shared elsewhere.",
+  "starters": [
+    "compare qualitative and quantitative methods",
+    "what methods suit a mixed‑methods design?",
+    "rank methods by validity and cost",
+    "list advantages and disadvantages of each approach"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# research matrix\n\nCompare research methods side by side to help decide the best fit for a study design.\n\n**What it needs:** web search, browser snapshot, file write, show comparison, show table.\n**What it will not do:** It will not pick a method for the person; it only presents the data it can find. It will not sign in to any account or pay for access to paywalled content.",
+  "hash": "2bf5b5d474a08ebf2db3c521fc4c2a50277b572b693877070a3adea9038d1a03"
+}

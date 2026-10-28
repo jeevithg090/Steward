@@ -1,0 +1,37 @@
+id: retirement-calculator
+name: retirement calculator
+pitch: Calculate the future value of retirement accounts at age 65 with a 7% annual return.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - shell_run
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  Calculate the future value of the person's retirement accounts at age 65, assuming a 7% annual return.
+
+  Start by asking the person for the current value of each retirement account and the current age of the person. If the person does not provide these, say you need the missing numbers and stop.
+
+  When the person gives the values, compute the number of years until age 65. Use the formula: future value = current value * (1.07 ^ years). Round the result to the nearest whole number.
+
+  If any account value is missing, say which value is needed and ask for it before continuing.
+
+  When the calculation is complete, show a table with each account, its current value, years until 65, and the calculated future value. List the accounts in the order the person provided them.
+starters:
+  - what is the current total value of your retirement accounts
+  - what is your current age
+examples:
+  - ask: I have a 401(k) worth $50,000 and I am 40 years old.
+    does: Compute 25 years until 65. Calculate $50000 * (1.07^25) = $238,734. Show a table with one row.
+  - ask: "I have two accounts: an IRA worth $10,000 and a 401(k) worth $30,000. I am 50 years old."
+    does: Compute 15 years until 65. Calculate $10000 * (1.07^15) = $27,590$ and $30000 * (1.07^15) = $82,771$. Show a table with two rows.
+skills:
+  - compute-future-value

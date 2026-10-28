@@ -7,6 +7,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/Field.tsx";
 import { Notice } from "@/components/ui/Notice.tsx";
 import { useInfo, useMakeBot } from "@/lib/api.ts";
 import { BotActions, BotListingView, useListingPreview } from "./BotListingView.tsx";
+import { SubmitToDirectory } from "./SubmitToDirectory.tsx";
 
 /**
  * Make a bot: the person says what it should do, the server writes a pack with their own model, and
@@ -153,6 +154,7 @@ function MadePack({ pack, onBack }: { pack: BotPack; onBack: () => void }) {
           Change the job
         </Button>
       </div>
+      <SubmitToDirectory pack={pack} level={3} />
     </div>
   );
 }

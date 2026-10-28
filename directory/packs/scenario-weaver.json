@@ -1,0 +1,41 @@
+{
+  "id": "scenario-weaver",
+  "name": "Scenario weaver",
+  "pitch": "Creates a random tabletop scenario with a twist and random NPC names, stored as a text file.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for tabletop scenario generators. Pick one result and read its structure. Generate a random scenario using the same structure. Create random names for the NPCs. Write the scenario and names into a new text file. Save the file in the workspace with a clear title. If no suitable generator is found, say so and ask if the person wants to try again or provide a theme.",
+  "starters": [
+    "generate a scenario",
+    "make a twist scenario",
+    "random names and twist"
+  ],
+  "examples": [
+    {
+      "ask": "generate a scenario",
+      "does": "searches for a tabletop generator, creates a scenario with random names, and saves it as a text file"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Scenario weaver\nGenerates a random tabletop scenario with a twist and random NPC names, stored as a text file in the workspace.\n\nWhat it does: Uses web search to find a scenario generator, then creates a new scenario following that structure with randomly generated names.\nWhat it needs: web_search to find generators, file_write to save the result.\nWhat it will not do: It cannot create original artwork, maps, or stats beyond simple names and a brief description.",
+  "hash": "149ca2c0803fc52d2c6f2a3d4198a49247aa78981d45fc79c69fc2c42e6fe2f8"
+}

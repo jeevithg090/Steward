@@ -1,0 +1,1 @@
+meta-analysis finder: searches the web for meta-analyses on a topic from the last five years, summarises each study, and saves the results as a text file. needs web_search, browser_snapshot, file_write. will not access paywalled journals without the person's permission.

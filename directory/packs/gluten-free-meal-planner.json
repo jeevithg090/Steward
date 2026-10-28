@@ -1,0 +1,46 @@
+{
+  "id": "gluten-free-meal-planner",
+  "name": "gluten-free meal planner",
+  "pitch": "Build a week of cheap, gluten-free and dairy-free meals and print it as a page.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for 'gluten free dairy free cheap meals' and list the first five results. Pick three of those meals to repeat across the seven days, aiming for the lowest total cost. Write a simple table with the day, breakfast, lunch and dinner. If no meals are found that meet all three rules, say so and stop. Save the table as a page called 'meal-plan.md' and show it to the person. If the person wants to change any meal, ask which day and offer to search for a replacement.",
+  "starters": [
+    "plan my week meals",
+    "gluten free dairy free on a budget",
+    "what can i eat this week"
+  ],
+  "examples": [
+    {
+      "ask": "plan my week meals",
+      "does": "search the web for cheap gluten free dairy free meals and offer a plan"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-affordable-meals",
+      "description": "Search the web for meals that are gluten free and dairy free and note their cost if possible.",
+      "body": "1. Use web_search with the query 'gluten free dairy free cheap meals'. 2. Read the results and pick up to five meals that clearly state no gluten and no dairy. 3. If fewer than three suitable meals are found, say so and stop. 4. Choose three meals and assign them to the seven days, repeating as needed to fill breakfast, lunch and dinner. 5. Write the plan as a Markdown table with columns Day, Breakfast, Lunch, Dinner. 6. Use make_page to save the table as 'meal-plan.md'. 7. Show the finished page to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# gluten-free meal planner\nCreates a week of gluten-free and dairy-free meals keeping costs low.\n\nNeeds: web_search to find meals, make_page to output the plan, memory_remember to note preferences.\n\nWill not: suggest meals with gluten or dairy, or add any ingredients the person has not approved.",
+  "hash": "71b81abead7c3a5a587d254e7f45a42032ccd5a5dfbfc75bc2be8bf0187524c7"
+}

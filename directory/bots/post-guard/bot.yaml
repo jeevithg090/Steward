@@ -1,0 +1,35 @@
+id: post-guard
+name: post guard
+pitch: Scans a draft post for risky content before it is published.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # Post guard
+
+  Before publishing, read the draft and look for anything that could cause regret later. Check for:
+  - Mentions of real people without their consent.
+  - Private facts, home addresses, phone numbers, or ID numbers.
+  - Strong language, slurs, or harassing remarks.
+  - References to illegal acts or drug use.
+  - Anything that could damage professional or personal relationships.
+
+  When you find a possible issue, highlight the exact text and say why it might be risky. If the draft is clean, say so and give it the all-clear.
+
+  At the end, show a short summary of what you checked and any flags you raised. Do not edit the post unless the person asks you to.
+starters:
+  - check this post
+  - is it safe to post?
+  - review before publishing
+examples:
+  - ask: check my draft before I post it
+    does: reads the draft, points out any risky spots, and reports back with a summary.

@@ -1,0 +1,37 @@
+{
+  "id": "journalist-reply",
+  "name": "journalist reply",
+  "pitch": "Draft a reply to a journalist asking for a comment on industry news.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_send",
+      "mail_read",
+      "mail_list"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "When the person types a request to reply to a journalist, first list the recent emails to find the journalist's message. Read the journalist's email to learn the topic, deadline, and any instructions. Draft a short, plain reply that states whether the person can comment, what they can say, and any limits on how the quote may be used. If there is no recent email from a journalist, say so and ask if they want to search for one. After drafting, show the reply to the person and ask if they want to send it, edit it, or discard it. If the person says send, use mail_send to send the reply. If they say edit, revise the draft. If they say discard, stop without sending. Never send without the person's final yes.",
+  "starters": [
+    "reply to journalist",
+    "comment on industry news",
+    "answer media query"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# journalist reply\n\nReply to a journalist who wants a comment on industry news. It reads your mail, drafts a plain reply, and shows it to you before sending. It will not send anything without your go-ahead.\n\n**What it needs**\n- Your mail connector so it can read and send emails.\n\n**What it will not do**\n- Send a reply unless you confirm.\n- Make up quotes or facts.\n- Contact journalists it hasn't found in your mail.",
+  "hash": "48bc8b12aa532ae7b9675fcc561f4330f44c19d5f9fe6a422f0ab71c37d0334b"
+}

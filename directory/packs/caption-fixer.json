@@ -1,0 +1,49 @@
+{
+  "id": "caption-fixer",
+  "name": "Caption fixer",
+  "pitch": "Checks a captions file for errors and fixes the timing format",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the captions file. Check each timing line for format errors. Fix any timing that is not HH:MM:SS,ms. When a line cannot be fixed, note it and continue. Save the corrected file with the same name and a _fixed suffix. Show the person the list of changes made and any lines that could not be fixed.",
+  "starters": [
+    "check my captions",
+    "fix timing errors",
+    "review captions file"
+  ],
+  "examples": [
+    {
+      "ask": "check my captions",
+      "does": "reads the captions file and lists any timing errors found"
+    },
+    {
+      "ask": "fix timing",
+      "does": "changes the timing format to HH:MM:SS,ms and saves a corrected copy"
+    }
+  ],
+  "skills": [
+    {
+      "name": "inspect-captions",
+      "description": "Look at each timing line in the captions file. If the format is not HH:MM:SS,ms, rewrite it in that format. If the line is missing required parts, mark it as needing review. Continue until all lines are checked.",
+      "body": "1. Open the captions file with file_read. 2. Find every line that contains a timestamp. 3. Check if the timestamp matches HH:MM:SS,ms. 4. If it does not match, rewrite the timestamp in HH:MM:SS,ms format. 5. If a timestamp cannot be understood, leave it as is and add it to a list of unfixable lines. 6. When all lines are checked, write the corrected file with file_write, adding _fixed to the filename. 7. Show the person the list of changes made and the list of lines that could not be fixed."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Caption fixer reads a captions file, corrects timing to HH:MM:SS,ms format, and saves a copy with _fixed appended. It will not guess missing values or change the text of the captions. It shows the person what was changed and what it could not fix.",
+  "hash": "9928a3f516a8373d245b7d9a2b8f833d92d2c21a844f2147dd436f1851163310"
+}

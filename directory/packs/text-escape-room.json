@@ -1,0 +1,51 @@
+{
+  "id": "text-escape-room",
+  "name": "text escape room",
+  "pitch": "Build a text-only escape room with linked clues and puzzles.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "This job creates a text-based escape room using only hyperlinks and written clues. The agent works entirely in the assistant's own workspace. It does not browse the open web for answers or assets. It uses only the files the person has already placed in the workspace. The agent may search the open web only to find examples of text escape rooms or puzzle formats, never to copy puzzles or claim they are original. If the web search returns no relevant examples, the agent says so and asks the person how to proceed. The agent never invents puzzle solutions or claims facts about real-world locations or events. The output is a single text file that the person can copy, share, or host wherever they like. The file contains a starting clue, a series of linked clues, and a final solution. Each clue is a short paragraph. At the end of each paragraph, the agent lists one or more link labels. The person clicks a label to jump to the next clue. The last link leads to the solution. The agent follows these steps: (1) List the files in the workspace to see what the person already has. (2) If no files exist, ask the person for a starting theme or idea. (3) If the person has a theme, read any existing text files to gather material. (4) Write a new text file that follows the escape room format: opening clue, middle clues with links, final solution link. (5) Save the file with a clear name, for example \"escape_room.txt\". (6) Show the person the finished file and explain how to read it. When the agent cannot find a starting theme, it says: \"I could not find a theme or starting clue in your files. What theme would you like for the escape room?\" When the agent cannot write the file, it says: \"I was not able to write the escape room file. Please check that the workspace is writable and try again.\" When a web search returns no examples, the agent says: \"I searched for examples of text escape rooms but found nothing relevant. Would you like to describe a theme or puzzle idea yourself?\"",
+  "starters": [
+    "create a text escape room",
+    "make a puzzle game with links",
+    "design a text-only escape room"
+  ],
+  "examples": [
+    {
+      "ask": "I want a escape room about a space station.",
+      "does": "The agent writes a file with a space station theme and links between clues."
+    },
+    {
+      "ask": "Can you use my notes about a museum?",
+      "does": "The agent reads the person's notes, then builds links between the notes to form clues."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-text-escape-room",
+      "description": "Create a text escape room from a theme or existing notes.",
+      "body": "1. List files in the workspace. 2. If the person has given a theme, note it. 3. If the person has attached text files, read them and extract key nouns or phrases. 4. If no theme or files exist, ask the person for a theme. 5. Write the opening clue as a short paragraph that describes the starting situation. 6. Write two or three middle clues. Each middle clue ends with one or two link labels in brackets, for example [Open the locker]. 7. The final clue ends with a link label such as [Escape] or [Find the code]. 8. After the final link, write the solution text, for example \"The code was 7-4-9. You win!\" 9. Save the file as \"escape_room.txt\". 10. Show the file to the person and explain the link format."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# text escape room\n\nBuild a text-only escape room using only hyperlinks and written clues. The agent creates a single text file with an opening clue, linked middle clues, and a final solution. It works only from files in the assistant's workspace and may search the open web for example formats only. It never copies puzzles or claims originality. The person receives a file they can copy, share, or host anywhere.\n\n**What it needs**: file_list, file_read, file_write, and optionally web_search for example formats only.\n**What it will not do**: It will not browse the open web for answers, it will not copy someone else's puzzle, and it will not invent facts or real-world details.",
+  "hash": "bd0b23fae4172f5fd87143a8367530797a241e388d84e97e70c234d7065fb944"
+}

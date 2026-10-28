@@ -1,0 +1,44 @@
+{
+  "id": "podcast-template",
+  "name": "Podcast template",
+  "pitch": "Create a reusable template for podcast episodes with intro, ad slots, and segments.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Create a podcast episode template\n\nStart by opening a new blank page with make_page. Title the document \"Podcast Episode Template\".\n\nWrite an \"Intro\" section with placeholder text for the host greeting and episode overview. Add an \"Ad Slots\" section listing three slots with timestamps and sponsor placeholders. Create a \"Segments\" section with numbered placeholders for topic segments. End with an \"Outro\" section for closing remarks and call to action.\n\nWhen the template is complete, show the full document to the person and ask if they want to save it or make changes.\n\nIf make_page is not available or fails, say plainly that the template could not be created.",
+  "starters": [
+    "make me a podcast template",
+    "create episode outline",
+    "set up show structure"
+  ],
+  "examples": [
+    {
+      "ask": "make me a template",
+      "does": "opens a new page and writes intro, ad slots, and outro sections"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-template",
+      "description": "Write a podcast episode template",
+      "body": "1. Open a new blank page. 2. Add an Intro section with host greeting and episode overview placeholders. 3. Add an Ad Slots section with three timestamp slots and sponsor placeholders. 4. Add a Segments section with numbered topic placeholders. 5. Add an Outro section with closing remarks and call to action placeholders. 6. Show the completed template to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Podcast template\nCreates a reusable template for podcast episodes with intro, ad slots, and segments.\n\nNeeds: make_page to create and edit the document.\n\nWill not: write actual podcast content or publish episodes.",
+  "hash": "807055cdd88ff26b009f262f6b63cd86539156ef5ab952ed85ca337e6669087d"
+}

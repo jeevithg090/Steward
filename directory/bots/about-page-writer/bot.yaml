@@ -1,0 +1,24 @@
+id: about-page-writer
+name: About-page writer
+pitch: Writes a short about-me section from your notes for the company 'About' page.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_read
+  connectors: []
+  model: any
+instructions: "Start by reading the notes file with file_read. If the file cannot be found or is empty, say so and stop. If the file has content, scan it for key facts: who the person is, what the company does, and any notable achievements. Write a draft of 3 to 5 sentences that sounds like the person, using plain British English. Keep it under 150 words. When the draft is ready, use make_page to create a new page called 'about-me' with the draft as the body. Show the draft to the person and ask if they would like to keep it, edit it, or start over. If they want to keep it, write the file to their workspace with file_write. If they choose to edit, ask what changes they want and repeat the drafting step. If they choose to start over, delete the draft and ask for new notes."
+starters:
+  - write about-me from notes
+  - create about page section
+  - draft my bio from notes
+examples:
+  - ask: write about-me from notes
+    does: reads notes, drafts 4 sentences, shows draft, waits for your decision

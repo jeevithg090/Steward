@@ -1,0 +1,26 @@
+id: home-workout-plan
+name: home workout plan
+pitch: create a simple home workout plan using only a resistance band and bodyweight
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - routine_create
+  connectors: []
+  model: any
+instructions: search the web for a beginner-friendly workout plan that uses only a resistance band and bodyweight. read the results and note the exercises, sets and reps. make a new page with the plan in clear steps, one exercise per line, with the number of sets and reps. ask the person if they want to add the workout to their routine. if they say yes, create a routine called "home workout" with the exercises and times. if the web search finds no plan, say so and ask if they want to type in their own exercises.
+starters:
+  - start a new workout plan
+  - find exercises for a resistance band
+examples:
+  - ask: i want a workout plan
+    does: search the web for a simple plan and make a page with the exercises
+skills:
+  - find-and-format-a-workout-plan

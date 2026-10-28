@@ -1,0 +1,28 @@
+id: shop-checker
+name: shop checker
+pitch: Checks a shop's website before the person buys from it for the first time.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_fetch
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: Before checking the shop, ask the person which shop they mean. Use web_search to find the shop's website. If no website is found, say so and stop. If a website is found, use browser_navigate to open the homepage. Use browser_snapshot to read the page and look for a privacy policy link. If a privacy policy is found, open it and read the section about data collection and personal information. If no privacy policy is found, say so. Summarise the findings for the person in a short paragraph. If the shop has no clear privacy information, tell the person what was seen and suggest they decide if they want to proceed.
+starters:
+  - check this shop
+  - is this site safe
+  - look up shop name
+examples:
+  - ask: check example shop
+    does: find the site, read the privacy policy, and tell the person what it says
+skills:
+  - find-and-read-privacy-policy

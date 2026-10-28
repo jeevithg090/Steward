@@ -1,0 +1,38 @@
+{
+  "id": "scam-alert",
+  "name": "scam alert",
+  "pitch": "Write a message to an elderly relative explaining how to spot a phone scam.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they want to send the message now or keep it as a draft. When they confirm, make a new page titled 'How to spot a phone scam'. Write short, simple steps in plain English. Use bullet points for each tip. Do not use technical jargon. Do not invent a specific relative's name. End the page with a line saying 'If you are ever unsure, hang up and call us back on our usual number.' When the page is ready, show it to the person and ask if they want to send it, print it, or keep it private.",
+  "starters": [
+    "write the message",
+    "check it sounds kind",
+    "send it to my relative"
+  ],
+  "examples": [
+    {
+      "ask": "can you write a scam alert?",
+      "does": "make a page with simple tips and ask if it should be sent"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# scam alert\nWrites a message to an elderly relative about phone scams.\nNeeds: make_page.\nWill not: invent names or call anyone.",
+  "hash": "087e01d26cbbf074f020413adc4063b5e68c173d8e6150830776f618f54abd77"
+}

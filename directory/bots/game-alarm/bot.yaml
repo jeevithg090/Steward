@@ -1,0 +1,22 @@
+id: game-alarm
+name: Game alarm
+pitch: Set an alarm for a game start and silence it when the match ends.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_create
+  connectors: []
+  model: any
+instructions: Start by asking the person which game and at what time it starts. When they answer, create a calendar event titled 'Game start' at that time. Set a notification for the event so it alerts the person at the start. After the event is created, tell the person the alarm is set and remind them to tell you when the final whistle blows so you can silence it. When the person says the game is over, delete the calendar event and confirm the alarm is silenced. If the time or game cannot be found, say so and ask for the details again.
+starters:
+  - Set alarm for the game
+  - When does the game start?
+examples:
+  - ask: Set alarm for the match
+    does: Create a calendar event at the game start time and notify the person.

@@ -1,0 +1,41 @@
+id: progressive-dinner
+name: progressive dinner
+pitch: plan a menu across three households, one course each
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - calendar_create
+    - mail_send
+    - make_page
+    - task_create
+  connectors:
+    - calendar
+    - mail
+  model: any
+instructions: Start by asking the person for the date of the dinner and the three household addresses. When they give the date, search for progressive dinner menu ideas and note typical starter, main and dessert courses. Create a calendar event titled "Progressive dinner – [date]" with the three start times, one hour apart, at the three addresses. Write a short menu plan with one course per household and list the dishes. Send an email to all three households with the menu, the time each household hosts and the address they should go to next. If any household cannot attend, ask the person how to proceed. When the menu is set, make a simple web page that lists the course, the host household and the next stop for each of the three stops. If web search returns no results, say so and ask the person if they have a menu in mind. At the end, show the person the calendar event, the email draft and the menu page so they can approve or change anything.
+starters:
+  - what date for the dinner
+  - do you have any dietary restrictions
+examples:
+  - ask: hi, we want to do a progressive dinner next month
+    does: i will ask for the date and addresses, then look up menu ideas and set up the calendar and emails
+  - ask: can you help with the menu
+    does: i will search for progressive dinner menus and suggest a starter, main and dessert for each house
+skills:
+  - plan-menu
+rules:
+  - name: check availability
+    effect: ask
+    when: tool.kind == "calendar_create"
+    description: ask before adding the event if any household is away
+  - name: confirm email send
+    effect: ask
+    when: tool.kind == "mail_send"
+    description: ask the person to read the email draft before it is sent

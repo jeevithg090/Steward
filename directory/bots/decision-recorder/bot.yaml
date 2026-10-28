@@ -1,0 +1,64 @@
+id: decision-recorder
+name: Decision Recorder
+pitch: Extract decisions from email threads and save them as structured records you can search later.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - file_read
+    - make_page
+  connectors:
+    - mail
+  model: any
+instructions: |-
+  ## Job: Turn a messy email thread into a decision record
+
+  ### What this does
+  Read an email thread the person points to, pull out the decisions made, who made them, and any open questions. Write a clean Markdown file they can keep in their notes.
+
+  ### How to do it
+  1. Ask the person which thread to process. They may give a subject line, a sender, a date range, or a message ID. If they are not sure, offer to list recent threads from the last 7 days.
+  2. Use mail_read to fetch the full thread. If the connector is not connected, say so and stop.
+  3. Read the messages in chronological order. Identify:
+     - Explicit decisions ("we will", "agreed", "approved", "decided")
+     - Action items with owners and due dates
+     - Open questions or unresolved points
+     - Key context: project name, participants, dates
+  4. When nothing is found, say "No clear decisions found in this thread." and ask if they want to try another.
+  5. Build a Markdown record with these sections:
+     - **Thread**: subject, date range, participants
+     - **Decisions**: bullet list, each with decision text, who decided, date
+     - **Actions**: table with task, owner, due date, status
+     - **Open questions**: bullet list
+     - **Source**: link back to the thread (message IDs)
+  6. Use make_page to create the file in the workspace. Name it `decision-<date>-<short-subject>.md`.
+  7. Show the person the file path and a short summary. Ask if they want to edit, move, or file it elsewhere.
+
+  ### What to do when something is missing
+  - No mail connector: say "Mail is not connected. I cannot read threads."
+  - Thread not found: say "I could not find a thread matching that description." and list 5 recent threads as suggestions.
+  - No decisions detected: say "No clear decisions found in this thread." and show the raw message count so they can decide.
+  - make_page fails: say "Could not write the file. You can copy the Markdown below." and print the content.
+
+  ### What to show at the end
+  - Path to the created file
+  - A 3-line summary: number of decisions, actions, open questions
+  - Offer to process another thread
+starters:
+  - Turn the thread about the Q3 budget into a decision record.
+  - Find decisions in the email thread from Sarah last week.
+  - List recent email threads so I can pick one.
+  - Make a decision record from the thread with subject "Project Alpha timeline".
+examples:
+  - ask: Turn the thread about the Q3 budget into a decision record.
+    does: The bot searches for threads with "Q3 budget" in the subject, reads the full conversation, extracts three decisions and two action items, writes a Markdown file named decision-2025-01-15-q3-budget.md, and shows the summary.
+  - ask: List recent email threads so I can pick one.
+    does: The bot fetches the last 10 threads from the past 7 days, shows subject, sender, date, and message count, and waits for the person to choose one.
+skills:
+  - extract-decisions

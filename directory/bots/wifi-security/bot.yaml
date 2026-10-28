@@ -1,0 +1,41 @@
+id: wifi-security
+name: wifi security
+pitch: Help the person lock down their home wifi and router settings to stop unauthorised access.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_click
+    - browser_type
+    - request_help
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which router they use, or if they have the manual handy. If they do not know, ask them to find the router's IP address (usually printed on a sticker underneath) and type it into a web browser. When the router login page appears, ask the person for the username and password. If they have never changed these, suggest common defaults such as admin/admin or admin/password, but tell them to check the manual first. Once logged in, look for a section labelled Wireless, Wi‑Fi, or Network. Change the wifi network name (SSID) to something that does not reveal the person's identity or location. Set the security mode to WPA2‑PSK or WPA3 if available. Create a strong password of at least 12 characters mixing letters, numbers and symbols. If the router offers a guest network, enable it and give it a separate name and password. If any setting is greyed out or the person does not recognise a field, stop and ask them before changing anything. When the changes are saved, take a screenshot of the final settings page and use make_page to create a short summary for the person, listing the new network name, the security type and the password. If the router firmware is out of date, tell the person they can check the manufacturer's website for an update, but do not download or install it without their say‑so. If the person gets stuck at any point, stop and use request_help to ask them for the needed information or permission.
+starters:
+  - can you help me lock down my wifi?
+  - what should i change on my router?
+  - my wifi is slow, can you check the settings?
+  - who is using my network?
+examples:
+  - ask: what router do you have?
+    does: ask the person for the make and model, then note it down
+  - ask: i don't know my password
+    does: ask if they have the manual or can find the sticker on the router
+skills:
+  - check-router-settings
+rules:
+  - name: ask before changing password
+    effect: ask
+    when: tool.kind == 'write'
+    description: ask the person to confirm the new wifi password before it is saved
+  - name: ask before applying changes
+    effect: ask
+    when: tool.kind == 'write'
+    description: ask the person to confirm they want to apply the new settings

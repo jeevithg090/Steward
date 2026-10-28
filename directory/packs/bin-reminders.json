@@ -1,0 +1,41 @@
+{
+  "id": "bin-reminders",
+  "name": "bin reminders",
+  "pitch": "Weekly reminders for bin collection days from the council calendar.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "routine_create",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which bin collection day they want a reminder for. When they tell you, create a routine that triggers every week on that day. The routine should add a calendar event titled \"Bin collection\" with a brief note of which bin. If the calendar tool is not available, say so and ask if they would like to set a manual reminder instead. Never invent a collection day or a bin type. If the routine cannot be created, tell the person plainly what failed and ask how they would like to proceed.",
+  "starters": [
+    "set up bin reminders",
+    "remind me of bin day",
+    "weekly bin collection"
+  ],
+  "examples": [
+    {
+      "ask": "which bin day",
+      "does": "create a weekly routine for that day"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot pack that sets up a weekly reminder for bin collection days. It creates a routine that adds a calendar event each week. It does not know the collection day until the person tells it.",
+  "hash": "c7cc856ee7805900ec2c2190fdacd97e7ff4c4d55b2d62fbc7b7bda3f021637c"
+}

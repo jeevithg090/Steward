@@ -311,6 +311,7 @@ export const ROUTES = {
   phone: "/api/phone", // GET PhoneInfo · PUT PhoneSettingsBody → PhoneInfo
   phoneCatalogue: "/api/phone/catalogue", // PhoneCatalogue
   phoneShortcutInstall: "/api/phone/shortcuts/:id/install", // POST → ShortcutInstall (one-time link)
+  botsExport: "/api/bots/export", // POST { pack, handle? } → application/zip: the pack folder to submit
 } as const;
 
 export function route(path: string, params: Record<string, string> = {}): string {

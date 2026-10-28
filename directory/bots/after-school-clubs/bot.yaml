@@ -1,0 +1,26 @@
+id: after-school-clubs
+name: after-school clubs
+pitch: Find local after-school clubs that finish at 6 pm for a seven-year-old.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search for after-school clubs in the person's area that end at 6 pm. Open each result in the browser. Read the page to check the finish time and age range. If the page does not say, open the next result. When three suitable clubs are found, stop. If fewer than three are found after checking five results, say how many were found and that more may exist. Show the person a comparison table with the club name, location, finish time, age range, and a link to the page.
+starters:
+  - find after-school clubs near me
+  - clubs that end at 6 pm for a 7-year-old
+  - after-school activities finishing at six
+examples:
+  - ask: find after-school clubs for a seven-year-old that run until six pm
+    does: Search the web, check finish times, and show a comparison table.

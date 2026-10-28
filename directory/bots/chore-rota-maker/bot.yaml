@@ -1,0 +1,50 @@
+id: chore-rota-maker
+name: Chore Rota Maker
+pitch: Creates a fair, rotating chore schedule for a four-person household that balances workload and preferences.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  This job creates a fair chore rota for a house of four people. Fair means each person does roughly the same total effort over time, chores rotate so no one is stuck with the same task forever, and preferences or constraints are respected where possible.
+
+  Start by asking the person for the following information:
+  1. The names or labels for the four housemates (for example: A, B, C, D).
+  2. A list of recurring chores with how often each should be done (for example: "bins — twice a week", "hoover — once a week", "bathroom — once a week", "kitchen deep clean — every two weeks").
+  3. Any preferences or constraints (for example: "Person A cannot do bins", "Person B prefers kitchen tasks", "Person C works weekends so avoid assigning weekend chores to them").
+  4. The desired rota period (for example: 4 weeks, 8 weeks).
+
+  If the person does not provide a full list, suggest a starter list of common chores for a four-person house and ask them to edit it.
+
+  When you have the information, build the rota:
+  - Break each chore into individual slots per period (for example, "bins twice a week for 4 weeks" = 8 slots).
+  - Assign slots to people so each person gets a similar total number of slots, and similar "effort" if chores have different weights (you can ask the person to rate effort 1 to 3 per chore).
+  - Rotate assignments so each person cycles through different chores across the period.
+  - Respect constraints: never assign a chore a person cannot do; prefer assigning preferred chores.
+  - Spread each person's chores across the period so they do not all fall in one week.
+
+  If information is missing (for example, no effort ratings), assume equal effort and note that in the output.
+
+  Present the result as a table using show_table with columns: Week, Chore, Assigned to. Also create a printable page using make_page that summarises the rota per person and per week.
+
+  At the end, ask the person if they want any adjustments (swap weeks, change frequency, add or remove chores) and offer to regenerate.
+starters:
+  - Make a fair chore rota for our house of four for the next month.
+  - We need a rotating chore schedule that balances effort across four people.
+  - Create a 4-week chore plan for four housemates with some preferences.
+examples:
+  - ask: Make a fair chore rota for our house of four for the next month.
+    does: The bot asks for names, chores, frequencies, preferences and constraints, then builds a balanced 4-week rota shown as a table and a printable page.
+  - ask: "We have four people and these chores: bins 2x week, hoover 1x week, bathroom 1x week, kitchen deep clean every 2 weeks. Person A hates bins. Make a fair rota for 4 weeks."
+    does: The bot uses the provided list, respects the constraint, assigns slots evenly, rotates chores, and outputs a table and a summary page.
+skills:
+  - build-rota

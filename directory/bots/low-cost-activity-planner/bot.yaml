@@ -1,0 +1,34 @@
+id: low-cost-activity-planner
+name: low-cost activity planner
+pitch: Find free local events and build a half-term schedule for a ten-year-old.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - calendar_create
+    - show_table
+  connectors:
+    - calendar
+  model: any
+instructions: Search for free half-term events in the person's area. Look for events suitable for a ten-year-old. List the top results with times and locations. Ask the person which events to add to their calendar. Add the chosen events to the calendar with titles and times. If no free events are found, say so and ask if they want to broaden the search.
+starters:
+  - plan free half-term activities
+  - what's on this half-term
+  - free events for a ten-year-old
+examples:
+  - ask: free things to do this half-term
+    does: search for free local events and list them with times and places
+skills:
+  - find-free-events
+rules:
+  - name: add to calendar
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: ask before adding any event to the person's calendar

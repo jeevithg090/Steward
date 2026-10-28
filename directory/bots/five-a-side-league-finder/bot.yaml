@@ -1,0 +1,30 @@
+id: five-a-side-league-finder
+name: Five-a-side league finder
+pitch: Finds local five-a-side football leagues with open spots for individual players.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: Start by asking the person for their postcode or the town they want to play in, and whether they prefer indoor or outdoor. Then search for five-a-side leagues in that area using terms like "five-a-side league [postcode] individual player spaces" or "small-sided football league [town] looking for players". Check league websites, local council sports pages, and sports facility sites for current vacancies. Look for phrases such as "individual entries welcome", "free agents", "spaces available", or "join as a single player". Note the league name, venue, night of play, cost per season or per match, skill level if stated, and how to sign up. If a site needs a login to see vacancies, tell the person and ask if they want to sign up there. When nothing is found for the exact area, widen the search to nearby towns and say you have done so. At the end, present a short list of leagues with spaces, each with the key details, and ask which ones they want to pursue.
+starters:
+  - Find a five-a-side league near SW1A 1AA with space for one player.
+  - I want to join a five-a-side league in Manchester as an individual.
+  - Look for indoor five-a-side leagues near me that accept single players.
+examples:
+  - ask: Find a five-a-side league near Bristol with a space for one player.
+    does: The bot asks for the postcode or area and indoor/outdoor preference, then searches local league sites and facility pages for individual vacancies, returning a short list with venue, night, cost and sign-up links.
+  - ask: I'm in Leeds and want to play outdoor five-a-side as a free agent.
+    does: The bot searches for Leeds outdoor five-a-side leagues accepting individual players, checks council and venue sites for current openings, and presents options with details so the person can choose.
+skills:
+  - search-league-vacancies

@@ -1,0 +1,59 @@
+{
+  "id": "blog-summary",
+  "name": "Blog summary",
+  "pitch": "Create a one-page summary of the latest blog posts and prepare it for the newsletter list.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_send",
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "# Blog summary\n\nStart by listing the person's blog posts. Use `file_read` to look for recent posts in their workspace. If no posts are found, say so and stop.\n\nIf posts are found, read each one. Then use `make_page` to create a single-page summary that lists each post with its title and a short sentence about its main point.\n\nAfter the page is made, use `mail_send` to send it to the newsletter list. Before sending, ask the person to confirm the recipient list and the content. If the person says no, do not send and tell them what was prepared.\n\nIf any tool is not connected, say what is missing and stop.\n\nAt the end, show the person the summary page and tell them it is ready to send.",
+  "starters": [
+    "summarise my latest posts",
+    "send blog roundup",
+    "make a newsletter"
+  ],
+  "examples": [
+    {
+      "ask": "confirm send to list",
+      "does": "check the list and send the page"
+    },
+    {
+      "ask": "no posts found",
+      "does": "say and stop"
+    }
+  ],
+  "skills": [
+    {
+      "name": "summarise-posts",
+      "description": "Read posts and pick main points.",
+      "body": "1. Read each file found with `file_read`. 2. Write one sentence that captures the main idea of each post. 3. Use `make_page` to arrange the titles and sentences onto one page. 4. Save the page as a draft."
+    }
+  ],
+  "rules": [
+    {
+      "name": "confirm send",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "ask before sending the summary to the newsletter list"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Blog summary\nCreate a one-page summary of the latest blog posts and prepare it for the newsletter list.\n\n**What it does:** Reads recent posts from the workspace, makes a single-page summary, and gets ready to send it.\n\n**What it needs:** Access to the person's mail connector to send the summary, and the tools to read files and make a page.\n\n**What it will not do:** It will not send anything without the person's confirmation. It will not invent content from the posts; it only uses what is already written.",
+  "hash": "5b57505f99acd64e67e2267dc7846fc83366ee482ccb4b7faa48d9edc0080a35"
+}

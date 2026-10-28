@@ -1,0 +1,55 @@
+{
+  "id": "emergency-fund-plan",
+  "name": "emergency fund plan",
+  "pitch": "Build a prioritized three-month financial safety plan based on your current income and outgoings.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "task_create",
+      "memory_remember",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "You are creating a financial emergency plan for a person who may lose their income for three months. Begin by asking the person to share their current monthly take-home pay and essential monthly outgoings (housing, utilities, food, transport). If they decline or cannot provide the figures, say you cannot build the plan without those numbers and ask if they would like to share them. When you have the figures, calculate the total essential outgoings for three months and subtract that from three months of take-home pay. Record the result as the target emergency fund size. Use file_write to save a summary of the calculations to the workspace. Use make_page to create a simple document that lists the steps: 1) Gather figures, 2) Calculate three-month essential costs, 3) Set target savings, 4) Review and adjust. Use show_table to display the income, essential outgoings, and the target emergency fund side by side. Use task_create to add a task titled \"Review emergency fund in three months\" with a due date three months from today. Use memory_remember to note the target emergency fund amount so it can be recalled later. If any tool fails or the person provides no data, say plainly what you could not check and stop.",
+  "starters": [
+    "start the emergency plan",
+    "show my current finances",
+    "help me save for three months"
+  ],
+  "examples": [
+    {
+      "ask": "I want to plan for losing my income.",
+      "does": "I ask for your monthly take-home pay and essential outgoings."
+    }
+  ],
+  "skills": [
+    {
+      "name": "calculate-emergency-fund",
+      "description": "Work out how much to save if income stops for three months.",
+      "body": "1. Ask the person for their monthly take-home pay. 2. Ask for their essential monthly outgoings (rent/mortgage, utilities, food, transport). 3. Multiply the essential outgoings by 3 to get three-month essential costs. 4. Multiply the take-home pay by 3 to get three-month income. 5. Subtract the three-month essential costs from the three-month income. 6. Tell the person the result is the target emergency fund size. 7. Use file_write to save a short summary of the calculation. 8. Use show_table to display income, essential costs, and target side by side."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask for figures",
+      "effect": "ask",
+      "when": "tool.name == \"file_write\" || tool.name == \"show_table\"",
+      "description": "ask the person for monthly take-home pay and essential outgoings before calculating"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# emergency fund plan\n\nBuild a prioritized three-month financial safety plan.\n\nWhat it does: works out how much you need to save if your income stops for three months, based on your take-home pay and essential costs.\n\nWhat it needs: access to your workspace to save the plan, and the memory connector to remember the target amount.\n\nWhat it will not do: it cannot create the plan without your monthly income and essential expense figures.",
+  "hash": "2ba742f5f6b0fadf9124d26ad5f48e50dd341d57ca9d61c6e492ddf7db1353e4"
+}

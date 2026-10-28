@@ -1,0 +1,47 @@
+{
+  "id": "party-games-scout",
+  "name": "Party games scout",
+  "pitch": "Find the best party games that need under ten minutes to set up.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for party games that need under ten minutes to set up. For each result, note the game name and setup time. If no games are found, say so and stop. If games are found, show a comparison table with the game name and setup time. Make a page listing the games with their setup times. Ask the person to confirm before showing the page.",
+  "starters": [
+    "best party games quick setup",
+    "party games under ten minutes setup"
+  ],
+  "examples": [
+    {
+      "ask": "find quick party games",
+      "does": "search the web for party games that set up in under ten minutes"
+    },
+    {
+      "ask": "compare games",
+      "does": "show a comparison table of game names and setup times"
+    },
+    {
+      "ask": "list games",
+      "does": "make a page with the game names and setup times"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Party games scout\n\nFind the best party games that need under ten minutes to set up.\n\n- Tools: web_search, show_comparison, make_page\n- Will not play games or give opinions on quality\n- Will not browse pages that need sign-in",
+  "hash": "a76a410e22073ad2b4501c301920452427140e15a5333efeecf4c5a85ac39228"
+}

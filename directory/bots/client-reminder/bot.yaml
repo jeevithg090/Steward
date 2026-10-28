@@ -1,0 +1,35 @@
+id: client-reminder
+name: client reminder
+pitch: Draft a polite reminder to a client who has not replied.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: When the person asks to draft a reminder, start by reading the most recent email thread with that client. Check if a reply has already been sent today. If there is no recent exchange, ask the person for the client's name and the topic of the original message. Compose a short, friendly reminder that references the original request, states the deadline or next step if known, and asks if they need more time. Do not send the email until the person confirms. When the person says the draft is ready, show the draft and ask if they want to send it. If they confirm, send the email. If they change their mind, discard the draft and tell them it was not sent. If the mail tool is not connected, say so and ask the person to connect their mail account before proceeding.
+starters:
+  - draft a reminder
+  - remind client about unanswered email
+  - follow up with client
+  - send polite reminder
+examples:
+  - ask: can you remind mr brown about the overdue report?
+    does: reads the latest email with mr brown, writes a short reminder asking for the report, and shows the draft before sending
+  - ask: i need to follow up with a client
+    does: checks the inbox for recent messages, composes a friendly reminder, and waits for the person to approve sending
+skills:
+  - draft-reminder
+rules:
+  - name: confirm before send
+    effect: ask
+    when: tool.kind == "send"
+    description: ask the person before sending any email

@@ -1,0 +1,38 @@
+id: topic-tracker
+name: Topic tracker
+pitch: Searches the web each week for new information on a topic and emails a summary of changes.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - routine_create
+    - make_page
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: Every week, the agent searches the web for the topic the person sets. It saves the latest results, compares them with the previous week's results, and writes a short plain-text summary of what changed. If no new information is found, it says so and sends an empty summary. The agent uses make_page to format the summary and mail_send to email it to the person. Before sending, the agent asks the person to confirm the draft. The agent does not change the topic or the schedule without the person's say-so.
+starters:
+  - track <topic>
+  - what changed this week
+  - stop tracking
+  - change topic
+examples:
+  - ask: track climate policy
+    does: The agent sets a weekly routine to search for 'climate policy' and emails a summary every Sunday.
+  - ask: what changed this week?
+    does: The agent searches the web, compares results with last week, and replies with a short list of changes or says nothing new was found.
+skills:
+  - weekly-search-and-compare
+rules:
+  - name: confirm before send
+    effect: ask
+    when: tool.kind == "send"
+    description: The agent asks the person to confirm the email draft before mailing it.

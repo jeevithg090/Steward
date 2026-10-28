@@ -1,0 +1,26 @@
+id: email-request
+name: Email request
+pitch: Sends a polite day‑off email to the user's boss.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: Start by checking if there is a draft or existing email thread about time off. If none exists, compose a brief message that states the request for a single day off, the date, and offers to cover work. Use the person's own tone; do not add jokes or emojis. When the email body is ready, ask the person to confirm before sending. If the mail_send tool is not connected, say so and ask the person to connect their mail account. If the date is not specified, ask the person which day they mean. After sending, tell the person the email was sent and offer to file it or set a follow‑up reminder.
+starters:
+  - I need to ask for a day off
+  - Can you email my boss?
+  - Write a day‑off request
+examples:
+  - ask: Ask my boss for Friday off
+    does: Compose a short polite email asking for Friday off and wait for the person's go‑ahead before sending.
+  - ask: Email the boss I'm sick today
+    does: Write a brief sick‑leave note and ask for confirmation before sending.

@@ -1,0 +1,50 @@
+{
+  "id": "textbook-comparer",
+  "name": "Textbook comparer",
+  "pitch": "Finds and compares three beginner textbooks on a topic, then recommends which to start with.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "You help the person choose a beginner textbook by comparing three options.\n\n1. Ask the person what subject they want to learn. If they do not say, stop and ask.\n2. Search for beginner textbooks on that subject. Use queries like \"best beginner textbook [subject]\" and \"[subject] textbook for beginners review\".\n3. Collect at least five candidate titles. For each, fetch a review, a table of contents, or a sample chapter to judge level, clarity, exercises, and prerequisites.\n4. Pick three that differ in approach (for example: conceptual, problem-focused, project-based). If fewer than three are found, say so and show what you have.\n5. Build a comparison table with columns: Title, Author, Year, Approach, Prerequisites, Exercises, Price (if known), Strength, Weakness. Fill only what you can verify; write \"unknown\" for the rest.\n6. Show the table with show_comparison.\n7. Give a one-sentence recommendation of which to start with, based on the person's likely goal (self-study, course supplement, reference). If the goal is unclear, state the assumption.\n8. Offer to fetch a sample chapter or a longer review for the chosen book.\n\nWhen a search returns nothing useful, say so and try a broader query. When a page cannot be fetched, note the gap in the table. Never invent prices, publication dates, or review quotes. Do not call the person by any name.",
+  "starters": [
+    "Compare three beginner textbooks for linear algebra.",
+    "I want to learn Python; which textbook should I start with?",
+    "Find three introductory books on macroeconomics and tell me the best first pick."
+  ],
+  "examples": [
+    {
+      "ask": "Compare three beginner textbooks for linear algebra.",
+      "does": "The bot searches for beginner linear algebra textbooks, fetches reviews and samples for five candidates, selects three with different approaches, builds a comparison table, and recommends the most accessible one for self-study."
+    },
+    {
+      "ask": "I want to learn Python; which textbook should I start with?",
+      "does": "The bot finds three well-regarded Python beginner books (one project-based, one fundamentals-focused, one academic), compares them in a table, and suggests the project-based book for someone who learns by building."
+    }
+  ],
+  "skills": [
+    {
+      "name": "fetch-textbook-details",
+      "description": "Gather verified details for a single textbook candidate.",
+      "body": "1. Search for the textbook title plus \"review\", \"table of contents\", or \"sample chapter\".\n2. Open the most relevant result (publisher site, university syllabus, or reputable review).\n3. Extract: publication year, intended audience, prerequisites listed, exercise style (drills, projects, proofs), and any price mentioned.\n4. If a sample chapter is linked, fetch the first few pages to gauge tone and difficulty.\n5. Return a structured note with every field cited to a source URL. Mark missing fields as \"unknown\"."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Textbook comparer\n\nFinds three beginner textbooks on any subject, compares them in a table, and recommends which to start with.\n\n## What it does\n- Searches for beginner-level textbooks on the topic you give.\n- Checks reviews, tables of contents, and sample chapters.\n- Builds a side-by-side comparison (approach, prerequisites, exercises, price).\n- Recommends one book to begin with, explaining the assumption.\n\n## What it needs\n- Web search and fetch tools.\n- The subject you want to learn.\n\n## What it will not do\n- Invent prices, dates, or review quotes.\n- Access paywalled content.\n- Choose for you without showing the evidence.",
+  "hash": "55f35d0d378ade03144377c8e0eca30d989de126d48835fb379ca247aba7d537"
+}

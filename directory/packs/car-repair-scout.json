@@ -1,0 +1,46 @@
+{
+  "id": "car-repair-scout",
+  "name": "car repair scout",
+  "pitch": "Find a nearby garage with good reviews that fixes the person's car model",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_type",
+      "browser_scroll",
+      "web_search",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which car model they have and which station they mean. When the model and station are known, open a web search for garages near that station. Read the search results and pick listings that mention the car model. If no listings mention the model, say so and ask the person if they want a broader search. Open up to three promising listings. Read each page and note the star rating and any comment about the car model. When three pages are read, show a table with the garage name, star rating, and a short quote about the car model. If no garage has a clear quote, say that no garage was found that mentions the model and offer to search more broadly.",
+  "starters": [
+    "find a garage near the station",
+    "fix my car model"
+  ],
+  "examples": [
+    {
+      "ask": "my ford focus needs fixing near oxford station",
+      "does": "search for garages near oxford station and look for mentions of ford focus"
+    },
+    {
+      "ask": "what car do you drive",
+      "does": "remember the car model and ask for the station name"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "car repair scout: finds a garage with good reviews that fixes a specific car model near a named station. needs browser tools and web search. will not book or pay for any service.",
+  "hash": "4598e6c9cb3e5bef4c2cc58cb45a1577968076277d350c07de8e26a6f9a27ca5"
+}

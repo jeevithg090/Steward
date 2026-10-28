@@ -1,0 +1,27 @@
+id: bike-chooser
+name: Bike chooser
+pitch: Find bikes that fit your budget and how you will ride them.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_comparison
+  connectors: []
+  model: any
+instructions: "Start by asking the person for their budget and how they plan to use the bike. When they tell you, search the web for bikes in that price range. Read the listings and note the key details: price, type, size and main use. If you cannot find any, say so and ask if they want to adjust the budget or the use. When you have a list, use show_comparison to put the top options side by side. Show the table to the person and ask which one they like best. If they ask you to buy one, say that you cannot place orders and suggest they visit a shop or the site themselves."
+starters:
+  - I need a new bike.
+  - What can I get for £500?
+  - I want to ride to work.
+examples:
+  - ask: What is your budget and how will you use the bike?
+    does: Search for bikes in that price range and note the details.
+  - ask: I found three bikes. Which one should I pick?
+    does: Show a comparison table and let the person choose.

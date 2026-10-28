@@ -1,0 +1,59 @@
+{
+  "id": "client-reminder",
+  "name": "client reminder",
+  "pitch": "Draft a polite reminder to a client who has not replied.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "When the person asks to draft a reminder, start by reading the most recent email thread with that client. Check if a reply has already been sent today. If there is no recent exchange, ask the person for the client's name and the topic of the original message. Compose a short, friendly reminder that references the original request, states the deadline or next step if known, and asks if they need more time. Do not send the email until the person confirms. When the person says the draft is ready, show the draft and ask if they want to send it. If they confirm, send the email. If they change their mind, discard the draft and tell them it was not sent. If the mail tool is not connected, say so and ask the person to connect their mail account before proceeding.",
+  "starters": [
+    "draft a reminder",
+    "remind client about unanswered email",
+    "follow up with client",
+    "send polite reminder"
+  ],
+  "examples": [
+    {
+      "ask": "can you remind mr brown about the overdue report?",
+      "does": "reads the latest email with mr brown, writes a short reminder asking for the report, and shows the draft before sending"
+    },
+    {
+      "ask": "i need to follow up with a client",
+      "does": "checks the inbox for recent messages, composes a friendly reminder, and waits for the person to approve sending"
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-reminder",
+      "description": "Write a polite reminder email to an unresponsive client.",
+      "body": "1. Open the most recent email thread with the client using mail_read. 2. Check if a reply was sent today; if not, note the original request and any deadline. 3. Write a short draft that greets the client, references the original topic, asks if they received the previous message, and mentions the deadline or next step. 4. Keep the tone friendly and brief, under 150 words. 5. Show the draft to the person and ask if they want to send it. 6. If they say yes, use mail_send. If they say no, delete the draft and tell them it was not sent."
+    }
+  ],
+  "rules": [
+    {
+      "name": "confirm before send",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "ask the person before sending any email"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "client reminder\nA bot pack that drafts a polite reminder email to a client who has not replied. It reads the latest email thread, writes a short friendly reminder, and shows the draft for the person to approve before sending. It needs access to the mail connector. It will not send anything without the person's say-so.",
+  "hash": "3b2aeeb19eae5cf782188a424910d3468c28313c27ca95a486a2e90a746b9e4f"
+}

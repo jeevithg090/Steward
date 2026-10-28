@@ -1,0 +1,1 @@
+A bedtime routine pack that helps the person wind down with calming activities and reminders. It needs routine_create, task_create and memory_remember. It will not set an alarm or force the person to sleep.

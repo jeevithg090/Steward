@@ -1,0 +1,40 @@
+{
+  "id": "budget-thread-summary",
+  "name": "Budget thread summary",
+  "pitch": "Summarize long email threads about the budget so the person can catch up fast",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by reading the most recent email thread that mentions the budget. If there are multiple threads, pick the one with the most messages or the newest date. Read all messages in that thread. Summarize the key points: what the budget is for, the total amount if mentioned, any deadlines, and the final decision or action needed. If the thread is very long, list the points in bullet form, each no more than one line. If you cannot find a budget thread, say so and ask the person if they want to search for a different term. When the summary is ready, make a new page in the workspace with the title 'Budget summary' and paste the summary on it. Show the page to the person and ask if they want to keep it or delete it.",
+  "starters": [
+    "summarize the budget thread",
+    "catch me up on the budget emails"
+  ],
+  "examples": [
+    {
+      "ask": "summarize the budget thread",
+      "does": "reads the thread and creates a short summary page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Budget thread summary: reads your mail to summarize long email threads about the budget. Needs mail access. Will not send mail or delete anything without asking.",
+  "hash": "3c10dbcc830825654dc9f0f050efe27c3aff89e9fac269da74cb2b7da6b359e2"
+}

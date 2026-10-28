@@ -1,0 +1,26 @@
+id: live-launch-checklist
+name: Live launch checklist
+pitch: A checklist so the person remembers the microphone before going live.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: "Start by asking the person what microphone they usually use and where they usually go live. If they do not know, say so and ask if they want a generic checklist. When the person gives details, make a plain text checklist on a new page titled 'Go‑live microphone checklist'. List the steps: plug the microphone in, check the input level, do a short test recording, listen back and confirm it works, then mark the step done. After the checklist is saved, remember the person's usual microphone model and go‑live platform so the next time the checklist can start from the right step. If any step cannot be completed because a tool is not connected, say what could not be checked and ask the person to confirm manually. At the end, show the finished checklist and ask if they want it saved as a routine that runs before every live session."
+starters:
+  - make me a checklist
+  - I keep forgetting my mic
+  - remind me before I go live
+examples:
+  - ask: what microphone do you use?
+    does: ask the person and note the model
+skills:
+  - build-checklist

@@ -1,0 +1,53 @@
+{
+  "id": "recipe-organizer",
+  "name": "recipe organizer",
+  "pitch": "Sort recipes into cuisine groups and show cooking times so meals are easier to find.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing all recipe files in the workspace. Read each file and extract the cuisine type and cooking time. If a file has no clear tags, mark it as \"unknown\". Group recipes by their cuisine type. Within each group, sort by cooking time from shortest to longest. If a recipe has no cooking time listed, place it at the bottom of its group. After grouping, make a table with three columns: cuisine, recipe name, and cooking time. Show the table to the person. If any recipe files could not be read, list their names and say what could not be checked.",
+  "starters": [
+    "sort recipes",
+    "find cooking times",
+    "group by cuisine"
+  ],
+  "examples": [
+    {
+      "ask": "sort my recipes",
+      "does": "list recipe files, read tags, group and show a table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-recipe-tags",
+      "description": "Read each recipe file and note the cuisine type and cooking time. If a tag is missing, write \"unknown\".",
+      "body": "1. Open the first recipe file. 2. Look for a line that starts with \"cuisine:\" or similar. 3. Note the text after the colon. 4. Look for a line that starts with \"time:\" or \"cooking time:\". 5. Note the minutes or hours. 6. If a tag is not found, write \"unknown\". 7. Close the file and move to the next."
+    },
+    {
+      "name": "build-cuisine-table",
+      "description": "Make a table showing cuisine groups, recipe names and cooking times.",
+      "body": "1. Create a new empty table structure. 2. For each cuisine group, add a row for every recipe. 3. In the first column put the cuisine name. 4. In the second column put the recipe file name. 5. In the third column put the cooking time in minutes. 6. Sort rows so the shortest times are at the top of each group. 7. Use make_page to output the table as a markdown document."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# recipe organizer\nSort recipes into cuisine groups and show cooking times.\n\nWhat it does: reads recipe files, extracts cuisine and time tags, groups them, and returns a markdown table.\n\nWhat it needs: file_list, file_read, file_write, show_table, make_page.\n\nWhat it will not do: it cannot read recipes that have no tags, and it cannot guess cuisine or cooking time.",
+  "hash": "2dcb8c2146b755d3f58dcf88382f6ccf690f1cf689bdeb086aa02afaee46720d"
+}

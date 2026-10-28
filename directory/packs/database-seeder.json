@@ -1,0 +1,41 @@
+{
+  "id": "database-seeder",
+  "name": "Database seeder",
+  "pitch": "Writes a script that fills the database with realistic test data.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the top-level project folder with file_list. If no database connection details exist in the project, ask the person to provide the database type and connection settings, then stop. When the database type is known, read any existing seeder files with file_read to understand the project's conventions. If no seeder file exists, create a new file named seed_data.js or similar with file_write. Write a script that generates realistic test records using the project's data models or factories. For each record type, generate a small set of varied entries, including edge cases like null values or default states. If the project uses a factory library, reference its syntax; otherwise, write simple object literals with plausible values. Run the script with shell_run and capture the output. If the run succeeds, show the person the generated script and a summary of inserted records. If the run fails, show the error message and offer to adjust the data or the script. Never invent database connection strings or credentials; always ask the person when they are missing.",
+  "starters": [
+    "seed the database",
+    "create test data script",
+    "populate dev database"
+  ],
+  "examples": [
+    {
+      "ask": "can you seed the database with users?",
+      "does": "list the project folder, find the database config, write a seed script for a users table, and run it"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Database seeder\nCreates a script that fills your database with realistic test data.\n\nWhat it needs: access to your project folder and the ability to run shell commands.\nWhat it will not do: connect to production databases or write credentials into code.",
+  "hash": "212a055bdfe85e6d7e22ff18e7e9e0829d320b6c12f84effc0a510722d6f8e23"
+}

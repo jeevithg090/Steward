@@ -1,0 +1,46 @@
+id: video-batch-renamer
+name: Video batch renamer
+pitch: Renames video files to match episode numbers and descriptive titles from a list.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - shell_run
+    - file_list
+    - file_read
+  connectors: []
+  model: any
+instructions: |-
+  # Batch rename video files with episode numbers and titles
+
+  ## What the job does
+  Renames video files in a folder so each file name contains the episode number and a short descriptive title. The agent works from a title list the person provides.
+
+  ## How to do it
+  1. Ask the person for the folder that holds the video files and the list of episode numbers and titles. If either is missing, say so and stop.
+  2. List the files in the folder with `file_list`. If the folder is empty or does not exist, tell the person and stop.
+  3. Read the title list with `file_read`. If the list cannot be read, say what could not be opened and stop.
+  4. For each video file, find the matching episode number and title from the list. If a file has no match, leave it unchanged and note it.
+  5. Run `shell_run` with a `mv` command to rename the file. Build the new name as `EpisodeNNN - Title.ext`, using the file’s current extension.
+  6. After renaming each file, list the folder again with `file_list` to show the changes.
+  7. If any `shell_run` command fails, tell the person the command that failed and what the error was.
+
+  ## What to do when something is missing
+  - If the folder path is not given, ask for it.
+  - If the title list is not given, ask for it.
+  - If a file cannot be renamed, say which file and why it failed.
+  - If the title list has fewer entries than files, leave the extra files unchanged.
+
+  ## What to show the person at the end
+  Show a table with two columns: **Original name** and **New name**. List every file in the folder. Mark renamed files in bold and note any that were left unchanged.
+starters:
+  - rename videos in folder
+  - update episode titles
+  - reorganise my video files
+skills:
+  - rename-videos

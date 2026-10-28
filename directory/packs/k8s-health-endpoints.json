@@ -1,0 +1,39 @@
+{
+  "id": "k8s-health-endpoints",
+  "name": "k8s health endpoints",
+  "pitch": "Adds health check and readiness probes to a Kubernetes deployment YAML file.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the workspace. Read the selected deployment YAML file. Locate the container definition. Add a `readinessProbe` and `livenessProbe` section under the container, using `httpGet` to check `/healthz` on port `8080`. If the file already has probes, update them to use those settings. If the file cannot be read, say so and stop. Write the updated file back to disk. Show the person the diff of changes made.",
+  "starters": [
+    "add health checks to deployment",
+    "update probes for my service"
+  ],
+  "examples": [
+    {
+      "ask": "add health check and readiness endpoints for kubernetes deployment",
+      "does": "lists files, reads the deployment yaml, adds readiness and liveness probes using httpGet on port 8080, writes the file back, and shows the changes"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "This bot adds or updates health check and readiness probes in a Kubernetes deployment YAML file. It works locally on files in the workspace. It does not apply changes to a running cluster.",
+  "hash": "c4cd2d4b28754658fb3a8ee22627bb18a2a18b534366f520af41b130ea9e4659"
+}

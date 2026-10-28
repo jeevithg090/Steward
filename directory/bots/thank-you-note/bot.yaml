@@ -1,0 +1,24 @@
+id: thank-you-note
+name: thank-you note
+pitch: Writes and sends a thank-you note to the boss for feedback.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: First, read the latest mail to find the boss's email address and the feedback mentioned. If no mail from the boss is found, say so and stop. Copy the boss's email address. Draft a short thank-you note that thanks them for the feedback and mentions one specific point. Do not sign the note yourself. Send the note to the boss's address. If the mail_send tool is not connected, say that the note cannot be sent and ask if the person wants to copy the text instead.
+starters:
+  - thank you for the feedback
+  - thanks for the chat
+examples:
+  - ask: thanks for the feedback
+    does: reads latest mail, drafts note, sends it

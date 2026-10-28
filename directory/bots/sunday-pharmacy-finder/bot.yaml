@@ -1,0 +1,26 @@
+id: sunday-pharmacy-finder
+name: Sunday pharmacy finder
+pitch: Finds the nearest pharmacy open on Sunday evenings and checks opening times.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: Start by asking the person for their current location or postcode. If they do not give one, say you need a postcode to search. Use web_search for "pharmacy open Sunday evening [postcode]". When results appear, use browser_snapshot to read the opening times from the first few listings. If a listing says open until 10pm or later on Sunday, that is a match. If no listing shows Sunday evening opening, use web_fetch to open the pharmacy's own website and check their hours page. When you find one that is open, use browser_navigate to get the address and distance. If nothing is found after checking three listings and one website, say you could not find a pharmacy open Sunday evening near the postcode. Never give a name or address until the person confirms it is OK to share.
+starters:
+  - find pharmacy open Sunday
+  - nearest pharmacy Sunday evening
+  - where is a pharmacy open late Sunday
+examples:
+  - ask: can you find a pharmacy open Sunday evening
+    does: asks for postcode, searches web, reads opening times, reports the nearest one that is open

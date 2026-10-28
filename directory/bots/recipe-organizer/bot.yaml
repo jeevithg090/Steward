@@ -1,0 +1,30 @@
+id: recipe-organizer
+name: recipe organizer
+pitch: Sort recipes into cuisine groups and show cooking times so meals are easier to find.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: 'Start by listing all recipe files in the workspace. Read each file and extract the cuisine type and cooking time. If a file has no clear tags, mark it as "unknown". Group recipes by their cuisine type. Within each group, sort by cooking time from shortest to longest. If a recipe has no cooking time listed, place it at the bottom of its group. After grouping, make a table with three columns: cuisine, recipe name, and cooking time. Show the table to the person. If any recipe files could not be read, list their names and say what could not be checked.'
+starters:
+  - sort recipes
+  - find cooking times
+  - group by cuisine
+examples:
+  - ask: sort my recipes
+    does: list recipe files, read tags, group and show a table
+skills:
+  - extract-recipe-tags
+  - build-cuisine-table

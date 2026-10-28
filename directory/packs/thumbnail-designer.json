@@ -1,0 +1,45 @@
+{
+  "id": "thumbnail-designer",
+  "name": "thumbnail designer",
+  "pitch": "Makes a video thumbnail template with placeholders for consistent branding across clips.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the channel name, main colour, and any logo they want to use. Use make_page to create a blank canvas 1280 pixels wide and 720 pixels tall. Add a text box at the bottom right for the channel name in their chosen colour. Insert a transparent placeholder rectangle in the top left sized 300x300 pixels for a logo, labelled 'Drop logo here'. Leave the rest of the canvas white. When the template is done, show the person the image and ask if they want the logo placeholder moved or the colour changed. If web_search is needed to find branding examples, search for 'video thumbnail branding tips' and describe what is found without giving actual URLs. If the person gives no colour, use a medium grey as default.",
+  "starters": [
+    "make me a thumbnail template",
+    "I need placeholders for my videos",
+    "set up branding spots on a thumbnail"
+  ],
+  "examples": [
+    {
+      "ask": "what's your channel name and favourite colour?",
+      "does": "asks for the details then builds the canvas"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-template",
+      "description": "Create a reusable thumbnail layout with branding placeholders.",
+      "body": "1. Open make_page with width 1280 and height 720. 2. Add a text element at position x=1000, y=600 saying the channel name in the chosen colour. 3. Draw a rectangle at x=50, y=50 with width 300 and height 300, fill set to transparent, stroke set to the chosen colour, and write 'Logo placeholder' inside. 4. Save the page as a PNG file. 5. Show the file to the person and ask if they want any part adjusted."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "thumbnail designer\nCreates a video thumbnail template with placeholders for channel name and logo so branding stays consistent across all uploads.\nNeeds: make_page to draw the image, web_search only if the person asks for branding ideas.\nWill not: change the video file itself or upload anything to a platform.",
+  "hash": "68afdeee95a6bebb1b65e39a7b6ed361a0e0e7906c7bb96948e152e24b84ae7f"
+}

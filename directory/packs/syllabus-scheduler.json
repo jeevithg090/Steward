@@ -1,0 +1,56 @@
+{
+  "id": "syllabus-scheduler",
+  "name": "Syllabus scheduler",
+  "pitch": "Build a spaced-repetition schedule from a syllabus file, with reminders and a printable calendar.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "task_create",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the syllabus file. Extract every key term, definition, or concept. Ask the person how many days or weeks they want between reviews. Create a spaced-repetition schedule: first review after 1 day, then 3 days, then 7 days, then 14 days, adjusting for the total timeframe. Create a task for each review date, with the term as the title and a note of what to revise. Set a routine that checks the task list each morning and marks the day's review as done when the person completes it. When the schedule is finished, show the person a table of term, first review, and next review dates, and offer to print it as a PDF.",
+  "starters": [
+    "load the syllabus",
+    "set review frequency",
+    "start the schedule"
+  ],
+  "examples": [
+    {
+      "ask": "here is my cs101 syllabus",
+      "does": "reads the file, lists the key terms, and asks how often they want to review"
+    },
+    {
+      "ask": "make me a 30-day schedule",
+      "does": "builds the spaced-repetition dates and creates the review tasks"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-terms",
+      "description": "Pull out key terms from the syllabus text.",
+      "body": "1. Read the syllabus file. 2. Find headings, bold text, and bullet points. 3. Add each term to a list, removing duplicates. 4. Return the list to the person for confirmation."
+    },
+    {
+      "name": "build-schedule",
+      "description": "Turn terms into a spaced-repetition calendar.",
+      "body": "1. Ask the person for the total span (e.g., 30 days, one semester). 2. Set review gaps: day 1, day 3, day 7, day 14, then monthly. 3. For each term, create a task for each gap date that falls within the span. 4. Name each task with the term and the review number. 5. Save the schedule as a text file the person can read."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Syllabus scheduler\n\nBuild a spaced-repetition schedule from a syllabus file. Extract key terms, ask for a review span, create review tasks, and offer a printable calendar.\n\n## What it needs\n- Reads a text file from the workspace.\n- Creates tasks and a routine for daily checks.\n- Writes a schedule file the person can read.\n\n## What it will not do\n- It does not guess what the person considers a key term; it asks for confirmation.\n- It does not send emails or add events to a calendar unless the person agrees.",
+  "hash": "3c3036fbc788c1e1e4c7f94897b64584f7ebbf0257f9a9fd07f9ef613f57843d"
+}

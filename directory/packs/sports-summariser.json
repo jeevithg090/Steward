@@ -1,0 +1,45 @@
+{
+  "id": "sports-summariser",
+  "name": "Sports summariser",
+  "pitch": "Summarises last night's games for the sports the person follows and skips the rest.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person asks for a summary, start by checking memory_remember for the list of sports they follow. If no list exists, ask the person which sports they follow and save the list with memory_remember. Then use web_search to find last night's results for each sport. For each sport found, use web_fetch to read a headline or score page and pull out the final score and a one-sentence highlight. If a sport has no games, note that. If web_search or web_fetch finds nothing, say so for that sport. After gathering all results, show the person a list of the sports followed, each with its score and highlight, or a note that no games were found for any of them.",
+  "starters": [
+    "summarise last night's games",
+    "what happened in the matches last night"
+  ],
+  "examples": [
+    {
+      "ask": "summarise last night's games",
+      "does": "checks followed sports, searches results, and returns a short list of scores and highlights"
+    }
+  ],
+  "skills": [
+    {
+      "name": "followed-sports-summary",
+      "description": "Summarise last night's games for followed sports",
+      "body": "1. Check memory_remember for the person's list of followed sports. 2. If the list is empty or missing, ask the person which sports they follow and save the list. 3. For each sport in the list, use web_search to find last night's results. 4. Use web_fetch to read the top result and extract the final score and a one-sentence highlight. 5. If a sport has no games, note that. 6. If a search returns no results, say the score is unknown. 7. Collect all scores and highlights into a single list. 8. Present the list to the person, grouped by sport, and note any sports with no games."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Sports summariser: reads the person's followed sports, searches for last night's results, and returns scores and short highlights. Needs web_search, web_fetch, and memory_remember. Will not act without the person's say-so.",
+  "hash": "c86cf59d52a130c7c0c3edcc5644ef23dcbada02188107399b9d8bc38176b1f0"
+}

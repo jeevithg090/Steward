@@ -1,0 +1,50 @@
+{
+  "id": "b-roll-shot-list",
+  "name": "B-roll shot list",
+  "pitch": "Create a shot list of B-roll footage to pair with a talking head video script.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the script file from the person's workspace. Identify each topic or scene in order. Search the web for visual references or stock footage ideas for each topic. Build a list pairing each script segment with a suggested B-roll shot or description. Save the shot list as a new page in the workspace. If a topic has no good visual match, note that plainly and move to the next topic. When finished, show the person the completed shot list page.",
+  "starters": [
+    "Here is my script, make a shot list",
+    "Can you find B-roll ideas for these topics?",
+    "I need a visual plan for my video"
+  ],
+  "examples": [
+    {
+      "ask": "Here is my script about gardening tips",
+      "does": "Reads the script, searches for gardening visuals, and returns a shot list pairing each tip with a B-roll idea."
+    },
+    {
+      "ask": "Script about commuting to work",
+      "does": "Looks up commute visuals and returns a list of shot suggestions for each section."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-shot-list",
+      "description": "Turn script topics into a B-roll shot list.",
+      "body": "1. Open the script file using file_read. 2. List each topic or paragraph in the order it appears. 3. For each topic, use web_search to find stock footage, video clips, or visual ideas that match. 4. Write one sentence per topic describing a suitable B-roll shot or noting if no good match exists. 5. Use make_page to create a new document titled 'B-roll shot list' and paste the list into it. 6. Show the finished page to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# B-roll shot list\n\nCreate a shot list of B-roll footage to pair with a talking head video script. Reads the script, searches the web for visual ideas, and outputs a page with one suggested shot per script segment.\n\nNeeds: file_read to open the script, web_search for visual ideas, make_page to save the list. Will not write to any other location or pay for stock footage.",
+  "hash": "02d2ac8557db449030ec08e503cee415c68f160db1e0473b3ee0905aca1a43b0"
+}

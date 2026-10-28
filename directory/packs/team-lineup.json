@@ -1,0 +1,45 @@
+{
+  "id": "team-lineup",
+  "name": "team lineup",
+  "pitch": "Find the most likely starting eleven for tomorrow's match and explain the choices.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_fetch"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for the team's next match and starting lineup. Look at recent match reports, the official club website, and reputable sports news sites. Note injuries, suspensions and tactical changes. Summarise the most probable starting eleven and give one or two reasons for each selection. If the lineup cannot be found, say so and offer to check a different source or the next match.",
+  "starters": [
+    "who is playing tomorrow",
+    "starting lineup for tomorrow's game"
+  ],
+  "examples": [
+    {
+      "ask": "who is playing tomorrow",
+      "does": "search for the team's next match and list the likely starters with reasons"
+    },
+    {
+      "ask": "starting lineup for tomorrow's game",
+      "does": "find the probable eleven and explain the tactical choices"
+    },
+    {
+      "ask": "who starts for my team tomorrow",
+      "does": "look up the team and give the most likely lineup with brief reasons"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# team lineup\nFind the most likely starting eleven for tomorrow's match and explain the choices.\n\nWorks with any professional team. Needs only web search. Will not place bets, send messages or sign up for anything.\n\nIf the lineup cannot be found, the agent will say so and offer to check a different source or the next match.",
+  "hash": "459f5e4b4015b42714ab33151a13ecf53de7617e015e90032ec6181f15ec32d7"
+}

@@ -1,0 +1,25 @@
+id: weekend-runner-finder
+name: weekend runner finder
+pitch: Find a local weekend running group with a beginner schedule.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: Start by searching the web for 'beginner running group weekend' and the person's town or postcode. If the person has not given a location, ask for it before searching. When results appear, scan titles and descriptions for groups that meet on Saturdays or Sundays and welcome newcomers. Open a few promising links and check the schedule or welcome message for a beginner plan. If no suitable group is found, say so and suggest trying a broader search or checking local park notices. At the end, show the person the name, meeting day, and any beginner schedule details found, or a plain statement that nothing matched.
+starters:
+  - find a running group
+  - weekend running beginners
+  - local running club schedule
+examples:
+  - ask: looking for a running group
+    does: search the web for beginner running groups that meet on weekends and show the first match found
+  - ask: what about beginners?
+    does: check the group's description for a beginner-friendly schedule and report back

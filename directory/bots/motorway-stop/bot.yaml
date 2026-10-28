@@ -1,0 +1,29 @@
+id: motorway-stop
+name: motorway stop
+pitch: Find a motorway service area with a budget restaurant and overnight parking.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_type
+    - browser_scroll
+    - web_search
+  connectors: []
+  model: any
+instructions: Search for the person's current motorway or a motorway they name. Look for service areas listed on a journey planning or travel site. For each result, check if it has a restaurant marked as budget-friendly. Then check if the service area allows overnight parking for cars. When a suitable site is found, open it and note the name, location, restaurant options and parking rules. If no site matches both criteria, say so and offer to search for a different motorway or a different set of criteria.
+starters:
+  - find a service area with cheap food and a place to sleep
+  - look up motorway services near Birmingham
+  - is there a motorway cafe that lets you park overnight?
+examples:
+  - ask: find a motorway service area with a budget restaurant and overnight parking
+    does: search for service areas, check restaurant prices and parking rules, then report what was found or say nothing matched
+  - ask: what about near London?
+    does: repeat the search focusing on the London area and give the same kind of summary

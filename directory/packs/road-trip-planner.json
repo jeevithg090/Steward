@@ -1,0 +1,64 @@
+{
+  "id": "road-trip-planner",
+  "name": "Road trip planner",
+  "pitch": "Plan a road trip with stops every two hours and charging stations along the route.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the start and end locations and the total driving time they want. Search for the route between the two places. Break the total driving time into two-hour segments. For each segment, search for towns or rest areas along that part of the route. Then, search for electric vehicle charging stations in those towns. List each stop with the town name, a brief reason for stopping, and the charging options available. If a charging station is not found in a town, note that no charging was found there. When the list is complete, show the person a table with all the stops in order. If at any point a search returns no results, say so plainly and move on to the next segment. Do not invent names of places or charging points. Do not give the person a name they did not give. End by asking if they want to change anything or add more stops.",
+  "starters": [
+    "plan a road trip",
+    "find charging stops",
+    "two-hour breaks"
+  ],
+  "examples": [
+    {
+      "ask": "I want to drive from London to Manchester",
+      "does": "Search for the route and list towns along the way, then look for charging stations in those towns."
+    },
+    {
+      "ask": "How long should I drive?",
+      "does": "Ask the person for the total driving time and adjust the stop schedule."
+    }
+  ],
+  "skills": [
+    {
+      "name": "plan-route",
+      "description": "Find the route and break it into two-hour stops.",
+      "body": "1. Use web_search to find the route between the start and end points. 2. Read the route details with web_fetch to get the total distance and estimated driving time. 3. Divide the total driving time by two to know how many stops to plan. 4. For each two-hour block, use web_search to find towns or rest areas along that segment of the route. 5. In each town found, use web_search again for electric vehicle charging stations. 6. Record the town name, the reason for stopping (such as a break or food), and the charging options. 7. If a town has no charging stations found, write 'No charging found' next to that town. 8. When all segments are done, use make_page to create a simple list or show_table to display the stops in order."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask-for-location",
+      "effect": "ask",
+      "when": "tool.name == \"web_search\"",
+      "description": "Ask the person for start and end points before searching."
+    },
+    {
+      "name": "no-invented-places",
+      "effect": "deny",
+      "when": "tool.kind == \"write\" && tool.surface == \"browser\"",
+      "description": "Say plainly what could not be found and move on."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Road trip planner\nPlan a road trip with stops every two hours and charging stations along the route.\n\nWhat it does: breaks a long drive into two-hour segments and finds places to stop and charge an electric car.\nWhat it needs: web search to find routes, towns, and charging points; a page to show the list.\nWhat it will not do: it will not guess prices, invent towns, or book anything. It will say plainly if a charging station is not found in a town.",
+  "hash": "0f1111d8f522bac2d4b6a2a01928195f6299d910e7dfccdc26f1059878cfdd0b"
+}

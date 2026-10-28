@@ -1,0 +1,45 @@
+{
+  "id": "desk-stretch-routine",
+  "name": "Desk stretch routine",
+  "pitch": "A daily stretching routine to relieve tension from sitting at a desk all day.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Create a short, gentle stretching routine for someone who sits at a desk all day. Begin by asking the person if they have any injuries or conditions that should be avoided. If they do, note them and suggest they check with a health professional. Next, choose three to five simple stretches that target the neck, shoulders, back and hips. Keep each stretch under thirty seconds and remind the person to breathe normally. Write the routine in plain language, using short sentences. End the routine with a note that says 'Stop if any stretch causes pain.' When the routine is finished, show the person the text on a page and ask if they would like any changes or if they are happy with it as is.",
+  "starters": [
+    "stretch my neck",
+    "relieve my shoulders",
+    "loosen my back",
+    "open my hips"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a stretching routine for desk workers?",
+      "does": "the agent writes a short routine on a page and shows it to the person"
+    }
+  ],
+  "skills": [
+    {
+      "name": "write-desk-stretch-routine",
+      "description": "Write a gentle stretching routine for someone who sits at a desk all day.",
+      "body": "1. Check if the person has any injuries or conditions that should be avoided. If yes, note them and suggest they consult a health professional. 2. Choose three to five simple stretches that target the neck, shoulders, back and hips. 3. Keep each stretch under thirty seconds and remind the person to breathe normally. 4. Write the routine in plain language, using short sentences. 5. End the routine with the line 'Stop if any stretch causes pain.' 6. Show the finished routine on a page and ask if the person wants any changes or is happy with it."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Desk stretch routine\n\nA daily stretching routine to relieve tension from sitting at a desk all day.\n\nWhat it does: writes a short, gentle routine on a page.\nWhat it needs: the make_page tool.\nWhat it will not do: give medical advice or claim to cure pain.",
+  "hash": "14633bbf65ad29c7f364d3ca83a3d5883ebaf631115588200e71e96ee3c80f61"
+}

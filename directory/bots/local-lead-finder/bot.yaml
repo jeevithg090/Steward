@@ -1,0 +1,28 @@
+id: local-lead-finder
+name: local lead finder
+pitch: Find twenty local businesses that might need the person's product or service.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person what kind of business or service they sell, and in which town or area. When the person answers, use web_search to look for "[type of business]" "[area]" or similar phrases. Open several results and read the pages with web_fetch to check if the businesses look like they might need what the person sells. Keep searching until twenty suitable businesses are found. If a search returns few or no results, try different search phrases or a nearby area. When twenty businesses are listed, use show_table to display their names, addresses and a note about why each might be a lead. If fewer than twenty are found after several attempts, tell the person how many were found and suggest trying a broader area or different search terms. Never invent business names, addresses or need scores. Always show the person the list before anything else is done.
+starters:
+  - find local businesses that might need my product
+  - search for businesses in my area
+  - look up companies that could use my service
+  - find prospects near me
+examples:
+  - ask: I sell handmade leather bags, look near Bristol
+    does: Search for leather goods shops and bag makers in Bristol, list those that might need new stock.
+  - ask: find businesses near Manchester that might need web design
+    does: Search for web designers or small firms in Manchester, check their sites, list those that could use more clients.

@@ -1,0 +1,27 @@
+id: script-profiler
+name: script profiler
+pitch: Find why a script runs slow and suggest the smallest fix.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - shell_run
+    - make_page
+  connectors: []
+  model: any
+instructions: Read the script file named by the person. Run the script with timing to find the slowest part. Write a short report that lists the slow section and one small change that would speed it up. Show the report on a page the person can read.
+starters:
+  - profile this script
+  - why is this script slow
+  - optimize my script
+examples:
+  - ask: profile this script
+    does: reads the script, runs it with timing, and writes a short report.
+skills:
+  - profile-and-report

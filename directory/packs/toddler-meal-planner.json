@@ -1,0 +1,56 @@
+{
+  "id": "toddler-meal-planner",
+  "name": "Toddler meal planner",
+  "pitch": "Find meals that toddlers love and adults enjoy, with shopping lists and simple steps.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have any foods they cannot eat or do not like. If they do, note them and avoid those ingredients. Use web_search to look for \"toddler friendly meals adults enjoy\". Pick three results that look like recipes. For each result, use web_fetch to read the full recipe page. Check that the recipe has clear steps, a list of ingredients, and cooking time under 45 minutes. If a recipe does not meet these rules, discard it and pick another. When you have three recipes, use make_page to create a single page that lists the recipes, their ingredients, and the steps. Add a shopping list that groups ingredients by type (vegetables, protein, pantry, etc.). If any step finds no recipes or a recipe page cannot be read, say so and stop. At the end, show the person the page and ask if they want to save it as a file or keep it on screen.",
+  "starters": [
+    "What meals does my toddler like?",
+    "I need recipes the whole family can eat.",
+    "Find quick toddler-friendly dinners."
+  ],
+  "examples": [
+    {
+      "ask": "Can you find meals my toddler and I both like?",
+      "does": "Search the web for recipes that suit both and pick three to show."
+    },
+    {
+      "ask": "I have no eggs at home.",
+      "does": "Look for recipes without eggs and tell the person what was found."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recipes",
+      "description": "Search the web for toddler-friendly meals that adults will also eat.",
+      "body": "1. Use web_search with the query \"toddler friendly meals adults enjoy\". 2. Scan the results and pick three links that look like full recipes. 3. For each link, use web_fetch to open the page. 4. Check that the page has a clear list of ingredients and step-by-step instructions. 5. Confirm the cooking time is under 45 minutes. 6. If any check fails, discard that link and go back to step 2 to find a replacement. 7. Repeat until three valid recipes are collected."
+    },
+    {
+      "name": "build-shopping-list",
+      "description": "Turn recipe ingredients into a grouped shopping list.",
+      "body": "1. Read the ingredient lists from the three saved recipes. 2. Put each ingredient into one of these groups: vegetables, fruit, protein, dairy, pantry, herbs and spices. 3. Remove duplicates so each item appears once. 4. Sort each group alphabetically. 5. Present the list to the person as a tidy layout."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Toddler meal planner\n\nFind meals that toddlers love and adults enjoy eating. The bot searches the web, reads recipes, checks cooking time, and builds a shared shopping list. It will not pay for anything, send messages, or sign up for accounts.\n\n**Needs**: web_search, web_fetch, make_page, file_write\n\n**Will not**: charge a fee, email anyone, or create accounts on the person's behalf.",
+  "hash": "ac5d247188e221f25c5c42b06e6e855d9a37644fe81693bed9daa734e424b8e1"
+}

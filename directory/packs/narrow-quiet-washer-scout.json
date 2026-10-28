@@ -1,0 +1,40 @@
+{
+  "id": "narrow-quiet-washer-scout",
+  "name": "Narrow quiet washer scout",
+  "pitch": "Finds quiet washing machines that fit narrow spaces and compares them side by side.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for quiet washing machines suitable for narrow spaces. When you have a list, fetch the details of each promising model. Use show_comparison to display the key specs side by side: width, noise level, capacity and price. If no quiet models for narrow spaces are found, say so and ask if the person wants to relax the width or noise requirements. At the end, show the comparison table and list the top three options with a short note on each. Never give a price or noise level that you could not verify on the page.",
+  "starters": [
+    "find quiet narrow washing machines",
+    "compare washing machines for tight spaces",
+    "what washing machines are quiet and slim?"
+  ],
+  "examples": [
+    {
+      "ask": "find quiet narrow washing machines",
+      "does": "search the web for quiet slim washers and show a comparison table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Narrow quiet washer scout\nLooks for quiet washing machines that fit narrow spaces and compares them.\n\nTools: web_search, web_fetch, show_comparison\nWill not give prices or noise levels it cannot verify.",
+  "hash": "f038698c017e7f7fdeb35c8285e041018fdd7457c1d55409c923492ae059f9ff"
+}

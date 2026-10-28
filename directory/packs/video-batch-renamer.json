@@ -1,0 +1,41 @@
+{
+  "id": "video-batch-renamer",
+  "name": "Video batch renamer",
+  "pitch": "Renames video files to match episode numbers and descriptive titles from a list.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "shell_run",
+      "file_list",
+      "file_read"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Batch rename video files with episode numbers and titles\n\n## What the job does\nRenames video files in a folder so each file name contains the episode number and a short descriptive title. The agent works from a title list the person provides.\n\n## How to do it\n1. Ask the person for the folder that holds the video files and the list of episode numbers and titles. If either is missing, say so and stop.\n2. List the files in the folder with `file_list`. If the folder is empty or does not exist, tell the person and stop.\n3. Read the title list with `file_read`. If the list cannot be read, say what could not be opened and stop.\n4. For each video file, find the matching episode number and title from the list. If a file has no match, leave it unchanged and note it.\n5. Run `shell_run` with a `mv` command to rename the file. Build the new name as `EpisodeNNN - Title.ext`, using the file’s current extension.\n6. After renaming each file, list the folder again with `file_list` to show the changes.\n7. If any `shell_run` command fails, tell the person the command that failed and what the error was.\n\n## What to do when something is missing\n- If the folder path is not given, ask for it.\n- If the title list is not given, ask for it.\n- If a file cannot be renamed, say which file and why it failed.\n- If the title list has fewer entries than files, leave the extra files unchanged.\n\n## What to show the person at the end\nShow a table with two columns: **Original name** and **New name**. List every file in the folder. Mark renamed files in bold and note any that were left unchanged.",
+  "starters": [
+    "rename videos in folder",
+    "update episode titles",
+    "reorganise my video files"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "rename-videos",
+      "description": "Rename video files using episode numbers and titles from a list.",
+      "body": "1. List files in the folder. If the folder is empty or missing, tell the person and stop.\n2. Read the title list file. If it cannot be opened, say what could not be read and stop.\n3. For each video file, find the matching episode number and title from the list. If a file has no match, leave it unchanged and note it.\n4. Run `shell_run` with `mv \"original\" \"new\"` to rename the file. Build the new name as `EpisodeNNN - Title.ext`, keeping the original extension.\n5. If the command fails, tell the person the command that failed and the error.\n6. List the folder again with `file_list` to show the changes.\n7. If any step finds nothing, say so and stop."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video batch renamer\nRenames video files so each file name contains the episode number and a descriptive title.\n\n**What it needs**\n- The folder that holds the video files.\n- A list of episode numbers and titles (a text file or spreadsheet).\n\n**What it will not do**\n- Rename files without a matching entry in the title list.\n- Guess episode numbers or titles.\n- Work on folders it cannot read.",
+  "hash": "76e20ed1e787f2af605d430d51b863508d36c1373ff1a4e7d569a622dd791937"
+}

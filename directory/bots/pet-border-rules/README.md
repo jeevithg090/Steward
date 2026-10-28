@@ -1,0 +1,1 @@
+Pet border rules: look up the legal requirements for taking a pet across a specific land border. Needs a web browser to search government and official sites. Will not give personalised advice or book a vet appointment.

@@ -1,0 +1,51 @@
+{
+  "id": "web-mention-tracker",
+  "name": "Web mention tracker",
+  "pitch": "Searches the web for new mentions of the business and sends a weekly summary.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "routine_create",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the business name or website. Store the name in memory. Create a routine that runs once a week. When the routine starts, use web_search to find recent pages mentioning the business name. Open each result with web_fetch to check that the mention is about the correct business. If a mention is relevant, note the source, date and a short quote. If no new mentions are found, note that. After checking all results, use make_page to create a short text document listing the mentions found, or state that no new mentions were found. Send the text document to the person. When web_search or web_fetch returns no results, say so plainly and list zero mentions. Never invent a mention or a source.",
+  "starters": [
+    "track my business mentions",
+    "search for my business online",
+    "weekly mention report"
+  ],
+  "examples": [
+    {
+      "ask": "my business is called \"Green Leaf Café\"",
+      "does": "store the name and create a weekly routine to search the web"
+    },
+    {
+      "ask": "weekly report",
+      "does": "run the search and send a summary of new mentions"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-summarise-mentions",
+      "description": "Weekly search for business name mentions. Open links, check relevance, note source and quote. Create text summary.",
+      "body": "1. Use web_search with the business name to get recent pages. 2. For each result, use web_fetch to read the page. 3. If the page mentions the business, note the title, URL and a short quote. 4. If the page does not mention the business, skip it. 5. After all results are checked, use make_page to create a text document listing the notes. 6. If no mentions were found, write \"No new mentions found this week.\" 7. Present the document to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Web mention tracker\n\nSearches the web for new mentions of your business and sends you a weekly summary. I use web search to find pages, fetch them to check relevance, and create a short text document with the results. I will never post, pay or sign anything without your say-so.\n\n## What it needs\n- web_search, web_fetch, routine_create, make_page\n- Your business name or website\n\n## What it will not do\n- Post or reply to any mention\n- Pay for any service\n- Share your business name with anyone else",
+  "hash": "5cb81f9fcb78135526df50f3700a710007ee5b40b8be99931809fd7884709a9b"
+}

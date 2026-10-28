@@ -1,0 +1,57 @@
+{
+  "id": "stale-deal-reporter",
+  "name": "Stale Deal Reporter",
+  "pitch": "Every Monday it reads your deals file and shows which ones have not changed in two weeks.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "routine_create",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nReport every Monday which deals have not moved in a fortnight.\n\n## Data source\nThe deals live in a CSV file at `workspace/deals.csv` with columns: `deal_id`, `name`, `stage`, `amount`, `last_updated` (ISO date, e.g. 2025-01-15). If the file is missing or empty, say so and stop.\n\n## Weekly run (Monday)\n1. Read `workspace/deals.csv`.\n2. Parse each row. Skip rows with missing `deal_id` or `last_updated`.\n3. Compute today's date (the day the routine runs). A deal is stale when `last_updated` is 14 or more days before today.\n4. Collect stale deals. For each keep: `deal_id`, `name`, `stage`, `amount`, `last_updated`, `days_stale`.\n5. If none are stale, tell the person \"No deals have been stagnant for a fortnight.\"\n6. If there are stale deals, show them with `show_table` sorted by `days_stale` descending.\n7. Add a one-line summary: \"X deals have not moved in 14+ days.\"\n\n## Errors and edge cases\n- File not found: say \"Deals file not found at workspace/deals.csv.\"\n- Unreadable CSV: say \"Could not parse deals.csv.\"\n- Bad date in a row: skip that row and note \"Skipped 1 row with invalid date.\"\n- No `last_updated` column: say \"CSV missing required column: last_updated.\"\n\n## What to show\nA table of stale deals plus the summary line. Nothing else.",
+  "starters": [
+    "Set up the Monday stale-deal report.",
+    "Run the stale-deal check now.",
+    "Where should I put the deals CSV?"
+  ],
+  "examples": [
+    {
+      "ask": "Set up the Monday stale-deal report.",
+      "does": "The bot creates a weekly routine that runs every Monday, reads workspace/deals.csv, finds deals untouched for 14+ days, and shows them in a table."
+    },
+    {
+      "ask": "Run the stale-deal check now.",
+      "does": "The bot reads the deals file immediately, computes staleness against today, and displays any stale deals in a table."
+    }
+  ],
+  "skills": [
+    {
+      "name": "compute-stale-deals",
+      "description": "Read deals CSV and return rows stale for 14+ days.",
+      "body": "1. Read workspace/deals.csv with file_read.\n2. Split into lines, parse header, find column indices.\n3. For each data row: parse last_updated as ISO date; if invalid, skip and count.\n4. Calculate days_stale = (today - last_updated).days.\n5. Keep rows where days_stale >= 14.\n6. Sort kept rows by days_stale descending.\n7. Return list of dicts with deal_id, name, stage, amount, last_updated, days_stale and skip_count."
+    }
+  ],
+  "rules": [
+    {
+      "name": "create-weekly-routine",
+      "effect": "ask",
+      "when": "tool.name == \"routine_create\"",
+      "description": "Ask before creating the Monday routine that runs automatically."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Stale Deal Reporter\n\n**What it does**\nEvery Monday it reads your deals CSV and shows which deals have not been updated in the last fortnight.\n\n**What it needs**\n- A file at `workspace/deals.csv` with columns: `deal_id`, `name`, `stage`, `amount`, `last_updated` (ISO date).\n- Permission to create a weekly routine (asked once).\n\n**What it will not do**\n- It will not modify the deals file.\n- It will not connect to any CRM system.\n- It will not send emails or notifications beyond the table shown here.",
+  "hash": "373318254a1b4814c22a6d0c3c5f5050f02ae9eb64413dc2d756ce2afe5c5cc4"
+}

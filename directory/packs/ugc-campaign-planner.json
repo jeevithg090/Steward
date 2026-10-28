@@ -1,0 +1,34 @@
+{
+  "id": "ugc-campaign-planner",
+  "name": "UGC campaign planner",
+  "pitch": "Plan a user generated content campaign with clear rules and prize structure.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the campaign goal, target platform, and desired prize. When they answer, list three content ideas that fit the goal and platform. Ask the person to choose one idea or suggest their own. When they pick an idea, ask for the campaign length, entry method, and any legal restrictions they want to include. Write a draft of the campaign rules in a new file, including the prize description, eligibility, entry method, and how winners will be chosen. Save the file as ugc-campaign-rules.md. Then make a summary page with the chosen idea, rules outline, and prize details. Show the summary page to the person and ask if they want to add, change, or remove anything before finalising. When the person is happy, tell them the campaign plan is ready and list the files created. If at any step the person gives no clear answer, say so and ask again. Never invent prize values or legal text; tell the person plainly what could not be checked. Do not call the person by a name they did not give.",
+  "starters": [
+    "What platform should the campaign be on?",
+    "What kind of content do you want people to create?",
+    "What prize are you offering?"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# UGC campaign planner\nPlan a user generated content campaign with clear rules and prize structure.\n\nWhat it does: Asks for the goal, platform, and prize. Writes a rules file and a summary page.\nWhat it needs: file_write and make_page tools.\nWhat it will not do: Check legal compliance or set prize values.",
+  "hash": "44f0ace91b228088f2587412d41442c2050dddff5967f1cb5e0c713b8f015f14"
+}

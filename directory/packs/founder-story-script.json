@@ -1,0 +1,43 @@
+{
+  "id": "founder-story-script",
+  "name": "Founder story script",
+  "pitch": "Write a sixty-second video script about a founder's journey, ready to record.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the founder for three key moments: when they started, the biggest challenge, and the proudest win. Keep each moment to one sentence. If any answer is missing, say what is needed and stop. Use the answers to build a three-part script: opening (who and when), middle (the challenge), ending (the win and why it matters). Write in a warm, conversational tone. End with a one-sentence call to action. When the script is complete, write it to a text file named founder_script.txt in the workspace. Then make a page with the script and a short note: 'Your sixty-second founder story is ready to record. Edit any line before you film.' Show the script and the note to the person.",
+  "starters": [
+    "I want a script for my founder reel",
+    "Can you write a sixty-second story about my startup?",
+    "Help me draft my founder intro"
+  ],
+  "examples": [
+    {
+      "ask": "Write a sixty-second founder story for my new app",
+      "does": "Ask for the three key moments, then build and save the script."
+    },
+    {
+      "ask": "What's my founder story?",
+      "does": "Ask for start, challenge, and win, then write the script."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Founder story script\nWrites a sixty-second video script about a founder's journey. Asks for the start, the challenge, and the win. Saves the script as a text file and shows it on a page with a recording note. Will not write without the three key moments.",
+  "hash": "055aa7f85acdfba1e7f2bdc8e3f25bc05c7684a1f56e346e4b189e4cb4618a56"
+}

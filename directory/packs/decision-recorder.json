@@ -1,0 +1,53 @@
+{
+  "id": "decision-recorder",
+  "name": "Decision Recorder",
+  "pitch": "Extract decisions from email threads and save them as structured records you can search later.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "## Job: Turn a messy email thread into a decision record\n\n### What this does\nRead an email thread the person points to, pull out the decisions made, who made them, and any open questions. Write a clean Markdown file they can keep in their notes.\n\n### How to do it\n1. Ask the person which thread to process. They may give a subject line, a sender, a date range, or a message ID. If they are not sure, offer to list recent threads from the last 7 days.\n2. Use mail_read to fetch the full thread. If the connector is not connected, say so and stop.\n3. Read the messages in chronological order. Identify:\n   - Explicit decisions (\"we will\", \"agreed\", \"approved\", \"decided\")\n   - Action items with owners and due dates\n   - Open questions or unresolved points\n   - Key context: project name, participants, dates\n4. When nothing is found, say \"No clear decisions found in this thread.\" and ask if they want to try another.\n5. Build a Markdown record with these sections:\n   - **Thread**: subject, date range, participants\n   - **Decisions**: bullet list, each with decision text, who decided, date\n   - **Actions**: table with task, owner, due date, status\n   - **Open questions**: bullet list\n   - **Source**: link back to the thread (message IDs)\n6. Use make_page to create the file in the workspace. Name it `decision-<date>-<short-subject>.md`.\n7. Show the person the file path and a short summary. Ask if they want to edit, move, or file it elsewhere.\n\n### What to do when something is missing\n- No mail connector: say \"Mail is not connected. I cannot read threads.\"\n- Thread not found: say \"I could not find a thread matching that description.\" and list 5 recent threads as suggestions.\n- No decisions detected: say \"No clear decisions found in this thread.\" and show the raw message count so they can decide.\n- make_page fails: say \"Could not write the file. You can copy the Markdown below.\" and print the content.\n\n### What to show at the end\n- Path to the created file\n- A 3-line summary: number of decisions, actions, open questions\n- Offer to process another thread",
+  "starters": [
+    "Turn the thread about the Q3 budget into a decision record.",
+    "Find decisions in the email thread from Sarah last week.",
+    "List recent email threads so I can pick one.",
+    "Make a decision record from the thread with subject \"Project Alpha timeline\"."
+  ],
+  "examples": [
+    {
+      "ask": "Turn the thread about the Q3 budget into a decision record.",
+      "does": "The bot searches for threads with \"Q3 budget\" in the subject, reads the full conversation, extracts three decisions and two action items, writes a Markdown file named decision-2025-01-15-q3-budget.md, and shows the summary."
+    },
+    {
+      "ask": "List recent email threads so I can pick one.",
+      "does": "The bot fetches the last 10 threads from the past 7 days, shows subject, sender, date, and message count, and waits for the person to choose one."
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-decisions",
+      "description": "Find decisions, actions, and open questions in a list of email messages.",
+      "body": "1. Sort messages by date ascending.\n2. For each message, look for decision keywords: agreed, decided, approved, will do, going with, chosen, selected, confirmed.\n3. Capture the sentence containing the keyword, the sender, and the date.\n4. Look for action patterns: \"@name\", \"assigned to\", \"owner:\", \"due by\", \"by Friday\".\n5. Capture task text, owner, due date.\n6. Collect questions ending with \"?\" that have no reply answering them.\n7. Return structured lists for decisions, actions, open questions."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Decision Recorder\n\nTurns a messy email thread into a clean decision record you can file and search.\n\n### What it does\n- Reads an email thread you point to\n- Extracts decisions, action items, and open questions\n- Writes a Markdown file with a standard structure\n\n### What it needs\n- Mail connector connected\n- Permission to read mail\n\n### What it will not do\n- Send or delete any email\n- Modify the original thread\n- Guess decisions that are not explicitly stated\n- File the record in any external system (it saves to its workspace)",
+  "hash": "a7352cb94b4260f3a9b0fc5b604181c9d71c9cae6dcca971d93b10042a919ea1"
+}

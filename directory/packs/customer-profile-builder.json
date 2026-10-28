@@ -1,0 +1,46 @@
+{
+  "id": "customer-profile-builder",
+  "name": "Customer profile builder",
+  "pitch": "Find who buys the product and write three clear customer profiles.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what product or service they sell, and who their current customers are. If they give a website, use web_fetch to read it. If not, use web_search to find who buys similar things, and note the typical age, job, and reasons they buy. When the search shows no clear buyers, say so and ask the person if they have any data to share. After you have enough notes, use make_page to write a short profile for each of three typical buyers. Each profile should have a name, age, job, and one reason they buy. When the profiles are done, show the page to the person and ask if they want changes. Never make up facts about real people or companies. Never give the person a name they did not give.",
+  "starters": [
+    "who buys our product",
+    "find customer types",
+    "write three profiles"
+  ],
+  "examples": [
+    {
+      "ask": "we sell ergonomic office chairs",
+      "does": "search for people who buy office furniture and note typical buyers"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-profiles",
+      "description": "Write three customer profiles from research notes.",
+      "body": "1. Read all search results and notes about buyers. 2. Pick the three most common buyer types found. 3. For each type, write a short profile with a label (e.g. 'Office Oliver'), their likely age, job, and one reason they would buy the product. 4. Use make_page to create a simple web page with the three profiles side by side. 5. Show the page to the person and ask if the labels or details need changing."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Customer profile builder\n\nFind who buys what you sell and write three clear customer profiles.\n\n- Tools: web_search, web_fetch, make_page\n- What it will not do: it will not invent real people’s details or break any privacy rules.\n- What it will ask: before it writes a profile, it will check with you that the buyer labels are OK.",
+  "hash": "ff5da9aa6e6ced0f0943d746f62db7c5adc82532a1140f6a309d94a5bc47ec5e"
+}

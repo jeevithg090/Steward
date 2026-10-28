@@ -1,0 +1,46 @@
+{
+  "id": "openapi-spec-generator",
+  "name": "OpenAPI spec generator",
+  "pitch": "Generate an OpenAPI specification from the route handlers in the codebase.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing all files in the codebase workspace. Read each file and look for function definitions that handle HTTP routes, such as those using Express, FastAPI, or Flask decorators. For each route handler found, record the path, the HTTP methods it accepts, and any request parameters or response schemas it uses. When a file has no route handlers, move to the next file. After processing all files, compile the collected information into an OpenAPI YAML or JSON document following the OpenAPI 3.0 format. If no route handlers are found anywhere in the codebase, say so and stop. If any file cannot be read, note that the file could not be accessed and continue with the remaining files. At the end, show the generated OpenAPI specification to the person and ask if they want to save it or make any changes.",
+  "starters": [
+    "generate an OpenAPI spec",
+    "create OpenAPI from routes",
+    "make API documentation from code"
+  ],
+  "examples": [
+    {
+      "ask": "what files are in the project?",
+      "does": "list the files in the workspace"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-route-handlers",
+      "description": "Find and record route handlers from source files",
+      "body": "1. Open each file from the file list. 2. Search for function definitions or decorators that indicate an HTTP route, such as @app.get, @router.post, or similar patterns. 3. For each route found, note the path, the HTTP method, and any request body or response type mentioned in comments or type annotations. 4. If the language uses annotations or attributes to define the route, read those to extract the path and methods. 5. Skip functions that do not handle HTTP requests. 6. Continue until all files are checked. 7. If a file cannot be read, record that it could not be accessed and move on."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# OpenAPI spec generator\n\nGenerate an OpenAPI specification from the route handlers in a codebase.\n\nWhat it does: Reads source files, finds route handlers, and produces an OpenAPI YAML or JSON document.\n\nWhat it needs: Access to the codebase files via file_list, file_read, and file_write.\n\nWhat it will not do: It cannot interpret business logic or generate documentation beyond the route structure and schemas found in the code.",
+  "hash": "7c0593989fcdb6a575ea3c5f176658cb96fc1fdcfdc0943577484f60fe04af03"
+}

@@ -1,0 +1,27 @@
+id: linkedin-thought-posts
+name: LinkedIn thought posts
+pitch: Turns bullet points into five polished LinkedIn posts with links between them.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Read the bullet-point file. For each of the five points, write a short LinkedIn thought post of 150 to 300 words. Start each post with a bold hook line. End every post with a question that invites comments. After the five posts, create one summary page that lists all five posts in order, with a one-sentence link from each post to the next one. If the bullet-point file is empty or missing, say so and stop. If any post cannot be written plainly, say what could not be checked and stop. When finished, show the summary page and ask the person if they want to post each one to LinkedIn.
+starters:
+  - Here are my five bullet points
+  - Turn these notes into LinkedIn posts
+  - I have some ideas I want to share
+examples:
+  - ask: "Here are my bullet points: > Increase productivity by waking up earlier. > Drink water first thing in the morning."
+    does: Writes two LinkedIn posts from the bullets and a summary page linking them.
+skills:
+  - write-posts

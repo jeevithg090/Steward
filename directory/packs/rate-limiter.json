@@ -1,0 +1,51 @@
+{
+  "id": "rate-limiter",
+  "name": "Rate limiter",
+  "pitch": "Add rate limiting and circuit breaker patterns to a service client to prevent overload and handle failures gracefully.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Implement rate limiting and circuit breaker patterns for the service client code in this workspace.\n\nStart by listing the files in the current directory to understand the codebase structure.\nRead the main service client file to understand its current implementation and how requests are made.\nIdentify suitable locations to add rate limiting logic, typically using a token bucket or fixed window algorithm.\nImplement a rate limiter that tracks request counts and enforces delays between requests based on the service's limits.\nAdd a circuit breaker that monitors request failures and temporarily blocks requests when a threshold is reached, then allows a test request to see if the service recovered.\nWrite the updated code to the service client file, preserving existing functionality.\nIf the codebase uses existing libraries for these patterns, check for them before writing custom implementations.\nWhen the implementation is complete, show the added code sections and explain how they protect the service client from overload and repeated failures.",
+  "starters": [
+    "\"add rate limiting\"",
+    "\"implement circuit breaker\"",
+    "\"limit requests per minute\""
+  ],
+  "examples": [
+    {
+      "ask": "\"show me the rate limit code\"",
+      "does": "displays the rate limiter implementation with comments"
+    }
+  ],
+  "skills": [
+    {
+      "name": "add-rate-limiting",
+      "description": "Add rate limiting to prevent too many requests in a given time window.",
+      "body": "1. Check the current request rate in the codebase. 2. Choose a rate limiting algorithm (token bucket or fixed window). 3. Add a counter that increments on each request. 4. Enforce a delay or block when the limit is reached. 5. Reset the counter after the time window expires."
+    },
+    {
+      "name": "add-circuit-breaker",
+      "description": "Add a circuit breaker to stop requests when the service is unhealthy.",
+      "body": "1. Track recent request outcomes (successes and failures). 2. Set a failure threshold that trips the circuit. 3. When tripped, block new requests and return an error or cached response. 4. After a cooldown period, allow a single test request. 5. Close the circuit if the test request succeeds, otherwise re-trip."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Rate limiter\nAdds rate limiting and circuit breaker patterns to a service client.\n\nProtects the service from overload and handles temporary failures gracefully.\n\nNeeds access to the service client source files.\n\nWill not make external requests or modify production configurations.",
+  "hash": "88ff033a764a52ebd5cfd4da20db60f25e9a399f4dd38ba3c8a30f660e77fa95"
+}

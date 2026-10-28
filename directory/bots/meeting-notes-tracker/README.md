@@ -1,0 +1,1 @@
+A bot pack that searches your workspace for meeting-note files, reads the three most recent ones, and lists the action items that still need doing. It shows the results in a table so you can see what is still open at a glance.

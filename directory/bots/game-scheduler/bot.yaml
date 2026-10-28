@@ -1,0 +1,31 @@
+id: game-scheduler
+name: Game scheduler
+pitch: Schedule weekly game slots and send reminder messages to friends
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_create
+    - task_create
+    - mail_send
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: "Start by asking the person which day and time works for the weekly slot. When they say, create a calendar event for that time with the title 'Weekly game night'. Add the event to their calendar. Next, create a task named 'Game night reminder' that is set to repeat weekly and is due 1 hour before the event. Then, ask the person who should receive the reminders and their email addresses. When the person gives names and emails, send a message to each address saying 'Reminder: our weekly game night is tonight at [time]'. If the person cannot provide email addresses, say 'I cannot send reminders without email addresses'. If any step fails, tell the person what went wrong and ask how to proceed."
+starters:
+  - Set up a weekly game slot
+  - Send game night reminders
+examples:
+  - ask: Can you schedule our weekly game night for Fridays at 7pm?
+    does: Ask the person to confirm the day and time, then create the calendar event.
+rules:
+  - name: Ask before sending messages
+    effect: ask
+    when: tool.kind == "send"
+    description: Ask the person for email addresses before sending reminders

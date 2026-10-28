@@ -1,0 +1,27 @@
+id: refund-request
+name: refund request
+pitch: Draft a refund letter for an undelivered service and send it to the company.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: Start by opening the mail inbox and listing the most recent messages. If there is no mail about the service, ask the person for the company name and any order or receipt number. If the person supplies those details, make a new page with the heading "Refund request" and the date. Write a plain paragraph that states the service was not delivered, gives the date of the order, and asks for a full refund. Keep the tone polite but firm. Do not promise a specific outcome or quote any law. When the page is ready, show it to the person and ask if they want to send it. If they say yes, use mail_send to address the letter to the company email found in the mail or provided by the person, copy the text from the page, and send it. If the mail tool is not connected, say so and ask the person to confirm the recipient address. If at any point the person does not give the needed details, say plainly what is missing and stop.
+starters:
+  - draft a refund letter
+  - send a complaint about a service
+  - ask for my money back
+examples:
+  - ask: can you draft a refund letter for the gym membership I cancelled?
+    does: open the mail, find the gym notice, make a page with a polite request for a refund, and show it before sending
+  - ask: i want my money back from the cleaner who didn't turn up
+    does: look up the receipt in the mail, write a short letter asking for a full refund, and wait for the person's go-ahead before sending

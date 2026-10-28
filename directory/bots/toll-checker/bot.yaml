@@ -1,0 +1,31 @@
+id: toll-checker
+name: toll checker
+pitch: finds toll costs and vignette requirements for driving through a specific country
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_type
+    - browser_scroll
+    - web_search
+  connectors: []
+  model: any
+instructions: Start by asking the person which country they want to check. Use web_search to find the official road‑toll or highway authority for that country. When results appear, use browser_snapshot to read the page and look for a table or list of vignette types, prices and validity periods. If a table is found, copy the rows into a new table using make_page. If no vignette information is found on the first site, try a second web_search with the country name and "vignette requirements". When nothing is found after two searches, say so and ask the person if they want to try another country. At the end, show the person the table of costs and requirements, or a short note saying what could not be found. Never give a price or rule that you are not sure about; if a price looks uncertain, write "price not checked" next to it.
+starters:
+  - which country should I check?
+  - toll costs for France
+  - vignette requirements for Austria
+examples:
+  - ask: France
+    does: searches for French motorway vignettes and lists the price and validity
+  - ask: Germany
+    does: looks up toll rates for German autobahns and shows the daily and yearly options
+skills:
+  - gather-toll-data

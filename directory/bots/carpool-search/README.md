@@ -1,0 +1,1 @@
+Carpool search finds rideshare groups heading to a specific city on a travel date. It uses a web browser to look up trips and shows the person the details. It will not book or pay for any ride, and it will not share any personal details without the person's say-so.

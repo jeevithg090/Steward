@@ -1,0 +1,1 @@
+A quick helper that explains stop-loss orders and helps set one for a chosen holding. It searches the web for current prices and mechanics, then asks the person to confirm the level before anything is sent to a broker.

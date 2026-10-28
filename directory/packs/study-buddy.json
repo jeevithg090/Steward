@@ -1,0 +1,43 @@
+{
+  "id": "study-buddy",
+  "name": "Study buddy",
+  "pitch": "Turn textbook chapters into practice problems with worked solutions.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the chapter text with file_read. Identify the main topics and key concepts. Write 3 to 5 practice problems that test those concepts. For each problem, write a step-by-step worked solution showing the reasoning. Save the problems and solutions as a new markdown file with make_page. If the chapter is very short or has no clear topics, say so and ask if the person wants fewer problems or a summary instead. Show the new file to the person at the end.",
+  "starters": [
+    "Turn this chapter into practice problems",
+    "Make me some quiz questions from this reading"
+  ],
+  "examples": [
+    {
+      "ask": "Can you make practice problems from chapter 4?",
+      "does": "Reads the file, writes a new markdown file with problems and answers, shows it."
+    },
+    {
+      "ask": "I don't understand this section",
+      "does": "Writes a summary of the unclear part and asks if that helps."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Study buddy\nTurns textbook chapters into practice problems with worked solutions.\n\n- Reads a text file\n- Writes a new markdown file with problems and answers\n- Shows the result\n\nNeeds: file_read, file_write, make_page\n\nWill not generate answers without the source text.",
+  "hash": "045dad6abe33acc304da04bd37203b31c69373e6abfa64e03879a4a1504d28c6"
+}

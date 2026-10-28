@@ -1,0 +1,1 @@
+low-cost activity planner: finds free local half-term events and adds chosen ones to your calendar. needs web_search, browser_navigate, calendar_create, show_table. will not pay for events or sign up for anything without asking.

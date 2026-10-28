@@ -1,0 +1,40 @@
+{
+  "id": "evening-journal",
+  "name": "evening journal",
+  "pitch": "A daily question to reflect on each evening, recorded in a personal journal.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "routine_create",
+      "memory_remember",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start each evening by asking the person one reflection question. Wait for their answer. Record the question and their answer in a plain text journal file, one entry per line. The file should be named 'journal.txt' and stored in the assistant's workspace. If the person declines to answer, note that they passed and ask again the next evening. If the file does not exist, create it before writing. After writing, confirm to the person what was recorded. Do not add any other text to the journal entry beyond the question and the answer.",
+  "starters": [
+    "journal",
+    "question for tonight",
+    "evening reflection"
+  ],
+  "examples": [
+    {
+      "ask": "what's been good today?",
+      "does": "asks the person, records their answer in journal.txt"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## evening journal\nKeeps a daily question-and-answer journal for one person.\n\nWhat it does: Each evening it asks one reflection question and records the answer in a plain text file.\n\nWhat it needs: routine_create to trigger each evening, file_write to save entries, memory_remember to store the last question asked.\n\nWhat it will not do: It will not answer the questions itself, it will not suggest answers, and it will not share the journal with anyone.",
+  "hash": "f108088e02004e0a0ecde8353083ecd3bcc296b17e4390ef8e4570039c04d52d"
+}

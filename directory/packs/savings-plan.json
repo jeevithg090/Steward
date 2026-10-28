@@ -1,0 +1,44 @@
+{
+  "id": "savings-plan",
+  "name": "Savings plan",
+  "pitch": "Set up a savings plan for next year's car insurance, holidays and gifts",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "show_table",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person how much they want to save each month for each goal. If they do not know, tell them to check last year's bills and receipts, then come back. When the amounts are known, use show_table to make a table with the goal and the monthly amount. If any goal has no amount, ask the person to set one or leave it blank. When the table is ready, use make_page to create a simple page that lists the goals and the total saved per month. Then use routine_create to set up a monthly reminder to check the savings, asking the person if they want the reminder on a specific day. At the end, show the person the table and the page, and say what the monthly total is. If a tool is not connected, say plainly what it could not do and ask the person if they want to change anything.",
+  "starters": [
+    "set up savings plan",
+    "plan for car insurance",
+    "save for holidays and gifts"
+  ],
+  "examples": [
+    {
+      "ask": "hello",
+      "does": "asks how much to save each month for car insurance, holidays and gifts"
+    },
+    {
+      "ask": "okay, £50 a month for insurance, £30 for holidays, £20 for gifts",
+      "does": "shows a table with the three goals and the monthly amounts, then makes a page listing them"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Savings plan\nSet up a savings plan for next year's car insurance, holidays and gifts\n\nWhat it does: creates a table and a page showing monthly savings goals and a reminder to check them\nWhat it needs: show_table, make_page, routine_create\nWhat it will not do: it cannot check bank balances or set up real payments",
+  "hash": "7097e9eb72314e7332e703378583fd12b541798f1617c80c86ab5dfccce5fb9c"
+}

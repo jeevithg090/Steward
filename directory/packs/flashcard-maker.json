@@ -11,7 +11,11 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["file_read", "make_page", "memory_remember"],
+    "tools": [
+      "file_read",
+      "make_page",
+      "memory_remember"
+    ],
     "connectors": [],
     "model": "any"
   },

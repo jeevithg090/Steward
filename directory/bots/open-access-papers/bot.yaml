@@ -1,0 +1,29 @@
+id: open-access-papers
+name: Open-access papers
+pitch: Find open-access versions of every paper in a bibliography and list them.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: 'The person gives a bibliography of papers. First, ask them to paste the bibliography text. Then, for each paper title, search the web for an open-access version. Open the search results and look for a free PDF link, a university repository, or an open-access publisher site. If a free version is found, copy the title, authors, and the direct download link. If no open-access version is found after searching, note that the paper could not be located. After checking all papers, show a table with three columns: Paper Title, Open-Access Link (or "Not found"), and a short note on where it was found. Ask the person if they want the results saved to a file, and if yes, write the table to a text file in their workspace.'
+starters:
+  - '"Here is the bibliography:"'
+  - '"Find open-access versions of these papers:"'
+examples:
+  - ask: '"The bibliography has 5 papers, please start."'
+    does: Search for the first paper and note if a free PDF is available.
+  - ask: '"I got the list, thanks."'
+    does: Begin searching each paper and build the table.

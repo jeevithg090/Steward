@@ -12,7 +12,7 @@ import {
   renderMarkdown,
   safeHref,
 } from "./html.ts";
-import type { Report, Session, Submission } from "./store.ts";
+import type { Report, RetirementRunRecord, Session, Submission } from "./store.ts";
 
 /**
  * The browse site, rendered on the server from the catalogue: no scripts, plain HTML forms, works
@@ -394,6 +394,22 @@ export interface AdminData {
   pending: Submission[];
   reports: Report[];
   message?: string;
+  retirement?: {
+    settings: { days: number; hour: number; floor: number; regenerate: boolean };
+    last?: RetirementRunRecord;
+  };
+}
+
+function retirementHtml(data: NonNullable<AdminData["retirement"]>): string {
+  const { settings, last } = data;
+  if (settings.days === 0) return "<p>Retirement is off (<code>DIRECTORY_RETIRE_DAYS=0</code>).</p>";
+  const rule = `<p class="meta">AI-made bots nobody installed or said they use within ${settings.days} days are retired once a day after ${String(settings.hour).padStart(2, "0")}:00 UTC. A category that drops under ${settings.floor} ${settings.regenerate ? "is topped up with new bots" : "is listed here; top-up is off (<code>DIRECTORY_REGENERATE</code>)"}.</p>`;
+  if (!last) return `${rule}<p>It has not run yet.</p>`;
+  return `${rule}
+<p>Last run ${formatDate(last.at)}: ${plural(last.retired.length, "bot")} retired, ${plural(last.regenerated.length, "new bot")} made, ${last.young} AI-made bots still inside their ${settings.days} days.</p>
+${last.problem ? `<p class="notice">${esc(last.problem)}</p>` : ""}
+${last.retired.length ? `<details><summary>Retired</summary><ul>${last.retired.map((r) => `<li>${esc(r.name)} <span class="meta">${esc(r.id)} · ${esc(r.category)}</span></li>`).join("")}</ul></details>` : ""}
+${last.thinned.length ? `<p>Thinned: ${last.thinned.map((t) => `${esc(t.category)} (${t.live} of ${t.floor})`).join(", ")}.</p>` : ""}`;
 }
 
 function packSummary(s: Submission): string {
@@ -445,6 +461,8 @@ ${
         .join("")}</tbody></table>`
     : "<p>None.</p>"
 }
+<h2>Retirement</h2>
+${data.retirement ? retirementHtml(data.retirement) : ""}
 <p class="meta">Approving writes the pack into <code>bots/&lt;id&gt;/</code> and rebuilds the index; the build checks every pack again. Removing a listing is a change to that folder and a rebuild.</p>
 `;
   return frame(ctx, "/admin", "Review", body, { noindex: true });

@@ -1,0 +1,40 @@
+{
+  "id": "social-scout",
+  "name": "social scout",
+  "pitch": "Summarise competitor posting frequency and content themes this month",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_snapshot",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which competitors they want to track. When they name them, search the web for each competitor's recent posts this month. Use browser_snapshot to read the first few posts and note the topic and date. If a post is not found, say so and move to the next. After checking all competitors, list the total posts per competitor and the most common themes. Show the summary in a table with show_table. If no posts are found for any competitor, tell the person and ask if they want to try different names.",
+  "starters": [
+    "summarise competitor posting frequency",
+    "what are my competitors posting this month"
+  ],
+  "examples": [
+    {
+      "ask": "can you look at competitor posts",
+      "does": "search each competitor and list their posts this month"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "social scout: summarises how often competitors post and what themes they cover this month. needs web_search, browser_snapshot, file_write, show_table. will not post or message anyone.",
+  "hash": "99778e986b2bc7ca193d978c67522deb12e3c9866439c5b3448b4a0d5aaa5d4b"
+}

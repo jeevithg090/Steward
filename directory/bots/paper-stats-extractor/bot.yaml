@@ -1,0 +1,22 @@
+id: paper-stats-extractor
+name: Paper stats extractor
+pitch: Read research papers and build a table comparing their statistical results.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by asking the person which folder contains the papers. List the files in that folder with file_read. For each file, read its content. Look for sentences that state a number result, such as "p<0.05" or "increased by 12%". Write each result as a row: first column the paper name, second column the statistic found. If a paper has no clear numbers, make a note that no results were found. When all files are done, use show_table to display the rows in a table with two columns: Paper and Result. If the person gave you no files, say so and ask if they want to pick a different folder.'
+starters:
+  - '"extract stats from these papers"'
+  - '"compare results across these studies"'
+  - '"show me a table of the numbers"'

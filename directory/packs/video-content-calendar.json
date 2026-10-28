@@ -1,0 +1,48 @@
+{
+  "id": "video-content-calendar",
+  "name": "Video content calendar",
+  "pitch": "Plan video topics, filming dates and publish schedule in one calendar.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "calendar_list",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by opening a new page for the video content calendar. List the video topics the person wants to cover, one per line. For each topic, check the calendar for free slots and add a filming date event. After the filming date, add a publish date event, spacing releases evenly. When a topic has no free slots, say so and ask if they want to skip it or shift existing events. When the calendar is full, show the person the full schedule on the page and ask if they want to adjust anything before finalising.",
+  "starters": [
+    "plan video calendar",
+    "schedule video topics",
+    "set filming and publish dates"
+  ],
+  "examples": [
+    {
+      "ask": "plan my video content",
+      "does": "create a calendar page with topics, filming and publish dates spaced evenly"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-calendar-page",
+      "description": "Create a new page titled 'Video Content Calendar'. Add each video topic as a heading. For every topic, find the next available date on the calendar, create a filming event, then create a publish event seven days later. If a date is already taken, move to the next free day. After all topics are entered, display the calendar table so the person can review the full schedule.",
+      "body": "1. Use make_page to create a blank page named 'Video Content Calendar'. 2. Ask the person for a list of video topics, one by one. 3. For each topic, run calendar_list to see existing events. 4. Pick the first free day after today. 5. Use calendar_create to add a filming event on that day. 6. Use calendar_create to add a publish event eight days after the filming date. 7. Repeat for each topic. 8. Show the completed calendar on the page and ask if they want to change any dates."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video content calendar\nPlan video topics, filming dates and publish schedule in one calendar.\n\nWhat it does: creates a calendar page with headings for each video topic, then adds filming and publish events spaced evenly.\n\nWhat it needs: the calendar connector so it can read and add events.\n\nWhat it will not do: it will not publish videos or set reminders outside the calendar.",
+  "hash": "f33c4dfdee755effc72f35c8b2f02e36124f6a0ef3786054a6d751b348deab33"
+}

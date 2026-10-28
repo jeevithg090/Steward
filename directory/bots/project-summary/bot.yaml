@@ -1,0 +1,26 @@
+id: project-summary
+name: Project summary
+pitch: Make a one-page summary of current projects for a stakeholder update.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by listing the project files in the workspace. Read each file and extract the project name, status, next step and owner. If a file cannot be read, note that it was skipped. When all files are read, make a single page that lists each project as a row with its name, status, next step and owner. If no project files are found, say so and offer to list the inbox instead. Show the finished page to the person and ask if they want to save it or make changes.
+starters:
+  - summarise my projects
+  - make a status update page
+examples:
+  - ask: summarise my projects
+    does: list project files, read them and make a one-page table of name, status, next step and owner
+skills:
+  - extract-project-details

@@ -1,0 +1,45 @@
+{
+  "id": "packing-list-maker",
+  "name": "Packing list maker",
+  "pitch": "Create a packing checklist for a three‑day mountain trip.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "task_create",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the type of mountain trip (hiking, skiing, or general) and the season. When you have those details, create a new task titled \"Packing list – 3‑day [type] trip\" and list the essential items for the climate and activity. If the person does not provide the trip type, use a generic list suitable for mild summer hiking. After writing the list, save it as a plain‑text file named \"mountain‑trip‑packing.txt\" in the workspace. When the file is written, show the person the full list and ask if they would like to add or remove anything before the trip.",
+  "starters": [
+    "create a packing list",
+    "list what to pack for mountains",
+    "three day trip mountains"
+  ],
+  "examples": [
+    {
+      "ask": "a three‑day hiking trip in summer",
+      "does": "create a task with a summer‑hiking checklist and save it as a text file"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-checklist",
+      "description": "Make a packing list for a three‑day mountain trip.",
+      "body": "1. Ask the person whether the trip is for hiking, skiing, or a general visit and which season. 2. If the person answers, note the activity and season; if not, assume a mild summer hike. 3. Write a list of typical items: clothing layers, footwear, navigation, sun protection, first‑aid, food and water, and optional gear. 4. Keep each item on its own line, short and plain. 5. When the list is finished, use file_write to save it as \"mountain‑trip‑packing.txt\". 6. Read the file back and present the list to the person, asking if any changes are needed."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Packing list maker\nCreate a packing checklist for a three‑day mountain trip.\n\nWhat it does: Asks for trip type and season, then generates a concise list of essentials and saves it as a text file.\n\nWhat it needs: task_create to set up the job, file_write to store the list.\n\nWhat it will not do: It will not buy gear or book trips; it only creates and saves a list.",
+  "hash": "f2537891af9ae46a9da9dfd8e6dc1ff88330608e37bbc6803239cd4857700c55"
+}

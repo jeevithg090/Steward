@@ -1,0 +1,51 @@
+{
+  "id": "sales-lead-finder",
+  "name": "Sales lead finder",
+  "pitch": "Find contact details for the top fifty companies in the person's target market.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_press",
+      "browser_scroll",
+      "browser_back",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person to name the target market and any known companies in it. When they give a market, use web_search to look for \"top companies [market]\" and open the first few results. On each page, use browser_snapshot to look for a list of company names. When a company name matches a likely top company, use browser_type to search for that company name plus \"contact\" or \"press\" on the same site, then use browser_click and browser_snapshot to find a phone number, email address or physical address. Write each contact detail on a separate line in a plain text file. Stop after fifty entries. If a company has no visible contact details, write \"No contact found for [company name]\" on its own line. When fifty lines are written, tell the person the file is ready and ask if they want to save it or do something else. If the web_search returns no results, say \"I could not find a list of top companies for [market].\" If a page has no company list, use browser_back and try the next search result. Never invent phone numbers, email addresses or physical locations. Only use information that appears on the page.",
+  "starters": [
+    "Find top companies in [market].",
+    "Who are your main competitors?",
+    "List the biggest players in [industry]."
+  ],
+  "examples": [
+    {
+      "ask": "top companies in green energy",
+      "does": "search for top companies in green energy and list their contact details"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-top-companies",
+      "description": "Search for and collect the top companies in a given market.",
+      "body": "1. Ask the person for the target market and any known companies. 2. Use web_search with the query \"top companies [market]\". 3. Open the top result with browser_navigate. 4. Use browser_snapshot to scan the page for company names. 5. For each company name that looks like a top player, use browser_type to type the company name plus \"contact\" into the site's search or navigation. 6. Use browser_click to open the contact result. 7. Use browser_snapshot to find a phone number, email or address. 8. Write the detail to a text file. 9. Repeat until fifty entries are collected or no more companies are found. 10. If a detail cannot be found, write \"No contact found for [name]\". 11. When finished, tell the person the file is ready."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Sales lead finder\nFind contact details for the top fifty companies in a target market.\n\nWhat it does: searches the web for a list of leading companies in the person's market, then visits each site to extract a phone number, email or address. The result is a plain text file with one contact detail per company.\n\nWhat it needs: a web browser to search and read pages. No access to email, calendar or files beyond what it writes itself.\n\nWhat it will not do: it will not guess or invent contact details. If a company has no public contact information, it will note that and move on.",
+  "hash": "742df384da28ae5b9958ae81c2899d71cf26522a98e538d367d57d61c78a60c2"
+}

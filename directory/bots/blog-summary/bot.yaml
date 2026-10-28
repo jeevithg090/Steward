@@ -1,0 +1,46 @@
+id: blog-summary
+name: Blog summary
+pitch: Create a one-page summary of the latest blog posts and prepare it for the newsletter list.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_send
+    - file_read
+    - make_page
+  connectors:
+    - mail
+  model: any
+instructions: |-
+  # Blog summary
+
+  Start by listing the person's blog posts. Use `file_read` to look for recent posts in their workspace. If no posts are found, say so and stop.
+
+  If posts are found, read each one. Then use `make_page` to create a single-page summary that lists each post with its title and a short sentence about its main point.
+
+  After the page is made, use `mail_send` to send it to the newsletter list. Before sending, ask the person to confirm the recipient list and the content. If the person says no, do not send and tell them what was prepared.
+
+  If any tool is not connected, say what is missing and stop.
+
+  At the end, show the person the summary page and tell them it is ready to send.
+starters:
+  - summarise my latest posts
+  - send blog roundup
+  - make a newsletter
+examples:
+  - ask: confirm send to list
+    does: check the list and send the page
+  - ask: no posts found
+    does: say and stop
+skills:
+  - summarise-posts
+rules:
+  - name: confirm send
+    effect: ask
+    when: tool.kind == "send"
+    description: ask before sending the summary to the newsletter list

@@ -40,6 +40,8 @@ export interface DirectoryConfig {
   sourceUrl?: string;
   /** A folder copied into `directoryDir` on first start, when that has no `index.json` yet. */
   seedDir?: string;
+  /** The nightly retirement of unused AI-made bots (plan §4.6). `days` 0 turns it off. */
+  retirement: { days: number; hour: number; floor: number; regenerate: boolean };
 }
 
 export class ConfigError extends Error {
@@ -55,6 +57,15 @@ export function parseFlag(value: string | undefined, fallback: boolean): boolean
   if (TRUE.has(v)) return true;
   if (FALSE.has(v)) return false;
   return fallback;
+}
+
+function parseCount(name: string, value: string | undefined, fallback: number, max: number): number {
+  if (!value?.trim()) return fallback;
+  const n = Number(value);
+  if (!Number.isInteger(n) || n < 0 || n > max) {
+    throw new ConfigError(`${name} must be a whole number from 0 to ${max}, not "${value}".`);
+  }
+  return n;
 }
 
 function parsePort(value: string | undefined): number {
@@ -155,9 +166,17 @@ export function loadConfig(
         ? resolveFrom(repoRoot, env.DIRECTORY_SEED_DIR, "")
         : undefined;
 
+  const retirement = overrides.retirement ?? {
+    days: parseCount("DIRECTORY_RETIRE_DAYS", env.DIRECTORY_RETIRE_DAYS, 90, 3650),
+    hour: parseCount("DIRECTORY_RETIRE_HOUR", env.DIRECTORY_RETIRE_HOUR, 3, 23),
+    floor: parseCount("DIRECTORY_CATEGORY_FLOOR", env.DIRECTORY_CATEGORY_FLOOR, 20, 10_000),
+    regenerate: parseFlag(env.DIRECTORY_REGENERATE, false),
+  };
+
   return {
     repoRoot,
     port,
+    retirement,
     host,
     directoryDir: overrides.directoryDir ?? resolveFrom(repoRoot, env.DIRECTORY_DIR, "directory"),
     dataDir,
@@ -186,6 +205,11 @@ export function describeConfig(config: DirectoryConfig): string[] {
     `sign-in   ${config.github ? "GitHub (on)" : "off: set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET to take submissions"}`,
     `review    ${config.adminLogins.length} reviewer${config.adminLogins.length === 1 ? "" : "s"} (ADMIN_GITHUB_LOGINS)`,
     `mcp       ${config.siteUrl}/mcp`,
+    `retire    ${
+      config.retirement.days > 0
+        ? `unused AI-made bots after ${config.retirement.days} days, daily after ${String(config.retirement.hour).padStart(2, "0")}:00 UTC; top-up ${config.retirement.regenerate ? "on" : "off"}`
+        : "off (DIRECTORY_RETIRE_DAYS=0)"
+    }`,
   ];
 }
 

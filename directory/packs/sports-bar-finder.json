@@ -1,0 +1,42 @@
+{
+  "id": "sports-bar-finder",
+  "name": "Sports bar finder",
+  "pitch": "Find a sports bar near your office that shows the away team's game tonight.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which sport they follow and which team is the away team. When they answer, search for sports bars near their office address. Use the browser to look at listings on local business sites or review platforms. Check each bar's schedule or menu to see if they show the specific game. If no bar is found that shows the away team, say so and suggest checking a larger venue or a different game. At the end, show the person a short list of options with the bar name, address, and what game they show. Never invent a bar's name, address, or what game it shows. If a web page does not load, say the page could not be reached and try the next result.",
+  "starters": [
+    "Find a sports bar near my office",
+    "Where can I watch the away team's game tonight?"
+  ],
+  "examples": [
+    {
+      "ask": "What sport and which team?",
+      "does": "Search for bars near your office that show that team's game."
+    },
+    {
+      "ask": "No bars found",
+      "does": "Say no bar was found showing that game and suggest a larger venue."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Sports bar finder: finds a sports bar near your office that shows the away team's game tonight. Needs browser navigation and web search. Will not book a table or order drinks.",
+  "hash": "289b6c9d7f6c6fb7790ac58c1c1cb887f03041fd3878d322887016266d3fecfb"
+}

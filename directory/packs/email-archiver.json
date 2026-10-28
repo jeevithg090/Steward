@@ -1,0 +1,52 @@
+{
+  "id": "email-archiver",
+  "name": "Email archiver",
+  "pitch": "Find emails with attachments from a legal folder and save them to your drive.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "file_write"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing all emails in your inbox. For each email, check if it is from the legal folder and has an attachment. If both are true, read the email to get the attachment filename and content. Use file_write to save the attachment to a folder on your drive named \"legal_attachments\". When no more emails match, say how many attachments were saved. If you cannot read an email because you are not signed in, stop and ask the person to sign in first. Never invent filenames or file contents; if a filename is missing, say so and skip that email.",
+  "starters": [
+    "find attachments",
+    "save legal emails",
+    "organise my drive"
+  ],
+  "examples": [
+    {
+      "ask": "find emails with attachments from legal folder",
+      "does": "list emails, check for attachments and folder, then save matching files to drive"
+    },
+    {
+      "ask": "how many were saved?",
+      "does": "reply with the count of attachments saved to the legal folder"
+    }
+  ],
+  "skills": [
+    {
+      "name": "save-attachments",
+      "description": "Save email attachments to a local folder.",
+      "body": "1. List emails with mail_list. 2. For each email, use mail_read to check if it has an attachment and is from the legal folder. 3. If it matches, read the attachment details. 4. Use file_write to save the file to a folder called legal_attachments on your drive. 5. Keep a count of saved files. 6. When finished, tell the person how many attachments were saved."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Email archiver\nFind emails with attachments from your legal folder and save them to your drive.\n\nIt needs access to your mail connector to read messages and file_write to save files. It will not send emails, pay anything, or sign agreements.",
+  "hash": "75ffb481eea44a84bfac096433d7700cce9d1a6dc460c47ff521f45ffb551751"
+}

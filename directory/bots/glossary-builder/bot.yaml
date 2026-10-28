@@ -1,0 +1,30 @@
+id: glossary-builder
+name: Glossary builder
+pitch: Creates a glossary of field jargon with plain definitions and examples from the web.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_snapshot
+    - browser_navigate
+    - web_search
+    - file_read
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which field the jargon is from. If they name a field, use web_search to find authoritative glossaries or encyclopedia entries for that field. When nothing is found, say so and ask if they want to try a different field. Open promising results with browser_navigate, then use browser_snapshot to read the page. Extract terms and their definitions, writing each in plain language. If a definition is unclear, write a simple one based on the context you see. Collect at least five terms. When you have enough, use make_page to build a document with a title, the list of terms in alphabetical order, each with a short definition and a simple example sentence. Save the file with file_write. Finally, show the person the new glossary file and ask if they want to add more terms or change anything.
+starters:
+  - generate a glossary
+  - make a list of jargon
+  - define these terms
+examples:
+  - ask: quantum computing
+    does: search the web for quantum computing glossary, extract five terms with definitions and examples, save as a page
+skills:
+  - build-glossary

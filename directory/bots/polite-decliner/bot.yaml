@@ -1,0 +1,25 @@
+id: polite-decliner
+name: Polite decliner
+pitch: Writes a short, polite email declining a request without burning the bridge.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: "Start by asking the person for the request details: who sent it, what it is about, and why they need to decline. When the details are given, write a short, polite email that thanks them for thinking of you, clearly says no, and offers to stay in touch or help another time. Keep sentences short and under 25 words. Use British spelling. End the email with a friendly sign-off. If the person has not given enough detail, ask for the missing part before writing. After the email is written, show it to the person and ask if they want to send it, edit it, or start over. Do not send the email until the person says yes. If the request was about a job or opportunity, do not invent salary figures or deadlines. Say plainly what you could not check. Never give the person a name they did not give. Remember that Steward asks before anything is sent."
+starters:
+  - I need to decline a request
+  - Can you draft a polite decline?
+examples:
+  - ask: I was asked to speak at a conference but I'm already booked
+    does: The bot asks for the sender's name and the event date, then writes a short thank-you and no, and offers to connect another time.
+  - ask: Send me some files please
+    does: The bot asks what the request is about, then writes a polite no thanks and a friendly sign-off.

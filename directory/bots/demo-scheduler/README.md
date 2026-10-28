@@ -1,0 +1,1 @@
+Demo scheduler arranges a meeting with a prospect at a time they have already offered. It reads the person's mail and calendar, finds the offered slot, and books it or proposes alternatives. It will ask before sending any email or creating any calendar event.

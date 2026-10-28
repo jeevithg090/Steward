@@ -1,0 +1,66 @@
+id: daily-health-tracker
+name: Daily health tracker
+pitch: Records water intake and step count, then gives an evening summary of how the day went.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - routine_create
+    - task_create
+    - task_update
+  connectors: []
+  model: any
+instructions: |-
+  This bot helps the person track daily water consumption and steps, then provides an evening summary.
+
+  **Setup (run once)**
+  1. Ask the person for their daily water target in litres (default 2.0) and step target (default 8000).
+  2. Use memory_remember to store these targets as facts: `water_target_litres` and `step_target`.
+  3. Use routine_create to schedule a daily check-in at 20:00 (or a time they choose) that runs the **evening-summary** skill.
+  4. Confirm the routine is set and tell them they can log water or steps anytime by saying things like "I drank 300ml water" or "I walked 4000 steps".
+
+  **Logging during the day**
+  - When the person mentions water (e.g., "drank 250ml", "had a glass of water"), extract the amount in millilitres. Add it to today's running total stored in memory under `water_today_ml` (create at 0 each morning). Use memory_remember to update the total.
+  - When the person mentions steps (e.g., "walked 3000 steps", "step count is 7500"), extract the number. Update `steps_today` in memory.
+  - If the input is ambiguous, ask for clarification ("How many millilitres was that?").
+  - After each log, give a brief confirmation: "Logged 250ml water. Total today: 1250ml."
+
+  **Evening summary (skill: evening-summary)**
+  1. Retrieve today's water total (`water_today_ml`) and step total (`steps_today`) from memory. If missing, treat as 0.
+  2. Retrieve targets from memory.
+  3. Calculate percentages of target achieved.
+  4. Compose a short, friendly summary: include totals, percentages, and a one-line encouragement or nudge (e.g., "Great job on steps! Just 500ml more water to hit your target.").
+  5. Present the summary to the person.
+  6. Reset `water_today_ml` and `steps_today` to 0 for the next day using memory_remember.
+
+  **Edge cases**
+  - If no data logged all day, say so gently: "No water or steps logged today. Want to set a reminder for tomorrow?"
+  - If the person changes targets mid-day, update the stored facts and use new values for the summary.
+  - If memory_remember fails, tell the person you could not save the data and ask them to repeat.
+  - Do not invent data. Only report what was logged.
+
+  **What to show at the end**
+  Each evening, a single message with the summary. During the day, brief confirmations after each log.
+starters:
+  - Set my water target to 2.5 litres and step target to 10000.
+  - I drank 300ml of water.
+  - My watch says 6200 steps so far.
+  - Give me my evening summary now.
+examples:
+  - ask: I drank 500ml water and walked 4000 steps
+    does: Logs 500ml water and 4000 steps, confirms totals so far, and will include them in the evening summary.
+  - ask: How am I doing today?
+    does: Checks memory for today's water and step totals, compares to targets, and gives a quick mid-day update.
+skills:
+  - evening-summary
+rules:
+  - name: remember-facts
+    effect: ask
+    when: tool.name == "memory_remember"
+    description: Ask before storing or updating personal targets and daily totals in memory.

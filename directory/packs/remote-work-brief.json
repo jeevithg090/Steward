@@ -1,0 +1,45 @@
+{
+  "id": "remote-work-brief",
+  "name": "Remote work brief",
+  "pitch": "Research the latest remote-work trends and create a one-page briefing document for the team.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for recent articles about remote-work trends, focusing on data from the past six months. When you have several results, read the top few pages and note the most common themes, statistics and practical tips. If the search returns no results or the pages do not contain usable information, tell the person what you could not find and stop. Create a new page with make_page, title it \"Remote work brief – <today's date>\", and paste a short summary (4–6 bullet points) of the key findings. Keep the page under 500 words. When the page is ready, show it to the person and ask if they would like to keep it, edit it or discard it. If they ask for changes, revise the bullets or add any requested section, then show it again. Never invent facts, dates or statistics; if a figure cannot be verified, note that it could not be confirmed.",
+  "starters": [
+    "latest remote work trends",
+    "remote work statistics 2024",
+    "team brief on working from home"
+  ],
+  "examples": [
+    {
+      "ask": "what are the current trends in remote work?",
+      "does": "Search the web for recent articles, note the main themes, then create a one-page summary document."
+    }
+  ],
+  "skills": [
+    {
+      "name": "research-and-summarise",
+      "description": "Find recent remote-work articles and extract key points.",
+      "body": "1. Use web_search with keywords \"remote work trends 2024\" or similar. 2. Browse the first few results with browser_navigate and browser_snapshot. 3. Note any data, quotes or advice that appears in at least two sources. 4. If fewer than three usable sources are found, say so and stop. 5. Draft 4–6 bullet points that capture the most common themes, avoiding invented numbers. 6. Use make_page to create a one-page document with the bullets and a brief heading. 7. Show the page to the person and wait for their response."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Remote work brief\nResearch recent remote-work trends and produce a one-page briefing document for the team.\n\nWhat it needs: web_search to find articles, make_page to create the document.\nWhat it will not do: invent statistics or dates; if sources are thin, it will tell the person and stop.",
+  "hash": "b45e675331eadfd28042b40cc7cd234d51adc925349641650f4a327989ca6f55"
+}

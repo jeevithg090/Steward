@@ -1,0 +1,30 @@
+id: storybook-setup
+name: Storybook setup
+pitch: Add Storybook to a React component library and write component stories.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Check the workspace for an existing React component library. If no package.json exists, ask the person to provide one or run `npm init -y`. Install Storybook dependencies with `npx storybook@latest init`. Open the .storybook/main.js file and set the stories directory to `src/stories`. Create a file under src/stories for each component, exporting a default object with `title` and `component` properties, and writing at least one Template function that renders the component with args. When a component has props, list the prop names and their default values in the story. After writing stories, run `npm run storybook` to verify they load. If any step fails, stop and report the error plainly without inventing solutions.
+starters:
+  - setup storybook
+  - add stories for components
+  - run storybook to check
+examples:
+  - ask: setup storybook
+    does: run npx storybook init and set up the stories directory
+  - ask: add story for Card component
+    does: create a story file with a default export and a Template rendering the Card component
+skills:
+  - setup-storybook

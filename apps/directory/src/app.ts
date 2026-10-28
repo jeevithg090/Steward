@@ -15,6 +15,7 @@ import { type DirectoryConfig, publicInfo } from "./config.ts";
 import { GitHub, GitHubError } from "./github.ts";
 import { mcpRequestHandler, UNTRUSTED, VIA } from "./mcp.ts";
 import { clientAddress, RateLimiter, rateLimit } from "./rate-limit.ts";
+import { RetirementTask } from "./retirement.ts";
 import {
   adminPage,
   browsePage,
@@ -34,6 +35,7 @@ export { Catalogue } from "./catalogue.ts";
 export { type DirectoryConfig, describeConfig, loadConfig, publicInfo } from "./config.ts";
 export { GitHub, parsePackUrl } from "./github.ts";
 export { createMcpServer, UNTRUSTED, VIA } from "./mcp.ts";
+export { RetirementTask } from "./retirement.ts";
 export { DirectoryStore } from "./store.ts";
 export { Submissions } from "./submissions.ts";
 
@@ -76,6 +78,7 @@ export interface DirectoryServer {
   catalogue: Catalogue;
   store: DirectoryStore;
   submissions: Submissions;
+  retirement: RetirementTask;
   listen(opts?: { port?: number; host?: string }): Promise<{ url: string; port: number }>;
   close(): Promise<void>;
 }
@@ -178,6 +181,12 @@ export async function createDirectoryApp(
     deps.github ??
     new GitHub(config.github, { ...(config.github?.token ? { token: config.github.token } : {}) });
   const submissions = new Submissions({ store, catalogue, github: deps.packReader ?? github, now });
+  const retirement = new RetirementTask({
+    settings: config.retirement,
+    catalogue,
+    store,
+    dataDir: config.dataDir,
+  });
 
   const secure = config.siteUrl.startsWith("https://");
   const siteOrigin = new URL(config.siteUrl).origin;
@@ -322,6 +331,14 @@ export async function createDirectoryApp(
 
   const botIdOf = (c: Context): string => {
     const id = c.req.param("id") ?? "";
+    const retired = catalogue.retired.get(id);
+    if (retired && !catalogue.listing(id)) {
+      throw new ApiError(
+        410,
+        `"${id}" was retired on ${retired.retiredAt.slice(0, 10)}: nobody installed it.`,
+        { retired },
+      );
+    }
     if (!BotIdParam.safeParse(id).success || !catalogue.listing(id)) {
       throw new ApiError(404, `There is no bot "${id.slice(0, 64)}" in the directory.`);
     }
@@ -401,6 +418,9 @@ export async function createDirectoryApp(
   });
 
   app.get("/api/categories", (c) => c.json({ categories: catalogue.categoryCounts(), via: VIA }));
+
+  // Retired bots, so a fork or a generator can avoid making them again.
+  app.get("/api/retired", (c) => c.json({ retired: [...catalogue.retired.values()], via: VIA }));
 
   app.get("/api/bots/:id", (c) => {
     const id = botIdOf(c);
@@ -507,6 +527,11 @@ export async function createDirectoryApp(
   app.get("/api/admin/submissions", (c) => {
     requireAdmin(c);
     return c.json({ submissions: submissions.pending(), reports: store.reports("open") });
+  });
+
+  app.post("/api/admin/retire", sameSite, limitBody(1024), async (c) => {
+    requireAdmin(c);
+    return c.json({ run: await retirement.run(now()) });
   });
 
   app.post("/api/admin/submissions/:sid/approve", sameSite, limitBody(BODY_LIMIT), async (c) => {
@@ -634,6 +659,19 @@ export async function createDirectoryApp(
     const id = c.req.param("id");
     const listing = BotIdParam.safeParse(id).success ? catalogue.listing(id) : undefined;
     const pack = listing ? catalogue.pack(id) : undefined;
+    const retired = !listing ? catalogue.retired.get(id) : undefined;
+    if (retired) {
+      return htmlPage(
+        c,
+        messagePage(
+          site(c),
+          `${retired.name} was retired`,
+          `${retired.name} was an AI-made bot. It was retired on ${retired.retiredAt.slice(0, 10)} because nobody installed it or said they use it in its first ${config.retirement.days || 90} days. A copy you already added keeps working.`,
+          410,
+        ),
+        410,
+      );
+    }
     if (!listing || !pack) {
       return htmlPage(c, messagePage(site(c), "No such bot", "That bot is not in the directory.", 404), 404);
     }
@@ -785,6 +823,7 @@ export async function createDirectoryApp(
       adminPage(ctx, {
         pending: submissions.pending(),
         reports: store.reports("open"),
+        retirement: { settings: config.retirement, last: store.lastRetirement() },
         ...(message === "approved"
           ? { message: "Approved and listed." }
           : message === "rejected"
@@ -870,10 +909,12 @@ export async function createDirectoryApp(
     catalogue,
     store,
     submissions,
+    retirement,
     listen(opts = {}) {
       return new Promise((resolveListen, reject) => {
         const host = opts.host ?? config.host;
         try {
+          retirement.start();
           server = serve({ fetch: app.fetch, port: opts.port ?? config.port, hostname: host }, (info) => {
             const shown = host.includes(":") ? `[${host}]` : host;
             resolveListen({
@@ -889,6 +930,7 @@ export async function createDirectoryApp(
     },
     async close() {
       clearInterval(sweep);
+      retirement.stop();
       if (server) await new Promise<void>((done) => server!.close(() => done()));
       catalogue.close();
       db.close();

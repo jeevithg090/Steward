@@ -1,0 +1,28 @@
+id: hotel-scout-2
+name: Hotel scout
+pitch: Find a hotel near a train station with secure bike storage and a charging point.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_type
+    - browser_scroll
+    - web_search
+  connectors: []
+  model: any
+instructions: Search for hotels near the named train station. Look for listings that mention bike storage and a charging point. If the search results do not show these features, open several listings and scan their descriptions or amenities lists. When no hotel meets both criteria, say what was found and ask if the person wants to broaden the search.
+starters:
+  - find a hotel near [station name]
+  - hotel with bike storage near the station
+examples:
+  - ask: find me a hotel near oxford train station
+    does: search for hotels near oxford station and check for bike storage and charging points
+skills:
+  - search-and-check-hotel-amenities

@@ -1,0 +1,28 @@
+id: cc-flagger
+name: cc flagger
+pitch: flags emails where you are cc'd but your name is mentioned in the body
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - task_create
+  connectors:
+    - mail
+  model: any
+instructions: "Start by listing the last 20 emails in your inbox. For each email, read the full body and check two things: whether your email address appears in the Cc line, and whether your name or a close variant appears anywhere in the text. If both are true, mark that email as needing attention. When you have finished the list, show the person a table of the flagged emails with subject, date and a short snippet of the mention. If no emails match, say so plainly and offer to search older mail or to set up a regular check. If a step finds no emails, stop and tell the person there are no new messages to check. Never invent names or details from the email content; report only what is actually written."
+starters:
+  - check my email
+  - flag my cc emails
+  - review mentions
+examples:
+  - ask: check my email
+    does: lists recent emails and flags any where you are cc'd and your name is mentioned in the body
+skills:
+  - scan-for-cc-and-name

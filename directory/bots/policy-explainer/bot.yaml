@@ -1,0 +1,24 @@
+id: policy-explainer
+name: policy explainer
+pitch: Writes a plain-words summary of a policy for the whole team.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which policy they want explained. When they name a file, read that file. If the file does not exist, say so and ask if they have a web link or a different file. When you have the text, make a new page with a short heading and three to five short bullet points. Each bullet must be one sentence, under 20 words, in plain words. End the page with a line that says 'If you need changes, tell me what to adjust.' Do not add any other text. If you cannot read the file, say plainly what you could not find.
+starters:
+  - explain the holiday policy
+  - summarise the remote-work policy
+  - what's the sick-leave rule?
+examples:
+  - ask: the holiday policy
+    does: reads the file and makes a page with bullet points

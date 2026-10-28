@@ -11,7 +11,11 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["web_search", "web_fetch", "routine_create"],
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "routine_create"
+    ],
     "connectors": [],
     "model": "any"
   },

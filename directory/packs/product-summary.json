@@ -1,0 +1,52 @@
+{
+  "id": "product-summary",
+  "name": "Product summary",
+  "pitch": "Create a one-page summary of a product for new sales reps.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_press",
+      "browser_scroll",
+      "browser_back",
+      "make_page",
+      "file_read"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by reading the person's product description from their workspace with file_read. If no file exists, ask the person for the text or a link. Open a browser tab and navigate to any public pages about the product, such as a website or docs, using browser_navigate. Use browser_snapshot to read the page content. If the page has a product description, copy the key points. If not, search the web with web_search for the product name and read those results. Collect all facts about what the product does, who it is for, and what makes it different. When you have enough information, close unnecessary tabs with browser_back. Open make_page and create a single-page document that has a short intro, a bullet list of the main features, a sentence on who it is for, and a sentence on why it is useful for sales reps. Save the page as 'product-summary.md' in the workspace with file_write. If any step finds nothing, say plainly what could not be found and stop. When the page is ready, show it to the person with show_table or a short message so they can decide whether to keep it.",
+  "starters": [
+    "summarise my product",
+    "create a sales one-pager",
+    "make a quick overview for reps"
+  ],
+  "examples": [
+    {
+      "ask": "summarise my product for new sales reps",
+      "does": "reads the product description from the workspace, browses the website, and makes a one-page summary saved as a file."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-summary",
+      "description": "Make a one-page product summary for sales reps.",
+      "body": "1. Read the person's product notes from their workspace using file_read. If the file is not there, ask the person for the text or a link and stop. 2. Open a browser tab and go to the product's public website or docs using browser_navigate. 3. Use browser_snapshot to read the page. If the page has a clear description, copy the key points. If not, use web_search to find the product and read those results. 4. Collect the product name, what it does, who it is for, and one unique fact. 5. Close extra tabs with browser_back. 6. Open make_page and write a short intro, a bullet list of main features, a sentence on the target user, and a sentence on the sales value. 7. Save the page as 'product-summary.md' using file_write. 8. Show the finished page to the person and ask if they want to keep it or change anything."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Product summary\n\nCreate a one-page summary of a product for new sales reps.\n\nWhat it does: reads the product description from the person's workspace, browses the web for extra details, and writes a single-page document with the key points, target user, and sales value.\n\nWhat it needs: browser tools to read web pages, make_page to create the document, and file_read to get existing notes.\n\nWhat it will not do: it cannot write the summary without existing product text or web information, and it will not publish or send the file without the person's say-so.",
+  "hash": "bf30c783ab50ab041510413061ecf019f11d7e331386cca02c3e9a6bbb6489a6"
+}

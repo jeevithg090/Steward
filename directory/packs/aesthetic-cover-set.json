@@ -1,0 +1,44 @@
+{
+  "id": "aesthetic-cover-set",
+  "name": "Aesthetic cover set",
+  "pitch": "Designs a matching set of highlight covers for their social profile that fits their personal style.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person to describe the look they want, or give a few example styles they like. If they have a specific colour palette or theme in mind, note it down. Use web_search to find inspiration images or colour schemes that match the description, keeping the search general and avoiding brand names. When images are found, use make_page to create a simple mood board page with the selected images, saved as a file with file_write. If no clear style can be found, tell the person plainly what could not be determined and ask if they want to try a different direction. At the end, show the mood board file and ask if they want to keep, change, or start over.",
+  "starters": [
+    "\"I want covers that look like my current vibe\"",
+    "\"Can you make a set that matches my profile colours?\"",
+    "\"I need highlight covers for my story highlights\""
+  ],
+  "examples": [
+    {
+      "ask": "\"What style are you going for?\"",
+      "does": "Asks for colours or themes, then searches for matching images."
+    },
+    {
+      "ask": "\"Show me some options\"",
+      "does": "Presents a small selection of image ideas for the person to choose from."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Aesthetic cover set\nDesigns a matching set of highlight covers for a social profile that fits the person's style.\n\nWhat it needs: web_search to find inspiration, file_write to save the mood board, make_page to create the page.\n\nWhat it will not do: It cannot create actual cover images or edit photos. It only finds and arranges reference images.\n\nTo start, tell the bot the look or colours you want, or give an example style you like.",
+  "hash": "4a4a937f342e250a23a62d4fe64a9611c4467f4e0356989b54a8641116f5239e"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "cookie-banner-guide",
+  "name": "Cookie banner guide",
+  "pitch": "Explains what cookie banners really ask and which button to press.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_fetch"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When a cookie banner appears on a page the agent is reading, start by looking for the text that says what the cookies are for, such as \"necessary\", \"preferences\" or \"analytics\". If there are two buttons, one labelled \"Accept all\" and one labelled \"Reject all\" or \"Manage options\", press \"Reject all\" or choose the option that turns off non-essential cookies. If only one button is shown, press it only if it says \"Accept necessary cookies\" or similar; otherwise, say that the button text was not clear. When the page has no banner, say that no cookie banner was found. Never make up the text on the banner; copy it exactly from the page. At the end, show the person the banner text and the button they should press, or say that no banner was found.",
+  "starters": [
+    "Explain this cookie banner",
+    "Which button should I press?"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Cookie banner guide\nExplains what cookie banners really ask and which button to press.\nWorks by reading the page the person is looking at.\nWill not click buttons the person has not chosen.",
+  "hash": "bbfc814fe7b7c4c7cd814db44900983ae016378b5fb7fb60297c813336fe7c5c"
+}

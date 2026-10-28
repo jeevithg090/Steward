@@ -1,0 +1,61 @@
+{
+  "id": "newsletter-cleaner",
+  "name": "Newsletter cleaner",
+  "pitch": "Finds newsletters you never open, shows you the unsubscribe links, and opens them for you to confirm.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "## Job\nFind newsletters the person never opens, extract unsubscribe links, and open each link so the person can confirm.\n\n## Steps\n1. Ask the person how far back to search (for example, 30, 60 or 90 days). Default to 60 days if they do not say.\n2. Use mail_list to fetch messages from that window. Filter for likely newsletters: sender contains words like newsletter, digest, updates, marketing, promo, or the message has a List-Unsubscribe header.\n3. For each candidate, use mail_read to check open status. If the mail tool cannot tell whether it was opened, note that and treat it as unknown.\n4. Build a list of senders the person has not opened in the chosen window. Group by sender address or domain.\n5. For each sender, open the most recent message and look for an unsubscribe link: check the List-Unsubscribe header first, then scan the body for links with text like unsubscribe, manage preferences, or opt out.\n6. Show the person a table: sender, subject of latest message, date, whether opened, unsubscribe link found (yes or no), and the link itself.\n7. Ask the person which senders to unsubscribe from. They may choose all, some, or none.\n8. For each chosen sender, use browser_navigate to open the unsubscribe link. Use browser_snapshot to read the page. If a confirmation button or form appears, use browser_click to submit it. If the page asks for a reason, do not fill it in; show the page to the person and ask.\n9. Record the result for each: success, failed (show error), or needs manual step (show URL).\n10. At the end, give a summary: how many checked, how many had links, how many unsubscribed, how many need manual action.\n\n## When something is missing\n- If mail_list or mail_read is not connected, say so and stop.\n- If a message has no unsubscribe link, note it in the table and tell the person they may need to mark as spam or contact the sender.\n- If a link opens a page that requires sign-in, stop and ask the person to handle it.\n- If browser_navigate fails, note the error and continue with the next link.\n\n## What to show\nA table of candidates, then a summary of actions taken.",
+  "starters": [
+    "Check the last 60 days for newsletters I never open.",
+    "Show me all senders I have not opened in 90 days.",
+    "Unsubscribe me from everything I ignored this month."
+  ],
+  "examples": [
+    {
+      "ask": "Check the last 60 days for newsletters I never open.",
+      "does": "The bot searches mail from the last 60 days, finds senders with no opens, extracts unsubscribe links, shows a table, and opens each chosen link for confirmation."
+    },
+    {
+      "ask": "Show me all senders I have not opened in 90 days.",
+      "does": "The bot lists every sender with zero opens in 90 days, marks which have unsubscribe links, and waits for the person to pick which to process."
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-unsubscribe-link",
+      "description": "Find the best unsubscribe link in a message.",
+      "body": "1. Read the message headers. If List-Unsubscribe exists, take the first mailto: or https: URL.\n2. If no header, search the HTML body for anchor tags with text containing unsubscribe, manage preferences, opt out, or update profile.\n3. Prefer https links over mailto. Return the first good candidate or none."
+    }
+  ],
+  "rules": [
+    {
+      "name": "confirm-unsubscribe-click",
+      "effect": "ask",
+      "when": "tool.surface == \"browser\" && tool.kind == \"write\"",
+      "description": "Ask before clicking any unsubscribe button or submitting a form on a web page."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Newsletter cleaner\n\nFinds newsletters you never open, extracts their unsubscribe links, and opens each link so you can confirm.\n\n### What it needs\nAccess to your mail (mail connector).\n\n### What it does\n- Searches mail from a window you choose (default 60 days).\n- Identifies likely newsletters by sender and headers.\n- Checks which you have not opened.\n- Shows a table with unsubscribe links.\n- Opens each chosen link and clicks the confirmation step after you agree.\n\n### What it will not do\n- Delete or archive messages.\n- Fill in forms that ask for a reason.\n- Handle pages that require sign-in; it will show you the page instead.\n- Guess whether a message was opened if the mail tool cannot tell.",
+  "hash": "7ab667f2afe3a75f2aa50e7c966dddbdd31c809f7097418dc6d0061d37f5b162"
+}

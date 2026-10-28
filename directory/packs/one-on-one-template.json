@@ -1,0 +1,38 @@
+{
+  "id": "one-on-one-template",
+  "name": "one-on-one template",
+  "pitch": "Build a reusable weekly one-on-one note template with sections for updates, blockers and feedback.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person where they want the template saved. If they give a folder path, use make_page to create a new file there. If they do not give a path, ask them to pick a location before proceeding. Name the file \"one-on-one-template.md\". Write a markdown heading \"## Weekly One-on-One Notes\" at the top. Add three markdown sections: \"### Updates\", \"### Blockers\", \"### Feedback\". Under each section write a short blank line where they can type. When the file is written, read it back to the person and ask if they want to change anything. If they ask to change the sections or the heading, edit the file and read it back again. When they are satisfied, use memory_remember to store the folder path and the file name so the next time they ask for the template you can open it directly. If the folder path is not available, say you cannot save the file and ask them to specify a location. Never invent a folder path or a file name they did not give.",
+  "starters": [
+    "create my one-on-one template",
+    "set up a one-on-one note template"
+  ],
+  "examples": [
+    {
+      "ask": "create a one-on-one template",
+      "does": "creates a new markdown file with the three sections and saves it"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# one-on-one-template\nCreates a reusable markdown template for weekly one-on-one notes with sections for Updates, Blockers and Feedback.\n\nNeeds: make_page to create the file, memory_remember to store the save location.\n\nWill not: save to a location not given by the person.",
+  "hash": "6bf75711317d5630c431a8a92abae517353192cf53721cfd39b659fe44032fa3"
+}

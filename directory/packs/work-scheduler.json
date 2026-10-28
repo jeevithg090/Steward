@@ -1,0 +1,50 @@
+{
+  "id": "work-scheduler",
+  "name": "Work scheduler",
+  "pitch": "Create a color-coded calendar view showing deep work, meetings, and admin time for the month.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "show_table",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing all events for the month using calendar_list. Group events into three categories: deep work, meetings, and admin time. If an event has no title or description, treat it as admin time. When a category has no events, mark that day as empty. Use show_table to display the monthly grid with three colour columns: one for deep work, one for meetings, one for admin time. If a tool is not connected, say 'I cannot access your calendar. Please connect it in settings.' When the table is full, offer to add a new event with calendar_create, asking the person for the title, start time, end time, and which colour to use before creating it.",
+  "starters": [
+    "show my month",
+    "plan my week",
+    "where am I free"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "categorise-events",
+      "description": "Sort events into deep work, meetings, or admin time.",
+      "body": "1. For each event from calendar_list, read the title and any description. 2. If the title or description contains words like 'meeting', 'call', or 'sync', label it as meetings. 3. If it contains words like 'focus', 'project', or 'code', label it as deep work. 4. Otherwise, label it as admin time. 5. If the event has no text at all, label it as admin time. 6. Keep a count of how many events are in each category."
+    }
+  ],
+  "rules": [
+    {
+      "name": "add event",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "ask before adding any event to the calendar"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Work scheduler\n\nCreates a colour-coded calendar view showing deep work, meetings, and admin time for the month.\n\n**What it needs**\n- calendar connector to read your events.\n- show_table to display the grid.\n\n**What it will not do**\n- It will not add events without your say-so.\n- It will not guess what a meeting is if the title is unclear.",
+  "hash": "c010012aad37e3755af4a7cf6e7ce19997bb5f7d9a11388344889a415c47c026"
+}

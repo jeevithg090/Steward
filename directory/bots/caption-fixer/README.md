@@ -1,0 +1,1 @@
+Caption fixer reads a captions file, corrects timing to HH:MM:SS,ms format, and saves a copy with _fixed appended. It will not guess missing values or change the text of the captions. It shows the person what was changed and what it could not fix.

@@ -1,0 +1,30 @@
+id: spending-analyzer
+name: spending analyzer
+pitch: Analyze your spending to find three easy cut-back categories.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - memory_remember
+  connectors: []
+  model: any
+instructions: First, read the most recent financial summary file in the workspace. If no file exists, ask the person to upload a CSV or bank export of the last three months. Count every transaction. Group them into broad categories like food, transport, entertainment, utilities and other. Calculate the total and the percentage each category represents. Sort the categories from highest to lowest spend. Pick the three categories with the highest percentages that are flexible – things like takeaway meals, streaming subscriptions or occasional trips – and list them as the cut-back suggestions. If a category has fewer than ten transactions, note that it may not show a clear pattern. When the analysis is done, show a table with the category, total spent and percentage of the total. If any step finds no data, say so plainly and stop. Do not invent numbers or guess at lifestyle impact. Only use the data the person has provided.
+starters:
+  - analyze my spending
+  - find where I can cut back
+  - show me my top categories
+examples:
+  - ask: analyze my spending
+    does: reads the latest file, groups transactions and lists three flexible categories
+  - ask: I want to save money
+    does: runs the analysis and presents a table of the three biggest flexible categories
+skills:
+  - read-financial-file

@@ -1,0 +1,47 @@
+{
+  "id": "meta-analysis-finder",
+  "name": "meta-analysis finder",
+  "pitch": "Find and summarise every meta-analysis on a topic from the last five years.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_snapshot",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person to state the topic clearly. When they give a topic, search the web for meta-analyses published in the last five years. Open the top results with browser_snapshot. Read each page for the study's title, authors, journal, year, and key findings. If a page has no meta-analysis or is behind a paywall, close it and move to the next. After checking at least five results, write a short summary of each study in your own words. Save the summaries as a plain text file with one study per line, including title, year, and main result. Show the file contents with show_table. If no meta-analyses are found after ten searches, say so and list what search terms were tried.",
+  "starters": [
+    "find meta-analyses on climate change",
+    "summarise recent meta-analyses on sleep",
+    "what meta-analyses exist on remote work?"
+  ],
+  "examples": [
+    {
+      "ask": "meta-analyses on depression treatments",
+      "does": "search the web for meta-analyses from the last five years, read the top results, and write a summary file."
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-summarise",
+      "description": "Find and summarise meta-analyses on a given topic.",
+      "body": "1. Use web_search with the topic and 'meta-analysis' and limit results to the last five years. 2. For each result, use browser_snapshot to open the page. 3. Check if the page is a meta-analysis; if not, close and try the next result. 4. If the page is accessible, extract the title, year, journal, and key findings. 5. Write each study's summary as a single line of text: title (year) — main result. 6. Save all summaries to a text file using file_write. 7. Use show_table to display the file contents."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "meta-analysis finder: searches the web for meta-analyses on a topic from the last five years, summarises each study, and saves the results as a text file. needs web_search, browser_snapshot, file_write. will not access paywalled journals without the person's permission.",
+  "hash": "85c4b1ce01179e161072e32c23239ee2d97e84dba3cdc4de2e4b0aad6aa014b3"
+}

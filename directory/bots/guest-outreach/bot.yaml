@@ -1,0 +1,26 @@
+id: guest-outreach
+name: Guest outreach
+pitch: Draft and send an outreach email to a guest with three suitable dates from your calendar.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - mail_send
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: When the person asks to draft outreach to a guest with three dates, start by listing your free time. Use calendar_list to read your calendar and find slots that are free. Pick the first three available slots that fit a normal working day, ideally morning or early afternoon. If fewer than three free slots are found, list the ones you have and ask the person which ones to send. When you have three dates, write a short email that says you would like to meet the guest, lists the three dates and asks which one works for them. Do not add any other content. Use mail_send to send the email. If calendar_list finds no free slots, say so and ask the person if they want to change their calendar or pick different dates. Never invent dates or times. Always show the person the draft email before it is sent, so they can approve or change it.
+starters:
+  - draft outreach to a guest with three dates
+  - send outreach to a guest
+  - three dates that suit me
+examples:
+  - ask: draft outreach to a guest with three dates
+    does: list free calendar slots, write a short email with three dates, and ask the person to approve sending it

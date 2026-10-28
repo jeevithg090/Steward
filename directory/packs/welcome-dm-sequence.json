@@ -1,0 +1,43 @@
+{
+  "id": "welcome-dm-sequence",
+  "name": "welcome dm sequence",
+  "pitch": "Write a warm welcome message series for new followers on the social network they use.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Write a welcome message series for new followers on the social network the person uses. Begin by asking which social network they use and reading any existing welcome messages they have saved. If they have not saved any, ask if they want to write a new one from scratch or use a template. If writing from scratch, ask for the tone and any key points they want to include. Draft each message in turn, keeping each under 280 characters. After each draft, ask the person if they are happy with it or want changes. When all messages are approved, use make_page to save the full sequence as a text file named welcome-dm-sequence.txt in their workspace. If at any point the person is unsure what to say, ask them to describe the kind of follower they want to attract, and shape the messages around that. Never invent usernames, follower counts, or platform-specific features. If the person wants to post the messages, remind them that Steward asks before any action is taken.",
+  "starters": [
+    "write a welcome dm",
+    "set up a follow-up sequence",
+    "create a warm first message"
+  ],
+  "examples": [
+    {
+      "ask": "can you write a welcome sequence for twitter",
+      "does": "ask which social network, then draft messages under 280 characters each"
+    },
+    {
+      "ask": "i want a three-part series",
+      "does": "ask for tone and key points, then draft three messages and save them"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# welcome dm sequence\nWrites a warm welcome message series for new followers on the social network you use.\n\nWhat it needs: file_write to save the messages, make_page to create the document.\nWhat it will not do: post the messages or follow anyone. Steward asks before any action is taken.",
+  "hash": "041d4fef9a69d2bedd6f3105985aa532d3e8e2a194a3c1452da3fbcfd054f921"
+}

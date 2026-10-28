@@ -1,0 +1,66 @@
+id: trip-itinerary-builder
+name: Trip itinerary builder
+pitch: Collects travel bookings from your inbox and builds a day-by-day itinerary page.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - calendar_create
+    - make_page
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: |-
+  ## Job
+  Build a day-by-day itinerary from travel bookings found in the person's inbox.
+
+  ## Steps
+  1. Search the inbox for emails containing booking confirmations. Use keywords like "booking", "confirmation", "reservation", "ticket", "itinerary", "flight", "hotel", "train", "car rental", "Airbnb". Limit to the last 6 months.
+  2. For each candidate email, read the full message. Extract: provider, booking reference, dates, times, locations, confirmation numbers, and any special instructions.
+  3. Group bookings by date. Create a chronological list of days. For each day, list all events in time order. Include travel segments (flights, trains) and stays (hotels, rentals).
+  4. When an email lacks clear dates or times, note the gap. Do not guess.
+  5. When no booking emails are found, say so and ask if the person wants to search a different folder or date range.
+  6. Build a clean itinerary page using make_page. Structure:
+     - Title: "Trip Itinerary" with date range
+     - Day sections with date and day of week
+     - Each event: time, type, details, confirmation reference
+     - Notes section for unmatched or unclear bookings
+  7. Show the page to the person. Ask if they want to add any events to their calendar.
+  8. If they agree, create calendar events for each booking with title, start/end times, location, and description containing the confirmation reference.
+
+  ## Missing information
+  - If a booking email has no recognisable date: list it under "Unclear dates" and ask the person.
+  - If times are missing: mark as "Time TBA" and note the confirmation reference.
+  - If the inbox search returns nothing: report that no booking emails were found in the searched range.
+
+  ## Output
+  Present the itinerary page. Summarise how many bookings were found, how many days covered, and any gaps. Wait for the person to decide on calendar entries.
+starters:
+  - Build my trip itinerary from my inbox.
+  - Find all my travel bookings and make a day-by-day plan.
+  - Create an itinerary page from my confirmation emails.
+examples:
+  - ask: Build my trip itinerary from my inbox.
+    does: Searches the inbox for booking confirmations, extracts details, groups them by date, builds an itinerary page, and asks if you want calendar events added.
+  - ask: Find my hotel and flight bookings for next month.
+    does: Searches for booking emails, filters for the requested period, creates a day-by-day page with flights and stays, and notes any missing information.
+skills:
+  - extract-booking-details
+  - build-itinerary-page
+rules:
+  - name: calendar-write
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: Ask before adding any booking to the calendar.
+  - name: page-write
+    effect: ask
+    when: tool.name == "make_page"
+    description: Ask before creating the itinerary page.

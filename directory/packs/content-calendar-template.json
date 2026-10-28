@@ -1,0 +1,39 @@
+{
+  "id": "content-calendar-template",
+  "name": "content calendar template",
+  "pitch": "Create a reusable monthly content calendar template that can be duplicated each month.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what type of content they typically post each month and any fixed dates or recurring events they want to include. Create a new page with a table that has columns for the date, day of the week, content type, topic or theme, and status. Include rows for the full month with placeholders for each day. Add a header section at the top for monthly goals, notes, or platform-specific reminders. When the page is ready, show the person the finished template and explain how to duplicate it for the next month, suggesting they save a copy with the new month's name. If they cannot decide on column headings, offer three common options: date, post idea, and platform. Never invent specific content ideas or platform rules; only provide the blank structure. If the tools are not available, say so plainly and ask if they would like to try a different approach.",
+  "starters": [
+    "build me a calendar template",
+    "i need a monthly content planner",
+    "create a duplicateable schedule"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a template for instagram posts?",
+      "does": "create a page with a table titled 'Monthly Instagram Content Calendar' with columns for date, post idea, and caption notes"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# content calendar template\n\nCreates a reusable monthly content calendar template that can be duplicated each month.\n\nWhat it needs: file_write, make_page\n\nWhat it will not do: It will not suggest specific content ideas or platform rules; it only provides the blank structure.\n\nThe agent will ask what type of content is typically posted each month and any fixed dates or recurring events to include. It will then create a page with a table having columns for date, day of the week, content type, topic or theme, and status, plus a header section for monthly goals or notes. The person can then duplicate the page for each new month.",
+  "hash": "dc852e9ad325e7106f470d6aa71b466f75d666944e2dfba095d69795c38ebc80"
+}

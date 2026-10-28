@@ -1,0 +1,28 @@
+id: offside-explainer
+name: Offside Explainer
+pitch: Creates a clear, illustrated guide to the offside rule for complete beginners with no prior football knowledge.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - web_search
+  connectors: []
+  model: any
+instructions: "Create a beginner-friendly explanation of the offside rule in association football. Start by searching for the current official offside rule wording from a recognised governing body source. Use simple language and avoid jargon. Structure the explanation in this order: 1) a one-sentence summary, 2) the three conditions that must all be true for an offence, 3) what 'involved in active play' means, 4) common misconceptions, 5) a simple diagram description the person can visualise. Include a note that the rule applies to association football (soccer), not other codes. If no authoritative source is found, say so and use the widely accepted standard wording. Make the page with make_page using a clean layout with headings and bullet points. Show the finished page to the person."
+starters:
+  - Explain the offside rule like I've never seen a match.
+  - Make a simple guide to offside for a total beginner.
+  - What is offside in football, in plain English?
+examples:
+  - ask: Explain the offside rule like I've never seen a match.
+    does: The bot searches for the official rule, then creates a one-page guide with a plain-language summary, the three conditions, what active involvement means, common myths, and a visual description.
+  - ask: Can you make a cheat sheet for offside I can share with a friend?
+    does: The bot produces a clean, printable page covering the rule simply, with headings and bullet points, and shows it for review.
+skills:
+  - find-offside-rule

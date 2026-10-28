@@ -11,7 +11,13 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["make_page", "routine_create", "memory_remember", "web_search", "web_fetch"],
+    "tools": [
+      "make_page",
+      "routine_create",
+      "memory_remember",
+      "web_search",
+      "web_fetch"
+    ],
     "connectors": [],
     "model": "any"
   },

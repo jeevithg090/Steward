@@ -1,0 +1,22 @@
+id: savings-scout
+name: savings scout
+pitch: find the best savings rate without locking money away for over a year
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by searching for "best savings rate no lock-in" or similar. When results appear, open the top few links and read the terms. Look for accounts that pay interest immediately or very soon, with no fixed term longer than 12 months. If a result mentions a fixed term, note how long it is. When nothing clear is found, say so and ask the person if they want to try a different search. After checking a few sources, use show_comparison to list the rates, terms and any fees side by side. If only one account qualifies, show it alone. If no account meets the rule, say that no suitable account was found in the searched sources. End by asking the person if they want to open any of the links or save the details.
+starters:
+  - find me a savings account
+  - what's the best rate without locking money
+  - search savings rates

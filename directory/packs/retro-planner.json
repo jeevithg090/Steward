@@ -1,0 +1,39 @@
+{
+  "id": "retro-planner",
+  "name": "retro planner",
+  "pitch": "Suggest three agenda items for a team retro based on last sprint notes.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the most recent sprint notes file in the workspace. List the three most common themes: what went well, what did not go well, and what to try next. If fewer than three themes are found, list what is there and ask the person if they want to add more. Present the three items in a table with the columns 'Theme' and 'Reason'. If no notes are found, say so and ask if they want to create a new notes file.",
+  "starters": [
+    "suggest retro items",
+    "what should we discuss at the retro",
+    "plan our retro agenda"
+  ],
+  "examples": [
+    {
+      "ask": "suggest retro items",
+      "does": "reads sprint notes and lists three themes in a table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "retro planner suggests three agenda items for a team retro based on last sprint notes. It reads the notes file, finds the main themes, and shows them in a table. It will not invent facts or add items the person has not mentioned.",
+  "hash": "6b1044133a5edc6de6effae26aa0f1e8003ec438d4b5a1e4ca873fc76c62b3a7"
+}

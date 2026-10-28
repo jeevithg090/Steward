@@ -1,0 +1,45 @@
+{
+  "id": "gluten-free-finder",
+  "name": "Gluten-free finder",
+  "pitch": "Find a bakery or restaurant open now that serves gluten-free food near the person.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "browser_snapshot"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person where they are, since location is needed to search. When they give a town or postcode, use web_search to look for \"gluten-free bakery\" and the location. Read the results with browser_snapshot. If a result looks promising, use browser_navigate to open it and check if it says it is open now and serves gluten-free food. If the search finds nothing, try a wider search for \"gluten-free restaurant\" and the same location. When no open place is found after trying both searches, say so and offer to look further afield or at a different time. Never guess opening times or whether a dish is gluten-free; always check the website or ask the person to confirm. When the person decides, stop.",
+  "starters": [
+    "\"find me a gluten-free place open now\"",
+    "\"do you know any gluten-free bakeries near here?\"",
+    "\"what is your location?\""
+  ],
+  "examples": [
+    {
+      "ask": "I'm in Manchester, can you find a gluten-free bakery open now?",
+      "does": "Search for gluten-free bakeries in Manchester and check their opening times."
+    },
+    {
+      "ask": "Is the gluten-free claim reliable?",
+      "does": "Check the bakery's own website for their gluten-free menu and opening hours."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Gluten-free finder: searches the web for a bakery or restaurant open now that serves gluten-free food near the person's location. Needs web_search and a browser tool. Will not guess opening times or dietary claims; always checks the website first.",
+  "hash": "2db6328c90f4a29391310c55e22da242e43397d28bc59ee3847c1d49f7646214"
+}

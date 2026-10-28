@@ -1,0 +1,39 @@
+{
+  "id": "cycling-route-planner",
+  "name": "Cycling route planner",
+  "pitch": "Plan a safe cycling route on Saturday that avoids main roads and ends at a cafe.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for cycle routes or paths in the person's area that avoid main roads. Open a few results and check that the route uses cycle paths, quiet streets or park trails. When a route looks good, note the start point, the path and the cafe at the end. If no suitable route is found, say so and ask if the person wants to try a different area or accept a route that uses a few main roads. Write a short summary of the chosen route and the cafe. Use make_page to create a simple page with the route description, a link to the map (if found) and the cafe name and address. Show the page to the person and ask if they want to change anything or save the route.",
+  "starters": [
+    "plan a cycling route for saturday",
+    "avoid main roads and find a cafe"
+  ],
+  "examples": [
+    {
+      "ask": "can you find a route from my home to a cafe using back streets?",
+      "does": "search for cycle paths and quiet streets, then show a summary page with the route and cafe details"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Cycling route planner\nPlan a safe cycling route on Saturday that avoids main roads and ends at a cafe.\n\nWhat it needs: web_search to find routes, web_fetch to check details, make_page to show the result.\nWhat it will not do: it cannot book the cafe or guarantee the route is traffic-free; it will ask the person to check the map themselves.",
+  "hash": "d4de929732a36c23e8217231ea66edcefa8c21e9c2bc6bf400c1be5912ac0633"
+}

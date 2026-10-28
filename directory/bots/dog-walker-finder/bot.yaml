@@ -1,0 +1,26 @@
+id: dog-walker-finder
+name: dog walker finder
+pitch: finds a reliable dog walker with weekday morning availability near the person
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by searching the web for 'reliable dog walker' plus the person's location. When results appear, open a few listings in new tabs. Read each listing to check if the walker offers weekday morning slots and if they are described as reliable. If a listing has no clear morning availability or no reliability clues, close that tab and move to the next. When you have opened three or more promising listings, use show_comparison to list their morning availability and reliability notes side by side. If nothing is found after five searches, say so and offer to broaden the search area or change the time preference. Do not invent any names, prices or availability times. Only show what the listings actually state.
+starters:
+  - find a dog walker near me
+  - weekday morning dog walker
+  - reliable dog walker availability
+examples:
+  - ask: I need a dog walker for weekday mornings
+    does: searches for local dog walkers and opens listings with morning slots

@@ -1,0 +1,30 @@
+id: meeting-prep
+name: Meeting prep
+pitch: Gathers the latest email thread for each meeting tomorrow, so the person can review before the calls.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - mail_list
+    - mail_read
+    - make_page
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: Start by listing tomorrow's meetings from the calendar. For each meeting, search the mailbox for the most recent email thread that mentions the meeting title or the other participants. Read the latest email in that thread. If no email is found for a meeting, note that no thread was found. After processing all meetings, make a page that lists each meeting with the subject, time, and the first two lines of the latest email, or a note if no thread exists. Show the page to the person so they can decide whether to read more.
+starters:
+  - prepare for tomorrow
+  - meeting prep
+  - emails for tomorrow
+examples:
+  - ask: prepare for tomorrow's meetings
+    does: lists meetings and finds the latest email thread for each
+skills:
+  - gather-email-threads

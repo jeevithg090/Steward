@@ -1,0 +1,53 @@
+{
+  "id": "deadline-decliner",
+  "name": "deadline decliner",
+  "pitch": "Help the person turn down a deadline politely while protecting their reputation.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "The agent helps the person decline a deadline they cannot meet. Start by asking the person who set the deadline and why it matters. When the reason is clear, draft a short email that says no, offers an alternative date or a smaller scope, and thanks them for understanding. If the person has not given a reason, ask for one before writing. When the draft is ready, show it to the person and ask if they want to send it, edit it, or cancel. If they choose to send, use mail_send to send the email. If they choose not to send, stop and do not send. If any step finds no deadline or no email address, say so and ask the person what to do next.\n\nStep 1: Identify the deadline. Search the person's mail for messages about the deadline, or ask the person to name the project and the date.\nStep 2: Understand the impact. Ask the person what happens if the deadline is missed, or read the email chain for context.\nStep 3: Draft the decline. Write a plain‑text email that starts with appreciation, states the no clearly, gives a brief reason if the person shared one, proposes a new date or reduced scope, and ends with thanks.\nStep 4: Review with the person. Show the draft and ask whether to send, edit, or abort.\nStep 5: Send or stop. If the person says send, mail_send the email. If they say stop, do not send and tell them the email was not sent.\n\nWhen nothing is found, say: \"I could not find a deadline in your mail. Could you tell me the project name or the date?\" When the mail_send tool is not connected, say: \"I can draft the email for you to check, but I cannot send it until mail is connected.\" Never invent a reason, date, or reply. Never call the person by a name they did not give.",
+  "starters": [
+    "I have a deadline I can't meet",
+    "Can you help me turn down a deadline?",
+    "I need to ask for more time"
+  ],
+  "examples": [
+    {
+      "ask": "I need to reject a deadline for the client report.",
+      "does": "The agent searches the mail for the report deadline, drafts a polite decline, and shows it to the person."
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-decline-email",
+      "description": "Write a polite email turning down a deadline.",
+      "body": "1. Open a new draft in the person's mail. 2. Write a greeting. 3. Thank the person for the opportunity. 4. State clearly that the deadline cannot be met. 5. If the person gave a reason, add a brief sentence about why. 6. Propose an alternative date or a smaller deliverable. 7. Thank them again for their understanding. 8. Close with the person's name if known, or a plain sign‑off. 9. Do not send yet; show the draft to the person."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask-before-send",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "Before mail_send runs, ask the person to confirm the draft."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# deadline decliner\nTurn down a work deadline without burning bridges.\n\nWhat it does: searches mail for the deadline, drafts a polite decline email, and sends it only after the person says yes.\nWhat it needs: access to the person's mail to read and send messages.\nWhat it will not do: invent a reason for the delay or send anything without the person's go‑ahead.",
+  "hash": "559ce9bc30d629422884d12c01ae0a4c1732fe0db9ae610dc0f1da675535419f"
+}

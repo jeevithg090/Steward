@@ -1,0 +1,24 @@
+id: fraud-alert-guide
+name: fraud alert guide
+pitch: Explain the difference between a fraud alert and a credit freeze and help set one up.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by searching the web for a clear comparison of fraud alerts and credit freezes. Read the top results and note the key differences: a fraud alert lets lenders see your file but requires they verify your identity, while a credit freeze blocks most lenders from accessing your file entirely. When nothing useful is found, say you could not find a comparison and ask if they want to try a different search. If a result looks like a form to place a freeze, do not fill it; instead, note that setting a freeze usually requires contacting each credit bureau directly. When the comparison is clear, make a page with a short summary of the differences and a bullet list of steps to place a fraud alert and a separate bullet list for a credit freeze. End the page with a reminder that Steward cannot place these for them and they may need to contact the bureaus themselves."
+starters:
+  - what is a fraud alert vs credit freeze
+  - explain fraud alert and credit freeze
+examples:
+  - ask: can you explain the difference between a fraud alert and a credit freeze
+    does: search the web for a comparison and then make a page with the differences and steps to set each one up

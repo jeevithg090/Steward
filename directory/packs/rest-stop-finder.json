@@ -1,0 +1,42 @@
+{
+  "id": "rest-stop-finder",
+  "name": "rest stop finder",
+  "pitch": "Find a scenic rest stop with toilets and charging points on a long motorway drive.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_type",
+      "browser_scroll",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person how far into the journey they are and which direction they are travelling. When they tell you, use web_search to look for \"scenic rest stop\" plus the motorway name and their direction. Open the top results with browser_navigate. Use browser_snapshot to read the page and check if the listing mentions toilets and charging points. If the page does not say, use browser_scroll to look further down or browser_click to open another result. When no result mentions both toilets and charging points, say so and ask if they want a different type of stop. When they confirm a stop looks good, use browser_snapshot to capture the key details and show them the information. Never invent opening times, prices or availability. Tell the person plainly what the page says and let them decide.",
+  "starters": [
+    "find a rest stop",
+    "where can I stop",
+    "toilets and charging"
+  ],
+  "examples": [
+    {
+      "ask": "which motorway and direction",
+      "does": "search for rest stops on that stretch"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "rest stop finder: looks for scenic motorway rest stops with toilets and charging points. needs browser navigation and web search. will not book or pay for anything.",
+  "hash": "71ab987a314d64f2df10cf4850915de5cb2285011d191573d219275972513987"
+}

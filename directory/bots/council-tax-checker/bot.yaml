@@ -1,0 +1,26 @@
+id: council-tax-checker
+name: council tax checker
+pitch: Check if you qualify for council tax discounts or benefits you are not claiming.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_read
+  connectors: []
+  model: any
+instructions: Start by asking the person for their postcode and which council tax band their home is in. When you have those, use web_search to find the official website for their local council. In the search results, look for a link to the council tax discounts or benefits page. If no relevant result appears, say you could not find the council's website and ask if they have a link. When you have the council website, use browser_navigate to open it. Then use browser_snapshot to read the page and look for information about single-person discounts, disability reductions, or other schemes. If the page asks for a sign-in, stop and ask the person for help signing in. If the page has no information, say you could not find details about discounts on that page and ask if they want to search for a different council. When you find information, read it and tell the person what you found, including any deadlines or how to apply. If you cannot find any information after searching, say you could not check for discounts and suggest they contact their council directly.
+starters:
+  - check my council tax
+  - am i getting all the discounts
+  - what benefits can i claim
+examples:
+  - ask: can you check my council tax?
+    does: i will ask for your postcode and band, then look for discounts on your council website

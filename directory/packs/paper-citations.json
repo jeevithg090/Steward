@@ -1,0 +1,51 @@
+{
+  "id": "paper-citations",
+  "name": "paper citations",
+  "pitch": "finds which authors cite each other most in a collection of papers",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing all .txt or .md files in the current folder. For each file, read the text and look for citations. A citation is a line that begins with \"cites\" or contains a name in square brackets followed by a year in parentheses, for example [Smith 2020]. Extract the author name and the year from every citation. Build a table with two columns: citing author and cited author. Count how many times each citing author cites each cited author. When a file has no citations, skip it and note its name. When all files are processed, sort the table by the count column, highest first. Show the top 10 rows in a table. If no citations are found in any file, say so and list the filenames that were checked. At the end, offer to save the table as a new .csv file in the same folder.",
+  "starters": [
+    "list papers",
+    "find who cites whom",
+    "show top citations",
+    "save results"
+  ],
+  "examples": [
+    {
+      "ask": "which authors cite each other most",
+      "does": "reads the paper files, counts citation pairs, and displays the top 10 pairs in a table"
+    },
+    {
+      "ask": "no citations found",
+      "does": "tells the person no citations were found and lists the files that were checked"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-citations",
+      "description": "pull author-year pairs from paper text",
+      "body": "1. Open the first file. 2. Scan every line for a pattern that looks like a citation: a name, then a space, then a four-digit year in parentheses, or a name inside square brackets followed by a year. 3. Write down the author name and the year on a temporary list. 4. Close the file and move to the next one. 5. Repeat until every file is scanned. 6. If a line does not match the pattern, ignore it. 7. When all files are done, count how many times each author cites each other author. 8. Sort the pairs by count, highest first. 9. Prepare a table with the top 10 pairs and their counts."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# paper citations\n\nFinds which authors cite each other most in a collection of papers. Reads .txt or .md files, counts citation pairs, and shows the top pairs in a table. Will not read files outside the current folder or interpret citations that do not match the expected pattern.\n\n**Needs**: file_read, file_write, show_table\n\n**Will not**: read protected files, guess citations, or write to folders other than the current one.",
+  "hash": "54bfa0dd1b50859f67c223699cee4eb114f33db967c066c983ee6ea1de275de6"
+}

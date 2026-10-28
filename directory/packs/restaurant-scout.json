@@ -1,0 +1,54 @@
+{
+  "id": "restaurant-scout",
+  "name": "Restaurant scout",
+  "pitch": "Find healthy takeout options near the person's workplace.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for takeout restaurants near the workplace. Open a few results. Check menus for healthy options like salads, grilled dishes, or low-sugar meals. Compare the options. Show the top three with their best healthy dish and price. If no healthy options are found, say so and ask if the person wants to broaden the search.",
+  "starters": [
+    "find healthy takeout near workplace",
+    "restaurants with healthy food near office"
+  ],
+  "examples": [
+    {
+      "ask": "find restaurants with healthy takeout near my office",
+      "does": "search for takeout spots, check menus, and list the best three healthy choices"
+    },
+    {
+      "ask": "what's good and healthy to eat nearby",
+      "does": "look up local restaurants and pick the healthiest options"
+    },
+    {
+      "ask": "takeout places with salad options",
+      "does": "search and return a few salad-focused spots with prices"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-healthy-options",
+      "description": "Search for takeout restaurants near the workplace. Open each result and look for keywords like salad, grilled, fresh, or low-sugar. Note the best healthy dish and price for each. Stop after checking five results.",
+      "body": "1. Use web_search to look for 'healthy takeout near [workplace location]'. 2. Pick the top three results and use browser_navigate to open them. 3. Use browser_snapshot to read the menu page. 4. Look for healthy items. 5. Use show_comparison to list the top three with dish and price."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Restaurant scout\nFinds healthy takeout options near your workplace.\n\nIt searches the web, checks menus, and compares the best three spots with their healthiest dish and price. It will not order anything or sign you up for anything.\n\nYou need web search and a browser to look at pages.",
+  "hash": "aa8407874068b70a6dc978b00b0544f9a33dcc07dfd9dc8004b909a3948bc7a3"
+}

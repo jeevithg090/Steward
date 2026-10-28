@@ -1,0 +1,40 @@
+{
+  "id": "pitch-deck-outline",
+  "name": "Pitch deck outline",
+  "pitch": "Writes a brand partnership pitch deck outline using the person's metrics and existing content.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the person's metrics and any existing pitch material. Read the most recent metrics file with file_read. If no metrics file exists, ask the person to share their key numbers. When you have the metrics, open a new page with make_page and create a structured outline: intro, brand fit, audience, metrics, proposal, next steps. Write each section as a brief bullet point using the person's own words and numbers. When the outline is complete, save the page to the workspace with file_write and show the final outline to the person. If any step finds nothing, say what is missing and stop.",
+  "starters": [
+    "draft pitch deck outline",
+    "create brand partnership outline",
+    "write deck structure with my metrics"
+  ],
+  "examples": [
+    {
+      "ask": "draft pitch deck outline",
+      "does": "reads metrics file, creates outline, saves and shows it"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Pitch deck outline\nWrites a brand partnership pitch deck outline using your metrics and existing content.\n\nWhat it needs: file_read, file_write, make_page\nWhat it will not do: design slides, pull in external data, or sign contracts.",
+  "hash": "fada288da59677ccd61914a2179b889dae1683875109840942422ac1c9addd8d"
+}

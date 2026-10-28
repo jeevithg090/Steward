@@ -1,0 +1,1 @@
+Calculate the required minimum distribution for an inherited IRA each year. It asks for the account balance and age, looks up the IRS factor, divides, and shows the result. It cannot give tax advice or file forms.

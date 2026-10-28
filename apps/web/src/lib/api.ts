@@ -98,6 +98,8 @@ export interface BotsResponse {
   total: number;
   /** Category id to its label, e.g. `home` → "Home & family". */
   categories?: Record<string, string>;
+  /** Which directory this is: its name, and its web address when it is hosted. */
+  directory?: { name: string; site?: string; problem?: string };
 }
 
 /** `GET /api/inbox` returns summaries with their triage verdict when one has been made. */
@@ -196,6 +198,44 @@ export async function request<T>(
   }
   if (!res.ok) throw new ApiError(errorMessage(data, res.status), res.status, data);
   return data as T;
+}
+
+/** A POST whose answer is a file, such as a zip, rather than JSON. Errors read as `request`'s do. */
+export async function requestFile(path: string, body: unknown): Promise<Blob> {
+  let res: Response;
+  try {
+    res = await fetch(BASE + path, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      credentials: "same-origin",
+    });
+  } catch {
+    throw new ApiError("Couldn't reach Steward. Check that the server is running, then try again.", 0);
+  }
+  if (!res.ok) {
+    const text = await res.text();
+    let data: unknown = text;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // Not JSON.
+    }
+    throw new ApiError(errorMessage(data, res.status), res.status, data);
+  }
+  return res.blob();
+}
+
+/** Hands a file to the browser's download, then lets the address go. */
+export function saveFile(blob: Blob, name: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1_000);
 }
 
 const get = <T>(path: string, query?: Query, signal?: AbortSignal) =>
@@ -344,6 +384,8 @@ export const api = {
     update: (id: string) => send<InstalledBot>("POST", `${route(ROUTES.botInstalled, { id })}/update`),
     /** Writes a pack from a job in the person's words. Returned, not installed. */
     make: (body: BotMakeInput) => send<BotPack>("POST", ROUTES.botsMake, body),
+    /** The pack's folder as a zip, to put in a repository and submit to a hosted directory. */
+    exportZip: (body: { pack: BotPack; handle?: string }) => requestFile(ROUTES.botsExport, body),
   },
 
   phone: {
@@ -914,6 +956,13 @@ export function invalidateBots(qc: QueryClient): void {
 export const useInstallBot = () => useBotsMutation((body: BotInstallInput) => api.bots.install(body));
 export const useRemoveBot = () => useBotsMutation((id: string) => api.bots.remove(id));
 export const useUpdateBot = () => useBotsMutation((id: string) => api.bots.update(id));
+
+/** Submit to the directory: downloads `<id>.zip`, the pack folder ready for a repository. */
+export function useExportBot() {
+  return useMutation<void, ApiError, { pack: BotPack; handle?: string }>({
+    mutationFn: async (body) => saveFile(await api.bots.exportZip(body), `${body.pack.id}.zip`),
+  });
+}
 
 /** Make a bot: the pack comes back for the person to read; adding it is a separate step. */
 export function useMakeBot() {

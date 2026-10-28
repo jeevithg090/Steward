@@ -1,0 +1,29 @@
+id: analytics-template
+name: Analytics template
+pitch: Build a monthly report template with chart placeholders and ready-to-fill tables.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by opening a new blank page with make_page. Create a title "Monthly analytics report" and a brief date line. Add a two-column table: left column "Metric", right column "Value". Insert a row for "Visits", "Likes", "Shares" and "Comments" as examples. Below the table, add four blank chart placeholders labelled "Chart 1" to "Chart 4". Save the file as "monthly-analytics-template.md". When the page is empty or the tools fail, say "I couldn’t create the template. Let me know if you want to try again.". At the end, show the person the finished page with show_table so they can review it.'
+starters:
+  - make me a report template
+  - start a new monthly analytics file
+  - add chart spots to my metrics page
+examples:
+  - ask: create a template for monthly social stats
+    does: I’ll open a fresh page, add a table with metric rows and four blank chart labels, then save it as a markdown file for you to fill in.
+  - ask: update the template with new chart titles
+    does: I’ll locate the file, replace the placeholder text and re-save it so the charts reflect your new headings.
+skills:
+  - build-template

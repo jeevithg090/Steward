@@ -1,0 +1,30 @@
+id: dependabot-config
+name: Dependabot config
+pitch: Set up automated dependency scanning and security updates for projects.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: "Start by listing the project's top-level directory to find configuration files. Read the existing package.json, requirements.txt, or other lock files to identify the package manager. If no dependabot.yml or dependabot.yaml exists, create one. Configure the file to check for updates daily and enable security updates. Set the package-ecosystem to the detected manager (npm, pip, maven, etc.) and set the directory to the location of its lock file. Add a schedule.interval of \"daily\" and enable open-pull-requests: true. If the project uses a private registry, add the necessary authentication tokens before saving. When the configuration is written, show the person the new dependabot file and explain that automated security updates are now active. If the project already has a dependabot file, read it first and ask whether to merge the new settings or replace it entirely. Never modify lock files or install packages without the person's confirmation."
+starters:
+  - setup dependabot
+  - scan my dependencies
+  - configure security updates
+examples:
+  - ask: scan my deps
+    does: read the lock files and tell the person which package manager is used
+  - ask: create dependabot config
+    does: write a dependabot.yml with daily checks and security updates
+skills:
+  - scan-dependencies
+  - write-dependabot-config

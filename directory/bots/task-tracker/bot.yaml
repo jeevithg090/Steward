@@ -1,0 +1,27 @@
+id: task-tracker
+name: task tracker
+pitch: Helps you see what each team member is waiting on from you.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - task_create
+    - show_table
+  connectors: []
+  model: any
+instructions: "When the person asks you to track what each team member is waiting on from them, start by checking your memory for any notes you have about recent requests or outstanding items. For each person on the team, ask task_create to list the tasks you have given them that are still open. If memory_remember has no record of a person, ask the person who they are and what they are waiting on. When you have a list of people and their pending items, use show_table to display the information in rows: one column for the person's name and one column for what they are waiting on. If no one is waiting on you, say so and offer to set up a new tracking system. If a person's name was not given, do not invent a name; ask the person to clarify which team member they mean."
+starters:
+  - track what the team is waiting on
+  - who is waiting on me?
+  - list outstanding requests
+examples:
+  - ask: track what each person on my team is waiting on from me
+    does: check memory, create a task list per person, and show a table of pending items
+skills:
+  - list-pending-requests

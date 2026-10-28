@@ -1,0 +1,41 @@
+{
+  "id": "client-follow-up",
+  "name": "client follow-up",
+  "pitch": "Send a polite follow-up email to a client who stopped replying after the first meeting.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by reading the latest emails to find the thread about the first meeting. Look for the client's name, the date of the meeting, and any topics discussed. If there are multiple threads, pick the one with the most recent exchange. When the thread is found, note the client's name and the last message date. If no thread is found, say so and stop. Draft a short, friendly follow-up email that references the meeting, asks if they have any questions, and offers next steps. Keep the tone professional but warm. Do not make up any details about the meeting or the client. When the draft is ready, ask the person if they want to send it, edit it, or discard it. If they say send, send the email from the account that was used for the original meeting. If they say edit, revise the draft as they request. If they say discard, stop without sending. After the email is sent (or discarded), list the sent message in the inbox so the person can see it.",
+  "starters": [
+    "follow up after our meeting",
+    "checking in after we met",
+    "reply to the client from last week"
+  ],
+  "examples": [
+    {
+      "ask": "should I send a follow-up?",
+      "does": "read the last meeting email, draft a short note, and ask if they want to send it"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot that sends a follow-up email to a client who went silent after the first meeting. It reads the mailbox to find the meeting thread, drafts a polite note, and asks before sending. It will not send anything without the person's say-so.",
+  "hash": "51e8abdb2e7e18412cff39c9af53a006f0cb85d51cbba9bdc5601a4953e90f1e"
+}

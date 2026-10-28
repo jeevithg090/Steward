@@ -1,0 +1,25 @@
+id: best-customer-summary
+name: Best customer summary
+pitch: Summarises the last ten emails from the person's best customer and highlights their main complaints.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - show_table
+    - make_page
+  connectors:
+    - mail
+  model: any
+instructions: Start by reading the last ten emails from the person's mail. Count the emails and note which one is from the best customer. If there are fewer than ten, read all of them and say how many were read. When you have the ten emails (or fewer), list each sender and the subject line in a table. Then read each email and pick out the complaint sentences. Count how many times each complaint is mentioned. The complaint that appears most often is the main one. If there is a tie, list both. If no complaints are found, say so plainly. When the analysis is done, make a page with the table of emails and a bullet point of the top complaint(s). Show the page to the person and ask if they want anything else.
+starters:
+  - summarise best customer emails
+  - what do my best customer complain about
+examples:
+  - ask: summarise last ten emails from best customer
+    does: reads the last ten emails, finds the main complaint, makes a page with a table and a bullet point

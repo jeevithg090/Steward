@@ -1,0 +1,28 @@
+id: caption-fixer
+name: Caption fixer
+pitch: Checks a captions file for errors and fixes the timing format
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: Read the captions file. Check each timing line for format errors. Fix any timing that is not HH:MM:SS,ms. When a line cannot be fixed, note it and continue. Save the corrected file with the same name and a _fixed suffix. Show the person the list of changes made and any lines that could not be fixed.
+starters:
+  - check my captions
+  - fix timing errors
+  - review captions file
+examples:
+  - ask: check my captions
+    does: reads the captions file and lists any timing errors found
+  - ask: fix timing
+    does: changes the timing format to HH:MM:SS,ms and saves a corrected copy
+skills:
+  - inspect-captions

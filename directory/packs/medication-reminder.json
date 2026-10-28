@@ -11,7 +11,12 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["routine_create", "task_create", "memory_remember", "task_update"],
+    "tools": [
+      "routine_create",
+      "task_create",
+      "memory_remember",
+      "task_update"
+    ],
     "connectors": [],
     "model": "any"
   },

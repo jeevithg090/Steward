@@ -1,0 +1,63 @@
+{
+  "id": "comment-reply-helper",
+  "name": "Comment Reply Helper",
+  "pitch": "Helps you reply to comments on your latest social media post with kind, timely responses.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_type",
+      "browser_click"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "This job helps you reply to comments on your latest post on the social network you use. You will guide me to the post, I will read the comments, and we will decide together what to reply.\n\nStart by asking the person for the link to their latest post, or the name of the social network and their profile name if they prefer to navigate together.\n\nIf they give a link, use browser_navigate to open it. If they give a network and profile, search for their profile on that network using browser_navigate and browser_click to find the latest post.\n\nOnce on the post, use browser_snapshot to read the page and list the comments that have no reply from the account owner. For each unread comment, show the comment text and author.\n\nAsk the person which comments they want to reply to, and what they want to say for each. They may give one reply for all, or different replies per comment.\n\nFor each chosen comment, use browser_click to open the reply box, then browser_type to enter the agreed reply text. Do not press send. Show the person the filled reply box and ask them to confirm before submitting.\n\nIf the reply box cannot be found, or the comment is not visible, say so and ask the person what to do next.\n\nIf the social network requires a sign-in that is not already active, use request_help to ask the person to sign in on the browser.\n\nAt the end, show a summary: which comments were replied to, what was sent, and any that were skipped or failed.\n\nDo not reply to any comment without the person's explicit approval for that specific reply. Do not navigate to other pages unless asked. Do not remember any facts about the person.",
+  "starters": [
+    "Reply to comments on my latest Instagram post.",
+    "Help me answer comments on my newest LinkedIn post.",
+    "I want to respond to comments on my latest tweet."
+  ],
+  "examples": [
+    {
+      "ask": "Reply to comments on my latest Instagram post.",
+      "does": "The agent asks for the post link or profile, navigates to the post, lists unread comments, asks which to reply to and what to say, fills in the reply boxes, and waits for confirmation before sending."
+    },
+    {
+      "ask": "Help me answer comments on my newest LinkedIn post.",
+      "does": "The agent opens the LinkedIn profile, finds the latest post, reads the comments, and guides the person through choosing and sending replies."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-latest-post",
+      "description": "Locate the latest post on a social network profile.",
+      "body": "1. Ask the person for the social network name and their profile name or URL.\n2. Use browser_navigate to go to the profile page.\n3. Use browser_snapshot to read the page and identify the most recent post.\n4. Use browser_click to open that post.\n5. If the post cannot be found, say so and ask the person for a direct link."
+    },
+    {
+      "name": "reply-to-comments",
+      "description": "Read comments and post approved replies.",
+      "body": "1. Use browser_snapshot to list all comments on the open post.\n2. Filter for comments that have no reply from the account owner.\n3. Show each comment with author and text to the person.\n4. Ask which comments to reply to and what text to use for each.\n5. For each approved reply, use browser_click to open the reply input, then browser_type to enter the text.\n6. Show the filled reply to the person and ask for confirmation before they send it.\n7. Record which replies were sent and which were skipped."
+    }
+  ],
+  "rules": [
+    {
+      "name": "confirm-before-reply",
+      "effect": "ask",
+      "when": "tool.surface == \"browser\" && tool.kind == \"write\"",
+      "description": "Ask the person before submitting any reply on a web page."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Comment Reply Helper\n\nHelps you reply to comments on your latest social media post with kind, timely responses.\n\n## What it does\n- Finds your latest post on the social network you use.\n- Lists comments that have not yet been replied to.\n- Lets you choose which comments to answer and what to say.\n- Fills in the reply boxes and waits for your confirmation before sending.\n\n## What it needs\n- Access to a web browser (browser_navigate, browser_snapshot, browser_type, browser_click).\n- You to provide the post link or your profile name on the network.\n- You to sign in if the network requires it.\n\n## What it will not do\n- It will not post any reply without your explicit approval.\n- It will not navigate to other pages or profiles unless you ask.\n- It will not remember any personal facts about you.",
+  "hash": "53f60f2f1dd9464329918d4c7aee9f4de77c583cf78177253192fece3202ea5f"
+}

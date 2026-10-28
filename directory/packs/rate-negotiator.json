@@ -1,0 +1,52 @@
+{
+  "id": "rate-negotiator",
+  "name": "Rate negotiator",
+  "pitch": "Draft a script and find competitor offers to help lower your credit card interest rate.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening your memory and checking if you have saved your current card details and recent statements. If not, ask the person for the card name, balance and the date of the last statement. When you have those details, search the web for the same card type or a similar card from a major issuer to find the current advertised purchase APR and any balance transfer offers. Open at least three listings and note the APR, any fees and the offer length. Draft a short script that mentions how long you have had the card, your payment history and the competitor rate you found. Keep the script under 150 words and in a polite, firm tone. When the script is ready, make a page with the script at the top and the competitor offers listed below, with the source and date for each. Show the page to the person and ask if they want to send the script themselves or need help copying it elsewhere.",
+  "starters": [
+    "\"Can you help me negotiate my credit card rate?\"",
+    "\"I want to lower my interest rate\"",
+    "\"Find me better credit card offers\""
+  ],
+  "examples": [
+    {
+      "ask": "\"Start negotiating\"",
+      "does": "Search for competitor rates and draft a short script."
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-negotiation-script",
+      "description": "Write a polite script to ask for a lower rate.",
+      "body": "1. Open a new draft. 2. Write: \"Hi, I've been a customer for [X years] and always pay on time. I saw [competitor] offers [rate]% APR. Can you match or beat this rate? Thanks.\" 3. Keep it under 150 words. 4. Save the draft."
+    },
+    {
+      "name": "collect-competitor-offers",
+      "description": "Find and record rival card rates.",
+      "body": "1. Search web for \"[card type] competitive APR 2024\". 2. Open the first three results. 3. Note the issuer, advertised APR, balance transfer fee and intro length. 4. Save each in a list with the URL and date accessed."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Rate negotiator\nHelps you draft a script and find competitor credit card offers to lower your interest rate.\n\nWhat it does: Searches for current offers, writes a short script and puts them together on a page.\nWhat it needs: web_search, web_fetch, make_page, memory_remember.\nWhat it will not do: It does not contact the bank, send emails or make any payments.",
+  "hash": "efe18c2dee22be4b619d38273c96a2277d2363a27e81348335ed66f477d80fd0"
+}

@@ -1,0 +1,54 @@
+{
+  "id": "packed-lunch-planner",
+  "name": "Packed Lunch Planner",
+  "pitch": "Creates a week of cold packed lunches with a shopping list and daily plan.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Packed Lunch Planner\n\nPlan a week of packed lunches that need no reheating. The person may have dietary needs, budget limits, or ingredient preferences. Always ask before assuming.\n\n## Step 1: Gather requirements\nAsk the person:\n- Any allergies, intolerances, or foods to avoid?\n- Vegetarian, vegan, pescatarian, or other diet?\n- How many lunches (usually 5 for work week)?\n- Budget per lunch or total?\n- Preferred proteins (cheese, eggs, tinned fish, beans, hummus, cold cuts)?\n- Favourite breads, wraps, crackers, or grains?\n- Any fruit, veg, or snacks they always want?\n- Kitchen equipment: fridge at work? insulated bag? microwave banned entirely?\n\nIf they cannot answer all at once, work with what they give and note gaps.\n\n## Step 2: Build the menu\nCreate 5 distinct lunches. Each lunch must:\n- Be safe cold for 4 to 6 hours with an ice pack.\n- Need no reheating, no hot water, no assembly beyond opening containers.\n- Include protein, carbohydrate, vegetable or fruit, and a snack.\n- Vary proteins and bases across the week.\n- Use overlapping ingredients to keep shopping short.\n\nExample pattern (a made-up example):\n- Monday: hummus wrap, carrot sticks, apple, oat biscuit\n- Tuesday: tinned salmon salad, rice cakes, cherry tomatoes, yoghurt\n- Wednesday: egg mayo sandwich, cucumber slices, grapes, nuts\n- Thursday: bean salad pot, pitta bread, pepper strips, cheese portion\n- Friday: chicken pasta salad, sugar snap peas, satsuma, flapjack\n\nAdjust to the person's answers. If they say no fish, swap salmon for chickpeas. If no bread, use rice cakes or quinoa.\n\n## Step 3: Write the shopping list\nGroup by aisle: bakery, tinned, produce, dairy, snacks, pantry. Show quantities for 5 lunches. Note items they may already have (oil, vinegar, spices, mayo).\n\n## Step 4: Prepare the daily plan\nFor each day show:\n- Main item (what to pack)\n- Sides\n- Snack\n- Prep the night before (e.g., cook pasta, boil eggs, chop veg, mix dressing)\n- Morning pack (what to grab from fridge)\n\n## Step 5: Deliver output\nUse `show_table` for the weekly menu and the shopping list. Use `make_page` to create a printable one-page plan with the daily breakdown and prep notes.\n\nIf any requirement is missing, state what you assumed and ask the person to confirm or correct before finalising.",
+  "starters": [
+    "Plan five cold packed lunches for next week.",
+    "I need a week of no-reheat lunches, vegetarian, under £3 each.",
+    "Make a packed lunch plan with shopping list for my work week."
+  ],
+  "examples": [
+    {
+      "ask": "Plan five cold packed lunches for next week.",
+      "does": "The bot asks about diet, budget, and preferences, then builds a varied menu, a grouped shopping list, and a printable daily plan with night-before prep steps."
+    },
+    {
+      "ask": "I need a week of no-reheat lunches, vegan, under £2.50 each.",
+      "does": "The bot confirms vegan proteins, creates five plant-based lunches using tinned beans, hummus, seasonal veg, and budget carbs, then outputs a table and a one-page plan."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-cold-menu",
+      "description": "Create five varied cold lunches that overlap ingredients and meet dietary rules.",
+      "body": "1. List allowed proteins, bases, veg, fruit, snacks from the person's answers.\n2. Pick five protein-base pairs that differ (e.g., hummus-wrap, bean-rice-cake, egg-sandwich, tinned-fish-salad, cheese-pitta).\n3. Add one veg portion and one fruit portion to each.\n4. Add a shelf-stable snack (nuts, oat biscuit, flapjack, popcorn).\n5. Check each lunch travels cold safely: no mayo-heavy items without ice pack, no raw meat, no cut melon left unchilled >2 hrs.\n6. Ensure ingredient overlap: same hummus tub used twice, same bag of carrots split, same loaf of bread for two sandwiches.\n7. Write the menu as a table: Day | Main | Veg | Fruit | Snack | Prep note."
+    },
+    {
+      "name": "write-shopping-list",
+      "description": "Turn the menu into a grouped shopping list with quantities for five lunches.",
+      "body": "1. Extract every ingredient from the five lunches.\n2. Combine duplicates (e.g., 2 wraps + 3 wraps = 5 wraps).\n3. Round up to pack sizes (e.g., 10 carrots → 1 kg bag).\n4. Group by store section: Bakery, Tinned & jars, Produce, Dairy & eggs, Snacks, Pantry staples.\n5. Mark items the person likely has (oil, salt, pepper, mayo, mustard, spices).\n6. Output as a table: Section | Item | Qty | Notes."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Packed Lunch Planner\n\nCreates a week of cold packed lunches that need no reheating. You tell it your diet, budget, and preferences; it returns a varied menu, a grouped shopping list, and a printable one-page plan with night-before prep steps.\n\n**What it needs**\n- Your dietary rules, budget, and favourite ingredients.\n- Whether you have a fridge or only an insulated bag at work.\n\n**What it will not do**\n- Cook or shop for you.\n- Guarantee food safety beyond standard ice-pack guidance.\n- Include hot meals, soups, or anything needing a microwave.",
+  "hash": "0f0840afd821d935a5e957f2227f2e3a6cd01f54325a7ed84397991d45d12cf4"
+}

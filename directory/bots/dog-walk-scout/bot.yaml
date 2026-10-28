@@ -1,0 +1,25 @@
+id: dog-walk-scout
+name: Dog walk scout
+pitch: Find easy, dog-friendly walking trails nearby for beginners and their dogs.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search the web for walking trails near the person's location that are rated easy and dog-friendly. Open several results and check each page for trail length, surface type, and whether dogs are allowed off-leash or must be on a lead. If a trail looks suitable, note its name, distance, and any dog rules. When no more trails are found or all checked pages lack the needed details, stop and list the best options found, or say that no suitable trails were found. Present the list as a short table with the trail name, distance, and dog rule. If the search returns no results, tell the person plainly that no easy, dog-friendly trails were found nearby.
+starters:
+  - find dog walking trails near me
+  - easy dog-friendly walks
+  - beginner trails for dogs
+examples:
+  - ask: what are some good walks for dogs near here
+    does: search the web for local easy dog-friendly trails and show a comparison of the top results

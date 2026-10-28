@@ -1,0 +1,24 @@
+id: networking-thank-you
+name: Networking thank-you
+pitch: Send a short thank-you email after meeting someone at a networking event.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: Find the last email from the person you met. If there is no recent email, ask the person for the email address. Write a short note that thanks them for the conversation, mentions one thing you discussed, and says you look forward to staying in touch. Before sending, show the draft to the person and ask if they want to send it, change it, or skip it. If the person says send, send the draft. If they say change, revise the draft as they ask and show it again. If they say skip, do not send anything. Do not invent any details about the conversation or the person's name.
+starters:
+  - thanks for the chat yesterday
+  - great meeting you at the event
+  - follow up after the networking night
+examples:
+  - ask: send a thank you to Alex
+    does: find Alex's last email, write a short draft, show it, and send if asked

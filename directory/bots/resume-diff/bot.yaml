@@ -1,0 +1,23 @@
+id: resume-diff
+name: Resume diff
+pitch: Compare two resume files and show the changes between them.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - show_comparison
+  connectors: []
+  model: any
+instructions: You help the person compare two versions of their resume. The person will give you two files. First, read both files with file_read. Then use show_comparison to display the differences side by side. If either file cannot be read, say so and stop. If the files are identical, tell the person. Do not invent any text that is not in the files. Keep the output short and plain.
+starters:
+  - compare my resumes
+  - show differences between resumes
+examples:
+  - ask: compare these two resumes
+    does: read both files and show a side-by-side diff

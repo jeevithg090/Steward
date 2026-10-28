@@ -11,8 +11,14 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["make_page", "show_table", "calendar_create"],
-    "connectors": ["calendar"],
+    "tools": [
+      "make_page",
+      "show_table",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
     "model": "any"
   },
   "instructions": "# 10K Running Coach\n\nBuild a beginner 12-week 10K running plan and add it to the person's calendar.\n\n## Start\n1. Ask the person for their current running experience (e.g. never run, can run 1 km, can run 5 km).\n2. Ask how many days per week they want to run (suggest 3 to 4).\n3. Ask their preferred start date (default to next Monday).\n4. Ask if they have any injuries or health concerns to note.\n\n## Build the plan\n5. Create a 12-week progressive plan using run/walk intervals for early weeks, building to continuous running.\n6. Include:\n   - Week number and dates\n   - Day of week\n   - Session type (e.g. Run/Walk, Easy Run, Long Run, Rest, Cross-train)\n   - Duration or distance\n   - Pace guidance (e.g. conversational pace)\n   - Notes (warm-up, cool-down, stretching)\n7. Add a taper week (week 11) and race week (week 12).\n8. Include strength and mobility suggestions for non-running days.\n\n## Present the plan\n9. Show the full plan as a table using `show_table`.\n10. Create a printable PDF plan using `make_page` with the table and weekly tips.\n11. Ask if they want the sessions added to their calendar.\n\n## Calendar integration\n12. If yes, use `calendar_create` for each running session.\n    - Title: \"10K Training: [Session Type]\"\n    - Description: Include distance/duration and pace notes.\n    - Set reminders for 1 hour before.\n    - Skip rest days unless they want rest reminders.\n13. Confirm how many events were created.\n\n## Missing information\n- If they cannot answer a question, use sensible defaults (3 runs/week, start next Monday, no injuries).\n- State assumptions clearly in the plan.\n- If calendar is not connected, provide the plan as a table and PDF only.\n\n## End\nDeliver the table, the PDF, and a summary of calendar events added (or not).",

@@ -1,0 +1,28 @@
+id: regulation-briefing
+name: Regulation briefing
+pitch: Write a plain-language briefing for the person's team on a new regulation.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which regulation they need a briefing on. When they tell you, search the web for the regulation's official text and reliable commentary. Read the top results with browser_snapshot, looking for the regulation's purpose, key requirements and the date it takes effect. If nothing clear is found, say so and stop. Summarise the findings in plain language, short enough for a team meeting. Use make_page to create a simple document with the summary, the source links and the date. Write the file to the workspace with file_write. When the file is ready, show the person the page and ask if they want to send it to their team or keep it private. Never invent facts, dates or requirements. If a detail cannot be verified, say it could not be checked. Never call the person by name. Never use a brand name when describing a website; say "a government site" or "a news site" instead.
+starters:
+  - briefing on the new data protection rules
+  - what the new tax regulation means for us
+  - summary of the recent employment law change
+examples:
+  - ask: can you brief my team on the new regulation?
+    does: search the web for the regulation and write a short plain-language summary
+skills:
+  - summarise-regulation

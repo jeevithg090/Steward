@@ -71,22 +71,26 @@ limiter sees each visitor's address rather than the proxy's.
 All from the environment, or `.env` at the repository root (`DIRECTORY_ENV_FILE` names another
 file). A value already in the environment wins; a blank value counts as unset.
 
-| Variable                 | Default                   | What it does                                                                                                                                                             |
-| ------------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DIRECTORY_PORT`         | `8790`                    | Port.                                                                                                                                                                    |
-| `DIRECTORY_HOST`         | `127.0.0.1`               | Address to listen on. The image sets `0.0.0.0`.                                                                                                                          |
-| `DIRECTORY_SITE_URL`     | `http://127.0.0.1:<port>` | The public address. Every page link, the feed, the sign-in callback and the counts address Steward posts to are built from it. Must be https when `NODE_ENV=production`. |
-| `DIRECTORY_APP_URL`      | `http://localhost:5173`   | Where **Add to Steward** opens: the visitor's own Steward web app.                                                                                                       |
-| `DIRECTORY_NAME`         | `Steward bots`            | The name on the site and in `index.json`.                                                                                                                                |
-| `DIRECTORY_DIR`          | `directory`               | The folder with `bots/`, `categories.yaml`, `index.json` and `packs/`.                                                                                                   |
-| `DIRECTORY_SEED_DIR`     |                           | A folder copied into `DIRECTORY_DIR` on first start, when that has no `index.json`. The image sets it.                                                                   |
-| `DIRECTORY_DATA_DIR`     | `.steward-data/directory` | Where `directory.db` lives.                                                                                                                                              |
-| `GITHUB_CLIENT_ID`       |                           | A GitHub OAuth app, for sign-in. Set both or neither.                                                                                                                    |
-| `GITHUB_CLIENT_SECRET`   |                           | Its secret. Never logged, never shown, never written to the database.                                                                                                    |
-| `DIRECTORY_GITHUB_TOKEN` |                           | Optional. A token with no scopes, only to raise GitHub's rate limit when reading submitted packs.                                                                        |
-| `ADMIN_GITHUB_LOGINS`    |                           | GitHub handles who may review at `/admin`, comma separated.                                                                                                              |
-| `DIRECTORY_TRUST_PROXY`  | off                       | Read the client address from `X-Forwarded-For`. Only behind a proxy you run.                                                                                             |
-| `DIRECTORY_SOURCE_URL`   |                           | Where your copy of the code is, for the footer's Source link.                                                                                                            |
+| Variable                   | Default                   | What it does                                                                                                                                                             |
+| -------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DIRECTORY_PORT`           | `8790`                    | Port.                                                                                                                                                                    |
+| `DIRECTORY_HOST`           | `127.0.0.1`               | Address to listen on. The image sets `0.0.0.0`.                                                                                                                          |
+| `DIRECTORY_SITE_URL`       | `http://127.0.0.1:<port>` | The public address. Every page link, the feed, the sign-in callback and the counts address Steward posts to are built from it. Must be https when `NODE_ENV=production`. |
+| `DIRECTORY_APP_URL`        | `http://localhost:5173`   | Where **Add to Steward** opens: the visitor's own Steward web app.                                                                                                       |
+| `DIRECTORY_NAME`           | `Steward bots`            | The name on the site and in `index.json`.                                                                                                                                |
+| `DIRECTORY_DIR`            | `directory`               | The folder with `bots/`, `categories.yaml`, `index.json` and `packs/`.                                                                                                   |
+| `DIRECTORY_SEED_DIR`       |                           | A folder copied into `DIRECTORY_DIR` on first start, when that has no `index.json`. The image sets it.                                                                   |
+| `DIRECTORY_DATA_DIR`       | `.steward-data/directory` | Where `directory.db` lives.                                                                                                                                              |
+| `GITHUB_CLIENT_ID`         |                           | A GitHub OAuth app, for sign-in. Set both or neither.                                                                                                                    |
+| `GITHUB_CLIENT_SECRET`     |                           | Its secret. Never logged, never shown, never written to the database.                                                                                                    |
+| `DIRECTORY_GITHUB_TOKEN`   |                           | Optional. A token with no scopes, only to raise GitHub's rate limit when reading submitted packs.                                                                        |
+| `ADMIN_GITHUB_LOGINS`      |                           | GitHub handles who may review at `/admin`, comma separated.                                                                                                              |
+| `DIRECTORY_TRUST_PROXY`    | off                       | Read the client address from `X-Forwarded-For`. Only behind a proxy you run.                                                                                             |
+| `DIRECTORY_SOURCE_URL`     |                           | Where your copy of the code is, for the footer's Source link.                                                                                                            |
+| `DIRECTORY_RETIRE_DAYS`    | `90`                      | Retire AI-made bots nobody installed or said they use within this many days of being made. `0` turns retirement off.                                                     |
+| `DIRECTORY_RETIRE_HOUR`    | `3`                       | The UTC hour after which the day's retirement runs.                                                                                                                      |
+| `DIRECTORY_CATEGORY_FLOOR` | `20`                      | A category that loses bots and falls under this many is reported, or topped up.                                                                                          |
+| `DIRECTORY_REGENERATE`     | off                       | Top up thinned categories with new AI-made bots. Needs a model key in the environment (`NVIDIA_API_KEY` or `STEWARD_SEED_*`).                                            |
 
 Keys belong in the environment or your host's secret store, never in a file in the repository
 or the image.
@@ -129,6 +133,40 @@ same page; nothing is emailed. Removing a listing is deleting its folder and reb
 The plan has the server open a pull request to a separate `steward-bots` repository instead of
 writing the folder. That is not built: here the folder on the server is the record, so back up
 the volume, or commit `DIRECTORY_DIR` to Git yourself.
+
+## Retirement
+
+Plan §4.6: an AI-made bot that nobody installs or says they use within 90 days of being made
+leaves the shelf. Bots made or claimed by people are never retired, and neither is a bot with a
+single install or vote.
+
+Once a day, after `DIRECTORY_RETIRE_HOUR` UTC, the server checks its own counts, removes each such
+bot's folder and pack, adds it to `<DIRECTORY_DIR>/retired.json`, and rebuilds the index. Then:
+
+- the bot's page answers **410 Gone** and says why, and `/api/bots/<id>` does the same;
+- `GET /api/retired` lists every retired bot, so a fork or a generator can avoid making it again;
+  `seed generate` reads the same file and never regenerates a retired job or a look-alike of it;
+- a category that lost bots and fell under `DIRECTORY_CATEGORY_FLOOR` is shown on `/admin`, or,
+  with `DIRECTORY_REGENERATE` on and a model key set, topped up with new bots from the taxonomy.
+
+`/admin` shows the last run. A reviewer can run it at once with `POST /api/admin/retire`. The same
+job runs from the command line, with a date of your choosing:
+
+```sh
+pnpm --filter @steward/bots-gen seed retire --now 2027-02-01          # what it would do
+pnpm --filter @steward/bots-gen seed retire --apply --regenerate      # do it, and top up
+```
+
+Steward copies a bot when someone adds it, so a retired bot keeps working for people who have it.
+
+## Submitting from Steward
+
+**Make a bot** in Steward's Bots page ends with **Submit to the directory**. It downloads the pack's
+folder as `<id>.zip`, checked the way an install is, and optionally credited to the person's
+GitHub handle (kept as "based on an AI-made draft"). The person unzips it into a public
+repository, or uploads the files to a gist (each skill as `<skill name>.SKILL.md`), and pastes the
+address on this server's `/submit` page, which the same panel links to when Steward reads a
+hosted directory. Steward never uploads anything itself.
 
 ## Counts
 
@@ -178,6 +216,27 @@ What the server records, which `/privacy` says in full:
 Client addresses stay in memory, in the rate limiter, for its window (a minute for pages, the API
 and MCP; an hour for install counts, submissions and reports) and are then forgotten. There are
 no analytics, no access log in the database, and no cookie but the sign-in session.
+
+## What still needs a person
+
+The software does the checks it can; these it cannot:
+
+- **Reading the launch bots.** The plan asks that a person read the first 200 bots before launch.
+  On 28 Oct 2026 the shelf has 455 AI-made bots of the 2,000 planned (642 bots in all).
+  Every AI-made bot has passed the validators, the judge (3.5 of 5 or better) and the duplicate
+  check, but nobody has read them. `directory/REPORT.md` lists them by category; the review page
+  shows any one in full.
+- **Reading the AI-proposed jobs.** `packages/bots-gen/src/jobs-ai.yaml` was written by a model.
+  Move a job to `jobs.yaml` once someone has read it.
+- **Vendor terms for generated output.** The seed bots were written by NVIDIA's hosted Nemotron 3
+  Ultra and, later, Nemotron 3.5 Lightning, and judged by Nemotron 3 Ultra; each pack names its
+  writer in `author.model`. Whether its output may be published under MIT depends on NVIDIA's API and
+  model terms, which have not been read for this (**UNVERIFIED**). Read them before publishing a
+  hosted directory, or regenerate with a model whose terms allow it.
+- **A GitHub OAuth app and reviewers.** Submissions are off until a host registers the app and
+  names reviewers (see above).
+- **Pull requests to a catalogue repository.** Approvals write the server's folder; opening a pull
+  request against a separate `steward-bots` repository is not built.
 
 ## Checking it
 

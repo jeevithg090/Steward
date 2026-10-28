@@ -1,0 +1,27 @@
+id: industry-news-scout
+name: Industry news scout
+pitch: Finds the latest industry news and gives you the top three takeaways.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search the web for the latest industry news about the topic the person sells into. Read the top results and identify the three most important takeaways. Summarise each takeaway in one sentence. If fewer than three distinct articles are found, say how many were found and list what could be checked. If a result is behind a paywall, say that the full article could not be read. Present the three takeaways as a short list. Do not invent facts, prices or statistics.
+starters:
+  - latest news about [topic]
+  - what's happening in [industry]
+  - top trends in [topic]
+examples:
+  - ask: latest news about cloud security
+    does: Searches the web for recent cloud security articles, reads the top results and gives three takeaways such as 'AI-driven threat detection is becoming standard' and 'ransomware groups are targeting cloud backups'.
+skills:
+  - find-and-summarise-industry-news

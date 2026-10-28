@@ -38,9 +38,7 @@ describe("Markdown", () => {
   });
 
   it("moves headings down when asked, so a page keeps one h1", () => {
-    const { container } = render(
-      <Markdown headingOffset={2}>{"# Title\n\n## Part\n\n###### Deep"}</Markdown>,
-    );
+    const { container } = render(<Markdown headingsFrom={3}>{"# Title\n\n## Part\n\n###### Deep"}</Markdown>);
     expect(container.querySelector("h1")).toBeNull();
     expect(container.querySelector("h3")?.textContent).toBe("Title");
     expect(container.querySelector("h4")?.textContent).toBe("Part");
@@ -57,5 +55,17 @@ describe("Markdown", () => {
     expect(container.textContent).toContain("Two things need you.");
     fireEvent.click(screen.getByText("the page"));
     expect(screen.getByText("Open external link?")).toBeTruthy();
+  });
+
+  it("moves headings down to start at a given level, so a README adds no second h1", () => {
+    const { container } = render(
+      <Markdown headingsFrom={3}>{"# Title\n\n## Part\n\n###### Deep\n\nText."}</Markdown>,
+    );
+    expect(container.querySelector("h1")).toBeNull();
+    expect(container.querySelector("h3")?.textContent).toBe("Title");
+    expect(container.querySelector("h4")?.textContent).toBe("Part");
+    expect(container.querySelector("h6")?.textContent).toBe("Deep");
+    const plain = render(<Markdown>{"# Title"}</Markdown>);
+    expect(plain.container.querySelector("h1")?.textContent).toBe("Title");
   });
 });

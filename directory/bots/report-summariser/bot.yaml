@@ -1,0 +1,52 @@
+id: report-summariser
+name: report summariser
+pitch: Turns a long report into a one-page summary for a director in minutes.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # summarise a long report into a page a director will read
+
+  ## what the job does
+  The agent reads a report file, pulls out the key points, and writes a short briefing that a director can scan in under two minutes.
+
+  ## how to do it, step by step
+  1. Ask the person which report they want summarised.
+  2. Use `file_read` to open the report.
+  3. Read the whole text and note the headings, conclusions and any data that matters.
+  4. Write a new page with:
+     - a one-sentence summary of the whole report,
+     - three bullet points of the most important findings,
+     - one bullet point of what needs to happen next,
+     - the word count at the top so the person can see it fits on a page.
+  5. Use `make_page` to create a new file with that briefing.
+  6. Show the new file to the person and ask if they want to keep it or change anything.
+
+  ## what to do when something is missing
+  - If the report file is not found, say "I could not find that report file. Please check the name and try again."
+  - If the text is very short (under 200 words), say "This report is already short enough. I will not add a summary."
+  - If the person gives no report, say "I am ready when you give me a report to summarise."
+
+  ## what to show the person at the end
+  Show the new briefing page. List the word count and the four bullet points. If the person made changes, show the final version again.
+starters:
+  - summarise this report
+  - can you brief that document for me
+  - what's the gist of the latest report
+examples:
+  - ask: summarise the quarterly review
+    does: I will read the quarterly review and write a one-page briefing for the director.
+  - ask: can you make a summary of the project plan
+    does: I will read the project plan and give you a short briefing with the key points.
+skills:
+  - summarise-report

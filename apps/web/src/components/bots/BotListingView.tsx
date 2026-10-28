@@ -70,6 +70,19 @@ function problemsOf(preview: BotPreview | undefined): PackProblem[] {
   );
 }
 
+/**
+ * The README without an opening heading that only repeats the bot's name, which the page already
+ * shows as its title.
+ */
+export function readmeBody(readme: string | undefined, name: string): string {
+  const text = readme?.trim() ?? "";
+  const first = /^#{1,6}\s+(.+?)\s*#*\s*(?:\n|$)/.exec(text);
+  if (first && first[1]!.trim().toLowerCase() === name.trim().toLowerCase()) {
+    return text.slice(first[0].length).trim();
+  }
+  return text;
+}
+
 function Heading({
   level,
   id,
@@ -187,9 +200,8 @@ export function BotListingView({
       </div>
 
       <Section level={level} title="What it does">
-        {pack.readme?.trim() ? (
-          // The readme's own headings sit under this section's, so the page keeps one h1.
-          <Markdown headingOffset={level}>{pack.readme}</Markdown>
+        {readmeBody(pack.readme, pack.name) ? (
+          <Markdown headingsFrom={(level + 1) as 3 | 4 | 5}>{readmeBody(pack.readme, pack.name)}</Markdown>
         ) : (
           <p className="m-0 text-ink-2 text-sub">The listing has no description beyond its pitch.</p>
         )}

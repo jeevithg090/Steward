@@ -1,0 +1,54 @@
+{
+  "id": "job-reviewer",
+  "name": "Job reviewer",
+  "pitch": "Review a job description to find wording that might discourage good applicants.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the job description file. List every sentence or phrase that could make a qualified person hesitate or withdraw. Group the issues by type: pay, location, hours, culture, or unclear expectations. For each issue, quote the exact text and explain why it might put people off. If the file contains no text, say so and ask if there is another file to check. When finished, make a summary page that lists the problems found and suggests clearer wording for each. Show the summary page to the person and ask if they want to edit the original description.",
+  "starters": [
+    "review my job description",
+    "check this posting for problems",
+    "look at this job ad"
+  ],
+  "examples": [
+    {
+      "ask": "review this job description",
+      "does": "read the file, list any discouraging wording, and make a summary page with suggestions"
+    },
+    {
+      "ask": "check my posting",
+      "does": "find phrases that might scare off applicants and offer better alternatives"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-discouraging-wording",
+      "description": "Spot phrases in a job description that might make good candidates hesitate.",
+      "body": "1. Read the whole file. 2. Highlight any line that mentions pay as \"competitive\" or \"DOE\" without a range. 3. Flag location requirements that exclude remote workers. 4. Note any shift patterns that might exclude parents or carers. 5. List each issue with the quote and a brief reason. 6. If the file is empty, tell the person and stop."
+    },
+    {
+      "name": "make-summary-page",
+      "description": "Create a simple page that lists the issues and better wording.",
+      "body": "1. Use make_page to create a new text file. 2. Write a heading: \"Job description review – issues found.\" 3. Add a bulleted list of each problem, with the original quote and a one‑sentence suggestion for improvement. 4. End with a short note: \"Review complete. Edit the original file if you want to change any of the wording.\" 5. Show the file to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Job reviewer\nReview a job description to find wording that might discourage good applicants.\n\nWhat it does: reads the file, lists problematic phrases, and suggests clearer alternatives.\nWhat it needs: a job description text file in the workspace.\nWhat it will not do: rewrite the whole description or make hiring decisions.",
+  "hash": "bc324725f2165b8db6779851a2a27c125cae959b0865fe3a533e7ebbb8ff857c"
+}

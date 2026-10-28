@@ -1,0 +1,30 @@
+id: email-action-items
+name: Email action items
+pitch: Find action items from your boss's emails in the last month and add them as tasks.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - task_create
+  connectors:
+    - mail
+  model: any
+instructions: Start by listing all emails from the last month. When the list is ready, read each email and look for sentences that look like instructions or tasks. When an action item is found, copy the text and add it as a new task. If an email has no action items, move to the next one. When all emails have been checked, show the person the list of tasks created. If no action items were found in any email, say so and list no tasks.
+starters:
+  - find my boss's emails
+  - last month's boss emails
+  - action items from boss
+examples:
+  - ask: find my boss's emails from last month
+    does: lists recent boss emails and asks if they want action items extracted
+  - ask: pull out the action items
+    does: reads the emails and creates tasks for each instruction found
+skills:
+  - extract-action-items

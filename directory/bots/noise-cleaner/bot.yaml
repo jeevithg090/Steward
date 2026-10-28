@@ -1,0 +1,25 @@
+id: noise-cleaner
+name: noise cleaner
+pitch: Remove background noise from an audio file using a noise profile.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - shell_run
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person for the path to the audio file and the path to the noise profile file. When nothing is found, say so and ask again. Read the audio file path and the noise profile path. Check that both files exist. If either is missing, say which one and stop. Run a command to denoise the audio, using the two file paths as arguments. Ask the shell to run the command and wait for it to finish. If the command fails, say what the error was and stop. After the command succeeds, write the output file to the same folder with 'cleaned' appended before the extension. Read the cleaned file and tell the person the name of the output file and that the noise removal is complete. If the person gave a different output path, use that instead.
+starters:
+  - remove noise from this recording
+  - clean up the audio file
+  - apply noise profile to my sound
+examples:
+  - ask: can you clean up the recording?
+    does: ask for the audio and noise profile paths, then run the denoise command

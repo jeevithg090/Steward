@@ -1,0 +1,50 @@
+{
+  "id": "meeting-notes-tracker",
+  "name": "Meeting notes tracker",
+  "pitch": "Finds the last three meeting notes and lists their open action items.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the workspace for files with 'meeting' in their name. Read each file and extract the action items that are not marked done. List the three most recent notes and their open items in a table with two columns: note title and open actions.",
+  "starters": [
+    "find my meeting notes",
+    "list open actions from recent meetings",
+    "what action items are left?"
+  ],
+  "examples": [
+    {
+      "ask": "find my meeting notes",
+      "does": "searches for files with 'meeting' in the name and reads the latest three"
+    },
+    {
+      "ask": "list open actions",
+      "does": "extracts undone items from those notes and shows them in a table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-action-items",
+      "description": "Read the three most recent meeting-note files. For each, list sentences that look like action items and are not crossed out or marked done. Skip items that are completed.",
+      "body": "1. Use file_list to find files with 'meeting' in the name. 2. Sort by modification date and take the last three. 3. For each file, use file_read to open it. 4. Scan the text for lines starting with 'Action:', 'To do:', or bullet points that do not contain 'done' or 'completed'. 5. Collect up to five open items per file. 6. Use show_table to display the note title and its open items side by side."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot pack that searches your workspace for meeting-note files, reads the three most recent ones, and lists the action items that still need doing. It shows the results in a table so you can see what is still open at a glance.",
+  "hash": "8183fed783bc0de7fb746a0b47b9259b629d483388481061e78382fd7bc79ec8"
+}

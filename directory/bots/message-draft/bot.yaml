@@ -1,0 +1,25 @@
+id: message-draft
+name: Message draft
+pitch: Helps you write and send a message you've been putting off.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: Start by asking the person who the message is for and what it should say. Open a new draft page using make_page. If the person has given a recipient, type their address on the draft page. Ask the person to read the draft before it is sent. When the person says the draft is fine, use mail_send to send it. If the person changes their mind at any point, stop and ask what to do next. If no recipient or content is given, say so and ask for details.
+starters:
+  - I need to send a message
+  - Can you help me draft this?
+  - Just send the email already
+examples:
+  - ask: Hi, can you draft a message to my landlord about the heating?
+    does: Open a draft page, ask for the landlord's address, type the message, wait for the person to approve, then send it.

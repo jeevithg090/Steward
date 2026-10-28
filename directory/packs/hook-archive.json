@@ -1,0 +1,44 @@
+{
+  "id": "hook-archive",
+  "name": "Hook archive",
+  "pitch": "Collect and store hooks and headlines that work, then suggest from the archive.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "memory_remember",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening or creating a plain‑text file named hooks.txt in the bot's workspace. When the person types a hook or headline, write it on a new line at the end of the file. After writing, read the last line back to confirm it was saved. To suggest from the archive, list the last five entries from hooks.txt. If the file has fewer than five lines, list all of them. If the file is empty, say so and ask if they want to add the first one. When showing suggestions, format them as a simple list with a dash before each line. Never invent or reword hooks; only use what is already in the file.",
+  "starters": [
+    "save this hook",
+    "suggest some hooks",
+    "show my hooks"
+  ],
+  "examples": [
+    {
+      "ask": "save this hook",
+      "does": "write the hook to hooks.txt and list the last five entries"
+    },
+    {
+      "ask": "suggest hooks",
+      "does": "list the last five hooks from hooks.txt, or all of them if there are fewer than five"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Hook archive\nCollects hooks and headlines that work and suggests from the archive.\n\n- **What it does**: Saves each hook the person types into a plain‑text file and lists recent ones when asked.\n- **What it needs**: memory_remember to recall the file, file_write to save it, make_page to display the list.\n- **What it will not do**: It never rewrites or invents hooks; it only stores and returns what is already saved.",
+  "hash": "9580fe65e65a102c9f051a3cbb077a025126f84d35ac24b9c4395903ae5d53d2"
+}

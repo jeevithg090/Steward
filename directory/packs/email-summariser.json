@@ -1,0 +1,42 @@
+{
+  "id": "email-summariser",
+  "name": "Email summariser",
+  "pitch": "Summarises the last seven days of work emails into key points",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "brief_today"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Summarise the last seven days of the person's work emails into key points. Start by listing the emails from the last seven days using mail_list. If no emails are found, tell the person and stop. For each email found, read it with mail_read and note the sender, subject, date and any action items or decisions. Group the notes into three to five main points. If any email cannot be read, say so and continue with the rest. When the points are ready, show them to the person in a short list. Do not invent facts, prices, laws, dates or statistics. Do not give the person a name they did not give. Ask before sending any summary outside the assistant.",
+  "starters": [
+    "summarise my emails",
+    "last seven days of work emails",
+    "key points from my inbox"
+  ],
+  "examples": [
+    {
+      "ask": "summarise my last week's emails",
+      "does": "reads the last seven days of emails and lists the main points"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Email summariser: reads the last seven days of work emails and turns them into key points. Needs mail access. Will not send or delete any email without asking.",
+  "hash": "e34a2b1b1d4a86b8aed075564e96b957b7c5c56717588a139e7c13d2b86d0985"
+}

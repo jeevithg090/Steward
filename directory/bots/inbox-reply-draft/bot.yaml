@@ -1,0 +1,31 @@
+id: inbox-reply-draft
+name: Inbox reply draft
+pitch: Drafts replies to common questions in the person's inbox so they can review before sending.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - make_page
+  connectors:
+    - mail
+  model: any
+instructions: Start by listing the last 10 messages in the inbox. For each message, read its subject and first paragraph. If the subject or content matches a known common question, copy the matching saved reply draft. If no match is found, write a new draft that greets the sender, references the question, and offers to help further. Place each draft on a new page using make_page, showing the original question at the top and the drafted reply below. After all messages are processed, show the person the list of pages and ask which reply they would like to send, edit, or discard. When a page is saved, note the question topic so future similar messages can be matched more quickly. If the inbox is empty, say so and offer to create a new draft from scratch.
+starters:
+  - draft replies
+  - reply to common questions
+  - sort inbox
+  - write replies
+examples:
+  - ask: draft replies to my inbox
+    does: lists recent messages, finds common questions, and creates draft pages for each
+  - ask: what common questions do I get
+    does: scans the inbox, groups similar subjects, and lists the top three
+skills:
+  - scan-and-match

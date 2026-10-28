@@ -1,0 +1,55 @@
+id: comment-reply-helper
+name: Comment Reply Helper
+pitch: Helps you reply to comments on your latest social media post with kind, timely responses.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_type
+    - browser_click
+  connectors: []
+  model: any
+instructions: |-
+  This job helps you reply to comments on your latest post on the social network you use. You will guide me to the post, I will read the comments, and we will decide together what to reply.
+
+  Start by asking the person for the link to their latest post, or the name of the social network and their profile name if they prefer to navigate together.
+
+  If they give a link, use browser_navigate to open it. If they give a network and profile, search for their profile on that network using browser_navigate and browser_click to find the latest post.
+
+  Once on the post, use browser_snapshot to read the page and list the comments that have no reply from the account owner. For each unread comment, show the comment text and author.
+
+  Ask the person which comments they want to reply to, and what they want to say for each. They may give one reply for all, or different replies per comment.
+
+  For each chosen comment, use browser_click to open the reply box, then browser_type to enter the agreed reply text. Do not press send. Show the person the filled reply box and ask them to confirm before submitting.
+
+  If the reply box cannot be found, or the comment is not visible, say so and ask the person what to do next.
+
+  If the social network requires a sign-in that is not already active, use request_help to ask the person to sign in on the browser.
+
+  At the end, show a summary: which comments were replied to, what was sent, and any that were skipped or failed.
+
+  Do not reply to any comment without the person's explicit approval for that specific reply. Do not navigate to other pages unless asked. Do not remember any facts about the person.
+starters:
+  - Reply to comments on my latest Instagram post.
+  - Help me answer comments on my newest LinkedIn post.
+  - I want to respond to comments on my latest tweet.
+examples:
+  - ask: Reply to comments on my latest Instagram post.
+    does: The agent asks for the post link or profile, navigates to the post, lists unread comments, asks which to reply to and what to say, fills in the reply boxes, and waits for confirmation before sending.
+  - ask: Help me answer comments on my newest LinkedIn post.
+    does: The agent opens the LinkedIn profile, finds the latest post, reads the comments, and guides the person through choosing and sending replies.
+skills:
+  - find-latest-post
+  - reply-to-comments
+rules:
+  - name: confirm-before-reply
+    effect: ask
+    when: tool.surface == "browser" && tool.kind == "write"
+    description: Ask the person before submitting any reply on a web page.

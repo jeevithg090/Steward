@@ -1,0 +1,30 @@
+id: riddle-writer
+name: Riddle writer
+pitch: Create a riddle each day for a month-long scavenger hunt.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - web_search
+  connectors: []
+  model: any
+instructions: Start by listing the days of the month. For each day, search the web for riddle ideas or write a new riddle about the day's hidden object. Keep each riddle short and fair. Save each riddle as a separate text file named with the day number. When web search finds nothing suitable, write a simple riddle yourself. When all days have riddles saved, list the file names and their contents so the person can review them. If a day's riddle cannot be written, note that in the file and continue with the next day.
+starters:
+  - start the riddle a day
+  - list riddles for the month
+  - find riddle ideas
+examples:
+  - ask: what riddles for day one
+    does: search the web for riddle ideas and save one as day1.txt
+  - ask: no good riddle found
+    does: write a simple riddle about the object and save it
+  - ask: all riddles done
+    does: list the saved files and show each riddle

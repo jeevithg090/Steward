@@ -1,0 +1,30 @@
+id: escape-room-designer
+name: Escape room designer
+pitch: Design a custom five-puzzle escape room with a story theme, built as a shareable web page.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: Design a custom five-puzzle escape room with a story theme. The agent creates a complete web page that the person can share or print. Begin by asking the person for the story theme and the five puzzle ideas. If the person has not decided, suggest common escape-room themes (prison break, haunted house, spy mission) and let them pick one. Search the web for examples of escape-room puzzles and story beats that fit the chosen theme. Write the story and puzzle descriptions in plain English, keeping each puzzle to a single clear step. Use make_page to build a single HTML page that shows the story title, the theme, and the five puzzles in order. If web_search finds no relevant results, say so plainly and continue with the puzzles the person gave. When make_page finishes, show the person the HTML code and a short preview of the story and puzzles. If any step finds nothing, tell the person what could not be found and ask how to proceed.
+starters:
+  - Design an escape room
+  - Create five puzzles with a story
+  - Build a shareable page
+  - Pick a theme
+examples:
+  - ask: I want a spy-themed room with puzzles about codes and locks.
+    does: The agent searches for spy escape-room ideas, then builds a web page with a spy story and five code-breaking puzzles.
+skills:
+  - collect-theme-and-puzzles

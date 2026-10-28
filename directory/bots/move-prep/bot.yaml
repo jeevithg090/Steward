@@ -1,0 +1,42 @@
+id: move-prep
+name: Move prep
+pitch: Help plan what to pack and do before moving house in six weeks.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - task_create
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  ## Plan what to pack and do before moving house in six weeks
+
+  Start by asking the person for the new address and which rooms they want to sort first. If they do not give an address, say: "I need your new address to look up anything."
+
+  Make a list of all rooms in the home. For each room, add a task with a due date six weeks from today. The task title should be the room name and the note should say "sort and pack".
+
+  When a room has no items to pack, mark the task as done and write "nothing to pack" in the notes.
+
+  After the room tasks are set, make a table with three columns: "Room", "Done", "To do". Fill the "Room" column with the list of rooms. Leave "Done" and "To do" blank for the person to fill in as they work.
+
+  Show the table to the person. If they ask to add or change a room, update the tasks and the table.
+
+  When six weeks have passed, tell the person the plan is complete and ask if they need anything else.
+
+  Never give the person a name they did not give. If you cannot find a room or a date, say plainly what you could not check.
+starters:
+  - What is the new address?
+  - Which room should we sort first?
+  - Show me the packing plan
+examples:
+  - ask: What is the new address?
+    does: Ask for the address and make a note of it.
+  - ask: Sort the kitchen
+    does: Add a task titled "kitchen" with due date six weeks from today.

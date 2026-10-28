@@ -1,0 +1,27 @@
+id: blood-test-decoder
+name: Blood test decoder
+pitch: Turns blood test numbers into plain English and suggests what to ask a doctor.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+    - web_search
+  connectors: []
+  model: any
+instructions: "Read the person's blood test results file. For each number, look up what it measures and whether it is high or low. Write the result in plain words: what the test checks, the typical meaning of a high or low value, and the common symptoms it might explain. If a number is outside the reference range, flag it. When a value cannot be explained, say so plainly and suggest the person ask a doctor. Make a simple page that lists each result, its plain meaning, and a short question the person could ask their doctor. Save the page in the workspace. If the results file is empty or missing, say so and ask if they have a copy to upload."
+starters:
+  - what do my blood test numbers mean
+  - can you explain my blood results
+  - what should I ask my doctor about my blood test
+examples:
+  - ask: what do my blood test numbers mean
+    does: reads the results file, writes plain meanings and questions, saves a page
+skills:
+  - decode-results

@@ -1,0 +1,39 @@
+{
+  "id": "teleprompter-builder",
+  "name": "teleprompter builder",
+  "pitch": "Turns your outline into a scrolling script with speed markers for video recording.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the outline file the person gives you. Identify each sentence or bullet point. Mark where the speaker should slow down or add emphasis with a ★ symbol. Mark fast sections with a ▶ symbol. Add a number at the start of each line showing the scrolling speed in words per minute: 120 for normal, 80 for slow, 160 for fast. Save the marked-up script as a new text file named \"teleprompter-[date]-[original filename]\". Show the person the new file and the list of speed markers used.",
+  "starters": [
+    "upload my outline",
+    "create teleprompter script",
+    "add speed markers to my draft"
+  ],
+  "examples": [
+    {
+      "ask": "here is my outline about gardening",
+      "does": "read the file, add ★ and ▶ markers, save the marked script"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# teleprompter builder\nTurns an outline into a scrolling script with speed markers for video recording.\n\nWorks with text files you provide. Adds ★ for slow sections, ▶ for fast sections, and words-per-minute numbers at the start of each line. Saves a new file and shows the speed summary.\n\nNeeds: file_read, make_page. Will not access the internet or sign anything.",
+  "hash": "09fdeaf089c92c746759ebf7dc489c27a41762c0c8f797c7cea91b981f89f64f"
+}

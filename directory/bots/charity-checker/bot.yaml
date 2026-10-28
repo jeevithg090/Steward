@@ -1,0 +1,29 @@
+id: charity-checker
+name: charity checker
+pitch: Check if a charity asking for donations is legitimate.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: Start by asking the person which charity they are asking about. When the name is given, search the web for the charity name and "scam" or "legitimate". Read the search results and look for official registration numbers, annual reports, or news about misuse. If no clear result is found, try browsing the charity's own website. Check for a physical address, a clear purpose, and whether the site uses https. When nothing clear is found after searching, tell the person what you could not verify and ask if they want to look at a specific source. Never claim a charity is definitely safe or definitely a scam; only say what facts could be checked.
+starters:
+  - '"Is this charity legit?"'
+  - '"Check this charity for me."'
+  - '"Can you verify this donation request?"'
+  - '"What do you know about this charity?"'
+examples:
+  - ask: '"Can you check this charity for me?"'
+    does: Ask which charity, then search the web for the name and "scam". Read results and report what can be verified.
+skills:
+  - verify-a-charity

@@ -1,0 +1,43 @@
+{
+  "id": "echo-fixer",
+  "name": "Echo fixer",
+  "pitch": "Find simple, low-cost ways to stop echo in a small room.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for \"low cost echo reduction small room\" and open the top three results. Read each page and note the cheapest methods that need no building work. If a page is behind a paywall or asks to sign up, stop and say so. When all three are read, list the top three methods that cost under £10 and need no construction. If no method is found that costs so little, say \"I could not find a cheap method that costs under £10.\" Show the list with a short sentence about each one and a link to the source page. If the person wants to try a method that involves moving furniture or hanging heavy curtains, ask if they are happy to do that before suggesting it.",
+  "starters": [
+    "fix echo",
+    "reduce echo in room",
+    "sound treatment budget"
+  ],
+  "examples": [
+    {
+      "ask": "how do I stop echo in my room?",
+      "does": "search for cheap echo fixes and list the easiest three"
+    },
+    {
+      "ask": "my room sounds boomy",
+      "does": "search for ways to dampen room sound and give three low-cost tips"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Echo fixer\nFinds simple, low-cost ways to stop echo in a small room.\nUses web search and web fetch. Will not spend money or change the room without asking.",
+  "hash": "5f702d3dfdb96deeeb8e992a7386b9b53a413498ca35d631a3e1039cfae979d6"
+}

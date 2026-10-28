@@ -1,0 +1,54 @@
+{
+  "id": "prompt-stater",
+  "name": "Prompt stater",
+  "pitch": "Creates a starter prompt and example output from a bot's instructions.",
+  "category": "bot-helpers",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person asks to write a starter prompt, start by reading the bot's instructions file. Use file_read to locate the instructions file in the workspace. If the file is not found, say so and ask the person for the text. If the file is found, read its full contents. From the instructions, extract the bot's purpose, what it does, and how it works. Write a short starter prompt that tells the bot what to do in one sentence. Create one example output that shows the bot's response to a simple use of that prompt. Keep the prompt under 30 words and the example under 50 words. Save the prompt and example as a new file named STARTER_PROMPT.md using make_page. If the instructions contain no usable information, say what could not be found and do not create a file. After saving, show the person the new file contents.",
+  "starters": [
+    "write a prompt for my bot to sort my email",
+    "give me a starter prompt and example",
+    "create a bot prompt from my instructions"
+  ],
+  "examples": [
+    {
+      "ask": "here are my bot's instructions",
+      "does": "reads the instructions file and writes a starter prompt and example to a new file"
+    },
+    {
+      "ask": "i don't have an instructions file",
+      "does": "says it could not find an instructions file and asks for the text"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-purpose",
+      "description": "Pull the bot's purpose and main action from its instructions.",
+      "body": "1. Open the instructions file with file_read. 2. Look for a sentence that starts with the bot's main verb, such as 'sort', 'find', or 'write'. 3. Write that sentence in your own words, keeping only the purpose and the main task. 4. If no clear purpose is found, note that the instructions were unclear."
+    },
+    {
+      "name": "make-example",
+      "description": "Write one example output based on the extracted purpose.",
+      "body": "1. Decide on a simple input the person might type, such as 'my email' or 'today's tasks'. 2. Write a short response that the bot could give, using the purpose sentence from step 2. 3. Keep the example under 50 words. 4. If the purpose was unclear, say so and do not write an example."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "**Prompt stater**\nCreates a starter prompt and example output from a bot's instructions.\n\n- Reads the bot's instructions file.\n- Writes a one-sentence starter prompt (under 30 words).\n- Writes one example output (under 50 words).\n- Saves them as STARTER_PROMPT.md.\n\nWill not invent a purpose if the instructions have none.",
+  "hash": "080b92a0dc59c5cfb3f2ae7998176539e39ad9f0ee8619d9f3b82a3b7d103579"
+}

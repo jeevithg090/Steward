@@ -1,0 +1,46 @@
+{
+  "id": "sales-summary",
+  "name": "sales summary",
+  "pitch": "summarizes three months of sales data and identifies the biggest trend",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "shell_run",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the spreadsheet to find the sales figures for the last three months. Calculate the month‑on‑month change for each metric. Identify which metric had the largest increase or decrease. Create a simple table with the three months and the key figures. If the spreadsheet has no data, say so and stop. If a calculation fails, report the error plainly. Show the table to the person at the end.",
+  "starters": [
+    "summarize sales data",
+    "last three months sales",
+    "biggest trend in sales"
+  ],
+  "examples": [
+    {
+      "ask": "can you look at my sales spreadsheet?",
+      "does": "read the file and list the sheet names"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-sales-figures",
+      "description": "read the spreadsheet and pull the numbers for the last three months",
+      "body": "1. Use file_read to open the spreadsheet. 2. Locate the sheet or section with monthly sales. 3. Extract the total sales figure for each of the last three months. 4. If a month is missing, note it and continue with the available months."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# sales summary\nSummarizes the last three months of sales data from a spreadsheet and spots the biggest trend.\n\n**What it needs**: file_read to open the spreadsheet, shell_run for any calculations, show_table to display the results.\n\n**What it will not do**: it cannot interpret business strategy, it only reports the numbers it finds.",
+  "hash": "05f7d6c0331e5232d88fb1dd0b9afac687c0e95bccf0aa0696c5af77caffe205"
+}

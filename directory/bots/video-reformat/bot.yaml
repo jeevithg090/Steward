@@ -1,0 +1,27 @@
+id: video-reformat
+name: video reformat
+pitch: Convert horizontal videos to vertical with safe zone overlays for social platforms.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - shell_run
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: Convert horizontal videos to vertical format with safe zone overlays for social platforms. Begin by listing the video files in the workspace using file_read. For each video file found, run the ffmpeg command to resize to vertical resolution (1080x1920) and add a safe zone overlay using the drawtext filter. After processing, list the output files and show their names and sizes to the person. If no video files are found, say so and ask if they want to add files. If ffmpeg is not available, say that the tool is not connected and ask if they want to install it. Never invent video dimensions or overlay text; use the standard safe zone rectangle for the target platform.
+starters:
+  - convert this video
+  - make it vertical
+  - add safe zone overlay
+examples:
+  - ask: convert my intro clip
+    does: list files, run ffmpeg to resize and overlay, show output
+skills:
+  - reformat-video

@@ -1,0 +1,46 @@
+{
+  "id": "script-profiler",
+  "name": "script profiler",
+  "pitch": "Find why a script runs slow and suggest the smallest fix.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "shell_run",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the script file named by the person. Run the script with timing to find the slowest part. Write a short report that lists the slow section and one small change that would speed it up. Show the report on a page the person can read.",
+  "starters": [
+    "profile this script",
+    "why is this script slow",
+    "optimize my script"
+  ],
+  "examples": [
+    {
+      "ask": "profile this script",
+      "does": "reads the script, runs it with timing, and writes a short report."
+    }
+  ],
+  "skills": [
+    {
+      "name": "profile-and-report",
+      "description": "Find the slow part of a script and suggest one fix.",
+      "body": "1. Read the script file the person names. 2. Run the script from the command line and note how long it takes. 3. Look for the part that takes the most time. 4. Write one small change, such as using a built‑in function or removing a loop, that would make that part faster. 5. Make a page with the section name, the time it took, and the suggested change."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Script profiler: reads a script, times its run, and suggests the smallest change to make it faster. Needs file_read and shell_run. Will not run commands that change files or install packages.",
+  "hash": "54af90a122f675dfe272b407c9c84f131a858d960316e73681cfa7c6fc942d97"
+}

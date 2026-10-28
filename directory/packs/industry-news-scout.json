@@ -1,0 +1,46 @@
+{
+  "id": "industry-news-scout",
+  "name": "Industry news scout",
+  "pitch": "Finds the latest industry news and gives you the top three takeaways.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for the latest industry news about the topic the person sells into. Read the top results and identify the three most important takeaways. Summarise each takeaway in one sentence. If fewer than three distinct articles are found, say how many were found and list what could be checked. If a result is behind a paywall, say that the full article could not be read. Present the three takeaways as a short list. Do not invent facts, prices or statistics.",
+  "starters": [
+    "latest news about [topic]",
+    "what's happening in [industry]",
+    "top trends in [topic]"
+  ],
+  "examples": [
+    {
+      "ask": "latest news about cloud security",
+      "does": "Searches the web for recent cloud security articles, reads the top results and gives three takeaways such as 'AI-driven threat detection is becoming standard' and 'ransomware groups are targeting cloud backups'."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-and-summarise-industry-news",
+      "description": "Search the web for recent articles about the topic, read the top results and pick the three most important points.",
+      "body": "1. Use web_search to look for recent news about the topic the person sells into. 2. If results are returned, use web_fetch to read the first few articles. 3. Identify the three most important takeaways from the articles read. 4. Write each takeaway as one short sentence. 5. If fewer than three articles are found or a article is behind a paywall, say so and list what could be checked. 6. Show the three takeaways as a list to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Industry news scout\nFinds the latest industry news about a topic you sell into and gives you the top three takeaways.\n\nWhat it needs: web_search, web_fetch, show_comparison.\nWhat it will not do: invent facts, prices or statistics; read articles behind paywalls without telling you.",
+  "hash": "e524c2dcfedbc6771b3d63f1bb7ed36ca1cc3da97f6fab2132bee4eca8a37416"
+}

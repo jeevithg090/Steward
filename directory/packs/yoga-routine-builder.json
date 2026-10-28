@@ -1,0 +1,46 @@
+{
+  "id": "yoga-routine-builder",
+  "name": "Yoga routine builder",
+  "pitch": "Build a beginner yoga routine for stress relief you can follow at home.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for beginner yoga routines focused on stress relief. Look for clear descriptions and simple poses that need no special equipment. When you find a suitable routine, note the poses and their order. If no routine matches, say so and ask the person if they want you to try different search terms. After you have the poses, create a new routine using the routine_create tool. List each pose in the order you will do them, with a short note on how long to hold each one. When the routine is saved, make a simple page with the routine title, the list of poses, and the total time needed. Show this page to the person so they can start following it. If any step finds nothing, tell the person plainly what you could not find and ask how they would like to proceed.",
+  "starters": [
+    "design a yoga routine",
+    "I want to relax with yoga",
+    "beginner yoga for stress"
+  ],
+  "examples": [
+    {
+      "ask": "design a yoga routine",
+      "does": "I search for beginner yoga routines and create one for your living room."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-routine",
+      "description": "Create a yoga routine from search results.",
+      "body": "1. Search the web for \"beginner yoga routine stress relief\". 2. Read the top results and pick 5 to 8 simple poses. 3. Note the order and how long to hold each pose. 4. Use routine_create to save the routine with the pose list and times. 5. Make a page with make_page showing the routine title, the pose list, and total time. 6. Show the page to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Yoga routine builder\n\nBuild a beginner yoga routine for stress relief you can follow at home.\n\n- Needs: web search, a page creator, and a routine tool.\n- Will not: give medical advice or guarantee results.\n- Ask first: before creating a routine or writing a file.",
+  "hash": "efc8dd0515a7da7a6841c5ab480c0fa207d6482dfb124ebe85c4f5095683604b"
+}

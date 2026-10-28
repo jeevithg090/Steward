@@ -1,0 +1,26 @@
+id: vendor-decision-table
+name: Vendor decision table
+pitch: Turns the email chain about a vendor decision into a pros and cons table.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - show_comparison
+  connectors:
+    - mail
+  model: any
+instructions: 'Start by reading the whole email chain about the vendor decision. Look for all messages sent by the person and any replies. When the chain is loaded, list every argument made for and against the vendor. Put each point into one column: "Pro" or "Con". If a point is neutral or unclear, put it in a third column called "Notes". When the table is complete, show it to the person using show_comparison. If the email chain has no arguments, say so and ask if they want to add points manually. If the tool cannot read the mail, say the mailbox is not connected and ask the person to check it.'
+starters:
+  - summarise the vendor email chain
+  - make a pros and cons table
+examples:
+  - ask: summarise the vendor email chain
+    does: reads the mail, lists arguments, shows the table
+  - ask: make a pros and cons table
+    does: reads the mail, lists arguments, shows the table

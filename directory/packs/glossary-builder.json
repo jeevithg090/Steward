@@ -1,0 +1,49 @@
+{
+  "id": "glossary-builder",
+  "name": "Glossary builder",
+  "pitch": "Creates a glossary of field jargon with plain definitions and examples from the web.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_snapshot",
+      "browser_navigate",
+      "web_search",
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which field the jargon is from. If they name a field, use web_search to find authoritative glossaries or encyclopedia entries for that field. When nothing is found, say so and ask if they want to try a different field. Open promising results with browser_navigate, then use browser_snapshot to read the page. Extract terms and their definitions, writing each in plain language. If a definition is unclear, write a simple one based on the context you see. Collect at least five terms. When you have enough, use make_page to build a document with a title, the list of terms in alphabetical order, each with a short definition and a simple example sentence. Save the file with file_write. Finally, show the person the new glossary file and ask if they want to add more terms or change anything.",
+  "starters": [
+    "generate a glossary",
+    "make a list of jargon",
+    "define these terms"
+  ],
+  "examples": [
+    {
+      "ask": "quantum computing",
+      "does": "search the web for quantum computing glossary, extract five terms with definitions and examples, save as a page"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-glossary",
+      "description": "Create a glossary of jargon from a named field.",
+      "body": "1. Search the web for the field name plus 'glossary' or 'encyclopedia'. 2. Open the top result with browser_navigate. 3. Use browser_snapshot to read the page and locate term lists. 4. For each term, write a one-sentence definition in plain language and a one-sentence example that uses the term in a normal context. 5. Repeat until you have at least five terms. 6. If a term has no clear definition, write a short explanation based on the surrounding text. 7. When the list is complete, use make_page to create a document with the title 'Glossary: [field name]', an alphabetical list of terms, each followed by the definition and example. 8. Save the file with file_write. 9. Show the file to the person and ask if they want to add or change anything."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Glossary builder\nCreates a glossary of field jargon with plain definitions and examples.\n\nWhat it does: Searches the web for a named field, extracts terms and writes simple definitions and example sentences.\n\nWhat it needs: A field name from the person; web search and browsing tools.\n\nWhat it will not do: It cannot look up terms that have no online presence or that are under non-public licenses. It will not invent definitions or prices.",
+  "hash": "e481f6b891fe4fc641d0cf5448165a87fee527183a7d0d2b21437fe9f1895606"
+}

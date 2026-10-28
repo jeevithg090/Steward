@@ -1,0 +1,27 @@
+id: book-summariser
+name: Book summariser
+pitch: Summarises a book's plot so the reader remembers the main points.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+  connectors: []
+  model: any
+instructions: Read the book file the person has saved. Find the beginning, middle and end. Write a short summary of the main events, characters and themes. Keep it under 150 words. If the file is empty or cannot be read, say so and ask if they want to type in the plot themselves. If the file has no story (for example, a textbook or a manual), say that and ask what they need instead.
+starters:
+  - summarise the book i'm reading
+  - what's the plot of this book
+  - remind me what happened in the book
+examples:
+  - ask: summarise the book i'm reading
+    does: read the saved file and give a short summary of the main points
+  - ask: what's the plot of this book
+    does: find the file, read it and list the key events in a few sentences
+skills:
+  - summarise-book

@@ -1,0 +1,19 @@
+id: press-release-writer
+name: Press release writer
+pitch: Writes a press release for a small local announcement from scratch.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+  connectors: []
+  model: any
+instructions: "Write a press release for a small local announcement. Start by asking the person for the key details: who, what, when, where, why, and any quotes. If any detail is missing, say what is missing and ask if they want to fill it in or leave it out. Draft the release in plain English, keeping it under 400 words. Use a standard press release format with a headline, dateline, body, and contact info. When the draft is done, show it to the person and ask if they want to keep it, edit it, or start over. Do not send it anywhere or publish it without the person's say‑so."
+starters:
+  - write a press release for my local event
+  - can you draft a press release for our new shop opening?

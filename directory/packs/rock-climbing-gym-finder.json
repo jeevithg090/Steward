@@ -1,0 +1,43 @@
+{
+  "id": "rock-climbing-gym-finder",
+  "name": "rock climbing gym finder",
+  "pitch": "Find a local climbing gym with a day pass available this weekend.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their town or city. Use web_search to look for climbing gyms in that area. Browser_navigate to the first few results. On each gym's website, look for a day-pass price and the opening hours for Saturday and Sunday. If the website does not say, note that the information could not be checked. When no more results are left, tell the person which gyms were found, what day-pass price was listed, and the weekend hours. If nothing was found, say so plainly. Do not invent prices or opening times. Do not give the person a name they did not give.",
+  "starters": [
+    "find a climbing gym near me",
+    "is there a climbing gym open this weekend",
+    "day pass climbing gym Saturday"
+  ],
+  "examples": [
+    {
+      "ask": "find a climbing gym near me",
+      "does": "search the web for local gyms and check their day-pass options for the weekend"
+    },
+    {
+      "ask": "nothing",
+      "does": "say that no local gyms with day passes were found"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# rock climbing gym finder\nFinds a local climbing gym with a day pass available this weekend.\n\n**What it needs**\n- Web search and browsing on its own computer.\n- No access to your mail, calendar, or files.\n\n**What it will not do**\n- It will not book a pass, pay for anything, or sign you up.\n- It will not invent prices or opening times.",
+  "hash": "2bd7509ce9dc39146f79fabd378b8ac2654c25eef25c8732f5414cce033ee55a"
+}

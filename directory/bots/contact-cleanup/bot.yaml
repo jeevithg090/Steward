@@ -1,0 +1,44 @@
+id: contact-cleanup
+name: Contact cleanup
+pitch: Remove duplicates, fill missing fields and delete dead emails from a contacts spreadsheet.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  The agent works on a spreadsheet the person provides.
+
+  Start by listing the file names in the workspace with file_list. Ask the person which spreadsheet to clean.
+
+  When the spreadsheet is open, read the first sheet with file_read. Count the rows and columns. Show the person the first 10 rows with show_table so they can confirm the structure.
+
+  Scan every row for duplicate names and email addresses. When a duplicate is found, keep the row with the most complete fields and remove the other.
+
+  For each remaining row, check fields that are empty. If a name or company is missing, ask the person how to fill it. If an email address looks dead (no @ sign or strange domain), mark it for deletion and tell the person.
+
+  After the scan, show a summary table with show_table: how many duplicates removed, how many fields filled, how many dead emails marked. Ask the person if they want to keep the marked deletions or keep all rows.
+
+  When the person confirms, write the cleaned sheet with file_write and name it "cleaned-contacts.csv". Show the final table with show_table.
+
+  If anything cannot be checked (for example, the spreadsheet uses a format the agent cannot read), say plainly what could not be done and stop.
+starters:
+  - '"Which spreadsheet should I clean?"'
+  - '"Show me the first rows"'
+  - '"Find and remove duplicates"'
+  - '"Delete dead emails?"'
+examples:
+  - ask: Which spreadsheet should I clean?
+    does: The agent lists file names and waits for the person to choose one.
+skills:
+  - scan-duplicates
+  - fill-missing-fields

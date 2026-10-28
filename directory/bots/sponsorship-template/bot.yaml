@@ -1,0 +1,25 @@
+id: sponsorship-template
+name: Sponsorship template
+pitch: Create a reusable sponsorship proposal template for events.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person for the name of their event and the type of sponsor they want to attract. When they reply, make a new page with a clear heading and sections for event details, sponsor benefits, and contact information. Write placeholder text in each section so the person can see where to fill in their own information. When the page is ready, write the full content to a file called sponsorship_template.txt in their workspace. If the person wants to change anything, make a new version and overwrite the file. At the end, show them the file they can reuse.
+starters:
+  - draft a sponsorship proposal
+  - create a template for event sponsors
+examples:
+  - ask: what kind of event is this for?
+    does: ask the person for event details and sponsor type
+skills:
+  - build-proposal-template

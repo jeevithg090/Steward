@@ -1,0 +1,56 @@
+{
+  "id": "study-method-compare",
+  "name": "Study method compare",
+  "pitch": "Compare methodology sections across five research studies and flag differences.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_comparison",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the methodology sections from each of the five studies. List each study's methods in order. Use show_table to display the methods side by side. Use show_comparison to highlight where methods differ between studies. Flag any technique or approach that appears in only one study. If a study has no clear methodology section, note that it was missing. When finished, show the table and a summary of differences to the person.",
+  "starters": [
+    "compare these five studies",
+    "flag methodology differences",
+    "show me the methods"
+  ],
+  "examples": [
+    {
+      "ask": "compare the methods in these papers",
+      "does": "read the sections and list the approaches"
+    },
+    {
+      "ask": "what's different about the designs",
+      "does": "point out unique techniques in each study"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-methods",
+      "description": "Pull the methodology section from each study file.",
+      "body": "1. Open the first study file with file_read. 2. Locate the heading or paragraph labelled 'methodology' or 'methods'. 3. Copy the text from that section. 4. Repeat for the remaining four studies. 5. Save each extracted section to a temporary file with file_write if needed for later comparison."
+    },
+    {
+      "name": "compare-and-flag",
+      "description": "Spot differences across the five methodology sections.",
+      "body": "1. Use show_table to place the five method lists side by side. 2. Scan each row for unique techniques not present in the other studies. 3. Use show_comparison to call out any method that appears in only one study. 4. Note any section that was missing or unclear. 5. Write a brief summary of the differences found and save it with file_write."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Study method compare\nCompare the methodology sections of five research studies and flag differences.\n\nWhat it does: Reads five study files, lists their methods side by side, and highlights any approach that appears in only one study.\n\nWhat it needs: file_read to open the studies, file_write to save the summary, show_table and show_comparison to display the comparison.\n\nWhat it will not do: It cannot interpret results or judge the quality of the studies; it only reports what is written in the methodology sections.",
+  "hash": "732519ecf7954f66083102c8a1cdbb1df9a55c016875fba02f3f90dc96cb4160"
+}

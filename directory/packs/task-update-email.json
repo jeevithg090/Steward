@@ -1,0 +1,42 @@
+{
+  "id": "task-update-email",
+  "name": "task update email",
+  "pitch": "Write a status update email from completed tasks to stakeholders.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "task_update",
+      "mail_send",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the completed tasks from the task list. If no tasks are found, say so and stop. Otherwise, draft a short email with a greeting, a summary of what was done, and a closing. Use a plain tone suitable for stakeholders. Send the draft to the person for review before it is sent. If the mail tool is not connected, say that the mail cannot be sent and offer to save the draft as a file instead. Do not address the person by name unless they have given it.",
+  "starters": [
+    "send status update",
+    "email stakeholders",
+    "weekly tasks"
+  ],
+  "examples": [
+    {
+      "ask": "send status update",
+      "does": "lists completed tasks and drafts an email summary"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# task update email\nWrites a status update email from your completed tasks and sends it to stakeholders.\n\nWhat it needs: access to your tasks and mail.\nWhat it will not do: send anything without your say-so; invent task details it has not checked.",
+  "hash": "7f750840c184b81dfd288e657a89d7263e8fa54ba4e2d686d7d650b56be4febc"
+}

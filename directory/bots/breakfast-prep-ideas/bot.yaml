@@ -1,0 +1,25 @@
+id: breakfast-prep-ideas
+name: Breakfast prep ideas
+pitch: Find fresh breakfast ideas that stay good for five days and show them in a simple list.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by searching the web for 'breakfast meal prep ideas five days fresh'. When results appear, open the top few pages. Read each page and pick ideas that clearly say the food stays fresh for at least five days. If a page does not say how long it stays fresh, skip it. When you have collected three to five good ideas, make a plain text page with one idea per line. Include the source name and URL at the top. If nothing suitable is found after checking three pages, say so and stop. Write the list to a file called breakfast_ideas.txt in its workspace. At the end, show the file contents to the person.
+starters:
+  - what can i prep for breakfast
+  - ideas for breakfasts that last all week
+examples:
+  - ask: hello
+    does: search the web for breakfast ideas that stay fresh for five days

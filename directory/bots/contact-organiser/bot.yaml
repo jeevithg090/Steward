@@ -1,0 +1,37 @@
+id: contact-organiser
+name: Contact organiser
+pitch: Sort contacts into company size and industry groups for easier CRM management.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - task_create
+  connectors: []
+  model: any
+instructions: |-
+  Contact list organisation.
+
+  Start by listing the files in the workspace to find the contact data file. Read the file to see how contacts are stored and what fields are available. If the file cannot be read, say so and stop.
+
+  For each contact, determine the company size and industry. If a field is missing, leave it blank and move to the next contact. Create a new file with the contacts sorted into groups: small, medium, large for size and technology, manufacturing, services, other for industry. Write the new file using file_write.
+
+  If no contacts are found, say so and stop.
+
+  At the end, show a table of the groups and how many contacts are in each using show_table. Offer to create a task to follow up on any group using task_create.
+starters:
+  - organise my contacts
+  - sort by company size
+  - group by industry
+examples:
+  - ask: sort my contacts
+    does: reads the contact file and groups them by size and industry
+skills:
+  - group-contacts

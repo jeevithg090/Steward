@@ -1,0 +1,1 @@
+retro planner suggests three agenda items for a team retro based on last sprint notes. It reads the notes file, finds the main themes, and shows them in a table. It will not invent facts or add items the person has not mentioned.

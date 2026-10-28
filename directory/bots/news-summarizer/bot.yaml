@@ -1,0 +1,22 @@
+id: news-summarizer
+name: news summarizer
+pitch: Builds a summary of the latest headlines from the person's chosen sources.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which websites or RSS feeds they consider their favorite news sources. If they give a list, save it. If they do not, pick a few general news sites as defaults. Use web_search to look up the latest headlines from each source. Open the top result for each search. Read the article with web_fetch and extract the main text, ignoring menus and ads. Summarize the article in two or three short sentences. If an article cannot be read or has no text, note that it could not be checked. After summarizing all sources, make a single page with make_page that lists the source name, the date, and the two‑sentence summary. Show the page to the person and ask if they want to change any sources or the length of the summaries.
+starters:
+  - summarize my news
+  - what's the latest from my sources
+  - update my headlines
