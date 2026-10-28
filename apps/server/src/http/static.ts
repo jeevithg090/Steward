@@ -27,8 +27,12 @@ const TYPES: Record<string, string> = {
   ".wav": "audio/wav",
 };
 
-/** Paths the web app never owns: the API, the WebSocket and the demo Google server. */
-const RESERVED = /^\/(?:api|ws|demo-google)(?:\/|$)/;
+/**
+ * Paths the web app never owns: the API, the WebSocket, the demo Google server, and the phone's
+ * routes. `/device/*` lives only on the device port; on this one it must be a plain 404, not the
+ * app's page, so nothing can mistake the main port for a place a phone may call.
+ */
+const RESERVED = /^\/(?:api|ws|demo-google|device)(?:\/|$)/;
 
 /** Resolves a URL path inside `root`, or `undefined` when it escapes it or is not a file. */
 export function resolveStatic(root: string, urlPath: string): string | undefined {

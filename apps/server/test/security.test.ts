@@ -183,6 +183,10 @@ describe("static web app", () => {
       expect((await app.request("/api/x")).status).toBe(200);
       expect((await app.request("/api/missing")).status).toBe(404);
       expect((await app.request("/missing.png")).status).toBe(404);
+      // The phone's routes live only on the device port: here they are a plain 404, never the page.
+      expect((await app.request("/device/home")).status).toBe(404);
+      expect((await app.request("/device")).status).toBe(404);
+      expect(await (await app.request("/devices-guide")).text()).toContain("<title>Steward</title>");
       expect(resolveStatic(dist, "/../secret.txt")).toBeUndefined();
       expect(resolveStatic(dist, "/%2e%2e/secret.txt")).toBeUndefined();
       expect(resolveStatic(dist, "/link.txt")).toBeUndefined();
