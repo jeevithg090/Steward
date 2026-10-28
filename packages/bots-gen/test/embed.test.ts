@@ -160,6 +160,20 @@ describe("semanticDedupe", () => {
     ]);
   });
 
+  it("compares a new pack with a shelf pack that has the same id, instead of skipping it", async () => {
+    const again = pack("meal-planner", "Meal Planner", "Plans a week of dinners for you.");
+    embedder.place(packText(MEALS), at(1));
+    embedder.place(packText(again), at(0.96));
+    const result = await semanticDedupe([again], [MEALS], { cache });
+    expect(result.dropped).toEqual([
+      { id: "meal-planner", duplicateOf: "meal-planner", similarity: 0.96, how: "sure" },
+    ]);
+    expect(result.kept).toEqual([]);
+    const fallback = await semanticDedupe([{ ...MEALS }], [MEALS]);
+    expect(fallback.method).toBe("words");
+    expect(fallback.dropped).toEqual([{ id: "meal-planner", duplicateOf: "meal-planner" }]);
+  });
+
   it("keeps a pair in the band when there is no model to ask", async () => {
     embedder.place(packText(MEALS), at(1));
     embedder.place(packText(TWIN), at(0.85));

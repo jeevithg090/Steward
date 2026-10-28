@@ -194,6 +194,13 @@ export async function readAiJobs(file: URL | string = AI_JOBS_FILE): Promise<Job
   return parseJobs(await readFile(file, "utf8"));
 }
 
+/** `key: [a, b]`, or one item a line past Biome's 110 columns, as Biome itself would print it. */
+function flowList(key: string, items: readonly string[]): string[] {
+  const one = `    ${key}: [${items.join(", ")}]`;
+  if (one.length <= 110) return [one];
+  return [`    ${key}:`, "      [", ...items.map((item) => `        ${item},`), "      ]"];
+}
+
 /** Writes every AI-proposed job, grouped by category in the taxonomy's order, under the header. */
 export async function writeAiJobs(jobs: readonly Job[], file: URL | string = AI_JOBS_FILE): Promise<void> {
   const scalar = (text: string) => stringifyYaml(text, { lineWidth: 0 }).trim();
@@ -204,8 +211,8 @@ export async function writeAiJobs(jobs: readonly Job[], file: URL | string = AI_
     lines.push("", `${category}:`);
     for (const j of list) {
       lines.push(`  - job: ${scalar(j.job)}`);
-      if (j.tools.length) lines.push(`    tools: [${j.tools.join(", ")}]`);
-      if (j.connectors.length) lines.push(`    connectors: [${j.connectors.join(", ")}]`);
+      if (j.tools.length) lines.push(...flowList("tools", j.tools));
+      if (j.connectors.length) lines.push(...flowList("connectors", j.connectors));
     }
   }
   // Written beside and renamed over, so a run reading the taxonomy never sees half a file.

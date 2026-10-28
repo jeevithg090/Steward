@@ -174,6 +174,24 @@ describe("jobs-ai.yaml", () => {
         ["money", "split a bill: three ways, with a tip"],
       ]);
       expect(parseJobs(text)).toHaveLength(2);
+      // A list past 110 columns is wrapped the way Biome wraps it, so the file stays formatted.
+      const many = [
+        "web_search",
+        "web_fetch",
+        "browser_navigate",
+        "browser_click",
+        "browser_type",
+        "request_help",
+        "task_create",
+        "make_page",
+      ];
+      await writeAiJobs(
+        [{ category: "travel", job: "book the cheapest sensible train", tools: many, connectors: [] }],
+        file,
+      );
+      const wrapped = readFileSync(file, "utf8");
+      expect(wrapped).toContain("    tools:\n      [\n        web_search,\n");
+      expect((await readAiJobs(file))[0]?.tools).toEqual(many);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

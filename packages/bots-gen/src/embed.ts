@@ -346,21 +346,29 @@ export async function semanticDedupe(
   existing: readonly Comparable[] = [],
   opts: Partial<NearOptions> = {},
 ): Promise<SemanticDedupeResult> {
-  const words = (fallback: string): SemanticDedupeResult => ({
-    ...dedupe(packs, existing as BotPack[]),
-    method: "words",
-    fallback,
-  });
-  if (!opts.cache) return words("no embedder is configured");
-  try {
-    const result = await nearDuplicates(packs.map(asItem), existing.map(asItem), {
-      ...opts,
-      cache: opts.cache,
-    });
+  const idOf = (id: string) => (id.startsWith("candidate:") ? (packs[Number(id.slice(10))]?.id ?? id) : id);
+  const words = (fallback: string): SemanticDedupeResult => {
+    // The same own-id rule as below, so a same-named pack is compared with its namesake.
+    const renamed = packs.map((p, i) => ({ ...p, id: `candidate:${i}` }));
+    const result = dedupe(renamed, existing as BotPack[]);
     const keptIds = new Set(result.kept.map((k) => k.id));
     return {
-      kept: packs.filter((p) => keptIds.has(p.id)),
-      dropped: result.dropped,
+      kept: packs.filter((_, i) => keptIds.has(`candidate:${i}`)),
+      dropped: result.dropped.map((d) => ({ id: idOf(d.id), duplicateOf: idOf(d.duplicateOf) })),
+      method: "words",
+      fallback,
+    };
+  };
+  if (!opts.cache) return words("no embedder is configured");
+  try {
+    // Candidates get ids of their own: a new pack whose name gives the same id as one on the shelf
+    // is the likeliest twin of all, and must be compared with it, not skipped as itself.
+    const candidates = packs.map((p, i) => ({ ...asItem(p), id: `candidate:${i}` }));
+    const result = await nearDuplicates(candidates, existing.map(asItem), { ...opts, cache: opts.cache });
+    const keptIds = new Set(result.kept.map((k) => k.id));
+    return {
+      kept: packs.filter((_, i) => keptIds.has(`candidate:${i}`)),
+      dropped: result.dropped.map((d) => ({ ...d, id: idOf(d.id), duplicateOf: idOf(d.duplicateOf) })),
       method: "embeddings",
     };
   } catch (error) {
