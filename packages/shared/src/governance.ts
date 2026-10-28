@@ -80,7 +80,10 @@ export interface GateCall {
     name: string;
     kind: ToolKind;
     surface: ToolSurface;
-    /** `builtin`, `mcp:<server>`, `connector:<id>`. */
+    /**
+     * `builtin`, `mcp:<server>`, `connector:<id>`, or `harness:<id>` for a permission an external
+     * coding agent asked for (its kind comes from the harness's own tool kind).
+     */
     source: string;
   };
   /** Arguments as the model sent them. The gateway redacts before recording. */
@@ -201,7 +204,11 @@ export type AuditType =
   | "device.revoked"
   | "device.refused"
   | "run.started"
-  | "run.finished";
+  | "run.finished"
+  | "harness.started"
+  | "harness.stopped"
+  | "delegation.started"
+  | "delegation.finished";
 
 export interface AuditEvent {
   /** Monotonic, starting at 1. */
@@ -278,6 +285,8 @@ export interface ApprovalInterruptMetadata {
   findings: OutboundFinding[];
   canAlways: boolean;
   rule?: Pick<Rule, "id" | "name" | "source">;
+  /** Set when another agent asks while working on a task this conversation's agent handed it. */
+  askedBy?: { agentId: string; name: string; subagentRunId: string };
 }
 
 /** Live events the server pushes to the web app over SSE (`GET /api/events`). */

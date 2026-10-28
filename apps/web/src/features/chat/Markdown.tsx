@@ -8,7 +8,7 @@
  * packed into it, to any host with no tool call, no decision and no record. Each image shows as
  * "[Image not loaded: …]" with its address as a link, behind the same confirmation.
  */
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { defaultRehypePlugins, Streamdown } from "streamdown";
 import { cn } from "@/lib/utils.ts";
 
@@ -73,23 +73,43 @@ const REHYPE: Pluggable[] = Object.entries(defaultRehypePlugins)
   .filter(([name]) => name !== "raw")
   .flatMap(([name, plugin]) => (name === "harden" ? [imagesAsLinks, withoutImages(plugin)] : [plugin]));
 
+function shift(node: HastNode, by: number): void {
+  for (const child of node.children ?? []) {
+    const level = child.type === "element" ? /^h([1-6])$/.exec(child.tagName ?? "") : null;
+    if (level) child.tagName = `h${Math.min(6, Number(level[1]) + by)}`;
+    shift(child, by);
+  }
+}
+
+/** Moves every heading down `by` levels, so markdown inside a page never adds a second h1. */
+function headingsBelow(by: number) {
+  return () => (tree: HastNode) => shift(tree, by);
+}
+
 export const Markdown = memo(function Markdown({
   children,
   streaming = false,
   className,
+  headingOffset = 0,
 }: {
   children: string;
   /** True while the text is still arriving, so half-written markdown is completed for display. */
   streaming?: boolean;
   className?: string;
+  /** Levels to move every heading down by: 2 under a page's h2 sections turns `#` into an h3. */
+  headingOffset?: number;
 }) {
+  const plugins = useMemo(
+    () => (headingOffset > 0 ? [...REHYPE, headingsBelow(headingOffset) as Pluggable] : REHYPE),
+    [headingOffset],
+  );
   return (
     <Streamdown
       mode={streaming ? "streaming" : "static"}
       isAnimating={streaming}
       parseIncompleteMarkdown={streaming}
       skipHtml
-      rehypePlugins={REHYPE}
+      rehypePlugins={plugins}
       controls={{ code: true, table: true, mermaid: false }}
       className={cn(
         "min-w-0 break-words text-body text-ink",

@@ -17,6 +17,9 @@ import {
   type ToolSurface,
 } from "@steward/shared";
 
+/** `tool.source` of a permission an external coding agent asked for: `harness:<id>`. */
+export const HARNESS_SOURCE_PREFIX = "harness:";
+
 export const TOOL_KINDS: readonly ToolKind[] = [
   "read",
   "write",
@@ -89,6 +92,16 @@ export function toolInfo(name: string, given?: Partial<GateCall["tool"]>): GateC
   const mcp = parseMcpToolName(name);
   if (mcp) {
     return { name, kind: givenKind ?? "write", surface: "mcp", source: given?.source || `mcp:${mcp.server}` };
+  }
+  // A permission an external coding agent asked for: its kind was mapped from the harness's own
+  // tool kind (`packages/harnesses`), which also makes any call carrying a command a `shell`.
+  if (given?.source?.startsWith(HARNESS_SOURCE_PREFIX)) {
+    return {
+      name,
+      kind: givenKind ?? "write",
+      surface: normaliseSurface(given.surface, "system"),
+      source: given.source,
+    };
   }
   return {
     name,

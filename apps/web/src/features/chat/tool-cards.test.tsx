@@ -1,3 +1,4 @@
+import { TOOLS } from "@steward/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -58,7 +59,7 @@ const draft = { to: [{ email: "sam@example.com" }], subject: "Friday", body: "Se
 
 describe("tool cards", () => {
   it("has a renderer for every built-in tool", () => {
-    expect(Object.keys(RENDERERS).length).toBe(32);
+    expect(Object.keys(RENDERERS).sort()).toEqual(Object.keys(TOOLS).sort());
   });
 
   it("shows a browser step in plain words with a way to the screen", () => {

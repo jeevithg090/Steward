@@ -24,6 +24,7 @@ import {
   type DevicePatchBody,
   type DryRunBody,
   type EmailSummary,
+  type HarnessInfo,
   type InstalledBot,
   type McpServerBody,
   type McpServerInfo,
@@ -218,6 +219,8 @@ export const api = {
   info: (signal?: AbortSignal) => get<AppInfo>(ROUTES.info, undefined, signal),
   /** Every agent with the model it runs on and whether it can answer now. */
   agents: (signal?: AbortSignal) => get<AgentsResponse>(ROUTES.agents, undefined, signal),
+  /** The external coding agents the tenant offers, and whether each one's program is installed. */
+  harnesses: (signal?: AbortSignal) => get<HarnessInfo[]>(ROUTES.harnesses, undefined, signal),
   health: () => get<{ ok: true }>(ROUTES.health),
 
   settings: {

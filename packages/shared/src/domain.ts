@@ -200,6 +200,41 @@ export interface AgentProfile {
   model?: string;
   /** Where the profile came from: the tenant pack, or an installed bot. */
   source?: "tenant" | `bot:${string}`;
+  /**
+   * Set for an external coding agent: the id of the harness profile (`harnesses.yaml`) that runs
+   * it. Such an agent has no model, skills or tools of Steward's; the vendor's tool does the work
+   * and every permission it asks for is a Steward approval.
+   */
+  harness?: string;
+}
+
+/**
+ * An external coding agent Steward can run: the vendor's own, unmodified tool, started in the
+ * agent's workspace and spoken to over a protocol. Declared in `tenants/<id>/harnesses.yaml`.
+ */
+export interface HarnessProfile {
+  /** Also the agent id: lower case letters, digits and hyphens. */
+  id: string;
+  /** "Claude Code". */
+  name: string;
+  /** One line under the name. */
+  title: string;
+  /** `acp`: the Agent Client Protocol over stdio. `codex`: Codex's own app-server protocol. */
+  kind: "acp" | "codex";
+  /** The program, found on PATH unless absolute. */
+  command: string;
+  args: string[];
+  /** Extra environment for the program. Values, never secrets: use `passEnv` to name a key. */
+  env?: Record<string, string>;
+  /** Names of the server's environment variables the program may see, such as GEMINI_API_KEY. */
+  passEnv?: string[];
+  /**
+   * How it is paid for, shown in the picker: `vendor-tool` is the person's own login inside the
+   * vendor's tool ("via Claude Code (your login)"); `api-key` is a key named in `passEnv`.
+   */
+  signIn: "vendor-tool" | "api-key";
+  /** Models the tool offers, when it says. Informational. */
+  models?: string[];
 }
 
 export interface Brand {

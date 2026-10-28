@@ -31,6 +31,9 @@ export function registerAppRoutes(app: Hono, s: StewardServices): void {
   // Every agent with the model it runs on and whether it can answer now; the picker reads this.
   app.get(ROUTES.agents, (c) => c.json({ agents: s.models.agentInfos() } satisfies AgentsResponse));
 
+  // The external coding agents the tenant offers, and whether each one's program is installed.
+  app.get(ROUTES.harnesses, (c) => c.json(s.models.harnessInfos()));
+
   // Settings show the model the person chose; /api/info and the checklist show the one running
   // (they differ when the chosen provider has no key and Steward fell back to the scripted model).
   // Either carries an address only when someone gave one for a provider that takes one, never a

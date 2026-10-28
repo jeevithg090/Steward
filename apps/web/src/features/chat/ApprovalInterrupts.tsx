@@ -26,6 +26,12 @@ export function isStewardApproval(interrupt: unknown): interrupt is Interrupt {
   );
 }
 
+/** The agent asking, when a task this conversation's agent handed on asks (plan §5). */
+export function askedByOf(interrupt: Interrupt): string | undefined {
+  const asked = (interrupt.metadata as { askedBy?: { name?: unknown } } | undefined)?.askedBy;
+  return typeof asked?.name === "string" && asked.name ? asked.name : undefined;
+}
+
 export function approvalIdOf(interrupt: Interrupt): string | undefined {
   const id = (interrupt.metadata as { approvalId?: unknown } | undefined)?.approvalId;
   return typeof id === "string" && id !== "" ? id : undefined;
@@ -159,6 +165,7 @@ function InterruptApproval({
       <ApprovalCard
         approvalId={approvalId}
         headingLevel={3}
+        {...(askedByOf(interrupt) ? { askedBy: askedByOf(interrupt) } : {})}
         onDecided={(decided) => settle(answerOf(decided))}
       />
     </div>

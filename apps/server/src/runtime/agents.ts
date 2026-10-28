@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { join } from "node:path";
 import {
   AbstractAgent,
   type AgentConfig,
@@ -17,10 +18,25 @@ import {
   resolveModelConfig,
 } from "@steward/agent";
 import { profileFromPack } from "@steward/bots";
+import {
+  AcpBackend,
+  CodexBackend,
+  HarnessAgent,
+  type HarnessBackend,
+  type HarnessSessionStore,
+  HarnessThreads,
+  type HarnessThreadsOptions,
+  harnessInfo,
+  profileKey,
+} from "@steward/harnesses";
 import type {
   AgentInfo,
   AgentProfile,
+  ApprovalStore,
+  AuditLog,
   BotPack,
+  HarnessInfo,
+  HarnessProfile,
   ModelConfig,
   TenantPackage,
   TextModel,
@@ -53,6 +69,38 @@ type LoadedModel = Awaited<ReturnType<typeof createModel>>;
  * client rides along in `directory`, for the `directory_find` tool.
  */
 export type SharedAgentDeps = Omit<AgentDeps, "profile" | "tenant" | "model" | "serverRunToken">;
+
+/** What the host needs to run external coding agents (`tenants/<id>/harnesses.yaml`). */
+export interface HarnessDeps {
+  profiles: HarnessProfile[];
+  /** The server's data folder: each harness works in `computers/<agentId>/workspace` under it. */
+  dataDir: string;
+  store?: HarnessSessionStore;
+  audit?: AuditLog;
+  approvals?: Pick<ApprovalStore, "byToolCall">;
+  /** How a harness process is started. Tests pass a fake; by default, by the profile's kind. */
+  backend?: (
+    profile: HarnessProfile,
+    opts: Parameters<HarnessThreadsOptions["backend"]>[0],
+  ) => HarnessBackend;
+  /** Steward's version, sent to the harness as the client's. */
+  version?: string;
+  idleMs?: number;
+}
+
+/** The agent profile an external coding agent gets: its own name, none of Steward's skills or tools. */
+export function harnessAgentProfile(harness: HarnessProfile): AgentProfile {
+  return {
+    id: harness.id,
+    name: harness.name,
+    title: harness.title,
+    instructions: "",
+    skills: [],
+    tools: [],
+    harness: harness.id,
+    source: "tenant",
+  };
+}
 
 /** An installed bot as the host builds an agent from it: its pack and the names its skills got. */
 export interface BotAgentSource {
@@ -214,8 +262,12 @@ export class AgentHost {
       shared: SharedAgentDeps;
       /** The installed bots, read on every build. */
       bots?: () => BotAgentSource[];
+      harnesses?: HarnessDeps;
     },
   ) {}
+
+  /** One set of harness processes per harness profile, kept across rebuilds while it is unchanged. */
+  private readonly harnessThreads = new Map<string, { key: string; threads: HarnessThreads }>();
 
   /** Builds (or rebuilds) the model and the agents. Never throws: problems become a notice agent. */
   configure(choice?: ModelChoice): Promise<void> {
@@ -230,13 +282,26 @@ export class AgentHost {
     return this.configure(this.choice);
   }
 
-  /** The tenant's profiles, then one per installed bot. A bot with a tenant agent's id is left out. */
+  /**
+   * The tenant's profiles, then one per external coding agent, then one per installed bot. A
+   * harness or bot with an id already taken is left out.
+   */
   private collectProfiles(): AgentProfile[] {
     const profiles: AgentProfile[] = this.deps.tenant.agents.map((p) => ({
       ...p,
       source: p.source ?? "tenant",
     }));
     const taken = new Set(profiles.map((p) => p.id));
+    for (const harness of this.deps.harnesses?.profiles ?? []) {
+      if (taken.has(harness.id)) {
+        console.error(
+          `[steward] the harness "${harness.id}" has the id of one of the tenant's agents; left out.`,
+        );
+        continue;
+      }
+      profiles.push(harnessAgentProfile(harness));
+      taken.add(harness.id);
+    }
     let sources: BotAgentSource[] = [];
     try {
       sources = this.deps.bots?.() ?? [];
@@ -296,11 +361,16 @@ export class AgentHost {
     const profiles = this.collectProfiles();
     const agents: Record<string, AbstractAgent> = {};
     const statuses: Record<string, AgentStatus> = {};
+    const harnessesInUse = new Set<string>();
     for (const profile of profiles) {
-      const built = await this.buildAgent(profile, { env, config, primary, problem, models, loaded });
+      const harness = profile.harness ? this.harnessProfile(profile.harness) : undefined;
+      const built = harness
+        ? this.buildHarnessAgent(profile, harness, harnessesInUse)
+        : await this.buildAgent(profile, { env, config, primary, problem, models, loaded });
       agents[profile.id] = built.agent;
       statuses[profile.id] = built.status;
     }
+    this.retireHarnesses(harnessesInUse);
 
     const address = givenAddress(config, tenant, env);
     const info: ModelInfo = {
@@ -445,6 +515,109 @@ export class AgentHost {
     }
   }
 
+  private harnessProfile(id: string): HarnessProfile | undefined {
+    return this.deps.harnesses?.profiles.find((h) => h.id === id);
+  }
+
+  /**
+   * An external coding agent: a `HarnessAgent` when its program is installed, otherwise a notice
+   * that says what to install. Its processes outlive a rebuild while the profile is unchanged, so
+   * a request parked on the person is still there when they answer.
+   */
+  private buildHarnessAgent(
+    profile: AgentProfile,
+    harness: HarnessProfile,
+    inUse: Set<string>,
+  ): { agent: AbstractAgent; status: AgentStatus } {
+    const info = harnessInfo(harness, this.deps.env);
+    const shown = { provider: `harness:${harness.id}`, model: harness.name, signIn: harness.signIn } as const;
+    if (!info.available) {
+      const reason = info.reason ?? `${harness.name} is not installed.`;
+      return {
+        agent: new UnconfiguredAgent(`I can't start: ${reason}`, {
+          agentId: profile.id,
+          description: profile.title,
+        }),
+        status: { ...shown, available: false, reason },
+      };
+    }
+    const threads = this.threadsFor(harness);
+    inUse.add(harness.id);
+    const deps = this.deps.harnesses;
+    return {
+      agent: new HarnessAgent({
+        agentId: profile.id,
+        title: profile.title,
+        harness,
+        threads,
+        governance: this.deps.shared.governance,
+        ...(deps?.approvals ? { approvals: deps.approvals } : {}),
+        actorId: this.deps.shared.actorId,
+        serverRunToken: this.deps.serverRunToken,
+      }),
+      status: { ...shown, available: true },
+    };
+  }
+
+  private threadsFor(harness: HarnessProfile): HarnessThreads {
+    const key = profileKey(harness);
+    const existing = this.harnessThreads.get(harness.id);
+    if (existing && existing.key === key) return existing.threads;
+    if (existing) this.retireThreads(existing.threads);
+    const deps = this.deps.harnesses;
+    const env = this.deps.env;
+    const threads = new HarnessThreads({
+      profile: harness,
+      agentId: harness.id,
+      workspace: join(deps?.dataDir ?? ".", "computers", harness.id, "workspace"),
+      ...(deps?.store ? { store: deps.store } : {}),
+      ...(deps?.audit ? { audit: deps.audit } : {}),
+      actorId: this.deps.shared.actorId,
+      ...(deps?.idleMs ? { idleMs: deps.idleMs } : {}),
+      backend: (opts) => {
+        if (deps?.backend) return deps.backend(harness, opts);
+        const common = {
+          profile: harness,
+          cwd: opts.cwd,
+          events: opts.events,
+          env,
+          ...(deps?.version ? { version: deps.version } : {}),
+        };
+        return harness.kind === "codex" ? new CodexBackend(common) : new AcpBackend(common);
+      },
+    });
+    this.harnessThreads.set(harness.id, { key, threads });
+    return threads;
+  }
+
+  /** Harness profiles that are gone (or no longer installed) stop their processes a minute later. */
+  private retireHarnesses(inUse: Set<string>): void {
+    for (const [id, entry] of this.harnessThreads) {
+      if (inUse.has(id)) continue;
+      this.harnessThreads.delete(id);
+      this.retireThreads(entry.threads);
+    }
+  }
+
+  private retireThreads(threads: HarnessThreads): void {
+    const timer = setTimeout(() => {
+      this.timers.delete(timer);
+      void threads.closeAll().catch(() => {});
+    }, 60_000);
+    timer.unref();
+    this.timers.add(timer);
+  }
+
+  /** The external coding agents and whether each is installed, for `GET /api/harnesses`. */
+  harnessInfos(): HarnessInfo[] {
+    return (this.deps.harnesses?.profiles ?? []).map((h) => harnessInfo(h, this.deps.env));
+  }
+
+  /** A conversation was deleted: its harness process stops and its resume handle is forgotten. */
+  async closeThread(threadId: string): Promise<void> {
+    await Promise.all([...this.harnessThreads.values()].map(({ threads }) => threads.close(threadId, true)));
+  }
+
   /** Starts the model a config names, or reuses the one already started for it. Undefined when it fails. */
   private async loadModel(
     cfg: ModelConfig,
@@ -530,6 +703,9 @@ export class AgentHost {
   async close(): Promise<void> {
     for (const t of this.timers) clearTimeout(t);
     this.timers.clear();
+    const harnesses = [...this.harnessThreads.values()];
+    this.harnessThreads.clear();
+    await Promise.all(harnesses.map(({ threads }) => threads.closeAll().catch(() => {})));
     const all = [...this.retired, ...(this.current?.loaded ?? [])];
     this.retired.clear();
     this.current = undefined;

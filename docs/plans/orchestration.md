@@ -3,10 +3,14 @@
 **Several agents and models in one Steward, each run through the same gateway, with delegation
 between them; adapted from what Happy does and what it does not.**
 
-Status: proposal, 28 Oct 2026. **Phase 1 (picker and profiles, §8) is built:** the `xai`
-provider, per-profile models with a `provider/model` prefix, `GET /api/agents` with availability,
-the picker showing each agent's model and greying out the keyless ones, two example profiles in
-`tenants/steward/agents.yaml`, and tokens per run in the record. Phases 2 to 5 are not. Research
+Status, 28 Oct 2026. **Built:** Phase 1 (picker and profiles: the `xai` provider, per-profile
+models, `GET /api/agents`, the picker with each agent's model, tokens per run in the record) and
+Phase 2 (`packages/harnesses`: the ACP client on `@agentclientprotocol/sdk` 2.0.2, `HarnessAgent`,
+`harnesses.yaml`, every `session/request_permission` as a Steward approval; see
+[docs/harnesses.md](../harnesses.md)) and Phase 3 (the Codex app-server client, ported from Happy,
+tested against a reconstructed transcript) and Phase 4 (delegation: `delegate_task`, sub-runs
+through the runner, `SUBAGENT_*` events, child approvals interrupting the parent, the folded
+sub-run in the chat). Phase 5 (a direct Claude Agent SDK path) is optional and not built. Research
 behind every claim:
 [docs/research/happy-orchestration.md](../research/happy-orchestration.md) (Happy's harness
 integrations, its own multi-provider harness, subscriptions, subagents, and the Agent Client

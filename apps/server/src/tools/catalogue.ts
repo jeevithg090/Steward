@@ -46,6 +46,7 @@ export const TOOL_DESCRIPTIONS = {
   show_choices: "Shows choices for you to pick from.",
   make_page: "Makes a page you can read or keep.",
   directory_find: "Looks up ready-made bots in the directory.",
+  delegate_task: "Hands a task to another agent and waits for its answer.",
 } as const satisfies Record<BuiltinToolName, string>;
 
 export function builtinToolList(): { name: string; description: string; kind: string; surface: string }[] {

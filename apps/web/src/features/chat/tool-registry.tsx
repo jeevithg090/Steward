@@ -8,6 +8,7 @@
 import type { BuiltinToolName } from "@steward/shared";
 import { Component, type ComponentType, type ErrorInfo, type ReactNode } from "react";
 import { ToolLine } from "@/gallery/kit.tsx";
+import { DelegationCard } from "./DelegationCard.tsx";
 import {
   BriefToolCard,
   BrowserLine,
@@ -69,6 +70,7 @@ export const RENDERERS: Record<BuiltinToolName, ComponentType<ToolProps>> = {
   show_choices: ChoicesToolCard,
   make_page: PageToolCard,
   directory_find: DirectoryFindCard,
+  delegate_task: DelegationCard,
 };
 
 export interface RawRenderProps {

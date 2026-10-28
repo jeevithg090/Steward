@@ -239,6 +239,10 @@ The default is `anthropic/claude-sonnet-5.5` through OpenRouter. Change the mode
 a model of its own (`model: xai/grok-4.7`), so "Steward on Claude" and "Steward on Grok" sit side
 by side in the agent picker, each on its own provider and key. See [docs/models.md](docs/models.md).
 
+External coding agents (Claude Code, Gemini CLI, and any other agent that speaks the Agent Client
+Protocol) run as Steward agents too: the vendor's own tool, in its own workspace, with every
+permission it asks for decided by your rules. See [docs/harnesses.md](docs/harnesses.md).
+
 ## Accessibility
 
 Accessibility is a first-class feature, not a later pass:

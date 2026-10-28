@@ -1,0 +1,26 @@
+{
+  "name": "@steward/harnesses",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ag-ui/client": "1.0.2",
+    "@ag-ui/core": "1.0.2",
+    "@agentclientprotocol/sdk": "2.0.2",
+    "@steward/db": "workspace:*",
+    "@steward/shared": "workspace:*",
+    "rxjs": "7.8.1",
+    "yaml": "2.9.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@steward/gateway": "workspace:*"
+  }
+}

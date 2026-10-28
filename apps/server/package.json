@@ -32,6 +32,7 @@
     "@copilotkit/aimock": "1.47.0",
     "@steward/bots": "workspace:*",
     "@steward/bots-gen": "workspace:*",
+    "@steward/harnesses": "workspace:*",
     "@steward/phone": "workspace:*",
     "@steward/remote": "workspace:*",
     "@steward/shortcuts": "workspace:*",

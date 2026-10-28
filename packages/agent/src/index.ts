@@ -49,9 +49,20 @@ export {
   TenantError,
 } from "./tenant.ts";
 export { BUILTIN_TOOLS, buildToolCatalogue, grantedBuiltins, toAgUiTool } from "./tools/catalogue.ts";
+export {
+  DELEGATE_TOOL,
+  delegateTask,
+  delegateToolFor,
+  delegationEnvelope,
+  isDelegationRun,
+} from "./tools/delegate.ts";
 export { NO_DIRECTORY, THIRD_PARTY_NOTE } from "./tools/directory.ts";
 export { mcpTool } from "./tools/mcp.ts";
 export type {
+  DelegateTarget,
+  DelegationResult,
+  DelegationRun,
+  DelegationService,
   DirectoryService,
   GateFacts,
   ObjectSchema,

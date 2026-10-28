@@ -32,8 +32,16 @@ import {
 import { Observable, type Subscription } from "rxjs";
 import { answeredIds, callsIn, findCall, isTainted, sanitizeHistory } from "./history.ts";
 import { BUILTIN_TOOLS, toAgUiTool } from "./tools/catalogue.ts";
+import { DELEGATE_TOOL, delegateToolFor, delegationEnvelope, isDelegationRun } from "./tools/delegate.ts";
 import { ArgumentError } from "./tools/schema.ts";
-import type { GateFacts, StewardTool, ToolArgs, ToolContext, ToolServices } from "./tools/types.ts";
+import type {
+  DelegationRun,
+  GateFacts,
+  StewardTool,
+  ToolArgs,
+  ToolContext,
+  ToolServices,
+} from "./tools/types.ts";
 import { wrapUntrusted } from "./tools/untrusted.ts";
 
 /** What the model reads when the person cancelled an approval instead of answering it. */
@@ -116,11 +124,45 @@ interface RunScope {
   initiator: Initiator;
   owned: Map<string, StewardTool>;
   io: Io;
+  /** How many hand-offs deep this run is: 0 unless another agent handed it the task. */
+  depth: number;
 }
 
 type GateResult =
   | { content: string }
-  | { parked: { call: ToolCall; outcome: Extract<GateOutcome<unknown>, { status: "parked" }> } };
+  | { parked: { call: ToolCall; outcome: Extract<GateOutcome<unknown>, { status: "parked" }> } }
+  /** A task handed to another agent, now running: the run follows it before the call has a result. */
+  | { delegated: { call: ToolCall; run: DelegationRun } };
+
+/** A handed-on task the run followed: its result for the parent's call, or the questions it stopped on. */
+type Followed =
+  | { callId: string | undefined; content: string }
+  | { callId: string | undefined; interrupts: Interrupt[] };
+
+/** The child's events the parent's stream carries, tagged with the child's `subagentRunId`. Run-scoped ones stay out. */
+const FORWARDED: ReadonlySet<string> = new Set([
+  EventType.TEXT_MESSAGE_START,
+  EventType.TEXT_MESSAGE_CONTENT,
+  EventType.TEXT_MESSAGE_END,
+  EventType.TEXT_MESSAGE_CHUNK,
+  EventType.TOOL_CALL_START,
+  EventType.TOOL_CALL_ARGS,
+  EventType.TOOL_CALL_END,
+  EventType.TOOL_CALL_CHUNK,
+  EventType.TOOL_CALL_RESULT,
+  EventType.REASONING_START,
+  EventType.REASONING_MESSAGE_START,
+  EventType.REASONING_MESSAGE_CONTENT,
+  EventType.REASONING_MESSAGE_END,
+  EventType.REASONING_MESSAGE_CHUNK,
+  EventType.REASONING_END,
+  EventType.CUSTOM,
+]);
+
+/** The conversation as this agent's model sees it: a handed-on task's own messages are left out. */
+function ownMessages(messages: readonly Message[]): Message[] {
+  return messages.filter((m) => !(m as { subagentRunId?: unknown }).subagentRunId);
+}
 
 /** Seeds each inner run with that segment's history, so `runNextWithState` accumulates from the right place. */
 class Seed extends AbstractAgent {
@@ -254,21 +296,61 @@ export class GovernedToolsMiddleware extends Middleware {
     const finish = (event: RunFinishedEvent) => emit(withUsage(event, usage));
 
     let messages: Message[] = [...input.messages];
-    const resume = (input.resume ?? []).filter(
-      (entry) => findCall(messages, entry.interruptId) !== undefined,
+    const delegation = this.opts.services.delegation;
+    const entries = input.resume ?? [];
+    // Answers to questions a handed-on task asked belong to that task, not to this agent's calls.
+    const childEntries = delegation ? entries.filter((e) => this.owner(e.interruptId) !== undefined) : [];
+    const resume = entries.filter(
+      (entry) => !childEntries.includes(entry) && findCall(messages, entry.interruptId) !== undefined,
     );
     const initiator = this.resumedInitiator(this.initiatorOf(input), resume, input.threadId);
-    const tools = this.toolsForRun();
+    const depth = this.delegationDepthOf(input);
+    const tools = this.offeredTools(this.toolsForRun(), depth);
     const owned = new Map(tools.map((t) => [t.name, t]));
-    const scope: RunScope = { input, initiator, owned, io };
+    const scope: RunScope = { input, initiator, owned, io, depth };
 
     // 1. Resume: the person answered an approval. The database decides, not the payload.
     const answered = answeredIds(messages);
-    if (resume.length > 0 && resume.every((entry) => answered.has(entry.interruptId))) {
+    if (
+      childEntries.length === 0 &&
+      resume.length > 0 &&
+      resume.every((entry) => answered.has(entry.interruptId))
+    ) {
       finish(this.finished(input));
       return;
     }
+    const childInterrupts: Interrupt[] = [];
+    if (delegation && childEntries.length > 0) {
+      const bySubagent = new Map<string, ResumeEntry[]>();
+      for (const entry of childEntries) {
+        const id = this.owner(entry.interruptId);
+        if (id) bySubagent.set(id, [...(bySubagent.get(id) ?? []), entry]);
+      }
+      const resumed: { callId: string | undefined; run: DelegationRun }[] = [];
+      for (const [subagentRunId, list] of bySubagent) {
+        if (signal.aborted) break;
+        const callId = delegation.parentCallOf(subagentRunId);
+        try {
+          resumed.push({ callId, run: await delegation.resume(subagentRunId, list, initiator) });
+        } catch (error) {
+          this.report(error, "delegation");
+          if (callId) {
+            messages = this.answer(
+              messages,
+              callId,
+              serialise({ ok: false, error: errorMessage(error) }),
+              emit,
+            );
+          }
+        }
+      }
+      for (const followed of await this.followAll(resumed, io)) {
+        if ("interrupts" in followed) childInterrupts.push(...followed.interrupts);
+        else if (followed.callId) messages = this.answer(messages, followed.callId, followed.content, emit);
+      }
+    }
     const parkedAgain: Extract<GateResult, { parked: unknown }>["parked"][] = [];
+    const delegatedAgain: { callId: string; run: DelegationRun }[] = [];
     for (const entry of resume) {
       if (answered.has(entry.interruptId) || signal.aborted) continue;
       const call = findCall(messages, entry.interruptId);
@@ -283,10 +365,15 @@ export class GovernedToolsMiddleware extends Middleware {
         cancelled: entry.status === "cancelled",
       });
       if ("parked" in result) parkedAgain.push(result.parked);
+      else if ("delegated" in result) delegatedAgain.push({ callId: call.id, run: result.delegated.run });
       else messages = this.answer(messages, call.id, result.content, emit);
     }
-    if (parkedAgain.length > 0) {
-      this.interrupt(parkedAgain, this.finished(input), { emit, finish });
+    for (const followed of await this.followAll(delegatedAgain, io)) {
+      if ("interrupts" in followed) childInterrupts.push(...followed.interrupts);
+      else if (followed.callId) messages = this.answer(messages, followed.callId, followed.content, emit);
+    }
+    if (parkedAgain.length > 0 || childInterrupts.length > 0) {
+      this.interrupt(parkedAgain, this.finished(input), { emit, finish }, childInterrupts);
       return;
     }
     if (signal.aborted) {
@@ -308,7 +395,7 @@ export class GovernedToolsMiddleware extends Middleware {
       }
       const request: RunAgentInput = {
         ...input,
-        messages: sanitizeHistory(messages),
+        messages: sanitizeHistory(ownMessages(messages)),
         state,
         context,
         tools: offered,
@@ -348,16 +435,24 @@ export class GovernedToolsMiddleware extends Middleware {
       }
 
       const parked: Extract<GateResult, { parked: unknown }>["parked"][] = [];
+      const delegated: { callId: string; run: DelegationRun }[] = [];
       for (const call of mine) {
         if (signal.aborted) break;
         const tool = owned.get(call.function.name);
         if (!tool) continue;
         const result = await this.gate(call, tool, messages, scope, { resume: false, cancelled: false });
         if ("parked" in result) parked.push(result.parked);
+        else if ("delegated" in result) delegated.push({ callId: call.id, run: result.delegated.run });
         else messages = this.answer(messages, call.id, result.content, emit);
       }
-      if (parked.length > 0) {
-        this.interrupt(parked, seg.terminal, { emit, finish });
+      // Handed-on tasks run side by side; each one's answer becomes its call's result.
+      const asked: Interrupt[] = [];
+      for (const followed of await this.followAll(delegated, io)) {
+        if ("interrupts" in followed) asked.push(...followed.interrupts);
+        else if (followed.callId) messages = this.answer(messages, followed.callId, followed.content, emit);
+      }
+      if (parked.length > 0 || asked.length > 0) {
+        this.interrupt(parked, seg.terminal, { emit, finish }, asked);
         return;
       }
       if (signal.aborted) {
@@ -485,6 +580,8 @@ export class GovernedToolsMiddleware extends Middleware {
       toolCallId: call.id,
       signal: io.signal,
       services: this.opts.services,
+      initiator,
+      delegationDepth: scope.depth,
     };
 
     let facts: GateFacts = { target: {} };
@@ -539,6 +636,9 @@ export class GovernedToolsMiddleware extends Middleware {
     }
 
     if (outcome.status === "parked" && !mode.cancelled) return { parked: { call, outcome } };
+    if (outcome.status === "done" && isDelegationRun(outcome.result)) {
+      return { delegated: { call, run: outcome.result } };
+    }
     return { content: serialise(envelopeFor(outcome, tool, mode.cancelled)) };
   }
 
@@ -553,6 +653,8 @@ export class GovernedToolsMiddleware extends Middleware {
     parked: Extract<GateResult, { parked: unknown }>["parked"][],
     terminal: RunFinishedEvent,
     io: { emit: Emit; finish: (event: RunFinishedEvent) => void },
+    /** Questions handed-on tasks stopped on, already tagged with their `subagentRunId`. */
+    asked: Interrupt[] = [],
   ): void {
     for (const { outcome } of parked) {
       io.emit({
@@ -581,7 +683,119 @@ export class GovernedToolsMiddleware extends Middleware {
         metadata: metadata as unknown as Interrupt["metadata"],
       };
     });
-    io.finish({ ...terminal, outcome: { type: "interrupt", interrupts } } as RunFinishedEvent);
+    io.finish({
+      ...terminal,
+      outcome: { type: "interrupt", interrupts: [...interrupts, ...asked] },
+    } as RunFinishedEvent);
+  }
+
+  /** The tools this run offers: `delegate_task` only when there is someone to hand to and depth allows. */
+  private offeredTools(tools: StewardTool[], depth: number): StewardTool[] {
+    if (!tools.some((t) => t.name === DELEGATE_TOOL)) return tools;
+    const delegation = this.opts.services.delegation;
+    let targets: ReturnType<NonNullable<typeof delegation>["targets"]> = [];
+    if (delegation && depth < delegation.maxDepth) {
+      try {
+        targets = delegation.targets(this.opts.agentId);
+      } catch (error) {
+        this.report(error, "delegation");
+      }
+    }
+    return tools.flatMap((t) =>
+      t.name !== DELEGATE_TOOL ? [t] : targets.length > 0 ? [delegateToolFor(targets)] : [],
+    );
+  }
+
+  /** How many hand-offs deep this run is. Only the server can say so (its token rides with it). */
+  private delegationDepthOf(input: RunAgentInput): number {
+    const props = isRecord(input.forwardedProps) ? input.forwardedProps.steward : undefined;
+    if (
+      !isRecord(props) ||
+      typeof props.token !== "string" ||
+      !sameToken(props.token, this.opts.serverRunToken)
+    ) {
+      return 0;
+    }
+    const depth = isRecord(props.delegation) ? props.delegation.depth : undefined;
+    return typeof depth === "number" && Number.isInteger(depth) && depth >= 0 ? depth : 0;
+  }
+
+  private owner(interruptId: string): string | undefined {
+    try {
+      return this.opts.services.delegation?.ownerOf(interruptId);
+    } catch (error) {
+      this.report(error, "delegation");
+      return undefined;
+    }
+  }
+
+  private followAll(runs: { callId: string | undefined; run: DelegationRun }[], io: Io): Promise<Followed[]> {
+    return Promise.all(runs.map((r) => this.follow(r.callId, r.run, io)));
+  }
+
+  /**
+   * Follows one handed-on task: SUBAGENT_STARTED, the child's events tagged with its
+   * `subagentRunId`, then SUBAGENT_FINISHED (or SUBAGENT_ERROR). Stop stops the child too. When
+   * the child stops on a question, its interrupts come back for the parent's run to end with, each
+   * saying which agent asks.
+   */
+  private async follow(callId: string | undefined, run: DelegationRun, io: Io): Promise<Followed> {
+    const { emit, signal } = io;
+    const { subagentRunId } = run;
+    emit({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId,
+      name: run.agentName,
+      description: run.task,
+      ...(callId ? { parentToolCallId: callId } : {}),
+    } as BaseEvent);
+    const onStop = () => void run.stop().catch((error: unknown) => this.report(error, "delegation"));
+    if (signal.aborted) onStop();
+    else signal.addEventListener("abort", onStop, { once: true });
+    let subscription: Subscription | undefined;
+    const forwarded = new Promise<void>((resolve) => {
+      subscription = run.events().subscribe({
+        next: (event) => {
+          if (FORWARDED.has(event.type)) emit({ ...event, subagentRunId } as BaseEvent);
+        },
+        complete: resolve,
+        error: () => resolve(),
+      });
+    });
+    const result = await run.done();
+    // Everything the child said is in the parent's stream before the parent says how it ended.
+    await Promise.race([forwarded, new Promise((r) => setTimeout(r, 2_000))]);
+    subscription?.unsubscribe();
+    signal.removeEventListener("abort", onStop);
+
+    if (result.outcome === "interrupt") {
+      const interrupts = result.interrupts.map((interrupt) => ({
+        ...interrupt,
+        subagentRunId,
+        metadata: {
+          ...(isRecord(interrupt.metadata) ? interrupt.metadata : {}),
+          askedBy: { agentId: run.agentId, name: run.agentName, subagentRunId },
+        },
+      })) as Interrupt[];
+      emit({
+        type: EventType.SUBAGENT_FINISHED,
+        subagentRunId,
+        outcome: { type: "suspended", interruptIds: interrupts.map((i) => i.id) },
+      } as BaseEvent);
+      return { callId, interrupts };
+    }
+    if (result.outcome === "success") {
+      emit({ type: EventType.SUBAGENT_FINISHED, subagentRunId, result: result.text } as BaseEvent);
+    } else {
+      emit({
+        type: EventType.SUBAGENT_ERROR,
+        subagentRunId,
+        code: result.outcome,
+        message:
+          result.outcome === "cancelled" ? "Stopped." : (result.error ?? "It stopped without answering."),
+      } as BaseEvent);
+    }
+    return { callId, content: serialise(delegationEnvelope(run.agentName, result)) };
   }
 
   private initiatorOf(input: RunAgentInput): Initiator {

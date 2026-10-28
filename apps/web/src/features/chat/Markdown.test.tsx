@@ -37,6 +37,19 @@ describe("Markdown", () => {
     expect(container.querySelectorAll("a a")).toHaveLength(0);
   });
 
+  it("moves headings down when asked, so a page keeps one h1", () => {
+    const { container } = render(
+      <Markdown headingOffset={2}>{"# Title\n\n## Part\n\n###### Deep"}</Markdown>,
+    );
+    expect(container.querySelector("h1")).toBeNull();
+    expect(container.querySelector("h3")?.textContent).toBe("Title");
+    expect(container.querySelector("h4")?.textContent).toBe("Part");
+    expect(container.querySelectorAll("h6")).toHaveLength(1);
+    cleanup();
+    const plain = render(<Markdown>{"# Title"}</Markdown>);
+    expect(plain.container.querySelector("h1")?.textContent).toBe("Title");
+  });
+
   it("still renders ordinary markdown and links", () => {
     const { container } = render(
       <Markdown>{"Two things need you. See [the page](https://example.com/a)."}</Markdown>,

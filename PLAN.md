@@ -405,3 +405,45 @@ for the computer.
   - every finished run gets a `run.finished` row in the record, with the run's
     `RUN_FINISHED.usage` summed across model calls per provider and model; the Record page shows
     the tokens on those rows.
+- **28 Oct 2026, orchestration Phase 2 built.** `packages/harnesses` runs external coding agents
+  over the Agent Client Protocol (`@agentclientprotocol/sdk` 2.0.2, the stdout filter and process
+  handling adapted from Happy, MIT):
+  - `HarnessAgent` is an AG-UI agent with one process per conversation in
+    `computers/<agent>/workspace`. Its resume handle is in `harness_sessions`, and it reopens with
+    `session/load`. It stops after 15 idle minutes or when the conversation is deleted, and its
+    processes are kept across agent rebuilds while the profile is unchanged.
+  - Every `session/request_permission` is a `GateCall` with `tool.source` `harness:<id>`, the kind
+    from the ACP tool kind (a command is always `shell`), the target from `locations` and
+    `rawInput` only, and `tainted: true`. A parked request keeps its process open across the
+    interrupt and is answered on resume by option kind. Stop and moving on answer `cancelled`.
+  - `tenants/<id>/harnesses.yaml` (Claude Code via `claude-agent-acp`, Gemini CLI), availability
+    from PATH, `GET /api/harnesses`, and the picker line "via <tool> (your login)". The loader
+    refuses bypass flags and keys in `env`.
+  - The gateway trusts a harness call's mapped kind, as it does an MCP tool's, and summarises it
+    from the structured target.
+  - Bot listings move readme headings below the section's, so the page keeps one h1.
+- **28 Oct 2026, orchestration Phase 3 built.** `packages/harnesses/src/codex`: a Codex app-server
+  client ported and trimmed from Happy's `codexAppServerClient.ts` (MIT).
+  - It speaks newline-delimited JSON-RPC to `codex app-server --listen stdio://`, with
+    `thread/start` and `thread/resume` set to `untrusted` and `workspace-write`.
+  - Command, file-change and MCP-elicitation requests become Steward approvals, answered `accept`,
+    `acceptForSession` (Always only), `decline` or `cancel`.
+  - `turn/interrupt` has a 3 s forced restart, and the next message resumes the thread.
+  - `thread/tokenUsage/updated` fills `RUN_FINISHED.usage`.
+  - Unknown server requests get a JSON-RPC error.
+  - Tests replay a transcript reconstructed from the protocol (Codex is not installed here), and a
+    live check runs only with `codex` on PATH and `STEWARD_LIVE_CODEX=1`.
+- **28 Oct 2026, orchestration Phase 4 built.** Delegation (plan §5):
+  - `delegate_task` (`write`, `task`, tainting) is offered with the agents that can answer now.
+  - The child runs in a conversation of its own through `ServerRuns`, with the parent's initiator.
+    Its events are forwarded tagged with `subagentRunId` (`sub-<toolCallId>`) between
+    `SUBAGENT_STARTED` and `SUBAGENT_FINISHED`/`SUBAGENT_ERROR`, and the parent's model sees only
+    the tool result, worded as Happy does and wrapped untrusted.
+  - A child's approval ends the parent's run with `interrupts[].subagentRunId` and
+    `metadata.askedBy`. The parent's resume (browser or sweep) resumes the child.
+  - Depth 1 and two at once by default (`STEWARD_DELEGATION_DEPTH`, `STEWARD_DELEGATION_CONCURRENCY`);
+    stop stops the subtree.
+  - The `delegations` table holds them, child conversations are out of the list, and the record
+    gains `delegation.started`/`finished`.
+  - The chat folds a child's work under "<Agent> is working on: <task>", and the approval card says
+    who asks.

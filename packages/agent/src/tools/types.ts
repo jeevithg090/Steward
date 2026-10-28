@@ -54,6 +54,8 @@ export interface ToolServices {
   settings: () => { plainLanguage: boolean; timezone: string };
   /** The bot directory, when one is configured. Without it `directory_find` finds nothing. */
   directory?: DirectoryService;
+  /** Other agents to hand tasks to. Without it `delegate_task` is not offered. */
+  delegation?: DelegationService;
 }
 
 /** Per-call facts a tool needs: who it acts for, and the signal that stops it. */
@@ -64,6 +66,10 @@ export interface ToolContext {
   toolCallId: string;
   signal: AbortSignal;
   services: ToolServices;
+  /** Who started the run, as the gateway sees it. */
+  initiator?: import("@steward/shared").Initiator;
+  /** How many hand-offs deep this run is: 0 for a run nobody handed on. */
+  delegationDepth?: number;
 }
 
 /** What only the tool knows about a call: what it touches and what text would leave Steward. */
@@ -92,3 +98,66 @@ export interface StewardTool {
 
 /** The empty target, for tools that touch nothing outside Steward. */
 export const NO_TARGET: Target = {};
+
+/** An agent another agent may hand a task to, as `delegate_task` lists it. */
+export interface DelegateTarget {
+  id: string;
+  name: string;
+  title: string;
+}
+
+/** How a handed-on task ended, as the parent's tool result reports it. */
+export interface DelegationResult {
+  outcome: "success" | "interrupt" | "cancelled" | "error";
+  /** The child's last words. */
+  text: string;
+  error?: string;
+  /** For `interrupt`: the child's own interrupts, which the parent's run ends with. */
+  interrupts: import("@ag-ui/client").Interrupt[];
+}
+
+/**
+ * One handed-on task in flight: the child's run, its live AG-UI events, and how it ends. Only the
+ * public fields are data (the record previews them); the rest lives on the prototype.
+ */
+export interface DelegationRun {
+  readonly subagentRunId: string;
+  readonly agentId: string;
+  readonly agentName: string;
+  readonly task: string;
+  /** The child's events as they happen, replayed from the start for a late subscriber. */
+  events(): import("rxjs").Observable<import("@ag-ui/client").BaseEvent>;
+  /** Settles when the child's run has ended and been stored. Never rejects. */
+  done(): Promise<DelegationResult>;
+  /** Stops the child's run. */
+  stop(): Promise<void>;
+}
+
+/**
+ * Handing tasks to other agents, implemented by the server: each task runs on the target agent in
+ * a conversation of its own, through the same runner as every other run (plan §5).
+ */
+export interface DelegationService {
+  /** How deep a chain of hand-offs may go: 1 means a task can be handed on once. */
+  readonly maxDepth: number;
+  /** The agents `fromAgentId` may hand a task to: every available agent but itself. */
+  targets(fromAgentId: string): DelegateTarget[];
+  /** Starts the task. Throws a plain sentence when it cannot (unknown agent, too many at once). */
+  start(request: {
+    parent: { threadId: string; runId: string; agentId: string; toolCallId: string };
+    agentId: string;
+    task: string;
+    depth: number;
+    initiator: import("@steward/shared").Initiator;
+  }): Promise<DelegationRun>;
+  /** The delegation an interrupt belongs to, when a child raised it. */
+  ownerOf(interruptId: string): string | undefined;
+  /** Continues a child that ended waiting on the person, with the answers to its interrupts. */
+  resume(
+    subagentRunId: string,
+    entries: import("@ag-ui/client").ResumeEntry[],
+    initiator: import("@steward/shared").Initiator,
+  ): Promise<DelegationRun>;
+  /** The parent's tool call a delegation answers. */
+  parentCallOf(subagentRunId: string): string | undefined;
+}

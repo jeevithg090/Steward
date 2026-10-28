@@ -19,8 +19,11 @@ export interface TestServer {
 export async function startTestServer(
   env: NodeJS.ProcessEnv = {},
   overrides: Partial<ServerConfig> = {},
+  /** Writes into the temporary repo before the server starts, e.g. a tenant file. */
+  prepare?: (repo: { root: string; tenantDir: string; dataDir: string }) => void,
 ): Promise<TestServer> {
   const repo = tempRepo();
+  prepare?.(repo);
   const { createApp } = await import("../src/bootstrap.ts");
   const config = loadConfig(
     { STEWARD_DATA_DIR: repo.dataDir, STEWARD_MODEL_PROVIDER: "scripted", ...env },

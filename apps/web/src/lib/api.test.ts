@@ -23,6 +23,7 @@ describe("api: every route in ROUTES", () => {
   const cases: [string, () => Promise<unknown>, string, string, unknown?][] = [
     ["info", () => api.info(), "GET", "/api/info"],
     ["agents", () => api.agents(), "GET", "/api/agents"],
+    ["harnesses", () => api.harnesses(), "GET", "/api/harnesses"],
     ["health", () => api.health(), "GET", "/api/health"],
     ["settings", () => api.settings.get(), "GET", "/api/settings"],
     [

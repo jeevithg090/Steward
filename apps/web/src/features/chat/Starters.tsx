@@ -13,7 +13,7 @@ import { useNavigate } from "react-router";
 import { buttonVariants } from "@/components/ui/Button.tsx";
 import { useDeleteThread, useInfo } from "@/lib/api.ts";
 import { cn, greeting } from "@/lib/utils.ts";
-import { AgentPicker } from "./AgentPicker.tsx";
+import { AgentPicker, isHarnessAgent } from "./AgentPicker.tsx";
 import { useChatActions } from "./chat-context.tsx";
 
 export const DEFAULT_STARTERS = [
@@ -32,11 +32,12 @@ export function Starters({ onPick, disabled }: { onPick: (text: string) => void;
 
   const agent = info.data?.agents.find((candidate) => candidate.id === chat?.agentId);
   const bot = typeof agent?.source === "string" && agent.source.startsWith("bot:");
-  const starters = (bot ? [] : info.data?.starters?.length ? info.data.starters : DEFAULT_STARTERS).slice(
-    0,
-    6,
-  );
-  const name = bot && agent ? agent.name : (info.data?.brand.name ?? "Steward");
+  const harness = agent ? isHarnessAgent(agent) : false;
+  // Steward's starters are about mail and the calendar; a bot or a coding agent has its own job.
+  const starters = (
+    bot || harness ? [] : info.data?.starters?.length ? info.data.starters : DEFAULT_STARTERS
+  ).slice(0, 6);
+  const name = (bot || harness) && agent ? agent.name : (info.data?.brand.name ?? "Steward");
 
   function pickAgent(agentId: string) {
     if (!chat || agentId === chat.agentId) return;
@@ -59,9 +60,11 @@ export function Starters({ onPick, disabled }: { onPick: (text: string) => void;
           {greeting()}. What can {name} do for you?
         </h2>
         <p className="m-0 mt-1 text-ink-2 text-sub">
-          {bot && agent
-            ? agent.title || `${agent.name} is a bot you added. It follows your rules like Steward does.`
-            : `${name} works on its own computer and asks before it sends, pays, signs or deletes anything.`}
+          {harness && agent
+            ? `${agent.name} works in its own folder on this computer. Every command it wants to run asks you first, and your rules decide the rest.`
+            : bot && agent
+              ? agent.title || `${agent.name} is a bot you added. It follows your rules like Steward does.`
+              : `${name} works on its own computer and asks before it sends, pays, signs or deletes anything.`}
         </p>
       </div>
       {chat ? <AgentPicker value={chat.agentId} onChange={pickAgent} disabled={disabled} /> : null}

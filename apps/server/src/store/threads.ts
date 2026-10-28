@@ -47,6 +47,8 @@ export class ThreadStore {
   constructor(
     private readonly db: Db,
     private readonly runner: NodeSqliteAgentRunner,
+    /** Conversations kept out of the list: the ones a task handed to another agent runs in. */
+    private readonly hidden: () => ReadonlySet<string> = () => new Set(),
   ) {}
 
   getMeta(id: string): ThreadMeta | undefined {
@@ -108,8 +110,10 @@ export class ThreadStore {
     const metas = new Map(this.db.all<MetaRow>("SELECT * FROM thread_meta").map((r) => [r.id, toMeta(r)]));
     const records = new Map(this.runner.threadRecords().map((r) => [r.id, r]));
     const ids = new Set([...metas.keys(), ...records.keys()]);
+    const hidden = this.hidden();
     const out: ThreadSummary[] = [];
     for (const id of ids) {
+      if (hidden.has(id)) continue;
       const summary = this.compose(id, metas.get(id), records.get(id));
       if (filter.kind && summary.kind !== filter.kind) continue;
       if (filter.agentId && summary.agentId !== filter.agentId) continue;
