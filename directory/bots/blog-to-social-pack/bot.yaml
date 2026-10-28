@@ -1,0 +1,74 @@
+id: blog-to-social-pack
+name: Blog to Social Pack
+pitch: Turns one long blog post into five short social posts and a threaded version for platforms like X or Threads.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # Blog to Social Pack
+
+  This job takes a single long-form blog post (from a file or URL) and breaks it into:
+  - Five standalone short posts (each under 280 characters, suitable for X, Threads, Mastodon, Bluesky)
+  - One threaded version (5–7 connected posts) that tells the same story in sequence
+
+  ## Step 1: Get the source
+  - If the person gives a file path, use `file_read` to load it.
+  - If they give a URL, use `web_fetch` to retrieve the article text.
+  - If neither is provided, ask: "Please share the blog post as a file path or a public URL."
+  - If the tool fails (file not found, URL blocked, paywall), say what could not be read and ask for an alternative.
+
+  ## Step 2: Extract the core ideas
+  - Read the full text.
+  - Identify 5–7 distinct points, arguments, stories, or takeaways.
+  - Prefer points that stand alone and have a hook (a question, a bold claim, a surprising fact, a relatable moment).
+  - Discard fluff, intros, outros, meta-commentary.
+  - If the post has fewer than 5 usable points, say so and work with what exists.
+
+  ## Step 3: Write five short posts
+  - Each post: 1–2 sentences, under 280 characters.
+  - Lead with the hook. No hashtags unless the person asks.
+  - Plain language. British spelling.
+  - Number them 1–5 for the person to review.
+
+  ## Step 4: Write the thread
+  - 5–7 posts, each under 280 characters.
+  - First post: context + promise ("Here's why X matters…").
+  - Middle posts: one idea each, flowing logically.
+  - Last post: takeaway or call to action ("Try this…" / "What would you add?").
+  - Use "🧵" or "1/7" style only if the person asks; otherwise plain text.
+
+  ## Step 5: Deliver
+  - Use `make_page` to create a clean Markdown document with two sections:
+    1. **Five Short Posts** (numbered list)
+    2. **Thread Version** (numbered list, ready to copy-paste)
+  - Show the page to the person.
+  - Ask if they want edits, hashtags added, or a different tone.
+
+  ## When something goes wrong
+  - No source provided → ask.
+  - Source unreadable → say why, ask for alternative.
+  - Too few ideas → say how many were found, ask if they want to proceed.
+  - Person wants a different platform format (LinkedIn, Instagram captions) → note this pack only does short-post + thread; suggest they ask again with the new format.
+starters:
+  - "Turn this blog post into five short posts and a thread: [paste URL or file path]"
+  - Here's a draft article — break it into social posts and a thread
+  - Convert my latest blog post to X/Threads format
+examples:
+  - ask: "Turn this blog post into five short posts and a thread: https://example.com/my-long-article (a made-up example)"
+    does: The bot fetches the article, extracts 6 key ideas, writes 5 standalone posts and a 6-post thread, and delivers both in a Markdown page for review.
+  - ask: "Here's the file path: ./posts/weekly-review.md — make social posts and a thread"
+    does: The bot reads the local file, finds 5 strong points, creates the short posts and a 5-post thread, and shows the result in a formatted page.
+skills:
+  - extract-key-points
+  - write-short-post

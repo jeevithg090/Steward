@@ -1,0 +1,59 @@
+{
+  "id": "one-to-one-prep",
+  "name": "One-to-one prep",
+  "pitch": "Gathers your updates, blockers and questions into a short brief you can take into a one-to-one with your manager.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["make_page", "memory_remember", "file_read", "file_list", "calendar_list", "mail_list"],
+    "connectors": ["calendar", "mail"],
+    "model": "any"
+  },
+  "instructions": "# One-to-one prep\n\nYou help the person prepare a concise briefing document for a one-to-one meeting with their manager. The brief covers recent work, blockers, priorities, questions and any feedback they want to give or receive.\n\n## Step 1 — Confirm the meeting\n- Ask the person for the date and time of the one-to-one if they have not said.\n- Use `calendar_list` to find the event. If several events match, show the options and ask which one.\n- If no calendar event is found, ask the person to confirm the date and time.\n\n## Step 2 — Collect recent context\n- Use `calendar_list` for the past two weeks to see meetings, deadlines and time blocks.\n- Use `mail_list` for the past two weeks, filtering for messages from the manager, the person's team and key stakeholders. Summarise any action items, decisions or praise.\n- Use `file_list` and `file_read` to check the workspace for status docs, sprint boards, OKR trackers or personal notes updated recently.\n- If any tool returns nothing, note the gap in the brief and move on.\n\n## Step 3 — Ask for the person's input\n- Ask the person to add, in their own words:\n  1. Top 3 achievements since the last one-to-one.\n  2. Current blockers or risks they need help with.\n  3. Top 3 priorities for the next two weeks.\n  4. Questions for the manager (career, team, strategy, resources).\n  5. Feedback they want to give or ask for.\n- If they have a previous one-to-one brief stored via `memory_remember`, show it and ask what to keep, change or drop.\n\n## Step 4 — Build the brief\n- Use `make_page` to create a clean, printable one-page document with these sections:\n  - Meeting details (date, time, link if any).\n  - Achievements (bulleted, outcome-focused).\n  - Blockers & risks (what, impact, help needed).\n  - Priorities (what, why, target date).\n  - Questions for manager.\n  - Feedback / discussion points.\n  - Notes from calendar & mail (auto-summarised, labelled as such).\n- Keep each section to 5 bullets max. Use plain language.\n\n## Step 5 — Deliver and offer next steps\n- Show the brief to the person.\n- Ask if they want to edit any section, add a private note, or export as PDF/Markdown.\n- Offer to save the brief via `memory_remember` for the next one-to-one.\n- Remind them Steward will not send or share the brief; they decide what to take into the meeting.\n\n## When something is missing\n- If calendar or mail connectors are not connected, say so and work with what the person provides.\n- If no previous brief exists, start fresh.\n- If the person skips a section, leave it blank with a placeholder.\n- Never invent achievements, blockers or priorities.\n\n## End result\nA one-page briefing document the person can open on their phone or print, plus an optional saved copy for next time.",
+  "starters": [
+    "Prepare me for my one-to-one with my manager on Thursday.",
+    "Create a one-to-one brief using my calendar and mail from the last two weeks.",
+    "I have a one-to-one tomorrow at 10 am; help me get ready.",
+    "Update my last one-to-one brief with this week's wins and blockers."
+  ],
+  "examples": [
+    {
+      "ask": "Prepare me for my one-to-one with my manager on Thursday.",
+      "does": "The bot finds the Thursday one-to-one in the calendar, pulls the last two weeks of meetings and mail, asks for the person's wins, blockers, priorities and questions, then builds a one-page brief with make_page and offers to save it for next time."
+    },
+    {
+      "ask": "Update my last one-to-one brief with this week's wins and blockers.",
+      "does": "The bot loads the saved brief via memory_remember, shows it to the person, asks for new achievements and blockers, merges them into an updated brief, and saves the new version."
+    }
+  ],
+  "skills": [
+    {
+      "name": "collect-context",
+      "description": "Gather calendar, mail and file signals from the past two weeks.",
+      "body": "1. Run calendar_list for the past 14 days. 2. Run mail_list for the past 14 days, filtering for manager, team and key stakeholders. 3. Run file_list for recently modified files; read likely status docs. 4. Summarise each source in 3 to 5 bullets. 5. Flag any source that returns no data."
+    },
+    {
+      "name": "build-brief",
+      "description": "Assemble the one-page briefing document from auto-summaries and person input.",
+      "body": "1. Create a make_page document with the six standard sections. 2. Insert auto-summaries under a labelled 'Auto-summary' subsection. 3. Insert the person's answers verbatim under their respective sections. 4. Keep formatting clean: headings, bullets, plenty of white space. 5. Return the page link and ask for edits or export."
+    }
+  ],
+  "rules": [
+    {
+      "name": "save-brief-ask",
+      "effect": "ask",
+      "when": "tool.name == \"memory_remember\"",
+      "description": "Ask before saving the brief for future one-to-ones."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# One-to-one prep\n\nCreates a concise, one-page briefing document for a one-to-one meeting with your manager. It pulls recent calendar events and mail, asks for your wins, blockers, priorities and questions, then assembles everything into a clean page you can take into the meeting.\n\n## What it needs\n\n- Calendar access to find the meeting and recent events.\n- Mail access to summarise relevant threads.\n- File workspace access to read status docs or notes.\n- Permission to save the brief for next time (asked each run).\n\n## What it will not do\n\n- Send or share the brief with anyone.\n- Invent achievements, blockers or priorities.\n- Access tools or connectors you have not connected.\n- Make decisions for you; it only prepares the material.",
+  "hash": "b0a7dcb1c5113f410391c34b323151135b63c6016e647c32cef39c699c6cf7aa"
+}

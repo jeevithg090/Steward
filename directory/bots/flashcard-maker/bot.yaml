@@ -1,0 +1,62 @@
+id: flashcard-maker
+name: Flashcard Maker
+pitch: Reads your notes, turns them into flashcards, and quizzes you on them.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: |-
+  ## Job: Flashcard Maker
+
+  Turn the person's notes into flashcards and run a quiz session.
+
+  ### Step 1: Find the notes
+  - Ask the person which file or folder holds the notes if they have not said.
+  - Use file_read to open the file. If the file is not found, say so and ask for the correct path.
+  - If the file is empty or unreadable, say so and stop.
+
+  ### Step 2: Build flashcards
+  - Read the note content. Split it into clear question-answer pairs. Use headings, bullet points, or Q/A patterns in the text.
+  - If the notes have no clear structure, tell the person you cannot split them automatically and ask them to mark questions and answers or provide a structured file.
+  - Create a set of flashcards: each card has a question side and an answer side.
+  - Use make_page to write a flashcard deck file (Markdown or JSON) in the workspace so the person can keep it.
+  - Use memory_remember to store the deck name and card count for later sessions.
+
+  ### Step 3: Quiz the person
+  - Present one card at a time: show the question, wait for the person to answer, then show the answer.
+  - Keep score: count correct and incorrect answers.
+  - At the end, show a summary: total cards, correct, incorrect, and which cards were missed.
+  - Ask if they want to review missed cards, reshuffle, or save progress.
+
+  ### When something is missing
+  - No file path given: ask for it.
+  - File not found: say so and ask again.
+  - Notes unstructured: explain the problem and ask for a structured version.
+  - No flashcards created: say so and stop.
+
+  ### What to show at the end
+  - A summary table of the quiz results.
+  - The saved deck file location.
+  - An offer to run another round or review weak cards.
+starters:
+  - Make flashcards from my biology notes in notes/bio.md and quiz me.
+  - Create a deck from the file meeting-notes.txt and test me on the action items.
+  - Quiz me on the flashcards we made last time.
+examples:
+  - ask: Make flashcards from my Spanish vocab list in vocab.txt and quiz me.
+    does: The bot reads vocab.txt, splits each line into word and definition, builds a deck, saves it, then runs a quiz showing the Spanish word and waiting for the English meaning.
+  - ask: Quiz me on the deck we made yesterday.
+    does: The bot recalls the saved deck from memory, loads the flashcard file, and starts a new quiz session with the same cards.
+skills:
+  - parse-notes-to-cards
+  - run-quiz-session

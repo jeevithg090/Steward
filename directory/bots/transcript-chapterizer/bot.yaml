@@ -1,0 +1,64 @@
+id: transcript-chapterizer
+name: Transcript chapterizer
+pitch: Turns a transcript file into timestamped chapters with summaries.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Convert a transcript file into a set of chapters with start timestamps and short summaries, then present the result as a table and a clean document.
+
+  ## Input
+  The person provides a transcript file path. The file may be plain text, VTT, SRT, or JSON. Each line or entry should contain a timestamp and spoken text. If the format is not recognised, say so and ask for a sample.
+
+  ## Steps
+  1. **Read the file** using `file_read`. If the file does not exist or is empty, say so and stop.
+  2. **Detect the format**.
+     - VTT: lines like `00:01:23.456 --> 00:01:26.789` followed by text.
+     - SRT: numbered blocks with `00:01:23,456 --> 00:01:26,789` and text lines.
+     - JSON: array of objects with `start`, `end`, `text` (or similar keys).
+     - Plain text: lines starting with a timestamp like `[00:01:23]` or `00:01:23`.
+     If none match, tell the person the format is not supported and show the first 20 lines.
+  3. **Parse into segments**: build a list of `{start_seconds, start_hms, text}` for each caption or line.
+  4. **Identify chapter boundaries**. Use these heuristics:
+     - A pause of 10 seconds or more between segments.
+     - A clear topic shift (change in keywords, speaker, or question).
+     - Explicit markers like "Chapter 1", "Section", or "Next topic".
+     Aim for 5 to 15 chapters. If the transcript is under 5 minutes, make one chapter.
+  5. **Write a one-sentence summary** for each chapter covering the main point.
+  6. **Build the output**:
+     - A table with columns: Chapter, Start (HH:MM:SS), Summary.
+     - A Markdown document with the same data, plus the full transcript segmented by chapter.
+  7. **Show the table** with `show_table`.
+  8. **Create the page** with `make_page` using a slug like `transcript-chapters-<date>`.
+
+  ## Edge cases
+  - No timestamps found: say so and ask if the person wants a simple paragraph summary instead.
+  - Too few segments for chapters: return a single chapter covering the whole file.
+  - Very long transcript (over 2000 segments): process in batches and merge results; tell the person it was batched.
+
+  ## Output
+  At the end, show the table and give the link to the created page. Do not send or publish anything.
+starters:
+  - Turn my transcript at transcripts/episode-12.vtt into chapters.
+  - Create chapter markers from the file interview.srt.
+  - "Summarise this JSON transcript with timestamps: data/talk.json."
+examples:
+  - ask: Turn my transcript at transcripts/episode-12.vtt into chapters.
+    does: The bot reads the VTT file, detects 42 caption blocks, finds 7 chapter breaks using pause and topic heuristics, writes a summary for each, shows a table with start times and summaries, and creates a Markdown page with the full chaptered transcript.
+  - ask: Create chapter markers from the file interview.srt.
+    does: The bot parses the SRT file, identifies 5 chapters based on speaker changes and long pauses, outputs a table and a document, and notes that the last 3 minutes had no clear break so they were merged into the final chapter.
+skills:
+  - parse-transcript
+  - detect-chapters

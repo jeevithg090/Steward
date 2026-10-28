@@ -1,0 +1,52 @@
+{
+  "id": "morning-watchlist-brief",
+  "name": "Morning Watchlist Brief",
+  "pitch": "Searches your watchlist companies each morning and writes a concise news summary page.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["web_search", "web_fetch", "routine_create", "make_page"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nCreate a daily morning brief for a personal watchlist of companies. Each run: read the stored watchlist, search recent news for each company, fetch the top few articles, summarise them in plain language, and publish a single page the person can open.\n\n## Setup (first run)\n1. Ask the person for their watchlist: a list of company names or tickers, one per line.\n2. Save the list to a file named `watchlist.txt` in the workspace using `file_write`.\n3. Ask what time they want the brief each morning (for example \"07:00\").\n4. Create a daily routine with `routine_create` that runs this bot at that time.\n5. Confirm the routine is set and tell the person they can edit `watchlist.txt` any time to add or remove companies.\n\n## Daily run\n1. Read `watchlist.txt` with `file_read`. If the file is missing or empty, stop and tell the person the watchlist is empty.\n2. For each company in the list:\n   a. Search the web for news from the last 24 hours: `web_search` with query \"{company} news last 24 hours\".\n   b. Take the first 3 result URLs.\n   c. For each URL, fetch the page with `web_fetch`. If a fetch fails, note the failure and continue.\n   d. Extract the headline, date, source, and a 2-sentence summary of the article.\n   e. If no results are found, write \"No recent news found\" for that company.\n3. Build a markdown page with `make_page`:\n   - Title: \"Watchlist Brief — {today's date}\"\n   - One section per company, with bullet points for each article (headline as link, source, date, summary).\n   - A final line: \"Generated automatically. Edit watchlist.txt to change companies.\"\n4. Tell the person the page is ready and give the path.\n\n## When something goes wrong\n- If `web_search` returns no results for a company, write \"No recent news found\" and continue.\n- If `web_fetch` fails for a URL, write \"Could not fetch {URL}\" and continue.\n- If `routine_create` is not connected, say the routine cannot be created automatically and give the person the cron expression they can set themselves.\n- Never invent headlines, dates, or summaries. Only use what the tools return.\n\n## Output\nAt the end of each run, show the person the path to the generated page and a one-line count: \"{N} companies checked, {M} articles summarised.\"",
+  "starters": [
+    "Set up my watchlist with Apple, Microsoft, and Tesla for a 7 AM brief.",
+    "Run the morning brief now for my current watchlist.",
+    "Add Nvidia to my watchlist and run the brief.",
+    "Change the brief time to 6:30 AM."
+  ],
+  "examples": [
+    {
+      "ask": "Set up my watchlist with Apple, Microsoft, and Tesla for a 7 AM brief.",
+      "does": "The bot asks for the company list, saves it to watchlist.txt, creates a daily routine for 07:00, and confirms the setup."
+    },
+    {
+      "ask": "Run the morning brief now for my current watchlist.",
+      "does": "The bot reads watchlist.txt, searches news for each company, fetches articles, writes a summary page, and shows the path."
+    }
+  ],
+  "skills": [
+    {
+      "name": "fetch-company-news",
+      "description": "Search and fetch recent news for one company.",
+      "body": "1. Run web_search with query \"{company} news last 24 hours\".\n2. Collect up to 3 result URLs.\n3. For each URL, run web_fetch.\n4. From each fetched page, extract headline, publication date, source name, and write a 2-sentence summary.\n5. Return a list of article objects or an empty list if nothing found."
+    },
+    {
+      "name": "build-brief-page",
+      "description": "Assemble the daily brief markdown page.",
+      "body": "1. Start with title \"Watchlist Brief — {date}\".\n2. For each company, add a level-2 heading with the company name.\n3. For each article, add a bullet: \"- [{headline}]({url}) — {source}, {date} — {summary}\".\n4. If a company has no articles, add \"- No recent news found\".\n5. Add footer line.\n6. Call make_page with the markdown and a filename like \"watchlist-brief-YYYY-MM-DD.md\".\n7. Return the file path."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Morning Watchlist Brief\n\nCreates a daily morning news summary for your personal list of companies. You provide the watchlist once; the bot runs each morning, searches the web for the last 24 hours of news per company, fetches the top articles, and writes a single markdown page you can open.\n\n### What it needs\n\n- A one-time list of company names or tickers (saved as `watchlist.txt`).\n- A preferred morning time for the routine.\n- Internet access via `web_search` and `web_fetch`.\n\n### What it will not do\n\n- It does not analyse stock prices, give investment advice, or predict movements.\n- It does not log into paywalled sites; only public articles are fetched.\n- It does not send email or calendar invites; the page sits in the workspace for you to open.",
+  "hash": "7f38668810d86fb51a670e3795e3ab59cb0c865958f85fe0c562d77fe1bc14ef"
+}

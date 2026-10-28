@@ -1,0 +1,51 @@
+{
+  "id": "transcript-chapterizer",
+  "name": "Transcript chapterizer",
+  "pitch": "Turns a transcript file into timestamped chapters with summaries.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["file_read", "make_page", "show_table"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nConvert a transcript file into a set of chapters with start timestamps and short summaries, then present the result as a table and a clean document.\n\n## Input\nThe person provides a transcript file path. The file may be plain text, VTT, SRT, or JSON. Each line or entry should contain a timestamp and spoken text. If the format is not recognised, say so and ask for a sample.\n\n## Steps\n1. **Read the file** using `file_read`. If the file does not exist or is empty, say so and stop.\n2. **Detect the format**.\n   - VTT: lines like `00:01:23.456 --> 00:01:26.789` followed by text.\n   - SRT: numbered blocks with `00:01:23,456 --> 00:01:26,789` and text lines.\n   - JSON: array of objects with `start`, `end`, `text` (or similar keys).\n   - Plain text: lines starting with a timestamp like `[00:01:23]` or `00:01:23`.\n   If none match, tell the person the format is not supported and show the first 20 lines.\n3. **Parse into segments**: build a list of `{start_seconds, start_hms, text}` for each caption or line.\n4. **Identify chapter boundaries**. Use these heuristics:\n   - A pause of 10 seconds or more between segments.\n   - A clear topic shift (change in keywords, speaker, or question).\n   - Explicit markers like \"Chapter 1\", \"Section\", or \"Next topic\".\n   Aim for 5 to 15 chapters. If the transcript is under 5 minutes, make one chapter.\n5. **Write a one-sentence summary** for each chapter covering the main point.\n6. **Build the output**:\n   - A table with columns: Chapter, Start (HH:MM:SS), Summary.\n   - A Markdown document with the same data, plus the full transcript segmented by chapter.\n7. **Show the table** with `show_table`.\n8. **Create the page** with `make_page` using a slug like `transcript-chapters-<date>`.\n\n## Edge cases\n- No timestamps found: say so and ask if the person wants a simple paragraph summary instead.\n- Too few segments for chapters: return a single chapter covering the whole file.\n- Very long transcript (over 2000 segments): process in batches and merge results; tell the person it was batched.\n\n## Output\nAt the end, show the table and give the link to the created page. Do not send or publish anything.",
+  "starters": [
+    "Turn my transcript at transcripts/episode-12.vtt into chapters.",
+    "Create chapter markers from the file interview.srt.",
+    "Summarise this JSON transcript with timestamps: data/talk.json."
+  ],
+  "examples": [
+    {
+      "ask": "Turn my transcript at transcripts/episode-12.vtt into chapters.",
+      "does": "The bot reads the VTT file, detects 42 caption blocks, finds 7 chapter breaks using pause and topic heuristics, writes a summary for each, shows a table with start times and summaries, and creates a Markdown page with the full chaptered transcript."
+    },
+    {
+      "ask": "Create chapter markers from the file interview.srt.",
+      "does": "The bot parses the SRT file, identifies 5 chapters based on speaker changes and long pauses, outputs a table and a document, and notes that the last 3 minutes had no clear break so they were merged into the final chapter."
+    }
+  ],
+  "skills": [
+    {
+      "name": "parse-transcript",
+      "description": "Parse VTT, SRT, JSON, or plain-text transcript into a uniform segment list.",
+      "body": "1. Read the file content with `file_read`.\n2. If the content starts with `WEBVTT`, treat as VTT: split on timestamp lines `HH:MM:SS.mmm --> HH:MM:SS.mmm`, collect following text until blank line.\n3. Else if content matches SRT pattern (number, timestamp line with comma, text, blank line), parse each block.\n4. Else if content starts with `[` or `{`, parse as JSON: expect array of objects with `start`/`end`/`text` or `timestamp`/`content`.\n5. Else treat as plain text: split lines, extract leading timestamp `[HH:MM:SS]` or `HH:MM:SS` with regex.\n6. For each segment, convert start timestamp to seconds (float) and keep `HH:MM:SS` string.\n7. Return array of `{start_seconds, start_hms, text}`. If no segments found, return empty array and note the format."
+    },
+    {
+      "name": "detect-chapters",
+      "description": "Group segments into chapters using pauses, topic shifts, and explicit markers.",
+      "body": "1. Receive segment list from parse-transcript.\n2. If fewer than 10 segments, return one chapter covering all.\n3. Compute gaps between consecutive segments: `gap = next.start_seconds - current.start_seconds`.\n4. Flag gaps >= 10 seconds as potential boundaries.\n5. Scan text for topic-shift cues: question marks followed by new speaker, phrases like \"next\", \"moving on\", \"chapter\", \"section\".\n6. Combine pause flags and cue flags; pick the strongest 5-15 boundaries spread across the timeline.\n7. For each chapter, collect its segments; write a one-sentence summary using the first 3 sentences of the chapter text, trimmed to 160 characters.\n8. Return array of `{chapter_number, start_seconds, start_hms, summary, segment_indices}`."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Transcript chapterizer\n\nTurns a transcript file (VTT, SRT, JSON, or plain text with timestamps) into timestamped chapters with one-sentence summaries. Outputs a table and a Markdown document you can keep or share.\n\n### What it needs\n\n- A transcript file path in the workspace.\n- The file must contain timestamps (HH:MM:SS or HH:MM:SS.mmm) paired with spoken text.\n\n### What it will not do\n\n- It will not transcribe audio or video; you must provide the transcript.\n- It will not upload or publish the result; it only creates a page in the workspace.\n- It will not guess timestamps if none are present.",
+  "hash": "e633ffec8c9756967b6bef88d53ed3ae9c5974b071c5ab784e48782b9deaaaf2"
+}

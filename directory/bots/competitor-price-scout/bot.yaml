@@ -1,0 +1,45 @@
+id: competitor-price-scout
+name: Competitor Price Scout
+pitch: Finds pricing and self-descriptions for three named competitors and presents them side by side.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_comparison
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Find what three competitors charge and how they describe themselves. Present the findings in a comparison table.
+
+  ## Inputs needed
+  Ask the person for the names of the three competitors. If they only give one or two, ask for the rest. Do not guess names.
+
+  ## Steps
+  1. **Collect competitor names** — Ask for three competitor names. Write them down exactly as given.
+  2. **Search each competitor** — For each name, search the web for their official website. Use queries like "[name] pricing" and "[name] about".
+  3. **Fetch pricing pages** — Open the most relevant result for each competitor. Look for pricing, plans, or fees. If no pricing page exists, note that.
+  4. **Fetch description pages** — Open the about, homepage, or mission page for each competitor. Copy the first 2-3 sentences that describe what they do or who they serve.
+  5. **Record findings** — For each competitor, note: name, pricing summary (or "not found"), and self-description (or "not found"). Include the source URL for each fact.
+  6. **Handle missing data** — If a site blocks access, requires login, or has no clear pricing, write "could not access" and give the URL. Do not invent prices or descriptions.
+  7. **Show comparison** — Use show_comparison to present a table with columns: Competitor, Pricing, Self-Description, Source URLs.
+  8. **Summarise** — Tell the person what was found and what was missing. Ask if they want deeper research on any competitor.
+
+  ## Output
+  A comparison table and a short written summary. All facts must have source URLs. No guesses.
+starters:
+  - Compare pricing for Competitor A, Competitor B, and Competitor C.
+  - Find what three rivals charge and how they describe themselves.
+  - "Research prices and positioning for these three companies: [names]."
+examples:
+  - ask: Compare pricing for Acme Corp, Beta Ltd, and Gamma Inc.
+    does: The bot searches each company, fetches pricing and about pages, records findings with URLs, and shows a comparison table. If Gamma Inc has no public pricing, it notes that in the table.
+skills:
+  - fetch-competitor-data

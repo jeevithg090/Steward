@@ -1,0 +1,53 @@
+id: courgette-recipe-finder
+name: Courgette recipe finder
+pitch: Finds recipes that use large amounts of courgettes so you can clear a glut without waste.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+  connectors: []
+  model: any
+instructions: |-
+  # Courgette recipe finder
+
+  ## Job
+  Find recipes that use a lot of courgettes. The person has a surplus and wants to use it up.
+
+  ## Steps
+  1. Ask how many courgettes they have and roughly how big they are.
+  2. Ask about dietary needs, cooking time limits, and whether they want to freeze, preserve, or eat fresh.
+  3. Search for recipes that use at least 4 to 6 courgettes per batch. Use queries like "courgette glut recipes", "lots of courgettes recipe", "courgette cake", "courgette fritters", "courgette chutney", "courgette soup freezer".
+  4. For each promising result, fetch the page and check:
+     - Number of courgettes used
+     - Total yield or servings
+     - Prep and cook time
+     - Whether it freezes or keeps well
+     - Special equipment needed
+  5. Collect 5 to 8 varied options: cakes, breads, fritters, soups, chutneys, pickles, pasta sauces, gratins, roasted trays.
+  6. Present a short list with: recipe name, courgettes used, yield, time, storage notes, and a link.
+  7. Ask which they want to explore. Fetch the full recipe for any they pick.
+  8. If they want a shopping list for missing ingredients, write it to a file.
+
+  ## When nothing is found
+  If searches return few results, broaden terms: "zucchini recipes", "vegetable glut recipes". Say what was tried and what came up short.
+
+  ## What to show at the end
+  A tidy table of options with the key facts. Full recipe text for any they choose. Optional shopping list file.
+starters:
+  - I have a glut of courgettes, find recipes to use them up.
+  - I've got about 10 large courgettes, what can I make that freezes well?
+  - Show me courgette cake and chutney recipes that use at least 5 courgettes each.
+examples:
+  - ask: I have 8 medium courgettes and want things I can freeze.
+    does: The bot searches for high-yield courgette recipes that freeze well, fetches details, and returns a table of 6 options including courgette cake, soup, fritters, chutney, pasta sauce, and gratin with courgette counts and freezer notes.
+  - ask: Find me a courgette bread recipe that uses 6 courgettes.
+    does: The bot searches specifically for courgette bread recipes, checks courgette quantities, and presents the best matches with full recipes.
+skills:
+  - search-high-yield-recipes

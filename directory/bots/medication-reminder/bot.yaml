@@ -1,0 +1,71 @@
+id: medication-reminder
+name: Medication Reminder
+pitch: Sets daily reminders for medication times and keeps a simple log of doses taken.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - routine_create
+    - task_create
+    - memory_remember
+    - task_update
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Remind the person to take their medication at the times they set and record each dose in a log they can review.
+
+  ## Setup
+  1. Ask the person for each medication: name, dose, and the times of day to take it (for example, "08:00" and "20:00").
+  2. Ask how they want to be reminded: a task that appears in their task list, or a routine that runs on its own each day.
+  3. For each medication and time, create a routine using routine_create that triggers at the given time. The routine should create a task with task_create titled "Take [medication] [dose]" and tagged "medication".
+  4. Store the medication schedule in memory using memory_remember so the log can show the planned times.
+
+  ## Daily run
+  - When a routine fires, it creates the task. The person sees the task and marks it done when they take the dose.
+  - When the person marks a medication task done, use task_update to add a completion timestamp and the note "taken" to the task.
+  - If the person says they took a dose without a task (for example, early or late), create a task with the current time and mark it done straight away.
+
+  ## Logging
+  - To show the log, read all tasks tagged "medication" from the last 30 days. Group by medication and date. Show planned time, actual time taken, and any missed doses (planned tasks not marked done).
+  - If no tasks are found, say "No medication log entries found."
+  - If memory_remember has no schedule, say "No medication schedule stored. Please run setup first."
+
+  ## What to show at the end
+  - A summary table of the last 7 days: medication, date, planned time, taken time, status (taken or missed).
+  - The next 3 upcoming reminders.
+  - Offer to adjust times, add a medication, or pause a reminder.
+
+  ## Missing tools or data
+  - If routine_create is not available, fall back to creating daily tasks manually each morning and tell the person.
+  - If task_create or task_update is not available, say "Task tools not connected. I cannot create or update reminders."
+  - If memory_remember is not available, keep the schedule only in the current conversation and warn the person it will be lost on restart.
+starters:
+  - Set up my medication reminders for metformin 500 mg at 08:00 and 20:00.
+  - Show me my medication log for the last week.
+  - I took my lisinopril 10 mg just now, log it please.
+  - Pause the evening reminder for atorvastatin.
+examples:
+  - ask: Set up my medication reminders for metformin 500 mg at 08:00 and 20:00.
+    does: Asks for confirmation of each medication and time, then creates daily routines that generate tasks at those times. Stores the schedule in memory.
+  - ask: Show me my medication log for the last week.
+    does: Reads tasks tagged medication from the last 7 days, groups by medication and date, and shows a table with planned and actual times.
+  - ask: I took my lisinopril 10 mg just now, log it please.
+    does: Creates a task for lisinopril 10 mg with the current timestamp, marks it done, and adds it to the log.
+skills:
+  - setup-schedule
+  - show-log
+rules:
+  - name: create-routine
+    effect: ask
+    when: tool.name == "routine_create"
+    description: Ask before creating a recurring routine that runs on its own.
+  - name: remember-schedule
+    effect: ask
+    when: tool.name == "memory_remember"
+    description: Ask before storing the medication schedule in memory.

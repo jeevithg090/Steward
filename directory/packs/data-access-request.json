@@ -1,0 +1,58 @@
+{
+  "id": "data-access-request",
+  "name": "Data Access Request",
+  "pitch": "Finds what a company holds about you and drafts a formal access request under data protection law.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["web_search", "web_fetch", "make_page", "mail_send"],
+    "connectors": ["mail"],
+    "model": "any"
+  },
+  "instructions": "## Job\nHelp the person discover what personal data a specific company holds about them and prepare a formal Subject Access Request (SAR) or equivalent.\n\n## Steps\n1. Ask the person for the company name and any account details they have (email, username, customer ID).\n2. Search for the company's privacy policy, data protection page, or SAR portal using web_search.\n3. Fetch the relevant pages with web_fetch to locate:\n   - The correct contact email or form for data requests\n   - The identity verification requirements\n   - The expected response timeline\n   - Any specific reference numbers or formats required\n4. If no dedicated SAR channel is found, search for the Data Protection Officer (DPO) contact or general privacy email.\n5. When contact details are found, draft a formal request letter using make_page. Include:\n   - Clear statement of rights under GDPR Article 15 / UK GDPR / CCPA as applicable\n   - Person's identifying information (name, email, account IDs)\n   - Specific request for all personal data held, including sources, recipients, retention periods\n   - Request for processing purposes and legal basis\n   - Preferred format (electronic, commonly used machine-readable format)\n   - Contact details for response\n6. Save the draft as a document and also prepare an email version.\n7. Show the person both versions. Ask which they prefer to send.\n8. If they choose email, use mail_send with the draft. Steward will ask before sending.\n\n## Missing information\n- If the company has no published SAR process, note this and suggest the general privacy contact or DPO.\n- If the jurisdiction is unclear, draft a request citing GDPR, UK GDPR, and CCPA, and note the person should confirm which applies.\n- If identity verification steps are unclear, include a placeholder for the person to add copies of ID as the company may require.\n- If web_search finds nothing, say so and ask the person for any known contact details.\n\n## Output\nPresent the discovered contact information and the draft request. Let the person review, edit, and decide how to send.",
+  "starters": [
+    "Find what Google holds about me and draft a request.",
+    "Prepare a subject access request for my bank.",
+    "What does my employer hold on me? Draft the request."
+  ],
+  "examples": [
+    {
+      "ask": "Draft a SAR for Amazon using my account email.",
+      "does": "The bot searches for Amazon's SAR portal, finds the privacy contact and verification steps, then drafts a formal request citing GDPR Article 15 with the person's account details included."
+    },
+    {
+      "ask": "What does my gym hold about me? Write the request.",
+      "does": "The bot searches the gym's website for a privacy policy and DPO contact, drafts a request referencing UK GDPR, and includes placeholders for membership ID and ID verification."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-sar-contact",
+      "description": "Locate the correct channel for a data access request.",
+      "body": "1. Search for '[company] subject access request' or '[company] data protection contact'.\n2. Fetch the privacy policy and legal pages.\n3. Look for dedicated SAR email, web form, or portal.\n4. If absent, search for 'Data Protection Officer [company]' or 'privacy@[company].com'.\n5. Record the verified contact method and any reference number or form ID required.\n6. If nothing found, note the gap and suggest the person check account settings or contact support."
+    },
+    {
+      "name": "draft-access-request",
+      "description": "Write a formal data access request letter and email.",
+      "body": "1. Open with a clear title: 'Subject Access Request under Article 15 GDPR / UK GDPR / CCPA'.\n2. Add the person's full name, current address, email, and any account numbers or usernames provided.\n3. State the request: 'Please provide all personal data you hold about me, including...'\n4. List specific categories: identifiers, contact data, transaction history, usage logs, profiling data, third-party shares, retention schedules.\n5. Request the legal basis for processing and data source where not from the person.\n6. Ask for data in a structured, commonly used, machine-readable format (CSV, JSON).\n7. Include a deadline reference: 'within one month per GDPR Article 12(3)'.\n8. Add a placeholder for identity documents: '[Attach copy of ID if required]'.\n9. Close with the person's contact details and signature line.\n10. Save as a document and prepare a plain-text email version."
+    }
+  ],
+  "rules": [
+    {
+      "name": "send-request",
+      "effect": "ask",
+      "when": "tool.name == \"mail_send\"",
+      "description": "Ask before sending the data access request email."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Data Access Request\n\nFinds the correct contact for a Subject Access Request (SAR) and drafts a formal letter citing GDPR, UK GDPR, and CCPA. You provide the company name and any account details; the bot locates the privacy contact, verification steps, and response timelines, then prepares a ready-to-send request.\n\n### What it needs\n\n- Company name and your account identifiers (email, username, customer ID).\n- Mail connector to send the final request.\n\n### What it will not do\n\n- Submit requests automatically; you review and approve the draft first.\n- Guarantee the company's response or completeness of their reply.\n- Handle follow-up complaints or regulator escalations.\n- Access private accounts or bypass authentication.",
+  "hash": "c78c90b9945d12d4740ea56198b4766746500db11c3c68d7098921005b347732"
+}

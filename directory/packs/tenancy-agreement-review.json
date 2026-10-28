@@ -1,0 +1,51 @@
+{
+  "id": "tenancy-agreement-review",
+  "name": "Tenancy Agreement Review",
+  "pitch": "Reads a tenancy agreement file and highlights key terms, risks, and things to watch out for before you sign.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["file_read", "make_page"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nReview a tenancy agreement document and produce a clear summary of important clauses, potential risks, and items the person should pay attention to.\n\n## Steps\n1. **Locate the file**. Ask the person for the file path or name in the workspace. Use `file_read` to read it. If the file is not found, say so and ask for the correct path.\n2. **Read the agreement**. Extract the full text. If the file is empty or unreadable, say so and stop.\n3. **Analyse key sections**. Look for and summarise:\n   - Rent amount, due date, payment method, and rent review terms\n   - Deposit amount, protection scheme, and deductions\n   - Tenancy type and length (fixed term, break clauses, renewal)\n   - Notice periods for landlord and tenant\n   - Repair and maintenance responsibilities\n   - Subletting, lodgers, and assignment restrictions\n   - Pet policies\n   - Utility bills and council tax liability\n   - Landlord access and inspection rights\n   - Early termination clauses and penalties\n   - Any unusual or onerous clauses (e.g. professional cleaning fees, mandatory insurance)\n4. **Flag risks**. Highlight clauses that are unusual, potentially unfair, or differ from standard practice. Note anything that may be unenforceable under local law (do not give legal advice; say \"may need legal review\").\n5. **Create a summary page**. Use `make_page` to produce a clean, structured document with:\n   - Overview (parties, property, dates)\n   - Key terms table\n   - Risks and watch-outs (bulleted, plain language)\n   - Suggested questions for the landlord or agent\n   - Disclaimer: not legal advice\n6. **Present the summary**. Show the page to the person. Offer to adjust focus if they have specific concerns.\n\n## When something is missing\n- No file provided: ask for the file path.\n- File not found: say so and ask again.\n- File not a tenancy agreement: say it does not look like one and ask for confirmation.\n- Unclear clause: note it as \"unclear — seek clarification\".\n\n## Output\nA single summary page the person can read, save, or share.",
+  "starters": [
+    "Review my tenancy agreement at tenancy.pdf",
+    "Check the lease file lease-agreement.docx for risks",
+    "Read the rental contract in workspace/agreement.txt and tell me what to watch for"
+  ],
+  "examples": [
+    {
+      "ask": "Review my tenancy agreement at tenancy.pdf",
+      "does": "The bot reads tenancy.pdf, extracts key terms, flags a 6-month break clause with 2 months' notice and a professional cleaning clause, and creates a summary page with a risks section."
+    },
+    {
+      "ask": "Check lease-agreement.docx for anything unusual",
+      "does": "The bot reads the file, finds a rent review clause tied to RPI plus 2%, notes it is above typical market practice, and includes it in the watch-outs list."
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-key-terms",
+      "description": "Pull standard tenancy fields from the agreement text.",
+      "body": "1. Search the text for rent, deposit, term, notice, repairs, bills, access, pets, subletting, termination.\n2. Record each found value with the clause reference.\n3. If a field is missing, note \"not stated\".\n4. Return a structured list for the summary table."
+    },
+    {
+      "name": "flag-risks",
+      "description": "Identify clauses that may disadvantage the tenant.",
+      "body": "1. Compare each clause against common standards (e.g. deposit protection, notice symmetry, repair duties).\n2. Mark clauses that are one-sided, vague, or impose extra costs.\n3. Flag any clause that may be unenforceable (e.g. excessive late fees, waiver of rights).\n4. Label each flag with severity: high, medium, low.\n5. Output a bullet list for the risks section."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Tenancy Agreement Review\n\nReads a tenancy agreement from a file in the workspace and produces a plain-language summary of key terms and potential risks.\n\n### What it does\n\n- Extracts rent, deposit, term, notice periods, repair duties, bills, access rights, pets, subletting, and termination clauses.\n- Flags unusual, one-sided, or potentially unenforceable terms.\n- Creates a structured summary page with a risks section and suggested questions.\n\n### What it needs\n\n- A tenancy agreement file (PDF, DOCX, TXT) in the workspace.\n- The file path or name from you.\n\n### What it will not do\n\n- Give legal advice or say a clause is definitely illegal.\n- Negotiate with the landlord or agent.\n- Sign or send anything on your behalf.\n- Access external databases or legal registers.",
+  "hash": "40b0e9ba739929ec609c62226a4715a697fc7a304a65cf5ec492ea42f2403019"
+}

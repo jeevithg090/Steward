@@ -1,0 +1,528 @@
+# The taxonomy: jobs people actually ask for, one list per category (keys from BOT_CATEGORIES).
+# Each line is written the way a person would say it. `tools` is a hint to the generator from the
+# built-in catalogue (never request_secret, never show_* except show_table and show_comparison);
+# `connectors` is mail, calendar or left out. No brands, no personal names.
+
+food:
+  - job: plan a week of dinners for four that take under half an hour each
+    tools: [web_search, web_fetch, make_page, show_table]
+  - job: turn what is in my fridge into three meals before it goes off
+    tools: [make_page]
+  - job: write a shopping list from these recipes and group it by aisle
+    tools: [web_fetch, make_page, show_table]
+  - job: find a recipe that uses up a glut of courgettes
+    tools: [web_search, web_fetch]
+  - job: work out what to cook for a dinner party where two guests are vegan and one cannot eat gluten
+    tools: [web_search, web_fetch, make_page]
+  - job: scale this recipe from four portions to eleven and convert it to grams
+    tools: [show_table, make_page]
+  - job: plan packed lunches for a week that do not need reheating
+    tools: [make_page, show_table]
+  - job: compare the cost of cooking a dish from scratch against buying it ready-made
+    tools: [web_search, web_fetch, show_comparison]
+  - job: tell me how long leftovers keep and how to store them safely
+    tools: [web_search, web_fetch]
+  - job: keep a running list of meals the family actually liked and suggest from it
+    tools: [memory_remember, make_page]
+  - job: find a bakery or restaurant near me that is open now and does gluten-free
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: make a batch-cooking plan for a Sunday that fills the freezer for a fortnight
+    tools: [web_search, make_page, show_table]
+
+health:
+  - job: build me a beginner running plan for a 10k in twelve weeks
+    tools: [make_page, show_table, calendar_create]
+    connectors: [calendar]
+  - job: remind me to take my medication and keep a log of when I did
+    tools: [routine_create, task_create, memory_remember]
+  - job: plan strength sessions I can do at home with no equipment, three times a week
+    tools: [make_page, show_table]
+  - job: help me sleep better by looking at what I tell you about my evenings
+    tools: [memory_remember, make_page]
+  - job: write a list of questions to ask my doctor before an appointment about my knee
+    tools: [make_page]
+  - job: track my water and steps and tell me each evening how the day went
+    tools: [memory_remember, routine_create]
+  - job: plan meals for a week that hit a protein target without being boring
+    tools: [web_search, make_page, show_table]
+  - job: find the nearest pharmacy that is open on a Sunday evening
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: prepare a stretching routine for someone who sits at a desk all day
+    tools: [make_page]
+  - job: help me cut down on caffeine over a month without headaches
+    tools: [make_page, show_table, routine_create]
+  - job: explain what the numbers on my blood test results mean in plain words and what to ask about
+    tools: [file_read, make_page]
+  - job: keep me company through a two-week habit of a ten-minute walk after lunch
+    tools: [routine_create, memory_remember]
+
+money:
+  - job: chase the invoice that is 30 days late with a polite reminder
+    tools: [mail_list, mail_read, mail_send]
+    connectors: [mail]
+  - job: go through my bank statement and sort the spending into categories
+    tools: [file_read, show_table, make_page]
+  - job: find subscriptions I pay for and no longer use
+    tools: [mail_list, mail_read, show_table]
+    connectors: [mail]
+  - job: build a monthly budget from what I earn and what I owe
+    tools: [show_table, make_page, memory_remember]
+  - job: work out whether to pay off a loan early or save the money instead
+    tools: [show_comparison, make_page]
+  - job: compare energy tariffs and tell me if switching is worth it
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, show_comparison]
+  - job: keep track of who owes what after a group holiday and draft the messages to settle up
+    tools: [show_table, mail_send]
+    connectors: [mail]
+  - job: check whether a bill is higher than usual and why
+    tools: [mail_list, mail_read, file_read, show_table]
+    connectors: [mail]
+  - job: set up a savings plan for next year's car insurance, holidays and gifts
+    tools: [show_table, make_page, routine_create]
+  - job: explain this tax letter to me and tell me what I need to do by when
+    tools: [file_read, make_page, task_create]
+  - job: find the best savings rate I can get without locking money away for more than a year
+    tools: [web_search, web_fetch, show_comparison]
+  - job: draft a letter asking a company for a refund for a service that was not delivered
+    tools: [make_page, mail_send]
+    connectors: [mail]
+
+investing:
+  - job: explain what an index fund is and how fees eat into returns over twenty years
+    tools: [show_table, make_page]
+  - job: track a watchlist of companies and summarise their news each morning
+    tools: [web_search, web_fetch, routine_create, make_page]
+  - job: check whether a crypto project someone recommended shows the signs of a scam
+    tools: [web_search, web_fetch, make_page]
+  - job: work out how much I need to put aside each month to reach a target by a date
+    tools: [show_table, make_page]
+  - job: rebalance my holdings back to my target split and show me the trades it would take
+    tools: [file_read, show_table, show_comparison]
+  - job: summarise a company's latest annual report in plain words
+    tools: [web_fetch, file_read, make_page]
+  - job: compare two pension providers on fees, funds and how easy it is to move
+    tools: [web_search, web_fetch, show_comparison]
+  - job: tell me what happened in the markets today in five sentences
+    tools: [web_search, web_fetch]
+  - job: keep a log of every trade I make and what I was thinking at the time
+    tools: [memory_remember, file_write, show_table]
+  - job: explain the tax I would owe on selling shares I have held for three years
+    tools: [web_search, web_fetch, make_page]
+  - job: read a fund's factsheet and tell me what it actually holds
+    tools: [web_fetch, file_read, show_table]
+
+productivity:
+  - job: sort my inbox into what needs me today and what can wait
+    tools: [triage_inbox, mail_list, mail_read]
+    connectors: [mail]
+  - job: draft replies to the three emails I have been avoiding
+    tools: [mail_read, mail_send]
+    connectors: [mail]
+  - job: find a time next week when four people are free for an hour
+    tools: [calendar_list, calendar_create]
+    connectors: [calendar]
+  - job: turn my meeting notes into actions with owners and dates
+    tools: [file_read, task_create, make_page]
+  - job: give me a morning brief of my mail, my calendar and what is due
+    tools: [brief_today, calendar_list]
+    connectors: [mail, calendar]
+  - job: unsubscribe me from newsletters I never open
+    tools: [mail_list, mail_read, browser_navigate, browser_snapshot, browser_click]
+    connectors: [mail]
+  - job: keep a running to-do list from what I tell you during the day
+    tools: [task_create, task_update, memory_remember]
+  - job: write a weekly review every Friday of what I finished and what slipped
+    tools: [mail_list, calendar_list, task_update, make_page, routine_create]
+    connectors: [mail, calendar]
+  - job: prepare me for tomorrow's meetings with the last email thread for each
+    tools: [calendar_list, mail_list, mail_read, make_page]
+    connectors: [mail, calendar]
+  - job: block out focus time on my calendar around my existing meetings
+    tools: [calendar_list, calendar_create]
+    connectors: [calendar]
+  - job: write a short, polite email declining a request without burning the bridge
+    tools: [mail_send]
+    connectors: [mail]
+  - job: clear my calendar for a day off and tell people I will be away
+    tools: [calendar_list, mail_send]
+    connectors: [mail, calendar]
+
+dev:
+  - job: review a pull request diff and point out bugs, not style
+    tools: [file_read, shell_run, make_page]
+  - job: write a failing test for the bug I describe, then make it pass
+    tools: [file_read, file_write, shell_run]
+  - job: explain this stack trace and the three most likely causes
+    tools: [file_read, web_search]
+  - job: set up a new project with linting, formatting and a test runner
+    tools: [file_write, shell_run, file_list]
+  - job: write release notes from the commits since the last tag
+    tools: [shell_run, make_page]
+  - job: read the docs for a library and show me how to do one specific thing with it
+    tools: [web_search, web_fetch, file_write]
+  - job: find where in this codebase a setting is read and every place it is used
+    tools: [file_list, file_read, shell_run]
+  - job: turn a rough shell one-liner into a script with argument checks and help text
+    tools: [file_write, shell_run]
+  - job: check my dependencies for known problems and tell me which updates are safe
+    tools: [shell_run, web_search, web_fetch, show_table]
+  - job: write a README for this repository from what is actually in it
+    tools: [file_list, file_read, make_page]
+  - job: convert this JSON into a typed schema and a validator
+    tools: [file_read, file_write]
+  - job: profile why this script is slow and suggest the smallest change that helps
+    tools: [file_read, shell_run, make_page]
+
+social:
+  - job: plan a month of posts for a small bakery's account
+    tools: [make_page, show_table]
+  - job: turn a long blog post into five short posts and a thread
+    tools: [file_read, web_fetch, make_page]
+  - job: write captions for these photos in my voice, not a salesy one
+    tools: [file_read, memory_remember]
+  - job: suggest ideas for videos based on what is trending in my niche this week
+    tools: [web_search, web_fetch, make_page]
+  - job: reply to comments on my latest post kindly and quickly
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_click]
+  - job: draft a newsletter from the three things I did this week
+    tools: [make_page, mail_send]
+    connectors: [mail]
+  - job: work out the best times to post from my past posts' performance
+    tools: [file_read, show_table]
+  - job: write a bio that fits in 150 characters and says what I actually do
+    tools: [memory_remember]
+  - job: put together a media kit page with my numbers and rates
+    tools: [file_read, make_page]
+  - job: find creators in my field who might collaborate and draft a first message
+    tools: [web_search, web_fetch, show_table, make_page]
+  - job: check a post for anything that could come back to bite me before I publish
+    tools: [make_page]
+  - job: keep a file of hooks and headlines that worked and suggest from it
+    tools: [memory_remember, file_write, make_page]
+
+video-audio:
+  - job: write a script for a five-minute explainer video with a shot list
+    tools: [make_page]
+  - job: turn a transcript into chapters with timestamps and a summary
+    tools: [file_read, make_page, show_table]
+  - job: plan a podcast season with ten episode outlines and guest ideas
+    tools: [web_search, make_page]
+  - job: write show notes and a pull-quote from this episode
+    tools: [file_read, make_page]
+  - job: suggest a title and thumbnail text that are honest and still get clicks
+    tools: [make_page]
+  - job: find royalty-free music and sound effects I am actually allowed to use
+    tools: [web_search, web_fetch, show_table]
+  - job: work out a filming schedule for a weekend with two locations
+    tools: [make_page, calendar_create]
+    connectors: [calendar]
+  - job: explain how to fix echo in a small room without spending much
+    tools: [web_search, web_fetch]
+  - job: draft outreach to a guest, with three dates that suit me
+    tools: [calendar_list, mail_send]
+    connectors: [mail, calendar]
+  - job: check my captions file for errors and fix the timing format
+    tools: [file_read, file_write]
+  - job: make a checklist for going live so I stop forgetting the microphone
+    tools: [make_page, memory_remember]
+
+research:
+  - job: summarise the research on a question and tell me where the studies disagree
+    tools: [web_search, web_fetch, make_page]
+  - job: teach me a topic in twenty-minute lessons over two weeks
+    tools: [make_page, routine_create, memory_remember]
+  - job: make flashcards from these notes and quiz me on them
+    tools: [file_read, make_page, memory_remember]
+  - job: find the original source of a claim I keep seeing repeated
+    tools: [web_search, web_fetch]
+  - job: explain a paper to me as if I were a bright fourteen-year-old
+    tools: [file_read, web_fetch, make_page]
+  - job: compare three textbooks for a beginner and say which to start with
+    tools: [web_search, web_fetch, show_comparison]
+  - job: keep a reading list and tell me what to read next based on what I finished
+    tools: [memory_remember, make_page, task_create]
+  - job: practise a language with me for ten minutes a day and correct my mistakes
+    tools: [memory_remember, routine_create]
+  - job: write a literature review outline from these ten papers
+    tools: [file_read, make_page]
+  - job: fact-check an article and list every claim with what you found
+    tools: [web_fetch, web_search, show_table]
+  - job: prepare me for an exam with a revision timetable that fits around work
+    tools: [calendar_list, make_page, show_table]
+    connectors: [calendar]
+  - job: track a topic and tell me each week what changed
+    tools: [web_search, web_fetch, routine_create, make_page]
+
+home:
+  - job: find me a flat I can afford near my work with a short commute
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, browser_scroll, show_table]
+  - job: read this tenancy agreement and tell me what to watch out for
+    tools: [file_read, make_page]
+  - job: check whether a rental listing is a scam before I pay a holding deposit
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: make a chore rota for a house of four that is actually fair
+    tools: [make_page, show_table]
+  - job: plan a child's birthday party for twelve on a budget
+    tools: [web_search, make_page, show_table]
+  - job: keep track of the car's test, insurance and service dates and remind me
+    tools: [memory_remember, routine_create, task_create, calendar_create]
+    connectors: [calendar]
+  - job: find a plumber with good reviews who can come this week
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: write a letter to my landlord about the damp that has not been fixed
+    tools: [make_page, mail_send]
+    connectors: [mail]
+  - job: plan what to pack and do before we move house in six weeks
+    tools: [make_page, task_create, show_table]
+  - job: help me choose a washing machine that fits a narrow space and is quiet
+    tools: [web_search, web_fetch, show_comparison]
+  - job: keep a list of what is in the freezer and the garage so we stop buying doubles
+    tools: [memory_remember, file_write, show_table]
+  - job: set up a shared family calendar of school dates, clubs and birthdays
+    tools: [calendar_create, calendar_list, file_read]
+    connectors: [calendar]
+
+privacy:
+  - job: tell me whether this text message about a parcel is a scam
+    tools: [web_search, web_fetch]
+  - job: check an email that says it is from my bank before I click anything
+    tools: [mail_read, web_search, web_fetch]
+    connectors: [mail]
+  - job: find out what a company holds about me and draft the request for it
+    tools: [web_search, web_fetch, make_page, mail_send]
+    connectors: [mail]
+  - job: help me set strong passwords and a plan to change the ones I reuse
+    tools: [make_page]
+  - job: check whether my email address has appeared in a known data breach
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: go through my phone's permissions with me and say which to turn off
+    tools: [make_page, show_table]
+  - job: look at a job offer that came out of nowhere and tell me the warning signs
+    tools: [web_search, web_fetch, make_page]
+  - job: write a message to an elderly relative explaining how to spot a phone scam
+    tools: [make_page]
+  - job: check a shop's website before I buy from it for the first time
+    tools: [web_fetch, web_search, browser_navigate, browser_snapshot]
+  - job: tell me what to do right now because I think I have been scammed
+    tools: [web_search, web_fetch, make_page, task_create]
+  - job: review the privacy settings on my accounts and walk me through tightening them
+    tools: [browser_navigate, browser_snapshot, browser_click, request_help]
+  - job: explain what a cookie banner is really asking and which button to press
+    tools: [web_fetch]
+
+bot-helpers:
+  - job: find me a bot that does what I just described, or say there is none
+    tools: [directory_find]
+  - job: turn what I keep asking you for into a skill I can call with a slash
+    tools: [memory_remember, make_page]
+  - job: help me write clear instructions for a bot that chases invoices
+    tools: [make_page]
+  - job: test a bot against five awkward questions and report what it got wrong
+    tools: [make_page, show_table]
+  - job: suggest rules that would make a bot safer without stopping it working
+    tools: [make_page]
+  - job: explain what a bot may do without asking me, from its pack
+    tools: [file_read, make_page]
+  - job: write starter prompts and examples for a bot from its instructions
+    tools: [file_read, make_page]
+  - job: compare two bots that do the same job and say which to install
+    tools: [directory_find, show_comparison]
+  - job: draft a routine that runs a bot every weekday morning and tells me the result
+    tools: [routine_create, make_page]
+  - job: write a plain-language README for a bot pack I made
+    tools: [file_read, make_page]
+  - job: review a bot's instructions for anything that could leak my data
+    tools: [file_read, make_page]
+
+games:
+  - job: run a text adventure where I am a lighthouse keeper on a stormy night
+    tools: [memory_remember]
+  - job: make a pub quiz with six rounds and an answer sheet
+    tools: [web_search, make_page, show_table]
+  - job: teach me chess openings with one new idea a day
+    tools: [routine_create, memory_remember, make_page]
+  - job: invent a party game for eight adults who do not know each other
+    tools: [make_page]
+  - job: help me plan a tabletop campaign with a map and three villains
+    tools: [make_page, file_write]
+  - job: play twenty questions with me and keep score across the week
+    tools: [memory_remember]
+  - job: find board games for two that take under an hour
+    tools: [web_search, web_fetch, show_table]
+  - job: write riddles for a treasure hunt around the house for two children
+    tools: [make_page]
+  - job: explain the rules of a card game simply enough to play tonight
+    tools: [web_search, web_fetch, make_page]
+  - job: make a crossword from a list of words I give you
+    tools: [make_page]
+  - job: be the games master for a one-shot adventure that fits in two hours
+    tools: [memory_remember, make_page]
+  - job: run a daily word puzzle and keep my streak
+    tools: [routine_create, memory_remember]
+
+sports:
+  - job: pick my fantasy football team for this week from the fixtures and injuries
+    tools: [web_search, web_fetch, show_table]
+  - job: tell me every morning how my team did and who they play next
+    tools: [web_search, web_fetch, routine_create]
+  - job: build a plan to get me to a first half marathon
+    tools: [make_page, show_table, calendar_create]
+    connectors: [calendar]
+  - job: explain the offside rule to someone who has never watched a match
+    tools: [make_page]
+  - job: find a five-a-side league near me with a space for one player
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: track my gym lifts and tell me when to add weight
+    tools: [memory_remember, show_table]
+  - job: keep a running tally of a tournament between friends and the rules we agreed
+    tools: [memory_remember, file_write, show_table]
+  - job: summarise last night's games for the sports I follow and skip the rest
+    tools: [web_search, web_fetch, memory_remember]
+  - job: plan a cycling route for Saturday that avoids main roads and ends at a cafe
+    tools: [web_search, web_fetch, make_page]
+  - job: compare two pairs of running shoes for someone who overpronates
+    tools: [web_search, web_fetch, show_comparison]
+  - job: remind me when tickets for my team go on sale and what the prices are
+    tools: [web_search, web_fetch, routine_create, task_create]
+
+travel:
+  - job: plan a four-day trip for two on a tight budget with trains, not flights
+    tools: [web_search, web_fetch, make_page, show_table]
+  - job: find the cheapest way to get from the airport to the city at midnight
+    tools: [web_search, web_fetch]
+  - job: check what documents I need to drive abroad in a hired car
+    tools: [web_search, web_fetch, make_page]
+  - job: keep an eye on the price of a flight and tell me when it drops
+    tools: [browser_navigate, browser_snapshot, routine_create, memory_remember]
+  - job: write a packing list for a week of hiking in changeable weather
+    tools: [make_page, web_search]
+  - job: put together a day-by-day itinerary from the bookings in my inbox
+    tools: [mail_list, mail_read, calendar_create, make_page]
+    connectors: [mail, calendar]
+  - job: work out whether it is cheaper to lease or buy my next car
+    tools: [show_comparison, make_page]
+  - job: find a hotel with a pool near the station under a nightly budget
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, show_table]
+  - job: help me claim compensation for a flight that was delayed four hours
+    tools: [web_search, web_fetch, make_page, mail_send]
+    connectors: [mail]
+  - job: explain what to check on a used car before I hand over any money
+    tools: [make_page, web_search]
+  - job: plan a road trip with stops every two hours and places to charge the car
+    tools: [web_search, web_fetch, make_page, show_table]
+  - job: translate the key phrases I will need on a trip and put them on one page
+    tools: [make_page]
+
+business:
+  - job: write a one-page plan for a dog-walking business in my town
+    tools: [web_search, make_page]
+  - job: draft a marketing email for a launch that does not sound like spam
+    tools: [make_page, mail_send]
+    connectors: [mail]
+  - job: find out what three competitors charge and how they describe themselves
+    tools: [web_search, web_fetch, show_comparison]
+  - job: write the copy for a landing page from these bullet points
+    tools: [make_page]
+  - job: put together a simple cash-flow forecast for the next six months
+    tools: [show_table, make_page, file_read]
+  - job: plan a product launch with a timeline and who does what
+    tools: [make_page, show_table, task_create]
+  - job: write a press release for a small local announcement
+    tools: [make_page]
+  - job: reply to a bad review in a way that is honest and keeps our dignity
+    tools: [make_page]
+  - job: write the terms and a privacy notice for a small online shop in plain words
+    tools: [make_page, web_search]
+  - job: research who buys what we sell and write three customer profiles
+    tools: [web_search, web_fetch, make_page]
+  - job: prepare the questions and a scorecard for interviewing a freelancer
+    tools: [make_page, show_table]
+  - job: track mentions of my business online and tell me weekly
+    tools: [web_search, web_fetch, routine_create, make_page]
+
+sales-crm:
+  - job: keep a list of my leads and where each one is in the conversation
+    tools: [memory_remember, file_write, show_table]
+  - job: draft a follow-up to a prospect who went quiet two weeks ago
+    tools: [mail_list, mail_read, mail_send]
+    connectors: [mail]
+  - job: research a company before a sales call and brief me in a page
+    tools: [web_search, web_fetch, make_page]
+  - job: write a proposal from my notes and their brief
+    tools: [file_read, make_page]
+  - job: tell me every Monday which deals have not moved in a fortnight
+    tools: [file_read, routine_create, show_table]
+  - job: prepare answers to the objections I hear most often
+    tools: [memory_remember, make_page]
+  - job: turn a call transcript into a summary and next steps for the record
+    tools: [file_read, make_page, task_create]
+  - job: find twenty local businesses that might need what I sell
+    tools: [web_search, web_fetch, show_table]
+  - job: write a quote in the right format from these line items
+    tools: [file_read, make_page, show_table]
+  - job: log every conversation I have with a customer so I never ask the same thing twice
+    tools: [memory_remember, file_write]
+  - job: schedule a demo with a prospect from the times they offered
+    tools: [mail_read, calendar_list, calendar_create]
+    connectors: [mail, calendar]
+  - job: clean up a spreadsheet of contacts with duplicates, missing fields and dead emails
+    tools: [file_read, file_write, show_table]
+
+work:
+  - job: write up the actions from a meeting and who owns each one
+    tools: [file_read, make_page, task_create]
+  - job: draft a handover for my two weeks of leave
+    tools: [mail_list, calendar_list, make_page]
+    connectors: [mail, calendar]
+  - job: prepare me for a one-to-one with my manager
+    tools: [make_page, memory_remember]
+  - job: write a project status update from what happened this week
+    tools: [mail_list, file_read, make_page]
+    connectors: [mail]
+  - job: turn a messy email thread into a decision record
+    tools: [mail_read, file_read, make_page]
+    connectors: [mail]
+  - job: put together an onboarding checklist for a new starter
+    tools: [make_page, task_create]
+  - job: help me say no to a deadline I cannot meet without making it worse
+    tools: [mail_send]
+    connectors: [mail]
+  - job: review a job description for things that would put good people off
+    tools: [file_read, make_page]
+  - job: plan the agenda for a half-day workshop with eight people
+    tools: [make_page, show_table]
+  - job: write a plain-words explanation of a policy for the whole team
+    tools: [file_read, make_page]
+  - job: track what each person on my team is waiting on from me
+    tools: [memory_remember, task_create, show_table]
+  - job: summarise a long report into a page a director will read
+    tools: [file_read, make_page]
+
+misc:
+  - job: remind me of birthdays a week ahead and suggest a gift
+    tools: [calendar_list, routine_create, web_search]
+    connectors: [calendar]
+  - job: write a toast for my sister's wedding in my words
+    tools: [memory_remember, make_page]
+  - job: help me decide between two options by listing what matters to me
+    tools: [show_comparison, make_page]
+  - job: find a dentist taking new patients near me
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: fill in a long online form with me, stopping wherever it needs my say
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_click, request_help]
+  - job: write a complaint about a parcel that never arrived
+    tools: [make_page, mail_send]
+    connectors: [mail]
+  - job: plan a garden for a small shady yard that needs little work
+    tools: [web_search, web_fetch, make_page]
+  - job: turn my voice notes into a tidy list of things to do
+    tools: [file_read, task_create]
+  - job: keep a journal with me each evening with one question a day
+    tools: [routine_create, memory_remember, file_write]
+  - job: explain a long document to me in plain words before I sign it
+    tools: [file_read, make_page]
+  - job: help me pick a gift under a budget for someone who has everything
+    tools: [web_search, web_fetch, show_table]
+  - job: draft the message I keep putting off
+    tools: [make_page, mail_send]
+    connectors: [mail]

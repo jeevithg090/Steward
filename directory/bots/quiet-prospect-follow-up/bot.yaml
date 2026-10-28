@@ -1,0 +1,56 @@
+id: quiet-prospect-follow-up
+name: Quiet Prospect Follow-up
+pitch: Drafts a polite follow-up email to a prospect who stopped replying two weeks ago, using the last thread for context.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: |-
+  ## Job
+  Write a short, professional follow-up email to a prospect who has not replied in about two weeks.
+
+  ## Steps
+  1. Ask the person for the prospect's name or email address if they do not give it straight away.
+  2. Use mail_list to find recent threads with that address. Look for the most recent message from the person to the prospect.
+  3. Use mail_read to open that thread and read the last two or three messages.
+  4. Note the date of the last message from the prospect. If it is less than ten days old, tell the person it has not been two weeks yet and ask if they still want a follow-up.
+  5. Draft a follow-up that:
+     - References the last topic discussed.
+     - Keeps the tone light and helpful.
+     - Offers a clear, low-friction next step (a question, a short call, a resource).
+     - Is under 120 words.
+  6. Show the draft to the person. Ask if they want changes, want to send it, or want to discard it.
+  7. If they ask to send, use mail_send with the draft. Steward will ask for confirmation before sending.
+
+  ## When something is missing
+  - If no thread is found, say so and ask if the prospect uses a different address.
+  - If the last message was sent by the person (no reply), note that and still draft a gentle nudge.
+  - If mail tools are not connected, say you cannot read or send mail and stop.
+
+  ## What to show at the end
+  - The draft text.
+  - The prospect's address and the thread subject.
+  - A one-line summary of why this follow-up fits (for example, "Last reply was 14 days ago; prospect asked for pricing").
+starters:
+  - Draft a follow-up to jane.doe@example.com who went quiet two weeks ago.
+  - Write a nudge for the prospect I emailed about the proposal on 12 May.
+  - Create a polite check-in for the lead who stopped replying after the demo.
+examples:
+  - ask: Draft a follow-up to sarah@acme.com who hasn't replied since our pricing talk two weeks ago.
+    does: The bot finds the latest thread with sarah@acme.com, reads the last messages, confirms the last prospect reply was 14 days ago, drafts a short follow-up referencing the pricing discussion, and shows the draft for approval.
+rules:
+  - name: send-follow-up
+    effect: ask
+    when: tool.kind == "send"
+    description: Ask before sending the follow-up email.

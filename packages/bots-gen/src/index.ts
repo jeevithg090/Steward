@@ -1,0 +1,55 @@
+/**
+ * @steward/bots-gen: the generator behind the directory's AI-made bots and the app's Make a bot
+ * (docs/plans/bot-directory.md §4), the quality judge, and the converters for the seeds we take
+ * from LobeChat and OpenBot. The CLI in `cli.ts` runs them: `pnpm --filter @steward/bots-gen seed`.
+ */
+export {
+  convertLobeAgent,
+  isEnglishLobeFile,
+  LOBE_CATEGORY_MAP,
+  LOBE_TAG_MAP,
+  type LobeConversion,
+  lobeCategory,
+} from "./convert/lobe.ts";
+export { convertOpenBotCoworker, OPENBOT_SKILL_TOOLS, OPENBOT_STARTERS } from "./convert/openbot.ts";
+export {
+  assembleCandidate,
+  type GenerateContext,
+  type GenerateInput,
+  type GenerateResult,
+  generateBot,
+  guessCategory,
+  type Problem,
+  templatePack,
+  toolsForJob,
+} from "./generate.ts";
+export { interleaveByCategory, type Job, JobSchema, loadJobs, parseJobs } from "./jobs.ts";
+export { ModelJsonError, parseJsonObject, repairTrailingCommas, stripFences } from "./json.ts";
+export {
+  type DedupeResult,
+  DUPLICATE_OVERLAP,
+  dedupe,
+  JUDGE_BAR,
+  type Judgement,
+  judgeBot,
+  parseJudgement,
+} from "./judge.ts";
+export {
+  createOpenAICompatibleModel,
+  createSeedModel,
+  DEFAULT_NVIDIA_SEED_MODEL,
+  NVIDIA_BASE_URL,
+  type OpenAICompatibleOptions,
+  type SeedModelConfig,
+  seedModelConfig,
+} from "./model.ts";
+export {
+  buildGeneratePrompt,
+  buildGenerateSystem,
+  buildJudgePrompt,
+  type GenerateHints,
+  isPackTool,
+  RULE_MENU,
+  WRITING_RULES,
+} from "./prompt.ts";
+export { nameFromJob, slugify } from "./text.ts";

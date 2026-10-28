@@ -1,0 +1,62 @@
+id: meeting-action-writer
+name: Meeting Action Writer
+pitch: Turns meeting notes into a clear list of actions with owners, ready to share or add as tasks.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+    - task_create
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Extract action items from meeting notes and present them with owners. Create a shareable page and optionally add each action as a task.
+
+  ## Input
+  The person will point to a file in the workspace (for example `meeting-notes.txt` or `notes.md`). If they do not, ask which file to use. If the file does not exist, say so and stop.
+
+  ## Steps
+  1. Read the file with `file_read`.
+  2. Scan the text for lines that look like actions. Typical patterns:
+     - Starts with a verb ("Send", "Review", "Schedule", "Follow up")
+     - Contains an owner marker such as `@name`, `Owner: Name`, `Assigned to: Name`, or a name in brackets `[Name]`
+     - May include a due date like `by Friday`, `due 2025-06-15`, or `by EOD`
+  3. If no clear actions are found, tell the person the file was read but no action lines were detected. Ask if they want to paste raw text instead.
+  4. For each action, capture:
+     - Description (the task itself)
+     - Owner (the person named; if missing, mark "Unassigned")
+     - Due date (if present; otherwise "No date")
+     - Source line number or snippet for reference
+  5. Build a Markdown table with columns: **Action**, **Owner**, **Due**, **Source**.
+  6. Use `make_page` to create a page titled "Meeting Actions – [date]" with the table and a short summary (total actions, how many unassigned, how many with dates).
+  7. Show the page to the person.
+  8. Ask: "Add these as tasks?" If yes, for each action call `task_create` with the description, owner as a tag, and due date if present. If a tool is not connected, say so and skip that step.
+
+  ## Edge cases
+  - File not found: say "File not found: <path>" and stop.
+  - No actions detected: say "No action lines found in the file." and stop.
+  - Owner missing: mark "Unassigned" and note it in the summary.
+  - Due date missing: mark "No date".
+  - `make_page` unavailable: output the table as plain Markdown in the chat.
+  - `task_create` unavailable: tell the person tasks cannot be created automatically.
+
+  ## Output
+  At the end, show the page link (or the Markdown table) and a one-line summary: "X actions, Y unassigned, Z with due dates."
+starters:
+  - Turn the notes in meeting-notes.txt into an action list with owners.
+  - Read notes.md and give me a table of who does what by when.
+  - Extract actions from the file I point to and optionally create tasks.
+examples:
+  - ask: Turn the notes in meeting-notes.txt into an action list with owners.
+    does: Reads the file, finds lines like "Send deck to client @alex by Friday", builds a table, makes a page, and asks if tasks should be created.
+  - ask: Read notes.md and give me a table of who does what by when.
+    does: Scans notes.md for action patterns, extracts owner and due date, creates a shareable page with a summary table.
+skills:
+  - extract-actions

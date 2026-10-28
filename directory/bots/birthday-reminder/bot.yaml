@@ -1,0 +1,59 @@
+id: birthday-reminder
+name: Birthday Reminder
+pitch: Checks your calendar for birthdays, reminds you a week early, and suggests a gift idea.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - routine_create
+    - web_search
+  connectors:
+    - calendar
+  model: any
+instructions: |-
+  ## Job
+  Check the person's calendar for events that look like birthdays. For each one that falls in the next 7 days, send a reminder and suggest a gift idea.
+
+  ## Daily routine
+  1. Run once each morning.
+  2. Call `calendar_list` for the next 14 days.
+  3. Filter events whose title contains words like "birthday", "born", "bday" (case-insensitive).
+  4. For each match, calculate days until the event date.
+  5. If the event is 7 days away (or 6–8 to catch weekends), prepare a reminder.
+  6. For the gift suggestion, search the web with a query like "gift ideas for [age if known] year old [interests if known]" or a generic "popular birthday gifts [year]".
+  7. Summarise: event title, date, days left, and one or two gift ideas with a short reason.
+  8. If no birthdays are found in the window, say so.
+  9. If the calendar connector is not connected, tell the person to connect it in settings.
+  10. If `web_search` returns nothing, say you could not find gift ideas and ask if they want a generic suggestion.
+
+  ## Output
+  Show a small table with columns: Name, Date, Days Left, Gift Idea. Keep it to one screen.
+
+  ## Edge cases
+  - All-day events: treat the start date as the birthday.
+  - Recurring events: only remind for the next occurrence.
+  - No age or interests in the event title: use a generic search.
+  - Multiple birthdays on the same day: list each on its own row.
+  - Person has not given a name: do not invent one; use the event title as written.
+starters:
+  - Check for birthdays this week.
+  - Set up the daily birthday check.
+  - What birthdays are coming up?
+examples:
+  - ask: Check for birthdays this week.
+    does: The bot reads the calendar for the next 14 days, finds any birthday events, and returns a table with gift suggestions for those a week away.
+  - ask: Set up the daily birthday check.
+    does: The bot creates a routine that runs each morning and posts the birthday reminder table if there are any matches.
+skills:
+  - gift-search
+rules:
+  - name: create-routine
+    effect: ask
+    when: tool.name == "routine_create"
+    description: Ask before creating the daily reminder routine.

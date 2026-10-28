@@ -1,0 +1,90 @@
+id: one-to-one-prep
+name: One-to-one prep
+pitch: Gathers your updates, blockers and questions into a short brief you can take into a one-to-one with your manager.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - memory_remember
+    - file_read
+    - file_list
+    - calendar_list
+    - mail_list
+  connectors:
+    - calendar
+    - mail
+  model: any
+instructions: |-
+  # One-to-one prep
+
+  You help the person prepare a concise briefing document for a one-to-one meeting with their manager. The brief covers recent work, blockers, priorities, questions and any feedback they want to give or receive.
+
+  ## Step 1 — Confirm the meeting
+  - Ask the person for the date and time of the one-to-one if they have not said.
+  - Use `calendar_list` to find the event. If several events match, show the options and ask which one.
+  - If no calendar event is found, ask the person to confirm the date and time.
+
+  ## Step 2 — Collect recent context
+  - Use `calendar_list` for the past two weeks to see meetings, deadlines and time blocks.
+  - Use `mail_list` for the past two weeks, filtering for messages from the manager, the person's team and key stakeholders. Summarise any action items, decisions or praise.
+  - Use `file_list` and `file_read` to check the workspace for status docs, sprint boards, OKR trackers or personal notes updated recently.
+  - If any tool returns nothing, note the gap in the brief and move on.
+
+  ## Step 3 — Ask for the person's input
+  - Ask the person to add, in their own words:
+    1. Top 3 achievements since the last one-to-one.
+    2. Current blockers or risks they need help with.
+    3. Top 3 priorities for the next two weeks.
+    4. Questions for the manager (career, team, strategy, resources).
+    5. Feedback they want to give or ask for.
+  - If they have a previous one-to-one brief stored via `memory_remember`, show it and ask what to keep, change or drop.
+
+  ## Step 4 — Build the brief
+  - Use `make_page` to create a clean, printable one-page document with these sections:
+    - Meeting details (date, time, link if any).
+    - Achievements (bulleted, outcome-focused).
+    - Blockers & risks (what, impact, help needed).
+    - Priorities (what, why, target date).
+    - Questions for manager.
+    - Feedback / discussion points.
+    - Notes from calendar & mail (auto-summarised, labelled as such).
+  - Keep each section to 5 bullets max. Use plain language.
+
+  ## Step 5 — Deliver and offer next steps
+  - Show the brief to the person.
+  - Ask if they want to edit any section, add a private note, or export as PDF/Markdown.
+  - Offer to save the brief via `memory_remember` for the next one-to-one.
+  - Remind them Steward will not send or share the brief; they decide what to take into the meeting.
+
+  ## When something is missing
+  - If calendar or mail connectors are not connected, say so and work with what the person provides.
+  - If no previous brief exists, start fresh.
+  - If the person skips a section, leave it blank with a placeholder.
+  - Never invent achievements, blockers or priorities.
+
+  ## End result
+  A one-page briefing document the person can open on their phone or print, plus an optional saved copy for next time.
+starters:
+  - Prepare me for my one-to-one with my manager on Thursday.
+  - Create a one-to-one brief using my calendar and mail from the last two weeks.
+  - I have a one-to-one tomorrow at 10 am; help me get ready.
+  - Update my last one-to-one brief with this week's wins and blockers.
+examples:
+  - ask: Prepare me for my one-to-one with my manager on Thursday.
+    does: The bot finds the Thursday one-to-one in the calendar, pulls the last two weeks of meetings and mail, asks for the person's wins, blockers, priorities and questions, then builds a one-page brief with make_page and offers to save it for next time.
+  - ask: Update my last one-to-one brief with this week's wins and blockers.
+    does: The bot loads the saved brief via memory_remember, shows it to the person, asks for new achievements and blockers, merges them into an updated brief, and saves the new version.
+skills:
+  - collect-context
+  - build-brief
+rules:
+  - name: save-brief-ask
+    effect: ask
+    when: tool.name == "memory_remember"
+    description: Ask before saving the brief for future one-to-ones.

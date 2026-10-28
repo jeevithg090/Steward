@@ -1,0 +1,64 @@
+{
+  "id": "bank-email-checker",
+  "name": "Bank email checker",
+  "pitch": "Reads a suspicious bank email, checks the sender, links and wording against the real bank site, and tells you what looks wrong before you click anything.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["mail_read", "web_search", "web_fetch"],
+    "connectors": ["mail"],
+    "model": "any"
+  },
+  "instructions": "## Job\nCheck one email that claims to be from the person's bank. Do not click any link in the email. Do not log in anywhere. Report what you find so the person can decide.\n\n## Step by step\n1. Ask the person which email to check. They may give a subject, sender, date or a message-id. If they are not sure, list the last 10 messages from senders that contain the word \"bank\" (case-insensitive) and let them pick.\n2. Open the chosen message with `mail_read`. Capture: From address, Reply-To, Return-Path, Received headers, Subject, Date, plain-text body, HTML body.\n3. Extract every http or https link from the body. For each link, note the visible text and the actual href.\n4. For each distinct domain in those links:\n   a. Use `web_search` for \"official website <domain>\" and \"<domain> phishing\".\n   b. Use `web_fetch` on the real bank's homepage (found via search) and on the link's domain homepage.\n   c. Compare: does the link domain match the bank's known domain? Is it a subdomain of the bank? Is it a look-alike (extra subdomain, typo, different TLD)?\n5. Check the sender domain against the bank's known domain. Look at SPF/DKIM/DMARC results in the Received headers if present.\n6. Look for common phishing signs: urgent language, threats to close account, generic greetings (\"Dear Customer\"), poor spelling, mismatched branding, requests for passwords, PINs, or card numbers.\n7. If the email asks the person to call a phone number, search that number with `web_search` to see if it belongs to the bank.\n8. Build a short report:\n   - Sender address and domain\n   - Link domains and whether each matches the real bank\n   - Header authentication hints (pass/fail/none)\n   - Phishing signs found\n   - Verdict: \"looks legitimate\", \"suspicious — do not click\", or \"cannot tell — ask the bank on a known number\"\n9. Show the report. Do not click any link. Do not reply to the email. Do not forward it.\n\n## When something is missing\n- If `mail_read` cannot find the message, say so and ask for more details.\n- If `web_search` or `web_fetch` returns nothing for a domain, note \"could not verify domain\" in the report.\n- If the person has not connected mail, say \"mail connector not connected\" and stop.\n- Never guess a bank's real domain. If you cannot find it, say \"could not confirm the bank's official domain\".\n\n## What to show at the end\nA plain-text summary with the verdict and the reasons. No markdown tables unless the person asks.",
+  "starters": [
+    "Check the latest email that says it's from my bank.",
+    "Look at the email with subject \"Security alert\" from yesterday.",
+    "Is the message from \"Bank Support <support@bank-example.com>\" safe?"
+  ],
+  "examples": [
+    {
+      "ask": "Check the latest email that says it's from my bank.",
+      "does": "Lists recent bank-like emails, lets the person pick one, reads it, extracts links, searches each domain, compares with the real bank site, and returns a verdict with reasons."
+    },
+    {
+      "ask": "Look at the email with subject \"Security alert\" from yesterday.",
+      "does": "Finds that message, checks sender domain and links, finds the link domain is a look-alike subdomain, reports \"suspicious — do not click\" with details."
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-links",
+      "description": "Pull every http/https link from an email body with visible text and href.",
+      "body": "1. Read the plain-text and HTML bodies.\n2. Use a simple regex to find all <a href=\"...\"> in HTML and bare URLs in text.\n3. For each, record the visible link text (or \"[no text]\") and the target URL.\n4. Deduplicate by target URL.\n5. Return the list."
+    },
+    {
+      "name": "verify-domain",
+      "description": "Check if a domain belongs to the real bank or is a look-alike.",
+      "body": "1. Search \"official website <bank name>\" to get the genuine domain.\n2. Fetch the genuine homepage and note the final URL after redirects.\n3. Fetch the suspect domain homepage.\n4. Compare: exact match, subdomain of genuine, or unrelated.\n5. Search \"<suspect domain> phishing\" for warnings.\n6. Return match status and any warnings."
+    }
+  ],
+  "rules": [
+    {
+      "name": "no-click-links",
+      "effect": "deny",
+      "when": "tool.surface == \"browser\" && tool.kind == \"write\"",
+      "description": "Never click or type into any link from the suspicious email."
+    },
+    {
+      "name": "no-reply-forward",
+      "effect": "deny",
+      "when": "tool.kind == \"send\"",
+      "description": "Never reply to or forward the suspicious email."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Bank email checker\n\nReads a suspicious email that claims to be from your bank, checks the sender address, every link, and the wording against the bank's real website, and gives you a clear verdict before you click anything.\n\n### What it does\n\n- Finds the email you point to (by subject, sender, or recent list).\n- Extracts all links and checks each domain against the bank's known domain.\n- Looks at email authentication headers (SPF/DKIM/DMARC) when present.\n- Flags common phishing signs: urgency, generic greetings, requests for secrets, look-alike domains.\n- Returns a short report: sender, link verdicts, phishing signs, and a final verdict.\n\n### What it needs\n\n- The `mail` connector so it can read your messages.\n- Internet access for `web_search` and `web_fetch`.\n\n### What it will not do\n\n- Click any link in the suspicious email.\n- Log in to any site.\n- Reply to, forward, or delete the email.\n- Guess your bank's real domain if it cannot find it.\n- Call any phone number from the email.",
+  "hash": "00cbfc0ef797a30a98ad5bde95b3b257505f40ebed4497520065c02b2ccd3ee1"
+}

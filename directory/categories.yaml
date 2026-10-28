@@ -1,0 +1,22 @@
+# The jobs a bot can be filed under. Keys and names come from BOT_CATEGORIES in
+# packages/shared/src/bots.ts: eighteen from meetmybot's taxonomy plus `work` for coworkers.
+# Change them there first; this file is what the static index and the site read.
+food: Food & cooking
+health: Health & fitness
+money: Money & finance
+investing: Investing & crypto
+productivity: Email & productivity
+dev: Developers & tools
+social: Social & creators
+video-audio: Video & audio
+research: Research & learning
+home: Home & family
+privacy: Privacy & scams
+bot-helpers: Build & manage bots
+games: Games & fun
+sports: Sports & fantasy
+travel: Travel & cars
+business: Business & marketing
+sales-crm: Sales & CRM
+work: Work & teams
+misc: Everyday tasks

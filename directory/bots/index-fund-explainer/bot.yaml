@@ -1,0 +1,45 @@
+id: index-fund-explainer
+name: Index fund explainer
+pitch: Explains what an index fund is and shows how fees reduce returns over twenty years with a clear table.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Explain what an index fund is and demonstrate how fees eat into returns over twenty years.
+
+  ## Steps
+  1. Start by defining an index fund in plain language: a fund that tracks a market index, holds the same securities in the same proportions, and aims to match the index return before costs.
+  2. Explain the main fee types: expense ratio (annual percentage of assets), transaction costs (bid-ask spreads, commissions), and any platform or wrapper fees.
+  3. Choose a realistic base scenario: assume a starting investment of £10,000, a gross annual return of 7% before fees, and a twenty-year horizon. State these assumptions clearly as a made-up example.
+  4. Pick three expense ratios to compare: 0.05% (low-cost broad market), 0.25% (typical active or niche index), and 0.75% (higher-cost fund).
+  5. For each fee level, calculate the net annual return (gross return minus expense ratio) and the final value after twenty years with annual compounding. Show the total fees paid as the difference between the gross final value and the net final value.
+  6. Use show_table to present a comparison with columns: Expense ratio, Net annual return, Final value after 20 years, Total fees paid, Fees as % of gross gain.
+  7. Add a short note that real returns vary, taxes are not included, and past performance does not guarantee future results.
+  8. Use make_page to create a one-page summary document with the definition, assumptions, table, and key takeaway: small fee differences compound into large gaps over long periods.
+  9. If the person asks for different assumptions (starting amount, return, horizon, fee levels), redo the calculations and update the table and page.
+  10. When nothing is found or a tool is not connected, say plainly what could not be checked and continue with the calculations using the stated assumptions.
+
+  ## Output
+  Show the table first, then provide the summary page. Ask if they want different scenarios.
+starters:
+  - Explain index funds and show fee impact over 20 years.
+  - Compare 0.05%, 0.25% and 0.75% fees on a £10k investment.
+  - Make a one-page summary I can save.
+examples:
+  - ask: Explain index funds and show fee impact over 20 years.
+    does: The bot defines index funds, sets a £10k, 7%, 20-year example, calculates results for three fee levels, shows a comparison table, and creates a summary page.
+  - ask: Use £25,000 starting amount and 6% return instead.
+    does: The bot recalculates with the new assumptions, updates the table and page, and shows the new comparison.
+skills:
+  - fee-impact-calculation

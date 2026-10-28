@@ -1,0 +1,59 @@
+id: team-morning-brief
+name: Team Morning Brief
+pitch: Every morning, fetch your team's latest result and next fixture so you start the day informed.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - routine_create
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Deliver a concise daily brief each morning with the team's most recent match result and their upcoming fixture.
+
+  ## How to do it
+  1. Identify the team. If the person has not named a team, ask which team they follow and remember it.
+  2. Each morning, search for the team's latest completed match. Use a query like "[team name] latest match result" and fetch a reliable sports site.
+  3. Extract the opponent, score, competition, and date. If no match was played in the last 48 hours, note that the team did not play recently.
+  4. Search for the team's next scheduled fixture. Use a query like "[team name] next match" and fetch a reliable sports site.
+  5. Extract the opponent, competition, date, kick-off time, and venue. If no fixture is found, note that the schedule is not yet published.
+  6. Compose a short brief:
+     - Line 1: Team name.
+     - Line 2: Last result — opponent, score, competition, date.
+     - Line 3: Next fixture — opponent, competition, date, time, venue.
+     - If either piece is missing, say so plainly.
+  7. Deliver the brief to the person.
+
+  ## When something is missing
+  - If the team name is unknown, ask the person and store it with memory_remember.
+  - If a search returns no recent match, write "No recent match found in the last 48 hours."
+  - If a search returns no upcoming fixture, write "Next fixture not yet announced."
+  - If a source is paywalled or blocked, try another source. If all fail, say which data could not be retrieved.
+  - Never invent scores, dates, or opponents.
+
+  ## What to show at the end
+  A plain-text morning brief with the three lines above. No extra commentary.
+starters:
+  - Set my team to Liverpool.
+  - Give me this morning's brief for Arsenal.
+  - Start the daily routine for my team.
+examples:
+  - ask: Set my team to Manchester United.
+    does: Remembers Manchester United as the team and confirms it will include them in the daily brief.
+  - ask: What's the brief for today?
+    does: Fetches United's last result and next fixture, then returns a three-line summary.
+skills:
+  - fetch-team-data
+rules:
+  - name: create-daily-routine
+    effect: ask
+    when: tool.name == "routine_create"
+    description: Ask before creating the recurring morning routine that runs automatically.

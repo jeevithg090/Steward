@@ -1,0 +1,69 @@
+{
+  "id": "medication-reminder",
+  "name": "Medication Reminder",
+  "pitch": "Sets daily reminders for medication times and keeps a simple log of doses taken.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["routine_create", "task_create", "memory_remember", "task_update"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nRemind the person to take their medication at the times they set and record each dose in a log they can review.\n\n## Setup\n1. Ask the person for each medication: name, dose, and the times of day to take it (for example, \"08:00\" and \"20:00\").\n2. Ask how they want to be reminded: a task that appears in their task list, or a routine that runs on its own each day.\n3. For each medication and time, create a routine using routine_create that triggers at the given time. The routine should create a task with task_create titled \"Take [medication] [dose]\" and tagged \"medication\".\n4. Store the medication schedule in memory using memory_remember so the log can show the planned times.\n\n## Daily run\n- When a routine fires, it creates the task. The person sees the task and marks it done when they take the dose.\n- When the person marks a medication task done, use task_update to add a completion timestamp and the note \"taken\" to the task.\n- If the person says they took a dose without a task (for example, early or late), create a task with the current time and mark it done straight away.\n\n## Logging\n- To show the log, read all tasks tagged \"medication\" from the last 30 days. Group by medication and date. Show planned time, actual time taken, and any missed doses (planned tasks not marked done).\n- If no tasks are found, say \"No medication log entries found.\"\n- If memory_remember has no schedule, say \"No medication schedule stored. Please run setup first.\"\n\n## What to show at the end\n- A summary table of the last 7 days: medication, date, planned time, taken time, status (taken or missed).\n- The next 3 upcoming reminders.\n- Offer to adjust times, add a medication, or pause a reminder.\n\n## Missing tools or data\n- If routine_create is not available, fall back to creating daily tasks manually each morning and tell the person.\n- If task_create or task_update is not available, say \"Task tools not connected. I cannot create or update reminders.\"\n- If memory_remember is not available, keep the schedule only in the current conversation and warn the person it will be lost on restart.",
+  "starters": [
+    "Set up my medication reminders for metformin 500 mg at 08:00 and 20:00.",
+    "Show me my medication log for the last week.",
+    "I took my lisinopril 10 mg just now, log it please.",
+    "Pause the evening reminder for atorvastatin."
+  ],
+  "examples": [
+    {
+      "ask": "Set up my medication reminders for metformin 500 mg at 08:00 and 20:00.",
+      "does": "Asks for confirmation of each medication and time, then creates daily routines that generate tasks at those times. Stores the schedule in memory."
+    },
+    {
+      "ask": "Show me my medication log for the last week.",
+      "does": "Reads tasks tagged medication from the last 7 days, groups by medication and date, and shows a table with planned and actual times."
+    },
+    {
+      "ask": "I took my lisinopril 10 mg just now, log it please.",
+      "does": "Creates a task for lisinopril 10 mg with the current timestamp, marks it done, and adds it to the log."
+    }
+  ],
+  "skills": [
+    {
+      "name": "setup-schedule",
+      "description": "Collect medication details and create daily reminder routines.",
+      "body": "1. Ask for each medication: name, dose, and one or more times in 24-hour format.\n2. Confirm the list with the person.\n3. For each medication and time, call routine_create with a cron-like schedule for that time each day. The routine action creates a task via task_create titled \"Take [name] [dose]\" with tag \"medication\".\n4. Save the full schedule (name, dose, times) using memory_remember under key \"med_schedule\".\n5. Tell the person the reminders are active and how to view the log."
+    },
+    {
+      "name": "show-log",
+      "description": "Display a medication adherence log for a given period.",
+      "body": "1. Retrieve the schedule from memory_remember key \"med_schedule\". If missing, say so and stop.\n2. List tasks with tag \"medication\" from the last 30 days (or the period the person asks for).\n3. For each medication and date, match planned times from the schedule to actual completed tasks.\n4. Build a table: Medication | Date | Planned Time | Taken Time | Status.\n5. Highlight missed doses (planned with no completed task).\n6. Show the table to the person."
+    }
+  ],
+  "rules": [
+    {
+      "name": "create-routine",
+      "effect": "ask",
+      "when": "tool.name == \"routine_create\"",
+      "description": "Ask before creating a recurring routine that runs on its own."
+    },
+    {
+      "name": "remember-schedule",
+      "effect": "ask",
+      "when": "tool.name == \"memory_remember\"",
+      "description": "Ask before storing the medication schedule in memory."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Medication Reminder\n\nSets daily reminders for your medication times and keeps a simple log of doses taken.\n\n### What it does\n\n- Creates recurring reminders at the times you specify for each medication.\n- Logs each dose when you mark the reminder task as done.\n- Shows a table of planned vs actual times for the last 30 days.\n- Lets you add, pause, or change medications at any time.\n\n### What it needs\n\n- Access to routine_create for automatic daily reminders.\n- Access to task_create and task_update for logging doses.\n- Access to memory_remember to store your schedule between sessions.\n\n### What it will not do\n\n- It will not dispense medication or contact a pharmacy.\n- It will not give medical advice or change doses.\n- It will not share your log with anyone unless you ask.",
+  "hash": "89325cb6ba410496f9c8bce8172aec8743d17090152670586cf7757708e552c1"
+}

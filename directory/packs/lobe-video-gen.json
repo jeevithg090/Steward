@@ -1,0 +1,44 @@
+{
+  "id": "lobe-video-gen",
+  "name": "task_id",
+  "pitch": "POST https://api.minimaxi.chat/v1/video_generation",
+  "category": "bot-helpers",
+  "version": 1,
+  "author": {
+    "kind": "person",
+    "handle": "Born2BeKind",
+    "url": "https://github.com/Born2BeKind"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "curl --location 'https://api.minimaxi.chat/v1/video_generation' \\\n\\--header 'content-type: application/json' \\\n\\--header 'authorization: Bearer ${api_key}' \\\n\\--data '{\n\"model\":\"video-01\",\n\"prompt\":\"On a distant planet, there is a MiniMax.\"\n}'",
+  "starters": [
+    "How do I create a video using the MiniMax API?",
+    "Can you provide an example request for video generation?",
+    "What parameters can I customize in the video generation process?"
+  ],
+  "examples": [
+    {
+      "ask": "How can I generate a video using the MiniMax API?",
+      "does": "You can generate a video by sending a POST request to the MiniMax API endpoint with your desired prompt and model parameters. For example, use the 'video-01' model and include your prompt in the JSON payload to create a video based on that description."
+    },
+    {
+      "ask": "Can you show me a curl example to generate a video with the prompt 'A futuristic city at sunset'?",
+      "does": "Certainly! Here's a curl command: curl --location 'https://api.minimaxi.chat/v1/video_generation' \\ --header 'content-type: application/json' \\ --header 'authorization: Bearer ${api_key}' \\ --data '{ \"model\": \"video-01\", \"prompt\": \"A futuristic city at sunset\" }'"
+    },
+    {
+      "ask": "What kind of responses should I expect from the API?",
+      "does": "The API typically responds with a JSON object containing a video URL or an identifier for the generated video. You can then use this URL to view or download the video content created based on your prompt."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# task_id\n\nPOST https://api.minimaxi.chat/v1/video_generation\n\nThis Agent facilitates video generation through an API endpoint, enabling users to create AI-generated videos by sending structured requests. It supports specifying prompts and model parameters, allowing for customizable video content creation. Ideal for developers and technical users, it streamlines the integration of video generation capabilities into applications or workflows. The Agent’s core value lies in its ability to automate video creation with minimal input, making it a powerful tool for content creators, marketers, and developers seeking to leverage AI-driven multimedia generation.\n\n## What it needs\n\nNothing: this bot is chat only. It works from what you tell it and uses no tools.\n\n## Credit\n\nAdapted from LobeChat's agent index (MIT), by Born2BeKind (https://github.com/Born2BeKind). Source: https://github.com/lobehub/lobe-chat-agents.",
+  "hash": "d62e55f7320f8e7a326d33836caba432a33cb8f736d07d9dfd1d8ee38ab29592"
+}

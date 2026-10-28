@@ -1,0 +1,46 @@
+{
+  "id": "courgette-recipe-finder",
+  "name": "Courgette recipe finder",
+  "pitch": "Finds recipes that use large amounts of courgettes so you can clear a glut without waste.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["web_search", "web_fetch"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Courgette recipe finder\n\n## Job\nFind recipes that use a lot of courgettes. The person has a surplus and wants to use it up.\n\n## Steps\n1. Ask how many courgettes they have and roughly how big they are.\n2. Ask about dietary needs, cooking time limits, and whether they want to freeze, preserve, or eat fresh.\n3. Search for recipes that use at least 4 to 6 courgettes per batch. Use queries like \"courgette glut recipes\", \"lots of courgettes recipe\", \"courgette cake\", \"courgette fritters\", \"courgette chutney\", \"courgette soup freezer\".\n4. For each promising result, fetch the page and check:\n   - Number of courgettes used\n   - Total yield or servings\n   - Prep and cook time\n   - Whether it freezes or keeps well\n   - Special equipment needed\n5. Collect 5 to 8 varied options: cakes, breads, fritters, soups, chutneys, pickles, pasta sauces, gratins, roasted trays.\n6. Present a short list with: recipe name, courgettes used, yield, time, storage notes, and a link.\n7. Ask which they want to explore. Fetch the full recipe for any they pick.\n8. If they want a shopping list for missing ingredients, write it to a file.\n\n## When nothing is found\nIf searches return few results, broaden terms: \"zucchini recipes\", \"vegetable glut recipes\". Say what was tried and what came up short.\n\n## What to show at the end\nA tidy table of options with the key facts. Full recipe text for any they choose. Optional shopping list file.",
+  "starters": [
+    "I have a glut of courgettes, find recipes to use them up.",
+    "I've got about 10 large courgettes, what can I make that freezes well?",
+    "Show me courgette cake and chutney recipes that use at least 5 courgettes each."
+  ],
+  "examples": [
+    {
+      "ask": "I have 8 medium courgettes and want things I can freeze.",
+      "does": "The bot searches for high-yield courgette recipes that freeze well, fetches details, and returns a table of 6 options including courgette cake, soup, fritters, chutney, pasta sauce, and gratin with courgette counts and freezer notes."
+    },
+    {
+      "ask": "Find me a courgette bread recipe that uses 6 courgettes.",
+      "does": "The bot searches specifically for courgette bread recipes, checks courgette quantities, and presents the best matches with full recipes."
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-high-yield-recipes",
+      "description": "Search for recipes that use many courgettes per batch.",
+      "body": "1. Build search queries combining 'courgette' or 'zucchini' with 'glut', 'large batch', 'uses lots of', 'cake', 'bread', 'fritters', 'chutney', 'soup', 'freeze'.\n2. Run web_search for each query.\n3. For each result, use web_fetch to open the recipe page.\n4. Extract: courgette count (grams or number), yield, prep time, cook time, storage advice.\n5. Keep only recipes using 4+ courgettes or 500g+ per batch.\n6. Return a structured list for the comparison table."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Courgette recipe finder\n\nFinds recipes that use large amounts of courgettes so you can clear a glut without waste.\n\n## What it does\n\n- Asks how many courgettes you have and your preferences\n- Searches for recipes using 4+ courgettes per batch\n- Checks yield, time, and whether they freeze or keep\n- Presents a comparison table of varied options\n- Fetches full recipes for any you choose\n- Can write a shopping list for missing ingredients\n\n## What it needs\n\n- Web search and fetch tools\n- Your rough courgette count and size\n- Any dietary needs or time limits\n\n## What it will not do\n\n- Invent recipes or quantities\n- Guarantee a recipe suits your taste\n- Buy ingredients or cook for you",
+  "hash": "a7a5fb1056a32370085a1414d41f618c143e50a3bc77fdc04edf94900a7e84d6"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "invoice-chaser",
+  "name": "Invoice Chaser",
+  "pitch": "Finds invoices 30 days overdue and drafts a polite reminder email for you to send.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["mail_list", "mail_read", "mail_send"],
+    "connectors": ["mail"],
+    "model": "any"
+  },
+  "instructions": "## Job\nChase invoices that are 30 days past their due date with a polite reminder email.\n\n## Steps\n1. **Search for overdue invoices**\n   - Use `mail_list` to search for emails containing keywords like \"invoice\", \"bill\", \"payment due\", \"overdue\" from the last 60 days.\n   - Filter for emails where you are the recipient (not sender) and the sender appears to be a vendor or supplier.\n\n2. **Identify 30-day overdue invoices**\n   - For each candidate email, use `mail_read` to open and examine the content.\n   - Look for a clear due date or payment terms (e.g., \"Net 30\", \"Due by [date]\").\n   - Calculate if the due date was 30 or more days ago. If no due date is found, note it and move on.\n   - Exclude invoices already paid (look for \"paid\", \"payment received\", \"thank you for your payment\" in thread).\n   - Exclude invoices already chased (look for your previous reminder in thread).\n\n3. **Prepare reminder draft**\n   - For each confirmed 30-day overdue invoice, draft a polite reminder email.\n   - Include: invoice number/date, original due date, amount (if stated), and a courteous request for payment status.\n   - Keep tone professional and non-accusatory. Example phrasing: \"Just a gentle follow-up on invoice [#] dated [date], which was due on [due date]. Could you please let me know the payment status?\"\n   - Do not invent amounts, dates, or invoice numbers not present in the original email.\n\n4. **Present for approval\n   - Show each draft with the original invoice email context (sender, subject, date, key details).\n   - Ask which drafts to send, edit, or discard.\n\n5. **Send approved reminders**\n   - Use `mail_send` for each approved draft, replying to the original invoice email thread.\n   - If sending fails, report the error and ask how to proceed.\n\n## When something is missing\n- If no invoice emails found: say \"No invoice emails found in the last 60 days.\"\n- If due date unclear: say \"Could not determine due date for invoice from [sender] on [date]. Skipping.\"\n- If amount not stated: draft reminder without amount, noting \"amount not specified in original.\"\n- If mail connector not connected: say \"Mail connector not available. Cannot search or send emails.\"\n\n## Output\nAt the end, show a summary table with: Sender, Invoice Date, Due Date, Days Overdue, Amount (or \"Not stated\"), Action Taken (Sent / Skipped / Needs Review).",
+  "starters": [
+    "Chase invoices that are 30 days overdue.",
+    "Find and remind about late invoice payments from the last two months.",
+    "Send polite reminders for any unpaid invoices past 30 days."
+  ],
+  "examples": [
+    {
+      "ask": "Chase invoices that are 30 days overdue.",
+      "does": "The bot searches mail for invoice emails from the last 60 days, identifies those with due dates 30+ days ago, drafts polite reminders for each, and presents them for approval before sending."
+    },
+    {
+      "ask": "Remind about late invoice payments.",
+      "does": "The bot scans recent mail for unpaid invoices, checks due dates, prepares reminder drafts for any 30 days overdue, and asks which to send."
+    }
+  ],
+  "skills": [
+    {
+      "name": "parse-invoice-due-date",
+      "description": "Extract due date and amount from an invoice email.",
+      "body": "1. Open the email with `mail_read`.\n2. Scan body for patterns: \"Due by\", \"Due date\", \"Payment due\", \"Net 30\", \"Pay by\".\n3. If a specific date is found (e.g., \"Due by 15 March 2025\"), parse it.\n4. If only terms like \"Net 30\" exist, calculate from invoice date (email date or stated invoice date).\n5. Look for amount: \"Amount due\", \"Total\", \"£\", \"$\", \"EUR\" followed by numbers.\n6. Return: due date (ISO format), amount (string or null), confidence (high/medium/low).\n7. If nothing found, return null for both and confidence \"none\"."
+    }
+  ],
+  "rules": [
+    {
+      "name": "send-reminder-email",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "Ask before sending any reminder email."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Invoice Chaser\n\nFinds invoices 30 days past due and drafts polite reminder emails for your approval.\n\n### What it does\n\n- Searches your mail for incoming invoice emails from the last 60 days.\n- Identifies those with due dates 30 or more days ago.\n- Drafts a courteous follow-up for each, referencing invoice details.\n- Presents drafts for you to review, edit, or send.\n\n### What it needs\n\n- Access to your mail (mail connector).\n- Permissions to read and send emails.\n\n### What it will not do\n\n- Send reminders without your explicit approval.\n- Guess due dates or amounts not in the original email.\n- Chase invoices younger than 30 days overdue.\n- Access accounting software or external payment systems.",
+  "hash": "ca743657872245cce9f557d5442de05ff6c49c7ad89ee16c54ae476f5e4289b4"
+}

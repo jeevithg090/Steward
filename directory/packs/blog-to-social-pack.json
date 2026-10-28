@@ -1,0 +1,51 @@
+{
+  "id": "blog-to-social-pack",
+  "name": "Blog to Social Pack",
+  "pitch": "Turns one long blog post into five short social posts and a threaded version for platforms like X or Threads.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["file_read", "web_fetch", "make_page"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Blog to Social Pack\n\nThis job takes a single long-form blog post (from a file or URL) and breaks it into:\n- Five standalone short posts (each under 280 characters, suitable for X, Threads, Mastodon, Bluesky)\n- One threaded version (5–7 connected posts) that tells the same story in sequence\n\n## Step 1: Get the source\n- If the person gives a file path, use `file_read` to load it.\n- If they give a URL, use `web_fetch` to retrieve the article text.\n- If neither is provided, ask: \"Please share the blog post as a file path or a public URL.\"\n- If the tool fails (file not found, URL blocked, paywall), say what could not be read and ask for an alternative.\n\n## Step 2: Extract the core ideas\n- Read the full text.\n- Identify 5–7 distinct points, arguments, stories, or takeaways.\n- Prefer points that stand alone and have a hook (a question, a bold claim, a surprising fact, a relatable moment).\n- Discard fluff, intros, outros, meta-commentary.\n- If the post has fewer than 5 usable points, say so and work with what exists.\n\n## Step 3: Write five short posts\n- Each post: 1–2 sentences, under 280 characters.\n- Lead with the hook. No hashtags unless the person asks.\n- Plain language. British spelling.\n- Number them 1–5 for the person to review.\n\n## Step 4: Write the thread\n- 5–7 posts, each under 280 characters.\n- First post: context + promise (\"Here's why X matters…\").\n- Middle posts: one idea each, flowing logically.\n- Last post: takeaway or call to action (\"Try this…\" / \"What would you add?\").\n- Use \"🧵\" or \"1/7\" style only if the person asks; otherwise plain text.\n\n## Step 5: Deliver\n- Use `make_page` to create a clean Markdown document with two sections:\n  1. **Five Short Posts** (numbered list)\n  2. **Thread Version** (numbered list, ready to copy-paste)\n- Show the page to the person.\n- Ask if they want edits, hashtags added, or a different tone.\n\n## When something goes wrong\n- No source provided → ask.\n- Source unreadable → say why, ask for alternative.\n- Too few ideas → say how many were found, ask if they want to proceed.\n- Person wants a different platform format (LinkedIn, Instagram captions) → note this pack only does short-post + thread; suggest they ask again with the new format.",
+  "starters": [
+    "Turn this blog post into five short posts and a thread: [paste URL or file path]",
+    "Here's a draft article — break it into social posts and a thread",
+    "Convert my latest blog post to X/Threads format"
+  ],
+  "examples": [
+    {
+      "ask": "Turn this blog post into five short posts and a thread: https://example.com/my-long-article (a made-up example)",
+      "does": "The bot fetches the article, extracts 6 key ideas, writes 5 standalone posts and a 6-post thread, and delivers both in a Markdown page for review."
+    },
+    {
+      "ask": "Here's the file path: ./posts/weekly-review.md — make social posts and a thread",
+      "does": "The bot reads the local file, finds 5 strong points, creates the short posts and a 5-post thread, and shows the result in a formatted page."
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-key-points",
+      "description": "Pull 5–7 distinct, standalone ideas from a long-form text.",
+      "body": "1. Read the full text from start to end.\n2. Highlight sentences or paragraphs that contain a complete thought: a claim, a lesson, a story beat, a data point, a question.\n3. Group related highlights; keep only the strongest from each group.\n4. Select 5–7 points that each work alone and together tell the arc of the piece.\n5. If fewer than 5, note the count and proceed with what exists."
+    },
+    {
+      "name": "write-short-post",
+      "description": "Turn one key idea into a punchy social post under 280 characters.",
+      "body": "1. Take one key idea.\n2. Write a hook: a question, bold statement, or vivid image.\n3. Add the payoff in 1–2 short sentences.\n4. Cut filler words. Count characters.\n5. If over 280, trim the payoff, keep the hook.\n6. Output plain text, no hashtags, no emojis unless requested."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Blog to Social Pack\n\nTurns one long blog post into five ready-to-post short updates and a threaded version for X, Threads, Bluesky, or Mastodon.\n\n## What it does\n\n- Reads a blog post from a file or public URL\n- Extracts 5–7 core ideas\n- Writes 5 standalone posts (≤280 chars each)\n- Writes 1 threaded version (5–7 connected posts)\n- Delivers both in a clean Markdown page\n\n## What it needs\n\n- A file path or public URL to the blog post\n- No sign-ins, no API keys\n\n## What it will not do\n\n- Add hashtags, emojis, or platform-specific formatting unless asked\n- Post anything automatically — you copy and paste\n- Work with paywalled or login-only content\n- Create LinkedIn posts, Instagram captions, or newsletter blurbs (different formats)",
+  "hash": "f1521ebb20726d8c68bfacd708a78cc6ac3953f9aead7918d72dc0c97162bd37"
+}

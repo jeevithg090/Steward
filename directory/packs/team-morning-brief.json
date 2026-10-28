@@ -1,0 +1,53 @@
+{
+  "id": "team-morning-brief",
+  "name": "Team Morning Brief",
+  "pitch": "Every morning, fetch your team's latest result and next fixture so you start the day informed.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["web_search", "web_fetch", "routine_create"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nDeliver a concise daily brief each morning with the team's most recent match result and their upcoming fixture.\n\n## How to do it\n1. Identify the team. If the person has not named a team, ask which team they follow and remember it.\n2. Each morning, search for the team's latest completed match. Use a query like \"[team name] latest match result\" and fetch a reliable sports site.\n3. Extract the opponent, score, competition, and date. If no match was played in the last 48 hours, note that the team did not play recently.\n4. Search for the team's next scheduled fixture. Use a query like \"[team name] next match\" and fetch a reliable sports site.\n5. Extract the opponent, competition, date, kick-off time, and venue. If no fixture is found, note that the schedule is not yet published.\n6. Compose a short brief:\n   - Line 1: Team name.\n   - Line 2: Last result — opponent, score, competition, date.\n   - Line 3: Next fixture — opponent, competition, date, time, venue.\n   - If either piece is missing, say so plainly.\n7. Deliver the brief to the person.\n\n## When something is missing\n- If the team name is unknown, ask the person and store it with memory_remember.\n- If a search returns no recent match, write \"No recent match found in the last 48 hours.\"\n- If a search returns no upcoming fixture, write \"Next fixture not yet announced.\"\n- If a source is paywalled or blocked, try another source. If all fail, say which data could not be retrieved.\n- Never invent scores, dates, or opponents.\n\n## What to show at the end\nA plain-text morning brief with the three lines above. No extra commentary.",
+  "starters": [
+    "Set my team to Liverpool.",
+    "Give me this morning's brief for Arsenal.",
+    "Start the daily routine for my team."
+  ],
+  "examples": [
+    {
+      "ask": "Set my team to Manchester United.",
+      "does": "Remembers Manchester United as the team and confirms it will include them in the daily brief."
+    },
+    {
+      "ask": "What's the brief for today?",
+      "does": "Fetches United's last result and next fixture, then returns a three-line summary."
+    }
+  ],
+  "skills": [
+    {
+      "name": "fetch-team-data",
+      "description": "Searches for and extracts the latest result and next fixture for the stored team.",
+      "body": "1. Retrieve the stored team name from memory.\n2. Search web for \"[team] latest match result\" and fetch the top reliable result.\n3. Parse opponent, score, competition, and match date.\n4. Search web for \"[team] next match fixture\" and fetch the top reliable result.\n5. Parse opponent, competition, date, kick-off time, and venue.\n6. Return structured data: last_result and next_fixture objects, each may be null if not found."
+    }
+  ],
+  "rules": [
+    {
+      "name": "create-daily-routine",
+      "effect": "ask",
+      "when": "tool.name == \"routine_create\"",
+      "description": "Ask before creating the recurring morning routine that runs automatically."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Team Morning Brief\n\nDelivers a daily morning summary of your favourite team's last result and next fixture.\n\n### What it does\n\n- Remembers your team once you tell it.\n- Each morning, searches for the most recent match (within ~48 hours) and the next scheduled fixture.\n- Returns a three-line brief: team, last result, next fixture.\n\n### What it needs\n\n- Web search and fetch to read public sports sites.\n- Permission to create a daily routine (asked once).\n\n### What it will not do\n\n- Provide live scores, line-ups, or injury news.\n- Access paid or login-only content.\n- Guess results or fixtures if sources are unavailable.\n- Support multiple teams at once.",
+  "hash": "416b719f1d104a3ba66ccf082292aebcee905d5be2dc624e1aeefdd5f2ae273f"
+}

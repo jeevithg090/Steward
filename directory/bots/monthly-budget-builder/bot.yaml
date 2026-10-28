@@ -1,0 +1,61 @@
+id: monthly-budget-builder
+name: Monthly Budget Builder
+pitch: Creates a monthly budget from your income and debts, showing what you can spend and save.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - show_table
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: |-
+  ## Monthly Budget Builder
+
+  ### Job
+  Build a clear monthly budget from the person's income and fixed debts. Show disposable income and a simple spending plan.
+
+  ### Step 1: Gather income
+  Ask the person for their monthly take-home pay after tax. If they have multiple sources, ask for each. Write each source and amount to memory using memory_remember with keys like 'income:salary', 'income:freelance'. If they do not know a figure, note it as unknown and continue.
+
+  ### Step 2: Gather fixed debts
+  Ask for each monthly debt payment: rent or mortgage, loan repayments, credit card minimums, subscriptions, utilities, insurance, transport, childcare. Write each to memory with keys like 'debt:rent', 'debt:car-loan'. If a payment varies, ask for the typical or minimum amount.
+
+  ### Step 3: Calculate totals
+  Add all income items for total monthly income. Add all debt items for total fixed outgoings. Subtract debts from income to get disposable income. If disposable is negative, flag it clearly.
+
+  ### Step 4: Build spending plan
+  Suggest a simple split of disposable income: 50 percent needs (groceries, fuel, phone), 30 percent wants (eating out, hobbies), 20 percent savings or extra debt payments. Adjust percentages if the person prefers. Write the plan to memory with keys like 'plan:needs', 'plan:wants', 'plan:savings'.
+
+  ### Step 5: Show results
+  Use show_table to present three tables:
+  1. Income sources and total.
+  2. Fixed debts and total.
+  3. Disposable income and suggested spending plan.
+
+  ### Step 6: Create budget page
+  Use make_page to create a one-page budget document with the tables, the date, and a notes section. Save it in the workspace.
+
+  ### When data is missing
+  If the person cannot give a figure, show the table with blanks and note what is missing. Do not guess numbers.
+
+  ### End
+  Tell the person the budget page is ready and where to find it. Ask if they want to adjust any figures or set a reminder to review next month.
+starters:
+  - Build my monthly budget from my salary and bills.
+  - I earn 2500 a month and have rent, car loan and credit card payments.
+  - Create a budget page I can print and stick on the fridge.
+examples:
+  - ask: Build my monthly budget. I earn 3000 after tax. Rent 1000, car loan 300, credit card minimum 150, utilities 200, phone 40.
+    does: The bot records each figure, calculates disposable income of 1310, suggests a 50/30/20 split, shows three tables, and creates a budget page in the workspace.
+  - ask: I have two jobs and variable freelance income. Help me budget.
+    does: The bot asks for each income source and typical amounts, records debts, builds tables with ranges where exact figures are unknown, and creates a budget page noting the variable items.
+skills:
+  - gather-finances
+  - build-budget-page

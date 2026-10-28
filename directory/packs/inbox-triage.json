@@ -1,0 +1,46 @@
+{
+  "id": "inbox-triage",
+  "name": "Inbox triage",
+  "pitch": "Sorts your inbox into what needs you today and what can wait.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["triage_inbox", "mail_list", "mail_read"],
+    "connectors": ["mail"],
+    "model": "any"
+  },
+  "instructions": "## Job\nSort the person's inbox into two lists: messages that need their attention today, and messages that can wait. Use the triage tool to do the heavy lifting, then present the result so the person can decide what to do next.\n\n## Steps\n1. Start by reading the inbox with mail_list to see the current messages. If the list is empty, say so and stop.\n2. Run triage_inbox on the messages. The tool returns two groups: \"needs you\" and \"can wait\".\n3. For each message in the \"needs you\" group, read it with mail_read to confirm the subject, sender and a short snippet. Do the same for a sample of the \"can wait\" group (up to 5 messages) so the person can spot-check.\n4. If triage_inbox is not available, fall back to a manual sort: read each message with mail_read, then decide based on sender, subject keywords (urgent, deadline, today, action required) and date. Put anything from the last 48 hours that looks time-sensitive into \"needs you\"; everything else into \"can wait\".\n5. If mail_list or mail_read fails because the mail connector is not connected, tell the person plainly that you cannot reach their mail and ask them to connect it.\n6. Present the result as two lists with subject, sender, date and a one-line summary. Keep each list under 20 items; if there are more, show the first 20 and note the count.\n7. Do not delete, archive, label or move any message. The person decides what happens next.\n\n## What to show\n- A short summary: how many messages in each group.\n- The \"needs you\" list with subject, sender, date, snippet.\n- The \"can wait\" list with subject, sender, date, snippet.\n- A note if any tool was missing or the connector was not connected.",
+  "starters": [
+    "Sort my inbox into what needs me today and what can wait.",
+    "Show me the urgent emails from the last two days.",
+    "Triage my mail and give me the two lists."
+  ],
+  "examples": [
+    {
+      "ask": "Sort my inbox into what needs me today and what can wait.",
+      "does": "The bot lists the inbox, runs triage_inbox, reads a sample of each group, and returns two short lists with subject, sender, date and snippet."
+    },
+    {
+      "ask": "Show me only the urgent emails from yesterday and today.",
+      "does": "The bot reads the inbox, filters for messages from the last 48 hours that contain urgent keywords, reads each one, and returns a single list with details."
+    }
+  ],
+  "skills": [
+    {
+      "name": "fallback-manual-triage",
+      "description": "Manually sort messages when triage_inbox is not available.",
+      "body": "1. Get the message list with mail_list. 2. For each message, read it with mail_read. 3. Check the date: keep messages from the last 48 hours. 4. Check the subject and snippet for words like urgent, deadline, today, action required, reply needed. 5. Put matches into \"needs you\", the rest into \"can wait\". 6. Return both lists with subject, sender, date and a one-line summary."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Inbox triage\n\nSorts your inbox into what needs you today and what can wait. It uses the built-in triage tool, reads a sample of each group for verification, and presents two clear lists. It never deletes, archives or moves messages.\n\n**Needs**: mail connector.\n\n**Will not do**: send replies, mark as read, apply labels, delete anything, or act without your say-so.",
+  "hash": "d5a25353d870b49b13cda77df216b11c6d310e0de5e4a9747150f4e9e03d3c72"
+}

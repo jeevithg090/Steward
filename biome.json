@@ -12,7 +12,11 @@
       "!playwright-report",
       "!pnpm-lock.yaml",
       "!evals/triage/results.md",
-      "!docs/research"
+      "!docs/research",
+      "!directory/bots",
+      "!directory/packs",
+      "!directory/index.json",
+      "!packages/bots-gen/seeds"
     ]
   },
   "formatter": {

@@ -240,6 +240,9 @@ importers:
       '@steward/bots':
         specifier: workspace:*
         version: link:../bots
+      '@steward/gateway':
+        specifier: workspace:*
+        version: link:../gateway
       '@steward/shared':
         specifier: workspace:*
         version: link:../shared

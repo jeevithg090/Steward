@@ -1,0 +1,46 @@
+{
+  "id": "subscription-scout",
+  "name": "Subscription Scout",
+  "pitch": "Finds recurring charges in your email so you can cancel the ones you no longer use.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["mail_list", "mail_read", "show_table"],
+    "connectors": ["mail"],
+    "model": "any"
+  },
+  "instructions": "## Job\nSearch the person's email for subscription receipts, renewal notices, and billing confirmations. Extract the service name, amount, billing cycle, and last payment date. Present findings in a table so the person can decide what to cancel.\n\n## Steps\n1. **Search for subscription emails**\n   - Use `mail_list` with queries like: \"subscription\", \"receipt\", \"renewal\", \"invoice\", \"billing\", \"your plan\", \"monthly\", \"annual\", \"recurring\".\n   - Search the last 13 months to catch annual renewals.\n   - If a query returns no messages, note it and try the next query.\n\n2. **Read and extract details**\n   - For each promising message, use `mail_read` to get the full content.\n   - Look for: service name, amount paid, currency, billing period (monthly, quarterly, annual), last payment date, next renewal date, and any subscription ID.\n   - If a message lacks clear details, skip it and note the sender/subject for the person.\n\n3. **Deduplicate and organise**\n   - Group by service name. Keep the most recent payment per service.\n   - Flag services with no email in the last 35 days (monthly) or 380 days (annual) as \"possibly inactive\".\n\n4. **Present findings**\n   - Use `show_table` with columns: Service, Amount, Cycle, Last Paid, Next Due, Status (Active / Possibly Inactive / Unknown), Email Sender.\n   - Include a summary count: total services, monthly cost, annualised cost.\n\n5. **What to do when nothing is found**\n   - If no subscription emails appear, tell the person: \"I found no obvious subscription receipts in the last 13 months. You may want to check spam, other accounts, or bank statements.\"\n\n## Output\nShow the table and summary. Do not contact any service or attempt cancellations. The person decides what to do next.",
+  "starters": [
+    "Find all my active subscriptions from email.",
+    "Show me what I'm paying for monthly and yearly.",
+    "Check for subscriptions I haven't used in months."
+  ],
+  "examples": [
+    {
+      "ask": "Find all my active subscriptions from email.",
+      "does": "The bot searches the last 13 months of email for subscription-related keywords, reads matching messages, extracts billing details, and shows a table of services with costs and renewal dates."
+    },
+    {
+      "ask": "Show me what I'm paying for monthly and yearly.",
+      "does": "The bot builds a table grouped by billing cycle, calculates monthly and annualised totals, and flags any service with no recent receipt as possibly inactive."
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-subscription-details",
+      "description": "Parse an email for subscription billing information.",
+      "body": "1. Read the email body and subject.\n2. Identify the service name (sender domain or brand in subject).\n3. Find the amount paid (look for currency symbols, \"charged\", \"billed\", \"total\").\n4. Determine the billing cycle (monthly, quarterly, annual, yearly).\n5. Extract the last payment date and next renewal date if present.\n6. Note any subscription or invoice ID.\n7. If any field is missing, mark it as unknown rather than guessing."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Subscription Scout\n\nFinds recurring charges in your email so you can cancel the ones you no longer use.\n\n### What it does\n\n- Searches your email for subscription receipts, renewals, and invoices from the last 13 months.\n- Extracts service name, amount, billing cycle, and payment dates.\n- Shows a table with monthly and annualised totals.\n- Flags services with no recent receipt as possibly inactive.\n\n### What it needs\n\n- Access to your email (mail connector).\n\n### What it will not do\n\n- Contact any service or cancel anything.\n- Access bank statements or payment processors directly.\n- Guess amounts or dates not in the email.",
+  "hash": "36ffd063d5ee3d04a6c8a60cc2412e78ddb14a40922142391d17666432b34875"
+}

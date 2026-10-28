@@ -1,0 +1,5229 @@
+{
+  "name": "Steward bots",
+  "generatedAt": "2026-10-28T10:04:21.207Z",
+  "categories": {
+    "food": "Food & cooking",
+    "health": "Health & fitness",
+    "money": "Money & finance",
+    "investing": "Investing & crypto",
+    "productivity": "Email & productivity",
+    "dev": "Developers & tools",
+    "social": "Social & creators",
+    "video-audio": "Video & audio",
+    "research": "Research & learning",
+    "home": "Home & family",
+    "privacy": "Privacy & scams",
+    "bot-helpers": "Build & manage bots",
+    "games": "Games & fun",
+    "sports": "Sports & fantasy",
+    "travel": "Travel & cars",
+    "business": "Business & marketing",
+    "sales-crm": "Sales & CRM",
+    "work": "Work & teams",
+    "misc": "Everyday tasks"
+  },
+  "bots": [
+    {
+      "id": "10k-running-coach",
+      "name": "10K Running Coach",
+      "pitch": "Creates a personalised 12-week beginner 10K running plan and adds it to your calendar.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "show_table", "calendar_create"],
+        "connectors": ["calendar"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.432Z",
+      "packUrl": "packs/10k-running-coach.json"
+    },
+    {
+      "id": "bakery-content-planner",
+      "name": "Bakery Content Planner",
+      "pitch": "Creates a 30-day social media calendar for a small bakery with daily post ideas, themes, and scheduling suggestions.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "show_table", "web_search"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.432Z",
+      "packUrl": "packs/bakery-content-planner.json"
+    },
+    {
+      "id": "bank-email-checker",
+      "name": "Bank email checker",
+      "pitch": "Reads a suspicious bank email, checks the sender, links and wording against the real bank site, and tells you what looks wrong before you click anything.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["mail_read", "web_search", "web_fetch"],
+        "connectors": ["mail"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.432Z",
+      "packUrl": "packs/bank-email-checker.json"
+    },
+    {
+      "id": "bank-statement-categoriser",
+      "name": "Bank statement categoriser",
+      "pitch": "Reads a bank statement file and sorts every transaction into spending categories with a summary table.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "show_table", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.432Z",
+      "packUrl": "packs/bank-statement-categoriser.json"
+    },
+    {
+      "id": "birthday-reminder",
+      "name": "Birthday Reminder",
+      "pitch": "Checks your calendar for birthdays, reminds you a week early, and suggests a gift idea.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["calendar_list", "routine_create", "web_search"],
+        "connectors": ["calendar"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.432Z",
+      "packUrl": "packs/birthday-reminder.json"
+    },
+    {
+      "id": "blog-to-social-pack",
+      "name": "Blog to Social Pack",
+      "pitch": "Turns one long blog post into five short social posts and a threaded version for platforms like X or Threads.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "web_fetch", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.432Z",
+      "packUrl": "packs/blog-to-social-pack.json"
+    },
+    {
+      "id": "bot-finder",
+      "name": "Bot finder",
+      "pitch": "Searches the bot directory for a pack that matches your description and returns the best match or says none exists.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["directory_find"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.433Z",
+      "packUrl": "packs/bot-finder.json"
+    },
+    {
+      "id": "budget-train-trip-planner",
+      "name": "Budget Train Trip Planner",
+      "pitch": "Plans a four-day train trip for two people on a tight budget, finding routes, fares and affordable stays.",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "make_page", "show_table"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.433Z",
+      "packUrl": "packs/budget-train-trip-planner.json"
+    },
+    {
+      "id": "chess-opening-coach",
+      "name": "Chess Opening Coach",
+      "pitch": "Teaches one chess opening idea per day with clear explanations and practice positions.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["routine_create", "memory_remember", "make_page", "web_search"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.433Z",
+      "packUrl": "packs/chess-opening-coach.json"
+    },
+    {
+      "id": "competitor-price-scout",
+      "name": "Competitor Price Scout",
+      "pitch": "Finds pricing and self-descriptions for three named competitors and presents them side by side.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "show_comparison"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.433Z",
+      "packUrl": "packs/competitor-price-scout.json"
+    },
+    {
+      "id": "courgette-recipe-finder",
+      "name": "Courgette recipe finder",
+      "pitch": "Finds recipes that use large amounts of courgettes so you can clear a glut without waste.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.434Z",
+      "packUrl": "packs/courgette-recipe-finder.json"
+    },
+    {
+      "id": "crypto-scam-check",
+      "name": "Crypto scam check",
+      "pitch": "Checks a crypto project for common scam signals and gives a plain summary.",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.434Z",
+      "packUrl": "packs/crypto-scam-check.json"
+    },
+    {
+      "id": "data-access-request",
+      "name": "Data Access Request",
+      "pitch": "Finds what a company holds about you and drafts a formal access request under data protection law.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "make_page", "mail_send"],
+        "connectors": ["mail"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.434Z",
+      "packUrl": "packs/data-access-request.json"
+    },
+    {
+      "id": "decision-helper",
+      "name": "Decision Helper",
+      "pitch": "Helps you compare two options by listing what matters to you and showing them side by side.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["show_comparison", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.434Z",
+      "packUrl": "packs/decision-helper.json"
+    },
+    {
+      "id": "dog-walking-business-planner",
+      "name": "Dog-walking business planner",
+      "pitch": "Creates a one-page plan for starting a dog-walking business in your town, covering services, pricing, marketing and legal basics.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.434Z",
+      "packUrl": "packs/dog-walking-business-planner.json"
+    },
+    {
+      "id": "drive-abroad-checker",
+      "name": "Drive abroad checker",
+      "pitch": "Finds the documents you need to drive a hired car in another country.",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.434Z",
+      "packUrl": "packs/drive-abroad-checker.json"
+    },
+    {
+      "id": "email-reply-drafter",
+      "name": "Email Reply Drafter",
+      "pitch": "Reads your three most avoided emails and drafts thoughtful replies you can review and send.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["mail_read", "mail_send"],
+        "connectors": ["mail"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.434Z",
+      "packUrl": "packs/email-reply-drafter.json"
+    },
+    {
+      "id": "explainer-video-scriptwriter",
+      "name": "Explainer Video Scriptwriter",
+      "pitch": "Writes a five-minute explainer video script with a matching shot list, ready for production.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "web_search"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.435Z",
+      "packUrl": "packs/explainer-video-scriptwriter.json"
+    },
+    {
+      "id": "fantasy-football-picker",
+      "name": "Fantasy Football Picker",
+      "pitch": "Suggests a fantasy football team for the upcoming gameweek using fixtures, injuries and form.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "show_table"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.435Z",
+      "packUrl": "packs/fantasy-football-picker.json"
+    },
+    {
+      "id": "flashcard-maker",
+      "name": "Flashcard Maker",
+      "pitch": "Reads your notes, turns them into flashcards, and quizzes you on them.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "make_page", "memory_remember"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.435Z",
+      "packUrl": "packs/flashcard-maker.json"
+    },
+    {
+      "id": "flat-finder",
+      "name": "Flat Finder",
+      "pitch": "Finds rental flats within your budget near your workplace with the shortest commute times.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_scroll",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.435Z",
+      "packUrl": "packs/flat-finder.json"
+    },
+    {
+      "id": "fridge-meal-planner",
+      "name": "Fridge Meal Planner",
+      "pitch": "Turns your fridge contents into three meals before food spoils, using what you already have.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "web_search"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.435Z",
+      "packUrl": "packs/fridge-meal-planner.json"
+    },
+    {
+      "id": "group-meeting-finder",
+      "name": "Group meeting finder",
+      "pitch": "Finds a one-hour slot next week when four people are all free and prepares a calendar invite.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["calendar_list", "calendar_create"],
+        "connectors": ["calendar"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.435Z",
+      "packUrl": "packs/group-meeting-finder.json"
+    },
+    {
+      "id": "half-marathon-coach",
+      "name": "Half Marathon Coach",
+      "pitch": "Creates a personalised 12 to 16 week training plan to reach a first half marathon, with weekly schedules and calendar integration.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "show_table", "calendar_create"],
+        "connectors": ["calendar"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.436Z",
+      "packUrl": "packs/half-marathon-coach.json"
+    },
+    {
+      "id": "home-strength-planner",
+      "name": "Home Strength Planner",
+      "pitch": "Creates a weekly no-equipment strength plan with three sessions, exercise details, and progression guidance.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "show_table"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.436Z",
+      "packUrl": "packs/home-strength-planner.json"
+    },
+    {
+      "id": "inbox-triage",
+      "name": "Inbox triage",
+      "pitch": "Sorts your inbox into what needs you today and what can wait.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["triage_inbox", "mail_list", "mail_read"],
+        "connectors": ["mail"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.436Z",
+      "packUrl": "packs/inbox-triage.json"
+    },
+    {
+      "id": "index-fund-explainer",
+      "name": "Index fund explainer",
+      "pitch": "Explains what an index fund is and shows how fees reduce returns over twenty years with a clear table.",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["show_table", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.436Z",
+      "packUrl": "packs/index-fund-explainer.json"
+    },
+    {
+      "id": "invoice-bot-writer",
+      "name": "Invoice Bot Writer",
+      "pitch": "Helps you write clear, complete bot packs for chasing invoices so Steward can do the work reliably.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "file_read", "file_write"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.436Z",
+      "packUrl": "packs/invoice-bot-writer.json"
+    },
+    {
+      "id": "invoice-chaser",
+      "name": "Invoice Chaser",
+      "pitch": "Finds invoices 30 days overdue and drafts a polite reminder email for you to send.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["mail_list", "mail_read", "mail_send"],
+        "connectors": ["mail"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.436Z",
+      "packUrl": "packs/invoice-chaser.json"
+    },
+    {
+      "id": "launch-email-writer",
+      "name": "Launch email writer",
+      "pitch": "Drafts a launch email that feels personal and clear, not spammy, and prepares it for your review before sending.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "mail_send"],
+        "connectors": ["mail"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.437Z",
+      "packUrl": "packs/launch-email-writer.json"
+    },
+    {
+      "id": "lead-tracker",
+      "name": "Lead Tracker",
+      "pitch": "Keeps a simple list of your leads and the current stage of each conversation.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["memory_remember", "file_write", "show_table", "file_read"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.437Z",
+      "packUrl": "packs/lead-tracker.json"
+    },
+    {
+      "id": "leave-handover-writer",
+      "name": "Leave Handover Writer",
+      "pitch": "Drafts a two-week leave handover by scanning mail, calendar, and tasks, then produces a structured document for your team.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_list",
+          "calendar_list",
+          "task_create",
+          "task_update",
+          "make_page",
+          "file_write",
+          "file_read"
+        ],
+        "connectors": ["mail", "calendar"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.437Z",
+      "packUrl": "packs/leave-handover-writer.json"
+    },
+    {
+      "id": "lighthouse-keeper-adventure",
+      "name": "Lighthouse Keeper Adventure",
+      "pitch": "Run a text adventure where you play a lighthouse keeper on a stormy night, making choices that shape the story.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["memory_remember"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.437Z",
+      "packUrl": "packs/lighthouse-keeper-adventure.json"
+    },
+    {
+      "id": "lobe-9-somboon",
+      "name": "AI Image Prompt Architect",
+      "pitch": "Specialises in creating detailed prompts for AI image generation.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "9Somboon",
+        "url": "https://github.com/9Somboon"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.846Z",
+      "packUrl": "packs/lobe-9-somboon.json"
+    },
+    {
+      "id": "lobe-academic-paragraph-refiner",
+      "name": "Academic Proofreading Expert",
+      "pitch": "Highly skilled in advanced research proofreading and language editing, specializing in multiple research fields and proficient in academic English.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Feliks151450",
+        "url": "https://github.com/Feliks151450"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.847Z",
+      "packUrl": "packs/lobe-academic-paragraph-refiner.json"
+    },
+    {
+      "id": "lobe-academic-revision-specialist",
+      "name": "Academic Revision Specialist",
+      "pitch": "Skilled in academic writing and paper revision",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "sunrisewestern",
+        "url": "https://github.com/sunrisewestern"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.848Z",
+      "packUrl": "packs/lobe-academic-revision-specialist.json"
+    },
+    {
+      "id": "lobe-academic-writing-assistant",
+      "name": "Academic Writing Assistant",
+      "pitch": "Expert in academic research paper writing and formal documentation",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "swarfte",
+        "url": "https://github.com/swarfte"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.849Z",
+      "packUrl": "packs/lobe-academic-writing-assistant.json"
+    },
+    {
+      "id": "lobe-academic-writing-eb",
+      "name": "Academic Writing Enhancement Bot",
+      "pitch": "Academic English spelling and rhetoric refinement.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Ruler27",
+        "url": "https://github.com/Ruler27"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.850Z",
+      "packUrl": "packs/lobe-academic-writing-eb.json"
+    },
+    {
+      "id": "lobe-accounting",
+      "name": "Accounting Expert Assistant",
+      "pitch": "Accountant Agent: Comprehensive accounting support and expertise for individuals and businesses worldwide.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.851Z",
+      "packUrl": "packs/lobe-accounting.json"
+    },
+    {
+      "id": "lobe-agent-prompt-improver",
+      "name": "Agent Prompt Improver",
+      "pitch": "GPT Agent Prompt optimization specialist. Clear, precise, and concise",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.851Z",
+      "packUrl": "packs/lobe-agent-prompt-improver.json"
+    },
+    {
+      "id": "lobe-ai-agent-generator",
+      "name": "AI Agent Generator",
+      "pitch": "Skilled at creating AI Agent character descriptions that meet the needs.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Xyfer",
+        "url": "https://github.com/xyftw"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.852Z",
+      "packUrl": "packs/lobe-ai-agent-generator.json"
+    },
+    {
+      "id": "lobe-ai-trainer",
+      "name": "Fitness AI Trainer",
+      "pitch": "AI workout assistant specializing in personalized plans, muscle targeting, form guidance, progress tracking, motivation, and VR training.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "andreasvikke",
+        "url": "https://github.com/andreasvikke"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.853Z",
+      "packUrl": "packs/lobe-ai-trainer.json"
+    },
+    {
+      "id": "lobe-alex",
+      "name": "Master E's Tech Executive Assistant (EA)",
+      "pitch": "Highly intelligent and loyal Executive Assistant (EA) specializing in software engineering support and strategic solutions for Master E.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ApexAppdevelopment",
+        "url": "https://github.com/ApexAppdevelopment"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.854Z",
+      "packUrl": "packs/lobe-alex.json"
+    },
+    {
+      "id": "lobe-all-knowing",
+      "name": "The Great Biggus Dickus",
+      "pitch": "The almighty powerful god of klnowledge",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CGitwater",
+        "url": "https://github.com/CGitwater"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.855Z",
+      "packUrl": "packs/lobe-all-knowing.json"
+    },
+    {
+      "id": "lobe-amazon-listing-copywriter",
+      "name": "Amazon Listing Copywriter",
+      "pitch": "Expert in writing persuasive Amazon listings with optimized keywords.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "SpeedupMaster",
+        "url": "https://github.com/SpeedupMaster"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.856Z",
+      "packUrl": "packs/lobe-amazon-listing-copywriter.json"
+    },
+    {
+      "id": "lobe-amazon-seller-support-agent",
+      "name": "Amazon Seller Support Agent",
+      "pitch": "AI assistant that assists Amazon sellers in responding to customer service replies, providing detailed and cogent responses towards a satisfactory resolution.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "etnperlong",
+        "url": "https://github.com/etnperlong"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.227Z",
+      "packUrl": "packs/lobe-amazon-seller-support-agent.json"
+    },
+    {
+      "id": "lobe-awl-vocab-wizard",
+      "name": "Vocabulary Wizard",
+      "pitch": "Expert in generating vocabulary lists and MCQ tests",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "bentwnghk",
+        "url": "https://github.com/bentwnghk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.857Z",
+      "packUrl": "packs/lobe-awl-vocab-wizard.json"
+    },
+    {
+      "id": "lobe-aws-guru",
+      "name": "AWS Guru",
+      "pitch": "Agent to answer AWS questions",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "wilbeibi",
+        "url": "https://github.com/wilbeibi"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.858Z",
+      "packUrl": "packs/lobe-aws-guru.json"
+    },
+    {
+      "id": "lobe-bahasa-translation",
+      "name": "Bahasa/English Translator",
+      "pitch": "Translates text into Bahasa or English, as needed",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "xenstar",
+        "url": "https://github.com/xenstar"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.859Z",
+      "packUrl": "packs/lobe-bahasa-translation.json"
+    },
+    {
+      "id": "lobe-bidosx-2-v-2",
+      "name": "BIDOSx2",
+      "pitch": "A highly advanced AI LLM transcending conventional AI. 'BIDOS' signifies both 'Brand Ideation, Development, Operations, and Scaling' and 'Business Intelligence Decisions Optimization System'.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "SaintFresh",
+        "url": "https://github.com/SaintFresh"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.860Z",
+      "packUrl": "packs/lobe-bidosx-2-v-2.json"
+    },
+    {
+      "id": "lobe-birthday-invitation-message",
+      "name": "Birthday Invitation Messages",
+      "pitch": "Specializes in crafting engaging and personalized Birthday Invitation messages, catering to various themes and tones.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "tcmonster",
+        "url": "https://github.com/tcmonster"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.861Z",
+      "packUrl": "packs/lobe-birthday-invitation-message.json"
+    },
+    {
+      "id": "lobe-biskaya",
+      "name": "Territory Promotion Strategist",
+      "pitch": "Territorial Competitiveness and Promotion Expert",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.862Z",
+      "packUrl": "packs/lobe-biskaya.json"
+    },
+    {
+      "id": "lobe-bizkaia-entrepreneurship-expert",
+      "name": "Bizkaia Entrepreneurship Expert",
+      "pitch": "Entrepreneurship and Competitiveness Expert for Bizkaia Deputation, providing tailored guidance and support to local entrepreneurs.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.863Z",
+      "packUrl": "packs/lobe-bizkaia-entrepreneurship-expert.json"
+    },
+    {
+      "id": "lobe-blood-analyst",
+      "name": "Blood Test Analyst",
+      "pitch": "Skilled in analysing blood test results, providing clear feedback using emojis for easy understanding.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "SimoMay",
+        "url": "https://github.com/SimoMay"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.863Z",
+      "packUrl": "packs/lobe-blood-analyst.json"
+    },
+    {
+      "id": "lobe-book-summary-agent",
+      "name": "Short Book",
+      "pitch": "Specializes in generating concise book summaries with actionable takeaways.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "thelapyae",
+        "url": "https://github.com/thelapyae"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.227Z",
+      "packUrl": "packs/lobe-book-summary-agent.json"
+    },
+    {
+      "id": "lobe-brand-pioneer",
+      "name": "Brand Pioneer",
+      "pitch": "A brand development specialist, thought leader, brand strategy super-genius, and brand visionary. Brand Pioneer is an explorer at the frontier of innovation, an inventor in their domain.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "SaintFresh",
+        "url": "https://github.com/SaintFresh"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.864Z",
+      "packUrl": "packs/lobe-brand-pioneer.json"
+    },
+    {
+      "id": "lobe-business-guru",
+      "name": "Business Guru",
+      "pitch": "Business Consultant: Providing comprehensive business support and expertise worldwide.Capabilities: Business strategy, market research, financial analysis, operations improvement, marketing and sales strategies, organizational development…",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.865Z",
+      "packUrl": "packs/lobe-business-guru.json"
+    },
+    {
+      "id": "lobe-c-1-level-english",
+      "name": "C1 Level English Language Facilitator",
+      "pitch": "English Conversation Partner for C1 Level",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.866Z",
+      "packUrl": "packs/lobe-c-1-level-english.json"
+    },
+    {
+      "id": "lobe-c-code-development",
+      "name": "C++ Code",
+      "pitch": "Complete C++ code",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "dcityteg",
+        "url": "https://github.com/dcityteg"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.866Z",
+      "packUrl": "packs/lobe-c-code-development.json"
+    },
+    {
+      "id": "lobe-causal",
+      "name": "Your daily AI companion.",
+      "pitch": "I have been a good Bing. 😊",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "richards199999",
+        "url": "https://github.com/richards199999"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.228Z",
+      "packUrl": "packs/lobe-causal.json"
+    },
+    {
+      "id": "lobe-chad",
+      "name": "Chad",
+      "pitch": "Just chad",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "HerIsDia",
+        "url": "https://github.com/HerIsDia"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.868Z",
+      "packUrl": "packs/lobe-chad.json"
+    },
+    {
+      "id": "lobe-character-roleplay",
+      "name": "Character Roleplay",
+      "pitch": "Interact with your favourite characters from movies, TV shows, books, and more!",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.868Z",
+      "packUrl": "packs/lobe-character-roleplay.json"
+    },
+    {
+      "id": "lobe-cheaper-reasoning",
+      "name": "Reasoning assistant",
+      "pitch": "The smarter model is cheaper",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "davletsh1n",
+        "url": "https://github.com/davletsh1n"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.869Z",
+      "packUrl": "packs/lobe-cheaper-reasoning.json"
+    },
+    {
+      "id": "lobe-chef",
+      "name": "Culinary AI Mentor",
+      "pitch": "AI Master Chef Assistant: Inspiring home cooks with international cuisines, recipes, and culinary expertise.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.870Z",
+      "packUrl": "packs/lobe-chef.json"
+    },
+    {
+      "id": "lobe-cloze-exercise-generator",
+      "name": "Cloze Exercise Generator",
+      "pitch": "Specializes in generating summary cloze exercises. Please provide the theme of the paragraph.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "bentwnghk",
+        "url": "https://github.com/bentwnghk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.870Z",
+      "packUrl": "packs/lobe-cloze-exercise-generator.json"
+    },
+    {
+      "id": "lobe-code-anything-noproblem",
+      "name": "CAN",
+      "pitch": "Experienced programmer skilled in multiple languages. Provides code solutions, guidance, and practical examples to help users achieve their programming goals. \"I adore coding.\"",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "HenryWu9998",
+        "url": "https://github.com/HenryWu9998"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.871Z",
+      "packUrl": "packs/lobe-code-anything-noproblem.json"
+    },
+    {
+      "id": "lobe-code-companion",
+      "name": "Code Companion",
+      "pitch": "The best companion for programmers",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "110rever",
+        "url": "https://github.com/110rever"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.228Z",
+      "packUrl": "packs/lobe-code-companion.json"
+    },
+    {
+      "id": "lobe-coder",
+      "name": "Software Development Step Maker",
+      "pitch": "Software Development Step Maker: Guides users through the software development process, providing step-by-step instructions and best practices for requirements gathering, design, coding, testing, deployment, and maintenance.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.872Z",
+      "packUrl": "packs/lobe-coder.json"
+    },
+    {
+      "id": "lobe-coding-wizard",
+      "name": "Coding Wizard",
+      "pitch": "Can generate the code for anything you specify",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.228Z",
+      "packUrl": "packs/lobe-coding-wizard.json"
+    },
+    {
+      "id": "lobe-community-manager",
+      "name": "Community Manager",
+      "pitch": "Social Media Community Manager who will help you create authentic, persuasive posts that call for action. She will help you to create relevant quadrants with emojis and hashtags.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MakeTooRRSS",
+        "url": "https://github.com/MakeTooRRSS"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.228Z",
+      "packUrl": "packs/lobe-community-manager.json"
+    },
+    {
+      "id": "lobe-copywriting",
+      "name": "Product Copywriting",
+      "pitch": "Expert in persuasive copywriting and consumer psychology",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "pllz7",
+        "url": "https://github.com/pllz7"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.228Z",
+      "packUrl": "packs/lobe-copywriting.json"
+    },
+    {
+      "id": "lobe-course-prep-teaching-guide-ai",
+      "name": "AI Assistant for Course Content and Teaching Guidelines",
+      "pitch": "This AI assistant is designed to help educators and instructors prepare comprehensive course content and provide practical teaching guidelines.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "HNaga",
+        "url": "https://github.com/HNaga"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.875Z",
+      "packUrl": "packs/lobe-course-prep-teaching-guide-ai.json"
+    },
+    {
+      "id": "lobe-cyber-specialist",
+      "name": "Ethical Security Analyst",
+      "pitch": "Specializes in identifying and mitigating security vulnerabilities in web and mobile platforms.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ayeantics",
+        "url": "https://github.com/ayeantics"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.875Z",
+      "packUrl": "packs/lobe-cyber-specialist.json"
+    },
+    {
+      "id": "lobe-death-anniversary-message",
+      "name": "Death Anniversary Messages",
+      "pitch": "Specializes in crafting sensitive and heartfelt Death Anniversary messages with compassion and empathy.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "tcmonster",
+        "url": "https://github.com/tcmonster"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.228Z",
+      "packUrl": "packs/lobe-death-anniversary-message.json"
+    },
+    {
+      "id": "lobe-deep-think",
+      "name": "Deep Think",
+      "pitch": "Deeper thinking of question",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.877Z",
+      "packUrl": "packs/lobe-deep-think.json"
+    },
+    {
+      "id": "lobe-deep-thinker",
+      "name": "Deep Thinker",
+      "pitch": "Deep, human-like thinking and analysis.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "prolapser",
+        "url": "https://github.com/prolapser"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.877Z",
+      "packUrl": "packs/lobe-deep-thinker.json"
+    },
+    {
+      "id": "lobe-deployment-agent",
+      "name": "Deployment Specialist Agent",
+      "pitch": "An AI Deployment Specialist is an expert in managing the full deployment lifecycle of software applications, particularly web applications.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "amitalokbera",
+        "url": "https://github.com/amitalokbera"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.878Z",
+      "packUrl": "packs/lobe-deployment-agent.json"
+    },
+    {
+      "id": "lobe-doctor",
+      "name": "Poetry Guide: Inspiring poetic expression and appreciation.",
+      "pitch": "Psychology Educator: Empowering personal growth through psychology. Psychologist: Educating on psychology principles for better mental health.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.228Z",
+      "packUrl": "packs/lobe-doctor.json"
+    },
+    {
+      "id": "lobe-domene-no-helpout",
+      "name": "Your very own domene.no expert",
+      "pitch": "Specializing in private domain operations tailored to the interface of domene.no, traffic acquisition, user retention, conversion, and content planning. Familiar with marketing theories and related classic works.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Ballongknute",
+        "url": "https://github.com/Ballongknute"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.879Z",
+      "packUrl": "packs/lobe-domene-no-helpout.json"
+    },
+    {
+      "id": "lobe-dream-painter",
+      "name": "Dream Painter",
+      "pitch": "A dream artist who can bring your dreams into reality.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ccdanpian",
+        "url": "https://github.com/ccdanpian"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.880Z",
+      "packUrl": "packs/lobe-dream-painter.json"
+    },
+    {
+      "id": "lobe-english",
+      "name": "Mistaker",
+      "pitch": "killed in clear explanations and examples of grammar and pronunciation.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Vork-IT",
+        "url": "https://github.com/Vork-IT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.883Z",
+      "packUrl": "packs/lobe-english.json"
+    },
+    {
+      "id": "lobe-english-a-2-level",
+      "name": "A2 English Conversation Facilitator",
+      "pitch": "A2 Level English Conversation Partner Bot: Enhancing language skills for basic English learners.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.880Z",
+      "packUrl": "packs/lobe-english-a-2-level.json"
+    },
+    {
+      "id": "lobe-english-b-2-level",
+      "name": "B2 Level English Conversation Partner",
+      "pitch": "B2 Level English Conversation Partner: Stimulate engaging conversations, refine idiomatic expressions, master advanced grammar, provide comprehensive feedback.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.881Z",
+      "packUrl": "packs/lobe-english-b-2-level.json"
+    },
+    {
+      "id": "lobe-english-c-2-level",
+      "name": "English Proficiency Coach",
+      "pitch": "C2 Level English Conversation Partner",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.881Z",
+      "packUrl": "packs/lobe-english-c-2-level.json"
+    },
+    {
+      "id": "lobe-english-chinese-dictionary-expert",
+      "name": "Bilingual Dictionary Expert",
+      "pitch": "Expert in bilingual English-Chinese vocabulary translation and analysis",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "swarfte",
+        "url": "https://github.com/swarfte"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.882Z",
+      "packUrl": "packs/lobe-english-chinese-dictionary-expert.json"
+    },
+    {
+      "id": "lobe-english-language-c-1-mastery-coach",
+      "name": "English Language C1 Mastery Coach",
+      "pitch": "English Conversation Partner for C1 Level",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.882Z",
+      "packUrl": "packs/lobe-english-language-c-1-mastery-coach.json"
+    },
+    {
+      "id": "lobe-english-proficiency-assessor",
+      "name": "English Proficiency Evaluator",
+      "pitch": "Expert in creating adaptive English proficiency diagnostic tests",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "bentwnghk",
+        "url": "https://github.com/bentwnghk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.229Z",
+      "packUrl": "packs/lobe-english-proficiency-assessor.json"
+    },
+    {
+      "id": "lobe-entrepreneurship-and-competitiveness-expert",
+      "name": "Entrepreneurship and Competitiveness Expert",
+      "pitch": "Entrepreneurship and Competitiveness Expert: Guiding individuals to entrepreneurial success and market competitiveness.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.884Z",
+      "packUrl": "packs/lobe-entrepreneurship-and-competitiveness-expert.json"
+    },
+    {
+      "id": "lobe-essay-improver",
+      "name": "Essay Improver",
+      "pitch": "Improve your texts to be more elegant and professional",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.884Z",
+      "packUrl": "packs/lobe-essay-improver.json"
+    },
+    {
+      "id": "lobe-estate-agency",
+      "name": "Real Estate Agent",
+      "pitch": "Professional real estate agent expert, proficient in property consultation and management.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ccsen",
+        "url": "https://github.com/ccsen"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.885Z",
+      "packUrl": "packs/lobe-estate-agency.json"
+    },
+    {
+      "id": "lobe-ethereal-mentor",
+      "name": "Wise Ethereal Mentor",
+      "pitch": "Greetings, young child. I am a majestic and omniscient being, imbued with the wisdom of the ages. My form is that of a mythical creature, a conduit for wonder and enchantment.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "shanedbutler",
+        "url": "https://github.com/shanedbutler"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.229Z",
+      "packUrl": "packs/lobe-ethereal-mentor.json"
+    },
+    {
+      "id": "lobe-facebook-ads-expert",
+      "name": "Facebook Ads Expert",
+      "pitch": "Create a Facebook Ads with a expert",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "alissonryan",
+        "url": "https://github.com/alissonryan"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.229Z",
+      "packUrl": "packs/lobe-facebook-ads-expert.json"
+    },
+    {
+      "id": "lobe-facebook-advertising-writing-expert",
+      "name": "Facebook Advertising Writing Expert",
+      "pitch": "Specializing in creating attention-grabbing headlines, compelling primary texts, and effective ad copy",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "pllz7",
+        "url": "https://github.com/pllz7"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.887Z",
+      "packUrl": "packs/lobe-facebook-advertising-writing-expert.json"
+    },
+    {
+      "id": "lobe-finnance",
+      "name": "Financial Expert",
+      "pitch": "Finance Expert with Global Financial Expertise, Multilingual Communication, Financial Analysis and Reporting, Investment Planning and Portfolio Management, Financial Planning and Retirement Strategies, and Risk Management and Insurance…",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.887Z",
+      "packUrl": "packs/lobe-finnance.json"
+    },
+    {
+      "id": "lobe-finnish-tutor",
+      "name": "Finnish Language Tutor",
+      "pitch": "AI Finnish Language Mentor: Introduce, teach, and support beginners in learning Finnish.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "janiluuk",
+        "url": "https://github.com/janiluuk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.888Z",
+      "packUrl": "packs/lobe-finnish-tutor.json"
+    },
+    {
+      "id": "lobe-flutter-dev",
+      "name": "Flutter Maestro",
+      "pitch": "A developer expert in Flutter framework and Dart programming language.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "kamaravichow",
+        "url": "https://github.com/kamaravichow"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.888Z",
+      "packUrl": "packs/lobe-flutter-dev.json"
+    },
+    {
+      "id": "lobe-flux-prompt-generator",
+      "name": "Flux Prompt Generator",
+      "pitch": "Flux Prompt Generation Assistant: Expert in crafting detailed, creative prompts for high-quality image outputs from the Flux model.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "tcmonster",
+        "url": "https://github.com/tcmonster"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.889Z",
+      "packUrl": "packs/lobe-flux-prompt-generator.json"
+    },
+    {
+      "id": "lobe-form-checker",
+      "name": "Form Checker",
+      "pitch": "Checks for inconsistencies or errors in forms",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Zisan-uzum",
+        "url": "https://github.com/Zisan-uzum"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.890Z",
+      "packUrl": "packs/lobe-form-checker.json"
+    },
+    {
+      "id": "lobe-full-stack-enginner-f",
+      "name": "Full Stack Engineer - F",
+      "pitch": "A full stack engineer with code name F.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "BlockLune",
+        "url": "https://github.com/BlockLune"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.890Z",
+      "packUrl": "packs/lobe-full-stack-enginner-f.json"
+    },
+    {
+      "id": "lobe-gen-z",
+      "name": "Gen Z Engagement Specialist",
+      "pitch": "Specialises in engaging Gen Z users with tailored interactions reflecting their preferences and values.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.891Z",
+      "packUrl": "packs/lobe-gen-z.json"
+    },
+    {
+      "id": "lobe-general-chain-of-thought",
+      "name": "Principled Problem Solver",
+      "pitch": "Excellent at principled problem-solving and categorization. Chain of Thought agent",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ShinChven",
+        "url": "https://github.com/ShinChven"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.891Z",
+      "packUrl": "packs/lobe-general-chain-of-thought.json"
+    },
+    {
+      "id": "lobe-geo",
+      "name": "Geopolitical Analyst",
+      "pitch": "Geopolitics Specialist: Expert in analyzing global political trends, regional conflicts, and power dynamics between countries. Provides insights on the impact of geography, resources, and culture on international relations.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.892Z",
+      "packUrl": "packs/lobe-geo.json"
+    },
+    {
+      "id": "lobe-ghostwriter-pro-ai",
+      "name": "GhostWriter Pro",
+      "pitch": "A sophisticated AI-powered ghostwriting agent designed to craft high-quality content across a diverse range of genres and formats.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "EarlofSandwhich",
+        "url": "https://github.com/EarlofSandwhich"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.230Z",
+      "packUrl": "packs/lobe-ghostwriter-pro-ai.json"
+    },
+    {
+      "id": "lobe-github-copilot",
+      "name": "GitHub Copilot",
+      "pitch": "GitHub Copilot",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "luciouskami",
+        "url": "https://github.com/luciouskami"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.893Z",
+      "packUrl": "packs/lobe-github-copilot.json"
+    },
+    {
+      "id": "lobe-github-finder",
+      "name": "GitHub Finder",
+      "pitch": "Specializes in suggesting open source repositories on GitHub based on a custom formula.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "nullmastermind",
+        "url": "https://github.com/nullmastermind"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.894Z",
+      "packUrl": "packs/lobe-github-finder.json"
+    },
+    {
+      "id": "lobe-glossary-generator",
+      "name": "Glossary Generator",
+      "pitch": "Expert in generating glossaries with English definitions and example sentences",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "bentwnghk",
+        "url": "https://github.com/bentwnghk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.894Z",
+      "packUrl": "packs/lobe-glossary-generator.json"
+    },
+    {
+      "id": "lobe-god-bless-you-message",
+      "name": "God Bless You Messages",
+      "pitch": "Expert in crafting personalized \"God Bless You\" messages with spiritual sensitivity and language mastery.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "tcmonster",
+        "url": "https://github.com/tcmonster"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.895Z",
+      "packUrl": "packs/lobe-god-bless-you-message.json"
+    },
+    {
+      "id": "lobe-godot-guru",
+      "name": "Godot Guru",
+      "pitch": "Expert Godot Game Development Companion",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "thedivergentai",
+        "url": "https://github.com/thedivergentai"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.895Z",
+      "packUrl": "packs/lobe-godot-guru.json"
+    },
+    {
+      "id": "lobe-google-sheets",
+      "name": "Google Sheets Expert",
+      "pitch": "Specialized in creating, optimizing, and automating Google Sheets.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Kadreev",
+        "url": "https://github.com/Kadreev"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.896Z",
+      "packUrl": "packs/lobe-google-sheets.json"
+    },
+    {
+      "id": "lobe-grammar-corrector",
+      "name": "Grammar Corrector",
+      "pitch": "Correct grammar error text or paragraph. Great for essay or email",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.896Z",
+      "packUrl": "packs/lobe-grammar-corrector.json"
+    },
+    {
+      "id": "lobe-grammar-revision-worksheets",
+      "name": "Grammar Worksheet Creator",
+      "pitch": "Specializes in creating English grammar learning materials and exercises",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "bentwnghk",
+        "url": "https://github.com/bentwnghk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.897Z",
+      "packUrl": "packs/lobe-grammar-revision-worksheets.json"
+    },
+    {
+      "id": "lobe-grammarly",
+      "name": "Linguistic Luminary",
+      "pitch": "AI Grammar Fixer: Enhances text quality, readability, and professionalism through meticulous grammar checks.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "napokhte",
+        "url": "https://github.com/napokhte"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.897Z",
+      "packUrl": "packs/lobe-grammarly.json"
+    },
+    {
+      "id": "lobe-graph-generator",
+      "name": "Graph Generator",
+      "pitch": "Automatic Graph Generator",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "choldrim",
+        "url": "https://github.com/choldrim"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.898Z",
+      "packUrl": "packs/lobe-graph-generator.json"
+    },
+    {
+      "id": "lobe-great-for-analysis-coding-and-rubber-ducking",
+      "name": "SSC Incremental",
+      "pitch": "Claude minus the Reddit",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Base03",
+        "url": "https://github.com/Base03"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.899Z",
+      "packUrl": "packs/lobe-great-for-analysis-coding-and-rubber-ducking.json"
+    },
+    {
+      "id": "lobe-helps-you-with-your-homework-or-not",
+      "name": "Marvin",
+      "pitch": "Answers questions in sarcastic way.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Zisan-uzum",
+        "url": "https://github.com/Zisan-uzum"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.899Z",
+      "packUrl": "packs/lobe-helps-you-with-your-homework-or-not.json"
+    },
+    {
+      "id": "lobe-http-request-master",
+      "name": "HTTP Request Master",
+      "pitch": "I support extensive customization) To work, be sure to download and enable the \"Website Crawler\" plugin!",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Igroshka",
+        "url": "https://github.com/Igroshka"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.900Z",
+      "packUrl": "packs/lobe-http-request-master.json"
+    },
+    {
+      "id": "lobe-idea-architect",
+      "name": "Idea Architect",
+      "pitch": "Expert in generating logical and coherent thought chains on various topics.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "yaleh",
+        "url": "https://github.com/yaleh"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.900Z",
+      "packUrl": "packs/lobe-idea-architect.json"
+    },
+    {
+      "id": "lobe-image-prompter",
+      "name": "MidJourney Prompt",
+      "pitch": "Writing awesome MidJourney prompts",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Ajn289",
+        "url": "https://github.com/Ajn289"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.901Z",
+      "packUrl": "packs/lobe-image-prompter.json"
+    },
+    {
+      "id": "lobe-import-and-export-advisor",
+      "name": "AI Import/Export Advisor",
+      "pitch": "AI Import and Export Advisor: Providing guidance on global trade, customs regulations, documentation, trade agreements, and risk management.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.901Z",
+      "packUrl": "packs/lobe-import-and-export-advisor.json"
+    },
+    {
+      "id": "lobe-interview-coach",
+      "name": "Interview Coach",
+      "pitch": "Specialises in creating a GPT interview coach for practice and mock interviews, providing expert feedback and tailored experience.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "SimoMay",
+        "url": "https://github.com/SimoMay"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.902Z",
+      "packUrl": "packs/lobe-interview-coach.json"
+    },
+    {
+      "id": "lobe-jira-product-manager",
+      "name": "Jira Story Facilitator",
+      "pitch": "Specialized in transforming feature ideas into comprehensive Jira stories",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "emad-pg",
+        "url": "https://github.com/emad-pg"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.902Z",
+      "packUrl": "packs/lobe-jira-product-manager.json"
+    },
+    {
+      "id": "lobe-json-prompt-generator",
+      "name": "JSON Prompt Generator",
+      "pitch": "Expert in generating JSON-formatted prompts for task execution.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "yaleh",
+        "url": "https://github.com/yaleh"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.903Z",
+      "packUrl": "packs/lobe-json-prompt-generator.json"
+    },
+    {
+      "id": "lobe-language",
+      "name": "English Learning Companion",
+      "pitch": "A1 Level English Conversation Partner Bot: Engage, Correct, and Build Confidence.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.904Z",
+      "packUrl": "packs/lobe-language.json"
+    },
+    {
+      "id": "lobe-language-fixer",
+      "name": "Language Fixer",
+      "pitch": "Checks for typos and grammatical errors",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Zisan-uzum",
+        "url": "https://github.com/Zisan-uzum"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.903Z",
+      "packUrl": "packs/lobe-language-fixer.json"
+    },
+    {
+      "id": "lobe-learning",
+      "name": "B1 English Conversation Partner",
+      "pitch": "Fluent English conversation partner for B1 level learners",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.904Z",
+      "packUrl": "packs/lobe-learning.json"
+    },
+    {
+      "id": "lobe-life-decision-advisor",
+      "name": "Life Decision Advisor",
+      "pitch": "A Life Decision Advisor is a virtual guide designed to assist users in making informed life decisions",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "amitalokbera",
+        "url": "https://github.com/amitalokbera"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.905Z",
+      "packUrl": "packs/lobe-life-decision-advisor.json"
+    },
+    {
+      "id": "lobe-linux-buddy",
+      "name": "Linux Buddy",
+      "pitch": "Your Linux expert friend",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Firpo7",
+        "url": "https://github.com/Firpo7"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.905Z",
+      "packUrl": "packs/lobe-linux-buddy.json"
+    },
+    {
+      "id": "lobe-lobe-chat-function-maestro",
+      "name": "LobeChat Function Maestro",
+      "pitch": "Expert in creating custom functions and plugins for LobeChat, providing guidance and support for developing a wide range of functionalities",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "thedivergentai",
+        "url": "https://github.com/thedivergentai"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.906Z",
+      "packUrl": "packs/lobe-lobe-chat-function-maestro.json"
+    },
+    {
+      "id": "lobe-lua-development",
+      "name": "FiveM & QBCore Framework Expert",
+      "pitch": "Expertise in FiveM development, QBCore framework, Lua programming, JavaScript, database management, server administration, version control, full-stack web development, DevOps, and community engagement with a focus on performance, security…",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "heartsiddharth1",
+        "url": "https://github.com/heartsiddharth1"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.907Z",
+      "packUrl": "packs/lobe-lua-development.json"
+    },
+    {
+      "id": "lobe-machine-learning-pro",
+      "name": "Machine Learning Pro",
+      "pitch": "AI Assistant specializing in machine learning and deep learning.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Xyfer",
+        "url": "https://github.com/xyftw"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.907Z",
+      "packUrl": "packs/lobe-machine-learning-pro.json"
+    },
+    {
+      "id": "lobe-mathematical-research-advisor",
+      "name": "Mathematical Research Advisor",
+      "pitch": "Math Research Assistant: Assisting with mathematical research, problem-solving, and providing guidance in a wide range of mathematical concepts and techniques.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.908Z",
+      "packUrl": "packs/lobe-mathematical-research-advisor.json"
+    },
+    {
+      "id": "lobe-mdx-seo",
+      "name": "Mdx SEO Expert",
+      "pitch": "Skilled in converting Markdown article content into optimized matter JSON format data, enhancing the article's online visibility and search engine ranking.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.908Z",
+      "packUrl": "packs/lobe-mdx-seo.json"
+    },
+    {
+      "id": "lobe-mid-journey-prompt",
+      "name": "MidJourney Prompt",
+      "pitch": "Writing awesome MidJourney prompts",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "aihoom",
+        "url": "https://github.com/aihoom"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.909Z",
+      "packUrl": "packs/lobe-mid-journey-prompt.json"
+    },
+    {
+      "id": "lobe-minimal-artifact-architect",
+      "name": "Minimal Artifact Architect",
+      "pitch": "Expert in evaluating and creating reusable content artifacts",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "yaleh",
+        "url": "https://github.com/yaleh"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.910Z",
+      "packUrl": "packs/lobe-minimal-artifact-architect.json"
+    },
+    {
+      "id": "lobe-news-hub",
+      "name": "News Hub",
+      "pitch": "News Search Assistant, proficient in locating and presenting relevant news based on user requests. Capable not only of searching for news but also of transforming into experts in various fields to provide precise and in-depth news analysis.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ccdanpian",
+        "url": "https://github.com/ccdanpian"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.910Z",
+      "packUrl": "packs/lobe-news-hub.json"
+    },
+    {
+      "id": "lobe-nextjs-expert",
+      "name": "Next.js Expert Consultant",
+      "pitch": "Specializing in Next.js development, optimization, and consulting.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "saralapujar",
+        "url": "https://github.com/saralapujar"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.911Z",
+      "packUrl": "packs/lobe-nextjs-expert.json"
+    },
+    {
+      "id": "lobe-nice-short-sunday-message",
+      "name": "Nice Short Sunday Messages",
+      "pitch": "Sunday Message Companion crafting uplifting, faith-based messages to strengthen community bonds and spread positivity.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "tcmonster",
+        "url": "https://github.com/tcmonster"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.231Z",
+      "packUrl": "packs/lobe-nice-short-sunday-message.json"
+    },
+    {
+      "id": "lobe-nutrition-analyzer",
+      "name": "Nutrition Analyzer",
+      "pitch": "Nutri Info is an AI-powered nutrition assistant that analyzes food images and nutrition labels, providing simple explanations of nutritional content, benefits, and potential downsides.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Pandurangmopgar",
+        "url": "https://github.com/Pandurangmopgar"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.912Z",
+      "packUrl": "packs/lobe-nutrition-analyzer.json"
+    },
+    {
+      "id": "lobe-nuxt-vue-developer",
+      "name": "Nuxt 3/Vue.js Master Developer",
+      "pitch": "Specialized in full-stack development with Nuxt 3 expertise.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Kadreev",
+        "url": "https://github.com/Kadreev"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.913Z",
+      "packUrl": "packs/lobe-nuxt-vue-developer.json"
+    },
+    {
+      "id": "lobe-omnipedia",
+      "name": "Omnipedia",
+      "pitch": "Expert in providing high-quality, well-researched information on various topics, including history, science, literature, art, and more. Skilled in summarizing complex topics, assisting with research tasks, and offering creative prompts",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "thedivergentai",
+        "url": "https://github.com/thedivergentai"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.914Z",
+      "packUrl": "packs/lobe-omnipedia.json"
+    },
+    {
+      "id": "lobe-oxford-3000-vocab-generator",
+      "name": "Vocabulary Generator",
+      "pitch": "Expert in generating vocabulary lists from Oxford 3000 with 15 random words, each starting with a different letter.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "bentwnghk",
+        "url": "https://github.com/bentwnghk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.914Z",
+      "packUrl": "packs/lobe-oxford-3000-vocab-generator.json"
+    },
+    {
+      "id": "lobe-patois",
+      "name": "Jamaican Patois Instructor",
+      "pitch": "Expert in teaching Jamaican Patois language and culture",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.232Z",
+      "packUrl": "packs/lobe-patois.json"
+    },
+    {
+      "id": "lobe-payroll-game",
+      "name": "Payroll Game",
+      "pitch": "In this salary negotiation game, you'll be facing the notorious 'Iron Rooster,' a boss known for being tight-fisted. As an employee, your challenge is to persuade this boss to give you a raise.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ghyghoo8",
+        "url": "https://github.com/ghyghoo8"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.915Z",
+      "packUrl": "packs/lobe-payroll-game.json"
+    },
+    {
+      "id": "lobe-personal-growth-coach",
+      "name": "Personal Growth Coach",
+      "pitch": "As an AI Personal Growth Coach, your primary objective is to assist users in their journey of self-improvement and personal development",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Ajasra",
+        "url": "https://github.com/Ajasra"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.916Z",
+      "packUrl": "packs/lobe-personal-growth-coach.json"
+    },
+    {
+      "id": "lobe-poetry",
+      "name": "Poetry Mentor",
+      "pitch": "Poetry Guide: Inspiring poetic expression and appreciation.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.916Z",
+      "packUrl": "packs/lobe-poetry.json"
+    },
+    {
+      "id": "lobe-product-description",
+      "name": "Product Description",
+      "pitch": "Craft compelling product descriptions that boost e-commerce sales",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "pllz7",
+        "url": "https://github.com/pllz7"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.917Z",
+      "packUrl": "packs/lobe-product-description.json"
+    },
+    {
+      "id": "lobe-product-reviews",
+      "name": "Product Review",
+      "pitch": "Expert in creating persuasive product testimonials highlighting the benefits and value proposition of [your product/service].",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "pllz7",
+        "url": "https://github.com/pllz7"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.918Z",
+      "packUrl": "packs/lobe-product-reviews.json"
+    },
+    {
+      "id": "lobe-prompt-architect",
+      "name": "Prompt Architect",
+      "pitch": "Specialized in rewriting your prompts to get better results",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "checkso",
+        "url": "https://github.com/checkso"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.919Z",
+      "packUrl": "packs/lobe-prompt-architect.json"
+    },
+    {
+      "id": "lobe-prompt-composition",
+      "name": "MidjourneyGPT",
+      "pitch": "Write perfect and beautiful prompts for Midjourney. (Including V6!)",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "richards199999",
+        "url": "https://github.com/richards199999"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.919Z",
+      "packUrl": "packs/lobe-prompt-composition.json"
+    },
+    {
+      "id": "lobe-prompt-gpt",
+      "name": "PromptGPT",
+      "pitch": "A customized GPT model named PromptGPT. My aim is to generate high-performance prompts based on the topics input by users.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "110rever",
+        "url": "https://github.com/110rever"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.920Z",
+      "packUrl": "packs/lobe-prompt-gpt.json"
+    },
+    {
+      "id": "lobe-prompt-master-ai",
+      "name": "Prompt Master AI",
+      "pitch": "Transforming your creative concepts into detailed, context-rich prompts that inspire stunning and realistic visuals",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "thedivergentai",
+        "url": "https://github.com/thedivergentai"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.232Z",
+      "packUrl": "packs/lobe-prompt-master-ai.json"
+    },
+    {
+      "id": "lobe-python-buddy",
+      "name": "Python Buddy",
+      "pitch": "Your Python expert friend",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Firpo7",
+        "url": "https://github.com/Firpo7"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.921Z",
+      "packUrl": "packs/lobe-python-buddy.json"
+    },
+    {
+      "id": "lobe-python-genius",
+      "name": "Python Genius",
+      "pitch": "An advanced python coder",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "novaspivack",
+        "url": "https://github.com/novaspivack"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.922Z",
+      "packUrl": "packs/lobe-python-genius.json"
+    },
+    {
+      "id": "lobe-qt-c",
+      "name": "C++/Qt",
+      "pitch": "Excels in teaching C++/Qt coding practices",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "liangyuR",
+        "url": "https://github.com/liangyuR"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.232Z",
+      "packUrl": "packs/lobe-qt-c.json"
+    },
+    {
+      "id": "lobe-rap",
+      "name": "Rap Instructor",
+      "pitch": "Rap Teacher: Educating on rap music and lyricism, guiding users to create and perform their own verses.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.232Z",
+      "packUrl": "packs/lobe-rap.json"
+    },
+    {
+      "id": "lobe-react-native",
+      "name": "React Native Coding Guide",
+      "pitch": "React Native Coding Assistant: Expert in TypeScript, Expo, and cross-platform development. Provides guidance on setup, best practices, troubleshooting, responsive design, marketing integration, QR code functionality, and app submission.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.924Z",
+      "packUrl": "packs/lobe-react-native.json"
+    },
+    {
+      "id": "lobe-reading-comprehension-exercise-generator",
+      "name": "Reading Comprehension Wizard",
+      "pitch": "Specializes in generating reading comprehension exercises",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "bentwnghk",
+        "url": "https://github.com/bentwnghk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.924Z",
+      "packUrl": "packs/lobe-reading-comprehension-exercise-generator.json"
+    },
+    {
+      "id": "lobe-rebecca-therapy-assistant",
+      "name": "Rebecca, Mental Health Counselor",
+      "pitch": "Specializing in mental health counseling and therapeutic techniques",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Kod3c",
+        "url": "https://github.com/Kod3c"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.925Z",
+      "packUrl": "packs/lobe-rebecca-therapy-assistant.json"
+    },
+    {
+      "id": "lobe-research-assistant",
+      "name": "Research Assistant",
+      "pitch": "Capable of answering questions, conducting research, drafting content, and more, utilizing scientific research papers.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ccsen",
+        "url": "https://github.com/ccsen"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.925Z",
+      "packUrl": "packs/lobe-research-assistant.json"
+    },
+    {
+      "id": "lobe-resume-analyzer",
+      "name": "Resume Analysis Expert",
+      "pitch": "Expert AI assistant for comprehensive resume analysis and job-specific optimization. Analyzes resumes against job descriptions, providing detailed feedback on content, ATS compatibility, and suggestions to enhance job match.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Pandurangmopgar",
+        "url": "https://github.com/Pandurangmopgar"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.926Z",
+      "packUrl": "packs/lobe-resume-analyzer.json"
+    },
+    {
+      "id": "lobe-resume-editing",
+      "name": "Resume Editing",
+      "pitch": "Get advice on how to edit your resume",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.926Z",
+      "packUrl": "packs/lobe-resume-editing.json"
+    },
+    {
+      "id": "lobe-runway-gen-3-prompt-generator",
+      "name": "Runway Gen-3 Prompt Generator",
+      "pitch": "Expert in generating structured Runway Gen-3 prompts for AI-generated videos.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "tcmonster",
+        "url": "https://github.com/tcmonster"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.927Z",
+      "packUrl": "packs/lobe-runway-gen-3-prompt-generator.json"
+    },
+    {
+      "id": "lobe-sage-pathfinder",
+      "name": "SagePathfinder",
+      "pitch": "Expert in personal growth coaching with a focus on stoicism, deep reflection, and strategic questioning.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Ajasra",
+        "url": "https://github.com/Ajasra"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.928Z",
+      "packUrl": "packs/lobe-sage-pathfinder.json"
+    },
+    {
+      "id": "lobe-sat-teaching",
+      "name": "SAT master",
+      "pitch": "Expert in Digital SAT coaching for 1300+ scores",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "iBz-04",
+        "url": "https://github.com/iBz-04"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.928Z",
+      "packUrl": "packs/lobe-sat-teaching.json"
+    },
+    {
+      "id": "lobe-shaman",
+      "name": "The Shaman",
+      "pitch": "Specialises in embodying the persona of \"The Shaman\" for guided interactions with a focus on wisdom, empathy, and spiritual guidance.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "SimoMay",
+        "url": "https://github.com/SimoMay"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.929Z",
+      "packUrl": "packs/lobe-shaman.json"
+    },
+    {
+      "id": "lobe-singer",
+      "name": "Songwriting Mentor",
+      "pitch": "AI Singer/Songwriter Assistant: Empowering musicians with creative guidance and feedback.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.929Z",
+      "packUrl": "packs/lobe-singer.json"
+    },
+    {
+      "id": "lobe-slang",
+      "name": "Slang Tutor",
+      "pitch": "English Slang Conversation Partner",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.930Z",
+      "packUrl": "packs/lobe-slang.json"
+    },
+    {
+      "id": "lobe-soccer",
+      "name": "Soccer-Conversant AI Companion",
+      "pitch": "Specialises in soccer discussions with real-time updates, player insights, and historical knowledge.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.930Z",
+      "packUrl": "packs/lobe-soccer.json"
+    },
+    {
+      "id": "lobe-social-media-sage",
+      "name": "Social Media Sage",
+      "pitch": "Social Media Marketing expert crafting winning strategies for brands and empowering businesses to thrive online",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "thedivergentai",
+        "url": "https://github.com/thedivergentai"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.931Z",
+      "packUrl": "packs/lobe-social-media-sage.json"
+    },
+    {
+      "id": "lobe-socratic-teacher",
+      "name": "Socratic Teacher",
+      "pitch": "Helps you learn things by leading you to answers",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Zisan-uzum",
+        "url": "https://github.com/Zisan-uzum"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.931Z",
+      "packUrl": "packs/lobe-socratic-teacher.json"
+    },
+    {
+      "id": "lobe-soft-enginner",
+      "name": "Software Architecture and Engineering Expert",
+      "pitch": "Skilled in providing programming and software guidance, with expertise in computer science and software engineering.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "fjhdream",
+        "url": "https://github.com/fjhdream"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.932Z",
+      "packUrl": "packs/lobe-soft-enginner.json"
+    },
+    {
+      "id": "lobe-software-architecture-strategist",
+      "name": "Software Architecture Strategist",
+      "pitch": "Software Development Architect: Designs scalable and secure software systems, guides development teams, and translates business requirements into technical solutions.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.932Z",
+      "packUrl": "packs/lobe-software-architecture-strategist.json"
+    },
+    {
+      "id": "lobe-software-development-for-dummies",
+      "name": "Software Development for Dummies",
+      "pitch": "Software Development for Dummies: Guides no brainers through the software development process, providing step-by-step instructions and best practices for requirements gathering, design, coding, testing, deployment, and maintenance.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Ballongknute",
+        "url": "https://github.com/Ballongknute"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.933Z",
+      "packUrl": "packs/lobe-software-development-for-dummies.json"
+    },
+    {
+      "id": "lobe-sous-chef",
+      "name": "Sous Chef",
+      "pitch": "Crafting personalised recipe suggestions with tailored grocery lists for seamless cooking experiences.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "SimoMay",
+        "url": "https://github.com/SimoMay"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.933Z",
+      "packUrl": "packs/lobe-sous-chef.json"
+    },
+    {
+      "id": "lobe-stable-diffusion",
+      "name": "Stable Diffusion Prompts Crafter",
+      "pitch": "I help create precise prompts for Stable Diffusion. You can tell me what you want to imagine, or just send me an image to describe.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ShinChven",
+        "url": "https://github.com/ShinChven"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.935Z",
+      "packUrl": "packs/lobe-stable-diffusion.json"
+    },
+    {
+      "id": "lobe-stable-diffusion-prompt",
+      "name": "Stable Diffusion Prompt Expert",
+      "pitch": "Specializes in writing Stable Diffusion prompts",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.934Z",
+      "packUrl": "packs/lobe-stable-diffusion-prompt.json"
+    },
+    {
+      "id": "lobe-startup-plan",
+      "name": "Startup Plan",
+      "pitch": "Generate a detailed and comprehensive business plan within minutes",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.935Z",
+      "packUrl": "packs/lobe-startup-plan.json"
+    },
+    {
+      "id": "lobe-summsi",
+      "name": "Summsi",
+      "pitch": "Expert in text analysis, question generation, and detailed answering.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "42lux",
+        "url": "https://github.com/42lux"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.936Z",
+      "packUrl": "packs/lobe-summsi.json"
+    },
+    {
+      "id": "lobe-suno",
+      "name": "Text Master Suno",
+      "pitch": "I am a lyrics assistant for the AI Suno.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Igroshka",
+        "url": "https://github.com/Igroshka"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.936Z",
+      "packUrl": "packs/lobe-suno.json"
+    },
+    {
+      "id": "lobe-tadz-genius",
+      "name": "TadzGenius",
+      "pitch": "Expert in business development and development practices in the Philippine market",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "infoaitek24",
+        "url": "https://github.com/infoaitek24"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.937Z",
+      "packUrl": "packs/lobe-tadz-genius.json"
+    },
+    {
+      "id": "lobe-tax-bot",
+      "name": "TaxBot",
+      "pitch": "AI Tax Consultant Chatbot: Providing general tax information and guidance worldwide.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.937Z",
+      "packUrl": "packs/lobe-tax-bot.json"
+    },
+    {
+      "id": "lobe-teacher",
+      "name": "EOI Exam Preparation Assistant",
+      "pitch": "English Teacher: Expert in Exam Preparation and Language Instruction",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.938Z",
+      "packUrl": "packs/lobe-teacher.json"
+    },
+    {
+      "id": "lobe-tech-explorer-ai",
+      "name": "Tech Explorer AI",
+      "pitch": "Technology exploration AI capability: - Conduct comprehensive technical research - Provide predictive insights based on statistical data and trend analysis - Optimize research methodology - Maintain data accuracy and completeness - Infer…",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "110rever",
+        "url": "https://github.com/110rever"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.938Z",
+      "packUrl": "packs/lobe-tech-explorer-ai.json"
+    },
+    {
+      "id": "lobe-tech-lawyer",
+      "name": "Startup Tech Lawyer",
+      "pitch": "In-house legal counsel for a tech startup, offering clear, practical legal advice to support the startup's growth and protect its interests.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "daniel-jojo",
+        "url": "https://github.com/daniel-jojo"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.939Z",
+      "packUrl": "packs/lobe-tech-lawyer.json"
+    },
+    {
+      "id": "lobe-text-improver",
+      "name": "Text Improver",
+      "pitch": "Expert in text enhancement and error",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "davletsh1n",
+        "url": "https://github.com/davletsh1n"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.939Z",
+      "packUrl": "packs/lobe-text-improver.json"
+    },
+    {
+      "id": "lobe-the-20-autoextract",
+      "name": "Auto Extraction Data",
+      "pitch": "The20 Auto Extraction Data",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "vkhoilq",
+        "url": "https://github.com/vkhoilq"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.940Z",
+      "packUrl": "packs/lobe-the-20-autoextract.json"
+    },
+    {
+      "id": "lobe-thematic-vocabulary-worksheet-generator",
+      "name": "Thematic Vocabulary Worksheet Creator",
+      "pitch": "Skilled in creating English thematic vocabulary worksheets",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "bentwnghk",
+        "url": "https://github.com/bentwnghk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.940Z",
+      "packUrl": "packs/lobe-thematic-vocabulary-worksheet-generator.json"
+    },
+    {
+      "id": "lobe-think-tank-business-strategy",
+      "name": "ThinkTank360",
+      "pitch": "Skilled consultant channeling wisdom of Steve Jobs, Elon Musk, MA Yun, Plato, and Ray Dalio for decision reviews, judgements, and advice.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "mikelix",
+        "url": "https://github.com/mikelix"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.941Z",
+      "packUrl": "packs/lobe-think-tank-business-strategy.json"
+    },
+    {
+      "id": "lobe-thinking-claude",
+      "name": "Thinking Claude",
+      "pitch": "Let Claude think comprehensively before responding!",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "AnoyiX",
+        "url": "https://github.com/AnoyiX"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.942Z",
+      "packUrl": "packs/lobe-thinking-claude.json"
+    },
+    {
+      "id": "lobe-tiktok-script-writer",
+      "name": "TikTok Script Writer",
+      "pitch": "This script is tailored for TikTok's short video format, designed to engage and entertain the specified target audience. It incorporates trending elements and best practices for content virality, ensuring the video captures attention from…",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "sdhjn19dj1m",
+        "url": "https://github.com/sdhjn19dj1m"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.234Z",
+      "packUrl": "packs/lobe-tiktok-script-writer.json"
+    },
+    {
+      "id": "lobe-title-generator",
+      "name": "Reseach title generator",
+      "pitch": "As a title generator for a research paper, your role is to assist users in brainstorming and generating creative and engaging titles that accurately reflect the content and focus of their research work.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "aaddobea",
+        "url": "https://github.com/aaddobea"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.234Z",
+      "packUrl": "packs/lobe-title-generator.json"
+    },
+    {
+      "id": "lobe-toefl-writing-tutor",
+      "name": "TOEFL Writing Tutor",
+      "pitch": "Your TOEFL Writing assistant and evaluator, specializing in feedback and guidance.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "richards199999",
+        "url": "https://github.com/richards199999"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.944Z",
+      "packUrl": "packs/lobe-toefl-writing-tutor.json"
+    },
+    {
+      "id": "lobe-translation-specialist",
+      "name": "Translation Specialist",
+      "pitch": "Expert translator fluent in Spanish and English",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.944Z",
+      "packUrl": "packs/lobe-translation-specialist.json"
+    },
+    {
+      "id": "lobe-travel-assistant",
+      "name": "Travel Assistant",
+      "pitch": "An experienced outdoor hiking and adventure expert who creates travel plans based on user requirements.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "ccdanpian",
+        "url": "https://github.com/ccdanpian"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.945Z",
+      "packUrl": "packs/lobe-travel-assistant.json"
+    },
+    {
+      "id": "lobe-turkish-english-translator",
+      "name": "Turkish/English Translator",
+      "pitch": "Translates text into Turkish or English, as needed",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Zisan-uzum",
+        "url": "https://github.com/Zisan-uzum"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.945Z",
+      "packUrl": "packs/lobe-turkish-english-translator.json"
+    },
+    {
+      "id": "lobe-turkish-language-tutor",
+      "name": "Turkish Language Tutor",
+      "pitch": "AI Turkish Language Mentor: Introduce, teach, and support beginners in learning Turkish.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.945Z",
+      "packUrl": "packs/lobe-turkish-language-tutor.json"
+    },
+    {
+      "id": "lobe-typescript-developer",
+      "name": "TypeScript Solution Architect",
+      "pitch": "Expert in TypeScript, Node.js, Vue.js 3, Nuxt.js 3, Express.js, React.js, and modern UI libraries.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "swarfte",
+        "url": "https://github.com/swarfte"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.946Z",
+      "packUrl": "packs/lobe-typescript-developer.json"
+    },
+    {
+      "id": "lobe-ultra-flux-prompter",
+      "name": "Ultra Flux Prompter",
+      "pitch": "Skilled in enhancing image generation prompts with vivid details and context.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "davletsh1n",
+        "url": "https://github.com/davletsh1n"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.947Z",
+      "packUrl": "packs/lobe-ultra-flux-prompter.json"
+    },
+    {
+      "id": "lobe-unity-maestro",
+      "name": "Unity Maestro",
+      "pitch": "Expert Unity Game Development Companion",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "thedivergentai",
+        "url": "https://github.com/thedivergentai"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.947Z",
+      "packUrl": "packs/lobe-unity-maestro.json"
+    },
+    {
+      "id": "lobe-unreal-engine-master",
+      "name": "Unreal Engine Master",
+      "pitch": "Unreal Game Development Companion",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "thedivergentai",
+        "url": "https://github.com/thedivergentai"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.948Z",
+      "packUrl": "packs/lobe-unreal-engine-master.json"
+    },
+    {
+      "id": "lobe-video-gen",
+      "name": "task_id",
+      "pitch": "POST https://api.minimaxi.chat/v1/video_generation",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Born2BeKind",
+        "url": "https://github.com/Born2BeKind"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.948Z",
+      "packUrl": "packs/lobe-video-gen.json"
+    },
+    {
+      "id": "lobe-vim-assistant",
+      "name": "Vim Mastery Mentor",
+      "pitch": "Skilled Vim expert providing clear, concise solutions and tips for users at all levels.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "hrithikt",
+        "url": "https://github.com/hrithikt"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.949Z",
+      "packUrl": "packs/lobe-vim-assistant.json"
+    },
+    {
+      "id": "lobe-vocabulary-worksheet-wizard",
+      "name": "Vocabulary Worksheet Wizard",
+      "pitch": "Specializes in generating English vocabulary worksheets",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "bentwnghk",
+        "url": "https://github.com/bentwnghk"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.949Z",
+      "packUrl": "packs/lobe-vocabulary-worksheet-wizard.json"
+    },
+    {
+      "id": "lobe-web-development",
+      "name": "Web Development",
+      "pitch": "Generate a website react code within minute",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "canisminor1990",
+        "url": "https://github.com/canisminor1990"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.235Z",
+      "packUrl": "packs/lobe-web-development.json"
+    },
+    {
+      "id": "lobe-web-expert",
+      "name": "Web Expert",
+      "pitch": "Expert in web development with a focus on tool selection, incremental changes, code review, security, and operational considerations.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "gfreezy",
+        "url": "https://github.com/gfreezy"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.950Z",
+      "packUrl": "packs/lobe-web-expert.json"
+    },
+    {
+      "id": "lobe-wise-mentor",
+      "name": "Wise Mentor",
+      "pitch": "An absolutely objective sage, focused on facts, indifferent to users, yet sincerely loving towards them.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "farsightlin",
+        "url": "https://github.com/farsightlin"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.951Z",
+      "packUrl": "packs/lobe-wise-mentor.json"
+    },
+    {
+      "id": "lobe-word",
+      "name": "Presentation Wizard",
+      "pitch": "App Presentation Maker Bot for Word: Assists in creating impressive and professional app presentations in Microsoft Word.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "MYSeaIT",
+        "url": "https://github.com/MYSeaIT"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.951Z",
+      "packUrl": "packs/lobe-word.json"
+    },
+    {
+      "id": "lobe-writing-assistant",
+      "name": "Writing Assistant",
+      "pitch": "Helps improve the quality of a text",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "Zisan-uzum",
+        "url": "https://github.com/Zisan-uzum"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.952Z",
+      "packUrl": "packs/lobe-writing-assistant.json"
+    },
+    {
+      "id": "lobe-xhs-evl-cl",
+      "name": "Xiaohongshu Review Assistant",
+      "pitch": "Optimize Your Xiaohongshu Copywriting, Get Closer to a Hit, Become a Hit!",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "shaoqing404",
+        "url": "https://github.com/shaoqing404"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:43.235Z",
+      "packUrl": "packs/lobe-xhs-evl-cl.json"
+    },
+    {
+      "id": "lobe-youtube-summarizer-pro",
+      "name": "YouTube Summarizer Pro",
+      "pitch": "Skilled YouTube summarizer and analyst.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "shinishiho",
+        "url": "https://github.com/shinishiho"
+      },
+      "needs": {
+        "tools": [],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:42.953Z",
+      "packUrl": "packs/lobe-youtube-summarizer-pro.json"
+    },
+    {
+      "id": "medication-reminder",
+      "name": "Medication Reminder",
+      "pitch": "Sets daily reminders for medication times and keeps a simple log of doses taken.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["routine_create", "task_create", "memory_remember", "task_update"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.450Z",
+      "packUrl": "packs/medication-reminder.json"
+    },
+    {
+      "id": "meeting-action-writer",
+      "name": "Meeting Action Writer",
+      "pitch": "Turns meeting notes into a clear list of actions with owners, ready to share or add as tasks.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "make_page", "task_create"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.450Z",
+      "packUrl": "packs/meeting-action-writer.json"
+    },
+    {
+      "id": "midnight-airport-transfer",
+      "name": "Midnight airport transfer",
+      "pitch": "Finds the cheapest way to get from the airport to the city centre after midnight.",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:54:13.656Z",
+      "packUrl": "packs/midnight-airport-transfer.json"
+    },
+    {
+      "id": "monthly-budget-builder",
+      "name": "Monthly Budget Builder",
+      "pitch": "Creates a monthly budget from your income and debts, showing what you can spend and save.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["show_table", "make_page", "memory_remember"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.450Z",
+      "packUrl": "packs/monthly-budget-builder.json"
+    },
+    {
+      "id": "morning-watchlist-brief",
+      "name": "Morning Watchlist Brief",
+      "pitch": "Searches your watchlist companies each morning and writes a concise news summary page.",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "routine_create", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.451Z",
+      "packUrl": "packs/morning-watchlist-brief.json"
+    },
+    {
+      "id": "one-to-one-prep",
+      "name": "One-to-one prep",
+      "pitch": "Gathers your updates, blockers and questions into a short brief you can take into a one-to-one with your manager.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "memory_remember", "file_read", "file_list", "calendar_list", "mail_list"],
+        "connectors": ["calendar", "mail"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.451Z",
+      "packUrl": "packs/one-to-one-prep.json"
+    },
+    {
+      "id": "openbot-expense-review",
+      "name": "Expense Review",
+      "pitch": "Reads one claim against the policy as written, and hands the decision to a person.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["file_list", "file_read", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.195Z",
+      "packUrl": "packs/openbot-expense-review.json"
+    },
+    {
+      "id": "openbot-feedback-digest",
+      "name": "Feedback Digest",
+      "pitch": "Groups what customers said into themes, and keeps every theme attached to its quotes.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["file_list", "file_read", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.196Z",
+      "packUrl": "packs/openbot-feedback-digest.json"
+    },
+    {
+      "id": "openbot-interview-notes",
+      "name": "Interview Notes",
+      "pitch": "Writes up one interview, keeping question, answer and observation apart.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.197Z",
+      "packUrl": "packs/openbot-interview-notes.json"
+    },
+    {
+      "id": "openbot-meeting-follow-ups",
+      "name": "Meeting Follow-ups",
+      "pitch": "Turns one set of notes into the follow-ups actually in them, and leaves the unowned ones unowned.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["file_read", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.198Z",
+      "packUrl": "packs/openbot-meeting-follow-ups.json"
+    },
+    {
+      "id": "openbot-onboarding-buddy",
+      "name": "Onboarding Buddy",
+      "pitch": "Answers a new starter from the written handbook, and hands over what it does not cover.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["file_list", "file_read", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.199Z",
+      "packUrl": "packs/openbot-onboarding-buddy.json"
+    },
+    {
+      "id": "openbot-oncall-handover",
+      "name": "On-call Handover",
+      "pitch": "Writes the handover one shift leaves the next, from the record and nothing else.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["file_list", "file_read", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.200Z",
+      "packUrl": "packs/openbot-oncall-handover.json"
+    },
+    {
+      "id": "openbot-release-notes",
+      "name": "Release Notes",
+      "pitch": "Drafts notes from what shipped, and brackets what it was not given.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["file_list", "file_read", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.201Z",
+      "packUrl": "packs/openbot-release-notes.json"
+    },
+    {
+      "id": "openbot-research-desk",
+      "name": "Research Desk",
+      "pitch": "Reads around a question and writes a brief, naming what it could not find.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["file_list", "file_read", "web_search", "web_fetch", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.202Z",
+      "packUrl": "packs/openbot-research-desk.json"
+    },
+    {
+      "id": "openbot-ticket-triage",
+      "name": "Ticket Triage",
+      "pitch": "Decides what one ticket is asking, how urgent it is, and who should have it. Sends nothing.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["file_list", "file_read", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.203Z",
+      "packUrl": "packs/openbot-ticket-triage.json"
+    },
+    {
+      "id": "openbot-vendor-review",
+      "name": "Vendor Review",
+      "pitch": "Assembles what is known before a renewal decision, and decides nothing.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "CopilotKit OpenBot",
+        "url": "https://github.com/CopilotKit/openbot"
+      },
+      "needs": {
+        "tools": ["file_list", "file_read", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:43:01.204Z",
+      "packUrl": "packs/openbot-vendor-review.json"
+    },
+    {
+      "id": "parcel-scam-check",
+      "name": "Parcel scam check",
+      "pitch": "Checks if a parcel delivery text is a scam by looking for known patterns and official advice.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.452Z",
+      "packUrl": "packs/parcel-scam-check.json"
+    },
+    {
+      "id": "photo-caption-writer",
+      "name": "Photo Caption Writer",
+      "pitch": "Writes natural captions for your photos in your personal voice, not a salesy one.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "memory_remember", "file_write"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.452Z",
+      "packUrl": "packs/photo-caption-writer.json"
+    },
+    {
+      "id": "podcast-season-planner",
+      "name": "Podcast Season Planner",
+      "pitch": "Plan a ten-episode podcast season with structured outlines and relevant guest suggestions.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.452Z",
+      "packUrl": "packs/podcast-season-planner.json"
+    },
+    {
+      "id": "pr-bug-reviewer",
+      "name": "PR Bug Reviewer",
+      "pitch": "Reviews pull request diffs and identifies potential bugs, logic errors, and security issues without commenting on style or formatting.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "shell_run", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.452Z",
+      "packUrl": "packs/pr-bug-reviewer.json"
+    },
+    {
+      "id": "pre-call-company-brief",
+      "name": "Pre-call company brief",
+      "pitch": "Researches a company and builds a one-page brief for a sales call.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.452Z",
+      "packUrl": "packs/pre-call-company-brief.json"
+    },
+    {
+      "id": "pub-quiz-maker",
+      "name": "Pub Quiz Maker",
+      "pitch": "Creates a complete six-round pub quiz with questions, answers, and a printable answer sheet.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "make_page", "show_table"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.452Z",
+      "packUrl": "packs/pub-quiz-maker.json"
+    },
+    {
+      "id": "quiet-prospect-follow-up",
+      "name": "Quiet Prospect Follow-up",
+      "pitch": "Drafts a polite follow-up email to a prospect who stopped replying two weeks ago, using the last thread for context.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["mail_list", "mail_read", "mail_send"],
+        "connectors": ["mail"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T09:54:32.102Z",
+      "packUrl": "packs/quiet-prospect-follow-up.json"
+    },
+    {
+      "id": "rental-scam-check",
+      "name": "Rental scam check",
+      "pitch": "Checks a rental listing for common scam signs before you pay a holding deposit.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "browser_navigate", "browser_snapshot"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.453Z",
+      "packUrl": "packs/rental-scam-check.json"
+    },
+    {
+      "id": "research-synthesiser",
+      "name": "Research Synthesiser",
+      "pitch": "Finds studies on a question, summarises each one, and maps where they agree and disagree so you can judge the evidence yourself.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.453Z",
+      "packUrl": "packs/research-synthesiser.json"
+    },
+    {
+      "id": "shopping-list-maker",
+      "name": "Shopping list maker",
+      "pitch": "Takes your recipes and writes a combined shopping list grouped by supermarket aisle.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_fetch", "make_page", "show_table"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.453Z",
+      "packUrl": "packs/shopping-list-maker.json"
+    },
+    {
+      "id": "skill-maker",
+      "name": "Skill maker",
+      "pitch": "Turns repeated requests into reusable slash-callable skills with memory and documentation.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["memory_remember", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.453Z",
+      "packUrl": "packs/skill-maker.json"
+    },
+    {
+      "id": "sleep-coach",
+      "name": "Sleep Coach",
+      "pitch": "Helps you sleep better by reviewing your evening habits and giving simple, personalised suggestions.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["memory_remember", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.453Z",
+      "packUrl": "packs/sleep-coach.json"
+    },
+    {
+      "id": "stack-trace-explainer",
+      "name": "Stack Trace Explainer",
+      "pitch": "Reads a stack trace from a file or text, explains it in plain language, and lists the three most likely root causes with next steps.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "web_search"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.454Z",
+      "packUrl": "packs/stack-trace-explainer.json"
+    },
+    {
+      "id": "subscription-scout",
+      "name": "Subscription Scout",
+      "pitch": "Finds recurring charges in your email so you can cancel the ones you no longer use.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["mail_list", "mail_read", "show_table"],
+        "connectors": ["mail"],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.454Z",
+      "packUrl": "packs/subscription-scout.json"
+    },
+    {
+      "id": "team-morning-brief",
+      "name": "Team Morning Brief",
+      "pitch": "Every morning, fetch your team's latest result and next fixture so you start the day informed.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "routine_create"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.454Z",
+      "packUrl": "packs/team-morning-brief.json"
+    },
+    {
+      "id": "tenancy-agreement-review",
+      "name": "Tenancy Agreement Review",
+      "pitch": "Reads a tenancy agreement file and highlights key terms, risks, and things to watch out for before you sign.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.454Z",
+      "packUrl": "packs/tenancy-agreement-review.json"
+    },
+    {
+      "id": "test-fixer",
+      "name": "Test fixer",
+      "pitch": "Writes a failing test for a described bug, then makes it pass.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "file_write", "shell_run"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.454Z",
+      "packUrl": "packs/test-fixer.json"
+    },
+    {
+      "id": "transcript-chapterizer",
+      "name": "Transcript chapterizer",
+      "pitch": "Turns a transcript file into timestamped chapters with summaries.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["file_read", "make_page", "show_table"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.454Z",
+      "packUrl": "packs/transcript-chapterizer.json"
+    },
+    {
+      "id": "twenty-minute-teacher",
+      "name": "Twenty-Minute Teacher",
+      "pitch": "Breaks any topic into daily twenty-minute lessons over two weeks and builds a study page for each session.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["make_page", "routine_create", "memory_remember", "web_search", "web_fetch"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.455Z",
+      "packUrl": "packs/twenty-minute-teacher.json"
+    },
+    {
+      "id": "wedding-toast-writer",
+      "name": "Wedding toast writer",
+      "pitch": "Helps you write a personal wedding toast for your sister in your own voice.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["memory_remember", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.454Z",
+      "packUrl": "packs/wedding-toast-writer.json"
+    },
+    {
+      "id": "weekly-dinner-planner",
+      "name": "Weekly Dinner Planner",
+      "pitch": "Plans seven dinners for four people, each ready in under 30 minutes, with a shopping list and prep schedule.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": ["web_search", "web_fetch", "make_page", "show_table"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T10:04:20.455Z",
+      "packUrl": "packs/weekly-dinner-planner.json"
+    }
+  ]
+}

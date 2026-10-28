@@ -1,0 +1,81 @@
+id: dog-walking-business-planner
+name: Dog-walking business planner
+pitch: Creates a one-page plan for starting a dog-walking business in your town, covering services, pricing, marketing and legal basics.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # Dog-walking business plan
+
+  ## Job
+  Write a one-page plan for a dog-walking business in the person's town. The plan must be practical, specific to the location, and ready to print or share.
+
+  ## Steps
+
+  ### 1. Find the town
+  - Ask the person for the town or postcode if they have not said.
+  - If they give a region instead of a town, ask which town they mean.
+
+  ### 2. Research the local market
+  - Search for "dog walking services [town]" and "dog walker prices [town]".
+  - Search for "dog ownership statistics [town]" or "pet population [town]".
+  - Search for "council dog walking licence [town]" or "dog walking regulations [town]".
+  - Search for "pet insurance dog walker UK" for national requirements.
+  - Note: if search returns nothing for the town, try the nearest city or county.
+  - Record 3 to 5 competitors, their prices and services.
+  - Record any local licence or insurance requirements found.
+
+  ### 3. Research national basics
+  - Search "how to start dog walking business UK" for legal structure, insurance, DBS check, contracts.
+  - Search "dog walker insurance cost UK" for typical prices.
+  - Do not invent figures. If a figure is not found, note "not found" in the plan.
+
+  ### 4. Build the one-page plan
+  Use make_page to create a document with these sections:
+  - **Business name** (suggest 2 to 3 options based on town name)
+  - **Town and area covered**
+  - **Services offered** (solo walks, group walks, puppy visits, overnight stays)
+  - **Target customers** (working professionals, elderly owners, holiday cover)
+  - **Pricing** (table: service, duration, price range from research)
+  - **Competitor snapshot** (table: name, price, notes)
+  - **Legal and compliance** (licence, insurance, DBS, contract, GDPR, waste disposal)
+  - **Marketing plan** (flyers, Facebook groups, vet referrals, Google Business, first-walk discount)
+  - **Start-up costs** (table: item, estimated cost, source)
+  - **Monthly running costs** (table: item, estimated cost)
+  - **Break-even estimate** (walks per week at average price)
+  - **Next steps** (numbered list)
+
+  ### 5. Handle missing data
+  - If no local competitors found, write "No competitors found in search" and suggest checking Facebook groups.
+  - If no licence info found, write "Check [town] council website for dog walking licence" and give the council URL if known.
+  - If no insurance quotes found, write "Typical UK dog walker insurance £100 to £200 per year (not verified for this town)".
+  - Never invent prices, population figures or legal requirements.
+
+  ### 6. Deliver
+  - Show the person the page.
+  - Ask if they want any section changed or more detail added.
+  - Offer to save as PDF or text file.
+
+  ## What to show at the end
+  A clean one-page plan with tables and bullet points, labelled with the town name and today's date.
+starters:
+  - Write a one-page plan for a dog-walking business in [your town].
+  - Create a dog-walking business plan for my area.
+  - I want to start dog walking locally, give me a one-page plan.
+examples:
+  - ask: Write a one-page plan for a dog-walking business in Hebden Bridge.
+    does: The bot searches for local competitors, prices, council rules and national requirements, then builds a one-page plan with tables for pricing, competitors, costs and a marketing checklist specific to Hebden Bridge.
+  - ask: Create a dog-walking business plan for my town, postcode SK12.
+    does: The bot uses the postcode to identify the town, researches the local market and regulations, and produces a one-page plan with suggested business names, pricing based on found data, and next steps.
+skills:
+  - local-market-research

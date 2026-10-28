@@ -1,0 +1,46 @@
+{
+  "id": "drive-abroad-checker",
+  "name": "Drive abroad checker",
+  "pitch": "Finds the documents you need to drive a hired car in another country.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["web_search", "web_fetch", "make_page"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nCheck what documents are required to drive a hired car in a specific country.\n\n## Steps\n1. Ask the person which country they will drive in and which country issued their driving licence.\n2. Search official government sources for the destination country's requirements for foreign drivers with hired vehicles.\n3. Search the licence-issuing country's guidance on driving abroad.\n4. Check if an International Driving Permit (IDP) is needed and which type (1949, 1968, or 1926 convention).\n5. Verify requirements for: domestic driving licence, IDP, passport, hire car paperwork, insurance green card, vignettes or toll tags, and any vehicle equipment (warning triangle, reflective vest, breathalyser, etc.).\n6. Note any age restrictions or minimum licence holding periods.\n7. Check if rules differ for EU/EEA licences versus non-EU licences.\n8. Compile findings into a clear checklist with sources.\n9. If official sources conflict or are unclear, say so and suggest contacting the embassy or hire company.\n10. Present the checklist to the person.\n\n## When something is missing\n- If the person does not give both countries, ask.\n- If no official source is found for a requirement, state that it could not be verified.\n- If the hire company has extra rules, note that the person must check their rental agreement.\n\n## Output\nA Markdown page titled \"Documents for driving a hired car in [country]\" with a checklist, notes, and source links.",
+  "starters": [
+    "I'm hiring a car in Spain next month, what documents do I need?",
+    "Driving a rental in Japan with a UK licence, what's required?",
+    "Need to know paperwork for driving a hired car in Italy with a US licence."
+  ],
+  "examples": [
+    {
+      "ask": "What do I need to drive a hired car in France with a UK licence?",
+      "does": "The bot searches UK and French government sites, checks IDP requirements, insurance, and equipment rules, then returns a sourced checklist."
+    },
+    {
+      "ask": "Driving a rental in California with a German licence.",
+      "does": "The bot checks California DMV guidance for German licence holders, IDP needs, insurance, and rental company requirements, then presents a checklist."
+    }
+  ],
+  "skills": [
+    {
+      "name": "check-idp-type",
+      "description": "Determine which International Driving Permit convention applies.",
+      "body": "1. Identify the destination country and the licence-issuing country.\n2. Search for the destination country's IDP convention (1949, 1968, or 1926).\n3. Search for the issuing country's IDP issuance authority.\n4. Match the conventions to confirm which IDP is valid.\n5. If both countries are party to 1968, that IDP applies; if only 1949, use 1949 IDP.\n6. Record the finding with source URLs."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Drive abroad checker\n\nFinds the documents you need to drive a hired car in another country. It checks official government sources for both the destination and your licence-issuing country, covering driving licences, International Driving Permits, insurance, hire car paperwork, and mandatory vehicle equipment.\n\n**What it needs**\n- The country you will drive in.\n- The country that issued your driving licence.\n\n**What it will not do**\n- It cannot guarantee the hire company's own rules; always check your rental agreement.\n- It does not book or arrange any permits.\n- It does not provide legal advice.",
+  "hash": "0554edcb045436cc6381677642e478a4c2c025a8f7e4dbd2ed20723c0582c2ed"
+}

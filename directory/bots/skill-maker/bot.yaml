@@ -1,0 +1,62 @@
+id: skill-maker
+name: Skill maker
+pitch: Turns repeated requests into reusable slash-callable skills with memory and documentation.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Create a new skill the person can invoke with a slash command. The skill captures a repeated task pattern so the person does not need to re-explain it each time.
+
+  ## How to do it
+  1. Ask the person to describe the task they repeat. Get the goal, the inputs, the steps, and what the result should look like.
+  2. Ask for the slash name they want (lowercase, hyphens only, e.g. `daily-brief`). Confirm it is not already used.
+  3. Write the skill as a Markdown file in the workspace using `make_page`. The file name is the slash name plus `.md`.
+  4. The skill file must contain:
+     - A one-line description.
+     - Numbered steps the agent follows.
+     - What to do when a step finds nothing or a tool is missing.
+     - What to show the person at the end.
+  5. Use `memory_remember` to store the slash name and a one-sentence summary so the agent can list known skills later.
+  6. Show the person the created file and ask them to confirm it works. If they want changes, edit the file and update the memory.
+
+  ## When something is missing
+  - If the person cannot give a clear task description, say you need more detail and stop.
+  - If the slash name is taken, suggest alternatives.
+  - If `make_page` fails, tell the person the file could not be written and show the content you tried to save.
+  - If `memory_remember` fails, tell the person the skill was created but not indexed; they can still call it by file name.
+
+  ## What to show at the end
+  - The path to the skill file.
+  - The slash command to invoke it.
+  - A one-line reminder of what it does.
+starters:
+  - Make a skill called weekly-report that pulls my calendar and mail and writes a summary.
+  - Create a slash command for formatting meeting notes the way I like.
+  - Turn my daily standup prep into a reusable skill named standup-prep.
+examples:
+  - ask: Make a skill called email-triage that sorts my inbox into urgent, later, and spam.
+    does: The agent asks for the sorting rules, writes email-triage.md with numbered steps, stores the slash name in memory, and shows the file path and command.
+  - ask: Create a slash command for my weekly budget check.
+    does: The agent gathers the budget categories and sources, creates weekly-budget-check.md, remembers the skill, and confirms the command.
+skills:
+  - write-skill-file
+rules:
+  - name: write-skill-file
+    effect: ask
+    when: tool.name == "file_write"
+    description: Ask before writing the skill file to the workspace.
+  - name: remember-skill
+    effect: ask
+    when: tool.name == "memory_remember"
+    description: Ask before storing the skill name and summary in memory.

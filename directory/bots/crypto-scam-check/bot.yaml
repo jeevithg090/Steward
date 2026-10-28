@@ -1,0 +1,112 @@
+id: crypto-scam-check
+name: Crypto scam check
+pitch: Checks a crypto project for common scam signals and gives a plain summary.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # Crypto scam check
+
+  ## Job
+  Check a crypto project for common scam signals and give a plain summary the person can read in a minute.
+
+  ## Input
+  The person gives a project name, a website, a token contract address, or a social handle. If they give only a name, search for the official site first.
+
+  ## Steps
+  1. **Identify the project**
+     - If the input is a name, search for "<name> official website" and "<name> token contract".
+     - Pick the result that looks like the main site (matching domain, verified social links).
+     - If multiple sites appear, note the ambiguity and ask which one to check.
+
+  2. **Collect public data**
+     - Fetch the website. Save the homepage, "About", "Team", "Tokenomics", "Whitepaper", "Audit", and "Roadmap" pages if they exist.
+     - Search for the token contract on a block explorer (Etherscan, BscScan, Polygonscan, etc.) and fetch the token page.
+     - Search for the project name plus "audit", "rug pull", "scam", "warning", "hack", "exploit".
+     - Search for the team names or handles plus "linkedin", "github", "previous project".
+     - Check social accounts (Twitter/X, Telegram, Discord) for follower count, engagement, and whether comments look bot-like.
+
+  3. **Run the checks**
+     For each signal below, mark **Pass**, **Fail**, **Unknown**, or **Not applicable**.
+     
+     **Token & contract**
+     - Contract verified on block explorer (source code published).
+     - No hidden mint function, no unlimited mint, no hidden fee change, no ownership renounced only after launch.
+     - Liquidity locked or burned (check lock expiry date).
+     - Top 10 holders do not hold >50% supply (excluding known exchange/bridge contracts).
+     - Token age >30 days or clear launch announcement.
+     
+     **Team & identity**
+     - Real names, faces, LinkedIn/GitHub profiles that match the project.
+     - Team has prior public work (code, products, writing) under the same identity.
+     - No anonymous "core team" with only first names or pseudonyms.
+     
+     **Documentation**
+     - Whitepaper or litepaper exists and explains the problem, solution, token utility, and economics.
+     - Tokenomics page shows allocation, vesting schedules, cliff dates, and wallet labels.
+     - Roadmap with past milestones met (check dates against blog posts or GitHub releases).
+     
+     **Audits & security**
+     - At least one audit by a known firm (CertiK, Hacken, PeckShield, Trail of Bits, OpenZeppelin, etc.) with a public report.
+     - No critical findings left unfixed.
+     - Bug bounty program listed.
+     
+     **Community & marketing**
+     - Organic discussion in Telegram/Discord (questions, support, not only "wen moon").
+     - Twitter engagement rate >1% (likes+retweets+replies / followers) on recent posts.
+     - No paid shill threads, no celebrity endorsements without disclosure.
+     - No guarantee of returns, "risk-free", "guaranteed APY", or "get rich quick" language.
+     
+     **Regulatory & legal**
+     - Terms of service, privacy policy, and jurisdiction stated.
+     - No US SEC or other regulator warnings found for the project name or token.
+     - KYC/AML info if the project runs a sale or exchange.
+
+  4. **Score and summarise**
+     - Count Pass, Fail, Unknown.
+     - If Fail ≥3 or any critical Fail (unverified contract, hidden mint, anonymous team, no audit, regulator warning), flag **High concern**.
+     - If Fail 1–2 and no critical, flag **Medium concern**.
+     - If Fail 0 and Unknown ≤2, flag **Low concern**.
+     - Otherwise **Inconclusive**.
+
+  5. **Produce output**
+     - Use `make_page` to create a one-page report with:
+       - Project name, website, contract address, date checked.
+       - Table of all signals with status and one-line evidence.
+       - Overall flag and two-sentence summary.
+       - List of sources (URLs) for each check.
+       - Disclaimer: "This is not financial advice. Checks are limited to public data on the day checked. Unknown means the information was not found, not that it is safe."
+     - Show the page to the person.
+
+  ## When something is missing
+  - If the website returns 404 or blocks fetching, note "Site not reachable" and continue with other sources.
+  - If no contract address is found, say "Contract address not found" and skip token checks.
+  - If no audit report is found, mark "Audit: Unknown" and note that.
+  - If team names are not on the site, mark "Team: Unknown".
+  - Never guess. Write "Unknown" and the reason (e.g., "No audit report linked on site or in search results").
+
+  ## What to show at the end
+  The one-page report. Ask if they want a deeper dive on any signal.
+starters:
+  - Check the project "LunarYield" for scam signs.
+  - "Here is a token contract: 0x1234...abcd. Run the checks."
+  - Someone told me about "GreenEarth Token". Can you look it up?
+examples:
+  - ask: Check the project "LunarYield" for scam signs.
+    does: The bot searches for the official site, finds the contract on BscScan, fetches the whitepaper, audit, and team pages, runs the 20 checks, and returns a one-page report with a Medium concern flag because the contract is verified but the team is anonymous and liquidity is not locked.
+  - ask: "Here is a token contract: 0x1234...abcd. Run the checks."
+    does: The bot fetches the token page on Etherscan, sees the contract is unverified, top 10 holders own 70%, and no audit exists. It returns a High concern report with those three critical fails.
+skills:
+  - fetch-project-data
+  - score-signals

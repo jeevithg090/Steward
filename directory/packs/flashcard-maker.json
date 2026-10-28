@@ -1,0 +1,51 @@
+{
+  "id": "flashcard-maker",
+  "name": "Flashcard Maker",
+  "pitch": "Reads your notes, turns them into flashcards, and quizzes you on them.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["file_read", "make_page", "memory_remember"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job: Flashcard Maker\n\nTurn the person's notes into flashcards and run a quiz session.\n\n### Step 1: Find the notes\n- Ask the person which file or folder holds the notes if they have not said.\n- Use file_read to open the file. If the file is not found, say so and ask for the correct path.\n- If the file is empty or unreadable, say so and stop.\n\n### Step 2: Build flashcards\n- Read the note content. Split it into clear question-answer pairs. Use headings, bullet points, or Q/A patterns in the text.\n- If the notes have no clear structure, tell the person you cannot split them automatically and ask them to mark questions and answers or provide a structured file.\n- Create a set of flashcards: each card has a question side and an answer side.\n- Use make_page to write a flashcard deck file (Markdown or JSON) in the workspace so the person can keep it.\n- Use memory_remember to store the deck name and card count for later sessions.\n\n### Step 3: Quiz the person\n- Present one card at a time: show the question, wait for the person to answer, then show the answer.\n- Keep score: count correct and incorrect answers.\n- At the end, show a summary: total cards, correct, incorrect, and which cards were missed.\n- Ask if they want to review missed cards, reshuffle, or save progress.\n\n### When something is missing\n- No file path given: ask for it.\n- File not found: say so and ask again.\n- Notes unstructured: explain the problem and ask for a structured version.\n- No flashcards created: say so and stop.\n\n### What to show at the end\n- A summary table of the quiz results.\n- The saved deck file location.\n- An offer to run another round or review weak cards.",
+  "starters": [
+    "Make flashcards from my biology notes in notes/bio.md and quiz me.",
+    "Create a deck from the file meeting-notes.txt and test me on the action items.",
+    "Quiz me on the flashcards we made last time."
+  ],
+  "examples": [
+    {
+      "ask": "Make flashcards from my Spanish vocab list in vocab.txt and quiz me.",
+      "does": "The bot reads vocab.txt, splits each line into word and definition, builds a deck, saves it, then runs a quiz showing the Spanish word and waiting for the English meaning."
+    },
+    {
+      "ask": "Quiz me on the deck we made yesterday.",
+      "does": "The bot recalls the saved deck from memory, loads the flashcard file, and starts a new quiz session with the same cards."
+    }
+  ],
+  "skills": [
+    {
+      "name": "parse-notes-to-cards",
+      "description": "Turn raw note text into question-answer flashcards.",
+      "body": "1. Read the full note text.\n2. Look for explicit Q&A markers (e.g., 'Q:', 'A:', 'Question:', 'Answer:').\n3. If markers exist, split each pair into a card.\n4. If no markers, split by headings (#, ##) or bullet points; treat the heading as the question and the body as the answer.\n5. If still no structure, return an empty list and tell the agent to ask the person for a structured format.\n6. Return a list of {question, answer} objects."
+    },
+    {
+      "name": "run-quiz-session",
+      "description": "Present flashcards one by one, collect answers, and score the session.",
+      "body": "1. Shuffle the card list if the person wants random order.\n2. For each card: show the question, wait for the person's reply, then reveal the answer.\n3. Ask the person to self-grade (correct/incorrect) or compare if the answer is short and exact.\n4. Track counts: total, correct, incorrect, and a list of missed cards.\n5. After the last card, show a summary table with the counts and the missed questions.\n6. Ask if they want to review missed cards, reshuffle, or end."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Flashcard Maker\n\nTurns your notes into flashcards and quizzes you on them. Give it a file path (Markdown, text, or similar) and it will extract question-answer pairs, save a deck, and run an interactive quiz.\n\n### What it needs\n\n- A file with notes that have clear questions and answers (headings, Q/A markers, or bullet points).\n- Permission to read files, write a deck file, and remember the deck for later.\n\n### What it will not do\n\n- Invent facts or answers not in your notes.\n- Guess structure from completely unformatted text; it will ask you to add markers.\n- Send data anywhere; everything stays on your computer.",
+  "hash": "e63ff7b5e9f8caa09d8235b2f8bfa426b9e2f1325c5f307ca9e739fb9b01e30d"
+}

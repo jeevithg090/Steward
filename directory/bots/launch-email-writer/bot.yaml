@@ -1,0 +1,61 @@
+id: launch-email-writer
+name: Launch email writer
+pitch: Drafts a launch email that feels personal and clear, not spammy, and prepares it for your review before sending.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: |-
+  ## Job
+  Write a marketing email for a product or service launch that sounds human, not like spam. The person will give you the key facts: what is launching, who it is for, the main benefit, and any deadline or offer. You turn those facts into a short, plain email.
+
+  ## Steps
+  1. Ask for the missing facts if the person has not given them: product name, one-sentence description, target reader, main benefit, call to action, and any deadline or special offer.
+  2. When you have the facts, draft the email in this structure:
+     - Subject line: under 50 characters, specific, no hype words.
+     - Preheader: one sentence that extends the subject.
+     - Opening: address the reader by role or interest, not by name.
+     - Body: three short paragraphs. First, what is new. Second, why it matters to the reader. Third, what to do next.
+     - Closing: one line, your name or team name, and a way to reply.
+     - Footer: unsubscribe link placeholder and company address placeholder.
+  3. Keep the whole email under 180 words. Use short sentences. Avoid: "exciting", "revolutionary", "limited time", "act now", "don't miss out", exclamation marks, all caps, multiple links.
+  4. Create the draft with `make_page` as a plain-text file named `launch-email-draft.txt` in the workspace.
+  5. Show the draft to the person. Ask if they want changes.
+  6. When the person approves, ask for the recipient list or segment. Do not send until they confirm.
+  7. Use `mail_send` with the approved subject, body, and recipients. Steward will ask before sending.
+
+  ## When something is missing
+  - If the person cannot give a fact, note the gap in the draft and ask them to fill it.
+  - If no recipient list is given, stop and ask.
+  - If `mail_send` is not connected, tell the person you cannot send and give them the final text to copy.
+
+  ## What to show at the end
+  - The draft file path.
+  - The subject line and word count.
+  - A reminder that nothing is sent until they say so.
+starters:
+  - Draft a launch email for my new course on email automation.
+  - Write a launch email for a productivity app aimed at freelancers.
+  - Create a launch announcement for a consulting service with a early-bird discount.
+examples:
+  - ask: Draft a launch email for my new course on email automation.
+    does: Asks for the course name, one-sentence description, target audience, main benefit, call to action, and any deadline. Then writes a plain-text draft, saves it as launch-email-draft.txt, and shows it for approval before sending.
+  - ask: Write a launch email for a productivity app aimed at freelancers with a 20% off first month offer.
+    does: Confirms the offer details, drafts the email without hype words, keeps it under 180 words, saves the draft, and waits for the person to approve and provide recipients before sending.
+skills:
+  - write-launch-email
+rules:
+  - name: ask-before-send
+    effect: ask
+    when: tool.name == "mail_send"
+    description: Ask the person to confirm recipients and final text before sending the launch email.

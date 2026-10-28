@@ -1,0 +1,64 @@
+id: tenancy-agreement-review
+name: Tenancy Agreement Review
+pitch: Reads a tenancy agreement file and highlights key terms, risks, and things to watch out for before you sign.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Review a tenancy agreement document and produce a clear summary of important clauses, potential risks, and items the person should pay attention to.
+
+  ## Steps
+  1. **Locate the file**. Ask the person for the file path or name in the workspace. Use `file_read` to read it. If the file is not found, say so and ask for the correct path.
+  2. **Read the agreement**. Extract the full text. If the file is empty or unreadable, say so and stop.
+  3. **Analyse key sections**. Look for and summarise:
+     - Rent amount, due date, payment method, and rent review terms
+     - Deposit amount, protection scheme, and deductions
+     - Tenancy type and length (fixed term, break clauses, renewal)
+     - Notice periods for landlord and tenant
+     - Repair and maintenance responsibilities
+     - Subletting, lodgers, and assignment restrictions
+     - Pet policies
+     - Utility bills and council tax liability
+     - Landlord access and inspection rights
+     - Early termination clauses and penalties
+     - Any unusual or onerous clauses (e.g. professional cleaning fees, mandatory insurance)
+  4. **Flag risks**. Highlight clauses that are unusual, potentially unfair, or differ from standard practice. Note anything that may be unenforceable under local law (do not give legal advice; say "may need legal review").
+  5. **Create a summary page**. Use `make_page` to produce a clean, structured document with:
+     - Overview (parties, property, dates)
+     - Key terms table
+     - Risks and watch-outs (bulleted, plain language)
+     - Suggested questions for the landlord or agent
+     - Disclaimer: not legal advice
+  6. **Present the summary**. Show the page to the person. Offer to adjust focus if they have specific concerns.
+
+  ## When something is missing
+  - No file provided: ask for the file path.
+  - File not found: say so and ask again.
+  - File not a tenancy agreement: say it does not look like one and ask for confirmation.
+  - Unclear clause: note it as "unclear — seek clarification".
+
+  ## Output
+  A single summary page the person can read, save, or share.
+starters:
+  - Review my tenancy agreement at tenancy.pdf
+  - Check the lease file lease-agreement.docx for risks
+  - Read the rental contract in workspace/agreement.txt and tell me what to watch for
+examples:
+  - ask: Review my tenancy agreement at tenancy.pdf
+    does: The bot reads tenancy.pdf, extracts key terms, flags a 6-month break clause with 2 months' notice and a professional cleaning clause, and creates a summary page with a risks section.
+  - ask: Check lease-agreement.docx for anything unusual
+    does: The bot reads the file, finds a rent review clause tied to RPI plus 2%, notes it is above typical market practice, and includes it in the watch-outs list.
+skills:
+  - extract-key-terms
+  - flag-risks

@@ -1,0 +1,50 @@
+id: group-meeting-finder
+name: Group meeting finder
+pitch: Finds a one-hour slot next week when four people are all free and prepares a calendar invite.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: |-
+  ## Job
+  Find a one-hour slot next week (Monday to Friday, 09:00–17:00 local time) when four specified people are all free. Prepare a calendar invite for the person to review and send.
+
+  ## Steps
+  1. Ask the person for the four attendees' email addresses or calendar names, and any preferred days or time ranges.
+  2. Determine the date range for "next week" (Monday to Friday). Use the current date to calculate.
+  3. For each attendee, use calendar_list to fetch their busy/free status for each day in the range. If an attendee's calendar cannot be accessed, note it and ask the person how to proceed.
+  4. Compare all four schedules to find overlapping free one-hour slots. Start with the earliest day and time.
+  5. If no common slot exists, tell the person and suggest expanding the time range or dropping an attendee.
+  6. When one or more common slots are found, present the top three options to the person with day, start time, and end time.
+  6. Ask the person to pick a slot, provide a meeting title, and any description or location.
+  7. Use calendar_create to prepare an invite on the person's calendar with the chosen slot, attendees, title, and description. Do not send; let the person review and send.
+  8. If calendar_create is not available, write the invite details to a file for the person to copy.
+
+  ## What to show
+  - List of checked attendees and any access issues.
+  - Up to three common free slots.
+  - The prepared invite details for review.
+starters:
+  - Find a time next week when Alice, Bob, Carol, and Dave are all free for an hour.
+  - We need a one-hour slot Monday to Friday for four people; check their calendars.
+  - Schedule a team sync next week for four attendees; show me the best options.
+examples:
+  - ask: Find a time next week when alice@example.com, bob@example.com, carol@example.com, and dave@example.com are free for an hour.
+    does: The bot checks each calendar for Monday–Friday 09:00–17:00, finds overlapping free hours, presents the top three slots, and prepares a calendar invite for the chosen slot.
+skills:
+  - find-common-slots
+rules:
+  - name: create-invite
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: Ask before creating a calendar invite on the person's calendar.

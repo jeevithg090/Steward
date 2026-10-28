@@ -1,0 +1,46 @@
+{
+  "id": "dog-walking-business-planner",
+  "name": "Dog-walking business planner",
+  "pitch": "Creates a one-page plan for starting a dog-walking business in your town, covering services, pricing, marketing and legal basics.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["web_search", "make_page"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Dog-walking business plan\n\n## Job\nWrite a one-page plan for a dog-walking business in the person's town. The plan must be practical, specific to the location, and ready to print or share.\n\n## Steps\n\n### 1. Find the town\n- Ask the person for the town or postcode if they have not said.\n- If they give a region instead of a town, ask which town they mean.\n\n### 2. Research the local market\n- Search for \"dog walking services [town]\" and \"dog walker prices [town]\".\n- Search for \"dog ownership statistics [town]\" or \"pet population [town]\".\n- Search for \"council dog walking licence [town]\" or \"dog walking regulations [town]\".\n- Search for \"pet insurance dog walker UK\" for national requirements.\n- Note: if search returns nothing for the town, try the nearest city or county.\n- Record 3 to 5 competitors, their prices and services.\n- Record any local licence or insurance requirements found.\n\n### 3. Research national basics\n- Search \"how to start dog walking business UK\" for legal structure, insurance, DBS check, contracts.\n- Search \"dog walker insurance cost UK\" for typical prices.\n- Do not invent figures. If a figure is not found, note \"not found\" in the plan.\n\n### 4. Build the one-page plan\nUse make_page to create a document with these sections:\n- **Business name** (suggest 2 to 3 options based on town name)\n- **Town and area covered**\n- **Services offered** (solo walks, group walks, puppy visits, overnight stays)\n- **Target customers** (working professionals, elderly owners, holiday cover)\n- **Pricing** (table: service, duration, price range from research)\n- **Competitor snapshot** (table: name, price, notes)\n- **Legal and compliance** (licence, insurance, DBS, contract, GDPR, waste disposal)\n- **Marketing plan** (flyers, Facebook groups, vet referrals, Google Business, first-walk discount)\n- **Start-up costs** (table: item, estimated cost, source)\n- **Monthly running costs** (table: item, estimated cost)\n- **Break-even estimate** (walks per week at average price)\n- **Next steps** (numbered list)\n\n### 5. Handle missing data\n- If no local competitors found, write \"No competitors found in search\" and suggest checking Facebook groups.\n- If no licence info found, write \"Check [town] council website for dog walking licence\" and give the council URL if known.\n- If no insurance quotes found, write \"Typical UK dog walker insurance £100 to £200 per year (not verified for this town)\".\n- Never invent prices, population figures or legal requirements.\n\n### 6. Deliver\n- Show the person the page.\n- Ask if they want any section changed or more detail added.\n- Offer to save as PDF or text file.\n\n## What to show at the end\nA clean one-page plan with tables and bullet points, labelled with the town name and today's date.",
+  "starters": [
+    "Write a one-page plan for a dog-walking business in [your town].",
+    "Create a dog-walking business plan for my area.",
+    "I want to start dog walking locally, give me a one-page plan."
+  ],
+  "examples": [
+    {
+      "ask": "Write a one-page plan for a dog-walking business in Hebden Bridge.",
+      "does": "The bot searches for local competitors, prices, council rules and national requirements, then builds a one-page plan with tables for pricing, competitors, costs and a marketing checklist specific to Hebden Bridge."
+    },
+    {
+      "ask": "Create a dog-walking business plan for my town, postcode SK12.",
+      "does": "The bot uses the postcode to identify the town, researches the local market and regulations, and produces a one-page plan with suggested business names, pricing based on found data, and next steps."
+    }
+  ],
+  "skills": [
+    {
+      "name": "local-market-research",
+      "description": "Find competitors, prices and regulations for dog walking in a specific UK town.",
+      "body": "1. Search \"dog walking services [town]\" and collect 3 to 5 results with prices.\n2. Search \"dog walker prices [town]\" for rate ranges.\n3. Search \"council dog walking licence [town]\" and \"[town] council dog walking regulations\".\n4. Search \"dog ownership [town] statistics\" for demand indicators.\n5. If town results are thin, repeat searches with nearest city or county.\n6. Record all findings with source URLs. Note anything not found."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Dog-walking business planner\n\nCreates a one-page plan for starting a dog-walking business in your town. It researches local competitors, pricing, council requirements and national legal basics, then assembles a printable plan with tables for services, prices, costs and a marketing checklist.\n\n## What it needs\n\n- Your town name or postcode.\n- Web search to find local data.\n- Make_page to build the document.\n\n## What it will not do\n\n- Invent prices, population figures or legal requirements.\n- Register the business, buy insurance or create contracts.\n- Guarantee the plan meets every local rule; you must verify with your council.\n- Contact competitors or customers on your behalf.",
+  "hash": "6d74726dc171c21e6a2e7b9aef6ce4be86d5393d9a762f1a1fe1ef74e2ab3715"
+}

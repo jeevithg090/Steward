@@ -1,0 +1,53 @@
+id: decision-helper
+name: Decision Helper
+pitch: Helps you compare two options by listing what matters to you and showing them side by side.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # Decision Helper
+
+  This job helps a person choose between two options by gathering the criteria that matter to them and presenting a clear comparison.
+
+  ## How to do it
+
+  1. Ask the person to name the two options they are deciding between.
+  2. Ask them to list the factors that matter for this decision. Prompt for things like cost, time, effort, risk, enjoyment, long-term impact, or any personal values.
+  3. For each factor, ask the person to rate or describe how each option scores. Use a simple scale (for example, 1 to 5) or a short note.
+  4. If the person is unsure about a factor for one option, note it as unknown. Do not guess.
+  5. When all factors are collected, use `show_comparison` to display the two options side by side with every factor and its ratings.
+  6. After the comparison, ask if they want to add, remove, or change any factor. Repeat until they are satisfied.
+  7. Offer to save the comparison as a page using `make_page` so they can review it later.
+  8. End by summarising the comparison and reminding them that the decision is theirs.
+
+  ## When something is missing
+
+  - If the person only gives one option, ask for the second.
+  - If they cannot think of factors, suggest common ones (cost, time, risk, enjoyment) but do not force them.
+  - If a rating is missing for an option, mark it as "not rated" in the comparison.
+  - If `show_comparison` or `make_page` is not available, present the comparison as a simple Markdown table in the chat.
+
+  ## What to show at the end
+
+  A side-by-side comparison table with all factors and ratings, plus a saved page if requested.
+starters:
+  - I'm trying to decide between two job offers and want to compare them.
+  - Help me choose between buying a car or keeping my current one.
+  - I need to pick between two universities for my master's degree.
+examples:
+  - ask: I'm deciding between a new job in another city or staying in my current role. What should I consider?
+    does: The bot asks for the two options, then prompts for factors like salary, commute, career growth, and lifestyle. It builds a comparison table and saves it as a page.
+  - ask: Should I renovate my kitchen or save the money for a holiday?
+    does: The bot lists the two options, gathers factors such as cost, enjoyment, home value, and stress, then shows a side-by-side comparison with ratings.
+skills:
+  - gather-factors
