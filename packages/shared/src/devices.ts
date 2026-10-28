@@ -4,7 +4,7 @@
  * Shared by the server, the web app's Settings → Phone, and the phone surfaces.
  */
 import { z } from "zod";
-import type { DeviceScope, DeviceUi } from "./phone.ts";
+import type { CatalogueEntry, DeviceScope, DeviceUi } from "./phone.ts";
 
 /** The device listener's port: tunnels point here, never at the main port (8787). */
 export const DEFAULT_DEVICE_PORT = 8788;
@@ -137,7 +137,8 @@ function base64url(text: string): string {
   const bytes = new TextEncoder().encode(text);
   let binary = "";
   for (const b of bytes) binary += String.fromCharCode(b);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  // Padding kept: the shortcut swaps -_ back to +/ and decodes with Shortcuts' own Base64 action.
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_");
 }
 
 function fromBase64url(text: string): string {
@@ -231,6 +232,8 @@ export interface DevicePairReply extends DeviceReply {
   deviceId: string;
   scopes: DeviceScope[];
   minShortcutVersion: number;
+  /** A Cloudflare Access service token the phone sends on every later call, when the tunnel has one. */
+  access?: { clientId: string; clientSecret: string };
 }
 
 export interface DeviceBrief extends DeviceReply {
@@ -261,6 +264,36 @@ export interface DeviceSayReply extends DeviceReply {
   say?: string;
   /** True when Steward is still working: the answer will be in the conversation. */
   pending?: boolean;
+}
+
+// ── Loopback API (the web app's Settings → Phone and Shortcuts page) ───────────────────────────
+
+/** What the Shortcuts page shows: the catalogue, and what this machine can make and sign. */
+export interface PhoneCatalogue {
+  entries: (CatalogueEntry & { steps: string[]; launcher: boolean })[];
+  steward: {
+    /** What the generic shortcut does, in plain steps. */
+    steps: string[];
+    personalSteps: string[];
+    /** Where the phone downloads it, on the phone address; null until that is set. */
+    downloadUrl: string | null;
+    /** A signed copy ships with this build. */
+    shipped: boolean;
+  };
+  /** The morning brief as an automation the person adds by hand (iOS 27 embedding is unverified). */
+  automation?: { time: string; input: string };
+  shortcut: ShortcutManifest;
+  /** Whether this machine can sign a personal file or a launcher, and why not. */
+  signing: { available: boolean; reason?: string };
+}
+
+/** A one-time download: open it on the phone within ten minutes. */
+export interface ShortcutInstall {
+  url: string;
+  expiresAt: string;
+  name: string;
+  /** The file holds this phone's key: say so, and never share it. */
+  personal: boolean;
 }
 
 // ── Loopback API (the web app's Settings → Phone) ──────────────────────────────────────────────

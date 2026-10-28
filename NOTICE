@@ -14,4 +14,9 @@ Seed bots in the directory (`directory/`) are adapted from:
 - LobeChat agent index — https://github.com/lobehub/lobe-chat-agents — Copyright (c) LobeHub and each listed author — MIT
 - OpenBot's coworker catalogue (`examples/fintech/catalog`) — https://github.com/CopilotKit/openbot — Copyright (c) CopilotKit — MIT
 
+iPhone shortcuts (`packages/shortcuts`) use reference data and control-flow encodings from:
+
+- Perspective Cuts — https://github.com/taylorarndt/perspective-cuts — Copyright (c) 2026 Taylor Arndt — MIT
+  (`packages/shortcuts/reference/perspective-cuts-actions.json`, with its licence beside it)
+
 Skills follow the Agent Skills specification — https://agentskills.io — Apache-2.0.

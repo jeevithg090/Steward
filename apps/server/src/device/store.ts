@@ -187,6 +187,24 @@ export class DeviceStore {
     return result;
   }
 
+  /**
+   * A device and key made on the Mac itself, for the one-tap personal file: no code, because the
+   * file is the delivery. Recorded as paired by file.
+   */
+  issue(input: { deviceName: string; kind: DeviceKind }): { device: Device; token: string } {
+    const at = this.now().toISOString();
+    const token = newDeviceToken();
+    const id = newId("dev");
+    this.db.run(
+      `INSERT INTO devices (id, name, kind, token_hash, scopes_json, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, input.deviceName, input.kind, sha256(token), toJson(DEFAULT_DEVICE_SCOPES), at],
+    );
+    const device = this.get(id)!;
+    this.record("device.paired", device, { scopes: device.scopes, delivery: "file" });
+    return { device, token };
+  }
+
   /** The device a token belongs to, unless it was revoked. */
   authenticate(token: string): Device | undefined {
     if (!token.startsWith(TOKEN_PREFIX) || token.length > 128) return undefined;

@@ -31,7 +31,9 @@
     "rxjs": "7.8.1",
     "@copilotkit/aimock": "1.47.0",
     "@steward/bots": "workspace:*",
-    "@steward/bots-gen": "workspace:*"
+    "@steward/bots-gen": "workspace:*",
+    "@steward/phone": "workspace:*",
+    "@steward/shortcuts": "workspace:*"
   },
   "devDependencies": {}
 }

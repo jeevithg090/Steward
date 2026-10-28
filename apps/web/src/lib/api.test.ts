@@ -238,6 +238,13 @@ describe("api: every route in ROUTES", () => {
       "/api/phone",
       { url: "https://mac.example.ts.net" },
     ],
+    ["phone catalogue", () => api.phone.catalogue(), "GET", "/api/phone/catalogue"],
+    [
+      "phone shortcut install",
+      () => api.phone.install("skill:plan-trip"),
+      "POST",
+      "/api/phone/shortcuts/skill%3Aplan-trip/install",
+    ],
     ["devices", () => api.devices.list(), "GET", "/api/devices"],
     [
       "devices pairing",

@@ -29,6 +29,7 @@ import {
   type McpServerInfo,
   type MemoryFact,
   type PairingOffer,
+  type PhoneCatalogue,
   type PhoneInfo,
   ROUTES,
   type Routine,
@@ -39,6 +40,7 @@ import {
   type Settings,
   type SettingsBody,
   type SetupCheck,
+  type ShortcutInstall,
   type Skill,
   type SkillBody,
   type Task,
@@ -342,6 +344,9 @@ export const api = {
   phone: {
     get: (signal?: AbortSignal) => get<PhoneInfo>(ROUTES.phone, undefined, signal),
     setUrl: (url: string) => send<PhoneInfo>("PUT", ROUTES.phone, { url }),
+    catalogue: (signal?: AbortSignal) => get<PhoneCatalogue>(ROUTES.phoneCatalogue, undefined, signal),
+    /** A one-time download link for the phone: `steward` (the one-tap file) or a launcher's id. */
+    install: (id: string) => send<ShortcutInstall>("POST", route(ROUTES.phoneShortcutInstall, { id })),
   },
 
   devices: {
@@ -391,6 +396,7 @@ export const queryKeys = {
   /** Every bots query: the directory pages and the installed list. */
   bots: ["bots"] as const,
   phone: ["phone"] as const,
+  phoneCatalogue: ["phone", "catalogue"] as const,
   devices: ["devices"] as const,
   botList: (query: BotsQueryInput) => ["bots", "list", query] as const,
   botsInstalled: ["bots", "installed"] as const,
@@ -918,6 +924,24 @@ export function useSetPhoneUrl() {
   return useMutation<PhoneInfo, ApiError, string>({
     mutationFn: (url) => api.phone.setUrl(url),
     onSuccess: (info) => qc.setQueryData(queryKeys.phone, info),
+  });
+}
+
+export function usePhoneCatalogue(opts?: QueryOpts<PhoneCatalogue>) {
+  return useQuery<PhoneCatalogue, ApiError>({
+    queryKey: queryKeys.phoneCatalogue,
+    queryFn: ({ signal }) => api.phone.catalogue(signal),
+    ...opts,
+  });
+}
+
+export function useShortcutInstall() {
+  const qc = useQueryClient();
+  return useMutation<ShortcutInstall, ApiError, string>({
+    mutationFn: (id) => api.phone.install(id),
+    onSuccess: (install) => {
+      if (install.personal) void qc.invalidateQueries({ queryKey: queryKeys.devices });
+    },
   });
 }
 

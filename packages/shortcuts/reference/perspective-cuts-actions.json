@@ -1,0 +1,2021 @@
+{
+  "version": "2.0.0",
+  "actions": {
+    "text": {
+      "identifier": "is.workflow.actions.gettext",
+      "description": "Create a text value",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "key": "WFTextActionText"
+        }
+      }
+    },
+    "showResult": {
+      "identifier": "is.workflow.actions.showresult",
+      "description": "Show the result of the shortcut",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "key": "Text"
+        }
+      }
+    },
+    "alert": {
+      "identifier": "is.workflow.actions.alert",
+      "description": "Show an alert dialog",
+      "parameters": {
+        "message": {
+          "type": "string",
+          "required": true,
+          "key": "WFAlertActionMessage"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "key": "WFAlertActionTitle"
+        },
+        "showCancel": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFAlertActionCancelButtonShown"
+        }
+      }
+    },
+    "ask": {
+      "identifier": "is.workflow.actions.ask",
+      "description": "Ask for input",
+      "parameters": {
+        "prompt": {
+          "type": "string",
+          "required": true,
+          "key": "WFAskActionPrompt"
+        },
+        "default": {
+          "type": "string",
+          "required": false,
+          "key": "WFAskActionDefaultAnswer"
+        }
+      }
+    },
+    "setVariable": {
+      "identifier": "is.workflow.actions.setvariable",
+      "description": "Set the value of a variable",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "key": "WFVariableName"
+        },
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getVariable": {
+      "identifier": "is.workflow.actions.getvariable",
+      "description": "Get the value of a variable",
+      "parameters": {
+        "variable": {
+          "type": "variable",
+          "required": true,
+          "key": "WFVariable"
+        }
+      }
+    },
+    "appendVariable": {
+      "identifier": "is.workflow.actions.appendvariable",
+      "description": "Append to a variable",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "key": "WFVariableName"
+        }
+      }
+    },
+    "number": {
+      "identifier": "is.workflow.actions.number",
+      "description": "Create a number value",
+      "parameters": {
+        "value": {
+          "type": "number",
+          "required": true,
+          "key": "WFNumberActionNumber"
+        }
+      }
+    },
+    "randomNumber": {
+      "identifier": "is.workflow.actions.number.random",
+      "description": "Generate a random number",
+      "parameters": {
+        "min": {
+          "type": "number",
+          "required": false,
+          "key": "WFRandomNumberMinimum"
+        },
+        "max": {
+          "type": "number",
+          "required": false,
+          "key": "WFRandomNumberMaximum"
+        }
+      }
+    },
+    "calculate": {
+      "identifier": "is.workflow.actions.math",
+      "description": "Perform a math operation",
+      "parameters": {
+        "operand": {
+          "type": "number",
+          "required": true,
+          "key": "WFMathOperand"
+        },
+        "operation": {
+          "type": "string",
+          "required": true,
+          "key": "WFMathOperation"
+        }
+      }
+    },
+    "statistics": {
+      "identifier": "is.workflow.actions.statistics",
+      "description": "Calculate statistics on a list of numbers",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "measurement": {
+      "identifier": "is.workflow.actions.measurement.create",
+      "description": "Create a measurement value",
+      "parameters": {}
+    },
+    "convertMeasurement": {
+      "identifier": "is.workflow.actions.measurement.convert",
+      "description": "Convert a measurement to different units",
+      "parameters": {}
+    },
+    "url": {
+      "identifier": "is.workflow.actions.url",
+      "description": "Create a URL",
+      "parameters": {
+        "url": {
+          "type": "string",
+          "required": true,
+          "key": "WFURLActionURL"
+        }
+      }
+    },
+    "downloadURL": {
+      "identifier": "is.workflow.actions.downloadurl",
+      "description": "Download the contents of a URL",
+      "parameters": {
+        "url": {
+          "type": "string",
+          "required": true,
+          "key": "WFURL"
+        },
+        "method": {
+          "type": "enum",
+          "required": false,
+          "key": "WFHTTPMethod"
+        },
+        "headers": {
+          "type": "dictionary",
+          "required": false,
+          "key": "WFHTTPHeaders"
+        },
+        "bodyType": {
+          "type": "enum",
+          "required": false,
+          "key": "WFHTTPBodyType"
+        },
+        "body": {
+          "type": "dictionary",
+          "required": false,
+          "key": "WFRequestVariable"
+        }
+      }
+    },
+    "openURL": {
+      "identifier": "is.workflow.actions.openurl",
+      "description": "Open a URL in Safari",
+      "parameters": {
+        "url": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "expandURL": {
+      "identifier": "is.workflow.actions.url.expand",
+      "description": "Expand a shortened URL",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getURLHeaders": {
+      "identifier": "is.workflow.actions.url.getheaders",
+      "description": "Get HTTP headers from a URL",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "urlEncode": {
+      "identifier": "is.workflow.actions.urlencode",
+      "description": "URL encode or decode text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        },
+        "mode": {
+          "type": "string",
+          "required": false,
+          "key": "WFEncodeMode"
+        }
+      }
+    },
+    "getWebPageContents": {
+      "identifier": "is.workflow.actions.getwebpagecontents",
+      "description": "Get the contents of a web page",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getArticle": {
+      "identifier": "is.workflow.actions.getarticle",
+      "description": "Get article content from a URL",
+      "parameters": {
+        "page": {
+          "type": "variable",
+          "required": true,
+          "key": "WFWebPage"
+        }
+      }
+    },
+    "runJavaScriptOnWebPage": {
+      "identifier": "is.workflow.actions.runjavascriptonwebpage",
+      "description": "Run JavaScript on the current Safari web page",
+      "parameters": {
+        "script": {
+          "type": "string",
+          "required": true,
+          "key": "WFJavaScript"
+        }
+      }
+    },
+    "getRSSFeed": {
+      "identifier": "is.workflow.actions.rss",
+      "description": "Get items from an RSS feed",
+      "parameters": {
+        "url": {
+          "type": "plainString",
+          "required": true,
+          "key": "WFRSSFeedURL"
+        },
+        "count": {
+          "type": "number",
+          "required": false,
+          "key": "WFRSSItemQuantity"
+        }
+      }
+    },
+    "searchMaps": {
+      "identifier": "is.workflow.actions.searchmaps",
+      "description": "Search for a location in Maps",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "key": "WFSearchQuery"
+        }
+      }
+    },
+    "setClipboard": {
+      "identifier": "is.workflow.actions.setclipboard",
+      "description": "Copy to clipboard",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getClipboard": {
+      "identifier": "is.workflow.actions.getclipboard",
+      "description": "Get clipboard contents",
+      "parameters": {}
+    },
+    "list": {
+      "identifier": "is.workflow.actions.list",
+      "description": "Create a list",
+      "parameters": {
+        "items": {
+          "type": "array",
+          "required": true,
+          "key": "WFItems"
+        }
+      }
+    },
+    "getItemFromList": {
+      "identifier": "is.workflow.actions.getitemfromlist",
+      "description": "Get an item from a list by index",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "specifier": {
+          "type": "string",
+          "required": false,
+          "key": "WFItemSpecifier"
+        },
+        "index": {
+          "type": "number",
+          "required": false,
+          "key": "WFItemIndex"
+        }
+      }
+    },
+    "chooseFromList": {
+      "identifier": "is.workflow.actions.choosefromlist",
+      "description": "Choose an item from a list",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "prompt": {
+          "type": "string",
+          "required": false,
+          "key": "WFChooseFromListActionPrompt"
+        },
+        "selectMultiple": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFChooseFromListActionSelectMultiple"
+        }
+      }
+    },
+    "count": {
+      "identifier": "is.workflow.actions.count",
+      "description": "Count items in a list or characters in text",
+      "parameters": {
+        "Input": {
+          "type": "variable",
+          "required": true,
+          "key": "Input"
+        },
+        "type": {
+          "type": "string",
+          "required": false,
+          "key": "WFCountType"
+        }
+      }
+    },
+    "getItemName": {
+      "identifier": "is.workflow.actions.getitemname",
+      "description": "Get the name of an item",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "setItemName": {
+      "identifier": "is.workflow.actions.setitemname",
+      "description": "Set the name of an item",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "key": "WFName"
+        }
+      }
+    },
+    "getItemType": {
+      "identifier": "is.workflow.actions.getitemtype",
+      "description": "Get the type of an item",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "dictionary": {
+      "identifier": "is.workflow.actions.dictionary",
+      "description": "Create a dictionary",
+      "parameters": {
+        "items": {
+          "type": "dictionary",
+          "required": true,
+          "key": "WFItems"
+        }
+      }
+    },
+    "getDictionaryValue": {
+      "identifier": "is.workflow.actions.getvalueforkey",
+      "description": "Get a value from a dictionary by key",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "key": {
+          "type": "string",
+          "required": true,
+          "key": "WFDictionaryKey"
+        }
+      }
+    },
+    "setDictionaryValue": {
+      "identifier": "is.workflow.actions.setvalueforkey",
+      "description": "Set a value in a dictionary",
+      "parameters": {
+        "key": {
+          "type": "string",
+          "required": true,
+          "key": "WFDictionaryKey"
+        },
+        "value": {
+          "type": "variable",
+          "required": true,
+          "key": "WFDictionaryValue"
+        }
+      }
+    },
+    "matchText": {
+      "identifier": "is.workflow.actions.text.match",
+      "description": "Match text using a regular expression",
+      "parameters": {
+        "pattern": {
+          "type": "string",
+          "required": true,
+          "key": "WFMatchTextPattern"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "key": "WFMatchTextInput"
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFMatchTextCaseSensitive"
+        }
+      }
+    },
+    "replaceText": {
+      "identifier": "is.workflow.actions.text.replace",
+      "description": "Replace text in a string",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "find": {
+          "type": "string",
+          "required": true,
+          "key": "WFReplaceTextFind"
+        },
+        "replace": {
+          "type": "string",
+          "required": true,
+          "key": "WFReplaceTextReplace"
+        },
+        "regex": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFReplaceTextRegularExpression"
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFReplaceTextCaseSensitive"
+        }
+      }
+    },
+    "splitText": {
+      "identifier": "is.workflow.actions.text.split",
+      "description": "Split text into a list",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "key": "text"
+        },
+        "separator": {
+          "type": "string",
+          "required": false,
+          "key": "WFTextSeparator"
+        },
+        "customSeparator": {
+          "type": "string",
+          "required": false,
+          "key": "WFTextCustomSeparator"
+        }
+      }
+    },
+    "combineText": {
+      "identifier": "is.workflow.actions.text.combine",
+      "description": "Combine a list into text",
+      "parameters": {
+        "text": {
+          "type": "variable",
+          "required": true,
+          "key": "text"
+        },
+        "separator": {
+          "type": "string",
+          "required": false,
+          "key": "WFTextSeparator"
+        },
+        "customSeparator": {
+          "type": "string",
+          "required": false,
+          "key": "WFTextCustomSeparator"
+        }
+      }
+    },
+    "changeCase": {
+      "identifier": "is.workflow.actions.text.changecase",
+      "description": "Change text case",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "key": "text"
+        },
+        "case": {
+          "type": "string",
+          "required": true,
+          "key": "WFCaseType"
+        }
+      }
+    },
+    "correctSpelling": {
+      "identifier": "is.workflow.actions.correctspelling",
+      "description": "Correct the spelling of text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "showDefinition": {
+      "identifier": "is.workflow.actions.showdefinition",
+      "description": "Show the definition of a word",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getEmojiName": {
+      "identifier": "is.workflow.actions.getnameofemoji",
+      "description": "Get the name of an emoji",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "richTextFromHTML": {
+      "identifier": "is.workflow.actions.getrichtextfromhtml",
+      "description": "Convert HTML to rich text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "richTextFromMarkdown": {
+      "identifier": "is.workflow.actions.getrichtextfrommarkdown",
+      "description": "Convert Markdown to rich text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "markdownFromRichText": {
+      "identifier": "is.workflow.actions.getmarkdownfromrichtext",
+      "description": "Convert rich text to Markdown",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "detectLanguage": {
+      "identifier": "is.workflow.actions.detectlanguage",
+      "description": "Detect the language of text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "translateText": {
+      "identifier": "is.workflow.actions.text.translate",
+      "description": "Translate text to another language",
+      "parameters": {
+        "input": {
+          "type": "plainString",
+          "required": true,
+          "key": "WFInputText"
+        },
+        "from": {
+          "type": "plainString",
+          "required": false,
+          "key": "WFSelectedFromLanguage"
+        },
+        "language": {
+          "type": "plainString",
+          "required": true,
+          "key": "WFSelectedLanguage"
+        }
+      }
+    },
+    "notification": {
+      "identifier": "is.workflow.actions.notification",
+      "description": "Send a notification",
+      "parameters": {
+        "body": {
+          "type": "string",
+          "required": true,
+          "key": "WFNotificationActionBody"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "key": "WFNotificationActionTitle"
+        },
+        "sound": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFNotificationActionSound"
+        }
+      }
+    },
+    "wait": {
+      "identifier": "is.workflow.actions.delay",
+      "description": "Wait for a specified duration",
+      "parameters": {
+        "seconds": {
+          "type": "number",
+          "required": true,
+          "key": "WFDelayTime"
+        }
+      }
+    },
+    "waitToReturn": {
+      "identifier": "is.workflow.actions.waittoreturn",
+      "description": "Wait for user to return to Shortcuts",
+      "parameters": {}
+    },
+    "getCurrentDate": {
+      "identifier": "is.workflow.actions.date",
+      "description": "Get the current date and time",
+      "parameters": {}
+    },
+    "formatDate": {
+      "identifier": "is.workflow.actions.format.date",
+      "description": "Format a date as text",
+      "parameters": {
+        "date": {
+          "type": "variable",
+          "required": true,
+          "key": "WFDate"
+        },
+        "style": {
+          "type": "string",
+          "required": false,
+          "key": "WFDateFormatStyle"
+        },
+        "format": {
+          "type": "string",
+          "required": false,
+          "key": "WFDateFormat"
+        }
+      }
+    },
+    "adjustDate": {
+      "identifier": "is.workflow.actions.adjustdate",
+      "description": "Adjust a date by adding or subtracting time",
+      "parameters": {
+        "date": {
+          "type": "variable",
+          "required": true,
+          "key": "WFDate"
+        },
+        "duration": {
+          "type": "number",
+          "required": true,
+          "key": "WFDuration"
+        },
+        "unit": {
+          "type": "string",
+          "required": false,
+          "key": "WFDurationUnit"
+        }
+      }
+    },
+    "timeBetweenDates": {
+      "identifier": "is.workflow.actions.gettimebetweendates",
+      "description": "Get time between two dates",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "unit": {
+          "type": "string",
+          "required": false,
+          "key": "WFTimeUntilUnit"
+        }
+      }
+    },
+    "getDates": {
+      "identifier": "is.workflow.actions.detect.date",
+      "description": "Get dates from text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getDeviceDetail": {
+      "identifier": "is.workflow.actions.getdevicedetails",
+      "description": "Get device information",
+      "parameters": {
+        "detail": {
+          "type": "string",
+          "required": true,
+          "key": "WFDeviceDetail"
+        }
+      }
+    },
+    "getBattery": {
+      "identifier": "is.workflow.actions.getbatterylevel",
+      "description": "Get the current battery level",
+      "parameters": {}
+    },
+    "getIPAddress": {
+      "identifier": "is.workflow.actions.getipaddress",
+      "description": "Get IP address",
+      "parameters": {
+        "source": {
+          "type": "string",
+          "required": false,
+          "key": "WFIPAddressSourceOption"
+        },
+        "type": {
+          "type": "string",
+          "required": false,
+          "key": "WFIPAddressTypeOption"
+        }
+      }
+    },
+    "getWiFiNetwork": {
+      "identifier": "is.workflow.actions.getwifi",
+      "description": "Get current Wi-Fi network info",
+      "parameters": {}
+    },
+    "getCurrentLocation": {
+      "identifier": "is.workflow.actions.getcurrentlocation",
+      "description": "Get current GPS location",
+      "parameters": {}
+    },
+    "getDistance": {
+      "identifier": "is.workflow.actions.getdistance",
+      "description": "Get distance between two locations",
+      "parameters": {}
+    },
+    "getTravelTime": {
+      "identifier": "is.workflow.actions.gettraveltime",
+      "description": "Get travel time between locations",
+      "parameters": {}
+    },
+    "getHalfwayPoint": {
+      "identifier": "is.workflow.actions.gethalfwaypoint",
+      "description": "Get halfway point between two locations",
+      "parameters": {}
+    },
+    "getMapsLink": {
+      "identifier": "is.workflow.actions.getmapslink",
+      "description": "Get a Maps URL for a location",
+      "parameters": {}
+    },
+    "openDirections": {
+      "identifier": "is.workflow.actions.opendirections",
+      "description": "Open directions in Maps",
+      "parameters": {}
+    },
+    "streetAddress": {
+      "identifier": "is.workflow.actions.detect.address",
+      "description": "Get addresses from text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getFile": {
+      "identifier": "is.workflow.actions.documentpicker.open",
+      "description": "Select a file",
+      "parameters": {
+        "SelectMultiple": {
+          "type": "boolean",
+          "required": false,
+          "key": "SelectMultiple"
+        }
+      }
+    },
+    "saveFile": {
+      "identifier": "is.workflow.actions.documentpicker.save",
+      "description": "Save a file",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "path": {
+          "type": "string",
+          "required": false,
+          "key": "WFFileDestinationPath"
+        },
+        "overwrite": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFSaveFileOverwrite"
+        }
+      }
+    },
+    "getFileLink": {
+      "identifier": "is.workflow.actions.file.getlink",
+      "description": "Get a sharing link for a file",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "createFolder": {
+      "identifier": "is.workflow.actions.file.createfolder",
+      "description": "Create a new folder",
+      "parameters": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "key": "WFFilePath"
+        }
+      }
+    },
+    "deleteFiles": {
+      "identifier": "is.workflow.actions.file.delete",
+      "description": "Delete files",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "renameFile": {
+      "identifier": "is.workflow.actions.file.rename",
+      "description": "Rename a file",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "key": "WFNewFilename"
+        }
+      }
+    },
+    "moveFile": {
+      "identifier": "is.workflow.actions.file.move",
+      "description": "Move a file to a new location",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getContentsOfFolder": {
+      "identifier": "is.workflow.actions.file.getfoldercontents",
+      "description": "Get the contents of a folder",
+      "parameters": {
+        "folder": {
+          "type": "variable",
+          "required": true,
+          "key": "WFFolder"
+        }
+      }
+    },
+    "scanDocument": {
+      "identifier": "is.workflow.actions.scandocument",
+      "description": "Scan a document using the camera",
+      "parameters": {}
+    },
+    "makeZip": {
+      "identifier": "is.workflow.actions.makezip",
+      "description": "Create a ZIP archive",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "unzip": {
+      "identifier": "is.workflow.actions.unzip",
+      "description": "Extract a ZIP archive",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "shareSheet": {
+      "identifier": "is.workflow.actions.share",
+      "description": "Open the share sheet",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "airdrop": {
+      "identifier": "is.workflow.actions.airdropdocument",
+      "description": "Send via AirDrop",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "print": {
+      "identifier": "is.workflow.actions.print",
+      "description": "Print a document",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "previewDocument": {
+      "identifier": "is.workflow.actions.previewdocument",
+      "description": "Preview a document with Quick Look",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "runShortcut": {
+      "identifier": "is.workflow.actions.runworkflow",
+      "description": "Run another shortcut",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "key": "WFWorkflowName"
+        },
+        "input": {
+          "type": "variable",
+          "required": false,
+          "key": "WFInput"
+        },
+        "show": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFShowWorkflow"
+        }
+      }
+    },
+    "getMyShortcuts": {
+      "identifier": "is.workflow.actions.getmyworkflows",
+      "description": "Get a list of your shortcuts",
+      "parameters": {}
+    },
+    "openShortcut": {
+      "identifier": "com.apple.shortcuts.OpenWorkflowAction",
+      "description": "Open a shortcut in the editor",
+      "parameters": {
+        "shortcut": {
+          "type": "variable",
+          "required": true,
+          "key": "WFWorkflow"
+        }
+      }
+    },
+    "speakText": {
+      "identifier": "is.workflow.actions.speaktext",
+      "description": "Speak text aloud using text-to-speech",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "key": "WFText"
+        },
+        "rate": {
+          "type": "number",
+          "required": false,
+          "key": "WFSpeakTextRate"
+        },
+        "pitch": {
+          "type": "number",
+          "required": false,
+          "key": "WFSpeakTextPitch"
+        },
+        "language": {
+          "type": "string",
+          "required": false,
+          "key": "WFSpeakTextLanguage"
+        },
+        "wait": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFSpeakTextWait"
+        }
+      }
+    },
+    "base64Encode": {
+      "identifier": "is.workflow.actions.base64encode",
+      "description": "Base64 encode or decode",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "mode": {
+          "type": "string",
+          "required": false,
+          "key": "WFEncodeMode"
+        }
+      }
+    },
+    "hash": {
+      "identifier": "is.workflow.actions.hash",
+      "description": "Generate a hash of input",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        },
+        "type": {
+          "type": "string",
+          "required": false,
+          "key": "WFHashType"
+        }
+      }
+    },
+    "comment": {
+      "identifier": "is.workflow.actions.comment",
+      "description": "Add a comment (no effect on execution)",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": false,
+          "key": "WFCommentActionText"
+        }
+      }
+    },
+    "nothing": {
+      "identifier": "is.workflow.actions.nothing",
+      "description": "Do nothing (pass-through)",
+      "parameters": {}
+    },
+    "exitShortcut": {
+      "identifier": "is.workflow.actions.exit",
+      "description": "Stop and output a result",
+      "parameters": {
+        "result": {
+          "type": "variable",
+          "required": false,
+          "key": "WFResult"
+        }
+      }
+    },
+    "openApp": {
+      "identifier": "is.workflow.actions.openapp",
+      "description": "Open an app",
+      "parameters": {
+        "app": {
+          "type": "string",
+          "required": true,
+          "key": "WFAppIdentifier"
+        }
+      }
+    },
+    "vibrate": {
+      "identifier": "is.workflow.actions.vibrate",
+      "description": "Vibrate the device",
+      "parameters": {}
+    },
+    "playSound": {
+      "identifier": "is.workflow.actions.playsound",
+      "description": "Play a sound",
+      "parameters": {}
+    },
+    "flashlight": {
+      "identifier": "is.workflow.actions.flashlight",
+      "description": "Toggle the flashlight",
+      "parameters": {}
+    },
+    "setBrightness": {
+      "identifier": "is.workflow.actions.setbrightness",
+      "description": "Set screen brightness",
+      "parameters": {
+        "level": {
+          "type": "number",
+          "required": true,
+          "key": "WFBrightness"
+        }
+      }
+    },
+    "setVolume": {
+      "identifier": "is.workflow.actions.setvolume",
+      "description": "Set device volume",
+      "parameters": {
+        "level": {
+          "type": "number",
+          "required": true,
+          "key": "WFVolume"
+        }
+      }
+    },
+    "setAirplaneMode": {
+      "identifier": "is.workflow.actions.airplanemode.set",
+      "description": "Toggle airplane mode",
+      "parameters": {
+        "OnValue": {
+          "type": "boolean",
+          "required": true,
+          "key": "OnValue"
+        }
+      }
+    },
+    "setBluetooth": {
+      "identifier": "is.workflow.actions.bluetooth.set",
+      "description": "Toggle Bluetooth",
+      "parameters": {
+        "OnValue": {
+          "type": "boolean",
+          "required": true,
+          "key": "OnValue"
+        }
+      }
+    },
+    "setWiFi": {
+      "identifier": "is.workflow.actions.wifi.set",
+      "description": "Toggle Wi-Fi",
+      "parameters": {
+        "OnValue": {
+          "type": "boolean",
+          "required": true,
+          "key": "OnValue"
+        }
+      }
+    },
+    "setCellularData": {
+      "identifier": "is.workflow.actions.cellulardata.set",
+      "description": "Toggle cellular data",
+      "parameters": {
+        "OnValue": {
+          "type": "boolean",
+          "required": true,
+          "key": "OnValue"
+        }
+      }
+    },
+    "setDoNotDisturb": {
+      "identifier": "is.workflow.actions.dnd.set",
+      "description": "Toggle Do Not Disturb",
+      "parameters": {
+        "Enabled": {
+          "type": "boolean",
+          "required": true,
+          "key": "Enabled"
+        }
+      }
+    },
+    "setLowPowerMode": {
+      "identifier": "is.workflow.actions.lowpowermode.set",
+      "description": "Toggle Low Power Mode",
+      "parameters": {
+        "OnValue": {
+          "type": "boolean",
+          "required": true,
+          "key": "OnValue"
+        }
+      }
+    },
+    "scanBarcode": {
+      "identifier": "is.workflow.actions.scanbarcode",
+      "description": "Scan a QR code or barcode",
+      "parameters": {}
+    },
+    "runSSHScript": {
+      "identifier": "is.workflow.actions.runsshscript",
+      "description": "Run a script over SSH",
+      "parameters": {
+        "script": {
+          "type": "string",
+          "required": true,
+          "key": "WFSSHScript"
+        },
+        "host": {
+          "type": "string",
+          "required": true,
+          "key": "WFSSHHost"
+        },
+        "port": {
+          "type": "string",
+          "required": false,
+          "key": "WFSSHPort"
+        },
+        "user": {
+          "type": "string",
+          "required": false,
+          "key": "WFSSHUser"
+        },
+        "password": {
+          "type": "string",
+          "required": false,
+          "key": "WFSSHPassword"
+        }
+      }
+    },
+    "runExtension": {
+      "identifier": "is.workflow.actions.runextension",
+      "description": "Run a share sheet extension",
+      "parameters": {}
+    },
+    "handoff": {
+      "identifier": "is.workflow.actions.handoff",
+      "description": "Continue on another device via Handoff",
+      "parameters": {}
+    },
+    "addToReadingList": {
+      "identifier": "is.workflow.actions.readinglist",
+      "description": "Add URL to Safari Reading List",
+      "parameters": {
+        "urls": {
+          "type": "variable",
+          "required": true,
+          "key": "WFURLs"
+        }
+      }
+    },
+    "takePhoto": {
+      "identifier": "is.workflow.actions.takephoto",
+      "description": "Take a photo with the camera",
+      "parameters": {}
+    },
+    "takeVideo": {
+      "identifier": "is.workflow.actions.takevideo",
+      "description": "Take a video with the camera",
+      "parameters": {}
+    },
+    "getLatestPhotos": {
+      "identifier": "is.workflow.actions.getlatestphotoimport",
+      "description": "Get latest photo import",
+      "parameters": {}
+    },
+    "getLastScreenshot": {
+      "identifier": "is.workflow.actions.getlastscreenshot",
+      "description": "Get the last screenshot",
+      "parameters": {}
+    },
+    "getLatestVideos": {
+      "identifier": "is.workflow.actions.getlastvideo",
+      "description": "Get the latest video",
+      "parameters": {}
+    },
+    "getLatestBursts": {
+      "identifier": "is.workflow.actions.getlatestbursts",
+      "description": "Get the latest burst photos",
+      "parameters": {}
+    },
+    "getLatestLivePhotos": {
+      "identifier": "is.workflow.actions.getlatestlivephotos",
+      "description": "Get the latest Live Photos",
+      "parameters": {}
+    },
+    "deletePhotos": {
+      "identifier": "is.workflow.actions.deletephotos",
+      "description": "Delete photos from the library",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "saveToPhotos": {
+      "identifier": "is.workflow.actions.savetocameraroll",
+      "description": "Save an image or video to Photos",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "selectPhotos": {
+      "identifier": "is.workflow.actions.selectphoto",
+      "description": "Select photos from the library",
+      "parameters": {
+        "selectMultiple": {
+          "type": "boolean",
+          "required": false,
+          "key": "WFSelectMultiplePhotos"
+        }
+      }
+    },
+    "findPhotos": {
+      "identifier": "is.workflow.actions.filter.photos",
+      "description": "Find photos matching criteria",
+      "parameters": {}
+    },
+    "getImageFrames": {
+      "identifier": "is.workflow.actions.getframesfromimage",
+      "description": "Get frames from an animated image",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "trimVideo": {
+      "identifier": "is.workflow.actions.trimvideo",
+      "description": "Trim a video clip",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getCurrentSong": {
+      "identifier": "is.workflow.actions.getcurrentsong",
+      "description": "Get the currently playing song",
+      "parameters": {}
+    },
+    "playMusic": {
+      "identifier": "is.workflow.actions.playmusic",
+      "description": "Play music",
+      "parameters": {
+        "music": {
+          "type": "variable",
+          "required": false,
+          "key": "WFMediaItems"
+        }
+      }
+    },
+    "pauseMusic": {
+      "identifier": "is.workflow.actions.pausemusic",
+      "description": "Pause or resume playback",
+      "parameters": {}
+    },
+    "skipForward": {
+      "identifier": "is.workflow.actions.skipforward",
+      "description": "Skip to the next track",
+      "parameters": {}
+    },
+    "skipBack": {
+      "identifier": "is.workflow.actions.skipback",
+      "description": "Skip to the previous track",
+      "parameters": {}
+    },
+    "addToPlaylist": {
+      "identifier": "is.workflow.actions.addtoplaylist",
+      "description": "Add a song to a playlist",
+      "parameters": {
+        "playlist": {
+          "type": "string",
+          "required": true,
+          "key": "WFPlaylistName"
+        }
+      }
+    },
+    "createPlaylist": {
+      "identifier": "is.workflow.actions.createplaylist",
+      "description": "Create a new playlist",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "key": "WFPlaylistName"
+        }
+      }
+    },
+    "addToPlayingNext": {
+      "identifier": "is.workflow.actions.addmusictoupnext",
+      "description": "Add songs to Playing Next",
+      "parameters": {}
+    },
+    "clearPlayingNext": {
+      "identifier": "is.workflow.actions.clearupnext",
+      "description": "Clear the Playing Next queue",
+      "parameters": {}
+    },
+    "findMusic": {
+      "identifier": "is.workflow.actions.filter.music",
+      "description": "Find music matching criteria",
+      "parameters": {}
+    },
+    "selectMusic": {
+      "identifier": "is.workflow.actions.explainthis",
+      "description": "Select music from library",
+      "parameters": {}
+    },
+    "addNewEvent": {
+      "identifier": "is.workflow.actions.addnewevent",
+      "description": "Add a new calendar event",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "key": "WFCalendarItemTitle"
+        },
+        "startDate": {
+          "type": "string",
+          "required": false,
+          "key": "WFCalendarItemStartDate"
+        },
+        "endDate": {
+          "type": "string",
+          "required": false,
+          "key": "WFCalendarItemEndDate"
+        },
+        "calendar": {
+          "type": "string",
+          "required": false,
+          "key": "WFCalendarItemCalendar"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "key": "WFCalendarItemLocation"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "key": "WFCalendarItemNotes"
+        }
+      }
+    },
+    "findCalendarEvents": {
+      "identifier": "is.workflow.actions.filter.calendarevents",
+      "description": "Find calendar events matching criteria",
+      "parameters": {}
+    },
+    "getUpcomingEvents": {
+      "identifier": "is.workflow.actions.getupcomingevents",
+      "description": "Get upcoming calendar events",
+      "parameters": {}
+    },
+    "showInCalendar": {
+      "identifier": "is.workflow.actions.showincalendar",
+      "description": "Show an event in Calendar",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "removeEvents": {
+      "identifier": "is.workflow.actions.removeevents",
+      "description": "Remove calendar events",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "addReminder": {
+      "identifier": "is.workflow.actions.addnewreminder",
+      "description": "Add a new reminder",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "key": "WFCalendarItemTitle"
+        },
+        "dueDate": {
+          "type": "string",
+          "required": false,
+          "key": "WFCalendarItemDueDate"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "key": "WFCalendarItemNotes"
+        },
+        "list": {
+          "type": "string",
+          "required": false,
+          "key": "WFReminderList"
+        }
+      }
+    },
+    "findReminders": {
+      "identifier": "is.workflow.actions.filter.reminders",
+      "description": "Find reminders matching criteria",
+      "parameters": {}
+    },
+    "getUpcomingReminders": {
+      "identifier": "is.workflow.actions.getupcomingreminders",
+      "description": "Get upcoming reminders",
+      "parameters": {}
+    },
+    "removeReminders": {
+      "identifier": "is.workflow.actions.removereminders",
+      "description": "Remove reminders",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "addContact": {
+      "identifier": "is.workflow.actions.addnewcontact",
+      "description": "Add a new contact",
+      "parameters": {}
+    },
+    "findContacts": {
+      "identifier": "is.workflow.actions.filter.contacts",
+      "description": "Find contacts matching criteria",
+      "parameters": {}
+    },
+    "selectContact": {
+      "identifier": "is.workflow.actions.selectcontacts",
+      "description": "Select contacts from the address book",
+      "parameters": {}
+    },
+    "getPhoneNumbers": {
+      "identifier": "is.workflow.actions.detect.phonenumber",
+      "description": "Get phone numbers from text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getEmailAddresses": {
+      "identifier": "is.workflow.actions.detect.emailaddress",
+      "description": "Get email addresses from text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getLinks": {
+      "identifier": "is.workflow.actions.detect.link",
+      "description": "Get URLs from text",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getImages": {
+      "identifier": "is.workflow.actions.detect.images",
+      "description": "Get images from input",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "getDictionary": {
+      "identifier": "is.workflow.actions.detect.dictionary",
+      "description": "Get dictionary from input",
+      "parameters": {
+        "input": {
+          "type": "variable",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "sendMessage": {
+      "identifier": "is.workflow.actions.sendmessage",
+      "description": "Send an iMessage or SMS",
+      "parameters": {
+        "message": {
+          "type": "string",
+          "required": true,
+          "key": "WFSendMessageContent"
+        },
+        "recipients": {
+          "type": "variable",
+          "required": false,
+          "key": "WFSendMessageActionRecipients"
+        }
+      }
+    },
+    "sendEmail": {
+      "identifier": "is.workflow.actions.sendemail",
+      "description": "Send an email",
+      "parameters": {
+        "to": {
+          "type": "variable",
+          "required": true,
+          "key": "WFSendEmailActionTo"
+        },
+        "subject": {
+          "type": "string",
+          "required": false,
+          "key": "WFSendEmailActionSubject"
+        },
+        "body": {
+          "type": "string",
+          "required": false,
+          "key": "WFSendEmailActionBody"
+        }
+      }
+    },
+    "call": {
+      "identifier": "com.apple.mobilephone.call",
+      "description": "Make a phone call",
+      "parameters": {}
+    },
+    "facetime": {
+      "identifier": "com.apple.facetime.facetime",
+      "description": "Start a FaceTime call",
+      "parameters": {}
+    },
+    "showInStore": {
+      "identifier": "is.workflow.actions.showinstore",
+      "description": "Show an item in the App Store or iTunes Store",
+      "parameters": {}
+    },
+    "requestPayment": {
+      "identifier": "is.workflow.actions.requestpayment",
+      "description": "Request payment via Apple Pay",
+      "parameters": {}
+    },
+    "sendPayment": {
+      "identifier": "is.workflow.actions.sendpayment",
+      "description": "Send payment via Apple Pay",
+      "parameters": {}
+    },
+    "getCurrentWeather": {
+      "identifier": "is.workflow.actions.weather.currentconditions",
+      "description": "Get current weather conditions",
+      "parameters": {}
+    },
+    "getWeatherForecast": {
+      "identifier": "is.workflow.actions.weather.forecast",
+      "description": "Get the weather forecast",
+      "parameters": {}
+    },
+    "findHealthSamples": {
+      "identifier": "is.workflow.actions.health.quantity.get",
+      "description": "Find health samples",
+      "parameters": {}
+    },
+    "logHealthSample": {
+      "identifier": "is.workflow.actions.health.quantity.log",
+      "description": "Log a health sample",
+      "parameters": {}
+    },
+    "logWorkout": {
+      "identifier": "is.workflow.actions.health.workout.log",
+      "description": "Log a workout",
+      "parameters": {}
+    },
+    "controlHome": {
+      "identifier": "is.workflow.actions.homekit.run",
+      "description": "Control HomeKit accessories",
+      "parameters": {}
+    },
+    "getHomeState": {
+      "identifier": "is.workflow.actions.homekit.getstate",
+      "description": "Get the state of a HomeKit accessory",
+      "parameters": {}
+    },
+    "runScene": {
+      "identifier": "is.workflow.actions.runscene",
+      "description": "Run a HomeKit scene",
+      "parameters": {
+        "home": {
+          "type": "string",
+          "required": false,
+          "key": "WFHomeName"
+        }
+      }
+    },
+    "createAlarm": {
+      "identifier": "is.workflow.actions.alarm.create",
+      "description": "Create a new alarm",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": false,
+          "key": "WFAlarmName"
+        },
+        "time": {
+          "type": "string",
+          "required": true,
+          "key": "WFAlarmTime"
+        }
+      }
+    },
+    "startTimer": {
+      "identifier": "is.workflow.actions.timer.start",
+      "description": "Start a timer",
+      "parameters": {
+        "duration": {
+          "type": "number",
+          "required": true,
+          "key": "WFTimerDuration"
+        }
+      }
+    },
+    "findNotes": {
+      "identifier": "is.workflow.actions.filter.notes",
+      "description": "Find notes matching criteria",
+      "parameters": {}
+    },
+    "createNote": {
+      "identifier": "is.workflow.actions.createnote",
+      "description": "Create a new note in Notes app",
+      "parameters": {
+        "body": {
+          "type": "string",
+          "required": true,
+          "key": "WFNoteBody"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "key": "WFNoteName"
+        }
+      }
+    },
+    "appendToNote": {
+      "identifier": "is.workflow.actions.appendnote",
+      "description": "Append text to an existing note",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        },
+        "note": {
+          "type": "variable",
+          "required": true,
+          "key": "WFNote"
+        }
+      }
+    },
+    "findPodcasts": {
+      "identifier": "is.workflow.actions.filter.podcasts",
+      "description": "Find podcasts",
+      "parameters": {}
+    },
+    "playPodcast": {
+      "identifier": "is.workflow.actions.playpodcast",
+      "description": "Play a podcast",
+      "parameters": {}
+    },
+    "addPDFToBooks": {
+      "identifier": "com.apple.iBooksX.openin",
+      "description": "Add a PDF to Books",
+      "parameters": {}
+    },
+    "useModel": {
+      "identifier": "is.workflow.actions.askllm",
+      "description": "Use Apple Intelligence model to process a prompt",
+      "parameters": {
+        "prompt": {
+          "type": "string",
+          "required": true,
+          "key": "WFLLMPrompt"
+        },
+        "model": {
+          "type": "enumInt",
+          "required": false,
+          "key": "WFLLMModel",
+          "values": {
+            "Apple Intelligence": 0,
+            "On-Device": 0,
+            "Private Cloud Compute": 1,
+            "ChatGPT": 2,
+            "Extension Model": 2
+          }
+        },
+        "resultType": {
+          "type": "enum",
+          "required": false,
+          "key": "WFGenerativeResultType"
+        },
+        "followUp": {
+          "type": "boolean",
+          "required": false,
+          "key": "FollowUp"
+        }
+      }
+    },
+    "summarize": {
+      "identifier": "com.apple.WritingTools.WritingToolsAppIntentsExtension.SummarizeTextIntent",
+      "description": "Summarize text using Apple Intelligence Writing Tools",
+      "parameters": {
+        "text": {
+          "type": "variable",
+          "required": true,
+          "key": "text"
+        },
+        "summaryType": {
+          "type": "enum",
+          "required": false,
+          "key": "summaryType"
+        }
+      }
+    },
+    "rewriteText": {
+      "identifier": "com.apple.WritingTools.WritingToolsAppIntentsExtension.RewriteTextIntent",
+      "description": "Rewrite text using Apple Intelligence Writing Tools (iOS 26+)",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        },
+        "tone": {
+          "type": "string",
+          "required": false,
+          "key": "WFRewriteTone"
+        }
+      }
+    },
+    "proofread": {
+      "identifier": "com.apple.WritingTools.WritingToolsAppIntentsExtension.ProofreadIntent",
+      "description": "Proofread text using Apple Intelligence Writing Tools (iOS 26+)",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "key": "WFInput"
+        }
+      }
+    },
+    "createImage": {
+      "identifier": "com.apple.shortcuts.createimage",
+      "description": "Create an image using Image Playground (iOS 26+)",
+      "parameters": {
+        "description": {
+          "type": "string",
+          "required": true,
+          "key": "WFImageDescription"
+        }
+      }
+    },
+    "selectEmailAddress": {
+      "identifier": "is.workflow.actions.selectemail",
+      "description": "Select an email address",
+      "parameters": {}
+    },
+    "selectPhoneNumber": {
+      "identifier": "is.workflow.actions.selectphone",
+      "description": "Select a phone number",
+      "parameters": {}
+    }
+  },
+  "controlFlow": {
+    "if": {
+      "identifier": "is.workflow.actions.conditional",
+      "description": "Conditional branching"
+    },
+    "repeat": {
+      "identifier": "is.workflow.actions.repeat.count",
+      "description": "Repeat a fixed number of times"
+    },
+    "repeatEach": {
+      "identifier": "is.workflow.actions.repeat.each",
+      "description": "Repeat for each item in a list"
+    },
+    "menu": {
+      "identifier": "is.workflow.actions.choosefrommenu",
+      "description": "Present a menu of choices"
+    }
+  },
+  "iconColors": {
+    "red": 4282601983,
+    "orange": 4251333119,
+    "yellow": 4249764863,
+    "green": 4292093695,
+    "teal": 431817727,
+    "lightBlue": 1440408063,
+    "blue": 463140863,
+    "darkBlue": 946986751,
+    "purple": 3679049983,
+    "pink": 3980825855,
+    "darkPink": 3989222655,
+    "gray": 255
+  }
+}

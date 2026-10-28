@@ -20,15 +20,19 @@ import {
 } from "@steward/connectors";
 import { Db } from "@steward/db";
 import { createGateway, migrations as gatewayMigrations } from "@steward/gateway";
+import { buildCatalogue, loadTenantShortcuts, type TenantShortcut } from "@steward/phone";
 import { createProactive, migrations as proactiveMigrations } from "@steward/proactive";
 import { COPILOTKIT_PATH, type MailCalendar, ROUTES, type TenantPackage } from "@steward/shared";
+import { readSigned } from "@steward/shortcuts";
 import { Hono } from "hono";
 import { BotService, botAgentSources } from "./bots/service.ts";
 import { ConfigError, DEV_PORTS, isLoopbackHost, type ServerConfig } from "./config.ts";
 import type { ProactiveServices, StewardServices } from "./context.ts";
-import { coreCatalogue, DeviceApi } from "./device/api.ts";
+import { DeviceApi } from "./device/api.ts";
+import { InstallStore } from "./device/installs.ts";
 import { createDeviceApp } from "./device/listener.ts";
 import { PhoneSettings } from "./device/phone.ts";
+import { phoneProfile } from "./device/shortcuts.ts";
 import { DeviceStore } from "./device/store.ts";
 import { onError } from "./http/errors.ts";
 import {
@@ -131,6 +135,17 @@ async function step(name: string, work: Promise<unknown> | (() => unknown), ms =
   }
 }
 
+/** The tenant's phone shortcuts. A broken file stops the start, like a broken rule does. */
+function loadTenantShortcutsOrExplain(config: ServerConfig): TenantShortcut[] {
+  try {
+    return loadTenantShortcuts(config.tenantDir);
+  } catch (err) {
+    throw new ConfigError(
+      `Couldn't load tenants/${config.tenantId}/shortcuts.yaml: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+
 function loadTenantOrExplain(config: ServerConfig): TenantPackage {
   try {
     const tenant = loadTenant(config.tenantDir);
@@ -156,6 +171,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
   try {
     db.migrate([...gatewayMigrations, ...connectorMigrations, ...proactiveMigrations, ...serverMigrations]);
     const tenant = loadTenantOrExplain(config);
+    const tenantShortcuts = loadTenantShortcutsOrExplain(config);
     const defaultAgentId = tenant.agents[0]!.id;
 
     const bus = createEventBus();
@@ -343,6 +359,8 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       // Set just below: the device API reads the services it is part of.
       deviceApi: undefined as unknown as DeviceApi,
       phoneListener,
+      phoneProfile: () => phoneProfile(services, tenantShortcuts),
+      installs: new InstallStore(),
       actorId: LOCAL_ACTOR,
       defaultAgentId,
       hasAgent,
@@ -351,9 +369,16 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       s: services,
       devices,
       phone,
-      catalogue: () => coreCatalogue(services),
+      catalogue: () => buildCatalogue(services.phoneProfile()),
     });
-    const deviceApp = createDeviceApp({ api: services.deviceApi, devices, phone });
+    const deviceApp = createDeviceApp({
+      api: services.deviceApi,
+      devices,
+      phone,
+      ...(config.deviceAccess ? { access: config.deviceAccess } : {}),
+      genericShortcut: () => readSigned("Steward.shortcut"),
+      installs: services.installs,
+    });
 
     // ── HTTP ───────────────────────────────────────────────────────────────────────────────────
 

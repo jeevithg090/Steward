@@ -98,4 +98,22 @@ test.describe("Settings → Phone", () => {
     );
     expect(serious.map((v: { id: string; help: string }) => `${v.id} (${v.help})`)).toEqual([]);
   });
+
+  test("the Shortcuts page lists the catalogue, and a skill added in the app is offered at once", async ({
+    page,
+    api,
+  }) => {
+    const name = `e2e-trip-${Date.now()}`;
+    const made = await api.post("/api/skills", {
+      data: { name, description: "Plan a trip.", instructions: "Plan it." },
+    });
+    expect(made.ok()).toBe(true);
+    await page.goto("/shortcuts");
+    await expect(page.getByRole("heading", { level: 1, name: "Shortcuts" })).toBeVisible();
+    await expect(page.getByRole("img", { name: "QR code to download the Steward shortcut" })).toBeVisible();
+    const suggested = page.getByRole("region", { name: "Suggested for you" });
+    await expect(suggested.getByRole("listitem", { name: "What needs me?" })).toBeVisible();
+    await expect(suggested.getByRole("listitem", { name: /^E2e trip/ })).toBeVisible();
+    await api.delete(`/api/skills/${(await made.json()).id}`);
+  });
 });

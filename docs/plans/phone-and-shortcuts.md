@@ -2,8 +2,13 @@
 
 **Remote control adapted from Happy, and personalised iPhone Shortcuts**
 
-Status: proposal, 27 Oct 2026. Nothing here is built yet. When it is accepted, it replaces the
-"mobile apps" line in [PLAN.md §8](../../PLAN.md#8-out-of-scope-for-v01).
+Status: proposal, 27 Oct 2026. When it is accepted, it replaces the "mobile apps" line in
+[PLAN.md §8](../../PLAN.md#8-out-of-scope-for-v01).
+
+**Built (28 Oct 2026, branch `phone`):** Phase 0 (the device port, devices, presets, Settings →
+Phone) and Phase 1 (`packages/phone`, `packages/shortcuts`, the Shortcuts page,
+[docs/phone.md](../phone.md)). Nothing has run on an iPhone yet: the device checks in §10.2 are
+written up in docs/phone.md as "to check on a device".
 
 Research behind every claim:
 

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "signedAt": "2026-10-28T13:05:26.931Z",
+  "mode": "anyone",
+  "files": {
+    "Steward.shortcut": {
+      "sha256": "f4045f0f1fe90f019221acb9fd68aaac4c139bc3cc2031efcffe237749dc7b2f",
+      "bytes": 32111,
+      "actions": 147
+    },
+    "launchers/brief.shortcut": {
+      "sha256": "6ce1ea7301347c0839b1a645aa4b87ce03f5b468aa63aa568c3f82b01ff9669a",
+      "bytes": 21785,
+      "actions": 2
+    },
+    "launchers/approvals.shortcut": {
+      "sha256": "b1119de5898ddf6e77edad37615c2875d9462cc45cfe2861379b18debad0d5fa",
+      "bytes": 21788,
+      "actions": 2
+    }
+  }
+}

@@ -290,6 +290,8 @@ export const ROUTES = {
   devicesPairing: "/api/devices/pairing", // POST PairingBody → PairingOffer
   device: "/api/devices/:id", // PATCH DevicePatchBody → Device · DELETE (revoke)
   phone: "/api/phone", // GET PhoneInfo · PUT PhoneSettingsBody → PhoneInfo
+  phoneCatalogue: "/api/phone/catalogue", // PhoneCatalogue
+  phoneShortcutInstall: "/api/phone/shortcuts/:id/install", // POST → ShortcutInstall (one-time link)
 } as const;
 
 export function route(path: string, params: Record<string, string> = {}): string {

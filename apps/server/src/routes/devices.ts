@@ -13,6 +13,7 @@ import {
 import type { Hono } from "hono";
 import type { StewardServices } from "../context.ts";
 import { detectTransports, machineName } from "../device/phone.ts";
+import { makeInstall, phoneCatalogue } from "../device/shortcuts.ts";
 import { HttpError, notFound, readBody } from "../http/errors.ts";
 
 /**
@@ -48,6 +49,17 @@ export function registerDeviceRoutes(app: Hono, s: StewardServices): void {
   });
 
   app.get(ROUTES.devices, (c) => c.json(devices.list()));
+
+  app.get(ROUTES.phoneCatalogue, (c) => c.json(phoneCatalogue(s, s.phoneProfile())));
+
+  app.post(ROUTES.phoneShortcutInstall, async (c) => {
+    const install = await makeInstall(s, c.req.param("id"), {
+      installs: s.installs,
+      profile: s.phoneProfile,
+    });
+    c.header("Cache-Control", "no-store");
+    return c.json(install, 201);
+  });
 
   app.post(ROUTES.devicesPairing, async (c) => {
     const body = await readBody(c, PairingBody);

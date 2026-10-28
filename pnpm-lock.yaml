@@ -111,12 +111,18 @@ importers:
       '@steward/gateway':
         specifier: workspace:*
         version: link:../../packages/gateway
+      '@steward/phone':
+        specifier: workspace:*
+        version: link:../../packages/phone
       '@steward/proactive':
         specifier: workspace:*
         version: link:../../packages/proactive
       '@steward/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@steward/shortcuts':
+        specifier: workspace:*
+        version: link:../../packages/shortcuts
       hono:
         specifier: 4.13.14
         version: 4.13.14
@@ -341,6 +347,18 @@ importers:
         specifier: 3.25.76
         version: 3.25.76
 
+  packages/phone:
+    dependencies:
+      '@steward/shared':
+        specifier: workspace:*
+        version: link:../shared
+      yaml:
+        specifier: 2.9.1
+        version: 2.9.1
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+
   packages/proactive:
     dependencies:
       '@steward/db':
@@ -361,6 +379,12 @@ importers:
       zod:
         specifier: 3.25.76
         version: 3.25.76
+
+  packages/shortcuts:
+    dependencies:
+      '@steward/shared':
+        specifier: workspace:*
+        version: link:../shared
 
 packages:
 

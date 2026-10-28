@@ -9,12 +9,15 @@ import {
   SHORTCUT_HEADER,
   STEWARD_SHORTCUT,
 } from "@steward/shared";
+import { shortcutHeaders } from "@steward/shortcuts";
 import { type Context, Hono, type MiddlewareHandler } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { z } from "zod";
 import { isLoopbackHost } from "../config.ts";
 import { HttpError, onError, readBody } from "../http/errors.ts";
 import { limitBody, requestHost, securityHeaders } from "../http/security.ts";
 import type { DeviceApi } from "./api.ts";
+import type { InstallStore } from "./installs.ts";
 import type { PhoneSettings } from "./phone.ts";
 import { RateLimiter } from "./rate-limit.ts";
 import { type DeviceStore, PairingError } from "./store.ts";
@@ -37,8 +40,12 @@ export interface DeviceListenerDeps {
   api: DeviceApi;
   devices: DeviceStore;
   phone: PhoneSettings;
-  /** Optional extra routes (the shortcut downloads, Phase 1). Mounted before authentication. */
-  publicRoutes?: (app: Hono<DeviceEnv>) => void;
+  /** A Cloudflare Access service token, handed to a phone in its pairing reply. */
+  access?: { clientId: string; clientSecret: string };
+  /** The generic signed Steward shortcut, when one ships with this build (no token needed). */
+  genericShortcut?: () => Uint8Array | undefined;
+  /** One-time downloads made on the Mac: personal files and launchers (no token needed). */
+  installs?: InstallStore;
   now?: () => number;
 }
 
@@ -58,6 +65,29 @@ function hostnameOf(hostHeader: string): string {
 /** Every error a phone sees carries the same words as something to say, so a shortcut can show it. */
 function deviceError(c: Context, status: ContentfulStatusCode, message: string, extra: object = {}) {
   return c.json({ error: message, ui: [{ say: message }], ...extra }, status);
+}
+
+/**
+ * Reads a device request's fields from the JSON body and the query together. A shortcut posts
+ * `{ "text": … }` and carries everything else in the address (`?answer=once`), because building
+ * JSON with other keys on a phone is fragile. Body values win, except empty ones.
+ */
+async function readDeviceBody<S extends z.ZodTypeAny>(c: Context, schema: S): Promise<z.infer<S>> {
+  const query = c.req.query();
+  if (Object.keys(query).length === 0) return readBody(c, schema);
+  const body = (await readBody(c, z.record(z.unknown()))) as Record<string, unknown>;
+  const merged: Record<string, unknown> = { ...query };
+  for (const [key, value] of Object.entries(body))
+    if (value !== "" && value !== undefined) merged[key] = value;
+  const parsed = schema.safeParse(merged);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    throw new HttpError(
+      400,
+      `${issue?.path.join(".") ? `${issue.path.join(".")}: ` : ""}${issue?.message ?? "That request is not valid."}`,
+    );
+  }
+  return parsed.data;
 }
 
 /** `steward@3` → 3 for the generic shortcut; undefined for anything else. */
@@ -134,7 +164,34 @@ export function createDeviceApp(deps: DeviceListenerDeps): Hono<DeviceEnv> {
     await next();
   });
 
-  deps.publicRoutes?.(app);
+  // The two downloads a phone makes before it has a key. The generic file holds no secret; a
+  // personal file is behind a 128-bit, ten-minute, one-time id.
+  const installMisses = new RateLimiter(30, 60_000, now);
+  app.get(DEVICE_ROUTES.shortcut, (c) => {
+    const bytes = deps.genericShortcut?.();
+    if (!bytes) {
+      return deviceError(
+        c,
+        404,
+        "This copy of Steward has no signed Steward shortcut yet. A maintainer signs it at release (docs/phone.md).",
+      );
+    }
+    return c.body(bytes as unknown as ArrayBuffer, 200, shortcutHeaders("Steward", false));
+  });
+  app.get(DEVICE_ROUTES.install, (c) => {
+    if (installMisses.blocked("all")) return deviceError(c, 429, "Too many tries. Wait a minute.");
+    const id = (c.req.param("id") ?? "").replace(/\.shortcut$/, "");
+    const file = /^[0-9a-f]{32}$/.test(id) ? deps.installs?.take(id) : undefined;
+    if (!file) {
+      installMisses.take("all");
+      return deviceError(
+        c,
+        404,
+        "That download link was used already or has expired. Make a new one on your Mac.",
+      );
+    }
+    return c.body(file.bytes as unknown as ArrayBuffer, 200, shortcutHeaders(file.name, file.personal));
+  });
 
   app.post(DEVICE_ROUTES.pair, async (c) => {
     if (pairFailures.blocked("pair")) {
@@ -161,6 +218,7 @@ export function createDeviceApp(deps: DeviceListenerDeps): Hono<DeviceEnv> {
       deviceId: device.id,
       scopes: device.scopes,
       minShortcutVersion: STEWARD_SHORTCUT.minVersion,
+      ...(deps.access ? { access: deps.access } : {}),
       ui: [{ say: "Paired. Try asking Steward what needs you." }],
     };
     c.header("Cache-Control", "no-store");
@@ -212,7 +270,7 @@ export function createDeviceApp(deps: DeviceListenerDeps): Hono<DeviceEnv> {
   both(DEVICE_ROUTES.approval, (c) => c.json(api.approval(c.get("device"), c.req.param("id") ?? "")));
 
   app.post(DEVICE_ROUTES.approvalDecide, async (c) => {
-    const body = await readBody(c, DeviceDecisionBody);
+    const body = await readDeviceBody(c, DeviceDecisionBody);
     return c.json(api.decide(c.get("device"), c.req.param("id"), body.answer, body.note));
   });
 
@@ -226,7 +284,7 @@ export function createDeviceApp(deps: DeviceListenerDeps): Hono<DeviceEnv> {
 
   app.post(DEVICE_ROUTES.say, async (c) => {
     limitRuns(c);
-    const body = await readBody(c, DeviceSayBody);
+    const body = await readDeviceBody(c, DeviceSayBody);
     return c.json(
       await api.say(c.get("device"), {
         text: body.text,
@@ -238,7 +296,7 @@ export function createDeviceApp(deps: DeviceListenerDeps): Hono<DeviceEnv> {
 
   app.post(DEVICE_ROUTES.run, async (c) => {
     limitRuns(c);
-    const body = await readBody(c, DeviceRunBody);
+    const body = await readDeviceBody(c, DeviceRunBody);
     return c.json(await api.run(c.get("device"), c.req.param("actionId"), body.text));
   });
 

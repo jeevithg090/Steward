@@ -218,9 +218,12 @@ export class DeviceApi {
       return { item, ui: [{ say: "That one was already answered." }] };
     }
     const post = route(DEVICE_ROUTES.approvalDecide, { id });
+    // The answer rides in the address too, so a shortcut only has to POST to it.
     const options = [
-      ...(item.canDecideHere ? [{ label: "Allow once", post, body: { answer: "once" } }] : []),
-      { label: "Refuse", post, body: { answer: "refuse" } },
+      ...(item.canDecideHere
+        ? [{ label: "Allow once", post: `${post}?answer=once`, body: { answer: "once" } }]
+        : []),
+      { label: "Refuse", post: `${post}?answer=refuse`, body: { answer: "refuse" } },
     ];
     return {
       item,
@@ -384,60 +387,4 @@ export class DeviceApi {
     }
     return this.say(device, { text: prompt.replace("{input}", words ?? "") });
   }
-}
-
-/** The actions every phone has, filtered later by its scopes (docs/plans/phone-and-shortcuts.md §4.3). */
-export function coreCatalogue(s: StewardServices): CatalogueEntry[] {
-  const entries: CatalogueEntry[] = [
-    {
-      id: "ask",
-      title: "Ask Steward",
-      description: "Say or type what you need; Steward answers here.",
-      siriPhrase: "Steward",
-      action: { kind: "say" },
-      scopes: ["chat"],
-      source: "core",
-    },
-    {
-      id: "brief",
-      title: "What needs me?",
-      description: "Today's brief, read aloud.",
-      siriPhrase: "Steward: What needs me?",
-      action: { kind: "brief" },
-      scopes: ["brief:read"],
-      source: "core",
-    },
-    {
-      id: "approvals",
-      title: "Needs you",
-      description: "What Steward is waiting for you to answer.",
-      siriPhrase: "Steward: Needs you",
-      action: { kind: "approvals" },
-      scopes: ["approvals:read"],
-      source: "core",
-    },
-  ];
-  for (const skill of s.proactive.skills.list()) {
-    entries.push({
-      id: `skill:${skill.name}`,
-      title: skill.name,
-      description: skill.description,
-      siriPhrase: `Steward: ${skill.name}`,
-      action: { kind: "skill", ref: skill.name },
-      scopes: ["chat"],
-      source: "skill",
-    });
-  }
-  for (const routine of s.proactive.routines.list()) {
-    entries.push({
-      id: `routine:${routine.id}`,
-      title: routine.title,
-      description: "Run this routine now.",
-      siriPhrase: `Steward: ${routine.title}`,
-      action: { kind: "routine", ref: routine.id },
-      scopes: ["routines:run"],
-      source: "routine",
-    });
-  }
-  return entries;
 }

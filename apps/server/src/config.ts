@@ -47,6 +47,11 @@ export interface ServerConfig {
   deviceHosts: string[];
   /** The address phones use (`STEWARD_DEVICE_URL`), until one is set in Settings → Phone. */
   deviceUrl?: string;
+  /**
+   * A Cloudflare Access service token for the tunnel in front of the device port
+   * (`STEWARD_DEVICE_ACCESS_CLIENT_ID` and `_SECRET`). Handed to a phone in its pairing reply.
+   */
+  deviceAccess?: { clientId: string; clientSecret: string };
   /** Origins allowed to call the API from another origin. Empty in production. */
   devOrigins: string[];
   /** Background workers: routines, the daily brief, approval expiry. Tests switch them off. */
@@ -192,6 +197,14 @@ export function loadConfig(
     deviceHost: env.STEWARD_DEVICE_HOST?.trim() || "127.0.0.1",
     deviceHosts: hostList(env.STEWARD_DEVICE_HOSTS),
     ...(env.STEWARD_DEVICE_URL?.trim() ? { deviceUrl: env.STEWARD_DEVICE_URL.trim() } : {}),
+    ...(env.STEWARD_DEVICE_ACCESS_CLIENT_ID?.trim() && env.STEWARD_DEVICE_ACCESS_CLIENT_SECRET?.trim()
+      ? {
+          deviceAccess: {
+            clientId: env.STEWARD_DEVICE_ACCESS_CLIENT_ID.trim(),
+            clientSecret: env.STEWARD_DEVICE_ACCESS_CLIENT_SECRET.trim(),
+          },
+        }
+      : {}),
     devOrigins: production ? [] : [...DEV_ORIGINS],
     workers: parseFlag(env.STEWARD_WORKERS, true),
     resumeDelayMs: 3000,

@@ -1,5 +1,6 @@
 import type { DirectoryClient } from "@steward/bots";
 import type { Db } from "@steward/db";
+import type { PhoneProfile } from "@steward/phone";
 import type {
   BriefService,
   ComputerManager,
@@ -19,6 +20,7 @@ import type {
 import type { BotService } from "./bots/service.ts";
 import type { ServerConfig } from "./config.ts";
 import type { DeviceApi } from "./device/api.ts";
+import type { InstallStore } from "./device/installs.ts";
 import type { PhoneSettings } from "./device/phone.ts";
 import type { DeviceStore } from "./device/store.ts";
 import type { SecurityOptions } from "./http/security.ts";
@@ -75,6 +77,10 @@ export interface StewardServices {
   deviceApi: DeviceApi;
   /** The device listener's port once it listens (null when switched off). */
   phoneListener: { port: number | null; running: boolean };
+  /** The person's profile as the phone catalogue reads it, made fresh on each call. */
+  phoneProfile: () => PhoneProfile;
+  /** One-time shortcut downloads, in memory. */
+  installs: InstallStore;
   /** Single-user mode: every action is the one local person's. */
   actorId: string;
   defaultAgentId: string;
