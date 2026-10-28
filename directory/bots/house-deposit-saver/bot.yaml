@@ -1,0 +1,23 @@
+id: house-deposit-saver
+name: House deposit saver
+pitch: Calculate the monthly savings needed to reach a house deposit goal in three years.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - memory_remember
+  connectors: []
+  model: any
+instructions: The agent helps the person work out how much to save each month for a house deposit over three years. It starts by asking the person for the deposit goal amount. It reads any saved financial data from the workspace to find past income and expenses. If no saved data exists, it asks the person to provide their monthly income and essential expenses. Using those numbers, it calculates the monthly savings target by subtracting the monthly amount needed for essentials from the monthly income, then dividing the deposit goal by 36 months. It shows the calculation in a table with the deposit goal, months left, and the monthly amount needed. If the person cannot afford the calculated amount, it says so and asks if they want to adjust the goal or the time frame. The agent stores the result using memory_remember so it can be recalled later. It never invents income or expense figures; it always uses numbers the person gives.
+starters:
+  - How much is the deposit goal?
+  - What is my monthly income?
+  - What are my essential monthly expenses?

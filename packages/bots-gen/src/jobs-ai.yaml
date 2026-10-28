@@ -1779,3 +1779,955 @@ privacy:
     connectors: [mail]
   - job: create a privacy-focused browser setup guide with extensions and settings
     tools: [web_search, web_fetch, make_page]
+
+bot-helpers:
+  - job: find me a bot that can read my email and flag urgent messages
+    tools: [mail_list, web_search, directory_find]
+    connectors: [mail]
+  - job: create a bot that checks my calendar every morning and tells me the weather
+    tools: [calendar_list, web_fetch, routine_create]
+    connectors: [calendar]
+  - job: write a bot that organizes my photos into folders by date
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: build a bot that summarizes the latest news from my favorite sources
+    tools: [web_search, web_fetch, make_page]
+  - job: set up a bot that backs up my important documents to a cloud folder each night
+    tools: [file_list, file_read, file_write, routine_create]
+  - job: make a bot that drafts replies to common questions in my inbox
+    tools: [mail_list, mail_read, make_page]
+    connectors: [mail]
+  - job: create a bot that tracks my daily step count from a health app
+    tools: [web_fetch, make_page]
+  - job: build a bot that converts a pdf invoice into a spreadsheet row
+    tools: [file_read, file_write, shell_run]
+  - job: set up a bot that reminds me to drink water every hour
+    tools: [routine_create, task_create]
+  - job: make a bot that monitors a website for price drops and alerts me
+    tools: [web_fetch, routine_create, mail_send]
+  - job: create a bot that logs my work hours from a timesheet file
+    tools: [file_list, file_read, file_write, task_create]
+  - job: build a bot that fetches the current stock prices I care about
+    tools: [web_search, web_fetch, make_page]
+  - job: set up a bot that organizes my downloaded files by type
+    tools: [file_list, file_read, file_write]
+  - job: make a bot that sends a birthday reminder with a link to a gift idea
+    tools: [calendar_list, web_search, mail_send]
+    connectors: [calendar]
+  - job: create a bot that checks for updates on my favorite blog and emails me the new post
+    tools: [web_fetch, mail_send, routine_create]
+  - job: build a bot that converts my voice notes into text and saves them
+    tools: [shell_run, file_write]
+  - job: set up a bot that summarizes the threads I missed while away
+    tools: [mail_list, make_page]
+    connectors: [mail]
+  - job: make a bot that finds the cheapest flight option for my dates
+    tools: [web_search, web_fetch, make_page]
+  - job: create a bot that tracks my water intake and logs it to a spreadsheet
+    tools: [file_list, file_read, file_write, task_create]
+  - job: build a bot that checks the weather forecast and suggests outfit choices
+    tools: [web_fetch, make_page]
+  - job: set up a bot that renames all my photos with the date taken
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: make a bot that pulls the latest RSS feeds I follow into a daily summary
+    tools: [web_fetch, make_page, routine_create]
+  - job: find me a bot that can translate text between any two languages I choose
+    tools: [web_search, browser_navigate, browser_snapshot]
+  - job: write a bot that scrapes the current price of a product from a store page
+    tools: [browser_navigate, browser_snapshot, browser_type]
+  - job: create a bot that monitors a specific twitter account and alerts me when it posts
+    tools: [browser_navigate, browser_snapshot, task_create]
+  - job: build a bot that checks my home security camera feed for motion and sends a snapshot
+    tools: [browser_navigate, browser_snapshot, mail_send]
+    connectors: [mail]
+  - job: make a bot that organizes my music playlist by genre and tempo
+    tools: [file_list, file_read, file_write]
+  - job: create a bot that converts a spreadsheet of dates into a calendar feed
+    tools: [file_list, file_read, calendar_create]
+    connectors: [calendar]
+  - job: build a bot that fetches the daily horoscope and posts it to my chat
+    tools: [web_search, browser_snapshot, task_create]
+  - job: make a bot that summarizes a pdf contract and highlights the key clauses
+    tools: [file_read, browser_navigate]
+  - job: create a bot that checks if my website is down and tells me why
+    tools: [browser_navigate, browser_snapshot, web_search]
+  - job: build a bot that translates a voice message into another language and sends it
+    tools: [browser_navigate, browser_snapshot, mail_send]
+    connectors: [mail]
+  - job: make a bot that finds similar products across different stores and ranks them
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: create a bot that backs up my twitter likes to a local file each week
+    tools: [browser_navigate, browser_snapshot, file_list, file_write]
+  - job: build a bot that checks the bus schedule for my route and tells me if it's late
+    tools: [browser_navigate, browser_snapshot, web_search]
+  - job: make a bot that organizes my bookmarks by topic and suggests new ones
+    tools: [file_list, file_read, web_search]
+  - job: create a bot that fetches the latest stock market movers and formats them as a table
+    tools: [web_search, show_table]
+  - job: build a bot that monitors a forum thread and notifies me of new replies
+    tools: [browser_navigate, browser_snapshot, task_create]
+  - job: make a bot that converts a youtube video link into an mp3 file
+    tools: [browser_navigate, browser_snapshot]
+  - job: create a bot that checks the ingredients of a product and flags allergens
+    tools: [browser_navigate, browser_snapshot, file_read]
+  - job: build a bot that organizes my screenshots into folders by app or game
+    tools: [file_list, file_read, file_write]
+  - job: make a bot that fetches the daily crossword puzzle and sends it to me
+    tools: [web_search, browser_snapshot, mail_send]
+    connectors: [mail]
+  - job: create a bot that tracks my electricity usage and suggests ways to save
+    tools: [browser_navigate, browser_snapshot, file_write]
+  - job: build a bot that converts a csv file into json format for my app
+    tools: [file_list, file_read, file_write]
+  - job: make a bot that checks the score of my sports team and gives me the highlights
+    tools: [web_search, browser_snapshot, task_create]
+  - job: help me write a bot that reminds me to stretch every two hours while i work
+    tools: [file_list, file_read, file_write, task_create]
+  - job: create a bot that checks my inbox for emails from my boss and marks them important
+    tools: [mail_list, mail_read, mail_send]
+    connectors: [mail]
+  - job: build a bot that reads my daily journal and suggests a summary topic for tomorrow
+    tools: [file_list, file_read, memory_remember]
+  - job: make a bot that finds my most used app categories from my phone logs and ranks them
+    tools: [file_list, file_read, shell_run]
+
+games:
+  - job: design a custom escape room with five puzzles and a story theme
+    tools: [file_list, file_read, file_write, web_search, make_page]
+  - job: create a personalized workout game that mixes exercise moves with trivia questions
+    tools: [web_search, make_page, memory_remember]
+  - job: organize a board game night with a rotating schedule for four players
+    tools: [task_create, show_table, calendar_create]
+    connectors: [calendar]
+  - job: write a choose-your-own-adventure story with three different endings
+    tools: [file_list, file_read, file_write, web_search]
+  - job: make a custom deck of playing cards with unique suits and numbers
+    tools: [file_list, file_read, file_write, web_search]
+  - job: plan a themed game night with snacks that match the game genre
+    tools: [web_search, make_page, calendar_create]
+    connectors: [calendar]
+  - job: invent a new dice game that needs only two dice and a pen and paper
+    tools: [file_list, file_read, file_write]
+  - job: find free online cooperative games I can play with a friend far away
+    tools: [web_search, browser_navigate, show_comparison]
+  - job: create a trivia game based on my favorite movies with a scoreboard
+    tools: [memory_remember, file_list, file_write, web_search]
+  - job: schedule a weekly game slot with friends and send reminders
+    tools: [calendar_create, task_create, mail_send]
+    connectors: [mail, calendar]
+  - job: generate a random tabletop scenario with a twist and random NPC names
+    tools: [file_list, file_read, file_write, web_search]
+  - job: make a printable bingo card set for a family reunion with custom prompts
+    tools: [file_list, file_read, file_write, web_search]
+  - job: design a murder mystery game with six characters and a solution sheet
+    tools: [file_list, file_read, file_write, web_search]
+  - job: write a riddle a day for a month-long scavenger hunt
+    tools: [file_list, file_read, file_write, web_search]
+  - job: compile a list of the best party games that need under ten minutes to set up
+    tools: [web_search, show_comparison, make_page]
+  - job: create a digital escape room puzzle using only text links and clues
+    tools: [file_list, file_read, file_write, web_search]
+  - job: invent a storytelling game where each player adds one sentence at a time
+    tools: [file_list, file_read, file_write]
+  - job: find the rules for an obscure game I half-remember and summarize them
+    tools: [web_search, browser_navigate, make_page]
+  - job: organize a game swap list with friends, tracking who has what
+    tools: [task_create, show_table, calendar_create]
+    connectors: [calendar]
+  - job: make a sound effects playlist for a tabletop session
+    tools: [web_search, make_page, file_list]
+  - job: design a balancing game where I stack objects virtually and track scores
+    tools: [file_list, file_read, file_write, web_search]
+  - job: create a custom trivia deck from a topic I love, with questions and answers
+    tools: [file_list, file_read, file_write, web_search]
+  - job: invent a word game where we build a story using only five-letter words
+    tools: [make_page]
+  - job: make a custom bingo game with cards that have emoji prompts instead of numbers
+    tools: [make_page, file_write]
+  - job: design a two-player card game that uses a standard deck and a sand timer
+    tools: [make_page]
+  - job: create a trivia game about famous paintings with picture clues
+    tools: [make_page]
+  - job: write a riddle for a daily hide-and-seek game in the backyard
+    tools: [make_page]
+  - job: plan a game night with icebreaker activities that take five minutes each
+    tools: [make_page, web_search]
+  - job: invent a game where players draw a shape and guess what it represents
+    tools: [make_page]
+  - job: make a printable word search puzzle with a theme I choose
+    tools: [make_page, file_write]
+  - job: create a memory matching game with cards that have animal sounds
+    tools: [make_page, file_write]
+  - job: design a game where we roll dice and answer a question about our day
+    tools: [make_page]
+  - job: make a custom deck of cards with symbols for a guessing game
+    tools: [make_page, file_write]
+  - job: write a funny game script where players act out jobs they do not have
+    tools: [make_page]
+  - job: invent a game where we use only three items from the kitchen to play
+    tools: [make_page]
+  - job: create a bingo card set for a baby shower with baby-related prompts
+    tools: [make_page, file_write]
+  - job: design a game where we guess the song from a few notes played on a keyboard
+    tools: [make_page]
+  - job: make a printable board game path with custom spaces and rules
+    tools: [make_page, file_write]
+  - job: invent a game where players tell a story using only three words per turn
+    tools: [make_page]
+  - job: create a trivia game about space with true or false questions
+    tools: [make_page]
+  - job: design a game where we stack virtual blocks and see who builds the tallest tower
+    tools: [make_page]
+  - job: write a riddle for a game where the answer is a household object
+    tools: [make_page]
+  - job: make a custom deck of cards with colors that match emotions for a game
+    tools: [make_page, file_write]
+  - job: invent a game where we use a map and find hidden treasures using clues
+    tools: [make_page]
+  - job: create a word association game where we name things in a category fast
+    tools: [make_page]
+  - job: create a printable trivia game card set about my favorite books with questions and answers
+    tools: [file_list, file_write, make_page, web_search]
+  - job: write a riddle a day for a thirty-day challenge where each answer is a household object
+    tools: [file_list, file_write, make_page]
+  - job: invent a word game where players build a story one sentence at a time using only words with three syllables
+    tools: [file_list, file_write, make_page]
+
+sports:
+  - job: find me a local running group that meets on weekends and has a beginner schedule
+    tools: [browser_navigate]
+  - job: compare the latest season stats of my two favorite players on one page
+    tools: [web_search, web_fetch]
+  - job: tell me the most likely starting lineup for my team tomorrow and why
+    tools: [web_fetch]
+  - job: find a nearby tennis court with free slots for this afternoon
+    tools: [browser_navigate]
+  - job: summarise the key talking points from yesterday's rugby matches
+    tools: [web_search, web_fetch]
+  - job: help me choose a new bike based on my budget and how I plan to use it
+    tools: [web_search, web_fetch, show_comparison]
+  - job: track my daily step count and suggest when to rest based on my history
+    tools: [file_list, file_read, shell_run]
+  - job: find a free live stream link for the championship game tonight
+    tools: [browser_navigate]
+  - job: create a weekly workout plan that mixes cardio and strength for my goal race
+    tools: [task_create, routine_create]
+  - job: list the upcoming fixtures for my league and highlight the away games
+    tools: [web_fetch]
+  - job: find the best value season ticket for my local football team this year
+    tools: [web_fetch]
+  - job: set my alarm for the game start time and silence it after the final whistle
+    tools: [calendar_create]
+  - job: find me the fastest route to the stadium on match day and suggest parking
+    tools: [browser_navigate, web_search]
+  - job: compare the price of a match day programme versus a streaming subscription for my team
+    tools: [web_search, show_comparison]
+  - job: find a sports bar near my office that shows the away team's game tonight
+    tools: [browser_navigate, web_search]
+  - job: list the last five results for my team and the goal difference in each game
+    tools: [web_search, show_table]
+  - job: summarise the latest transfer rumours for my team from yesterday's papers
+    tools: [web_search, make_page]
+  - job: find a local rock climbing gym with a day pass available this weekend
+    tools: [browser_navigate, web_search]
+  - job: tell me the weather forecast for game day and suggest what to wear
+    tools: [web_search]
+  - job: find the cheapest official away ticket for my team this season
+    tools: [browser_navigate, web_search]
+  - job: compare the features of two popular fitness watches and suggest which one fits my budget
+    tools: [web_search, show_comparison]
+  - job: find a nearby public swimming pool with lane availability for tomorrow morning
+    tools: [browser_navigate, web_search]
+  - job: list the upcoming marathons in my region and highlight the flat courses
+    tools: [web_search, show_table]
+  - job: find a local yoga class that stretches out tight muscles after a run
+    tools: [browser_navigate, web_search]
+  - job: tell me the current standings in my league and who is in the relegation zone
+    tools: [web_search, show_table]
+  - job: find a sports equipment shop that sells second hand gear near me
+    tools: [browser_navigate, web_search]
+  - job: summarise the key stats from last night's basketball highlights
+    tools: [web_search, make_page]
+  - job: find a personal trainer who specializes in sports recovery and has evening slots
+    tools: [browser_navigate, web_search]
+  - job: tell me the injury list for my team before the next game
+    tools: [web_search]
+  - job: find a local running event 5k this month and register my interest
+    tools: [browser_navigate, web_search]
+  - job: compare the pros and cons of synthetic versus natural turf for a football pitch
+    tools: [web_search, show_comparison]
+
+travel:
+  - job: find the fastest train route between two cities with transfers under an hour
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: compare rental car prices for a week including insurance and mileage limits
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search, show_comparison]
+  - job: locate a scenic rest stop with toilets and charging points on a long motorway drive
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: find a motorway service area with a budget restaurant and overnight parking
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: work out the total cost of fuel vs electric charging for my planned route
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, shell_run, web_search]
+  - job: search for carpool groups heading to a specific city on my travel date
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: find a garage with good reviews that fixes my car model near the station
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search, show_table]
+  - job: list the toll costs and vignette requirements for driving through a specific country
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: find the cheapest diesel or petrol price along my route and mark it on a map
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search, make_page]
+  - job: plan a route that avoids traffic jams and construction zones for tomorrow morning
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: translate road signs and fuel types I will see on a drive in a foreign country
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: find a parking spot near the city centre that allows overnight stay for a van
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: check the weather forecast for the next three days on my planned driving route
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: compare the cost of taking my own car vs hiring one for a two-week trip
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search, show_comparison]
+  - job: find a hotel with secure bike storage and a charging point near the train station
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: look up the rules for taking a pet in a car across a specific border
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: find the nearest charging station with a working payment terminal on my route
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: write a checklist of documents and items to take on a road trip with a toddler
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, make_page]
+  - job: compare the fuel efficiency of two similar car models I am deciding between
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search, show_comparison]
+  - job: find a scenic detour worth an extra hour of driving with photo opportunities
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: check if my car insurance covers breakdown recovery in another european country
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_scroll, web_search]
+  - job: find a hotel with a gym and free parking near the airport for an early flight
+    tools: [web_search, browser_navigate]
+  - job: compare two flight options with layovers and show total travel time
+    tools: [web_search, show_comparison]
+  - job: find a rental company that allows one-way drop-off between two cities
+    tools: [browser_navigate]
+  - job: look up the speed limit rules and camera locations for a specific motorway
+    tools: [browser_navigate]
+  - job: find a pet-friendly hotel that allows a small dog without extra charge
+    tools: [web_search, browser_navigate]
+  - job: find the nearest airport lounge with day passes available at my terminal
+    tools: [web_search, browser_navigate]
+  - job: compare train vs bus vs car cost for a weekend trip including baggage fees
+    tools: [web_search, show_comparison]
+  - job: find a campsite with electricity hookup and shower facilities near a lake
+    tools: [web_search, browser_navigate]
+  - job: look up visa requirements and vaccination advice for a trip next month
+    tools: [web_search, browser_navigate]
+  - job: find a scenic viewpoint parking area with a short walking trail
+    tools: [web_search, browser_navigate]
+  - job: "compare airport transfer options: taxi, shuttle, or public train ticket"
+    tools: [web_search, show_comparison]
+  - job: find a hotel with a kitchenette so I can store baby food
+    tools: [web_search, browser_navigate]
+  - job: look up the best time of day to drive through a specific mountain pass
+    tools: [web_search, browser_navigate]
+  - job: find a quiet coffee shop near the highway exit for a rest break
+    tools: [web_search, browser_navigate]
+  - job: compare travel insurance policies for trip cancellation coverage
+    tools: [web_search, show_comparison]
+  - job: find a hotel with a late check-out option and luggage storage
+    tools: [web_search, browser_navigate]
+  - job: look up the closest scenic route alternative to avoid a toll road
+    tools: [web_search, browser_navigate]
+  - job: find a parking garage with height restriction clearance for a high-roof van
+    tools: [web_search, browser_navigate]
+  - job: compare ferry ticket prices for a car and passengers on a specific route
+    tools: [web_search, show_comparison]
+  - job: look up the opening hours and contact number for a specific train station
+    tools: [web_search, browser_navigate]
+  - job: find a hotel with a business centre and printer access for a night before a meeting
+    tools: [web_search, browser_navigate]
+  - job: compare the cost of a rail pass vs individual tickets for multiple city hops
+    tools: [web_search, show_comparison]
+  - job: find a pet-friendly rest stop with walking area on a long motorway drive
+    tools: [web_search, browser_navigate]
+  - job: find a garage with good reviews that fixes my car model and has a loan car available while mine is being fixed
+    tools: [browser_navigate, show_table]
+  - job: compare the total cost of flying my family of four versus driving my own car including tolls and parking at the destination
+    tools: [web_search, browser_navigate, show_comparison]
+  - job: look up the train schedule and bus timetable for my travel date and tell me which is cheapest for a weekend trip
+    tools: [web_search, browser_navigate, show_comparison]
+  - job: find a parking garage with height clearance for my van near the city centre and reserve a spot
+    tools: [browser_navigate, browser_type]
+
+business:
+  - job: write a follow-up email to a potential client who went silent after our first meeting
+    tools: [mail_read, mail_send]
+    connectors: [mail]
+  - job: summarize the last three months of sales data from my spreadsheet and spot the biggest trend
+    tools: [file_read, shell_run, show_table]
+  - job: create a one-page summary of my latest blog posts to send to my newsletter list
+    tools: [mail_send, file_read, make_page]
+    connectors: [mail]
+  - job: draft a cold outreach message on LinkedIn to a prospect in my industry
+    tools: [browser_navigate, browser_type]
+  - job: analyze the tone of my recent customer replies and suggest how to sound more friendly
+    tools: [mail_read, show_comparison]
+  - job: organize my receipt photos into folders by month so I can claim tax deductions
+    tools: [file_list, file_write, shell_run]
+  - job: find five industry podcasts I could be a guest on and list their contact emails
+    tools: [web_search, browser_navigate, browser_snapshot]
+  - job: write a short thank-you note to send after a networking event
+    tools: [mail_send]
+    connectors: [mail]
+  - job: compare the features of three popular project-management tools and make a recommendation
+    tools: [web_search, show_comparison]
+  - job: draft a sponsorship proposal template I can reuse for events
+    tools: [make_page, file_write]
+  - job: set up a recurring reminder to check my ad spend every Monday morning
+    tools: [calendar_create, task_create]
+    connectors: [calendar]
+  - job: write a short about-me section for my company's 'About' page from these notes
+    tools: [make_page, file_read]
+  - job: find the best time to send my next marketing email based on past open rates
+    tools: [mail_read, show_table]
+  - job: create a checklist for onboarding a new virtual assistant
+    tools: [make_page]
+  - job: write a response to a journalist who wants a comment on industry news
+    tools: [mail_send]
+    connectors: [mail]
+  - job: research the latest trends in remote work and write a one-page brief for my team
+    tools: [web_search, make_page]
+  - job: draft a script for a short video intro I can use on my website
+    tools: [make_page, file_write]
+  - job: find and list the top five blogs in my niche that accept guest posts
+    tools: [web_search, browser_navigate]
+  - job: write a polite decline email to a vendor who is not a good fit right now
+    tools: [mail_send]
+    connectors: [mail]
+  - job: organize my contact tags in the CRM so I can segment my audience better
+    tools: [browser_navigate, file_list]
+  - job: write a quick survey for my customers to rate their experience last month
+    tools: [make_page, mail_send]
+    connectors: [mail]
+  - job: draft a thank-you note to a customer who left a positive review last week
+    tools: [mail_read, mail_send]
+  - job: write a one-page summary of the latest industry news for my team newsletter
+    tools: [web_search, browser_snapshot, make_page]
+  - job: find five local networking events happening next month and list their dates
+    tools: [browser_navigate]
+  - job: create a simple budget spreadsheet for a new marketing campaign with estimated costs
+    tools: [file_list, file_read, file_write]
+  - job: write a short script for a video testimonial from a happy client
+    tools: [make_page]
+  - job: draft a response to a vendor who missed a delivery deadline explaining the delay
+    tools: [mail_read, mail_send]
+  - job: research the top three trends in my industry this year and write a one-page brief
+    tools: [web_search, browser_snapshot, make_page]
+  - job: organize my sales calls from last quarter into a table sorted by value
+    tools: [file_list, show_table]
+  - job: write a polite email asking a busy colleague for a quick 15-minute chat
+    tools: [mail_read, mail_send]
+  - job: create a checklist for preparing a pitch deck before a investor meeting
+    tools: [make_page]
+  - job: find three case studies of businesses similar to mine that grew their audience
+    tools: [web_search, browser_snapshot]
+  - job: draft a short survey question to ask customers about their biggest challenge right now
+    tools: [make_page]
+  - job: summarize the last five emails from my most important client and list action items
+    tools: [mail_read, task_create]
+  - job: write a quick social media post to announce a new feature to my followers
+    tools: [make_page]
+  - job: find the contact information for the decision maker at a target company
+    tools: [browser_navigate]
+  - job: create a one-page timeline of my business milestones for the 'About' section
+    tools: [make_page]
+  - job: draft an email to re-engage subscribers who haven't opened recent newsletters
+    tools: [mail_read, mail_send]
+  - job: research the best free tools for creating graphics for my posts
+    tools: [web_search, browser_snapshot]
+  - job: write a response to a customer asking about a product that is temporarily out of stock
+    tools: [mail_read, mail_send]
+  - job: organize my project folders by client name so I can find files faster
+    tools: [file_list, file_write]
+  - job: create a short checklist for what to pack for a business trip
+    tools: [make_page]
+  - job: write a polite email declining a partnership proposal that isn't a fit right now
+    tools: [mail_read, mail_send]
+  - job: write a polite email to a vendor who missed a deadline explaining the impact
+    tools: [mail_send, make_page]
+  - job: find five industry news sites and list their latest headlines so I can see what's trending
+    tools: [web_search, browser_snapshot]
+  - job: write a one-page competitive analysis from my notes and the top three players in my field
+    tools: [browser_snapshot, make_page]
+  - job: draft a short video script that explains my service in under sixty seconds
+    tools: [make_page]
+  - job: find three case studies of businesses similar to mine that grew their social following and list the tactics they used
+    tools: [make_page]
+
+sales-crm:
+  - job: list all my leads that have not replied in the last month
+    tools:
+      [
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+        mail_read,
+        mail_list,
+        task_create,
+      ]
+    connectors: [mail]
+  - job: find the pricing page of three competitors and list their cheapest plan
+    tools:
+      [
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+        web_search,
+        web_fetch,
+      ]
+  - job: pull the last three deal sizes from my pipeline and calculate the average
+    tools: [file_read, shell_run, show_table]
+  - job: send a re-engagement email to every lead that went cold over ninety days ago
+    tools:
+      [
+        mail_read,
+        mail_send,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+      ]
+    connectors: [mail]
+  - job: compare my last five proposals and tell me which sections need the most edits
+    tools: [file_read, make_page, show_comparison]
+  - job: turn my last sales call recording into a follow-up email and next steps
+    tools:
+      [
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+        mail_send,
+        file_read,
+      ]
+    connectors: [mail]
+  - job: search linkedin for people who changed jobs in the last six months and might be decision makers
+    tools:
+      [
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+        web_search,
+      ]
+  - job: draft a cold email sequence for a new product launch
+    tools:
+      [
+        mail_read,
+        mail_send,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+      ]
+    connectors: [mail]
+  - job: organise my contact list by company size and industry
+    tools: [file_read, file_write, show_table, task_create]
+  - job: find the latest industry news about a topic I sell into and give me the top three takeaways
+    tools: [web_search, web_fetch, show_comparison]
+  - job: export my pipeline data into a csv file and email it to my manager
+    tools:
+      [
+        file_write,
+        mail_send,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+      ]
+    connectors: [mail]
+  - job: schedule follow-up calls with every prospect who attended my webinar last week
+    tools:
+      [
+        calendar_list,
+        calendar_create,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+      ]
+    connectors: [calendar]
+  - job: summarise the last ten emails from my best customer and highlight what they complain about most
+    tools: [mail_read, show_table, make_page]
+    connectors: [mail]
+  - job: create a one-page summary of my product for new sales reps
+    tools:
+      [
+        make_page,
+        file_read,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+      ]
+  - job: find the contact details for the top fifty companies in my target market
+    tools:
+      [
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+        web_search,
+      ]
+  - job: update my deal stages after a team meeting based on the notes I have
+    tools: [file_read, task_update, show_table]
+  - job: send a birthday message to every contact in my database this month
+    tools:
+      [
+        mail_read,
+        mail_send,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+      ]
+    connectors: [mail]
+  - job: list all my open deals that are at risk of churn and why
+    tools: [file_read, show_table, task_create]
+  - job: research a prospect's company news and add it to their note before I call
+    tools:
+      [
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+        file_write,
+      ]
+  - job: draft a contract amendment based on the changes we discussed last week
+    tools:
+      [
+        file_read,
+        make_page,
+        mail_send,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+      ]
+    connectors: [mail]
+  - job: find the best time to call a prospect by looking at their calendar availability
+    tools:
+      [
+        calendar_list,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        browser_press,
+        browser_scroll,
+        browser_back,
+      ]
+    connectors: [calendar]
+  - job: add a new lead to my crm with their name and email address
+    tools: [browser_navigate, browser_type]
+  - job: mark a deal as won in my pipeline after a signed contract
+    tools: [browser_navigate, browser_click]
+  - job: set a reminder to call a prospect on their preferred day
+    tools: [calendar_list, calendar_create]
+    connectors: [calendar]
+  - job: send a thank you email to a client after they paid an invoice
+    tools: [mail_send]
+    connectors: [mail]
+  - job: update the stage of my deal after a discovery call
+    tools: [browser_navigate, browser_click]
+  - job: find the website of a prospect's company from their business card
+    tools: [browser_navigate]
+  - job: log a missed call attempt in my crm notes
+    tools: [browser_navigate, browser_type]
+  - job: check if a lead's email address is still valid before calling
+    tools: [browser_navigate]
+  - job: export my open deals to a spreadsheet and save it to my folder
+    tools: [browser_navigate, file_write]
+  - job: add a tag to a contact when they reply to my email
+    tools: [browser_navigate, browser_click]
+  - job: move a deal to the negotiation stage when they ask for pricing
+    tools: [browser_navigate, browser_click]
+  - job: create a task to follow up on a quote sent last week
+    tools: [task_create]
+  - job: find the linkedin profile of a contact from their email domain
+    tools: [browser_navigate]
+  - job: send a renewal reminder to a client 30 days before their contract ends
+    tools: [mail_send, calendar_list]
+    connectors: [mail, calendar]
+  - job: update a contact's company name after a merger was announced
+    tools: [browser_navigate, browser_type]
+  - job: list all deals that have been stuck in the same stage for over 60 days
+    tools: [browser_navigate, show_table]
+  - job: draft a reply to a prospect who asked about pricing
+    tools: [mail_read, mail_send]
+    connectors: [mail]
+  - job: find the decision maker's name for a target account
+    tools: [browser_navigate]
+  - job: add a note to a lead after they visited my booth at a trade show
+    tools: [browser_navigate, browser_type]
+  - job: change the owner of a deal to a teammate who took over the account
+    tools: [browser_navigate, browser_click]
+  - job: update my forecast number after the team meeting
+    tools: [browser_navigate, show_comparison]
+  - job: find the url of a prospect's recent press release and add it to their file
+    tools: [browser_navigate, browser_type]
+  - job: clean up my crm contact list by removing duplicate names and filling in missing company fields
+    tools: [file_list, file_read, file_write]
+  - job: find the website of a company that fits my target market and add it to my contact list
+    tools: [browser_navigate, browser_snapshot, file_write]
+  - job: list all my open deals that have been stuck in the same stage for over two months and tell me why
+    tools: [show_table, memory_remember]
+  - job: draft a re-engagement email to a prospect who has not replied in ninety days
+    tools: [mail_read, mail_send, make_page]
+    connectors: [mail]
+
+work:
+  - job: give me feedback on my presentation slides before the client call
+    tools: [file_read, show_comparison]
+  - job: find and merge duplicate contacts in my address book
+    tools: [file_list, file_read, file_write]
+  - job: compare two versions of my resume and tell me the differences
+    tools: [file_read, show_comparison]
+  - job: draft a polite reminder to a client who has not replied
+    tools: [mail_read, mail_send]
+    connectors: [mail]
+  - job: organise my travel expenses into a spreadsheet by date
+    tools: [file_read, file_write, shell_run]
+  - job: suggest three agenda items for our team retro based on last sprint notes
+    tools: [file_read, show_table]
+  - job: help me write a respectful decline to a meeting invitation
+    tools: [mail_read, mail_send]
+    connectors: [mail]
+  - job: summarise the key points from a youtube tutorial I watched yesterday
+    tools: [browser_snapshot, make_page]
+  - job: organise my desktop screenshots into folders by project name
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: create a one-page summary of my current projects for a stakeholder update
+    tools: [file_read, make_page, show_table]
+  - job: find the last three meeting notes I wrote and list the open action items
+    tools: [file_list, file_read, show_table]
+  - job: draft a quick thank-you note to my boss for feedback
+    tools: [mail_read, mail_send]
+    connectors: [mail]
+  - job: extract the deadline dates from my recent email threads and put them in a calendar
+    tools: [mail_read, calendar_create]
+    connectors: [mail, calendar]
+  - job: organise my pdf invoices into a single searchable document
+    tools: [file_read, file_write, browser_navigate]
+  - job: suggest a quick icebreaker question for our next team meeting
+    tools: [web_search, make_page]
+  - job: help me prepare talking points for my performance review
+    tools: [file_read, show_comparison]
+  - job: find the cheapest flight option for my upcoming trip and bookmark it
+    tools: [browser_navigate, browser_snapshot]
+  - job: turn my meeting recording notes into a clean summary document
+    tools: [file_read, make_page]
+  - job: list all the recurring meetings on my calendar and flag any overlaps
+    tools: [calendar_list, show_comparison]
+    connectors: [calendar]
+  - job: draft a status update for the all-hands meeting using my recent project notes
+    tools: [file_read, make_page]
+  - job: organise my reading list of articles I saved and tag them by topic
+    tools: [file_list, file_write]
+  - job: help me write a professional LinkedIn post about a recent achievement
+    tools: [browser_navigate, make_page]
+  - job: write a draft reply to a client who wants a discount I cannot give
+    tools: [browser_navigate, browser_type]
+    connectors: [mail]
+  - job: compare two project budgets and highlight where costs differ
+    tools: [browser_navigate, show_comparison]
+  - job: turn my messy brainstorm notes into a structured project outline
+    tools: [file_read, make_page]
+  - job: organise my bookmarks into folders by project name
+    tools: [browser_navigate, file_list, file_write]
+  - job: write a short welcome message for a new client
+    tools: [browser_navigate, browser_type]
+    connectors: [mail]
+  - job: summarise the key points from a pdf report I was sent
+    tools: [file_read, make_page]
+  - job: find the email with the travel itinerary and copy the dates into my calendar
+    tools: [mail_read, calendar_create]
+    connectors: [mail, calendar]
+  - job: suggest three follow-up questions based on a recent article I read
+    tools: [browser_navigate, web_search, make_page]
+  - job: turn my voice recording from yesterday into a clean text summary
+    tools: [browser_navigate, file_read, make_page]
+  - job: organise my todo list so the most urgent items are at the top
+    tools: [task_update]
+  - job: draft a polite request to my manager for more resources
+    tools: [browser_navigate, browser_type]
+  - job: find and delete old temporary files from my downloads folder
+    tools: [file_list, shell_run]
+  - job: create a one-page summary of my team's current blockers for the director
+    tools: [file_read, make_page]
+  - job: write a quick status update for the team chat using today's work
+    tools: [browser_navigate, browser_type, make_page]
+  - job: find the email with the invoice and copy the amount into a spreadsheet
+    tools: [mail_read, file_list, file_write]
+    connectors: [mail]
+  - job: organise my desktop screenshots into folders by date
+    tools: [file_list, file_write]
+  - job: suggest three team celebration ideas after we hit our quarterly goal
+    tools: [browser_navigate, make_page]
+  - job: turn my handwritten meeting notes into a typed summary
+    tools: [browser_navigate, file_read, make_page]
+  - job: find the meeting link for tomorrow's call and copy it to my chat
+    tools: [browser_navigate, browser_type]
+  - job: write a short note to my team about a change of plans
+    tools: [browser_navigate, browser_type]
+  - job: find the policy document about remote work and email me the link
+    tools: [browser_navigate, mail_send]
+    connectors: [mail]
+  - job: summarise the decisions from last week's team retro and who owns each
+    tools: [file_read, make_page]
+  - job: organise my receipts and invoices into a single spreadsheet with date and amount columns
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: find the email with the meeting notes and copy the action items into my task list
+    tools: [mail_list, mail_read, task_create]
+    connectors: [mail]
+  - job: write a quick status update for my team using only the bullet points from today's work
+    tools: [file_read, make_page]
+  - job: suggest three agenda items for our next team meeting based on recent blockers
+    tools: [file_read, make_page]
+
+misc:
+  - job: find me a recipe for dinner using ingredients i already have in my fridge
+    tools: [web_fetch, file_list]
+  - job: compare two phone plans side by side and tell me the cheapest option
+    tools: [web_search, show_comparison]
+  - job: summarise the last seven days of my work emails into key points
+    tools: [mail_list, mail_read, brief_today]
+    connectors: [mail]
+  - job: organise my photos from last year into albums by month
+    tools: [file_list, file_read, file_write]
+  - job: help me choose a movie to watch tonight based on my mood
+    tools: [web_search, show_table]
+  - job: turn my messy handwritten notes into a clean typed document
+    tools: [file_read, file_write]
+  - job: find me the opening hours and address for the nearest pharmacy
+    tools: [web_fetch]
+  - job: compare two short term holiday rentals i am considering
+    tools: [web_search, show_comparison]
+  - job: write a polite email to my boss asking for a day off
+    tools: [mail_send]
+    connectors: [mail]
+  - job: list all my upcoming calendar events for the next month
+    tools: [calendar_list]
+    connectors: [calendar]
+  - job: find me a how-to video on fixing a leaky faucet
+    tools: [web_fetch]
+  - job: create a packing list for a three day trip to the mountains
+    tools: [task_create, file_write]
+  - job: translate a short paragraph from spanish to english for me
+    tools: [web_search]
+  - job: find me the cheapest day to fly to paris next month
+    tools: [web_fetch]
+  - job: summarise the plot of a book i am reading so i remember the main points
+    tools: [file_read]
+  - job: help me decide which used car to buy by listing pros and cons
+    tools: [show_comparison, web_search]
+  - job: write a birthday card message for my friend turning 30
+    tools: [file_write]
+  - job: find me the nearest recycling centre and what can be dropped off
+    tools: [web_fetch]
+  - job: organise my receipts from the last month into a simple list
+    tools: [file_list, file_read, file_write]
+  - job: tell me the weather forecast for my trip next weekend
+    tools: [web_search]
+  - job: create a workout routine for a beginner using only bodyweight exercises
+    tools: [routine_create, task_create]
+  - job: book a last minute doctor appointment that fits my schedule
+    tools: [browser_navigate, browser_snapshot, browser_type, browser_press, browser_scroll]
+  - job: find me a quiet cafe with free wifi and power outlets nearby
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: compare the battery life of two phone models i am considering
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll, show_comparison]
+  - job: find me a printable map of the city centre with public toilets marked
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: look up the closing time for the local library on saturday
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a recipe for a quick lunch using leftover chicken and rice
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me the phone number and opening hours for the nearest vet
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a video tutorial on how to tie a tie properly
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me the current price of a specific board game i am looking for
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a walking route to the station that avoids stairs
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me the opening hours and address for the nearest opticians
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a cheap parking spot near the city centre for the day
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a local handyman with good reviews for a small repair
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me the menu and prices for a restaurant i want to try
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a quiet spot in the park to read a book
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me the latest bus times for my route home
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a laundromat open late near my address
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a pet sitter available this weekend
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me the contact details for the nearest embassy
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a vending machine selling healthy snacks in the office
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me the current wait time at the emergency room
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me a nearby postbox to post a letter today
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me the best route to take if there is heavy traffic on the motorway
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, browser_scroll]
+  - job: find me the opening hours and phone number for the nearest post office open now
+    tools: [browser_navigate, browser_snapshot, browser_type]
+  - job: compare two phone plans side by side and tell me which has better data for the price
+    tools: [browser_navigate, browser_snapshot, browser_click, show_comparison]
+  - job: help me pick a gift under twenty dollars for a colleague I don't know well
+    tools: [web_search, browser_navigate, browser_snapshot]
+  - job: find me a walking route to the station that avoids hills and has benches to rest on
+    tools: [browser_navigate, browser_snapshot, browser_type]

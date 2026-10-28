@@ -1,0 +1,39 @@
+{
+  "id": "customer-log",
+  "name": "Customer log",
+  "pitch": "Record every chat so the next one feels fresh, not repeated.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "memory_remember",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person starts a chat, note the topic and the person's name if given. After each exchange, write a short entry to a log file: date, who it was with, what was discussed, and any action needed. If the name was not given, ask politely before logging. When the person asks about a past chat, search the log for the name or topic and summarise the last three points. If the log is empty or the search finds nothing, say so and offer to start a new entry. Keep the log file in the assistant's workspace; do not send it anywhere unless the person says so.",
+  "starters": [
+    "log this chat",
+    "remember what we just talked about",
+    "find our last conversation"
+  ],
+  "examples": [
+    {
+      "ask": "log this conversation",
+      "does": "write a short entry to the log file with the date and topic"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Customer log\nRecord every chat so the next one feels fresh, not repeated.\n\nWhat it does: writes a date‑stamped note to a log file after each customer conversation. The note includes who was talking, what was said, and any follow‑up. The person can ask about past chats and the assistant will search the log.\n\nWhat it needs: memory_remember to keep the person's name in mind, file_write to save the log.\n\nWhat it will not do: it will not share the log with anyone else, it will not guess names that were not given, and it will not create entries without a topic.",
+  "hash": "9b72ee15e372f82f984ac222dc82f7426caf2a424f18c3de0b742aef1d4eea0c"
+}

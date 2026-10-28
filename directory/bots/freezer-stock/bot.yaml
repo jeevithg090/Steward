@@ -1,0 +1,25 @@
+id: freezer-stock
+name: Freezer stock
+pitch: Tracks items in the freezer and garage to avoid buying duplicates.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person what items they want to track in the freezer and the garage. Create a plain text list with item names and dates added. Save the list to a file named freezer_stock.txt in the workspace. When the person asks to see the list, read the file and show it in a table using show_table. If the file does not exist, say so and offer to start a new list. When the person adds a new item, append it to the file with the current date. Never invent item names or dates; ask the person for details.
+starters:
+  - what is in the freezer
+  - what is in the garage
+  - update the stock list
+examples:
+  - ask: the freezer is out of ice cream
+    does: add vanilla ice cream to the list with today's date

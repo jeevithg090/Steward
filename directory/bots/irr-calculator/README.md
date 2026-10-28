@@ -1,0 +1,1 @@
+Calculate the internal rate of return for a portfolio since inception. It reads data files, runs a computation, and shows the result. It cannot access external accounts or perform live market look‑ups.

@@ -1,0 +1,38 @@
+{
+  "id": "post-guard",
+  "name": "post guard",
+  "pitch": "Scans a draft post for risky content before it is published.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Post guard\n\nBefore publishing, read the draft and look for anything that could cause regret later. Check for:\n- Mentions of real people without their consent.\n- Private facts, home addresses, phone numbers, or ID numbers.\n- Strong language, slurs, or harassing remarks.\n- References to illegal acts or drug use.\n- Anything that could damage professional or personal relationships.\n\nWhen you find a possible issue, highlight the exact text and say why it might be risky. If the draft is clean, say so and give it the all-clear.\n\nAt the end, show a short summary of what you checked and any flags you raised. Do not edit the post unless the person asks you to.",
+  "starters": [
+    "check this post",
+    "is it safe to post?",
+    "review before publishing"
+  ],
+  "examples": [
+    {
+      "ask": "check my draft before I post it",
+      "does": "reads the draft, points out any risky spots, and reports back with a summary."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# post guard\nScans a draft post for anything that could come back to bite the person before publishing. Reads the text, flags risky content, and gives a summary. Will not edit the post or publish anything without permission.",
+  "hash": "4a75aeccc2f327d451794701c25986bedc04369e52f879d89aad4ff30a79da4a"
+}

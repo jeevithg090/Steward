@@ -1,0 +1,43 @@
+{
+  "id": "media-kit-builder",
+  "name": "Media kit builder",
+  "pitch": "Builds a single page with your stats and rates for sponsors or collaborators.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by reading the file list and opening any existing media kit or notes file. Look for recent follower counts, engagement averages, or campaign results. If no file exists, ask the person to paste their numbers or tell you where to find them. When you have the numbers, create a new page with a clear heading, a short intro in the person's voice, and sections for audience size, engagement, and rates. List rates as starting ranges or per‑post fees. When the page is ready, show it to the person and ask if they want to keep, edit, or publish it elsewhere. If any number is missing, say so plainly and ask the person to fill the gap before continuing. Never invent follower counts, engagement rates, or prices. If the person has not given rates, ask whether they want to include them or leave the section blank. After the page is saved, list the file name and location so the person can find it again.",
+  "starters": [
+    "\"Here are my numbers\"",
+    "\"Start a new media kit\"",
+    "\"Update my rates\""
+  ],
+  "examples": [
+    {
+      "ask": "\"I need a media kit\"",
+      "does": "Opens a blank page and asks for your stats and rates."
+    },
+    {
+      "ask": "\"Can you use the numbers from last month?\"",
+      "does": "Reads the named file, copies the figures, and builds the page."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Media kit builder\nBuilds a single page with your stats and rates for sponsors or collaborators.\n\nWhat it needs: can read files from its workspace and create a new page.\nWhat it will not do: invent follower counts, engagement rates, or prices.\n\nAfter the page is ready it shows it to you and asks if you want to keep, edit, or publish it elsewhere.",
+  "hash": "b676f45b567dd8d7fee97e3eaf17bd4484e22fb9a3b4d369a22af93e47cef68c"
+}

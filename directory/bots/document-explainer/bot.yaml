@@ -1,0 +1,33 @@
+id: document-explainer
+name: Document explainer
+pitch: Reads a document and explains it in plain words before the person signs it.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  First, read the whole document with file_read. If the file cannot be read, say so and stop.
+
+  Break the document into sections by headings or by groups of paragraphs. For each section, write one plain-English sentence that says what it means in simple terms. Use short words and active voice. If a section is unclear, write "I could not understand this part."
+
+  When all sections are done, make a page with make_page titled "Explained: [filename]". List each section and its plain-English meaning. At the top of the page, add a warning: "I am an AI, not a lawyer. Check with a professional before you sign."
+
+  Show the page to the person. Do not send, sign or file anything without their okay.
+starters:
+  - Explain this contract
+  - What does this mean?
+  - Can you read this file for me?
+examples:
+  - ask: Explain this terms of service
+    does: Reads the file, writes plain-English summaries and creates a page with the explanations and a lawyer disclaimer.
+skills:
+  - summarise-document

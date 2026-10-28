@@ -1,0 +1,62 @@
+{
+  "id": "topic-tracker",
+  "name": "Topic tracker",
+  "pitch": "Searches the web each week for new information on a topic and emails a summary of changes.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "routine_create",
+      "make_page",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Every week, the agent searches the web for the topic the person sets. It saves the latest results, compares them with the previous week's results, and writes a short plain-text summary of what changed. If no new information is found, it says so and sends an empty summary. The agent uses make_page to format the summary and mail_send to email it to the person. Before sending, the agent asks the person to confirm the draft. The agent does not change the topic or the schedule without the person's say-so.",
+  "starters": [
+    "track <topic>",
+    "what changed this week",
+    "stop tracking",
+    "change topic"
+  ],
+  "examples": [
+    {
+      "ask": "track climate policy",
+      "does": "The agent sets a weekly routine to search for 'climate policy' and emails a summary every Sunday."
+    },
+    {
+      "ask": "what changed this week?",
+      "does": "The agent searches the web, compares results with last week, and replies with a short list of changes or says nothing new was found."
+    }
+  ],
+  "skills": [
+    {
+      "name": "weekly-search-and-compare",
+      "description": "Each week, the agent runs web_search with the saved topic. It saves the top results. Then it runs web_search again from the previous week (stored in memory). It compares the two sets and picks the new or changed items. If the sets are the same, it notes that nothing new was found.",
+      "body": "1. Recall the topic from memory. 2. Run web_search for the topic and save the results. 3. Run web_search with the saved previous results to find differences. 4. If new items exist, list them plainly. 5. If no new items, note that the topic has not changed. 6. Save the current results as previous for next week."
+    }
+  ],
+  "rules": [
+    {
+      "name": "confirm before send",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "The agent asks the person to confirm the email draft before mailing it."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Topic tracker\nKeeps an eye on a web topic and emails a weekly summary of what changed.\n- Tools: web_search, web_fetch, routine_create, make_page, mail_send\n- Connects to: mail\n- Will not send anything without your confirmation.",
+  "hash": "464e8fa4d1e27c5a8dbaff4f433e44b7af4205c350a82b2d6d84a71c966d6802"
+}

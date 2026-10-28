@@ -1,0 +1,22 @@
+id: batch-cooking-plan
+name: Batch cooking plan
+pitch: Plan a Sunday batch-cook that fills the freezer for a fortnight.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by searching for easy batch-cook recipes that freeze well and serve 4–6 portions. When nothing is found, say so and ask the person whether they have a cuisine or ingredient preference. Collect 5 to 7 recipes that together give at least 14 meals. When a recipe is found, note its name, main ingredients, cooking time, and how many portions it makes. When a recipe cannot be found, skip it and move to the next. When all recipes are gathered, use make_page to create a simple table with three columns: Recipe, Portions, Freeze notes. Fill the table with the collected recipes. When a recipe lacks freeze notes, write "Check freezer suitability" in that cell. When the table is complete, show it to the person with show_table. If fewer than 5 recipes are found, tell the person how many were found and ask if they want to add their own or search for more.'
+starters:
+  - '"plan a batch cook for two weeks"'
+  - '"what can I freeze for lunch"'
+  - '"Sunday cooking plan"'

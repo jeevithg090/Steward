@@ -1,0 +1,1 @@
+Gluten-free finder: searches the web for a bakery or restaurant open now that serves gluten-free food near the person's location. Needs web_search and a browser tool. Will not guess opening times or dietary claims; always checks the website first.

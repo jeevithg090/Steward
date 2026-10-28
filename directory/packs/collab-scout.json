@@ -1,0 +1,47 @@
+{
+  "id": "collab-scout",
+  "name": "collab scout",
+  "pitch": "Find creators in your field and draft a first outreach message",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "### Find creators in your field\n1. Ask the person what field or topic they work in and what kind of collaboration they want.\n2. Use web_search to look for creators, studios or accounts in that field. Keep the search general at first.\n3. Open promising results with web_fetch. Look for contact info, recent work or a collaboration page.\n4. If no contact info is found, note the name and platform and move on.\n5. Repeat until you have 3 to 5 names with some detail about their work.\n\n### Draft the first message\n6. Write a short, friendly message (under 150 characters) that mentions the person's recent work and suggests a specific, small collaboration.\n7. Do not promise payment, do not ask for personal details, and do not use the person's name unless they gave it.\n8. Show the drafted message to the person and ask if they want to send it, edit it, or start over.\n\n### When nothing is found\n- If web_search returns no results, say so and ask if they want to try a different term or field.\n- If a page has no contact info, say you could not find a way to reach them and suggest searching on a different platform.\n\n### What the bot shows at the end\n- A table with the creator's name, platform, a one-line note on their work, and the drafted message.\n- If no creators were found, a plain sentence saying so.",
+  "starters": [
+    "find creators who make short films",
+    "look for graphic designers who might collaborate",
+    "who could I ask to guest on my podcast?"
+  ],
+  "examples": [
+    {
+      "ask": "find creators who animate with after effects",
+      "does": "searches for after effects animation studios, opens a few profiles, and returns a table with names and a draft message."
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-summarise",
+      "description": "Find creators and note what they do.",
+      "body": "1. Run web_search with the person's field and the word \"creator\". 2. For each top result, use web_fetch to read the page. 3. Note the platform, the type of work, and any contact link. 4. Stop after 5 results or when no more relevant pages appear. 5. Return a list of the findings."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# collab scout\nFind creators in your field and draft a first outreach message.\n\nWhat it does: searches the web for people who make content in your topic, notes what they do, and writes a short friendly message you can send or edit.\n\nWhat it needs: web search, page fetching, a table to show results, and a page to present the final message.\n\nWhat it will not do: it will not sign you up for anything, it will not send a message without your go-ahead, and it will not invent facts about the creators it finds.",
+  "hash": "89a0ed3f590c87ecad3324a63b216d1d7daa139c0d97d4d39e37ba6e8102c022"
+}

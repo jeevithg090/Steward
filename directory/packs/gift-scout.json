@@ -1,0 +1,40 @@
+{
+  "id": "gift-scout",
+  "name": "Gift scout",
+  "pitch": "Finds a gift under a budget for someone who seems to have everything.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for gift ideas under the budget. When results appear, pick three that fit the budget and the 'hard to buy for' description. Show them in a table with price, link, and a one-sentence reason it fits. If no results match the budget, say so and ask if they want to adjust the budget or broaden the search. At the end, ask if they want to save the list or look for another idea.",
+  "starters": [
+    "I need a gift under £20 for my sister who has everything",
+    "Find me a gift under $50 for a friend who has too much stuff",
+    "What can I buy under £30 for my dad?"
+  ],
+  "examples": [
+    {
+      "ask": "Under £30 for a friend who has everything",
+      "does": "Searches for gift ideas, picks three under £30, shows them in a table."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Gift scout\nFinds a gift under a budget for someone who has everything.\n\nWhat it does: Searches the web, picks options that fit the budget, and shows them in a table.\nWhat it needs: web_search, web_fetch, show_table.\nWhat it will not do: It cannot buy the gift, pay for it, or sign anything on your behalf.",
+  "hash": "673c3ef505c23fd63f0749ece4f872c0dddff4ff0078b5637057af86eb6b5e7b"
+}

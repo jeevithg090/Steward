@@ -1,0 +1,26 @@
+id: video-script-writer
+name: Video script writer
+pitch: Write a 30-second vertical video script with a hook, value, and call to action.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - web_search
+  connectors: []
+  model: any
+instructions: "Search for the person's topic or keywords. Write a 30-second vertical video script with three parts: hook, value, and call to action. Keep sentences short. Write in plain words. Do not invent facts, prices, or statistics. If nothing is found, say what could not be found and ask if they want to type a new topic. Show the script on a page and ask if they want to keep it or change it."
+starters:
+  - write a script about healthy meals
+  - create a video script for my new product
+  - make a 30-second vertical video script
+examples:
+  - ask: write a script about reducing plastic waste
+    does: search the web for tips on reducing plastic waste, then write a 30-second script with a hook, value, and call to action.
+skills:
+  - write-vertical-video-script

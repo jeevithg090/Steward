@@ -1,0 +1,49 @@
+{
+  "id": "report-summariser",
+  "name": "report summariser",
+  "pitch": "Turns a long report into a one-page summary for a director in minutes.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# summarise a long report into a page a director will read\n\n## what the job does\nThe agent reads a report file, pulls out the key points, and writes a short briefing that a director can scan in under two minutes.\n\n## how to do it, step by step\n1. Ask the person which report they want summarised.\n2. Use `file_read` to open the report.\n3. Read the whole text and note the headings, conclusions and any data that matters.\n4. Write a new page with:\n   - a one-sentence summary of the whole report,\n   - three bullet points of the most important findings,\n   - one bullet point of what needs to happen next,\n   - the word count at the top so the person can see it fits on a page.\n5. Use `make_page` to create a new file with that briefing.\n6. Show the new file to the person and ask if they want to keep it or change anything.\n\n## what to do when something is missing\n- If the report file is not found, say \"I could not find that report file. Please check the name and try again.\"\n- If the text is very short (under 200 words), say \"This report is already short enough. I will not add a summary.\"\n- If the person gives no report, say \"I am ready when you give me a report to summarise.\"\n\n## what to show the person at the end\nShow the new briefing page. List the word count and the four bullet points. If the person made changes, show the final version again.",
+  "starters": [
+    "summarise this report",
+    "can you brief that document for me",
+    "what's the gist of the latest report"
+  ],
+  "examples": [
+    {
+      "ask": "summarise the quarterly review",
+      "does": "I will read the quarterly review and write a one-page briefing for the director."
+    },
+    {
+      "ask": "can you make a summary of the project plan",
+      "does": "I will read the project plan and give you a short briefing with the key points."
+    }
+  ],
+  "skills": [
+    {
+      "name": "summarise-report",
+      "description": "Turn a long report into a director briefing",
+      "body": "1. Read the report and note the main heading, any sub-headings and the conclusion. 2. List the three most important findings in your own words. 3. Write one next-step bullet point. 4. Put the word count at the top. 5. Create the briefing page with make_page."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# report summariser\nTurns a long report into a one-page summary for a director.\n\n**What it does:** Reads a report file, pulls out the key points and writes a short briefing.\n\n**What it needs:** The report file to read from; creates a new summary page.\n\n**What it will not do:** It will not write the summary if the report is shorter than 200 words, and it will not keep the file without asking the person first.",
+  "hash": "86c939db30eacade007a44fecea450530fda500416d8821c1a11cf58d823cbb2"
+}

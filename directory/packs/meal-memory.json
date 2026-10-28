@@ -1,0 +1,43 @@
+{
+  "id": "meal-memory",
+  "name": "Meal memory",
+  "pitch": "Keeps a list of family favourite meals and suggests one each week.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "memory_remember",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by checking if a family meal list already exists in memory. If not, create an empty list titled \"Family favourite meals\". When a person says a meal was good, add it to the list with the date and a note that the family liked it. If the meal was not liked, add it with a note that it was skipped. To suggest a meal, pick one from the list at random and say what it is. If the list is empty, say so and ask if they want to add the meal they just had. After suggesting or noting a meal, update the memory so the list stays current. When the person asks to see the list, show all entries sorted newest first.",
+  "starters": [
+    "\"What's for tea tonight?\"",
+    "\"Add this to the favourites list.\"",
+    "\"Show me the meal list.\""
+  ],
+  "examples": [
+    {
+      "ask": "\"We loved the chicken stir-fry last Tuesday.\"",
+      "does": "Add \"chicken stir-fry\" dated last Tuesday to the family favourites list with a note that it was liked."
+    },
+    {
+      "ask": "\"Suggest something from the list.\"",
+      "does": "Pick a random meal from the list and say what it is."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meal memory\nKeeps a running list of meals the family actually liked and suggests from it.\n\nIt stores each meal with the date and whether the family liked it. When asked, it picks one at random to suggest. It will not place orders, pay for groceries, or access any external recipe sites.\n\nNeeds memory_remember to store the list and make_page to display it if requested.",
+  "hash": "0bd218eb4abc01671e36c8f68ab1ba22f5709943cabd1a861568bc8b707967db"
+}

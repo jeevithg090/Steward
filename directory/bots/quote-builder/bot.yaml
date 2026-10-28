@@ -1,0 +1,25 @@
+id: quote-builder
+name: Quote builder
+pitch: Build a formatted quote from line items and save it as a page.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Read the line items from a text or markdown file. Ask the person for the quote number, date and client name if not in the file. Use make_page to create a new page with a heading, the quote number, date and client name. Add a table with the line items using show_table. Show the finished quote to the person and ask if they want to save it or make changes.
+starters:
+  - build a quote from these line items
+  - format a quote for client
+  - create a quote page
+examples:
+  - ask: the person gives the file and quote details
+    does: the bot reads the file and builds the quote page

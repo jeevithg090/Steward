@@ -1,0 +1,43 @@
+{
+  "id": "demo-scheduler",
+  "name": "Demo scheduler",
+  "pitch": "Arranges a meeting with a prospect at a time they have already offered",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "calendar_list",
+      "calendar_create"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Find the most recent email from the prospect. Read it to identify the date and time they offered for a demo. Open the calendar and check if that slot is free. If the slot is free, create a calendar event for the demo at that time. If the slot is taken, reply to the email proposing the next available slot. If no date or time is mentioned in the email, ask the prospect for their availability. After creating the event, send a confirmation email to the prospect with the meeting details. Do not send any email or create any event until the person agrees to the proposal.",
+  "starters": [
+    "schedule a demo",
+    "set up a meeting",
+    "book a call"
+  ],
+  "examples": [
+    {
+      "ask": "schedule a demo with jane from acme",
+      "does": "find jane's email, check her offered time, and book the slot if free"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Demo scheduler arranges a meeting with a prospect at a time they have already offered. It reads the person's mail and calendar, finds the offered slot, and books it or proposes alternatives. It will ask before sending any email or creating any calendar event.",
+  "hash": "0d1c4f9d32460cf1e4930bca114cc8bc1a9ee352beca642d3534031116f65d7c"
+}

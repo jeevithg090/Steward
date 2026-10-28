@@ -1,0 +1,40 @@
+{
+  "id": "irr-calculator",
+  "name": "IRR calculator",
+  "pitch": "Calculate the internal rate of return for a portfolio since inception.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "shell_run",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the internal rate of return for a portfolio since inception. Begin by listing the files in the workspace to locate the portfolio data file. If no data file is found, ask the person for the file path or a summary of cash flows. Read the portfolio data file. If the file cannot be read, say so and ask the person to check the file or provide the data. Use the shell_run tool to run a command that computes the IRR from the cash‑flow data. If the command fails or returns no result, say that the IRR could not be calculated and ask the person to verify the data format. When the calculation succeeds, show the IRR percentage and the cash‑flow summary in a table. If the table cannot be generated, show the IRR as plain text.",
+  "starters": [
+    "calculate IRR",
+    "show my portfolio return",
+    "what is my IRR"
+  ],
+  "examples": [
+    {
+      "ask": "calculate IRR",
+      "does": "list workspace files, read the portfolio data, compute IRR with a shell command, and display the result in a table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Calculate the internal rate of return for a portfolio since inception. It reads data files, runs a computation, and shows the result. It cannot access external accounts or perform live market look‑ups.",
+  "hash": "efca6cb3620534f2e3ca8c6432644b7cef86a496a487b4eb261bfe264ecbeddd"
+}

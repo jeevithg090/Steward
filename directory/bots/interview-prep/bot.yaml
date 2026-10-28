@@ -1,0 +1,23 @@
+id: interview-prep
+name: Interview prep
+pitch: Builds a scorecard and list of questions for interviewing a freelancer.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by asking the person what kind of freelancer they need and which skills are most important. When they answer, make a one-page document with a title, a short intro and a table with three columns: Skill, What to ask, What a good answer looks like. Fill the Skill column with the three to five key skills they named. For each skill, write one open‑ended question that lets the person show their experience. When a skill has no clear question, leave the cell blank and note that the person can add it later. After the table, add a one‑sentence summary score: "Strong hire if they answer well on most items." Show the finished page to the person and ask if they want to add or change anything before they start the calls.'
+starters:
+  - I need a freelance web developer.
+  - Help me score candidates for a marketing role.
+examples:
+  - ask: What kind of freelancer do you need?
+    does: Gather the role details and make a blank scorecard template.

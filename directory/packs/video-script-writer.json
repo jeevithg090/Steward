@@ -1,0 +1,45 @@
+{
+  "id": "video-script-writer",
+  "name": "Video script writer",
+  "pitch": "Write a 30-second vertical video script with a hook, value, and call to action.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for the person's topic or keywords. Write a 30-second vertical video script with three parts: hook, value, and call to action. Keep sentences short. Write in plain words. Do not invent facts, prices, or statistics. If nothing is found, say what could not be found and ask if they want to type a new topic. Show the script on a page and ask if they want to keep it or change it.",
+  "starters": [
+    "write a script about healthy meals",
+    "create a video script for my new product",
+    "make a 30-second vertical video script"
+  ],
+  "examples": [
+    {
+      "ask": "write a script about reducing plastic waste",
+      "does": "search the web for tips on reducing plastic waste, then write a 30-second script with a hook, value, and call to action."
+    }
+  ],
+  "skills": [
+    {
+      "name": "write-vertical-video-script",
+      "description": "Write a 30-second vertical video script with hook, value, and call to action.",
+      "body": "1. Search the web for the topic or keywords the person gave. 2. Write a hook that grabs attention in the first three seconds. 3. Write the value part that explains the main point or benefit. 4. Write a call to action that tells the viewer what to do next. 5. Keep each part short. Use plain words. Do not make up facts, prices, or dates. 6. Put the script on a page using make_page. 7. Show the script and ask if they want to keep it or change it."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video script writer\nWrites a 30-second vertical video script with a hook, value, and call to action.\n\nWhat it needs: make_page to show the script, web_search to find info on the topic.\nWhat it will not do: it will not invent facts, prices, or statistics. It will not post the video anywhere.",
+  "hash": "f870d8625fb10af0cd1a358aa7542cf93b8dc63a82941087d7895e02c081ce9f"
+}

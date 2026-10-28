@@ -1,0 +1,51 @@
+{
+  "id": "concept-mapper",
+  "name": "Concept mapper",
+  "pitch": "Build a visual concept map showing how ideas connect across uploaded papers.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent builds a concept map from the person's papers. It starts by reading every file in the workspace to collect all headings and key terms. It groups ideas that appear in more than one paper as connections. It places each paper's main idea as a node, then draws lines between nodes that share terms. When a paper has no headings, it uses the first paragraph as the node label. When no shared terms are found, it says so and offers to show a table of all headings instead. At the end it shows the map as a markdown diagram and lists every node and its connections in a table the person can copy.",
+  "starters": [
+    "upload papers for a concept map",
+    "show me how ideas connect across these files"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "extract-ideas",
+      "description": "Pull headings and key terms from each paper.",
+      "body": "1. List all files in the workspace with file_list. 2. For each file, read the content with file_read. 3. Identify headings (lines starting with # or ##) and the first paragraph if no headings exist. 4. Pull significant nouns and terms from those sections. 5. Record which paper each term came from. 6. Output a table with columns: paper, headings, key terms."
+    },
+    {
+      "name": "build-connections",
+      "description": "Link ideas that appear in multiple papers.",
+      "body": "1. Compare the key terms table across all papers. 2. For every term that appears in two or more papers, create a connection between those paper nodes. 3. Store each connection as a pair of paper names. 4. If no term is shared, note that no connections were found and offer the heading table instead."
+    },
+    {
+      "name": "render-map",
+      "description": "Show the concept map as markdown and a copyable table.",
+      "body": "1. Write a markdown diagram using the plantuml syntax: start with \"graph ConceptMap\"; for each paper node add \"PaperName\"; for each connection add \"PaperName1 -- PaperName2\"; end the diagram block. 2. Below the diagram, make a table with two columns: Node and Connections. 3. List every paper as a node and the papers it connects to. 4. If no connections exist, show a plain text summary of all headings instead."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Concept mapper\n\nBuild a visual concept map showing how ideas connect across uploaded papers.\n\n**What it needs:** The agent reads files from your workspace, writes a markdown diagram and a table, and nothing is sent or paid.\n\n**What it will not do:** It will not guess citations, invent connections, or open external sites. If no shared terms are found it will offer a table of all headings instead.",
+  "hash": "04cbad8e5bd470f9bbc210814f46bb1918ed6d416e4e00c1d1e470f404e31b0a"
+}

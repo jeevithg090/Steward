@@ -1,0 +1,44 @@
+{
+  "id": "etf-expense-comparator",
+  "name": "ETF expense comparator",
+  "pitch": "Find three similar ETFs and show their total expense ratios side by side.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for three ETFs that track the same index or asset class. Open one result and look for the total expense ratio. Repeat for the other two. If a ratio cannot be found, note that it is missing. Collect the three ratios and any relevant fund names. Use show_comparison to display them side by side. If fewer than three ratios are found, tell the person how many were located and what is missing. Do not guess or invent expense ratios.",
+  "starters": [
+    "find three similar etfs",
+    "compare expense ratios",
+    "show me the costs"
+  ],
+  "examples": [
+    {
+      "ask": "compare the cost of two etfs",
+      "does": "search for two etfs that track the same index, fetch their expense ratios, and display them side by side"
+    },
+    {
+      "ask": "what are the cheapest etfs",
+      "does": "search for etfs with low total expense ratios, list the three with the lowest ratios, and show them in a comparison table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# ETF expense comparator\n\nFind three similar exchange-traded funds and show their total expense ratios side by side. Use web search to locate the funds, fetch the cost data from each page, and display the results in a comparison table. If a ratio cannot be found, note that it is missing rather than inventing a figure.\n\n**What it needs:** web_search, web_fetch, show_comparison\n**Will not do:** guess missing expense ratios or recommend which fund to buy",
+  "hash": "a46a4d4cb8ad842fb20e11e45c7b9f53e2285087765b3ea604ef70ad8a9ae63f"
+}

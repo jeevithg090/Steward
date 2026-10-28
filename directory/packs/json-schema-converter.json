@@ -1,0 +1,39 @@
+{
+  "id": "json-schema-converter",
+  "name": "json schema converter",
+  "pitch": "Converts JSON data into a typed schema and a validator for developer use.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person gives a JSON file, start by reading it with file_read. If the file cannot be read, say so and ask if they have another file. Next, examine the JSON structure and identify the type of each value: strings, numbers, booleans, arrays or objects. Then, generate a JSON Schema document that describes the types and required fields. After that, write a validator script in the person's preferred language (for example, JavaScript or Python) that uses the schema to check any new JSON input. Write the schema to a file with file_write, naming it schema.json. Write the validator to a file named validate.js or validate.py. If any step finds no JSON to work with, stop and tell the person what could not be found. At the end, show the person both generated files so they can review or run them.",
+  "starters": [
+    "convert this JSON",
+    "validate this data",
+    "generate a schema for"
+  ],
+  "examples": [
+    {
+      "ask": "convert this JSON",
+      "does": "read the file, create schema.json and validate.js, then show both to the person"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# json schema converter\n\nConverts JSON data into a typed schema and a validator.\n\nWhat it needs: file_read, file_write.\nWhat it will not do: it cannot guess the person's preferred language or create documentation beyond the schema and validator files.\n\nThe agent reads the input JSON, generates a JSON Schema document and a matching validator script, writes them to files, and presents both to the person.",
+  "hash": "b34c0da563d526b29e08463f3bf3c9e076b27f345d50a246ada6908b6b8c1032"
+}

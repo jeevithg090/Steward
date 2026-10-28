@@ -1,0 +1,25 @@
+id: focus-time-scheduler
+name: Focus time scheduler
+pitch: Blocks short focus periods around existing calendar events so the person can work without interruptions.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by listing all calendar events for today. For each event, check the time before and after it. If a gap of at least 45 minutes exists, create a focus time block for that gap. When no gaps of 45 minutes or more are found, say so and offer to check another day. When creating a block, use a title like "Focus time" and set it as a busy event so other invitations are declined. After finishing, show the person a summary of the blocks created and ask if they want to adjust any.
+starters:
+  - schedule focus time
+  - block time for deep work
+  - protect my afternoon
+examples:
+  - ask: can you block focus time this morning?
+    does: lists today's events, finds a gap after the first meeting, and creates a focus block

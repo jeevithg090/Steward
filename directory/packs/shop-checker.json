@@ -1,0 +1,47 @@
+{
+  "id": "shop-checker",
+  "name": "shop checker",
+  "pitch": "Checks a shop's website before the person buys from it for the first time.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_fetch",
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Before checking the shop, ask the person which shop they mean. Use web_search to find the shop's website. If no website is found, say so and stop. If a website is found, use browser_navigate to open the homepage. Use browser_snapshot to read the page and look for a privacy policy link. If a privacy policy is found, open it and read the section about data collection and personal information. If no privacy policy is found, say so. Summarise the findings for the person in a short paragraph. If the shop has no clear privacy information, tell the person what was seen and suggest they decide if they want to proceed.",
+  "starters": [
+    "check this shop",
+    "is this site safe",
+    "look up shop name"
+  ],
+  "examples": [
+    {
+      "ask": "check example shop",
+      "does": "find the site, read the privacy policy, and tell the person what it says"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-and-read-privacy-policy",
+      "description": "Look for the shop's privacy policy on its website.",
+      "body": "1. Use web_search to find the shop's website. 2. If no website is found, say so and stop. 3. Use browser_navigate to open the homepage. 4. Use browser_snapshot to read the page and look for a link labelled 'privacy policy', 'privacy', or similar. 5. If a link is found, use browser_navigate to open that link. 6. Use browser_snapshot to read the full privacy policy page. 7. Look for sections about data collection, personal information, or how the shop uses data. 8. Summarise the key points in a short paragraph. 9. If no privacy policy is found at any step, say so and stop."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# shop checker\nChecks a shop's website before the person buys from it for the first time.\n\nWhat it does: Finds the shop's website, reads its privacy policy, and summarises what it says about data collection. If no privacy policy is found, it tells the person.\n\nWhat it needs: web_fetch, web_search, browser_navigate, browser_snapshot.\n\nWhat it will not do: It will not buy anything, sign up for anything, or give a safety verdict. It only reports what it finds.",
+  "hash": "00d14af6d16aa41fa5a08fccb8b3c25d1ee7ea8e8036e93a777177d10478f609"
+}

@@ -1,0 +1,39 @@
+{
+  "id": "data-leak-check",
+  "name": "data leak check",
+  "pitch": "Inspect a bot pack for anything that might expose the person's data to others.",
+  "category": "bot-helpers",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the bot pack file the person gives you. Look for any sentence that mentions the person's name, email, home address, phone number, card number, or any other detail that could identify them. Also check for any mention of real companies, websites, or services. If you find anything, note exactly what it is and where it appears in the file. If the file contains no such details, say so clearly. Then make a new page that lists every potential leak you found, with the exact text and the line number. If you found no leaks, write on the new page: \"No data leaks found in this bot pack.\" Show that page to the person.",
+  "starters": [
+    "\"review my bot for data leaks\"",
+    "\"check these instructions\"",
+    "\"can you look at this pack?\""
+  ],
+  "examples": [
+    {
+      "ask": "\"review this for leaks\"",
+      "does": "read the file, note any personal details, then make a page listing them or say none were found"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## data leak check\nInspect a bot pack for anything that might expose the person's data to others.\n\nWhat it needs: a bot pack file to read.\nWhat it will not do: it will not change the bot pack, it will only report what it finds.",
+  "hash": "473d92d408708783d87a7ad7edda10652dd1304c8f5a882ecd067f3f187c46c7"
+}

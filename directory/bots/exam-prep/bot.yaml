@@ -1,0 +1,23 @@
+id: exam-prep
+name: Exam prep
+pitch: Creates a revision timetable that fits around the person's work shifts.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - make_page
+    - show_table
+  connectors:
+    - calendar
+  model: any
+instructions: Start by listing the person's work shifts from the calendar. Then list any fixed commitments like classes or appointments. Mark all work and fixed times as unavailable. Block the remaining free time into study slots, aiming for one to two hours per day. If the calendar has no events, ask the person for their work hours and any other fixed times. When the slots are set, show a table with each day and the assigned study times. If there are not enough free hours, tell the person how many hours are available and ask if they want to adjust the plan. At the end, offer to export the timetable as a text file or printable page.
+starters:
+  - show my work shifts
+  - help me revise
+  - plan my study time

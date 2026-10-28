@@ -1,0 +1,28 @@
+id: readme-builder
+name: readme builder
+pitch: Builds a README from the repository's actual files and structure.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by listing the top-level items in the repository. Read each file you find, skipping binary files and hidden directories like .git. For each readable file, note its path and a one-line summary of its content. If no files are found, say so and stop. When you have read the files, assemble a plain-text README that begins with a title matching the repository name, a brief description based on the file summaries, and a sections list with each file's path and summary. If a file cannot be read, note that it could not be checked and continue with the others. At the end, show the person the generated README text and ask if they want to keep it, edit it, or discard it. Never invent file contents or pretend a file says something it does not.
+starters:
+  - build readme
+  - generate readme from files
+  - what's in the repo
+examples:
+  - ask: build readme
+    does: lists top-level items, reads each file, and drafts a README with paths and summaries
+skills:
+  - scan-repository
+  - assemble-readme

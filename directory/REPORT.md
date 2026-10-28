@@ -1,51 +1,51 @@
 # Directory report
 
-Generated 2026-10-28. 332 packs in `directory/bots/`.
+Generated 2026-10-28. 406 packs in `directory/bots/`.
 
 ## By category
 
-- Research & learning (`research`): 44
-- Developers & tools (`dev`): 41
-- Build & manage bots (`bot-helpers`): 24
-- Work & teams (`work`): 24
-- Business & marketing (`business`): 22
-- Email & productivity (`productivity`): 22
-- Everyday tasks (`misc`): 21
-- Social & creators (`social`): 20
-- Health & fitness (`health`): 17
-- Sales & CRM (`sales-crm`): 13
-- Games & fun (`games`): 13
-- Food & cooking (`food`): 12
-- Privacy & scams (`privacy`): 9
-- Money & finance (`money`): 9
-- Home & family (`home`): 9
-- Video & audio (`video-audio`): 9
-- Investing & crypto (`investing`): 8
-- Sports & fantasy (`sports`): 8
-- Travel & cars (`travel`): 7
+- Research & learning (`research`): 49
+- Developers & tools (`dev`): 45
+- Work & teams (`work`): 28
+- Email & productivity (`productivity`): 27
+- Build & manage bots (`bot-helpers`): 26
+- Business & marketing (`business`): 26
+- Everyday tasks (`misc`): 25
+- Social & creators (`social`): 24
+- Health & fitness (`health`): 23
+- Sales & CRM (`sales-crm`): 18
+- Food & cooking (`food`): 16
+- Money & finance (`money`): 14
+- Video & audio (`video-audio`): 14
+- Games & fun (`games`): 14
+- Investing & crypto (`investing`): 12
+- Privacy & scams (`privacy`): 12
+- Home & family (`home`): 12
+- Sports & fantasy (`sports`): 11
+- Travel & cars (`travel`): 10
 
 ## By author
 
 - person (LobeChat author): 177
 - AI-made (nvidia/nemotron-3-ultra-550b-a55b): 127
-- AI-made (nvidia/nemotron-3.5-lightning-30b-a3b): 18
+- AI-made (nvidia/nemotron-3.5-lightning-30b-a3b): 92
 - person (OpenBot): 10
 
 ## Problems
 
-0 errors, 279 warnings across 156 packs.
+0 errors, 286 warnings across 163 packs.
 
 - 62 × uses jargon: …; say it in plain words
 - 22 × uses jargon: …, …; say it in plain words
-- 20 × a sentence has 36 words; keep sentences short …
-- 14 × a sentence has 37 words; keep sentences short …
+- 21 × a sentence has 36 words; keep sentences short …
+- 15 × a sentence has 37 words; keep sentences short …
 - 13 × a sentence has 41 words; keep sentences short …
-- 12 × a sentence has 39 words; keep sentences short …
+- 13 × a sentence has 39 words; keep sentences short …
+- 12 × a sentence has 38 words; keep sentences short …
 - 11 × a sentence has 42 words; keep sentences short …
-- 11 × a sentence has 38 words; keep sentences short …
+- 10 × a sentence has 44 words; keep sentences short …
+- 10 × a sentence has 40 words; keep sentences short …
 - 9 × a sentence has 43 words; keep sentences short …
-- 9 × a sentence has 44 words; keep sentences short …
-- 9 × a sentence has 40 words; keep sentences short …
 - 7 × a sentence has 49 words; keep sentences short …
 - 6 × a sentence has 46 words; keep sentences short …
 - 5 × a sentence has 48 words; keep sentences short …
@@ -54,10 +54,10 @@ Generated 2026-10-28. 332 packs in `directory/bots/`.
 - 4 × a sentence has 53 words; keep sentences short …
 - 4 × uses jargon: …, …, …; say it in plain words
 - 4 × a sentence has 56 words; keep sentences short …
+- 3 × a sentence has 45 words; keep sentences short …
 - 3 × a sentence has 67 words; keep sentences short …
 - 3 × a sentence has 54 words; keep sentences short …
 - 3 × a sentence has 57 words; keep sentences short …
-- 2 × a sentence has 45 words; keep sentences short …
 - 2 × a sentence has 50 words; keep sentences short …
 - 2 × a sentence has 66 words; keep sentences short …
 - 1 × a sentence has 65 words; keep sentences short …
@@ -96,21 +96,22 @@ Generated 2026-10-28. 332 packs in `directory/bots/`.
 
 ## Generation log
 
-145 written, 121 dropped.
+219 written, 140 dropped.
 
-- 111 × model failed
-- 6 × judge failed
-- 4 × below the bar
+- 112 × model failed
+- 20 × below the bar
+- 7 × judge failed
+- 1 × duplicate of monthly-budget-builder
 
 ## Toward the launch target
 
-145 AI-made bots on the shelf, of 2000 planned; 0 retired.
-1017 jobs in the taxonomy (224 by people, 793 proposed by a model and not yet read by a person); 869 without a bot yet.
+219 AI-made bots on the shelf, of 2000 planned; 0 retired.
+1384 jobs in the taxonomy (224 by people, 1160 proposed by a model and not yet read by a person); 1145 without a bot yet.
 
 | Writer                                | Bots | Seconds per bot, one worker (median) | Bots per minute of run time |
 | ------------------------------------- | ---- | ------------------------------------ | --------------------------- |
 | nvidia/nemotron-3-ultra-550b-a55b     | 127  | 115                                  | 2.8                         |
-| nvidia/nemotron-3.5-lightning-30b-a3b | 18   | 52                                   | 3.8                         |
+| nvidia/nemotron-3.5-lightning-30b-a3b | 92   | 53                                   | 2.3                         |
 
 Resume with the same command; it skips jobs that already have a bot or were dropped for good:
 

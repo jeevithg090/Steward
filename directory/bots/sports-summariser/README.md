@@ -1,0 +1,1 @@
+Sports summariser: reads the person's followed sports, searches for last night's results, and returns scores and short highlights. Needs web_search, web_fetch, and memory_remember. Will not act without the person's say-so.

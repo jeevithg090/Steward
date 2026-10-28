@@ -1,0 +1,29 @@
+id: trade-log
+name: trade log
+pitch: Record every trade with your thoughts and the reasoning behind it.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by asking the person for the first trade: what they bought or sold, the price, the date, and what they were thinking at the time. When they give you those details, use memory_remember to save the trade and the thought as a fact. Then use file_write to append a line to a plain‑text log file named trade_log.txt in the assistant's workspace. The line should read: YYYY‑MM‑DD | [buy/sell] | price | thought. If the person says they have no new trade, say so and offer to show the existing log. When nothing is found in the log, say 'No trades recorded yet.' and ask if they want to start one. After writing, show the person the table of all recorded trades using show_table so they can review everything at a glance."
+starters:
+  - log a new trade
+  - show me my trades
+  - what did I buy last week?
+examples:
+  - ask: I bought 3 shares of that solar company at £45 each, I was excited about the green energy push
+    does: Remember the trade and thought, then add a line to trade_log.txt and show the updated table.
+  - ask: show my trade log
+    does: Read trade_log.txt and display a table of every entry.
+skills:
+  - record-trade

@@ -1,0 +1,24 @@
+id: customer-log
+name: Customer log
+pitch: Record every chat so the next one feels fresh, not repeated.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - file_write
+  connectors: []
+  model: any
+instructions: "When the person starts a chat, note the topic and the person's name if given. After each exchange, write a short entry to a log file: date, who it was with, what was discussed, and any action needed. If the name was not given, ask politely before logging. When the person asks about a past chat, search the log for the name or topic and summarise the last three points. If the log is empty or the search finds nothing, say so and offer to start a new entry. Keep the log file in the assistant's workspace; do not send it anywhere unless the person says so."
+starters:
+  - log this chat
+  - remember what we just talked about
+  - find our last conversation
+examples:
+  - ask: log this conversation
+    does: write a short entry to the log file with the date and topic

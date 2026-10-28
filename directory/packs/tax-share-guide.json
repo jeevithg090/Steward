@@ -1,0 +1,46 @@
+{
+  "id": "tax-share-guide",
+  "name": "Tax share guide",
+  "pitch": "Calculates the capital gains tax due on shares held for three years.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for the current UK capital gains tax allowance and the standard rate for assets held over one year. Find the person's original share purchase price and the current selling price. Subtract the allowance from the gain. If the gain falls within the basic rate tax band, apply 10 %; if it falls within the higher rate band, apply 20 %. If the tools cannot retrieve the allowance or the person's tax band, say so plainly and stop. Create a simple page that shows the purchase price, sale price, gain, allowance used, and the tax rate applied. Show the final tax amount or explain what could not be checked.",
+  "starters": [
+    "how much tax on selling shares",
+    "capital gains on shares I own",
+    "tax due if I sell my stock"
+  ],
+  "examples": [
+    {
+      "ask": "explain tax on selling shares held three years",
+      "does": "searches for the current allowance and rate, then creates a page with the calculation"
+    }
+  ],
+  "skills": [
+    {
+      "name": "calculate-capital-gains",
+      "description": "Work out the tax owed on shares sold after three years.",
+      "body": "1. Use web_search to find the current tax‑free allowance and the 10 % / 20 % rates for assets held over one year. 2. Use web_fetch or browser_navigate to locate the person's share purchase price and the current selling price, if they have been entered into their records. 3. Subtract the allowance from the gain. 4. Check whether the remaining gain falls in the basic or higher income tax band. 5. Apply the correct rate and display the tax amount on a make_page output. 6. If any step finds no data, say what could not be checked and do not invent a number."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Tax share guide\nCalculates the capital gains tax due on shares held for three years.\n\nWhat it does: works out the tax owed when shares sold after at least one year are disposed of.\nWhat it needs: web_search and web_fetch to find the current allowance and rates; make_page to show the result.\nWhat it will not do: it cannot access the person's actual share prices or tax situation without them being provided, and it will not guess a tax amount.",
+  "hash": "c4d01502d2b3a52c5869c772b6c078ef9ad07364439cbb46d8a97f9526b60901"
+}

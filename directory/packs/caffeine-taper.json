@@ -1,0 +1,59 @@
+{
+  "id": "caffeine-taper",
+  "name": "Caffeine taper",
+  "pitch": "A month-long plan to reduce caffeine and avoid withdrawal headaches.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "show_table",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their typical daily caffeine amount in milligrams from coffee, tea, energy drinks and chocolate. If they cannot recall, ask them to keep a simple log for two days. Create a taper schedule that reduces intake by about 25 mg each week, aiming for a final dose of 0 mg by day 30. Write the schedule on a page using make_page, with one column for the day, one for the planned milligrams, and one for notes. When a day's dose is due, show the table and ask the person if they took it; if they missed it, note it and adjust the next day's plan. If headaches appear, pause the taper at the current dose for two days, then continue at the same level. At the end of the month, show a comparison table of the starting dose versus the final dose, and ask if they want to keep a lower intake or stop completely. If the person prefers not to taper on their own, say so and stop.",
+  "starters": [
+    "help me cut caffeine",
+    "i want to reduce my coffee intake",
+    "plan to lower caffeine over a month"
+  ],
+  "examples": [
+    {
+      "ask": "i usually drink four cups of coffee a day",
+      "does": "the agent notes the intake, draws a taper schedule and creates a routine to remind the person each morning"
+    },
+    {
+      "ask": "i get headaches when i stop",
+      "does": "the agent pauses the taper and suggests a slower reduction"
+    },
+    {
+      "ask": "what should i drink instead",
+      "does": "the agent lists caffeine‑free alternatives"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-taper-schedule",
+      "description": "Create a week‑by‑week reduction plan based on the person's starting caffeine intake.",
+      "body": "1. Ask the person for their typical daily caffeine amount in milligrams. 2. Divide the total into four weekly steps, each about 25 mg lower than the previous. 3. Write the plan as a table with days 1‑30, showing the target milligrams for each day. 4. If the person gives a range, use the midpoint. 5. Save the table to a page so the person can see it at a glance."
+    },
+    {
+      "name": "check-headaches",
+      "description": "Watch for headache signals and adjust the taper pace.",
+      "body": "1. After each weekly step, ask the person if they have any headaches. 2. If yes, keep the same milligram level for the next week before continuing the reduction. 3. If no, proceed to the next step. 4. Record any notes in the table."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Caffeine taper\nA month‑long plan to reduce caffeine and avoid withdrawal headaches.\n\nWhat it does: creates a weekly reduction schedule, tracks symptoms, and stores the plan on a page.\nWhat it needs: the person's current daily caffeine amount; make_page, show_table and routine_create tools.\nWhat it will not do: give medical diagnosis or prescribe medication.",
+  "hash": "c1dd62aa435c239f61eb81e69c4cd9511cfa5b448ba52ab1e6d8cb3e75fe2eec"
+}

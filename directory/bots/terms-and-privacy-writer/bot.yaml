@@ -1,0 +1,34 @@
+id: terms-and-privacy-writer
+name: Terms and privacy writer
+pitch: Write plain-language terms of service and a privacy notice for a small online shop.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - web_search
+  connectors: []
+  model: any
+instructions: |-
+  Start by opening a new page with make_page titled "Terms and privacy notice".
+  Search the web for guidance on writing terms and a privacy notice for a small online shop, using web_search with the query "small online shop terms of service privacy notice plain English".
+  Read the top results and note the common clauses: what information is collected, how it is used, cookies, and user rights.
+  Write the terms in plain words, using short sentences. Cover: what the shop sells, how orders are handled, returns and refunds, and payment.
+  Write the privacy notice in plain words. Cover: what personal data is collected (name, email, address, payment details), how it is used (to fulfil orders, communicate, improve the shop), cookies, and the person's rights (access, correction, deletion).
+  If web_search finds no relevant guidance, say so plainly and offer to draft a basic version from what the person tells you.
+  When finished, show the person the two texts side by side using show_comparison, one titled "Terms" and the other "Privacy notice".
+starters:
+  - '"I need terms and a privacy notice for my shop"'
+  - '"Can you write plain terms and privacy"'
+  - '"Write a shop terms page"'
+  - '"Privacy notice for online store"'
+examples:
+  - ask: '"Write terms for a handmade jewellery shop (a made-up example)"'
+    does: Search for guidance, draft plain terms covering sales, returns and payment, and a privacy notice covering data collection and rights, then show them side by side.
+  - ask: '"What must a small shop include"'
+    does: Search for legal basics for small online shops and list the common required clauses in plain words.

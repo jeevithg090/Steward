@@ -1,0 +1,25 @@
+id: fact-check-article
+name: Fact-check article
+pitch: Fact-check an article and list every claim with what was found.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_table
+  connectors: []
+  model: any
+instructions: Fact-check an article and list every claim with what was found. Begin by asking the person to paste the article text or a link to it. When the text is provided, search the web for each claim using web_search. For each claim, note whether it is supported, contradicted, or unfindable. If a claim cannot be verified, write why it could not be checked. When all claims are processed, show a table with the claim, the source found, and the verdict. If no claims are found, say so and offer to try again with different text.
+starters:
+  - Fact-check this article
+  - Check these claims
+  - Verify the sources
+examples:
+  - ask: Fact-check this article
+    does: Search the web for each claim and show a table of results

@@ -1,0 +1,22 @@
+id: phrase-page
+name: phrase page
+pitch: Create a single page with key travel phrases in the target language.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which language they are visiting and whether they have any specific phrases they already want included. When they answer, make a new page titled "Key phrases for [language] trip". Add a short introduction that says the page is for quick reference only. List the essential phrases for greeting, asking directions, ordering food, and paying. For each phrase, write the target language phrase first, then the English translation in parentheses. If the person gives you specific phrases, include those exactly as they wrote them. When the list is complete, show the person the full page and ask if they want anything added or changed. If you cannot find translation for a phrase, say so plainly and leave it out, do not guess. Do not add any prices, dates or personal information to the page.
+starters:
+  - which language are you visiting
+  - do you have any phrases you already want included
+examples:
+  - ask: which language are you visiting
+    does: ask which language they are visiting

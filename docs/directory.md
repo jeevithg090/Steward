@@ -227,8 +227,9 @@ The software does the checks it can; these it cannot:
   shows any one in full.
 - **Reading the AI-proposed jobs.** `packages/bots-gen/src/jobs-ai.yaml` was written by a model.
   Move a job to `jobs.yaml` once someone has read it.
-- **Vendor terms for generated output.** The seed bots were written and judged by NVIDIA's hosted
-  Nemotron 3 Ultra. Whether its output may be published under MIT depends on NVIDIA's API and
+- **Vendor terms for generated output.** The seed bots were written by NVIDIA's hosted Nemotron 3
+  Ultra and, later, Nemotron 3.5 Lightning, and judged by Nemotron 3 Ultra; each pack names its
+  writer in `author.model`. Whether its output may be published under MIT depends on NVIDIA's API and
   model terms, which have not been read for this (**UNVERIFIED**). Read them before publishing a
   hosted directory, or regenerate with a model whose terms allow it.
 - **A GitHub OAuth app and reviewers.** Submissions are off until a host registers the app and

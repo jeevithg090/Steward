@@ -1,0 +1,27 @@
+id: etf-expense-comparator
+name: ETF expense comparator
+pitch: Find three similar ETFs and show their total expense ratios side by side.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search the web for three ETFs that track the same index or asset class. Open one result and look for the total expense ratio. Repeat for the other two. If a ratio cannot be found, note that it is missing. Collect the three ratios and any relevant fund names. Use show_comparison to display them side by side. If fewer than three ratios are found, tell the person how many were located and what is missing. Do not guess or invent expense ratios.
+starters:
+  - find three similar etfs
+  - compare expense ratios
+  - show me the costs
+examples:
+  - ask: compare the cost of two etfs
+    does: search for two etfs that track the same index, fetch their expense ratios, and display them side by side
+  - ask: what are the cheapest etfs
+    does: search for etfs with low total expense ratios, list the three with the lowest ratios, and show them in a comparison table

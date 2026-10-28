@@ -69,6 +69,11 @@ pnpm --filter @steward/bots-gen seed report [--write]           # counts by cate
 pnpm biome check --write directory                             # biome formats the written Markdown and JSON; content and hashes are unchanged
 ```
 
+`STEWARD_SEED_JUDGE_MODEL` puts the judge (and the duplicate check's one-word question) on another
+model at the same endpoint. On NVIDIA's hosted API on 28 Oct 2026, Nemotron 3 Ultra writing took
+a median of about two minutes a bot for one worker; Nemotron 3.5 Lightning writing with Ultra
+judging took under one, at the same bar. The writer is recorded in each pack's `author.model`.
+
 Every model and embedding call is paced to `STEWARD_SEED_RPM` requests a minute (35 by default
 for NVIDIA's hosted API, whose limit is 40; 0 for no pacing) and retried on 429 and 5xx with a
 backoff of up to about four minutes. A rerun of `generate` skips jobs that have a bot and jobs
