@@ -1,0 +1,15 @@
+# What a Docker build never needs, and what must never end up in an image.
+**/node_modules
+.git
+.env
+.env.*
+!.env.example
+.steward-data
+**/*.db
+**/*.db-*
+test-results
+playwright-report
+coverage
+**/dist
+.claude
+.DS_Store

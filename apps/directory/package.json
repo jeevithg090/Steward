@@ -1,0 +1,29 @@
+{
+  "name": "@steward/directory",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/app.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@steward/shared": "workspace:*",
+    "@steward/db": "workspace:*",
+    "@steward/gateway": "workspace:*",
+    "@steward/bots": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "hono": "4.13.14",
+    "@hono/node-server": "1.19.17",
+    "zod": "3.25.76",
+    "tsx": "4.23.15"
+  },
+  "devDependencies": {
+    "yaml": "2.9.1"
+  }
+}

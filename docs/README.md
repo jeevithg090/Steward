@@ -9,6 +9,7 @@
 | [Make it your own](make-it-your-own.md) | Turn Steward into your own product with a tenant package.                                       |
 | [Models](models.md)                     | Choose a model provider, run locally, or understand the scripted demo model.                    |
 | [Configuration](configuration.md)       | Look up an environment variable, a setting, a port or the data folder.                          |
+| [Bot directory](directory.md)           | Run your own bot directory: the site, search, MCP, submissions and review.                      |
 | [Accessibility](accessibility.md)       | Know what is built for screen readers, keyboards, voice and low vision, and how to test it.     |
 
 Also in the repository: [the README](../README.md), [contributing](../CONTRIBUTING.md),

@@ -7,7 +7,12 @@ export default defineConfig({
         test: {
           name: "node",
           environment: "node",
-          include: ["packages/*/test/**/*.test.ts", "apps/server/test/**/*.test.ts", "tenants/*.test.ts"],
+          include: [
+            "packages/*/test/**/*.test.ts",
+            "apps/server/test/**/*.test.ts",
+            "apps/directory/test/**/*.test.ts",
+            "tenants/*.test.ts",
+          ],
           testTimeout: 30_000,
           hookTimeout: 60_000,
         },
