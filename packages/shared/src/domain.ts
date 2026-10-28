@@ -198,6 +198,8 @@ export interface AgentProfile {
   tools: string[];
   /** Overrides the tenant's default model. */
   model?: string;
+  /** Where the profile came from: the tenant pack, or an installed bot. */
+  source?: "tenant" | `bot:${string}`;
 }
 
 export interface Brand {

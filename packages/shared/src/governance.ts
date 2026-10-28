@@ -102,8 +102,8 @@ export interface Rule {
   /** A CEL expression over the variables in `docs/governance.md`, e.g. `tool.kind == "pay"`. */
   when: string;
   description: string;
-  /** `preset` ships with Steward; `tenant` comes from the tenant package; `person` was written in `/rules`; `always` came from an Always allow. */
-  source: "preset" | "tenant" | "person" | "always";
+  /** `preset` ships with Steward; `tenant` comes from the tenant package; `person` was written in `/rules`; `always` came from an Always allow; `bot` came with an installed bot and may only ask or deny. */
+  source: "preset" | "tenant" | "person" | "always" | "bot";
   enabled: boolean;
   createdAt: string;
 }
@@ -173,6 +173,9 @@ export type AuditType =
   | "policy.changed"
   | "routine.ran"
   | "routine.disabled"
+  | "bot.installed"
+  | "bot.updated"
+  | "bot.removed"
   | "run.started"
   | "run.finished";
 
@@ -264,6 +267,8 @@ export type LiveEvent =
   /** A run began or ended on a thread, whoever started it. An open conversation reconnects to follow it. */
   | { type: "run.started"; threadId: string; runId: string; agentId: string }
   | { type: "run.finished"; threadId: string; runId: string; agentId: string }
+  /** An installed bot changed, so agent lists and pickers refresh. */
+  | { type: "bots.changed" }
   | { type: "notification"; notification: AppNotification };
 
 export interface AppNotification {

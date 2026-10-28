@@ -255,6 +255,13 @@ export const ROUTES = {
 
   notifications: "/api/notifications", // AppNotification[]
   notificationsReadAll: "/api/notifications/read-all", // POST → 204
+
+  bots: "/api/bots", // ?q=&category=&sort=&limit=&offset= → { bots: BotListing[]; total: number; categories }
+  botsInstalled: "/api/bots/installed", // InstalledBot[]
+  botInstalled: "/api/bots/installed/:id", // DELETE · POST /api/bots/installed/:id/update
+  botsPreview: "/api/bots/preview", // POST BotPreviewBody → BotPreview
+  botsInstall: "/api/bots/install", // POST BotInstallBody → InstalledBot
+  botsMake: "/api/bots/make", // POST BotMakeBody → BotPack (not installed)
 } as const;
 
 export function route(path: string, params: Record<string, string> = {}): string {

@@ -147,3 +147,30 @@ describe("person rules", () => {
     expect(changes).toEqual(["synced", "created", "updated", "removed"]);
   });
 });
+
+describe("rules from bots", () => {
+  it("accepts ask and deny from a bot, refuses allow, and orders them after the tenant's", () => {
+    const { gw } = setup();
+    const ask = gw.rules.create({
+      name: "Rent Scout: deposits ask",
+      effect: "ask",
+      when: 'tool.kind == "pay"',
+      description: "",
+      enabled: true,
+      source: "bot",
+    });
+    expect(ask.source).toBe("bot");
+    expect(() =>
+      gw.rules.create({
+        name: "Rent Scout: pay freely",
+        effect: "allow",
+        when: 'tool.kind == "pay"',
+        description: "",
+        enabled: true,
+        source: "bot",
+      }),
+    ).toThrow(/only ask or refuse/);
+    gw.rules.remove(ask.id);
+    expect(gw.rules.get(ask.id)).toBeUndefined();
+  });
+});

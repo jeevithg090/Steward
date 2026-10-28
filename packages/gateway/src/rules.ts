@@ -25,7 +25,7 @@ interface RuleRow {
 }
 
 const EFFECTS: readonly Effect[] = ["allow", "ask", "deny"];
-const SOURCES: readonly Rule["source"][] = ["preset", "tenant", "person", "always"];
+const SOURCES: readonly Rule["source"][] = ["preset", "tenant", "person", "always", "bot"];
 
 function rowToRule(row: RuleRow): Rule {
   return {
@@ -116,6 +116,10 @@ export class SqliteRuleStore implements RuleStore {
     if (!SOURCES.includes(input.source)) throw new GatewayError("invalid", "Unknown rule source.");
     if (input.source === "preset") {
       throw new GatewayError("invalid", "Shipped rules come with Steward and cannot be added.");
+    }
+    // A bot may tighten the rules, never loosen them: whatever its pack says, no allow gets in.
+    if (input.source === "bot" && input.effect === "allow") {
+      throw new GatewayError("invalid", "A bot's rule can only ask or refuse, never allow.");
     }
     this.checkInput(input);
     const at = this.now().toISOString();

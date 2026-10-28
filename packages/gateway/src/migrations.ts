@@ -87,4 +87,27 @@ export const migrations: Migration[] = [
       BEGIN SELECT RAISE(ABORT, 'The record is append-only: rows cannot be deleted.'); END;
     `,
   },
+  {
+    // Bots bring rules too (ask or deny only). SQLite cannot change a CHECK in place, so the table
+    // is rebuilt with the wider list and its rows and indexes carried over.
+    id: "gateway.004_rule_source_bot",
+    sql: `
+      CREATE TABLE gateway_rules_new (
+        id          TEXT PRIMARY KEY,
+        name        TEXT NOT NULL,
+        effect      TEXT NOT NULL CHECK (effect IN ('allow', 'ask', 'deny')),
+        cel         TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        source      TEXT NOT NULL CHECK (source IN ('preset', 'tenant', 'person', 'always', 'bot')),
+        enabled     INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+        created_at  TEXT NOT NULL,
+        updated_at  TEXT NOT NULL
+      );
+      INSERT INTO gateway_rules_new SELECT id, name, effect, cel, description, source, enabled, created_at, updated_at FROM gateway_rules;
+      DROP TABLE gateway_rules;
+      ALTER TABLE gateway_rules_new RENAME TO gateway_rules;
+      CREATE UNIQUE INDEX gateway_rules_tenant_name ON gateway_rules(name) WHERE source = 'tenant';
+      CREATE INDEX gateway_rules_source ON gateway_rules(source, created_at);
+    `,
+  },
 ];
