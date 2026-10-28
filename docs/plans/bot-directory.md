@@ -182,6 +182,10 @@ Hono + `node:sqlite`, one process, self-hostable. It serves the static build and
 What the server records is listed on its privacy page: counts per bot per day, nothing per
 person except the GitHub id of people who submit or vote.
 
+**Built 28 Oct 2026** as `apps/directory` ([docs/directory.md](../directory.md)). One difference
+from the above: an approved submission is written into the server's `bots/` folder and the index
+rebuilt with `buildIndex`, rather than merged into `steward-bots` by a pull request.
+
 ### 3.3 In the app: the Bots page
 
 `/bots` in `apps/web`:
