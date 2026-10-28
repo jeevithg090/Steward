@@ -18,6 +18,9 @@ import type {
 } from "@steward/shared";
 import type { BotService } from "./bots/service.ts";
 import type { ServerConfig } from "./config.ts";
+import type { DeviceApi } from "./device/api.ts";
+import type { PhoneSettings } from "./device/phone.ts";
+import type { DeviceStore } from "./device/store.ts";
 import type { SecurityOptions } from "./http/security.ts";
 import type { AgentHost } from "./runtime/agents.ts";
 import type { NodeSqliteAgentRunner } from "./runtime/runner.ts";
@@ -66,6 +69,12 @@ export interface StewardServices {
   installedBots: InstalledBotStore;
   bots: BotService;
   security: SecurityOptions;
+  /** Paired phones, the phone address, and the device API both listeners and the bridge call. */
+  devices: DeviceStore;
+  phone: PhoneSettings;
+  deviceApi: DeviceApi;
+  /** The device listener's port once it listens (null when switched off). */
+  phoneListener: { port: number | null; running: boolean };
   /** Single-user mode: every action is the one local person's. */
   actorId: string;
   defaultAgentId: string;

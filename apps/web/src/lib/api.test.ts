@@ -230,6 +230,30 @@ describe("api: every route in ROUTES", () => {
       "/api/bots/make",
       { job: "Find me a flat", category: "home" },
     ],
+    ["phone", () => api.phone.get(), "GET", "/api/phone"],
+    [
+      "phone address",
+      () => api.phone.setUrl("https://mac.example.ts.net"),
+      "PUT",
+      "/api/phone",
+      { url: "https://mac.example.ts.net" },
+    ],
+    ["devices", () => api.devices.list(), "GET", "/api/devices"],
+    [
+      "devices pairing",
+      () => api.devices.pair("shortcut"),
+      "POST",
+      "/api/devices/pairing",
+      { kind: "shortcut" },
+    ],
+    [
+      "device (PATCH)",
+      () => api.devices.patch("dev_1", { scopes: ["chat"] }),
+      "PATCH",
+      "/api/devices/dev_1",
+      { scopes: ["chat"] },
+    ],
+    ["device (DELETE)", () => api.devices.revoke("dev_1"), "DELETE", "/api/devices/dev_1"],
   ];
 
   it.each(cases)("%s", async (_name, call, method, url, body) => {

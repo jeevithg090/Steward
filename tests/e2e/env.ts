@@ -16,6 +16,9 @@ export const WEB_PORT = port("STEWARD_E2E_WEB_PORT", 5173);
 export const WEB_URL = `http://127.0.0.1:${WEB_PORT}`;
 export const SERVER_PORT = port("STEWARD_E2E_SERVER_PORT", 8787);
 export const SERVER_URL = `http://127.0.0.1:${SERVER_PORT}`;
+/** The phone port (only `/device/*`), next to the server's unless `STEWARD_E2E_DEVICE_PORT` moves it. */
+export const DEVICE_PORT = port("STEWARD_E2E_DEVICE_PORT", SERVER_PORT + 1);
+export const DEVICE_URL = `http://127.0.0.1:${DEVICE_PORT}`;
 
 /** The localStorage key the web app uses to remember that the welcome was seen. */
 export const WELCOME_STORAGE_KEY = "steward.welcome";

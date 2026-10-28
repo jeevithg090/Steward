@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
-import { SERVER_PORT, SERVER_URL, WEB_PORT, WEB_URL } from "./env.ts";
+import { DEVICE_PORT, SERVER_PORT, SERVER_URL, WEB_PORT, WEB_URL } from "./env.ts";
 
 /**
  * End-to-end tests: the real server and the real web app, driven by Chromium, with the scripted
@@ -64,6 +64,7 @@ export default defineConfig({
         STEWARD_DEMO_GOOGLE: "1",
         STEWARD_TENANT: "steward",
         STEWARD_PORT: String(SERVER_PORT),
+        STEWARD_DEVICE_PORT: String(DEVICE_PORT),
         STEWARD_HOST: "127.0.0.1",
         STEWARD_HEADFUL: "0",
         STEWARD_ALLOW_PRIVATE_HOSTS: "0",

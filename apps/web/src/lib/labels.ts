@@ -138,7 +138,26 @@ export const AUDIT_TYPE_LABELS: Record<AuditType, string> = {
   "bot.installed": "Bot added",
   "bot.updated": "Bot updated",
   "bot.removed": "Bot removed",
+  "device.paired": "Phone paired",
+  "device.changed": "Phone access changed",
+  "device.revoked": "Phone removed",
+  "device.refused": "Phone refused",
 };
+
+/**
+ * "iPhone (Shortcuts)" for a record row a paired phone made, from its `via` detail; undefined for
+ * everything done at Steward's own screen.
+ */
+export function deviceVia(detail: Record<string, unknown> | undefined): string | undefined {
+  const via = detail?.via;
+  if (typeof via !== "string" || !via.startsWith("device:")) return undefined;
+  const name = typeof detail?.device === "string" && detail.device ? detail.device : "a phone";
+  const kind = detail?.deviceKind;
+  const how =
+    kind === "shortcut" ? "Shortcuts" : kind === "pwa" ? "phone app" : kind === "app" ? "Steward app" : "";
+  const checked = detail?.verified === "webauthn" ? ", Face ID checked" : "";
+  return how ? `${name} (${how}${checked})` : name;
+}
 
 export const TASK_STATES: Record<TaskState, { label: string; tone: Tone }> = {
   needs_you: { label: "Needs you", tone: "needs" },

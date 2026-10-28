@@ -18,6 +18,7 @@ import {
   notificationPermission,
   requestNotificationPermission,
 } from "@/lib/notify.ts";
+import { PhoneSection } from "./settings/phone/PhoneSection.tsx";
 
 export function SettingsPage() {
   return (
@@ -47,6 +48,7 @@ export function SettingsPage() {
       <ModelSection />
       <ScheduleSection />
       <NotificationsSection />
+      <PhoneSection />
     </Page>
   );
 }

@@ -33,4 +33,9 @@ export interface CatalogueEntry {
   };
   scopes: DeviceScope[];
   source: "core" | "skill" | "routine" | "bot" | "tenant";
+  /**
+   * For bot and tenant entries: what Steward is asked, with `{input}` where the person's words go
+   * (dictated, typed or shared). Runs as a normal turn through the gateway.
+   */
+  prompt?: string;
 }

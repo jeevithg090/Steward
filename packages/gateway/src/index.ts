@@ -9,6 +9,13 @@ export { type ApprovalRecord, alwaysRuleFor, SqliteApprovalStore } from "./appro
 export { type AuditPageOptions, GENESIS_HASH, hashEvent, SqliteAuditLog } from "./audit.ts";
 export { CelEngine, celString, FUNCTION_NAMES, RuleSyntaxError, unescapeCelString } from "./cel.ts";
 export { buildContext, CONTEXT_SCHEMA, neutralContext, type PolicyContext } from "./context.ts";
+export {
+  DEVICE_FLOOR_PRESET,
+  DEVICE_PRESETS,
+  DEVICE_TAINT_PRESET,
+  type DecidedFacts,
+  deviceRefusal,
+} from "./device-presets.ts";
 export { GatewayError, type GatewayErrorCode, isGatewayError } from "./errors.ts";
 export { ESCALATIONS, type EscalationPattern, escalateKind, kindForElementName } from "./escalate.ts";
 export {

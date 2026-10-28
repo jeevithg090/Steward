@@ -6,6 +6,7 @@ defends against, how, and, just as plainly, what it does not. To report a vulner
 
 - [What Steward is for, and who it trusts](#what-steward-is-for-and-who-it-trusts)
 - [Local-only by default](#local-only-by-default)
+- [Phones: the device port](#phones-the-device-port)
 - [Prompt injection](#prompt-injection)
 - [Exfiltration](#exfiltration)
 - [Reaching into your network (SSRF)](#reaching-into-your-network-ssrf)
@@ -65,9 +66,51 @@ Steward has no sign-in. Anyone who can reach its port can use it as you. So:
 - **The demo inbox refuses writes from other sites,** so a page you visit cannot plant mail in it.
 - **Request bodies are size-limited.**
 
-If you want to reach Steward from another device, put it behind something that authenticates you
-(a VPN such as Tailscale, or a reverse proxy with sign-in), and add that host name to
-`STEWARD_ALLOWED_HOSTS`. Do not expose the port directly.
+- **It refuses requests that came through a tunnel.** A tunnel or reverse proxy that rewrites the
+  `Host` to `localhost` would slip past the host check, so a request on a loopback `Host` that
+  carries a forwarding header (`X-Forwarded-For`, `Forwarded`, `CF-Connecting-IP`,
+  `Tailscale-User-Login` and the like) is refused, unless its `Host` is one you listed in
+  `STEWARD_ALLOWED_HOSTS`.
+
+**Never point a tunnel at 8787.** For your phone, use the device port (8788, next section): it needs
+a token on every request. `STEWARD_ALLOWED_HOSTS` still works for a VPN you trust with your whole
+machine, but anyone who reaches the main port through it can act as you, and the server says so
+every time it starts.
+
+## Phones: the device port
+
+Phones reach Steward through a second listener, on `127.0.0.1:8788` (`STEWARD_DEVICE_PORT`; `off`
+switches it off). It shares the process and the database with the main port, and nothing else:
+
+- **It serves only `/device/*`.** None of `/api/*`, the web app, the CopilotKit runtime or the
+  computer's WebSocket is reachable there, with or without a token.
+- **Every route needs a device token,** `Authorization: Bearer stw_dev_…`, except pairing (the
+  one-time code is the credential) and the download of the generic shortcut, which holds no secret.
+- **Tokens** are 256 random bits, shown once inside the pairing reply and stored only as their
+  SHA-256. Revoking a phone in Settings → Phone refuses its next request.
+- **Pairing codes** are 8 characters, last 10 minutes, work once, and die after 5 wrong tries.
+  Making a new code ends the old one. Wrong codes are rate-limited.
+- **Scopes.** A new phone may read the brief, see and refuse what Steward asks, chat, see tasks and
+  run routines. Saying yes to a request (`approvals:decide`) is off until you turn it on for that
+  phone. "Always allow" is never offered on a phone: standing rules are made on the Mac.
+- **Two rules no phone can lift:** payments, signing and passwords are finished on your Mac; and a
+  shortcut cannot say yes to a send, delete or command after Steward read untrusted content (the
+  phone app can, after Face ID). A phone can always refuse.
+- **Phones ask before they send.** Work started from a phone waits for your answer before it sends,
+  signs, deletes or runs a command, even where you chose Always allow (a preset, on `/rules`).
+- **Its own Host list:** loopback, the phone address set in Settings → Phone, and
+  `STEWARD_DEVICE_HOSTS`. A request with an `Origin` (a web page) is refused.
+- **Everything is recorded:** pairing, scope changes, revoking, refusals, and every answer, with
+  "Answered from <phone> (Shortcuts)".
+
+To reach it from outside, point **Tailscale Serve** (recommended: your devices only) or a
+**Cloudflare tunnel with Access** at port 8788, and set that address in Settings → Phone. At home,
+`STEWARD_DEVICE_HOST=0.0.0.0` and `http://<mac>.local:8788` work, with a warning: plain http can be
+read by anyone on the network. See [phone.md](phone.md).
+
+What a phone's token can still do if it leaks: what its scopes allow, through the gateway, until
+you revoke it. A shortcut keeps its token in Shortcuts storage or iCloud Drive, where your other
+shortcuts can read it.
 
 ## Prompt injection
 

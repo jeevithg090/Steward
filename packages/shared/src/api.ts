@@ -54,7 +54,7 @@ export const DryRunBody = z.object({
   tool: z.string().min(1),
   args: z.record(z.unknown()).default({}),
   tainted: z.boolean().default(false),
-  initiator: z.enum(["person", "routine", "task"]).default("person"),
+  initiator: z.enum(["person", "routine", "task", "device"]).default("person"),
 });
 
 export const TaskPatchBody = z.object({
@@ -285,6 +285,11 @@ export const ROUTES = {
   botsPreview: "/api/bots/preview", // POST BotPreviewBody → BotPreview
   botsInstall: "/api/bots/install", // POST BotInstallBody → InstalledBot
   botsMake: "/api/bots/make", // POST BotMakeBody → BotPack (not installed)
+
+  devices: "/api/devices", // Device[] (paired, not revoked)
+  devicesPairing: "/api/devices/pairing", // POST PairingBody → PairingOffer
+  device: "/api/devices/:id", // PATCH DevicePatchBody → Device · DELETE (revoke)
+  phone: "/api/phone", // GET PhoneInfo · PUT PhoneSettingsBody → PhoneInfo
 } as const;
 
 export function route(path: string, params: Record<string, string> = {}): string {

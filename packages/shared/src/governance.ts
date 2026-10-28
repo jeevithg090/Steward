@@ -26,8 +26,9 @@ export type ToolSurface =
 
 /** What started the run. A rule can refuse a routine what it would allow a person. */
 export interface Initiator {
-  kind: "person" | "routine" | "task" | "resume" | "system";
-  /** Routine id, task id, or the person's user id. */
+  /** `device`: the person, from a paired phone (a shortcut or the phone app). */
+  kind: "person" | "routine" | "task" | "resume" | "system" | "device";
+  /** Routine id, task id, device id, or the person's user id. */
   id: string;
 }
 
@@ -146,6 +147,13 @@ export interface Approval {
    * rule, from taint, or from the safety floor (payments, credentials), which no standing rule may lift.
    */
   canAlways: boolean;
+  /**
+   * The conversation had read untrusted content when this asked. With the next field, it decides
+   * what a phone may answer (docs/plans/phone-and-shortcuts.md §3.2).
+   */
+  tainted?: boolean;
+  /** The call types a password, code or card number. Never answered from a phone. */
+  credentialEntry?: boolean;
   answer?: ApprovalAnswer;
   /** Set once a resume run has claimed the answer. A claimed approval never acts twice. */
   claimedAt?: string;
@@ -156,6 +164,18 @@ export interface Approval {
   createdAt: string;
   decidedAt?: string;
   expiresAt: string;
+}
+
+/**
+ * Who answered an approval when it was not the person at Steward's own screen. The gateway checks
+ * the device presets against it and records `via` on the answer.
+ */
+export interface ApprovalDecider {
+  /** `device:<id>`. */
+  via: `device:${string}`;
+  device: { id: string; name: string; kind: "shortcut" | "pwa" | "app" };
+  /** The phone checked the person (Face ID or a passcode, through WebAuthn) before it signed the answer. */
+  verified?: "webauthn";
 }
 
 export type AuditType =
@@ -176,6 +196,10 @@ export type AuditType =
   | "bot.installed"
   | "bot.updated"
   | "bot.removed"
+  | "device.paired"
+  | "device.changed"
+  | "device.revoked"
+  | "device.refused"
   | "run.started"
   | "run.finished";
 

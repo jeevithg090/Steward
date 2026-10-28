@@ -1,9 +1,9 @@
 /**
  * The one error type the gateway throws from its stores. `code` lets the server pick an HTTP status
- * without parsing messages: `invalid` → 400, `not_found` → 404, `conflict` → 409. Messages are plain
- * words meant for the person.
+ * without parsing messages: `invalid` → 400, `forbidden` → 403, `not_found` → 404, `conflict` → 409.
+ * Messages are plain words meant for the person.
  */
-export type GatewayErrorCode = "invalid" | "not_found" | "conflict";
+export type GatewayErrorCode = "invalid" | "forbidden" | "not_found" | "conflict";
 
 export class GatewayError extends Error {
   readonly code: GatewayErrorCode;

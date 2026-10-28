@@ -13,6 +13,7 @@ import { fromJson, toJson } from "@steward/db";
 import type {
   Approval,
   ApprovalAnswer,
+  ApprovalDecider,
   ApprovalStatus,
   ApprovalStore,
   AuditEvent,
@@ -25,6 +26,7 @@ import type {
 import { newId } from "@steward/shared";
 import type { SqliteAuditLog } from "./audit.ts";
 import { celString } from "./cel.ts";
+import { deviceRefusal } from "./device-presets.ts";
 import { GatewayError } from "./errors.ts";
 import { truncate } from "./redact.ts";
 import type { SqliteRuleStore } from "./rules.ts";
@@ -54,7 +56,12 @@ interface ApprovalRow {
   created_at: string;
   decided_at: string | null;
   expires_at: string;
+  tainted?: number;
+  credential_entry?: number;
 }
+
+/** Rows from before the facts were stored still tell by the step that asked. Fails towards stricter. */
+const TAINT_STEPS = new Set(["default:taint", "default:taint-persists"]);
 
 /** An approval with the fields only the gateway needs. */
 export interface ApprovalRecord {
@@ -87,6 +94,12 @@ function rowToApproval(row: ApprovalRow): Approval {
     createdAt: row.created_at,
     expiresAt: row.expires_at,
   };
+  const step = approval.decision.rule?.id ?? "";
+  approval.tainted = row.tainted === 1 || TAINT_STEPS.has(step);
+  approval.credentialEntry =
+    row.credential_entry === 1 ||
+    step === "default:floor-credential" ||
+    approval.tool.name === "request_secret";
   if (row.answer) approval.answer = row.answer as ApprovalAnswer;
   if (row.claimed_at) approval.claimedAt = row.claimed_at;
   if (row.created_rule_id) approval.createdRuleId = row.created_rule_id;
@@ -147,7 +160,7 @@ export function alwaysRuleFor(approval: Pick<Approval, "tool" | "target" | "summ
 }
 
 export interface OpenInput {
-  call: GateCall;
+  call: GateCall & { credentialEntry?: boolean };
   summary: string;
   args: Record<string, unknown>;
   decision: Decision;
@@ -157,6 +170,16 @@ export interface OpenInput {
 }
 
 const ANSWERS: readonly ApprovalAnswer[] = ["once", "always", "refuse"];
+
+/** How the record names a device's answer: "Answered from iPhone (Shortcuts)". */
+function viaDetail(by: ApprovalDecider): Record<string, unknown> {
+  return {
+    via: by.via,
+    device: by.device.name,
+    deviceKind: by.device.kind,
+    ...(by.verified ? { verified: by.verified } : {}),
+  };
+}
 
 export class SqliteApprovalStore implements ApprovalStore {
   private readonly waiters = new Map<string, Set<(approval: Approval) => void>>();
@@ -226,8 +249,9 @@ export class SqliteApprovalStore implements ApprovalStore {
       const at = this.now().toISOString();
       this.db.run(
         `INSERT INTO gateway_approvals (id, tool_call_id, run_id, thread_id, agent_id, actor_id, status, summary,
-           tool_json, args_json, target_json, decision_json, initiator_json, digest, can_always, created_at, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           tool_json, args_json, target_json, decision_json, initiator_json, digest, can_always, created_at, expires_at,
+           tainted, credential_entry)
+         VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           input.call.toolCallId,
@@ -245,6 +269,8 @@ export class SqliteApprovalStore implements ApprovalStore {
           input.canAlways ? 1 : 0,
           at,
           input.expiresAt,
+          input.call.tainted === true ? 1 : 0,
+          input.call.credentialEntry === true ? 1 : 0,
         ],
       );
       events.push(
@@ -280,10 +306,14 @@ export class SqliteApprovalStore implements ApprovalStore {
   /**
    * Records the person's answer. Answering the same way twice returns the approval unchanged (a
    * double click is not an error); answering differently, or after it expired, is a conflict.
+   *
+   * With `by`, the answer came from a paired device. The device presets may refuse it (recorded,
+   * then thrown as `forbidden`), and the answer's record names the device.
    */
-  decide(id: string, answer: ApprovalAnswer, actorId: string, note?: string): Approval {
+  decide(id: string, answer: ApprovalAnswer, actorId: string, note?: string, by?: ApprovalDecider): Approval {
     if (!ANSWERS.includes(answer))
       throw new GatewayError("invalid", "The answer must be once, always or refuse.");
+    if (by) this.checkDevice(id, answer, actorId, by);
     const at = this.now().toISOString();
     const events: AuditEvent[] = [];
     type Outcome =
@@ -346,6 +376,7 @@ export class SqliteApprovalStore implements ApprovalStore {
               answer,
               ...(note ? { note } : {}),
               ...(created ? { createdRuleId: created.id } : {}),
+              ...(by ? viaDetail(by) : {}),
             },
           }),
         );
@@ -370,6 +401,37 @@ export class SqliteApprovalStore implements ApprovalStore {
       throw new GatewayError("conflict", what);
     }
     return outcome.approval;
+  }
+
+  /**
+   * Refuses an answer a device may not give, before anything changes. "Always allow" writes a
+   * standing rule, and rules stay on the Mac; the presets keep the rest. The refusal is recorded.
+   */
+  private checkDevice(id: string, answer: ApprovalAnswer, actorId: string, by: ApprovalDecider): void {
+    const current = this.get(id);
+    if (current?.status !== "pending") return;
+    const preset =
+      answer === "always"
+        ? {
+            id: "default:device-always",
+            name: "Always allow is chosen on your Mac",
+            phoneMessage: "Always allow writes a standing rule. Choose it on your Mac.",
+          }
+        : deviceRefusal(current, answer, by);
+    if (!preset) return;
+    this.audit.append({
+      type: "device.refused",
+      actorId,
+      agentId: current.agentId,
+      threadId: current.threadId,
+      runId: current.runId,
+      toolCallId: current.toolCallId,
+      tool: current.tool,
+      effect: "deny",
+      rule: { id: preset.id, name: preset.name, source: "preset" },
+      detail: { approvalId: id, summary: current.summary, answer, ...viaDetail(by) },
+    });
+    throw new GatewayError("forbidden", preset.phoneMessage);
   }
 
   private expireRows(rows: readonly ApprovalRow[], at: string): AuditEvent[] {

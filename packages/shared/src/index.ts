@@ -1,6 +1,7 @@
 export * from "./api.ts";
 export * from "./bots.ts";
 export * from "./computer.ts";
+export * from "./devices.ts";
 export * from "./domain.ts";
 export * from "./frames.ts";
 export * from "./governance.ts";

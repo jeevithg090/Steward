@@ -1,6 +1,6 @@
 import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_SERVER_PORT } from "@steward/shared";
+import { DEFAULT_DEVICE_PORT, DEFAULT_SERVER_PORT } from "@steward/shared";
 
 /** The repository root, found from this file rather than the working directory. */
 export const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
@@ -36,6 +36,17 @@ export interface ServerConfig {
   webDistDir: string;
   /** Host names accepted besides loopback (`STEWARD_ALLOWED_HOSTS`, comma separated). */
   allowedHosts: string[];
+  /**
+   * The device listener's port (`STEWARD_DEVICE_PORT`, default 8788), or null when it is off. It
+   * serves only `/device/*`, and every route but pairing needs a device token. Tunnels point here.
+   */
+  devicePort: number | null;
+  /** Where the device listener binds (`STEWARD_DEVICE_HOST`). Loopback unless set for same Wi-Fi. */
+  deviceHost: string;
+  /** Host names the device listener answers besides loopback (`STEWARD_DEVICE_HOSTS`), e.g. a tunnel's. */
+  deviceHosts: string[];
+  /** The address phones use (`STEWARD_DEVICE_URL`), until one is set in Settings → Phone. */
+  deviceUrl?: string;
   /** Origins allowed to call the API from another origin. Empty in production. */
   devOrigins: string[];
   /** Background workers: routines, the daily brief, approval expiry. Tests switch them off. */
@@ -71,14 +82,32 @@ export function parseFlag(value: string | undefined, fallback: boolean): boolean
   return fallback;
 }
 
-function parsePort(value: string | undefined): number {
-  if (!value?.trim()) return DEFAULT_SERVER_PORT;
+function parsePort(value: string | undefined, name = "STEWARD_PORT", fallback = DEFAULT_SERVER_PORT): number {
+  if (!value?.trim()) return fallback;
   const port = Number(value);
   if (!Number.isInteger(port) || port < 0 || port > 65535) {
-    throw new ConfigError(`STEWARD_PORT must be a port number, not "${value}".`);
+    throw new ConfigError(`${name} must be a port number, not "${value}".`);
   }
   return port;
 }
+
+/** `off` switches the device listener off; anything else is a port. */
+function parseDevicePort(value: string | undefined, mainPort: number): number | null {
+  if (value !== undefined && FALSE.has(value.trim().toLowerCase())) return null;
+  const port = parsePort(value, "STEWARD_DEVICE_PORT", DEFAULT_DEVICE_PORT);
+  if (port !== 0 && port === mainPort) {
+    throw new ConfigError(
+      "STEWARD_DEVICE_PORT must differ from STEWARD_PORT: phones get a port of their own, so the main one never faces a tunnel.",
+    );
+  }
+  return port;
+}
+
+const hostList = (value: string | undefined): string[] =>
+  (value ?? "")
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean);
 
 const TENANT_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 
@@ -144,9 +173,10 @@ export function loadConfig(
     );
   }
 
+  const port = parsePort(env.STEWARD_PORT);
   const config: ServerConfig = {
     repoRoot,
-    port: parsePort(env.STEWARD_PORT),
+    port,
     host: env.STEWARD_HOST?.trim() || "127.0.0.1",
     dataDir,
     dbPath: resolve(dataDir, "steward.db"),
@@ -157,10 +187,11 @@ export function loadConfig(
     allowPrivateHosts,
     production,
     webDistDir: resolve(repoRoot, "apps/web/dist"),
-    allowedHosts: (env.STEWARD_ALLOWED_HOSTS ?? "")
-      .split(",")
-      .map((h) => h.trim().toLowerCase())
-      .filter(Boolean),
+    allowedHosts: hostList(env.STEWARD_ALLOWED_HOSTS),
+    devicePort: parseDevicePort(env.STEWARD_DEVICE_PORT, port),
+    deviceHost: env.STEWARD_DEVICE_HOST?.trim() || "127.0.0.1",
+    deviceHosts: hostList(env.STEWARD_DEVICE_HOSTS),
+    ...(env.STEWARD_DEVICE_URL?.trim() ? { deviceUrl: env.STEWARD_DEVICE_URL.trim() } : {}),
     devOrigins: production ? [] : [...DEV_ORIGINS],
     workers: parseFlag(env.STEWARD_WORKERS, true),
     resumeDelayMs: 3000,
@@ -170,4 +201,28 @@ export function loadConfig(
     ...overrides,
   };
   return config;
+}
+
+/**
+ * What the server says at start when it is set up to be reached from beyond this machine. The main
+ * port has no sign-in, so a tunnel or a listed host name there lets anyone who reaches it act as you.
+ */
+export function startupWarnings(config: ServerConfig): string[] {
+  const warnings: string[] = [];
+  if (!isLoopbackHost(config.host)) {
+    warnings.push(
+      `Steward is listening on ${config.host}, beyond this machine. It has no sign-in: anyone who can reach this address and is allowed by STEWARD_ALLOWED_HOSTS can use it.`,
+    );
+  }
+  if (config.allowedHosts.length > 0) {
+    warnings.push(
+      `STEWARD_ALLOWED_HOSTS lets ${config.allowedHosts.join(", ")} reach Steward's main port (${config.port}), which has no sign-in. Never point a tunnel at it. For a phone, point the tunnel at the device port (${config.devicePort ?? DEFAULT_DEVICE_PORT}) instead: see docs/security.md.`,
+    );
+  }
+  if (config.devicePort !== null && !isLoopbackHost(config.deviceHost)) {
+    warnings.push(
+      `The phone port is listening on ${config.deviceHost}. Every call needs a device token, but on plain http anyone on this network can read them: use it only on a home network you trust.`,
+    );
+  }
+  return warnings;
 }
