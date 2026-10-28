@@ -1,0 +1,46 @@
+{
+  "id": "podcast-rss-builder",
+  "name": "Podcast RSS builder",
+  "pitch": "Create an RSS XML feed from your episode metadata spreadsheet for podcast hosting.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the columns in the spreadsheet so you know which fields to map. Read the spreadsheet and treat the first row as headers. For each row after the header, build an RSS item with the title, description, enclosure URL and pubDate if available. If a field is empty, leave that element blank rather than inventing a value. When all rows are processed, write the complete RSS XML to a file named podcast_feed.xml. If the spreadsheet has no data rows, say so and do not create a file. At the end, show the person the generated XML file and a brief summary of episodes included.",
+  "starters": [
+    "Open the episode metadata spreadsheet",
+    "Build the RSS feed XML",
+    "Review the generated file"
+  ],
+  "examples": [
+    {
+      "ask": "can you make an RSS feed from my episodes?",
+      "does": "list the spreadsheet columns then read the file to map the fields"
+    }
+  ],
+  "skills": [
+    {
+      "name": "map-spreadsheet-to-rss",
+      "description": "Convert spreadsheet rows into valid RSS XML items.",
+      "body": "1. Read the spreadsheet and identify the header row. 2. For each data row, extract title, description, enclosure URL and pubDate using the column names. 3. If the enclosure URL is missing, skip the enclosure element for that episode. 4. Format the pubDate as RFC 822 (e.g., Tue, 20 May 2025 12:00:00 GMT) if a date column exists; otherwise omit the pubDate element. 5. Wrap each episode in an <item> block inside the <channel> element. 6. Add standard RSS opening and closing tags around all items. 7. Write the finished XML string to podcast_feed.xml using file_write."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Podcast RSS builder\n\nCreate an RSS XML feed from your episode metadata spreadsheet for podcast hosting.\n\n**What it does:** Reads your spreadsheet, maps columns to RSS fields, and writes podcast_feed.xml.\n\n**Needs:** file_read, file_write, make_page.\n\n**Will not:** Invent missing data or add episodes that are not in the spreadsheet.",
+  "hash": "f16b7cc3978c8b7506e0bddf6f6b1d79bb7f35c8d8b567f59724cb0f58446193"
+}

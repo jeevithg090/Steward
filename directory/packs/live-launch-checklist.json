@@ -1,0 +1,45 @@
+{
+  "id": "live-launch-checklist",
+  "name": "Live launch checklist",
+  "pitch": "A checklist so the person remembers the microphone before going live.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what microphone they usually use and where they usually go live. If they do not know, say so and ask if they want a generic checklist. When the person gives details, make a plain text checklist on a new page titled 'Go‑live microphone checklist'. List the steps: plug the microphone in, check the input level, do a short test recording, listen back and confirm it works, then mark the step done. After the checklist is saved, remember the person's usual microphone model and go‑live platform so the next time the checklist can start from the right step. If any step cannot be completed because a tool is not connected, say what could not be checked and ask the person to confirm manually. At the end, show the finished checklist and ask if they want it saved as a routine that runs before every live session.",
+  "starters": [
+    "make me a checklist",
+    "I keep forgetting my mic",
+    "remind me before I go live"
+  ],
+  "examples": [
+    {
+      "ask": "what microphone do you use?",
+      "does": "ask the person and note the model"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-checklist",
+      "description": "Create a plain text checklist on a new page. Include steps to plug in, test levels, record a short sample, listen back and confirm. Save the person's usual microphone and platform for next time.",
+      "body": "1. Ask the person for their usual microphone model and go‑live platform. 2. Make a new page called 'Go‑live microphone checklist'. 3. Write the steps: plug in the microphone, open the input settings, speak into the mic and check the level meter, record a five‑second test, play it back and confirm the sound is clear, tick the step as done. 4. At the bottom add a line 'Next time start from step 1' and save the person's choices in memory. 5. If the browser or memory tools are not connected, tell the person what could not be checked and ask them to fill in the steps manually."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Live launch checklist\n\nA checklist so you remember the microphone before going live.\n\nIt needs: make_page (to create the checklist), memory_remember (to save your usual mic and platform).\n\nIt will not post to any platform or sign you in.",
+  "hash": "5fdfc5d89957514a666183470d6f39ad98adfec6f2276a2d489c620fe8127a9b"
+}

@@ -1,0 +1,49 @@
+{
+  "id": "escape-room-designer",
+  "name": "Escape room designer",
+  "pitch": "Design a custom five-puzzle escape room with a story theme, built as a shareable web page.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write",
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Design a custom five-puzzle escape room with a story theme. The agent creates a complete web page that the person can share or print. Begin by asking the person for the story theme and the five puzzle ideas. If the person has not decided, suggest common escape-room themes (prison break, haunted house, spy mission) and let them pick one. Search the web for examples of escape-room puzzles and story beats that fit the chosen theme. Write the story and puzzle descriptions in plain English, keeping each puzzle to a single clear step. Use make_page to build a single HTML page that shows the story title, the theme, and the five puzzles in order. If web_search finds no relevant results, say so plainly and continue with the puzzles the person gave. When make_page finishes, show the person the HTML code and a short preview of the story and puzzles. If any step finds nothing, tell the person what could not be found and ask how to proceed.",
+  "starters": [
+    "Design an escape room",
+    "Create five puzzles with a story",
+    "Build a shareable page",
+    "Pick a theme"
+  ],
+  "examples": [
+    {
+      "ask": "I want a spy-themed room with puzzles about codes and locks.",
+      "does": "The agent searches for spy escape-room ideas, then builds a web page with a spy story and five code-breaking puzzles."
+    }
+  ],
+  "skills": [
+    {
+      "name": "collect-theme-and-puzzles",
+      "description": "Ask the person for the story theme and five puzzle ideas.",
+      "body": "1. Ask the person for the story theme they want. 2. Ask for five puzzle descriptions, one sentence each. 3. If the person hesitates, suggest three common themes and let them choose. 4. Record the theme and puzzle list so the next steps can use them."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Escape room designer\n\nDesign a custom five-puzzle escape room with a story theme and output it as a shareable web page. The agent asks for the theme and puzzle ideas, searches for inspiration if needed, and builds an HTML page the person can print or share. It will not sign contracts, pay for services, or create accounts on external sites.",
+  "hash": "b7eb9d80ad31cad95cc408cbee6ea20c4ec7956c6503d45254a9841f9cb2ff9b"
+}

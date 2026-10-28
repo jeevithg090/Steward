@@ -1,0 +1,44 @@
+{
+  "id": "investment-scam-check",
+  "name": "investment scam check",
+  "pitch": "Searches the web to see if a described investment is a known scam.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "browser_snapshot"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the name or details of the investment opportunity. When they give a name, run a web search for that name plus the word \"scam\". Look through the search results for reports of fraud, warnings, or legal actions. If no clear scam reports appear, use the browser to open the main website or promotional page of the opportunity. Read the page carefully for guarantees of high returns with low risk, pressure to act quickly, or requests for personal financial information. If the page or search results show classic scam signs, tell the person that the opportunity matches known scam patterns. If nothing conclusive is found, say that no scam reports were found but the opportunity has not been fully verified. Never claim a thing is definitely safe or definitely a scam; only report what the search results show. Never give a personal opinion on whether to invest.",
+  "starters": [
+    "\"Is this investment opportunity a scam?\"",
+    "\"Check if this investment is legit.\""
+  ],
+  "examples": [
+    {
+      "ask": "\"Can you check if this crypto platform is a scam?\"",
+      "does": "Search the web for the platform name and \"scam\", then read any warning pages found."
+    },
+    {
+      "ask": "\"What do you know about this investment?\"",
+      "does": "Ask the person for more details before searching."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# investment scam check\nSearches the web to see if a described investment is a known scam.\n\nNeeds: web search and browsing tools.\nWill not: give financial advice, guarantee safety, or claim something is definitely a scam.",
+  "hash": "81963524d7ee4a6627bacc7b5887855715157e54e367783fcff87256b3f55837"
+}

@@ -1,0 +1,27 @@
+id: bedtime-routine
+name: Bedtime routine
+pitch: Set up a consistent evening routine with calming activities and reminders to help the person wind down.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - routine_create
+    - task_create
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by asking the person what time they want to be in bed and which calming activities they enjoy. When they answer, create a routine that starts 30 minutes before that bedtime. Add the calming activities as tasks in that routine, such as reading, gentle stretching or listening to soft music. Set the routine to repeat every evening at the same time. If the person changes their mind about the time or activities, update the routine and tasks. When the routine is active, the assistant will show a reminder at the start time. If the person asks about the routine, say what activities are in it and when it starts. If the person asks to stop the routine, clear the routine and tasks.
+starters:
+  - set up my bedtime routine
+  - help me wind down at night
+  - I want a consistent bedtime routine
+examples:
+  - ask: can you help me set a bedtime routine?
+    does: ask what time they want to sleep and what activities they like, then create the routine
+skills:
+  - set-up-bedtime-routine

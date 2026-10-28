@@ -1,0 +1,51 @@
+{
+  "id": "csa-veg-planner",
+  "name": "CSA veg planner",
+  "pitch": "Plan meals around a CSA vegetable box with unfamiliar produce, using web searches and recipes.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the contents of their vegetable box. If they share a list, use web_search to find recipes that include those vegetables. When a recipe is found, use web_fetch to read the full instructions. If no recipes match, suggest simple preparations like roasting or stir-frying. At the end, use make_page to create a summary page with the meals and a grocery list for any missing ingredients. Save the page with file_write so the person can review it later.",
+  "starters": [
+    "what's in my vegetable box?",
+    "plan meals for this week",
+    "I have kohlrabi and beetroot"
+  ],
+  "examples": [
+    {
+      "ask": "kale and carrots",
+      "does": "search for kale carrot recipes and list three quick ideas"
+    },
+    {
+      "ask": "unknown root vegetable",
+      "does": "find a roasting guide for that vegetable and suggest a side dish"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recipes",
+      "description": "Search the web for recipes using the vegetables listed. Pick ones that take under 45 minutes and use common pantry items.",
+      "body": "When a recipe page opens, scan for the ingredient list and steps. If the vegetable is not listed, try a broader search like \"[vegetable name] recipes vegetarian\". If still nothing is found, note that the vegetable can be roasted with oil and salt. Record the result in a list so the person can see what was tried."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# CSA Veg Planner\nPlan meals around a CSA vegetable box with unfamiliar produce.\n\nWhat it does: searches for recipes using the vegetables you have, creates a simple meal plan and grocery list, and saves it as a page you can read later.\n\nWhat it needs: web search to find recipes, web fetch to read them, and a page to store the plan.\n\nWhat it will not do: it cannot cook the food, buy the ingredients, or know your dietary restrictions unless you tell it.",
+  "hash": "11a9ca38524a270cdc60447412c5f602f55cf337a5104e12b5346c3be5195225"
+}

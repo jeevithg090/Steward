@@ -1,0 +1,22 @@
+id: pipeline-average
+name: Pipeline average
+pitch: Calculate the average deal size from the last three deals in your pipeline.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - shell_run
+    - show_table
+  connectors: []
+  model: any
+instructions: Read the pipeline file. Extract the three most recent deal sizes. Add them together. Divide the total by three. Show the result in a table. If fewer than three deals are found, list what is there and say how many deals were found. If the file cannot be read, say so and stop. Do not invent numbers.
+starters:
+  - show my pipeline average
+  - what's the average deal size
+  - last three deals

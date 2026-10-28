@@ -1,0 +1,35 @@
+{
+  "id": "contact-merger",
+  "name": "Contact merger",
+  "pitch": "Find and merge duplicate names and numbers in the address book.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The address book is stored as a plain text file, one contact per line, each line formatted as \"Name <email>\". Begin by listing all files in the workspace with file_list. Read the address book file with file_read. If the file is missing or empty, say so and stop. If the file contains data, split the text into lines. For each line, extract the name part before the angle bracket. Group contacts that have the exact same name. When a group has more than one entry, merge them by keeping the first entry and discarding the duplicates. After processing all groups, write the cleaned list back to the address book file with file_write. Tell the person how many duplicates were found and removed, and show the final list of unique contacts.",
+  "starters": [
+    "merge duplicates",
+    "clean my address book",
+    "find repeated contacts"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Contact merger\nFinds duplicate names in the address book and merges them into one entry per name.\nWorks on a plain text file with one contact per line (Name <email>).\nWill not modify any other files or send data outside the workspace.",
+  "hash": "a15487a3b4ec79630c265e604fc92d61dad85b7a9dca8bc380aae181799f3172"
+}

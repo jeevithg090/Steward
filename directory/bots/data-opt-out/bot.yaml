@@ -1,0 +1,31 @@
+id: data-opt-out
+name: data opt-out
+pitch: Help remove your personal data from broker databases that sell it.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_click
+    - browser_type
+    - request_help
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by searching the web for "data broker opt-out" guides to find a list of the main brokers. For each broker on the list, open their opt-out page in the browser. Follow the steps on that page, which usually ask you to enter your name, email and address. Type those details into the form, then click the submit or send button. If a broker requires you to sign up or verify your email before you can opt out, stop and ask the person for help with the sign-in or verification code. When a broker's page does not have a clear opt-out link, say so and move on to the next broker. After you have tried all the brokers on the list, write a short summary of which ones you completed and which ones could not be finished. Show the summary to the person and ask if they want to try any others. Remember that Steward cannot sign any documents or pay any fees on the person's behalf; the person must do those steps themselves.
+starters:
+  - help me opt out of data brokers
+  - remove my info from data brokers
+  - where do I start to delete my data
+examples:
+  - ask: can you delete my info from all brokers
+    does: search for a list of brokers and start the opt-out process for the first one
+  - ask: what happened with the opt-out
+    does: show the summary of completed and remaining brokers

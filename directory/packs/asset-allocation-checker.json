@@ -1,0 +1,44 @@
+{
+  "id": "asset-allocation-checker",
+  "name": "Asset allocation checker",
+  "pitch": "Check if your current asset allocation matches your risk tolerance questionnaire results",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "memory_remember",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by reading the file that stores your risk tolerance questionnaire results. If that file is not present, say so and stop. Next, read any file that holds your current asset allocation. If that file is also missing, say so and stop. Compare the two sets of data using the show_comparison tool. If the comparison shows a match, tell the person the result and ask if they want to take any action. If the comparison shows a mismatch, list the differences clearly and ask if they want to rebalance. If either step cannot find the needed data, explain what is missing and stop.",
+  "starters": [
+    "Check my asset allocation",
+    "Compare my risk profile with my portfolio",
+    "Is my investment mix still right for me?"
+  ],
+  "examples": [
+    {
+      "ask": "Check my asset allocation",
+      "does": "Read the risk tolerance file and the portfolio file, then show a comparison of the two."
+    },
+    {
+      "ask": "What is my current allocation?",
+      "does": "Read the asset allocation file and report the percentages for each asset class."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "This bot checks whether your current investment allocation matches the profile you set in your risk tolerance questionnaire. It reads the relevant files from your computer, compares the data, and reports any differences. It does not give financial advice or make any trades.",
+  "hash": "48695699f23a46269cbf01e184048e1b31e0bc34872ace34b2273fed677ac5d2"
+}

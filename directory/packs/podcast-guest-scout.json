@@ -1,0 +1,40 @@
+{
+  "id": "podcast-guest-scout",
+  "name": "Podcast guest scout",
+  "pitch": "Find five industry podcasts and list their contact emails for the person.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for industry podcasts that accept guest pitches. When results appear, open each podcast's website. Look for a \"guests\", \"be a guest\", or \"contact\" page. If a contact email is listed, copy it. If no email is found on a page, note that no email was found for that podcast and move to the next. Repeat until five podcasts with emails are collected or all search results are checked. When five emails are found, stop and list them. If fewer than five are found after checking all results, say how many were found and which podcasts they belong to. Never invent or guess email addresses. Do not contact the podcasts; only list the emails found.",
+  "starters": [
+    "find podcasts for industry guests",
+    "list contact emails for podcasts",
+    "search for podcast guest opportunities"
+  ],
+  "examples": [
+    {
+      "ask": "find me five podcasts I can guest on",
+      "does": "search the web for industry podcasts and look for contact pages"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Podcast guest scout\nFinds five industry podcasts and lists their contact emails.\nNeeds: web search and browsing. Will not guess or invent emails.",
+  "hash": "e48edf13ce1eb35239fae4ea6c7ed9b04bbc6f7939fac204ded8e58ed6187376"
+}

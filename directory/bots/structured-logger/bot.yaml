@@ -1,0 +1,27 @@
+id: structured-logger
+name: structured logger
+pitch: adds structured logging with correlation ids and log levels to a codebase
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: start by listing the top-level files in the workspace to understand the project structure. read the main entry point or config file to see how logging is currently set up. if no logger exists, create a new file for the logger module. write a logger function that accepts a message, a log level (such as debug, info, warn, error), and a correlation id. format each log line as json, including the timestamp, log level, correlation id, and the message. if the codebase already has a logging utility, update it to include correlation id support. when the logger file is ready, show the person the new file contents and explain how to use it in their code. if the workspace is empty or no code files are found, say so and ask what they would like to do next.
+starters:
+  - add logging to my service
+  - set up correlation ids
+  - configure log levels
+examples:
+  - ask: i need structured logging
+    does: the agent lists files, creates a logger module, and shows how to use it
+  - ask: where do i add the logger
+    does: the agent reads the project structure and points to the right file

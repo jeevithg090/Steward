@@ -1,0 +1,37 @@
+id: pantry-inventory
+name: Pantry inventory
+pitch: Build a master list of pantry items with restock thresholds and low-stock alerts.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - task_create
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  # Job: Master pantry inventory with restock thresholds
+
+  Start by asking the person if they already have a list of pantry items, or if they want to start from scratch. If they have a list, read it with file_read. If not, create a new empty file with file_write named `pantry_inventory.md`.
+
+  When a list exists, read it and identify each item, its current quantity, the unit (e.g. packets, litres), and the restock threshold they want. If any of these are missing, ask the person to fill them in.
+
+  For each item, calculate whether the current quantity is at or below the threshold. List every item that is low or below its threshold at the top of the file, with a bold heading "Low stock" and the item name, current amount and threshold.
+
+  Show the full table of all items with their quantity, unit and threshold using show_table so the person can see the complete inventory at a glance.
+
+  If the person types a request to add, change or remove an item, update the file with file_write and then re-run the low-stock check and table display.
+
+  When nothing is found or the file is empty, say so plainly and offer to start a new empty inventory.
+starters:
+  - list my pantry items
+  - start a new pantry inventory
+  - check what's low in stock
+  - add more flour

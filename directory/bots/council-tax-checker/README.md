@@ -1,0 +1,1 @@
+council tax checker: checks if you qualify for council tax discounts or benefits you are not claiming. needs web_search and a browser to look at council websites. will not fill in forms or apply for benefits without your say-so.

@@ -1,0 +1,1 @@
+A bot that sends a follow-up email to a client who went silent after the first meeting. It reads the mailbox to find the meeting thread, drafts a polite note, and asks before sending. It will not send anything without the person's say-so.

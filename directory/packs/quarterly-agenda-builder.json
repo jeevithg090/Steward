@@ -1,0 +1,42 @@
+{
+  "id": "quarterly-agenda-builder",
+  "name": "Quarterly agenda builder",
+  "pitch": "Build a shared agenda doc for the quarterly planning meeting and link it to the calendar invite.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "make_page",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the next three calendar events titled \"Quarterly planning\" to find the upcoming meeting invite. When no such events are found, say so and stop. Open the first matching event and read its description and any attached files to see if an agenda already exists. If an agenda is already attached, open it and copy its link. If no agenda exists, make a new blank page titled \"Quarterly planning agenda\" with make_page. Write a basic agenda outline with headings for review of last quarter, goals for this quarter, and open items. Save the page and copy its web address. Go back to the calendar event and paste the new page link into the event description, replacing any existing agenda link. When the page or link cannot be found or created, say plainly what could not be checked and stop.",
+  "starters": [
+    "create the agenda",
+    "link it to the invite",
+    "update the meeting doc"
+  ],
+  "examples": [
+    {
+      "ask": "create agenda for q3 planning",
+      "does": "list recent quarterly planning events, make a new agenda page, and paste the link into the invite description"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Quarterly agenda builder\nBuilds a shared agenda doc for the quarterly planning meeting and links it to the calendar invite.\n\nNeeds: calendar (to find and update the event), make_page (to create the doc).\nWill not: create the doc without asking, or change an existing agenda without permission.",
+  "hash": "8fbdeb7d2be2de6db9912416cf95bc8fd9d3ca02c54aa3fb06367634a47e4c5a"
+}

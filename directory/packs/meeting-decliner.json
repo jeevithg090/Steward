@@ -1,0 +1,47 @@
+{
+  "id": "meeting-decliner",
+  "name": "meeting decliner",
+  "pitch": "Write a respectful decline to a meeting invitation in your own tone.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "When the person asks, start by reading the most recent meeting invitation in their mail. If no meeting invitation is found, say so and ask if they want to search for one. If a meeting invitation is found, read its content and note the meeting topic, date, time and any reason given for the meeting. Then draft a short decline that thanks the sender, states the person cannot attend, and offers a brief reason if appropriate. Keep the tone polite and professional. When the draft is ready, show it to the person and ask if they want to send it, edit it or discard it. If they choose to send it, use the mail_send tool to send the draft to the original sender. If they choose to edit it, revise the draft based on their feedback and show it again. If they choose to discard it, thank them and end the task. If at any point the required tool is not connected, say so and ask the person if they want to connect it or proceed without sending.",
+  "starters": [
+    "decline a meeting invitation",
+    "write a polite refusal",
+    "reply to a calendar invite"
+  ],
+  "examples": [
+    {
+      "ask": "Can you help me decline a meeting invite?",
+      "does": "The agent reads the latest meeting invitation and drafts a short decline for the person to review."
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-decline",
+      "description": "Create a respectful meeting decline message.",
+      "body": "1. Read the meeting invitation and identify the topic, date, time and any reason for attending. 2. Write a short draft that thanks the sender, states the person cannot attend and gives a brief reason if suitable. 3. Keep the language polite and professional. 4. Present the draft to the person for review."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# meeting decliner\nWrites a respectful decline to a meeting invitation in the person's tone.\n\n**What it needs**\n- mail_read and mail_send tools\n- mail connector\n\n**What it will not do**\n- Send anything without the person's okay\n- Invent reasons or attendance details",
+  "hash": "5e6f9415c083f50606b1d5dd469ac2f013eb95a4a39ca325724a64dc0ca49d13"
+}

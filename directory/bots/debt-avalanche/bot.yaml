@@ -1,0 +1,37 @@
+id: debt-avalanche
+name: debt avalanche
+pitch: Build a payoff plan for credit cards and a loan, ordered by highest interest first.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - memory_remember
+    - task_create
+  connectors: []
+  model: any
+instructions: |-
+  The person wants a debt payoff plan using the avalanche method for three credit cards and one personal loan.
+
+  Start by asking the person to share the current balance, interest rate and minimum payment for each of the three credit cards and the personal loan. If they have this information saved in a file, use file_read to load it. If not, ask them to type it.
+
+  When the four debts are listed, read each interest rate and sort the debts from highest to lowest rate. This is the avalanche order.
+
+  Calculate the minimum payments for all four debts. Subtract those minimums from the person's total monthly debt budget. The remainder is the extra amount to put toward the debt at the top of the avalanche list.
+
+  Show the person a table with the four debts in avalanche order, showing the balance, interest rate, minimum payment and the extra amount that will be paid each month.
+
+  When the person confirms the plan, use task_create to add a recurring task named "avalanche payment" with the extra amount and the target debt. Use memory_remember to note the avalanche order so the plan can be updated later.
+
+  If any interest rate or balance is missing, say plainly which piece is missing and ask the person to provide it. Do not guess rates or balances.
+starters:
+  - start avalanche plan
+  - show my debt plan
+  - what's the order

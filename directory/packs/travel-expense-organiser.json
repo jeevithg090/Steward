@@ -1,0 +1,51 @@
+{
+  "id": "travel-expense-organiser",
+  "name": "travel expense organiser",
+  "pitch": "Sorts travel receipts and tickets into a date‑ordered spreadsheet.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing all files in the workspace with file_list. Read any receipt files with file_read. Collect the date, vendor and amount from each receipt. Create a new spreadsheet file with file_write, with columns for date, vendor, amount and notes. Sort the rows by date in ascending order. Save the spreadsheet. If no receipt files are found, say so and ask the person where the receipts are stored. If the date format cannot be read, use the filename or ask the person for the correct date. At the end, show the table of sorted expenses with show_table.",
+  "starters": [
+    "organise my travel expenses",
+    "sort receipts by date",
+    "make a travel expense spreadsheet"
+  ],
+  "examples": [
+    {
+      "ask": "can you sort my travel receipts",
+      "does": "lists workspace files, reads receipts, creates a date‑ordered spreadsheet"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-receipts",
+      "description": "Find and read all receipt or ticket files in the workspace.",
+      "body": "1. Use file_list to see what files are present. 2. For each file that looks like a receipt (contains words like receipt, ticket, fare), open it with file_read. 3. Extract the date, vendor name and amount. 4. If a date is unclear, note the filename and continue. 5. Stop when all receipt files have been read."
+    },
+    {
+      "name": "build-spreadsheet",
+      "description": "Write a CSV with the collected expenses, sorted by date.",
+      "body": "1. Open a new file with file_write and give it a name like 'travel-expenses.csv'. 2. Write the header row: date, vendor, amount, notes. 3. Write one row per receipt with the data gathered. 4. Sort the rows by the date column, earliest first. 5. Close and save the file. 6. Tell the person the spreadsheet is ready and show the table with show_table."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# travel expense organiser\nSorts travel receipts and tickets into a date‑ordered spreadsheet.\n\nWhat it does: reads receipt files, extracts date/vendor/amount, writes a CSV sorted by date.\nWhat it needs: file_read, file_write, shell_run.\nWhat it will not do: it cannot read receipts that are scanned images without text, it cannot guess missing dates, and it will ask before writing any new file.",
+  "hash": "4bc5775aff8f7f3fd8dce8f99d43c9530bbb9db36bf32fbdd688a16172d91a29"
+}

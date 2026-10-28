@@ -1,0 +1,46 @@
+{
+  "id": "github-actions-workflow",
+  "name": "GitHub actions workflow",
+  "pitch": "Set up a GitHub Actions workflow that runs tests on every push and pull request.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the repository root to see if a `.github` folder already exists. If it does not, create the folder and add a `workflows` subfolder. If the repository already has a workflow file in `.github/workflows/`, read it to understand the current setup. Create a new file named `ci.yml` inside `.github/workflows/`. Write the workflow using the `on: [push, pull_request]` trigger. Add a job named `test` that runs on the latest version of Ubuntu. Include a step that checks out the repository code. Add a step that installs the project's dependencies using the appropriate command for the language, for example `npm install` for Node.js projects. Add a final step that runs the test suite, for example `npm test`. When the repository does not contain a package.json or similar lock file, ask the person which test command to use before proceeding. After writing the file, read it back to confirm the content is correct, then show the final workflow file to the person.",
+  "starters": [
+    "set up CI",
+    "add test workflow",
+    "configure tests on push"
+  ],
+  "examples": [
+    {
+      "ask": "what is the test command",
+      "does": "ask the person for the command used to run tests"
+    }
+  ],
+  "skills": [
+    {
+      "name": "create-workflow",
+      "description": "create a GitHub Actions workflow file that runs on push and pull request",
+      "body": "1. List files in the repository root to check for an existing .github folder. 2. If the folder is missing, create .github and a workflows subfolder. 3. Create a new file named ci.yml inside .github/workflows/. 4. Write the workflow using the on: [push, pull_request] trigger. 5. Add a job named test that runs on the latest Ubuntu. 6. Add a step to checkout the code. 7. Add a step to install dependencies using the project's package manager, for example npm install. 8. Add a step to run the test suite, for example npm test. 9. If no package manager file is found, ask the person which test command to use. 10. Read the finished file to confirm the content is correct."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# GitHub Actions workflow\n\nSet up a GitHub Actions workflow that runs tests on every push and pull request.\n\n**What it needs**\n- Access to the repository files on the computer.\n- Knowledge of the project's test command (if not obvious).\n\n**What it will not do**\n- Modify any other files in the repository without permission.\n- Run the workflow on the GitHub servers; it only creates the configuration file.",
+  "hash": "9e087636d15fe49a89e46a5965a5d91f5c41531f9336878d0c8046d70ecd9cb8"
+}

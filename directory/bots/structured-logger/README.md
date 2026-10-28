@@ -1,0 +1,1 @@
+structured logger: adds structured logging with correlation ids and log levels to a codebase. needs file_list, file_read, file_write. will not modify any running service or add dependencies without asking.

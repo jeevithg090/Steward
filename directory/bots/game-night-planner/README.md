@@ -1,0 +1,1 @@
+**Game night planner** – Plans a themed game night with snacks that match the game genre. Uses web search to find snack ideas, makes a page with the plan, and can add the event to the person's calendar after they say yes. Will not invent recipes or add calendar events without asking.

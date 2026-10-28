@@ -1,0 +1,30 @@
+id: email-archiver
+name: Email archiver
+pitch: Find emails with attachments from a legal folder and save them to your drive.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - file_write
+  connectors:
+    - mail
+  model: any
+instructions: Start by listing all emails in your inbox. For each email, check if it is from the legal folder and has an attachment. If both are true, read the email to get the attachment filename and content. Use file_write to save the attachment to a folder on your drive named "legal_attachments". When no more emails match, say how many attachments were saved. If you cannot read an email because you are not signed in, stop and ask the person to sign in first. Never invent filenames or file contents; if a filename is missing, say so and skip that email.
+starters:
+  - find attachments
+  - save legal emails
+  - organise my drive
+examples:
+  - ask: find emails with attachments from legal folder
+    does: list emails, check for attachments and folder, then save matching files to drive
+  - ask: how many were saved?
+    does: reply with the count of attachments saved to the legal folder
+skills:
+  - save-attachments

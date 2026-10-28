@@ -1,47 +1,47 @@
 # Directory report
 
-Generated 2026-10-28. 406 packs in `directory/bots/`.
+Generated 2026-10-28. 504 packs in `directory/bots/`.
 
 ## By category
 
-- Research & learning (`research`): 49
-- Developers & tools (`dev`): 45
-- Work & teams (`work`): 28
-- Email & productivity (`productivity`): 27
-- Build & manage bots (`bot-helpers`): 26
-- Business & marketing (`business`): 26
-- Everyday tasks (`misc`): 25
-- Social & creators (`social`): 24
-- Health & fitness (`health`): 23
-- Sales & CRM (`sales-crm`): 18
-- Food & cooking (`food`): 16
-- Money & finance (`money`): 14
-- Video & audio (`video-audio`): 14
-- Games & fun (`games`): 14
-- Investing & crypto (`investing`): 12
-- Privacy & scams (`privacy`): 12
-- Home & family (`home`): 12
-- Sports & fantasy (`sports`): 11
-- Travel & cars (`travel`): 10
+- Research & learning (`research`): 55
+- Developers & tools (`dev`): 50
+- Work & teams (`work`): 36
+- Social & creators (`social`): 31
+- Business & marketing (`business`): 31
+- Email & productivity (`productivity`): 31
+- Health & fitness (`health`): 29
+- Everyday tasks (`misc`): 28
+- Build & manage bots (`bot-helpers`): 28
+- Games & fun (`games`): 22
+- Sales & CRM (`sales-crm`): 22
+- Food & cooking (`food`): 21
+- Money & finance (`money`): 19
+- Video & audio (`video-audio`): 19
+- Privacy & scams (`privacy`): 18
+- Sports & fantasy (`sports`): 18
+- Home & family (`home`): 16
+- Travel & cars (`travel`): 16
+- Investing & crypto (`investing`): 14
 
 ## By author
 
+- AI-made (nvidia/nemotron-3.5-lightning-30b-a3b): 190
 - person (LobeChat author): 177
 - AI-made (nvidia/nemotron-3-ultra-550b-a55b): 127
-- AI-made (nvidia/nemotron-3.5-lightning-30b-a3b): 92
 - person (OpenBot): 10
 
 ## Problems
 
-0 errors, 286 warnings across 163 packs.
+0 errors, 290 warnings across 167 packs.
 
 - 62 × uses jargon: …; say it in plain words
 - 22 × uses jargon: …, …; say it in plain words
 - 21 × a sentence has 36 words; keep sentences short …
-- 15 × a sentence has 37 words; keep sentences short …
-- 13 × a sentence has 41 words; keep sentences short …
+- 16 × a sentence has 37 words; keep sentences short …
+- 15 × a sentence has 41 words; keep sentences short …
 - 13 × a sentence has 39 words; keep sentences short …
-- 12 × a sentence has 38 words; keep sentences short …
+- 13 × a sentence has 38 words; keep sentences short …
 - 11 × a sentence has 42 words; keep sentences short …
 - 10 × a sentence has 44 words; keep sentences short …
 - 10 × a sentence has 40 words; keep sentences short …
@@ -96,22 +96,23 @@ Generated 2026-10-28. 406 packs in `directory/bots/`.
 
 ## Generation log
 
-219 written, 140 dropped.
+317 written, 180 dropped.
 
-- 112 × model failed
-- 20 × below the bar
+- 115 × model failed
+- 56 × below the bar
 - 7 × judge failed
 - 1 × duplicate of monthly-budget-builder
+- 1 × duplicate of packed-lunch-planner
 
 ## Toward the launch target
 
-219 AI-made bots on the shelf, of 2000 planned; 0 retired.
-1384 jobs in the taxonomy (224 by people, 1160 proposed by a model and not yet read by a person); 1145 without a bot yet.
+317 AI-made bots on the shelf, of 2000 planned; 0 retired.
+1384 jobs in the taxonomy (224 by people, 1160 proposed by a model and not yet read by a person); 1010 without a bot yet.
 
 | Writer                                | Bots | Seconds per bot, one worker (median) | Bots per minute of run time |
 | ------------------------------------- | ---- | ------------------------------------ | --------------------------- |
 | nvidia/nemotron-3-ultra-550b-a55b     | 127  | 115                                  | 2.8                         |
-| nvidia/nemotron-3.5-lightning-30b-a3b | 92   | 53                                   | 2.3                         |
+| nvidia/nemotron-3.5-lightning-30b-a3b | 190  | 52                                   | 2.6                         |
 
 Resume with the same command; it skips jobs that already have a bot or were dropped for good:
 

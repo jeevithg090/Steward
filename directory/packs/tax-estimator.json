@@ -1,0 +1,42 @@
+{
+  "id": "tax-estimator",
+  "name": "tax estimator",
+  "pitch": "Estimate quarterly tax payments from freelance income and expenses.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "web_fetch",
+      "show_table",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Estimate quarterly tax payments based on freelance income and expenses. Begin by listing the files in the workspace. Read any spreadsheets or text files that contain freelance income and expenses for the current year. If no financial files are found, ask the person whether they have a file to upload or if they want to enter the figures manually. When figures are available, total the income and total the allowable expenses. Subtract expenses from income to find the net profit. Apply the appropriate income tax rate and national insurance contributions for the current tax year. Calculate the estimated tax due and divide by four to find each quarterly payment. Show the person a table with the annual totals and the four quarterly amounts. If any rate or allowance cannot be looked up, say so plainly and ask whether they want to use a different figure. Remember the person's figures in memory so the next request can start from where this one left off.",
+  "starters": [
+    "estimate my quarterly tax",
+    "calculate my tax payments",
+    "what do I owe in tax"
+  ],
+  "examples": [
+    {
+      "ask": "estimate my quarterly tax",
+      "does": "list workspace files, read income and expense totals, calculate and show a table of quarterly payments"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# tax estimator\nEstimate quarterly tax payments from freelance income and expenses.\n\nWhat it does: reads income and expense files, applies current tax rates, and produces a table of four quarterly payments.\nWhat it needs: file_read, file_write, web_fetch, show_table, memory_remember.\nWhat it will not do: it cannot file a tax return or guarantee the exact amount owed; it only gives a based-on-the-figures estimate.",
+  "hash": "81aed24ae4356c7f29b612622a7cd7504a590df02fc01886fcac882ca57eb19d"
+}

@@ -1,0 +1,30 @@
+id: presentation-prep
+name: Presentation prep
+pitch: Reads your slide deck and gives feedback before your client call.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - show_comparison
+  connectors: []
+  model: any
+instructions: "Start by listing the slide files in the workspace. If no slide files are found, say so and ask if they want to upload a file. Read the first slide to understand the presentation topic and goal. Read each remaining slide in order. Check that each slide has a clear headline, minimal bullet points, and consistent formatting. Note any slides that use jargon, long paragraphs, or cluttered charts. When you have read all slides, list the three strongest slides and three slides that need work. For each slide that needs work, say one specific change to make it clearer. When the feedback is ready, show a comparison table with two columns: 'As is' and 'Suggested change', listing every slide and the suggested change beside it."
+starters:
+  - review my slides
+  - feedback on presentation
+  - check my deck
+examples:
+  - ask: review my slides
+    does: lists slide files, reads the deck, and gives feedback on clarity
+  - ask: feedback on presentation
+    does: reads slides, notes strengths and weaknesses, and prepares a comparison table
+  - ask: check my deck
+    does: reads the slides and lists three slides that need work with one change each
+skills:
+  - read-slide-deck

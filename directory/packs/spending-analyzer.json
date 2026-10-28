@@ -1,0 +1,51 @@
+{
+  "id": "spending-analyzer",
+  "name": "spending analyzer",
+  "pitch": "Analyze your spending to find three easy cut-back categories.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "First, read the most recent financial summary file in the workspace. If no file exists, ask the person to upload a CSV or bank export of the last three months. Count every transaction. Group them into broad categories like food, transport, entertainment, utilities and other. Calculate the total and the percentage each category represents. Sort the categories from highest to lowest spend. Pick the three categories with the highest percentages that are flexible – things like takeaway meals, streaming subscriptions or occasional trips – and list them as the cut-back suggestions. If a category has fewer than ten transactions, note that it may not show a clear pattern. When the analysis is done, show a table with the category, total spent and percentage of the total. If any step finds no data, say so plainly and stop. Do not invent numbers or guess at lifestyle impact. Only use the data the person has provided.",
+  "starters": [
+    "analyze my spending",
+    "find where I can cut back",
+    "show me my top categories"
+  ],
+  "examples": [
+    {
+      "ask": "analyze my spending",
+      "does": "reads the latest file, groups transactions and lists three flexible categories"
+    },
+    {
+      "ask": "I want to save money",
+      "does": "runs the analysis and presents a table of the three biggest flexible categories"
+    }
+  ],
+  "skills": [
+    {
+      "name": "read-financial-file",
+      "description": "Read the most recent file in the workspace that looks like a bank export or budget summary. If more than one exists, pick the newest by modification time.",
+      "body": "1. List files in the workspace. 2. Find a file with a name containing 'bank', 'export', 'summary' or 'finance'. 3. If exactly one is found, read it. 4. If none or more than one, ask the person to upload a CSV of the last three months and stop. 5. If the file is read, proceed to count transactions."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## spending analyzer\nAnalyze your recent spending and highlight three categories where you could cut back easily.\n\nWhat it needs: access to read and write files in its workspace, a table view for the results, and memory to remember your preferences across runs.\n\nWhat it will not do: it will not guess at your lifestyle, it will not move money, and it will not access any bank or payment service directly. All data must come from a file you upload.",
+  "hash": "844ccd98be66f0d27516e1d3b883363ac6b6ed3b741538e0cf7aea4c46fe911f"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "inbox-reply-draft",
+  "name": "Inbox reply draft",
+  "pitch": "Drafts replies to common questions in the person's inbox so they can review before sending.",
+  "category": "bot-helpers",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the last 10 messages in the inbox. For each message, read its subject and first paragraph. If the subject or content matches a known common question, copy the matching saved reply draft. If no match is found, write a new draft that greets the sender, references the question, and offers to help further. Place each draft on a new page using make_page, showing the original question at the top and the drafted reply below. After all messages are processed, show the person the list of pages and ask which reply they would like to send, edit, or discard. When a page is saved, note the question topic so future similar messages can be matched more quickly. If the inbox is empty, say so and offer to create a new draft from scratch.",
+  "starters": [
+    "draft replies",
+    "reply to common questions",
+    "sort inbox",
+    "write replies"
+  ],
+  "examples": [
+    {
+      "ask": "draft replies to my inbox",
+      "does": "lists recent messages, finds common questions, and creates draft pages for each"
+    },
+    {
+      "ask": "what common questions do I get",
+      "does": "scans the inbox, groups similar subjects, and lists the top three"
+    }
+  ],
+  "skills": [
+    {
+      "name": "scan-and-match",
+      "description": "Find common questions in the inbox and match them to saved reply drafts.",
+      "body": "1. Use mail_list to get the last 10 messages. 2. For each message, use mail_read to read the subject and first paragraph. 3. Compare the content to a list of known common questions stored in the workspace. 4. If a match is found, copy the saved draft to a new page. 5. If no match, write a fresh draft that greets the sender, references the question, and offers help. 6. Use make_page to create a page with the original question at the top and the drafted reply below. 7. Repeat for each message. 8. After all pages are created, show the person the list and ask which reply to use."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Inbox reply draft\n\nDrafts replies to common questions in the person's inbox so they can review before sending.\n\n**What it needs:** mail connector to read the inbox, mail_list and mail_read tools, make_page to create review pages.\n\n**What it will not do:** It will not send any email without the person's say-so. It will not invent replies without checking the question first.",
+  "hash": "69fa9fe21c9c492d5ccc7c22d139fda3dd355d14c028dd474f8068f9c78255a3"
+}

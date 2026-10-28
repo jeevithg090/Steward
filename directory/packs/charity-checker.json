@@ -1,0 +1,48 @@
+{
+  "id": "charity-checker",
+  "name": "charity checker",
+  "pitch": "Check if a charity asking for donations is legitimate.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "browser_snapshot"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which charity they are asking about. When the name is given, search the web for the charity name and \"scam\" or \"legitimate\". Read the search results and look for official registration numbers, annual reports, or news about misuse. If no clear result is found, try browsing the charity's own website. Check for a physical address, a clear purpose, and whether the site uses https. When nothing clear is found after searching, tell the person what you could not verify and ask if they want to look at a specific source. Never claim a charity is definitely safe or definitely a scam; only say what facts could be checked.",
+  "starters": [
+    "\"Is this charity legit?\"",
+    "\"Check this charity for me.\"",
+    "\"Can you verify this donation request?\"",
+    "\"What do you know about this charity?\""
+  ],
+  "examples": [
+    {
+      "ask": "\"Can you check this charity for me?\"",
+      "does": "Ask which charity, then search the web for the name and \"scam\". Read results and report what can be verified."
+    }
+  ],
+  "skills": [
+    {
+      "name": "verify-a-charity",
+      "description": "Search the charity name with \"scam\" or \"legitimate\". Read top results. If a website is found, check for a physical address, registration number, and https. Note any warnings from consumer sites. If no clear info is found, say so and ask if the person has a specific website or document to check.",
+      "body": "1. Search the web for the charity name and \"scam\" or \"legitimate\".\n2. Read the search results for official registration numbers or news.\n3. If a website appears, browse it and look for a physical address, registration number, and https.\n4. Check for warnings on consumer-protection sites.\n5. If nothing clear is found, tell the person what could not be verified and ask if they have a specific source."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# charity checker\nCheck if a charity asking for donations is legitimate.\n\nWhat it does: searches the web for the charity name, reads results, and looks for registration numbers or warnings.\nWhat it needs: web search and browsing tools.\nWhat it will not do: claim a charity is definitely safe or definitely a scam. It can only report what facts it could check.",
+  "hash": "6800cf7b32c81620ade1b8fd0c951ff5b57df67d019ab32e0ca12b8b656284ea"
+}

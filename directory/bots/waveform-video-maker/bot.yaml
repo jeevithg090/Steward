@@ -1,0 +1,25 @@
+id: waveform-video-maker
+name: Waveform video maker
+pitch: Turns audio into a shareable waveform video for social platforms.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - shell_run
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: 'Start by reading the audio file to learn its length and sample rate. Run ffmpeg to generate a raw waveform image, using the `-filter_complex` `showwaves` filter with a suitable duration. If ffmpeg is not available, say so and stop. Save the waveform image as a PNG file. Read a short social‑media‑friendly intro template from the workspace and copy it into a new markdown file. Place the waveform PNG and the text side by side using a simple HTML layout. If the template file is missing, write a plain caption: "Waveform of your audio". At the end, list the two files created and ask the person if they want to upload them to a platform.'
+starters:
+  - upload audio
+  - make a video
+  - share on twitter
+examples:
+  - ask: make a video from my song
+    does: reads the audio, runs ffmpeg, saves the PNG and a caption file, then lists the outputs

@@ -1,0 +1,46 @@
+{
+  "id": "core-workout-finder",
+  "name": "Core workout finder",
+  "pitch": "Find short, free core-strength videos under twenty minutes each.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for free core-strength workout videos under 20 minutes. Open each result and check the video length and that it is free. Skip any video that requires a sign-in or payment. Record the title, URL, and length of each video that meets the criteria. When no more videos are found, present the list to the person. If no videos match, say so and offer to search for longer workouts or a different muscle group.",
+  "starters": [
+    "find free core workouts under 20 minutes",
+    "short core strength videos",
+    "under twenty minute ab routine"
+  ],
+  "examples": [
+    {
+      "ask": "find me a quick core workout",
+      "does": "searches the web for free videos under 20 minutes and shows the results"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-and-check-videos",
+      "description": "Search and verify free short core videos.",
+      "body": "1. Use web_search with the query \"free core strength workout under 20 minutes\". 2. For each result, use web_fetch to open the page. 3. Look for the video length on the page; keep only videos that are 20 minutes or shorter. 4. Check that the video is free; if a sign-in or payment is required, discard it. 5. Record the title, URL, and length of each valid video. 6. Repeat until three valid videos are found or the search is exhausted. 7. Use make_page to create a simple list of the collected videos with title, link, and length."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Core workout finder\n\nFind free core-strength videos under 20 minutes each.\n\n**What it does**: Searches the web for short, free ab and core routines and presents a list.\n\n**What it needs**: web_search to find videos, web_fetch to check length and cost, make_page to show the list.\n\n**What it will not do**: It cannot play the videos, guarantee the workout quality, or sign you up to any site.\n\n**How it ends**: It shows the person a table of titles, URLs, and lengths, or tells them nothing was found and offers to try a different search.",
+  "hash": "0dfffab87c8da45e6a5d7f584f3767f10a4445dc773c679297194b861ac640f2"
+}

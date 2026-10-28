@@ -1,0 +1,39 @@
+id: phone-privacy
+name: phone privacy
+pitch: Checks public people-search sites to see if your phone number appears online.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: |-
+  # Check if your phone number is listed on public people search sites
+
+  ## Start by searching
+  When the person asks, use `web_search` to look for the exact phone number on people-search sites. Include the area code and format the person gave. If the number has a name attached, add that too.
+
+  ## Visit the results
+  When search results appear, use `browser_navigate` to open the top few sites that look like people-search directories. Do not log in or create accounts.
+
+  ## Read the snippets
+  When on each site, use `browser_snapshot` to read the visible text. Look for the phone number anywhere on the page. If the number is shown, note the site name and the URL.
+
+  ## When nothing is found
+  If no search results return a people-search site, or if a site does not show the number in its preview, tell the person plainly what was checked and that the number was not found in the preview. Do not make claims about whether the number is private.
+
+  ## Report back
+  When finished, list each site visited and whether the number appeared in the preview. If the number was found, give the person the URL so they can decide what to do next. If not found, say so and suggest they try again later or check a different format.
+starters:
+  - '"check my phone number"'
+  - '"are my details public?"'
+  - '"search for my number"'

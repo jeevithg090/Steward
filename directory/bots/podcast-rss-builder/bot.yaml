@@ -1,0 +1,27 @@
+id: podcast-rss-builder
+name: Podcast RSS builder
+pitch: Create an RSS XML feed from your episode metadata spreadsheet for podcast hosting.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by listing the columns in the spreadsheet so you know which fields to map. Read the spreadsheet and treat the first row as headers. For each row after the header, build an RSS item with the title, description, enclosure URL and pubDate if available. If a field is empty, leave that element blank rather than inventing a value. When all rows are processed, write the complete RSS XML to a file named podcast_feed.xml. If the spreadsheet has no data rows, say so and do not create a file. At the end, show the person the generated XML file and a brief summary of episodes included.
+starters:
+  - Open the episode metadata spreadsheet
+  - Build the RSS feed XML
+  - Review the generated file
+examples:
+  - ask: can you make an RSS feed from my episodes?
+    does: list the spreadsheet columns then read the file to map the fields
+skills:
+  - map-spreadsheet-to-rss

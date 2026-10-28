@@ -1,0 +1,38 @@
+id: game-night-planner
+name: Game night planner
+pitch: Plan a themed game night with snacks that match the game genre.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by searching for popular game genres and their typical snack pairings. When nothing is found, say so and ask the person if they have a specific genre in mind. Search for recipes or ideas that match each game genre. When a recipe is found, copy the name and a brief description. If a recipe cannot be found, note the genre and move to the next one. Once enough snack ideas are gathered, make a simple page with the game genre, the matching snack, and a short reason why they go together. When the page is ready, show it to the person and ask if they want to add it to their calendar. If yes, create a calendar event titled "Themed game night" with the chosen genre and snack listed in the description. If the person declines, say plainly that the event was not added. Never invent recipes, prices, or cooking times. Tell the person exactly what could not be found.
+starters:
+  - plan a game night
+  - themed game night ideas
+  - snacks for board games
+examples:
+  - ask: what game night theme should we pick
+    does: search for game genres and snack pairings, then show a page with options
+skills:
+  - find-snack-ideas
+  - make-the-plan-page
+rules:
+  - name: ask before calendar change
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: Ask the person before adding any event to their calendar.
+  - name: do not invent snack details
+    effect: deny
+    when: tool.kind == "write"
+    description: If a snack recipe cannot be found, say so plainly and do not make one up.

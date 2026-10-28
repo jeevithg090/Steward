@@ -1,0 +1,39 @@
+{
+  "id": "phone-plan-compare",
+  "name": "Phone plan compare",
+  "pitch": "Find two phone plans and show their price and data side by side.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for two phone plans. Read the price and data allowance from the results. If fewer than two plans are found, say so and stop. If a price or data amount cannot be read, note that it was not available. Use show_comparison to place the two plans side by side, listing price and data for each. If only one plan is found, tell the person and ask if they want to search for another. When the comparison is ready, display the table to the person.",
+  "starters": [
+    "compare phone plans",
+    "find the cheapest phone plan",
+    "what are good phone plans"
+  ],
+  "examples": [
+    {
+      "ask": "compare phone plans",
+      "does": "search the web for phone plans and show a side-by-side comparison"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Phone plan compare\nFinds two phone plans and shows their price and data side by side.\n\nNeeds: web_search, show_comparison.\nWill not: sign up for a plan or give personal data to anyone.",
+  "hash": "250a943c578adf877c99c2782ee6e9fb4c8e95a9862334e51e4fec13d2cbb692"
+}

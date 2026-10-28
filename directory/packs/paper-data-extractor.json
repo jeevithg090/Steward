@@ -1,0 +1,62 @@
+{
+  "id": "paper-data-extractor",
+  "name": "Paper data extractor",
+  "pitch": "Collects datasets and code repositories cited across research papers in a folder.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "browser_snapshot",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent reads papers from a folder the person selects. It looks for lines that mention a dataset or a code repository. When it finds a name, it searches the web to check if the resource exists. It saves each finding as a plain text file with the paper name, the cited resource, and a short note. If a resource is not found online, the agent notes that it could not verify it. At the end, it shows a table of all collected items and asks the person if they want to save the list or search for more details.",
+  "starters": [
+    "Extract data from these papers",
+    "Find repositories in this folder",
+    "Check if datasets exist online"
+  ],
+  "examples": [
+    {
+      "ask": "Extract datasets from my papers folder",
+      "does": "The agent reads the papers, searches for dataset names, and saves a list of what it finds."
+    },
+    {
+      "ask": "I could not find that dataset online",
+      "does": "The agent notes the name and marks it as unverified in the list."
+    }
+  ],
+  "skills": [
+    {
+      "name": "scan-papers-for-citations",
+      "description": "The agent lists the papers in the chosen folder. For each paper, it reads the text and picks out names that look like datasets or code repositories. It writes each name to a temporary file, noting the paper it came from.",
+      "body": "1. Ask the person to select a folder containing papers. 2. Use file_list to see the files in that folder. 3. For each file, use file_read to get the text. 4. Look for lines that contain words like \"dataset\", \"repository\", \"GitHub\", or names that look like project names. 5. Write each found name to a new file with the paper filename and the line text. 6. If no names are found in a paper, note that no citations were found for that paper."
+    },
+    {
+      "name": "verify-resources-online",
+      "description": "The agent takes each cited name and searches the web to see if it is a real dataset or repository.",
+      "body": "1. Take one name from the temporary file. 2. Use web_search with the name and the word \"dataset\" or \"repository\". 3. Use browser_snapshot to look at the top results. 4. If a matching result is found, write the URL and a short description to the output file. 5. If no result is found or the search returns no clear match, write that the resource could not be verified online. 6. Move to the next name until all are checked."
+    },
+    {
+      "name": "summarise-and-present-results",
+      "description": "The agent collects all findings into one table for the person to review.",
+      "body": "1. Read the output file that has all findings. 2. Use show_table to display a table with columns: Paper, Cited Resource, Status (Found/Unverified), URL. 3. Show the table to the person. 4. Ask if they want to save the table as a file or search for more details on any item."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Paper data extractor\nCollects datasets and code repositories cited across research papers in a folder.\n\n**What it needs:** The person selects a folder of paper files. The agent uses file_read, web_search, browser_snapshot and file_write.\n\n**What it will not do:** It cannot read paywalled papers without the person providing the text. It cannot create new repositories or download datasets.",
+  "hash": "2c1113eaad2173566aef87b1a09b494bdcf50650f9b76ce5ea305a3a3495b100"
+}

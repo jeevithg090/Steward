@@ -1,0 +1,50 @@
+{
+  "id": "caption-guide",
+  "name": "caption guide",
+  "pitch": "extracts tone, style and themes from your last 20 captions into a reusable guide",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## job\nread the last 20 caption files in the person's workspace. identify the tone words, sentence length patterns, recurring themes and formatting habits. write a short guide that lists those elements so the person can reuse them.\n\n## steps\n1. list the caption files in the workspace. 2. read each file and note the tone adjectives, average word count, emoji use, sign-off style and any repeated topics. 3. summarise the findings in 5 to 7 bullet points. 4. write a new file called `brand_voice_guide.md` with those bullets. 5. tell the person the guide is ready and show the file.\n\n## when nothing is found\nif fewer than 20 caption files exist, read whichever are available and note that the guide is based on a smaller set. if no caption files are found, say so and ask if they want to upload some.\n\n## output\nshow the person the `brand_voice_guide.md` file contents and a brief summary of what was extracted.",
+  "starters": [
+    "create my caption guide",
+    "make a voice guide from my posts",
+    "summarise my caption style"
+  ],
+  "examples": [
+    {
+      "ask": "i need a voice guide for my captions",
+      "does": "reads the last captions and writes a guide file"
+    },
+    {
+      "ask": "can you look at my recent captions?",
+      "does": "lists the caption files it can find"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-tone-and-style",
+      "description": "pull tone words, length patterns and themes from captions",
+      "body": "1. open the first caption file. 2. scan for tone adjectives such as 'playful', 'professional' or 'casual'. 3. record the average sentence length in words. 4. make a list of themes that appear more than once, such as 'product tips' or 'behind‑the‑scenes'. 5. do the same for the remaining captions. 6. combine the notes into 5 to 7 bullet points that capture the overall voice."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# caption guide\nExtracts tone, style and themes from the person's last 20 captions and writes a short guide file. The guide lists tone words, sentence length habits, emoji use and recurring topics so the person can reuse them. Needs read/write access to the workspace. Will not publish or share the guide outside the workspace.",
+  "hash": "aa3d48242f52f0725aee039e83cb49c6be3ce23e0815a9be9f505e336ee5d927"
+}

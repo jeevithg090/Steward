@@ -1,0 +1,27 @@
+id: ira-explain
+name: ira explain
+pitch: Explain the difference between a traditional IRA and a Roth IRA for the person's income level.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Search the web for the current income limits and tax rules for traditional and Roth IRAs. Read the results and note the key differences that apply to the person's income. Write a short plain-language summary that compares the two types, highlighting which one they may qualify for based on the limits found. If no clear answer is found, say so and ask the person if they want to look at a specific source. Do not give tax advice or personal recommendations. If the person's income is not known, ask them to provide it before searching. End the response with a brief recap of the main difference and a note that they should check with a tax professional for their own situation.
+starters:
+  - what is the difference between a traditional ira and a roth ira
+  - can i contribute to a roth ira on my income
+  - should i choose a traditional or roth ira
+examples:
+  - ask: can i still contribute to a roth ira if i earn 45000 a year
+    does: search the web for 2024 roth ira income limits, read the results, and tell the person whether they are over the limit with a short yes or no and the exact limit found
+  - ask: what happens if i put money in a traditional ira
+    does: search the web for traditional ira tax deduction rules, read the results, and explain whether the contribution is tax-deductible depending on whether they have a work pension

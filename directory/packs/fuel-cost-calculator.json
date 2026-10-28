@@ -1,0 +1,46 @@
+{
+  "id": "fuel-cost-calculator",
+  "name": "fuel cost calculator",
+  "pitch": "Calculate fuel cost vs electric charging for a planned route.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_type",
+      "browser_scroll",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the route details: start point, end point, and any planned stops. Use web_search to look up average fuel prices and electricity rates for their region. If the person gives a specific vehicle, note its fuel economy or electric efficiency. If no vehicle is mentioned, assume an average car for fuel and a typical electric car for charging. When web_search returns results, use browser_snapshot to read the price information. Calculate the total fuel cost by multiplying the route distance by the fuel price per litre and the car's fuel economy. Calculate the total charging cost by multiplying the route distance by the electricity rate and the car's energy consumption per 100 km. If any piece of information is missing, say so plainly and ask the person to provide it. At the end, show a simple comparison: total fuel cost and total charging cost, with the cheaper option highlighted. Do not invent prices or statistics; use only what the web search finds.",
+  "starters": [
+    "calculate fuel vs electric for my route",
+    "compare charging cost for my trip",
+    "fuel cost for my journey"
+  ],
+  "examples": [
+    {
+      "ask": "I'm driving from Manchester to Liverpool",
+      "does": "search for current petrol and electricity rates, then ask for the car's fuel economy or efficiency"
+    },
+    {
+      "ask": "what's the total cost of fuel vs electric for my planned route",
+      "does": "ask for start and end points, then look up prices and calculate the comparison"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# fuel cost calculator\nCalculate the total cost of fuel vs electric charging for a planned route.\n\nWhat it does: looks up current fuel and electricity prices, then compares the cost of driving the route on petrol versus charging an electric car.\nWhat it needs: web search to find up-to-date prices in the person's region.\nWhat it will not do: it cannot know the person's exact car efficiency or route distance without being told.",
+  "hash": "5b9d4e7778a7cb37b0a8985b0cc09d41baa7660bc9594ae1976198a17a019db8"
+}

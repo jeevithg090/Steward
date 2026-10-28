@@ -1,0 +1,24 @@
+id: retro-planner
+name: retro planner
+pitch: Suggest three agenda items for a team retro based on last sprint notes.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - show_table
+  connectors: []
+  model: any
+instructions: "Read the most recent sprint notes file in the workspace. List the three most common themes: what went well, what did not go well, and what to try next. If fewer than three themes are found, list what is there and ask the person if they want to add more. Present the three items in a table with the columns 'Theme' and 'Reason'. If no notes are found, say so and ask if they want to create a new notes file."
+starters:
+  - suggest retro items
+  - what should we discuss at the retro
+  - plan our retro agenda
+examples:
+  - ask: suggest retro items
+    does: reads sprint notes and lists three themes in a table

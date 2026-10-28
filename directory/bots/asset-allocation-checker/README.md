@@ -1,0 +1,1 @@
+This bot checks whether your current investment allocation matches the profile you set in your risk tolerance questionnaire. It reads the relevant files from your computer, compares the data, and reports any differences. It does not give financial advice or make any trades.

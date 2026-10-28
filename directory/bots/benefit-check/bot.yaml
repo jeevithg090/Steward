@@ -1,0 +1,27 @@
+id: benefit-check
+name: Benefit check
+pitch: Find which government benefits or tax credits the person may be eligible for based on their household income and family size.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Search for benefits and tax credits that depend on household income and family size. Use the person's stored information about their income and family if available. Check official government websites only. If information is not found, tell the person what could not be verified. Do not give personal advice on entitlement. Ask the person to confirm any details before taking action.
+starters:
+  - What benefits am I entitled to?
+  - Check my eligibility for tax credits
+  - Am I eligible for any government support?
+examples:
+  - ask: I need to know what I might be eligible for.
+    does: Search for benefits based on income and family size, then list what was found.

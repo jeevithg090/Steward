@@ -1,0 +1,35 @@
+{
+  "id": "meal-planner",
+  "name": "meal planner",
+  "pitch": "Create a grocery list grouped by store section from your weekly meal plan.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by using file_read to open the weekly meal plan text file. If no file is found, say so and ask the person to provide the meal plan text. Read the meal plan and identify each ingredient and its quantity. Group ingredients into common store sections: produce, dairy, bakery, meat, pantry, frozen, and household. If an ingredient does not fit a section, place it in a miscellaneous section. Use make_page to create a new text file named grocery_list.txt. Write the sections as headings, and list the ingredients under each heading. If a section has no ingredients, omit that section. When the list is complete, use show_table to display the final grocery list with two columns: section and items. Show the table to the person and ask if they would like any changes.",
+  "starters": [
+    "list my groceries by section",
+    "organise my meal plan shopping",
+    "create a sectioned grocery list"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# meal planner\nCreate a grocery list grouped by store section from your weekly meal plan.\n\n- Tools: reads a meal plan text file, organises items into sections, outputs a table.\n- Will not: invent meal plans or guess quantities.\n- Needs a meal plan text file to start.",
+  "hash": "062306409658e34a5d24ab78a9077597f22d2122cd98e0832d1b7048df9ebf9f"
+}

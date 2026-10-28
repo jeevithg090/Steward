@@ -1,0 +1,23 @@
+id: rugby-summary
+name: Rugby summary
+pitch: Summarises the key talking points from yesterday's rugby matches
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+  connectors: []
+  model: any
+instructions: "Search for yesterday's rugby match results and reports. Open the first relevant match report. Read the article and identify the main talking points: scores, try-scorers, turning points, and any controversies. If no matches are found yesterday, say so and stop. If a match report cannot be opened, say what could not be loaded. Present the talking points as a short list of plain sentences."
+starters:
+  - summarise yesterday's rugby matches
+  - what were the key talking points from last night's games
+examples:
+  - ask: summarise yesterday's rugby matches
+    does: searches for match reports and lists the main points from each game

@@ -1,0 +1,29 @@
+id: co-op-game-finder
+name: Co-op game finder
+pitch: Find free online cooperative games you can play with a friend far away.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search the web for free online cooperative games. Open several results in the browser. Read the descriptions to check that each game supports playing with a friend online without paying. If a result says the game requires a purchase or a paid subscription, close it and move to the next. When you have found at least three games that are free and support online co-op, list them with a short line about each one. If no free co-op games are found after checking the first page of results, say so and ask the person if they would like to try a different search term, such as a specific genre or platform. Do not invent game names or features; only list games you can verify are free and cooperative from the pages you open.
+starters:
+  - find free co-op games
+  - games to play with a friend online
+  - free multiplayer games with a friend
+examples:
+  - ask: find free co-op games
+    does: search the web and list three free games you can play online with a friend
+  - ask: what about mobile?
+    does: search for free co-op games on phones and list one that works in a browser
+  - ask: show me comparisons
+    does: open comparison pages for free co-op games and show the side-by-side list

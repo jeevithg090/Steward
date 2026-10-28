@@ -1,0 +1,23 @@
+id: board-game-night
+name: Board game night
+pitch: Organise a weekly game night with a rotating schedule for four players.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - task_create
+    - show_table
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the person which four players should be on the roster. When you have the names, create a table with four columns and enough rows for a rotating schedule, leaving the first row blank for the current week. Fill in the remaining rows so each player gets a turn in a cycle. Use show_table to display the schedule to the person and ask if the order is acceptable. When the person agrees, use calendar_create to add a recurring weekly event titled "Board game night" with a note linking to the schedule. If the calendar tool is not connected, say that you cannot add the event and ask the person to add it themselves. If any player name is missing or unclear, ask the person to clarify before proceeding.
+starters:
+  - Who are the four players?
+  - When should the first game night be?
+  - What games do we have?

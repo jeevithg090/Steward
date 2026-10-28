@@ -1,0 +1,40 @@
+{
+  "id": "stretch-guide",
+  "name": "Stretch guide",
+  "pitch": "Explains dynamic vs static stretching and when to use each before or after activity.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for reliable articles on dynamic and static stretching. Read the top results to learn the definitions and typical usage. Summarise the key differences in plain words. When nothing is found, say so and ask if the person wants a different source. Create a simple page with two sections: one for dynamic stretching with examples and best timing, one for static stretching with examples and best timing. Show the page to the person and ask if they want more detail on a specific stretch or situation.",
+  "starters": [
+    "explain dynamic stretching",
+    "when to stretch before running",
+    "difference between dynamic and static"
+  ],
+  "examples": [
+    {
+      "ask": "can you tell me about stretching?",
+      "does": "searches the web, then makes a short page with the two types and when to use each"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Stretch guide\nExplains dynamic and static stretching and when to use each.\nNeeds: web search, reading pages, making a simple page.\nWill not give medical advice or personalised training plans.",
+  "hash": "b05582457049ef853cdb826a7ef4761e6c929e1c4d123f3d4fe7c992f7c608c2"
+}

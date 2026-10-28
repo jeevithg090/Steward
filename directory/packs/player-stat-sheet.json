@@ -1,0 +1,42 @@
+{
+  "id": "player-stat-sheet",
+  "name": "Player stat sheet",
+  "pitch": "Shows the latest season stats for two players side by side on one page.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the names of the two players and which season they mean. If they do not give names, say 'I need the names of both players to compare them.' Use web_search to find the official league page or a stats site for each player. Open the first result with browser_navigate, then use browser_snapshot to check the page has the stats table. If the table is there, copy the row of numbers for the requested season. If not, use web_search again with the player name and 'season stats' to find a page that does. Repeat for the second player. When both rows of stats are found, use make_page to create a single page that puts the two tables side by side, with the player names at the top. If a player's stats cannot be found after two searches, say 'I could not find stats for [player name].' At the end, show the person the made page and ask if they want to save it or search for other players.",
+  "starters": [
+    "compare player A and player B stats",
+    "latest season stats for my two players"
+  ],
+  "examples": [
+    {
+      "ask": "compare haaland and benzema goals 2023-24",
+      "does": "search for both players' 2023-24 goal stats and make a side-by-side page"
+    },
+    {
+      "ask": "messi ronaldo 2022-23",
+      "does": "find the stats tables and combine them on one page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Player stat sheet\nCompares the latest season stats for two players on one page.\n\n- Needs: web_search, web_fetch\n- Will not: visit paywalled sites without free data, guess player names",
+  "hash": "c8d23f0ceab3ac9cf72a3746a5e6fe2e3911cfaec74d99a1e87cab8aad661e26"
+}

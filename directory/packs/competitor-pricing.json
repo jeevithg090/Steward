@@ -1,0 +1,52 @@
+{
+  "id": "competitor-pricing",
+  "name": "Competitor pricing",
+  "pitch": "Show the cheapest plan from three competitors' pricing pages.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_press",
+      "browser_scroll",
+      "browser_back",
+      "web_search",
+      "web_fetch"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for the three competitors' pricing pages. Open each one in the browser. Scroll to the bottom or look for a \"pricing\" or \"plans\" section. Find the lowest-priced plan listed. Read the plan name and its price. If a page has no clear pricing, note that it has no listed price. After checking all three, list the three cheapest found plans with their prices. If fewer than three have prices, say how many were found and what they are. Do not make up prices or plan names. When nothing is found on a page, say so and move to the next. When all three are done, show the list to the person.",
+  "starters": [
+    "find pricing for competitor A",
+    "list cheapest plans for three rivals",
+    "what are the lowest cost options"
+  ],
+  "examples": [
+    {
+      "ask": "show me the cheapest plans from three competitors",
+      "does": "search the web, open each pricing page, note the lowest price on each, then list the three cheapest found"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-cheapest-plan",
+      "description": "Locate the lowest priced offering on a single pricing page.",
+      "body": "When a page opens, scan for a pricing or plans section. Look for plan names and prices. If several plans are listed, identify the one with the lowest price. If only one plan is shown, that is the cheapest. If no price is visible, note that no price was found. Record the plan name and price, or the note that no price exists. Then close the tab and move to the next competitor."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Competitor pricing\n\nFinds the cheapest plan from three competitors' pricing pages and lists them. Uses the browser to search and read pages. Will not invent prices or plan names. Stops and asks the person before any action that changes data or sends messages.",
+  "hash": "8abcde6c114d75d88b4dd7324e48078286c703d672e7693aa8dfc2206b2432e2"
+}
