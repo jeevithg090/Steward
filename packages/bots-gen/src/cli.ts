@@ -5,12 +5,24 @@ import { parseArgs } from "node:util";
 import { buildIndex, parseBotFolder, validatePack, writeBotFolder } from "@steward/bots";
 import { CelEngine, CONTEXT_SCHEMA, neutralContext } from "@steward/gateway";
 import { BOT_CATEGORIES, type BotCategory, type BotPack, type TextModel, TOOLS } from "@steward/shared";
+import { generateBatch, type LogRow } from "./batch.ts";
 import { convertLobeAgent, isEnglishLobeFile, LOBE_CONTENTS_API, LOBE_RAW_BASE } from "./convert/lobe.ts";
 import { convertOpenBotCoworker } from "./convert/openbot.ts";
-import { generateBot, type Problem } from "./generate.ts";
-import { interleaveByCategory, loadJobs } from "./jobs.ts";
-import { dedupe, JUDGE_BAR, type Judgement, judgeBot } from "./judge.ts";
+import {
+  bandFrom,
+  type ConfirmSame,
+  confirmWithModel,
+  createEmbedder,
+  EmbeddingCache,
+  embedderConfig,
+  packCard,
+  similarPairs,
+} from "./embed.ts";
+import type { Problem } from "./generate.ts";
+import { interleaveByCategory, JOBS_FILE, loadJobs } from "./jobs.ts";
 import { createSeedModel, seedModelConfig } from "./model.ts";
+import { type RegenerateOptions, readCounts, readRetired, runRetirement } from "./retire.ts";
+import { proposeJobs, readAiJobs, writeAiJobs } from "./taxonomy.ts";
 
 /**
  * `pnpm --filter @steward/bots-gen seed <command>`: converts the seeds, generates bots with a model,
@@ -19,7 +31,10 @@ import { createSeedModel, seedModelConfig } from "./model.ts";
  *
  *   convert-openbot [--dir <folder>]
  *   convert-lobe [--cache <folder>] [--limit N] [--refresh]
- *   generate --limit N [--category <key>] [--concurrency 4] [--template] [--no-judge]
+ *   jobs [--target 106] [--category <key>] [--per-call 25] [--rounds 8]
+ *   generate --limit N [--category <key>] [--concurrency 4] [--template] [--no-judge] [--retry-dropped]
+ *   dedupe [--confirm] [--min 0.8]
+ *   retire [--days 90] [--floor 20] [--now <date>] [--apply] [--regenerate]
  *   build [--site <url>] [--name <text>]
  *   report [--write]
  */
@@ -30,6 +45,8 @@ const BOTS_DIR = join(DIRECTORY, "bots");
 const SEEDS = join(ROOT, ".steward-data", "seeds");
 const OPENBOT_SEEDS = resolve(import.meta.dirname, "../seeds/openbot");
 const GENERATE_LOG = join(SEEDS, "generate-log.jsonl");
+/** Vectors by text hash, one file per embedding model; never committed (`.steward-data`). */
+const EMBEDDINGS = join(SEEDS, "embeddings");
 
 // The same rule check the gateway runs, so a pack that passes here passes at install time.
 const ENGINE = new CelEngine(CONTEXT_SCHEMA, neutralContext);
@@ -174,19 +191,7 @@ async function convertLobe(cache: string, limit: number | undefined, refresh: bo
   for (const line of failed) log(`  failed: ${line}`);
 }
 
-// ── generate ───────────────────────────────────────────────────────────────────────────────────
-
-interface LogRow {
-  job: string;
-  category: string;
-  id?: string;
-  status: "written" | "dropped";
-  reason?: string;
-  score?: number;
-  madeBy?: string;
-  model?: string;
-  at: string;
-}
+// ── shared setup: the model, the embedder, the log ─────────────────────────────────────────────
 
 async function readLog(): Promise<LogRow[]> {
   if (!existsSync(GENERATE_LOG)) return [];
@@ -197,28 +202,22 @@ async function readLog(): Promise<LogRow[]> {
     .map((l) => JSON.parse(l) as LogRow);
 }
 
-async function pool<T>(
-  items: readonly T[],
-  size: number,
-  work: (item: T, index: number) => Promise<void>,
-): Promise<void> {
-  let next = 0;
-  const workers = Array.from({ length: Math.max(1, Math.min(size, items.length)) }, async () => {
-    while (next < items.length) {
-      const index = next++;
-      await work(items[index] as T, index);
-    }
-  });
-  await Promise.all(workers);
+async function appendLog(row: LogRow): Promise<void> {
+  await mkdir(SEEDS, { recursive: true });
+  await appendFile(GENERATE_LOG, `${JSON.stringify(row)}\n`, "utf8");
 }
 
-/** A pack id that is free in the directory: `rent-scout`, then `rent-scout-2`, … */
-function freeId(id: string, taken: Set<string>): string {
-  if (!taken.has(id)) return id;
-  for (let n = 2; ; n++) {
-    const candidate = `${id.slice(0, 60)}-${n}`;
-    if (!taken.has(candidate)) return candidate;
-  }
+/** Drops that would happen again on a rerun: the job is skipped next time unless --retry-dropped. */
+const FINAL_DROP = /^(duplicate of|below the bar|retired|failed validation)/;
+
+/** Jobs a rerun should skip: written, or dropped for a reason that would repeat. */
+async function doneJobs(retryDropped: boolean): Promise<Set<string>> {
+  const rows = await readLog();
+  return new Set(
+    rows
+      .filter((r) => r.status === "written" || (!retryDropped && FINAL_DROP.test(r.reason ?? "")))
+      .map((r) => r.job),
+  );
 }
 
 async function probeModel(model: TextModel): Promise<string | undefined> {
@@ -230,129 +229,286 @@ async function probeModel(model: TextModel): Promise<string | undefined> {
   }
 }
 
+interface Models {
+  model?: TextModel;
+  judge?: TextModel;
+  via: string;
+}
+
+async function seedModels(template: boolean): Promise<Models> {
+  if (template) return { via: "template" };
+  const cfg = seedModelConfig(process.env);
+  if (!cfg) {
+    log(
+      "No model key found (NVIDIA_API_KEY or STEWARD_SEED_BASE_URL + STEWARD_SEED_MODEL); using the template generator.",
+    );
+    return { via: "template" };
+  }
+  const candidate = createSeedModel(cfg, { temperature: 0.6 });
+  const failure = await probeModel(candidate);
+  if (failure) {
+    log(
+      `The model (${cfg.model} via ${cfg.via}) could not be used: ${failure}. Falling back to the template generator.`,
+    );
+    return { via: "template" };
+  }
+  return {
+    model: candidate,
+    judge: createSeedModel(cfg, { temperature: 0 }),
+    via: `${cfg.model} via ${cfg.via}`,
+  };
+}
+
+interface Meaning {
+  cache?: EmbeddingCache;
+  confirm?: ConfirmSame;
+  sure: number;
+  maybe: number;
+  via: string;
+}
+
+/** The embedder and the band, or word overlap when there is no embedder or it does not answer. */
+async function meaningCheck(judge: TextModel | undefined): Promise<Meaning> {
+  const band = bandFrom(process.env);
+  const cfg = embedderConfig(process.env);
+  if (!cfg) return { ...band, via: "word overlap (no embedder configured)" };
+  const cache = new EmbeddingCache(EmbeddingCache.fileFor(EMBEDDINGS, cfg.model), createEmbedder(cfg));
+  try {
+    await cache.get(["A bot that plans a week of dinners."]);
+  } catch (err) {
+    return {
+      ...band,
+      via: `word overlap (${cfg.model} could not be used: ${err instanceof Error ? err.message : String(err)})`,
+    };
+  }
+  return {
+    ...band,
+    cache,
+    ...(judge ? { confirm: confirmWithModel(judge) } : {}),
+    via: `${cfg.model}, sure at ${band.sure}, ${judge ? `asks the model from ${band.maybe}` : "no model to ask in the band"}`,
+  };
+}
+
+// ── generate ───────────────────────────────────────────────────────────────────────────────────
+
 async function generate(opts: {
   limit: number;
   category?: string;
   concurrency: number;
   template: boolean;
   judge: boolean;
+  retryDropped: boolean;
 }): Promise<void> {
-  const done = new Set((await readLog()).filter((r) => r.status === "written").map((r) => r.job));
+  const done = await doneJobs(opts.retryDropped);
+  const retired = await readRetired(DIRECTORY);
+  const retiredJobs = new Set(retired.flatMap((r) => (r.job ? [r.job.toLowerCase()] : [])));
   let jobs = interleaveByCategory(loadJobs());
   if (opts.category) {
     if (!(opts.category in BOT_CATEGORIES)) throw new Error(`"${opts.category}" is not a category`);
     jobs = jobs.filter((j) => j.category === opts.category);
   }
-  jobs = jobs.filter((j) => !done.has(j.job)).slice(0, opts.limit);
+  jobs = jobs.filter((j) => !done.has(j.job) && !retiredJobs.has(j.job.toLowerCase())).slice(0, opts.limit);
   if (jobs.length === 0) {
-    log("Nothing to generate: every job in range already has a bot (see the generate log).");
+    log(
+      "Nothing to generate: every job in range already has a bot or was dropped for good (see the generate log). Grow the taxonomy with `seed jobs`.",
+    );
     return;
   }
-
-  let model: TextModel | undefined;
-  let judge: TextModel | undefined;
-  let via = "template";
-  if (!opts.template) {
-    const cfg = seedModelConfig(process.env);
-    if (!cfg) {
-      log(
-        "No model key found (NVIDIA_API_KEY or STEWARD_SEED_BASE_URL + STEWARD_SEED_MODEL); using the template generator.",
-      );
-    } else {
-      const candidate = createSeedModel(cfg, { temperature: 0.6 });
-      const failure = await probeModel(candidate);
-      if (failure) {
-        log(
-          `The model (${cfg.model} via ${cfg.via}) could not be used: ${failure}. Falling back to the template generator.`,
-        );
-      } else {
-        model = candidate;
-        judge = createSeedModel(cfg, { temperature: 0 });
-        via = `${cfg.model} via ${cfg.via}`;
-      }
-    }
-  }
-  log(`Generating ${jobs.length} bots with ${via}, concurrency ${opts.concurrency}.`);
-
+  const models = await seedModels(opts.template);
+  const meaning = await meaningCheck(models.judge);
+  log(`Generating ${jobs.length} bots with ${models.via}, concurrency ${opts.concurrency}.`);
+  log(`  duplicates: ${meaning.via}`);
+  const started = Date.now();
   const shelf = await existingPacks();
-  const taken = new Set(shelf.map((p) => p.id));
-  const rows: LogRow[] = [];
-  await mkdir(SEEDS, { recursive: true });
-  const record = async (row: LogRow): Promise<void> => {
-    rows.push(row);
-    await appendFile(GENERATE_LOG, `${JSON.stringify(row)}\n`, "utf8");
-  };
-  // Packs are written and logged as they pass, so a run that is cut short keeps what it made.
-  // One at a time through dedupe and write, so ids and the shelf stay consistent.
-  let gate: Promise<void> = Promise.resolve();
-
-  await pool(jobs, opts.concurrency, async (job) => {
-    const drop = (reason: string) => {
-      log(`  ✗ ${job.category}: "${job.job}": ${reason.slice(0, 200)}`);
-      return record({
-        job: job.job,
-        category: job.category,
-        status: "dropped",
-        reason,
-        at: new Date().toISOString(),
-      });
-    };
-    const result = await generateBot(
-      { job: job.job, category: job.category },
-      { ...CTX, model, now: () => new Date(), hints: { tools: job.tools, connectors: job.connectors } },
+  const { written, dropped } = await generateBatch({
+    jobs,
+    botsDir: BOTS_DIR,
+    ctx: CTX,
+    ...(models.model ? { model: models.model } : {}),
+    ...(models.judge ? { judge: models.judge } : {}),
+    useJudge: opts.judge,
+    shelf,
+    retired,
+    ...(meaning.cache ? { cache: meaning.cache } : {}),
+    ...(meaning.confirm ? { confirm: meaning.confirm } : {}),
+    sure: meaning.sure,
+    maybe: meaning.maybe,
+    concurrency: opts.concurrency,
+    record: appendLog,
+    log,
+  });
+  const minutes = (Date.now() - started) / 60_000;
+  log(`Generated: ${written.length} written, ${dropped.length} dropped in ${minutes.toFixed(1)} min.`);
+  if (written.length > 0) {
+    log(
+      `  ${((minutes * 60) / written.length).toFixed(1)} s of wall time per bot written, at concurrency ${opts.concurrency}.`,
     );
-    if (model && result.madeBy === "template") {
-      return drop(`model failed: ${describe(result.problems) || "see problems"}`);
-    }
-    let judgement: Judgement | undefined;
-    if (judge && opts.judge) {
-      let error = "";
-      for (let attempt = 0; attempt < 2 && !judgement; attempt++) {
-        try {
-          judgement = await judgeBot(result.pack, judge, { tools: CTX.tools });
-        } catch (err) {
-          error = err instanceof Error ? err.message : String(err);
-        }
-      }
-      if (!judgement) return drop(`judge failed: ${error}`);
-      if (judgement.score < JUDGE_BAR) {
-        return drop(`below the bar (${judgement.score}): ${judgement.notes.join(" ")}`);
-      }
-    }
-    // Duplicates: against the shelf and what this batch wrote before; the first to finish wins.
-    gate = gate.then(async () => {
+  }
+  log(`  by category: ${formatTally(tally(written, (r) => r.category))}`);
+  log(`  dropped: ${formatTally(tally(dropped, (r) => (r.reason ?? "").split(/[:(]/)[0]?.trim() ?? ""))}`);
+}
+
+// ── jobs: grow the taxonomy ──────────────────────────────────────────────────────────────────────
+
+async function growJobs(opts: {
+  target: number;
+  category?: string;
+  perCall: number;
+  rounds: number;
+  concurrency: number;
+}): Promise<void> {
+  const models = await seedModels(false);
+  if (!models.model || !models.judge)
+    throw new Error("`seed jobs` needs a model: export NVIDIA_API_KEY or STEWARD_SEED_*.");
+  const meaning = await meaningCheck(models.judge);
+  log(
+    `Growing the taxonomy to ${opts.target} jobs per category with ${models.via}; duplicates: ${meaning.via}.`,
+  );
+  const people = loadJobs(JOBS_FILE, { ai: false });
+  const ai = await readAiJobs();
+  const retired = await readRetired(DIRECTORY);
+  const avoid = retired.flatMap((r, i) => (r.job ? [{ id: `retired:${r.id}:${i}`, text: r.job }] : []));
+  const categories = (Object.keys(BOT_CATEGORIES) as BotCategory[]).filter(
+    (c) => !opts.category || c === opts.category,
+  );
+  // Writes go one after another: every round rewrites the whole file.
+  let writing: Promise<void> = Promise.resolve();
+  const save = () => {
+    writing = writing.then(() => writeAiJobs(ai));
+    return writing;
+  };
+  const growOne = async (category: BotCategory) => {
+    let stalled = 0;
+    for (let round = 0; round < opts.rounds; round++) {
+      const listed = [...people, ...ai];
+      const have = listed.filter((j) => j.category === category).length;
+      if (have >= opts.target) break;
+      const ask = Math.min(opts.perCall, opts.target - have + 3);
+      let proposal: Awaited<ReturnType<typeof proposeJobs>>;
       try {
-        const twin = dedupe([result.pack], shelf).dropped[0];
-        if (twin) return drop(`duplicate of ${twin.duplicateOf}`);
-        const id = freeId(result.pack.id, taken);
-        const pack = { ...result.pack, id };
-        const written = await writePack(pack);
-        if (!written.written) return drop(`failed validation: ${describe(written.problems)}`);
-        taken.add(id);
-        shelf.push(pack);
-        log(`  ✓ ${job.category}: ${pack.name}${judgement ? ` (${judgement.score})` : ""} → bots/${id}`);
-        await record({
-          job: job.job,
-          category: job.category,
-          id,
-          status: "written",
-          score: judgement?.score,
-          madeBy: result.madeBy,
-          model: model?.label ?? "template",
-          at: new Date().toISOString(),
+        proposal = await proposeJobs(category, ask, listed, avoid, {
+          model: models.model!,
+          ...(meaning.cache ? { cache: meaning.cache } : {}),
+          ...(meaning.confirm ? { confirm: meaning.confirm } : {}),
+          sure: meaning.sure,
+          maybe: meaning.maybe,
         });
       } catch (err) {
-        await drop(`could not write: ${err instanceof Error ? err.message : String(err)}`);
+        log(`  ${category}: round ${round + 1} failed: ${err instanceof Error ? err.message : String(err)}`);
+        if (++stalled >= 2) break;
+        continue;
       }
-    });
-    await gate;
-  });
+      const now = [...people, ...ai].filter((j) => j.category === category).length;
+      const added = proposal.added.slice(0, Math.max(0, opts.target - now));
+      ai.push(...added.map((j) => ({ ...j, source: "ai" as const })));
+      await save();
+      log(`  ${category}: +${added.length} (now ${now + added.length}), ${proposal.dropped.length} dropped`);
+      for (const d of proposal.dropped.slice(0, 2))
+        log(`      ✗ ${d.job.slice(0, 90)}: ${d.reason.slice(0, 120)}`);
+      stalled = added.length === 0 ? stalled + 1 : 0;
+      if (stalled >= 2) break;
+    }
+  };
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(opts.concurrency, categories.length) }, async () => {
+      while (next < categories.length) await growOne(categories[next++]!);
+    }),
+  );
+  await writing;
+  const all = [...people, ...ai];
+  log(
+    `Taxonomy: ${all.length} jobs (${people.length} by people, ${ai.length} proposed by a model) → src/jobs-ai.yaml.`,
+  );
+  log(`  by category: ${formatTally(tally(all, (j) => j.category))}`);
+}
 
-  const written = rows.filter((r) => r.status === "written");
-  const dropped = rows.filter((r) => r.status === "dropped");
-  log(`Generated: ${written.length} written, ${dropped.length} dropped.`);
-  log(`  by category: ${formatTally(tally(written, (r) => r.category))}`);
-  log(`  dropped: ${formatTally(tally(dropped, (r) => (r.reason ?? "").split(":")[0] ?? ""))}`);
+// ── dedupe: near-twins on the shelf ──────────────────────────────────────────────────────────────
+
+async function shelfDuplicates(opts: { confirm: boolean; min?: number }): Promise<void> {
+  const models = opts.confirm ? await seedModels(false) : { via: "none" };
+  const meaning = await meaningCheck(opts.confirm ? models.judge : undefined);
+  if (!meaning.cache)
+    throw new Error(`No embedder: ${meaning.via}. Export NVIDIA_API_KEY or STEWARD_EMBED_*.`);
+  const packs = await existingPacks();
+  const pairs = await similarPairs(packs, meaning.cache, opts.min ?? meaning.maybe);
+  const byId = new Map(packs.map((p) => [p.id, p]));
+  let twins = 0;
+  for (const pair of pairs) {
+    const a = byId.get(pair.a)!;
+    const b = byId.get(pair.b)!;
+    let verdict = pair.similarity >= meaning.sure ? "SAME (sure)" : "maybe";
+    if (verdict === "maybe" && meaning.confirm) {
+      verdict = (await meaning.confirm(packCard(a), packCard(b))) ? "SAME (model)" : "different";
+    }
+    if (verdict.startsWith("SAME")) twins++;
+    process.stdout.write(`${pair.similarity.toFixed(3)}  ${verdict.padEnd(12)}  ${a.id}  ~  ${b.id}\n`);
+  }
+  log(
+    `${pairs.length} pairs at or above ${opts.min ?? meaning.maybe}; ${twins} look like the same job. Nothing was changed.`,
+  );
+}
+
+// ── retire ───────────────────────────────────────────────────────────────────────────────────────
+
+async function retire(opts: {
+  days: number;
+  floor: number;
+  now?: string;
+  apply: boolean;
+  regenerate: boolean;
+}): Promise<void> {
+  const now = opts.now ? new Date(opts.now) : new Date();
+  if (Number.isNaN(now.getTime())) throw new Error(`--now: "${opts.now}" is not a date`);
+  const rows = await readLog();
+  const jobById = new Map(
+    rows.flatMap((r) => (r.status === "written" && r.id ? [[r.id, r.job] as const] : [])),
+  );
+  let regenerate: RegenerateOptions | undefined;
+  if (opts.regenerate) {
+    const models = await seedModels(false);
+    if (!models.model)
+      throw new Error("--regenerate needs a model: export NVIDIA_API_KEY or STEWARD_SEED_*.");
+    const meaning = await meaningCheck(models.judge);
+    regenerate = {
+      model: models.model,
+      ...(models.judge ? { judge: models.judge } : {}),
+      jobs: interleaveByCategory(loadJobs()),
+      done: await doneJobs(false),
+      ctx: CTX,
+      ...(meaning.cache ? { cache: meaning.cache } : {}),
+      ...(meaning.confirm ? { confirm: meaning.confirm } : {}),
+      record: appendLog,
+    };
+  }
+  const run = await runRetirement({
+    dir: DIRECTORY,
+    counts: await readCounts(DIRECTORY),
+    now,
+    days: opts.days,
+    floor: opts.floor,
+    apply: opts.apply,
+    jobOf: (id) => jobById.get(id),
+    ...(regenerate ? { regenerate } : {}),
+    log,
+  });
+  log(
+    `Retirement as of ${now.toISOString().slice(0, 10)}: ${run.retire.length} AI-made bots unused for ${opts.days} days.`,
+  );
+  for (const r of run.retire.slice(0, 50)) log(`  ${r.id} (${r.category}, made ${r.generated})`);
+  if (run.retire.length > 50) log(`  … and ${run.retire.length - 50} more`);
+  const soonest = [...run.young].sort((a, b) => a.daysLeft - b.daysLeft)[0];
+  log(
+    `  ${run.young.length} AI-made bots are inside their ${opts.days} days${soonest ? `; the first reaches it in ${soonest.daysLeft} days` : ""}.`,
+  );
+  for (const t of run.thinned)
+    log(`  thinned: ${t.category} has ${t.live}, floor ${t.floor}, needs ${t.need}`);
+  if (!opts.apply)
+    log("Nothing was changed. Add --apply to retire them, and --regenerate to top up thinned categories.");
+  else
+    log(
+      `Applied. ${run.regenerated.length} new bots written.${run.outOfJobs.length ? ` Out of jobs in: ${run.outOfJobs.join(", ")} (run \`seed jobs\`).` : ""}`,
+    );
 }
 
 // ── build and report ───────────────────────────────────────────────────────────────────────────
@@ -436,9 +592,22 @@ async function main(argv: string[]): Promise<void> {
       site: { type: "string" },
       name: { type: "string" },
       write: { type: "boolean", default: false },
+      "retry-dropped": { type: "boolean", default: false },
+      target: { type: "string" },
+      "per-call": { type: "string" },
+      rounds: { type: "string" },
+      confirm: { type: "boolean", default: false },
+      min: { type: "string" },
+      days: { type: "string" },
+      floor: { type: "string" },
+      now: { type: "string" },
+      apply: { type: "boolean", default: false },
+      regenerate: { type: "boolean", default: false },
     },
     strict: true,
   });
+  const int = (value: string | undefined, fallback: number) =>
+    value ? Number.parseInt(value, 10) : fallback;
   const limit = values.limit ? Number.parseInt(values.limit, 10) : undefined;
   switch (command) {
     case "convert-openbot":
@@ -454,6 +623,31 @@ async function main(argv: string[]): Promise<void> {
         concurrency: Number.parseInt(values.concurrency ?? "4", 10),
         template: values.template,
         judge: !values["no-judge"],
+        retryDropped: values["retry-dropped"],
+      });
+      return;
+    case "jobs":
+      await growJobs({
+        target: int(values.target, 106),
+        category: values.category,
+        perCall: int(values["per-call"], 25),
+        rounds: int(values.rounds, 8),
+        concurrency: int(values.concurrency, 3),
+      });
+      return;
+    case "dedupe":
+      await shelfDuplicates({
+        confirm: values.confirm,
+        ...(values.min ? { min: Number.parseFloat(values.min) } : {}),
+      });
+      return;
+    case "retire":
+      await retire({
+        days: int(values.days, 90),
+        floor: int(values.floor, 20),
+        now: values.now,
+        apply: values.apply,
+        regenerate: values.regenerate,
       });
       return;
     case "build":
@@ -463,7 +657,7 @@ async function main(argv: string[]): Promise<void> {
       await report(values.write);
       return;
     default:
-      log("Usage: seed <convert-openbot|convert-lobe|generate|build|report> [options]");
+      log("Usage: seed <convert-openbot|convert-lobe|jobs|generate|dedupe|retire|build|report> [options]");
       process.exitCode = 1;
   }
 }

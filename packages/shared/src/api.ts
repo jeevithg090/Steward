@@ -285,6 +285,7 @@ export const ROUTES = {
   botsPreview: "/api/bots/preview", // POST BotPreviewBody → BotPreview
   botsInstall: "/api/bots/install", // POST BotInstallBody → InstalledBot
   botsMake: "/api/bots/make", // POST BotMakeBody → BotPack (not installed)
+  botsExport: "/api/bots/export", // POST { pack, handle? } → application/zip: the pack folder to submit
 } as const;
 
 export function route(path: string, params: Record<string, string> = {}): string {

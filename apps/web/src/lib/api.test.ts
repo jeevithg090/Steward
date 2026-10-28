@@ -230,6 +230,13 @@ describe("api: every route in ROUTES", () => {
       "/api/bots/make",
       { job: "Find me a flat", category: "home" },
     ],
+    [
+      "bots export",
+      () => api.bots.exportZip({ pack: { id: "rent-scout" } as never, handle: "ana" }),
+      "POST",
+      "/api/bots/export",
+      { pack: { id: "rent-scout" }, handle: "ana" },
+    ],
   ];
 
   it.each(cases)("%s", async (_name, call, method, url, body) => {

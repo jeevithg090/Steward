@@ -1,6 +1,6 @@
 import { existsSync, statSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { type BotPack, BotPackSchema, type SkillPack } from "@steward/shared";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import type { ZodIssue } from "zod";
@@ -153,10 +153,11 @@ export async function parseBotFolder(dir: string): Promise<BotPack> {
   return checked.data;
 }
 
-/** Writes a pack as a folder, the inverse of `parseBotFolder`. Existing files are overwritten. */
-export async function writeBotFolder(dir: string, pack: BotPack): Promise<void> {
-  const root = resolve(dir);
-  await mkdir(root, { recursive: true });
+/**
+ * A pack as the files of its folder: `bot.yaml`, `README.md` when there is one, and
+ * `skills/<name>/SKILL.md` for each skill. Empty lists are left out of `bot.yaml`.
+ */
+export function packFiles(pack: BotPack): { path: string; text: string }[] {
   const checked = BotPackSchema.parse(pack);
   const { readme, skills, ...rest } = checked;
   const doc: Record<string, unknown> = {};
@@ -170,12 +171,21 @@ export async function writeBotFolder(dir: string, pack: BotPack): Promise<void> 
     if (Array.isArray(value) && value.length === 0) continue;
     doc[key] = value;
   }
-  await writeFile(join(root, "bot.yaml"), stringifyYaml(doc, { lineWidth: 0 }), "utf8");
-  if (readme) await writeFile(join(root, "README.md"), `${readme.trimEnd()}\n`, "utf8");
-  for (const skill of skills) {
-    const skillDir = join(root, "skills", skill.name);
-    await mkdir(skillDir, { recursive: true });
-    await writeFile(join(skillDir, "SKILL.md"), serializeSkillMd(skill), "utf8");
+  const files = [{ path: "bot.yaml", text: stringifyYaml(doc, { lineWidth: 0 }) }];
+  if (readme) files.push({ path: "README.md", text: `${readme.trimEnd()}\n` });
+  for (const skill of skills)
+    files.push({ path: `skills/${skill.name}/SKILL.md`, text: serializeSkillMd(skill) });
+  return files;
+}
+
+/** Writes a pack as a folder, the inverse of `parseBotFolder`. Existing files are overwritten. */
+export async function writeBotFolder(dir: string, pack: BotPack): Promise<void> {
+  const root = resolve(dir);
+  await mkdir(root, { recursive: true });
+  for (const file of packFiles(pack)) {
+    const path = join(root, file.path);
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(path, file.text, "utf8");
   }
 }
 

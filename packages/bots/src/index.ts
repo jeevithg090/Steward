@@ -3,6 +3,7 @@
  * `SKILL.md` skills, the content hash, the checks a pack must pass, the bridge to and from tenant
  * packs, and the directory client and builder.
  */
+export { type ZipEntry, zipEntries, zipPack } from "./archive.ts";
 export { canonicalPack, hashPack } from "./canonical.ts";
 export {
   BotListingSchema,
@@ -14,7 +15,15 @@ export {
   type DirectoryClientOptions,
   DirectoryIndexSchema,
 } from "./directory.ts";
-export { BotPackError, describeIssues, folderId, issuePath, parseBotFolder, writeBotFolder } from "./pack.ts";
+export {
+  BotPackError,
+  describeIssues,
+  folderId,
+  issuePath,
+  packFiles,
+  parseBotFolder,
+  writeBotFolder,
+} from "./pack.ts";
 export { type InjectionHit, scanForInjection } from "./scan.ts";
 export { parseSkillMd, SKILL_NAME, SkillMdError, serializeSkillMd } from "./skill.ts";
 export { describeMayDo, expandStar, packFromTenant, profileFromPack } from "./tenant.ts";

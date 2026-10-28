@@ -47,6 +47,9 @@ importers:
       '@steward/bots':
         specifier: workspace:*
         version: link:../../packages/bots
+      '@steward/bots-gen':
+        specifier: workspace:*
+        version: link:../../packages/bots-gen
       '@steward/db':
         specifier: workspace:*
         version: link:../../packages/db

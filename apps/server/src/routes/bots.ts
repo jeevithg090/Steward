@@ -1,3 +1,4 @@
+import { zipPack } from "@steward/bots";
 import { generateBot } from "@steward/bots-gen";
 import { BOT_CATEGORIES, BotMakeBody, BotsQuery, ROUTES } from "@steward/shared";
 import type { Hono } from "hono";
@@ -22,6 +23,20 @@ const PackBody = z
     pack: z.unknown().optional(),
   })
   .refine((b) => b.packUrl || b.pack !== undefined, "Give a pack or its URL");
+
+/** A GitHub handle: letters, digits and single hyphens, at most 39 characters. */
+const HANDLE = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/;
+
+const ExportBody = z.object({
+  pack: z.unknown(),
+  /** Credits the pack to this GitHub handle, as based on an AI-made draft. */
+  handle: z
+    .string()
+    .trim()
+    .transform((h) => h.replace(/^@/, ""))
+    .refine((h) => h === "" || HANDLE.test(h), "a GitHub handle is letters, digits and single hyphens")
+    .optional(),
+});
 
 /** `/api/bots`: the directory, what a bot would mean here, and installing, updating and removing one. */
 export function registerBotRoutes(app: Hono, s: StewardServices): void {
@@ -95,6 +110,44 @@ export function registerBotRoutes(app: Hono, s: StewardServices): void {
   app.delete(ROUTES.botInstalled, async (c) => {
     await bots.remove(c.req.param("id"));
     return c.json({ ok: true });
+  });
+
+  // Submit to the directory: the pack as a zip of its folder, checked exactly as an install is, so
+  // what the person uploads passes the directory's own checks. With a handle, the pack is credited
+  // to them, keeping that it began as an AI-made draft.
+  app.post(ROUTES.botsExport, async (c) => {
+    const body = await readBody(c, ExportBody);
+    const checked = bots.check(body.pack);
+    if (!checked.ok) {
+      const refusal = BotService.refusal(checked.problems);
+      const error = refusal.message.replace(/^This bot can't be added/, "This bot can't be submitted");
+      return c.json({ error, problems: refusal.problems }, 400);
+    }
+    const handle = body.handle;
+    const { hash: _hash, ...pack } = checked.pack;
+    const credited = handle
+      ? {
+          ...pack,
+          author: {
+            kind: "person" as const,
+            handle,
+            url: `https://github.com/${handle}`,
+            ...(pack.author.kind === "ai" || pack.author.basedOnAi ? { basedOnAi: true } : {}),
+          },
+        }
+      : pack;
+    const bytes = zipPack(credited);
+    return new Response(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/zip",
+          "Content-Disposition": `attachment; filename="${credited.id}.zip"`,
+          "Cache-Control": "no-store",
+        },
+      },
+    );
   });
 
   // Make a bot: generated here, with the person's own model when there is one (the scripted model

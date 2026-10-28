@@ -3,6 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { buildIndex, DirectoryIndexSchema } from "@steward/bots";
+import { type RetiredEntry, readRetired } from "@steward/bots-gen";
 import {
   BOT_CATEGORIES,
   type BotListing,
@@ -130,6 +131,8 @@ export class Catalogue {
   categories: Record<string, string> = { ...BOT_CATEGORIES };
   generatedAt = new Date(0).toISOString();
   loaded = false;
+  /** Bots retired from this directory (`retired.json`), so their pages can say so. */
+  retired = new Map<string, RetiredEntry>();
 
   constructor(private readonly opts: CatalogueOptions) {
     this.db.exec(`
@@ -232,6 +235,7 @@ export class Catalogue {
     this.counts = counts;
     this.categories = Object.keys(index.categories).length > 0 ? index.categories : { ...BOT_CATEGORIES };
     this.generatedAt = index.generatedAt;
+    this.retired = new Map((await readRetired(this.opts.dir).catch(() => [])).map((r) => [r.id, r]));
     this.loaded = true;
   }
 

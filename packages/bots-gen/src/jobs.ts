@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { BOT_CATEGORIES, type BotCategory } from "@steward/shared";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
@@ -18,11 +18,15 @@ export const JobSchema = z.object({
 
 export interface Job extends z.infer<typeof JobSchema> {
   category: BotCategory;
+  /** `ai` for a job from `jobs-ai.yaml`, proposed by a model and not yet read by a person. */
+  source?: "ai";
 }
 
 const CATEGORY_KEYS = Object.keys(BOT_CATEGORIES) as BotCategory[];
 
 export const JOBS_FILE = new URL("./jobs.yaml", import.meta.url);
+/** Jobs a model proposed (`seed jobs`); see taxonomy.ts. */
+export const AI_JOBS_PATH = new URL("./jobs-ai.yaml", import.meta.url);
 
 /** Reads and checks the taxonomy. Throws naming the category and the line when it is wrong. */
 export function parseJobs(text: string): Job[] {
@@ -50,8 +54,18 @@ export function parseJobs(text: string): Job[] {
   return out;
 }
 
-export function loadJobs(file: URL | string = JOBS_FILE): Job[] {
-  return parseJobs(readFileSync(file, "utf8"));
+/**
+ * The taxonomy. With the default file, the model-proposed jobs in `jobs-ai.yaml` come after the
+ * ones people wrote, marked `source: "ai"`, unless `{ ai: false }`.
+ */
+export function loadJobs(file: URL | string = JOBS_FILE, opts: { ai?: boolean } = {}): Job[] {
+  const jobs = parseJobs(readFileSync(file, "utf8"));
+  if (file !== JOBS_FILE || opts.ai === false || !existsSync(AI_JOBS_PATH)) return jobs;
+  const seen = new Set(jobs.map((j) => j.job.toLowerCase()));
+  const more = parseJobs(readFileSync(AI_JOBS_PATH, "utf8"))
+    .filter((j) => !seen.has(j.job.toLowerCase()))
+    .map((j) => ({ ...j, source: "ai" as const }));
+  return [...jobs, ...more];
 }
 
 /** Round-robin across categories, so taking the first N covers every category evenly. */
