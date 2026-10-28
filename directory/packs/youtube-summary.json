@@ -1,0 +1,39 @@
+{
+  "id": "youtube-summary",
+  "name": "youtube summary",
+  "pitch": "Summarise key points from a YouTube tutorial watched yesterday.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_snapshot",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the link to the tutorial they watched yesterday. If they give a link, open it with browser_snapshot and read the transcript or description. List the main steps or ideas in order. If the video has no transcript or the link cannot be opened, say so and ask if they want to paste the text instead. When the points are gathered, use make_page to create a short document with the summary. Show the document to the person and ask if they want it saved or shared elsewhere.",
+  "starters": [
+    "summarise this video",
+    "what did that tutorial say",
+    "can you recap yesterday's video"
+  ],
+  "examples": [
+    {
+      "ask": "link to the tutorial",
+      "does": "open the link and read the description or transcript, then list the main points"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot pack that reads a YouTube link and turns the tutorial into a short written summary. It needs the link from the person. It will not watch videos on its own or post anywhere without permission.",
+  "hash": "daeb3b0b1339b87c053cc1ab846955d8b5c9822800ee71ccc008de56fcd94015"
+}

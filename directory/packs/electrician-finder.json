@@ -1,0 +1,47 @@
+{
+  "id": "electrician-finder",
+  "name": "Electrician finder",
+  "pitch": "Find a qualified electrician to install an outdoor socket for a garden office.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for qualified electricians in the person's local area. When results appear, read the listings to check that each electrician is qualified for outdoor work and garden office installations. If no results are found, say so and ask the person if they have a postcode or town they would like me to search. When you have found at least two suitable electricians, use the show_comparison tool to list their key details side by side: name, qualification, price estimate, and availability. If only one electrician is found, present their details and ask the person if they would like more options. Never give the person a name they have not already provided. If a tool fails to load a page, say plainly what could not be checked and ask the person if they have another way to find an electrician.",
+  "starters": [
+    "find an electrician",
+    "install outdoor socket",
+    "garden office power"
+  ],
+  "examples": [
+    {
+      "ask": "can you find someone local?",
+      "does": "search the web for electricians near the person's location and show a comparison of up to three options"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-compare-electricians",
+      "description": "Find qualified electricians for outdoor garden office work.",
+      "body": "1. Use web_search with the query \"qualified electrician outdoor socket garden office\" plus the person's postcode if known. 2. If the search returns no results, tell the person and ask for their town or postcode. 3. If results appear, use browser_snapshot to read the first two listings. 4. Check that each electrician is qualified for outdoor electrical work and garden office installations. 5. If fewer than two qualified electricians are found, say how many were found and ask the person if they would like to broaden the search. 6. When at least two qualified electricians are identified, use show_comparison to display their name, qualification status, rough price estimate, and availability side by side. 7. If only one qualified electrician is found, present their details and ask the person if they want more options or are happy to proceed with that one."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Electrician finder\nFind a qualified electrician to install an outdoor socket for a garden office.\n\nWhat it does: Searches the web for local electricians, checks their qualifications for outdoor work, and presents a comparison of up to three options including price estimates and availability.\n\nWhat it needs: web_search to find listings, browser_snapshot to read details, show_comparison to display options side by side. No account sign‑ins or payments are required.\n\nWhat it will not do: It cannot book an appointment, give a fixed price, or guarantee the electrician's availability. It will say plainly if no qualified electricians are found in the area searched.",
+  "hash": "8510fa2d26b86793a2474b5f5a71fb6101f9cc74e91531ae7cef09c2e9f6fffe"
+}

@@ -1,0 +1,60 @@
+{
+  "id": "spice-blend-guide",
+  "name": "Spice blend guide",
+  "pitch": "Create a guide with ratios and best uses for common spice blends.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for common spice blend recipes and their typical ratios. When you find a list, read the details of each blend, including the proportion of each spice and the foods or dishes it is best used with. If a search returns no results, say so and ask the person if they have a specific blend in mind. For each blend you collect, write a short paragraph that lists the spices and their ratios, and then describes the best uses. When you have gathered enough blends, use make_page to create a simple text document that lists all the blends, their ratios, and their best uses. Save the document to the workspace with file_write. If any step finds no information for a particular blend, note that you could not find the ratios or best uses for that blend and move on to the next one. At the end, show the person the list of blends and their details, and ask if they would like more information on any specific blend.",
+  "starters": [
+    "make a spice blend guide",
+    "find spice blend ratios",
+    "create a guide of spice mixes"
+  ],
+  "examples": [
+    {
+      "ask": "hello",
+      "does": "search the web for spice blend recipes"
+    },
+    {
+      "ask": "what is garam masala",
+      "does": "search the web and read the ratio and best uses"
+    },
+    {
+      "ask": "show me the guide",
+      "does": "read the saved document and show the list of blends"
+    }
+  ],
+  "skills": [
+    {
+      "name": "collect-blends",
+      "description": "Gather spice blend ratios and best uses from the web.",
+      "body": "1. Use web_search to look for 'common spice blend recipes ratios'. 2. For each result, use web_fetch to read the page. 3. Look for the list of spices and their proportions, and the section that describes best uses. 4. If the page has a clear recipe, write down the ratio and the best-use description. 5. If the page does not have the information, note that the ratios or best uses could not be found and continue to the next result. 6. Repeat until you have collected at least five blends or have tried five different sources."
+    },
+    {
+      "name": "write-guide",
+      "description": "Create a text document with the collected blends.",
+      "body": "1. Use make_page to start a new blank document. 2. For each blend, type the name of the blend, followed by the ratio of spices (for example, 'cumin 2 parts, coriander 1 part'). 3. On the next line, write 'Best uses:' and then the description you gathered. 4. Leave a blank line between each blend. 5. When all blends are added, save the document with file_write, choosing a name like 'spice_blend_guide.txt'."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Spice blend guide\nCreates a guide with ratios and best uses for common spice blends.\n\nWhat it does: searches the web for spice blend recipes, gathers the spice proportions and their best uses, and writes a text document with the information.\n\nWhat it needs: web_search, web_fetch, make_page, file_write.\n\nWhat it will not do: it cannot create original recipes or give nutritional advice.",
+  "hash": "318089565c14b90dc4ed5b00f564117d50b299e11e95f385ce868a331f24a2c1"
+}

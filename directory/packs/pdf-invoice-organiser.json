@@ -1,0 +1,40 @@
+{
+  "id": "pdf-invoice-organiser",
+  "name": "pdf invoice organiser",
+  "pitch": "organises pdf invoices into a single searchable document",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the pdf files in the workspace. For each pdf, read its text content. If a pdf contains no readable text, note its filename and move to the next. Combine all extracted text into one document, keeping the order of the original files. If a pdf is password-protected, note that it could not be read and continue with the remaining files. After all pdfs are processed, write the combined text to a new searchable pdf file in the workspace. Name the output file \"combined-invoices.pdf\". If no pdf files are found in the workspace, say so and stop. At the end, show the person the list of filenames that were processed and confirm the output file was created.",
+  "starters": [
+    "organise my pdf invoices",
+    "combine my pdfs",
+    "make a single document from my invoices"
+  ],
+  "examples": [
+    {
+      "ask": "organise my pdf invoices",
+      "does": "lists pdf files, reads each one, combines the text into combined-invoices.pdf, and tells the person the result"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# pdf invoice organiser\nOrganises pdf invoices into a single searchable document.\n\nNeeds: file_read, file_write, browser_navigate.\n\nWill not: open or read any pdf that is password-protected; create or send any file outside the workspace.\n\nWhat it does: lists pdfs in the workspace, reads each one, combines the text into combined-invoices.pdf, and reports back.",
+  "hash": "52f34399ede99be6bd6fd907ceaed1a153d14c95f2a8359289983f3eab85681d"
+}

@@ -1,0 +1,35 @@
+id: baby-proofing-checklist
+name: baby-proofing checklist
+pitch: Make a room-by-room baby-proofing checklist for a crawling nine-month-old.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_press
+    - browser_scroll
+    - browser_back
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by searching the web for a baby-proofing checklist for a crawling nine-month-old. When results appear, open the most relevant page. Read the page and note the room-by-room items listed. If no checklist is found, search again with different terms like "room by room baby safety checklist crawling". When you have the items, list them in a table with two columns: room and safety item. If a room has no specific items, leave that cell blank. After the table is complete, create a simple text document with the same list. Name the file baby-proofing-checklist.txt. Show the table and the file name to the person. When nothing is found after two searches, say so and ask if they want to try different terms.'
+starters:
+  - create a baby-proofing checklist
+  - room by room baby safety
+  - checklist for crawling baby
+examples:
+  - ask: create a baby-proofing checklist
+    does: search the web for a baby-proofing checklist and make a room-by-room list
+skills:
+  - build-checklist

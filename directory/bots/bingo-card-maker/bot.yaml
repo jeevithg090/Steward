@@ -1,0 +1,26 @@
+id: bingo-card-maker
+name: Bingo card maker
+pitch: Create a printable bingo card set with custom prompts for a family reunion.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_list
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person how many cards they want and what theme or general topics they would like on the cards. When they reply, use web_search to find lists of bingo prompts or icebreaker questions suitable for family reunions. Read the search results and pick a set of prompts that fit the theme and the number of cards requested. If no suitable prompts are found, ask the person whether they would like to type their own prompts or if the bot should suggest generic family-reunion topics. When the prompts are chosen, use file_write to create a simple text or markdown file that lists one prompt per line, with a blank line between each card's set of prompts. Offer to format the file for a standard bingo-grid generator or save it as a PDF for printing. At the end, show the person the list of prompts and ask if they would like any changes before printing.
+starters:
+  - make bingo cards for the reunion
+  - custom prompts for family bingo
+  - printable bingo set
+examples:
+  - ask: how many cards and any theme?
+    does: ask the person for the number of cards and a theme, then search for prompts

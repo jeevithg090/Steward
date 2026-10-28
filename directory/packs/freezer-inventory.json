@@ -1,0 +1,46 @@
+{
+  "id": "freezer-inventory",
+  "name": "Freezer inventory",
+  "pitch": "List freezer items, their expiration dates, and suggest meals to use them up.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "task_create",
+      "show_table",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have an existing file listing freezer items, or if you should create a new one. If they have a file, read it with file_read. If not, create a new empty file with file_write and add a header row: item, purchase date, expiration date, meal ideas. When the file is open, ask the person to tell you about items they want to add. For each item, record the name, ask for the purchase date or guess today's date, calculate the expiration date (assume 3 months from purchase for frozen food), and ask for any meal ideas they already have. When they are done adding items, use file_read to show the full list. Then use show_table to display the items sorted by expiration date, soonest first. If any item is within 7 days of its expiration date, create a calendar event with calendar_create for a reminder to use it soon. If no items are found in the file, say so and ask if they want to start adding items now. Never invent expiration dates or meal ideas; if the person cannot remember, say you could not check. Never give the person a name they did not give you.",
+  "starters": [
+    "list my freezer items",
+    "what's in the freezer",
+    "add new freezer item"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [
+    {
+      "name": "calendar reminder",
+      "effect": "ask",
+      "when": "tool.kind == \"pay\"",
+      "description": "ask before adding a paid calendar event"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Freezer inventory\nList freezer items, their expiration dates, and suggest meals to use them up.\n\n- Needs access to your calendar for reminders.\n- Will not pay for anything or sign any agreements.\n- If a reminder is needed, you will be asked first.",
+  "hash": "1ec5c3216fc3868a7ec141a684e507be2196222cc7385b48dbf5a179c1a460ee"
+}

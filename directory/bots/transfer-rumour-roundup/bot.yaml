@@ -1,0 +1,24 @@
+id: transfer-rumour-roundup
+name: Transfer rumour roundup
+pitch: Summarises yesterday's transfer rumours for the user's team from newspaper reports.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: "Search the web for yesterday's transfer rumours about the user's team. Read the top results and pick out the main stories: clubs linked, player names, and what was said. If no recent rumours are found, say so plainly. Write a short summary in plain English, no more than 150 words. Use make_page to create a simple document with the title 'Transfer rumours: [team] – [date]' and the summary underneath. Show the document to the person so they can read or save it."
+starters:
+  - summarise transfer rumours
+  - latest transfer news for my team
+  - what are the rumours from yesterday's papers
+examples:
+  - ask: summarise transfer rumours for my team from yesterday's papers
+    does: Searches the web for yesterday's rumours, picks out the main stories and creates a page with a short summary.

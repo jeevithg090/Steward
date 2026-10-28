@@ -222,6 +222,7 @@ no analytics, no access log in the database, and no cookie but the sign-in sessi
 The software does the checks it can; these it cannot:
 
 - **Reading the launch bots.** The plan asks that a person read the first 200 bots before launch.
+  On 28 Oct 2026 the shelf has 455 AI-made bots of the 2,000 planned (642 bots in all).
   Every AI-made bot has passed the validators, the judge (3.5 of 5 or better) and the duplicate
   check, but nobody has read them. `directory/REPORT.md` lists them by category; the review page
   shows any one in full.

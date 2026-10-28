@@ -1,6 +1,6 @@
 {
   "name": "Steward bots",
-  "generatedAt": "2026-10-28T14:20:33.549Z",
+  "generatedAt": "2026-10-28T15:13:29.189Z",
   "categories": {
     "food": "Food & cooking",
     "health": "Health & fitness",
@@ -49,6 +49,30 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.476Z",
       "packUrl": "packs/10k-running-coach.json"
+    },
+    {
+      "id": "about-page-writer",
+      "name": "About-page writer",
+      "pitch": "Writes a short about-me section from your notes for the company 'About' page.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "make_page",
+          "file_read"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:40:00.130Z",
+      "packUrl": "packs/about-page-writer.json"
     },
     {
       "id": "aesthetic-cover-set",
@@ -102,6 +126,31 @@
       "packUrl": "packs/after-school-clubs.json"
     },
     {
+      "id": "analytics-template",
+      "name": "Analytics template",
+      "pitch": "Build a monthly report template with chart placeholders and ready-to-fill tables.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write",
+          "make_page",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:29:36.522Z",
+      "packUrl": "packs/analytics-template.json"
+    },
+    {
       "id": "annual-report-summariser",
       "name": "Annual Report Summariser",
       "pitch": "Reads a company's latest annual report and writes a plain-language summary of performance, risks and outlook.",
@@ -125,6 +174,84 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:32:34.910Z",
       "packUrl": "packs/annual-report-summariser.json"
+    },
+    {
+      "id": "anti-inflammatory-meal-planner",
+      "name": "Anti-inflammatory meal planner",
+      "pitch": "Plan a week of anti-inflammatory meals with a shopping list.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page",
+          "file_write",
+          "task_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:53:19.708Z",
+      "packUrl": "packs/anti-inflammatory-meal-planner.json"
+    },
+    {
+      "id": "anxiety-meditation-finder",
+      "name": "Anxiety meditation finder",
+      "pitch": "Find short guided meditation sessions for anxiety, ten minutes or less.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:50:42.947Z",
+      "packUrl": "packs/anxiety-meditation-finder.json"
+    },
+    {
+      "id": "api-updater",
+      "name": "api updater",
+      "pitch": "Find and replace deprecated API calls across a codebase with their modern equivalents.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write",
+          "shell_run"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:02:08.627Z",
+      "packUrl": "packs/api-updater.json"
     },
     {
       "id": "asset-allocation-checker",
@@ -175,6 +302,115 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:09:38.703Z",
       "packUrl": "packs/async-refactor.json"
+    },
+    {
+      "id": "audio-normalizer",
+      "name": "Audio normalizer",
+      "pitch": "Normalize podcast audio loudness to -16 LUFS for platform upload.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "shell_run",
+          "file_read",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:23:45.909Z",
+      "packUrl": "packs/audio-normalizer.json"
+    },
+    {
+      "id": "auth-test-writer",
+      "name": "Auth test writer",
+      "pitch": "Writes integration tests for the authentication flow using a test database.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write",
+          "shell_run"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:29:16.991Z",
+      "packUrl": "packs/auth-test-writer.json"
+    },
+    {
+      "id": "b-roll-shot-list",
+      "name": "B-roll shot list",
+      "pitch": "Create a shot list of B-roll footage to pair with a talking head video script.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "make_page",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:48:34.934Z",
+      "packUrl": "packs/b-roll-shot-list.json"
+    },
+    {
+      "id": "baby-proofing-checklist",
+      "name": "baby-proofing checklist",
+      "pitch": "Make a room-by-room baby-proofing checklist for a crawling nine-month-old.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_click",
+          "browser_type",
+          "browser_press",
+          "browser_scroll",
+          "browser_back",
+          "file_write",
+          "make_page",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:10:37.185Z",
+      "packUrl": "packs/baby-proofing-checklist.json"
     },
     {
       "id": "bakery-content-planner",
@@ -331,6 +567,33 @@
       "packUrl": "packs/benefit-check.json"
     },
     {
+      "id": "best-customer-summary",
+      "name": "Best customer summary",
+      "pitch": "Summarises the last ten emails from the person's best customer and highlights their main complaints.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_read",
+          "show_table",
+          "make_page"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:47:18.813Z",
+      "packUrl": "packs/best-customer-summary.json"
+    },
+    {
       "id": "bike-chooser",
       "name": "Bike chooser",
       "pitch": "Find bikes that fit your budget and how you will ride them.",
@@ -410,6 +673,32 @@
       "packUrl": "packs/bin-reminders.json"
     },
     {
+      "id": "bingo-card-maker",
+      "name": "Bingo card maker",
+      "pitch": "Create a printable bingo card set with custom prompts for a family reunion.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "file_list",
+          "file_read",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:43:26.097Z",
+      "packUrl": "packs/bingo-card-maker.json"
+    },
+    {
       "id": "bio-writer",
       "name": "bio writer",
       "pitch": "Writes a 150-character summary of what the person actually does.",
@@ -431,6 +720,29 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:10:38.182Z",
       "packUrl": "packs/bio-writer.json"
+    },
+    {
+      "id": "birthday-card-writer",
+      "name": "Birthday card writer",
+      "pitch": "Write a personalised birthday card message for a friend's 30th.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:05:41.496Z",
+      "packUrl": "packs/birthday-card-writer.json"
     },
     {
       "id": "birthday-reminder",
@@ -512,6 +824,31 @@
       "packUrl": "packs/blog-to-social-pack.json"
     },
     {
+      "id": "blog-update-notifier",
+      "name": "Blog update notifier",
+      "pitch": "Checks a blog and emails new posts to the person",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_fetch",
+          "mail_send",
+          "routine_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:49:14.947Z",
+      "packUrl": "packs/blog-update-notifier.json"
+    },
+    {
       "id": "blood-test-decoder",
       "name": "Blood test decoder",
       "pitch": "Turns blood test numbers into plain English and suggests what to ask a doctor.",
@@ -562,6 +899,29 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:00:17.977Z",
       "packUrl": "packs/board-game-night.json"
+    },
+    {
+      "id": "book-summariser",
+      "name": "Book summariser",
+      "pitch": "Summarises a book's plot so the reader remembers the main points.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:55:19.916Z",
+      "packUrl": "packs/book-summariser.json"
     },
     {
       "id": "bot-finder",
@@ -684,6 +1044,32 @@
       "packUrl": "packs/breach-checker.json"
     },
     {
+      "id": "breakfast-prep-ideas",
+      "name": "Breakfast prep ideas",
+      "pitch": "Find fresh breakfast ideas that stay good for five days and show them in a simple list.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:26:12.240Z",
+      "packUrl": "packs/breakfast-prep-ideas.json"
+    },
+    {
       "id": "budget-thread-summary",
       "name": "Budget thread summary",
       "pitch": "Summarize long email threads about the budget so the person can catch up fast",
@@ -761,6 +1147,57 @@
       "packUrl": "packs/caffeine-taper.json"
     },
     {
+      "id": "calendar-lister",
+      "name": "Calendar lister",
+      "pitch": "Shows all your calendar events for the next month.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "calendar_list"
+        ],
+        "connectors": [
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:31:04.545Z",
+      "packUrl": "packs/calendar-lister.json"
+    },
+    {
+      "id": "call-buffer-scheduler",
+      "name": "call buffer scheduler",
+      "pitch": "Adds prep and note time around client calls in the calendar.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "calendar_list",
+          "calendar_create"
+        ],
+        "connectors": [
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:50:50.928Z",
+      "packUrl": "packs/call-buffer-scheduler.json"
+    },
+    {
       "id": "call-summariser",
       "name": "Call summariser",
       "pitch": "Reads a call transcript file, writes a concise summary with decisions and next steps, and can create follow-up tasks.",
@@ -784,6 +1221,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:06:18.394Z",
       "packUrl": "packs/call-summariser.json"
+    },
+    {
+      "id": "callback-to-promise",
+      "name": "callback-to-promise",
+      "pitch": "Convert a callback-based API to use promises with proper error handling.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:41:50.421Z",
+      "packUrl": "packs/callback-to-promise.json"
     },
     {
       "id": "calorie-calculator",
@@ -858,6 +1320,60 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:03:41.101Z",
       "packUrl": "packs/caption-guide.json"
+    },
+    {
+      "id": "car-cost-calculator",
+      "name": "Car cost calculator",
+      "pitch": "Calculate total cost of buying versus leasing a car over four years including insurance and maintenance",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_fetch",
+          "show_comparison",
+          "file_write",
+          "memory_remember"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:33:27.777Z",
+      "packUrl": "packs/car-cost-calculator.json"
+    },
+    {
+      "id": "car-cost-compare",
+      "name": "Car cost compare",
+      "pitch": "Compare the cost of driving your own car against hiring one for a two-week trip.",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_type",
+          "browser_scroll",
+          "web_search",
+          "show_comparison"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:50:00.995Z",
+      "packUrl": "packs/car-cost-compare.json"
     },
     {
       "id": "car-dates-tracker",
@@ -1044,6 +1560,58 @@
       "packUrl": "packs/cash-flow-forecaster.json"
     },
     {
+      "id": "cc-flagger",
+      "name": "cc flagger",
+      "pitch": "flags emails where you are cc'd but your name is mentioned in the body",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_list",
+          "mail_read",
+          "task_create"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:54:22.779Z",
+      "packUrl": "packs/cc-flagger.json"
+    },
+    {
+      "id": "chapter-markers",
+      "name": "chapter markers",
+      "pitch": "creates a chapter markers file for youtube from timestamp notes",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:33:48.393Z",
+      "packUrl": "packs/chapter-markers.json"
+    },
+    {
       "id": "charity-checker",
       "name": "charity checker",
       "pitch": "Check if a charity asking for donations is legitimate.",
@@ -1094,6 +1662,32 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.482Z",
       "packUrl": "packs/chess-opening-coach.json"
+    },
+    {
+      "id": "cholesterol-guide",
+      "name": "Cholesterol guide",
+      "pitch": "Explain test results and suggest practical lifestyle changes to lower cholesterol.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page",
+          "memory_remember"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:42:38.096Z",
+      "packUrl": "packs/cholesterol-guide.json"
     },
     {
       "id": "chore-rota-maker",
@@ -1244,6 +1838,39 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:58:12.748Z",
       "packUrl": "packs/code-setting-tracer.json"
+    },
+    {
+      "id": "cold-email-sequence",
+      "name": "Cold email sequence",
+      "pitch": "Write a multi-step email series to introduce a new product to potential customers.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_read",
+          "mail_send",
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_click",
+          "browser_type",
+          "browser_press",
+          "browser_scroll",
+          "browser_back"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:21:34.103Z",
+      "packUrl": "packs/cold-email-sequence.json"
     },
     {
       "id": "collab-scout",
@@ -1430,6 +2057,56 @@
       "packUrl": "packs/contact-merger.json"
     },
     {
+      "id": "contact-organiser",
+      "name": "Contact organiser",
+      "pitch": "Sort contacts into company size and industry groups for easier CRM management.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "show_table",
+          "task_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:24:46.498Z",
+      "packUrl": "packs/contact-organiser.json"
+    },
+    {
+      "id": "content-batching",
+      "name": "content batching",
+      "pitch": "A checklist to plan and run filming days so edits are ready later",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:51:17.666Z",
+      "packUrl": "packs/content-batching.json"
+    },
+    {
       "id": "content-calendar-template",
       "name": "content calendar template",
       "pitch": "Create a reusable monthly content calendar template that can be duplicated each month.",
@@ -1581,6 +2258,30 @@
       "packUrl": "packs/courgette-recipe-finder.json"
     },
     {
+      "id": "crisis-response-template",
+      "name": "crisis response template",
+      "pitch": "Create a template for responding to negative feedback on social media or review sites.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:48:50.939Z",
+      "packUrl": "packs/crisis-response-template.json"
+    },
+    {
       "id": "crypto-scam-check",
       "name": "Crypto scam check",
       "pitch": "Checks a crypto project for common scam signals and gives a plain summary.",
@@ -1630,6 +2331,33 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:17:34.810Z",
       "packUrl": "packs/csa-veg-planner.json"
+    },
+    {
+      "id": "curriculum-designer",
+      "name": "curriculum designer",
+      "pitch": "Build a free self-study curriculum with quality resources for a new skill from scratch.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_snapshot",
+          "file_write",
+          "make_page",
+          "task_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:34:51.630Z",
+      "packUrl": "packs/curriculum-designer.json"
     },
     {
       "id": "custom-deck-maker",
@@ -1838,6 +2566,32 @@
       "packUrl": "packs/data-access-request.json"
     },
     {
+      "id": "data-complaint",
+      "name": "data complaint",
+      "pitch": "Write and submit a formal complaint to a data protection authority about a company.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:29:46.549Z",
+      "packUrl": "packs/data-complaint.json"
+    },
+    {
       "id": "data-leak-check",
       "name": "data leak check",
       "pitch": "Inspect a bot pack for anything that might expose the person's data to others.",
@@ -1889,6 +2643,32 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:00:04.024Z",
       "packUrl": "packs/data-opt-out.json"
+    },
+    {
+      "id": "database-seeder",
+      "name": "Database seeder",
+      "pitch": "Writes a script that fills the database with realistic test data.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write",
+          "shell_run"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:51:13.672Z",
+      "packUrl": "packs/database-seeder.json"
     },
     {
       "id": "deadline-decliner",
@@ -2046,6 +2826,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:29:07.145Z",
       "packUrl": "packs/dentist-finder.json"
+    },
+    {
+      "id": "dependabot-config",
+      "name": "Dependabot config",
+      "pitch": "Set up automated dependency scanning and security updates for projects.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:32:42.513Z",
+      "packUrl": "packs/dependabot-config.json"
     },
     {
       "id": "desk-stretch-routine",
@@ -2219,6 +3024,31 @@
       "packUrl": "packs/document-explainer.json"
     },
     {
+      "id": "dog-walk-scout",
+      "name": "Dog walk scout",
+      "pitch": "Find easy, dog-friendly walking trails nearby for beginners and their dogs.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "show_comparison"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:26:18.265Z",
+      "packUrl": "packs/dog-walk-scout.json"
+    },
+    {
       "id": "dog-walker-finder",
       "name": "dog walker finder",
       "pitch": "finds a reliable dog walker with weekday morning availability near the person",
@@ -2318,6 +3148,32 @@
       "packUrl": "packs/echo-fixer.json"
     },
     {
+      "id": "electrician-finder",
+      "name": "Electrician finder",
+      "pitch": "Find a qualified electrician to install an outdoor socket for a garden office.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_navigate",
+          "browser_snapshot",
+          "show_comparison"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:09:10.578Z",
+      "packUrl": "packs/electrician-finder.json"
+    },
+    {
       "id": "email-action-items",
       "name": "Email action items",
       "pitch": "Find action items from your boss's emails in the last month and add them as tasks.",
@@ -2372,6 +3228,61 @@
       "packUrl": "packs/email-archiver.json"
     },
     {
+      "id": "email-date-remider",
+      "name": "Email date remider",
+      "pitch": "Extract dates from recent emails and add them as calendar reminders.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_list",
+          "mail_read",
+          "calendar_create"
+        ],
+        "connectors": [
+          "mail",
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:37:58.890Z",
+      "packUrl": "packs/email-date-remider.json"
+    },
+    {
+      "id": "email-follow-up",
+      "name": "Email follow-up",
+      "pitch": "Summarises yesterday's call and sends a follow-up email to the client.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_send",
+          "memory_remember",
+          "make_page"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:38:49.145Z",
+      "packUrl": "packs/email-follow-up.json"
+    },
+    {
       "id": "email-reply-drafter",
       "name": "Email Reply Drafter",
       "pitch": "Reads your three most avoided emails and drafts thoughtful replies you can review and send.",
@@ -2396,6 +3307,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.486Z",
       "packUrl": "packs/email-reply-drafter.json"
+    },
+    {
+      "id": "email-request",
+      "name": "Email request",
+      "pitch": "Sends a polite day‑off email to the user's boss.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_send"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:25:46.599Z",
+      "packUrl": "packs/email-request.json"
     },
     {
       "id": "email-summariser",
@@ -2423,6 +3359,33 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:57:01.299Z",
       "packUrl": "packs/email-summariser.json"
+    },
+    {
+      "id": "emergency-fund-plan",
+      "name": "emergency fund plan",
+      "pitch": "Build a prioritized three-month financial safety plan based on your current income and outgoings.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write",
+          "make_page",
+          "task_create",
+          "memory_remember",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:06:30.410Z",
+      "packUrl": "packs/emergency-fund-plan.json"
     },
     {
       "id": "energy-tariff-comparator",
@@ -2630,6 +3593,58 @@
       "packUrl": "packs/fantasy-football-picker.json"
     },
     {
+      "id": "faq-guide-maker",
+      "name": "FAQ guide maker",
+      "pitch": "Turns your FAQ list into an Instagram guide structure you can copy and post.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:22:39.492Z",
+      "packUrl": "packs/faq-guide-maker.json"
+    },
+    {
+      "id": "feedback-document",
+      "name": "Feedback document",
+      "pitch": "Gathers all design-review emails into one readable document.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_list",
+          "mail_read",
+          "make_page"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:56:05.608Z",
+      "packUrl": "packs/feedback-document.json"
+    },
+    {
       "id": "five-a-side-league-finder",
       "name": "Five-a-side league finder",
       "pitch": "Finds local five-a-side football leagues with open spots for individual players.",
@@ -2786,6 +3801,30 @@
       "packUrl": "packs/form-filler.json"
     },
     {
+      "id": "founder-story-script",
+      "name": "Founder story script",
+      "pitch": "Write a sixty-second video script about a founder's journey, ready to record.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:37:18.103Z",
+      "packUrl": "packs/founder-story-script.json"
+    },
+    {
       "id": "fraud-alert-guide",
       "name": "fraud alert guide",
       "pitch": "Explain the difference between a fraud alert and a credit freeze and help set one up.",
@@ -2809,6 +3848,35 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:10:08.030Z",
       "packUrl": "packs/fraud-alert-guide.json"
+    },
+    {
+      "id": "freezer-inventory",
+      "name": "Freezer inventory",
+      "pitch": "List freezer items, their expiration dates, and suggest meals to use them up.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "task_create",
+          "show_table",
+          "calendar_create"
+        ],
+        "connectors": [
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:42:22.121Z",
+      "packUrl": "packs/freezer-inventory.json"
     },
     {
       "id": "freezer-stock",
@@ -2887,6 +3955,54 @@
       "packUrl": "packs/fuel-cost-calculator.json"
     },
     {
+      "id": "fund-overlap",
+      "name": "fund overlap",
+      "pitch": "Find the five largest holdings shared by your two biggest mutual funds.",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_fetch",
+          "file_read",
+          "show_comparison"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:42:16.097Z",
+      "packUrl": "packs/fund-overlap.json"
+    },
+    {
+      "id": "game-alarm",
+      "name": "Game alarm",
+      "pitch": "Set an alarm for a game start and silence it when the match ends.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "calendar_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:35:14.578Z",
+      "packUrl": "packs/game-alarm.json"
+    },
+    {
       "id": "game-night-planner",
       "name": "Game night planner",
       "pitch": "Plan a themed game night with snacks that match the game genre.",
@@ -2912,6 +4028,34 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:10:54.709Z",
       "packUrl": "packs/game-night-planner.json"
+    },
+    {
+      "id": "game-scheduler",
+      "name": "Game scheduler",
+      "pitch": "Schedule weekly game slots and send reminder messages to friends",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "calendar_create",
+          "task_create",
+          "mail_send"
+        ],
+        "connectors": [
+          "mail",
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:30:24.541Z",
+      "packUrl": "packs/game-scheduler.json"
     },
     {
       "id": "garden-planner",
@@ -3202,6 +4346,58 @@
       "packUrl": "packs/half-marathon-coach.json"
     },
     {
+      "id": "health-prep",
+      "name": "health prep",
+      "pitch": "organise symptoms and questions before a telehealth visit",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "task_create",
+          "make_page",
+          "memory_remember"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:21:22.543Z",
+      "packUrl": "packs/health-prep.json"
+    },
+    {
+      "id": "high-yield-savings-scout",
+      "name": "High-yield savings scout",
+      "pitch": "Find and compare savings accounts with no minimum balance and easy transfers.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "browser_navigate",
+          "show_comparison",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:36:48.142Z",
+      "packUrl": "packs/high-yield-savings-scout.json"
+    },
+    {
       "id": "hiking-pack-planner",
       "name": "Hiking Pack Planner",
       "pitch": "Creates a detailed packing list for a week of hiking in changeable weather, organised by layering system and activity.",
@@ -3226,6 +4422,33 @@
       "packUrl": "packs/hiking-pack-planner.json"
     },
     {
+      "id": "home-insurance-renewal",
+      "name": "home insurance renewal",
+      "pitch": "Compare building and contents quotes at policy renewal to find a cheaper deal.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_navigate",
+          "browser_snapshot",
+          "show_comparison",
+          "file_read"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:48:04.952Z",
+      "packUrl": "packs/home-insurance-renewal.json"
+    },
+    {
       "id": "home-strength-planner",
       "name": "Home Strength Planner",
       "pitch": "Creates a weekly no-equipment strength plan with three sessions, exercise details, and progression guidance.",
@@ -3248,6 +4471,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.494Z",
       "packUrl": "packs/home-strength-planner.json"
+    },
+    {
+      "id": "home-workout-plan",
+      "name": "home workout plan",
+      "pitch": "create a simple home workout plan using only a resistance band and bodyweight",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "make_page",
+          "routine_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:43:34.110Z",
+      "packUrl": "packs/home-workout-plan.json"
     },
     {
       "id": "hook-archive",
@@ -3302,6 +4550,33 @@
       "packUrl": "packs/hotel-scout.json"
     },
     {
+      "id": "hotel-scout-2",
+      "name": "Hotel scout",
+      "pitch": "Find a hotel near a train station with secure bike storage and a charging point.",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_type",
+          "browser_scroll",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:54:13.568Z",
+      "packUrl": "packs/hotel-scout-2.json"
+    },
+    {
       "id": "house-deposit-saver",
       "name": "House deposit saver",
       "pitch": "Calculate the monthly savings needed to reach a house deposit goal in three years.",
@@ -3326,6 +4601,30 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:47:07.469Z",
       "packUrl": "packs/house-deposit-saver.json"
+    },
+    {
+      "id": "icebreaker-picker",
+      "name": "Icebreaker picker",
+      "pitch": "Find a quick icebreaker question and format it for the meeting invite.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:54:51.470Z",
+      "packUrl": "packs/icebreaker-picker.json"
     },
     {
       "id": "inbox-reply-draft",
@@ -3406,6 +4705,57 @@
       "packUrl": "packs/index-fund-explainer.json"
     },
     {
+      "id": "industry-news-scout",
+      "name": "Industry news scout",
+      "pitch": "Finds the latest industry news and gives you the top three takeaways.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "show_comparison"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:31:16.744Z",
+      "packUrl": "packs/industry-news-scout.json"
+    },
+    {
+      "id": "insurance-reviewer",
+      "name": "Insurance reviewer",
+      "pitch": "Review policies and spot duplicate or missing coverage.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "web_fetch",
+          "show_comparison",
+          "memory_remember"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:34:45.617Z",
+      "packUrl": "packs/insurance-reviewer.json"
+    },
+    {
       "id": "interview-prep",
       "name": "Interview prep",
       "pitch": "Builds a scorecard and list of questions for interviewing a freelancer.",
@@ -3428,6 +4778,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:30:16.912Z",
       "packUrl": "packs/interview-prep.json"
+    },
+    {
+      "id": "investment-comparator",
+      "name": "Investment comparator",
+      "pitch": "Compare a lump sum investment versus dollar cost averaging over five years.",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:27:04.390Z",
+      "packUrl": "packs/investment-comparator.json"
     },
     {
       "id": "investment-scam-check",
@@ -3607,6 +4982,33 @@
       "packUrl": "packs/job-reviewer.json"
     },
     {
+      "id": "journalist-reply",
+      "name": "journalist reply",
+      "pitch": "Draft a reply to a journalist asking for a comment on industry news.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_send",
+          "mail_read",
+          "mail_list"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:54:31.763Z",
+      "packUrl": "packs/journalist-reply.json"
+    },
+    {
       "id": "json-schema-converter",
       "name": "json schema converter",
       "pitch": "Converts JSON data into a typed schema and a validator for developer use.",
@@ -3629,6 +5031,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:27:37.182Z",
       "packUrl": "packs/json-schema-converter.json"
+    },
+    {
+      "id": "k8s-health-endpoints",
+      "name": "k8s health endpoints",
+      "pitch": "Adds health check and readiness probes to a Kubernetes deployment YAML file.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:48:22.985Z",
+      "packUrl": "packs/k8s-health-endpoints.json"
     },
     {
       "id": "kids-party-planner",
@@ -3859,6 +5286,80 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.499Z",
       "packUrl": "packs/lighthouse-keeper-adventure.json"
+    },
+    {
+      "id": "link-in-bio-designer",
+      "name": "link-in-bio designer",
+      "pitch": "Design a page that shows your offers and links in one place, ready to share.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:07:18.876Z",
+      "packUrl": "packs/link-in-bio-designer.json"
+    },
+    {
+      "id": "linkedin-thought-posts",
+      "name": "LinkedIn thought posts",
+      "pitch": "Turns bullet points into five polished LinkedIn posts with links between them.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:56:54.147Z",
+      "packUrl": "packs/linkedin-thought-posts.json"
+    },
+    {
+      "id": "literature-review-draft",
+      "name": "Literature review draft",
+      "pitch": "Turns your research notes into a structured draft you can edit.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:43:12.133Z",
+      "packUrl": "packs/literature-review-draft.json"
     },
     {
       "id": "literature-review-outline",
@@ -7702,6 +9203,60 @@
       "packUrl": "packs/local-lead-finder.json"
     },
     {
+      "id": "low-cost-activity-planner",
+      "name": "low-cost activity planner",
+      "pitch": "Find free local events and build a half-term schedule for a ten-year-old.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_navigate",
+          "calendar_create",
+          "show_table"
+        ],
+        "connectors": [
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:49:01.243Z",
+      "packUrl": "packs/low-cost-activity-planner.json"
+    },
+    {
+      "id": "magnesium-supplement-guide",
+      "name": "Magnesium supplement guide",
+      "pitch": "Compare magnesium types for sleep and muscle recovery and recommend one.",
+      "category": "health",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "show_comparison",
+          "memory_remember"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:06:00.104Z",
+      "packUrl": "packs/magnesium-supplement-guide.json"
+    },
+    {
       "id": "market-snapshot",
       "name": "Market snapshot",
       "pitch": "Summarise today's market moves in five sentences.",
@@ -7724,6 +9279,30 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:08:23.745Z",
       "packUrl": "packs/market-snapshot.json"
+    },
+    {
+      "id": "match-day-travel",
+      "name": "Match day travel",
+      "pitch": "Find the quickest route to the stadium on match day and suggest parking options.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:39:04.410Z",
+      "packUrl": "packs/match-day-travel.json"
     },
     {
       "id": "meal-memory",
@@ -7773,6 +9352,35 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:11:54.707Z",
       "packUrl": "packs/meal-planner.json"
+    },
+    {
+      "id": "meal-prep-workflow",
+      "name": "Meal prep workflow",
+      "pitch": "Design a weekly meal prep plan for two people with different dietary goals, fitting around their schedules.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "make_page",
+          "task_create",
+          "calendar_create",
+          "file_write"
+        ],
+        "connectors": [
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:27:30.653Z",
+      "packUrl": "packs/meal-prep-workflow.json"
     },
     {
       "id": "media-kit-builder",
@@ -7899,6 +9507,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:17:18.817Z",
       "packUrl": "packs/meeting-decliner.json"
+    },
+    {
+      "id": "meeting-notes-tracker",
+      "name": "Meeting notes tracker",
+      "pitch": "Finds the last three meeting notes and lists their open action items.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:36:15.900Z",
+      "packUrl": "packs/meeting-notes-tracker.json"
     },
     {
       "id": "meeting-prep",
@@ -8189,6 +9822,58 @@
       "packUrl": "packs/move-prep.json"
     },
     {
+      "id": "movie-trivia-maker",
+      "name": "movie trivia maker",
+      "pitch": "Make a trivia game from your favourite movies and keep a scoreboard.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "memory_remember",
+          "file_list",
+          "file_write",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:25:42.613Z",
+      "packUrl": "packs/movie-trivia-maker.json"
+    },
+    {
+      "id": "murder-mystery-designer",
+      "name": "Murder mystery designer",
+      "pitch": "Design a custom murder mystery game with six characters and a solution sheet.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "file_read",
+          "file_write",
+          "file_list"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:47:14.857Z",
+      "packUrl": "packs/murder-mystery-designer.json"
+    },
+    {
       "id": "narrow-quiet-washer-scout",
       "name": "Narrow quiet washer scout",
       "pitch": "Finds quiet washing machines that fit narrow spaces and compares them side by side.",
@@ -8212,6 +9897,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:22:40.238Z",
       "packUrl": "packs/narrow-quiet-washer-scout.json"
+    },
+    {
+      "id": "networking-thank-you",
+      "name": "Networking thank-you",
+      "pitch": "Send a short thank-you email after meeting someone at a networking event.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_send"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:20:55.859Z",
+      "packUrl": "packs/networking-thank-you.json"
     },
     {
       "id": "new-starter-onboarding-checklist",
@@ -8292,6 +10002,32 @@
       "packUrl": "packs/newsletter-cleaner.json"
     },
     {
+      "id": "nhs-dentist-scout",
+      "name": "nhs dentist scout",
+      "pitch": "Find an NHS dentist taking new patients within two miles of where the person lives.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_navigate",
+          "browser_snapshot",
+          "show_comparison"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:30:32.552Z",
+      "packUrl": "packs/nhs-dentist-scout.json"
+    },
+    {
       "id": "noise-cleaner",
       "name": "noise cleaner",
       "pitch": "Remove background noise from an audio file using a noise profile.",
@@ -8365,6 +10101,53 @@
       "packUrl": "packs/offside-explainer.json"
     },
     {
+      "id": "onboarding-checklist",
+      "name": "onboarding checklist",
+      "pitch": "makes a checklist for onboarding a new virtual assistant",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:49:26.933Z",
+      "packUrl": "packs/onboarding-checklist.json"
+    },
+    {
+      "id": "one-on-one-template",
+      "name": "one-on-one template",
+      "pitch": "Build a reusable weekly one-on-one note template with sections for updates, blockers and feedback.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "make_page",
+          "memory_remember"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:43:08.116Z",
+      "packUrl": "packs/one-on-one-template.json"
+    },
+    {
       "id": "one-shot-games-master",
       "name": "One-shot games master",
       "pitch": "Run a complete two-hour tabletop adventure, from setup to wrap-up.",
@@ -8418,6 +10201,59 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.570Z",
       "packUrl": "packs/one-to-one-prep.json"
+    },
+    {
+      "id": "open-access-papers",
+      "name": "Open-access papers",
+      "pitch": "Find open-access versions of every paper in a bibliography and list them.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_snapshot",
+          "browser_click",
+          "browser_type",
+          "file_write",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:29:20.988Z",
+      "packUrl": "packs/open-access-papers.json"
+    },
+    {
+      "id": "openapi-spec-generator",
+      "name": "OpenAPI spec generator",
+      "pitch": "Generate an OpenAPI specification from the route handlers in the codebase.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:47:58.828Z",
+      "packUrl": "packs/openapi-spec-generator.json"
     },
     {
       "id": "openbot-expense-review",
@@ -8669,6 +10505,32 @@
       "packUrl": "packs/openbot-vendor-review.json"
     },
     {
+      "id": "out-of-office-setup",
+      "name": "Out-of-office setup",
+      "pitch": "Set an out-of-office reply with alternate contacts for a two-week absence.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_send",
+          "calendar_list"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:22:23.485Z",
+      "packUrl": "packs/out-of-office-setup.json"
+    },
+    {
       "id": "packed-lunch-planner",
       "name": "Packed Lunch Planner",
       "pitch": "Creates a week of cold packed lunches with a shopping list and daily plan.",
@@ -8691,6 +10553,30 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:56:19.548Z",
       "packUrl": "packs/packed-lunch-planner.json"
+    },
+    {
+      "id": "packing-list-maker",
+      "name": "Packing list maker",
+      "pitch": "Create a packing checklist for a three‑day mountain trip.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "task_create",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:40:36.440Z",
+      "packUrl": "packs/packing-list-maker.json"
     },
     {
       "id": "pantry-inventory",
@@ -8717,6 +10603,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:16:54.801Z",
       "packUrl": "packs/pantry-inventory.json"
+    },
+    {
+      "id": "paper-citations",
+      "name": "paper citations",
+      "pitch": "finds which authors cite each other most in a collection of papers",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:38:08.921Z",
+      "packUrl": "packs/paper-citations.json"
     },
     {
       "id": "paper-data-extractor",
@@ -8769,6 +10680,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:31:34.793Z",
       "packUrl": "packs/paper-explainer.json"
+    },
+    {
+      "id": "paper-stats-extractor",
+      "name": "Paper stats extractor",
+      "pitch": "Read research papers and build a table comparing their statistical results.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:02:32.750Z",
+      "packUrl": "packs/paper-stats-extractor.json"
     },
     {
       "id": "parcel-complaint-writer",
@@ -8844,6 +10780,31 @@
       "packUrl": "packs/party-game-inventor.json"
     },
     {
+      "id": "party-games-scout",
+      "name": "Party games scout",
+      "pitch": "Find the best party games that need under ten minutes to set up.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "show_comparison",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:53:34.846Z",
+      "packUrl": "packs/party-games-scout.json"
+    },
+    {
       "id": "password-strengthener",
       "name": "Password Strengthener",
       "pitch": "Creates a personal password plan with strong unique passwords and a rotation schedule for reused ones.",
@@ -8867,6 +10828,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:27:57.671Z",
       "packUrl": "packs/password-strengthener.json"
+    },
+    {
+      "id": "pdf-invoice-organiser",
+      "name": "pdf invoice organiser",
+      "pitch": "organises pdf invoices into a single searchable document",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "browser_navigate"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:49:54.966Z",
+      "packUrl": "packs/pdf-invoice-organiser.json"
     },
     {
       "id": "pension-provider-compare",
@@ -8916,6 +10902,33 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:34:12.001Z",
       "packUrl": "packs/permission-reviewer.json"
+    },
+    {
+      "id": "pet-border-rules",
+      "name": "Pet border rules",
+      "pitch": "Find the legal requirements for travelling with a pet across a specific land border.",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_type",
+          "browser_scroll",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:58:30.060Z",
+      "packUrl": "packs/pet-border-rules.json"
     },
     {
       "id": "phone-plan-compare",
@@ -8991,6 +11004,32 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.575Z",
       "packUrl": "packs/photo-caption-writer.json"
+    },
+    {
+      "id": "photo-metadata",
+      "name": "Photo metadata",
+      "pitch": "Tell what metadata photos hold and how to strip it before sharing.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page",
+          "shell_run"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:39:16.146Z",
+      "packUrl": "packs/photo-metadata.json"
     },
     {
       "id": "phrase-page",
@@ -9190,6 +11229,29 @@
       "packUrl": "packs/podcast-season-planner.json"
     },
     {
+      "id": "podcast-template",
+      "name": "Podcast template",
+      "pitch": "Create a reusable template for podcast episodes with intro, ad slots, and segments.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:51:35.800Z",
+      "packUrl": "packs/podcast-template.json"
+    },
+    {
       "id": "policy-explainer",
       "name": "policy explainer",
       "pitch": "Writes a plain-words summary of a policy for the whole team.",
@@ -9312,6 +11374,35 @@
       "packUrl": "packs/post-timing-analyst.json"
     },
     {
+      "id": "potluck-organizer",
+      "name": "Potluck organizer",
+      "pitch": "Set up a sign-up sheet for a potluck with dish categories and dietary tags, and send the link to participants.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "make_page",
+          "mail_send",
+          "calendar_create",
+          "file_write"
+        ],
+        "connectors": [
+          "calendar",
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:55:11.927Z",
+      "packUrl": "packs/potluck-organizer.json"
+    },
+    {
       "id": "pr-bug-reviewer",
       "name": "PR Bug Reviewer",
       "pitch": "Reviews pull request diffs and identifies potential bugs, logic errors, and security issues without commenting on style or formatting.",
@@ -9409,6 +11500,119 @@
       "packUrl": "packs/press-release-writer.json"
     },
     {
+      "id": "price-drop-monitor",
+      "name": "Price drop monitor",
+      "pitch": "Monitors a product page and emails when the price falls below a target.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_fetch",
+          "mail_send",
+          "routine_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:23:57.906Z",
+      "packUrl": "packs/price-drop-monitor.json"
+    },
+    {
+      "id": "privacy-policy-reviewer",
+      "name": "Privacy policy reviewer",
+      "pitch": "Review any app's privacy policy and list the data it collects.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "browser_navigate",
+          "browser_snapshot",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:01:21.393Z",
+      "packUrl": "packs/privacy-policy-reviewer.json"
+    },
+    {
+      "id": "product-summary",
+      "name": "Product summary",
+      "pitch": "Create a one-page summary of a product for new sales reps.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_click",
+          "browser_type",
+          "browser_press",
+          "browser_scroll",
+          "browser_back",
+          "make_page",
+          "file_read"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:56:16.418Z",
+      "packUrl": "packs/product-summary.json"
+    },
+    {
+      "id": "progressive-dinner",
+      "name": "progressive dinner",
+      "pitch": "plan a menu across three households, one course each",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "calendar_create",
+          "mail_send",
+          "make_page",
+          "task_create"
+        ],
+        "connectors": [
+          "calendar",
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:35:56.550Z",
+      "packUrl": "packs/progressive-dinner.json"
+    },
+    {
       "id": "project-scaffolder",
       "name": "Project scaffolder",
       "pitch": "Creates a new project with linting, formatting and a test runner configured.",
@@ -9433,6 +11637,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:27:42.327Z",
       "packUrl": "packs/project-scaffolder.json"
+    },
+    {
+      "id": "project-summary",
+      "name": "Project summary",
+      "pitch": "Make a one-page summary of current projects for a stakeholder update.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "make_page",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:31:00.539Z",
+      "packUrl": "packs/project-summary.json"
     },
     {
       "id": "prompt-stater",
@@ -9637,6 +11866,83 @@
       "packUrl": "packs/quote-builder.json"
     },
     {
+      "id": "quote-nudge",
+      "name": "Quote nudge",
+      "pitch": "Sends a polite reminder to a vendor who hasn't replied to a quote request.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_read",
+          "mail_send"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:01:25.378Z",
+      "packUrl": "packs/quote-nudge.json"
+    },
+    {
+      "id": "rate-limiter",
+      "name": "Rate limiter",
+      "pitch": "Add rate limiting and circuit breaker patterns to a service client to prevent overload and handle failures gracefully.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:55:50.550Z",
+      "packUrl": "packs/rate-limiter.json"
+    },
+    {
+      "id": "rate-negotiator",
+      "name": "Rate negotiator",
+      "pitch": "Draft a script and find competitor offers to help lower your credit card interest rate.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page",
+          "memory_remember"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:57:48.392Z",
+      "packUrl": "packs/rate-negotiator.json"
+    },
+    {
       "id": "reading-list-curator",
       "name": "Reading List Curator",
       "pitch": "Tracks books you finish and suggests what to read next based on your tastes.",
@@ -9712,6 +12018,32 @@
       "packUrl": "packs/readme-writer.json"
     },
     {
+      "id": "recipe-converter",
+      "name": "Recipe converter",
+      "pitch": "Turn family recipes into weight measurements and standard formatting.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "web_fetch",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:31:28.719Z",
+      "packUrl": "packs/recipe-converter.json"
+    },
+    {
       "id": "recipe-organizer",
       "name": "recipe organizer",
       "pitch": "Sort recipes into cuisine groups and show cooking times so meals are easier to find.",
@@ -9761,6 +12093,32 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:51:46.069Z",
       "packUrl": "packs/recipe-scaler.json"
+    },
+    {
+      "id": "recipe-scout",
+      "name": "Recipe scout",
+      "pitch": "Find copycat recipes for restaurant dishes to make at home.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:48:10.942Z",
+      "packUrl": "packs/recipe-scout.json"
     },
     {
       "id": "refund-request",
@@ -9839,6 +12197,30 @@
       "packUrl": "packs/release-notes-writer.json"
     },
     {
+      "id": "remote-work-brief",
+      "name": "Remote work brief",
+      "pitch": "Research the latest remote-work trends and create a one-page briefing document for the team.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:02:26.733Z",
+      "packUrl": "packs/remote-work-brief.json"
+    },
+    {
       "id": "rent-scout",
       "name": "Rent scout",
       "pitch": "Compare weekly rental car prices including insurance and mileage limits.",
@@ -9867,6 +12249,30 @@
       "packUrl": "packs/rent-scout.json"
     },
     {
+      "id": "rent-scout-2",
+      "name": "Rent scout",
+      "pitch": "Compare two short-term holiday rentals you are considering, showing key details side by side.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "show_comparison"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:22:17.233Z",
+      "packUrl": "packs/rent-scout-2.json"
+    },
+    {
       "id": "rental-scam-check",
       "name": "Rental scam check",
       "pitch": "Checks a rental listing for common scam signs before you pay a holding deposit.",
@@ -9893,6 +12299,32 @@
       "packUrl": "packs/rental-scam-check.json"
     },
     {
+      "id": "replication-scout",
+      "name": "replication scout",
+      "pitch": "finds and saves replication studies for key experiments in a research paper",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_snapshot",
+          "file_write",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:48:40.948Z",
+      "packUrl": "packs/replication-scout.json"
+    },
+    {
       "id": "report-summariser",
       "name": "report summariser",
       "pitch": "Turns a long report into a one-page summary for a director in minutes.",
@@ -9915,6 +12347,33 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:38:51.168Z",
       "packUrl": "packs/report-summariser.json"
+    },
+    {
+      "id": "research-matrix",
+      "name": "research matrix",
+      "pitch": "Compare research methods side by side to help decide the best fit for the study design.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_snapshot",
+          "file_write",
+          "show_comparison",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:52:07.135Z",
+      "packUrl": "packs/research-matrix.json"
     },
     {
       "id": "research-synthesiser",
@@ -10019,6 +12478,31 @@
       "packUrl": "packs/resume-diff.json"
     },
     {
+      "id": "retirement-calculator",
+      "name": "retirement calculator",
+      "pitch": "Calculate the future value of retirement accounts at age 65 with a 7% annual return.",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "memory_remember",
+          "shell_run",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:37:30.947Z",
+      "packUrl": "packs/retirement-calculator.json"
+    },
+    {
       "id": "retro-planner",
       "name": "retro planner",
       "pitch": "Suggest three agenda items for a team retro based on last sprint notes.",
@@ -10041,6 +12525,32 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:11:24.710Z",
       "packUrl": "packs/retro-planner.json"
+    },
+    {
+      "id": "review-checker",
+      "name": "review checker",
+      "pitch": "Searches for complaints and negative reviews of an online seller across the web.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "browser_navigate",
+          "browser_snapshot"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:10:33.204Z",
+      "packUrl": "packs/review-checker.json"
     },
     {
       "id": "review-responder",
@@ -10089,6 +12599,84 @@
       "packUrl": "packs/riddle-maker.json"
     },
     {
+      "id": "riddle-writer",
+      "name": "Riddle writer",
+      "pitch": "Create a riddle each day for a month-long scavenger hunt.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:50:10.980Z",
+      "packUrl": "packs/riddle-writer.json"
+    },
+    {
+      "id": "rmd-calculator",
+      "name": "RMD calculator",
+      "pitch": "Calculate the required minimum distribution for an inherited IRA each year.",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "memory_remember",
+          "shell_run"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:06:49.740Z",
+      "packUrl": "packs/rmd-calculator.json"
+    },
+    {
+      "id": "road-sign-translator",
+      "name": "Road sign translator",
+      "pitch": "Helps the person recognise road signs and fuel labels in a foreign country before they drive.",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_type",
+          "browser_scroll",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:35:28.277Z",
+      "packUrl": "packs/road-sign-translator.json"
+    },
+    {
       "id": "road-trip-planner",
       "name": "Road trip planner",
       "pitch": "Plan a road trip with stops every two hours and charging stations along the route.",
@@ -10113,6 +12701,82 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:29:48.064Z",
       "packUrl": "packs/road-trip-planner.json"
+    },
+    {
+      "id": "robo-advisor-compare",
+      "name": "robo-advisor compare",
+      "pitch": "Compare three robo-advisors' features and fees for a hands-off portfolio.",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "show_comparison"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:00:18.493Z",
+      "packUrl": "packs/robo-advisor-compare.json"
+    },
+    {
+      "id": "rock-climbing-gym-finder",
+      "name": "rock climbing gym finder",
+      "pitch": "Find a local climbing gym with a day pass available this weekend.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:03:55.448Z",
+      "packUrl": "packs/rock-climbing-gym-finder.json"
+    },
+    {
+      "id": "route-charger",
+      "name": "route charger",
+      "pitch": "Find the nearest working charging station on your route.",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_type",
+          "browser_scroll",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:09:59.503Z",
+      "packUrl": "packs/route-charger.json"
     },
     {
       "id": "royalty-free-audio-finder",
@@ -10212,6 +12876,36 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:57:29.486Z",
       "packUrl": "packs/running-to-do-list.json"
+    },
+    {
+      "id": "sales-lead-finder",
+      "name": "Sales lead finder",
+      "pitch": "Find contact details for the top fifty companies in the person's target market.",
+      "category": "sales-crm",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_click",
+          "browser_type",
+          "browser_press",
+          "browser_scroll",
+          "browser_back",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:55:23.843Z",
+      "packUrl": "packs/sales-lead-finder.json"
     },
     {
       "id": "sales-summary",
@@ -10362,6 +13056,32 @@
       "packUrl": "packs/scam-helper.json"
     },
     {
+      "id": "scenario-weaver",
+      "name": "Scenario weaver",
+      "pitch": "Creates a random tabletop scenario with a twist and random NPC names, stored as a text file.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "file_list",
+          "file_read",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:35:23.542Z",
+      "packUrl": "packs/scenario-weaver.json"
+    },
+    {
       "id": "schema-migrator",
       "name": "schema migrator",
       "pitch": "Write migration scripts for schema changes the person describes.",
@@ -10411,6 +13131,33 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:33:18.091Z",
       "packUrl": "packs/script-profiler.json"
+    },
+    {
+      "id": "shared-expense-tracker",
+      "name": "shared expense tracker",
+      "pitch": "Tracks shared costs and calculates automatic monthly settlements for roommates.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write",
+          "show_table",
+          "routine_create",
+          "memory_remember",
+          "task_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:22:10.580Z",
+      "packUrl": "packs/shared-expense-tracker.json"
     },
     {
       "id": "shell-script-builder",
@@ -10639,6 +13386,80 @@
       "packUrl": "packs/spending-analyzer.json"
     },
     {
+      "id": "spice-blend-guide",
+      "name": "Spice blend guide",
+      "pitch": "Create a guide with ratios and best uses for common spice blends.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:08:27.283Z",
+      "packUrl": "packs/spice-blend-guide.json"
+    },
+    {
+      "id": "sponsorship-template",
+      "name": "Sponsorship template",
+      "pitch": "Create a reusable sponsorship proposal template for events.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "make_page",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:31:32.719Z",
+      "packUrl": "packs/sponsorship-template.json"
+    },
+    {
+      "id": "sports-bar-finder",
+      "name": "Sports bar finder",
+      "pitch": "Find a sports bar near your office that shows the away team's game tonight.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:49:36.960Z",
+      "packUrl": "packs/sports-bar-finder.json"
+    },
+    {
       "id": "sports-summariser",
       "name": "Sports summariser",
       "pitch": "Summarises last night's games for the sports the person follows and skips the rest.",
@@ -10738,6 +13559,133 @@
       "packUrl": "packs/step-tracker.json"
     },
     {
+      "id": "stock-tracker",
+      "name": "Stock tracker",
+      "pitch": "Fetches current prices for stocks you care about, one at a time or as a list.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:34:59.611Z",
+      "packUrl": "packs/stock-tracker.json"
+    },
+    {
+      "id": "stop-loss-setup",
+      "name": "Stop-loss setup",
+      "pitch": "Explain stop-loss orders and set one up for a specific holding",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_click",
+          "browser_type",
+          "web_search",
+          "request_help"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:48:18.959Z",
+      "packUrl": "packs/stop-loss-setup.json"
+    },
+    {
+      "id": "story-poll-generator",
+      "name": "Story poll generator",
+      "pitch": "Creates 30 poll questions from a topic for social audience research.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:33:23.761Z",
+      "packUrl": "packs/story-poll-generator.json"
+    },
+    {
+      "id": "story-sentence-game",
+      "name": "Story sentence game",
+      "pitch": "A storytelling game where each player adds one sentence at a time.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:03:11.394Z",
+      "packUrl": "packs/story-sentence-game.json"
+    },
+    {
+      "id": "storybook-setup",
+      "name": "Storybook setup",
+      "pitch": "Add Storybook to a React component library and write component stories.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write",
+          "shell_run"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:08:08.149Z",
+      "packUrl": "packs/storybook-setup.json"
+    },
+    {
       "id": "stretch-guide",
       "name": "Stretch guide",
       "pitch": "Explains dynamic vs static stretching and when to use each before or after activity.",
@@ -10813,6 +13761,32 @@
       "packUrl": "packs/study-buddy.json"
     },
     {
+      "id": "study-method-compare",
+      "name": "Study method compare",
+      "pitch": "Compare methodology sections across five research studies and flag differences.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "show_comparison",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:22:45.492Z",
+      "packUrl": "packs/study-method-compare.json"
+    },
+    {
       "id": "subscription-scout",
       "name": "Subscription Scout",
       "pitch": "Finds recurring charges in your email so you can cancel the ones you no longer use.",
@@ -10838,6 +13812,57 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.582Z",
       "packUrl": "packs/subscription-scout.json"
+    },
+    {
+      "id": "subscription-tracker",
+      "name": "Subscription tracker",
+      "pitch": "List monthly subscription costs and flag unused ones from the last three months",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "show_table",
+          "task_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:56:35.818Z",
+      "packUrl": "packs/subscription-tracker.json"
+    },
+    {
+      "id": "subtitle-maker",
+      "name": "Subtitle maker",
+      "pitch": "Create SRT subtitle files from transcripts with accurate timing.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:02:51.168Z",
+      "packUrl": "packs/subtitle-maker.json"
     },
     {
       "id": "sunday-pharmacy-finder",
@@ -11046,6 +14071,33 @@
       "packUrl": "packs/tax-share-guide.json"
     },
     {
+      "id": "tax-summary",
+      "name": "tax summary",
+      "pitch": "Create a year-end tax summary document organized by category for the person's accountant.",
+      "category": "money",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "file_write",
+          "show_table",
+          "make_page",
+          "memory_remember"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:42:34.103Z",
+      "packUrl": "packs/tax-summary.json"
+    },
+    {
       "id": "team-lineup",
       "name": "team lineup",
       "pitch": "Find the most likely starting eleven for tomorrow's match and explain the choices.",
@@ -11092,6 +14144,54 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.583Z",
       "packUrl": "packs/team-morning-brief.json"
+    },
+    {
+      "id": "team-results",
+      "name": "team results",
+      "pitch": "Show the last five games with scores and goal differences",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:53:55.633Z",
+      "packUrl": "packs/team-results.json"
+    },
+    {
+      "id": "teleprompter-builder",
+      "name": "teleprompter builder",
+      "pitch": "Turns your outline into a scrolling script with speed markers for video recording.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:23:35.839Z",
+      "packUrl": "packs/teleprompter-builder.json"
     },
     {
       "id": "tenancy-agreement-review",
@@ -11167,6 +14267,58 @@
       "packUrl": "packs/test-fixer.json"
     },
     {
+      "id": "text-checker",
+      "name": "text checker",
+      "pitch": "Check whether a text from a government agency demanding payment is real.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "browser_navigate",
+          "browser_snapshot"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:43:42.101Z",
+      "packUrl": "packs/text-checker.json"
+    },
+    {
+      "id": "text-escape-room",
+      "name": "text escape room",
+      "pitch": "Build a text-only escape room with linked clues and puzzles.",
+      "category": "games",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:04:58.073Z",
+      "packUrl": "packs/text-escape-room.json"
+    },
+    {
       "id": "textbook-comparer",
       "name": "Textbook comparer",
       "pitch": "Finds and compares three beginner textbooks on a topic, then recommends which to start with.",
@@ -11190,6 +14342,188 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:34:04.302Z",
       "packUrl": "packs/textbook-comparer.json"
+    },
+    {
+      "id": "thank-you-note",
+      "name": "thank-you note",
+      "pitch": "Writes and sends a thank-you note to the boss for feedback.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_read",
+          "mail_send"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:41:54.393Z",
+      "packUrl": "packs/thank-you-note.json"
+    },
+    {
+      "id": "thread-summarizer",
+      "name": "Thread summarizer",
+      "pitch": "Summarizes missed email threads so the person can catch up quickly after time away.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "mail_list",
+          "make_page"
+        ],
+        "connectors": [
+          "mail"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:57:42.397Z",
+      "packUrl": "packs/thread-summarizer.json"
+    },
+    {
+      "id": "thumbnail-designer",
+      "name": "thumbnail designer",
+      "pitch": "Makes a video thumbnail template with placeholders for consistent branding across clips.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "make_page",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:37:42.914Z",
+      "packUrl": "packs/thumbnail-designer.json"
+    },
+    {
+      "id": "timeline-builder",
+      "name": "Timeline builder",
+      "pitch": "Build a visual timeline of major discoveries with key papers in a chosen research field.",
+      "category": "research",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "browser_snapshot",
+          "file_write",
+          "make_page",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:29:13.004Z",
+      "packUrl": "packs/timeline-builder.json"
+    },
+    {
+      "id": "timesheet-logger",
+      "name": "timesheet logger",
+      "pitch": "Parses a timesheet file and logs work hours into a task list.",
+      "category": "bot-helpers",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_list",
+          "file_read",
+          "file_write",
+          "task_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:36:37.028Z",
+      "packUrl": "packs/timesheet-logger.json"
+    },
+    {
+      "id": "toddler-meal-planner",
+      "name": "Toddler meal planner",
+      "pitch": "Find meals that toddlers love and adults enjoy, with shopping lists and simple steps.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "web_fetch",
+          "make_page",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:05:25.619Z",
+      "packUrl": "packs/toddler-meal-planner.json"
+    },
+    {
+      "id": "toll-checker",
+      "name": "toll checker",
+      "pitch": "finds toll costs and vignette requirements for driving through a specific country",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_type",
+          "browser_scroll",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:27:54.608Z",
+      "packUrl": "packs/toll-checker.json"
     },
     {
       "id": "topic-tracker",
@@ -11295,6 +14629,30 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T12:25:49.585Z",
       "packUrl": "packs/transcript-chapterizer.json"
+    },
+    {
+      "id": "transfer-rumour-roundup",
+      "name": "Transfer rumour roundup",
+      "pitch": "Summarises yesterday's transfer rumours for the user's team from newspaper reports.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:57:17.852Z",
+      "packUrl": "packs/transfer-rumour-roundup.json"
     },
     {
       "id": "travel-expense-organiser",
@@ -11451,6 +14809,30 @@
       "packUrl": "packs/two-player-board-game-finder.json"
     },
     {
+      "id": "ugc-campaign-planner",
+      "name": "UGC campaign planner",
+      "pitch": "Plan a user generated content campaign with clear rules and prize structure.",
+      "category": "social",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_write",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:47:22.833Z",
+      "packUrl": "packs/ugc-campaign-planner.json"
+    },
+    {
       "id": "used-car-check",
       "name": "used car check",
       "pitch": "Helps the person inspect a used car before paying, so they avoid hidden faults.",
@@ -11473,6 +14855,57 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:23:55.318Z",
       "packUrl": "packs/used-car-check.json"
+    },
+    {
+      "id": "used-car-scout",
+      "name": "Used car scout",
+      "pitch": "Find and compare two used cars, list pros and cons, and help decide which one fits better.",
+      "category": "misc",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "show_comparison"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:58:54.274Z",
+      "packUrl": "packs/used-car-scout.json"
+    },
+    {
+      "id": "van-parking-scout",
+      "name": "Van parking scout",
+      "pitch": "Find a parking spot near the city centre that allows overnight stay for a van.",
+      "category": "travel",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_snapshot",
+          "browser_type",
+          "browser_scroll",
+          "web_search"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:39:56.120Z",
+      "packUrl": "packs/van-parking-scout.json"
     },
     {
       "id": "vendor-decision-table",
@@ -11501,6 +14934,58 @@
       "packUrl": "packs/vendor-decision-table.json"
     },
     {
+      "id": "video-batch-renamer",
+      "name": "Video batch renamer",
+      "pitch": "Renames video files to match episode numbers and descriptive titles from a list.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "shell_run",
+          "file_list",
+          "file_read"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:30:06.541Z",
+      "packUrl": "packs/video-batch-renamer.json"
+    },
+    {
+      "id": "video-content-calendar",
+      "name": "Video content calendar",
+      "pitch": "Plan video topics, filming dates and publish schedule in one calendar.",
+      "category": "video-audio",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "make_page",
+          "calendar_list",
+          "calendar_create"
+        ],
+        "connectors": [
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:07:43.283Z",
+      "packUrl": "packs/video-content-calendar.json"
+    },
+    {
       "id": "video-description-writer",
       "name": "Video description writer",
       "pitch": "Writes a YouTube description with timestamps, links and hashtags from a video transcript.",
@@ -11524,6 +15009,30 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:04:05.237Z",
       "packUrl": "packs/video-description-writer.json"
+    },
+    {
+      "id": "video-intro-script",
+      "name": "video intro script",
+      "pitch": "Write a short video intro script for their website based on their notes.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "make_page",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:10:14.144Z",
+      "packUrl": "packs/video-intro-script.json"
     },
     {
       "id": "video-reformat",
@@ -11623,6 +15132,31 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:40:21.508Z",
       "packUrl": "packs/walk-companion.json"
+    },
+    {
+      "id": "wash-sale-scanner",
+      "name": "Wash-sale scanner",
+      "pitch": "Scans your trading history to flag wash sales from last year.",
+      "category": "investing",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "file_read",
+          "shell_run",
+          "show_table"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:38:18.885Z",
+      "packUrl": "packs/wash-sale-scanner.json"
     },
     {
       "id": "waveform-video-maker",
@@ -11749,6 +15283,32 @@
       "packUrl": "packs/weekend-runner-finder.json"
     },
     {
+      "id": "weekly-ad-spend-reminder",
+      "name": "Weekly ad spend reminder",
+      "pitch": "Creates a recurring reminder to check ad spend every Monday morning.",
+      "category": "business",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "calendar_create",
+          "task_create"
+        ],
+        "connectors": [
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:35:19.540Z",
+      "packUrl": "packs/weekly-ad-spend-reminder.json"
+    },
+    {
       "id": "weekly-dinner-planner",
       "name": "Weekly Dinner Planner",
       "pitch": "Plans seven dinners for four people, each ready in under 30 minutes, with a shopping list and prep schedule.",
@@ -11859,6 +15419,30 @@
       "packUrl": "packs/weekly-status-writer.json"
     },
     {
+      "id": "weekly-workout-plan",
+      "name": "Weekly workout plan",
+      "pitch": "Creates a weekly cardio and strength plan for a goal race.",
+      "category": "sports",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "task_create",
+          "routine_create"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:21:01.844Z",
+      "packUrl": "packs/weekly-workout-plan.json"
+    },
+    {
       "id": "welcome-dm-sequence",
       "name": "welcome dm sequence",
       "pitch": "Write a warm welcome message series for new followers on the social network they use.",
@@ -11881,6 +15465,85 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T14:18:36.941Z",
       "packUrl": "packs/welcome-dm-sequence.json"
+    },
+    {
+      "id": "wifi-security",
+      "name": "wifi security",
+      "pitch": "Help the person lock down their home wifi and router settings to stop unauthorised access.",
+      "category": "privacy",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_navigate",
+          "browser_click",
+          "browser_type",
+          "request_help",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:03:25.375Z",
+      "packUrl": "packs/wifi-security.json"
+    },
+    {
+      "id": "will-template",
+      "name": "Will template",
+      "pitch": "Creates a draft will template covering guardianship for two children and digital assets.",
+      "category": "home",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "web_search",
+          "make_page",
+          "file_write"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:58:42.710Z",
+      "packUrl": "packs/will-template.json"
+    },
+    {
+      "id": "work-scheduler",
+      "name": "Work scheduler",
+      "pitch": "Create a color-coded calendar view showing deep work, meetings, and admin time for the month.",
+      "category": "productivity",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "calendar_list",
+          "show_table",
+          "calendar_create"
+        ],
+        "connectors": [
+          "calendar"
+        ],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T15:06:57.896Z",
+      "packUrl": "packs/work-scheduler.json"
     },
     {
       "id": "workshop-planner",
@@ -11930,6 +15593,30 @@
       "usedBy": 0,
       "updatedAt": "2026-10-28T13:47:12.241Z",
       "packUrl": "packs/yoga-routine-builder.json"
+    },
+    {
+      "id": "youtube-summary",
+      "name": "youtube summary",
+      "pitch": "Summarise key points from a YouTube tutorial watched yesterday.",
+      "category": "work",
+      "version": 1,
+      "author": {
+        "kind": "ai",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "generated": "2026-10-28"
+      },
+      "needs": {
+        "tools": [
+          "browser_snapshot",
+          "make_page"
+        ],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-10-28T14:20:49.868Z",
+      "packUrl": "packs/youtube-summary.json"
     }
   ]
 }

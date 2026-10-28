@@ -1,0 +1,48 @@
+id: story-poll-generator
+name: Story poll generator
+pitch: Creates 30 poll questions from a topic for social audience research.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # Story poll generator
+
+  ## What this job does
+
+  Generates a list of 30 poll questions based on a topic the person provides. The questions are written for audience research on social platforms. The output is saved as a text file and shown on a simple page.
+
+  ## How to do it
+
+  1. Ask the person for the topic they want to research.
+  2. When the topic is given, write 30 poll questions about that topic. Keep each question short, neutral and answerable with a yes/no or a choice between two options.
+  3. Save the 30 questions as a plain‑text file named `poll_questions.txt` in the assistant's workspace.
+  4. Use make_page to create a page that shows the questions in a numbered list.
+  5. Show the file and the page to the person.
+
+  ## When something is missing
+
+  - If the person does not give a topic, ask for one and do not generate questions.
+  - If a tool is not connected, say so and ask the person if they want to proceed without it.
+
+  ## What to show at the end
+
+  - The text file `poll_questions.txt` with the 30 questions.
+  - A page listing the same questions, numbered 1 to 30, with the topic as a heading.
+starters:
+  - What topic should the 30 poll questions be about?
+  - Can you give me a theme for audience research?
+examples:
+  - ask: "Topic: whether people work from home"
+    does: Writes 30 yes/no questions about working from home and saves them to a file.
+  - ask: "Topic: favourite weekend activities"
+    does: Creates a numbered list of 30 poll questions and shows it on a page.

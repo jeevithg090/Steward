@@ -1,0 +1,63 @@
+{
+  "id": "meal-prep-workflow",
+  "name": "Meal prep workflow",
+  "pitch": "Design a weekly meal prep plan for two people with different dietary goals, fitting around their schedules.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "task_create",
+      "calendar_create",
+      "file_write"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person to list each person's dietary goals and any foods they avoid. Use web_search to find recipes that match each goal. When recipes are found, make_page a weekly meal plan page that shows breakfast, lunch and dinner for each person on each day. Add the meal plan to the calendar using calendar_create so both people see it. Create task items for shopping and cooking on the days set aside for prep. If a recipe search returns no results, say so and ask if they want to broaden the goals or try different foods. At the end, show_table the meal plan and the task list so the person can approve or change anything before it is saved.",
+  "starters": [
+    "What are the two dietary goals?",
+    "Do either of you have foods you cannot eat?",
+    "Which days work best for shopping and cooking?"
+  ],
+  "examples": [
+    {
+      "ask": "I need a meal prep plan for me and my partner.",
+      "does": "The agent searches for recipes, makes a weekly plan page, adds it to the calendar and creates shopping tasks."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-meal-plan",
+      "description": "Create a week of meals for two people with different diets.",
+      "body": "1. Ask the person for each goal and any avoid foods. 2. web_search for recipes that fit each goal. 3. make_page a table with seven rows (one per day) and columns for each person's breakfast, lunch and dinner. 4. calendar_create the plan so both calendars show the meals. 5. task_create for buying ingredients and cooking on prep day. 6. If no recipes match, tell the person and ask if they want to change the goals."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before adding calendar events",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "The agent must wait for the person to agree before adding any event to their calendar."
+    },
+    {
+      "name": "ask before writing files",
+      "effect": "ask",
+      "when": "tool.name == \"file_write\"",
+      "description": "The agent must wait for the person to agree before writing the meal plan to a file."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meal prep workflow\nDesign a weekly meal prep plan for two people with different dietary goals, fitting around their schedules.\n\nWhat it does: searches for recipes, builds a shared meal plan, adds it to the calendar and creates shopping and cooking tasks.\nWhat it needs: web_search to find recipes, make_page to layout the plan, calendar_create to add it to their calendars, task_create for chores, file_write to save the plan (ask first).\nWhat it will not do: it will not force a diet on anyone, it will not buy groceries or cook the food, and it will not add anything to the calendar without permission.",
+  "hash": "e1838ea0e7fe0210409ae8c4f53d4c6c1d100fce8097de9be77596dadcc57ef0"
+}

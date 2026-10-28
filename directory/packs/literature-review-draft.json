@@ -1,0 +1,46 @@
+{
+  "id": "literature-review-draft",
+  "name": "Literature review draft",
+  "pitch": "Turns your research notes into a structured draft you can edit.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the person's research notes file. Identify the main topic and section headings. Group related notes under each heading. Write a paragraph for each group that summarises the key points and links them to the main topic. Save the draft as a new file. Offer the draft to the person to review.",
+  "starters": [
+    "\"review my notes\"",
+    "\"start a literature review\"",
+    "\"organise my research\""
+  ],
+  "examples": [
+    {
+      "ask": "\"I have notes on climate change\"",
+      "does": "reads the notes file, finds headings, writes a draft and saves it"
+    }
+  ],
+  "skills": [
+    {
+      "name": "organise-notes",
+      "description": "Group notes by theme and write summaries",
+      "body": "1. Open the notes file with file_read. 2. Scan the content for a title or main question. 3. Look for repeated ideas, sub-topics or section markers. 4. Create a list of headings based on those themes. 5. For each heading, read the associated notes and write 3 to 5 sentences that capture the main claim, evidence and relevance. 6. Combine the summaries into a single document that flows from the introduction to the conclusion. 7. Use file_write to save the draft with a clear name, such as \"literature_review_draft.txt\""
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Literature review draft\nTurns your research notes into a structured draft you can edit.\n\n**What it does:** Reads your notes, groups them by theme, writes summaries and saves a draft you can review and expand.\n\n**What it needs:** Access to read and write files in your workspace.\n\n**What it will not do:** Write original analysis or cite sources it has not seen.",
+  "hash": "64de8ec5cfc669c85a568e759e2e035c2f4f3732dd43f4d45eb49bd69d918cbd"
+}

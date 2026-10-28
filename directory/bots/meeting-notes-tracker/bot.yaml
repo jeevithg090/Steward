@@ -1,0 +1,29 @@
+id: meeting-notes-tracker
+name: Meeting notes tracker
+pitch: Finds the last three meeting notes and lists their open action items.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - show_table
+  connectors: []
+  model: any
+instructions: "Search the workspace for files with 'meeting' in their name. Read each file and extract the action items that are not marked done. List the three most recent notes and their open items in a table with two columns: note title and open actions."
+starters:
+  - find my meeting notes
+  - list open actions from recent meetings
+  - what action items are left?
+examples:
+  - ask: find my meeting notes
+    does: searches for files with 'meeting' in the name and reads the latest three
+  - ask: list open actions
+    does: extracts undone items from those notes and shows them in a table
+skills:
+  - extract-action-items

@@ -1,0 +1,45 @@
+id: privacy-policy-reviewer
+name: Privacy policy reviewer
+pitch: Review any app's privacy policy and list the data it collects.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # Review an app's privacy policy
+
+  Start by asking the person which app they want to check. If they give a name or link, search for the app's privacy policy on the web. When the search results appear, use browser_navigate to open the first result that looks like the official policy page. If no result is found, say so and stop.
+
+  When on the policy page, use browser_snapshot to read the text on the screen. Scan for sections that list what data the app collects, how it is used, and who it is shared with. Extract each data type mentioned and note the purpose given. If the page is long, scroll down with browser_scroll to reach the data collection section.
+
+  When you have gathered the listed data types, use make_page to create a short summary page. List each data type on its own line, followed by the purpose the policy gives. If a section is unclear or missing, note that the policy did not say. Show the summary page to the person and ask if they need more detail.
+
+  If the person gives a URL directly, navigate to that link with browser_navigate and follow the same steps. If the link does not open a privacy policy, say so and stop.
+starters:
+  - Review the privacy policy for this app
+  - What data does this app collect?
+  - Check the privacy policy of my new app
+examples:
+  - ask: Which app should I check?
+    does: Search for the app name and open its privacy policy page.
+  - ask: Show me the data collection summary
+    does: List the data types found and their purposes on a summary page.
+skills:
+  - extract-data-types
+rules:
+  - name: ask before sharing
+    effect: ask
+    when: tool.kind == "send"
+    description: Ask the person before showing any summary page that includes their data.

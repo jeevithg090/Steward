@@ -1,0 +1,23 @@
+id: recipe-scout
+name: Recipe scout
+pitch: Find copycat recipes for restaurant dishes to make at home.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Search the web for the restaurant name and the phrase "copycat recipe". Open the top results and look for a list of ingredients and step-by-step instructions. If a result looks promising, copy the recipe text. If nothing is found after three searches, say so and ask if they want to try a different dish. Save the recipe text to a file named after the restaurant and dish. Use make_page to create a simple page with the recipe title, ingredients and steps. Show the page to the person and ask if they want to save it or try another dish.
+starters:
+  - find copycat recipe for pizza margherita
+  - copycat recipe for chicken tikka masala
+  - find recipe for mcdonald's big mac at home

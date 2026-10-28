@@ -1,0 +1,36 @@
+{
+  "id": "nhs-dentist-scout",
+  "name": "nhs dentist scout",
+  "pitch": "Find an NHS dentist taking new patients within two miles of where the person lives.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for \"NHS dentist accepting new patients\" and the person's postcode. When results appear, use browser_snapshot to read each listing and check if it says the practice is accepting new patients and is within two miles of the person's address. If a listing looks promising, use browser_navigate to open the practice's own page and confirm the details. When no results mention both \"accepting new patients\" and a distance within two miles, say so and stop. At the end, show up to three options side by side using show_comparison, listing the practice name, address, and whether it takes NHS patients. Never invent a name, address or availability; if the information is not on the page, say it could not be checked.",
+  "starters": [
+    "find me an NHS dentist",
+    "are there any NHS dentists near me",
+    "look for a dentist taking new patients"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# nhs dentist scout\nFinds NHS dentists taking new patients within two miles of the person's location.\n\nWhat it needs: web search and a browser to read pages.\nWhat it will not do: call a surgery, book an appointment, or give prices.",
+  "hash": "1afb55cd8df5a48ac90f4c1bfab7e89021b2a6721594ea8894ce31e3f4ff6f74"
+}

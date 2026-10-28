@@ -1,0 +1,67 @@
+{
+  "id": "progressive-dinner",
+  "name": "progressive dinner",
+  "pitch": "plan a menu across three households, one course each",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "calendar_create",
+      "mail_send",
+      "make_page",
+      "task_create"
+    ],
+    "connectors": [
+      "calendar",
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the date of the dinner and the three household addresses. When they give the date, search for progressive dinner menu ideas and note typical starter, main and dessert courses. Create a calendar event titled \"Progressive dinner – [date]\" with the three start times, one hour apart, at the three addresses. Write a short menu plan with one course per household and list the dishes. Send an email to all three households with the menu, the time each household hosts and the address they should go to next. If any household cannot attend, ask the person how to proceed. When the menu is set, make a simple web page that lists the course, the host household and the next stop for each of the three stops. If web search returns no results, say so and ask the person if they have a menu in mind. At the end, show the person the calendar event, the email draft and the menu page so they can approve or change anything.",
+  "starters": [
+    "what date for the dinner",
+    "do you have any dietary restrictions"
+  ],
+  "examples": [
+    {
+      "ask": "hi, we want to do a progressive dinner next month",
+      "does": "i will ask for the date and addresses, then look up menu ideas and set up the calendar and emails"
+    },
+    {
+      "ask": "can you help with the menu",
+      "does": "i will search for progressive dinner menus and suggest a starter, main and dessert for each house"
+    }
+  ],
+  "skills": [
+    {
+      "name": "plan-menu",
+      "description": "choose one course per household",
+      "body": "1. Look at the three households and decide who will bring the starter, who the main and who the dessert. 2. Write the dish name and any ingredients the person should know about. 3. If a dish needs shopping, note what to buy and where. 4. Keep each course simple enough to cook in a home kitchen."
+    }
+  ],
+  "rules": [
+    {
+      "name": "check availability",
+      "effect": "ask",
+      "when": "tool.kind == \"calendar_create\"",
+      "description": "ask before adding the event if any household is away"
+    },
+    {
+      "name": "confirm email send",
+      "effect": "ask",
+      "when": "tool.kind == \"mail_send\"",
+      "description": "ask the person to read the email draft before it is sent"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# progressive dinner\nPlan a menu across three households, one course each.\n\nWhat it does: searches for menu ideas, creates a calendar event with three start times, sends an email to all households and makes a page listing the course, host and next stop.\n\nWhat it needs: web search to find menu ideas, calendar to set the date and times, mail to invite the households, a page maker to show the route, task tools to keep track of steps.\n\nWhat it will not do: it will not book a restaurant, it will not buy groceries and it will not force any household to take part.",
+  "hash": "9902bde975c5fbd340df4db9cc6ad31357dee9f1ea116717892e43f17c4fa9e0"
+}

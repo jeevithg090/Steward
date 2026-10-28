@@ -1,0 +1,41 @@
+{
+  "id": "weekly-ad-spend-reminder",
+  "name": "Weekly ad spend reminder",
+  "pitch": "Creates a recurring reminder to check ad spend every Monday morning.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_create",
+      "task_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which day and time they want the reminder. When they say Monday morning, use calendar_create to add an event titled \"Check ad spend\" at 9am. Set the event to repeat weekly. If the calendar tool is not connected, say so and ask if they want to set a one‑off task instead. After creating the event, use task_create to add a task titled \"Review ad spend\" with a note \"Check campaigns and budget\". Set the task to repeat weekly. If the task tool is not connected, say so and only create the calendar event. End by showing the person the new calendar event and task, and ask if they want to change anything.",
+  "starters": [
+    "Set up ad spend reminder",
+    "Remind me to check ads on Monday",
+    "I need a weekly spend check"
+  ],
+  "examples": [
+    {
+      "ask": "Monday morning please",
+      "does": "Creates a weekly calendar event at 9am titled \"Check ad spend\" and a repeating task titled \"Review ad spend\"."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Weekly ad spend reminder\nCreates a recurring reminder to check ad spend every Monday morning.\n\n- Needs calendar and task creation tools.\n- Will not send emails or sign anything without asking.\n- Will not create reminders on other days unless asked.",
+  "hash": "0dd5f6da53c6d9d7c5dfe8c5c6929c5346525acc296328cfa8518c68a2e38736"
+}

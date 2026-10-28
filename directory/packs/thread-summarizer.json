@@ -1,0 +1,47 @@
+{
+  "id": "thread-summarizer",
+  "name": "Thread summarizer",
+  "pitch": "Summarizes missed email threads so the person can catch up quickly after time away.",
+  "category": "bot-helpers",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by checking the person's inbox for threads newer than the last time they were active. List the subject lines and dates of the most recent 20 threads. If fewer than 5 threads are found, say how many were found and stop. For each thread, read the first and last three messages, then write a short summary of the conversation so far. If a thread has no messages beyond the person's last read point, note that it is empty. After all summaries are written, make a single page that lists each thread's subject, the number of unread messages, and the summary. Show the page to the person and ask if they want to save it, delete it, or keep it for later reading. When nothing is found in the inbox, say 'No threads were found in your inbox.' and stop. When a tool is not connected, say 'I cannot access your mail because the mail connector is not set up.' and stop. Never give the person a name they did not give. Never invent the content of any message.",
+  "starters": [
+    "summarize missed threads",
+    "catch up on what I missed",
+    "make a summary of my emails"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "summarize-threads",
+      "description": "Read missed email threads and write brief summaries.",
+      "body": "1. Use mail_list to find threads newer than the person's last activity date. 2. For each thread, use mail_read to read the first three and last three messages. 3. Write a 2‑sentence summary that captures the main topic and any action items. 4. If a thread has only one message, write 'One message: [subject]'. 5. If a thread has no new messages, write 'No new messages.'."
+    },
+    {
+      "name": "build-summary-page",
+      "description": "Collect summaries into one readable page.",
+      "body": "1. Use make_page to create a new page titled 'Missed threads summary'. 2. Add a heading for each thread with its subject and date. 3. Below each heading, add the summary text or the 'empty' note. 4. Add a footer with two buttons: 'Save page' and 'Delete page'. 5. Return the page to the person for review."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Thread summarizer\n\nSummarises missed email threads so you can catch up quickly after time away. It reads your inbox, writes short summaries, and puts them on a single page you can save or delete.\n\n**What it needs**\n- Access to your mail connector\n- The mail_list and make_page tools\n\n**What it will not do**\n- Read private messages outside your inbox\n- Send or delete any email without your say-so\n- Remember anything beyond the current session",
+  "hash": "715971eee156544994de2bbe9918770ae653bfdfe6e1a7ff3760d015f9177898"
+}

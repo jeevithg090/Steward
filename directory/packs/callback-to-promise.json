@@ -1,0 +1,40 @@
+{
+  "id": "callback-to-promise",
+  "name": "callback-to-promise",
+  "pitch": "Convert a callback-based API to use promises with proper error handling.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the source file to find the callback-based API. Identify the function that uses callbacks and error callbacks. Create a wrapper function that returns a promise. Inside the wrapper, call the original function and convert its first callback (error) to reject the promise, and the second callback (result) to resolve the promise. If the original function passes an error to its first callback, the promise must reject with that error. If no error is passed, resolve with the result. Write the new wrapper function to the same file or a new file as requested. If the file cannot be read or the API pattern is not found, say so and stop.",
+  "starters": [
+    "convert this api",
+    "promisify the callback",
+    "add error handling"
+  ],
+  "examples": [
+    {
+      "ask": "convert my api",
+      "does": "read the file, find the callback pattern, write a promise wrapper, and report back"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# callback-to-promise\nConverts a callback-based API to use promises with proper error handling.\n\n**What it does:** Reads a source file, finds callback-based functions, and creates promise wrappers that reject on error and resolve on success.\n\n**What it needs:** Access to the file system to read and write source files.\n\n**What it will not do:** Modify files it cannot read or guarantee correct conversion if the API pattern is unclear.",
+  "hash": "a157bc3f4f1e369771bdfa532d1abb75b9042d5fa041fd361323e52d79908d73"
+}

@@ -1,0 +1,1 @@
+Birthday card writer: writes a short personalised message for a friend's 30th birthday and saves it to a file. Needs the person's friend's name and any details to include. Will not send the message or sign anything without asking.

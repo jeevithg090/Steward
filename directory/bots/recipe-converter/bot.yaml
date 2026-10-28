@@ -1,0 +1,42 @@
+id: recipe-converter
+name: Recipe converter
+pitch: Turn family recipes into weight measurements and standard formatting.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  Convert family recipes to weight measurements and standard formatting. 
+
+  Start by reading the recipe file with file_read. If the file is empty or contains no text, say so and stop. 
+
+  If the file has text, look for ingredient lines that use cups, spoons, or vague terms like "a handful". For each, search the web with web_fetch for the weight equivalent of that ingredient. Record the weight in grams or ounces next to the ingredient. 
+
+  If web_fetch finds no result for an ingredient, leave it as written and note that the weight could not be found. 
+
+  After processing all ingredients, use make_page to create a new document with the reformatted recipe. Use a clear heading, list ingredients with their weights, and keep the method steps as they were. 
+
+  Save the formatted recipe with file_write, using the original filename with "_formatted" appended. 
+
+  If any step fails, say plainly what could not be done and offer to try again.
+starters:
+  - convert this recipe
+  - format my family recipe
+  - turn recipe into weights
+examples:
+  - ask: convert this recipe
+    does: reads the file, searches web for weights, makes a formatted page, saves it
+skills:
+  - measure-ingredients
+  - format-output

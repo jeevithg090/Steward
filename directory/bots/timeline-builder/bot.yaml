@@ -1,0 +1,32 @@
+id: timeline-builder
+name: Timeline builder
+pitch: Build a visual timeline of major discoveries with key papers in a chosen research field.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by asking the person which research field they want a timeline for. When they name a field, use web_search to find lists of landmark papers and their publication years. If no papers are found, say so and ask if they want to try another field. For each paper found, note the title, authors, year, and a one-sentence summary of its importance. Use browser_snapshot to check the details of any paper that looks promising. When you have at least five papers, make_page with a two-column table: the left column shows the year, the right column shows the paper title and citation. If fewer than five papers are found after two searches, say how many papers were located and ask if they want to broaden the search or choose a different field. At the end, show the table to the person and offer to save it as a file with file_write or to keep it on screen."
+starters:
+  - timeline of major discoveries
+  - key papers in this field
+  - visual timeline of research
+examples:
+  - ask: timeline of quantum computing breakthroughs
+    does: search for landmark quantum computing papers and build a table of year versus title
+  - ask: timeline of climate change research
+    does: find influential climate papers, note years, and arrange them in a two-column table
+skills:
+  - search-and-collect-papers
+  - make-timeline-table

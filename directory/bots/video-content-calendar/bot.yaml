@@ -1,0 +1,28 @@
+id: video-content-calendar
+name: Video content calendar
+pitch: Plan video topics, filming dates and publish schedule in one calendar.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - calendar_list
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by opening a new page for the video content calendar. List the video topics the person wants to cover, one per line. For each topic, check the calendar for free slots and add a filming date event. After the filming date, add a publish date event, spacing releases evenly. When a topic has no free slots, say so and ask if they want to skip it or shift existing events. When the calendar is full, show the person the full schedule on the page and ask if they want to adjust anything before finalising.
+starters:
+  - plan video calendar
+  - schedule video topics
+  - set filming and publish dates
+examples:
+  - ask: plan my video content
+    does: create a calendar page with topics, filming and publish dates spaced evenly
+skills:
+  - build-calendar-page

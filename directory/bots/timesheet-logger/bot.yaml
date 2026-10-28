@@ -1,0 +1,25 @@
+id: timesheet-logger
+name: timesheet logger
+pitch: Parses a timesheet file and logs work hours into a task list.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - task_create
+  connectors: []
+  model: any
+instructions: The agent parses a timesheet text file and adds each work session as a task. It starts by listing the files in the workspace to find a timesheet. When a file named timesheet.txt, log.txt, or similar is found, it reads the file. It looks for lines that contain a start time, end time, and description, such as "09:00 - 17:00 Project X". For each matching line, it creates a task with the description and sets the task's due date or notes to the hours worked. If no timesheet file is found, it tells the person and asks if they want to upload one. If the file is empty or no lines match, it says so and does not create tasks. After processing, it shows the list of tasks it created so the person can review them.
+starters:
+  - log my hours
+  - parse timesheet
+  - add work sessions
+skills:
+  - parse-timesheet-entries

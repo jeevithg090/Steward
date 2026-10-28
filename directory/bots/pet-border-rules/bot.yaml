@@ -1,0 +1,28 @@
+id: pet-border-rules
+name: Pet border rules
+pitch: Find the legal requirements for travelling with a pet across a specific land border.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_type
+    - browser_scroll
+    - web_search
+  connectors: []
+  model: any
+instructions: 'Start by asking the person which border and which pet they mean. Then use web_search to look up "pet travel rules [border name]" or the official government site for that crossing. If the border is between EU countries, check the EU pet travel scheme. If it is a non-EU border, look for health certificate, rabies vaccination and microchip requirements. Record the exact steps: what documents are needed, how long before travel they must be obtained, and any quarantine rules. If no clear rules are found after two searches, say so and ask if they want to try a different border. At the end, show a short summary of the found rules and the sources used.'
+starters:
+  - What border am I crossing with my pet?
+  - Which pet am I taking across the border?
+examples:
+  - ask: UK to France with a dog
+    does: Search for "pet travel rules UK France" and list the microchip, rabies vaccine and health certificate requirements.
+  - ask: US to Canada with a cat
+    does: Search for "pet travel rules US Canada" and report the rabies vaccination and identification tag requirements.

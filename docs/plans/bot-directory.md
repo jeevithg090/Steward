@@ -257,6 +257,16 @@ Launch target: **2,000 bots across 19 categories**, plus the 505 LobeChat conver
 OpenBot's ten, all through the same validators. Cost at today's prices is a few tens of dollars;
 the pipeline runs in CI from the `steward-bots` repository, never from a person's machine.
 
+**Where it stands, 28 Oct 2026:** 455 AI-made bots across the 19 categories (642 in the index with
+the LobeChat and OpenBot conversions), of the 2,000 planned. 127 were written by Nemotron 3 Ultra
+(median 115 s a bot for one worker), 328 by Nemotron 3.5 Lightning with Ultra judging (median
+52 s); about 2.7 bots a minute of run time at six or seven workers, which NVIDIA's queue for Ultra
+limits. 228 jobs were dropped: 96 below the bar, 4 as duplicates by meaning, 128 because the model
+or the judge failed (those are retried on the next run). The taxonomy has 1,384 jobs (1,160 of
+them proposed by a model and not yet read by a person), 830 still without a bot. Reaching 2,000
+needs about 1,550 more bots: about ten hours of the same run, after growing the taxonomy with
+`seed jobs --target 190`. `directory/REPORT.md` has the command that resumes it.
+
 **People beat AI.** A person's submission for the same job sits above the AI one; a claimed and
 improved AI bot becomes the person's (with "based on an AI-made draft" kept in its history).
 
@@ -338,15 +348,25 @@ The `AgentProfile` gains `source: "tenant" | "bot:<id>"`; `AppInfo.agents` lists
 
 ## 7. Work breakdown
 
-| Track                     | Owns                                                                                                           | Done when                                                                                                                                                                                                                                                                                                                                           | Size  |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| Pack format and loader    | `packages/bots` (schema, `SKILL.md` loader, validators incl. rule and injection checks, pack hash)             | Round-trips tenants/steward and tenants/tempo as packs; `skills-ref`-valid; tests                                                                                                                                                                                                                                                                   | ~1k   |
-| Installed bots            | `apps/server` (tables, routes, `AgentHost` from tenant + installed, audit rows), `packages/shared/src/bots.ts` | Install, preview, update with diff, remove; agent appears in `/api/info`; tests                                                                                                                                                                                                                                                                     | ~900  |
-| Bots page and picker      | `apps/web/src/pages/BotsPage.tsx`, `features/chat` agent picker, `/bots/add` route                             | Browse, listing, Add, Installed, Make a bot; axe clean; e2e **Built:** including Make a bot's Submit to the directory (a zip of the pack folder and the hosted submit page).                                                                                                                                                                        | ~1.2k |
-| Generator                 | `packages/bots-gen` (taxonomy, generate, validate, judge, dedupe, retire)                                      | 2,000 packs generated in CI with the validator report; `make-a-bot` works locally with the scripted model for tests **Built:** generate, judge, meaning-based dedupe (`semanticDedupe`), taxonomy growth (`seed jobs`, `jobs-ai.yaml`), retirement (`seed retire`), paced and retried model calls; the generated count is in `directory/REPORT.md`. | ~900  |
-| Seeds                     | `steward-bots` repo scripts: LobeChat and OpenBot converters                                                   | 515 converted packs pass validation, credited                                                                                                                                                                                                                                                                                                       | ~400  |
-| Directory site and server | `steward-bots` static build, `apps/directory` (search, MCP, submit, claim, counts)                             | Self-hosted in one command; MCP tools answer; a submission opens a PR **Built:** `apps/directory`; approvals write the server's `bots/` folder instead of opening a pull request, and retirement runs nightly there.                                                                                                                                | ~1.5k |
-| `directory_find` tool     | `packages/agent/src/tools/directory.ts` + web card                                                             | Steward suggests a bot with an Add card                                                                                                                                                                                                                                                                                                             | ~200  |
+| Track                     | Owns                                                                                                           | Done when                                                                                                           | Size  |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----- |
+| Pack format and loader    | `packages/bots` (schema, `SKILL.md` loader, validators incl. rule and injection checks, pack hash)             | Round-trips tenants/steward and tenants/tempo as packs; `skills-ref`-valid; tests                                   | ~1k   |
+| Installed bots            | `apps/server` (tables, routes, `AgentHost` from tenant + installed, audit rows), `packages/shared/src/bots.ts` | Install, preview, update with diff, remove; agent appears in `/api/info`; tests                                     | ~900  |
+| Bots page and picker      | `apps/web/src/pages/BotsPage.tsx`, `features/chat` agent picker, `/bots/add` route                             | Browse, listing, Add, Installed, Make a bot; axe clean; e2e                                                         | ~1.2k |
+| Generator                 | `packages/bots-gen` (taxonomy, generate, validate, judge, dedupe, retire)                                      | 2,000 packs generated in CI with the validator report; `make-a-bot` works locally with the scripted model for tests | ~900  |
+| Seeds                     | `steward-bots` repo scripts: LobeChat and OpenBot converters                                                   | 515 converted packs pass validation, credited                                                                       | ~400  |
+| Directory site and server | `steward-bots` static build, `apps/directory` (search, MCP, submit, claim, counts)                             | Self-hosted in one command; MCP tools answer; a submission opens a PR                                               | ~1.5k |
+| `directory_find` tool     | `packages/agent/src/tools/directory.ts` + web card                                                             | Steward suggests a bot with an Add card                                                                             | ~200  |
+
+**Built, 28 Oct 2026:**
+
+- Generator: generate, judge, near-duplicates by meaning, taxonomy growth (`seed jobs`,
+  `jobs-ai.yaml`), retirement (`seed retire`), paced and retried model calls, a separate judge
+  model. The count reached is under §4 and in `directory/REPORT.md`.
+- Directory site and server: `apps/directory`. Approvals write the server's `bots/` folder
+  instead of opening a pull request; retirement runs there nightly.
+- Bots page: Make a bot ends with Submit to the directory (the pack folder as a zip, and the
+  hosted directory's submit page).
 
 Order: pack format first (everything reads it), then installed bots and the Bots page together,
 then the generator and seeds, then the directory server. The in-app experience works from the

@@ -1,0 +1,27 @@
+id: blog-update-notifier
+name: Blog update notifier
+pitch: Checks a blog and emails new posts to the person
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_fetch
+    - mail_send
+    - routine_create
+  connectors: []
+  model: any
+instructions: Start by asking the person which blog they want to monitor. Use web_fetch to read the blog's homepage or feed. Look for the latest post title and link. If no new post is found, say so and stop. If a new post is found, ask the person if they want to receive an email about it. If they agree, use mail_send to send the post title and link to the person's email address. Set up a routine_create to repeat this check on a schedule the person chooses, for example once a day. When the routine runs and finds no new post, simply note that in the next run. When the routine finds a new post, send the email as described. Never invent post titles, dates, or content. If the blog cannot be reached, say that plainly and stop the routine until the person asks to try again.
+starters:
+  - check my blog
+  - email me new posts
+  - set up a routine
+examples:
+  - ask: check my favorite blog
+    does: reads the blog homepage and tells the person the latest post title
+  - ask: email me new posts
+    does: emails the latest post from the blog the person chose

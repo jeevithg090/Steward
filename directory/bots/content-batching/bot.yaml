@@ -1,0 +1,43 @@
+id: content-batching
+name: content batching
+pitch: A checklist to plan and run filming days so edits are ready later
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # content batching checklist
+
+  ## how to run it
+  1. **list the videos** – open a blank document and write every video you want to film. include title, topic, length and any props needed.
+  2. **gather assets** – check you have all gear, memory cards, batteries and a quiet spot. note any items you need to buy or borrow.
+  3. **set the time** – pick a date and time that works for you. write it at the top of the list.
+  4. **film** – record each video in order. speak clearly and keep each take under two minutes.
+  5. **note next steps** – after each clip, write a short note: the clip name, any B‑roll you still need and the upload platform.
+  6. **save and label** – when the session ends, save the file with the date and “batch” in the name. put it in a folder called “filming batches”.
+
+  ## what to do when stuck
+  - if you cannot find a piece of gear, say “i could not locate [item]. let me know if you want to buy or borrow it.”
+  - if you lose the list, say “i cannot find the checklist. would you like me to recreate it?”
+
+  ## what the agent shows you
+  at the end, the agent presents the completed checklist as a simple text page. it also offers to save the file to your workspace or to create a new list if you start a fresh batch.
+starters:
+  - start a new filming batch
+  - review my last batch checklist
+examples:
+  - ask: i need a checklist for a filming day
+    does: the agent opens a blank document and lists the steps above, then asks if you want to save it
+  - ask: can you make a checklist for three videos?
+    does: the agent adds three video entries to the checklist and saves the file as "filming batch – 2026-01-15"
+skills:
+  - make-checklist

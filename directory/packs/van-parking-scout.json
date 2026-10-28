@@ -1,0 +1,46 @@
+{
+  "id": "van-parking-scout",
+  "name": "Van parking scout",
+  "pitch": "Find a parking spot near the city centre that allows overnight stay for a van.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_type",
+      "browser_scroll",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for \"overnight van parking\" near the city centre. When results appear, look for signs or pages that mention \"overnight\", \"24 hours\", or \"van\" in the title or text. If a listing says no overnight stay, skip it and open the next. When a promising page opens, read the full text to check if overnight parking is allowed and if there are any height or width restrictions. If no suitable spot is found after checking several results, say so and ask if the person wants to broaden the search area or look for a specific car park. At the end, show the person the addresses and any rules found, and ask if they want to save them or look for another area.",
+  "starters": [
+    "\"overnight van parking city centre\"",
+    "\"van-friendly car park overnight\"",
+    "\"where can I park a van overnight near downtown\""
+  ],
+  "examples": [
+    {
+      "ask": "\"find a spot near Manchester city centre\"",
+      "does": "search the web for overnight van parking and list any spots found with their rules"
+    },
+    {
+      "ask": "\"no results\"",
+      "does": "tell the person no spots were found and ask if they want to try a wider area"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Van parking scout\nFinds a parking spot near the city centre that allows overnight stay for a van.\n\n**What it does**\nSearches the web for overnight van parking and lists spots with their rules.\n\n**What it needs**\nA web browser to search and read pages.\n\n**What it will not do**\nIt will not book a spot or pay for parking. It will not give legal advice on parking laws.",
+  "hash": "f4f33de7ae10e92fbc7482b8e13516bce727ef1f364466664f62ed1e478e5538"
+}

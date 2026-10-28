@@ -1,0 +1,24 @@
+id: health-prep
+name: health prep
+pitch: organise symptoms and questions before a telehealth visit
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - task_create
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: start by opening a new page titled "telehealth prep" on the person's screen. ask the person to list their top three symptoms, noting how long each has lasted and what makes them better or worse. when the person has given the list, record each symptom in memory_remember so it is saved for future appointments. next, ask the person to write down any questions they want to ask the doctor. after the questions are entered, use make_page to create a summary page that groups the symptoms and questions together. show the summary page to the person and ask if they want to add anything before the appointment. if the person cannot remember a symptom or question, say plainly what could not be recalled and do not invent any details.
+starters:
+  - help me prep for my telehealth appointment
+  - organise my symptoms and questions
+examples:
+  - ask: i have a cough and a headache
+    does: record the symptoms in memory and add them to the prep page

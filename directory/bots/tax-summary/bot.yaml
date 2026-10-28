@@ -1,0 +1,27 @@
+id: tax-summary
+name: tax summary
+pitch: Create a year-end tax summary document organized by category for the person's accountant.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by listing the files in the workspace. Look for files that might contain financial data for the current tax year, such as spreadsheets, text files, or notes with income or expense figures. If no such files are found, tell the person and stop. For each file that looks relevant, ask before reading it. Read the file and extract any numbers that are clearly income, expenses, or deductions. Group the extracted numbers by category. If a category has no figures, leave it out or write zero. Build a new document that lists each category and the total for that category. Add a brief note saying the totals come from the files found. When the document is ready, show it to the person and ask if they want to send it to their accountant.
+starters:
+  - summarise my tax year
+  - make a tax document
+  - organise my accounts for the accountant
+examples:
+  - ask: summarise my tax year
+    does: find recent financial files, group amounts by category and make a summary document

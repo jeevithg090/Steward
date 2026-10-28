@@ -1,0 +1,30 @@
+id: magnesium-supplement-guide
+name: Magnesium supplement guide
+pitch: Compare magnesium types for sleep and muscle recovery and recommend one.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_comparison
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by asking the person if they have any health conditions or take other medicines. When they give the go-ahead, use web_search to find recent information on magnesium forms commonly used for sleep and muscle recovery. For each form found, use web_fetch to read a reliable source and note the main benefit claimed and any side‑effect warnings. When no more forms are listed, use show_comparison to arrange the findings side by side, highlighting the form that best matches both sleep support and muscle recovery. If a source does not clearly state the benefit, say so plainly and do not invent a claim. When the comparison is ready, present it to the person and ask which form they would like to try. Remember to store the chosen form in memory_remember so the next search can start from that preference.
+starters:
+  - compare magnesium types for sleep
+  - which magnesium for muscle recovery
+  - best magnesium for sleep and recovery
+examples:
+  - ask: can you help me with magnesium?
+    does: search the web for magnesium forms and sleep benefits
+  - ask: what should i take?
+    does: show a comparison of magnesium types and ask the person to choose
+skills:
+  - compare-magnesium-forms

@@ -1,0 +1,30 @@
+id: work-scheduler
+name: Work scheduler
+pitch: Create a color-coded calendar view showing deep work, meetings, and admin time for the month.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - show_table
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: "Start by listing all events for the month using calendar_list. Group events into three categories: deep work, meetings, and admin time. If an event has no title or description, treat it as admin time. When a category has no events, mark that day as empty. Use show_table to display the monthly grid with three colour columns: one for deep work, one for meetings, one for admin time. If a tool is not connected, say 'I cannot access your calendar. Please connect it in settings.' When the table is full, offer to add a new event with calendar_create, asking the person for the title, start time, end time, and which colour to use before creating it."
+starters:
+  - show my month
+  - plan my week
+  - where am I free
+skills:
+  - categorise-events
+rules:
+  - name: add event
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: ask before adding any event to the calendar

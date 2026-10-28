@@ -1,0 +1,27 @@
+id: email-date-remider
+name: Email date remider
+pitch: Extract dates from recent emails and add them as calendar reminders.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - calendar_create
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: Start by listing the last 10 emails in your inbox. For each email, read the full text. Search the text for any date or time mentions, such as "next Tuesday" or "3pm tomorrow". When a date is found, add it as a calendar reminder using the calendar_create tool. If an email contains no dates, move to the next email. After checking all 10 emails, tell the person how many reminders were created and list the dates that were added. If no dates were found in any of the emails, say so and ask if they want to check more emails or try a different approach.
+starters:
+  - extract dates from my emails
+  - add calendar reminders from emails
+  - what dates did I get messaged about
+examples:
+  - ask: extract dates from my recent emails
+    does: list recent emails, find dates, and add reminders for each one found

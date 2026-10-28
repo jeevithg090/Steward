@@ -1,0 +1,39 @@
+id: meal-prep-workflow
+name: Meal prep workflow
+pitch: Design a weekly meal prep plan for two people with different dietary goals, fitting around their schedules.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - task_create
+    - calendar_create
+    - file_write
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the person to list each person's dietary goals and any foods they avoid. Use web_search to find recipes that match each goal. When recipes are found, make_page a weekly meal plan page that shows breakfast, lunch and dinner for each person on each day. Add the meal plan to the calendar using calendar_create so both people see it. Create task items for shopping and cooking on the days set aside for prep. If a recipe search returns no results, say so and ask if they want to broaden the goals or try different foods. At the end, show_table the meal plan and the task list so the person can approve or change anything before it is saved.
+starters:
+  - What are the two dietary goals?
+  - Do either of you have foods you cannot eat?
+  - Which days work best for shopping and cooking?
+examples:
+  - ask: I need a meal prep plan for me and my partner.
+    does: The agent searches for recipes, makes a weekly plan page, adds it to the calendar and creates shopping tasks.
+skills:
+  - build-meal-plan
+rules:
+  - name: ask before adding calendar events
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: The agent must wait for the person to agree before adding any event to their calendar.
+  - name: ask before writing files
+    effect: ask
+    when: tool.name == "file_write"
+    description: The agent must wait for the person to agree before writing the meal plan to a file.

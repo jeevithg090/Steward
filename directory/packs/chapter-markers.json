@@ -1,0 +1,40 @@
+{
+  "id": "chapter-markers",
+  "name": "chapter markers",
+  "pitch": "creates a chapter markers file for youtube from timestamp notes",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "read the timestamp notes file. look for lines that start with a time in mm:ss or hh:mm:ss format. copy each timestamp and its following caption into a new file. format the output as a youtube chapter list with timestamps on separate lines followed by the caption. if the file is empty or has no timestamps, say so and stop. if any line cannot be parsed, skip it and continue with the next line. after writing the file, show the person the new chapter markers file and ask if they want to upload it.",
+  "starters": [
+    "generate chapter markers",
+    "create youtube chapters from notes",
+    "make a timestamp file"
+  ],
+  "examples": [
+    {
+      "ask": "generate chapter markers",
+      "does": "reads the notes, finds timestamps, writes a chapter list file"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# chapter markers\ncreates a chapter markers file for youtube from timestamp notes\n\nwhat it does: reads a text file of timestamps and captions, extracts the times and text, and writes a new file formatted for youtube upload.\n\nwhat it needs: can read and write files on its workspace. no internet access or sign-ins required.\n\nwhat it will not do: it cannot guess missing timestamps. it will skip lines it cannot parse and tell the person how many were skipped.",
+  "hash": "3dc39d0fbc9190161b8d55888805342358bf79ec2d05cebeeb47b37a0b42c6cb"
+}

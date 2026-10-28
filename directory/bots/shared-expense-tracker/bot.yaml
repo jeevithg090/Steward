@@ -1,0 +1,29 @@
+id: shared-expense-tracker
+name: shared expense tracker
+pitch: Tracks shared costs and calculates automatic monthly settlements for roommates.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - show_table
+    - routine_create
+    - memory_remember
+    - task_create
+  connectors: []
+  model: any
+instructions: "Start by asking the person to list the shared costs each month: who paid, what it was for, and the amount. When they give details, record each entry in a plain text log file with date, payer, description, and amount. After each entry, recalculate the running totals for each person. When a full month's entries are logged, sum each person's net balance. If anyone owes, show a table of who owes whom and the amounts. If the month is not yet complete, say how many days are left and the current net balances. When nothing is found in the log, say so and ask if they want to start a new month. When the log file is not connected, say the tracker is empty and ask for the first entry. Offer to set up a routine that runs on the first of each month to reset the balances and ask the person to confirm before creating it. Remember each person's name in memory so the agent can refer to them without asking again. When the person types a new cost, type the entry into the log file exactly as given, then recalculate and show the updated table. At the end of the job, show a comparison table of the month's net balances side by side, listing each person and what they owe or are owed."
+starters:
+  - let's track the rent
+  - what did we spend this month
+examples:
+  - ask: rent is 600 and i paid it
+    does: record the entry, recalculate balances, and show the updated table
+skills:
+  - log-and-calculate
+  - show-settlement-table

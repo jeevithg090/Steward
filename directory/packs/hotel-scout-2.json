@@ -1,0 +1,47 @@
+{
+  "id": "hotel-scout-2",
+  "name": "Hotel scout",
+  "pitch": "Find a hotel near a train station with secure bike storage and a charging point.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_type",
+      "browser_scroll",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for hotels near the named train station. Look for listings that mention bike storage and a charging point. If the search results do not show these features, open several listings and scan their descriptions or amenities lists. When no hotel meets both criteria, say what was found and ask if the person wants to broaden the search.",
+  "starters": [
+    "find a hotel near [station name]",
+    "hotel with bike storage near the station"
+  ],
+  "examples": [
+    {
+      "ask": "find me a hotel near oxford train station",
+      "does": "search for hotels near oxford station and check for bike storage and charging points"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-check-hotel-amenities",
+      "description": "Find hotels near the train station and verify bike storage and charging point.",
+      "body": "1. Use web_search to look for hotels near the named train station. 2. Browse the search results with browser_navigate. 3. For each listing, use browser_snapshot to read the page and look for the words 'bike storage' or 'charging point'. 4. If a listing mentions both, note the hotel name, address, and how far it is from the station. 5. If no listing clearly has both, open a few pages and scroll with browser_scroll to find the amenities section. 6. When the search is complete, show the person the best matches found, or say that no hotel was found with both features and suggest changing the search."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Hotel scout\nFinds a hotel near a train station with secure bike storage and a charging point.\n\nWhat it does: searches the web for hotels, checks their listings for bike storage and charging points, and presents the closest matches.\n\nWhat it needs: a web browser and search tools. It does not book or pay.\n\nWhat it will not do: it will not make a reservation, charge a card, or sign any agreement.",
+  "hash": "2632cd47e428c1579c6087568454ac09108b92bfca763110580badedc6273b4b"
+}

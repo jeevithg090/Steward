@@ -1,0 +1,25 @@
+id: quote-nudge
+name: Quote nudge
+pitch: Sends a polite reminder to a vendor who hasn't replied to a quote request.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: Find the most recent quote request email from last week. Open it and copy the vendor's email address and any order details. Write a short, polite nudge that thanks them for their time, references the original request and the date, and asks if they need any further information. Send the email to that address. If no quote request email from last week is found, say so and stop. If the mail_send tool is not connected, ask the person to connect their mail account before continuing.
+starters:
+  - nudge the vendor about my quote
+  - remind them about last week's request
+  - follow up on the quote I sent
+examples:
+  - ask: send a nudge to the vendor
+    does: reads the latest quote request email and sends a polite reminder

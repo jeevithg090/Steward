@@ -1,0 +1,28 @@
+id: will-template
+name: Will template
+pitch: Creates a draft will template covering guardianship for two children and digital assets.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: "Start by searching the web for 'will template guardianship children digital assets'. Read the top results and note any standard clauses about guardianship and digital asset handling. When nothing useful is found, say so and ask if the person has any existing notes or preferences to include. Create a new page with a title 'Will template: Guardianship and digital assets'. Write a short preamble explaining this is a draft, not legal advice. Add a section 'Guardianship' with two blank fields: 'Preferred guardian for child 1' and 'Preferred guardian for child 2'. Add a section 'Digital assets' with three blank fields: 'Social media accounts', 'Online banking passwords', 'Cryptocurrency keys'. Leave all fields blank for the person to fill in. Save the page to the workspace. At the end, show the person the finished template and remind them to review it with a solicitor."
+starters:
+  - write a will
+  - create a will template
+  - guardianship for children
+  - digital assets in a will
+examples:
+  - ask: can you help me set up a will?
+    does: searches the web for will templates and guardianship guidance
+  - ask: what should I include for my kids?
+    does: adds a guardianship section with blank fields for the person to complete

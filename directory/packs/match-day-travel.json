@@ -1,0 +1,43 @@
+{
+  "id": "match-day-travel",
+  "name": "Match day travel",
+  "pitch": "Find the quickest route to the stadium on match day and suggest parking options.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which stadium and which match they mean. If they give a stadium name, search for that stadium and the match day schedule. Read the match day information and note the kick-off time. Search for parking near the stadium on match days, looking for official stadium parking, park-and-ride schemes, and public car parks. Compare travel times from common starting points to the stadium, factoring in match day traffic. If routes are found, show the fastest route and list parking options with walking distance to the stadium. If no route or parking is found, say what could not be checked and ask if they want to try a different stadium or match. At the end, show a summary of the fastest route and parking suggestions.",
+  "starters": [
+    "find me the fastest route to the stadium on match day",
+    "where can I park for the game",
+    "what's the best way to get to the stadium"
+  ],
+  "examples": [
+    {
+      "ask": "which stadium and match",
+      "does": "search for the stadium and match day schedule"
+    },
+    {
+      "ask": "parking options",
+      "does": "list parking near the stadium with walking distance"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Match day travel\nFind the quickest route to the stadium on match day and suggest parking.\n\n**What it does**: Looks up the stadium, match day schedule, fastest routes and parking options.\n**What it needs**: Web search and browsing.\n**What it will not do**: It cannot book parking or tickets, and it does not know your location unless you tell it.",
+  "hash": "1dd053c2b459e678dda4a2867c70760b8c5b532a50c87839467bd0f20afe1bf6"
+}

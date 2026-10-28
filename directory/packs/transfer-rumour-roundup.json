@@ -1,0 +1,39 @@
+{
+  "id": "transfer-rumour-roundup",
+  "name": "Transfer rumour roundup",
+  "pitch": "Summarises yesterday's transfer rumours for the user's team from newspaper reports.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for yesterday's transfer rumours about the user's team. Read the top results and pick out the main stories: clubs linked, player names, and what was said. If no recent rumours are found, say so plainly. Write a short summary in plain English, no more than 150 words. Use make_page to create a simple document with the title 'Transfer rumours: [team] – [date]' and the summary underneath. Show the document to the person so they can read or save it.",
+  "starters": [
+    "summarise transfer rumours",
+    "latest transfer news for my team",
+    "what are the rumours from yesterday's papers"
+  ],
+  "examples": [
+    {
+      "ask": "summarise transfer rumours for my team from yesterday's papers",
+      "does": "Searches the web for yesterday's rumours, picks out the main stories and creates a page with a short summary."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Transfer rumour roundup\n\nSummarises yesterday's transfer rumours from newspaper reports for the user's team. Uses a web search to find the stories, then writes a short plain‑English summary and creates a simple page to show the results.\n\n**What it needs**: web search, a page creator.\n\n**What it will not do**: It cannot read paywalled articles unless the free preview is available, and it will not guess at fees or transfer values.",
+  "hash": "324a6df7cf880070209d3cb84f51ac60393b2bd0c6e5d0fbcd26082bf7945660"
+}

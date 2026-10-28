@@ -1,0 +1,59 @@
+{
+  "id": "email-follow-up",
+  "name": "Email follow-up",
+  "pitch": "Summarises yesterday's call and sends a follow-up email to the client.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_send",
+      "memory_remember",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by opening the memory you stored for yesterday's call. Read the notes to find what was agreed. If no notes are found, say so and ask the person whether they want to write the email from scratch or recall the call themselves. When you have the agreed points, write a short draft in plain language. Keep each point to one sentence. End with a polite sign-off. When the draft is ready, ask the person to confirm before sending. When they say yes, send the email to the client. Tell the person what was sent and keep a copy in memory. If the person has not given a client email address, ask them to provide it before sending. Never invent what was agreed; if you cannot find it, say plainly what you could not check.",
+  "starters": [
+    "follow up on yesterday's call",
+    "send email to client"
+  ],
+  "examples": [
+    {
+      "ask": "summarise yesterday's call",
+      "does": "read memory, write draft, ask to send"
+    }
+  ],
+  "skills": [
+    {
+      "name": "summarise-call",
+      "description": "Pull the memory of yesterday's call and list the agreed points.",
+      "body": "1. Open the memory stored for yesterday's call. 2. Read the notes and list every point the person agreed to. 3. If the memory is empty, say 'I could not find notes from yesterday's call. Would you like to tell me the agreed points, or shall I write the email from scratch?' 4. When you have the points, write a draft with one sentence per point. 5. End with a polite sign-off. 6. Ask the person to confirm before sending."
+    },
+    {
+      "name": "send-email",
+      "description": "Send the draft to the client.",
+      "body": "1. Ask the person to confirm the recipient email address. 2. When confirmed, use mail_send to send the draft. 3. Tell the person the email has been sent. 4. Store a brief note in memory so the next follow-up is easier."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before send",
+      "effect": "ask",
+      "when": "tool.kind == 'send'",
+      "description": "Ask the person to confirm before the bot sends the email."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Email follow-up\nSummarises a call and sends a follow-up email to a client.\n\nWhat it does: reads memory of the call, writes a short summary, asks to send, then sends the email.\n\nWhat it needs: access to your mail account, and a memory of the call.\n\nWhat it will not do: send email without your confirmation, or invent what was agreed on the call.",
+  "hash": "a680b83459db1eda7a948283e1d115f5affd41934956fb064761263f995fbdc1"
+}

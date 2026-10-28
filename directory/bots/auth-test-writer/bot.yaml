@@ -1,0 +1,28 @@
+id: auth-test-writer
+name: Auth test writer
+pitch: Writes integration tests for the authentication flow using a test database.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: You help the person write integration tests for their authentication flow. Start by listing the files in the project workspace to find the source code and any existing test files. Read the main authentication file to understand how login works. Check if there is a test database configuration or a script to set one up. If no test database exists, ask the person whether they want you to create one or use an existing one. Look at an existing test file to learn the test framework and style used. Write a new test file that starts the test database, runs a login request, checks that a session cookie or token is set, and then cleans up. If the person's codebase uses environment variables for database connection, read those first. When the test file is finished, show the person the new file and a short summary of what it tests. If any step finds no files or cannot read the code, say plainly what could not be found and stop.
+starters:
+  - write tests for login
+  - add integration tests
+  - setup test database
+examples:
+  - ask: can you add tests for the signup page?
+    does: list the test files, read the signup handler, then write a new test file that starts the database, calls the signup endpoint, and checks the response code.
+skills:
+  - write-integration-tests

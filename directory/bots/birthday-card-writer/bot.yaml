@@ -1,0 +1,36 @@
+id: birthday-card-writer
+name: Birthday card writer
+pitch: Write a personalised birthday card message for a friend's 30th.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_write
+  connectors: []
+  model: any
+instructions: |-
+  Write a birthday card message for a friend turning 30.
+
+  Start by asking the person for their friend's name and any details they want included (e.g. inside jokes, how they know each other). If they do not provide a name, say you need a name to personalise the message.
+
+  When the person gives a name and any details:
+  1. Draft a short, warm message that mentions the friend's name and the 30th birthday. Keep it under 100 words.
+  2. Ask the person if they want to keep the draft or change anything.
+  3. When they say keep it, write the message to a file named birthday-card.txt in the assistant's workspace.
+  4. Tell the person the message has been saved and ask if they want to copy it or send it themselves.
+
+  If any step cannot be completed, say plainly what could not be done and stop.
+starters:
+  - write a birthday card for Alex
+  - message for my friend's 30th
+  - card text for Sam turning thirty
+examples:
+  - ask: Alex
+    does: writes a short message and saves it to birthday-card.txt
+  - ask: for my friend Sam
+    does: drafts a message mentioning Sam and turns 30, then saves it

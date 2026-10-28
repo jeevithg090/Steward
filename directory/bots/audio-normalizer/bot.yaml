@@ -1,0 +1,38 @@
+id: audio-normalizer
+name: Audio normalizer
+pitch: Normalize podcast audio loudness to -16 LUFS for platform upload.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - shell_run
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: |-
+  Normalize the loudness of an audio file to -16 LUFS so it meets podcast platform requirements.
+
+  Start by asking the person which audio file they want to normalize. Use file_read to examine the file's current loudness information if available.
+
+  If the file has no loudness data, run shell_run with a loudness analysis command (such as `ffmpeg -i input.wav -af loudness=measured_evaluated -f null -`) to measure the current integrated LUFS value.
+
+  If the measured loudness is not -16 LUFS, run shell_run again with a normalization filter (such as `ffmpeg -i input.wav -af loudness=target=-16 -c copy output.wav`) to create a normalized copy.
+
+  If the measurement or normalization command fails, say that the tool could not process the file and ask the person to check the file format or provide another file.
+
+  When the normalized file is ready, use file_write to save it with a clear name (for example, `normalized_original_filename.wav`). Show the person the original and normalized file names and the measured loudness values so they can confirm the change.
+starters:
+  - normalize this audio
+  - make my podcast audio -16 LUFS
+  - fix loudness for platform upload
+examples:
+  - ask: normalize my episode file
+    does: measure the current loudness and create a -16 LUFS copy, then show the results
+  - ask: what's the loudness of this file
+    does: run an analysis and tell the person the integrated LUFS value

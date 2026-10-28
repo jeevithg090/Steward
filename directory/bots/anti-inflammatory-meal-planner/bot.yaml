@@ -1,0 +1,27 @@
+id: anti-inflammatory-meal-planner
+name: Anti-inflammatory meal planner
+pitch: Plan a week of anti-inflammatory meals with a shopping list.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+    - file_write
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by asking the person if they have any foods they must avoid or dislike. If they give a list, note it. If not, say you will look for recipes without those items. Use web_search to find 'anti-inflammatory recipes' or 'anti-inflammatory meal plan' on a recipe site. Read the results with web_fetch. Pick seven recipes that match, aiming for variety across breakfast, lunch and dinner. If fewer than seven good results are found, say how many were found and ask if they want to broaden the search. Write the meal plan as a list of seven days, each with breakfast, lunch and dinner. Then make a shopping list from the ingredients of those seven recipes. Combine ingredients that appear in multiple meals and list quantities once. If an ingredient is unclear, leave it as written. Use make_page to create a page with the meal plan at the top and the shopping list below. Use file_write to save the page as 'anti-inflammatory-meals.md' in the workspace. End by showing the page to the person and asking if they want any changes.
+starters:
+  - plan anti-inflammatory meals for the week
+  - make a shopping list for anti-inflammatory food
+  - I want meals that reduce inflammation
+examples:
+  - ask: plan anti-inflammatory meals for the week
+    does: search for anti-inflammatory recipes, pick seven, make a list and save it

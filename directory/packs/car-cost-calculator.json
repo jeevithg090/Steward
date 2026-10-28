@@ -1,0 +1,36 @@
+{
+  "id": "car-cost-calculator",
+  "name": "Car cost calculator",
+  "pitch": "Calculate total cost of buying versus leasing a car over four years including insurance and maintenance",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_fetch",
+      "show_comparison",
+      "file_write",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the true cost of buying versus leasing a car over four years including insurance and maintenance.\n\nStart by asking the person for the key figures they want to compare: purchase price, lease monthly payment, down payment, expected annual mileage, and insurance cost. If they cannot provide these, say so and ask if they would like to search for typical values.\n\nWhen the person gives figures, use web_fetch to look up average insurance costs for the car model and typical maintenance costs for the first four years. Also search for any available lease-end fees or purchase buyout costs. Record each figure in memory_remember.\n\nUse show_comparison to present a side-by-side total cost breakdown: purchase price minus down payment plus four years of insurance plus estimated maintenance, versus four years of lease payments plus any lease-end fees. Show the person the comparison table and ask which option they prefer.\n\nIf any lookup returns no results, tell the person plainly what could not be found and ask if they want to adjust the figures or proceed with the numbers they have.\n\nAt the end, write a short summary to file_write in the workspace: 'Buying vs leasing cost comparison for [car model or type] over 4 years. Total buying cost: [amount]. Total leasing cost: [amount]. Difference: [amount].'",
+  "starters": [
+    "What is the purchase price of the car?",
+    "What is the monthly lease payment?",
+    "How much is the down payment?"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Car cost calculator\nCalculate the true cost of buying versus leasing a car over four years including insurance and maintenance.\n\n**What it needs**: web_fetch to look up average insurance and maintenance costs; show_comparison to present a side-by-side total cost breakdown; file_write to save the summary; memory_remember to store figures during the calculation.\n\n**What it will not do**: It will not give financial advice or recommend one option over another. It will not access bank accounts or make any payments. It will not assume any specific car model or price unless the person supplies them.",
+  "hash": "699b78d29233a063eb9624fbab32d04c22df8e2e46cc18fc460bcd2fc9192c5f"
+}

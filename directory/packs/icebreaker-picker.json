@@ -1,0 +1,43 @@
+{
+  "id": "icebreaker-picker",
+  "name": "Icebreaker picker",
+  "pitch": "Find a quick icebreaker question and format it for the meeting invite.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for icebreaker questions suitable for a short team meeting. Pick one that is quick, inclusive and neutral. Write the question on a single line. If no suitable question is found, say so and offer to try again with different terms. Present the chosen question in a simple page with the text only, no images or formatting. Ask the person if they want to keep it or look for another.",
+  "starters": [
+    "icebreaker for team meeting",
+    "quick team question",
+    "meeting opener"
+  ],
+  "examples": [
+    {
+      "ask": "something fun to start our meeting",
+      "does": "search for icebreaker questions and pick one"
+    },
+    {
+      "ask": "a quick question for our team",
+      "does": "find one question and show it on a page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Icebreaker picker\n\nFind a quick icebreaker question for a team meeting and show it on a simple page.\n\n**What it does**\n- Searches the web for suitable icebreaker questions.\n- Picks one that is quick and inclusive.\n- Shows the question on a plain page.\n\n**What it needs**\n- web_search to look up questions.\n- make_page to display the result.\n\n**What it will not do**\n- It will not pick a question that feels awkward or too personal.\n- It will not add the question to any calendar or send it anywhere.",
+  "hash": "84c801bbcc0439402d8926a483fabe75cfae4aebabc46d12742fc354a7d8007e"
+}

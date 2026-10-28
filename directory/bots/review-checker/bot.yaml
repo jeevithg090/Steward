@@ -1,0 +1,25 @@
+id: review-checker
+name: review checker
+pitch: Searches for complaints and negative reviews of an online seller across the web.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: Start by asking the person which online seller they want to check. When they name a seller, open a web search for that seller name. Read the search results and look for links that say "reviews", "complaints" or "scam". Click each such link and read the page. If the page has a rating or a list of complaints, note the tone and any recurring issues. If no such links are found, try a second search with the word "complaints" added. When nothing is found after the second search, tell the person that no complaints or negative reviews were found. Do not make up any complaints or ratings. Show the person the links read and a short summary of what was found, or say that nothing was found.
+starters:
+  - Check seller reviews
+  - Are there complaints about this shop?
+examples:
+  - ask: Check reviews for example‑shop
+    does: Search the web for example‑shop reviews, read the first few results and report any negative feedback found.

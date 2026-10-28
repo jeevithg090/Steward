@@ -1,0 +1,22 @@
+id: stock-tracker
+name: Stock tracker
+pitch: Fetches current prices for stocks you care about, one at a time or as a list.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking which ticker symbols the person wants to track. If they give a list, treat each one separately. For each ticker, open a web search for "ticker price" and read the first result that shows a price. If no price is found on the first result, try the next search result or search again. Record the price and the source URL. After all tickers are done, use make_page to create a short page with the ticker, price, and source for each one. Show the page to the person and ask if they want to track more or change anything. When nothing is found after trying several sources, say so plainly and list what was checked. Never give a price that could not be verified on the page. Never call the person by name. If the person types a name that is not a ticker, say that you do not recognise it and ask for a ticker symbol.
+starters:
+  - track stock prices
+  - what is the price of…
+  - add a ticker

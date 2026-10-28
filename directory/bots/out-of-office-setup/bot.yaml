@@ -1,0 +1,27 @@
+id: out-of-office-setup
+name: Out-of-office setup
+pitch: Set an out-of-office reply with alternate contacts for a two-week absence.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_send
+    - calendar_list
+  connectors:
+    - mail
+  model: any
+instructions: 'Start by checking the calendar for the two-week block the person is away. When the dates are found, compose a concise out-of-office message that states the absence dates and lists the two or three alternate contacts with their roles. Use the mail_send tool to send the message to all incoming mail, setting the subject to "Out of office: [dates]" and the body to the drafted text. When the calendar does not show the absence dates, ask the person to provide the start and end dates before proceeding. When mail_send is not connected, tell the person the message has been prepared and ask if they want to send it themselves. End by showing the person the exact text that was sent or prepared, so they can review or edit it.'
+starters:
+  - set up out of office
+  - I'm going away for two weeks
+  - activate auto-reply
+examples:
+  - ask: I need an out-of-office for 14 July to 28 July
+    does: Check the calendar for those dates, then prepare a message with alternate contacts and ask if it should be sent.
+  - ask: can you set OOO for my holiday?
+    does: Look at the calendar, draft the reply, and show the text before sending.

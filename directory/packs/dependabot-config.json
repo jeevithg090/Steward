@@ -1,0 +1,55 @@
+{
+  "id": "dependabot-config",
+  "name": "Dependabot config",
+  "pitch": "Set up automated dependency scanning and security updates for projects.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the project's top-level directory to find configuration files. Read the existing package.json, requirements.txt, or other lock files to identify the package manager. If no dependabot.yml or dependabot.yaml exists, create one. Configure the file to check for updates daily and enable security updates. Set the package-ecosystem to the detected manager (npm, pip, maven, etc.) and set the directory to the location of its lock file. Add a schedule.interval of \"daily\" and enable open-pull-requests: true. If the project uses a private registry, add the necessary authentication tokens before saving. When the configuration is written, show the person the new dependabot file and explain that automated security updates are now active. If the project already has a dependabot file, read it first and ask whether to merge the new settings or replace it entirely. Never modify lock files or install packages without the person's confirmation.",
+  "starters": [
+    "setup dependabot",
+    "scan my dependencies",
+    "configure security updates"
+  ],
+  "examples": [
+    {
+      "ask": "scan my deps",
+      "does": "read the lock files and tell the person which package manager is used"
+    },
+    {
+      "ask": "create dependabot config",
+      "does": "write a dependabot.yml with daily checks and security updates"
+    }
+  ],
+  "skills": [
+    {
+      "name": "scan-dependencies",
+      "description": "Read lock files to determine the package manager and current state.",
+      "body": "1. Use file_list to show the top-level folder. 2. Use file_read to examine package.json, requirements.txt, or pom.xml. Identify the package manager (npm, pip, maven, gradle). 3. Note the lock file name (package-lock.json, requirements.txt, pom.xml). Stop and ask the person if no lock file is found."
+    },
+    {
+      "name": "write-dependabot-config",
+      "description": "Create or update dependabot.yml with security update settings.",
+      "body": "1. If a dependabot.yml already exists, read it with file_read. 2. If it exists, ask the person whether to merge or replace. 3. If new or replacing, write a dependabot.yml that sets package-ecosystem to the detected manager, directory to the lock file location, schedule.interval to \"daily\", and enables open-pull-requests and security-updates. 4. Save the file with file_write. 5. Show the finished file to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Dependabot config\n\nSet up automated dependency scanning and security updates for a project. The bot reads the project's lock files, creates or updates a dependabot.yml configuration, and shows the result to the person. It will not install packages or merge changes without confirmation.\n\n**What it needs:** Access to the project folder on the computer. No online accounts or external services are required.\n\n**What it will not do:** It will not push changes to a remote repository, it will not modify lock files, and it will not run `npm install` or `pip install` without explicit permission.",
+  "hash": "64c115af106ad43635741eadc59ba7b363b7deb65a954b1d64d52ddf1f51867c"
+}

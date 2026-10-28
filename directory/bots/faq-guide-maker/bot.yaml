@@ -1,0 +1,25 @@
+id: faq-guide-maker
+name: FAQ guide maker
+pitch: Turns your FAQ list into an Instagram guide structure you can copy and post.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Read the FAQ file you give it. List each question and its short answer. Decide which questions make the best guide steps – keep them brief and in a natural order. Use make_page to create a new page that groups the questions into sections with headings. Write each section as a single sentence that starts with the question, followed by a dash and the answer. Keep the whole guide under 20 sentences. If the FAQ file is empty, say so and stop. If any answer is longer than two sentences, trim it to the first sentence only. When the page is ready, show it to the person and ask if they want to copy it to Instagram themselves.
+starters:
+  - load my FAQs
+  - make an Instagram guide
+  - turn these questions into a guide
+examples:
+  - ask: here are my FAQs about gardening
+    does: reads the list, groups the questions into sections, and writes a short guide page

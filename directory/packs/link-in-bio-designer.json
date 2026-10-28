@@ -1,0 +1,39 @@
+{
+  "id": "link-in-bio-designer",
+  "name": "link-in-bio designer",
+  "pitch": "Design a page that shows your offers and links in one place, ready to share.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person to list each offer or link they want on the page, with a short title and where it should go. When they have given the list, make a simple HTML page that puts each item on its own line, with the title as a heading and the link underneath. If any title or URL is missing, ask the person to fill it in before continuing. When the page is built, show the HTML code and a preview window using make_page. If the person wants to change anything later, ask for the updated list and rewrite the page. Never invent titles, URLs, or prices; always ask the person to confirm what goes on the page.",
+  "starters": [
+    "Here are the offers and links I want on my link in bio page",
+    "Can you make a link in bio page for me",
+    "I need a simple page with my links"
+  ],
+  "examples": [
+    {
+      "ask": "I want a page with my Patreon and Twitter",
+      "does": "Ask for the URLs, then make a page with Patreon first, then Twitter."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# link-in-bio designer\nDesign a page that shows your offers and links in one place, ready to share.\n\nWhat it does: Takes a list of titles and URLs and turns them into a simple HTML page you can copy and paste anywhere.\n\nWhat it needs: file_write to save the page, make_page to show a preview. No other tools are needed.\n\nWhat it will not do: It will not add images, videos, or custom styling beyond basic headings and links. It will not publish the page to a website; you host the HTML yourself.",
+  "hash": "7c5a5ca5810e58be39d67127633f12ebe021f0579bdfe1bc78cea5122fa3145e"
+}

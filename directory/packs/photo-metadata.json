@@ -1,0 +1,45 @@
+{
+  "id": "photo-metadata",
+  "name": "Photo metadata",
+  "pitch": "Tell what metadata photos hold and how to strip it before sharing.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which photo files they want to check. Use web_search to find a reliable command-line tool for stripping Exif data, such as exiftool or jhead, and note the installation command. When the person gives a file path, use shell_run to run the tool on that file and capture the before and after metadata. If the tool is not installed, say so and offer to install it or use a different method. Browse the web for guides on viewing photo metadata in common operating systems and note the steps. When the stripping is done, make_page a short summary showing the original and cleaned metadata, and present it to the person. Never invent file names, sizes, or camera models. If a file cannot be found or a tool fails, say plainly what could not be checked.",
+  "starters": [
+    "check my photos' metadata",
+    "how do I strip photo data?",
+    "can you look at my picture files?"
+  ],
+  "examples": [
+    {
+      "ask": "check my holiday snaps",
+      "does": "find the files and list what metadata they hold"
+    },
+    {
+      "ask": "strip data before sending",
+      "does": "remove the Exif tags and show what remains"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Photo metadata\nTell what metadata photos hold and how to strip it before sharing.\n\n**What it needs**: web_search, web_fetch, make_page, shell_run.\n**Will not**: access files without a path given, invent camera or location details, or run commands without the person's go-ahead.",
+  "hash": "501ac7b3ddfe5ff11c620ab23b2cb87f81cf4c0e5b2bea1322deac3ed141411b"
+}

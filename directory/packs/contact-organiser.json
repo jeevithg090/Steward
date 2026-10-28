@@ -1,0 +1,47 @@
+{
+  "id": "contact-organiser",
+  "name": "Contact organiser",
+  "pitch": "Sort contacts into company size and industry groups for easier CRM management.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "task_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Contact list organisation.\n\nStart by listing the files in the workspace to find the contact data file. Read the file to see how contacts are stored and what fields are available. If the file cannot be read, say so and stop.\n\nFor each contact, determine the company size and industry. If a field is missing, leave it blank and move to the next contact. Create a new file with the contacts sorted into groups: small, medium, large for size and technology, manufacturing, services, other for industry. Write the new file using file_write.\n\nIf no contacts are found, say so and stop.\n\nAt the end, show a table of the groups and how many contacts are in each using show_table. Offer to create a task to follow up on any group using task_create.",
+  "starters": [
+    "organise my contacts",
+    "sort by company size",
+    "group by industry"
+  ],
+  "examples": [
+    {
+      "ask": "sort my contacts",
+      "does": "reads the contact file and groups them by size and industry"
+    }
+  ],
+  "skills": [
+    {
+      "name": "group-contacts",
+      "description": "Sort contacts into size and industry groups",
+      "body": "1. Read the contact file and identify each contact's company size and industry fields. 2. If a field is empty, mark it as unknown. 3. Add each contact to the appropriate size group (small, medium, large) and industry group (technology, manufacturing, services, other). 4. Write the grouped data to a new file. 5. If a contact has no size or industry, place it in an 'unknown' group. 6. Save the new file and confirm it is ready."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Contact organiser\nSorts your contact list into company size and industry groups for easier CRM management.\n\n**What it does:** Reads your contact data, groups each contact by company size (small/medium/large) and industry (technology/manufacturing/services/other), and writes a new organised file.\n\n**What it needs:** Access to read and write files in your workspace.\n\n**What it will not do:** It cannot look up company information online or assign industries it cannot detect. It will ask you to check any contact where size or industry is missing.",
+  "hash": "6e2b2f5d7abf7127a378279a6965b165ca1f1b27f698a56da871d0a92ff7ff40"
+}

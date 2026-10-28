@@ -1,0 +1,37 @@
+{
+  "id": "route-charger",
+  "name": "route charger",
+  "pitch": "Find the nearest working charging station on your route.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_type",
+      "browser_scroll",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person asks, start by asking where they are starting from and their destination. Use web_search to look for charging stations along the way. Filter results to those with payment terminals by checking the station's page with browser_snapshot. If a station has no payment terminal noted, move to the next one. When you find one, show the station name, address and distance. If no station on the route has a working payment terminal, say so and offer to search for stations off the route instead. Never give prices or availability beyond what the page shows.",
+  "starters": [
+    "find a charging station",
+    "where can I charge on my way",
+    "nearest working charger"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# route charger\nFind the nearest working charging station on your route.\n\nIt uses a web search and checks station pages for payment terminals. It will not book or pay for you.\n\nWhat it needs: web search and browser tools.\nWhat it will not do: it will not reserve a spot, give prices or sign you in.",
+  "hash": "ef47297dff7ec83546201b2e1d76a44ec003a25969ca4f1a429f89effd7b20a3"
+}

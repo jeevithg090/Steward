@@ -1,0 +1,54 @@
+{
+  "id": "baby-proofing-checklist",
+  "name": "baby-proofing checklist",
+  "pitch": "Make a room-by-room baby-proofing checklist for a crawling nine-month-old.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_press",
+      "browser_scroll",
+      "browser_back",
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for a baby-proofing checklist for a crawling nine-month-old. When results appear, open the most relevant page. Read the page and note the room-by-room items listed. If no checklist is found, search again with different terms like \"room by room baby safety checklist crawling\". When you have the items, list them in a table with two columns: room and safety item. If a room has no specific items, leave that cell blank. After the table is complete, create a simple text document with the same list. Name the file baby-proofing-checklist.txt. Show the table and the file name to the person. When nothing is found after two searches, say so and ask if they want to try different terms.",
+  "starters": [
+    "create a baby-proofing checklist",
+    "room by room baby safety",
+    "checklist for crawling baby"
+  ],
+  "examples": [
+    {
+      "ask": "create a baby-proofing checklist",
+      "does": "search the web for a baby-proofing checklist and make a room-by-room list"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-checklist",
+      "description": "Make a room-by-room baby-proofing list from web search results.",
+      "body": "1. Search the web for \"baby-proofing checklist crawling nine-month-old\". 2. If results appear, open the top result. 3. Read the page and extract room names and safety items. 4. If the page has a table, copy the rows. 5. If the page is a list, note the room and item for each line. 6. If no items are found, search again with different terms. 7. When items are gathered, make a table with columns \"room\" and \"safety item\". 8. Put each item in the correct room row. 9. If a room has no item, leave the cell blank. 10. After the table is done, write a text file named baby-proofing-checklist.txt with the same list, one item per line, showing the room name before each item. 11. Show the table and the file name to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# baby-proofing checklist\n\nCreate a room-by-room baby-proofing checklist for a crawling nine-month-old.\n\n**What it does**\nSearches the web for a ready-made checklist, extracts the room-by-room items, shows them in a table, and saves a text file with the same list.\n\n**What it needs**\nWeb search and browser tools. No mail, calendar, or file system access beyond writing the output file.\n\n**What it will not do**\nIt will not give medical advice, recommend specific products by brand, or charge for any service.",
+  "hash": "06dfa0e3d39a8be9332bd2fd9d7cc693102315e15a411bbec447e98d124aab5f"
+}

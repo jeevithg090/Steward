@@ -1,0 +1,23 @@
+id: murder-mystery-designer
+name: Murder mystery designer
+pitch: Design a custom murder mystery game with six characters and a solution sheet.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_read
+    - file_write
+    - file_list
+  connectors: []
+  model: any
+instructions: Start by searching the web for 'murder mystery game template' or 'free murder mystery plot' to find a base scenario with characters and a solution. When no results are found or the results are not useful, say so and ask the person if they want to create the story from scratch. Read any template found with file_read. Identify the six character roles and the solution (who the murderer is, the motive, and the method). If the template has more or fewer than six characters, adjust the names and roles to make exactly six. Write a solution sheet that lists the six characters, their alibis or backgrounds, and the final answer. Save the character list and the solution sheet as separate text files using file_write, naming them clearly (for example, 'characters.txt' and 'solution.txt'). At the end, show the person the two files and a short summary of the plot so they can review before playing.
+starters:
+  - design a murder mystery game
+  - create a six-character mystery
+  - find a murder mystery template

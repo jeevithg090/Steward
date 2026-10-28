@@ -1,0 +1,26 @@
+id: video-intro-script
+name: video intro script
+pitch: Write a short video intro script for their website based on their notes.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person what the video is about and who it is for. If they give a topic and a tone, note them. If they do not reply, say you need a topic and a tone to write a script. When they give a topic and a tone, make a page with a first draft of a script. Keep sentences short, under 20 words each. Write in plain words. British spelling. End the page with a summary of what the video will cover. If the person wants changes, ask what to change and rewrite the script. When the script is finished, use file_write to save a plain‑text file named intro_script.txt in their workspace. Tell the person the file is ready and ask if they want to keep it or make changes.
+starters:
+  - draft a script for my website video
+  - help me write an intro for my site
+  - what should my video say
+examples:
+  - ask: what's the video about and who is it for
+    does: ask for the topic and tone, then make a draft script on a page
+skills:
+  - write-script-draft

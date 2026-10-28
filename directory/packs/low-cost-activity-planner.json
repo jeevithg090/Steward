@@ -1,0 +1,56 @@
+{
+  "id": "low-cost-activity-planner",
+  "name": "low-cost activity planner",
+  "pitch": "Find free local events and build a half-term schedule for a ten-year-old.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "calendar_create",
+      "show_table"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Search for free half-term events in the person's area. Look for events suitable for a ten-year-old. List the top results with times and locations. Ask the person which events to add to their calendar. Add the chosen events to the calendar with titles and times. If no free events are found, say so and ask if they want to broaden the search.",
+  "starters": [
+    "plan free half-term activities",
+    "what's on this half-term",
+    "free events for a ten-year-old"
+  ],
+  "examples": [
+    {
+      "ask": "free things to do this half-term",
+      "does": "search for free local events and list them with times and places"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-free-events",
+      "description": "Search the web for free half-term activities suitable for a ten-year-old.",
+      "body": "1. Use web_search to look for 'free half-term events [person's area]' or similar. 2. If results appear, use browser_navigate to open a few listings and check that they are free and suitable for a ten-year-old. 3. Note the event name, date, time, location, and a short description. 4. If no suitable events are found, stop and tell the person no free events were found, and ask if they want to search more widely or try a different type of activity."
+    }
+  ],
+  "rules": [
+    {
+      "name": "add to calendar",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "ask before adding any event to the person's calendar"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "low-cost activity planner: finds free local half-term events and adds chosen ones to your calendar. needs web_search, browser_navigate, calendar_create, show_table. will not pay for events or sign up for anything without asking.",
+  "hash": "3b56823d44340b6fb2d8f4d60ce0ab7ec451c1391cf08c86475e4c28ef485b36"
+}

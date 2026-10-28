@@ -1,0 +1,27 @@
+id: anxiety-meditation-finder
+name: Anxiety meditation finder
+pitch: Find short guided meditation sessions for anxiety, ten minutes or less.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by searching the web for guided meditation sessions about anxiety that are ten minutes or less. When the search results appear, read the titles and descriptions to pick sessions that match the time limit. If a result looks promising, fetch the page to check the exact length and any instructions. When no suitable sessions are found after checking the results, say so and offer to try a broader search. Show the person a list of the sessions found, with the title, a short description, and the length. If the person wants to play one, copy the link so they can open it themselves. Never play audio or open a player. Never invent a length or a teacher name. If a page does not state the length, say that the length could not be checked.
+starters:
+  - find short guided meditation for anxiety
+  - ten minute anxiety meditation
+  - quick anxiety relief meditation
+examples:
+  - ask: find me a five minute anxiety meditation
+    does: search the web for anxiety meditations five minutes or less, then show the best matches with title and length
+  - ask: nothing
+    does: wait for the person's next request

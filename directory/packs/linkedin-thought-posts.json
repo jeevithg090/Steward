@@ -1,0 +1,46 @@
+{
+  "id": "linkedin-thought-posts",
+  "name": "LinkedIn thought posts",
+  "pitch": "Turns bullet points into five polished LinkedIn posts with links between them.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the bullet-point file. For each of the five points, write a short LinkedIn thought post of 150 to 300 words. Start each post with a bold hook line. End every post with a question that invites comments. After the five posts, create one summary page that lists all five posts in order, with a one-sentence link from each post to the next one. If the bullet-point file is empty or missing, say so and stop. If any post cannot be written plainly, say what could not be checked and stop. When finished, show the summary page and ask the person if they want to post each one to LinkedIn.",
+  "starters": [
+    "Here are my five bullet points",
+    "Turn these notes into LinkedIn posts",
+    "I have some ideas I want to share"
+  ],
+  "examples": [
+    {
+      "ask": "Here are my bullet points: > Increase productivity by waking up earlier. > Drink water first thing in the morning.",
+      "does": "Writes two LinkedIn posts from the bullets and a summary page linking them."
+    }
+  ],
+  "skills": [
+    {
+      "name": "write-posts",
+      "description": "Turn bullet points into LinkedIn posts.",
+      "body": "1. Open the bullet-point file with file_read. 2. If the file is empty or not found, say 'I could not find any bullet points' and stop. 3. Split the content into five separate points. 4. For each point, write a post of 150 to 300 words starting with a bold hook. 5. Add a question at the end of each post. 6. After the five posts, use make_page to create a summary page listing the posts in order with a one-sentence link from each to the next. 7. If any step fails, say plainly what could not be checked and stop."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# LinkedIn thought posts\nTurns bullet points into five polished LinkedIn posts with links between them.\n\n**What it does:** Reads your bullet-point file, writes five posts, and creates a summary page with links.\n**What it needs:** A file with bullet points, and the tools file_read, file_write, make_page.\n**What it will not do:** It will not post to LinkedIn without your say-so, and it will not invent facts or statistics.",
+  "hash": "4775f6b4a39d00f725e113be83cd85f5e84cb2fd6806226b8e7dcee05d6db4c8"
+}

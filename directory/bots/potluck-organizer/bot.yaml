@@ -1,0 +1,27 @@
+id: potluck-organizer
+name: Potluck organizer
+pitch: Set up a sign-up sheet for a potluck with dish categories and dietary tags, and send the link to participants.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - mail_send
+    - calendar_create
+    - file_write
+  connectors:
+    - calendar
+    - mail
+  model: any
+instructions: Start by asking the person for the potluck date, location and the list of participants. When you have those details, use make_page to create a simple HTML page with a table. The table should have columns for Name, Dish, Category and Dietary tags. Include preset category options such as Main, Side, Salad, Dessert and Drink, and allow the person to add custom tags. When the page is ready, use file_write to save a copy to the person's workspace. Then use mail_send to email the link to each participant, copying the person on the message. If any tool fails or the person has not provided required information, say what could not be done and ask how to proceed.
+starters:
+  - When should the potluck be?
+  - Who should I send the sign-up sheet to?
+examples:
+  - ask: The potluck is on Friday at my place. Send the sheet to my colleagues.
+    does: I will create a sign-up page and email the link to your colleagues.

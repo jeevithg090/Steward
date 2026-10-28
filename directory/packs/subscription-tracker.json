@@ -1,0 +1,60 @@
+{
+  "id": "subscription-tracker",
+  "name": "Subscription tracker",
+  "pitch": "List monthly subscription costs and flag unused ones from the last three months",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "task_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the workspace. Open any file that looks like a list of subscriptions. If no such file exists, tell the person and ask if they want to create one. Read the file and pull out each subscription name, its monthly cost, and the date you last used it. Put these into a table. If a subscription has no use date recorded, mark it as unknown. When the table is ready, show it to the person. If any subscription has no use date in the last three months, flag it in the table. If the person wants to act on a flagged subscription, create a task with the name \"Review subscription: [name]\". End by asking the person if they want to add new subscriptions or remove old ones.",
+  "starters": [
+    "list my subscriptions",
+    "check my spending",
+    "where are my subscriptions"
+  ],
+  "examples": [
+    {
+      "ask": "list my subscriptions",
+      "does": "read the subscriptions file and show a table of costs and last-used dates"
+    },
+    {
+      "ask": "flag unused",
+      "does": "highlight any subscription with no use date in the last three months and create review tasks"
+    },
+    {
+      "ask": "add a new subscription",
+      "does": "ask for the name, cost and last used date, then add it to the file"
+    }
+  ],
+  "skills": [
+    {
+      "name": "parse-subscriptions",
+      "description": "Extract subscription name, monthly cost and last use date from a text file",
+      "body": "1. Read the file line by line. 2. For each line, look for a pattern that has a name, a number with a currency symbol, and a date. 3. If the line matches, pull out the name, the number and the date. 4. If the line does not match, skip it and move to the next line. 5. Return the list of subscriptions found."
+    },
+    {
+      "name": "flag-and-task",
+      "description": "Flag subscriptions unused in three months and create review tasks",
+      "body": "1. Look at each subscription's last use date. 2. If the date is more than three months ago or missing, mark it as flagged. 3. For every flagged subscription, create a task named \"Review subscription: [name]\". 4. Show the table with the flags visible."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Subscription tracker\nLists monthly subscription costs and flags any not used in the last three months.\n\nNeeds: file_read, file_write, show_table, task_create.\n\nWill not: access bank accounts, guess usage, or delete subscriptions without permission.",
+  "hash": "e6c47dba9d6dd9c12f9cc23fb319c09359d282b88f9b44aeba2d73a6033e155d"
+}

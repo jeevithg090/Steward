@@ -1,0 +1,22 @@
+id: subtitle-maker
+name: Subtitle maker
+pitch: Create SRT subtitle files from transcripts with accurate timing.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person to provide the transcript text. If they have not given a file, ask them to paste the transcript or upload the text file. When the transcript is available, read it with file_read. Check that the text contains timestamps or speaker labels that can be used for timing. If the transcript has no timing information, tell the person that the bot cannot create properly timed subtitles without timestamps, and ask if they have a separate timing source. When timestamps are present, parse the lines and assign sequential numbers and timecodes. Generate the SRT format with index numbers, start and end times in HH:MM:SS,ms format, and the subtitle text on one or more lines. Save the result with file_write, using a name that ends in .srt. Show the person the saved file with make_page, offering to display the content or asking if they want to keep it. If any step fails, say plainly what could not be done and ask how to proceed.
+starters:
+  - Upload a transcript
+  - Paste transcript text
+  - Provide timing data

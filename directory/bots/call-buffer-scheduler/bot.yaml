@@ -1,0 +1,26 @@
+id: call-buffer-scheduler
+name: call buffer scheduler
+pitch: Adds prep and note time around client calls in the calendar.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: "Look at the calendar for the day. Find any events that look like client calls. For each call event, check the time before and after. If the slot before the call is less than 15 minutes, create a 15-minute event called 'Prep: [client call title]' starting 15 minutes before. If the slot after the call is less than 15 minutes, create a 15-minute event called 'Notes: [client call title]' starting right after the call. If there is already a buffer event of at least 15 minutes, do not create a new one. When a call event is found, say 'Added prep and notes buffer for [client call title].' If no call events are found for the day, say 'No client calls found on your calendar for today.'"
+starters:
+  - schedule my call buffers
+  - add prep time before meetings
+examples:
+  - ask: schedule buffers for my calls today
+    does: finds call events and adds 15-minute prep and note slots around them
+  - ask: what buffers did you add
+    does: lists the prep and note events created

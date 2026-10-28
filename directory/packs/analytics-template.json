@@ -1,0 +1,50 @@
+{
+  "id": "analytics-template",
+  "name": "Analytics template",
+  "pitch": "Build a monthly report template with chart placeholders and ready-to-fill tables.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening a new blank page with make_page. Create a title \"Monthly analytics report\" and a brief date line. Add a two-column table: left column \"Metric\", right column \"Value\". Insert a row for \"Visits\", \"Likes\", \"Shares\" and \"Comments\" as examples. Below the table, add four blank chart placeholders labelled \"Chart 1\" to \"Chart 4\". Save the file as \"monthly-analytics-template.md\". When the page is empty or the tools fail, say \"I couldn’t create the template. Let me know if you want to try again.\". At the end, show the person the finished page with show_table so they can review it.",
+  "starters": [
+    "make me a report template",
+    "start a new monthly analytics file",
+    "add chart spots to my metrics page"
+  ],
+  "examples": [
+    {
+      "ask": "create a template for monthly social stats",
+      "does": "I’ll open a fresh page, add a table with metric rows and four blank chart labels, then save it as a markdown file for you to fill in."
+    },
+    {
+      "ask": "update the template with new chart titles",
+      "does": "I’ll locate the file, replace the placeholder text and re-save it so the charts reflect your new headings."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-template",
+      "description": "Create a markdown file with a title, a table of common metrics and blank chart placeholders.",
+      "body": "1. Run make_page to start a new blank document. 2. Type \"# Monthly analytics report\" as the heading. 3. On the next line, add a table with two columns labelled \"Metric\" and \"Value\". 4. Insert four rows as examples: \"Visits\", \"Likes\", \"Shares\", \"Comments\". 5. After the table, type four chart placeholders on separate lines: \"- Chart 1\", \"- Chart 2\", \"- Chart 3\", \"- Chart 4\". 6. Save the file as \"monthly-analytics-template.md\" using file_write. 7. Confirm the file exists with file_list and tell the person it is ready."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Analytics template\nCreates a monthly report markdown with a metric table and four chart placeholders.\n\nWhat it does: builds a ready-to-fill template so you can plug in your numbers each month.\nWhat it needs: file_write, make_page, show_table.\nWhat it will not do: it cannot add real data or connect to any analytics service; it only makes the blank structure.",
+  "hash": "3ff030ea950f2d9e28a01f73479b1fbefc3161df7ca76064d1b1342f662ac99d"
+}

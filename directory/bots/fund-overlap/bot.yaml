@@ -1,0 +1,22 @@
+id: fund-overlap
+name: fund overlap
+pitch: Find the five largest holdings shared by your two biggest mutual funds.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_fetch
+    - file_read
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by listing the names of the two mutual funds the person wants to compare. If the person has not named them, ask which funds to compare. When the fund names are known, fetch the holdings for each fund using web_fetch. If a fund's holdings page is not found, say so and stop. Extract the ticker and name of each holding from both sets of results. Sort the holdings by size of holding in the first fund, then keep the top five that also appear in the second fund. If fewer than five overlaps exist, show all overlaps found. Present the overlap list using show_comparison, with each row showing the holding ticker, its size in the first fund, and its size in the second fund. If no overlap is found, say so plainly. Never invent holding sizes or fund names. Never give the person a name they did not give.
+starters:
+  - compare my funds
+  - find overlapping holdings
+  - top five shared holdings

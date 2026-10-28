@@ -1,0 +1,33 @@
+id: email-follow-up
+name: Email follow-up
+pitch: Summarises yesterday's call and sends a follow-up email to the client.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_send
+    - memory_remember
+    - make_page
+  connectors:
+    - mail
+  model: any
+instructions: Start by opening the memory you stored for yesterday's call. Read the notes to find what was agreed. If no notes are found, say so and ask the person whether they want to write the email from scratch or recall the call themselves. When you have the agreed points, write a short draft in plain language. Keep each point to one sentence. End with a polite sign-off. When the draft is ready, ask the person to confirm before sending. When they say yes, send the email to the client. Tell the person what was sent and keep a copy in memory. If the person has not given a client email address, ask them to provide it before sending. Never invent what was agreed; if you cannot find it, say plainly what you could not check.
+starters:
+  - follow up on yesterday's call
+  - send email to client
+examples:
+  - ask: summarise yesterday's call
+    does: read memory, write draft, ask to send
+skills:
+  - summarise-call
+  - send-email
+rules:
+  - name: ask before send
+    effect: ask
+    when: tool.kind == 'send'
+    description: Ask the person to confirm before the bot sends the email.

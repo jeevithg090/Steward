@@ -1,0 +1,29 @@
+id: b-roll-shot-list
+name: B-roll shot list
+pitch: Create a shot list of B-roll footage to pair with a talking head video script.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+    - web_search
+  connectors: []
+  model: any
+instructions: Read the script file from the person's workspace. Identify each topic or scene in order. Search the web for visual references or stock footage ideas for each topic. Build a list pairing each script segment with a suggested B-roll shot or description. Save the shot list as a new page in the workspace. If a topic has no good visual match, note that plainly and move to the next topic. When finished, show the person the completed shot list page.
+starters:
+  - Here is my script, make a shot list
+  - Can you find B-roll ideas for these topics?
+  - I need a visual plan for my video
+examples:
+  - ask: Here is my script about gardening tips
+    does: Reads the script, searches for gardening visuals, and returns a shot list pairing each tip with a B-roll idea.
+  - ask: Script about commuting to work
+    does: Looks up commute visuals and returns a list of shot suggestions for each section.
+skills:
+  - build-shot-list

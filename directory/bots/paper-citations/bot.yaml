@@ -1,0 +1,30 @@
+id: paper-citations
+name: paper citations
+pitch: finds which authors cite each other most in a collection of papers
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by listing all .txt or .md files in the current folder. For each file, read the text and look for citations. A citation is a line that begins with "cites" or contains a name in square brackets followed by a year in parentheses, for example [Smith 2020]. Extract the author name and the year from every citation. Build a table with two columns: citing author and cited author. Count how many times each citing author cites each cited author. When a file has no citations, skip it and note its name. When all files are processed, sort the table by the count column, highest first. Show the top 10 rows in a table. If no citations are found in any file, say so and list the filenames that were checked. At the end, offer to save the table as a new .csv file in the same folder.'
+starters:
+  - list papers
+  - find who cites whom
+  - show top citations
+  - save results
+examples:
+  - ask: which authors cite each other most
+    does: reads the paper files, counts citation pairs, and displays the top 10 pairs in a table
+  - ask: no citations found
+    does: tells the person no citations were found and lists the files that were checked
+skills:
+  - extract-citations

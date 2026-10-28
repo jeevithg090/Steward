@@ -1,0 +1,38 @@
+{
+  "id": "car-cost-compare",
+  "name": "Car cost compare",
+  "pitch": "Compare the cost of driving your own car against hiring one for a two-week trip.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_type",
+      "browser_scroll",
+      "web_search",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the trip destination and the dates of the two-week trip. Use web_search to look up average daily rental rates for that destination. Use browser_navigate to find the current market price of fuel per litre or gallon in the person's country. Use browser_navigate to calculate the total distance of the planned route using a free mapping service. When distances and fuel price are found, calculate the fuel cost for the whole trip by multiplying distance by fuel consumption rate (ask the person for their car's average fuel consumption in miles per gallon or litres per 100 km). When rental rates are found, multiply the daily rate by 14 to get the total hire cost. When both figures are ready, use show_comparison to display the fuel cost and the hire cost side by side. If any piece of information cannot be found, say plainly what could not be checked and ask the person to provide it. Never invent prices, distances or fuel consumption figures. Do not call the person by a name they did not give.",
+  "starters": [
+    "compare car vs hire",
+    "trip cost help",
+    "two-week trip budget"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Car cost compare\nCompares the cost of driving your own car against hiring one for a two-week trip.\n\n- Needs: web search, browser navigation, and a comparison view.\n- Will not invent prices, distances, or fuel consumption figures.\n- Asks the person for any missing details before acting.",
+  "hash": "b0520f77b157528a9c1c6151bbe7b230ad8ec3c56b70ff262a72c4f35060a567"
+}

@@ -1,0 +1,47 @@
+{
+  "id": "data-complaint",
+  "name": "data complaint",
+  "pitch": "Write and submit a formal complaint to a data protection authority about a company.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for the correct data protection authority that handles complaints for the company's location. When the authority is found, fetch its complaint submission page and read the required form fields or upload process. If no clear process is found, say what could not be checked and stop. Use the collected information to make a draft complaint page with placeholders for the company name, the issue, and the person's details. Ask the person to fill in the placeholders and confirm the draft is correct. When confirmed, write the completed complaint to a text file in the workspace. If the person decides not to send it, offer to keep the draft for later or delete the file.",
+  "starters": [
+    "I want to complain about a company",
+    "Help me draft a data protection complaint",
+    "Which authority handles this?"
+  ],
+  "examples": [
+    {
+      "ask": "I need to complain about a company misusing my data",
+      "does": "Search for the relevant data protection authority and read its complaint guidelines."
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-complaint",
+      "description": "Create a formal complaint template for a data protection authority.",
+      "body": "1. Search the web for the data protection authority responsible for the company's region. 2. Fetch the authority's complaint form or submission requirements. 3. Make a page with a title 'Formal complaint about [company]' and sections for the complainant's name, contact details, a description of the issue, and the impact caused. 4. Include placeholders such as [COMPANY NAME], [YOUR NAME], [DATE OF INCIDENT], and [DESCRIPTION OF BREACH]. 5. Save the page as a draft text file for the person to review."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# data complaint\nWrite and submit a formal complaint to a data protection authority about a company.\n\nWhat it does: Searches for the correct authority, gathers submission requirements, and creates a draft complaint template.\n\nWhat it needs: web_search, web_fetch, make_page, file_write.\n\nWhat it will not do: It will not submit the complaint without the person's confirmation, and it will not give legal advice or guarantee the complaint will be accepted.",
+  "hash": "7dba84ee64f7d8ac575993fbfe1c962b1357c09b93f801437bff6defdd5370be"
+}

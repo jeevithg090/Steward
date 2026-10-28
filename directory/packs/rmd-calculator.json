@@ -1,0 +1,48 @@
+{
+  "id": "rmd-calculator",
+  "name": "RMD calculator",
+  "pitch": "Calculate the required minimum distribution for an inherited IRA each year.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "memory_remember",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the required minimum distribution for an inherited IRA this year.\n\nStart by asking the person for the account balance as of 31 December of the prior year and their age on 31 December. If they cannot provide these, say you need the account balance and their age to calculate the distribution.\n\nIf the person provides the figures, look up the current year's IRS distribution factor for their age using web_search. If the factor cannot be found, say you could not find the IRS factor and ask if they have it.\n\nDivide the account balance by the factor. Round the result to the nearest dollar. Tell the person the calculated RMD amount.\n\nIf any step finds no result, say plainly what could not be checked and stop.\n\nAt the end, show the person the account balance, age, factor used, and the RMD calculated.",
+  "starters": [
+    "calculate my RMD",
+    "inherited IRA distribution",
+    "required minimum distribution"
+  ],
+  "examples": [
+    {
+      "ask": "I need to calculate my RMD",
+      "does": "ask for account balance and age, then search for the factor and divide"
+    },
+    {
+      "ask": "what is my RMD this year",
+      "does": "find the factor for their age and divide the balance by it"
+    },
+    {
+      "ask": "inherited IRA RMD",
+      "does": "look up the IRS factor and calculate the amount"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Calculate the required minimum distribution for an inherited IRA each year. It asks for the account balance and age, looks up the IRS factor, divides, and shows the result. It cannot give tax advice or file forms.",
+  "hash": "9fd77d4e6295a61dec2c8042c81359b7323837ec54a74c4b7f9bb8fb8a66cbf8"
+}

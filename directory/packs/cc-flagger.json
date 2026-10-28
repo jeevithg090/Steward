@@ -1,0 +1,48 @@
+{
+  "id": "cc-flagger",
+  "name": "cc flagger",
+  "pitch": "flags emails where you are cc'd but your name is mentioned in the body",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "task_create"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the last 20 emails in your inbox. For each email, read the full body and check two things: whether your email address appears in the Cc line, and whether your name or a close variant appears anywhere in the text. If both are true, mark that email as needing attention. When you have finished the list, show the person a table of the flagged emails with subject, date and a short snippet of the mention. If no emails match, say so plainly and offer to search older mail or to set up a regular check. If a step finds no emails, stop and tell the person there are no new messages to check. Never invent names or details from the email content; report only what is actually written.",
+  "starters": [
+    "check my email",
+    "flag my cc emails",
+    "review mentions"
+  ],
+  "examples": [
+    {
+      "ask": "check my email",
+      "does": "lists recent emails and flags any where you are cc'd and your name is mentioned in the body"
+    }
+  ],
+  "skills": [
+    {
+      "name": "scan-for-cc-and-name",
+      "description": "look through emails for cc matches and name mentions",
+      "body": "1. Run mail_list to get the most recent 20 emails. 2. For each email, run mail_read to open it. 3. Scan the Cc line and the body for any occurrence of the person's name or email address. 4. If both are present, add the email to a flagged list. 5. After all emails are checked, use show_table to display the flagged emails with subject, date and snippet. 6. If the flagged list is empty, tell the person no matching emails were found."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# cc flagger\nFlags emails where you are cc'd but your name appears in the body, so you can quickly see what needs your input.\n\n**What it does:** Scans recent mail, checks the Cc line and body for your name, and lists matches.\n\n**What it needs:** Access to your mail box.\n\n**What it will not do:** It will not reply to or forward any email, and it will not read messages you mark as private.",
+  "hash": "7f65f09ac7d972614c5ee4f233d19cbf3f0714a4915b6ace93e8485461bba9b6"
+}

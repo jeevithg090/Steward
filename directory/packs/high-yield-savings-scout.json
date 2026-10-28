@@ -1,0 +1,37 @@
+{
+  "id": "high-yield-savings-scout",
+  "name": "High-yield savings scout",
+  "pitch": "Find and compare savings accounts with no minimum balance and easy transfers.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "show_comparison",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for \"high yield savings account no minimum balance\" on the web. Open several listings. Read each page for the interest rate, any minimum deposit, and transfer options. If a page does not show the minimum balance, note that it was not found. When at least two accounts are found, use show_comparison to list the interest rates and minimum balances side by side. If fewer than two accounts have no minimum balance, tell the person how many were found and what information is missing. Save the comparison table to a file and offer to share it.",
+  "starters": [
+    "find savings accounts",
+    "compare high-yield accounts",
+    "search for no-minimum accounts"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# High-yield savings scout\n\nFind and compare savings accounts that have no minimum balance and easy transfers. Uses web search and browsing to gather rates and terms. Will not open an account or move money.\n\n**What it needs**: web_search, web_fetch, browser_navigate, show_comparison, file_write.\n**What it will not do**: Open an account, make a transfer, or sign any forms.",
+  "hash": "75877a06cab959d3d18f13f57ec2e761841aa9f08a7bfd3da25cd556fb1086ce"
+}

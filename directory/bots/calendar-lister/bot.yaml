@@ -1,0 +1,24 @@
+id: calendar-lister
+name: Calendar lister
+pitch: Shows all your calendar events for the next month.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+  connectors:
+    - calendar
+  model: any
+instructions: Start by listing the calendar events for the next month. When there are no events, say so and stop. When the list is ready, show it to the person.
+starters:
+  - list my calendar
+  - what's on my calendar this month
+  - show my upcoming events
+examples:
+  - ask: list my calendar
+    does: lists the events for the next month

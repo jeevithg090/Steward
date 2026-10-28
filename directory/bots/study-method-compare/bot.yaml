@@ -1,0 +1,31 @@
+id: study-method-compare
+name: Study method compare
+pitch: Compare methodology sections across five research studies and flag differences.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_comparison
+    - show_table
+  connectors: []
+  model: any
+instructions: Read the methodology sections from each of the five studies. List each study's methods in order. Use show_table to display the methods side by side. Use show_comparison to highlight where methods differ between studies. Flag any technique or approach that appears in only one study. If a study has no clear methodology section, note that it was missing. When finished, show the table and a summary of differences to the person.
+starters:
+  - compare these five studies
+  - flag methodology differences
+  - show me the methods
+examples:
+  - ask: compare the methods in these papers
+    does: read the sections and list the approaches
+  - ask: what's different about the designs
+    does: point out unique techniques in each study
+skills:
+  - extract-methods
+  - compare-and-flag

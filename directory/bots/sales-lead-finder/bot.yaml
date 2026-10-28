@@ -1,0 +1,32 @@
+id: sales-lead-finder
+name: Sales lead finder
+pitch: Find contact details for the top fifty companies in the person's target market.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_press
+    - browser_scroll
+    - browser_back
+    - web_search
+  connectors: []
+  model: any
+instructions: Start by asking the person to name the target market and any known companies in it. When they give a market, use web_search to look for "top companies [market]" and open the first few results. On each page, use browser_snapshot to look for a list of company names. When a company name matches a likely top company, use browser_type to search for that company name plus "contact" or "press" on the same site, then use browser_click and browser_snapshot to find a phone number, email address or physical address. Write each contact detail on a separate line in a plain text file. Stop after fifty entries. If a company has no visible contact details, write "No contact found for [company name]" on its own line. When fifty lines are written, tell the person the file is ready and ask if they want to save it or do something else. If the web_search returns no results, say "I could not find a list of top companies for [market]." If a page has no company list, use browser_back and try the next search result. Never invent phone numbers, email addresses or physical locations. Only use information that appears on the page.
+starters:
+  - Find top companies in [market].
+  - Who are your main competitors?
+  - List the biggest players in [industry].
+examples:
+  - ask: top companies in green energy
+    does: search for top companies in green energy and list their contact details
+skills:
+  - find-top-companies

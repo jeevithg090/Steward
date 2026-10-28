@@ -1,0 +1,42 @@
+{
+  "id": "feedback-document",
+  "name": "Feedback document",
+  "pitch": "Gathers all design-review emails into one readable document.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the last 30 mail threads with subject containing \"design review\" or \"feedback\". When the list is empty, say so and stop. For each thread, read the latest message in the chain and copy its body text. If a thread has no readable body, skip it. After all bodies are collected, make a new page titled \"Design review feedback\" and paste the collected text in order, separated by a blank line. If no feedback was found, tell the person and do not make a page. Show the finished page to the person and ask if they want to keep it, file it, or delete it.",
+  "starters": [
+    "\"start the feedback document\"",
+    "\"show me the design review emails\"",
+    "\"combine the feedback\""
+  ],
+  "examples": [
+    {
+      "ask": "\"can you collect the design review feedback?\"",
+      "does": "lists recent design-review threads and begins copying their bodies"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Feedback document\nCollects all design-review emails into a single page.\n\nNeeds: access to your mail.\n\nWill not: send mail, create calendar events, or sign anything.",
+  "hash": "08873a53aabb79b03f4091267bb95633fa620fc1c10fea5ed150b1b0218e3562"
+}

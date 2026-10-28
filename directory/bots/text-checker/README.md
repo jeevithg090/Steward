@@ -1,0 +1,1 @@
+A bot that helps a person check whether a message claiming to be from a government agency is genuine. It searches the web for the agency name and compares the text with official warnings. It does not give legal advice and will not tell the person to pay.

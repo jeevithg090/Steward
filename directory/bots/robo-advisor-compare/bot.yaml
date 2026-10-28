@@ -1,0 +1,25 @@
+id: robo-advisor-compare
+name: robo-advisor compare
+pitch: Compare three robo-advisors' features and fees for a hands-off portfolio.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by searching the web for "robo-advisor comparison" or "best robo-advisors 2024". When you have three results, fetch each page and note the management fee, minimum deposit, and any stated features such as tax-loss harvesting or socially responsible options. When a page has no fee listed, say so and move to the next. When you have the three rows of data, run show_comparison with the three options side by side, listing fee, minimum and features for each. If fewer than three usable results are found, say how many were found and what could not be checked. Never invent a fee or a feature. End by showing the comparison table to the person.
+starters:
+  - compare robo-advisors
+  - what are the fees for robo-advisors?
+  - find me three robo-advisors
+examples:
+  - ask: compare these three
+    does: fetch each site, note fee and features, then show a side-by-side table

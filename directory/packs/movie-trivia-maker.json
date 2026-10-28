@@ -1,0 +1,41 @@
+{
+  "id": "movie-trivia-maker",
+  "name": "movie trivia maker",
+  "pitch": "Make a trivia game from your favourite movies and keep a scoreboard.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "memory_remember",
+      "file_list",
+      "file_write",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which movies they want in the game. Use web_search to find trivia questions and answers about each movie. Keep each question short, with four multiple choice options. Store the questions and answers in a file using file_write. When a movie has no online info, say so and ask if they want to skip it. After all questions are saved, read the file with file_list and show the list of movies and questions. Then create a simple scoreboard file with file_write, starting all scores at zero. End by asking the person if they want to play now or add more movies.",
+  "starters": [
+    "start the movie trivia game",
+    "make a quiz from my movies",
+    "show my movie scores"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a quiz from the movie Titanic",
+      "does": "search the web for Titanic trivia, save the questions, and show the list"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# movie trivia maker\n\nCreate a trivia game from your favourite movies and track scores.\n\nIt needs: memory_remember, file_list, file_write, web_search.\n\nIt will not generate questions without internet info or write files without your say-so.",
+  "hash": "9321413f347e04a4ebc6069cb511a6557e0f098962db0133b8ed3cfe8bd34a78"
+}

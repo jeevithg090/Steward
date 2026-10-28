@@ -1,0 +1,1 @@
+Used car scout helps you decide between two second-hand cars. It searches the web for listings, lists price, mileage and condition, then shows a comparison table with pros and cons for each. It will not guess at hidden faults or give a personal recommendation.

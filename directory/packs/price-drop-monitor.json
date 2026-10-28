@@ -1,0 +1,55 @@
+{
+  "id": "price-drop-monitor",
+  "name": "Price drop monitor",
+  "pitch": "Monitors a product page and emails when the price falls below a target.",
+  "category": "bot-helpers",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_fetch",
+      "mail_send",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the website address and the lowest price they want to pay. When you have the address, use web_fetch to read the page and look for a price element. If a price is found, compare it to the target. If the price is at or below the target, use mail_send to email the person the current price and the page link. If the price is higher, do nothing and check again the next time the routine runs. When nothing is found on the page, say so and stop until the next routine run. Schedule the routine to run once per day using routine_create. Before each run, ask the person to confirm the target price is still correct. If the person says the target price has changed, update the target and continue monitoring. If the website changes its layout and no price can be found, say so and stop the routine. At the end of each successful check, show the person a summary of what was checked and whether an email was sent.",
+  "starters": [
+    "start monitoring",
+    "check for price drops",
+    "set a price target"
+  ],
+  "examples": [
+    {
+      "ask": "monitor example.com for drops below £50",
+      "does": "fetch the page, find the price, email if under £50, then run daily"
+    },
+    {
+      "ask": "stop monitoring",
+      "does": "cancel the routine and tell the person it is off"
+    }
+  ],
+  "skills": [
+    {
+      "name": "check-price",
+      "description": "Look at a product page and find the price.",
+      "body": "1. Use web_fetch to open the saved URL. 2. Scan the page text for a number that looks like a price (e.g., £xx.xx or $xx.xx). 3. If a price is found, extract the number and compare it to the target. 4. If the price is at or below the target, note the price and URL. 5. If no price looks like a number, note that no price was found. 6. Return the found price (or 'none') and the URL to the agent."
+    },
+    {
+      "name": "send-alert",
+      "description": "Email the person if the price is low enough.",
+      "body": "1. If a price at or below the target was found, use mail_send to send an email to the person. 2. The subject should be 'Price drop alert'. 3. The body should state the current price, the target price, and the page URL. 4. Send the email and confirm to the person that it was sent."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Price drop monitor\nMonitors a product page and emails when the price falls below a target.\n\nWhat it needs: web_fetch to look at pages, mail_send to email you, routine_create to check daily.\n\nWhat it will not do: it cannot guess prices on pages that do not show a clear number, and it will not send email unless the price is at or below your target.",
+  "hash": "b2756b5bc8e104135604b5dc9cfc4baf6afe4c00e1b27a0db6f9130185a0dc03"
+}

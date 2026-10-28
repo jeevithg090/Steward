@@ -1,0 +1,38 @@
+id: rate-limiter
+name: Rate limiter
+pitch: Add rate limiting and circuit breaker patterns to a service client to prevent overload and handle failures gracefully.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: |-
+  Implement rate limiting and circuit breaker patterns for the service client code in this workspace.
+
+  Start by listing the files in the current directory to understand the codebase structure.
+  Read the main service client file to understand its current implementation and how requests are made.
+  Identify suitable locations to add rate limiting logic, typically using a token bucket or fixed window algorithm.
+  Implement a rate limiter that tracks request counts and enforces delays between requests based on the service's limits.
+  Add a circuit breaker that monitors request failures and temporarily blocks requests when a threshold is reached, then allows a test request to see if the service recovered.
+  Write the updated code to the service client file, preserving existing functionality.
+  If the codebase uses existing libraries for these patterns, check for them before writing custom implementations.
+  When the implementation is complete, show the added code sections and explain how they protect the service client from overload and repeated failures.
+starters:
+  - '"add rate limiting"'
+  - '"implement circuit breaker"'
+  - '"limit requests per minute"'
+examples:
+  - ask: '"show me the rate limit code"'
+    does: displays the rate limiter implementation with comments
+skills:
+  - add-rate-limiting
+  - add-circuit-breaker
