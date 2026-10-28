@@ -40,6 +40,7 @@ const TOOL_LABELS: Record<string, string> = {
   show_comparison: "Show a comparison",
   show_choices: "Offer choices",
   make_page: "Make a page",
+  directory_find: "Look up bots in the directory",
 };
 
 /** "Send an email"; MCP tools read "notion: search pages"; unknown names are humanised, never raw. */
@@ -97,6 +98,7 @@ export const RULE_SOURCE_LABELS: Record<Rule["source"], string> = {
   tenant: "From your setup",
   person: "Yours",
   always: "Always allowed",
+  bot: "From a bot",
 };
 
 export const AUDIT_TYPE_LABELS: Record<AuditType, string> = {
@@ -116,6 +118,9 @@ export const AUDIT_TYPE_LABELS: Record<AuditType, string> = {
   "routine.disabled": "Routine switched off",
   "run.started": "Started work",
   "run.finished": "Finished work",
+  "bot.installed": "Bot added",
+  "bot.updated": "Bot updated",
+  "bot.removed": "Bot removed",
 };
 
 export const TASK_STATES: Record<TaskState, { label: string; tone: Tone }> = {

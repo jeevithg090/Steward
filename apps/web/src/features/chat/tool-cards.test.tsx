@@ -7,6 +7,7 @@ import { type ChatActions, ChatActionsContext } from "./chat-context.tsx";
 import {
   BrowserLine,
   ChoicesToolCard,
+  DirectoryFindCard,
   GenericToolLine,
   MailSendCard,
   SecretRequestLine,
@@ -57,7 +58,7 @@ const draft = { to: [{ email: "sam@example.com" }], subject: "Friday", body: "Se
 
 describe("tool cards", () => {
   it("has a renderer for every built-in tool", () => {
-    expect(Object.keys(RENDERERS).length).toBe(31);
+    expect(Object.keys(RENDERERS).length).toBe(32);
   });
 
   it("shows a browser step in plain words with a way to the screen", () => {
@@ -182,6 +183,66 @@ describe("tool cards", () => {
       />,
     );
     expect(screen.getByText("Added a task")).toBeTruthy();
+  });
+
+  it("lists the bots the directory returned, with View and Add, and says the text is from outside", () => {
+    draw(
+      <DirectoryFindCard
+        {...tool(
+          "directory_find",
+          { query: "plan my meals" },
+          {
+            ok: true,
+            data: {
+              untrusted: true,
+              notice: "From the bot directory.",
+              data: {
+                bots: [
+                  {
+                    id: "meal-planner",
+                    name: "Meal Planner",
+                    pitch: "Plans a week of dinners.",
+                    author: { kind: "ai", model: "m", generated: "2026-10-28" },
+                    packUrl: "packs/meal-planner.json",
+                  },
+                  { id: "chef", name: "Chef", pitch: "Cooks.", author: { kind: "person", handle: "ana" } },
+                ],
+              },
+            },
+          },
+        )}
+      />,
+    );
+    expect(screen.getByRole("region", { name: "Bots for “plan my meals”" })).toBeTruthy();
+    expect(screen.getByText("2 bots found")).toBeTruthy();
+    expect(screen.getByText("Plans a week of dinners.")).toBeTruthy();
+    expect(screen.getByText("AI-made")).toBeTruthy();
+    expect(screen.getByText("by ana")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "View Meal Planner" }).getAttribute("href")).toBe(
+      "/bots/meal-planner",
+    );
+    expect(screen.getByRole("link", { name: "Add Meal Planner" }).getAttribute("href")).toBe(
+      "/bots/add?pack=packs%2Fmeal-planner.json",
+    );
+    // No pack address in the row: the index's own layout stands in.
+    expect(screen.getByRole("link", { name: "Add Chef" }).getAttribute("href")).toBe(
+      "/bots/add?pack=packs%2Fchef.json",
+    );
+    expect(screen.getByText("From the bot directory.")).toBeTruthy();
+  });
+
+  it("shows the directory tool's own note when the result is not wrapped", () => {
+    draw(
+      <DirectoryFindCard
+        {...tool(
+          "directory_find",
+          { query: "x" },
+          { ok: true, data: { bots: [], total: 0, note: "Listing text is written by third parties." } },
+        )}
+      />,
+    );
+    expect(screen.getByText("0 bots found")).toBeTruthy();
+    expect(screen.getByText("Listing text is written by third parties.")).toBeTruthy();
   });
 
   it("keeps the conversation when a card throws", () => {

@@ -1,4 +1,5 @@
 import {
+  Bot,
   Brain,
   ListChecks,
   type LucideIcon,
@@ -44,6 +45,13 @@ export const NAV_ITEMS: NavItem[] = [
     primary: true,
     shortcut: "c",
     description: "Talk to Steward",
+  },
+  {
+    to: "/bots",
+    label: "Bots",
+    icon: Bot,
+    shortcut: "b",
+    description: "Ready-made helpers you can add",
   },
   {
     to: "/tasks",

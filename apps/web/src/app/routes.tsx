@@ -17,6 +17,11 @@ const ConnectionsPage = lazy(() =>
   import("@/pages/ConnectionsPage.tsx").then((m) => ({ default: m.ConnectionsPage })),
 );
 const SkillsPage = lazy(() => import("@/pages/SkillsPage.tsx").then((m) => ({ default: m.SkillsPage })));
+const BotsPage = lazy(() => import("@/pages/BotsPage.tsx").then((m) => ({ default: m.BotsPage })));
+const BotListingPage = lazy(() =>
+  import("@/pages/BotListingPage.tsx").then((m) => ({ default: m.BotListingPage })),
+);
+const BotAddPage = lazy(() => import("@/pages/BotAddPage.tsx").then((m) => ({ default: m.BotAddPage })));
 const MemoryPage = lazy(() => import("@/pages/MemoryPage.tsx").then((m) => ({ default: m.MemoryPage })));
 const SettingsPage = lazy(() =>
   import("@/pages/SettingsPage.tsx").then((m) => ({ default: m.SettingsPage })),
@@ -43,6 +48,9 @@ export function AppRoutes() {
         <Route index element={<TodayPage />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="chat/:threadId" element={<ChatPage />} />
+        <Route path="bots" element={<BotsPage />} />
+        <Route path="bots/add" element={<BotAddPage />} />
+        <Route path="bots/:id" element={<BotListingPage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="computer" element={<ComputerPage />} />
         <Route path="routines" element={<RoutinesPage />} />

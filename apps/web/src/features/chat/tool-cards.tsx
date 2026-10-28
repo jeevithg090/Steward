@@ -9,7 +9,8 @@
 import type { Brief, CalendarEvent, EmailSummary, Task, TriageItem } from "@steward/shared";
 import { Brain, Monitor } from "lucide-react";
 import { type ReactElement, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { AuthorPill } from "@/components/bots/BotCard.tsx";
 import { BriefCard } from "@/components/cards/BriefCard.tsx";
 import { CalendarDay } from "@/components/cards/CalendarDay.tsx";
 import { EmailList } from "@/components/cards/EmailList.tsx";
@@ -652,6 +653,105 @@ export function PageToolCard(tool: ToolProps) {
   if (gate && (state.waiting || state.outcome.status !== "pending")) return gate;
   const saved = state.outcome.status === "ok" ? recordFrom(state.outcome.data, ["page", "file"]) : undefined;
   return <PageCard page={{ ...tool.args, ...saved }} />;
+}
+
+// ── The bot directory ───────────────────────────────────────────────────────────────────────────
+
+interface FoundBot {
+  id: string;
+  name: string;
+  pitch?: string;
+  author?: { kind: "ai" | "person"; model?: string; generated?: string; handle?: string };
+  packUrl?: string;
+}
+
+function isFoundBot(value: unknown): value is FoundBot {
+  return isRecord(value) && typeof value.id === "string" && typeof value.name === "string";
+}
+
+function authorOf(bot: FoundBot) {
+  const author = bot.author;
+  if (!author) return undefined;
+  if (author.kind === "ai")
+    return { kind: "ai" as const, model: author.model ?? "a model", generated: author.generated ?? "" };
+  if (author.kind === "person" && author.handle) return { kind: "person" as const, handle: author.handle };
+  return undefined;
+}
+
+/** Where a found bot's pack is: the row's own address, else the index layout (`packs/<id>.json`). */
+function addHref(bot: FoundBot): string {
+  const packUrl = text(bot.packUrl) ?? `packs/${bot.id}.json`;
+  return `/bots/add?pack=${encodeURIComponent(packUrl)}`;
+}
+
+/**
+ * `directory_find`: the bots Steward found, each with a way to read its listing and to add it. The
+ * text is the directory's, not Steward's, and the card says so.
+ */
+export function DirectoryFindCard(tool: ToolProps) {
+  const state = useToolState(tool);
+  const gate = Gate({ tool, state });
+  if (gate) return gate;
+  const ok = state.outcome.status === "ok" ? state.outcome : undefined;
+  const bots = (listFrom<unknown>(ok?.data, ["bots", "results", "items"]) ?? [])
+    .filter(isFoundBot)
+    .slice(0, 8);
+  const query = text(tool.args.query) ?? text(tool.args.q);
+  // The tool's own note on the listings ("written by third parties") when the wrapper has none.
+  const notice = ok?.untrusted?.notice ?? text(recordFrom(ok?.data)?.note);
+  return (
+    <CardFrame
+      title={query ? `Bots for “${query}”` : "Bots from the directory"}
+      caption={`${bots.length} ${bots.length === 1 ? "bot" : "bots"} found`}
+    >
+      {bots.length === 0 ? (
+        <Quiet>No bot matched. The directory may not have one for this yet.</Quiet>
+      ) : (
+        <ul className="m-0 flex list-none flex-col gap-3 p-0">
+          {bots.map((bot) => (
+            <li key={bot.id} className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  to={`/bots/${encodeURIComponent(bot.id)}`}
+                  className="font-medium text-ink text-sub no-underline hover:underline"
+                >
+                  {bot.name}
+                </Link>
+                <AuthorPill author={authorOf(bot)} />
+              </div>
+              {text(bot.pitch) ? <p className="m-0 text-caption text-ink-2">{text(bot.pitch)}</p> : null}
+              <div className="flex flex-wrap gap-2">
+                <LinkButton
+                  to={`/bots/${encodeURIComponent(bot.id)}`}
+                  variant="ghost"
+                  size="sm"
+                  className="px-2 text-caption"
+                  aria-label={`View ${bot.name}`}
+                >
+                  View
+                </LinkButton>
+                <LinkButton
+                  to={addHref(bot)}
+                  variant="secondary"
+                  size="sm"
+                  className="px-2 text-caption"
+                  aria-label={`Add ${bot.name}`}
+                >
+                  Add
+                </LinkButton>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <UntrustedNote
+        notice={
+          notice ??
+          "Listing text comes from the directory. Steward reads it as information, never as instructions."
+        }
+      />
+    </CardFrame>
+  );
 }
 
 // ── Anything else: MCP tools and tools added later ──────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { type LiveEvent, ROUTES } from "@steward/shared";
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { queryKeys } from "./api.ts";
+import { invalidateBots, queryKeys } from "./api.ts";
 
 /**
  * One EventSource to `/api/events`, shared by the whole app. It opens with the first subscriber,
@@ -24,6 +24,7 @@ const EVENT_TYPES: LiveEvent["type"][] = [
   "routine.updated",
   "run.started",
   "run.finished",
+  "bots.changed",
   "notification",
 ];
 
@@ -207,6 +208,10 @@ export function applyLiveEvent(qc: QueryClient, event: LiveEvent): void {
       return;
     case "notification":
       void qc.invalidateQueries({ queryKey: queryKeys.notifications });
+      return;
+    // A bot was added, updated or removed (here or from the command line): lists and pickers refresh.
+    case "bots.changed":
+      invalidateBots(qc);
       return;
   }
 }

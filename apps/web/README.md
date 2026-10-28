@@ -1,7 +1,8 @@
 # @steward/web
 
-Steward's web app: Today, Chat, Tasks, the agent's Computer, Routines, Rules, the Record,
-Connections, Skills, Memory and Settings. Vite 8, React 19, Tailwind CSS 4, TanStack Query 5 and
+Steward's web app: Today, Chat, Bots (the directory: browse, read what a bot may do, add it, make
+one), Tasks, the agent's Computer, Routines, Rules, the Record, Connections, Skills, Memory and
+Settings. Vite 8, React 19, Tailwind CSS 4, TanStack Query 5 and
 CopilotKit's React client (v2).
 
 Accessibility is a headline feature, not a pass at the end: every screen works by keyboard and
@@ -131,8 +132,8 @@ Throughout the app:
 - Async results are announced in live regions that are mounted before the text arrives.
 - Dialogs are native `<dialog>` elements: named, Escape closes, Tab stays inside, focus returns.
 - Tabs use a roving tabindex: arrow keys, Home and End.
-- Keyboard shortcuts: `g` then `t` Today, `c` Chat, `k` Tasks, `o` Computer, `u` Routines, `r`
-  Rules, `l` Record, `s` Settings; `?` lists them. They never fire while typing or with a
+- Keyboard shortcuts: `g` then `t` Today, `c` Chat, `b` Bots, `k` Tasks, `o` Computer, `u`
+  Routines, `r` Rules, `l` Record, `s` Settings; `?` lists them. They never fire while typing or with a
   modifier held.
 
 ## Honesty on screen

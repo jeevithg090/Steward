@@ -60,6 +60,25 @@ describe("loadConfig", () => {
     );
   });
 
+  it("points at the bundled bot directory by default, and never posts counts unless asked", () => {
+    const config = loadConfig({});
+    expect(config.directoryUrl).toBe(join(REPO_ROOT, "directory", "index.json"));
+    expect(config.directoryCounts).toBe(false);
+    expect(loadConfig({ STEWARD_DIRECTORY_URL: "my-bots/index.json" }).directoryUrl).toBe(
+      join(REPO_ROOT, "my-bots/index.json"),
+    );
+    expect(
+      loadConfig({ STEWARD_DIRECTORY_URL: "https://bots.example/index.json", STEWARD_DIRECTORY_COUNTS: "1" }),
+    ).toMatchObject({ directoryUrl: "https://bots.example/index.json", directoryCounts: true });
+    expect(loadConfig({ STEWARD_DIRECTORY_URL: "http://127.0.0.1:8790/index.json" }).directoryUrl).toBe(
+      "http://127.0.0.1:8790/index.json",
+    );
+    expect(() => loadConfig({ STEWARD_DIRECTORY_URL: "http://bots.example/index.json" })).toThrow(
+      ConfigError,
+    );
+    expect(() => loadConfig({ STEWARD_DIRECTORY_URL: "ftp://bots.example/index.json" })).toThrow(ConfigError);
+  });
+
   it("parses flags leniently", () => {
     expect(parseFlag("on", false)).toBe(true);
     expect(parseFlag("OFF", true)).toBe(false);

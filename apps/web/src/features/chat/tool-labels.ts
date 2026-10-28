@@ -121,6 +121,12 @@ const OWN: Record<string, (args: Args) => [string, string, string?]> = {
   show_comparison: () => ["Comparing the options", "Compared the options"],
   show_choices: () => ["Offering some choices", "Offered some choices"],
   make_page: () => ["Putting it together", "Made a page"],
+  directory_find: (a) => {
+    const query = str(a.query, 60) ?? str(a.q, 60);
+    return query
+      ? [`Looking for bots that ${lowerFirst(query)}`, `Looked for bots that ${lowerFirst(query)}`]
+      : ["Looking up bots in the directory", "Looked up bots in the directory"];
+  },
 };
 
 /** "Password for example.com" as "password for example.com", but "PIN" stays "PIN". */

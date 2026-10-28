@@ -59,6 +59,12 @@ importers:
       '@steward/agent':
         specifier: workspace:*
         version: link:../../packages/agent
+      '@steward/bots':
+        specifier: workspace:*
+        version: link:../../packages/bots
+      '@steward/bots-gen':
+        specifier: workspace:*
+        version: link:../../packages/bots-gen
       '@steward/computer':
         specifier: workspace:*
         version: link:../../packages/computer
@@ -180,6 +186,9 @@ importers:
       '@copilotkit/runtime':
         specifier: 1.81.0
         version: 1.81.0(@langchain/core@1.3.0(@opentelemetry/api@1.10.0)(openai@7.45.1(google-auth-library@10.9.1)(undici@6.29.1)(ws@8.22.0)(zod@3.25.76))(ws@8.22.0))(@langchain/langgraph-sdk@1.12.8(@langchain/core@1.3.0(@opentelemetry/api@1.10.0)(openai@7.45.1(google-auth-library@10.9.1)(undici@6.29.1)(ws@8.22.0)(zod@3.25.76))(ws@8.22.0))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@opentelemetry/api@1.10.0)(@types/express@5.0.6)(express@5.3.0)(langchain@1.5.20(@langchain/core@1.3.0(@opentelemetry/api@1.10.0)(openai@7.45.1(google-auth-library@10.9.1)(undici@6.29.1)(ws@8.22.0)(zod@3.25.76))(ws@8.22.0))(@opentelemetry/api@1.10.0)(openai@7.45.1(google-auth-library@10.9.1)(undici@6.29.1)(ws@8.22.0)(zod@3.25.76))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(ws@8.22.0))(openai@7.45.1(google-auth-library@10.9.1)(undici@6.29.1)(ws@8.22.0)(zod@3.25.76))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@steward/bots':
+        specifier: workspace:*
+        version: link:../bots
       '@steward/computer':
         specifier: workspace:*
         version: link:../computer
@@ -204,6 +213,36 @@ importers:
       rxjs:
         specifier: 7.8.1
         version: 7.8.1
+      yaml:
+        specifier: 2.9.1
+        version: 2.9.1
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+
+  packages/bots:
+    dependencies:
+      '@steward/gateway':
+        specifier: workspace:*
+        version: link:../gateway
+      '@steward/shared':
+        specifier: workspace:*
+        version: link:../shared
+      yaml:
+        specifier: 2.9.1
+        version: 2.9.1
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+
+  packages/bots-gen:
+    dependencies:
+      '@steward/bots':
+        specifier: workspace:*
+        version: link:../bots
+      '@steward/shared':
+        specifier: workspace:*
+        version: link:../shared
       yaml:
         specifier: 2.9.1
         version: 2.9.1

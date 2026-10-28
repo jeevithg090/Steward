@@ -8,7 +8,8 @@ export function appInfo(s: StewardServices): AppInfo {
   const model = s.models.info;
   return {
     brand: s.tenant.brand,
-    agents: s.tenant.agents,
+    // The tenant's agents, then one per installed bot, each saying where it came from.
+    agents: s.models.profiles,
     starters: s.tenant.starters,
     model: { provider: model.provider, model: model.model, scripted: model.scripted },
     mail: {

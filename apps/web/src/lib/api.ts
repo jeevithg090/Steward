@@ -5,6 +5,13 @@ import {
   type Approval,
   type ApprovalDecisionBody,
   type AuditPage,
+  type BotInstallBody,
+  type BotListing,
+  type BotMakeBody,
+  type BotPack,
+  type BotPreview,
+  type BotPreviewBody,
+  type BotsQuery,
   type Brief,
   type CalendarEvent,
   type ChainCheck,
@@ -13,6 +20,7 @@ import {
   type Decision,
   type DryRunBody,
   type EmailSummary,
+  type InstalledBot,
   type McpServerBody,
   type McpServerInfo,
   type MemoryFact,
@@ -67,6 +75,18 @@ export type SkillInput = z.input<typeof SkillBody>;
 export type McpServerInput = z.input<typeof McpServerBody>;
 export type SettingsInput = z.input<typeof SettingsBody>;
 export type ThreadCreateInput = z.input<typeof ThreadCreateBody>;
+export type BotPreviewInput = z.input<typeof BotPreviewBody>;
+export type BotInstallInput = z.input<typeof BotInstallBody>;
+export type BotMakeInput = z.input<typeof BotMakeBody>;
+export type BotsQueryInput = z.input<typeof BotsQuery>;
+
+/** `GET /api/bots`: one page of the directory, with the categories the index names. */
+export interface BotsResponse {
+  bots: BotListing[];
+  total: number;
+  /** Category id to its label, e.g. `home` → "Home & family". */
+  categories?: Record<string, string>;
+}
 
 /** `GET /api/inbox` returns summaries with their triage verdict when one has been made. */
 export type InboxEmail = EmailSummary & { triage?: TriageItem };
@@ -295,6 +315,20 @@ export const api = {
     list: (signal?: AbortSignal) => get<AppNotification[]>(ROUTES.notifications, undefined, signal),
     readAll: () => send<void>("POST", `${ROUTES.notifications}/read-all`),
   },
+
+  bots: {
+    list: (query: BotsQueryInput = {}, signal?: AbortSignal) =>
+      get<BotsResponse>(ROUTES.bots, { ...query }, signal),
+    installed: (signal?: AbortSignal) => get<InstalledBot[]>(ROUTES.botsInstalled, undefined, signal),
+    /** What a pack would mean for this Steward: what it may do, what is missing. Nothing is installed. */
+    preview: (body: BotPreviewInput) => send<BotPreview>("POST", ROUTES.botsPreview, body),
+    install: (body: BotInstallInput) => send<InstalledBot>("POST", ROUTES.botsInstall, body),
+    remove: (id: string) => send<void>("DELETE", route(ROUTES.botInstalled, { id })),
+    /** Applies the newer version the directory has for an installed bot. */
+    update: (id: string) => send<InstalledBot>("POST", `${route(ROUTES.botInstalled, { id })}/update`),
+    /** Writes a pack from a job in the person's words. Returned, not installed. */
+    make: (body: BotMakeInput) => send<BotPack>("POST", ROUTES.botsMake, body),
+  },
 };
 
 // ── Query keys ────────────────────────────────────────────────────────────────────────────────
@@ -331,6 +365,10 @@ export const queryKeys = {
   computerActivity: (agentId: string) => ["computer", agentId, "activity"] as const,
   computerFiles: (agentId: string, dir?: string) => ["computer", agentId, "files", dir ?? ""] as const,
   notifications: ["notifications"] as const,
+  /** Every bots query: the directory pages and the installed list. */
+  bots: ["bots"] as const,
+  botList: (query: BotsQueryInput) => ["bots", "list", query] as const,
+  botsInstalled: ["bots", "installed"] as const,
 };
 
 /** A client with Steward's defaults: retry only what might succeed on a second try. */
@@ -771,6 +809,60 @@ export function useReadAllNotifications() {
     mutationFn: () => api.notifications.readAll(),
     onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.notifications }),
   });
+}
+
+// ── Bots ───────────────────────────────────────────────────────────────────────────────────────
+
+export function useBots(query: BotsQueryInput = {}, opts?: QueryOpts<BotsResponse>) {
+  return useQuery<BotsResponse, ApiError>({
+    queryKey: queryKeys.botList(query),
+    queryFn: ({ signal }) => api.bots.list(query, signal),
+    staleTime: 60_000,
+    ...opts,
+  });
+}
+
+export function useInstalledBots(opts?: QueryOpts<InstalledBot[]>) {
+  return useQuery<InstalledBot[], ApiError>({
+    queryKey: queryKeys.botsInstalled,
+    queryFn: ({ signal }) => api.bots.installed(signal),
+    ...opts,
+  });
+}
+
+/** A preview is asked for when a listing opens; nothing is cached, since the answer depends on today's rules. */
+export function useBotPreview() {
+  return useMutation<BotPreview, ApiError, BotPreviewInput>({ mutationFn: (body) => api.bots.preview(body) });
+}
+
+/**
+ * Installing, removing or updating a bot changes more than the bots list: the agents in `/api/info`,
+ * the skills and rules it brought, and its routines.
+ */
+function useBotsMutation<TVars, TResult>(fn: (vars: TVars) => Promise<TResult>) {
+  const qc = useQueryClient();
+  return useMutation<TResult, ApiError, TVars>({
+    mutationFn: fn,
+    onSuccess: () => invalidateBots(qc),
+  });
+}
+
+export function invalidateBots(qc: QueryClient): void {
+  void qc.invalidateQueries({ queryKey: queryKeys.bots });
+  void qc.invalidateQueries({ queryKey: queryKeys.info });
+  void qc.invalidateQueries({ queryKey: queryKeys.skills });
+  void qc.invalidateQueries({ queryKey: queryKeys.rules });
+  void qc.invalidateQueries({ queryKey: queryKeys.routines });
+  void qc.invalidateQueries({ queryKey: queryKeys.audit });
+}
+
+export const useInstallBot = () => useBotsMutation((body: BotInstallInput) => api.bots.install(body));
+export const useRemoveBot = () => useBotsMutation((id: string) => api.bots.remove(id));
+export const useUpdateBot = () => useBotsMutation((id: string) => api.bots.update(id));
+
+/** Make a bot: the pack comes back for the person to read; adding it is a separate step. */
+export function useMakeBot() {
+  return useMutation<BotPack, ApiError, BotMakeInput>({ mutationFn: (body) => api.bots.make(body) });
 }
 
 // ── Derived counts ─────────────────────────────────────────────────────────────────────────────

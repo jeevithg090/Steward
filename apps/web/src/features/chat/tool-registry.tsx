@@ -16,6 +16,7 @@ import {
   ChartToolCard,
   ChoicesToolCard,
   ComparisonToolCard,
+  DirectoryFindCard,
   FileLine,
   HelpRequestCard,
   MailListCard,
@@ -67,6 +68,7 @@ export const RENDERERS: Record<BuiltinToolName, ComponentType<ToolProps>> = {
   show_comparison: ComparisonToolCard,
   show_choices: ChoicesToolCard,
   make_page: PageToolCard,
+  directory_find: DirectoryFindCard,
 };
 
 export interface RawRenderProps {

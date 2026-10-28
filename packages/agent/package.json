@@ -25,7 +25,8 @@
     "@copilotkit/runtime": "1.81.0",
     "@copilotkit/aimock": "1.47.0",
     "@steward/db": "workspace:*",
-    "@steward/proactive": "workspace:*"
+    "@steward/proactive": "workspace:*",
+    "@steward/bots": "workspace:*"
   },
   "devDependencies": {}
 }

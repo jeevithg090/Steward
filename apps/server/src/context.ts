@@ -1,3 +1,4 @@
+import type { DirectoryClient } from "@steward/bots";
 import type { Db } from "@steward/db";
 import type {
   BriefService,
@@ -15,12 +16,14 @@ import type {
   Triage,
   WebTools,
 } from "@steward/shared";
+import type { BotService } from "./bots/service.ts";
 import type { ServerConfig } from "./config.ts";
 import type { SecurityOptions } from "./http/security.ts";
 import type { AgentHost } from "./runtime/agents.ts";
 import type { NodeSqliteAgentRunner } from "./runtime/runner.ts";
 import type { ServerRuns } from "./runtime/server-runs.ts";
 import type { SetupService } from "./setup/checks.ts";
+import type { InstalledBotStore } from "./store/bots.ts";
 import type { SettingsStore } from "./store/settings.ts";
 import type { ThreadStore } from "./store/threads.ts";
 import type { ResumeSweep } from "./workers/resume-sweep.ts";
@@ -58,6 +61,10 @@ export interface StewardServices {
   threads: ThreadStore;
   settings: SettingsStore;
   setup: SetupService;
+  /** The bot directory (`STEWARD_DIRECTORY_URL`), the bots installed from it, and the work between. */
+  directory: DirectoryClient;
+  installedBots: InstalledBotStore;
+  bots: BotService;
   security: SecurityOptions;
   /** Single-user mode: every action is the one local person's. */
   actorId: string;

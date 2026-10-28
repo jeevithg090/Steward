@@ -42,6 +42,16 @@ export interface ServerConfig {
   workers: boolean;
   /** How long a decided approval waits for a browser to resume it before the server does. */
   resumeDelayMs: number;
+  /**
+   * The bot directory: an https URL or a path to an `index.json` (`STEWARD_DIRECTORY_URL`). Defaults
+   * to the directory bundled with the repository, so the Bots page works offline.
+   */
+  directoryUrl: string;
+  /**
+   * Tell the directory when a bot is installed: one POST per install, no identity
+   * (`STEWARD_DIRECTORY_COUNTS`). Off by default, and never sent to a directory read from a file.
+   */
+  directoryCounts: boolean;
   /** The environment model resolution reads. Never echoed to a person. */
   env: NodeJS.ProcessEnv;
 }
@@ -71,6 +81,30 @@ function parsePort(value: string | undefined): number {
 }
 
 const TENANT_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+
+/** The bundled directory, relative to the repository root. */
+export const DEFAULT_DIRECTORY = "directory/index.json";
+
+/** True for a directory read over the network rather than from a file. */
+export function isRemoteDirectory(source: string): boolean {
+  return /^https?:\/\//i.test(source.trim());
+}
+
+/** An https URL as given, or a file path resolved from the repository root. */
+export function resolveDirectory(value: string | undefined, repoRoot: string): string {
+  const raw = value?.trim() || DEFAULT_DIRECTORY;
+  if (isRemoteDirectory(raw)) {
+    const url = new URL(raw);
+    if (url.protocol === "http:" && !isLoopbackHost(url.hostname)) {
+      throw new ConfigError("STEWARD_DIRECTORY_URL must be https, or http only on this machine.");
+    }
+    return raw;
+  }
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(raw)) {
+    throw new ConfigError(`STEWARD_DIRECTORY_URL must be an https URL or a file path, not "${raw}".`);
+  }
+  return isAbsolute(raw) ? raw : resolve(repoRoot, raw);
+}
 
 /** True for names that only reach this machine. */
 export function isLoopbackHost(hostname: string): boolean {
@@ -130,6 +164,8 @@ export function loadConfig(
     devOrigins: production ? [] : [...DEV_ORIGINS],
     workers: parseFlag(env.STEWARD_WORKERS, true),
     resumeDelayMs: 3000,
+    directoryUrl: resolveDirectory(env.STEWARD_DIRECTORY_URL, repoRoot),
+    directoryCounts: parseFlag(env.STEWARD_DIRECTORY_COUNTS, false),
     env,
     ...overrides,
   };

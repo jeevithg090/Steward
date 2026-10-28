@@ -173,6 +173,7 @@ export async function missingPackages(): Promise<string[]> {
       "@steward/agent",
       ["createStewardAgent", "createModel", "createTextModel", "resolveModelConfig", "loadTenant"],
     ],
+    ["@steward/bots", ["DirectoryClient", "validatePack", "hashPack", "profileFromPack", "describeMayDo"]],
   ];
   const missing: string[] = [];
   for (const [pkg, names] of needs) {

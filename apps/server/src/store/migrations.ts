@@ -49,4 +49,24 @@ export const migrations: Migration[] = [
       );
       CREATE INDEX IF NOT EXISTS runner_runs_by_thread ON runner_runs (thread_id, seq);`,
   },
+  {
+    // Bots added from the directory: the pack itself and the ids of what installing it created, so
+    // removing the bot takes away exactly that and nothing else.
+    id: "server.004_installed_bots",
+    sql: `
+      CREATE TABLE IF NOT EXISTS installed_bots (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        version INTEGER NOT NULL,
+        hash TEXT NOT NULL,
+        source TEXT NOT NULL,
+        installed_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        agent_id TEXT NOT NULL,
+        pack_json TEXT NOT NULL,
+        skill_ids_json TEXT NOT NULL DEFAULT '[]',
+        rule_ids_json TEXT NOT NULL DEFAULT '[]',
+        routine_ids_json TEXT NOT NULL DEFAULT '[]'
+      );`,
+  },
 ];

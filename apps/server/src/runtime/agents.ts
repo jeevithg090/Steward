@@ -13,7 +13,8 @@ import {
   createTextModel,
   resolveModelConfig,
 } from "@steward/agent";
-import type { ModelConfig, TenantPackage, TextModel } from "@steward/shared";
+import { profileFromPack } from "@steward/bots";
+import type { AgentProfile, BotPack, ModelConfig, TenantPackage, TextModel } from "@steward/shared";
 import { Observable } from "rxjs";
 import { type ModelChoice, takesAddress } from "../store/settings.ts";
 
@@ -34,8 +35,28 @@ export interface ModelInfo {
 
 type LoadedModel = Awaited<ReturnType<typeof createModel>>;
 
-/** Everything `createStewardAgent` needs except what the host decides per profile. */
+/**
+ * Everything `createStewardAgent` needs except what the host decides per profile. The directory
+ * client rides along in `directory`, for the `directory_find` tool.
+ */
 export type SharedAgentDeps = Omit<AgentDeps, "profile" | "tenant" | "model" | "serverRunToken">;
+
+/** An installed bot as the host builds an agent from it: its pack and the names its skills got. */
+export interface BotAgentSource {
+  pack: BotPack;
+  /** The skills the bot brought, by the names they have in the store (a clash gets a suffix). */
+  skills: string[];
+}
+
+/**
+ * The model id a pack's `needs.model` names, if it names one. `any` and sentences such as "a model
+ * that uses tools well" are capabilities, not ids, and leave the agent on the tenant's model.
+ */
+export function modelIdFrom(needs: string | undefined): string | undefined {
+  const value = needs?.trim() ?? "";
+  if (!value || value.toLowerCase() === "any" || value.length > 120) return undefined;
+  return /^[a-z0-9][a-z0-9._/:-]*$/i.test(value) && /[a-z]/i.test(value) ? value : undefined;
+}
 
 const KEYLESS: ReadonlySet<ModelConfig["provider"]> = new Set(["scripted", "ollama"]);
 
@@ -121,21 +142,27 @@ function hasKey(cfg: ModelConfig, env: NodeJS.ProcessEnv): boolean {
 interface Generation {
   config: ModelConfig;
   info: ModelInfo;
+  /** Tenant profiles first, then one per installed bot, each with its `source`. */
+  profiles: AgentProfile[];
   agents: Record<string, AbstractAgent>;
   text?: TextModel;
   loaded: LoadedModel[];
 }
 
 /**
- * Owns the model and one agent per tenant profile. The runtime reads `agents` on every request, so
- * a model change in Settings swaps them without a restart; runs already in flight finish on the
- * clone they started with, and the old model is closed a minute later.
+ * Owns the model and one agent per profile: the tenant's, then one for every installed bot. The
+ * runtime reads `agents` on every request, so a model change in Settings or a bot being added or
+ * removed swaps them without a restart; runs already in flight finish on the clone they started
+ * with, and the old model is closed a minute later.
  */
 export class AgentHost {
   private current: Generation | undefined;
   private readonly retired = new Set<LoadedModel>();
   private readonly timers = new Set<NodeJS.Timeout>();
   private generation = 0;
+  private choice: ModelChoice | undefined;
+  /** Builds run one after another, so two quick changes never interleave their model starts. */
+  private queue: Promise<void> = Promise.resolve();
 
   constructor(
     private readonly deps: {
@@ -143,11 +170,60 @@ export class AgentHost {
       env: NodeJS.ProcessEnv;
       serverRunToken: string;
       shared: SharedAgentDeps;
+      /** The installed bots, read on every build. */
+      bots?: () => BotAgentSource[];
     },
   ) {}
 
   /** Builds (or rebuilds) the model and the agents. Never throws: problems become a notice agent. */
-  async configure(choice?: ModelChoice): Promise<void> {
+  configure(choice?: ModelChoice): Promise<void> {
+    this.choice = choice;
+    const run = this.queue.then(() => this.build(choice));
+    this.queue = run.catch(() => {});
+    return run;
+  }
+
+  /** Builds the agents again on the same model, after a bot was added, updated or removed. */
+  rebuild(): Promise<void> {
+    return this.configure(this.choice);
+  }
+
+  /** The tenant's profiles, then one per installed bot. A bot with a tenant agent's id is left out. */
+  private collectProfiles(): AgentProfile[] {
+    const profiles: AgentProfile[] = this.deps.tenant.agents.map((p) => ({
+      ...p,
+      source: p.source ?? "tenant",
+    }));
+    const taken = new Set(profiles.map((p) => p.id));
+    let sources: BotAgentSource[] = [];
+    try {
+      sources = this.deps.bots?.() ?? [];
+    } catch (err) {
+      console.error("[steward] installed bots could not be read:", err instanceof Error ? err.message : err);
+    }
+    for (const { pack, skills } of sources) {
+      if (taken.has(pack.id)) {
+        console.error(
+          `[steward] the installed bot "${pack.id}" has the id of one of the tenant's agents; left out.`,
+        );
+        continue;
+      }
+      try {
+        const { model: _declared, ...profile } = profileFromPack(pack);
+        const model = modelIdFrom(pack.needs.model);
+        profiles.push({ ...profile, skills, ...(model ? { model } : {}), source: `bot:${pack.id}` });
+        taken.add(pack.id);
+      } catch (err) {
+        console.error(
+          `[steward] the installed bot "${pack.id}" could not be loaded:`,
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+    return profiles;
+  }
+
+  private async build(choice?: ModelChoice): Promise<void> {
     const { tenant } = this.deps;
     const env = modelEnv(this.deps.env, choice);
     let config: ModelConfig;
@@ -173,8 +249,9 @@ export class AgentHost {
       }
     }
 
+    const profiles = this.collectProfiles();
     const agents: Record<string, AbstractAgent> = {};
-    for (const profile of tenant.agents) {
+    for (const profile of profiles) {
       if (!primary) {
         agents[profile.id] = new UnconfiguredAgent(
           problem === "no_key" ? NOTICE_NO_KEY : NOTICE_UNAVAILABLE,
@@ -227,6 +304,7 @@ export class AgentHost {
     const next: Generation = {
       config,
       info,
+      profiles,
       agents,
       // The scripted model has no real answers for triage or the brief, so those fall back to rules.
       ...(primary && !primary.scripted ? { text: createTextModel(primary.model, primary.label) } : {}),
@@ -245,6 +323,15 @@ export class AgentHost {
 
   agent(id: string): AbstractAgent | undefined {
     return this.current?.agents[id];
+  }
+
+  /** Every profile an agent was built for: the tenant's, then the installed bots', with `source`. */
+  get profiles(): AgentProfile[] {
+    return this.current?.profiles ?? [];
+  }
+
+  hasAgent(id: string): boolean {
+    return Object.hasOwn(this.agents, id);
   }
 
   get info(): ModelInfo {

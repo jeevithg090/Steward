@@ -9,6 +9,7 @@ import { CopilotRuntime, createCopilotRuntimeHandler } from "@copilotkit/runtime
 import { type ServerType, serve } from "@hono/node-server";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { loadTenant } from "@steward/agent";
+import { DirectoryClient } from "@steward/bots";
 import { createComputerManager } from "@steward/computer";
 import {
   migrations as connectorMigrations,
@@ -22,6 +23,7 @@ import { createGateway, migrations as gatewayMigrations } from "@steward/gateway
 import { createProactive, migrations as proactiveMigrations } from "@steward/proactive";
 import { COPILOTKIT_PATH, type MailCalendar, ROUTES, type TenantPackage } from "@steward/shared";
 import { Hono } from "hono";
+import { BotService, botAgentSources } from "./bots/service.ts";
 import { ConfigError, DEV_PORTS, isLoopbackHost, type ServerConfig } from "./config.ts";
 import type { ProactiveServices, StewardServices } from "./context.ts";
 import { onError } from "./http/errors.ts";
@@ -40,6 +42,7 @@ import { createEventBus } from "./live/bus.ts";
 import { computerSocket, MAX_CLIENT_FRAME } from "./live/computer-ws.ts";
 import { liveEventsHandler } from "./live/events-route.ts";
 import { registerAppRoutes } from "./routes/app.ts";
+import { registerBotRoutes } from "./routes/bots.ts";
 import { registerComputerRoutes } from "./routes/computer.ts";
 import { registerConnectionRoutes } from "./routes/connections.ts";
 import { registerDayRoutes } from "./routes/day.ts";
@@ -55,6 +58,7 @@ import { interruptSummary } from "./runtime/run-summary.ts";
 import { NodeSqliteAgentRunner } from "./runtime/runner.ts";
 import { ServerRuns } from "./runtime/server-runs.ts";
 import { SetupService } from "./setup/checks.ts";
+import { InstalledBotStore } from "./store/bots.ts";
 import { migrations as serverMigrations } from "./store/migrations.ts";
 import { SettingsStore } from "./store/settings.ts";
 import { ThreadStore } from "./store/threads.ts";
@@ -141,7 +145,6 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     db.migrate([...gatewayMigrations, ...connectorMigrations, ...proactiveMigrations, ...serverMigrations]);
     const tenant = loadTenantOrExplain(config);
     const defaultAgentId = tenant.agents[0]!.id;
-    const hasAgent = (id: string) => tenant.agents.some((a) => a.id === id);
 
     const bus = createEventBus();
     const settings = new SettingsStore(db);
@@ -184,16 +187,24 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     const runner = new NodeSqliteAgentRunner(db);
     const threads = new ThreadStore(db, runner);
     const serverRunToken = randomBytes(32).toString("base64url");
+
+    // The bot directory (a URL or a file) and the bots installed from it. Each installed bot
+    // becomes an agent beside the tenant's, rebuilt whenever one is added, updated or removed.
+    const directory = new DirectoryClient({ source: config.directoryUrl });
+    const installedBots = new InstalledBotStore(db);
+
     const host = new AgentHost({
       tenant,
       env: config.env,
       serverRunToken,
+      bots: () => botAgentSources(installedBots, proactive.skills),
       shared: {
         governance: gateway.governance,
         computers,
         mail,
         web,
         mcp,
+        directory,
         stores: {
           tasks: proactive.tasks,
           memory: proactive.memory,
@@ -210,6 +221,25 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     models = host;
     cleanups.push(() => host.close());
     await host.configure(settings.modelChoice());
+    const hasAgent = (id: string) => host.hasAgent(id);
+
+    const bots = new BotService({
+      db,
+      directory,
+      directorySource: config.directoryUrl,
+      counts: config.directoryCounts,
+      store: installedBots,
+      gateway,
+      proactive,
+      threads,
+      settings,
+      mail,
+      mcp,
+      host,
+      bus,
+      actorId: LOCAL_ACTOR,
+      tenantAgentIds: tenant.agents.map((a) => a.id),
+    });
 
     const runs = new ServerRuns({
       runner,
@@ -287,6 +317,9 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       threads,
       settings,
       setup,
+      directory,
+      installedBots,
+      bots,
       security,
       actorId: LOCAL_ACTOR,
       defaultAgentId,
@@ -333,6 +366,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     registerConnectionRoutes(app, services);
     registerComputerRoutes(app, services);
     registerNotificationRoutes(app, services);
+    registerBotRoutes(app, services);
 
     if (config.demoGoogle) app.route("/demo-google", createDemoGoogleApp());
 

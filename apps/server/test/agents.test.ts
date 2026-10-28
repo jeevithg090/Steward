@@ -1,6 +1,6 @@
 import { EventType } from "@ag-ui/client";
 import { describe, expect, it } from "vitest";
-import { modelEnv, NOTICE_NO_KEY, UnconfiguredAgent } from "../src/runtime/agents.ts";
+import { modelEnv, modelIdFrom, NOTICE_NO_KEY, UnconfiguredAgent } from "../src/runtime/agents.ts";
 import { summariseRun } from "../src/runtime/run-summary.ts";
 import { collect, runInput, runnerOnMemoryDb, startRun } from "./helpers.ts";
 
@@ -13,6 +13,19 @@ describe("UnconfiguredAgent", () => {
     expect(summariseRun(events)).toMatchObject({ outcome: "success", text: NOTICE_NO_KEY });
     expect(NOTICE_NO_KEY).toMatch(/Add a model key in \.env/);
     expect(runner.getThreadMessages("t1").at(-1)?.content).toBe(NOTICE_NO_KEY);
+  });
+});
+
+describe("modelIdFrom", () => {
+  it("keeps a bot on the tenant's model unless its pack names a model id", () => {
+    expect(modelIdFrom(undefined)).toBeUndefined();
+    expect(modelIdFrom("any")).toBeUndefined();
+    expect(modelIdFrom("Any ")).toBeUndefined();
+    expect(modelIdFrom("a model that uses tools well")).toBeUndefined();
+    expect(modelIdFrom("anthropic/claude-sonnet-5.5")).toBe("anthropic/claude-sonnet-5.5");
+    expect(modelIdFrom("gpt-5.6-terra")).toBe("gpt-5.6-terra");
+    expect(modelIdFrom("llama3.2:latest")).toBe("llama3.2:latest");
+    expect(modelIdFrom("123")).toBeUndefined();
   });
 });
 

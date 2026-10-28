@@ -189,6 +189,46 @@ describe("api: every route in ROUTES", () => {
     ["computer reset", () => api.computer.reset("steward"), "POST", "/api/computer/steward/reset"],
     ["notifications", () => api.notifications.list(), "GET", "/api/notifications"],
     ["notifications read all", () => api.notifications.readAll(), "POST", "/api/notifications/read-all"],
+    [
+      "bots",
+      () => api.bots.list({ q: "rent", category: "home", sort: "used" }),
+      "GET",
+      "/api/bots?q=rent&category=home&sort=used",
+    ],
+    ["bots installed", () => api.bots.installed(), "GET", "/api/bots/installed"],
+    [
+      "bots preview",
+      () => api.bots.preview({ packUrl: "packs/rent-scout.json" }),
+      "POST",
+      "/api/bots/preview",
+      { packUrl: "packs/rent-scout.json" },
+    ],
+    [
+      "bots install",
+      () => api.bots.install({ packUrl: "packs/rent-scout.json" }),
+      "POST",
+      "/api/bots/install",
+      { packUrl: "packs/rent-scout.json" },
+    ],
+    [
+      "bot installed (DELETE)",
+      () => api.bots.remove("rent-scout"),
+      "DELETE",
+      "/api/bots/installed/rent-scout",
+    ],
+    [
+      "bot installed update",
+      () => api.bots.update("rent-scout"),
+      "POST",
+      "/api/bots/installed/rent-scout/update",
+    ],
+    [
+      "bots make",
+      () => api.bots.make({ job: "Find me a flat", category: "home" }),
+      "POST",
+      "/api/bots/make",
+      { job: "Find me a flat", category: "home" },
+    ],
   ];
 
   it.each(cases)("%s", async (_name, call, method, url, body) => {
