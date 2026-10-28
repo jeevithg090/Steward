@@ -22,6 +22,9 @@ const BotListingPage = lazy(() =>
   import("@/pages/BotListingPage.tsx").then((m) => ({ default: m.BotListingPage })),
 );
 const BotAddPage = lazy(() => import("@/pages/BotAddPage.tsx").then((m) => ({ default: m.BotAddPage })));
+const ShortcutsPage = lazy(() =>
+  import("@/pages/ShortcutsPage.tsx").then((m) => ({ default: m.ShortcutsPage })),
+);
 const MemoryPage = lazy(() => import("@/pages/MemoryPage.tsx").then((m) => ({ default: m.MemoryPage })));
 const SettingsPage = lazy(() =>
   import("@/pages/SettingsPage.tsx").then((m) => ({ default: m.SettingsPage })),
@@ -58,6 +61,7 @@ export function AppRoutes() {
         <Route path="record" element={<RecordPage />} />
         <Route path="connections" element={<ConnectionsPage />} />
         <Route path="skills" element={<SkillsPage />} />
+        <Route path="shortcuts" element={<ShortcutsPage />} />
         <Route path="memory" element={<MemoryPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />

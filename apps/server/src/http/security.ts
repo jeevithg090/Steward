@@ -61,6 +61,46 @@ export function hostGuard(opts: SecurityOptions): MiddlewareHandler {
   };
 }
 
+/**
+ * Headers tunnels and reverse proxies add (Cloudflare, Tailscale Serve, ngrok, nginx). A request on
+ * a loopback Host that carries one came from outside this machine through something that rewrote
+ * the Host, which would slip past `hostGuard`.
+ */
+export const PROXY_HEADERS = [
+  "forwarded",
+  "x-forwarded-for",
+  "x-forwarded-host",
+  "x-real-ip",
+  "cf-connecting-ip",
+  "cf-ray",
+  "true-client-ip",
+  "tailscale-user-login",
+  "fly-client-ip",
+] as const;
+
+/**
+ * Steward's main port answers this machine only. A tunnel pointed at it with the Host rewritten to
+ * `localhost` would otherwise reach the whole API with no sign-in, so a loopback request that came
+ * through a proxy is refused. Phones use the device port, which needs a token (docs/security.md).
+ * A Host listed in `STEWARD_ALLOWED_HOSTS` was let in on purpose (a VPN), so it is not refused here.
+ */
+export function proxyGuard(opts: SecurityOptions): MiddlewareHandler {
+  return async (c, next) => {
+    const hostname = hostnameOf(requestHost(c));
+    const proxied = PROXY_HEADERS.some((h) => c.req.header(h) !== undefined);
+    if (proxied && !opts.allowedHosts.includes(hostname)) {
+      return c.json(
+        {
+          error:
+            "Steward's main port only answers this computer. Phones reach Steward through the device port; see docs/security.md.",
+        },
+        403,
+      );
+    }
+    await next();
+  };
+}
+
 const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 /** HTTP/1.1 frames every body with Content-Length or Transfer-Encoding; without either there is none. */

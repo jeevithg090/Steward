@@ -9,7 +9,7 @@ import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
 import { Page } from "@/components/ui/PageHeader.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
 import { type AuditFilters, useAudit, useVerifyAudit } from "@/lib/api.ts";
-import { AUDIT_TYPE_LABELS, EFFECT_LABELS, targetSummary, toolLabel } from "@/lib/labels.ts";
+import { AUDIT_TYPE_LABELS, deviceVia, EFFECT_LABELS, targetSummary, toolLabel } from "@/lib/labels.ts";
 import { usageSummary } from "@/lib/usage.ts";
 import { cn, formatDateTime, plural, prettyJson, relativeTime } from "@/lib/utils.ts";
 
@@ -210,6 +210,7 @@ function AuditRow({ event }: { event: AuditEvent }) {
   const target = targetSummary(event.target);
   const refusal = event.effect === "deny";
   const actor = event.actorId === "local" ? "You" : event.actorId;
+  const fromPhone = deviceVia(event.detail);
 
   return (
     <div>
@@ -230,6 +231,11 @@ function AuditRow({ event }: { event: AuditEvent }) {
             {event.tool ? <span className="text-ink text-sub">· {toolLabel(event.tool.name)}</span> : null}
           </span>
           {target ? <span className="mt-0.5 block break-all text-ink-2 text-sub">{target}</span> : null}
+          {fromPhone && event.type === "approval.decided" ? (
+            <span className="mt-0.5 block text-ink-2 text-sub">Answered from {fromPhone}</span>
+          ) : fromPhone ? (
+            <span className="mt-0.5 block text-ink-2 text-sub">From {fromPhone}</span>
+          ) : null}
           {event.type === "run.finished" ? (
             <span className="mt-0.5 block text-ink-2 text-sub">{usageSummary(event.detail)}</span>
           ) : null}
@@ -261,6 +267,7 @@ function AuditRow({ event }: { event: AuditEvent }) {
           <dt className="text-ink-2">By</dt>
           <dd className="text-ink">
             {actor}
+            {fromPhone ? `, from ${fromPhone}` : ""}
             {event.agentId ? ` · agent ${event.agentId}` : ""}
           </dd>
           {!refusal && event.rule ? (

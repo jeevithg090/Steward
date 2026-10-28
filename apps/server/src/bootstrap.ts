@@ -20,12 +20,20 @@ import {
 } from "@steward/connectors";
 import { Db } from "@steward/db";
 import { createGateway, migrations as gatewayMigrations } from "@steward/gateway";
+import { buildCatalogue, loadTenantShortcuts, type TenantShortcut } from "@steward/phone";
 import { createProactive, migrations as proactiveMigrations } from "@steward/proactive";
 import { COPILOTKIT_PATH, type MailCalendar, ROUTES, type TenantPackage } from "@steward/shared";
+import { readSigned } from "@steward/shortcuts";
 import { Hono } from "hono";
 import { BotService, botAgentSources } from "./bots/service.ts";
 import { ConfigError, DEV_PORTS, isLoopbackHost, type ServerConfig } from "./config.ts";
 import type { ProactiveServices, StewardServices } from "./context.ts";
+import { DeviceApi } from "./device/api.ts";
+import { InstallStore } from "./device/installs.ts";
+import { createDeviceApp } from "./device/listener.ts";
+import { PhoneSettings } from "./device/phone.ts";
+import { phoneProfile } from "./device/shortcuts.ts";
+import { DeviceStore } from "./device/store.ts";
 import { onError } from "./http/errors.ts";
 import {
   BODY_LIMITS,
@@ -34,6 +42,7 @@ import {
   isAllowedUpgrade,
   limitBody,
   originGuard,
+  proxyGuard,
   type SecurityOptions,
   securityHeaders,
 } from "./http/security.ts";
@@ -41,11 +50,13 @@ import { serveWebApp } from "./http/static.ts";
 import { createEventBus } from "./live/bus.ts";
 import { computerSocket, MAX_CLIENT_FRAME } from "./live/computer-ws.ts";
 import { liveEventsHandler } from "./live/events-route.ts";
+import { RemoteBridge } from "./remote/bridge.ts";
 import { registerAppRoutes } from "./routes/app.ts";
 import { registerBotRoutes } from "./routes/bots.ts";
 import { registerComputerRoutes } from "./routes/computer.ts";
 import { registerConnectionRoutes } from "./routes/connections.ts";
 import { registerDayRoutes } from "./routes/day.ts";
+import { registerDeviceRoutes } from "./routes/devices.ts";
 import { registerGovernanceRoutes } from "./routes/governance.ts";
 import { registerKnowledgeRoutes } from "./routes/knowledge.ts";
 import { registerNotificationRoutes } from "./routes/notifications.ts";
@@ -82,6 +93,9 @@ export interface Listening {
   url: string;
   port: number;
   host: string;
+  /** The device listener's own address, when it is on. Tunnels point here, never at `url`. */
+  deviceUrl?: string;
+  devicePort?: number;
 }
 
 export interface StewardServer {
@@ -89,8 +103,11 @@ export interface StewardServer {
   readonly services: StewardServices;
   /** True when the built web app is served at `/`. */
   readonly servesWebApp: boolean;
-  /** Starts the HTTP server. Port 0 picks a free port (tests). */
-  listen(opts?: { port?: number; host?: string }): Promise<Listening>;
+  /**
+   * Starts the HTTP server and the device listener. Port 0 picks a free port (tests); the device
+   * listener then takes a free port too unless `devicePort` says otherwise (null: off).
+   */
+  listen(opts?: { port?: number; host?: string; devicePort?: number | null }): Promise<Listening>;
   /** Stops workers and runs, closes computers, MCP clients, the model and the database. */
   close(): Promise<void>;
 }
@@ -119,6 +136,17 @@ async function step(name: string, work: Promise<unknown> | (() => unknown), ms =
   }
 }
 
+/** The tenant's phone shortcuts. A broken file stops the start, like a broken rule does. */
+function loadTenantShortcutsOrExplain(config: ServerConfig): TenantShortcut[] {
+  try {
+    return loadTenantShortcuts(config.tenantDir);
+  } catch (err) {
+    throw new ConfigError(
+      `Couldn't load tenants/${config.tenantId}/shortcuts.yaml: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+
 function loadTenantOrExplain(config: ServerConfig): TenantPackage {
   try {
     const tenant = loadTenant(config.tenantDir);
@@ -144,6 +172,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
   try {
     db.migrate([...gatewayMigrations, ...connectorMigrations, ...proactiveMigrations, ...serverMigrations]);
     const tenant = loadTenantOrExplain(config);
+    const tenantShortcuts = loadTenantShortcutsOrExplain(config);
     const defaultAgentId = tenant.agents[0]!.id;
 
     const bus = createEventBus();
@@ -158,9 +187,9 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       dataDir: config.dataDir,
       headful: config.headful,
       allowPrivateHosts: config.allowPrivateHosts,
-      // Steward's own server and the Vite dev and preview servers (they proxy the API), whatever
-      // STEWARD_ALLOW_PRIVATE_HOSTS says.
-      protectedPorts: [config.port, ...DEV_PORTS],
+      // Steward's own server, its phone port, and the Vite dev and preview servers (they proxy the
+      // API), whatever STEWARD_ALLOW_PRIVATE_HOSTS says.
+      protectedPorts: [config.port, ...DEV_PORTS, ...(config.devicePort ? [config.devicePort] : [])],
       audit: gateway.audit,
       actorId: LOCAL_ACTOR,
     });
@@ -298,6 +327,9 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       allowedHosts: config.allowedHosts,
       devOrigins: config.devOrigins,
     };
+    const devices = new DeviceStore(db, gateway.audit, LOCAL_ACTOR);
+    const phone = new PhoneSettings(settings, config);
+    const phoneListener: StewardServices["phoneListener"] = { port: null, running: false };
 
     const services: StewardServices = {
       config,
@@ -323,10 +355,32 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       installedBots,
       bots,
       security,
+      devices,
+      phone,
+      // Set just below: the device API reads the services it is part of.
+      deviceApi: undefined as unknown as DeviceApi,
+      phoneListener,
+      phoneProfile: () => phoneProfile(services, tenantShortcuts),
+      installs: new InstallStore(),
       actorId: LOCAL_ACTOR,
       defaultAgentId,
       hasAgent,
     };
+    services.deviceApi = new DeviceApi({
+      s: services,
+      devices,
+      phone,
+      catalogue: () => buildCatalogue(services.phoneProfile()),
+    });
+    if (config.relay) services.remote = new RemoteBridge(services, config.relay);
+    const deviceApp = createDeviceApp({
+      api: services.deviceApi,
+      devices,
+      phone,
+      ...(config.deviceAccess ? { access: config.deviceAccess } : {}),
+      genericShortcut: () => readSigned("Steward.shortcut"),
+      installs: services.installs,
+    });
 
     // ── HTTP ───────────────────────────────────────────────────────────────────────────────────
 
@@ -334,6 +388,8 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     app.onError(onError);
     app.use("*", securityHeaders());
     app.use("*", hostGuard(security));
+    // A tunnel that rewrites the Host to localhost must not reach the main port (docs/security.md).
+    app.use("*", proxyGuard(security));
     app.use("/api/*", devCors(security));
     const agentLimit = limitBody(BODY_LIMITS.agent);
     const apiLimit = limitBody(BODY_LIMITS.api);
@@ -369,6 +425,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     registerComputerRoutes(app, services);
     registerNotificationRoutes(app, services);
     registerBotRoutes(app, services);
+    registerDeviceRoutes(app, services);
 
     if (config.demoGoogle) app.route("/demo-google", createDemoGoogleApp());
 
@@ -411,18 +468,40 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     // ── Lifecycle ──────────────────────────────────────────────────────────────────────────────
 
     let server: ServerType | undefined;
+    let deviceServer: ServerType | undefined;
     let closing: Promise<void> | undefined;
 
-    const listen = async (opts: { port?: number; host?: string } = {}): Promise<Listening> => {
+    const serveOn = (fetch: typeof app.fetch, port: number, hostname: string) =>
+      new Promise<ServerType>((resolve, reject) => {
+        const s = serve({ fetch, port, hostname }, () => resolve(s));
+        s.once("error", reject);
+      });
+
+    const listen = async (
+      opts: { port?: number; host?: string; devicePort?: number | null } = {},
+    ): Promise<Listening> => {
       if (server) throw new Error("Steward is already listening.");
       const port = opts.port ?? config.port;
       const hostname = opts.host ?? config.host;
-      server = await new Promise<ServerType>((resolve, reject) => {
-        const s = serve({ fetch: app.fetch, port, hostname }, () => resolve(s));
-        s.once("error", reject);
-      });
+      server = await serveOn(app.fetch, port, hostname);
       injectWebSocket(server);
       const actualPort = (server.address() as AddressInfo).port;
+      const devicePort = opts.devicePort !== undefined ? opts.devicePort : port === 0 ? 0 : config.devicePort;
+      let deviceUrl: string | undefined;
+      if (devicePort !== null) {
+        try {
+          deviceServer = await serveOn(deviceApp.fetch as typeof app.fetch, devicePort, config.deviceHost);
+        } catch (err) {
+          server.close();
+          server = undefined;
+          throw new ConfigError(
+            `The phone port ${devicePort} is in use (${err instanceof Error ? err.message : String(err)}). Set STEWARD_DEVICE_PORT to a free port, or to off.`,
+          );
+        }
+        phoneListener.port = (deviceServer.address() as AddressInfo).port;
+        phoneListener.running = true;
+        deviceUrl = `http://${selfAddress(config.deviceHost)}:${phoneListener.port}`;
+      }
       const self = selfAddress(hostname);
       if (config.demoGoogle) {
         mailRef.current = createGoogleMailCalendar({
@@ -432,12 +511,19 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
         });
       }
       if (config.workers) workers.start();
-      return { url: `http://${self}:${actualPort}`, port: actualPort, host: hostname };
+      services.remote?.start();
+      return {
+        url: `http://${self}:${actualPort}`,
+        port: actualPort,
+        host: hostname,
+        ...(deviceUrl && phoneListener.port !== null ? { deviceUrl, devicePort: phoneListener.port } : {}),
+      };
     };
 
     const close = (): Promise<void> => {
       closing ??= (async () => {
         workers.stop();
+        await step("the relay bridge", () => services.remote?.stop());
         sweep.stop();
         for (const end of sseClosers) end();
         for (const ws of sockets) {
@@ -451,9 +537,16 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
         const closed = httpServer
           ? new Promise<void>((resolve) => httpServer.close(() => resolve()))
           : Promise.resolve();
+        const phoneServer = deviceServer as Server | undefined;
+        const phoneClosed = phoneServer
+          ? new Promise<void>((resolve) => phoneServer.close(() => resolve()))
+          : Promise.resolve();
+        phoneListener.running = false;
         await runner.stopAll(5_000);
         httpServer?.closeAllConnections?.();
+        phoneServer?.closeAllConnections?.();
         await step("the web server", closed);
+        await step("the phone port", phoneClosed);
         await step("websockets", () => wss.close());
         unwire();
         for (const cleanup of cleanups.reverse()) await step("a service", () => cleanup());

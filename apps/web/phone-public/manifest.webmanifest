@@ -1,0 +1,11 @@
+{
+  "name": "Steward",
+  "short_name": "Steward",
+  "description": "Steward on your phone: what needs you, your answers, and asking Steward.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#101413",
+  "theme_color": "#101413",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

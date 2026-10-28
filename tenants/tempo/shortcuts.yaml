@@ -1,0 +1,23 @@
+# Tempo's phone shortcuts (docs/plans/phone-and-shortcuts.md §4.3). They appear in the Steward
+# shortcut's menu, as launchers on the Shortcuts page, and from the share sheet. Each one asks
+# Steward through the gateway like anything typed in the app: it adds no permission.
+#
+# These are Tempo's two iPhone shortcuts (tempo/apps/shortcuts), carried over as catalogue
+# entries: the phone sends the shared text to Steward instead of a Tempo Gateway.
+
+shortcuts:
+  - id: delay-spotter
+    title: Delay Spotter
+    description: Share a train delay alert or email. Steward checks whether you can claim Delay Repay and gets the claim ready for you to submit.
+    siri: "Tempo: Delay Spotter"
+    skill: delay-repay-claim
+    prompt: "This train delay alert just reached my phone. Check whether I can claim for it: {input}"
+    share: true
+
+  - id: scam-spotter
+    title: Scam Spotter
+    description: Share a text or email that looks off. Steward checks it for the signs of a scam and tells you what to do.
+    siri: "Tempo: Scam Spotter"
+    skill: scam-check
+    prompt: "Is this message a scam? It reached my phone: {input}"
+    share: true

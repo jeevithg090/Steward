@@ -1,7 +1,7 @@
 // bootstrap.ts fixes the environment for the CopilotKit runtime before it loads (blank base URLs,
 // telemetry off). Reading `.env` can wait until `main`: the runtime reads model settings lazily.
 import { createApp, type StewardServer } from "./bootstrap.ts";
-import { ConfigError, isLoopbackHost, loadConfig, REPO_ROOT } from "./config.ts";
+import { ConfigError, loadConfig, REPO_ROOT, startupWarnings } from "./config.ts";
 import { loadEnvFiles, normaliseEnv } from "./env.ts";
 
 export type { Listening, StewardServer } from "./bootstrap.ts";
@@ -19,7 +19,7 @@ async function main(): Promise<void> {
   try {
     const config = loadConfig(process.env);
     server = await createApp(config);
-    const { url } = await server.listen();
+    const { url, deviceUrl } = await server.listen();
     const model = server.services.models.info;
     const mail = server.services.mail();
     console.log(`Steward is ready at ${url}`);
@@ -34,13 +34,11 @@ async function main(): Promise<void> {
       `  mail      ${mail ? `${mail.label}${mail.isDemo ? " (made-up mail)" : ""}` : "not connected"}`,
     );
     if (server.servesWebApp) console.log("  web app   served from apps/web/dist");
+    console.log(
+      `  phones    ${deviceUrl ? `${deviceUrl}/device/ (tunnel this port, never ${config.port})` : "off"}`,
+    );
     if (loadedEnvFiles.length > 0) console.log(`  env       ${loadedEnvFiles.join(", ")}`);
-    if (!isLoopbackHost(config.host)) {
-      console.warn(
-        `\n  Steward is listening on ${config.host}, beyond this machine. It has no sign-in:\n` +
-          "  anyone who can reach this address and is allowed by STEWARD_ALLOWED_HOSTS can use it.\n",
-      );
-    }
+    for (const warning of startupWarnings(config)) console.warn(`\n  ${warning}`);
   } catch (err) {
     if (err instanceof ConfigError) {
       console.error(`Steward could not start: ${err.message}`);

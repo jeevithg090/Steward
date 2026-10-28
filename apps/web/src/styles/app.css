@@ -1,6 +1,8 @@
 @import "tailwindcss";
 /* Streamdown renders the assistant's markdown with Tailwind classes; scan them so they are generated. */
 @source "../../node_modules/streamdown/dist/*.js";
+/* The phone app builds from apps/web/phone, so name the sources rather than rely on the build's root. */
+@source "..";
 
 /*
  * Steward's design system. Tokens are adapted from OpenDuet's (MIT, CopilotKit): neutral greys, one

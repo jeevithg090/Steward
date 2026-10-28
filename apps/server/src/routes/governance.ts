@@ -1,4 +1,8 @@
+import { isGatewayError } from "@steward/gateway";
 import {
+  type Approval,
+  type ApprovalAnswer,
+  type ApprovalDecider,
   ApprovalDecisionBody,
   type ApprovalStatus,
   DryRunBody,
@@ -24,6 +28,44 @@ const EFFECTS = ["allow", "ask", "deny"] as const;
 
 /** Rules that ship with Steward or the tenant package: they can be switched off, not rewritten. */
 const isShipped = (rule: Rule) => rule.source === "preset" || rule.source === "tenant";
+
+/**
+ * The one way an answer is recorded, for the web card and for a phone alike: the approval must be
+ * pending, "Always allow" only where offered, the gateway claims the answer once (and checks the
+ * device presets when `by` names a device), and the resume sweep carries on if no browser does.
+ */
+export function decideApproval(
+  s: StewardServices,
+  id: string,
+  answer: ApprovalAnswer,
+  note?: string,
+  by?: ApprovalDecider,
+): Approval {
+  const { approvals } = s.gateway;
+  const existing = approvals.get(id);
+  if (!existing) throw notFound("that approval");
+  if (existing.status !== "pending") {
+    throw new HttpError(
+      409,
+      existing.status === "expired"
+        ? "That request expired before it was answered."
+        : "That was already answered.",
+    );
+  }
+  if (answer === "always" && !existing.canAlways) {
+    throw new HttpError(400, "Always allow isn't offered for this. Choose Allow once or Refuse.");
+  }
+  let decided: Approval;
+  try {
+    decided = approvals.decide(id, answer, s.actorId, note, by);
+  } catch (err) {
+    if (isGatewayError(err) && err.code === "forbidden") throw new HttpError(403, err.message);
+    asUserError(err, 409);
+  }
+  // If no browser resumes the run within a few seconds, the server does.
+  s.sweep.schedule(decided.id);
+  return decided;
+}
 
 /** `/api/approvals`, `/api/rules`, `/api/audit`: what Steward may do, what it asked, and the record. */
 export function registerGovernanceRoutes(app: Hono, s: StewardServices): void {
@@ -51,30 +93,8 @@ export function registerGovernanceRoutes(app: Hono, s: StewardServices): void {
   });
 
   app.post(ROUTES.approvalDecide, async (c) => {
-    const id = c.req.param("id");
     const body = await readBody(c, ApprovalDecisionBody);
-    const existing = approvals.get(id);
-    if (!existing) throw notFound("that approval");
-    if (existing.status !== "pending") {
-      throw new HttpError(
-        409,
-        existing.status === "expired"
-          ? "That request expired before it was answered."
-          : "That was already answered.",
-      );
-    }
-    if (body.answer === "always" && !existing.canAlways) {
-      throw new HttpError(400, "Always allow isn't offered for this. Choose Allow once or Refuse.");
-    }
-    let decided: ReturnType<typeof approvals.decide>;
-    try {
-      decided = approvals.decide(id, body.answer, s.actorId, body.note);
-    } catch (err) {
-      asUserError(err, 409);
-    }
-    // If no browser resumes the run within a few seconds, the server does.
-    s.sweep.schedule(decided.id);
-    return c.json(decided);
+    return c.json(decideApproval(s, c.req.param("id"), body.answer, body.note));
   });
 
   // ── Rules ──────────────────────────────────────────────────────────────────────────────────

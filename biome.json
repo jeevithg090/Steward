@@ -5,6 +5,8 @@
       "**",
       "!**/node_modules",
       "!**/dist",
+      "!**/dist-phone",
+      "!**/relay-data",
       "!.steward-data",
       "!**/*.gen.ts",
       "!evals/**/*.jsonl",

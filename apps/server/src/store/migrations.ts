@@ -69,4 +69,42 @@ export const migrations: Migration[] = [
         routine_ids_json TEXT NOT NULL DEFAULT '[]'
       );`,
   },
+  {
+    // Paired phones and the one-time codes that pair them (docs/plans/phone-and-shortcuts.md §3.2).
+    // Tokens and codes are kept only as SHA-256 hashes: the database never holds one that works.
+    id: "server.005_devices",
+    sql: `
+      CREATE TABLE IF NOT EXISTS devices (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        kind TEXT NOT NULL CHECK (kind IN ('shortcut', 'pwa', 'app')),
+        token_hash TEXT NOT NULL UNIQUE,
+        scopes_json TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(scopes_json)),
+        created_at TEXT NOT NULL,
+        last_seen_at TEXT,
+        revoked_at TEXT,
+        public_key TEXT,
+        shortcut_version TEXT
+      );
+      CREATE TABLE IF NOT EXISTS pairing_codes (
+        code_hash TEXT PRIMARY KEY,
+        kind TEXT NOT NULL CHECK (kind IN ('shortcut', 'pwa', 'app')),
+        created_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        consumed_at TEXT
+      );`,
+  },
+  {
+    // The phone app (Phase 2): each paired app has its own data key, sealed to it at pairing, and
+    // every signed answer's nonce is kept so it can be used once.
+    id: "server.006_remote",
+    sql: `
+      ALTER TABLE devices ADD COLUMN remote_key TEXT;
+      CREATE TABLE IF NOT EXISTS remote_nonces (
+        nonce TEXT PRIMARY KEY,
+        device_id TEXT NOT NULL,
+        at TEXT NOT NULL
+      );`,
+  },
 ];

@@ -59,10 +59,20 @@ const BAD_JSON = "The arguments were not a JSON object. Call the tool again with
 /** Results longer than this are cut before the model sees them. */
 const MAX_RESULT_CHARS = 120_000;
 
-const INITIATOR_KINDS: readonly Initiator["kind"][] = ["person", "routine", "task", "resume", "system"];
+const INITIATOR_KINDS: readonly Initiator["kind"][] = [
+  "person",
+  "routine",
+  "task",
+  "resume",
+  "system",
+  "device",
+];
 
-/** Who a resumed run belongs to, strictest first: routines have the most rules against them. */
-const RESUMED_RANK: readonly Initiator["kind"][] = ["routine", "task", "resume", "system"];
+/**
+ * Who a resumed run belongs to, strictest first: routines have the most rules against them. A run
+ * started from a phone stays the phone's, so its presets and its record still say so.
+ */
+const RESUMED_RANK: readonly Initiator["kind"][] = ["routine", "task", "device", "resume", "system"];
 
 /**
  * The stop button. `StewardAgent` registers each run's input here with a signal it aborts from

@@ -110,4 +110,12 @@ export const migrations: Migration[] = [
       CREATE INDEX gateway_rules_source ON gateway_rules(source, created_at);
     `,
   },
+  {
+    // What a phone may answer depends on these facts about the call that asked (device presets).
+    id: "gateway.005_approval_facts",
+    sql: `
+      ALTER TABLE gateway_approvals ADD COLUMN tainted INTEGER NOT NULL DEFAULT 0 CHECK (tainted IN (0, 1));
+      ALTER TABLE gateway_approvals ADD COLUMN credential_entry INTEGER NOT NULL DEFAULT 0 CHECK (credential_entry IN (0, 1));
+    `,
+  },
 ];

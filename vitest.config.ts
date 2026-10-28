@@ -10,6 +10,7 @@ export default defineConfig({
           include: [
             "packages/*/test/**/*.test.ts",
             "apps/server/test/**/*.test.ts",
+            "apps/relay/test/**/*.test.ts",
             "apps/directory/test/**/*.test.ts",
             "tenants/*.test.ts",
           ],

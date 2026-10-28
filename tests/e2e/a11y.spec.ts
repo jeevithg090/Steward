@@ -13,6 +13,7 @@ const PAGES = [
   "/connections",
   "/skills",
   "/memory",
+  "/shortcuts",
   "/settings",
   "/welcome",
 ];
@@ -97,7 +98,7 @@ test.describe("Accessibility", () => {
     const axe = await import(moduleName).catch(() => undefined);
     test.skip(!axe, "Install @axe-core/playwright to run the automated axe checks.");
 
-    for (const path of ["/", "/chat", "/tasks", "/rules", "/record", "/settings"]) {
+    for (const path of ["/", "/chat", "/tasks", "/rules", "/record", "/settings", "/shortcuts"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
       const results = await new axe.default({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();

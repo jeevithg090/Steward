@@ -1,0 +1,20 @@
+{
+  "name": "@steward/remote",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@noble/ciphers": "1.3.0",
+    "@noble/curves": "1.9.7"
+  },
+  "devDependencies": {
+    "tweetnacl": "1.0.3"
+  }
+}

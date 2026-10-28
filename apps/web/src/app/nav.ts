@@ -10,6 +10,7 @@ import {
   ScrollText,
   Settings,
   ShieldCheck,
+  Smartphone,
   Sparkles,
   Sunrise,
 } from "lucide-react";
@@ -101,6 +102,12 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Skills",
     icon: Sparkles,
     description: "Instructions you call with /",
+  },
+  {
+    to: "/shortcuts",
+    label: "Shortcuts",
+    icon: Smartphone,
+    description: "Steward on your iPhone",
   },
   {
     to: "/memory",

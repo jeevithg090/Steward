@@ -19,12 +19,20 @@ import {
   type ComputerStatus,
   type ConnectionsInfo,
   type Decision,
+  type Device,
+  type DeviceKind,
+  type DevicePatchBody,
   type DryRunBody,
   type EmailSummary,
   type InstalledBot,
   type McpServerBody,
   type McpServerInfo,
   type MemoryFact,
+  type PairingOffer,
+  type PhoneCatalogue,
+  type PhoneInfo,
+  type RemotePairing,
+  type RemotePairingState,
   ROUTES,
   type Routine,
   type RoutineBody,
@@ -34,6 +42,7 @@ import {
   type Settings,
   type SettingsBody,
   type SetupCheck,
+  type ShortcutInstall,
   type Skill,
   type SkillBody,
   type Task,
@@ -80,6 +89,7 @@ export type BotPreviewInput = z.input<typeof BotPreviewBody>;
 export type BotInstallInput = z.input<typeof BotInstallBody>;
 export type BotMakeInput = z.input<typeof BotMakeBody>;
 export type BotsQueryInput = z.input<typeof BotsQuery>;
+export type DevicePatchInput = z.input<typeof DevicePatchBody>;
 
 /** `GET /api/bots`: one page of the directory, with the categories the index names. */
 export interface BotsResponse {
@@ -332,6 +342,28 @@ export const api = {
     /** Writes a pack from a job in the person's words. Returned, not installed. */
     make: (body: BotMakeInput) => send<BotPack>("POST", ROUTES.botsMake, body),
   },
+
+  phone: {
+    get: (signal?: AbortSignal) => get<PhoneInfo>(ROUTES.phone, undefined, signal),
+    setUrl: (url: string) => send<PhoneInfo>("PUT", ROUTES.phone, { url }),
+    catalogue: (signal?: AbortSignal) => get<PhoneCatalogue>(ROUTES.phoneCatalogue, undefined, signal),
+    /** A one-time download link for the phone: `steward` (the one-tap file) or a launcher's id. */
+    install: (id: string) => send<ShortcutInstall>("POST", route(ROUTES.phoneShortcutInstall, { id })),
+  },
+
+  devices: {
+    list: (signal?: AbortSignal) => get<Device[]>(ROUTES.devices, undefined, signal),
+    /** A one-time code and the two things to scan. Shown once; never stored by the page. */
+    pair: (kind: DeviceKind = "shortcut") => send<PairingOffer>("POST", ROUTES.devicesPairing, { kind }),
+    patch: (id: string, body: DevicePatchInput) => send<Device>("PATCH", route(ROUTES.device, { id }), body),
+    revoke: (id: string) => send<void>("DELETE", route(ROUTES.device, { id })),
+    /** The phone app, through the relay: a two-minute, one-time QR address. */
+    remotePair: () => send<RemotePairing>("POST", ROUTES.remotePairing),
+    remoteState: (id: string, signal?: AbortSignal) =>
+      get<RemotePairingState>(route(ROUTES.remotePairingState, { id }), undefined, signal),
+    remoteConfirm: (id: string) => send<Device>("POST", route(ROUTES.remotePairingConfirm, { id })),
+    remoteRefuse: (id: string) => send<{ ok: true }>("POST", route(ROUTES.remotePairingRefuse, { id })),
+  },
 };
 
 // ── Query keys ────────────────────────────────────────────────────────────────────────────────
@@ -371,6 +403,9 @@ export const queryKeys = {
   notifications: ["notifications"] as const,
   /** Every bots query: the directory pages and the installed list. */
   bots: ["bots"] as const,
+  phone: ["phone"] as const,
+  phoneCatalogue: ["phone", "catalogue"] as const,
+  devices: ["devices"] as const,
   botList: (query: BotsQueryInput) => ["bots", "list", query] as const,
   botsInstalled: ["bots", "installed"] as const,
 };
@@ -880,6 +915,87 @@ export const useUpdateBot = () => useBotsMutation((id: string) => api.bots.updat
 /** Make a bot: the pack comes back for the person to read; adding it is a separate step. */
 export function useMakeBot() {
   return useMutation<BotPack, ApiError, BotMakeInput>({ mutationFn: (body) => api.bots.make(body) });
+}
+
+// ── Phone ──────────────────────────────────────────────────────────────────────────────────────
+
+export function usePhone(opts?: QueryOpts<PhoneInfo>) {
+  return useQuery<PhoneInfo, ApiError>({
+    queryKey: queryKeys.phone,
+    queryFn: ({ signal }) => api.phone.get(signal),
+    ...opts,
+  });
+}
+
+export function useSetPhoneUrl() {
+  const qc = useQueryClient();
+  return useMutation<PhoneInfo, ApiError, string>({
+    mutationFn: (url) => api.phone.setUrl(url),
+    onSuccess: (info) => qc.setQueryData(queryKeys.phone, info),
+  });
+}
+
+export function usePhoneCatalogue(opts?: QueryOpts<PhoneCatalogue>) {
+  return useQuery<PhoneCatalogue, ApiError>({
+    queryKey: queryKeys.phoneCatalogue,
+    queryFn: ({ signal }) => api.phone.catalogue(signal),
+    ...opts,
+  });
+}
+
+export function useShortcutInstall() {
+  const qc = useQueryClient();
+  return useMutation<ShortcutInstall, ApiError, string>({
+    mutationFn: (id) => api.phone.install(id),
+    onSuccess: (install) => {
+      if (install.personal) void qc.invalidateQueries({ queryKey: queryKeys.devices });
+    },
+  });
+}
+
+/** Paired phones. While a pairing offer is on screen the list is polled, so the card turns green. */
+export function useDevices(opts?: QueryOpts<Device[]>) {
+  return useQuery<Device[], ApiError>({
+    queryKey: queryKeys.devices,
+    queryFn: ({ signal }) => api.devices.list(signal),
+    ...opts,
+  });
+}
+
+/** While an app pairing is open, its state is polled until the codes are ready to compare. */
+export function useRemotePairing(id: string | undefined) {
+  return useQuery<RemotePairingState, ApiError>({
+    queryKey: ["devices", "remote", id],
+    queryFn: ({ signal }) => api.devices.remoteState(id!, signal),
+    enabled: Boolean(id),
+    refetchInterval: (q) => (q.state.data && q.state.data.state !== "waiting" ? false : 1500),
+  });
+}
+
+export function usePairDevice() {
+  return useMutation<PairingOffer, ApiError, DeviceKind>({ mutationFn: (kind) => api.devices.pair(kind) });
+}
+
+export function usePatchDevice() {
+  const qc = useQueryClient();
+  return useMutation<Device, ApiError, { id: string } & DevicePatchInput>({
+    mutationFn: ({ id, ...body }) => api.devices.patch(id, body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.devices });
+      void qc.invalidateQueries({ queryKey: queryKeys.audit });
+    },
+  });
+}
+
+export function useRevokeDevice() {
+  const qc = useQueryClient();
+  return useMutation<void, ApiError, string>({
+    mutationFn: (id) => api.devices.revoke(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.devices });
+      void qc.invalidateQueries({ queryKey: queryKeys.audit });
+    },
+  });
 }
 
 // ── Derived counts ─────────────────────────────────────────────────────────────────────────────

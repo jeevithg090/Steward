@@ -230,6 +230,51 @@ describe("api: every route in ROUTES", () => {
       "/api/bots/make",
       { job: "Find me a flat", category: "home" },
     ],
+    ["phone", () => api.phone.get(), "GET", "/api/phone"],
+    [
+      "phone address",
+      () => api.phone.setUrl("https://mac.example.ts.net"),
+      "PUT",
+      "/api/phone",
+      { url: "https://mac.example.ts.net" },
+    ],
+    ["phone catalogue", () => api.phone.catalogue(), "GET", "/api/phone/catalogue"],
+    [
+      "phone shortcut install",
+      () => api.phone.install("skill:plan-trip"),
+      "POST",
+      "/api/phone/shortcuts/skill%3Aplan-trip/install",
+    ],
+    ["devices", () => api.devices.list(), "GET", "/api/devices"],
+    [
+      "devices pairing",
+      () => api.devices.pair("shortcut"),
+      "POST",
+      "/api/devices/pairing",
+      { kind: "shortcut" },
+    ],
+    [
+      "device (PATCH)",
+      () => api.devices.patch("dev_1", { scopes: ["chat"] }),
+      "PATCH",
+      "/api/devices/dev_1",
+      { scopes: ["chat"] },
+    ],
+    ["device (DELETE)", () => api.devices.revoke("dev_1"), "DELETE", "/api/devices/dev_1"],
+    ["remote pairing", () => api.devices.remotePair(), "POST", "/api/devices/remote-pairing"],
+    ["remote pairing state", () => api.devices.remoteState("p1"), "GET", "/api/devices/remote-pairing/p1"],
+    [
+      "remote pairing confirm",
+      () => api.devices.remoteConfirm("p1"),
+      "POST",
+      "/api/devices/remote-pairing/p1/confirm",
+    ],
+    [
+      "remote pairing refuse",
+      () => api.devices.remoteRefuse("p1"),
+      "POST",
+      "/api/devices/remote-pairing/p1/refuse",
+    ],
   ];
 
   it.each(cases)("%s", async (_name, call, method, url, body) => {

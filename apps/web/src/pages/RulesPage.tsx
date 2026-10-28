@@ -44,7 +44,10 @@ const VARIABLES: { name: string; meaning: string }[] = [
   { name: "target.command", meaning: "The shell command." },
   { name: "target.path", meaning: "The file path in the workspace." },
   { name: "args", meaning: "The tool's arguments, as the model sent them." },
-  { name: "initiator.kind", meaning: '"person", "routine", "task", "resume" or "system".' },
+  {
+    name: "initiator.kind",
+    meaning: '"person", "routine", "task", "resume", "system" or "device" (a paired phone).',
+  },
   { name: "tainted", meaning: "True once the conversation has read a web page, an email or app output." },
 ];
 
@@ -543,6 +546,7 @@ function DryRunTester() {
               <option value="person">You, in a conversation</option>
               <option value="routine">A routine</option>
               <option value="task">A task</option>
+              <option value="device">You, from a paired phone</option>
             </Select>
           </Field>
         </div>

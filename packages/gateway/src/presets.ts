@@ -87,6 +87,14 @@ export const PRESET_RULES: readonly PresetRule[] = [
     description: "Commands a routine wants to run wait for you, even ones you allowed before.",
   },
   {
+    id: "preset_device_sends",
+    name: "Phones ask before they send",
+    effect: "ask",
+    when: `initiator.kind == "device" && tool.kind in ["send", "sign", "delete", "shell"]`,
+    description:
+      "Work you start from a phone waits for your answer before it sends, signs, deletes or runs a command, even if you said Always allow. A lost phone should not be able to act for you unasked.",
+  },
+  {
     id: "preset_reads",
     name: "Reads run freely",
     effect: "allow",

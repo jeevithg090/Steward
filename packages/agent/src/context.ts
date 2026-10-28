@@ -36,6 +36,8 @@ function initiatorNote(initiator: Initiator): string | undefined {
       return "This run continues after the person answered an approval.";
     case "system":
       return "Steward started this run itself. Nobody typed this.";
+    case "device":
+      return "The person is talking to you from their phone, through a shortcut or the phone app. Your reply may be read aloud and cards may not show, so answer in two or three short plain sentences. Anything that needs the person waits for their answer.";
     default:
       return undefined;
   }

@@ -24,6 +24,7 @@ import type {
   AppNotification,
   Approval,
   ApprovalAnswer,
+  ApprovalDecider,
   AuditEvent,
   AuditType,
   ChainCheck,
@@ -68,8 +69,12 @@ export interface ApprovalStore {
   list(filter?: { status?: Approval["status"]; threadId?: string; limit?: number }): Approval[];
   get(id: string): Approval | undefined;
   byToolCall(toolCallId: string): Approval | undefined;
-  /** Records the person's answer. `always` also writes a standing rule in the same transaction. */
-  decide(id: string, answer: ApprovalAnswer, actorId: string, note?: string): Approval;
+  /**
+   * Records the person's answer. `always` also writes a standing rule in the same transaction. With
+   * `by`, the answer came from a paired device: the device presets may refuse it, and the record
+   * says which device answered.
+   */
+  decide(id: string, answer: ApprovalAnswer, actorId: string, note?: string, by?: ApprovalDecider): Approval;
   /** Marks pending approvals past their expiry as expired. Returns how many. */
   expireDue(now?: Date): number;
 }
