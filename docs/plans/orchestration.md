@@ -3,7 +3,11 @@
 **Several agents and models in one Steward, each run through the same gateway, with delegation
 between them; adapted from what Happy does and what it does not.**
 
-Status: proposal, 28 Oct 2026. Nothing here is built yet. Research behind every claim:
+Status: proposal, 28 Oct 2026. **Phase 1 (picker and profiles, §8) is built:** the `xai`
+provider, per-profile models with a `provider/model` prefix, `GET /api/agents` with availability,
+the picker showing each agent's model and greying out the keyless ones, two example profiles in
+`tenants/steward/agents.yaml`, and tokens per run in the record. Phases 2 to 5 are not. Research
+behind every claim:
 [docs/research/happy-orchestration.md](../research/happy-orchestration.md) (Happy's harness
 integrations, its own multi-provider harness, subscriptions, subagents, and the Agent Client
 Protocol), with [happy.md](../research/happy.md) for the rest of Happy. Legal points in it are

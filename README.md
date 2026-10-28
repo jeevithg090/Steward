@@ -229,12 +229,15 @@ Steward reaches every model through the OpenAI Chat Completions API.
 | Anthropic                                     | `anthropic`              | `ANTHROPIC_API_KEY`                                    |
 | Google Gemini                                 | `gemini`                 | `GEMINI_API_KEY`                                       |
 | NVIDIA                                        | `nvidia`                 | `NVIDIA_API_KEY`                                       |
+| xAI (Grok)                                    | `xai`                    | `XAI_API_KEY`                                          |
 | [Ollama](https://ollama.com), on your machine | `ollama`                 | none                                                   |
 | Any OpenAI-compatible server                  | `openai-compatible`      | `STEWARD_MODEL_API_KEY`, with `STEWARD_MODEL_BASE_URL` |
 | The scripted demo model                       | `scripted`               | none                                                   |
 
 The default is `anthropic/claude-sonnet-5.5` through OpenRouter. Change the model with
-`STEWARD_MODEL`, in Settings, or in the tenant's `model.yaml`. See [docs/models.md](docs/models.md).
+`STEWARD_MODEL`, in Settings, or in the tenant's `model.yaml`. An agent in `agents.yaml` can name
+a model of its own (`model: xai/grok-4.7`), so "Steward on Claude" and "Steward on Grok" sit side
+by side in the agent picker, each on its own provider and key. See [docs/models.md](docs/models.md).
 
 ## Accessibility
 

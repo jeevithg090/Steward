@@ -22,6 +22,7 @@ describe("api: every route in ROUTES", () => {
   // HTTP (events is the SSE stream in live.ts; computerWs is checked separately below).
   const cases: [string, () => Promise<unknown>, string, string, unknown?][] = [
     ["info", () => api.info(), "GET", "/api/info"],
+    ["agents", () => api.agents(), "GET", "/api/agents"],
     ["health", () => api.health(), "GET", "/api/health"],
     ["settings", () => api.settings.get(), "GET", "/api/settings"],
     [

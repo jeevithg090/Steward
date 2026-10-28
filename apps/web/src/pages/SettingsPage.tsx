@@ -57,6 +57,7 @@ const PROVIDERS: { value: NonNullable<SettingsInput["model"]>["provider"]; label
   { value: "anthropic", label: "Anthropic" },
   { value: "nvidia", label: "NVIDIA" },
   { value: "gemini", label: "Google Gemini" },
+  { value: "xai", label: "xAI (Grok)" },
   { value: "ollama", label: "Ollama (on this computer)" },
   { value: "openai-compatible", label: "Another OpenAI-compatible server" },
   { value: "scripted", label: "Scripted (for demos and tests)" },

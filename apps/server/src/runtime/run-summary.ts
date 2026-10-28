@@ -6,6 +6,7 @@ import {
   type RunFinishedEvent,
   type TextMessageChunkEvent,
   type TextMessageContentEvent,
+  type TokenUsage,
   type ToolCallResultEvent,
 } from "@ag-ui/client";
 
@@ -19,6 +20,8 @@ export interface RunSummary {
   text: string;
   /** Tool results the gateway refused, from the `{ ok: false, refused: true }` envelope. */
   refusals: string[];
+  /** The run's token usage, one entry per provider and model, when the agent reported it. */
+  usage?: TokenUsage[];
 }
 
 /** Tool results can arrive JSON-encoded twice through the runtime; parse until it is not a string. */
@@ -76,13 +79,28 @@ export function summariseRun(events: readonly BaseEvent[], interruptionMessage?:
   }
 
   const text = lastTextId ? (texts.get(lastTextId) ?? "") : "";
-  if (error !== undefined) return { outcome: "error", interrupts: [], error, text, refusals };
+  const usage = runUsage(finished);
+  const base = { text, refusals, ...(usage ? { usage } : {}) };
+  if (error !== undefined) return { outcome: "error", interrupts: [], error, ...base };
   const outcome = finished?.outcome;
   if (outcome?.type === "interrupt") {
-    return { outcome: "interrupt", interrupts: outcome.interrupts ?? [], text, refusals };
+    return { outcome: "interrupt", interrupts: outcome.interrupts ?? [], ...base };
   }
-  if (outcome?.type === "cancelled") return { outcome: "cancelled", interrupts: [], text, refusals };
-  return { outcome: "success", interrupts: [], text, refusals };
+  if (outcome?.type === "cancelled") return { outcome: "cancelled", interrupts: [], ...base };
+  return { outcome: "success", interrupts: [], ...base };
+}
+
+/** The usage on a run's last event, when there is one with a count in it. */
+function runUsage(finished: RunFinishedEvent | undefined): TokenUsage[] | undefined {
+  const usage = finished?.usage;
+  if (!Array.isArray(usage)) return undefined;
+  const counted = usage.filter(
+    (entry) =>
+      entry &&
+      typeof entry === "object" &&
+      typeof (entry.totalTokens ?? entry.inputTokens ?? entry.outputTokens) === "number",
+  );
+  return counted.length > 0 ? counted : undefined;
 }
 
 /** Collapses whitespace and cuts to `max` characters with an ellipsis. */

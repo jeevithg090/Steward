@@ -101,6 +101,23 @@ export const RULE_SOURCE_LABELS: Record<Rule["source"], string> = {
   bot: "From a bot",
 };
 
+/** Model providers as people read them. The id itself for one the app does not know. */
+export const PROVIDER_LABELS: Record<string, string> = {
+  openrouter: "OpenRouter",
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  nvidia: "NVIDIA",
+  gemini: "Gemini",
+  xai: "xAI",
+  ollama: "Ollama",
+  "openai-compatible": "OpenAI-compatible server",
+  scripted: "Scripted demo model",
+};
+
+export function providerLabel(provider: string): string {
+  return PROVIDER_LABELS[provider] ?? provider;
+}
+
 export const AUDIT_TYPE_LABELS: Record<AuditType, string> = {
   "tool.decided": "Decided",
   "tool.completed": "Done",

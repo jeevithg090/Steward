@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
-import { SERVER_PORT, SERVER_URL, WEB_URL } from "./env.ts";
+import { SERVER_PORT, SERVER_URL, WEB_PORT, WEB_URL } from "./env.ts";
 
 /**
  * End-to-end tests: the real server and the real web app, driven by Chromium, with the scripted
@@ -10,6 +10,9 @@ import { SERVER_PORT, SERVER_URL, WEB_URL } from "./env.ts";
  *   pnpm e2e                       run everything
  *   pnpm e2e --ui                  watch it run
  *   STEWARD_E2E_REUSE=1 pnpm e2e   reuse servers you already started (never in CI)
+ *   STEWARD_E2E_SERVER_PORT=8797 STEWARD_E2E_WEB_PORT=4173 pnpm e2e
+ *                                  run beside `pnpm dev`, on ports of its own. The web port must
+ *                                  be 5173 or 4173: the server answers only those dev origins.
  *
  * Each run gets a fresh data folder under test-results/, so a run never reads or changes the data
  * in your own .steward-data. Reusing servers is opt-in for the same reason: a server you started
@@ -75,7 +78,7 @@ export default defineConfig({
     },
     {
       name: "web",
-      command: "pnpm --filter @steward/web dev",
+      command: `pnpm --filter @steward/web dev --port ${WEB_PORT}`,
       cwd: REPO_ROOT,
       url: WEB_URL,
       env: { STEWARD_SERVER_URL: SERVER_URL },

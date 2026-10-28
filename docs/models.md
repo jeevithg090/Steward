@@ -1,8 +1,8 @@
 # Models
 
 Steward talks to every model through the OpenAI Chat Completions API, so it works with any
-provider that speaks it: OpenRouter, OpenAI, Anthropic and Gemini (through their OpenAI-compatible
-endpoints), NVIDIA, Ollama, or anything else you point it at. Without a key it runs a scripted demo
+provider that speaks it: OpenRouter, OpenAI, Anthropic, Gemini and xAI (through their
+OpenAI-compatible endpoints), NVIDIA, Ollama, or anything else you point it at. Without a key it runs a scripted demo
 model, so the whole product works on first run, and says so on every page.
 
 ## Choosing one
@@ -29,6 +29,7 @@ and never shown in the app.
 | `anthropic`              | `ANTHROPIC_API_KEY`     | `https://api.anthropic.com/v1` (OpenAI-compatible)        | `claude-sonnet-5-5`                 |
 | `gemini`                 | `GEMINI_API_KEY`        | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-3.5-flash`                  |
 | `nvidia`                 | `NVIDIA_API_KEY`        | `https://integrate.api.nvidia.com/v1`                     | `nvidia/nemotron-3-ultra-550b-a55b` |
+| `xai`                    | `XAI_API_KEY`           | `https://api.x.ai/v1`                                     | `grok-4.7`                          |
 | `ollama`                 | none                    | `http://127.0.0.1:11434/v1`                               | `llama3.2`                          |
 | `openai-compatible`      | `STEWARD_MODEL_API_KEY` | `STEWARD_MODEL_BASE_URL` (required)                       | set `STEWARD_MODEL`                 |
 | `scripted`               | none                    | in-process                                                | the scripted demo model             |
@@ -75,9 +76,47 @@ calls ask, and the same calls are refused.
 
 ## One agent, another model
 
-An agent in `agents.yaml` can name its own model with `model:`. It uses the same provider and key
-as everyone else, with that model id. Useful when one agent does heavy research and another only
-sorts mail.
+An agent in `agents.yaml` can name its own model with `model:`, and keeps it whatever Settings
+says; Settings changes the model of the agents that name none. Useful when one agent does heavy
+research and another only sorts mail, and how "Steward on Claude" and "Steward on Grok" sit side
+by side in the agent picker:
+
+```yaml
+agents:
+  - id: steward # the model from Settings, .env or model.yaml
+    name: Steward
+  - id: steward-claude
+    name: Steward on Claude
+    model: anthropic/claude-sonnet-5.5 # an id on the tenant's provider (OpenRouter here)
+  - id: steward-grok
+    name: Steward on Grok
+    model: xai/grok-4.7 # provider/model: Grok straight from xAI
+```
+
+- A **bare id** (`anthropic/claude-sonnet-5.5`, `gpt-5.6-terra`) is a model on the tenant's
+  provider from `model.yaml`, with that provider's key.
+- **`provider/model`** names one of the providers in the table above and a model on it:
+  `xai/grok-4.7`, `gemini/gemini-3.5-flash`, `ollama/llama3.2`, `openai/gpt-5.6-terra`. The key
+  comes from that provider's variable.
+- OpenRouter and NVIDIA list models under vendor names, and three of those (`anthropic`,
+  `openai`, `nvidia`) are also Steward providers. On an OpenRouter or NVIDIA tenant such an id
+  stays on the tenant's provider: `anthropic/claude-sonnet-5.5` is an OpenRouter id, and
+  `nvidia/nemotron-3-ultra-550b-a55b` an NVIDIA one. On any other tenant it names the provider.
+  Naming the tenant's own provider again is a prefix (`openrouter/anthropic/claude-sonnet-5.5`).
+- An installed bot whose pack names a model reads it the same way, but as a preference rather
+  than a pin: it runs on that model when the provider has a key, and on the default model
+  otherwise. On the scripted demo model, bots run on the demo model too.
+
+An agent whose provider has no key is still listed, greyed out, with the reason ("No xAI key is
+set"), and answers with that sentence if a conversation reaches it anyway. Add the key to `.env`
+and restart, and it can take a conversation. `GET /api/agents` says the same for every agent:
+its provider, its model, whether it can answer, and why not.
+
+## What a run cost
+
+Every finished run gets a "Finished work" entry in the record with how it ended and the tokens it
+used, per provider and model, as the provider reported them (AG-UI `RUN_FINISHED.usage`). Steward
+counts tokens; it never guesses money.
 
 ## The scripted demo model
 

@@ -289,6 +289,8 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       notifications: proactive.notifications,
       runs,
       bus,
+      audit: gateway.audit,
+      actorId: LOCAL_ACTOR,
     });
 
     const security: SecurityOptions = {

@@ -14,6 +14,7 @@ export {
   linkStopSignal,
   modelErrorMessage,
   NO_LONGER_GRANTED,
+  normaliseUsage,
   TOO_MANY_STEPS,
 } from "./middleware.ts";
 export {
@@ -22,6 +23,8 @@ export {
   createModel,
   createTextModel,
   PROVIDERS,
+  type ProfileModel,
+  profileModel,
   type ResolvedModelConfig,
   resolveModelConfig,
   SCRIPTED_MODEL_ID,

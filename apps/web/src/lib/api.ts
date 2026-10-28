@@ -1,5 +1,6 @@
 import {
   type ActivityItem,
+  type AgentsResponse,
   type AppInfo,
   type AppNotification,
   type Approval,
@@ -205,6 +206,8 @@ export function setDefaultAgentId(id: string): void {
 
 export const api = {
   info: (signal?: AbortSignal) => get<AppInfo>(ROUTES.info, undefined, signal),
+  /** Every agent with the model it runs on and whether it can answer now. */
+  agents: (signal?: AbortSignal) => get<AgentsResponse>(ROUTES.agents, undefined, signal),
   health: () => get<{ ok: true }>(ROUTES.health),
 
   settings: {
@@ -336,6 +339,7 @@ export const api = {
 /** One place for every cache key, so live events and mutations invalidate exactly what changed. */
 export const queryKeys = {
   info: ["info"] as const,
+  agents: ["agents"] as const,
   settings: ["settings"] as const,
   setup: ["setup"] as const,
   threads: ["threads"] as const,
@@ -401,6 +405,16 @@ export function useInfo(opts?: QueryOpts<AppInfo>) {
   });
 }
 
+/** The agents as the picker shows them: name, model, and whether each can answer. */
+export function useAgents(opts?: QueryOpts<AgentsResponse>) {
+  return useQuery<AgentsResponse, ApiError>({
+    queryKey: queryKeys.agents,
+    queryFn: ({ signal }) => api.agents(signal),
+    staleTime: 60_000,
+    ...opts,
+  });
+}
+
 export function useSettings(opts?: QueryOpts<Settings>) {
   return useQuery<Settings, ApiError>({
     queryKey: queryKeys.settings,
@@ -416,6 +430,8 @@ export function useUpdateSettings() {
     onSuccess: (settings) => {
       qc.setQueryData(queryKeys.settings, settings);
       void qc.invalidateQueries({ queryKey: queryKeys.info });
+      // A new default model changes what the agents without a model of their own run on.
+      void qc.invalidateQueries({ queryKey: queryKeys.agents });
       void qc.invalidateQueries({ queryKey: queryKeys.setup });
     },
   });
@@ -850,6 +866,7 @@ function useBotsMutation<TVars, TResult>(fn: (vars: TVars) => Promise<TResult>) 
 export function invalidateBots(qc: QueryClient): void {
   void qc.invalidateQueries({ queryKey: queryKeys.bots });
   void qc.invalidateQueries({ queryKey: queryKeys.info });
+  void qc.invalidateQueries({ queryKey: queryKeys.agents });
   void qc.invalidateQueries({ queryKey: queryKeys.skills });
   void qc.invalidateQueries({ queryKey: queryKeys.rules });
   void qc.invalidateQueries({ queryKey: queryKeys.routines });

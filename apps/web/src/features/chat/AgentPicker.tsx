@@ -1,30 +1,46 @@
 /**
- * Who takes a new conversation: Steward, or a bot the person added. The default agent is listed
- * first; a bot is named with "(bot)" after it, so the list reads plainly without colour or icons.
- * Nothing is drawn while there is only one choice.
+ * Who takes a new conversation: Steward, another Steward on a different model, or a bot the person
+ * added. The default agent is listed first; a bot is named with "(bot)" after it. Under each name
+ * is the model it runs on. An agent whose provider has no key is greyed out and says why instead
+ * of its model: it cannot be chosen until the key is added. Nothing is drawn while there is only
+ * one choice.
+ *
+ * A group of radio buttons rather than a select, so every agent's model is visible at once and a
+ * screen reader hears the reason an agent is unavailable as its description.
  */
-import type { AgentProfile, AppInfo } from "@steward/shared";
+import type { AgentInfo } from "@steward/shared";
 import { useId } from "react";
-import { Select } from "@/components/ui/Field.tsx";
-import { useInfo } from "@/lib/api.ts";
+import { useAgents } from "@/lib/api.ts";
+import { providerLabel } from "@/lib/labels.ts";
 import { cn } from "@/lib/utils.ts";
 
 export interface AgentChoice {
   id: string;
   label: string;
   bot: boolean;
+  available: boolean;
+  /** "xAI · grok-4.7". */
+  model: string;
+  /** Why it cannot be chosen, when it cannot. */
+  reason?: string;
 }
 
-export function isBotAgent(agent: Pick<AgentProfile, "source">): boolean {
+export function isBotAgent(agent: Pick<AgentInfo, "source">): boolean {
   return typeof agent.source === "string" && agent.source.startsWith("bot:");
 }
 
 /** The agents as choices: the default first, then the rest in the order the server lists them. */
-export function agentChoices(info: Pick<AppInfo, "agents"> | undefined): AgentChoice[] {
-  const agents = info?.agents ?? [];
-  return agents.map((agent) => {
+export function agentChoices(agents: readonly AgentInfo[] | undefined): AgentChoice[] {
+  return (agents ?? []).map((agent) => {
     const bot = isBotAgent(agent);
-    return { id: agent.id, label: bot ? `${agent.name} (bot)` : agent.name, bot };
+    return {
+      id: agent.id,
+      label: bot ? `${agent.name} (bot)` : agent.name,
+      bot,
+      available: agent.available,
+      model: `${providerLabel(agent.provider)} · ${agent.model}`,
+      ...(agent.reason ? { reason: agent.reason } : {}),
+    };
   });
 }
 
@@ -39,32 +55,63 @@ export function AgentPicker({
   disabled?: boolean;
   className?: string;
 }) {
-  const info = useInfo();
+  const agents = useAgents();
   const id = useId();
   const hintId = `${id}-hint`;
-  const choices = agentChoices(info.data);
+  const choices = agentChoices(agents.data?.agents);
   if (choices.length < 2) return null;
   return (
-    <div className={cn("flex w-full max-w-sm flex-col gap-1.5 text-left", className)}>
-      <label htmlFor={id} className="font-medium text-ink text-sub">
-        Who should take this?
-      </label>
-      <Select
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        aria-describedby={hintId}
-        disabled={disabled}
-      >
-        {choices.map((choice) => (
-          <option key={choice.id} value={choice.id}>
-            {choice.label}
-          </option>
-        ))}
-      </Select>
+    <fieldset
+      className={cn("m-0 flex w-full max-w-sm min-w-0 flex-col gap-1.5 border-0 p-0 text-left", className)}
+      aria-describedby={hintId}
+      disabled={disabled}
+    >
+      <legend className="mb-1.5 p-0 font-medium text-ink text-sub">Who should take this?</legend>
+      <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+        {choices.map((choice) => {
+          const inputId = `${id}-${choice.id}`;
+          const nameId = `${inputId}-name`;
+          const noteId = `${inputId}-note`;
+          const selected = choice.id === value;
+          return (
+            <li key={choice.id}>
+              <label
+                htmlFor={inputId}
+                className={cn(
+                  "flex min-h-target cursor-pointer items-start gap-3 rounded-field border px-3 py-2",
+                  selected ? "border-accent bg-accent-soft" : "border-hair-2 bg-card hover:bg-tile",
+                  !choice.available && "cursor-not-allowed opacity-60",
+                )}
+              >
+                <input
+                  id={inputId}
+                  type="radio"
+                  name={id}
+                  value={choice.id}
+                  checked={selected}
+                  disabled={!choice.available}
+                  onChange={() => onChange(choice.id)}
+                  aria-labelledby={nameId}
+                  aria-describedby={noteId}
+                  className="mt-1 size-4 shrink-0 accent-accent"
+                />
+                <span className="flex min-w-0 flex-col">
+                  <span id={nameId} className="font-medium text-ink text-sub">
+                    {choice.label}
+                  </span>
+                  <span id={noteId} className="break-words text-caption text-ink-2">
+                    {choice.available ? choice.model : (choice.reason ?? "Not available right now.")}
+                  </span>
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
       <p id={hintId} className="m-0 text-caption text-ink-2">
-        Steward, or a bot you added. Every one of them follows your rules.
+        Steward on the model you chose, Steward on another, or a bot you added. Every one of them follows your
+        rules.
       </p>
-    </div>
+    </fieldset>
   );
 }

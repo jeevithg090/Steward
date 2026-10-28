@@ -10,6 +10,7 @@ import { Page } from "@/components/ui/PageHeader.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
 import { type AuditFilters, useAudit, useVerifyAudit } from "@/lib/api.ts";
 import { AUDIT_TYPE_LABELS, EFFECT_LABELS, targetSummary, toolLabel } from "@/lib/labels.ts";
+import { usageSummary } from "@/lib/usage.ts";
 import { cn, formatDateTime, plural, prettyJson, relativeTime } from "@/lib/utils.ts";
 
 const PAGE_SIZE = 50;
@@ -183,9 +184,21 @@ function ChainBadge() {
   );
 }
 
+/** How a recorded run ended, from its `run.finished` detail. */
+const RUN_OUTCOMES: Record<string, { label: string; tone: "done" | "needs" | "neutral" | "problem" }> = {
+  success: { label: "Done", tone: "done" },
+  interrupt: { label: "Asked you", tone: "needs" },
+  cancelled: { label: "Stopped", tone: "neutral" },
+  error: { label: "Failed", tone: "problem" },
+};
+
 function outcomeOf(event: AuditEvent) {
   if (event.type === "tool.failed") return { label: "Failed", tone: "problem" as const };
   if (event.type === "tool.completed") return { label: "Done", tone: "done" as const };
+  if (event.type === "run.finished") {
+    const outcome = event.detail?.outcome;
+    return typeof outcome === "string" ? RUN_OUTCOMES[outcome] : undefined;
+  }
   if (event.effect) return EFFECT_LABELS[event.effect];
   return undefined;
 }
@@ -217,6 +230,9 @@ function AuditRow({ event }: { event: AuditEvent }) {
             {event.tool ? <span className="text-ink text-sub">· {toolLabel(event.tool.name)}</span> : null}
           </span>
           {target ? <span className="mt-0.5 block break-all text-ink-2 text-sub">{target}</span> : null}
+          {event.type === "run.finished" ? (
+            <span className="mt-0.5 block text-ink-2 text-sub">{usageSummary(event.detail)}</span>
+          ) : null}
           {refusal && event.rule ? (
             <span className="mt-1 block text-sub">
               <span className="text-ink-2">Refused by </span>

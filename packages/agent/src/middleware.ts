@@ -2,6 +2,7 @@
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import {
   AbstractAgent,
+  aggregateTokenUsage,
   type BaseEvent,
   type Context,
   EventType,
@@ -11,6 +12,7 @@ import {
   type ResumeEntry,
   type RunAgentInput,
   type RunFinishedEvent,
+  type TokenUsage,
   type ToolCall,
 } from "@ag-ui/client";
 import {
@@ -237,6 +239,10 @@ export class GovernedToolsMiddleware extends Middleware {
     const { emit, signal } = io;
     emit({ type: EventType.RUN_STARTED, threadId: input.threadId, runId: input.runId } as BaseEvent);
 
+    // Every model call's token usage, so the run ends with the whole run's count (per provider and model).
+    const usage: TokenUsage[] = [];
+    const finish = (event: RunFinishedEvent) => emit(withUsage(event, usage));
+
     let messages: Message[] = [...input.messages];
     const resume = (input.resume ?? []).filter(
       (entry) => findCall(messages, entry.interruptId) !== undefined,
@@ -249,7 +255,7 @@ export class GovernedToolsMiddleware extends Middleware {
     // 1. Resume: the person answered an approval. The database decides, not the payload.
     const answered = answeredIds(messages);
     if (resume.length > 0 && resume.every((entry) => answered.has(entry.interruptId))) {
-      emit(this.finished(input));
+      finish(this.finished(input));
       return;
     }
     const parkedAgain: Extract<GateResult, { parked: unknown }>["parked"][] = [];
@@ -270,11 +276,11 @@ export class GovernedToolsMiddleware extends Middleware {
       else messages = this.answer(messages, call.id, result.content, emit);
     }
     if (parkedAgain.length > 0) {
-      this.interrupt(parkedAgain, this.finished(input), emit);
+      this.interrupt(parkedAgain, this.finished(input), { emit, finish });
       return;
     }
     if (signal.aborted) {
-      emit(this.cancelled(input));
+      finish(this.cancelled(input));
       return;
     }
 
@@ -287,7 +293,7 @@ export class GovernedToolsMiddleware extends Middleware {
 
     for (let segment = 0; segment < this.maxSegments; segment++) {
       if (signal.aborted) {
-        emit(this.cancelled(input));
+        finish(this.cancelled(input));
         return;
       }
       const request: RunAgentInput = {
@@ -304,6 +310,7 @@ export class GovernedToolsMiddleware extends Middleware {
       if (seg.failed) return;
       messages = mergeHistory(messages, request.messages, seg.messages);
       state = seg.state;
+      if (seg.terminal?.usage) usage.push(...seg.terminal.usage);
       if (!seg.terminal || seg.terminal.outcome?.type === "cancelled" || signal.aborted) {
         // A stop while the model was still writing a call's arguments leaves that call open, and
         // AG-UI refuses to finish a run with open calls. Close each one as stopped: it never ran.
@@ -311,7 +318,7 @@ export class GovernedToolsMiddleware extends Middleware {
           emit({ type: EventType.TOOL_CALL_END, toolCallId: id } as BaseEvent);
           this.answer(messages, id, serialise({ ok: false, error: STOPPED }), emit);
         }
-        emit(seg.terminal ?? this.cancelled(input));
+        finish(seg.terminal ?? this.cancelled(input));
         return;
       }
       lastFinish = seg.terminal;
@@ -326,7 +333,7 @@ export class GovernedToolsMiddleware extends Middleware {
         // model turn, so the model can see the error and recover instead of going quiet.
         const answeredInside = fresh.length > 0 && pending.length === 0;
         if (answeredInside && segment + 1 < this.maxSegments) continue;
-        emit(seg.terminal);
+        finish(seg.terminal);
         return;
       }
 
@@ -340,16 +347,16 @@ export class GovernedToolsMiddleware extends Middleware {
         else messages = this.answer(messages, call.id, result.content, emit);
       }
       if (parked.length > 0) {
-        this.interrupt(parked, seg.terminal, emit);
+        this.interrupt(parked, seg.terminal, { emit, finish });
         return;
       }
       if (signal.aborted) {
-        emit(this.cancelled(input));
+        finish(this.cancelled(input));
         return;
       }
       // The browser still owes results for tools it offered itself; it continues the run.
       if (mine.length !== pending.length) {
-        emit(seg.terminal);
+        finish(seg.terminal);
         return;
       }
     }
@@ -358,7 +365,7 @@ export class GovernedToolsMiddleware extends Middleware {
     emit({ type: EventType.TEXT_MESSAGE_START, messageId, role: "assistant" } as BaseEvent);
     emit({ type: EventType.TEXT_MESSAGE_CONTENT, messageId, delta: TOO_MANY_STEPS } as BaseEvent);
     emit({ type: EventType.TEXT_MESSAGE_END, messageId } as BaseEvent);
-    emit(lastFinish);
+    finish(lastFinish);
   }
 
   /**
@@ -535,10 +542,10 @@ export class GovernedToolsMiddleware extends Middleware {
   private interrupt(
     parked: Extract<GateResult, { parked: unknown }>["parked"][],
     terminal: RunFinishedEvent,
-    emit: Emit,
+    io: { emit: Emit; finish: (event: RunFinishedEvent) => void },
   ): void {
     for (const { outcome } of parked) {
-      emit({
+      io.emit({
         type: EventType.CUSTOM,
         name: CUSTOM_EVENTS.approvalRequested,
         value: { approval: outcome.approval },
@@ -564,7 +571,7 @@ export class GovernedToolsMiddleware extends Middleware {
         metadata: metadata as unknown as Interrupt["metadata"],
       };
     });
-    emit({ ...terminal, outcome: { type: "interrupt", interrupts } } as BaseEvent);
+    io.finish({ ...terminal, outcome: { type: "interrupt", interrupts } } as RunFinishedEvent);
   }
 
   private initiatorOf(input: RunAgentInput): Initiator {
@@ -758,6 +765,29 @@ function placeResult(messages: readonly Message[], toolCallId: string, result: M
   let at = owner + 1;
   while (at < messages.length && messages[at]?.role === "tool") at++;
   return [...messages.slice(0, at), result, ...messages.slice(at)];
+}
+
+/**
+ * The AI SDK names a provider after the API it spoke (`xai.chat`, `openrouter.chat`); the record
+ * names it the way Steward does (`xai`, `openrouter`). Entries without a count are dropped.
+ */
+export function normaliseUsage(entries: readonly TokenUsage[]): TokenUsage[] {
+  return entries
+    .filter((entry) =>
+      [entry.inputTokens, entry.outputTokens, entry.totalTokens].some((n) => n !== undefined),
+    )
+    .map((entry) => {
+      const provider = entry.provider?.replace(/\.(chat|responses|completion|completions)$/, "");
+      return { ...entry, ...(provider ? { provider } : {}) };
+    });
+}
+
+/** The run's whole usage on its last event, one entry per provider and model. Untouched when nothing was reported. */
+function withUsage(event: RunFinishedEvent, usage: readonly TokenUsage[]): RunFinishedEvent {
+  const total = aggregateTokenUsage(normaliseUsage(usage));
+  if (total.length === 0) return event;
+  const { usage: _own, ...rest } = event;
+  return { ...rest, usage: total } as RunFinishedEvent;
 }
 
 /**

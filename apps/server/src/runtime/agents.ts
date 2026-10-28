@@ -11,10 +11,20 @@ import {
   createModel,
   createStewardAgent,
   createTextModel,
+  PROVIDERS,
+  profileModel,
+  type ResolvedModelConfig,
   resolveModelConfig,
 } from "@steward/agent";
 import { profileFromPack } from "@steward/bots";
-import type { AgentProfile, BotPack, ModelConfig, TenantPackage, TextModel } from "@steward/shared";
+import type {
+  AgentInfo,
+  AgentProfile,
+  BotPack,
+  ModelConfig,
+  TenantPackage,
+  TextModel,
+} from "@steward/shared";
 import { Observable } from "rxjs";
 import { type ModelChoice, takesAddress } from "../store/settings.ts";
 
@@ -32,6 +42,9 @@ export interface ModelInfo {
   /** Set when no working model could be built; every agent then answers with a setup notice. */
   problem?: "no_key" | "unavailable";
 }
+
+/** What `GET /api/agents` says about one agent: the model it runs on, and whether it can answer. */
+export type AgentStatus = Pick<AgentInfo, "available" | "model" | "provider" | "signIn" | "reason">;
 
 type LoadedModel = Awaited<ReturnType<typeof createModel>>;
 
@@ -64,6 +77,26 @@ export const NOTICE_NO_KEY =
   "I can't answer yet: no AI model is set up. Add a model key in .env, then restart Steward.";
 export const NOTICE_UNAVAILABLE =
   "I can't answer right now: the AI model could not be started. The server log says why.";
+
+/** The provider's name as people see it: "xAI", "OpenRouter". */
+export function providerName(provider: string): string {
+  return (PROVIDERS as Record<string, { name: string } | undefined>)[provider]?.name ?? provider;
+}
+
+/** What an agent with a provider of its own says while that provider has no key. */
+export function noticeNoKeyFor(provider: string): string {
+  const name = providerName(provider);
+  return `I can't answer yet: this agent runs on ${name}, and no ${name} key is set. Add one in .env, then restart Steward.`;
+}
+
+/** The one line `GET /api/agents` gives for an agent whose provider has no key. */
+export function reasonNoKeyFor(provider: string): string {
+  const name = providerName(provider);
+  return `No ${name} key is set. Add one in .env, then restart Steward.`;
+}
+
+export const REASON_NO_KEY = "No model key is set. Add one in .env, then restart Steward.";
+export const REASON_UNAVAILABLE = "The model could not be started. The server log says why.";
 
 /**
  * Stands in for an agent when there is no working model. It answers every run with one honest
@@ -139,21 +172,30 @@ function hasKey(cfg: ModelConfig, env: NodeJS.ProcessEnv): boolean {
   return Boolean(env[cfg.apiKeyEnv]?.trim());
 }
 
+/** Two configs that would build the same client share one model. */
+function modelKey(cfg: ModelConfig): string {
+  return [cfg.provider, cfg.model, cfg.baseUrl ?? "", cfg.apiKeyEnv ?? ""].join("\u0000");
+}
+
 interface Generation {
   config: ModelConfig;
   info: ModelInfo;
   /** Tenant profiles first, then one per installed bot, each with its `source`. */
   profiles: AgentProfile[];
   agents: Record<string, AbstractAgent>;
+  statuses: Record<string, AgentStatus>;
   text?: TextModel;
   loaded: LoadedModel[];
 }
 
 /**
- * Owns the model and one agent per profile: the tenant's, then one for every installed bot. The
- * runtime reads `agents` on every request, so a model change in Settings or a bot being added or
- * removed swaps them without a restart; runs already in flight finish on the clone they started
- * with, and the old model is closed a minute later.
+ * Owns the models and one agent per profile: the tenant's, then one for every installed bot. A
+ * profile without a `model` runs on the model chosen in Settings (or .env, or model.yaml); a
+ * profile with one keeps it, on the tenant's provider or on the provider it names, and is listed
+ * as unavailable, with a notice instead of an agent, while that provider has no key. The runtime
+ * reads `agents` on every request, so a model change in Settings or a bot being added or removed
+ * swaps them without a restart; runs already in flight finish on the clone they started with, and
+ * the old models are closed a minute later.
  */
 export class AgentHost {
   private current: Generation | undefined;
@@ -226,7 +268,7 @@ export class AgentHost {
   private async build(choice?: ModelChoice): Promise<void> {
     const { tenant } = this.deps;
     const env = modelEnv(this.deps.env, choice);
-    let config: ModelConfig;
+    let config: ResolvedModelConfig;
     try {
       config = resolveModelConfig(tenant, env);
     } catch (err) {
@@ -235,6 +277,7 @@ export class AgentHost {
     }
 
     const loaded: LoadedModel[] = [];
+    const models = new Map<string, LoadedModel>();
     let primary: LoadedModel | undefined;
     let problem: ModelInfo["problem"];
     if (!hasKey(config, this.deps.env)) {
@@ -243,6 +286,7 @@ export class AgentHost {
       try {
         primary = await createModel(config, this.deps.env);
         loaded.push(primary);
+        models.set(modelKey(config), primary);
       } catch (err) {
         console.error("[steward] the model could not be started:", err instanceof Error ? err.message : err);
         problem = "unavailable";
@@ -251,45 +295,11 @@ export class AgentHost {
 
     const profiles = this.collectProfiles();
     const agents: Record<string, AbstractAgent> = {};
+    const statuses: Record<string, AgentStatus> = {};
     for (const profile of profiles) {
-      if (!primary) {
-        agents[profile.id] = new UnconfiguredAgent(
-          problem === "no_key" ? NOTICE_NO_KEY : NOTICE_UNAVAILABLE,
-          {
-            agentId: profile.id,
-            description: profile.title,
-          },
-        );
-        continue;
-      }
-      let model = primary;
-      if (profile.model && profile.model !== config.model && !primary.scripted) {
-        try {
-          model = await createModel({ ...config, model: profile.model }, this.deps.env);
-          loaded.push(model);
-        } catch (err) {
-          console.error(
-            `[steward] agent ${profile.id}'s model could not be started; using the default:`,
-            err instanceof Error ? err.message : err,
-          );
-        }
-      }
-      try {
-        agents[profile.id] = createStewardAgent({
-          ...this.deps.shared,
-          profile,
-          tenant,
-          model: model.model,
-          serverRunToken: this.deps.serverRunToken,
-          maxOutputTokens: maxOutputTokens(this.deps.env),
-        });
-      } catch (err) {
-        console.error(
-          `[steward] agent ${profile.id} could not be built:`,
-          err instanceof Error ? err.message : err,
-        );
-        agents[profile.id] = new UnconfiguredAgent(NOTICE_UNAVAILABLE, { agentId: profile.id });
-      }
+      const built = await this.buildAgent(profile, { env, config, primary, problem, models, loaded });
+      agents[profile.id] = built.agent;
+      statuses[profile.id] = built.status;
     }
 
     const address = givenAddress(config, tenant, env);
@@ -306,6 +316,7 @@ export class AgentHost {
       info,
       profiles,
       agents,
+      statuses,
       // The scripted model has no real answers for triage or the brief, so those fall back to rules.
       ...(primary && !primary.scripted ? { text: createTextModel(primary.model, primary.label) } : {}),
       loaded,
@@ -315,6 +326,154 @@ export class AgentHost {
     this.current = next;
     this.generation++;
     if (previous) this.retire(previous.loaded);
+  }
+
+  /**
+   * One agent. A profile without a `model` follows the primary model; one with a `model` resolves
+   * its own (the tenant's provider, or the one it names) and shares a client with any other
+   * profile on the same model. For a tenant profile the model is a pin: no key for its provider,
+   * or a model that will not start, makes this one agent a notice; the others are untouched. For
+   * an installed bot it is a preference (a pack's `needs.model`): the bot runs on it when it can,
+   * and on the primary model otherwise, including the scripted demo model.
+   */
+  private async buildAgent(
+    profile: AgentProfile,
+    scope: {
+      env: NodeJS.ProcessEnv;
+      config: ResolvedModelConfig;
+      primary: LoadedModel | undefined;
+      problem: ModelInfo["problem"];
+      models: Map<string, LoadedModel>;
+      loaded: LoadedModel[];
+    },
+  ): Promise<{ agent: AbstractAgent; status: AgentStatus }> {
+    const { tenant } = this.deps;
+    const bot = typeof profile.source === "string" && profile.source.startsWith("bot:");
+    let own = profile.model !== undefined && !(bot && (!scope.primary || scope.primary.scripted));
+    let cfg: ResolvedModelConfig = scope.config;
+    if (own) {
+      try {
+        cfg = resolveModelConfig(tenant, scope.env, profile);
+      } catch (err) {
+        console.error(
+          `[steward] agent ${profile.id}'s model could not be read:`,
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+    const shown = (): Pick<AgentStatus, "provider" | "model"> => ({
+      provider: cfg.provider,
+      model: cfg.model,
+    });
+
+    // A bot's model it cannot have: it runs on the primary model instead.
+    if (own && bot && cfg.fallbackReason) {
+      own = false;
+      cfg = scope.config;
+    }
+
+    // A profile of its own whose provider has no key: the resolver fell back to scripted and says why.
+    if (own && cfg.fallbackReason) {
+      const wanted = this.wanted(profile);
+      const noKey = cfg.fallbackReason.startsWith("no key for ");
+      return {
+        agent: new UnconfiguredAgent(noKey ? noticeNoKeyFor(wanted.provider) : NOTICE_UNAVAILABLE, {
+          agentId: profile.id,
+          description: profile.title,
+        }),
+        status: {
+          ...wanted,
+          available: false,
+          signIn: "api-key",
+          reason: noKey ? reasonNoKeyFor(wanted.provider) : `${cfg.fallbackReason}.`,
+        },
+      };
+    }
+
+    // The primary model, or the profile's own, started once however many profiles share it.
+    let model: LoadedModel | undefined =
+      !own || (scope.primary && modelKey(cfg) === modelKey(scope.config))
+        ? scope.primary
+        : await this.loadModel(cfg, scope, profile.id);
+    if (!model && own && bot && scope.primary) {
+      model = scope.primary;
+      cfg = scope.config;
+    }
+
+    if (!model) {
+      const noKey = !own && scope.problem === "no_key";
+      return {
+        agent: new UnconfiguredAgent(noKey ? NOTICE_NO_KEY : NOTICE_UNAVAILABLE, {
+          agentId: profile.id,
+          description: profile.title,
+        }),
+        status: {
+          ...shown(),
+          available: false,
+          signIn: "api-key",
+          reason: noKey ? REASON_NO_KEY : REASON_UNAVAILABLE,
+        },
+      };
+    }
+
+    const status: AgentStatus = {
+      ...shown(),
+      available: true,
+      signIn: model.scripted ? "scripted" : "api-key",
+    };
+    try {
+      return {
+        agent: createStewardAgent({
+          ...this.deps.shared,
+          profile,
+          tenant,
+          model: model.model,
+          serverRunToken: this.deps.serverRunToken,
+          maxOutputTokens: maxOutputTokens(this.deps.env),
+        }),
+        status,
+      };
+    } catch (err) {
+      console.error(
+        `[steward] agent ${profile.id} could not be built:`,
+        err instanceof Error ? err.message : err,
+      );
+      return {
+        agent: new UnconfiguredAgent(NOTICE_UNAVAILABLE, { agentId: profile.id }),
+        status: { ...shown(), available: false, signIn: "api-key", reason: REASON_UNAVAILABLE },
+      };
+    }
+  }
+
+  /** Starts the model a config names, or reuses the one already started for it. Undefined when it fails. */
+  private async loadModel(
+    cfg: ModelConfig,
+    scope: { models: Map<string, LoadedModel>; loaded: LoadedModel[] },
+    agentId: string,
+  ): Promise<LoadedModel | undefined> {
+    const key = modelKey(cfg);
+    const existing = scope.models.get(key);
+    if (existing) return existing;
+    try {
+      const model = await createModel(cfg, this.deps.env);
+      scope.loaded.push(model);
+      scope.models.set(key, model);
+      return model;
+    } catch (err) {
+      console.error(
+        `[steward] agent ${agentId}'s model could not be started:`,
+        err instanceof Error ? err.message : err,
+      );
+      return undefined;
+    }
+  }
+
+  /** The provider and model a profile's `model` asks for, by the same reading `resolveModelConfig` uses. */
+  private wanted(profile: AgentProfile): Pick<AgentStatus, "provider" | "model"> {
+    const { model: tenantModel } = this.deps.tenant;
+    if (!profile.model) return { provider: tenantModel.provider, model: tenantModel.model };
+    const own = profileModel(profile.model, tenantModel.provider);
+    return { provider: own.provider ?? tenantModel.provider, model: own.model };
   }
 
   get agents(): Record<string, AbstractAgent> {
@@ -328,6 +487,21 @@ export class AgentHost {
   /** Every profile an agent was built for: the tenant's, then the installed bots', with `source`. */
   get profiles(): AgentProfile[] {
     return this.current?.profiles ?? [];
+  }
+
+  /** What `GET /api/agents` lists: every profile with the model it runs on and whether it can answer. */
+  agentInfos(): AgentInfo[] {
+    const statuses = this.current?.statuses ?? {};
+    return this.profiles.map((profile) => {
+      const status: AgentStatus = statuses[profile.id] ?? {
+        provider: this.deps.tenant.model.provider,
+        model: this.deps.tenant.model.model,
+        available: false,
+        signIn: "api-key",
+        reason: REASON_UNAVAILABLE,
+      };
+      return { ...profile, ...status };
+    });
   }
 
   hasAgent(id: string): boolean {

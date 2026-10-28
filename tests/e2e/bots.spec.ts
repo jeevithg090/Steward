@@ -116,14 +116,17 @@ test.describe("Bots", () => {
     for (const r of rows) if (r.name === name) added.add(r.id);
     expect(added.size).toBeGreaterThan(0);
 
-    // A choice in a new conversation.
+    // A choice in a new conversation, with the model it runs on under its name.
     await openNewChat(page);
-    const picker = page.getByRole("combobox", { name: "Who should take this?" });
+    const picker = page.getByRole("group", { name: "Who should take this?" });
     await expect(picker).toBeVisible();
-    await expect(picker.getByRole("option", { name: `${name} (bot)` })).toHaveCount(1);
+    const choice = picker.getByRole("radio", { name: `${name} (bot)`, exact: true });
+    await expect(choice).toHaveCount(1);
+    await expect(choice).toHaveAccessibleDescription(/Scripted demo model/);
     // Picking a bot starts a fresh conversation with it: a new address, not the empty one.
     const before = page.url();
-    await picker.selectOption({ label: `${name} (bot)` });
+    // A click, not check(): choosing moves straight to a new conversation, so the radio never stays set here.
+    await choice.click();
     await page.waitForURL((url) => /\/chat\/[^/?#]+/.test(url.pathname) && url.href !== before);
     await expect(
       page.getByRole("heading", { level: 2, name: new RegExp(`What can ${name} do for you`) }),
