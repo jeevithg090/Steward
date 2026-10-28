@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { AbstractAgent, type BaseEvent, EventType, type RunAgentInput } from "@ag-ui/client";
+import { AbstractAgent, type BaseEvent, EventType, type RunAgentInput, type TokenUsage } from "@ag-ui/client";
 import { memoryDb } from "@steward/db";
 import { Observable } from "rxjs";
 import { NodeSqliteAgentRunner } from "../src/runtime/runner.ts";
@@ -23,6 +23,8 @@ export class EchoAgent extends AbstractAgent {
   interrupt?: { id: string; reason: string; metadata?: Record<string, unknown> };
   /** False makes the agent ignore Stop, like a stuck agent. */
   abortable = true;
+  /** Token usage to report on RUN_FINISHED, as a real agent would. */
+  usage?: TokenUsage[];
   private stopCurrent?: () => void;
 
   override clone(): EchoAgent {
@@ -32,6 +34,7 @@ export class EchoAgent extends AbstractAgent {
     copy.delayMs = this.delayMs;
     copy.abortable = this.abortable;
     if (this.interrupt) copy.interrupt = this.interrupt;
+    if (this.usage) copy.usage = this.usage;
     return copy;
   }
 
@@ -64,7 +67,12 @@ export class EchoAgent extends AbstractAgent {
             delta: this.reply(input),
           } as BaseEvent);
           sub.next({ type: EventType.TEXT_MESSAGE_END, messageId } as BaseEvent);
-          sub.next({ type: EventType.RUN_FINISHED, threadId, runId } as BaseEvent);
+          sub.next({
+            type: EventType.RUN_FINISHED,
+            threadId,
+            runId,
+            ...(this.usage ? { usage: this.usage } : {}),
+          } as BaseEvent);
         }
         sub.complete();
       }, this.delayMs);

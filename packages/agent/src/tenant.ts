@@ -113,6 +113,7 @@ export const MODEL_PROVIDERS = [
   "anthropic",
   "nvidia",
   "gemini",
+  "xai",
   "ollama",
   "openai-compatible",
   "scripted",

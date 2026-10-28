@@ -1,4 +1,4 @@
-import type { BaseEvent, Message } from "@ag-ui/client";
+import type { BaseEvent, Message, RunFinishedEvent } from "@ag-ui/client";
 import { createOpenAI } from "@ai-sdk/openai";
 import { type ChatCompletionRequest, type FixtureResponse, LLMock } from "@copilotkit/aimock";
 import { APPROVAL_INTERRUPT_REASON, CUSTOM_EVENTS } from "@steward/shared";
@@ -10,6 +10,7 @@ import {
   GATE_UNAVAILABLE,
   INITIATOR_UNKNOWN,
   NO_LONGER_GRANTED,
+  normaliseUsage,
   STOPPED,
   TOO_MANY_STEPS,
 } from "../src/middleware.ts";
@@ -106,6 +107,64 @@ describe("a turn with no tools", () => {
     expect(system).toContain("Europe/London");
     expect(system).toContain("Prefers morning meetings (you)");
     expect(system).toContain("demo inbox");
+  });
+});
+
+describe("what a run cost", () => {
+  const finished = (events: BaseEvent[]) =>
+    events.findLast((e) => e.type === "RUN_FINISHED") as RunFinishedEvent | undefined;
+
+  it("ends a plain turn with the model's token count, named after Steward's provider", async () => {
+    script(() => ({ content: "Hi.", usage: { prompt_tokens: 12, completion_tokens: 3 } }));
+    const turn = await runTurn(agent(), [user("hello")]);
+    // The AI SDK adds zero cache and reasoning counts; the sums and the identity are what matter.
+    expect(finished(turn.events)?.usage).toMatchObject([
+      { provider: "test", model: "test-model", inputTokens: 12, outputTokens: 3, totalTokens: 15 },
+    ]);
+  });
+
+  it("adds every model call of the run together, so a turn with tools counts them all", async () => {
+    script((req) =>
+      lastIsTool(req)
+        ? { content: "It is the example page.", usage: { prompt_tokens: 20, completion_tokens: 7 } }
+        : {
+            ...toolCall("web_fetch", { url: "example.com/a", intent: "Read it" }),
+            usage: { prompt_tokens: 10, completion_tokens: 5 },
+          },
+    );
+    const turn = await runTurn(agent(), [user("read example.com/a")], {}, "thr_usage");
+    expect(turn.error).toBeUndefined();
+    expect(requests()).toHaveLength(2);
+    expect(finished(turn.events)?.usage).toMatchObject([
+      { provider: "test", model: "test-model", inputTokens: 30, outputTokens: 12, totalTokens: 42 },
+    ]);
+  });
+
+  it("keeps the count on a run that ends waiting for the person", async () => {
+    fakes.governance.decide = () => "ask";
+    script(() => ({
+      ...toolCall("mail_send", { to: ["sam@example.com"], subject: "Hi", body: "See you" }),
+      usage: { prompt_tokens: 8, completion_tokens: 4 },
+    }));
+    const turn = await runTurn(agent(), [user("email sam")], {}, "thr_usage_ask");
+    const last = finished(turn.events);
+    expect(last?.outcome?.type).toBe("interrupt");
+    expect(last?.usage).toMatchObject([
+      { provider: "test", model: "test-model", inputTokens: 8, outputTokens: 4, totalTokens: 12 },
+    ]);
+  });
+
+  it("names providers the way Steward does, and drops entries with nothing counted", () => {
+    expect(
+      normaliseUsage([
+        { provider: "xai.chat", model: "grok-4.7", inputTokens: 1, outputTokens: 2, totalTokens: 3 },
+        { provider: "openrouter.responses", model: "x", totalTokens: 9 },
+        { provider: "harness:codex", model: "y" },
+      ]),
+    ).toEqual([
+      { provider: "xai", model: "grok-4.7", inputTokens: 1, outputTokens: 2, totalTokens: 3 },
+      { provider: "openrouter", model: "x", totalTokens: 9 },
+    ]);
   });
 });
 

@@ -1,5 +1,6 @@
 import { request } from "node:http";
 import type {
+  AgentsResponse,
   AppInfo,
   Approval,
   AuditPage,
@@ -63,6 +64,22 @@ describe.runIf(missing.length === 0)("the server, end to end over HTTP", () => {
     expect(info.mail).toEqual({ connected: true, label: "Demo inbox", isDemo: true });
     expect(info.agents.map((a) => a.id)).toContain("steward");
     expect(info.version).toMatch(/^\d+\.\d+\.\d+/);
+  });
+
+  it("lists every agent with the model it runs on and whether it can answer", async () => {
+    const { status, body } = await t.api<AgentsResponse>("/api/agents");
+    expect(status).toBe(200);
+    expect(body.agents.map((a) => a.id)).toContain("steward");
+    const steward = body.agents.find((a) => a.id === "steward");
+    expect(steward).toMatchObject({
+      name: "Steward",
+      source: "tenant",
+      provider: "scripted",
+      model: "steward-scripted",
+      available: true,
+      signIn: "scripted",
+    });
+    expect(steward).not.toHaveProperty("reason");
   });
 
   it("keeps settings and refuses ones it cannot use", async () => {

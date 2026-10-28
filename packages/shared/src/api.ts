@@ -119,6 +119,7 @@ export const SettingsBody = z.object({
         "anthropic",
         "nvidia",
         "gemini",
+        "xai",
         "ollama",
         "openai-compatible",
         "scripted",
@@ -152,6 +153,27 @@ export interface AppInfo {
   mail: { connected: boolean; label: string; isDemo: boolean };
   version: string;
   singleUser: boolean;
+}
+
+/**
+ * One agent as `GET /api/agents` lists it: the profile, the provider and model it runs on, and
+ * whether it can answer now. An agent whose provider has no key is listed but `available: false`,
+ * with a `reason` a person can act on; the picker greys it out and says why.
+ */
+export interface AgentInfo extends AgentProfile {
+  available: boolean;
+  /** The model id it runs on, e.g. `grok-4.7` or `anthropic/claude-sonnet-5.5`. */
+  model: string;
+  /** The provider id, e.g. `xai`, `openrouter`, `scripted`. */
+  provider: string;
+  /** How the run is paid for: a key in .env, or nothing (the scripted demo model). */
+  signIn: "api-key" | "scripted";
+  /** Why it cannot answer, when `available` is false. */
+  reason?: string;
+}
+
+export interface AgentsResponse {
+  agents: AgentInfo[];
 }
 
 export interface Settings {
@@ -202,6 +224,7 @@ export interface TasksResponse {
  */
 export const ROUTES = {
   info: "/api/info", // AppInfo
+  agents: "/api/agents", // AgentsResponse: every agent with its model and whether it can answer
   health: "/api/health", // { ok: true }
   settings: "/api/settings", // GET Settings · PUT SettingsBody → Settings
   setup: "/api/setup", // SetupCheck[]

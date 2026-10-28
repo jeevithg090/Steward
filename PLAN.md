@@ -391,3 +391,17 @@ for the computer.
   converters, 247 seeded bots). The gateway accepts rules from bots and refuses any `allow`.
   Verified: typecheck and biome clean, 1,286 unit tests, 28/28 e2e, and a live walk on NVIDIA
   Nemotron: open a listing, Add, and the installed bot sorted the demo inbox.
+- **28 Oct 2026, orchestration Phase 1 built.** [docs/plans/orchestration.md](docs/plans/orchestration.md)
+  §4.1, §7 and §8 "Picker and profiles":
+  - a direct `xai` provider (`https://api.x.ai/v1`, `XAI_API_KEY`, `grok-4.7`), in Settings too;
+  - per-profile models: a bare `model` runs on the tenant's provider, `provider/model` on the
+    provider it names, and a pinned agent keeps its model whatever Settings says. OpenRouter's and
+    NVIDIA's vendor-named ids (`anthropic/…`, `openai/…`, `nvidia/…`) stay on those providers;
+  - a profile whose provider has no key becomes a notice agent on its own; the others are untouched;
+  - `GET /api/agents` lists every agent with its provider, model, `available`, `signIn` and reason;
+  - the picker is a radio group that shows each agent's model and greys out unavailable ones with
+    the reason as their description;
+  - "Steward on Claude" and "Steward on Grok" in `tenants/steward/agents.yaml`;
+  - every finished run gets a `run.finished` row in the record, with the run's
+    `RUN_FINISHED.usage` summed across model calls per provider and model; the Record page shows
+    the tokens on those rows.

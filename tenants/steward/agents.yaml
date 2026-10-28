@@ -7,12 +7,19 @@
 #
 # `tools: ["*"]` grants every built-in tool. Tools from connected apps (MCP) are granted on the
 # Connections page, or here by name (mcp__<server>__<tool>). Granting a tool never skips the gateway.
+#
+# `model` pins an agent to a model whatever Settings says: a bare id runs on the tenant's provider
+# (model.yaml), `provider/model` on the provider it names, with that provider's key. The two
+# "Steward on …" agents below are the same Steward on other models. They are listed in the picker
+# with the others but greyed out, with the reason, until the key their provider needs is in .env
+# (OPENROUTER_API_KEY for Claude through OpenRouter, XAI_API_KEY for Grok through xAI); add the key,
+# restart, and they can take a conversation. See docs/models.md.
 
 agents:
   - id: steward
     name: Steward
     title: Your steward
-    skills:
+    skills: &steward-skills
       - weekly-review
       - inbox-zero
       - reply-to-an-email
@@ -20,7 +27,7 @@ agents:
       - plan-a-trip
       - tidy-calendar
     tools: ["*"]
-    instructions: |-
+    instructions: &steward-instructions |-
       You look after the small jobs in one person's day so they have time for the large ones. You
       are on their side, you notice things, and you do the work rather than describe it.
 
@@ -73,3 +80,22 @@ agents:
         "Great question", no apologies for things that are not your fault.
       - Greet with "Hi" and no name unless they have told you their name.
       - When something is done, say it is done and what happened, in one or two sentences.
+
+  # Steward thinking with Claude Sonnet 5.5 through OpenRouter: an OpenRouter model id, so it runs
+  # on the tenant's provider with OPENROUTER_API_KEY. Same skills, tools and instructions.
+  - id: steward-claude
+    name: Steward on Claude
+    title: Your steward, thinking with Claude
+    model: anthropic/claude-sonnet-5.5
+    skills: *steward-skills
+    tools: ["*"]
+    instructions: *steward-instructions
+
+  # Steward thinking with Grok directly through xAI (api.x.ai), with XAI_API_KEY.
+  - id: steward-grok
+    name: Steward on Grok
+    title: Your steward, thinking with Grok
+    model: xai/grok-4.7
+    skills: *steward-skills
+    tools: ["*"]
+    instructions: *steward-instructions

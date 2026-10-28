@@ -127,8 +127,23 @@ describe.each(TENANT_IDS)("tenant package %s", (id) => {
 });
 
 describe("the steward package", () => {
-  const decide = decider(loadTenant(join(TENANTS_DIR, "steward")));
+  const steward = loadTenant(join(TENANTS_DIR, "steward"));
+  const decide = decider(steward);
   const mail = { to: ["sam@example.com"], subject: "Friday", body: "See you at 10" };
+
+  it("offers Steward on Claude and Steward on Grok: the same Steward, each pinned to its own model", () => {
+    const [main, claude, grok] = ["steward", "steward-claude", "steward-grok"].map((id) =>
+      steward.agents.find((a) => a.id === id),
+    );
+    expect(main?.model).toBeUndefined();
+    expect(claude).toMatchObject({ name: "Steward on Claude", model: "anthropic/claude-sonnet-5.5" });
+    expect(grok).toMatchObject({ name: "Steward on Grok", model: "xai/grok-4.7" });
+    for (const other of [claude, grok]) {
+      expect(other?.instructions).toBe(main?.instructions);
+      expect(other?.skills).toEqual(main?.skills);
+      expect(other?.tools).toEqual(main?.tools);
+    }
+  });
 
   it("asks before an email, as a default that Always allow can lift", () => {
     const d = decide(call("mail_send", { args: mail }));

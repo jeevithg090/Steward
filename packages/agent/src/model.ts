@@ -6,8 +6,8 @@ import { MODEL_PROVIDERS } from "./tenant.ts";
 
 /**
  * Steward talks to every model through the OpenAI Chat Completions API: OpenRouter, NVIDIA, OpenAI,
- * Anthropic and Gemini (through their OpenAI-compatible endpoints), Ollama, or anything else that
- * speaks it. Without a key it says so and runs the scripted demo model, which needs nothing.
+ * Anthropic, Gemini and xAI (through their OpenAI-compatible endpoints), Ollama, or anything else
+ * that speaks it. Without a key it says so and runs the scripted demo model, which needs nothing.
  */
 
 type Provider = ModelConfig["provider"];
@@ -55,6 +55,12 @@ export const PROVIDERS: Record<Provider, ProviderInfo> = {
     keyEnv: "GEMINI_API_KEY",
     defaultModel: "gemini-3.5-flash",
   },
+  xai: {
+    name: "xAI",
+    baseUrl: "https://api.x.ai/v1",
+    keyEnv: "XAI_API_KEY",
+    defaultModel: "grok-4.7",
+  },
   ollama: { name: "Ollama", baseUrl: "http://127.0.0.1:11434/v1", defaultModel: "llama3.2" },
   "openai-compatible": { name: "OpenAI-compatible", defaultModel: "default" },
   scripted: { name: "Scripted demo model", defaultModel: "steward-scripted" },
@@ -86,10 +92,72 @@ function scripted(reason?: string): ResolvedModelConfig {
   return { provider: "scripted", model: SCRIPTED_MODEL_ID, ...(reason ? { fallbackReason: reason } : {}) };
 }
 
+/** Providers whose model ids start with a vendor name: `anthropic/claude…` on OpenRouter, `nvidia/nemotron…` on NVIDIA. */
+const VENDOR_PREFIXED: ReadonlySet<Provider> = new Set(["openrouter", "nvidia"]);
+
+/** Vendor names those providers list models under that are also Steward provider ids. */
+const VENDOR_NAMES: Partial<Record<Provider, readonly string[]>> = {
+  openrouter: ["anthropic", "openai", "nvidia"],
+  nvidia: ["openai"],
+};
+
+/** What an agent profile's `model` names: a model id on the tenant's provider, or `provider/model`. */
+export interface ProfileModel {
+  /** Set when the profile named a provider of its own. */
+  provider?: Provider;
+  model: string;
+}
+
+/**
+ * Reads an agent profile's `model`. `xai/grok-4.7` names a provider and a model; `anthropic/claude-sonnet-5.5`
+ * on an OpenRouter tenant is an OpenRouter id, because OpenRouter and NVIDIA list models under
+ * vendor names and three of those (`anthropic`, `openai`, `nvidia`) are also Steward providers. The
+ * tenant's own provider named again is a prefix (`openrouter/anthropic/x` → `anthropic/x`), except
+ * where it is the vendor name inside one of that provider's own ids (`nvidia/nemotron…`,
+ * `openrouter/auto`).
+ */
+export function profileModel(model: string, tenantProvider: Provider): ProfileModel {
+  const slash = model.indexOf("/");
+  if (slash <= 0) return { model };
+  const head = model.slice(0, slash);
+  const rest = model.slice(slash + 1);
+  if (!rest || !isProvider(head) || head === "scripted") return { model };
+  if (head === tenantProvider) {
+    return VENDOR_PREFIXED.has(head) && !rest.includes("/") ? { model } : { provider: head, model: rest };
+  }
+  if (VENDOR_NAMES[tenantProvider]?.includes(head)) return { model };
+  return { provider: head, model: rest };
+}
+
+/** The provider's endpoint, key variable and the address or key name model.yaml gives for it. */
+function endpointFor(
+  provider: Exclude<Provider, "scripted">,
+  model: string,
+  tenant: TenantPackage,
+  env: NodeJS.ProcessEnv,
+  opts: { envAddress: boolean },
+): ResolvedModelConfig {
+  const sameAsTenant = provider === tenant.model.provider;
+  const info = PROVIDERS[provider];
+  const baseUrl =
+    (opts.envAddress ? envValue(env, "STEWARD_MODEL_BASE_URL") : undefined) ??
+    (sameAsTenant ? tenant.model.baseUrl : undefined) ??
+    info.baseUrl;
+  const apiKeyEnv =
+    (sameAsTenant ? tenant.model.apiKeyEnv : undefined) ??
+    info.keyEnv ??
+    (provider === "openai-compatible" ? COMPATIBLE_KEY_ENV : undefined);
+  if (!baseUrl) return scripted(`no base URL for ${provider}`);
+  if (info.keyEnv && !envValue(env, apiKeyEnv)) return scripted(`no key for ${provider}`);
+  return { provider, model, baseUrl, ...(apiKeyEnv ? { apiKeyEnv } : {}) };
+}
+
 /**
  * The model to use. `STEWARD_MODEL_PROVIDER`, `STEWARD_MODEL` and `STEWARD_MODEL_BASE_URL` override
- * the tenant's model.yaml; an agent profile's own `model` overrides model.yaml's model name. When the
- * provider needs a key and has none, this is the scripted model, with the reason kept for the label.
+ * the tenant's model.yaml (a choice saved in Settings arrives the same way). An agent profile with a
+ * `model` of its own keeps it whatever Settings says: a bare id runs on the tenant's provider, and
+ * `provider/model` (see `profileModel`) on that provider, with that provider's key. When the provider
+ * needs a key and has none, this is the scripted model, with the reason kept for the label.
  */
 export function resolveModelConfig(
   tenant: TenantPackage,
@@ -102,26 +170,21 @@ export function resolveModelConfig(
       `STEWARD_MODEL_PROVIDER is "${fromEnv}", which Steward does not know. Use one of: ${MODEL_PROVIDERS.join(", ")}.`,
     );
   }
-  const provider: Provider = fromEnv ?? tenant.model.provider;
-  if (provider === "scripted") return scripted();
+  const running: Provider = fromEnv ?? tenant.model.provider;
 
-  const sameAsTenant = provider === tenant.model.provider;
-  const info = PROVIDERS[provider];
+  const own = profile?.model ? profileModel(profile.model, tenant.model.provider) : undefined;
+  if (own) {
+    const provider = own.provider ?? tenant.model.provider;
+    if (provider === "scripted") return scripted();
+    // The address the person gave belongs to the provider they chose; it applies to a profile only on that provider.
+    return endpointFor(provider, own.model, tenant, env, { envAddress: provider === running });
+  }
+
+  if (running === "scripted") return scripted();
   const model =
     envValue(env, "STEWARD_MODEL") ??
-    (sameAsTenant ? (profile?.model ?? tenant.model.model) : info.defaultModel);
-  const baseUrl =
-    envValue(env, "STEWARD_MODEL_BASE_URL") ??
-    (sameAsTenant ? tenant.model.baseUrl : undefined) ??
-    info.baseUrl;
-  const apiKeyEnv =
-    (sameAsTenant ? tenant.model.apiKeyEnv : undefined) ??
-    info.keyEnv ??
-    (provider === "openai-compatible" ? COMPATIBLE_KEY_ENV : undefined);
-
-  if (!baseUrl) return scripted(`no base URL for ${provider}`);
-  if (info.keyEnv && !envValue(env, apiKeyEnv)) return scripted(`no key for ${provider}`);
-  return { provider, model, baseUrl, ...(apiKeyEnv ? { apiKeyEnv } : {}) };
+    (running === tenant.model.provider ? tenant.model.model : PROVIDERS[running].defaultModel);
+  return endpointFor(running, model, tenant, env, { envAddress: true });
 }
 
 export interface CreatedModel {

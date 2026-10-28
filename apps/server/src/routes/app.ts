@@ -1,4 +1,4 @@
-import { type AppInfo, ROUTES, SettingsBody } from "@steward/shared";
+import { type AgentsResponse, type AppInfo, ROUTES, SettingsBody } from "@steward/shared";
 import type { Hono } from "hono";
 import type { StewardServices } from "../context.ts";
 import { readBody } from "../http/errors.ts";
@@ -22,11 +22,14 @@ export function appInfo(s: StewardServices): AppInfo {
   };
 }
 
-/** `/api/health`, `/api/info`, `/api/settings`, `/api/setup`. */
+/** `/api/health`, `/api/info`, `/api/agents`, `/api/settings`, `/api/setup`. */
 export function registerAppRoutes(app: Hono, s: StewardServices): void {
   app.get(ROUTES.health, (c) => c.json({ ok: true }));
 
   app.get(ROUTES.info, (c) => c.json(appInfo(s)));
+
+  // Every agent with the model it runs on and whether it can answer now; the picker reads this.
+  app.get(ROUTES.agents, (c) => c.json({ agents: s.models.agentInfos() } satisfies AgentsResponse));
 
   // Settings show the model the person chose; /api/info and the checklist show the one running
   // (they differ when the chosen provider has no key and Steward fell back to the scripted model).

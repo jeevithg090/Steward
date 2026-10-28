@@ -218,6 +218,7 @@ export interface ModelConfig {
     | "anthropic"
     | "nvidia"
     | "gemini"
+    | "xai"
     | "ollama"
     | "openai-compatible"
     | "scripted";
