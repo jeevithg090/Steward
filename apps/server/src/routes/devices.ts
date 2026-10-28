@@ -16,6 +16,15 @@ import { detectTransports, machineName } from "../device/phone.ts";
 import { makeInstall, phoneCatalogue } from "../device/shortcuts.ts";
 import { HttpError, notFound, readBody } from "../http/errors.ts";
 
+/** What the relay can see, shown in Settings → Phone (docs/plans/phone-and-shortcuts.md §7). */
+const RELAY_SEES = [
+  "Which phones are paired, by id",
+  "When they connect, from which IP address",
+  "How large each message is, and when it was sent",
+  "The name of each request (for example approval.decide), never its content",
+  "Your phone's push address",
+];
+
 /**
  * `/api/devices` and `/api/phone`: Settings → Phone. These live on the main port, so only this
  * machine's own page can pair, list, change or revoke a phone. A phone never reaches them.
@@ -37,8 +46,32 @@ export function registerDeviceRoutes(app: Hono, s: StewardServices): void {
       ),
       presets: [...DEVICE_PRESETS],
       shortcut: s.deviceApi.manifest(),
+      relay: {
+        ...(s.remote?.status() ?? { configured: false, connected: false }),
+        sees: RELAY_SEES,
+      },
     };
   };
+
+  const bridge = () => {
+    if (!s.remote) {
+      throw new HttpError(
+        409,
+        "The phone app needs a relay. Set STEWARD_RELAY_URL and STEWARD_RELAY_TOKEN (docs/phone.md).",
+      );
+    }
+    return s.remote;
+  };
+
+  app.post(ROUTES.remotePairing, (c) => c.json(bridge().openPairing(), 201));
+  app.get(ROUTES.remotePairingState, (c) => c.json(bridge().pairing(c.req.param("id"))));
+  app.post(ROUTES.remotePairingConfirm, async (c) =>
+    c.json(await bridge().confirmPairing(c.req.param("id"))),
+  );
+  app.post(ROUTES.remotePairingRefuse, (c) => {
+    bridge().refusePairing(c.req.param("id"));
+    return c.json({ ok: true });
+  });
 
   app.get(ROUTES.phone, (c) => c.json(info()));
 

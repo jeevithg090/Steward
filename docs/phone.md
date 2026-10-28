@@ -3,9 +3,9 @@
 Steward stays on your computer. Your iPhone reaches it through a port of its own, with a key you
 can take back at any time, and through the Shortcuts app: "Hey Siri, Steward, what needs me?"
 
-This page covers the shortcut (Phase 1 of [the plan](plans/phone-and-shortcuts.md)): how the phone
-reaches Steward, how to pair, what a phone may do, and what still has to be checked on a real
-iPhone. The design and its reasons are in the plan; the threat model is in
+This page covers the shortcut (Phase 1 of [the plan](plans/phone-and-shortcuts.md)) and the phone
+app over an encrypted relay (Phase 2): how the phone reaches Steward, how to pair, what a phone may
+do, and what still has to be checked on a real iPhone. The design and its reasons are in the plan; the threat model is in
 [security.md](security.md#phones-the-device-port).
 
 - [What you get](#what-you-get)
@@ -14,6 +14,7 @@ iPhone. The design and its reasons are in the plan; the threat model is in
 - [3. Use it](#3-use-it)
 - [What a phone may do](#what-a-phone-may-do)
 - [Updates](#updates)
+- [The phone app, through your own relay](#the-phone-app-through-your-own-relay)
 - [For maintainers: signing a release](#for-maintainers-signing-a-release)
 - [What has been tested](#what-has-been-tested)
 - [To check on a device](#to-check-on-a-device)
@@ -160,6 +161,86 @@ Every call names the shortcut's version (`X-Steward-Shortcut: steward@1`). When 
 newer one, Steward answers `426` with the notes and the download, and the shortcut opens it: tap
 **Add Shortcut** and it stays paired, because the key lives in the shared file. The Shortcuts page
 lists each phone's version under Installed and Updates.
+
+## The phone app, through your own relay
+
+The phone app is Steward's web app built for a phone: Today, Needs you, Chat and Tasks, with live
+replies and notifications. It talks to Steward through a **relay you host**, and everything is
+sealed end to end: the relay passes on ciphertext only. Steward dials out to the relay, so nothing
+listens beyond your computer.
+
+### 1. Run a relay
+
+On a small server with a domain name (a VPS, Fly, a container), from a checkout of this repository:
+
+```sh
+pnpm install
+pnpm --filter @steward/web build:phone
+RELAY_MACHINE_TOKEN="$(openssl rand -base64 32)" \
+RELAY_PUBLIC_URL=https://relay.example.com \
+pnpm --filter @steward/relay start
+```
+
+It listens on `127.0.0.1:8790`. Put HTTPS in front of it, for example with Caddy:
+
+```text
+relay.example.com {
+  reverse_proxy 127.0.0.1:8790
+}
+```
+
+`RELAY_DATA_DIR` (default `./relay-data`) holds one SQLite file: device ids, hashed relay tokens,
+push addresses and each phone's sealed log. Never a key, never plaintext.
+
+### 2. Point Steward at it
+
+In Steward's `.env`, then restart:
+
+```sh
+STEWARD_RELAY_URL=wss://relay.example.com
+STEWARD_RELAY_TOKEN=<the same RELAY_MACHINE_TOKEN>
+```
+
+Settings → Phone → **Add phone (app)** says "connected" when it reached the relay.
+
+### 3. Pair the phone
+
+1. Settings → Phone → **Add phone (app)**. A QR code appears; it works once, for two minutes. Its
+   one-time key is in the part of the address after `#`, which a browser never sends to a server.
+2. Scan it with the phone's Camera. The app opens: name the phone and tap **Pair**. If the phone
+   offers Face ID, allow it.
+3. Both screens show a six-digit code. If they match, confirm on the Mac. If they don't, cancel:
+   something between the phone and your Steward swapped the keys.
+
+The phone makes its own keys (WebCrypto, non-extractable, kept in IndexedDB, never in
+`localStorage`): one to receive its data key, one to sign answers, and the data key itself. There
+is no master secret to hand over or recover. A lost phone is revoked and a new one paired.
+
+4. On an iPhone, **Share → Add to Home Screen**, open Steward from there, and tap **Turn on
+   notifications**. iOS delivers notifications only to apps added to the Home Screen.
+
+### What the relay can see
+
+Which phones are paired (by id), when they connect and from which IP address, how large each
+message is and when it was sent, the name of each request (for example `approval.decide`), and your
+phone's push address. Not what any message says: chat, approvals and notifications are sealed with
+each phone's own key before they leave Steward. Push bodies are sealed too, so Apple and Google see
+only an opaque blob and a level.
+
+### Answers from the app
+
+- Every answer is **signed** by the phone's key, with a one-time nonce and a time, for that
+  approval. Steward checks all three; a replayed answer is refused and recorded.
+- For a send, delete or command after Steward read untrusted content, the app asks for **Face
+  ID** first; the assertion is tied to that one answer. Payments, signing and passwords are still
+  finished on your Mac.
+- The record says "Answered from Sam's iPhone (phone app, Face ID checked)".
+- Revoke the phone in Settings → Phone: the relay closes its connection and forgets its token and
+  log at once.
+
+What the app may ask is a closed list: `approval.decide`, `chat.send`, `task.start`, `task.hide`,
+`routine.run`, `run.stop` and `brief.get`. Rules, settings, connections, secrets, the shell and the
+computer are never reachable from it.
 
 ## For maintainers: signing a release
 

@@ -6,9 +6,13 @@ Status: proposal, 27 Oct 2026. When it is accepted, it replaces the "mobile apps
 [PLAN.md §8](../../PLAN.md#8-out-of-scope-for-v01).
 
 **Built (28 Oct 2026, branch `phone`):** Phase 0 (the device port, devices, presets, Settings →
-Phone) and Phase 1 (`packages/phone`, `packages/shortcuts`, the Shortcuts page,
-[docs/phone.md](../phone.md)). Nothing has run on an iPhone yet: the device checks in §10.2 are
-written up in docs/phone.md as "to check on a device".
+Phone), Phase 1 (`packages/phone`, `packages/shortcuts`, the Shortcuts page) and Phase 2
+(`packages/remote`, `apps/relay`, the bridge in `apps/server/src/remote`, the phone app build of
+`apps/web`). See [docs/phone.md](../phone.md). Nothing has run on an iPhone yet: the device checks
+in §10.2 are written up there as "to check on a device". Two changes from §5.2: the pairing QR is
+an https address on the relay with the one-time key in its fragment (a PWA cannot handle
+`steward://`), and the confirmation code is derived from the keys on both sides rather than carried
+in the QR, so a relay that swapped keys shows a different code.
 
 Research behind every claim:
 

@@ -1,4 +1,4 @@
-import { deviceRefusal } from "@steward/gateway";
+import { DEVICE_TAINT_PRESET, deviceRefusal } from "@steward/gateway";
 import {
   type Approval,
   type ApprovalDecider,
@@ -182,9 +182,12 @@ export class DeviceApi {
       };
     }
     const preset = deviceRefusal(approval, "once", this.decider(device));
-    return preset
-      ? { ...base, canDecideHere: false, reason: preset.phoneMessage }
-      : { ...base, canDecideHere: true };
+    if (!preset) return { ...base, canDecideHere: true };
+    // The phone app can lift the taint preset with Face ID; nothing lifts the floor.
+    if (preset === DEVICE_TAINT_PRESET && device.kind !== "shortcut") {
+      return { ...base, canDecideHere: false, withFaceId: true, reason: "Say yes with Face ID." };
+    }
+    return { ...base, canDecideHere: false, reason: preset.phoneMessage };
   }
 
   approvals(device: Device): DeviceApprovals {

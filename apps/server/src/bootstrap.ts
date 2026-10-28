@@ -50,6 +50,7 @@ import { serveWebApp } from "./http/static.ts";
 import { createEventBus } from "./live/bus.ts";
 import { computerSocket, MAX_CLIENT_FRAME } from "./live/computer-ws.ts";
 import { liveEventsHandler } from "./live/events-route.ts";
+import { RemoteBridge } from "./remote/bridge.ts";
 import { registerAppRoutes } from "./routes/app.ts";
 import { registerBotRoutes } from "./routes/bots.ts";
 import { registerComputerRoutes } from "./routes/computer.ts";
@@ -371,6 +372,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       phone,
       catalogue: () => buildCatalogue(services.phoneProfile()),
     });
+    if (config.relay) services.remote = new RemoteBridge(services, config.relay);
     const deviceApp = createDeviceApp({
       api: services.deviceApi,
       devices,
@@ -509,6 +511,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
         });
       }
       if (config.workers) workers.start();
+      services.remote?.start();
       return {
         url: `http://${self}:${actualPort}`,
         port: actualPort,
@@ -520,6 +523,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     const close = (): Promise<void> => {
       closing ??= (async () => {
         workers.stop();
+        await step("the relay bridge", () => services.remote?.stop());
         sweep.stop();
         for (const end of sseClosers) end();
         for (const ws of sockets) {

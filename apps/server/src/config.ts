@@ -52,6 +52,11 @@ export interface ServerConfig {
    * (`STEWARD_DEVICE_ACCESS_CLIENT_ID` and `_SECRET`). Handed to a phone in its pairing reply.
    */
   deviceAccess?: { clientId: string; clientSecret: string };
+  /**
+   * The relay for the phone app (`STEWARD_RELAY_URL`, wss://) and the token Steward presents to it
+   * (`STEWARD_RELAY_TOKEN`). Steward dials out; nothing listens beyond this machine.
+   */
+  relay?: { url: string; token: string };
   /** Origins allowed to call the API from another origin. Empty in production. */
   devOrigins: string[];
   /** Background workers: routines, the daily brief, approval expiry. Tests switch them off. */
@@ -179,6 +184,22 @@ export function loadConfig(
   }
 
   const port = parsePort(env.STEWARD_PORT);
+  const relayUrl = env.STEWARD_RELAY_URL?.trim();
+  const relayToken = env.STEWARD_RELAY_TOKEN?.trim();
+  if (relayUrl) {
+    let parsed: URL;
+    try {
+      parsed = new URL(relayUrl);
+    } catch {
+      throw new ConfigError(`STEWARD_RELAY_URL must be a wss:// address, not "${relayUrl}".`);
+    }
+    if (parsed.protocol !== "wss:" && !(parsed.protocol === "ws:" && isLoopbackHost(parsed.hostname))) {
+      throw new ConfigError("STEWARD_RELAY_URL must be wss://, or ws:// only on this machine.");
+    }
+    if (!relayToken || relayToken.length < 24) {
+      throw new ConfigError("STEWARD_RELAY_TOKEN must be set (24+ characters) with STEWARD_RELAY_URL.");
+    }
+  }
   const config: ServerConfig = {
     repoRoot,
     port,
@@ -197,6 +218,7 @@ export function loadConfig(
     deviceHost: env.STEWARD_DEVICE_HOST?.trim() || "127.0.0.1",
     deviceHosts: hostList(env.STEWARD_DEVICE_HOSTS),
     ...(env.STEWARD_DEVICE_URL?.trim() ? { deviceUrl: env.STEWARD_DEVICE_URL.trim() } : {}),
+    ...(relayUrl && relayToken ? { relay: { url: relayUrl, token: relayToken } } : {}),
     ...(env.STEWARD_DEVICE_ACCESS_CLIENT_ID?.trim() && env.STEWARD_DEVICE_ACCESS_CLIENT_SECRET?.trim()
       ? {
           deviceAccess: {

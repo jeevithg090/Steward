@@ -31,6 +31,8 @@ import {
   type PairingOffer,
   type PhoneCatalogue,
   type PhoneInfo,
+  type RemotePairing,
+  type RemotePairingState,
   ROUTES,
   type Routine,
   type RoutineBody,
@@ -355,6 +357,12 @@ export const api = {
     pair: (kind: DeviceKind = "shortcut") => send<PairingOffer>("POST", ROUTES.devicesPairing, { kind }),
     patch: (id: string, body: DevicePatchInput) => send<Device>("PATCH", route(ROUTES.device, { id }), body),
     revoke: (id: string) => send<void>("DELETE", route(ROUTES.device, { id })),
+    /** The phone app, through the relay: a two-minute, one-time QR address. */
+    remotePair: () => send<RemotePairing>("POST", ROUTES.remotePairing),
+    remoteState: (id: string, signal?: AbortSignal) =>
+      get<RemotePairingState>(route(ROUTES.remotePairingState, { id }), undefined, signal),
+    remoteConfirm: (id: string) => send<Device>("POST", route(ROUTES.remotePairingConfirm, { id })),
+    remoteRefuse: (id: string) => send<{ ok: true }>("POST", route(ROUTES.remotePairingRefuse, { id })),
   },
 };
 
@@ -951,6 +959,16 @@ export function useDevices(opts?: QueryOpts<Device[]>) {
     queryKey: queryKeys.devices,
     queryFn: ({ signal }) => api.devices.list(signal),
     ...opts,
+  });
+}
+
+/** While an app pairing is open, its state is polled until the codes are ready to compare. */
+export function useRemotePairing(id: string | undefined) {
+  return useQuery<RemotePairingState, ApiError>({
+    queryKey: ["devices", "remote", id],
+    queryFn: ({ signal }) => api.devices.remoteState(id!, signal),
+    enabled: Boolean(id),
+    refetchInterval: (q) => (q.state.data && q.state.data.state !== "waiting" ? false : 1500),
   });
 }
 

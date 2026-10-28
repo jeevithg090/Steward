@@ -116,4 +116,18 @@ test.describe("Settings → Phone", () => {
     await expect(suggested.getByRole("listitem", { name: /^E2e trip/ })).toBeVisible();
     await api.delete(`/api/skills/${(await made.json()).id}`);
   });
+
+  test("the phone app's crypto gives the same bytes in Chromium as in Node", async ({ page }) => {
+    await page.goto("/");
+    const out = await page.evaluate(async () => {
+      // Served by the web app's dev server, the way the phone app's bundle runs it.
+      const path = "/src/phone/selftest.ts";
+      const mod = (await import(/* @vite-ignore */ path)) as { run(): Promise<Record<string, unknown>> };
+      return mod.run();
+    });
+    expect(out.results).toEqual(out.expected);
+    expect(out.nonExtractableOpens).toBe(true);
+    expect(out.privateKeyReadable).toBe(false);
+    expect(out.base64).toEqual([0, 1, 2]);
+  });
 });

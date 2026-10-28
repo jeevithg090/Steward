@@ -14,6 +14,14 @@ Seed bots in the directory (`directory/`) are adapted from:
 - LobeChat agent index — https://github.com/lobehub/lobe-chat-agents — Copyright (c) LobeHub and each listed author — MIT
 - OpenBot's coworker catalogue (`examples/fintech/catalog`) — https://github.com/CopilotKit/openbot — Copyright (c) CopilotKit — MIT
 
+The phone app's crypto and relay (`packages/remote`, `apps/relay`) adapt code and designs from:
+
+- Happy — https://github.com/slopus/happy — Copyright (c) 2026 Happy Coder Contributors — MIT
+- Happy app — https://github.com/slopus/happy (packages/happy-app) — Copyright (c) 2024 Happy Coder Contributors — MIT
+- Happy Agent — https://github.com/slopus/happy-agent — Copyright (c) 2026 rig Contributors — MIT
+
+The "Happy" name, logo and `happy://` scheme are not used; they are not covered by the MIT licence.
+
 iPhone shortcuts (`packages/shortcuts`) use reference data and control-flow encodings from:
 
 - Perspective Cuts — https://github.com/taylorarndt/perspective-cuts — Copyright (c) 2026 Taylor Arndt — MIT

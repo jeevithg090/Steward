@@ -95,4 +95,16 @@ export const migrations: Migration[] = [
         consumed_at TEXT
       );`,
   },
+  {
+    // The phone app (Phase 2): each paired app has its own data key, sealed to it at pairing, and
+    // every signed answer's nonce is kept so it can be used once.
+    id: "server.006_remote",
+    sql: `
+      ALTER TABLE devices ADD COLUMN remote_key TEXT;
+      CREATE TABLE IF NOT EXISTS remote_nonces (
+        nonce TEXT PRIMARY KEY,
+        device_id TEXT NOT NULL,
+        at TEXT NOT NULL
+      );`,
+  },
 ];

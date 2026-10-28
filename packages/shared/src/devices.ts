@@ -119,6 +119,24 @@ export interface PhoneInfo {
   transports: { id: "tailscale" | "cloudflared"; found: boolean; command: string }[];
   presets: DevicePreset[];
   shortcut: ShortcutManifest;
+  /** The relay for the phone app, when STEWARD_RELAY_URL is set, and what it can see. */
+  relay: { configured: boolean; connected: boolean; url?: string; sees: string[] };
+}
+
+/** "Add phone (app)": the one-time QR address, and later the code to compare on both screens. */
+export interface RemotePairing {
+  pairingId: string;
+  url: string;
+  expiresAt: string;
+}
+
+export interface RemotePairingState {
+  state: "waiting" | "check" | "paired" | "refused" | "expired";
+  expiresAt: string;
+  name?: string;
+  /** "482 913": the phone shows the same code. */
+  code?: string;
+  deviceId?: string;
 }
 
 /** The address a QR code hands the generic shortcut: `steward-pair:1:<base64url JSON>`. */
@@ -252,6 +270,8 @@ export interface DeviceApprovalItem {
   canDecideHere: boolean;
   /** Why not, in words for the phone, when `canDecideHere` is false. */
   reason?: string;
+  /** The phone app may still say yes after Face ID (a tainted send, delete or command). */
+  withFaceId?: boolean;
 }
 
 export interface DeviceApprovals extends DeviceReply {

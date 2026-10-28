@@ -100,6 +100,8 @@ function toDevice(row: DeviceRow): Device {
 const SEEN_EVERY_MS = 30_000;
 
 export class DeviceStore {
+  private readonly revokeListeners = new Set<(device: Device) => void>();
+
   constructor(
     private readonly db: Db,
     private readonly audit: Pick<AuditLog, "append">,
@@ -248,16 +250,90 @@ export class DeviceStore {
     return rows.map(toDevice);
   }
 
-  /** Revokes at once: the next call with its token is refused. */
+  /** Revokes at once: the next call with its token is refused, and the relay is told. */
   revoke(id: string): Device | undefined {
     const at = this.now().toISOString();
-    const changed = this.db.run("UPDATE devices SET revoked_at = ? WHERE id = ? AND revoked_at IS NULL", [
-      at,
-      id,
-    ]);
+    const changed = this.db.run(
+      "UPDATE devices SET revoked_at = ?, remote_key = NULL WHERE id = ? AND revoked_at IS NULL",
+      [at, id],
+    );
     const device = this.get(id);
-    if (changed.changes === 1 && device) this.record("device.revoked", device, {});
+    if (changed.changes === 1 && device) {
+      this.record("device.revoked", device, {});
+      for (const listener of this.revokeListeners) {
+        try {
+          listener(device);
+        } catch (err) {
+          console.error("[steward] a revoke listener failed:", err instanceof Error ? err.message : err);
+        }
+      }
+    }
     return device;
+  }
+
+  onRevoke(listener: (device: Device) => void): () => void {
+    this.revokeListeners.add(listener);
+    return () => this.revokeListeners.delete(listener);
+  }
+
+  /**
+   * A phone app paired through the relay: its keys (box, sign, WebAuthn) and the data key Steward
+   * sealed to it. Recorded as paired by the app.
+   */
+  issueRemote(input: { deviceName: string; publicKey: string; dataKey: string }): Device {
+    const at = this.now().toISOString();
+    const id = newId("dev");
+    // The app reaches Steward only through the relay, so its device-port token is never handed out.
+    const unused = newDeviceToken();
+    this.db.run(
+      `INSERT INTO devices (id, name, kind, token_hash, scopes_json, created_at, public_key, remote_key)
+       VALUES (?, ?, 'pwa', ?, ?, ?, ?, ?)`,
+      [
+        id,
+        input.deviceName,
+        sha256(unused),
+        toJson(DEFAULT_DEVICE_SCOPES),
+        at,
+        input.publicKey,
+        input.dataKey,
+      ],
+    );
+    const device = this.get(id)!;
+    this.record("device.paired", device, { scopes: device.scopes, delivery: "relay" });
+    return device;
+  }
+
+  /** The data key of a paired app that is not revoked. */
+  remoteKey(id: string): string | undefined {
+    return (
+      this.db.get<{ remote_key: string | null }>(
+        "SELECT remote_key FROM devices WHERE id = ? AND revoked_at IS NULL AND kind = 'pwa'",
+        [id],
+      )?.remote_key ?? undefined
+    );
+  }
+
+  /** Paired apps that are not revoked, for sealing live events to. */
+  remoteDevices(): Device[] {
+    return this.db
+      .all<DeviceRow>(
+        "SELECT * FROM devices WHERE kind = 'pwa' AND revoked_at IS NULL AND remote_key IS NOT NULL",
+      )
+      .map(toDevice);
+  }
+
+  /** Uses a signed answer's nonce once. False when it was seen before: a replay. */
+  useNonce(deviceId: string, nonce: string): boolean {
+    const at = this.now();
+    this.db.run("DELETE FROM remote_nonces WHERE at < ?", [
+      new Date(at.getTime() - 24 * 3_600_000).toISOString(),
+    ]);
+    const added = this.db.run("INSERT OR IGNORE INTO remote_nonces (nonce, device_id, at) VALUES (?, ?, ?)", [
+      nonce,
+      deviceId,
+      at.toISOString(),
+    ]);
+    return added.changes === 1;
   }
 
   update(id: string, patch: { scopes?: DeviceScope[]; name?: string }): Device | undefined {

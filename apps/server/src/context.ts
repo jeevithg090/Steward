@@ -24,6 +24,7 @@ import type { InstallStore } from "./device/installs.ts";
 import type { PhoneSettings } from "./device/phone.ts";
 import type { DeviceStore } from "./device/store.ts";
 import type { SecurityOptions } from "./http/security.ts";
+import type { RemoteBridge } from "./remote/bridge.ts";
 import type { AgentHost } from "./runtime/agents.ts";
 import type { NodeSqliteAgentRunner } from "./runtime/runner.ts";
 import type { ServerRuns } from "./runtime/server-runs.ts";
@@ -81,6 +82,8 @@ export interface StewardServices {
   phoneProfile: () => PhoneProfile;
   /** One-time shortcut downloads, in memory. */
   installs: InstallStore;
+  /** The bridge to the phone app's relay, when STEWARD_RELAY_URL is set. */
+  remote?: RemoteBridge;
   /** Single-user mode: every action is the one local person's. */
   actorId: string;
   defaultAgentId: string;

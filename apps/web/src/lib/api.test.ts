@@ -261,6 +261,20 @@ describe("api: every route in ROUTES", () => {
       { scopes: ["chat"] },
     ],
     ["device (DELETE)", () => api.devices.revoke("dev_1"), "DELETE", "/api/devices/dev_1"],
+    ["remote pairing", () => api.devices.remotePair(), "POST", "/api/devices/remote-pairing"],
+    ["remote pairing state", () => api.devices.remoteState("p1"), "GET", "/api/devices/remote-pairing/p1"],
+    [
+      "remote pairing confirm",
+      () => api.devices.remoteConfirm("p1"),
+      "POST",
+      "/api/devices/remote-pairing/p1/confirm",
+    ],
+    [
+      "remote pairing refuse",
+      () => api.devices.remoteRefuse("p1"),
+      "POST",
+      "/api/devices/remote-pairing/p1/refuse",
+    ],
   ];
 
   it.each(cases)("%s", async (_name, call, method, url, body) => {

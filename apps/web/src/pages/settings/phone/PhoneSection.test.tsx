@@ -26,6 +26,7 @@ const info = (over: Partial<PhoneInfo> = {}): PhoneInfo => ({
     },
   ],
   shortcut: { id: "steward", version: 1, minVersion: 1, url: "https://mac.tail1234.ts.net/x", notes: "" },
+  relay: { configured: false, connected: false, sees: [] },
   ...over,
 });
 
@@ -115,5 +116,46 @@ describe("Settings → Phone", () => {
     expect(within(row).getByText(/Its key stops working at once/)).toBeTruthy();
     fireEvent.click(within(row).getByRole("button", { name: "Remove phone" }));
     await waitFor(() => expect(server.calls.some((c) => c.method === "DELETE")).toBe(true));
+  });
+
+  it("pairs the phone app only after the person sees the same code on both screens", async () => {
+    let state = { state: "waiting", expiresAt: new Date(Date.now() + 120_000).toISOString() } as Record<
+      string,
+      unknown
+    >;
+    const server = mockFetch((req) => {
+      if (req.path === "/api/phone")
+        return {
+          body: info({
+            relay: {
+              configured: true,
+              connected: true,
+              url: "https://relay.example.com",
+              sees: ["Which phones are paired, by id"],
+            },
+          }),
+        };
+      if (req.path === "/api/devices") return { body: [] };
+      if (req.path === "/api/devices/remote-pairing" && req.method === "POST")
+        return {
+          status: 201,
+          body: {
+            pairingId: "p".repeat(32),
+            url: `https://relay.example.com/#pair=${"p".repeat(32)}.key`,
+            expiresAt: state.expiresAt,
+          },
+        };
+      if (req.path === `/api/devices/remote-pairing/${"p".repeat(32)}`) return { body: state };
+      if (req.path.endsWith("/confirm")) return { body: { id: "dev_9", name: "Sam's iPhone" } };
+      return undefined;
+    });
+    renderWithProviders(<PhoneSection />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add phone (app)" }));
+    expect(await screen.findByRole("img", { name: "QR code to pair the Steward phone app" })).toBeTruthy();
+    expect(screen.getByText("Which phones are paired, by id")).toBeTruthy();
+    state = { ...state, state: "check", name: "Sam's iPhone", code: "482 913" };
+    expect(await screen.findByText("Pair “Sam's iPhone”? Code 482 913", {}, { timeout: 5000 })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "The codes match: pair" }));
+    await waitFor(() => expect(server.calls.some((c) => c.path.endsWith("/confirm"))).toBe(true));
   });
 });

@@ -22,6 +22,32 @@ const STATES: readonly TaskState[] = [
   "hidden",
 ];
 
+/** Start: hands a task to Steward in a conversation of its own. The web app and the phone app share it. */
+export function startTask(s: StewardServices, id: string, note?: string) {
+  const { tasks } = s.proactive;
+  const task = tasks.get(id);
+  if (!task) throw notFound("that task");
+  if (task.threadId && s.runner.isThreadBusy(task.threadId)) {
+    throw new HttpError(409, "Steward is already working on that task.");
+  }
+  const threadId = task.threadId ?? newId("thr");
+  const agentId = s.threads.getMeta(threadId)?.agentId ?? s.defaultAgentId;
+  s.threads.upsertMeta({ id: threadId, agentId, kind: "task", title: task.title });
+  tasks.update(id, { state: "working", threadId });
+  try {
+    s.runs.start({
+      agentId,
+      threadId,
+      userText: taskStart(task, note),
+      initiator: { kind: "task", id: task.id },
+    });
+  } catch (err) {
+    tasks.update(id, { state: task.state });
+    throw err;
+  }
+  return { task: tasks.get(id) ?? task, threadId };
+}
+
 /** `/api/tasks`: the Tasks page, and Start, which hands a task to Steward in a conversation of its own. */
 export function registerTaskRoutes(app: Hono, s: StewardServices): void {
   const { tasks } = s.proactive;
@@ -54,29 +80,7 @@ export function registerTaskRoutes(app: Hono, s: StewardServices): void {
   });
 
   app.post(ROUTES.taskStart, async (c) => {
-    const id = c.req.param("id");
     const body = await readBody(c, TaskStartBody);
-    const task = tasks.get(id);
-    if (!task) throw notFound("that task");
-    if (task.threadId && s.runner.isThreadBusy(task.threadId)) {
-      throw new HttpError(409, "Steward is already working on that task.");
-    }
-
-    const threadId = task.threadId ?? newId("thr");
-    const agentId = s.threads.getMeta(threadId)?.agentId ?? s.defaultAgentId;
-    s.threads.upsertMeta({ id: threadId, agentId, kind: "task", title: task.title });
-    tasks.update(id, { state: "working", threadId });
-    try {
-      s.runs.start({
-        agentId,
-        threadId,
-        userText: taskStart(task, body.note),
-        initiator: { kind: "task", id: task.id },
-      });
-    } catch (err) {
-      tasks.update(id, { state: task.state });
-      throw err;
-    }
-    return c.json({ task: tasks.get(id) ?? task, threadId });
+    return c.json(startTask(s, c.req.param("id"), body.note));
   });
 }

@@ -59,6 +59,8 @@ export interface RunOnThreadOptions {
   resume?: ResumeEntry[];
   initiator: Initiator;
   context?: Context[];
+  /** Sees each AG-UI event as it happens (the phone app's live chat). Must not throw. */
+  onEvent?: (event: BaseEvent) => void;
 }
 
 export interface RunResult extends RunSummary {
@@ -154,7 +156,14 @@ export class ServerRuns {
         resolve({ ...summariseRun(events, interruption), runId, threadId: opts.threadId });
       };
       events$.subscribe({
-        next: (event) => events.push(event),
+        next: (event) => {
+          events.push(event);
+          try {
+            opts.onEvent?.(event);
+          } catch {
+            // A watcher's problem is not the run's.
+          }
+        },
         complete: () => settle(),
         error: (err: unknown) => settle(err instanceof Error ? err.message : String(err)),
       });

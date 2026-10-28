@@ -33,7 +33,12 @@
     "@steward/bots": "workspace:*",
     "@steward/bots-gen": "workspace:*",
     "@steward/phone": "workspace:*",
-    "@steward/shortcuts": "workspace:*"
+    "@steward/remote": "workspace:*",
+    "@steward/shortcuts": "workspace:*",
+    "ws": "8.22.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@steward/relay": "workspace:*",
+    "@types/ws": "8.18.2"
+  }
 }

@@ -288,6 +288,10 @@ export const ROUTES = {
 
   devices: "/api/devices", // Device[] (paired, not revoked)
   devicesPairing: "/api/devices/pairing", // POST PairingBody → PairingOffer
+  remotePairing: "/api/devices/remote-pairing", // POST → RemotePairing (the phone app, through the relay)
+  remotePairingState: "/api/devices/remote-pairing/:id", // GET → RemotePairingState
+  remotePairingConfirm: "/api/devices/remote-pairing/:id/confirm", // POST → Device (codes matched)
+  remotePairingRefuse: "/api/devices/remote-pairing/:id/refuse", // POST → { ok: true }
   device: "/api/devices/:id", // PATCH DevicePatchBody → Device · DELETE (revoke)
   phone: "/api/phone", // GET PhoneInfo · PUT PhoneSettingsBody → PhoneInfo
   phoneCatalogue: "/api/phone/catalogue", // PhoneCatalogue

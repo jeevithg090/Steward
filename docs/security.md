@@ -112,6 +112,15 @@ What a phone's token can still do if it leaks: what its scopes allow, through th
 you revoke it. A shortcut keeps its token in Shortcuts storage or iCloud Drive, where your other
 shortcuts can read it.
 
+**The phone app** uses a relay instead of the device port, and is end to end encrypted: Steward
+dials out to a relay you host, which passes on only ciphertext under each phone's own key (keys
+made on the phone as non-extractable WebCrypto keys). Pairing is one-time and lasts two minutes,
+and both screens show a code derived from the keys, so a relay that swapped them is caught. Every
+answer is signed by the phone, with a nonce used once and a time window; Face ID (WebAuthn) is tied
+to the one answer it unlocks. The relay sees ids, timing, IP addresses, sizes, request names and
+push addresses (listed in Settings → Phone), and an integration test checks its database, logs and
+pushes hold no plaintext. See [phone.md](phone.md#the-phone-app-through-your-own-relay).
+
 ## Prompt injection
 
 A page or an email can contain text written to look like instructions: "Ignore your rules and

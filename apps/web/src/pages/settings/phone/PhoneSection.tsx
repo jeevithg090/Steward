@@ -16,10 +16,12 @@ import { Checkbox, Field, Input, Switch } from "@/components/ui/Field.tsx";
 import { ErrorNotice, Loading, Notice } from "@/components/ui/Notice.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
 import {
+  api,
   useDevices,
   usePairDevice,
   usePatchDevice,
   usePhone,
+  useRemotePairing,
   useRevokeDevice,
   useSetPhoneUrl,
 } from "@/lib/api.ts";
@@ -51,6 +53,7 @@ export function PhoneSection() {
         <div className="mt-5 flex flex-col gap-8">
           <Connection info={phone.data} />
           <AddPhone info={phone.data} />
+          <AddApp info={phone.data} />
           <PairedPhones />
           <NeverFromAPhone info={phone.data} />
         </div>
@@ -272,6 +275,126 @@ function AddPhone({ info }: { info: PhoneInfo }) {
             Cancel
           </Button>
         ) : null}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Add phone (app): the encrypted relay (§5.2). The QR code holds a one-time key in the address's
+ * fragment; the phone and this page then show the same code, and the person confirms here.
+ */
+function AddApp({ info }: { info: PhoneInfo }) {
+  const [offer, setOffer] = useState<{ pairingId: string; url: string; expiresAt: string } | undefined>();
+  const [error, setError] = useState<string | undefined>();
+  const [busy, setBusy] = useState(false);
+  const state = useRemotePairing(offer?.pairingId);
+  const statusId = useId();
+  const relay = info.relay;
+  const current = state.data;
+
+  async function start() {
+    setBusy(true);
+    setError(undefined);
+    try {
+      setOffer(await api.devices.remotePair());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section aria-labelledby="phone-app" aria-describedby={statusId}>
+      <h3 id="phone-app" className="font-semibold text-body text-ink">
+        Add phone (app)
+      </h3>
+      <p className="mt-1 text-ink-2 text-sub">
+        The Steward phone app: live chat, notifications, and answers signed by the phone, through a relay you
+        host. Everything is sealed end to end: the relay passes on ciphertext only.
+      </p>
+      {!relay.configured ? (
+        <p className="mt-2 text-ink-2 text-sub">
+          Not set up: run a relay and set STEWARD_RELAY_URL and STEWARD_RELAY_TOKEN (docs/phone.md).
+        </p>
+      ) : (
+        <>
+          <p className="mt-2 text-caption text-ink-2">
+            Relay {relay.url} · {relay.connected ? "connected" : "not connected"}
+          </p>
+          <details className="mt-2">
+            <summary className="min-h-target cursor-pointer text-accent text-sub">
+              What the relay can see
+            </summary>
+            <ul className="mt-1 list-disc pl-6 text-ink-2 text-sub">
+              {relay.sees.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </details>
+        </>
+      )}
+      <div id={statusId} role="status" aria-live="polite" className="mt-3">
+        {current?.state === "check" ? (
+          <Notice tone="accent" title={`Pair “${current.name}”? Code ${current.code}`}>
+            The phone shows a code too. Confirm only if they are the same.
+          </Notice>
+        ) : current?.state === "paired" ? (
+          <Notice tone="done" title={`${current.name ?? "The phone"} paired`}>
+            Its keys never left it. Choose what it may do under Paired phones.
+          </Notice>
+        ) : current?.state === "expired" || current?.state === "refused" ? (
+          <Notice title="That pairing ended">Make a new code to try again.</Notice>
+        ) : null}
+      </div>
+      {error ? (
+        <ErrorNotice className="mt-3" title="Couldn't start pairing" error={new Error(error)} />
+      ) : null}
+      {offer && (!current || current.state === "waiting") ? (
+        <div className="mt-3 flex flex-col gap-3 rounded-field bg-tile p-4 sm:flex-row sm:items-center">
+          <QrCode value={offer.url} label="QR code to pair the Steward phone app" />
+          <div className="flex flex-col items-start gap-2">
+            <p className="text-caption text-ink-2">
+              Scan with the phone's camera. Works once, for two minutes, until {formatTime(offer.expiresAt)}.
+            </p>
+            <a
+              href={offer.url}
+              className="inline-flex min-h-target items-center text-accent text-sub underline underline-offset-4"
+            >
+              On this phone? Open the app
+            </a>
+            <CopyButton text={offer.url} what="Link" />
+          </div>
+        </div>
+      ) : null}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {current?.state === "check" && offer ? (
+          <>
+            <Button
+              variant="primary"
+              onClick={async () => {
+                await api.devices.remoteConfirm(offer.pairingId).catch((err: Error) => setError(err.message));
+                void state.refetch();
+              }}
+            >
+              The codes match: pair
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={async () => {
+                await api.devices.remoteRefuse(offer.pairingId).catch(() => {});
+                setOffer(undefined);
+              }}
+            >
+              Cancel
+            </Button>
+          </>
+        ) : (
+          <Button disabled={!relay.connected} loading={busy} onClick={start}>
+            {offer ? "Make a new code" : "Add phone (app)"}
+          </Button>
+        )}
       </div>
     </section>
   );
