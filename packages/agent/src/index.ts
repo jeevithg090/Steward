@@ -46,8 +46,10 @@ export {
   TenantError,
 } from "./tenant.ts";
 export { BUILTIN_TOOLS, buildToolCatalogue, grantedBuiltins, toAgUiTool } from "./tools/catalogue.ts";
+export { NO_DIRECTORY, THIRD_PARTY_NOTE } from "./tools/directory.ts";
 export { mcpTool } from "./tools/mcp.ts";
 export type {
+  DirectoryService,
   GateFacts,
   ObjectSchema,
   StewardTool,

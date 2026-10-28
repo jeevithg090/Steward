@@ -1,4 +1,6 @@
 import type {
+  BotListing,
+  BotsQuery,
   BriefService,
   ComputerManager,
   GateCall,
@@ -14,6 +16,14 @@ import type {
   Triage,
   WebTools,
 } from "@steward/shared";
+import type { z } from "zod";
+
+/** The bot directory, as `directory_find` sees it: `DirectoryClient` from `@steward/bots` fits. */
+export interface DirectoryService {
+  list(query: z.infer<typeof BotsQuery>): Promise<{ bots: BotListing[]; total: number }>;
+  /** A listing's `packUrl` as an absolute URL or path, so an Add button points at the real pack. */
+  resolvePackUrl(packUrl: string): string;
+}
 
 /** A JSON Schema object. Tool parameters always have `type: "object"` at the root. */
 export type JsonSchema = Record<string, unknown>;
@@ -42,6 +52,8 @@ export interface ToolServices {
     triage: Triage;
   };
   settings: () => { plainLanguage: boolean; timezone: string };
+  /** The bot directory, when one is configured. Without it `directory_find` finds nothing. */
+  directory?: DirectoryService;
 }
 
 /** Per-call facts a tool needs: who it acts for, and the signal that stops it. */

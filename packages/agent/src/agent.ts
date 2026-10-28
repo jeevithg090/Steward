@@ -21,7 +21,7 @@ import { buildRunContext } from "./context.ts";
 import { GovernedToolsMiddleware, linkStopSignal } from "./middleware.ts";
 import { buildSystemPrompt } from "./prompt.ts";
 import { buildToolCatalogue } from "./tools/catalogue.ts";
-import type { ToolServices } from "./tools/types.ts";
+import type { DirectoryService, ToolServices } from "./tools/types.ts";
 
 /** Everything one Steward agent needs. Built by `apps/server`; see PLAN §5.1. */
 export interface AgentDeps {
@@ -43,6 +43,8 @@ export interface AgentDeps {
   };
   bus?: EventBus;
   settings: () => { plainLanguage: boolean; timezone: string };
+  /** The bot directory, when `STEWARD_DIRECTORY_URL` points at one. */
+  directory?: DirectoryService;
   /** `local` in single-user mode. */
   actorId: string;
   /** Random per boot. A run whose forwarded props carry it may name its initiator (routine, task, resume). */
@@ -103,6 +105,7 @@ export function toolServices(deps: AgentDeps): ToolServices {
     mcp: deps.mcp,
     stores: deps.stores,
     settings: deps.settings,
+    ...(deps.directory ? { directory: deps.directory } : {}),
   };
 }
 
