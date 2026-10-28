@@ -11,7 +11,9 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["directory_find"],
+    "tools": [
+      "directory_find"
+    ],
     "connectors": [],
     "model": "any"
   },

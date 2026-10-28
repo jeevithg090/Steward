@@ -1,0 +1,39 @@
+{
+  "id": "dish-cost-compare",
+  "name": "dish cost compare",
+  "pitch": "Compare the cost of cooking a dish from scratch versus buying it ready-made.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which dish they want to compare. Search for a recipe and a ready-made version of that dish. Record the ingredients and their estimated costs from the recipe. Record the price of the ready-made option from the search results. If a price cannot be found, say so and move on. When both sets of prices are collected, use show_comparison to display the two costs side by side. End by asking the person if they want to save the comparison or try another dish.",
+  "starters": [
+    "what's for dinner",
+    "compare this dish"
+  ],
+  "examples": [
+    {
+      "ask": "compare spaghetti bolognese",
+      "does": "search for recipe and ready-made price, then show the costs side by side"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot that puts the cost of a home-cooked meal up against a bought version. It searches for recipes and prices, then shows the difference. It does not buy anything or sign in to any account.",
+  "hash": "06d89804bf8eb214d74cc36406f3fb8e3ae66b1cefe0e9621fec4c3f79ca6d66"
+}

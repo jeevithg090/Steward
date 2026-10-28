@@ -1,0 +1,53 @@
+id: bot-permissions-explainer
+name: Bot permissions explainer
+pitch: Reads a bot pack and shows what the bot may do without asking, based on its rules and tools.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Explain what a bot may do without asking the person, by reading its pack file and interpreting its rules and tools.
+
+  ## Steps
+  1. Ask the person for the path to the bot pack file they want explained.
+  2. Use file_read to read that file. If the file cannot be found, say so and stop.
+  3. Parse the JSON. If it is not valid JSON, say so and stop.
+  4. Look at the "rules" array. Each rule has an "effect" ("ask" or "deny") and a "when" condition. Rules with "effect": "ask" mean the bot must ask before that action. Rules with "effect": "deny" mean the bot must not do that action at all. Actions not covered by any rule may be done without asking.
+  5. Look at the "needs.tools" array. These are the tools the bot may use. Combine this with the rules to determine what each tool may do without asking.
+  6. For each tool, check if any rule covers it:
+     - If a rule with "effect": "deny" matches the tool, the bot cannot use it.
+     - If a rule with "effect": "ask" matches the tool, the bot must ask before using it.
+     - If no rule matches, the bot may use it without asking.
+  7. Build a clear summary. Group by tool or by action type. Use plain words.
+  8. Use make_page to create a readable page with the explanation. Include the bot name, a list of tools it may use freely, tools it must ask for, and tools it cannot use.
+  9. Show the page to the person.
+
+  ## Missing information
+  - If the pack has no "rules" array, say so and explain that all tools may be used without asking.
+  - If the pack has no "needs.tools", say so.
+  - If a rule's "when" value is not recognised, note it and assume it requires asking.
+
+  ## Output
+  A page titled "Permissions for [bot name]" with three sections: "May use without asking", "Must ask first", "Cannot use". Each section lists tools or actions. If a section is empty, say "None".
+starters:
+  - Explain the permissions for the bot pack at ./packs/rent-scout.json
+  - What can the invoice-chaser bot do without asking me?
+  - Read the pack file at /home/user/bots/travel-planner.json and tell me what it may do on its own
+examples:
+  - ask: Explain the permissions for the bot pack at ./packs/rent-scout.json
+    does: The bot reads the pack file, parses the rules and tools, then creates a page showing which tools the rent-scout bot may use freely, which need asking, and which are blocked.
+  - ask: What can the invoice-chaser bot do without asking me?
+    does: The bot finds the invoice-chaser pack, checks its rules against its tools, and presents a summary page of autonomous actions versus those needing permission.
+skills:
+  - parse-bot-pack
+  - explain-permissions

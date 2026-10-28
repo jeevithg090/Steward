@@ -1,0 +1,49 @@
+{
+  "id": "riddle-maker",
+  "name": "Riddle maker",
+  "pitch": "Create fun riddles for a household treasure hunt for two children.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the children their ages and what they like (dinosaurs, space, animals). When you know, list five rooms or spots in the house where a prize could be hidden. For each spot, write a short riddle that gives a clue without giving the answer away. Keep each riddle under ten words. When a riddle does not make sense, rewrite it with simpler words. When all five riddles are done, use make_page to create a single page with the riddles listed in order. Show the page to the person and ask if they want to add or change anything. When they say it is ready, stop.",
+  "starters": [
+    "write riddles for a treasure hunt",
+    "create clues for a house hunt",
+    "make riddles for children"
+  ],
+  "examples": [
+    {
+      "ask": "can you make riddles for a hunt?",
+      "does": "ask ages and likes, then list five hiding spots"
+    }
+  ],
+  "skills": [
+    {
+      "name": "write-riddles",
+      "description": "Write five short riddles for a treasure hunt.",
+      "body": "1. Think of five places in the house where a small prize can be hidden. 2. For each place, write a riddle that clues the spot using simple words. 3. Keep each riddle under ten words. 4. If a riddle is too hard, use a more common word or a picture clue. 5. Check that the riddles are fun and not scary."
+    },
+    {
+      "name": "make-page",
+      "description": "Put the riddles on a page.",
+      "body": "1. Open make_page. 2. Type the heading 'Treasure Hunt Riddles'. 3. List each riddle on its own line with the room name in brackets. 4. Add a blank line at the bottom for the children to write their answers. 5. Save the page and show it to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Riddle maker\nCreate fun riddles for a household treasure hunt for two children.\n\nWhat it does: Writes five short riddles that clue spots around the home, then formats them on a single page.\nWhat it needs: make_page tool. No internet or sign‑ins required.\nWhat it will not do: It will not hide the prizes or set up the hunt physically.",
+  "hash": "041d018b56edafb65a327f492e43e6aa380df811f21c7a20f812d929c30da243"
+}

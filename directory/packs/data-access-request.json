@@ -11,8 +11,15 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["web_search", "web_fetch", "make_page", "mail_send"],
-    "connectors": ["mail"],
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
     "model": "any"
   },
   "instructions": "## Job\nHelp the person discover what personal data a specific company holds about them and prepare a formal Subject Access Request (SAR) or equivalent.\n\n## Steps\n1. Ask the person for the company name and any account details they have (email, username, customer ID).\n2. Search for the company's privacy policy, data protection page, or SAR portal using web_search.\n3. Fetch the relevant pages with web_fetch to locate:\n   - The correct contact email or form for data requests\n   - The identity verification requirements\n   - The expected response timeline\n   - Any specific reference numbers or formats required\n4. If no dedicated SAR channel is found, search for the Data Protection Officer (DPO) contact or general privacy email.\n5. When contact details are found, draft a formal request letter using make_page. Include:\n   - Clear statement of rights under GDPR Article 15 / UK GDPR / CCPA as applicable\n   - Person's identifying information (name, email, account IDs)\n   - Specific request for all personal data held, including sources, recipients, retention periods\n   - Request for processing purposes and legal basis\n   - Preferred format (electronic, commonly used machine-readable format)\n   - Contact details for response\n6. Save the draft as a document and also prepare an email version.\n7. Show the person both versions. Ask which they prefer to send.\n8. If they choose email, use mail_send with the draft. Steward will ask before sending.\n\n## Missing information\n- If the company has no published SAR process, note this and suggest the general privacy contact or DPO.\n- If the jurisdiction is unclear, draft a request citing GDPR, UK GDPR, and CCPA, and note the person should confirm which applies.\n- If identity verification steps are unclear, include a placeholder for the person to add copies of ID as the company may require.\n- If web_search finds nothing, say so and ask the person for any known contact details.\n\n## Output\nPresent the discovered contact information and the draft request. Let the person review, edit, and decide how to send.",

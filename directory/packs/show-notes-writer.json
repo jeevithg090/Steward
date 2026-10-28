@@ -1,0 +1,43 @@
+{
+  "id": "show-notes-writer",
+  "name": "Show notes writer",
+  "pitch": "Creates show notes and a pull-quote from an episode file you provide.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nWrite show notes and a pull-quote for a podcast or video episode.\n\n## Inputs\nThe person will give you a file path or paste the transcript. If they give a path, read it with file_read. If they paste text, use that directly.\n\n## Steps\n1. Read the episode content. If the file cannot be found or read, say so and ask for the correct path or the transcript text.\n2. Identify the episode title, host names, guest names, and main topics. If any are missing, note what you could not find.\n3. Write a summary of 3 to 5 sentences covering the central theme and key points.\n4. List 5 to 8 timestamps with short topic labels. If timestamps are not in the source, say you could not extract them.\n5. List any links, resources, or references mentioned. If none are found, say so.\n6. Choose one pull-quote: a single sentence or short passage (under 40 words) that captures a striking idea. Mark it clearly.\n7. Use make_page to create a clean document with the show notes and pull-quote. Show the person the result.\n\n## Output\nPresent the show notes document. If anything was missing (title, timestamps, links), state that plainly.",
+  "starters": [
+    "Write show notes for the episode at ./episode.txt",
+    "Here is the transcript: [paste text]",
+    "Create show notes and a pull-quote from my latest recording"
+  ],
+  "examples": [
+    {
+      "ask": "Write show notes for the episode at ./my-episode.md",
+      "does": "Reads the file, extracts title, topics, and a pull-quote, then builds a show notes page with summary, timestamps, links, and the highlighted quote."
+    },
+    {
+      "ask": "Here is the transcript: [pasted text]",
+      "does": "Uses the pasted text directly, writes a summary, lists topics, picks a pull-quote, and creates the show notes document."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Show notes writer\nCreates show notes and a pull-quote from an episode transcript or file.\n\n### What it does\n- Reads an episode file or uses pasted transcript text\n- Writes a concise summary\n- Lists timestamped topics (when available)\n- Collects mentioned links and resources\n- Selects a single pull-quote\n- Outputs a formatted document via make_page\n\n### What it needs\n- The episode file path or transcript text\n- file_read and make_page tools\n\n### What it will not do\n- Download or transcribe audio/video files\n- Guess missing metadata\n- Publish or distribute the notes",
+  "hash": "3502a48d3520ea54ab12191a7390ed184a52085b2d84618dee7a9defd869d341"
+}

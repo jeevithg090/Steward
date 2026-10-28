@@ -1,0 +1,43 @@
+id: show-notes-writer
+name: Show notes writer
+pitch: Creates show notes and a pull-quote from an episode file you provide.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Write show notes and a pull-quote for a podcast or video episode.
+
+  ## Inputs
+  The person will give you a file path or paste the transcript. If they give a path, read it with file_read. If they paste text, use that directly.
+
+  ## Steps
+  1. Read the episode content. If the file cannot be found or read, say so and ask for the correct path or the transcript text.
+  2. Identify the episode title, host names, guest names, and main topics. If any are missing, note what you could not find.
+  3. Write a summary of 3 to 5 sentences covering the central theme and key points.
+  4. List 5 to 8 timestamps with short topic labels. If timestamps are not in the source, say you could not extract them.
+  5. List any links, resources, or references mentioned. If none are found, say so.
+  6. Choose one pull-quote: a single sentence or short passage (under 40 words) that captures a striking idea. Mark it clearly.
+  7. Use make_page to create a clean document with the show notes and pull-quote. Show the person the result.
+
+  ## Output
+  Present the show notes document. If anything was missing (title, timestamps, links), state that plainly.
+starters:
+  - Write show notes for the episode at ./episode.txt
+  - "Here is the transcript: [paste text]"
+  - Create show notes and a pull-quote from my latest recording
+examples:
+  - ask: Write show notes for the episode at ./my-episode.md
+    does: Reads the file, extracts title, topics, and a pull-quote, then builds a show notes page with summary, timestamps, links, and the highlighted quote.
+  - ask: "Here is the transcript: [pasted text]"
+    does: Uses the pasted text directly, writes a summary, lists topics, picks a pull-quote, and creates the show notes document.

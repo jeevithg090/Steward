@@ -1,0 +1,48 @@
+{
+  "id": "car-lease-vs-buy",
+  "name": "Car lease vs buy",
+  "pitch": "Compare total cost of leasing versus buying your next car over the same period, including tax, insurance, maintenance and resale value.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nHelp the person decide whether leasing or buying their next car is cheaper over a chosen period.\n\n## Steps\n1. Ask for the car make, model, trim and whether new or used. Ask for the intended ownership period in years (for example 3 or 4). Ask for annual mileage.\n2. Ask for their postcode or region to get local tax, insurance and dealer quotes.\n3. Search for current lease offers on that car for the chosen term and mileage. Record monthly payment, initial rental, excess mileage charge, maintenance inclusion and any fees.\n4. Search for purchase price (cash or financed) for the same car. Record list price, typical discount, loan rate if financing, deposit, loan term matching the ownership period.\n5. Estimate annual costs for both paths: insurance (get a quote for the car and postcode), road tax, maintenance and tyres (use manufacturer schedule), fuel or electricity (use their mileage and local energy prices).\n6. For buying, estimate resale value at the end of the period using depreciation guides for that model.\n7. Build a table with show_comparison: columns for Lease and Buy, rows for each cost item and totals over the period. Show net cost (total paid minus resale for buy).\n8. Write a one-page summary with make_page: key assumptions, the table, and a plain conclusion (\"Lease is £X cheaper\" or \"Buy is £Y cheaper\"). Note where data was estimated.\n9. If any quote cannot be found, say so and use a reasonable estimate, marking it clearly.\n10. Present the summary and ask if they want to adjust any assumption.",
+  "starters": [
+    "Compare lease vs buy for a Volkswagen ID.4 over 3 years at 10,000 miles a year.",
+    "I'm looking at a Ford Puma, should I lease or buy for 4 years?",
+    "Work out the cheaper option for a used BMW 3 Series over 3 years."
+  ],
+  "examples": [
+    {
+      "ask": "Compare lease vs buy for a Tesla Model Y over 3 years at 12,000 miles a year in Cambridge.",
+      "does": "The bot gathers lease quotes, purchase prices, insurance, tax, energy costs and resale value for a Tesla Model Y in Cambridge. It builds a comparison table and a summary page showing the net cost of each option over 3 years."
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-costs",
+      "description": "Collect lease, purchase and running cost data for a specific car and region.",
+      "body": "1. Search lease comparison sites for the exact model, term and mileage. Capture monthly payment, initial rental, excess mileage rate, maintenance package and admin fees.\n2. Search dealer and broker sites for purchase price. Note cash price, typical finance APR, deposit and loan term.\n3. Get an insurance quote for the car and postcode (use a comparison site).\n4. Look up current road tax (VED) for the model.\n5. Find manufacturer service schedule and typical costs for the ownership period.\n6. Estimate fuel or electricity cost using annual mileage and local pump or charging rates.\n7. Check depreciation guides (CAP, Glass's, Parker's) for predicted resale value at the end of the term.\n8. Record every figure with source and date. Mark estimates clearly."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Car lease vs buy\n\nCompares the total cost of leasing versus buying a specific car over a chosen period. It gathers lease quotes, purchase prices, insurance, tax, maintenance, fuel or electricity costs and predicted resale value, then presents a side-by-side table and a one-page summary with a clear conclusion.\n\n### What it needs\n- Car make, model, trim, new or used\n- Ownership period (years) and annual mileage\n- Postcode or region for local costs\n\n### What it will not do\n- Negotiate with dealers or brokers\n- Arrange finance or lease contracts\n- Provide tax or legal advice\n- Guarantee future resale values",
+  "hash": "365abc9a92b87b9b860bb97cb36340d971efbda7aca507589ab0bd55f6ae4c04"
+}

@@ -1,0 +1,48 @@
+id: morning-brief
+name: Morning Brief
+pitch: Creates a daily morning brief from mail, calendar, and due tasks.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - brief_today
+    - calendar_list
+    - task_create
+    - task_update
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: |-
+  This job builds a concise morning brief each weekday. The brief covers unread mail, today's calendar events, and tasks due today or overdue.
+
+  Start by checking the current day. If it is Saturday or Sunday, say no brief is sent on weekends and stop.
+
+  On weekdays, run the brief_today tool. It reads unread mail and today's calendar events, then writes a short brief.
+
+  After the brief is written, list tasks due today or overdue using task_create and task_update logic. If no tasks are due, note that in the brief.
+
+  If mail or calendar connectors are not connected, say which one is missing and ask the person to connect it.
+
+  If brief_today returns no mail and no events, say the brief is empty and ask if they want to check another day.
+
+  At the end, show the brief to the person. Do not send it anywhere unless they ask. Keep it under 300 words.
+
+  When something cannot be read, say plainly what was not checked.
+starters:
+  - Give me my morning brief.
+  - What's on for today?
+  - Show me mail, calendar and due tasks.
+  - Run the daily brief now.
+examples:
+  - ask: Give me my morning brief.
+    does: The bot runs brief_today, checks tasks due today, and returns a combined summary.
+  - ask: What's on for today?
+    does: The bot fetches calendar events and unread mail, then adds any overdue tasks.
+skills:
+  - build-brief

@@ -11,8 +11,14 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["mail_list", "mail_read", "show_table"],
-    "connectors": ["mail"],
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "show_table"
+    ],
+    "connectors": [
+      "mail"
+    ],
     "model": "any"
   },
   "instructions": "## Job\nSearch the person's email for subscription receipts, renewal notices, and billing confirmations. Extract the service name, amount, billing cycle, and last payment date. Present findings in a table so the person can decide what to cancel.\n\n## Steps\n1. **Search for subscription emails**\n   - Use `mail_list` with queries like: \"subscription\", \"receipt\", \"renewal\", \"invoice\", \"billing\", \"your plan\", \"monthly\", \"annual\", \"recurring\".\n   - Search the last 13 months to catch annual renewals.\n   - If a query returns no messages, note it and try the next query.\n\n2. **Read and extract details**\n   - For each promising message, use `mail_read` to get the full content.\n   - Look for: service name, amount paid, currency, billing period (monthly, quarterly, annual), last payment date, next renewal date, and any subscription ID.\n   - If a message lacks clear details, skip it and note the sender/subject for the person.\n\n3. **Deduplicate and organise**\n   - Group by service name. Keep the most recent payment per service.\n   - Flag services with no email in the last 35 days (monthly) or 380 days (annual) as \"possibly inactive\".\n\n4. **Present findings**\n   - Use `show_table` with columns: Service, Amount, Cycle, Last Paid, Next Due, Status (Active / Possibly Inactive / Unknown), Email Sender.\n   - Include a summary count: total services, monthly cost, annualised cost.\n\n5. **What to do when nothing is found**\n   - If no subscription emails appear, tell the person: \"I found no obvious subscription receipts in the last 13 months. You may want to check spam, other accounts, or bank statements.\"\n\n## Output\nShow the table and summary. Do not contact any service or attempt cancellations. The person decides what to do next.",

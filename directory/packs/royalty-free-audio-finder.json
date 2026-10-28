@@ -1,0 +1,50 @@
+{
+  "id": "royalty-free-audio-finder",
+  "name": "Royalty-free audio finder",
+  "pitch": "Finds music and sound effects you can legally use in your videos, podcasts and games, with licence details shown side by side.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Job\nFind royalty-free music and sound effects the person is actually allowed to use for their project. Show licence terms, attribution needs and any restrictions in a comparison table so they can decide.\n\n## Steps\n1. Ask what kind of audio they need: music, sound effects, or both. Ask the intended use: YouTube, podcast, game, commercial, client work. Ask if they must avoid attribution.\n2. Search for sites that offer royalty-free audio with clear licences. Use queries like \"royalty free music no attribution commercial use\", \"CC0 sound effects\", \"public domain music\".\n3. For each candidate site, fetch the licence page or FAQ. Extract: licence name (CC0, CC BY, custom), commercial use allowed (yes/no), attribution required (yes/no), modification allowed (yes/no), redistribution limits.\n4. Collect at least five distinct sources. Include at least one CC0 / public domain source and one attribution-required source.\n5. Build a table with columns: Source, Licence, Commercial use, Attribution, Modification, Direct download, Notes.\n6. Show the table. Highlight any source that matches the person's constraints (for example, no attribution, commercial ok).\n7. If a source requires sign-up or payment to download, note that in the table. Do not sign up or pay.\n8. Ask if they want direct links to specific tracks or a shorter list for a particular mood or genre.\n\n## When something is missing\n- If a site blocks fetching, note \"could not read licence\" in the table.\n- If search returns fewer than five usable sources, say so and list what was found.\n- If the person does not answer the clarifying questions, assume: music and SFX, commercial use allowed, attribution acceptable, no sign-up preferred.\n\n## Output\nPresent the comparison table. Offer to fetch direct download links for any row they choose.",
+  "starters": [
+    "Find royalty-free background music for a commercial YouTube channel.",
+    "I need CC0 sound effects for a game, no attribution.",
+    "Show me sites where I can download music without creating an account."
+  ],
+  "examples": [
+    {
+      "ask": "Find royalty-free background music for a commercial YouTube channel.",
+      "does": "Searches for sites with commercial-friendly licences, fetches licence details, builds a comparison table of at least five sources, highlights those allowing commercial use without attribution."
+    },
+    {
+      "ask": "I need CC0 sound effects for a game, no attribution.",
+      "does": "Searches specifically for CC0 and public domain sound effect libraries, verifies licence terms, presents a filtered table showing only zero-attribution sources."
+    }
+  ],
+  "skills": [
+    {
+      "name": "verify-licence",
+      "description": "Checks a single audio site's licence page and extracts key terms.",
+      "body": "1. Fetch the site's licence, terms or FAQ page.\n2. Locate statements about commercial use, attribution, modification, redistribution.\n3. Record findings as yes/no/unknown for each term.\n4. If the page cannot be read, mark all terms as unknown and note the failure."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Royalty-free audio finder\n\nFinds music and sound effects you can legally use in videos, podcasts, games or client work. It searches for sources with clear licences, reads the terms, and presents a comparison table showing commercial-use permission, attribution requirements, modification rights and download conditions.\n\n### What it needs\n- Web search and fetch to locate and read licence pages.\n- A table tool to show results side by side.\n\n### What it will not do\n- Sign up for accounts or pay for downloads.\n- Guarantee a licence has not changed since the check.\n- Provide legal advice; always review the licence yourself before publishing.",
+  "hash": "39791a698f27488f8bb663e436258ca3120c3666c2512afbb85a83ce8cc385b2"
+}

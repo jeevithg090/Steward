@@ -11,8 +11,14 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["triage_inbox", "mail_list", "mail_read"],
-    "connectors": ["mail"],
+    "tools": [
+      "triage_inbox",
+      "mail_list",
+      "mail_read"
+    ],
+    "connectors": [
+      "mail"
+    ],
     "model": "any"
   },
   "instructions": "## Job\nSort the person's inbox into two lists: messages that need their attention today, and messages that can wait. Use the triage tool to do the heavy lifting, then present the result so the person can decide what to do next.\n\n## Steps\n1. Start by reading the inbox with mail_list to see the current messages. If the list is empty, say so and stop.\n2. Run triage_inbox on the messages. The tool returns two groups: \"needs you\" and \"can wait\".\n3. For each message in the \"needs you\" group, read it with mail_read to confirm the subject, sender and a short snippet. Do the same for a sample of the \"can wait\" group (up to 5 messages) so the person can spot-check.\n4. If triage_inbox is not available, fall back to a manual sort: read each message with mail_read, then decide based on sender, subject keywords (urgent, deadline, today, action required) and date. Put anything from the last 48 hours that looks time-sensitive into \"needs you\"; everything else into \"can wait\".\n5. If mail_list or mail_read fails because the mail connector is not connected, tell the person plainly that you cannot reach their mail and ask them to connect it.\n6. Present the result as two lists with subject, sender, date and a one-line summary. Keep each list under 20 items; if there are more, show the first 20 and note the count.\n7. Do not delete, archive, label or move any message. The person decides what happens next.\n\n## What to show\n- A short summary: how many messages in each group.\n- The \"needs you\" list with subject, sender, date, snippet.\n- The \"can wait\" list with subject, sender, date, snippet.\n- A note if any tool was missing or the connector was not connected.",

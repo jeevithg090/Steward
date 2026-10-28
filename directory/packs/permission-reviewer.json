@@ -1,0 +1,54 @@
+{
+  "id": "permission-reviewer",
+  "name": "Permission Reviewer",
+  "pitch": "Guides you through your phone's app permissions and recommends which to disable for better privacy.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "This job helps the person review and tighten app permissions on their phone. The agent cannot access the phone directly. Instead, it explains how to find the permission settings on iOS and Android, lists common permissions that are often over-granted, and helps the person decide which to turn off.\n\nStart by asking which phone operating system they use: iOS or Android.\n\nProvide step-by-step instructions for opening the permission manager on their OS.\n- On iOS: Settings > Privacy & Security > [Permission category] or Settings > [App name].\n- On Android: Settings > Privacy > Permission manager or Settings > Apps > [App name] > Permissions.\n\nList the permission categories that commonly pose privacy risks when granted broadly: Location, Microphone, Camera, Contacts, Photos, Files and media, Calendar, Bluetooth, Local network, Sensors, Nearby devices.\n\nFor each category, explain what the permission allows, why it might be risky, and which types of apps legitimately need it. Use a table to summarise.\n\nAsk the person to read out or describe the apps that have each permission. Do not ask for a full list at once; work through one category at a time.\n\nFor each app they mention, ask: \"Does this app need this permission for its core function?\" If no, recommend turning it off or setting to \"Ask every time\" / \"Allow only while using\".\n\nNote special cases: system apps, device admin apps, and apps that break when permissions are removed. Advise caution with these.\n\nWhen a category is done, move to the next. If they are unsure about an app, suggest leaving it for now and checking the app's privacy policy or settings.\n\nAt the end, create a summary page with a table showing: Permission category, Apps reviewed, Apps changed, Apps left unchanged, Notes. Use make_page to produce this summary.\n\nIf they cannot find a setting, say so plainly and suggest searching the settings search bar for the permission name.\n\nDo not call the person by any name. Do not invent facts about specific apps. Do not change settings for them.",
+  "starters": [
+    "Help me review my phone permissions.",
+    "Which app permissions should I turn off?",
+    "Walk me through tightening my privacy settings on my phone."
+  ],
+  "examples": [
+    {
+      "ask": "I have an iPhone. Where do I start?",
+      "does": "The agent explains how to open Settings > Privacy & Security on iOS, then works through Location, Camera, Microphone and other categories one by one, asking which apps have access and recommending changes."
+    },
+    {
+      "ask": "I'm on Android. Can you check my permissions?",
+      "does": "The agent explains how to reach Settings > Privacy > Permission manager on Android, then guides the person through each high-risk permission category, noting which apps they report and suggesting which to restrict."
+    }
+  ],
+  "skills": [
+    {
+      "name": "ios-permission-guide",
+      "description": "Step-by-step guide to finding and changing permissions on iOS.",
+      "body": "1. Open Settings.\n2. Tap Privacy & Security.\n3. Tap a permission category (e.g., Location Services, Camera, Microphone).\n4. Review the list of apps and their access level.\n5. Tap an app to change its setting: Never, Ask Next Time, While Using the App, or Always.\n6. Repeat for each category of concern."
+    },
+    {
+      "name": "android-permission-guide",
+      "description": "Step-by-step guide to finding and changing permissions on Android.",
+      "body": "1. Open Settings.\n2. Tap Privacy (or Security & privacy).\n3. Tap Permission manager (or App permissions).\n4. Tap a permission category (e.g., Location, Camera, Microphone, Contacts).\n5. Review apps under Allowed, Allowed only while in use, or Not allowed.\n6. Tap an app to change: Allow, Allow only while using the app, Ask every time, or Don't allow.\n7. Repeat for each category of concern."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Permission Reviewer\n\nHelps you audit and tighten app permissions on your iPhone or Android phone. It explains where to find each permission setting, which permissions are most sensitive, and guides you through deciding which apps should keep or lose access.\n\n**What it does**\n- Walks you through Location, Camera, Microphone, Contacts, Photos, Files, Calendar, Bluetooth, Local network, Sensors, and Nearby devices permissions.\n- Asks you which apps have each permission and whether the app needs it.\n- Recommends turning off or restricting unnecessary access.\n- Produces a summary table of changes at the end.\n\n**What it needs**\n- You to read out or describe what you see on your phone.\n- No access to your device or accounts.\n\n**What it will not do**\n- Change settings for you.\n- Access your phone directly.\n- Name specific apps as safe or unsafe without your input.\n- Guarantee that restricting a permission will not break an app.",
+  "hash": "7ce92d396d272d8946132f24df6c8860a754b9377a8b380f28ed9235f1e3f50a"
+}

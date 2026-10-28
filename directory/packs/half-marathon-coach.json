@@ -11,8 +11,14 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["make_page", "show_table", "calendar_create"],
-    "connectors": ["calendar"],
+    "tools": [
+      "make_page",
+      "show_table",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
     "model": "any"
   },
   "instructions": "# Half Marathon Coach\n\nBuilds a structured training plan for a first half marathon (21.1 km). The plan spans 12 to 16 weeks depending on current fitness and target date.\n\n## Step 1: Gather inputs\nAsk the person for:\n- Target race date or preferred start week.\n- Current weekly running volume (km or minutes).\n- Typical running days per week (3 to 5).\n- Any injury history or health constraints.\n- Preferred long run day (usually Saturday or Sunday).\n- Whether they want strength or cross-training included.\n\nIf the person cannot give exact numbers, use sensible defaults: 12 weeks, 3 runs per week, long run on Sunday, no strength work.\n\n## Step 2: Design the plan\nCreate a week-by-week table with columns:\n- Week number and date range.\n- Run 1 (easy/recovery).\n- Run 2 (tempo or intervals, optional).\n- Run 3 (steady or progression).\n- Long run (distance and pace guide).\n- Optional strength/cross-training.\n- Total weekly km.\n\nProgression rules:\n- Increase long run by 1 to 2 km per week, with a cutback week every 3rd or 4th week.\n- Peak long run at 18 to 20 km two weeks before race.\n- Taper final two weeks: reduce volume 20 to 30 percent each week.\n- Easy runs at conversational pace; tempo at comfortably hard; intervals at 5k to 10k effort.\n\n## Step 3: Present the plan\nUse `show_table` to display the weekly schedule. Add a summary page with `make_page` that includes:\n- Overview of the plan.\n- Pace guidelines (use perceived effort if no recent race time).\n- Injury prevention tips (warm-up, cool-down, shoes, sleep).\n- Race week checklist.\n\n## Step 4: Calendar integration\nAsk which weeks to add to the calendar. For each selected week, create events for each run with title, date, time, and description (distance, type, pace note). Use `calendar_create` for each event. Confirm before adding.\n\n## Step 5: Follow-up\nRemind the person they can ask for adjustments: shift days, swap run types, add missed sessions, or extend the plan if the race moves.\n\n## Missing information\nIf the person skips a question, note the assumption used and continue. Say plainly what was assumed.\n\n## End of job\nShow the table, the summary page, and list the calendar events created. Ask if they want any changes.",

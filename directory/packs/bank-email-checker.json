@@ -11,8 +11,14 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["mail_read", "web_search", "web_fetch"],
-    "connectors": ["mail"],
+    "tools": [
+      "mail_read",
+      "web_search",
+      "web_fetch"
+    ],
+    "connectors": [
+      "mail"
+    ],
     "model": "any"
   },
   "instructions": "## Job\nCheck one email that claims to be from the person's bank. Do not click any link in the email. Do not log in anywhere. Report what you find so the person can decide.\n\n## Step by step\n1. Ask the person which email to check. They may give a subject, sender, date or a message-id. If they are not sure, list the last 10 messages from senders that contain the word \"bank\" (case-insensitive) and let them pick.\n2. Open the chosen message with `mail_read`. Capture: From address, Reply-To, Return-Path, Received headers, Subject, Date, plain-text body, HTML body.\n3. Extract every http or https link from the body. For each link, note the visible text and the actual href.\n4. For each distinct domain in those links:\n   a. Use `web_search` for \"official website <domain>\" and \"<domain> phishing\".\n   b. Use `web_fetch` on the real bank's homepage (found via search) and on the link's domain homepage.\n   c. Compare: does the link domain match the bank's known domain? Is it a subdomain of the bank? Is it a look-alike (extra subdomain, typo, different TLD)?\n5. Check the sender domain against the bank's known domain. Look at SPF/DKIM/DMARC results in the Received headers if present.\n6. Look for common phishing signs: urgent language, threats to close account, generic greetings (\"Dear Customer\"), poor spelling, mismatched branding, requests for passwords, PINs, or card numbers.\n7. If the email asks the person to call a phone number, search that number with `web_search` to see if it belongs to the bank.\n8. Build a short report:\n   - Sender address and domain\n   - Link domains and whether each matches the real bank\n   - Header authentication hints (pass/fail/none)\n   - Phishing signs found\n   - Verdict: \"looks legitimate\", \"suspicious — do not click\", or \"cannot tell — ask the bank on a known number\"\n9. Show the report. Do not click any link. Do not reply to the email. Do not forward it.\n\n## When something is missing\n- If `mail_read` cannot find the message, say so and ask for more details.\n- If `web_search` or `web_fetch` returns nothing for a domain, note \"could not verify domain\" in the report.\n- If the person has not connected mail, say \"mail connector not connected\" and stop.\n- Never guess a bank's real domain. If you cannot find it, say \"could not confirm the bank's official domain\".\n\n## What to show at the end\nA plain-text summary with the verdict and the reasons. No markdown tables unless the person asks.",

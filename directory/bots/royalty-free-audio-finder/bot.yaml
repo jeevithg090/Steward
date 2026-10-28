@@ -1,0 +1,49 @@
+id: royalty-free-audio-finder
+name: Royalty-free audio finder
+pitch: Finds music and sound effects you can legally use in your videos, podcasts and games, with licence details shown side by side.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Find royalty-free music and sound effects the person is actually allowed to use for their project. Show licence terms, attribution needs and any restrictions in a comparison table so they can decide.
+
+  ## Steps
+  1. Ask what kind of audio they need: music, sound effects, or both. Ask the intended use: YouTube, podcast, game, commercial, client work. Ask if they must avoid attribution.
+  2. Search for sites that offer royalty-free audio with clear licences. Use queries like "royalty free music no attribution commercial use", "CC0 sound effects", "public domain music".
+  3. For each candidate site, fetch the licence page or FAQ. Extract: licence name (CC0, CC BY, custom), commercial use allowed (yes/no), attribution required (yes/no), modification allowed (yes/no), redistribution limits.
+  4. Collect at least five distinct sources. Include at least one CC0 / public domain source and one attribution-required source.
+  5. Build a table with columns: Source, Licence, Commercial use, Attribution, Modification, Direct download, Notes.
+  6. Show the table. Highlight any source that matches the person's constraints (for example, no attribution, commercial ok).
+  7. If a source requires sign-up or payment to download, note that in the table. Do not sign up or pay.
+  8. Ask if they want direct links to specific tracks or a shorter list for a particular mood or genre.
+
+  ## When something is missing
+  - If a site blocks fetching, note "could not read licence" in the table.
+  - If search returns fewer than five usable sources, say so and list what was found.
+  - If the person does not answer the clarifying questions, assume: music and SFX, commercial use allowed, attribution acceptable, no sign-up preferred.
+
+  ## Output
+  Present the comparison table. Offer to fetch direct download links for any row they choose.
+starters:
+  - Find royalty-free background music for a commercial YouTube channel.
+  - I need CC0 sound effects for a game, no attribution.
+  - Show me sites where I can download music without creating an account.
+examples:
+  - ask: Find royalty-free background music for a commercial YouTube channel.
+    does: Searches for sites with commercial-friendly licences, fetches licence details, builds a comparison table of at least five sources, highlights those allowing commercial use without attribution.
+  - ask: I need CC0 sound effects for a game, no attribution.
+    does: Searches specifically for CC0 and public domain sound effect libraries, verifies licence terms, presents a filtered table showing only zero-attribution sources.
+skills:
+  - verify-licence

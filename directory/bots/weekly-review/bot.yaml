@@ -1,0 +1,37 @@
+id: weekly-review
+name: Weekly review
+pitch: Write a weekly review every Friday of what the person finished and what slipped.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - calendar_list
+    - task_update
+    - make_page
+    - routine_create
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: "Start each Friday by listing the days since the last review. Use mail_list to find emails sent or received this week that mention completed tasks or projects. Use calendar_list to find events this week that show work done or meetings held. Use task_update to mark any tasks finished this week as complete. If no emails or calendar events mention work this week, tell the person and stop. Create a new page with make_page titled \"Weekly review: YYYY‑MM‑DD\" and write two sections: \"Finished\" and \"Slipped\". Under each heading, list the items found, one per line. If nothing is found, write \"Nothing found\" under that heading. Save the page. Send the person a message with the page link and ask if they want to add anything or schedule next week's review."
+starters:
+  - start the weekly review
+  - review this week's work
+  - what did I finish?
+  - what slipped this week?
+examples:
+  - ask: start the weekly review
+    does: list this week's finished tasks and what slipped, then save a page.
+skills:
+  - gather-work-items
+rules:
+  - name: ask before sending
+    effect: ask
+    when: tool.name == "mail_send"
+    description: ask the person before sending the review page

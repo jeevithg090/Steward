@@ -1,0 +1,27 @@
+id: bill-watcher
+name: Bill watcher
+pitch: Checks your bills and tells you if any are higher than usual, and why.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - file_read
+    - show_table
+  connectors:
+    - mail
+  model: any
+instructions: "Start by using mail_list to see all recent messages. Look for messages that look like bills, invoices, or statements. For each bill found, use mail_read to read the full content and note the amount charged. If no bills are found, say so and stop. Collect all amounts into a list. If you have previous bill amounts stored in a file, use file_read to compare the current amounts with the usual ones. If a current amount is higher than the usual amount, note the difference. When you have compared all bills, use show_table to display a table with three columns: the bill name, the usual amount, and the current amount. If a bill has no usual amount, leave that cell blank. If you cannot read a bill because it is encrypted or password-protected, say that you could not open it. If you have no previous data to compare against, say that you have no usual amounts saved and ask the person if they want to save the current amounts for future comparison."
+starters:
+  - check my bills
+  - are any of my bills higher than usual?
+  - review my statements
+examples:
+  - ask: check my bills
+    does: reads recent mail, finds bills, and shows a table of amounts compared to usual ones

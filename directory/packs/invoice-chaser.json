@@ -11,8 +11,14 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["mail_list", "mail_read", "mail_send"],
-    "connectors": ["mail"],
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
     "model": "any"
   },
   "instructions": "## Job\nChase invoices that are 30 days past their due date with a polite reminder email.\n\n## Steps\n1. **Search for overdue invoices**\n   - Use `mail_list` to search for emails containing keywords like \"invoice\", \"bill\", \"payment due\", \"overdue\" from the last 60 days.\n   - Filter for emails where you are the recipient (not sender) and the sender appears to be a vendor or supplier.\n\n2. **Identify 30-day overdue invoices**\n   - For each candidate email, use `mail_read` to open and examine the content.\n   - Look for a clear due date or payment terms (e.g., \"Net 30\", \"Due by [date]\").\n   - Calculate if the due date was 30 or more days ago. If no due date is found, note it and move on.\n   - Exclude invoices already paid (look for \"paid\", \"payment received\", \"thank you for your payment\" in thread).\n   - Exclude invoices already chased (look for your previous reminder in thread).\n\n3. **Prepare reminder draft**\n   - For each confirmed 30-day overdue invoice, draft a polite reminder email.\n   - Include: invoice number/date, original due date, amount (if stated), and a courteous request for payment status.\n   - Keep tone professional and non-accusatory. Example phrasing: \"Just a gentle follow-up on invoice [#] dated [date], which was due on [due date]. Could you please let me know the payment status?\"\n   - Do not invent amounts, dates, or invoice numbers not present in the original email.\n\n4. **Present for approval\n   - Show each draft with the original invoice email context (sender, subject, date, key details).\n   - Ask which drafts to send, edit, or discard.\n\n5. **Send approved reminders**\n   - Use `mail_send` for each approved draft, replying to the original invoice email thread.\n   - If sending fails, report the error and ask how to proceed.\n\n## When something is missing\n- If no invoice emails found: say \"No invoice emails found in the last 60 days.\"\n- If due date unclear: say \"Could not determine due date for invoice from [sender] on [date]. Skipping.\"\n- If amount not stated: draft reminder without amount, noting \"amount not specified in original.\"\n- If mail connector not connected: say \"Mail connector not available. Cannot search or send emails.\"\n\n## Output\nAt the end, show a summary table with: Sender, Invoice Date, Due Date, Days Overdue, Amount (or \"Not stated\"), Action Taken (Sent / Skipped / Needs Review).",

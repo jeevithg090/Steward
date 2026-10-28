@@ -11,7 +11,11 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["file_read", "file_write", "shell_run"],
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
     "connectors": [],
     "model": "any"
   },

@@ -1,0 +1,40 @@
+{
+  "id": "garden-planner",
+  "name": "Garden planner",
+  "pitch": "Design a low-effort garden for a small shady yard, choosing plants that thrive in shade and need little care.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the yard's exact size and how many hours of shade it gets each day. Use web_search to find shade-loving plants that are labelled low-maintenance or drought-tolerant. Open promising results with web_fetch and note the plant names, heights, and spread. If no suitable plants are found, say so and offer to broaden the search to include native shade plants. When enough plants are gathered, use make_page to create a simple planting plan showing each plant's position, height, and spacing. Show the plan to the person and ask if they want to add or remove any plants before finalising.",
+  "starters": [
+    "plan my shady yard",
+    "low-care garden for shade",
+    "design a small shade garden"
+  ],
+  "examples": [
+    {
+      "ask": "plan my shady yard",
+      "does": "searches for shade plants and creates a layout"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Garden planner\nDesigns a low-effort garden for a small shady yard.\n\nWhat it does: picks shade-loving, low-maintenance plants and arranges them in a simple plan.\nWhat it needs: web search and page reading to find suitable plants, and a page to show the plan.\nWhat it will not do: it cannot guarantee plant survival or provide pricing from garden centres.",
+  "hash": "adaa26aa380c15f0395f79c50b7d23e1b22417a1927816893c6563fec4f44808"
+}

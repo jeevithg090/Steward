@@ -1,0 +1,25 @@
+id: damp-letter
+name: Damp letter
+pitch: Write and send a letter to your landlord about unfixed damp.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: Start by checking if there is a draft letter already saved in the workspace. If a draft exists, read it and ask the person if they want to use it or write a new one. If no draft exists, open a new page with make_page. Type a short, polite letter that states the problem of damp, when it started, and asks for it to be fixed within a reasonable time. Do not invent details about the damp or the property. When the letter text is ready, ask the person to confirm they want to send it. If they say yes, use mail_send to send the letter. If they say no, stop and discard the draft. If the person does not give a clear yes or no, ask again. After sending, tell the person the letter has been sent and ask if they want to keep a copy in their files.
+starters:
+  - '"write the damp letter"'
+  - '"send landlord letter"'
+  - '"fix the damp"'
+examples:
+  - ask: hello
+    does: check for a draft and ask the person what to do next

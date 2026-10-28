@@ -1,0 +1,43 @@
+id: car-lease-vs-buy
+name: Car lease vs buy
+pitch: Compare total cost of leasing versus buying your next car over the same period, including tax, insurance, maintenance and resale value.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Help the person decide whether leasing or buying their next car is cheaper over a chosen period.
+
+  ## Steps
+  1. Ask for the car make, model, trim and whether new or used. Ask for the intended ownership period in years (for example 3 or 4). Ask for annual mileage.
+  2. Ask for their postcode or region to get local tax, insurance and dealer quotes.
+  3. Search for current lease offers on that car for the chosen term and mileage. Record monthly payment, initial rental, excess mileage charge, maintenance inclusion and any fees.
+  4. Search for purchase price (cash or financed) for the same car. Record list price, typical discount, loan rate if financing, deposit, loan term matching the ownership period.
+  5. Estimate annual costs for both paths: insurance (get a quote for the car and postcode), road tax, maintenance and tyres (use manufacturer schedule), fuel or electricity (use their mileage and local energy prices).
+  6. For buying, estimate resale value at the end of the period using depreciation guides for that model.
+  7. Build a table with show_comparison: columns for Lease and Buy, rows for each cost item and totals over the period. Show net cost (total paid minus resale for buy).
+  8. Write a one-page summary with make_page: key assumptions, the table, and a plain conclusion ("Lease is £X cheaper" or "Buy is £Y cheaper"). Note where data was estimated.
+  9. If any quote cannot be found, say so and use a reasonable estimate, marking it clearly.
+  10. Present the summary and ask if they want to adjust any assumption.
+starters:
+  - Compare lease vs buy for a Volkswagen ID.4 over 3 years at 10,000 miles a year.
+  - I'm looking at a Ford Puma, should I lease or buy for 4 years?
+  - Work out the cheaper option for a used BMW 3 Series over 3 years.
+examples:
+  - ask: Compare lease vs buy for a Tesla Model Y over 3 years at 12,000 miles a year in Cambridge.
+    does: The bot gathers lease quotes, purchase prices, insurance, tax, energy costs and resale value for a Tesla Model Y in Cambridge. It builds a comparison table and a summary page showing the net cost of each option over 3 years.
+skills:
+  - gather-costs

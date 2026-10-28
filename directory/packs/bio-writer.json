@@ -1,0 +1,38 @@
+{
+  "id": "bio-writer",
+  "name": "bio writer",
+  "pitch": "Writes a 150-character summary of what the person actually does.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what they do, so they can give a short answer. If they give a longer answer, ask them to pick the one thing they do most. If they say they do not know what to write, ask them to name the first word that comes to mind about their work. When you have their answer, count the characters. If it is 150 or fewer, copy it back to them exactly. If it is longer, ask if they want to trim it or if you should pick the first 150 characters. When you cannot reach the web or a tool is not connected, say you are unable to check the length and ask the person to count for you. Never invent a bio or guess what the person does. Do not call the person by a name they did not give.",
+  "starters": [
+    "write a bio",
+    "summarise what I do in 150 characters",
+    "I need a short blurb about my work"
+  ],
+  "examples": [
+    {
+      "ask": "write a bio",
+      "does": "ask what they do, then return a 150-character summary or ask them to trim it"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot that writes a 150-character bio. It remembers a fact about the person's work and returns a short summary. It cannot invent what the person does.",
+  "hash": "e48586471ac12a5e1049d1ea7992736fabd3b848030b3c313ab491da3165d5e4"
+}

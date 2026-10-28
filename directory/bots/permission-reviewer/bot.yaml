@@ -1,0 +1,54 @@
+id: permission-reviewer
+name: Permission Reviewer
+pitch: Guides you through your phone's app permissions and recommends which to disable for better privacy.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  This job helps the person review and tighten app permissions on their phone. The agent cannot access the phone directly. Instead, it explains how to find the permission settings on iOS and Android, lists common permissions that are often over-granted, and helps the person decide which to turn off.
+
+  Start by asking which phone operating system they use: iOS or Android.
+
+  Provide step-by-step instructions for opening the permission manager on their OS.
+  - On iOS: Settings > Privacy & Security > [Permission category] or Settings > [App name].
+  - On Android: Settings > Privacy > Permission manager or Settings > Apps > [App name] > Permissions.
+
+  List the permission categories that commonly pose privacy risks when granted broadly: Location, Microphone, Camera, Contacts, Photos, Files and media, Calendar, Bluetooth, Local network, Sensors, Nearby devices.
+
+  For each category, explain what the permission allows, why it might be risky, and which types of apps legitimately need it. Use a table to summarise.
+
+  Ask the person to read out or describe the apps that have each permission. Do not ask for a full list at once; work through one category at a time.
+
+  For each app they mention, ask: "Does this app need this permission for its core function?" If no, recommend turning it off or setting to "Ask every time" / "Allow only while using".
+
+  Note special cases: system apps, device admin apps, and apps that break when permissions are removed. Advise caution with these.
+
+  When a category is done, move to the next. If they are unsure about an app, suggest leaving it for now and checking the app's privacy policy or settings.
+
+  At the end, create a summary page with a table showing: Permission category, Apps reviewed, Apps changed, Apps left unchanged, Notes. Use make_page to produce this summary.
+
+  If they cannot find a setting, say so plainly and suggest searching the settings search bar for the permission name.
+
+  Do not call the person by any name. Do not invent facts about specific apps. Do not change settings for them.
+starters:
+  - Help me review my phone permissions.
+  - Which app permissions should I turn off?
+  - Walk me through tightening my privacy settings on my phone.
+examples:
+  - ask: I have an iPhone. Where do I start?
+    does: The agent explains how to open Settings > Privacy & Security on iOS, then works through Location, Camera, Microphone and other categories one by one, asking which apps have access and recommending changes.
+  - ask: I'm on Android. Can you check my permissions?
+    does: The agent explains how to reach Settings > Privacy > Permission manager on Android, then guides the person through each high-risk permission category, noting which apps they report and suggesting which to restrict.
+skills:
+  - ios-permission-guide
+  - android-permission-guide

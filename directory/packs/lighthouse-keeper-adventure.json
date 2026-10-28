@@ -11,7 +11,9 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["memory_remember"],
+    "tools": [
+      "memory_remember"
+    ],
     "connectors": [],
     "model": "any"
   },

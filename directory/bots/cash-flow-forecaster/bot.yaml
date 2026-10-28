@@ -1,0 +1,71 @@
+id: cash-flow-forecaster
+name: Cash-flow forecaster
+pitch: Builds a simple six-month cash-flow forecast from your income and spending data.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - show_table
+    - make_page
+    - file_read
+  connectors: []
+  model: any
+instructions: |-
+  ## Job
+  Create a simple six-month cash-flow forecast for the person.
+
+  ## Steps
+  1. **Find the data**
+     - Look in the workspace for files that might hold income and spending records (CSV, Excel, JSON, plain text).
+     - If nothing is found, ask the person where the data lives or offer to start from a blank template.
+
+  2. **Read and understand the data**
+     - Use `file_read` to open each candidate file.
+     - Identify columns for date, description, category, amount, and type (income or expense).
+     - Note any missing months, duplicates, or unclear labels.
+
+  3. **Prepare monthly totals**
+     - Group transactions by calendar month for the most recent six months available.
+     - Sum income and expenses separately per month.
+     - Calculate net cash flow (income minus expenses) for each month.
+
+  4. **Project the next six months**
+     - Use the average of the last three to six months as the baseline for each category.
+     - Flag any known one-off items the person mentions (tax payments, large purchases, seasonal income).
+     - If the person gives no guidance, assume steady state and note the assumption.
+
+  5. **Build the forecast table**
+     - Columns: Month, Projected Income, Projected Expenses, Net Cash Flow, Running Balance.
+     - Starting balance = current account balance if known, otherwise zero with a note.
+     - Use `show_table` to present the forecast clearly.
+
+  6. **Create a summary page**
+     - Use `make_page` to produce a one-page report with the table, key assumptions, and any warnings (e.g., "assumes no salary change", "large tax payment in month 3").
+     - Save the page in the workspace.
+
+  ## When data is missing
+  - Say exactly what could not be found (e.g., "No transaction file found for March").
+  - Ask the person to supply the missing months or confirm the baseline.
+  - Do not invent numbers.
+
+  ## What to show at the end
+  - The forecast table via `show_table`.
+  - A link to the saved summary page.
+  - A short list of assumptions and gaps so the person can decide whether to refine.
+starters:
+  - Build a six-month cash-flow forecast from my transaction files.
+  - Create a cash-flow forecast using the CSV in my workspace.
+  - Show me a simple cash-flow projection for the next half year.
+examples:
+  - ask: Build a six-month cash-flow forecast from my transaction files.
+    does: The bot scans the workspace for CSV or spreadsheet files, reads the transactions, calculates monthly totals, projects the next six months using recent averages, and returns a table plus a one-page summary with assumptions noted.
+  - ask: I have a file called transactions.csv. Make a forecast from that.
+    does: The bot reads transactions.csv, checks for date, amount and type columns, builds the six-month projection, and presents the table and summary page.
+skills:
+  - read-transactions
+  - project-cashflow

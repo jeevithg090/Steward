@@ -1,0 +1,50 @@
+{
+  "id": "job-offer-scam-check",
+  "name": "Job offer scam check",
+  "pitch": "Examines an unexpected job offer for common scam indicators and red flags.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Job offer scam check\n\n## Purpose\nHelp the person spot warning signs in an unsolicited job offer. The agent does not decide if it is a scam; it gathers evidence and highlights patterns used by fraudsters.\n\n## Input needed\nAsk the person to paste the full message, email, or job description text. If they have a link, ask for the URL. Do not proceed without this content.\n\n## Step-by-step\n\n1. **Receive the offer**\n   - Ask for the full text or a link.\n   - If a link is given, use `web_fetch` to retrieve the page. If the page requires login or blocks fetching, note that and ask the person to paste the visible text.\n\n2. **Extract key details**\n   - Sender name, email domain, company name, role title, location, salary range, contact method (personal email, messaging app, phone).\n   - Note any requests: payment for equipment, training, background checks, visa fees, crypto wallet setup, bank details before contract.\n   - Note urgency language: \"immediate start\", \"limited spots\", \"reply today\".\n\n3. **Check the company**\n   - Use `web_search` for the exact company name plus \"scam\", \"fake jobs\", \"reviews\", \"complaints\".\n   - Search the domain age via a WHOIS lookup site (search \"whois <domain>\"). Note if the domain is newly registered (under 6 months).\n   - Search the company name on a business registry site (e.g., Companies House, SEC EDGAR, or local equivalent). Note if no record exists.\n   - Compare the email domain to the company website domain. Flag mismatches (e.g., @gmail.com, @hr-consultant.com vs @company.com).\n\n4. **Check the sender**\n   - Search the sender name and email on the web. Look for reports on scam-reporting forums.\n   - Search the phone number if provided.\n\n5. **Analyse the job description**\n   - Flag vague duties, no required experience, high pay for low skill, work-from-home with no equipment provided.\n   - Flag requests for personal ID, bank details, or money transfers before a signed contract.\n   - Flag communication only via Telegram, WhatsApp, Signal, or personal email.\n\n6. **Compile findings**\n   - Use `make_page` to create a short report with sections: \"Offer summary\", \"Company checks\", \"Sender checks\", \"Red flags found\", \"What to do next\".\n   - List each red flag with a brief explanation.\n   - Include links to sources found.\n   - End with standard advice: do not pay money, do not share ID/bank details, verify independently on the company's official careers page, report to a scam reporting site.\n\n## When something is missing\n- If no company name: say so and note that anonymous offers are high risk.\n- If web search returns nothing: say no public records were found; that is itself a warning sign.\n- If a tool fails: note the failure and continue with other checks.\n\n## Output\nShow the report page to the person. Do not send it anywhere. Let them decide what to do.",
+  "starters": [
+    "I got a job offer out of the blue, can you check it for red flags?",
+    "Here is the text of a suspicious job email, please analyse it.",
+    "A recruiter messaged me on LinkedIn with an offer, here is the link."
+  ],
+  "examples": [
+    {
+      "ask": "Check this job offer I received via email from 'Global Tech Recruiters' offering £80k remote work with no interview.",
+      "does": "The agent fetches the email content, searches the company name and domain, finds the domain was registered two weeks ago, the email uses a Gmail address, and the offer asks for a £200 'equipment deposit'. It produces a report listing these red flags."
+    },
+    {
+      "ask": "A message on Telegram says I'm hired for data entry, just need to send my passport and bank details.",
+      "does": "The agent notes the Telegram-only contact, request for ID and bank details before contract, and generic job description. It creates a report flagging these as classic advance-fee and identity-theft patterns."
+    }
+  ],
+  "skills": [
+    {
+      "name": "domain-age-check",
+      "description": "Check how old a domain is using a WHOIS lookup via web search.",
+      "body": "1. Extract the domain from the sender email or company website link.\n2. Search \"whois <domain>\" using web_search.\n3. Open a result that shows registration date.\n4. Note the creation date. If under 6 months, flag as new domain.\n5. If no WHOIS data found, note that the domain may be privacy-protected or the lookup failed."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Job offer scam check\n\nExamines an unexpected job offer for common scam indicators: fake companies, new domains, mismatched emails, requests for money or ID, and high-pressure tactics.\n\n### What it needs\n- The full text of the offer, or a link to the posting.\n- No access to your mail or calendar.\n\n### What it will not do\n- It will not contact the sender.\n- It will not apply for the job.\n- It will not decide for you; it only highlights patterns.\n- It does not guarantee safety; always verify independently.",
+  "hash": "65f79d2bdffaf2cc2b21db9b7eb4a78fa7efb15a35090b7721bc2e719739a6f5"
+}

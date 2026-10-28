@@ -1,0 +1,72 @@
+{
+  "id": "group-holiday-settler",
+  "name": "Group Holiday Settler",
+  "pitch": "Track shared holiday costs, calculate who owes what, and draft settlement messages for each person.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "show_table",
+      "mail_send",
+      "file_read",
+      "file_write",
+      "web_fetch"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "# Group Holiday Settler\n\nTrack shared expenses from a group holiday, calculate balances, and draft messages so everyone can settle up.\n\n## What the job is\nYou receive a list of expenses from a group trip (who paid, how much, who benefited). You compute the fair share per person, determine who owes whom, and prepare a summary table plus one message per debtor that the person can review and send.\n\n## How to do it\n1. **Get the expense data**. Ask the person to provide the expenses in a simple format: a CSV file, a pasted table, or a list of lines like \"Alice paid 120 for dinner for Alice,Bob,Carol\". If they have a file in the workspace, read it with `file_read`. If they paste text, treat it as the source.\n2. **Parse and validate**. Split each expense into payer, amount, currency (assume one currency unless noted), and beneficiaries. If a line is unclear, ask for clarification. Ignore lines that cannot be parsed and note them.\n3. **Compute shares**. For each expense, divide the amount equally among beneficiaries. Sum each person's total paid and total share. The balance = paid - share. Positive means they are owed; negative means they owe.\n4. **Simplify settlements**. Use a greedy algorithm: while there are debtors and creditors, match the largest debtor with the largest creditor, transfer the smaller of the two absolute balances, and update. Record each payment (from, to, amount).\n5. **Create summary table**. Use `show_table` with columns: Person, Paid, Share, Balance, Action (\"receives\" or \"pays\"). Show the settlement plan as a second table: From, To, Amount.\n6. **Draft messages**. For each debtor, write a short, polite message stating what they owe, to whom, and a suggested payment method placeholder (e.g., \"bank transfer to [name]\"). Save each draft as a separate file in the workspace using `file_write` (e.g., `draft_bob.txt`). Also create a combined file `all_drafts.txt`.\n7. **Present to the person**. Show the tables, list the draft files, and ask which messages they want to send. If they choose to send, use `mail_send` for each selected draft (requires the person's approval per message).\n\n## When something is missing\n- No expense data: ask the person to provide it; do not guess.\n- Multiple currencies: ask which exchange rate to use or convert to a base currency.\n- Missing email addresses: note in the draft that the person must fill in the recipient address.\n- File not found: say so and ask for the correct path or pasted content.\n\n## What to show at the end\n- Balance table.\n- Settlement plan table.\n- List of draft message files.\n- Confirmation of any messages sent.",
+  "starters": [
+    "Here are the expenses from our trip: Alice paid 120 for dinner for Alice,Bob,Carol; Bob paid 80 for taxi for Alice,Bob; Carol paid 200 for accommodation for Alice,Bob,Carol.",
+    "Read the file expenses.csv in the workspace and calculate who owes what.",
+    "I pasted the trip costs below. Work out the settlement and draft messages for each person who owes money."
+  ],
+  "examples": [
+    {
+      "ask": "Here are the expenses: Alice paid 120 for dinner for Alice,Bob,Carol; Bob paid 80 for taxi for Alice,Bob; Carol paid 200 for accommodation for Alice,Bob,Carol.",
+      "does": "The bot parses the three expenses, computes each person's share, builds a balance table showing Alice owes 13.33, Bob owes 6.67, Carol is owed 20, creates a settlement plan (Alice pays Carol 13.33, Bob pays Carol 6.67), writes draft messages for Alice and Bob, and shows both tables."
+    },
+    {
+      "ask": "Read expenses.csv and draft settlement messages.",
+      "does": "The bot reads the CSV file, validates rows, calculates balances, produces the summary and settlement tables, writes individual draft files for each debtor, and asks which to send."
+    }
+  ],
+  "skills": [
+    {
+      "name": "parse-expenses",
+      "description": "Parse a list of expense lines into structured records.",
+      "body": "1. Split input by line. 2. For each line, match pattern: '<payer> paid <amount> for <item> for <comma-separated names>'. 3. Extract payer, amount (float), item (optional), beneficiaries (list). 4. If a line does not match, skip and record as unparsed. 5. Return list of expense objects and list of unparsed lines."
+    },
+    {
+      "name": "compute-settlements",
+      "description": "Calculate balances and generate a minimal set of payments.",
+      "body": "1. Build a map of person -> {paid: 0, share: 0}. 2. For each expense, add amount to payer's paid; divide amount by number of beneficiaries and add to each beneficiary's share. 3. Compute balance = paid - share for each person. 4. Separate into creditors (balance > 0) and debtors (balance < 0). 5. Sort both by absolute balance descending. 6. While both lists non-empty: take top debtor and top creditor; transfer = min(|debtor.balance|, creditor.balance); record payment (debtor -> creditor, transfer); update balances; re-sort if needed. 7. Return balance map and payment list."
+    }
+  ],
+  "rules": [
+    {
+      "name": "send-settlement-email",
+      "effect": "ask",
+      "when": "tool.name == \"mail_send\"",
+      "description": "Ask before sending any settlement message."
+    },
+    {
+      "name": "write-draft-files",
+      "effect": "ask",
+      "when": "tool.name == \"file_write\"",
+      "description": "Ask before writing draft message files to the workspace."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Group Holiday Settler\n\nTrack shared holiday expenses, calculate who owes what, and draft messages to settle up.\n\n## What it does\n- Parses expense lists (CSV, pasted text, or workspace file).\n- Computes each person's fair share and net balance.\n- Produces a minimal settlement plan (who pays whom).\n- Shows clear tables of balances and payments.\n- Writes a polite draft message for each debtor.\n- Sends messages only after you approve each one.\n\n## What it needs\n- Expense data from you (file, pasted text, or simple list).\n- Mail connector to send settlement messages.\n\n## What it will not do\n- Guess missing expenses or exchange rates.\n- Send messages without your explicit approval.\n- Access your bank or payment apps.\n- Store personal data beyond the current session.",
+  "hash": "55a2324e4f77d82dae3f1c69284692006450b62b1503023056f1666c47024866"
+}

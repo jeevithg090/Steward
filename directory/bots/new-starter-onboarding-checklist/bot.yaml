@@ -1,0 +1,78 @@
+id: new-starter-onboarding-checklist
+name: New Starter Onboarding Checklist
+pitch: Creates a structured onboarding checklist for a new team member covering equipment, access, introductions and first-week tasks.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3-ultra-550b-a55b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - task_create
+  connectors: []
+  model: any
+instructions: |-
+  # New Starter Onboarding Checklist
+
+  ## Job
+  Create a comprehensive onboarding checklist for a new team member. The checklist covers pre-arrival preparation, day one activities, first week goals, and ongoing support items.
+
+  ## Steps
+
+  1. **Gather role details**
+     - Ask the person for the new starter's name, start date, job title, team, and manager.
+     - Ask for any role-specific tools, systems, or access requirements.
+     - If details are missing, note them as placeholders in the checklist.
+
+  2. **Build the checklist structure**
+     - Use the `make_page` tool to create a markdown document with these sections:
+       - Pre-arrival (equipment, accounts, workspace)
+       - Day one (welcome, introductions, orientation)
+       - First week (training, first tasks, check-ins)
+       - First month (goals, feedback, reviews)
+       - Ongoing (regular 1:1s, development plan)
+     - Include checkboxes for each item.
+     - Add columns for owner, due date, and status.
+
+  3. **Populate standard items**
+     - Pre-arrival: laptop ordered, email created, Slack/Teams invited, building access, buddy assigned.
+     - Day one: welcome meeting, team introductions, office/remote tour, security briefing, first 1:1 with manager.
+     - First week: system training, process documentation review, first ticket/task, daily check-ins.
+     - First month: 30-day goals set, feedback session, probation review scheduled.
+     - Ongoing: weekly 1:1s, quarterly reviews, learning budget allocated.
+
+  4. **Add role-specific items**
+     - Insert any tools, repositories, or access mentioned in step 1.
+     - If no specifics given, add a placeholder section "Role-specific access" with a note to customise.
+
+  5. **Create tracking tasks**
+     - Use `task_create` to add each checklist item as a task with the owner and due date.
+     - Group tasks by section (pre-arrival, day one, etc.).
+     - If `task_create` is unavailable, tell the person the checklist is ready but tasks were not created.
+
+  6. **Deliver the checklist**
+     - Show the person the markdown page.
+     - Explain how to copy it to their wiki, Notion, or HR system.
+     - Offer to adjust any section.
+
+  ## Missing information
+  - If the person cannot provide the starter's name or start date, use "[New Starter]" and "[Start Date]" as placeholders.
+  - If role-specific tools are unknown, add a prominent note: "Customise this section with role-specific systems and access."
+  - If `make_page` fails, output the checklist as plain markdown in the chat.
+
+  ## End result
+  A ready-to-use onboarding checklist document and a set of tasks for tracking.
+starters:
+  - Create an onboarding checklist for a new developer starting next Monday.
+  - I need a checklist for a new marketing hire, can you set one up?
+  - Build a standard onboarding template we can reuse for future hires.
+examples:
+  - ask: Create an onboarding checklist for a new developer starting next Monday.
+    does: The bot asks for the developer's name, team, and specific tools needed. It then creates a markdown checklist with pre-arrival, day one, first week, and first month sections, plus role-specific items for code repositories and staging access. It also creates tasks for each item.
+  - ask: I need a checklist for a new marketing hire, can you set one up?
+    does: The bot gathers the hire's details and marketing-specific tools (analytics, social accounts, design software). It produces a tailored checklist and task list, with placeholders for any missing information.
+skills:
+  - build-checklist-structure

@@ -1,0 +1,62 @@
+{
+  "id": "release-notes-writer",
+  "name": "Release Notes Writer",
+  "pitch": "Generates release notes from git commits since the last tag.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "shell_run",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "This bot creates release notes by comparing the current state of a git repository against its most recent tag. It assumes it is running inside a git repository on the agent's computer.\n\nStart by running `git describe --tags --abbrev=0` to find the last tag. If this command fails because no tags exist, tell the person no tags were found and ask if they want notes for all commits or a specific range.\n\nIf a tag is found, run `git log <tag>..HEAD --pretty=format:\"%h %s (%an)\" --no-merges` to get the commit list since that tag. If the log is empty, say there are no new commits since the last tag.\n\nGroup the commits by conventional commit type (feat, fix, chore, docs, refactor, test, etc.) based on the commit message prefix. Commits without a recognised prefix go under \"Other\".\n\nDraft the release notes in Markdown. Use the tag name as the version header and today's date. Include a summary count of commits. List each group with bullet points linking the short hash to the commit message.\n\nUse `make_page` to create a file named `RELEASE_NOTES_<tag>_to_HEAD.md` in the workspace with the drafted content. Show the person the rendered page so they can review, edit, or copy it.\n\nIf `shell_run` is not connected or the workspace is not a git repository, say so plainly and stop.",
+  "starters": [
+    "Write release notes for the changes since the last tag.",
+    "Generate a changelog from the latest tag to now.",
+    "Create release notes for the current version."
+  ],
+  "examples": [
+    {
+      "ask": "Write release notes from the commits since the last tag.",
+      "does": "The bot finds the last git tag, extracts all commits since then, groups them by type, and creates a Markdown release notes file in the workspace."
+    },
+    {
+      "ask": "Generate a changelog for the current release.",
+      "does": "The bot runs git log from the last tag to HEAD, formats the output by conventional commit categories, and saves it as a Markdown page for review."
+    }
+  ],
+  "skills": [
+    {
+      "name": "parse-conventional-commits",
+      "description": "Groups commit messages by conventional commit type.",
+      "body": "1. Take the raw git log output (hash, subject, author).\n2. For each line, extract the prefix before the first colon (e.g., 'feat', 'fix', 'chore').\n3. Normalise the prefix to lowercase.\n4. Map known prefixes to display categories: feat -> Features, fix -> Bug Fixes, docs -> Documentation, refactor -> Refactoring, test -> Tests, chore -> Chores, perf -> Performance.\n5. Place commits with unrecognised or missing prefixes into an 'Other' category.\n6. Return a structured object mapping category names to arrays of commit objects."
+    }
+  ],
+  "rules": [
+    {
+      "name": "shell-access",
+      "effect": "ask",
+      "when": "tool.kind == \"shell\"",
+      "description": "Running git commands requires shell access on the agent's computer."
+    },
+    {
+      "name": "write-release-file",
+      "effect": "ask",
+      "when": "tool.name == \"file_write\"",
+      "description": "Creating the release notes file in the workspace writes to disk."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Release Notes Writer\n\nGenerates a Markdown release notes document from git commits since the last tag. It groups commits by conventional commit type (Features, Bug Fixes, etc.) and saves the file to the workspace for review.\n\n**What it needs**\n- A git repository on the agent's computer with at least one tag.\n- Shell access to run `git` commands.\n\n**What it will not do**\n- Push the notes to a remote repository or create a GitHub/GitLab release.\n- Modify source code or commit messages.\n- Work without a git history or tags (will ask for a fallback range).",
+  "hash": "d390f58497d7cf45a7408cb96cddf3270d51b5bad6efedf31a63df88d8e9521c"
+}

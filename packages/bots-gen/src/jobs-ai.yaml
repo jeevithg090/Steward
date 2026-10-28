@@ -1,0 +1,1781 @@
+# More jobs, proposed by a model to reach the directory's launch target (plan §4.1), checked
+# against jobs.yaml, the shelf and the retired list for near-duplicates. NOT YET READ BY A PERSON:
+# move a job to jobs.yaml once someone has read it. Written by `seed jobs`; safe to edit.
+
+food:
+  - job: create a grocery budget and track weekly spending against it
+    tools: [file_write, file_read, show_table, task_create]
+  - job: generate a low-sodium meal plan for high blood pressure management
+    tools: [web_search, web_fetch, make_page, file_write]
+  - job: organize my recipe collection by cuisine type and cooking time
+    tools: [file_list, file_read, file_write, show_table, make_page]
+  - job: plan a holiday cookie exchange with recipes and a baking schedule
+    tools: [web_search, calendar_create, task_create, make_page, file_write]
+    connectors: [calendar]
+  - job: calculate nutrition totals for a day of meals from my food log
+    tools: [file_read, web_fetch, show_table, file_write]
+  - job: find restaurants with healthy takeout options near my workplace
+    tools: [web_search, web_fetch, browser_navigate, show_comparison]
+  - job: create a master pantry inventory with restock thresholds
+    tools: [file_write, file_read, task_create, show_table]
+  - job: plan meals around a csa vegetable box with unfamiliar produce
+    tools: [web_search, web_fetch, make_page, file_write]
+  - job: design a meal prep workflow for two people with different dietary goals
+    tools: [web_search, make_page, task_create, calendar_create, file_write]
+    connectors: [calendar]
+  - job: suggest breakfast meal prep ideas that stay fresh for five days
+    tools: [web_search, web_fetch, make_page, file_write]
+  - job: convert family recipes to weight measurements and standard formatting
+    tools: [file_read, file_write, web_fetch, make_page]
+  - job: plan a progressive dinner menu across three households
+    tools: [web_search, calendar_create, mail_send, make_page, task_create]
+    connectors: [calendar, mail]
+  - job: create a freezer inventory with expiration dates and meal ideas
+    tools: [file_write, file_read, task_create, show_table, calendar_create]
+    connectors: [calendar]
+  - job: find copycat recipes for favorite restaurant dishes to make at home
+    tools: [web_search, web_fetch, file_write, make_page]
+  - job: plan a week of anti-inflammatory meals with shopping list
+    tools: [web_search, web_fetch, make_page, file_write, task_create]
+  - job: organize a potluck sign-up sheet with dish categories and dietary tags
+    tools: [make_page, mail_send, calendar_create, file_write]
+    connectors: [calendar, mail]
+  - job: create a spice blend guide with ratios and best uses for each
+    tools: [web_search, web_fetch, make_page, file_write]
+  - job: plan toddler-friendly meals that adults will also enjoy eating
+    tools: [web_search, web_fetch, make_page, file_write]
+  - job: track price history for staple ingredients across local stores
+    tools: [web_search, browser_navigate, file_write, show_table, task_create]
+  - job: generate a capsule pantry list for minimal ingredient cooking
+    tools: [web_search, web_fetch, make_page, file_write, show_table]
+  - job: plan make-ahead appetizers for a cocktail party with timeline
+    tools: [web_search, calendar_create, task_create, make_page, file_write]
+    connectors: [calendar]
+  - job: create a sauce master recipe with variation formulas
+    tools: [web_search, web_fetch, make_page, file_write]
+  - job: plan meals for a week of camping with no refrigeration
+    tools: [web_search, web_fetch, make_page, file_write, task_create]
+  - job: analyze my takeout spending and suggest homemade alternatives
+    tools: [mail_read, file_read, web_search, show_comparison, make_page]
+    connectors: [mail]
+  - job: create a seasonal produce calendar with peak months and storage tips
+    tools: [web_search, web_fetch, make_page, file_write, calendar_create]
+    connectors: [calendar]
+  - job: build a weekly meal plan using only ingredients already in my pantry and freezer
+    tools: [file_read, file_write, show_table, web_search]
+  - job: create a grocery price book tracking unit costs for my top 50 staple items
+    tools: [file_write, show_table, web_search, browser_navigate]
+  - job: plan a month of sheet pan dinners with rotating proteins and vegetables
+    tools: [file_write, show_table, web_search]
+  - job: generate a low-fodmap meal plan for ibs management with shopping list
+    tools: [file_write, show_table, web_search, web_fetch]
+  - job: design a weekend meal prep session that yields 10 different lunch combinations
+    tools: [file_write, show_table, web_search]
+  - job: calculate the cost per serving for all my saved recipes and flag the cheapest
+    tools: [file_read, file_write, show_table, web_search]
+  - job: plan a week of high-protein vegetarian meals hitting 100g protein daily
+    tools: [file_write, show_table, web_search, web_fetch]
+  - job: create a master list of 30-minute meals organized by primary cooking method
+    tools: [file_write, show_table, web_search]
+  - job: plan meals for a houseguest with multiple allergies for a five-day stay
+    tools: [file_write, show_table, web_search, request_help]
+  - job: build a rotating four-week dinner cycle with zero repeat main proteins
+    tools: [file_write, show_table, web_search]
+  - job: find and organize slow cooker recipes that cook unattended for 8-10 hours
+    tools: [web_search, web_fetch, file_write, show_table]
+  - job: create a condiment and sauce inventory with homemade replacement recipes
+    tools: [file_read, file_write, show_table, web_search]
+  - job: plan a week of breakfasts that can be eaten cold or at room temperature
+    tools: [file_write, show_table, web_search]
+  - job: generate a grocery list organized by store layout for my three regular shops
+    tools: [file_read, file_write, show_table, request_help]
+  - job: plan meals around a whole animal purchase with cut-by-cut cooking guide
+    tools: [file_write, show_table, web_search, web_fetch]
+  - job: create a lunchbox formula system with mix-and-match components for variety
+    tools: [file_write, show_table, web_search]
+  - job: analyze my recipe collection for nutrition gaps and suggest balancing meals
+    tools: [file_read, file_write, show_table, web_search]
+  - job: plan a week of mediterranean diet meals with daily olive oil and fish targets
+    tools: [file_write, show_table, web_search, web_fetch]
+  - job: build a freezer meal assembly guide with thawing and reheating instructions
+    tools: [file_write, show_table, web_search]
+  - job: create a snack station plan with pre-portioned options for a week
+    tools: [file_write, show_table, web_search]
+  - job: plan meals for a gestational diabetes diet with carb counts per meal
+    tools: [file_write, show_table, web_search, web_fetch]
+  - job: organize my recipe sources into a searchable database with tags and ratings
+    tools: [file_read, file_write, show_table, browser_navigate]
+  - job: plan a week of one-pot meals using only a dutch oven and single burner
+    tools: [file_write, show_table, web_search]
+  - job: generate a holiday baking timeline with make-ahead steps and storage notes
+    tools: [file_write, show_table, calendar_create, web_search]
+    connectors: [calendar]
+  - job: create a weekly market shopping plan based on seasonal availability and price
+    tools: [web_search, web_fetch, file_write, show_table]
+  - job: create a master stock and broth guide with ratios, simmer times, and freezer portions
+    tools: [file_write, make_page]
+  - job: plan a week of dinners using only five base ingredients with different flavor profiles each night
+    tools: [file_write, make_page]
+  - job: build a fermentation tracker for kimchi, sauerkraut, and kombucha with ph and timeline logs
+    tools: [file_write, make_page, task_create]
+  - job: design a modular taco bar system with make-ahead components for a crowd of twenty
+    tools: [file_write, make_page, show_table]
+  - job: create a knife skills reference chart with cuts, dimensions, and best uses for each vegetable
+    tools: [file_write, make_page, show_table]
+  - job: plan a month of work lunches using only a microwave and one tupperware container
+    tools: [file_write, make_page, calendar_create]
+    connectors: [calendar]
+  - job: generate a herb preservation guide covering drying, freezing, oil, and vinegar methods
+    tools: [file_write, make_page]
+  - job: build a pressure cooker time chart for beans, grains, and tough cuts with altitude adjustments
+    tools: [file_write, make_page, show_table]
+  - job: plan a week of bento-style lunches with color, texture, and nutrition balance
+    tools: [file_write, make_page, show_table]
+  - job: create a soup formula matrix with base, protein, vegetable, and garnish combinations
+    tools: [file_write, make_page, show_table]
+  - job: design a zero-waste vegetable scrap plan for stocks, powders, and regrowing
+    tools: [file_write, make_page]
+  - job: plan a progressive brunch menu across four homes with timing and transport notes
+    tools: [file_write, make_page, calendar_create]
+    connectors: [calendar]
+  - job: create a grain cooking reference with ratios, times, and flavor-infusion variations
+    tools: [file_write, make_page, show_table]
+  - job: build a meal swap coordinate system for four families with dietary tags and pickup schedule
+    tools: [file_write, make_page, calendar_create, mail_send]
+    connectors: [mail, calendar]
+  - job: plan a week of dinners where each meal repurposes a component from the previous night
+    tools: [file_write, make_page]
+  - job: generate a spice freshness audit checklist with replacement timelines and toast-test method
+    tools: [file_write, make_page, task_create]
+  - job: create a sheet pan combination generator with protein, vegetable, starch, and sauce pairings
+    tools: [file_write, make_page, show_table]
+  - job: plan a month of theme nights (meatless monday, taco tuesday, etc.) with rotating recipes
+    tools: [file_write, make_page, calendar_create]
+    connectors: [calendar]
+  - job: build a lunchbox thermal safety guide with ice pack placement and time limits
+    tools: [file_write, make_page]
+  - job: design a family recipe testing protocol with scorecards, version control, and notes
+    tools: [file_write, make_page, show_table]
+  - job: plan a week of dinners cooked entirely on a grill or grill pan with indoor alternatives
+    tools: [file_write, make_page]
+  - job: create a meal kit assembly guide for gifting with recipe cards and pre-measured spices
+    tools: [file_write, make_page]
+  - job: generate a pantry challenge meal plan using only items past their best-by date safely
+    tools: [file_write, make_page, web_search]
+  - job: build a dietary restriction translation card set for dining out in ten languages
+    tools: [file_write, make_page, web_search]
+  - job: plan a week of post-workout meals with macro targets and prep-ahead convenience
+    tools: [file_write, make_page, show_table]
+  - job: create a visual meal planning board with drag-and-drop recipe cards for the week
+    tools: [make_page, file_write, file_read]
+  - job: design a dinner party seating chart with menu cards and wine pairings
+    tools: [make_page, web_search, file_write]
+  - job: build a recipe cost calculator that updates when ingredient prices change
+    tools: [file_write, file_read, shell_run, show_table]
+  - job: create a family cookbook template with story prompts and photo placeholders
+    tools: [make_page, file_write, file_read]
+  - job: generate a weekly meal plan based on sales flyers from my local stores
+    tools: [browser_navigate, browser_snapshot, web_fetch, make_page]
+  - job: design a build-your-own bowl station with prepped components for the week
+    tools: [make_page, file_write, show_table]
+  - job: plan a month of dinners using only seasonal produce from my growing zone
+    tools: [web_search, browser_navigate, browser_snapshot, make_page]
+  - job: create a meal planning template for shift workers with irregular schedules
+    tools: [make_page, file_write, calendar_create]
+    connectors: [calendar]
+  - job: build a recipe substitution guide for common allergens and dietary needs
+    tools: [web_search, make_page, file_write, show_table]
+  - job: plan a week of dinners that each use a different global cuisine
+    tools: [web_search, make_page, file_write]
+  - job: create a grocery shopping route optimizer for multiple stores
+    tools: [browser_navigate, browser_snapshot, make_page, file_write]
+  - job: design a weekend cooking project plan for complex dishes like croissants or ramen
+    tools: [web_search, make_page, file_write, calendar_create]
+    connectors: [calendar]
+  - job: generate a meal plan that hits specific micronutrient targets for the week
+    tools: [web_search, file_read, file_write, show_table, shell_run]
+  - job: plan a potluck menu where every dish serves 12 and travels well
+    tools: [web_search, make_page, file_write, show_table]
+  - job: create a kitchen measurement conversion chart with volume, weight, and temperature
+    tools: [make_page, file_write, show_table]
+  - job: build a recipe scaling tool that adjusts cook times and pan sizes
+    tools: [file_write, shell_run, make_page, show_table]
+  - job: plan a week of dinners using only ingredients from a single bulk store trip
+    tools: [web_search, make_page, file_write, show_table]
+  - job: design a meal prep system for two households sharing cooking duties
+    tools: [make_page, file_write, calendar_create, task_create]
+    connectors: [calendar]
+  - job: create a food waste tracking log with cost analysis and reduction tips
+    tools: [file_write, file_read, show_table, make_page]
+  - job: plan a week of dinners where each meal uses a different cooking technique
+    tools: [web_search, make_page, file_write]
+  - job: generate a custom spice blend kit with recipes for gifting or personal use
+    tools: [web_search, make_page, file_write, show_table]
+  - job: plan meals for a week of intermittent fasting with two-meal eating windows
+    tools: [web_search, make_page, file_write, calendar_create]
+    connectors: [calendar]
+  - job: create a recipe video timestamp index for quick reference while cooking
+    tools: [browser_navigate, browser_snapshot, file_write, make_page]
+  - job: build a seasonal preserve calendar with small-batch recipes and equipment needs
+    tools: [web_search, make_page, file_write, calendar_create]
+    connectors: [calendar]
+  - job: plan a week of dinners using only a rice cooker and microwave
+    tools: [web_search, file_write, show_table]
+  - job: create a meal plan for a low-potassium diet with daily limits tracked
+    tools: [web_search, file_write, show_table, memory_remember]
+  - job: design a weekly meal prep using only a slow cooker and food processor
+    tools: [web_search, file_write, show_table]
+  - job: plan a month of dinners around a chest freezer inventory list
+    tools: [file_read, file_write, show_table, memory_remember]
+
+health:
+  - job: create a meal plan for a week that avoids gluten and dairy while keeping costs low
+    tools: [web_search, make_page, memory_remember]
+  - job: design a beginner yoga routine i can follow in my living room for stress relief
+    tools: [web_search, make_page, routine_create]
+  - job: track my daily mood and energy levels for two weeks and show me patterns
+    tools: [task_create, task_update, show_table, memory_remember]
+  - job: find free workout videos for core strength that are under twenty minutes each
+    tools: [web_search, web_fetch, make_page]
+  - job: help me set up a consistent bedtime routine with wind-down activities and reminders
+    tools: [routine_create, task_create, memory_remember]
+  - job: calculate my daily calorie needs based on my age, weight, height, and activity level
+    tools: [web_search, show_table, memory_remember]
+  - job: create a grocery list organized by store section for my weekly meal plan
+    tools: [file_read, make_page, show_table]
+  - job: explain the difference between dynamic and static stretching and when to use each
+    tools: [web_search, web_fetch, make_page]
+  - job: help me prepare for a telehealth appointment by organizing my symptoms and questions
+    tools: [task_create, make_page, memory_remember]
+  - job: find local walking trails that are dog-friendly and rated easy for beginners
+    tools: [web_search, web_fetch, show_comparison]
+  - job: track my menstrual cycle symptoms for three months and highlight patterns to discuss with my doctor
+    tools: [task_create, task_update, show_table, memory_remember]
+  - job: create a simple home workout plan using only a resistance band and bodyweight
+    tools: [web_search, make_page, routine_create]
+  - job: help me understand my cholesterol test results and what lifestyle changes might help
+    tools: [web_search, web_fetch, make_page, memory_remember]
+  - job: set up a weekly meal prep schedule with batch cooking instructions and storage tips
+    tools: [routine_create, make_page, task_create]
+  - job: find guided meditation sessions for anxiety that are ten minutes or less
+    tools: [web_search, web_fetch, make_page]
+  - job: track my protein intake for a week and suggest easy additions to hit my target
+    tools: [task_create, task_update, show_table, web_search]
+  - job: create a plan to gradually increase my daily step count from 3000 to 8000 over eight weeks
+    tools: [routine_create, task_create, memory_remember, show_table]
+  - job: help me compare magnesium supplement types and choose one for sleep and muscle recovery
+    tools: [web_search, web_fetch, show_comparison, memory_remember]
+  - job: design a post-workout stretching routine for running that targets hips, calves, and hamstrings
+    tools: [web_search, make_page, routine_create]
+  - job: find community fitness classes near me that offer a free trial or drop-in option
+    tools: [web_search, web_fetch, show_comparison]
+  - job: track my blood pressure readings for a month and create a summary chart for my doctor
+    tools: [task_create, task_update, show_table, make_page, memory_remember]
+  - job: help me reduce added sugar by identifying hidden sources in my pantry and suggesting swaps
+    tools: [web_search, file_read, make_page, show_table]
+  - job: create a weekly schedule balancing cardio, strength, and mobility with rest days included
+    tools: [routine_create, make_page, memory_remember]
+  - job: explain how to read nutrition labels and calculate net carbs for a low-carb diet
+    tools: [web_search, web_fetch, make_page]
+  - job: set up reminders for my annual physical, dental cleaning, and vision exam with prep checklists
+    tools: [calendar_create, task_create, routine_create, memory_remember]
+    connectors: [calendar]
+  - job: create a personalized warm-up routine for strength training that targets my tight shoulders and hips
+    tools: [memory_remember, make_page, show_table]
+  - job: help me build a consistent morning hydration habit with reminders and tracking for two weeks
+    tools: [routine_create, task_create, memory_remember]
+  - job: analyze my food diary for a week and identify nutrient gaps like fiber, iron, or omega-3s
+    tools: [file_read, show_table, make_page, web_search]
+  - job: design a 4-week progressive overload plan for push-ups and squats starting from my current max reps
+    tools: [memory_remember, make_page, show_table, task_create]
+  - job: find and compare at-home blood test kits for vitamin d, b12, and ferritin with pricing and lab certifications
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: create a symptom tracker template for my ibs flare-ups with food, stress, and bowel movement logs
+    tools: [make_page, file_write, memory_remember]
+  - job: help me choose the right running shoes by explaining cushioning, drop, and stability features for my gait
+    tools: [web_search, browser_snapshot, show_comparison, memory_remember]
+  - job: build a weekly meal plan for high blood pressure that follows the dash diet principles and includes snacks
+    tools: [web_search, make_page, show_table, memory_remember]
+  - job: track my heart rate variability each morning for a month and explain what the trends might mean
+    tools: [memory_remember, make_page, show_table, task_create]
+  - job: create a desk-friendly micro-break routine with 5 exercises under 2 minutes each for posture reset
+    tools: [memory_remember, make_page, routine_create]
+  - job: help me understand my dexa scan results for bone density and body composition in simple terms
+    tools: [file_read, web_search, make_page, memory_remember]
+  - job: plan a 30-day alcohol-free challenge with daily tips, mocktail recipes, and coping strategies for social events
+    tools: [make_page, routine_create, task_create, web_search]
+  - job: find local physical therapists who specialize in pelvic floor dysfunction and accept my insurance
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison, request_help]
+  - job: create a personalized supplement schedule with timing, dosages, and interactions checked for my current stack
+    tools: [memory_remember, web_search, show_table, make_page]
+  - job: design a beginner-friendly hiit workout plan using only bodyweight, 20 minutes, 3 times per week
+    tools: [memory_remember, make_page, show_table, task_create]
+  - job: help me meal prep for a week of anti-inflammatory eating with batch cooking guide and cost breakdown
+    tools: [web_search, make_page, show_table, file_write]
+  - job: track my sleep quality using a simple morning questionnaire for 14 days and show correlations with habits
+    tools: [routine_create, memory_remember, make_page, show_table]
+  - job: explain the different types of intermittent fasting and help me pick one that fits my shift work schedule
+    tools: [web_search, memory_remember, show_comparison, make_page]
+  - job: create a foam rolling routine for full-body recovery with video links for each technique
+    tools: [web_search, browser_snapshot, make_page, memory_remember]
+  - job: help me prepare for a colonoscopy with a clear liquid diet shopping list, timeline, and medication adjustments
+    tools: [web_search, make_page, show_table, request_help]
+  - job: design a balance and fall prevention exercise program for my aging parent with video demonstrations
+    tools: [web_search, browser_snapshot, make_page, show_table]
+  - job: track my migraine triggers and patterns for 60 days with a detailed daily log template
+    tools: [make_page, file_write, memory_remember, show_table]
+  - job: find and compare online therapy platforms that offer cbt for insomnia with pricing and therapist credentials
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: create a personalized cool-down routine for cycling that addresses lower back, neck, and wrist tension
+    tools: [memory_remember, make_page, show_table]
+  - job: help me understand my genetic health report results for fitness and nutrition traits with actionable takeaways
+    tools: [file_read, web_search, make_page, memory_remember]
+  - job: create a weekly meal plan for gestational diabetes with carb counts and snack timing
+    tools: [web_search, make_page, show_table]
+  - job: design a prenatal yoga routine for third trimester with modifications for pelvic pain
+    tools: [web_search, make_page, file_write]
+  - job: help me track my toddler's growth percentiles and flag any concerning trends
+    tools: [file_write, show_table, task_create]
+  - job: create a post-surgery recovery meal plan focused on protein and wound healing nutrients
+    tools: [web_search, make_page, show_table]
+  - job: build a progressive core rehab plan for diastasis recti with weekly video check-ins
+    tools: [web_search, make_page, routine_create]
+  - job: help me understand my spirometry results for asthma and create an action plan
+    tools: [web_search, file_read, make_page]
+  - job: design a low-impact cardio plan for someone with knee osteoarthritis using a stationary bike
+    tools: [web_search, make_page, routine_create]
+  - job: create a medication interaction checker for my current prescriptions and supplements
+    tools: [web_search, show_comparison, file_write]
+  - job: track my child's vaccination schedule and send reminders before each due date
+    tools: [calendar_create, task_create, file_write]
+    connectors: [calendar]
+  - job: help me prepare for a sleep study with a pre-appointment checklist and what to expect
+    tools: [web_search, make_page, task_create]
+  - job: create a weekly meal plan for chronic kidney disease stage 3 with potassium and phosphorus limits
+    tools: [web_search, make_page, show_table]
+  - job: design a seated exercise routine for limited mobility that maintains strength and circulation
+    tools: [web_search, make_page, file_write]
+  - job: help me compare continuous glucose monitors for non-diabetic health optimization
+    tools: [web_search, show_comparison, make_page]
+  - job: create a personalized stretching routine for plantar fasciitis with morning and evening protocols
+    tools: [web_search, make_page, routine_create]
+  - job: track my skin changes and moles with monthly photo reminders and abcde guideline checks
+    tools: [calendar_create, task_create, file_write]
+    connectors: [calendar]
+  - job: help me understand my echocardiogram results and what follow-up questions to ask my cardiologist
+    tools: [web_search, file_read, make_page]
+  - job: design a progressive walking program for peripheral artery disease with claudication management
+    tools: [web_search, make_page, routine_create]
+  - job: create a meal prep guide for a low-fodmap diet with reintroduction phase schedule
+    tools: [web_search, make_page, show_table]
+  - job: help me set up a home blood pressure monitoring protocol with proper technique and logging
+    tools: [web_search, make_page, task_create]
+  - job: find and compare local support groups for caregivers of dementia patients with meeting times
+    tools: [web_search, show_comparison, file_write]
+  - job: create a personalized warm-up for golf that prevents low back pain and improves rotation
+    tools: [web_search, make_page, routine_create]
+  - job: help me track my thyroid medication timing and symptoms for dose adjustment discussions
+    tools: [file_write, task_create, show_table]
+  - job: design an exercise plan for osteoporosis prevention with weight-bearing and resistance focus
+    tools: [web_search, make_page, routine_create]
+  - job: create a sick day management plan for type 1 diabetes with ketone monitoring and insulin adjustments
+    tools: [web_search, make_page, file_write]
+  - job: help me compare hearing aid features and prices for mild high-frequency hearing loss
+    tools: [web_search, show_comparison, make_page]
+  - job: create a weekly meal plan for pcos with low glycemic index foods and insulin-friendly snack timing
+    tools: [web_search, make_page, show_table]
+  - job: design a pelvic floor exercise program for postpartum recovery with progression levels and video guides
+    tools: [web_search, make_page, file_write]
+  - job: help me understand my cortisol saliva test results and create a stress management protocol
+    tools: [web_search, make_page, show_table]
+  - job: create a personalized hydration plan for endurance training with electrolyte timing and sweat rate calculation
+    tools: [web_search, make_page, show_table]
+  - job: track my vitamin d supplementation and sun exposure for 90 days with seasonal adjustment recommendations
+    tools: [routine_create, task_create, make_page]
+  - job: design a home exercise program for frozen shoulder with phased mobility and strengthening progression
+    tools: [web_search, make_page, file_write]
+  - job: help me compare protein powder types for sensitive digestion with ingredient analysis and cost per serving
+    tools: [web_search, show_comparison, make_page]
+  - job: create a weekly meal plan for hashimoto's thyroiditis with selenium-rich foods and goitrogen management
+    tools: [web_search, make_page, show_table]
+  - job: design a progressive resistance band program for rotator cuff rehabilitation with pain monitoring
+    tools: [web_search, make_page, file_write]
+  - job: track my heart rate zones during cardio for 4 weeks and optimize training distribution
+    tools: [routine_create, task_create, make_page, show_table]
+  - job: help me understand my comprehensive metabolic panel results and flag values needing follow-up
+    tools: [web_search, make_page, show_table]
+  - job: create a meal prep system for night shift workers with circadian-aligned meal timing and prep schedule
+    tools: [web_search, make_page, routine_create]
+  - job: design a home-based balance training program for vestibular rehabilitation with daily progression
+    tools: [web_search, make_page, file_write]
+  - job: compare at-home hormone test kits for perimenopause tracking with accuracy and cost analysis
+    tools: [web_search, show_comparison, make_page]
+  - job: create a personalized supplement protocol for athletic recovery with timing, cycling, and interaction checks
+    tools: [web_search, make_page, show_table]
+  - job: track my digestive symptoms and food intake for 30 days to identify fodmap triggers with reintroduction guide
+    tools: [routine_create, task_create, make_page, show_table]
+  - job: design a progressive plyometric program for bone density improvement with safety modifications
+    tools: [web_search, make_page, file_write]
+  - job: help me prepare for allergy testing with medication washout timeline and symptom tracking template
+    tools: [web_search, make_page, routine_create]
+  - job: create a weekly meal plan for fatty liver disease with mediterranean diet principles and portion guides
+    tools: [web_search, make_page, show_table]
+  - job: design a home exercise program for hypermobility spectrum disorder with joint protection principles
+    tools: [web_search, make_page, file_write]
+  - job: track my basal body temperature and cervical mucus for fertility awareness with chart interpretation
+    tools: [routine_create, task_create, make_page, show_table]
+  - job: help me compare red light therapy devices for muscle recovery with wavelength, power, and treatment protocols
+    tools: [web_search, show_comparison, make_page]
+  - job: create a personalized taper plan for marathon training with nutrition, sleep, and mental preparation
+    tools: [web_search, make_page, routine_create]
+  - job: design a home-based gait retraining program for running form improvement with video analysis cues
+    tools: [web_search, make_page, file_write]
+  - job: create a weekly meal plan for ulcerative colitis flare management with low residue foods and gradual reintroduction guide
+    tools: [web_search, make_page, file_write]
+  - job: design a home exercise program for parkinson's disease with amplitude training, balance, and dual-task components
+    tools: [web_search, make_page, file_write]
+  - job: help me understand my sleep apnea study results and create a cpap adherence plan with mask fitting tips
+    tools: [web_search, make_page, file_write]
+  - job: track my rheumatoid arthritis disease activity score (das28) monthly with joint count logging and trend visualization
+    tools: [make_page, file_write, show_table]
+
+money:
+  - job: calculate how much I need to save each month to reach my house deposit goal in three years
+    tools: [file_read, file_write, show_table, memory_remember]
+  - job: review my credit card rewards and tell me the best way to redeem points before they expire
+    tools: [browser_navigate, browser_snapshot, web_fetch, show_comparison, memory_remember]
+  - job: create a debt payoff plan using the avalanche method for my three credit cards and one personal loan
+    tools: [file_read, file_write, show_table, memory_remember, task_create]
+  - job: estimate my quarterly tax payments based on this year's freelance income and expenses
+    tools: [file_read, file_write, web_fetch, show_table, memory_remember]
+  - job: compare mortgage refinance offers from three lenders and show me the total cost difference over five years
+    tools: [browser_navigate, browser_snapshot, web_fetch, show_comparison, file_write]
+  - job: set up price alerts for my regular grocery items and notify me when they drop below my target price
+    tools: [browser_navigate, browser_snapshot, browser_click, routine_create, memory_remember]
+  - job: analyze my spending patterns and identify three categories where I could cut back without major lifestyle changes
+    tools: [file_read, file_write, show_table, memory_remember]
+  - job: check if I'm eligible for any government benefits or tax credits based on my household income and family size
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, memory_remember]
+  - job: create a shared expense tracker for my roommate situation with automatic monthly settlement calculations
+    tools: [file_write, show_table, routine_create, memory_remember, task_create]
+  - job: review my insurance policies and tell me if I have duplicate coverage or gaps in protection
+    tools: [file_read, web_fetch, show_comparison, memory_remember]
+  - job: calculate the true cost of buying versus leasing a car over four years including insurance and maintenance
+    tools: [web_fetch, show_comparison, file_write, memory_remember]
+  - job: find and compare high-yield savings accounts with no minimum balance requirements and easy transfers
+    tools: [web_search, web_fetch, browser_navigate, show_comparison, file_write]
+  - job: create a year-end tax summary document organized by category for my accountant
+    tools: [file_read, file_write, show_table, make_page, memory_remember]
+  - job: track my investment portfolio performance and rebalance alert when allocations drift more than five percent
+    tools: [browser_navigate, browser_snapshot, web_fetch, routine_create, show_table, memory_remember]
+  - job: help me negotiate a lower interest rate on my credit card by drafting a script and finding competitor offers
+    tools: [web_search, web_fetch, make_page, memory_remember]
+  - job: set up automatic bill payment calendar with reminders three days before each due date
+    tools: [calendar_create, routine_create, task_create, memory_remember, file_write]
+    connectors: [calendar]
+  - job: compare the total cost of my current phone plan versus prepaid options over two years
+    tools: [web_search, web_fetch, show_comparison, file_write, memory_remember]
+  - job: create a financial emergency plan with prioritized steps if I lose my income for three months
+    tools: [file_write, make_page, task_create, memory_remember, show_table]
+  - job: check my bank fees for the past year and find a no-fee checking account that fits my needs
+    tools: [file_read, web_search, web_fetch, show_comparison, memory_remember]
+  - job: calculate how much I can afford to spend on a wedding without going into debt
+    tools: [file_read, file_write, show_table, memory_remember]
+  - job: find local credit unions with better loan rates than my current bank for a personal loan
+    tools: [web_search, web_fetch, browser_navigate, show_comparison, file_write]
+  - job: create a sinking fund schedule for annual expenses like property tax, car registration, and memberships
+    tools: [file_write, show_table, routine_create, calendar_create, memory_remember]
+    connectors: [calendar]
+  - job: review my subscription services and negotiate lower rates or find free alternatives for each
+    tools: [web_search, web_fetch, browser_navigate, make_page, memory_remember]
+  - job: calculate the break-even point for buying a coffee machine versus buying coffee daily for two years
+    tools: [web_fetch, show_comparison, file_write, memory_remember]
+  - job: help me understand my employee stock options and create a timeline for exercising them
+    tools: [file_read, web_fetch, make_page, show_table, memory_remember, task_create]
+  - job: calculate the real hourly cost of my side gig after taxes, expenses, and unpaid admin time
+    tools: [file_read, web_search, show_table]
+  - job: build a mini emergency fund in three months using only money from selling unused items
+    tools: [web_search, browser_navigate, task_create, show_table]
+  - job: compare the total cost of buying a certified pre-owned car versus a new one over five years including warranty and depreciation
+    tools: [web_search, browser_navigate, show_comparison, make_page]
+  - job: find the cheapest way to send money abroad to family each month and set up recurring transfers
+    tools: [web_search, browser_navigate, browser_click, show_comparison, routine_create]
+  - job: check if my health insurance plan covers my new prescription and find the lowest copay pharmacy
+    tools: [web_search, browser_navigate, browser_click, browser_type, show_table]
+  - job: create a simple will and power of attorney checklist with free state-specific templates
+    tools: [web_search, browser_navigate, file_write, make_page]
+  - job: figure out if I should contribute to a traditional or roth ira this year based on my tax bracket
+    tools: [web_search, file_read, show_comparison, make_page]
+  - job: track my net worth monthly by pulling balances from all my accounts into one spreadsheet
+    tools: [file_read, file_write, browser_navigate, browser_type, show_table, routine_create]
+  - job: find a fee-only financial planner who specializes in early retirement and charges by the hour
+    tools: [web_search, browser_navigate, browser_click, show_table]
+  - job: calculate the opportunity cost of keeping twenty thousand dollars in cash versus investing it for five years
+    tools: [web_search, show_comparison, make_page]
+  - job: set up a donor-advised fund for charitable giving and automate monthly contributions
+    tools: [web_search, browser_navigate, browser_click, routine_create]
+  - job: compare term life insurance quotes for a twenty year half million dollar policy from five providers
+    tools: [web_search, browser_navigate, browser_type, show_comparison, make_page]
+  - job: create a budget for my first apartment including deposits, utilities setup, and moving costs
+    tools: [web_search, file_write, show_table, make_page]
+  - job: check if I qualify for a first-time homebuyer program in my state and what the income limits are
+    tools: [web_search, browser_navigate, browser_click, show_table]
+  - job: analyze my last twelve months of grocery receipts and build a meal plan that cuts food spending by fifteen percent
+    tools: [file_read, file_write, show_table, make_page]
+  - job: find the best balance transfer card for my credit card debt with the longest zero percent period and lowest fee
+    tools: [web_search, browser_navigate, show_comparison, make_page]
+  - job: calculate how much house I can afford with a twenty percent down payment and a debt-to-income ratio under thirty six percent
+    tools: [web_search, file_read, show_table, make_page]
+  - job: create a financial independence number and timeline based on my current savings rate and expected returns
+    tools: [file_read, web_search, show_table, make_page]
+  - job: review my 401k investment options and build a low-cost three fund portfolio matching my risk tolerance
+    tools: [browser_navigate, browser_click, file_read, show_comparison, make_page]
+  - job: find free tax filing software that handles my freelance income and rental property deductions
+    tools: [web_search, browser_navigate, show_comparison]
+  - job: set up a custodial investment account for my child and choose age-appropriate index funds
+    tools: [web_search, browser_navigate, browser_click, show_comparison, make_page]
+  - job: calculate the true cost of my daily commute and compare it to working from home two days a week
+    tools: [web_search, file_read, show_comparison, make_page]
+  - job: create a digital legacy document with all my account logins, beneficiaries, and instructions for my executor
+    tools: [file_write, make_page, memory_remember]
+  - job: check my social security earnings record for errors and estimate my benefit at different claiming ages
+    tools: [browser_navigate, browser_click, browser_type, show_table, make_page]
+  - job: calculate the total cost of my student loans over ten years under different repayment plans
+    tools: [web_search, show_comparison, make_page]
+  - job: find and compare 529 college savings plans by state tax benefits and investment fees
+    tools: [web_search, show_comparison, make_page]
+  - job: create a capital gains tax estimate for my stock sales this year using my brokerage statements
+    tools: [file_read, web_search, show_table, make_page]
+  - job: check if my employer 401k match is vested and calculate how much I'd lose by leaving now
+    tools: [web_search, show_table, make_page]
+  - job: build a debt-to-income ratio calculator for my mortgage application with all my monthly obligations
+    tools: [show_table, make_page]
+  - job: find the best high-yield checking account with atm fee reimbursement and no direct deposit requirement
+    tools: [web_search, show_comparison, make_page]
+  - job: calculate the tax implications of converting my traditional ira to a roth ira this year
+    tools: [web_search, show_table, make_page]
+  - job: create a side-by-side comparison of sep ira versus solo 401k for my freelance income
+    tools: [web_search, show_comparison, make_page]
+  - job: find and compare umbrella insurance policies for one million dollars in extra liability coverage
+    tools: [web_search, show_comparison, make_page]
+  - job: calculate the break-even point for refinancing my mortgage with closing costs and new rate
+    tools: [web_search, show_table, make_page]
+  - job: track my flexible spending account balance and alert me before the use-it-or-lose-it deadline
+    tools: [calendar_create, task_create, show_table]
+    connectors: [calendar]
+  - job: find the cheapest way to get my tax return transcript for a mortgage application
+    tools: [web_search, show_comparison, make_page]
+  - job: create a required minimum distribution schedule for my inherited ira over ten years
+    tools: [web_search, show_table, make_page]
+  - job: compare the cost of paying property taxes annually versus monthly escrow with my mortgage
+    tools: [web_search, show_table, make_page]
+  - job: find and compare disability insurance policies that cover my specific occupation
+    tools: [web_search, show_comparison, make_page]
+  - job: calculate the after-tax return on my municipal bond fund versus a taxable bond fund
+    tools: [web_search, show_table, make_page]
+  - job: create a holiday spending budget with per-person limits and track purchases against it
+    tools: [task_create, show_table, make_page]
+  - job: check if I'm overpaying for car insurance by comparing my rate to state averages for my profile
+    tools: [web_search, show_comparison, make_page]
+  - job: find the best certificate of deposit ladder strategy for my emergency fund with staggered maturities
+    tools: [web_search, show_comparison, make_page]
+  - job: calculate the tax savings from bunching charitable donations into a donor-advised fund
+    tools: [web_search, show_table, make_page]
+  - job: create a financial power of attorney document using my state's statutory form
+    tools: [web_search, make_page]
+  - job: compare the total cost of a home equity line of credit versus a personal loan for my renovation
+    tools: [web_search, show_comparison, make_page]
+  - job: find and compare robo-advisors by management fees, tax-loss harvesting, and account minimums
+    tools: [web_search, show_comparison, make_page]
+  - job: calculate my effective tax rate across federal, state, and local taxes for last year
+    tools: [file_read, web_search, show_table, make_page]
+  - job: create a quarterly estimated tax payment calendar with due dates and amount reminders
+    tools: [calendar_create, task_create, show_table]
+    connectors: [calendar]
+  - job: calculate the tax impact of selling my rental property this year including depreciation recapture
+    tools: [web_search, file_read, file_write, show_table, make_page]
+  - job: find the best money market fund for my cash reserve with check writing privileges and no minimums
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: create a college funding plan showing how much to save monthly for each child with different start ages
+    tools: [file_read, file_write, show_table, make_page, calendar_create]
+    connectors: [calendar]
+  - job: check if my small business qualifies for the qualified business income deduction and calculate the savings
+    tools: [web_search, file_read, file_write, show_table]
+  - job: compare the total cost of leasing versus financing solar panels over twenty years including tax credits
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison, make_page]
+  - job: build a required minimum distribution calculator for all my retirement accounts with aggregated withdrawals
+    tools: [file_read, file_write, show_table, make_page, calendar_create]
+    connectors: [calendar]
+  - job: find and compare health savings account providers by investment options and fees for long-term growth
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: calculate the net unrealized appreciation tax benefit for my company stock in my 401k
+    tools: [web_search, file_read, file_write, show_table]
+  - job: create a medicare enrollment timeline with penalties and coverage gaps for my retirement at sixty five
+    tools: [web_search, file_write, make_page, calendar_create]
+    connectors: [calendar]
+  - job: compare the cost of long-term care insurance versus self-funding with a dedicated investment account
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison, make_page]
+  - job: find the best brokerage for fractional share investing with no commission and automatic dividend reinvestment
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: calculate the tax-equivalent yield of my municipal bond fund for my federal and state tax brackets
+    tools: [web_search, file_read, file_write, show_table]
+  - job: create a charitable remainder trust illustration showing income stream and tax deduction for my appreciated stock
+    tools: [web_search, file_write, make_page, show_table]
+  - job: check if my foreign bank accounts require fbar filing and calculate the penalty risk for past years
+    tools: [web_search, file_read, file_write, show_table]
+  - job: compare the total cost of a reverse mortgage versus a home equity line of credit for retirement income
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison, make_page]
+  - job: find and compare 403b investment options for my nonprofit employer and build a low-cost portfolio
+    tools: [web_search, browser_navigate, browser_snapshot, file_read, show_comparison]
+  - job: calculate the alternative minimum tax impact of exercising my incentive stock options this year
+    tools: [web_search, file_read, file_write, show_table]
+  - job: create a family banking structure with high-yield accounts for each member and automated allowance transfers
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, calendar_create]
+    connectors: [calendar]
+  - job: check if my state offers a property tax freeze for seniors and calculate the savings over ten years
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, show_table]
+  - job: compare the fees and features of donor-advised fund providers for my charitable giving strategy
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: calculate the tax savings from harvesting losses in my taxable brokerage account this december
+    tools: [file_read, file_write, show_table, make_page]
+  - job: find the best cd rates for a five-year ladder with one hundred thousand dollars and show early withdrawal penalties
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison, make_page]
+  - job: "create a small business retirement plan comparison: sep ira vs simple ira vs solo 401k for my llc"
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison, make_page]
+  - job: check my credit report for errors and draft dispute letters for any inaccurate negative items
+    tools: [web_search, browser_navigate, browser_snapshot, file_read, file_write, make_page]
+  - job: calculate the present value of my pension versus a lump sum offer using current interest rates and life expectancy
+    tools: [web_search, file_read, file_write, show_table, make_page]
+  - job: calculate the tax impact of exercising my non-qualified stock options this year including payroll withholding
+    tools: [web_search, make_page, show_table]
+  - job: create a medicare part d plan comparison for my specific prescriptions showing total annual cost
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_type, show_comparison, make_page]
+  - job: find and compare state-sponsored able accounts for disability savings by fees and investment options
+    tools: [web_search, show_comparison, make_page]
+  - job: calculate the gift tax implications of funding five twenty-nine plans for grandchildren this year
+    tools: [web_search, make_page, show_table]
+
+investing:
+  - job: set up a recurring monthly investment plan into my chosen funds
+    tools: [browser_navigate, browser_click, browser_type, request_help]
+  - job: calculate the internal rate of return for my portfolio since inception
+    tools: [file_read, shell_run, show_table]
+  - job: find and compare the total expense ratios of three similar etfs
+    tools: [web_search, web_fetch, show_comparison]
+  - job: alert me when any holding in my portfolio drops more than ten percent in a day
+    tools: [routine_create, web_fetch, mail_send]
+    connectors: [mail]
+  - job: generate a capital gains tax report for all trades made last financial year
+    tools: [file_read, shell_run, make_page, show_table]
+  - job: explain the difference between a traditional ira and a roth ira for my income level
+    tools: [web_search, web_fetch, memory_remember]
+  - job: screen for dividend stocks with a yield above three percent and a payout ratio below sixty percent
+    tools: [web_search, web_fetch, show_table]
+  - job: backtest a sixty-forty stock bond portfolio over the last twenty years
+    tools: [shell_run, web_fetch, show_table]
+  - job: check if my current asset allocation matches my risk tolerance questionnaire results
+    tools: [file_read, memory_remember, show_comparison]
+  - job: find the ex-dividend dates for all stocks in my portfolio next month
+    tools: [web_search, web_fetch, calendar_create, show_table]
+    connectors: [calendar]
+  - job: compare the performance of a lump sum investment versus dollar cost averaging over the past five years
+    tools: [shell_run, web_fetch, show_table]
+  - job: identify any wash sales in my trading history from last year
+    tools: [file_read, shell_run, show_table]
+  - job: calculate the future value of my retirement accounts at age sixty five assuming seven percent returns
+    tools: [memory_remember, shell_run, show_table]
+  - job: find the top five holdings overlap between my two largest mutual funds
+    tools: [web_fetch, file_read, show_comparison]
+  - job: explain how a stop-loss order works and set one up for a specific holding
+    tools: [browser_navigate, browser_click, browser_type, request_help, web_search]
+  - job: track the correlation between my crypto holdings and the nasdaq over the last year
+    tools: [web_fetch, shell_run, show_table]
+  - job: find all tax-loss harvesting opportunities in my taxable account before year end
+    tools: [file_read, shell_run, web_fetch, show_table]
+  - job: compare the features and fees of three robo-advisors for a hands-off portfolio
+    tools: [web_search, web_fetch, show_comparison]
+  - job: calculate the required minimum distribution for my inherited ira this year
+    tools: [web_search, memory_remember, shell_run]
+  - job: create a one-page investment policy statement based on my goals and risk tolerance
+    tools: [memory_remember, make_page, file_write]
+  - job: monitor a specific stock for earnings date announcements and add them to my calendar
+    tools: [routine_create, web_search, calendar_create]
+    connectors: [calendar]
+  - job: analyze the sector weighting of my total portfolio compared to the total market index
+    tools: [file_read, web_fetch, shell_run, show_comparison]
+  - job: find the cheapest broker for buying fractional shares of us stocks from my country
+    tools: [web_search, web_fetch, show_comparison]
+  - job: simulate how a market crash like 2008 would impact my current portfolio value
+    tools: [file_read, shell_run, web_fetch, show_table]
+  - job: explain the tax implications of staking rewards and how to report them
+    tools: [web_search, web_fetch, memory_remember]
+  - job: build a bond ladder with staggered maturities for predictable income
+    tools: [web_search, browser_navigate, browser_snapshot, show_table, make_page]
+  - job: estimate the tax drag on my taxable account from dividend and interest distributions
+    tools: [file_read, web_search, browser_navigate, show_table, make_page]
+  - job: compare the liquidity and bid-ask spreads of three similar etfs before I trade
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: calculate the portfolio margin requirement for my current options positions
+    tools: [file_read, web_search, browser_navigate, show_table]
+  - job: find municipal bonds that match my state tax bracket and maturity preferences
+    tools: [web_search, browser_navigate, browser_snapshot, show_table, show_comparison]
+  - job: run a monte carlo simulation to show the probability of my portfolio lasting thirty years in retirement
+    tools: [file_read, shell_run, show_table, make_page]
+  - job: explain how a covered call strategy works and screen my holdings for suitable candidates
+    tools: [web_search, browser_navigate, browser_snapshot, show_table]
+  - job: compare the tracking error and sampling method of two total market index funds
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: identify which of my holdings are classified as passive foreign investment companies for tax purposes
+    tools: [file_read, web_search, browser_navigate, show_table]
+  - job: create a dividend payment calendar for the next quarter showing amounts and dates
+    tools: [file_read, web_search, calendar_create, show_table]
+    connectors: [calendar]
+  - job: analyze the factor exposure of my portfolio to value, momentum, quality and size
+    tools: [file_read, web_search, browser_navigate, shell_run, show_table]
+  - job: calculate the break-even inflation rate implied by tips versus nominal treasuries
+    tools: [web_search, browser_navigate, browser_snapshot, show_table]
+  - job: explain the mechanics and risks of a collateralized loan against my crypto holdings
+    tools: [web_search, browser_navigate, browser_snapshot, make_page]
+  - job: find preferred stocks with a fixed-to-floating rate and a call date after five years
+    tools: [web_search, browser_navigate, browser_snapshot, show_table]
+  - job: screen for closed-end funds trading at a discount to net asset value with a distribution yield above five percent
+    tools: [web_search, browser_navigate, browser_snapshot, show_table]
+  - job: model the impact of rising interest rates on the duration and value of my bond holdings
+    tools: [file_read, web_search, shell_run, show_table, make_page]
+  - job: explain the difference between time-weighted and money-weighted returns and calculate both for my account
+    tools: [file_read, web_search, shell_run, show_table]
+  - job: find green bonds or esg-labeled bonds that meet my credit quality and maturity criteria
+    tools: [web_search, browser_navigate, browser_snapshot, show_table]
+  - job: calculate the maximum contribution I can make to a solo 401k based on my self-employment income
+    tools: [web_search, browser_navigate, browser_snapshot, show_table]
+  - job: analyze the revenue and geographic exposure of my international equity holdings
+    tools: [file_read, web_search, browser_navigate, browser_snapshot, show_table]
+  - job: create a schedule of roth conversion amounts to fill up my tax bracket each year until age seventy-two
+    tools: [file_read, web_search, shell_run, show_table, make_page]
+  - job: compare the securities lending revenue and practices of three etf providers for the same index
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: explain how a 1035 exchange works for annuities and whether it makes sense for my contract
+    tools: [web_search, browser_navigate, browser_snapshot, make_page]
+  - job: screen for reits with funds from operations growth above five percent and debt to ebitda below six
+    tools: [web_search, show_table, file_write]
+  - job: explain the tax treatment of qualified versus non-qualified dividends in my brokerage account
+    tools: [web_search, make_page]
+  - job: build a core-satellite portfolio model using three low-cost etfs and two active funds
+    tools: [web_search, show_table, make_page]
+  - job: calculate the net unrealized appreciation potential for employer stock in my 401k
+    tools: [web_search, show_table, file_write]
+  - job: compare the tax efficiency of etf share classes versus mutual fund share classes for the same index
+    tools: [web_search, show_comparison, make_page]
+  - job: find the short interest ratio and days to cover for each stock in my portfolio
+    tools: [web_search, show_table, file_write]
+  - job: explain how a donor-advised fund works for appreciated securities and model the tax benefit
+    tools: [web_search, make_page, show_table]
+  - job: calculate the portfolio turnover ratio and estimated trading costs for my mutual fund holdings
+    tools: [web_search, file_read, show_table]
+  - job: screen for business development companies with a dividend coverage ratio above one hundred percent
+    tools: [web_search, show_table, file_write]
+  - job: compare the costs and features of direct indexing versus a total market etf for my taxable account
+    tools: [web_search, show_comparison, make_page]
+  - job: find all etfs that track the same benchmark but use different replication methods
+    tools: [web_search, show_table, file_write]
+  - job: explain the wash sale rule for crypto and check my transaction history for violations
+    tools: [web_search, file_read, show_table]
+  - job: model the sequence of returns risk for my retirement withdrawals using historical bootstrapping
+    tools: [web_search, show_table, make_page]
+  - job: compare the expense ratios and bid-ask spreads of zero-commission etfs across three brokers
+    tools: [web_search, show_comparison, file_write]
+  - job: calculate the yield to worst for each callable bond in my portfolio
+    tools: [web_search, file_read, show_table]
+  - job: screen for preferred securities with a credit rating of investment grade and a current yield above six percent
+    tools: [web_search, show_table, file_write]
+  - job: explain the tax implications of a roth conversion ladder and create a five-year projection
+    tools: [web_search, make_page, show_table]
+  - job: find the top ten holdings overlap across all my equity funds and calculate the concentration risk
+    tools: [web_search, file_read, show_table]
+  - job: compare the performance of equal-weight versus market-cap weight s&p 500 strategies over ten years
+    tools: [web_search, show_comparison, make_page]
+  - job: calculate the foreign tax credit I can claim from international fund distributions
+    tools: [web_search, file_read, show_table]
+  - job: screen for master limited partnerships with distribution growth and a coverage ratio above one point two
+    tools: [web_search, show_table, file_write]
+  - job: explain how a charitable remainder trust works for concentrated stock positions
+    tools: [web_search, make_page]
+  - job: calculate the expected return and standard deviation of my portfolio using factor model estimates
+    tools: [web_search, file_read, show_table]
+  - job: find all convertible bonds in my portfolio and analyze their equity sensitivity and credit risk
+    tools: [file_read, browser_navigate, browser_snapshot, shell_run, show_table]
+  - job: explain the tax treatment of qualified opportunity zone investments and model the ten year benefit
+    tools: [browser_navigate, browser_snapshot, web_search, shell_run, make_page]
+  - job: screen for stocks with share buyback yields above three percent and decreasing share counts over five years
+    tools: [browser_navigate, browser_snapshot, web_search, shell_run, show_table]
+  - job: analyze the roll yield and contango backwardation effects on my commodity etf holdings
+    tools: [browser_navigate, browser_snapshot, file_read, shell_run, show_table]
+  - job: compare the performance and fees of interval funds versus traditional closed end funds for illiquid assets
+    tools: [browser_navigate, browser_snapshot, web_search, show_comparison, make_page]
+  - job: find all holdings in my portfolio with significant exposure to china and calculate the aggregate weight
+    tools: [file_read, browser_navigate, browser_snapshot, shell_run, show_table]
+  - job: explain how a private placement life insurance wrapper works for hedge fund investments
+    tools: [browser_navigate, browser_snapshot, web_search, make_page]
+  - job: calculate the optimum rebalancing bands for my asset allocation using historical volatility data
+    tools: [file_read, shell_run, browser_navigate, browser_snapshot, show_table]
+  - job: screen for royalty trusts with reserve life above ten years and distribution coverage above one point five
+    tools: [browser_navigate, browser_snapshot, web_search, shell_run, show_table]
+  - job: model the impact of a currency hedge on my international equity returns over the last decade
+    tools: [file_read, browser_navigate, browser_snapshot, shell_run, show_table]
+  - job: find all etfs that use representative sampling versus full replication for the same emerging markets index
+    tools: [browser_navigate, browser_snapshot, web_search, show_comparison]
+  - job: calculate the tax alpha from asset location optimization across my taxable and tax advantaged accounts
+    tools: [file_read, shell_run, browser_navigate, browser_snapshot, show_table]
+  - job: explain the mechanics and tax treatment of a 72t substantially equal periodic payment plan
+    tools: [browser_navigate, browser_snapshot, web_search, shell_run, make_page]
+  - job: screen for catastrophe bonds with expected loss below two percent and yield above eight percent
+    tools: [browser_navigate, browser_snapshot, web_search, shell_run, show_table]
+  - job: analyze the sector and factor drift of my portfolio since inception compared to target allocation
+    tools: [file_read, shell_run, browser_navigate, browser_snapshot, show_table]
+  - job: find all preferred stocks with cumulative dividends and calculate the accumulated arrears for each
+    tools: [browser_navigate, browser_snapshot, web_search, shell_run, show_table]
+  - job: calculate the internal rate of return for each private equity vintage year in my portfolio
+    tools: [file_read, shell_run, browser_navigate, browser_snapshot, show_table]
+  - job: explain how a grantor retained annuity trust works for transferring appreciating assets
+    tools: [browser_navigate, browser_snapshot, web_search, make_page]
+  - job: screen for infrastructure stocks with regulated asset bases and dividend yields above four percent
+    tools: [browser_navigate, browser_snapshot, web_search, shell_run, show_table]
+  - job: model the tax impact of direct indexing with daily tax loss harvesting versus monthly rebalancing
+    tools: [file_read, shell_run, browser_navigate, browser_snapshot, show_comparison]
+  - job: find all etfs in my portfolio that pay capital gains distributions and estimate the tax cost
+    tools: [file_read, browser_navigate, browser_snapshot, shell_run, show_table]
+  - job: calculate the marginal tax rate on each additional dollar of roth conversion income this year
+    tools: [file_read, shell_run, browser_navigate, browser_snapshot, show_table]
+  - job: explain the differences between a family limited partnership and an llc for investment management
+    tools: [browser_navigate, browser_snapshot, web_search, make_page, show_comparison]
+
+productivity:
+  - job: summarize the long email thread about the budget so i can catch up fast
+    tools: [mail_read, make_page]
+    connectors: [mail]
+  - job: find every email from my boss in the last month and pull out the action items
+    tools: [mail_list, mail_read, task_create]
+    connectors: [mail]
+  - job: create a shared agenda doc for the quarterly planning meeting and link it to the invite
+    tools: [calendar_list, make_page, calendar_create]
+    connectors: [calendar]
+  - job: remind me 10 minutes before every meeting with a one-line summary of why i'm there
+    tools: [calendar_list, memory_remember, routine_create]
+    connectors: [calendar]
+  - job: turn the email chain about the vendor decision into a pros and cons table
+    tools: [mail_read, show_comparison]
+    connectors: [mail]
+  - job: schedule the recurring team sync for the same time every tuesday and invite the group
+    tools: [calendar_create, mail_send]
+    connectors: [calendar, mail]
+  - job: draft a status update email to stakeholders based on my completed tasks this week
+    tools: [task_update, mail_send, make_page]
+    connectors: [mail]
+  - job: find all emails with attachments from the legal folder and save them to my drive
+    tools: [mail_list, mail_read, file_write]
+    connectors: [mail]
+  - job: set up an out-of-office reply with alternate contacts for the two weeks i'm gone
+    tools: [mail_send, calendar_list]
+    connectors: [mail]
+  - job: merge the three overlapping calendar invites for the project kickoff into one clean event
+    tools: [calendar_list, calendar_create]
+    connectors: [calendar]
+  - job: extract every date mentioned in my recent emails and add them as calendar reminders
+    tools: [mail_list, mail_read, calendar_create]
+    connectors: [mail, calendar]
+  - job: write a follow-up email to the client summarizing what we agreed on yesterday's call
+    tools: [mail_send, memory_remember, make_page]
+    connectors: [mail]
+  - job: create a template for my weekly one-on-one notes with sections for updates, blockers, and feedback
+    tools: [make_page, memory_remember]
+  - job: flag any email where i'm cc'd but my name appears in the body as needing my input
+    tools: [mail_list, mail_read, task_create]
+    connectors: [mail]
+  - job: schedule buffer time before and after my client calls for prep and notes
+    tools: [calendar_list, calendar_create]
+    connectors: [calendar]
+  - job: compile all the feedback emails from the design review into a single document
+    tools: [mail_list, mail_read, make_page]
+    connectors: [mail]
+  - job: send a polite nudge to the vendor who hasn't replied to my quote request from last week
+    tools: [mail_read, mail_send]
+    connectors: [mail]
+  - job: create a color-coded calendar view showing deep work, meetings, and admin time for the month
+    tools: [calendar_list, show_table, calendar_create]
+    connectors: [calendar]
+  - job: draft a meeting recap with decisions and next steps from my voice notes
+    tools: [file_read, make_page, mail_send]
+    connectors: [mail]
+  - job: find the email with the contract renewal date and set a reminder 60 days out
+    tools: [mail_list, mail_read, calendar_create]
+    connectors: [mail, calendar]
+  - job: organize my inbox labels by project and auto-file incoming mail to the right one
+    tools: [mail_list, mail_read, memory_remember]
+    connectors: [mail]
+  - job: prepare a one-pager for my performance review with key wins from my calendar and emails
+    tools: [calendar_list, mail_list, make_page]
+    connectors: [mail, calendar]
+  - job: set up a recurring reminder to review and clean up my sent folder every quarter
+    tools: [routine_create, mail_list]
+    connectors: [mail]
+  - job: create a contact sheet for the project team with roles, emails, and slack handles from recent threads
+    tools: [mail_list, mail_read, make_page]
+    connectors: [mail]
+  - job: draft a polite email asking for a deadline extension with a revised timeline attached
+    tools: [mail_send, make_page]
+    connectors: [mail]
+  - job: convert my handwritten meeting notes photo into a searchable text document
+    tools: [file_read, file_write, make_page]
+  - job: create a daily shutdown ritual checklist that reviews open tasks and plans tomorrow
+    tools: [task_create, routine_create, make_page]
+  - job: generate a monthly report of time spent in meetings vs focus work from my calendar
+    tools: [calendar_list, file_write, make_page, show_table]
+    connectors: [calendar]
+  - job: draft a project kickoff email using the template and decisions from the planning doc
+    tools: [file_read, mail_send, make_page]
+    connectors: [mail]
+  - job: set up email filters to auto-label and archive receipts and order confirmations
+    tools: [mail_list, mail_read, memory_remember]
+    connectors: [mail]
+  - job: find all calendar events with 'sync' in the title and add a standard agenda template
+    tools: [calendar_list, calendar_create, file_read]
+    connectors: [calendar]
+  - job: create a decision log document from the email thread about the tech stack choice
+    tools: [mail_read, file_write, make_page]
+    connectors: [mail]
+  - job: schedule quarterly check-ins with each direct report for the rest of the year
+    tools: [calendar_list, calendar_create, task_create]
+    connectors: [calendar]
+  - job: extract all action items from my starred emails and add them to my task list with due dates
+    tools: [mail_read, task_create, task_update]
+    connectors: [mail]
+  - job: write a handoff document for my vacation covering active projects, contacts, and deadlines
+    tools: [calendar_list, mail_read, file_write, make_page]
+    connectors: [mail, calendar]
+  - job: identify meetings I accepted but haven't prepared for and send me a prep reminder
+    tools: [calendar_list, mail_read, task_create]
+    connectors: [mail, calendar]
+  - job: create a template for client proposal emails with placeholders for scope, timeline, and pricing
+    tools: [file_write, make_page, memory_remember]
+  - job: find emails where I was asked a question but never replied and draft responses
+    tools: [mail_read, mail_send, task_create]
+    connectors: [mail]
+  - job: set up a weekly recurring task to review and archive completed project folders
+    tools: [routine_create, task_create, file_list]
+  - job: generate a contact frequency report showing who I email most and least each month
+    tools: [mail_list, mail_read, file_write, show_table]
+    connectors: [mail]
+  - job: create a meeting cost calculator showing estimated attendee cost for each recurring event
+    tools: [calendar_list, file_write, make_page, show_table]
+    connectors: [calendar]
+  - job: draft a polite email to reschedule a meeting with three alternative time slots
+    tools: [mail_send, calendar_list, memory_remember]
+    connectors: [mail, calendar]
+  - job: organize my saved email drafts by topic and delete ones older than six months
+    tools: [mail_read, mail_list, memory_remember]
+    connectors: [mail]
+  - job: create a visual timeline of project milestones from calendar events and email dates
+    tools: [calendar_list, mail_read, file_write, make_page]
+    connectors: [mail, calendar]
+  - job: set up keyboard shortcuts for my most used email templates and canned responses
+    tools: [memory_remember, file_write, make_page]
+  - job: find all calendar invites I haven't responded to and suggest accept or decline based on conflicts
+    tools: [calendar_list, mail_read, show_comparison]
+    connectors: [mail, calendar]
+  - job: create a weekly digest of all documents shared in email threads with links and summaries
+    tools: [mail_read, file_write, make_page, task_create]
+    connectors: [mail]
+  - job: draft a team norms document for communication expectations, response times, and meeting etiquette
+    tools: [file_write, make_page, memory_remember]
+  - job: schedule recurring 15-minute buffer blocks after every external meeting for follow-up tasks
+    tools: [calendar_list, calendar_create, routine_create]
+    connectors: [calendar]
+  - job: extract all phone numbers and addresses from email signatures into a contact spreadsheet
+    tools: [mail_read, file_write, show_table]
+    connectors: [mail]
+  - job: create a searchable knowledge base from my sent emails with key decisions and reference links
+    tools: [mail_list, mail_read, file_write, make_page]
+    connectors: [mail]
+  - job: draft a quarterly business review deck outline using my calendar events and email threads
+    tools: [calendar_list, mail_list, mail_read, make_page]
+    connectors: [mail, calendar]
+  - job: set up automatic forwarding of specific vendor emails to my accounting team
+    tools: [mail_list, mail_read, request_help]
+    connectors: [mail]
+  - job: create a meeting preparation checklist template that pulls attendee info from calendar invites
+    tools: [calendar_list, make_page]
+    connectors: [calendar]
+  - job: find all recurring meetings with no agenda attached and suggest cancellation or restructure
+    tools: [calendar_list, mail_list, mail_read, show_table]
+    connectors: [mail, calendar]
+  - job: generate a weekly team availability heatmap from everyone's shared calendars
+    tools: [calendar_list, show_table, make_page]
+    connectors: [calendar]
+  - job: draft a project retrospective email template with sections for wins, blockers, and process improvements
+    tools: [make_page]
+  - job: create a sender reputation scorecard for my top 20 contacts based on response time and value
+    tools: [mail_list, mail_read, show_table, make_page]
+    connectors: [mail]
+  - job: set up a daily digest of emails from my key stakeholders only, filtering out noise
+    tools: [mail_list, mail_read, routine_create]
+    connectors: [mail]
+  - job: convert my voice memo meeting recordings into structured notes with timestamps
+    tools: [file_read, file_write, make_page]
+  - job: build a dependency map of my projects from email threads and calendar events
+    tools: [mail_list, mail_read, calendar_list, make_page]
+    connectors: [mail, calendar]
+  - job: create an email response time SLA tracker for my direct reports and key partners
+    tools: [mail_list, mail_read, show_table, routine_create]
+    connectors: [mail]
+  - job: draft a monthly newsletter roundup of team accomplishments from calendar and email data
+    tools: [calendar_list, mail_list, mail_read, make_page]
+    connectors: [mail, calendar]
+  - job: find all calendar events with video links and test them for accessibility before meetings
+    tools: [calendar_list, browser_navigate, browser_click, request_help]
+    connectors: [calendar]
+  - job: create a personal board portal with my committee memberships, terms, and prep materials
+    tools: [mail_list, mail_read, calendar_list, make_page, file_write]
+    connectors: [mail, calendar]
+  - job: set up automated birthday and work anniversary reminders for my close contacts
+    tools: [mail_list, mail_read, calendar_create, routine_create]
+    connectors: [mail, calendar]
+  - job: generate a meeting load forecast for next quarter based on recurring patterns
+    tools: [calendar_list, show_table, make_page]
+    connectors: [calendar]
+  - job: draft a polite email to decline speaking invitations with a standard referral template
+    tools: [make_page, mail_send]
+    connectors: [mail]
+  - job: create a vendor contract renewal tracker with 90/60/30 day alerts from email attachments
+    tools: [mail_list, mail_read, file_read, calendar_create, routine_create]
+    connectors: [mail, calendar]
+  - job: organize my email templates into categories with usage analytics and last updated dates
+    tools: [file_list, file_read, file_write, show_table]
+  - job: find all meetings I organized that have no clear outcome documented and flag for follow-up
+    tools: [calendar_list, mail_list, mail_read, task_create]
+    connectors: [mail, calendar]
+  - job: create a focus time protection protocol that auto-declines low-priority meeting conflicts
+    tools: [calendar_list, calendar_create, routine_create, request_help]
+    connectors: [calendar]
+  - job: draft a weekly priority alignment email to my manager based on my calendar and task list
+    tools: [calendar_list, task_create, task_update, make_page, mail_send]
+    connectors: [calendar, mail]
+  - job: build a contact engagement timeline showing interaction history for my top 50 relationships
+    tools: [mail_list, mail_read, calendar_list, make_page, show_table]
+    connectors: [mail, calendar]
+  - job: set up a quarterly inbox zero sprint with daily targets and progress tracking
+    tools: [mail_list, mail_read, task_create, routine_create, show_table]
+    connectors: [mail]
+
+dev:
+  - job: generate a dockerfile and compose file for this project with sensible defaults
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: create a github actions workflow that runs tests on every push and pull request
+    tools: [file_list, file_read, file_write]
+  - job: add structured logging to this service with correlation ids and log levels
+    tools: [file_list, file_read, file_write]
+  - job: write database migration scripts for the schema changes i describe
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: set up pre-commit hooks that run lint, format, and type checks before each commit
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: refactor this function to use async/await and handle errors properly
+    tools: [file_list, file_read, file_write]
+  - job: generate graphql resolvers and type definitions from this rest api spec
+    tools: [file_list, file_read, file_write]
+  - job: create a makefile with common dev tasks like build, test, lint, and deploy
+    tools: [file_list, file_read, file_write]
+  - job: add request validation and sanitization middleware to this express api
+    tools: [file_list, file_read, file_write]
+  - job: write integration tests for the authentication flow using a test database
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: set up dependency scanning and automated security updates with dependabot config
+    tools: [file_list, file_read, file_write]
+  - job: convert this callback-based api to use promises with proper error handling
+    tools: [file_list, file_read, file_write]
+  - job: generate an openapi spec from the route handlers in this codebase
+    tools: [file_list, file_read, file_write]
+  - job: add health check and readiness endpoints for kubernetes deployment
+    tools: [file_list, file_read, file_write]
+  - job: create a script that seeds the database with realistic test data
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: implement rate limiting and circuit breaker patterns for this service client
+    tools: [file_list, file_read, file_write]
+  - job: write a codemod to automatically update deprecated api calls across the codebase
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: set up storybook with component stories for this react component library
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: add distributed tracing instrumentation using opentelemetry
+    tools: [file_list, file_read, file_write]
+  - job: generate typescript types from this graphql schema and operations
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: create a benchmark suite to compare performance of these two implementations
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: write a git hook that prevents commits with console.log or debugger statements
+    tools: [file_list, file_read, file_write]
+  - job: add feature flags configuration and rollout logic for this new feature
+    tools: [file_list, file_read, file_write]
+  - job: create a cli tool with subcommands for managing this project's common tasks
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: set up contract testing between this service and its consumers using pact
+    tools: [file_list, file_read, file_write, shell_run]
+  - job: write a database query builder for dynamic filter and sort parameters
+    tools: [file_read, file_write, shell_run]
+  - job: set up a monorepo workspace with shared tooling and package publishing
+    tools: [file_read, file_write, shell_run]
+  - job: create a custom eslint plugin with rules for our internal coding standards
+    tools: [file_read, file_write, shell_run]
+  - job: implement optimistic locking for concurrent updates on this entity
+    tools: [file_read, file_write, shell_run]
+  - job: generate a changelog from conventional commit messages since last release
+    tools: [file_read, file_write, shell_run]
+  - job: add request id propagation through async context for distributed logging
+    tools: [file_read, file_write, shell_run]
+  - job: create a database connection pool manager with health checks and retry logic
+    tools: [file_read, file_write, shell_run]
+  - job: write a property-based test suite for this serialization library
+    tools: [file_read, file_write, shell_run]
+  - job: set up automated visual regression testing for the component library
+    tools: [file_read, file_write, shell_run]
+  - job: implement a saga pattern orchestrator for this multi-step business transaction
+    tools: [file_read, file_write, shell_run]
+  - job: generate graphql subscriptions and pubsub setup for real-time updates
+    tools: [file_read, file_write, shell_run]
+  - job: create a migration runner with rollback support and version tracking
+    tools: [file_read, file_write, shell_run]
+  - job: add mutation testing to the test pipeline and report survival rates
+    tools: [file_read, file_write, shell_run]
+  - job: implement a cache-aside pattern with redis for this read-heavy endpoint
+    tools: [file_read, file_write, shell_run]
+  - job: write a custom babel plugin to transform legacy module imports
+    tools: [file_read, file_write, shell_run]
+  - job: set up end-to-end testing with playwright for critical user flows
+    tools: [file_read, file_write, shell_run]
+  - job: create a type-safe configuration loader with schema validation and defaults
+    tools: [file_read, file_write, shell_run]
+  - job: implement event sourcing projections for this aggregate read model
+    tools: [file_read, file_write, shell_run]
+  - job: generate a postman collection from the openapi spec for api testing
+    tools: [file_read, file_write, shell_run]
+  - job: add structured error codes and user-facing messages for the api layer
+    tools: [file_read, file_write, shell_run]
+  - job: create a script to detect and remove dead code exports across packages
+    tools: [file_read, file_write, shell_run]
+  - job: implement a background job processor with retries, dead letter queue, and metrics
+    tools: [file_read, file_write, shell_run]
+  - job: write a codemod to migrate class components to hooks in this react codebase
+    tools: [file_read, file_write, shell_run]
+  - job: set up automated api contract validation against the openapi spec in ci
+    tools: [file_read, file_write, shell_run]
+  - job: create a local development environment orchestrator with docker compose overrides
+    tools: [file_read, file_write, shell_run]
+  - job: create a terraform module for provisioning this application's cloud infrastructure
+    tools: [file_read, file_write, shell_run]
+  - job: implement a websocket connection manager with automatic reconnection and message queuing
+    tools: [file_read, file_write, shell_run]
+  - job: generate a swagger ui documentation site from the openapi spec with custom branding
+    tools: [file_read, file_write, shell_run, web_fetch]
+  - job: set up a local kubernetes cluster with kind and deploy this microservice stack
+    tools: [file_read, file_write, shell_run]
+  - job: create a github action that automatically updates the changelog and creates a release draft
+    tools: [file_read, file_write, shell_run]
+  - job: implement a plugin system with dynamic loading and dependency injection for this cli
+    tools: [file_read, file_write, shell_run]
+  - job: add openapi request validation middleware that rejects invalid payloads before handlers run
+    tools: [file_read, file_write, shell_run]
+  - job: generate a graphql data loader to batch and cache nested resolver requests
+    tools: [file_read, file_write, shell_run]
+  - job: create a script that analyzes bundle size and reports the largest dependencies
+    tools: [file_read, file_write, shell_run]
+  - job: set up a local development proxy that mocks external api responses from recorded fixtures
+    tools: [file_read, file_write, shell_run]
+  - job: implement a distributed lock manager using redis for coordinating critical sections
+    tools: [file_read, file_write, shell_run]
+  - job: write a custom webpack loader that inlines critical css for above-the-fold content
+    tools: [file_read, file_write, shell_run]
+  - job: generate a typescript client sdk from the openapi spec with typed request and response helpers
+    tools: [file_read, file_write, shell_run]
+  - job: create a database migration that partitions this large table by date for query performance
+    tools: [file_read, file_write, shell_run]
+  - job: add structured audit logging for all mutating operations with user context and diffs
+    tools: [file_read, file_write, shell_run]
+  - job: implement a feature flag evaluation engine with percentage rollout and user targeting rules
+    tools: [file_read, file_write, shell_run]
+  - job: write a load test script that simulates realistic user behavior patterns with k6
+    tools: [file_read, file_write, shell_run]
+  - job: create a gitlab ci pipeline that builds, tests, scans, and deploys to staging on merge
+    tools: [file_read, file_write, shell_run]
+  - job: generate a prisma schema from this existing postgresql database with introspection
+    tools: [file_read, file_write, shell_run]
+  - job: implement a request deduplication layer that collapses identical concurrent requests
+    tools: [file_read, file_write, shell_run]
+  - job: write a codemod that converts commonjs requires to esm imports across the monorepo
+    tools: [file_read, file_write, shell_run]
+  - job: set up a private npm registry proxy with verdaccio for offline development and caching
+    tools: [file_read, file_write, shell_run]
+  - job: create a database backup and point-in-time recovery script with encryption and s3 upload
+    tools: [file_read, file_write, shell_run]
+  - job: implement a graphql directive for role-based access control on fields and types
+    tools: [file_read, file_write, shell_run]
+
+social:
+  - job: turn my podcast episode into three quote graphics with timestamps
+    tools: [file_read, file_write, make_page]
+  - job: build a content calendar template i can duplicate each month
+    tools: [file_write, make_page]
+  - job: write five carousel scripts that teach one tip per slide
+    tools: [file_write, make_page]
+  - job: create a brand voice guide from my last twenty captions
+    tools: [file_read, file_write, make_page]
+  - job: design a highlight cover set that matches my profile aesthetic
+    tools: [file_write, make_page]
+  - job: summarize competitor posting frequency and content themes this month
+    tools: [web_search, browser_snapshot, file_write, show_table]
+  - job: draft a brand partnership pitch deck outline with my metrics
+    tools: [file_read, file_write, make_page]
+  - job: write a welcome dm sequence for new followers
+    tools: [file_write, make_page]
+  - job: turn my FAQ list into an instagram guide structure
+    tools: [file_read, file_write, make_page]
+  - job: create a monthly analytics report template with charts placeholders
+    tools: [file_write, make_page, show_table]
+  - job: generate thirty story poll questions for audience research
+    tools: [file_write, make_page]
+  - job: write a script for a sixty second founder story reel
+    tools: [file_write, make_page]
+  - job: plan a user generated content campaign with rules and prizes
+    tools: [file_write, make_page]
+  - job: draft a crisis response template for negative feedback
+    tools: [file_write, make_page]
+  - job: create a content batching checklist for filming days
+    tools: [file_write, make_page]
+  - job: write five linkedin thought leadership posts from my bullet points
+    tools: [file_read, file_write, make_page]
+  - job: build a hashtag strategy doc grouped by content pillar
+    tools: [file_write, make_page, show_table]
+  - job: design a link in bio page layout with my offers and links
+    tools: [file_write, make_page]
+  - job: write a collaboration contract template for creator partnerships
+    tools: [file_write, make_page]
+  - job: create a content repurposing workflow chart for each platform
+    tools: [file_write, make_page]
+  - job: draft an affiliate program announcement post and email
+    tools: [file_write, make_page, mail_send]
+    connectors: [mail]
+  - job: write a series of behind the scenes captions for my process
+    tools: [file_write, make_page]
+  - job: create a quarterly content theme planner with campaign dates
+    tools: [file_write, make_page, calendar_create]
+    connectors: [calendar]
+  - job: summarize top performing posts and extract common patterns
+    tools: [file_read, file_write, show_table, make_page]
+  - job: write a media outreach email template for podcast guest pitches
+    tools: [file_write, make_page, mail_send]
+    connectors: [mail]
+  - job: create a thirty day story sequence that moves followers toward a paid offer
+    tools: [file_read, file_write, make_page]
+  - job: audit my profile for missing links, outdated info, and broken highlight covers
+    tools: [browser_navigate, browser_snapshot, file_write, show_table]
+  - job: write ten tiktok hook variations for the same core tip to test retention
+    tools: [file_read, file_write]
+  - job: design a swipe file template to save winning competitor posts by format
+    tools: [file_write, make_page]
+  - job: extract key quotes from my last five newsletters for linkedin text posts
+    tools: [file_read, file_write]
+    connectors: [mail]
+  - job: create a content pillar rotation schedule so I never repeat the same topic twice in a row
+    tools: [file_write, make_page, show_table]
+  - job: write a cold outreach script for podcast hosts that references their recent episode
+    tools: [web_search, browser_snapshot, file_write]
+  - job: build a monthly giveaway compliance checklist for platform rules and legal disclosures
+    tools: [web_search, file_write, make_page]
+  - job: turn my course outline into a twelve post educational carousel series
+    tools: [file_read, file_write]
+  - job: create a brand color and font cheat sheet with hex codes and canva-ready specs
+    tools: [file_read, file_write, make_page]
+  - job: draft a quarterly brand audit questionnaire to send to my team or clients
+    tools: [file_write, make_page]
+  - job: write five linkedin poll questions with follow up post angles for each result
+    tools: [file_write]
+  - job: create a content approval workflow doc with review stages and turnaround times
+    tools: [file_write, make_page]
+  - job: summarize my top ten saved competitor reels into reusable format patterns
+    tools: [browser_navigate, browser_snapshot, file_write, show_table]
+  - job: write a founder origin story thread optimized for twitter or threads engagement
+    tools: [file_read, file_write]
+  - job: design a story highlight naming convention and cover system for easy scaling
+    tools: [file_write, make_page]
+  - job: create a monthly influencer outreach tracker with status columns and follow up dates
+    tools: [file_write, make_page, show_table]
+  - job: write a series of five educational linkedin carousels from my white paper
+    tools: [file_read, file_write]
+  - job: build a content gap analysis comparing my last quarter to top three competitors
+    tools: [web_search, browser_snapshot, file_write, show_comparison]
+  - job: draft a brand ambassador program overview with tiers, perks, and application form
+    tools: [file_write, make_page]
+  - job: create a viral sound tracking spreadsheet for tiktok and reels with expiration dates
+    tools: [web_search, file_write, show_table]
+  - job: write a re-engagement dm sequence for followers inactive over ninety days
+    tools: [file_write]
+  - job: design a content batching day agenda with shot lists, captions, and upload order
+    tools: [file_write, make_page, show_table]
+
+video-audio:
+  - job: create a 30-second vertical video script with hook, value, and call to action
+    tools: [make_page, web_search]
+  - job: convert my horizontal video into vertical format with safe zone overlays
+    tools: [shell_run, file_read, file_write]
+  - job: generate a podcast rss feed xml file from my episode metadata spreadsheet
+    tools: [file_read, file_write, make_page]
+  - job: remove background noise from audio recording using noise profile
+    tools: [shell_run, file_read, file_write]
+  - job: create animated waveform video from audio file for social media
+    tools: [shell_run, file_read, file_write]
+  - job: write youtube description with timestamps, links, and hashtags from transcript
+    tools: [file_read, make_page, web_search]
+  - job: design podcast cover art specifications for apple and spotify requirements
+    tools: [web_search, make_page]
+  - job: extract key quotes from transcript and format as instagram carousel text slides
+    tools: [file_read, make_page]
+  - job: normalize audio loudness to -16 lufs for podcast platforms
+    tools: [shell_run, file_read, file_write]
+  - job: create teleprompter script with scrolling speed markers from my outline
+    tools: [file_read, make_page]
+  - job: batch rename video files with episode numbers and descriptive titles
+    tools: [shell_run, file_list, file_read]
+  - job: generate chapter markers file for youtube from my timestamp notes
+    tools: [file_read, file_write, make_page]
+  - job: create video thumbnail template with consistent branding placeholders
+    tools: [make_page, web_search]
+  - job: transcribe audio file and identify different speakers with labels
+    tools: [shell_run, file_read, file_write]
+  - job: plan b-roll shot list for talking head video based on script topics
+    tools: [file_read, make_page, web_search]
+  - job: create podcast episode template with intro, ad slots, segments, outro
+    tools: [make_page]
+  - job: convert video to audio-only version with optimized podcast settings
+    tools: [shell_run, file_read, file_write]
+  - job: generate subtitles in srt format from transcript with proper timing
+    tools: [file_read, file_write, make_page]
+  - job: create content calendar with video topics, filming dates, and publish schedule
+    tools: [make_page, calendar_list, calendar_create]
+    connectors: [calendar]
+  - job: analyze video retention graph and suggest edit points to improve watch time
+    tools: [file_read, web_search, make_page]
+  - job: create lower third graphics templates with name and title placeholders
+    tools: [make_page, web_search]
+  - job: compress video for web delivery while maintaining quality at target bitrate
+    tools: [shell_run, file_read, file_write]
+  - job: write podcast trailer script that introduces show concept and host
+    tools: [make_page, web_search]
+  - job: create video editing project folder structure with labeled bins
+    tools: [shell_run, file_write]
+  - job: generate seo tags and description keywords for youtube video from topic
+    tools: [web_search, make_page]
+  - job: create a podcast episode checklist with pre-record, during-record, and post-record steps
+    tools: [file_write, make_page]
+  - job: design an intro and outro music brief with mood, tempo, and licensing requirements
+    tools: [file_write, web_search]
+  - job: write a video description template with seo placeholders, timestamps, and affiliate disclosure
+    tools: [file_write, make_page]
+  - job: create a teleprompter formatting guide for different aspect ratios and reading speeds
+    tools: [file_write, web_search]
+  - job: generate a video file naming convention document with examples for series, episodes, and versions
+    tools: [file_write, make_page]
+  - job: plan a video series content pillar strategy with 12 topics and audience pain points
+    tools: [file_write, web_search, make_page]
+  - job: create a podcast guest onboarding packet with tech requirements, release form, and prep questions
+    tools: [file_write, make_page]
+  - job: write a script for a 60-second video testimonial request email sequence
+    tools: [file_write, make_page]
+    connectors: [mail]
+  - job: design a video thumbnail a/b testing framework with hypothesis template and tracking spreadsheet
+    tools: [file_write, make_page, show_table]
+  - job: create a podcast episode repurposing checklist for clips, quotes, blog posts, and newsletters
+    tools: [file_write, make_page]
+  - job: write a video production budget template with line items for gear, talent, location, and post
+    tools: [file_write, make_page, show_table]
+  - job: generate a podcast launch checklist covering directories, trailer, artwork, and first three episodes
+    tools: [file_write, web_search, make_page]
+  - job: create a video script template for tutorial format with hook, steps, common mistakes, and recap
+    tools: [file_write, make_page]
+  - job: design a podcast sponsorship package one-pager with audience stats, ad formats, and rates
+    tools: [file_write, make_page, show_table]
+  - job: write a video content audit template to track performance metrics and identify update candidates
+    tools: [file_write, make_page, show_table]
+  - job: create a podcast show notes template with seo summary, timestamps, resources, and guest bio
+    tools: [file_write, make_page]
+  - job: generate a video filming day run sheet with call times, shot list, gear checklist, and contacts
+    tools: [file_write, make_page, show_table]
+    connectors: [calendar]
+  - job: write a script for a podcast cross-promotion swap with another host in the same niche
+    tools: [file_write, make_page]
+    connectors: [mail]
+  - job: create a video editing keyboard shortcut cheat sheet for premiere, davinci, or final cut
+    tools: [file_write, web_search, make_page]
+  - job: design a podcast listener survey with questions for content feedback, demographics, and nps
+    tools: [file_write, make_page, web_search]
+  - job: write a video series pitch deck outline with concept, audience, format, distribution, and monetization
+    tools: [file_write, make_page]
+  - job: create a podcast episode numbering and season tracking spreadsheet with air dates and status
+    tools: [file_write, make_page, show_table]
+  - job: generate a video caption style guide for font, color, position, timing, and platform differences
+    tools: [file_write, web_search, make_page]
+  - job: write a script for a podcast mid-roll ad read that sounds natural and converts
+    tools: [file_write, make_page]
+
+research:
+  - job: build a concept map from these papers showing how ideas connect
+    tools: [file_read, file_write, make_page, show_table]
+  - job: turn this textbook chapter into practice problems with worked solutions
+    tools: [file_read, file_write, make_page]
+  - job: find and summarise every meta-analysis on this topic from the last five years
+    tools: [web_search, browser_snapshot, file_write, show_table]
+  - job: create a spaced-repetition schedule for all the key terms in this syllabus
+    tools: [file_read, file_write, routine_create, task_create]
+  - job: extract all datasets and code repositories cited in these papers
+    tools: [file_read, web_search, browser_snapshot, file_write, show_table]
+  - job: write a plain-language briefing for my team on what this new regulation means
+    tools: [web_search, browser_snapshot, file_write, make_page]
+  - job: compare the methodology sections of these five studies and flag differences
+    tools: [file_read, file_write, show_comparison, show_table]
+  - job: generate a glossary of jargon from this field with simple definitions and examples
+    tools: [file_read, web_search, browser_snapshot, file_write, make_page]
+  - job: find open-access versions of every paper in this bibliography
+    tools: [web_search, browser_snapshot, browser_click, file_write, show_table]
+  - job: create a visual timeline of major discoveries in this field with key papers
+    tools: [web_search, browser_snapshot, file_write, make_page, show_table]
+  - job: design a self-study curriculum with free resources to learn this skill from scratch
+    tools: [web_search, browser_snapshot, file_write, make_page, task_create]
+  - job: identify which authors cite each other most in this collection of papers
+    tools: [file_read, file_write, show_table]
+  - job: turn my messy research notes into a structured literature review draft
+    tools: [file_read, file_write, make_page]
+  - job: find replication studies for the key experiments in this paper
+    tools: [web_search, browser_snapshot, file_write, show_table]
+  - job: create a decision matrix comparing research methods for my study design
+    tools: [web_search, browser_snapshot, file_write, show_comparison, show_table]
+  - job: summarise the peer review history for this preprint if available
+    tools: [web_search, browser_snapshot, browser_click, file_write]
+  - job: extract all statistical results from these papers into a comparison table
+    tools: [file_read, file_write, show_table]
+  - job: find the most cited papers that cite this seminal work from the last three years
+    tools: [web_search, browser_snapshot, file_write, show_table]
+  - job: create an annotated bibliography from these pdfs with my research question in mind
+    tools: [file_read, file_write, make_page, show_table]
+  - job: design a reading group schedule with discussion questions for each paper
+    tools: [file_read, file_write, make_page, calendar_create, task_create]
+    connectors: [calendar]
+  - job: find and compare funding sources and conflicts of interest across these studies
+    tools: [file_read, web_search, browser_snapshot, file_write, show_table]
+  - job: generate counterarguments to the main thesis of this paper with supporting evidence
+    tools: [file_read, web_search, browser_snapshot, file_write, make_page]
+  - job: create a prerequisite knowledge map for understanding this advanced paper
+    tools: [file_read, web_search, browser_snapshot, file_write, make_page, show_table]
+  - job: track retracted papers in this field and alert me when new ones appear
+    tools: [web_search, browser_snapshot, routine_create, file_write]
+  - job: convert this lecture transcript into structured study notes with key concepts highlighted
+    tools: [file_read, file_write, make_page]
+  - job: find and summarise systematic reviews on this clinical question from cochrane and other databases
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, make_page]
+  - job: create a citation network graph showing how these papers reference each other
+    tools: [file_read, shell_run, file_write, show_table]
+  - job: extract all research questions and hypotheses from this collection of papers
+    tools: [file_read, file_write, make_page, show_table]
+  - job: identify the theoretical frameworks used across these studies and compare their applications
+    tools: [file_read, file_write, make_page, show_comparison]
+  - job: find all registered clinical trials for this intervention and summarise their status
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, show_table]
+  - job: create a taxonomy of research gaps mentioned in the discussion sections of these papers
+    tools: [file_read, file_write, make_page, show_table]
+  - job: compare effect sizes across meta-analyses on this topic and explain discrepancies
+    tools: [file_read, web_search, browser_snapshot, file_write, show_comparison]
+  - job: generate a preregistration template for my study based on reporting guidelines for this design
+    tools: [web_search, browser_snapshot, file_write, make_page]
+  - job: find and summarise all published protocols for studies on this topic
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, make_page]
+  - job: create a variable dictionary from these datasets with measurement scales and coding schemes
+    tools: [file_read, shell_run, file_write, show_table]
+  - job: identify which statistical tests are most appropriate for my data and research questions
+    tools: [web_search, browser_snapshot, file_write, make_page]
+  - job: find all errata and corrections for these papers and summarise their impact
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, show_table]
+  - job: create a sampling strategy comparison for my qualitative study with pros and cons
+    tools: [web_search, browser_snapshot, file_write, show_comparison]
+  - job: extract all measurement instruments used in these studies with their psychometric properties
+    tools: [file_read, web_search, browser_snapshot, file_write, show_table]
+  - job: find and compare ethics approval requirements for this research across different jurisdictions
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, show_comparison]
+  - job: generate a data management plan template tailored to my funder's requirements
+    tools: [web_search, browser_snapshot, file_write, make_page]
+  - job: create a power analysis calculator for my study design with different effect size scenarios
+    tools: [shell_run, file_write, show_table]
+  - job: find all conference proceedings and grey literature on this topic from the last two years
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, make_page]
+  - job: compare reporting quality of these studies using the appropriate checklist for their design
+    tools: [file_read, web_search, browser_snapshot, file_write, show_table]
+  - job: identify potential collaborators by analysing co-authorship networks in this field
+    tools: [web_search, browser_navigate, browser_snapshot, shell_run, file_write, show_table]
+  - job: create a timeline of policy changes affecting research in this area with key documents
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, make_page]
+  - job: extract all inclusion and exclusion criteria from these systematic reviews into a comparison table
+    tools: [file_read, file_write, show_table]
+  - job: find and summarise all methodological critiques of this widely-cited paper
+    tools: [web_search, browser_navigate, browser_snapshot, file_write, make_page]
+
+home:
+  - job: build a monthly household budget spreadsheet with categories for bills, food and savings
+    tools: [file_write, make_page, show_table]
+  - job: find local after-school clubs for a seven-year-old that run until six pm
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: write a polite email to the neighbour about their hedge blocking our light
+    tools: [file_write, mail_send]
+    connectors: [mail]
+  - job: set up automatic reminders for bin collection days every week
+    tools: [routine_create, calendar_create]
+    connectors: [calendar]
+  - job: organise all appliance manuals and warranties into a searchable digital folder
+    tools: [file_list, file_read, file_write, make_page]
+  - job: find a reliable dog walker near us with availability on weekday mornings
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: plan a week of packed lunches for two adults and one child with a shopping list
+    tools: [file_write, show_table, web_search]
+  - job: check if we qualify for any council tax discounts or benefits we are not claiming
+    tools: [web_search, browser_navigate, browser_snapshot, file_read]
+  - job: create a fire escape plan for our three-bedroom house and practice dates
+    tools: [file_write, make_page, calendar_create, routine_create]
+    connectors: [calendar]
+  - job: find a good nhs dentist accepting new patients within two miles
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: sort through kids' clothes and make a list of what fits, what to donate, what to buy
+    tools: [file_write, show_table, task_create]
+  - job: set up a shared grocery list that both partners can edit from their phones
+    tools: [file_write, make_page, memory_remember]
+  - job: compare home insurance quotes for buildings and contents cover at renewal
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison, file_read]
+  - job: plan a low-cost half-term activity schedule for a ten-year-old using free local events
+    tools: [web_search, browser_navigate, calendar_create, show_table]
+    connectors: [calendar]
+  - job: write a will template covering guardianship for two children and digital assets
+    tools: [file_write, make_page, web_search]
+  - job: track monthly spending on subscriptions and flag any we have not used in three months
+    tools: [file_read, file_write, show_table, task_create]
+  - job: find a qualified electrician to install an outdoor socket for the garden office
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: create a baby-proofing checklist room by room for a crawling nine-month-old
+    tools: [file_write, make_page, show_table, web_search]
+  - job: set up medication reminders for an elderly relative with morning and evening doses
+    tools: [routine_create, calendar_create, task_create]
+    connectors: [calendar]
+  - job: plan a vegetable patch layout for a small garden with planting calendar
+    tools: [file_write, make_page, show_table, web_search, calendar_create]
+    connectors: [calendar]
+  - job: compare broadband deals for our postcode and check if we can leave our contract early
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison, file_read]
+  - job: organise family photos from the last year into albums by month and event
+    tools: [file_list, file_read, file_write, make_page, task_create]
+  - job: find a local repair cafe or volunteer group to fix a broken toaster and lamp
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: create a weekly meal plan for a family of four with dietary restrictions and generate a categorized shopping list
+    tools: [make_page, web_search, show_table, file_write]
+  - job: set up a home maintenance calendar with seasonal tasks like gutter cleaning and boiler servicing
+    tools: [calendar_create, routine_create, web_search, make_page]
+    connectors: [calendar]
+  - job: find and compare local childminders registered with ofsted for a toddler starting in september
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: organize all household utility accounts and login details into a secure digital vault
+    tools: [file_write, file_read, make_page, memory_remember]
+  - job: plan a stress-free christmas schedule with gift budget, meal prep timeline, and visitor logistics
+    tools: [make_page, calendar_create, show_table, task_create]
+    connectors: [calendar]
+  - job: research and apply for disabled facilities grant for a stairlift installation
+    tools: [web_search, browser_navigate, browser_type, browser_click, file_write]
+  - job: create a pet care guide for the cat sitter with feeding times, vet contacts, and medication instructions
+    tools: [make_page, file_write, memory_remember]
+  - job: compare green energy tariffs and switch provider if it saves money over the year
+    tools: [web_search, browser_navigate, show_comparison, browser_type]
+  - job: design a capsule wardrobe plan for each family member for the upcoming season
+    tools: [make_page, show_table, web_search, file_write]
+  - job: set up a neighborhood watch whatsapp group and share local crime alerts monthly
+    tools: [web_search, browser_navigate, make_page, routine_create]
+  - job: plan a home office ergonomics assessment and shopping list for monitor arm, chair, and keyboard
+    tools: [web_search, show_comparison, make_page, file_write]
+  - job: create a family emergency grab bag checklist with documents, meds, and contacts for evacuation
+    tools: [make_page, show_table, memory_remember, file_write]
+  - job: find local forest school or outdoor nursery sessions for a three-year-old two mornings a week
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: organize digital subscriptions into a tracker with renewal dates, costs, and cancellation links
+    tools: [file_write, make_page, routine_create, show_table]
+  - job: plan a weekend deep clean schedule by room with time estimates and supply list
+    tools: [make_page, show_table, task_create, routine_create]
+  - job: research and book a reputable chimney sweep before winter with certification check
+    tools: [web_search, browser_navigate, browser_click, calendar_create]
+    connectors: [calendar]
+  - job: create a homework station setup guide for a year six student with supplies and routine
+    tools: [make_page, web_search, file_write, memory_remember]
+  - job: compare water filter systems for hard water area and install cost for kitchen tap
+    tools: [web_search, show_comparison, browser_navigate, make_page]
+  - job: set up a grandparents video call schedule with recurring calendar invites and activity ideas
+    tools: [calendar_create, routine_create, make_page, memory_remember]
+    connectors: [calendar]
+  - job: plan a garden waste composting system with bin type, location, and what to add or avoid
+    tools: [web_search, make_page, show_table, file_write]
+  - job: find a local tailor or seamstress for school uniform alterations and hem adjustments
+    tools: [web_search, browser_navigate, browser_snapshot, show_comparison]
+  - job: create a family medical history summary for new gp registration with conditions and medications
+    tools: [make_page, file_write, memory_remember, show_table]
+  - job: plan a staycation itinerary for october half term with free museums, parks, and rainy day backups
+    tools: [web_search, make_page, calendar_create, show_table]
+    connectors: [calendar]
+  - job: set up a smart thermostat schedule for heating zones to reduce winter gas bills
+    tools: [browser_navigate, browser_type, browser_click, routine_create]
+  - job: organize school paperwork into digital folders by child, year, and type with search tags
+    tools: [file_write, file_list, make_page, memory_remember]
+
+privacy:
+  - job: scan my social media profiles for personal details i should hide
+    tools: [browser_navigate, browser_snapshot, browser_click, browser_scroll, request_help]
+  - job: check if my phone number is listed on any public people search sites
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: help me opt out of data broker databases that sell my information
+    tools: [web_search, web_fetch, browser_navigate, browser_click, browser_type, request_help, task_create]
+  - job: verify whether this charity asking for donations is legitimate
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: create a plan to freeze my credit with all major bureaus
+    tools:
+      [
+        web_search,
+        web_fetch,
+        browser_navigate,
+        browser_click,
+        browser_type,
+        request_help,
+        task_create,
+        make_page,
+      ]
+  - job: explain the difference between a fraud alert and a credit freeze
+    tools: [web_search, web_fetch, make_page]
+  - job: check if this investment opportunity promising high returns is a known scam
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: help me set up two-factor authentication on my important accounts
+    tools: [browser_navigate, browser_click, browser_type, request_help, task_create]
+  - job: review the permissions on my browser extensions and remove risky ones
+    tools: [browser_navigate, browser_click, browser_snapshot, request_help]
+  - job: draft a formal complaint to the data protection authority about a company
+    tools: [web_search, web_fetch, make_page, file_write]
+  - job: help me create unique email aliases for different services to track leaks
+    tools: [web_search, web_fetch, browser_navigate, browser_click, browser_type, request_help, task_create]
+    connectors: [mail]
+  - job: explain what metadata my photos contain and how to strip it before sharing
+    tools: [web_search, web_fetch, make_page, shell_run]
+  - job: check whether this text from a government agency demanding payment is real
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: help me delete old accounts i no longer use across different websites
+    tools: [web_search, web_fetch, browser_navigate, browser_click, browser_type, request_help, task_create]
+  - job: set up alerts for when my personal information appears in new data breaches
+    tools:
+      [web_search, web_fetch, browser_navigate, browser_click, browser_type, request_help, routine_create]
+  - job: review the privacy policy of this app and tell me what data it collects
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, make_page]
+  - job: help me secure my home wifi network and router settings
+    tools: [browser_navigate, browser_click, browser_type, request_help, make_page]
+  - job: check if this online seller has complaints or negative reviews elsewhere
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: create a checklist for my family to follow if someone gets a ransomware message
+    tools: [web_search, web_fetch, make_page, file_write]
+  - job: explain how to spot a fake tech support call claiming my computer has a virus
+    tools: [web_search, web_fetch, make_page]
+  - job: help me request deletion of my data from a company that no longer needs it
+    tools: [web_search, web_fetch, browser_navigate, browser_click, browser_type, make_page, mail_send]
+    connectors: [mail]
+  - job: check if this survey asking for personal details is a legitimate research study
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: set up a password manager and import my existing saved passwords
+    tools:
+      [
+        web_search,
+        web_fetch,
+        browser_navigate,
+        browser_click,
+        browser_type,
+        request_help,
+        file_read,
+        task_create,
+      ]
+  - job: review which apps on my phone have access to my location and microphone
+    tools: [browser_navigate, browser_click, browser_snapshot, request_help]
+  - job: help me remove my personal info from google search results
+    tools:
+      [web_fetch, web_search, browser_navigate, browser_snapshot, browser_click, browser_type, request_help]
+  - job: check if my medical records were exposed in a recent hospital breach
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: set up a virtual phone number for two-factor codes instead of my real one
+    tools:
+      [web_search, web_fetch, browser_navigate, browser_snapshot, browser_click, browser_type, request_help]
+  - job: explain how to use a password manager with my family without sharing the master password
+    tools: [web_search, web_fetch, make_page]
+  - job: help me create a data breach response plan for my small business
+    tools: [web_search, web_fetch, make_page, task_create]
+  - job: check if this qr code in a parking lot leads to a payment scam
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, request_help]
+  - job: review my smart home devices for privacy risks and default passwords
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, make_page]
+  - job: help me opt out of targeted advertising profiles on major platforms
+    tools:
+      [web_search, web_fetch, browser_navigate, browser_snapshot, browser_click, browser_type, request_help]
+  - job: explain what a sim swap attack is and how to protect my phone number
+    tools: [web_search, web_fetch, make_page]
+  - job: check if this romance profile on a dating app uses stolen photos
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, request_help]
+  - job: help me set up email forwarding aliases that hide my real address
+    tools:
+      [web_search, web_fetch, browser_navigate, browser_snapshot, browser_click, browser_type, request_help]
+    connectors: [mail]
+  - job: review the permissions on my kids' tablets and lock down tracking
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, make_page]
+  - job: explain how to verify a website's security certificate before entering payment info
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, make_page]
+  - job: help me request my data from a fitness tracker company before deleting my account
+    tools:
+      [
+        web_search,
+        web_fetch,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        make_page,
+        request_help,
+      ]
+  - job: check if this job application asking for my ssn before an interview is a scam
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: set up a secure way to share passwords with my partner for joint accounts
+    tools:
+      [web_search, web_fetch, browser_navigate, browser_snapshot, browser_click, browser_type, request_help]
+  - job: explain what a privacy.com virtual card is and help me create one for a subscription
+    tools:
+      [web_search, web_fetch, browser_navigate, browser_snapshot, browser_click, browser_type, request_help]
+  - job: check if this text about a failed delivery with a link is a smishing attempt
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot]
+  - job: help me remove my info from whitepages and similar people search sites
+    tools:
+      [
+        web_search,
+        web_fetch,
+        browser_navigate,
+        browser_snapshot,
+        browser_click,
+        browser_type,
+        make_page,
+        request_help,
+      ]
+  - job: explain how to use signal or another encrypted messenger for sensitive conversations
+    tools: [web_search, web_fetch, make_page]
+  - job: review my browser's saved passwords and autofill data for security risks
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, make_page]
+  - job: help me set up a credit lock with all three bureaus instead of a freeze
+    tools:
+      [web_search, web_fetch, browser_navigate, browser_snapshot, browser_click, browser_type, request_help]
+  - job: check if this invoice email from a vendor i use is actually a business email compromise
+    tools: [web_search, web_fetch, browser_navigate, browser_snapshot, request_help]
+    connectors: [mail]
+  - job: create a privacy-focused browser setup guide with extensions and settings
+    tools: [web_search, web_fetch, make_page]

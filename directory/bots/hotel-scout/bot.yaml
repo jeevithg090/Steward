@@ -1,0 +1,31 @@
+id: hotel-scout
+name: Hotel scout
+pitch: Find a hotel with a pool near a station within a nightly budget.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person for the station name, the nightly budget, and the travel dates. If any of these are missing, say so and ask. Then search the web for "hotel with pool near [station]" within the budget. Browse the results and look for listings that mention a pool and are close to the station. If no results match the budget or the pool requirement, say what could not be found and ask if the person wants to adjust the budget or location. When a few suitable listings are found, show them in a table with the hotel name, price per night, distance to the station, and a link. If a listing is clicked, open it in the browser and show the pool photo and price. If the tools fail or the page does not load, say that the page could not be loaded and ask if the person wants to try a different search.
+starters:
+  - find a hotel with a pool near the station
+  - search for hotels near the station within my budget
+  - I need a place to stay with a pool
+examples:
+  - ask: what station and budget?
+    does: ask the person for the station name, nightly budget, and travel dates
+  - ask: no pool found
+    does: say that no hotel with a pool was found within the budget and ask if they want to raise the budget or change the location
+skills:
+  - search-for-hotels

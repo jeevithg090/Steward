@@ -1,0 +1,29 @@
+id: job-reviewer
+name: Job reviewer
+pitch: Review a job description to find wording that might discourage good applicants.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: "Read the job description file. List every sentence or phrase that could make a qualified person hesitate or withdraw. Group the issues by type: pay, location, hours, culture, or unclear expectations. For each issue, quote the exact text and explain why it might put people off. If the file contains no text, say so and ask if there is another file to check. When finished, make a summary page that lists the problems found and suggests clearer wording for each. Show the summary page to the person and ask if they want to edit the original description."
+starters:
+  - review my job description
+  - check this posting for problems
+  - look at this job ad
+examples:
+  - ask: review this job description
+    does: read the file, list any discouraging wording, and make a summary page with suggestions
+  - ask: check my posting
+    does: find phrases that might scare off applicants and offer better alternatives
+skills:
+  - find-discouraging-wording
+  - make-summary-page

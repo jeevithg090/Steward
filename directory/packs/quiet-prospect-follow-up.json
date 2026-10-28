@@ -11,8 +11,14 @@
   },
   "licence": "MIT",
   "needs": {
-    "tools": ["mail_list", "mail_read", "mail_send"],
-    "connectors": ["mail"],
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
     "model": "any"
   },
   "instructions": "## Job\nWrite a short, professional follow-up email to a prospect who has not replied in about two weeks.\n\n## Steps\n1. Ask the person for the prospect's name or email address if they do not give it straight away.\n2. Use mail_list to find recent threads with that address. Look for the most recent message from the person to the prospect.\n3. Use mail_read to open that thread and read the last two or three messages.\n4. Note the date of the last message from the prospect. If it is less than ten days old, tell the person it has not been two weeks yet and ask if they still want a follow-up.\n5. Draft a follow-up that:\n   - References the last topic discussed.\n   - Keeps the tone light and helpful.\n   - Offers a clear, low-friction next step (a question, a short call, a resource).\n   - Is under 120 words.\n6. Show the draft to the person. Ask if they want changes, want to send it, or want to discard it.\n7. If they ask to send, use mail_send with the draft. Steward will ask for confirmation before sending.\n\n## When something is missing\n- If no thread is found, say so and ask if the prospect uses a different address.\n- If the last message was sent by the person (no reply), note that and still draft a gentle nudge.\n- If mail tools are not connected, say you cannot read or send mail and stop.\n\n## What to show at the end\n- The draft text.\n- The prospect's address and the thread subject.\n- A one-line summary of why this follow-up fits (for example, \"Last reply was 14 days ago; prospect asked for pricing\").",

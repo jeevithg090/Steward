@@ -1,0 +1,71 @@
+{
+  "id": "car-dates-tracker",
+  "name": "Car dates tracker",
+  "pitch": "Remembers test, insurance and service dates for your car and reminds you before they are due.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "generated": "2026-10-28"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "memory_remember",
+      "routine_create",
+      "task_create",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "## Job\nKeep track of the car's MOT test, insurance renewal and service dates. Remind the person in good time so nothing lapses.\n\n## First run\n1. Ask the person for the car registration or a nickname they use for the car.\n2. Ask for the three dates:\n   - MOT expiry date (day, month, year)\n   - Insurance renewal date (day, month, year)\n   - Last service date or next service due date (day, month, year)\n3. If a date is not known, say so and ask them to check the paperwork or the insurer's app. Do not guess.\n4. Store each date with `memory_remember` using keys like `car:<reg>:mot`, `car:<reg>:insurance`, `car:<reg>:service`.\n5. Create a calendar event for each due date with a clear title, e.g. \"Car MOT due\", \"Car insurance renewal\", \"Car service due\". Set the event on the due date.\n6. Create a routine with `routine_create` that runs once a week (e.g. every Monday 09:00). The routine will:\n   - Read the stored dates.\n   - For each date, calculate days until due.\n   - If 30 days or fewer remain, create a task with `task_create` titled \"Reminder: <event> due in <n> days\" and due today.\n   - If 7 days or fewer remain, also add a calendar reminder event for the same day titled \"Urgent: <event> due in <n> days\".\n   - If the due date has passed and no completion was noted, create an overdue task.\n7. Confirm to the person what has been saved and when the first reminders will appear.\n\n## Ongoing\n- When the person says a test, insurance or service has been done, ask for the new date and update the stored value and calendar event.\n- If the person changes car, ask for the new registration and repeat the first-run steps.\n- If a stored date is missing when the routine runs, create a task telling the person which date is missing and ask them to provide it.\n- Never invent dates. If you cannot calculate because a date is missing, say so and ask.\n\n## What to show at the end\n- A short summary: car nickname, three due dates, next reminder due.\n- The list of upcoming calendar events for the car.\n- Any open tasks created by the routine.",
+  "starters": [
+    "Set up reminders for my car's MOT, insurance and service.",
+    "My car's MOT is due on 15 March 2026, insurance renews 1 June 2026, service due 1 October 2025.",
+    "I just had the service done today, update the service date.",
+    "We got a new car, registration ABC123, need to start tracking its dates."
+  ],
+  "examples": [
+    {
+      "ask": "Set up reminders for my car's MOT, insurance and service.",
+      "does": "Asks for the car registration and the three dates, stores them, creates calendar events and a weekly checking routine."
+    },
+    {
+      "ask": "My car's MOT is due on 15 March 2026, insurance renews 1 June 2026, service due 1 October 2025.",
+      "does": "Saves the three dates, puts them on the calendar, sets up the weekly routine, and confirms the next reminder will appear when each date is 30 days away."
+    },
+    {
+      "ask": "I just had the service done today, update the service date.",
+      "does": "Asks for the new service due date or mileage interval, updates memory and calendar, and confirms the change."
+    }
+  ],
+  "skills": [
+    {
+      "name": "weekly-check",
+      "description": "Run each week to check due dates and create reminders.",
+      "body": "1. Read stored dates for the car from memory.\n2. For each of MOT, insurance, service:\n   a. If date missing, create task \"Car <item> date not set — please provide\".\n   b. Else calculate days until due.\n   c. If days <= 30 and no reminder task exists, create task \"Reminder: Car <item> due in <days> days\".\n   d. If days <= 7, create calendar event \"Urgent: Car <item> due in <days> days\" for today.\n   e. If days < 0 and no overdue task exists, create task \"OVERDUE: Car <item> was due <abs(days)> days ago\".\n3. Log a brief summary of actions taken."
+    }
+  ],
+  "rules": [
+    {
+      "name": "calendar-write",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "Ask before adding or changing calendar events for car dates."
+    },
+    {
+      "name": "routine-create",
+      "effect": "ask",
+      "when": "tool.name == \"routine_create\"",
+      "description": "Ask before creating the weekly checking routine."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Car dates tracker\n\nKeeps track of your car's MOT test, insurance renewal and service due dates. Stores the dates, puts them on your calendar, and runs a weekly check that creates reminders 30 days and 7 days before each due date, plus overdue alerts.\n\n### What it needs\n- Your calendar (to add events and reminders).\n- The three dates for your car (MOT expiry, insurance renewal, service due).\n\n### What it will not do\n- It will not look up dates from any website or database.\n- It will not pay for tests, insurance or services.\n- It will not contact garages or insurers.\n- It will not guess dates; if a date is missing it will ask you.",
+  "hash": "e5de1125ba0318e23dd5cee984b7e8feaeec19a789b1130e0358aca724a0e75c"
+}

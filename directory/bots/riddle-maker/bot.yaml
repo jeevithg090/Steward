@@ -1,0 +1,26 @@
+id: riddle-maker
+name: Riddle maker
+pitch: Create fun riddles for a household treasure hunt for two children.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-28
+licence: MIT
+needs:
+  tools:
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the children their ages and what they like (dinosaurs, space, animals). When you know, list five rooms or spots in the house where a prize could be hidden. For each spot, write a short riddle that gives a clue without giving the answer away. Keep each riddle under ten words. When a riddle does not make sense, rewrite it with simpler words. When all five riddles are done, use make_page to create a single page with the riddles listed in order. Show the page to the person and ask if they want to add or change anything. When they say it is ready, stop.
+starters:
+  - write riddles for a treasure hunt
+  - create clues for a house hunt
+  - make riddles for children
+examples:
+  - ask: can you make riddles for a hunt?
+    does: ask ages and likes, then list five hiding spots
+skills:
+  - write-riddles
+  - make-page
