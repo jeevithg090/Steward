@@ -25,6 +25,8 @@ export interface ApprovalCardProps {
   onDecided?: (approval: Approval) => void;
   /** Heading level of the summary in the page outline. */
   headingLevel?: 2 | 3 | 4;
+  /** Another agent asks, while working on a task this conversation's agent handed it: its name. */
+  askedBy?: string;
   className?: string;
 }
 
@@ -38,6 +40,7 @@ export function ApprovalCard({
   initial,
   onDecided,
   headingLevel = 3,
+  askedBy,
   className,
 }: ApprovalCardProps) {
   const query = useApproval(approvalId, initial);
@@ -87,6 +90,7 @@ export function ApprovalCard({
 
   return (
     <ApprovalCardView
+      {...(askedBy ? { askedBy } : {})}
       approval={approval}
       headingLevel={headingLevel}
       className={className}
@@ -109,6 +113,8 @@ export interface ApprovalCardViewProps {
   headingLevel?: 2 | 3 | 4;
   /** Marks the card as an example, so nobody mistakes it for a real request. */
   example?: boolean;
+  /** Another agent asks, while working on a task this conversation's agent handed it: its name. */
+  askedBy?: string;
   className?: string;
 }
 
@@ -121,6 +127,7 @@ export function ApprovalCardView({
   announcement = "",
   headingLevel = 3,
   example = false,
+  askedBy,
   className,
 }: ApprovalCardViewProps) {
   const titleId = useId();
@@ -155,6 +162,12 @@ export function ApprovalCardView({
       </Heading>
 
       <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 text-sub sm:grid-cols-[minmax(6rem,auto)_1fr]">
+        {askedBy ? (
+          <>
+            <dt className="text-ink-2">Who asks</dt>
+            <dd className="text-ink">{askedBy}, working on a task handed to it in this conversation</dd>
+          </>
+        ) : null}
         <dt className="text-ink-2">What</dt>
         <dd className="text-ink">
           {toolLabel(approval.tool.name)}{" "}

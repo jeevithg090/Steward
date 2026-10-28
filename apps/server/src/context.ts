@@ -24,6 +24,7 @@ import type { NodeSqliteAgentRunner } from "./runtime/runner.ts";
 import type { ServerRuns } from "./runtime/server-runs.ts";
 import type { SetupService } from "./setup/checks.ts";
 import type { InstalledBotStore } from "./store/bots.ts";
+import type { DelegationStore } from "./store/delegations.ts";
 import type { SettingsStore } from "./store/settings.ts";
 import type { ThreadStore } from "./store/threads.ts";
 import type { ResumeSweep } from "./workers/resume-sweep.ts";
@@ -65,6 +66,8 @@ export interface StewardServices {
   directory: DirectoryClient;
   installedBots: InstalledBotStore;
   bots: BotService;
+  /** Tasks one agent handed to another, and the conversations they run in. */
+  delegations: DelegationStore;
   security: SecurityOptions;
   /** Single-user mode: every action is the one local person's. */
   actorId: string;

@@ -60,12 +60,14 @@ import { registerRoutineRoutes } from "./routes/routines.ts";
 import { registerTaskRoutes } from "./routes/tasks.ts";
 import { registerThreadRoutes } from "./routes/threads.ts";
 import { AgentHost, maxOutputTokens } from "./runtime/agents.ts";
+import { DEFAULT_MAX_CONCURRENT, DEFAULT_MAX_DEPTH, Delegations } from "./runtime/delegations.ts";
 import { wireRunLifecycle } from "./runtime/lifecycle.ts";
 import { interruptSummary } from "./runtime/run-summary.ts";
 import { NodeSqliteAgentRunner } from "./runtime/runner.ts";
 import { ServerRuns } from "./runtime/server-runs.ts";
 import { SetupService } from "./setup/checks.ts";
 import { InstalledBotStore } from "./store/bots.ts";
+import { DelegationStore } from "./store/delegations.ts";
 import { migrations as serverMigrations } from "./store/migrations.ts";
 import { SettingsStore } from "./store/settings.ts";
 import { ThreadStore } from "./store/threads.ts";
@@ -211,7 +213,8 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     });
 
     const runner = new NodeSqliteAgentRunner(db);
-    const threads = new ThreadStore(db, runner);
+    const delegationStore = new DelegationStore(db);
+    const threads = new ThreadStore(db, runner, () => delegationStore.childThreadIds());
     const serverRunToken = randomBytes(32).toString("base64url");
 
     // The bot directory (a URL or a file) and the bots installed from it. Each installed bot
@@ -250,6 +253,16 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
         bus,
         settings: () => ({ plainLanguage: settings.plainLanguage(), timezone: settings.timezone() }),
         actorId: LOCAL_ACTOR,
+        delegation: {
+          get maxDepth() {
+            return delegations.maxDepth;
+          },
+          targets: (from) => delegations.targets(from),
+          start: (request) => delegations.start(request),
+          resume: (id, entries, initiator) => delegations.resume(id, entries, initiator),
+          ownerOf: (id) => delegations.ownerOf(id),
+          parentCallOf: (id) => delegations.parentCallOf(id),
+        },
       },
     });
     models = host;
@@ -275,6 +288,17 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       tenantAgentIds: tenant.agents.map((a) => a.id),
     });
 
+    // Tasks one agent hands another (`delegate_task`), run through the same runner as routines.
+    const delegations: Delegations = new Delegations({
+      store: delegationStore,
+      runs: () => runs,
+      runner,
+      agents: () => host.agentInfos(),
+      audit: gateway.audit,
+      actorId: LOCAL_ACTOR,
+      maxDepth: positiveInt(config.env.STEWARD_DELEGATION_DEPTH, DEFAULT_MAX_DEPTH),
+      maxConcurrent: positiveInt(config.env.STEWARD_DELEGATION_CONCURRENCY, DEFAULT_MAX_CONCURRENT),
+    });
     const runs = new ServerRuns({
       runner,
       agent: (id) => host.agent(id),
@@ -286,6 +310,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       runner,
       runs,
       delayMs: config.resumeDelayMs,
+      parentOf: (threadId) => delegations.parentOf(threadId),
       onResumed: (approval, result) => {
         // Task threads are reported by the run lifecycle; everything else is said here.
         if (result.outcome !== "interrupt" || proactive.tasks.byThread(approval.threadId)) return;
@@ -356,6 +381,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       directory,
       installedBots,
       bots,
+      delegations: delegationStore,
       security,
       actorId: LOCAL_ACTOR,
       defaultAgentId,
@@ -502,4 +528,10 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     db.close();
     throw err;
   }
+}
+
+/** A whole number from 1 to 10 in an env var, or the default. */
+function positiveInt(value: string | undefined, fallback: number): number {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 1 && n <= 10 ? n : fallback;
 }

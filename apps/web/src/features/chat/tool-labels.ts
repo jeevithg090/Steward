@@ -114,6 +114,10 @@ const OWN: Record<string, (args: Args) => [string, string, string?]> = {
   task_create: () => ["Adding a task", "Added a task"],
   task_update: () => ["Updating a task", "Updated a task"],
   routine_create: () => ["Setting up a routine", "Set up a routine"],
+  delegate_task: (a) => {
+    const agent = str(a.agentName, 40) ?? str(a.agentId, 40) ?? "another agent";
+    return [`Handing this to ${agent}`, `Handed this to ${agent}`];
+  },
   brief_today: () => ["Reading your mail and calendar", "Read your mail and calendar"],
   triage_inbox: () => ["Sorting your mail", "Sorted your mail"],
   show_table: () => ["Putting a table together", "Showed a table"],

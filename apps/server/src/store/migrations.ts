@@ -69,4 +69,29 @@ export const migrations: Migration[] = [
         routine_ids_json TEXT NOT NULL DEFAULT '[]'
       );`,
   },
+  {
+    // Tasks one agent handed to another (`delegate_task`): the parent's call, the child's own
+    // conversation, and the questions the child stopped on, so the parent's resume reaches it.
+    id: "server.005_delegations",
+    sql: `
+      CREATE TABLE IF NOT EXISTS delegations (
+        subagent_run_id TEXT PRIMARY KEY,
+        parent_thread_id TEXT NOT NULL,
+        parent_agent_id TEXT NOT NULL,
+        parent_run_id TEXT NOT NULL,
+        parent_tool_call_id TEXT NOT NULL,
+        child_thread_id TEXT NOT NULL UNIQUE,
+        child_agent_id TEXT NOT NULL,
+        task TEXT NOT NULL,
+        depth INTEGER NOT NULL,
+        status TEXT NOT NULL CHECK (status IN ('running', 'waiting', 'done', 'failed', 'stopped')),
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS delegations_by_parent ON delegations (parent_thread_id);
+      CREATE TABLE IF NOT EXISTS delegation_interrupts (
+        interrupt_id TEXT PRIMARY KEY,
+        subagent_run_id TEXT NOT NULL REFERENCES delegations (subagent_run_id) ON DELETE CASCADE
+      );`,
+  },
 ];

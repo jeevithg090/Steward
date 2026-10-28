@@ -35,6 +35,9 @@ export const TOOLS = {
   task_create: { kind: "write", surface: "task", taints: false },
   task_update: { kind: "write", surface: "task", taints: false },
   routine_create: { kind: "write", surface: "task", taints: false },
+  // Hands a task to another agent. Its answer is another model's words, which may carry what that
+  // agent read on the web or in mail, so it taints the conversation like any outside content.
+  delegate_task: { kind: "write", surface: "task", taints: true },
   brief_today: { kind: "read", surface: "mail", taints: true },
   triage_inbox: { kind: "read", surface: "mail", taints: true },
   // Generative UI: display only, rendered by the web app, no side effects

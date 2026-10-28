@@ -15,6 +15,11 @@ export interface ResumeSweepDeps {
   delayMs: number;
   /** Called with each resume run's result, for notifications. */
   onResumed?: (approval: Approval, result: RunResult) => void;
+  /**
+   * The conversation to resume instead, when the approval was asked by a task another agent handed
+   * on: the parent resumes, and its run carries the answer to the child (plan §5).
+   */
+  parentOf?: (threadId: string) => { threadId: string; agentId: string } | undefined;
   now?: () => number;
 }
 
@@ -65,7 +70,9 @@ export class ResumeSweep {
     const open = group.filter((a) => !a.claimedAt && !this.swept.has(a.id) && this.isUnanswered(a));
     if (open.length === 0) return;
 
-    if (runner.isThreadBusy(approval.threadId)) {
+    const parent = this.deps.parentOf?.(approval.threadId);
+    const target = parent ?? { threadId: approval.threadId, agentId: approval.agentId };
+    if (runner.isThreadBusy(approval.threadId) || runner.isThreadBusy(target.threadId)) {
       // Most likely the browser's own resume is running. Look again once it is done.
       if (attempt < BUSY_RETRIES) this.schedule(approval.id, attempt + 1, BUSY_RETRY_MS);
       return;
@@ -79,8 +86,8 @@ export class ResumeSweep {
     let result: RunResult;
     try {
       const run = runs.start({
-        agentId: approval.agentId,
-        threadId: approval.threadId,
+        agentId: target.agentId,
+        threadId: target.threadId,
         resume,
         // A routine's or task's run stays one when resumed, so their stricter rules still apply.
         initiator:

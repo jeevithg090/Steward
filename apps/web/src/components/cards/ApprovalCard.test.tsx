@@ -35,6 +35,14 @@ function approval(over: Partial<Approval> = {}): Approval {
 }
 
 describe("ApprovalCard", () => {
+  it("says which agent asks when a task handed to it asks", () => {
+    const initial = approval({ agentId: "codex", summary: "Run a command: npm test" });
+    mockFetch(() => ({ body: initial }));
+    renderWithProviders(<ApprovalCard approvalId="apr_1" initial={initial} askedBy="Codex" />);
+    expect(screen.getByText("Who asks")).toBeTruthy();
+    expect(screen.getByText("Codex, working on a task handed to it in this conversation")).toBeTruthy();
+  });
+
   it("shows what, where, why and what is sensitive", async () => {
     const initial = approval();
     mockFetch(() => ({ body: initial }));

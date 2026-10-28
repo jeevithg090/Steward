@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { AbstractAgent, BaseEvent, Context, Message, ResumeEntry, RunAgentInput } from "@ag-ui/client";
 import { ThreadAlreadyRunningError } from "@copilotkit/runtime/v2";
 import type { ApprovalStore, Initiator } from "@steward/shared";
+import type { Observable } from "rxjs";
 import { HttpError } from "../http/errors.ts";
 import { type RunSummary, summariseRun } from "./run-summary.ts";
 import { type NodeSqliteAgentRunner, SERVER_PROPS_KEY } from "./runner.ts";
@@ -59,6 +60,8 @@ export interface RunOnThreadOptions {
   resume?: ResumeEntry[];
   initiator: Initiator;
   context?: Context[];
+  /** For a task another agent handed on: how deep it is, and the parent's id for it. */
+  delegation?: { depth: number; subagentRunId: string };
 }
 
 export interface RunResult extends RunSummary {
@@ -71,6 +74,8 @@ export interface ServerRun {
   threadId: string;
   /** Settles when the run has finished and been stored. Never rejects. */
   done: Promise<RunResult>;
+  /** The run's events as they happen, replayed from the start for a late subscriber. */
+  events: Observable<BaseEvent>;
 }
 
 /**
@@ -134,7 +139,13 @@ export class ServerRuns {
       tools: [],
       context: opts.context ?? [],
       state: agent.state,
-      forwardedProps: { [SERVER_PROPS_KEY]: { token: this.deps.serverRunToken, initiator: opts.initiator } },
+      forwardedProps: {
+        [SERVER_PROPS_KEY]: {
+          token: this.deps.serverRunToken,
+          initiator: opts.initiator,
+          ...(opts.delegation ? { delegation: opts.delegation } : {}),
+        },
+      },
       ...(opts.resume && opts.resume.length > 0 ? { resume: opts.resume } : {}),
     };
 
@@ -159,6 +170,6 @@ export class ServerRuns {
         error: (err: unknown) => settle(err instanceof Error ? err.message : String(err)),
       });
     });
-    return { runId, threadId: opts.threadId, done };
+    return { runId, threadId: opts.threadId, done, events: events$ };
   }
 }

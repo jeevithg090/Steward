@@ -433,3 +433,17 @@ for the computer.
   - Unknown server requests get a JSON-RPC error.
   - Tests replay a transcript reconstructed from the protocol (Codex is not installed here), and a
     live check runs only with `codex` on PATH and `STEWARD_LIVE_CODEX=1`.
+- **28 Oct 2026, orchestration Phase 4 built.** Delegation (plan §5):
+  - `delegate_task` (`write`, `task`, tainting) is offered with the agents that can answer now.
+  - The child runs in a conversation of its own through `ServerRuns`, with the parent's initiator.
+    Its events are forwarded tagged with `subagentRunId` (`sub-<toolCallId>`) between
+    `SUBAGENT_STARTED` and `SUBAGENT_FINISHED`/`SUBAGENT_ERROR`, and the parent's model sees only
+    the tool result, worded as Happy does and wrapped untrusted.
+  - A child's approval ends the parent's run with `interrupts[].subagentRunId` and
+    `metadata.askedBy`. The parent's resume (browser or sweep) resumes the child.
+  - Depth 1 and two at once by default (`STEWARD_DELEGATION_DEPTH`, `STEWARD_DELEGATION_CONCURRENCY`);
+    stop stops the subtree.
+  - The `delegations` table holds them, child conversations are out of the list, and the record
+    gains `delegation.started`/`finished`.
+  - The chat folds a child's work under "<Agent> is working on: <task>", and the approval card says
+    who asks.

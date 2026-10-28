@@ -1,6 +1,7 @@
 import type { Tool } from "@ag-ui/client";
 import { isBuiltinTool, type McpManager } from "@steward/shared";
 import { BROWSER_TOOLS } from "./browser.ts";
+import { DELEGATION_TOOLS } from "./delegate.ts";
 import { DIRECTORY_TOOLS } from "./directory.ts";
 import { DISPLAY_TOOLS } from "./display.ts";
 import { FILE_TOOLS } from "./files.ts";
@@ -19,6 +20,7 @@ export const BUILTIN_TOOLS: readonly StewardTool[] = [
   ...STEWARD_TOOLS,
   ...DISPLAY_TOOLS,
   ...DIRECTORY_TOOLS,
+  ...DELEGATION_TOOLS,
 ];
 
 /** The built-in tools a profile's `tools` list grants. `*` grants all of them; unknown names grant nothing. */

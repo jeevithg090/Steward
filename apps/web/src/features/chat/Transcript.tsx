@@ -14,6 +14,7 @@ import { memo } from "react";
 import { cn } from "@/lib/utils.ts";
 import { Markdown } from "./Markdown.tsx";
 import { resultsById, textOf } from "./messages.ts";
+import { groupSubRuns, SubRunsContext, subRunOf } from "./subruns.tsx";
 import { GenericToolLine } from "./tool-cards.tsx";
 import { renderWith } from "./tool-registry.tsx";
 
@@ -21,28 +22,41 @@ export function Transcript({
   messages,
   running,
   className,
+  nested = false,
+  label = "Conversation",
+  speaker = "Steward",
 }: {
   messages: readonly Message[];
   /** True while a reply is in progress, so the newest reply is treated as still streaming. */
   running: boolean;
   className?: string;
+  /**
+   * Another agent's work inside this conversation (a handed-on task): a plain list, not a second
+   * live region, so a screen reader hears each finished reply once.
+   */
+  nested?: boolean;
+  label?: string;
+  /** Who a screen reader hears speaking the replies: "Codex said: …" inside a handed-on task. */
+  speaker?: string;
 }) {
+  // A handed-on task's own messages are drawn under the call that started it, not in the flow.
+  const subRuns = groupSubRuns(messages);
+  const own = nested ? messages : messages.filter((m) => !subRunOf(m));
   const results = resultsById(messages);
   const lastAssistant = (() => {
-    for (let i = messages.length - 1; i >= 0; i--)
-      if (messages[i]?.role === "assistant") return messages[i]?.id;
+    for (let i = own.length - 1; i >= 0; i--) if (own[i]?.role === "assistant") return own[i]?.id;
     return undefined;
   })();
 
-  return (
+  const list = (
     <ol
-      role="log"
-      aria-live="polite"
-      aria-relevant="additions"
-      aria-label="Conversation"
-      className={cn("m-0 flex list-none flex-col gap-4 p-0", className)}
+      {...(nested
+        ? {}
+        : { role: "log", "aria-live": "polite" as const, "aria-relevant": "additions" as const })}
+      aria-label={label}
+      className={cn("m-0 flex list-none flex-col gap-4 p-0", nested && "gap-2", className)}
     >
-      {messages.map((message) => {
+      {own.map((message) => {
         if (message.role === "user") {
           const content = textOf(message.content);
           if (!content.trim()) return null;
@@ -71,7 +85,9 @@ export function Transcript({
           const streaming = running && message.id === lastAssistant;
           return (
             <li key={message.id} className="flex min-w-0 flex-col gap-1">
-              {content.trim() ? <AssistantText content={content} streaming={streaming} /> : null}
+              {content.trim() ? (
+                <AssistantText content={content} streaming={streaming} speaker={speaker} />
+              ) : null}
               {calls.map((call) => (
                 <ToolCallView key={call.id} call={call} result={results.get(call.id)} />
               ))}
@@ -82,19 +98,28 @@ export function Transcript({
       })}
     </ol>
   );
+  return nested ? list : <SubRunsContext.Provider value={subRuns}>{list}</SubRunsContext.Provider>;
 }
 
 /**
  * While streaming, the text is shown but hidden from the accessibility tree. Once done, the `key`
  * changes, the node is replaced, and the log announces the finished reply as one addition.
  */
-function AssistantText({ content, streaming }: { content: string; streaming: boolean }) {
+function AssistantText({
+  content,
+  streaming,
+  speaker,
+}: {
+  content: string;
+  streaming: boolean;
+  speaker: string;
+}) {
   return (
     <div className="max-w-[44rem]">
-      <span className="sr-only">Steward said: </span>
+      <span className="sr-only">{speaker} said: </span>
       {streaming ? (
         <>
-          <span className="sr-only">Steward is writing…</span>
+          <span className="sr-only">{speaker} is writing…</span>
           <div key="streaming" aria-hidden="true">
             <Markdown streaming>{content}</Markdown>
           </div>

@@ -120,6 +120,36 @@ The tests replay a transcript reconstructed from the protocol
 live Codex. A live check runs only with Codex installed and `STEWARD_LIVE_CODEX=1`, because
 starting Codex uses your own sign-in.
 
+## Handing a task to another agent
+
+Any agent with the `delegate_task` tool can hand a task to another agent: another Steward on a
+different model, a bot, or a coding agent. The tool is offered only when there is another agent
+that can answer now, and it lists them by id.
+
+- **Governed like any call.** `delegate_task` is a `write` on the `task` surface, so it runs by
+  default. A rule can make it ask (`tool.name == "delegate_task"`) or refuse it.
+- **A conversation of its own.** The task runs on the target agent in a separate conversation,
+  through the same runner as a routine, with the parent's initiator: a routine's hand-off still
+  follows routine rules. Child conversations are not in the conversation list. Deleting the
+  parent deletes them.
+- **In the parent's chat.** The child's work arrives in the parent's stream tagged with its
+  `subagentRunId`, between `SUBAGENT_STARTED` and `SUBAGENT_FINISHED` (or `SUBAGENT_ERROR`). The
+  chat folds it under "Codex is working on: run the tests". The parent's own model never sees the
+  child's messages, only the tool result.
+- **The answer.** It comes back as "Codex finished working. Its answer follows, verbatim.", with
+  the answer wrapped as untrusted, or "… stopped without answering. It failed with, verbatim.".
+  The wording is Happy's. A handed-on answer taints the parent's conversation, because the child
+  may have read pages or mail.
+- **Questions.** An approval the child needs ends the parent's run too, with the child's interrupt
+  (`interrupts[].subagentRunId` set). The card says who asks. Answering it resumes the parent,
+  which resumes the child and carries on with its answer. The same happens when the answer comes
+  from Tasks and the resume sweep picks it up.
+- **Limits.** A task can be handed on once (depth 1, `STEWARD_DELEGATION_DEPTH`): a child is not
+  offered `delegate_task`. At most two of one run's tasks run at once
+  (`STEWARD_DELEGATION_CONCURRENCY`). Stop stops the children too.
+- **The record** has `delegation.started` and `delegation.finished` entries on the parent, and the
+  child's own runs and decisions under its conversation.
+
 ## What Steward cannot see
 
 Every harness runs its read-only tools without asking (reading and searching files in its

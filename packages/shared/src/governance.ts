@@ -182,7 +182,9 @@ export type AuditType =
   | "run.started"
   | "run.finished"
   | "harness.started"
-  | "harness.stopped";
+  | "harness.stopped"
+  | "delegation.started"
+  | "delegation.finished";
 
 export interface AuditEvent {
   /** Monotonic, starting at 1. */
@@ -259,6 +261,8 @@ export interface ApprovalInterruptMetadata {
   findings: OutboundFinding[];
   canAlways: boolean;
   rule?: Pick<Rule, "id" | "name" | "source">;
+  /** Set when another agent asks while working on a task this conversation's agent handed it. */
+  askedBy?: { agentId: string; name: string; subagentRunId: string };
 }
 
 /** Live events the server pushes to the web app over SSE (`GET /api/events`). */

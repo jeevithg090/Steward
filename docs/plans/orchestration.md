@@ -8,7 +8,9 @@ models, `GET /api/agents`, the picker with each agent's model, tokens per run in
 Phase 2 (`packages/harnesses`: the ACP client on `@agentclientprotocol/sdk` 2.0.2, `HarnessAgent`,
 `harnesses.yaml`, every `session/request_permission` as a Steward approval; see
 [docs/harnesses.md](../harnesses.md)) and Phase 3 (the Codex app-server client, ported from Happy,
-tested against a reconstructed transcript). Phases 4 and 5 are not built. Research
+tested against a reconstructed transcript) and Phase 4 (delegation: `delegate_task`, sub-runs
+through the runner, `SUBAGENT_*` events, child approvals interrupting the parent, the folded
+sub-run in the chat). Phase 5 (a direct Claude Agent SDK path) is optional and not built. Research
 behind every claim:
 [docs/research/happy-orchestration.md](../research/happy-orchestration.md) (Happy's harness
 integrations, its own multi-provider harness, subscriptions, subagents, and the Agent Client

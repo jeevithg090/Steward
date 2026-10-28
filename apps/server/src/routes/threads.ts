@@ -49,6 +49,14 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
     s.threads.deleteMeta(id);
     // A coding agent's process for this conversation stops, and its session is forgotten.
     await s.models.closeThread(id).catch(() => {});
+    // So do the conversations of tasks it handed to other agents.
+    for (const child of s.delegations.childrenOf(id)) {
+      if (s.runner.isThreadBusy(child.childThreadId)) await s.runner.stop({ threadId: child.childThreadId });
+      s.runner.deleteThread(child.childThreadId);
+      s.threads.deleteMeta(child.childThreadId);
+      await s.models.closeThread(child.childThreadId).catch(() => {});
+    }
+    s.delegations.deleteForParent(id);
     return c.json({ ok: true });
   });
 }
