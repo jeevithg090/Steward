@@ -48,6 +48,14 @@ to sign up for, and no key needed to try it.
 - **Works for everyone.** Full keyboard and screen reader paths, voice in and out, large text, high
   contrast, reduced motion and a plain-language mode.
 - **Becomes yours.** Its name, agent, skills, rules and model live in one folder of YAML.
+- **Brings the right helper.** A directory of ready-made bots, one tap to add, each one bound by your
+  rules ([Bots](#bots)).
+- **Works with other agents.** Pick a model per conversation (Claude, Grok, Nemotron and more), or run
+  Claude Code, Gemini CLI or Codex as a Steward agent, with every one of their permission prompts
+  becoming a Steward approval. Agents can hand a task to each other ([docs/harnesses.md](docs/harnesses.md)).
+- **Comes with you.** Pair your iPhone for a Steward shortcut that knows your skills and routines, or
+  install the phone app, which reaches Steward through an end-to-end encrypted relay you host
+  ([docs/phone.md](docs/phone.md)).
 
 ## Quick start
 
@@ -180,16 +188,18 @@ _Stack trace explainer_, _Pub quiz maker_. Open one, read what it does and what 
 press **Add to Steward**. It becomes an agent you can pick for a new conversation. Nothing to
 copy, nothing to configure.
 
-- 247 bots ship with Steward in `directory/`: 60 made by a model from a job taxonomy and checked by
-  a second model and the gateway's rules (labelled **AI-made** until someone uses them), 177 adapted
-  from [LobeChat's agent index](https://github.com/lobehub/lobe-chat-agents) with their authors
-  credited, and 10 from OpenBot's coworker catalogue.
+- 642 bots ship with Steward in `directory/`: 455 made by a model from a job taxonomy and checked by
+  a second model, a duplicate check by meaning and the gateway's rules (labelled **AI-made** until
+  someone uses them; unused ones retire after 90 days), 177 adapted from
+  [LobeChat's agent index](https://github.com/lobehub/lobe-chat-agents) with their authors credited,
+  and 10 from OpenBot's coworker catalogue.
 - A bot is a pack: a profile, skills in the open [Agent Skills](https://agentskills.io) `SKILL.md`
   format, starters, and rules that can only make the gateway stricter, never looser.
 - Before you add one, the listing shows **what it may do without asking** and **what it asks
   before**, worked out from its tools and _your_ rules.
-- **Make a bot** describes one in a sentence and generates it on your own model. Point
-  `STEWARD_DIRECTORY_URL` at another index, or a folder, to run your own directory.
+- **Make a bot** describes one in a sentence and generates it on your own model, and can download it
+  ready to submit. Run your own directory with `apps/directory` (search, an MCP connector for
+  other agents, GitHub sign-in for submissions, review) and point `STEWARD_DIRECTORY_URL` at it.
 
 The plan behind it: [docs/plans/bot-directory.md](docs/plans/bot-directory.md).
 
@@ -337,7 +347,8 @@ says how to propose a change.
 
 - Connecting a real Google account (the client already speaks Gmail's and Calendar's API shape).
 - Optional container isolation for the agent's shell and browser.
-- Push notifications, and an installable app for phones.
+- A native iPhone app with Siri and Action-button shortcuts that appear on install (needs an Apple
+  Developer account and review).
 - More channels: email in, then chat apps.
 - Background research through the day, not only in the morning brief, for suggestions as things arrive.
 - Exporting the record, and anchoring its newest hash outside the machine.

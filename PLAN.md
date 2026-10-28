@@ -447,3 +447,24 @@ for the computer.
     gains `delegation.started`/`finished`.
   - The chat folds a child's work under "<Agent> is working on: <task>", and the approval card says
     who asks.
+- **28 Oct 2026, the rest of the plans built and merged.** Three sessions in their own worktrees,
+  merged into `main` by the lead (dbe1ae8, 55b6636, 0bd541f, 65a4300):
+  - **Phone (`phone`):** Phase 0 devices (phone port 8788 with hashed tokens and codes, device
+    presets, `via device:<id>` in the record, Settings → Phone), Phase 1 iPhone Shortcuts (catalogue
+    from the profile, TypeScript shortcut builder, a signed generic "Steward" shortcut and launchers,
+    `/shortcuts`), Phase 2 the encrypted relay (`apps/relay`), the bridge and the phone web app.
+    Nothing has run on an iPhone; the device checklist is in `docs/phone.md`. Phase 3 (native app)
+    needs an Apple Developer account.
+  - **Orchestration (`orchestration-phase-2`):** coding agents over the Agent Client Protocol
+    (`packages/harnesses`), the Codex app-server client, `delegate_task` with subagent events.
+    Tested against fake agents and a reconstructed Codex transcript; no vendor tool was run live, and
+    the vendor-terms review (plan §4.2) is still owed before "use your own login" ships.
+  - **Directory (`directory-leftovers`):** retirement after 90 days, duplicate checks by meaning
+    (NVIDIA embeddings with a judge band), 642 bots (455 AI-made of the 2,000 planned; the rest is a
+    resumable run, see `directory/REPORT.md`), Make a bot downloads a submittable pack.
+  - Merge notes: both phone and orchestration had numbered a table `server.005`; delegations is now
+    `server.007`. Two sessions had fixed the same heading bug differently; the directory version was
+    kept. After merging, the main port answered `/device/*` with the web app's page; it is now a
+    plain 404.
+  - Verified on `main`: typecheck and biome clean, 1,617 unit tests (1 skipped: live Codex), 37/37
+    e2e.
