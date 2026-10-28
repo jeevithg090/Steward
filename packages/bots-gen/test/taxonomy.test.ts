@@ -247,3 +247,19 @@ describe("retries and pace", () => {
     expect(started).toEqual([0, 1000, 2000]);
   });
 });
+
+describe("seed model configuration", () => {
+  it("judges with STEWARD_SEED_JUDGE_MODEL when set, and with the writer otherwise", async () => {
+    const { judgeConfig, seedModelConfig } = await import("../src/model.ts");
+    const both = seedModelConfig({
+      NVIDIA_API_KEY: "k",
+      STEWARD_SEED_MODEL: "nvidia/small-writer",
+      STEWARD_SEED_JUDGE_MODEL: "nvidia/large-judge",
+    })!;
+    expect(both.model).toBe("nvidia/small-writer");
+    expect(judgeConfig(both)).toMatchObject({ model: "nvidia/large-judge", apiKey: "k" });
+    const one = seedModelConfig({ NVIDIA_API_KEY: "k" })!;
+    expect(judgeConfig(one).model).toBe(one.model);
+    expect(judgeConfig(one)).toBe(one);
+  });
+});

@@ -71,6 +71,7 @@ export {
   createOpenAICompatibleModel,
   createSeedModel,
   DEFAULT_NVIDIA_SEED_MODEL,
+  judgeConfig,
   NVIDIA_BASE_URL,
   type OpenAICompatibleOptions,
   type SeedModelConfig,

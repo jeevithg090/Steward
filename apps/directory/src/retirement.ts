@@ -6,6 +6,7 @@ import {
   EmbeddingCache,
   embedderConfig,
   interleaveByCategory,
+  judgeConfig,
   loadJobs,
   type RegenerateOptions,
   runRetirement,
@@ -81,7 +82,7 @@ export class RetirementTask {
     const cfg = seedModelConfig(env);
     if (!cfg) return undefined;
     const model = createSeedModel(cfg, { temperature: 0.6 });
-    const judge = createSeedModel(cfg, { temperature: 0 });
+    const judge = createSeedModel(judgeConfig(cfg), { temperature: 0 });
     const embed = embedderConfig(env);
     const engine = new CelEngine(CONTEXT_SCHEMA, neutralContext);
     return {

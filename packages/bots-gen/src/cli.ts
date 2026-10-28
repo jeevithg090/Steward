@@ -20,7 +20,7 @@ import {
 } from "./embed.ts";
 import type { Problem } from "./generate.ts";
 import { interleaveByCategory, JOBS_FILE, loadJobs } from "./jobs.ts";
-import { createSeedModel, seedModelConfig } from "./model.ts";
+import { createSeedModel, judgeConfig, seedModelConfig } from "./model.ts";
 import { type RegenerateOptions, readCounts, readRetired, runRetirement } from "./retire.ts";
 import { proposeJobs, readAiJobs, writeAiJobs } from "./taxonomy.ts";
 
@@ -254,8 +254,8 @@ async function seedModels(template: boolean): Promise<Models> {
   }
   return {
     model: candidate,
-    judge: createSeedModel(cfg, { temperature: 0 }),
-    via: `${cfg.model} via ${cfg.via}`,
+    judge: createSeedModel(judgeConfig(cfg), { temperature: 0 }),
+    via: `${cfg.model} via ${cfg.via}${cfg.judgeModel ? `, judged by ${cfg.judgeModel}` : ""}`,
   };
 }
 
@@ -561,10 +561,11 @@ async function report(write: boolean): Promise<void> {
     "",
     `${logRows.filter((r) => r.status === "written").length} written, ${dropped.length} dropped.`,
     "",
-    ...Object.entries(tally(dropped, (r) => (r.reason ?? "").split(":")[0] ?? "")).map(
+    ...Object.entries(tally(dropped, (r) => (r.reason ?? "").split(/[:(]/)[0]?.trim() ?? "")).map(
       ([reason, n]) => `- ${n} × ${reason}`,
     ),
     "",
+    ...generationSummary(packs, logRows, await readRetired(DIRECTORY)),
   ];
   const text = lines.join("\n");
   process.stdout.write(text);
@@ -572,6 +573,71 @@ async function report(write: boolean): Promise<void> {
     await writeFile(join(DIRECTORY, "REPORT.md"), text, "utf8");
     log("Written to directory/REPORT.md.");
   }
+}
+
+/** The launch target (plan §4): AI-made bots across the 19 categories. */
+const LAUNCH_TARGET = 2000;
+
+/**
+ * Pace by writer model: seconds per bot for one worker (from each row's `seconds`), and bots per
+ * minute of wall time, counting only stretches of work (a gap of over ten minutes ends one).
+ */
+function generationSummary(
+  packs: readonly BotPack[],
+  rows: readonly LogRow[],
+  retired: readonly { id: string }[],
+): string[] {
+  const ai = packs.filter((p) => p.author.kind === "ai");
+  const written = rows.filter((r) => r.status === "written");
+  const jobs = loadJobs();
+  const doneJobs = new Set(
+    rows.filter((r) => r.status === "written" || FINAL_DROP.test(r.reason ?? "")).map((r) => r.job),
+  );
+  const left = jobs.filter((j) => !doneJobs.has(j.job)).length;
+  const lines = [
+    "## Toward the launch target",
+    "",
+    `${ai.length} AI-made bots on the shelf, of ${LAUNCH_TARGET} planned; ${retired.length} retired.`,
+    `${jobs.length} jobs in the taxonomy (${jobs.filter((j) => j.source !== "ai").length} by people, ${jobs.filter((j) => j.source === "ai").length} proposed by a model and not yet read by a person); ${left} without a bot yet.`,
+    "",
+    "| Writer | Bots | Seconds per bot, one worker (median) | Bots per minute of run time |",
+    "| --- | --- | --- | --- |",
+  ];
+  for (const [model, list] of Object.entries(groupBy(written, (r) => r.model ?? "unknown"))) {
+    const secs = list
+      .flatMap((r) => (typeof r.seconds === "number" ? [r.seconds] : []))
+      .sort((a, b) => a - b);
+    const median = secs.length ? secs[Math.floor(secs.length / 2)]!.toFixed(0) : "not recorded";
+    const times = list.map((r) => Date.parse(r.at)).sort((a, b) => a - b);
+    let minutes = 0;
+    for (let i = 1; i < times.length; i++) {
+      const gap = times[i]! - times[i - 1]!;
+      if (gap < 10 * 60_000) minutes += gap / 60_000;
+    }
+    const rate = minutes > 0 ? (list.length / minutes).toFixed(1) : "–";
+    lines.push(`| ${model} | ${list.length} | ${median} | ${rate} |`);
+  }
+  lines.push(
+    "",
+    "Resume with the same command; it skips jobs that already have a bot or were dropped for good:",
+    "",
+    "```sh",
+    "NVIDIA_API_KEY=… STEWARD_SEED_MODEL=nvidia/nemotron-3.5-lightning-30b-a3b \\",
+    "  STEWARD_SEED_JUDGE_MODEL=nvidia/nemotron-3-ultra-550b-a55b \\",
+    "  pnpm --filter @steward/bots-gen seed generate --limit 2000 --concurrency 6",
+    "```",
+    "",
+  );
+  return lines;
+}
+
+function groupBy<T>(items: readonly T[], key: (item: T) => string): Record<string, T[]> {
+  const out: Record<string, T[]> = {};
+  for (const item of items) {
+    const k = key(item);
+    out[k] = [...(out[k] ?? []), item];
+  }
+  return out;
 }
 
 // ── main ───────────────────────────────────────────────────────────────────────────────────────

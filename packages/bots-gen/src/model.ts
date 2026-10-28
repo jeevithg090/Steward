@@ -163,6 +163,11 @@ export interface SeedModelConfig {
   baseUrl: string;
   apiKey?: string;
   model: string;
+  /**
+   * The judge, on the same endpoint (`STEWARD_SEED_JUDGE_MODEL`); the writer when unset. A small
+   * fast writer with a large careful judge keeps the bar where it was at a fraction of the time.
+   */
+  judgeModel?: string;
   /** Where the settings came from, for the report. Never the key. */
   via: string;
 }
@@ -181,8 +186,10 @@ export function seedModelConfig(env: Record<string, string | undefined>): SeedMo
   const baseUrl = value("STEWARD_SEED_BASE_URL");
   const model = value("STEWARD_SEED_MODEL");
   const apiKey = value("STEWARD_SEED_API_KEY");
+  const judgeModel = value("STEWARD_SEED_JUDGE_MODEL");
+  const judge = judgeModel ? { judgeModel } : {};
   if (baseUrl && model) {
-    return { baseUrl, model, via: "STEWARD_SEED_BASE_URL", ...(apiKey ? { apiKey } : {}) };
+    return { baseUrl, model, via: "STEWARD_SEED_BASE_URL", ...(apiKey ? { apiKey } : {}), ...judge };
   }
   const nvidiaKey = value("NVIDIA_API_KEY");
   if (nvidiaKey) {
@@ -191,9 +198,15 @@ export function seedModelConfig(env: Record<string, string | undefined>): SeedMo
       model: model ?? DEFAULT_NVIDIA_SEED_MODEL,
       apiKey: nvidiaKey,
       via: "NVIDIA_API_KEY",
+      ...judge,
     };
   }
   return undefined;
+}
+
+/** The judge for a config: `judgeModel` when set, otherwise the writer itself. */
+export function judgeConfig(cfg: SeedModelConfig): SeedModelConfig {
+  return cfg.judgeModel ? { ...cfg, model: cfg.judgeModel } : cfg;
 }
 
 /** NVIDIA's reasoning models think out loud unless told not to; other endpoints get a plain body. */

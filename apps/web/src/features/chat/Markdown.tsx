@@ -8,7 +8,7 @@
  * packed into it, to any host with no tool call, no decision and no record. Each image shows as
  * "[Image not loaded: …]" with its address as a link, behind the same confirmation.
  */
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { defaultRehypePlugins, Streamdown } from "streamdown";
 import { cn } from "@/lib/utils.ts";
 
@@ -73,30 +73,52 @@ const REHYPE: Pluggable[] = Object.entries(defaultRehypePlugins)
   .filter(([name]) => name !== "raw")
   .flatMap(([name, plugin]) => (name === "harden" ? [imagesAsLinks, withoutImages(plugin)] : [plugin]));
 
+type HeadingLevel = 2 | 3 | 4 | 5 | 6;
+
+function shiftHeadings(node: HastNode, from: HeadingLevel): void {
+  for (const child of node.children ?? []) {
+    const match = child.type === "element" ? /^h([1-6])$/.exec(child.tagName ?? "") : null;
+    if (match) child.tagName = `h${Math.min(6, from + Number(match[1]) - 1)}`;
+    shiftHeadings(child, from);
+  }
+}
+
+/**
+ * Moves every heading down so the text's `#` sits at `from`: third-party Markdown inside a page
+ * section must not add a second `h1` or skip the outline. Runs before sanitising.
+ */
+function headingsFrom(from: HeadingLevel) {
+  return () => (tree: HastNode) => shiftHeadings(tree, from);
+}
+
 export const Markdown = memo(function Markdown({
   children,
   streaming = false,
   className,
+  headingsFrom: from,
 }: {
   children: string;
   /** True while the text is still arriving, so half-written markdown is completed for display. */
   streaming?: boolean;
   className?: string;
+  /** The level a `#` heading becomes, for Markdown shown inside a section of a page. */
+  headingsFrom?: HeadingLevel;
 }) {
+  const rehype = useMemo(() => (from ? [headingsFrom(from), ...REHYPE] : REHYPE), [from]);
   return (
     <Streamdown
       mode={streaming ? "streaming" : "static"}
       isAnimating={streaming}
       parseIncompleteMarkdown={streaming}
       skipHtml
-      rehypePlugins={REHYPE}
+      rehypePlugins={rehype}
       controls={{ code: true, table: true, mermaid: false }}
       className={cn(
         "min-w-0 break-words text-body text-ink",
         "[&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2",
         "[&_p]:my-2 first:[&_p]:mt-0 last:[&_p]:mb-0 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-0.5",
         "[&_code]:rounded [&_code]:bg-tile [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.9em]",
-        "[&_h1]:text-title [&_h2]:text-title [&_h3]:text-body [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold",
+        "[&_h1]:text-title [&_h2]:text-title [&_h3]:text-body [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_h5]:font-semibold [&_h6]:font-semibold",
         className,
       )}
     >
