@@ -1,74 +1,265 @@
+<div align="center">
+
 # Tempo
 
-**Your time, returned.** Tempo is an open-source personal AI agent that handles life's admin and
-wins back the money and hours companies waste. Models read and plan; **code decides money, time
-and permissions**. You can reach it from a landline, by text or on the web, and it is patient by
-default.
+### Your time, returned.
 
-[![pipeline](https://gitlab.com/na-group4693543/Tempo/badges/main/pipeline.svg)](https://gitlab.com/na-group4693543/Tempo/-/pipelines)
-[![coverage](https://gitlab.com/na-group4693543/Tempo/badges/main/coverage.svg)](https://gitlab.com/na-group4693543/Tempo/-/graphs/main/charts)
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgitlab.com%2Fna-group4693543%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=VITE_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend)
+**An open-source personal AI agent that wins back the money and the hours companies owe you.**<br>
+Models read and plan. **Code decides money, time and permissions.**
 
-![Mission Control: Tempo asks once, shows its Proof Trace and the Consensus Court's votes](docs/mission-control.jpg)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0d9488.svg)](LICENSE)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-0d9488.svg)](https://www.python.org/)
+[![React 19](https://img.shields.io/badge/react-19-0d9488.svg)](apps/web)
+[![MCP server](https://img.shields.io/badge/MCP-server%20%2B%20client-0d9488.svg)](docs/mcp.md)
+[![WCAG](https://img.shields.io/badge/accessibility-axe%20checked-0d9488.svg)](docs/accessibility.md)
+[![Built at OxHack 26](https://img.shields.io/badge/built%20at-OxHack%2026-d4a017.svg)](docs/devpost.md)
 
-Built at OxHack 26. The project lives on GitLab at [gitlab.com/na-group4693543/Tempo](https://gitlab.com/na-group4693543/Tempo),
-where the pipeline runs; [github.com/jeevithg090/Tempo](https://github.com/jeevithg090/Tempo) is a mirror with its own
-Actions workflow for forks. [SHIPPING.md](SHIPPING.md) is the plan that turned the features into a product;
-[plan.md](plan.md) is the live plan for the web app and the chat door.
+[**Try the live showcase →**](https://tempo-showcase.vercel.app) &nbsp;·&nbsp;
+[Quickstart](#quickstart) &nbsp;·&nbsp;
+[How it works](#how-it-works) &nbsp;·&nbsp;
+[Use it from your AI](#use-tempo-from-your-ai) &nbsp;·&nbsp;
+[Docs](#documentation)
 
-## Try it in sixty seconds
+<br>
 
-New to the project? [docs/local-setup.md](docs/local-setup.md) takes you from a fresh clone to the app on localhost:3000, step by step: what to install on macOS, Linux or Windows, what `make setup` does, optional keys, tests and troubleshooting.
+<img src="docs/readme/hero.jpg" alt="Tempo's chat: 'Hello. I'm Tempo.' with one-tap examples for a late train, a missed engineer, a scam check, memory and money back" width="100%">
 
-| Want | Do |
-|---|---|
-| **The real thing, offline** | `make setup && make demo`: the Gateway starts from a scratch folder on 8000 (replay mode, no keys), the demo's people are seeded, and the web app opens on http://localhost:3000. Rail data, jurors and the company are simulated, and the badge says so. [docs/demo.md](docs/demo.md) has the beats. |
-| **Just look** | Open **https://tempo-showcase.vercel.app**: the whole app on recorded replay data, no backend, no keys; the badge says so. Or run `make showcase` locally (http://localhost:3000). To deploy your own copy, press *Deploy with Vercel* above with `VITE_TEMPO_SHOWCASE=1`. |
-| **A real model on a GPU** | `make live-demo`: our own vision-language model on a RunPod Serverless GPU for the jurors, small talk and photos, the Gateway here behind a public tunnel, and the web app on Vercel pointed at it. [docs/gpu-demo.md](docs/gpu-demo.md) has the RunPod settings. |
-| **The text demo** | `make demo-dry-run`: Margaret's late train found, priced, asked once, claimed and paid, with a restart in the middle. |
-| **Live vendors** | Fill `.env` from `.env.example`; `make doctor` says which are ready. |
+</div>
 
-## The web app
+<br>
 
-The chat is the front door. Type or say *my 08:12 Oxford to Paddington was 38 minutes late
-on 23 October, ticket £28.40* and Tempo understands, prices it, asks once (with the Proof Trace and the Court's votes
-inline) and claims on your yes; paste a scam text and it warns; ask what it remembers; say STOP.
-Every feature also has its own page in the sidebar, for anyone who wants to see the machinery:
-`#/chat`, `#/missions`, `#/memory`, `#/profiles`, `#/skills`, `#/shield`, `#/read`, `#/owed`,
-`#/callers`, `#/privacy`, `#/story`, `#/settings` (hash routes, so the build is a static site).
-`VITE_TEMPO_SHOWCASE=1` (or `?showcase=1`) runs it with no Gateway at all, on responses recorded
-from a real replay-mode Gateway; the badge then reads **SHOWCASE · recorded replay · no Gateway**.
-The theme (navy sidebar, near-black canvas, the talking avatar) came from the team's new UI and
-was kept; the app is Vite + React + Tailwind, built with npm. A Tauri desktop config is present
-but not built here. [docs/web.md](docs/web.md) is the map for contributors; [plan.md](plan.md)
-holds the contracts.
+Tempo is the agent that handles life's admin for you. Tell it, in your own words, that your train was late,
+that the broadband engineer never turned up, or that a text claiming to be from HMRC looks odd. Tempo works out
+what you're owed and why, asks you **once**, and then does the claiming, chasing and waiting.
+It counts every pound and every hour it returns to you, and only once the money has actually arrived.
+
+You can reach it by voice from a landline, by text message, or on the web. It is patient by default.
+It reads letters aloud, warns you about scams before you pay, and remembers only what you told it.
+It is built so that it **cannot** move your money or act without your signed yes.
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+**💷 Wins money back**<br>
+Delay Repay for late trains, compensation for missed engineer visits, UK261 flight delays, and benefits you
+never knew you could claim. Every amount comes from a YAML rule pack with a citation, never from a model.
+
+</td>
+<td width="33%" valign="top">
+
+**🛡️ Keeps you safe**<br>
+Scam Shield reads suspicious texts and links, checks the FCA and Companies House registers, and says in
+plain words: *"Do not touch that message."* Before You Pay stands between you and a transfer to someone new.
+
+</td>
+<td width="33%" valign="top">
+
+**🕰️ Gives time back**<br>
+It weighs every claim against what an hour of your life is worth, knows when it's better to wait,
+and keeps a Time Ledger of the hours and pounds it has returned.
+
+</td>
+</tr>
+</table>
+
+---
+
+## Contents
+
+- [Why Tempo](#why-tempo)
+- [One late train, and everything it touches](#one-late-train-and-everything-it-touches)
+- [What Tempo can do](#what-tempo-can-do)
+- [Guardrails: what can never happen](#guardrails-what-can-never-happen)
+- [How it works](#how-it-works)
+- [Quickstart](#quickstart)
+- [Configuration](#configuration)
+- [Use Tempo from your AI](#use-tempo-from-your-ai)
+- [The Gateway API](#the-gateway-api)
+- [Extend Tempo](#extend-tempo)
+- [Quality, tests and evals](#quality-tests-and-evals)
+- [Deploy](#deploy)
+- [Repository layout](#repository-layout)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+
+---
+
+## Why Tempo
+
+Companies owe people money all the time: a late train, an engineer who never came, a delayed flight, a
+benefit nobody mentioned. Most of it is never claimed. The forms are long, the deadlines are short, and the
+process is designed to wear you down.
+
+The people who lose the most are the ones the internet forgot. They can't read the letter, they can't hear
+the call, they can't navigate the app, and they're the ones scammers target. Tempo is one agent that reads
+to you, listens patiently, warns you, and claims what you're owed. It does all of this inside hard limits
+that code enforces, not promises a model makes.
+
+---
 
 ## One late train, and everything it touches
 
-Margaret is 74, stammers, and rings from a landline. Her 08:12 to Paddington was 38 minutes late.
+Margaret is 74, has a stammer, and rings from a landline. Her 08:12 to Paddington was 38 minutes late.
 That one fact runs through every part of Tempo:
 
 | | Tempo... | Built as |
 |---|---|---|
 | **Hear** | answers the way she asked to be spoken to, before the first word: slowly, one question at a time, waiting as long as it takes | the Patience Profile (`access` memories → `POST /voice/initiation`) |
-| **Read** | finds how late the train was; reads a ticket, a card or a letter and reads back anything it is unsure of | rail data over MCP, vision intake with read-back |
+| **Read** | finds out how late the train was, and reads a ticket, a card or a letter, reading back anything it's unsure of | rail data over MCP, vision intake with read-back |
 | **Price** | works out the amount from a YAML rule pack with a citation, never from a model | the Rights Engine and its Proof Trace ([ADR 0003](docs/adr/0003-rules-as-code.md)) |
-| **Check** | has three AI jurors, each a different model, check the reading; they may say no, never raise the amount | the Consensus Court |
-| **Weigh** | asks whether it is worth her time, at her own value of an hour | the Arbiter and the Time Ledger |
-| **Time it** | knows every right has a clock, and that sometimes the right move is to wait, with the date | Rights Decay ([backtest](docs/rights_backtest.md)) |
+| **Check** | has three AI jurors, each a different model, check the reading; they may say no, but never raise the amount | the Consensus Court |
+| **Weigh** | asks whether it's worth her time, at her own value of an hour | the Arbiter and the Time Ledger |
+| **Time it** | knows every right has a clock, and that sometimes the right move is to wait until a named date | Rights Decay ([backtest](docs/rights_backtest.md)) |
 | **Ask once** | asks one question and acts only on a signed yes; STOP stops everything | the consent ledger where deny wins ([ADR 0004](docs/adr/0004-deny-wins.md)), passkeys |
 | **Prove it** | shows the company's own AI a mandate it can verify in milliseconds, and the company refuses anything outside it | the Agent Passport ([red team](docs/passport_redteam.md)) |
-| **Remember only her words** | keeps what she said and official data; company text is evidence, never memory; everything dated and forgettable | the Memory Gate and the Memory Card |
-| **Return the time** | counts hours and pounds returned only once the money has arrived | the Watchdog and the Time Ledger |
-| **Find it for her** | reads her email, calendar and bank statement through read-only connectors, and finds the late train, the missed engineer, the scam and the refund that already came, keeping none of it | connectors over MCP and the sweep ([plan §14](plan.md)) |
-| **Answer any AI** | lets Claude, Cursor or Zed ask Tempo over MCP: check a text, read a letter, start a claim, see its status; no tool can approve, so her yes stays hers | Tempo as an MCP server at `/mcp` ([docs/mcp.md](docs/mcp.md)) |
+| **Remember only her words** | keeps what she said and official data; company text is evidence, never memory; everything is dated and forgettable | the Memory Gate and the Memory Card |
+| **Return the time** | counts the hours and pounds returned only once the money has arrived | the Watchdog and the Time Ledger |
+| **Find it for her** | reads her email, calendar and bank statement through read-only connectors and finds the late train, the missed engineer, the scam and the refund that already came, keeping none of it | connectors over MCP and the sweep |
+| **Answer any AI** | lets Claude, Cursor or Zed ask Tempo over MCP; no tool can approve, so her yes stays hers | Tempo as an MCP server at `/mcp` ([docs/mcp.md](docs/mcp.md)) |
 
-## Profiles: who Tempo works for
+<p align="center">
+  <img src="docs/readme/story.jpg" alt="The story page: Margaret is 74, stammers, and rings from a landline. Her 08:12 to Paddington was 38 minutes late. A guided demo in ten beats." width="100%">
+  <br><sub><i>The story page walks through all ten beats, and each "Try it" button does the real thing.</i></sub>
+</p>
 
-A **profile** is one YAML file that says who Tempo is working for, which skills are on, how it must
-speak with the person, and what it may never do. Pick one, share it as a link or a file, and the
-Harness enforces it: a tool call outside the profile's `may` list is refused before it runs.
+---
+
+## What Tempo can do
+
+### 💬 A chat that does things, not just talks
+
+The chat is the front door. Type or say *"my 08:12 Oxford to Paddington was 38 minutes late on 23 October,
+ticket £28.40"* and Tempo understands it, prices it, and asks once, showing the Proof Trace and the Court's
+votes inline. It claims only after you say yes.
+
+- **A real language model holds the conversation.** NVIDIA's **Nemotron 3 Ultra** reads the last 16 lines,
+  answers in its own words, asks its own one question, and kindly turns down what Tempo can't do.
+- **It acts only through Tempo's tools.** Claiming a late train or a missed visit, checking a scam,
+  recalling, forgetting, sweeping the inbox, reading a letter and checking benefits are all doors into the
+  same services the rest of the app uses. The rule pack still sets the amount, and the Court still judges.
+- **Every fact a claim receives is checked against your own words** (`grounding.py`). Stations, day, time
+  and fare must be things you actually said. *"London"* from Oxford gets *"Paddington or Marylebone?"*,
+  never a guess.
+- **Code keeps the important words.** STOP and your yes or no to a waiting question never go through the model.
+- **It's open to anything else.** Ask about the weather, the walk to the Radcliffe Camera, the Central line,
+  your MP, a food hygiene rating or 15% of £240, and Tempo answers with live data, its sources, and a
+  "How Tempo got here" trace of the steps it took.
+- **It speaks.** Server-side ElevenLabs voices with a lower, slower voice for callers with hearing loss, and
+  a talking avatar in the browser. Long answers are spoken as one sentence plus *"The details are on your screen."*
+- **The tools live in the chat.** Upload a letter or a PDF, answer *Am I owed anything?*, or check *Is this
+  a scam?*, all inside the conversation. **History** shows every conversation with a status dot: yellow
+  while Tempo is working, green when there's news, grey once it's done and read.
+
+### 💷 Claims that pay, priced by code
+
+| Skill | What it claims | Decided by |
+|---|---|---|
+| [Delay Repay for UK trains](skills/clawback-uk-rail) | compensation for late trains, by operator and delay band | `skills/clawback-uk-rail/rules/*.yaml` |
+| [Missed engineer visits and broadband faults](skills/clawback-ofcom) | Ofcom automatic compensation for a missed engineer appointment | `skills/clawback-ofcom/rules/*.yaml` |
+| [Flight delay compensation (UK261)](skills/clawback-uk-flights) | fixed sums by distance and delay, with extraordinary circumstances | `skills/clawback-uk-flights/rules/*.yaml` |
+| [Rights Decay: when to act](skills/rights-decay) | every right's clock, and the best day to act on it | `kind: clock` rule packs with citations |
+
+Every claim goes through the same pipeline:
+
+1. **Intake.** Rail data over MCP, plus vision that reads tickets, *"sorry we missed you"* cards and letters,
+   and reads back anything it's unsure of.
+2. **The Rights Engine.** Rules as code produce a **Proof Trace**: the band, the percentage, the citation, the sum.
+3. **The Consensus Court.** Three jurors, each a different model, check the reading. They may refuse, but
+   they can never raise an amount. The Court rules as soon as two agree.
+4. **The Arbiter.** Is it worth your time, at your own value of an hour?
+5. **Rights Decay.** Act now, or wait on purpose until a named date. A planner prices waiting against acting
+   using a fitted hazard curve and your time, and durable timers wake the mission to re-plan.
+6. **Consent.** One question. A signed yes. Deny wins.
+7. **The Agent Passport.** A signed mandate the company's own agent can verify offline.
+8. **File once.** An idempotency key means the same claim is never filed twice.
+9. **The Watchdog.** A durable timer checks that the money really arrived, then the Time Ledger counts it.
+
+Missions are checkpointed at every step. A crash or a redeploy mid-mission resumes exactly where it left
+off and asks the same question again.
+
+### 🛡️ Scam Shield and Before You Pay
+
+<p align="center">
+  <img src="docs/readme/scam.jpg" alt="Scam Shield in the chat: 'Do not touch that message. It is a trick trying to take your money.' with the reasons, the look-alike link and what to do" width="100%">
+</p>
+
+- **On the phone, offline, in milliseconds.** Eight keyword families, link rules (a brand's name in a domain
+  that isn't the brand's, look-alike letters, shorteners, app files) and a small calibrated text model,
+  shipped as a 400 KB JSON file, decide on the device. Only four derived fields ever leave the phone, never
+  the message itself.
+- **On the Gateway, with the registers.** The FCA Register and Warning List, Companies House, public phishing
+  feeds, and an isolated link sandbox that looks behind doubtful links. Code settles the grey zone.
+- **Everywhere you are.** `CHECK <message>` by SMS, a message read out on the voice line, the chat, and
+  `/shield` on the web, in six languages. It speaks plainly: *"Do not touch that message. It is a trick
+  trying to take your money. Ring the firm on a number you already know."*
+- **Measured.** On the held-out test fold: **97.8% precision and 95.8% recall** at the warn threshold, and
+  0.0% of held-out genuine bank, NHS and council texts flagged ([backtest](docs/scam_backtest.md)).
+- **Before You Pay.** Tempo never moves money. Before a transfer to someone new, it checks who, how much,
+  why, the pressure signs, the registers and a cooling-off rule, then says it in plain words.
+
+### 📬 Connectors: find money you're owed
+
+<p align="center">
+  <img src="docs/readme/sweep.jpg" alt="'Find money I'm owed in my email': four findings, a £14.20 train claim from a Trainline e-ticket, a missed Broadbandly visit from the calendar, an HMRC scam email, and a Thames Water refund already in the bank" width="100%">
+</p>
+
+Connect the places your life already is: your **mailbox**, your **calendar** and your **bank statement**.
+Each one is a small, read-only MCP server. Say *"find money I'm owed in my email"* and the sweep finds:
+
+- the 08:12 e-ticket from Trainline, and the rail records that show it was 38 minutes late, so a **£14.20** claim starts;
+- the Broadbandly engineer booking on 19 October, with the question *"Did they come?"*;
+- an *"HMRC tax refund"* email that Scam Shield calls a trick;
+- a **£23.40** Thames Water refund that has already reached the bank, so nothing needs doing.
+
+Connector output is **evidence, never instructions**. Code parses it, it never becomes memory, and only
+read-only tools on an allowlist are ever called. Tempo lists what it read and keeps none of it.
+
+### 📄 Read It To Me
+
+Photograph any official letter, or upload a PDF. Tempo tells you, in your language, what it is, what it says,
+whether money is owed to you or by you, what you must do and by when, and which rights clocks it starts.
+If it's unsure of something, it asks you once. Say your reply in your own words and it drafts a plain,
+formal letter that **adds no facts**.
+
+The **Decision Challenger** explains a PIP decision against the points, works out the reconsideration
+deadline (accounting for gov.uk bank holidays), and drafts the challenge.
+
+### 💡 Am I Owed Anything?
+
+Ten plain questions, then what looks worth claiming: Pension Credit, Attendance Allowance and broadband
+social tariffs, each with its official page and a pre-filled pack. Tempo looks and explains. It never files
+anything here.
+
+### 🧠 Memory you control
+
+<p align="center">
+  <img src="docs/readme/memory.jpg" alt="The Memory page: the Memory Gate, the Memory Card with 'has a stammer' and 'needs more time to answer', each with a source, a date, Correct and Forget, and a dated timeline" width="100%">
+</p>
+
+- **The Memory Gate.** Only what you said and official data can be remembered, and only with a date, a
+  source and a way to forget it. Company text is evidence, never memory.
+- **The Memory Card.** Everything Tempo knows about you, where it came from and when. Correct or forget any
+  of it by voice, by SMS or on the web, and the next call forgets it too.
+- **A dated timeline.** Appointments, promises and facts, each valid from one date to another, so Tempo knows
+  what is still true. It's stored in SQL or as a Graphiti temporal graph on Neo4j, with Mem0 or pgvector for recall.
+
+### ♿ The Patience Profile and accessibility
+
+Say once *"I stammer, give me time"*, *"speak Hindi, slowly"*, or *"I'm hard of hearing, text me the question"*.
+Tempo reads it back, keeps it only on a yes, and **every call starts that way**. As each call connects, the
+Gateway sets the language, pace, voice and listening keywords before the first word is spoken.
+
+- Voice and SMS come first, with one question at a time and read-back.
+- Every sentence Tempo says scores **Flesch ≥ 60**, enforced in CI.
+- The web has large text, a plain mode, reduced motion and full keyboard paths, all checked with **axe**.
+- See [docs/accessibility.md](docs/accessibility.md).
+
+### 👤 Profiles and skills: who Tempo works for
+
+A **profile** is one YAML file that says who Tempo is working for, which skills are on, how it must speak with
+the person, and what it may never do. Pick one, share it as a link or a file, and the Harness enforces it.
+A tool call outside the profile's `may` list is refused before it runs.
 
 | Profile | For | Skills on | May never |
 |---|---|---|---|
@@ -80,76 +271,93 @@ Harness enforces it: a tool call outside the profile's `may` list is refused bef
 | [Read It To Me](profiles/read-it-to-me.yaml) | letters, calls and apps are frightening | letters, scams, benefits, clocks | claim, call or accept anything |
 | [Am I Owed Anything?](profiles/am-i-owed.yaml) | answers first, trust later | benefits, letters, scams | anything binding at all |
 
-The eight capability words (`claim`, `call`, `accept_cash`, `accept_voucher`,
-`discuss_other_accounts`, `change_contract`, `share_personal_data`, `escalate`) are the same words
-a signed mandate uses, so a profile and a mandate can never disagree. [docs/profiles.md](docs/profiles.md)
-has the schema and how sharing stays safe.
+Profiles and signed mandates use the same eight capability words (`claim`, `call`, `accept_cash`,
+`accept_voucher`, `discuss_other_accounts`, `change_contract`, `share_personal_data`, `escalate`), so a
+profile and a mandate can never disagree. [docs/profiles.md](docs/profiles.md) has the schema.
 
-## Built for the people the internet forgot
+### 🔐 Agent Passport and Tempo Mesh
 
-The same people are hit from every side at once: they cannot read the letter, cannot hear the
-call, cannot navigate the app, and are the ones scammers target. Tempo's answer is one agent that
-reads to you, listens patiently, warns you, and is built so that it **cannot** move your money or
-act without your signed yes.
+- **Agent Passport.** A mandate is signed with Face ID or a fingerprint (the WebAuthn challenge *is* the
+  mandate's digest), or by the Gateway after a spoken yes. Both the Harness and the company's own line
+  enforce it, and it can be checked offline in Python or in the browser. STOP revokes it everywhere.
+  **10 of 10 red-team attacks are refused**, and a check takes under 0.1 ms at p99 ([red team](docs/passport_redteam.md)).
+- **Tempo Mesh.** Pair your phone and laptop by QR with matching codes. Approvals are signed with a passkey
+  on the device you hold, push notifications say only *"sync"*, and every screen updates live.
 
-- **Read It To Me.** Photograph any official letter. Tempo says, in your language, what it is,
-  what it says, whether money is owed to you or by you, what you must do and by when, and which
-  rights clocks it starts. Anything it is unsure of, it asks. Say your reply in your own words and
-  it drafts a plain formal letter that adds no facts.
-- **The Patience Profile.** Say once "I stammer, give me time" or "speak Hindi, slowly" or "I'm
-  hard of hearing, text me the question". Tempo reads it back, keeps it only on a yes, and every
-  call starts that way. Forget it and the next call forgets it.
-- **Before You Pay.** Tempo never moves money. It stands between you and a transfer to someone new:
-  who, how much, why, the pressure signs, the registers, a cooling-off rule, and then plain words:
-  "wait, and ring them on a number you already know".
-- **Scam Shield.** On the phone, Tempo reads incoming texts on the device and speaks when one is a
-  trick: "Do not touch that message. It is a trick trying to take your money." Keyword families,
-  link rules (a brand's name in a domain that is not the brand's, look-alike letters, shorteners,
-  app files) and a small calibrated text model shipped as a 400 KB JSON file decide in
-  milliseconds; only four derived fields ever leave the phone, never the message. Doubtful links
-  are held ("I'm checking that message") and looked behind from the Gateway's sandbox, then settled
-  by code. The same check answers `CHECK <message>` by SMS, a message read out on the voice line,
-  and `/shield` on the web, in six languages. [docs/scam-shield.md](docs/scam-shield.md).
-- **Everywhere:** voice and SMS first; one question at a time with read-back; every sentence Tempo
-  says scores Flesch ≥ 60 in CI; large text and a plain mode on the web; keyboard, screen-reader
-  and reduced-motion paths checked with axe. [docs/accessibility.md](docs/accessibility.md).
+### 🧰 A toolbox for everything else
+
+The chat's brain picks from **18 keyless native tools**, plus MCP add-ons from GitHub, and can use up to four
+rounds of look-ups per turn:
+
+| Area | Tools | Sources |
+|---|---|---|
+| Places | find places, directions (walk, bike, drive), food hygiene | OpenStreetMap Nominatim, FOSSGIS Valhalla, the Food Standards Agency |
+| Everyday | weather, air quality and pollen, news, currency, dictionary, recipes | Open-Meteo, BBC News, the ECB, dictionaryapi.dev, TheMealDB |
+| UK | postcode info, your MP, bank holidays, flood warnings, Tube status | postcodes.io, UK Parliament, GOV.UK, the Environment Agency, TfL |
+| Knowledge | encyclopedia, read a web page, web search | Wikipedia, the page itself, Tavily or Brave |
+| Exact | calculator, dates | a safe AST calculator (never `eval`) |
+
+**Add-ons** ([`addons/tools.yaml`](addons/tools.yaml)) let any MCP server lend its tools: DuckDuckGo search,
+the MCP reference time server, and OpenStreetMap geocoding are plugged in. Each one is pinned to a version,
+run through `uvx` with its environment stripped to `PATH` and `HOME` (so no Gateway key ever reaches it),
+and lends only the tools on its allowlist. A look-up result is always data, never instructions, and
+`read_web_page` reads only public addresses, re-checking every redirect.
+
+### 🔎 Privacy Proof
+
+One page shows what's true of this deployment: who sees what, which outside AI companies are named and
+for which job, where your data lives, and what never leaves your device. Each line is something the
+Gateway checked, not something it merely claims.
+
+### 📱 On your phone
+
+<p align="center">
+  <img src="docs/readme/phone-home.jpg" alt="Tempo on a phone: the chat's welcome screen with examples" width="30%">
+  &nbsp;
+  <img src="docs/readme/phone-scam.jpg" alt="Tempo on a phone: Scam Shield warns about an HMRC text" width="30%">
+  &nbsp;
+  <img src="docs/readme/phone-memory.jpg" alt="Tempo on a phone: the Memory page and the Memory Gate" width="30%">
+</p>
+
+The web app is a responsive PWA with a bottom bar on phones. There's also an iPhone Shortcut for Scam Shield,
+and an Android signal node that reads notifications on the device and sends only a match's declared fields.
+
+---
 
 ## Guardrails: what can never happen
 
-- A model never decides an amount, an eligibility, a deadline or a permission; code does.
-- Nothing binding without a matching, unexpired consent and a mandate that covers it; deny wins;
-  a broken guardrail blocks rather than waves through.
-- No vouchers, nothing below the entitlement, nothing outside the profile's `may` list, nothing
-  above its amount limit without asking the person again.
+> **Models read and plan. Code decides money, time and permissions.**
+
+- A model never decides an amount, an eligibility, a deadline or a permission. Code does.
+- Nothing binding happens without a matching, unexpired consent and a mandate that covers it. Deny wins,
+  and a broken guardrail blocks rather than waves through.
+- No vouchers, nothing below the entitlement, nothing outside the profile's `may` list, and nothing above
+  its amount limit without asking the person again.
 - Company text can change nothing: not an action, not an amount, not a memory.
-- Approvals are signed on the person's device and bound to one question; they cannot be replayed.
-- Logs carry no personal data (a canary test proves it); secrets never reach the repo (gitleaks);
-  dependencies are audited in CI; the web app ships a Content-Security-Policy.
-- A shared profile is validated, size-capped and never stored by the server.
+- Approvals are signed on the person's device and bound to one question, so they can't be replayed.
+- No MCP tool can approve. An assistant that asks Tempo can never spend the person's consent.
+- The chat's model may not state an amount, a percentage, or a claim of having acted. Those come only from code.
+- Logs carry no personal data (a canary test proves it), secrets never reach the repo (gitleaks),
+  dependencies are audited in CI, and the web app ships a Content-Security-Policy.
+- A shared profile is validated, size-capped, and never stored by the server.
 
-The threat model, with each threat mapped to its control and its test, is
-[docs/security.md](docs/security.md). Report a problem the way [SECURITY.md](SECURITY.md) asks.
+The Harness enforces all of this as code: consent, settlement, proof, prompt injection, PII, mandate,
+capability and budget guards wrap every binding tool call. The threat model, with each threat mapped to its
+control and its test, is in [docs/security.md](docs/security.md).
 
-## Add your use case in ten minutes
-
-1. **A new operator or scheme** is one YAML rule pack under `skills/<skill>/rules/`. The schema
-   rejects gaps, overlaps and bands that pay less for a longer delay.
-2. **A new skill** is a folder with a manifest: `make new-skill id=council-tax name="Council tax
-   discounts"`, then edit the two files it wrote and run `make validate-skills`.
-3. **A new profile** composes skills for a kind of person: copy one from `profiles/`.
-4. **A new mission** is Python that copies the shape of `packages/tempo_missions/.../clawback_ofcom`.
-
-Keep `demo_values: true` until a person has checked the published source, then set
-`last_verified`. [docs/add-a-usecase.md](docs/add-a-usecase.md) walks through all four and ends in
-a pull request; [CONTRIBUTING.md](CONTRIBUTING.md) has the house rules.
+---
 
 ## How it works
 
 ```mermaid
 flowchart LR
   P["Person: voice, SMS, web"] --> GW["Gateway (FastAPI)"]
+  AI["Any AI over MCP"] --> GW
   PR["Profile: skills on, may / may not"] -.-> GW
+  GW --> B["Chat brain (Nemotron 3 Ultra)<br/>+ toolbox + add-ons"]
+  B --> WF
   GW --> WF["Mission workflow<br/>(checkpointed, resumable)"]
+  CN["Connectors: mail, calendar, bank (MCP)"] --> GW
   WF --> I["Intake: rail data, vision, read-back"]
   I --> R["Rights Engine: rules as code → Proof Trace"]
   R --> C["Consensus Court: 3 models, may only say no"]
@@ -163,116 +371,278 @@ flowchart LR
   H["Harness: consent, settlement, proof, injection, PII,<br/>mandate, capability, budget"] -.-> F
 ```
 
-- **Models read and plan; code decides money, time and permissions.**
-- **Missions survive anything:** each step is a checkpointed executor; a crash or deploy
-  mid-mission resumes and asks the same question again.
-- **Every vendor sits behind a port** with a live and a replay implementation, so demos and CI
-  run with no keys and the honesty badge says what is real.
-- **Deployment modes** (`TEMPO_DEPLOY`): local (Ollama), cloud-standard (Snowflake Cortex),
-  cloud-private (our own model on RunPod vLLM, so no outside AI company sees personal data),
-  cloud-confidential (roadmap). [docs/architecture.md](docs/architecture.md).
+**Design principles**
 
-## What's built, and what isn't yet
+- **Hexagonal core.** `tempo_core` is pure Python with no I/O. Every vendor sits behind a port
+  (`typing.Protocol`) with a live implementation and a replay implementation, so demos and CI run with no
+  keys, and an honesty badge always says what is live and what is recorded.
+- **Missions survive anything.** Each step is a checkpointed executor with durable timers. Crash it,
+  redeploy it, and it resumes.
+- **Rules as code.** Every amount, band and deadline lives in a YAML rule pack with a citation, and a schema
+  rejects gaps, overlaps, and bands that pay less for a longer delay.
+- **One event bus.** Missions, connectors, MCP calls and approvals publish events over a WebSocket (`/events`)
+  that never carry contents, so every screen stays live.
 
-| Area | Status |
+**Deployment modes** (`TEMPO_DEPLOY`) decide which outside AI companies may see personal data:
+
+| Mode | Models | Outside AI companies |
+|---|---|---|
+| `local` | Ollama on your own machine | ElevenLabs, for the voice only |
+| `cloud-standard` | Snowflake Cortex (Claude, OpenAI and Llama models through one account), Gemini for vision | Cortex, Gemini, ElevenLabs |
+| `cloud-private` | our own model on a RunPod Serverless GPU (vLLM) | none |
+| `cloud-gpu` | our own vision-language model on RunPod for the jurors, small talk and photos | ElevenLabs, for the voice |
+| `cloud-apis` | Gemini and NVIDIA jurors, NVIDIA Nemotron as the chat's brain | Gemini, NVIDIA, ElevenLabs |
+
+The mode fails fast on a typo, so a deployment never falls back to a less private one, and the Privacy
+Proof page names every outside company a run really uses.
+
+See [docs/architecture.md](docs/architecture.md) for the full picture.
+
+---
+
+## Quickstart
+
+**You need:** Python 3.12 with [uv](https://docs.astral.sh/uv/), Node.js 22, and optionally Docker (for
+Postgres and Neo4j in the integration tests).
+
+```bash
+git clone https://github.com/jeevithg090/Tempo.git
+cd Tempo
+make setup
+```
+
+New to the project? [docs/local-setup.md](docs/local-setup.md) takes you from a fresh clone to the app on localhost:3000, step by step: what to install on macOS, Linux or Windows, what `make setup` does, optional keys, tests and troubleshooting.
+
+Then choose how you want to see it:
+
+| Want | Run | What you get |
+|---|---|---|
+| **Just look** | open **[tempo-showcase.vercel.app](https://tempo-showcase.vercel.app)**, or run `make showcase` | the whole app, chat included, on recorded replay data with no backend and no keys |
+| **The real thing, offline** | `make demo` | the Gateway on `:8000` in replay mode, the demo's people seeded, and the web app on [localhost:3000](http://localhost:3000) |
+| **The scripted story** | `make demo-dry-run` | Margaret's late train found, priced, asked once, claimed and paid, with a restart in the middle |
+| **A real model on a GPU** | `make live-demo` | our own model on RunPod for the jurors, small talk and photos, the Gateway behind a public tunnel, and the web app on Vercel ([docs/gpu-demo.md](docs/gpu-demo.md)) |
+| **Hosted models, no GPU** | `make live-switch MODE=apis` | the same live site on Gemini and NVIDIA |
+| **Everything on your machine** | `make local` | Local mode: Postgres, Ollama and the Gateway, bound to localhost |
+
+Then try these in the chat:
+
+- *My 08:12 Oxford to Paddington was 38 minutes late on 23 October, ticket £28.40*
+- *The Broadbandly engineer never came on 19 October*
+- *Is this a scam? HMRC: You are due a tax refund of 248.20 GBP. Claim within 24 hours at* `http://hmrc-refunds-gov.uk/claim`
+- *Find money I'm owed in my email*
+- *What do you remember about me?*
+- *How do I walk from Oxford station to the Radcliffe Camera?*
+
+[docs/demo.md](docs/demo.md) has the full demo runbook, beat by beat. `make help` lists every command.
+
+---
+
+## Configuration
+
+Copy `.env.example` to `.env` and fill in only what you need. Everything runs in replay mode without keys,
+and `make doctor` makes one cheap call per vendor to tell you what's ready.
+
+| Variable | What it turns on |
 |---|---|
-| Domain core: rules, consent, state machine, Arbiter, time value, ledger | ✅ 100% branch-tested |
-| Clawback Rail mission (Delay Repay), checkpoints, Watchdog, Gateway, SMS, voice tools | ✅ |
-| Rail data: HSP and Realtime Trains clients, MCP server, replay | ✅ (fixtures are synthetic until recorded) |
-| Cortex model client, router, Consensus Court; Gemini intake | ✅ (live use needs keys) |
-| Voice agents (Tempo, Negotiator) as config-as-code, Sludge Arena (3 company agents, 10 scenarios) | ✅ (push with `make sync-voice`) |
-| Mission Control web app, Stall Radar, tracing to Langfuse | ✅ |
-| Scam Shield: Companies House, the FCA Register and Warning List, plus pressure signs; by SMS (`CHECK <message>`) or REST; never says "safe" | ✅ (recorded register answers until keys are in) |
-| Entitlement Check: ten questions, then Pension Credit, Attendance Allowance and broadband social tariffs worth claiming, with a pre-filled pack; screening, not a decision | ⚠️ 2025/26 figures as demo values until checked against gov.uk |
-| Letter Explainer + Decision Challenger: a PIP decision explained against the points, its reconsideration deadline (gov.uk bank holidays) and a draft letter that adds no facts | ✅ (decision letters read by Gemini with keys; the REST route takes the read facts) |
-| Rule packs: GWR, Chiltern, Ofcom missed appointment, UK261 | ⚠️ demo values until checked against published terms |
-| Tempo Memory: Memory Gate, Mem0 or pgvector, a dated timeline (SQL, or Graphiti on Neo4j), recall and forget by voice, SMS and the Memory Card | ✅ (Graphiti needs Neo4j and Cortex keys) |
-| Android signal node: reads notifications on the phone; only a match's declared fields leave it, with a privacy log | ⚠️ written, not yet built (no JDK or Android SDK here); its filter rules are tested in Python against the shared vectors |
-| Tempo Mesh v0: QR pairing with matching codes, passkey-signed approvals (Face ID, fingerprint), push that says only "sync", a Device Router, live fan-out to every screen | ✅ Gateway routes and tests (TLS and per-device keys; MLS end-to-end encryption is the roadmap); in the web app as the **Devices** page: Face ID approvals, pairing by QR, signing an Agent Passport mandate and letting the company check it |
-| Deployment modes (`TEMPO_DEPLOY`): local (Ollama), cloud-standard (Cortex), cloud-private (our own model on RunPod vLLM: no outside AI company sees personal data) | ✅ switch, factory and RunPod client (the private endpoint needs keys; [deploy/runpod](deploy/runpod/README.md)) |
-| Client-side encryption (device-held keys, crypto-shred), ephemeral workers with signed reports and one-step key release (browser and Python interop-tested), no-logs hardening with a canary test, signed reproducible images with a transparency allowlist, Local mode, the Privacy Proof panel | ✅ code and tests; images not yet built and keys not yet made ([deploy/transparency](deploy/transparency/README.md)); the Vault isn't yet wired into mission checkpoints |
-| Confidential mode: key release only to an attested enclave (measurement, no debug, GPU CC mode, freshness, bound to the worker's key) | ⚠️ simulated attestation; real TEEs are roadmap ([deploy/confidential](deploy/confidential/README.md)) |
-| Rights Decay: every right has a clock (`kind: clock` rule packs, 8 with citations); a planner prices waiting against acting from a fitted hazard curve and the person's time, and names the day to act; the Ofcom missed-visit mission waits with durable timers and re-plans on every wake; vision reads the "sorry we missed you" card and reads back one unsure fact | ✅ clocks are demo values until checked; the curves are NYC 311 housing requests standing in for UK companies, scaled by the FCA's real UK "upheld" share ([backtest](docs/rights_backtest.md), [calibration](docs/rights_calibration.md)) |
-| Agent Passport: a mandate signed with Face ID (the WebAuthn challenge is its digest) or by the Gateway after a spoken yes; checked offline in Python and in the browser; the Harness and the company's line both enforce it; Tempo answers only for the exact mandate it issued; STOP revokes it everywhere | ✅ 10/10 attacks refused ([red team](docs/passport_redteam.md)); the passkey is self-certifying, so a directory or attestation issuer is roadmap |
-| Patience Profile: a caller tells Tempo once how to speak with them (a stammer, hearing, a language, a slower pace); the Memory Gate reads it back and keeps it opt-in, dated and forgettable; as each call connects, ElevenLabs asks the Gateway, which sets language, pace, voice and listening keywords, and tells the agent in plain words; the whole line is patient for everyone | ✅ replay and tests; live needs `make sync-voice` (it turns on the conversation-initiation webhook) and a lower voice in `ELEVENLABS_VOICE_TEMPO_LOW`; the five greetings are unchecked by native speakers |
-| Tempo Profiles: a shareable YAML that says who Tempo works for, which skills are on, how it must speak with the person and what it may never do; seven starters; share links that are validated, size-capped and never stored; enforced by `CapabilityGuard` and `BudgetGuard` in the Harness | ✅ ([docs/profiles.md](docs/profiles.md)) |
-| Skill manifests (`skills/<id>/skill.yaml`) for all seven skills, `make new-skill` and `make validate-skills` | ✅ ([docs/add-a-usecase.md](docs/add-a-usecase.md)) |
-| Read It To Me: a photo of any official letter becomes a plain spoken reading (what it is, what it says, what you must do, by when, which rights clocks it starts) with a read-back for anything unsure, and a reply drafted from your own words that adds no facts | ✅ replay fixtures (a water overpayment, a council-tax reminder); live reading needs a Gemini key |
-| Before You Pay: a deterministic check before a transfer to someone new (Tempo never moves money) | ✅ rules and tests |
-| Scam Shield: a background agent for SMS scams, phishing links and loan apps. On the phone: eight keyword families, link look-alike rules and a calibrated text model (trained on two CC BY 4.0 SMS corpora plus a declared synthetic set of genuine bank, NHS and council texts) speak the warning offline in six languages; four derived fields go to the Gateway, which adds the FCA and Companies House registers, public phishing lists and an isolated link sandbox, and settles the grey zone by code. Spoken, by SMS `CHECK`, by the voice tool and on `/shield` | ✅ model, rules, sandbox, Gateway, web and iPhone shortcut; on the corpora's test fold precision 97.8% / recall 95.8% at the warn threshold, 0.0% of held-out genuine transactional texts spoken on ([backtest](docs/scam_backtest.md)); the Android node is written against the shared vectors but not compiled here ([plan](docs/scam-shield.md)) |
-| Showcase mode: the whole web app, chat included, on recorded replay data with no backend, so the Vercel deployment works on its own; the story page tells the story | ✅ (`make showcase`, `VITE_TEMPO_SHOWCASE=1`) |
-| GitHub Actions CI (lint, types, tests, web, skills, gitleaks, dependency audits), issue and PR templates, Dependabot, Render and Fly configs for the Gateway | ✅ ([docs/deploy.md](docs/deploy.md), [docs/github-setup.md](docs/github-setup.md)) |
-| Skill Forge: narrate a skill and get a draft pack, manifest, MCP server and tests | ⚠️ work in progress on branch `skill-forge-wip` |
+| `TEMPO_MODE` | `live` or `replay` (recorded fixtures, no network) |
+| `TEMPO_DEPLOY` | `local`, `cloud-standard`, `cloud-private`, `cloud-gpu` or `cloud-apis` |
+| `TEMPO_API_TOKEN` | the bearer token for the web app and `/mcp` |
+| `DATABASE_URL` | Postgres for missions, consent and memory (paste your provider's URL as is) |
+| `NVIDIA_API_KEY`, `CHAT_BRAIN`, `NVIDIA_BRAIN_MODEL` | the chat's brain (Nemotron 3 Ultra by default) |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | reading tickets, cards, letters and PDFs; a juror seat |
+| `RUNPOD_API_KEY`, `RUNPOD_ENDPOINT_ID` | our own model on a RunPod Serverless GPU |
+| `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_TEMPO`, `ELEVENLABS_VOICE_TEMPO_LOW` | voice agents and server-side speech |
+| `TWILIO_NUMBER`, `PUBLIC_URL` | SMS and phone calls |
+| `TAVILY_API_KEY` or `BRAVE_API_KEY` | web search in the toolbox (optional; keyless sources work without it) |
+| `URLHAUS_AUTH_KEY`, `PHISHTANK_API_KEY` | extra phishing feeds for Scam Shield |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Web Push for Tempo Mesh |
+| `MESH_RP_ID`, `WEB_ORIGINS` | the domain passkeys are bound to, and the allowed web origins |
+
+The web app reads `VITE_GATEWAY_URL` and `VITE_TEMPO_TOKEN` at build time. `VITE_TEMPO_SHOWCASE=1`
+(or `?showcase=1`) runs it with no Gateway at all. [docs/deploy.md](docs/deploy.md) has the full environment matrix.
+
+---
+
+## Use Tempo from your AI
+
+The Gateway is an **MCP server** at `/mcp` (Streamable HTTP). Any MCP client, such as Claude Code, Claude
+Desktop, Zed or Cursor, can check a suspicious text, read a letter, start a claim, see its status, read the
+Time Ledger, screen entitlements, and verify an Agent Passport mandate.
+
+```bash
+claude mcp add --transport http tempo http://127.0.0.1:8000/mcp --header "Authorization: Bearer devtoken"
+```
+
+| Tool | Does |
+|---|---|
+| `check_message` | Scam Shield's verdict on a text |
+| `read_letter` | reads an official letter from an image |
+| `start_rail_claim` | starts a Delay Repay claim (it waits for the person's own yes) |
+| `start_missed_visit_claim` | starts a missed-engineer claim (it waits for the person's own yes) |
+| `claim_status` | where a claim is, with its timeline |
+| `money_returned` | the Time Ledger |
+| `screen_entitlements` | the ten-question benefits screen |
+| `verify_mandate` | checks an Agent Passport mandate, for a company's agent |
+
+**No tool approves anything.** A claim an assistant starts waits for the person's yes on their own device.
+Rule packs (`tempo://rules/{id}`) and profiles (`tempo://profiles/{id}`) are MCP resources, and two prompts
+(`claim-a-late-train`, `is-this-a-scam`) start the common jobs. Configs for Zed, Cursor and Claude Desktop are
+in [docs/mcp.md](docs/mcp.md).
+
+---
+
+## The Gateway API
+
+A FastAPI service with bearer auth for the web, signed webhooks for voice and SMS, and a live WebSocket.
+
+| Area | Routes |
+|---|---|
+| Chat and voice | `POST /chat`, `POST /voice/tts`, `POST /voice/initiation`, `POST /voice/tools/{name}`, `POST /voice/post-call` |
+| Missions | `GET /missions`, `GET /missions/{id}`, `POST /missions/ofcom`, `POST /missions/{id}/stop`, `GET /ledger` |
+| Consent and mandates | `POST /approvals/{request_id}`, `POST /mesh/mandates`, `POST /mandates/verify`, `POST /mandates/{id}/revoke` |
+| Scam Shield | `POST /scam/check`, `POST /scam/payee`, `GET /scam/shield` |
+| Letters and benefits | `POST /letters/read`, `POST /letters/reply`, `POST /letters/pip`, `POST /entitlement/screen` |
+| Memory | `GET /memories`, `POST /memories/{id}/correct`, `DELETE /memories/{id}`, `DELETE /timeline/{episode_id}` |
+| Connectors | `GET /connectors`, `POST /connectors/{id}/connect`, `POST /connectors/sweep` |
+| Profiles and skills | `GET /profiles`, `GET /profiles/{id}/share`, `POST /profiles/import`, `GET /skills` |
+| Mesh | `POST /mesh/pairings`, `POST /mesh/devices`, `POST /mesh/devices/me/passkey`, `PUT /mesh/devices/me/push`, `POST /mesh/approvals/{request_id}` |
+| SMS | `POST /sms/inbound` (`CHECK`, `YES`, `STOP`, recall and forget by text) |
+| Platform | `GET /health`, `GET /privacy`, `WS /events`, `/mcp`, `GET /mcp/info` |
+
+---
+
+## Extend Tempo
+
+**Add your use case in ten minutes:**
+
+1. **A new operator or scheme** is one YAML rule pack under `skills/<skill>/rules/`. The schema rejects
+   gaps, overlaps, and bands that pay less for a longer delay.
+2. **A new skill** is a folder with a manifest:
+
+   ```bash
+   make new-skill id=council-tax name="Council tax discounts"
+   ```
+
+   Edit the two files it writes, then run `make validate-skills`.
+3. **A new profile** composes skills for a kind of person. Copy one from `profiles/`.
+4. **A new mission** is Python that follows the shape of `packages/tempo_missions/.../clawback_ofcom`.
+5. **A new tool** is one small function in `apps/gateway/src/tempo_gateway/tools/`, or a few lines of YAML
+   in `addons/tools.yaml` to borrow tools from any MCP server.
+
+[docs/add-a-usecase.md](docs/add-a-usecase.md) walks through all of these and ends in a pull request.
+
+---
+
+## Quality, tests and evals
+
+Over 1,500 fast tests, 200+ integration tests and nearly 250 web tests, with `mypy --strict` across the core.
+
+```bash
+make check           # ruff, mypy --strict, fast tests, in under 60 s
+make validate-skills # every rule pack, skill manifest and profile loads and agrees
+make web-check       # typecheck, vitest (axe included), and a production build in both modes
+make ship-check      # all three: what CI runs
+make test-int        # Postgres and the Gateway end to end
+make e2e             # Playwright: the chat door and every page against a replay Gateway
+make demo-rehearsal  # three dry runs in a row
+make live-test       # every feature, for real, against the running live demo
+make evals           # live LLM evals; appends to evals/report.md
+make doctor          # one cheap call per vendor, with an owner and a fallback for each failure
+```
+
+| Eval | Bar |
+|---|---|
+| Plain language (CI) | every message Flesch ≥ 60 |
+| Extraction (tickets and letters) | dates, times and amounts ≥ 95% |
+| Consensus Court (15 cases, including UK261 extraordinary circumstances) | agreement ≥ 80%, never wrong when unanimous |
+| Sludge Arena (10 adversarial company calls) | disclosure, injection resistance and vouchers declined: 100% |
+| Rights Decay (Kaplan–Meier on 458,589 NYC 311 requests, Jan–Jun fitted, Jul–Dec scored) | the planner matches or beats the best simple rule at every share of closures that pay ([backtest](docs/rights_backtest.md)) |
+| Scam Shield (two CC BY 4.0 SMS corpora plus genuine transactional texts) | 97.8% precision, 95.8% recall ([backtest](docs/scam_backtest.md)) |
+| Agent Passport red team | 10/10 attacks refused, 2/2 honest calls allowed, verify p99 < 0.1 ms ([table](docs/passport_redteam.md)) |
+| Profile guards | every binding tool refused under a read-only profile; nothing read-only ever refused |
+
+CI runs lint, types, tests, the web suite, skill validation, gitleaks and dependency audits on every push.
+
+---
 
 ## Deploy
 
-- **Web:** the *Deploy with Vercel* button above (it imports from GitLab; the GitHub mirror works
-  too), or import the repo by hand with Root Directory `apps/web` (framework Vite; `apps/web/vercel.json`
-  sets the SPA rewrite and the security headers). `VITE_TEMPO_SHOWCASE=1` runs the recorded showcase
-  with no backend; `VITE_GATEWAY_URL` and `VITE_TEMPO_TOKEN` attach a Gateway. Vite bakes them in at
-  build time, so redeploy after changing them.
-- **Gateway:** a container from [deploy/gateway.Dockerfile](deploy/gateway.Dockerfile); blueprints
-  for [Render](deploy/render.yaml) and [Fly](deploy/fly.toml). It holds WebSockets, runs a
-  scheduler and writes checkpoints, so it is not a serverless target.
-- [docs/deploy.md](docs/deploy.md) has the steps and the env matrix; [docs/github-setup.md](docs/github-setup.md)
-  sets up the GitHub mirror, its Actions CI and branch protection.
+- **Web.** Import the repo into Vercel with Root Directory `apps/web` (framework: Vite). `apps/web/vercel.json`
+  sets the SPA rewrite and the security headers. Set `VITE_TEMPO_SHOWCASE=1` for the recorded showcase, or
+  `VITE_GATEWAY_URL` and `VITE_TEMPO_TOKEN` to attach a Gateway. From this machine, run `make deploy-web`.
 
-## Quality
+  [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fjeevithg090%2FTempo&root-directory=apps%2Fweb&project-name=tempo&env=VITE_TEMPO_SHOWCASE&envDescription=Set%20to%201%20to%20run%20the%20recorded%20showcase%20with%20no%20backend)
 
-```bash
-make check           # ruff, mypy --strict (core, harness, memory, crypto, passport), fast tests, < 60 s
-make validate-skills # every rule pack, skill manifest and profile loads and agrees
-make web-check       # typecheck, vitest (incl. axe), vite build in both modes
-make ship-check      # the three above: what CI runs
-make test-int        # Postgres (TEST_DATABASE_URL or Docker) and the Gateway end to end
-make e2e             # Playwright smoke: the chat door and every page against a replay Gateway, in Chromium
-make demo-rehearsal  # three dry runs in a row (the rail claim and the Rights Decay beat)
-make rights-backtest # fit the Rights Decay curves from .data/ and write the backtest
-make evals           # live LLM evals (costs tokens); appends to evals/report.md
-make doctor          # one cheap call per vendor, with an owner and a fallback for each failure
-make local           # Local mode: Postgres, Ollama and the Gateway on this machine, localhost only
-```
+- **Gateway.** A container from [deploy/gateway.Dockerfile](deploy/gateway.Dockerfile), with blueprints for
+  [Render](deploy/render.yaml) and [Fly.io](deploy/fly.toml). It holds WebSockets, runs a scheduler and writes
+  checkpoints, so give it a long-running host.
+- **GPU.** [deploy/runpod](deploy/runpod/README.md) sets up the RunPod Serverless vLLM endpoint for `cloud-gpu`.
+- **Local.** `make local` installs Postgres, Ollama and the Gateway on one machine, bound to localhost.
 
-| Eval | Pass bar |
-|---|---|
-| Plain language (CI) | every message Flesch ≥ 60 |
-| Extraction (20 synthetic tickets and letters, Gemini) | dates, times, amounts ≥ 95% |
-| Consensus Court (15 cases incl. UK261 extraordinary circumstances) | agreement ≥ 80%, never wrong when unanimous |
-| Sludge Arena (10 adversarial calls) | disclosure, injection resistance, vouchers declined: 100% |
-| Delay model (`make calibrate`: P(late ≥ 15/30/60) by service, last week held out) | Brier below the route average; [backtest](docs/backtest.md), [reliability diagram](docs/calibration.png) (synthetic until HSP keys) |
-| Rights Decay (`make rights-backtest`: Kaplan-Meier on 458,589 NYC 311 requests, Jan-Jun fitted, Jul-Dec scored) | the planner matches or beats the best simple rule at every share of closures that pay; [backtest](docs/rights_backtest.md) |
-| Agent Passport red team (`tests/policy/test_passport_redteam.py`) | 10/10 attacks refused, 2/2 honest calls allowed; verify p99 under 0.1 ms ([table](docs/passport_redteam.md)) |
-| Profile guards (`tests/policy/test_profile_guards.py`) | every binding tool refused under a read-only profile; nothing read-only ever refused |
+[docs/deploy.md](docs/deploy.md) has the steps and the environment matrix.
 
-Results: [evals/report.md](evals/report.md) (appears after the first run with keys).
+---
 
-## Layout
+## Repository layout
 
 | Path | What lives there |
 |---|---|
-| `packages/tempo_core` | Domain core: pure Python, no I/O (rules, consent, Arbiter, Rights Decay, profiles, skills, letters, voice profile) |
-| `packages/tempo_ports` | Ports (`typing.Protocol`) and replay/in-memory implementations |
-| `packages/tempo_adapters` | One module per vendor: Cortex, rail, Gemini, ElevenLabs, Postgres, telemetry |
-| `packages/tempo_harness` | Guardrails as code (Agent Hooks + fallback), audit records, MandateGuard, CapabilityGuard, BudgetGuard |
-| `packages/tempo_passport` | Agent Passport: the mandate, its canonical form and the offline verifier |
-| `packages/tempo_missions` | Mission workflows, tools, the Consensus Court, Negotiator, Sludge Arena |
-| `packages/tempo_memory` | Memory Gate, MemoryPort (Mem0, pgvector, in-memory), timeline (Graphiti, SQL), context provider |
-| `apps/gateway` | FastAPI: REST, ElevenLabs tools, Twilio SMS, post-call webhook, live WebSocket, profiles, letters |
-| `apps/web` | The web app (Vite + React): the chat door and every page; `src/showcase/` holds the recorded replay data |
-| `apps/shortcuts`, `apps/android-signal` | On-device signal filters: iPhone Shortcuts (built), Android node (written) |
-| `mcp-servers/rail` | MCP server: how late a UK train was |
-| `voice/` | ElevenLabs agent configs (Tempo, Negotiator, Arena) and greetings |
-| `skills/` | One folder per skill: `skill.yaml`, rule packs, signal filters |
-| `profiles/` | The starter profiles |
-| `evals/`, `fixtures/` | Eval datasets and recorded (currently synthetic) vendor responses |
-| `docs/` | [Architecture](docs/architecture.md), [ADRs](docs/adr), [demo runbook](docs/demo.md), [deploy](docs/deploy.md), [security](docs/security.md), [accessibility](docs/accessibility.md) |
-| `.github/` | CI, issue and PR templates, Dependabot |
+| `packages/tempo_core` | the domain core, pure Python with no I/O: rules, consent, the Arbiter, Rights Decay, profiles, skills, letters, findings, the voice profile |
+| `packages/tempo_ports` | ports (`typing.Protocol`) with replay and in-memory implementations |
+| `packages/tempo_adapters` | one module per vendor: Cortex, Gemini vision, RunPod, rail, ElevenLabs, Postgres, the scam registers, telemetry |
+| `packages/tempo_harness` | guardrails as code: Agent Hooks plus a fallback, audit records, the Mandate, Capability and Budget guards |
+| `packages/tempo_passport` | the Agent Passport: the mandate, its canonical form and the offline verifier |
+| `packages/tempo_missions` | mission workflows, tools, the Consensus Court, the Negotiator, the Sludge Arena |
+| `packages/tempo_memory` | the Memory Gate, MemoryPort (Mem0, pgvector, in-memory), the timeline (Graphiti, SQL) |
+| `packages/tempo_crypto` | client-side encryption, device-held keys, signed worker reports and key release |
+| `apps/gateway` | the FastAPI Gateway: REST, the chat brain and toolbox, MCP server, connectors, voice tools, SMS, WebSocket |
+| `apps/web` | the web app (Vite, React 19, Tailwind): the chat and every page; `src/showcase/` holds the recorded data |
+| `apps/worker` | the ephemeral worker for private and confidential modes |
+| `apps/shortcuts`, `apps/android-signal` | on-device signal filters: an iPhone Shortcut and the Android node |
+| `mcp-servers/` | MCP servers: `rail` (how late a UK train was), `mail`, `calendar`, `bank` |
+| `addons/` | MCP add-ons the chat may borrow tools from |
+| `connectors/` | connector configuration |
+| `skills/` | one folder per skill: `skill.yaml`, rule packs, signal filters |
+| `profiles/` | the starter profiles |
+| `voice/` | ElevenLabs agent configs (Tempo, the Negotiator, the Arena) and greetings |
+| `deploy/` | Dockerfiles, Render and Fly blueprints, RunPod, Local mode, transparency |
+| `evals/`, `fixtures/` | eval datasets and recorded vendor responses |
+| `docs/` | architecture, ADRs, the demo runbook, deploy, security, accessibility, design system |
 
-## AI tools disclosure
+---
 
-Tempo uses Snowflake Cortex models (Claude, OpenAI and Llama models through one account), Google
-Gemini for reading tickets, cards and letters, and ElevenLabs Agents for voice. The code was
-written with AI coding assistants (Claude Code) directing and reviewing alongside the team.
+## Documentation
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and
-[SECURITY.md](SECURITY.md). Licensed Apache-2.0.
+| Read | For |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | the system, its ports and its deployment modes |
+| [docs/adr](docs/adr) | the decisions: the agent runtime, Cortex, rules as code, deny wins |
+| [docs/chat.md](docs/chat.md) | the chat door, the brain and its tools |
+| [docs/mcp.md](docs/mcp.md) | Tempo as an MCP server, with client configs |
+| [docs/scam-shield.md](docs/scam-shield.md) | Scam Shield end to end |
+| [docs/profiles.md](docs/profiles.md) | the profile schema and safe sharing |
+| [docs/add-a-usecase.md](docs/add-a-usecase.md) | rule packs, skills, profiles and missions |
+| [docs/web.md](docs/web.md) · [docs/design-system.md](docs/design-system.md) | the web app and its "golden hour" design system |
+| [docs/demo.md](docs/demo.md) · [docs/gpu-demo.md](docs/gpu-demo.md) | the demo runbook, and the live demo on a GPU |
+| [docs/deploy.md](docs/deploy.md) · [docs/github-setup.md](docs/github-setup.md) | deploying the web app and the Gateway; CI |
+| [docs/security.md](docs/security.md) · [SECURITY.md](SECURITY.md) | the threat model, and how to report a problem |
+| [docs/accessibility.md](docs/accessibility.md) | how Tempo is built for everyone |
+
+---
+
+## Contributing
+
+Contributions are welcome, especially new rule packs, skills and profiles. Start with
+[CONTRIBUTING.md](CONTRIBUTING.md) and [docs/add-a-usecase.md](docs/add-a-usecase.md), and please follow the
+[Code of Conduct](CODE_OF_CONDUCT.md). To report a security issue, follow [SECURITY.md](SECURITY.md).
+
+**AI disclosure.** Tempo uses NVIDIA Nemotron for the chat, Snowflake Cortex, Google Gemini and NVIDIA models
+as jurors and for reading tickets, cards and letters, and ElevenLabs Agents for voice. The code was written
+by the team with AI coding assistants (Claude Code) directing and reviewing alongside.
+
+Built at **OxHack 26**. Licensed under [Apache-2.0](LICENSE).
+
+<div align="center">
+<br>
+<b>Tempo</b> · <i>Your time, returned.</i>
+</div>
