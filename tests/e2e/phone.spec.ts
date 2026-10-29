@@ -1,4 +1,4 @@
-import { DEVICE_URL } from "./env.ts";
+import { DEVICE_PORT, DEVICE_URL, SERVER_PORT } from "./env.ts";
 import { expect, test } from "./fixtures.ts";
 
 /**
@@ -31,7 +31,12 @@ test.describe("Settings → Phone", () => {
     const section = page.getByRole("region", { name: "Phone" });
     await expect(section.getByRole("heading", { name: "Connection" })).toBeVisible();
     await expect(section.getByRole("textbox", { name: "Phone address" })).toHaveValue(PHONE_URL);
-    await expect(section.getByText(/never Steward's main port 8787/)).toBeVisible();
+    // The real ports, whichever this run uses, never the defaults written into the page.
+    await expect(
+      section.getByText(`Tunnel port ${DEVICE_PORT}, never Steward's main port ${SERVER_PORT}`, {
+        exact: false,
+      }),
+    ).toBeVisible();
 
     await section.getByRole("button", { name: "Add iPhone" }).click();
     await expect(
