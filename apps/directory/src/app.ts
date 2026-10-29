@@ -118,14 +118,10 @@ const RemovalBody = z.object({
 });
 const SubmitBody = z.object({
   url: z.string().trim().min(8).max(2048),
-  confirmItsMine: z.literal(true, {
-    errorMap: () => ({ message: "Confirm the pack is yours before submitting it." }),
-  }),
+  confirmItsMine: z.literal(true, { error: "Confirm the pack is yours before submitting it." }),
 });
 const ClaimBody = z.object({
-  confirmItsMine: z.literal(true, {
-    errorMap: () => ({ message: "Confirm the bot is yours before claiming it." }),
-  }),
+  confirmItsMine: z.literal(true, { error: "Confirm the bot is yours before claiming it." }),
 });
 const DecisionBody = z.object({ note: z.string().max(500).optional() });
 
@@ -301,7 +297,7 @@ export async function createDirectoryApp(
     return user;
   };
 
-  async function readJson<S extends z.ZodTypeAny>(c: Context, schema: S): Promise<z.infer<S>> {
+  async function readJson<S extends z.ZodType>(c: Context, schema: S): Promise<z.infer<S>> {
     const text = await c.req.text();
     let raw: unknown = {};
     if (text.trim()) {

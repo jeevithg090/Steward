@@ -39,7 +39,7 @@ export const onError: ErrorHandler = (err, c) => {
 };
 
 /** Reads a JSON body and validates it. A broken or wrong body is a 400 with the first problem named. */
-export async function readBody<S extends z.ZodTypeAny>(c: Context, schema: S): Promise<z.infer<S>> {
+export async function readBody<S extends z.ZodType>(c: Context, schema: S): Promise<z.infer<S>> {
   let raw: unknown;
   const text = await c.req.text();
   if (text.trim() === "") raw = {};

@@ -72,10 +72,10 @@ function deviceError(c: Context, status: ContentfulStatusCode, message: string, 
  * `{ "text": … }` and carries everything else in the address (`?answer=once`), because building
  * JSON with other keys on a phone is fragile. Body values win, except empty ones.
  */
-async function readDeviceBody<S extends z.ZodTypeAny>(c: Context, schema: S): Promise<z.infer<S>> {
+async function readDeviceBody<S extends z.ZodType>(c: Context, schema: S): Promise<z.infer<S>> {
   const query = c.req.query();
   if (Object.keys(query).length === 0) return readBody(c, schema);
-  const body = (await readBody(c, z.record(z.unknown()))) as Record<string, unknown>;
+  const body = (await readBody(c, z.record(z.string(), z.unknown()))) as Record<string, unknown>;
   const merged: Record<string, unknown> = { ...query };
   for (const [key, value] of Object.entries(body))
     if (value !== "" && value !== undefined) merged[key] = value;

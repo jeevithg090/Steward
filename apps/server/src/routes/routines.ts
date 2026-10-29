@@ -7,7 +7,11 @@ import { isTimezone } from "../store/settings.ts";
 
 /** Like `RoutineBody`, but a missing time zone means the person's own rather than UTC. */
 const RoutineCreateBody = RoutineBody.extend({ timezone: z.string().optional() });
-const RoutinePatchBody = RoutineBody.partial();
+/** Every field optional and none defaulted, so a patch changes only what it names. */
+const RoutinePatchBody = RoutineBody.extend({
+  timezone: z.string().optional(),
+  enabled: z.boolean().optional(),
+}).partial();
 
 const checkTimezone = (tz: string | undefined) => {
   if (tz !== undefined && !isTimezone(tz)) throw new HttpError(400, "That is not a time zone I know.");

@@ -55,7 +55,7 @@ const TaskId = z.object({ taskId: z.string().min(1).max(64), note: z.string().ma
 const RoutineId = z.object({ routineId: z.string().min(1).max(64) });
 const ThreadId = z.object({ threadId: z.string().min(1).max(128) });
 
-function parse<S extends z.ZodTypeAny>(schema: S, value: unknown): z.infer<S> {
+function parse<S extends z.ZodType>(schema: S, value: unknown): z.infer<S> {
   const parsed = schema.safeParse(value);
   if (!parsed.success) throw new HttpError(400, "That request could not be read.");
   return parsed.data;

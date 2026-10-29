@@ -54,7 +54,7 @@ const profileEntry = z
     for (const [i, arg] of [entry.command, ...entry.args].entries()) {
       if (BYPASS_FLAGS.some((flag) => flag.test(arg))) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: i === 0 ? ["command"] : ["args", i - 1],
           message: `"${arg}" turns the tool's own permission checks off. Steward never runs a harness that way`,
         });
@@ -62,7 +62,7 @@ const profileEntry = z
     }
     if (entry.env && Object.values(entry.env).some((v) => /\b(sk|xai|gsk|nvapi|AIza)[-_][\w-]{8,}/.test(v))) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["env"],
         message: "looks like a key. Name the variable in passEnv instead and keep the key in .env",
       });
@@ -71,12 +71,13 @@ const profileEntry = z
 
 const harnessesFile = z.object({ harnesses: z.array(profileEntry).default([]) }).strict();
 
-function describe(issues: z.ZodIssue[]): string {
+function describe(issues: z.core.$ZodIssue[]): string {
   return issues
     .slice(0, 6)
     .map((issue) => {
       const where = issue.path.reduce<string>(
-        (out, part) => (typeof part === "number" ? `${out}[${part}]` : out ? `${out}.${part}` : String(part)),
+        (out, part) =>
+          typeof part === "number" ? `${out}[${part}]` : out ? `${out}.${String(part)}` : String(part),
         "",
       );
       const message =

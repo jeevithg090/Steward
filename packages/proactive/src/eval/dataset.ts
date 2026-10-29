@@ -25,7 +25,7 @@ const rowSchema = z.object({
   cc: z.array(address),
   subject: z.string(),
   receivedAt: z.string().refine((value) => !Number.isNaN(Date.parse(value)), "receivedAt must be a date"),
-  headers: z.record(z.string()),
+  headers: z.record(z.string(), z.string()),
   labels: z.array(z.string()),
   body: z.string().min(1),
 });

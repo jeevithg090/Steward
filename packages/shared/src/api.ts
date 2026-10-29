@@ -53,7 +53,7 @@ export const RuleBody = z.object({
 
 export const DryRunBody = z.object({
   tool: z.string().min(1),
-  args: z.record(z.unknown()).default({}),
+  args: z.record(z.string(), z.unknown()).default({}),
   tainted: z.boolean().default(false),
   initiator: z.enum(["person", "routine", "task", "device"]).default("person"),
 });

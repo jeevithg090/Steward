@@ -48,7 +48,7 @@ export const DirectoryIndexSchema = z.object({
   name: z.string().min(1).max(120),
   site: z.string().max(2048).optional(),
   generatedAt: z.string().min(1),
-  categories: z.record(z.string()),
+  categories: z.record(z.string(), z.string()),
   bots: z.array(BotListingSchema),
 });
 
@@ -340,6 +340,7 @@ async function readCategories(root: string): Promise<Record<string, string>> {
 }
 
 const CountsSchema = z.record(
+  z.string(),
   z.object({ installs: z.number().int().min(0).optional(), usedBy: z.number().int().min(0).optional() }),
 );
 

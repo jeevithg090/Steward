@@ -406,7 +406,9 @@ const scriptFile = z.object({
         z.object({ content: z.string().min(1) }),
         z.object({
           toolCalls: z
-            .array(z.object({ name: z.string().min(1), arguments: z.record(z.unknown()).default({}) }))
+            .array(
+              z.object({ name: z.string().min(1), arguments: z.record(z.string(), z.unknown()).default({}) }),
+            )
             .min(1),
         }),
       ]),

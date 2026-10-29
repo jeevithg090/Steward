@@ -47,7 +47,7 @@ export const SkillPackSchema = z.object({
   body: z.string().min(1).max(40_000),
   license: z.string().max(120).optional(),
   compatibility: z.string().max(500).optional(),
-  metadata: z.record(z.string()).optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
   /** `allowed-tools`, split on spaces. Only ever narrows what the agent holds. */
   allowedTools: z.array(z.string()).optional(),
 });
@@ -214,8 +214,8 @@ export const BotsQuery = z.object({
   q: z.string().max(200).optional(),
   category: z.enum(Object.keys(BOT_CATEGORIES) as [BotCategory, ...BotCategory[]]).optional(),
   sort: z.enum(["new", "used", "installs", "match"]).default("match"),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
-  offset: z.coerce.number().int().min(0).default(0),
+  limit: z.coerce.number<number>().int().min(1).max(100).default(50),
+  offset: z.coerce.number<number>().int().min(0).default(0),
 });
 
 /** Plain words for a tool, for "what it may do" lines. */

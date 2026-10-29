@@ -3,7 +3,7 @@ import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { type BotPack, BotPackSchema, type SkillPack } from "@steward/shared";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
-import type { ZodIssue } from "zod";
+import type { z } from "zod";
 import { parseSkillMd, serializeSkillMd } from "./skill.ts";
 
 /**
@@ -42,9 +42,10 @@ const BOT_YAML_KEYS = [
   "hash",
 ] as const;
 
-export function issuePath(path: readonly (string | number)[]): string {
+export function issuePath(path: readonly PropertyKey[]): string {
   return path.reduce<string>(
-    (out, part) => (typeof part === "number" ? `${out}[${part}]` : out ? `${out}.${part}` : part),
+    (out, part) =>
+      typeof part === "number" ? `${out}[${part}]` : out ? `${out}.${String(part)}` : String(part),
     "",
   );
 }
@@ -52,7 +53,7 @@ export function issuePath(path: readonly (string | number)[]): string {
 export const ONLY_TIGHTEN = "A bot can only tighten the rules: a rule may ask or deny, never allow";
 
 /** The schema refuses `allow` as an unknown enum value; this says why instead. */
-export function issueMessage(issue: ZodIssue, input: unknown): string {
+export function issueMessage(issue: z.core.$ZodIssue, input: unknown): string {
   const [head, index, field] = issue.path;
   if (head === "rules" && typeof index === "number" && field === "effect") {
     const rules = (input as { rules?: unknown } | undefined)?.rules;
@@ -62,7 +63,7 @@ export function issueMessage(issue: ZodIssue, input: unknown): string {
   return issue.message;
 }
 
-export function describeIssues(issues: readonly ZodIssue[], input?: unknown): string {
+export function describeIssues(issues: readonly z.core.$ZodIssue[], input?: unknown): string {
   return issues
     .slice(0, 8)
     .map((issue) => {

@@ -256,7 +256,7 @@ describe.runIf(missing.length === 0)("the server, end to end over HTTP", () => {
       method: "PATCH",
       json: { title: "Mail check" },
     });
-    expect(renamed.body.title).toBe("Mail check");
+    expect(renamed.body).toMatchObject({ title: "Mail check", timezone: "Europe/London", enabled: true });
     expect(
       (await t.api(`/api/routines/${made.body.id}`, { method: "PATCH", json: { timezone: "Not/AZone" } }))
         .status,
@@ -273,6 +273,11 @@ describe.runIf(missing.length === 0)("the server, end to end over HTTP", () => {
     expect(String(fired[0]?.content)).toMatch(/^One of your routines is firing right now/);
 
     await t.api(`/api/routines/${made.body.id}`, { method: "PATCH", json: { enabled: false } });
+    const renamedWhilePaused = await t.api<Routine>(`/api/routines/${made.body.id}`, {
+      method: "PATCH",
+      json: { title: "Mail check, paused" },
+    });
+    expect(renamedWhilePaused.body).toMatchObject({ enabled: false, timezone: "Europe/London" });
     expect((await t.api(`/api/routines/${made.body.id}/run`, { method: "POST" })).status).toBe(409);
     expect((await t.api(`/api/routines/${made.body.id}`, { method: "DELETE" })).body).toEqual({ ok: true });
   });

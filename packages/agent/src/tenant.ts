@@ -2,7 +2,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { isBuiltinTool, MCP_TOOL_PREFIX, type Skill, type TenantPackage } from "@steward/shared";
 import { parse as parseYaml } from "yaml";
-import { type ZodIssue, type ZodTypeAny, z } from "zod";
+import { z } from "zod";
 
 /**
  * A tenant package is a folder of five YAML files that makes Steward someone's own: the brand, the
@@ -51,12 +51,10 @@ const colour = z
 const toolName = z
   .string()
   .min(1)
-  .refine(
-    (name) => name === "*" || isBuiltinTool(name) || name.startsWith(MCP_TOOL_PREFIX),
-    (name) => ({
-      message: `"${name}" is not a Steward tool. Use "*" for every built-in tool, or a name from the tool list`,
-    }),
-  );
+  .refine((name) => name === "*" || isBuiltinTool(name) || name.startsWith(MCP_TOOL_PREFIX), {
+    error: (issue) =>
+      `"${String(issue.input)}" is not a Steward tool. Use "*" for every built-in tool, or a name from the tool list`,
+  });
 
 const brandFile = z
   .object({
@@ -134,14 +132,15 @@ const modelFile = z
   })
   .strict();
 
-function issuePath(path: (string | number)[]): string {
+function issuePath(path: readonly PropertyKey[]): string {
   return path.reduce<string>(
-    (out, part) => (typeof part === "number" ? `${out}[${part}]` : out ? `${out}.${part}` : part),
+    (out, part) =>
+      typeof part === "number" ? `${out}[${part}]` : out ? `${out}.${String(part)}` : String(part),
     "",
   );
 }
 
-function describeIssues(issues: ZodIssue[]): string {
+function describeIssues(issues: z.core.$ZodIssue[]): string {
   return issues
     .slice(0, 8)
     .map((issue) => {
@@ -174,7 +173,7 @@ function readYaml(dir: string, file: string): unknown {
   }
 }
 
-function validate<S extends ZodTypeAny>(schema: S, value: unknown, file: string): z.output<S> {
+function validate<S extends z.ZodType>(schema: S, value: unknown, file: string): z.output<S> {
   const result = schema.safeParse(value);
   if (!result.success) throw new TenantError(`${file}: ${describeIssues(result.error.issues)}`, file);
   return result.data;
