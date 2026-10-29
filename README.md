@@ -1,15 +1,21 @@
 <div align="center">
 
+<img src="apps/web/public/favicon.svg" width="72" height="72" alt="">
+
 # Steward
 
 **An open-source AI steward with a computer of its own.**<br>
 It does the work, asks before it acts, and keeps a record you can read.
 
+[![CI](https://github.com/jeevithg090/Steward/actions/workflows/ci.yml/badge.svg)](https://github.com/jeevithg090/Steward/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node ≥ 24](https://img.shields.io/badge/node-%E2%89%A5%2024-417e38.svg)](https://nodejs.org)
+[![642 bots](https://img.shields.io/badge/bots-642-0f6e66.svg)](#bots)
 ![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)
 
-[Quick start](#quick-start) · [Try it](#try-it) · [How it works](#how-it-works) · [Governance](#governance) · [Bots](#bots) · [Make it your own](#make-it-your-own) · [Docs](docs/README.md)
+[Quick start](#quick-start) · [Try it](#try-it-in-five-minutes) · [How it works](#how-it-works) ·
+[Governance](#governance) · [Bots](#bots) · [Other agents](#other-agents-and-models) ·
+[Phone](#your-phone) · [Make it your own](#make-it-your-own) · [Docs](docs/README.md)
 
 </div>
 
@@ -22,40 +28,36 @@ a computer of its own while you are away: a real browser, its own files and a sh
 sends, pays, signs or deletes anything without showing you exactly what and waiting for your
 answer. Every action it takes, asks about or is refused goes in a record that checks itself.
 
-It runs on your machine with `pnpm install && pnpm dev`. No Docker, no database server, no account
+It runs on your machine with `pnpm install && pnpm dev`: no Docker, no database server, no account
 to sign up for, and no key needed to try it.
 
+> [!NOTE]
 > **Alpha.** Steward is young. Expect rough edges, and expect things to move. Issues and pull
 > requests are welcome.
 
-## What it does
+## Why Steward
 
-- **Tells you what needs you.** A morning brief sorts your mail into "needs you" and "can wait",
-  each with a one-line reason, next to today's calendar and a list of anything it could not check,
-  and suggests what it could take off your plate.
-- **Does the work.** Research, comparisons, forms, drafts and errands, on its own browser, which you
-  can watch live and take over at any moment.
-- **Asks before it acts.** Sending, paying, signing, deleting and running commands pause on a card
-  that shows exactly what will happen: **Refuse**, **Allow once** or **Always allow**.
-- **Can't be talked into things.** Once it has read a web page or an email, anything risky asks you,
-  whatever your rules say, because what it read might be trying to steer it.
+| Steward…                        | What that means                                                                                                                                                                                     |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **does the work**               | A morning brief sorts your mail into "needs you" and "can wait". Research, comparisons, forms, drafts and errands run on Steward's own browser, which you can watch live and take over at any time. |
+| **asks first**                  | Sending, paying, signing, deleting and running commands stop on a card that shows exactly what will happen: **Refuse**, **Allow once** or **Always allow**.                                         |
+| **can't be talked into things** | Once it has read a web page or an email, anything risky asks you, whatever your rules say, because what it read might be trying to steer it.                                                      |
+| **keeps a record**              | Every row seals the one before it with a hash, and the app checks the whole chain for you.                                                                                                          |
+| **works for everyone**          | Keyboard and screen reader paths throughout, voice in and out, large text, high contrast, reduced motion and a plain-language mode.                                                                |
+| **becomes yours**               | Its name, agents, skills, rules and model live in one folder of YAML. Add ready-made bots in one tap, bring Claude Code or Codex as an agent, and take it with you on your iPhone.                  |
+
+More of what it does:
+
 - **Never sees your passwords.** You type them into a masked box that fills the page directly. The
   model, the conversation and the record never get the value.
 - **Checks what leaves.** Card numbers, IBANs, ID numbers, keys and health details in anything it
-  would send are flagged on the card before they go.
-- **Keeps a record you can trust.** Every row seals the one before it with a hash, and the app
-  checks the whole chain for you.
-- **Works for everyone.** Full keyboard and screen reader paths, voice in and out, large text, high
-  contrast, reduced motion and a plain-language mode.
-- **Becomes yours.** Its name, agent, skills, rules and model live in one folder of YAML.
-- **Brings the right helper.** A directory of ready-made bots, one tap to add, each one bound by your
-  rules ([Bots](#bots)).
-- **Works with other agents.** Pick a model per conversation (Claude, Grok, Nemotron and more), or run
-  Claude Code, Gemini CLI or Codex as a Steward agent, with every one of their permission prompts
-  becoming a Steward approval. Agents can hand a task to each other ([docs/harnesses.md](docs/harnesses.md)).
-- **Comes with you.** Pair your iPhone for a Steward shortcut that knows your skills and routines, or
-  install the phone app, which reaches Steward through an end-to-end encrypted relay you host
-  ([docs/phone.md](docs/phone.md)).
+  would send are named on the card before they go.
+- **Remembers and repeats.** Tasks, routines ("every weekday at 8, send me my brief"), memory you
+  can read and edit, and skills you call with `/name`.
+- **Shows, not just tells.** Tables, charts, comparisons and pages it makes for you appear in the
+  conversation.
+- **Runs any model.** OpenRouter, OpenAI, Anthropic, Gemini, NVIDIA, xAI, Ollama on your own
+  machine, or any OpenAI-compatible server, chosen per conversation.
 
 ## Quick start
 
@@ -63,6 +65,8 @@ You need [Node](https://nodejs.org) 24 or newer and [pnpm](https://pnpm.io) 10
 (`corepack enable` gives you the right one).
 
 ```sh
+git clone https://github.com/jeevithg090/Steward.git
+cd Steward
 pnpm install
 cp .env.example .env
 ```
@@ -79,25 +83,21 @@ Or leave it blank: Steward runs a scripted demo model that needs no key, and say
 pnpm dev
 ```
 
-Open <http://localhost:5173>.
+Open <http://localhost:5173>. The first run shows a short welcome and a setup checklist. Steward
+starts with a made-up demo inbox and calendar, labelled as such, so there is something to work
+with straight away.
 
-The first run shows a short welcome and a setup checklist. Steward starts with a made-up demo inbox
-and calendar, labelled as such, so there is something to work with straight away.
+> [!TIP]
+> **Keep your keys outside the repository** by pointing at any `.env` file:
+> `STEWARD_ENV_FILE=/path/to/.env pnpm dev`. Every setting is in
+> [docs/configuration.md](docs/configuration.md).
 
 The agent's browser is Playwright's Chromium. If Steward says it is missing, install it once with
 `pnpm exec playwright install chromium`.
 
-**Keep your keys outside the repository** by pointing at any `.env` file:
+## Try it in five minutes
 
-```sh
-STEWARD_ENV_FILE=/path/to/.env pnpm dev
-```
-
-Every setting is in [docs/configuration.md](docs/configuration.md).
-
-## Try it
-
-Five minutes, with the demo inbox. Everything here works with the scripted model too.
+Everything here works with the demo inbox, and with the scripted model too.
 
 1. **The brief.** On **Today**, press **Make my brief**. Steward reads the demo inbox and calendar
    and shows what needs you, what can wait and what is on today. Press **Start** on a row to hand
@@ -112,6 +112,8 @@ Five minutes, with the demo inbox. Everything here works with the scripted model
    **Would this be allowed?**, pick _Run a command_ and press **Check**: refused, by your rule.
 5. **The record.** On **Record**, see every decision: what ran, what asked, what was refused and
    which rule refused it. The badge at the top says _Record intact_ once it has checked the chain.
+6. **A bot.** On **Bots**, search _"inbox"_, open **Inbox triage**, read what it may do without
+   asking, and press **Add to Steward**. Start a new conversation and pick it.
 
 Then try _"Every weekday at 8, send me my brief."_ for a routine, or _"Compare three ways to back up
 my photos in a table."_ with a real model.
@@ -132,8 +134,9 @@ my photos in a table."_ with a real model.
 ```mermaid
 flowchart LR
     You([You]) --> Web["Web app<br/>React · CopilotKit React v2"]
-    Web -- "AG-UI over HTTP" --> Runtime["CopilotKit runtime<br/>in the Steward server"]
-    Runtime --> Agent["BuiltInAgent<br/>+ GovernedToolsMiddleware"]
+    Phone([iPhone]) -- "paired, own port" --> Server
+    Web -- "AG-UI over HTTP" --> Server["Steward server<br/>CopilotKit runtime"]
+    Server --> Agent["Agents<br/>Steward · bots · coding agents"]
     Agent -- "every tool call" --> Gateway{"Gateway<br/>decide · record · ask"}
     Gateway -- "allowed" --> Computer["Computer<br/>browser · files · shell"]
     Gateway -- "allowed" --> Connectors["Connectors<br/>mail · calendar · web · MCP"]
@@ -143,7 +146,7 @@ flowchart LR
 ```
 
 The web app talks to the server over [AG-UI](https://github.com/ag-ui-protocol/ag-ui), through
-[CopilotKit](https://github.com/CopilotKit/CopilotKit)'s runtime. The agent is CopilotKit's
+[CopilotKit](https://github.com/CopilotKit/CopilotKit)'s runtime. Each agent is CopilotKit's
 `BuiltInAgent` on any model that speaks the OpenAI API. Steward's tools are never handed to it to
 run: a middleware offers them to the model as tools it can only ask for, catches every call, and
 sends it to the gateway. The gateway works out what the call touches, decides it against your
@@ -151,7 +154,8 @@ rules, writes the decision to the record, and only then acts. When the answer is
 ends with an interrupt and the approval card appears; your answer resumes it, and the gateway acts
 on the answer exactly once.
 
-More in [docs/architecture.md](docs/architecture.md).
+Everything lives in one SQLite file on your machine (Node's built-in `node:sqlite`). More in
+[docs/architecture.md](docs/architecture.md).
 
 ## Governance
 
@@ -183,25 +187,73 @@ The full reference, with every variable and the approval lifecycle, is
 
 ## Bots
 
-**Bots** is a free directory of ready-made helpers, one job each: _Rent scout_, _Inbox triage_,
+**Bots** is a free directory of ready-made helpers, one job each: _Inbox triage_, _Flat finder_,
 _Stack trace explainer_, _Pub quiz maker_. Open one, read what it does and what it needs, and
 press **Add to Steward**. It becomes an agent you can pick for a new conversation. Nothing to
 copy, nothing to configure.
 
-- 642 bots ship with Steward in `directory/`: 455 made by a model from a job taxonomy and checked by
-  a second model, a duplicate check by meaning and the gateway's rules (labelled **AI-made** until
-  someone uses them; unused ones retire after 90 days), 177 adapted from
-  [LobeChat's agent index](https://github.com/lobehub/lobe-chat-agents) with their authors credited,
-  and 10 from OpenBot's coworker catalogue.
-- A bot is a pack: a profile, skills in the open [Agent Skills](https://agentskills.io) `SKILL.md`
-  format, starters, and rules that can only make the gateway stricter, never looser.
-- Before you add one, the listing shows **what it may do without asking** and **what it asks
-  before**, worked out from its tools and _your_ rules.
-- **Make a bot** describes one in a sentence and generates it on your own model, and can download it
-  ready to submit. Run your own directory with `apps/directory` (search, an MCP connector for
-  other agents, GitHub sign-in for submissions, review) and point `STEWARD_DIRECTORY_URL` at it.
+<p align="center">
+  <img src="docs/images/steward-bots.png" width="430" alt="The Bots page: a search box asking what you need a bot for, category filters from Food and cooking to Everyday tasks, the installed Inbox triage bot with Talk to it and Remove, and bots suggested because your mail is connected.">
+  <img src="docs/images/steward-bot-dark.png" width="430" alt="The Inbox triage listing in the dark theme: installed, with Talk to it; what it does, what it needs (your mail, connected), what it may do without asking (read your mail), and what it asks before.">
+</p>
 
-The plan behind it: [docs/plans/bot-directory.md](docs/plans/bot-directory.md).
+- **642 bots ship with Steward** in `directory/`: 455 made by a model from a job taxonomy and
+  checked by a second model, a duplicate check by meaning and the gateway's rules (labelled
+  **AI-made** until someone uses them; unused ones retire after 90 days), 177 adapted from
+  [LobeChat's agent index](https://github.com/lobehub/lobe-chat-agents) with their authors
+  credited, and 10 from OpenBot's coworker catalogue.
+- **A bot is a pack:** a profile, skills in the open [Agent Skills](https://agentskills.io)
+  `SKILL.md` format, starters, and rules that can only make the gateway stricter, never looser.
+- **You see what it may do before you add it.** The listing shows what it may do without asking
+  and what it asks before, worked out from its tools and _your_ rules, not from its description.
+- **Make your own.** **Make a bot** describes one in a sentence and generates it on your own
+  model, and can download it ready to submit.
+- **Run your own directory.** `apps/directory` is the hosted half: search, an MCP connector so
+  other agents can find bots, GitHub sign-in for submissions, and review. Point
+  `STEWARD_DIRECTORY_URL` at it. See [docs/directory.md](docs/directory.md).
+
+## Other agents and models
+
+Pick who takes each conversation. Steward on the model you chose, Steward on another model, a bot
+you added, or an external coding agent, and every one of them works through your rules.
+
+<p align="center">
+  <img src="docs/images/steward-agents-dark.png" width="360" alt="The agent picker at the top of a new conversation, titled Who should take this?: Steward on the scripted demo model is selected; Steward on Claude and Steward on Grok say which key is missing; Claude Code, Gemini CLI and Codex say they are not installed and how to fix it; Inbox triage, a bot, is ready.">
+</p>
+
+- **Steward on any model.** An agent in `agents.yaml` can name a model of its own
+  (`model: xai/grok-4.7`), so "Steward on Claude" and "Steward on Grok" sit side by side, each on
+  its own provider and key.
+- **Coding agents as Steward agents.** Claude Code and Gemini CLI (through the
+  [Agent Client Protocol](https://agentclientprotocol.com)) and Codex (through its app server) run
+  as the vendor's own tool in their own workspace. Every permission they ask for becomes a Steward
+  approval, decided by your rules and written to the record.
+- **Agents hand work to each other.** `delegate_task` passes a job to another agent, and its
+  answer comes back marked as outside content, so it taints the conversation like a web page.
+- **Unavailable agents say why**: which key is missing or which tool is not installed, and how to
+  fix it.
+
+See [docs/harnesses.md](docs/harnesses.md) and [docs/models.md](docs/models.md).
+
+## Your phone
+
+Use Steward from your iPhone: hear what needs you, answer approval cards and ask for things, while
+Steward stays on your computer.
+
+<p align="center">
+  <img src="docs/images/steward-phone.png" width="880" alt="Settings, Phone: Steward's phone port is open on port 8788 and answers only paired phones; a warning says to tunnel port 8788, never the main port 8787, which has no sign-in; a phone address field; and ready-to-copy Tailscale Serve and Cloudflare tunnel commands.">
+</p>
+
+- **A Steward shortcut that knows you.** Pair with a QR code and get one signed shortcut, built
+  from your skills and routines, that opens straight in Apple's Shortcuts app. No setup on the
+  phone beyond tapping Add.
+- **A port of its own.** Phones reach only `/device/*` on a separate port, with a key per phone you
+  can take back at any time. Payments, signing and passwords are always finished on your computer.
+- **The phone app (preview).** Live chat, notifications and answers signed by the phone, through
+  an end-to-end encrypted relay you host (`apps/relay`), with crypto ported from
+  [Happy](https://github.com/slopus/happy).
+
+The guide, including what to check on a real device, is [docs/phone.md](docs/phone.md).
 
 ## Make it your own
 
@@ -209,11 +261,12 @@ Everything that makes Steward "Steward" is one folder: `tenants/steward/`.
 
 ```text
 tenants/steward/
-├── brand.yaml    name, tagline, accent colour, voice, starters
-├── agents.yaml   the agent and its standing instructions
-├── skills.yaml   instructions called with /name
-├── rules.yaml    extra rules, in CEL
-└── model.yaml    the default model
+├── brand.yaml      name, tagline, accent colour, voice, starters
+├── agents.yaml     the agents, their models and standing instructions
+├── skills.yaml     instructions called with /name
+├── rules.yaml      extra rules, in CEL
+├── model.yaml      the default model
+└── harnesses.yaml  the coding agents it may run
 ```
 
 Copy it, change it, and run `STEWARD_TENANT=yours pnpm dev`. The repository ships a second package
@@ -244,14 +297,8 @@ Steward reaches every model through the OpenAI Chat Completions API.
 | Any OpenAI-compatible server                  | `openai-compatible`      | `STEWARD_MODEL_API_KEY`, with `STEWARD_MODEL_BASE_URL` |
 | The scripted demo model                       | `scripted`               | none                                                   |
 
-The default is `anthropic/claude-sonnet-5.5` through OpenRouter. Change the model with
-`STEWARD_MODEL`, in Settings, or in the tenant's `model.yaml`. An agent in `agents.yaml` can name
-a model of its own (`model: xai/grok-4.7`), so "Steward on Claude" and "Steward on Grok" sit side
-by side in the agent picker, each on its own provider and key. See [docs/models.md](docs/models.md).
-
-External coding agents (Claude Code, Gemini CLI, and any other agent that speaks the Agent Client
-Protocol) run as Steward agents too: the vendor's own tool, in its own workspace, with every
-permission it asks for decided by your rules. See [docs/harnesses.md](docs/harnesses.md).
+The default is `anthropic/claude-sonnet-5.5` through OpenRouter. Change it with `STEWARD_MODEL`, in
+Settings, or in the tenant's `model.yaml`. See [docs/models.md](docs/models.md).
 
 ## Accessibility
 
@@ -265,6 +312,8 @@ Accessibility is a first-class feature, not a later pass:
 - Voice: dictate a message, and have replies read aloud with your browser's own voices.
 - A plain-language mode for the agent's replies.
 - The agent's screen described in words in the Activity list, beside the live picture.
+- An automated [axe](https://github.com/dequelabs/axe-core) audit of the main pages in the
+  end-to-end tests.
 
 How to test it with VoiceOver, NVDA and a keyboard is in [docs/accessibility.md](docs/accessibility.md).
 
@@ -277,28 +326,28 @@ it. The gateway, the take-the-wheel computer, the secret box, the approval inter
 brief, triage, tasks, routines and tenant packages all started there. Files that adapt their code
 say so at the top.
 
-What Steward does differently:
-
 |                  | OpenBot and OpenDuet                                       | Steward                                                                                   |
 | ---------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | Runs with        | Docker, Bun, PostgreSQL, a CopilotKit Intelligence project | Node 24 and `pnpm dev`; one SQLite file                                                   |
-| Model            | OpenAI by default                                          | Any OpenAI-compatible endpoint, or a built-in scripted model for demos and tests          |
+| Model            | OpenAI by default                                          | Any OpenAI-compatible endpoint, per agent, or a built-in scripted model for demos and tests |
 | Agent's computer | One container per agent                                    | One Playwright Chromium profile and workspace per agent, in-process                       |
 | The record       | An audit table                                             | A hash-chained record that verifies itself                                                |
 | Prompt injection | Untrusted-content guidance and an LLM reviewer             | Guidance plus taint: after reading untrusted content, risky actions always ask            |
 | What leaves      | Credential scan and a check on messages to others          | Named findings (card numbers, IBANs, ID numbers, keys, health words) on the approval card |
-| Access           | Web (phone-first), Slack, Teams                            | Web, accessibility first: keyboard, screen reader, voice, large text, plain language      |
+| Helpers          | A coworker catalogue                                       | A directory of 642 bots, AI-made and adapted, whose rules can only tighten yours          |
+| Access           | Web (phone-first), Slack, Teams                            | Web, accessibility first; iPhone Shortcuts and a phone app over a relay you host          |
 
 What they do that Steward does not, yet:
 
-- **Slack and Microsoft Teams.** Steward is web only.
+- **Slack and Microsoft Teams.** Steward is web and iPhone only.
 - **Many people.** OpenBot has sign-in, SSO, teams, admin roles and per-person policy. Steward is
   single-user and local.
 - **Container isolation.** OpenBot gives each agent's computer its own container. Steward's browser
   and shell run on your machine as you, which is why commands ask.
 - **Intelligence.** CopilotKit Intelligence gives OpenDuet threads and memory across devices, and
   learning over time. Steward keeps threads and memory in its own SQLite file, on one machine.
-- **Bring your own agent.** OpenBot accepts any AG-UI agent as a coworker. Steward runs its own.
+- **Any AG-UI agent as a coworker.** Steward runs its own agents and ACP coding agents, not
+  arbitrary AG-UI agents.
 - **An action reviewer and a credential vault.** OpenBot can have a model review consequential
   actions, and keeps saved passwords encrypted. Steward relies on deterministic rules and never
   stores passwords.
@@ -308,10 +357,11 @@ anywhere in a minute, that is Steward.
 
 ## Security
 
-Steward listens on `127.0.0.1` only and has no sign-in, so do not expose it to a network. It
-refuses requests addressed to other host names and state-changing requests from other sites, its
-browser cannot reach your local network or cloud metadata, and keys never leave the environment.
-The agent's shell is **not** sandboxed: it runs as you, which is why every command asks.
+Steward listens on `127.0.0.1` only and has no sign-in, so do not expose its main port to a
+network. It refuses requests addressed to other host names and state-changing requests from other
+sites, its browser cannot reach your local network or cloud metadata, and keys never leave the
+environment. Phones get a separate port that answers only paired devices. The agent's shell is
+**not** sandboxed: it runs as you, which is why every command asks.
 
 [docs/security.md](docs/security.md) has the threat model, including what Steward does not protect
 against. To report a vulnerability, see [SECURITY.md](SECURITY.md).
@@ -325,23 +375,36 @@ pnpm e2e            # end-to-end tests in Chromium, with the scripted model (Pla
 pnpm eval:triage    # how well a model sorts mail, on a labelled set
 ```
 
-| Folder                | What is in it                                                         |
-| --------------------- | --------------------------------------------------------------------- |
-| `apps/web`            | The web app                                                           |
-| `apps/server`         | The server: wiring, REST, the runtime endpoint, live updates, workers |
-| `packages/shared`     | Contracts: types, the tool catalogue, the REST routes                 |
-| `packages/gateway`    | Policy, approvals and the record                                      |
-| `packages/computer`   | The agent's browser, files and shell                                  |
-| `packages/connectors` | Mail and calendar, MCP, web tools                                     |
-| `packages/proactive`  | Triage, the brief, tasks, routines, memory, skills                    |
-| `packages/agent`      | Models, tools, the prompt, the governed middleware, tenants           |
-| `packages/db`         | SQLite                                                                |
-| `tenants`             | Tenant packages: `steward` and `tempo`                                |
-| `evals/triage`        | The triage eval set and results                                       |
-| `tests/e2e`           | End-to-end tests                                                      |
+CI runs all of it on Node 24 and 26 with the scripted model, so it needs no secrets and sends
+nothing to any model provider.
 
-[PLAN.md](PLAN.md) holds the contracts and the decisions behind them. [CONTRIBUTING.md](CONTRIBUTING.md)
-says how to propose a change.
+| Folder                 | What is in it                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `apps/web`             | The web app                                                                   |
+| `apps/server`          | The server: wiring, REST, the runtime endpoint, live updates, the phone port  |
+| `apps/directory`       | The hosted bot directory: search, MCP, submissions and review                 |
+| `apps/relay`           | The end-to-end encrypted relay for the phone app                              |
+| `packages/shared`      | Contracts: types, the tool catalogue, the REST routes                         |
+| `packages/gateway`     | Policy, approvals and the record                                              |
+| `packages/agent`       | Models, tools, the prompt, the governed middleware, tenants                   |
+| `packages/computer`    | The agent's browser, files and shell                                          |
+| `packages/connectors`  | Mail and calendar, MCP, web tools                                             |
+| `packages/proactive`   | Triage, the brief, tasks, routines, memory, skills                            |
+| `packages/harnesses`   | Claude Code, Gemini CLI, Codex and other coding agents as Steward agents      |
+| `packages/bots`        | The bot pack format, validation and the directory client                      |
+| `packages/bots-gen`    | The bot generator, the quality judge and the seed converters                  |
+| `packages/phone`       | The phone catalogue built from your profile                                   |
+| `packages/shortcuts`   | Builds, checks and signs the iPhone shortcuts                                 |
+| `packages/remote`      | Crypto and protocol shared by the bridge, the relay and the phone app          |
+| `packages/db`          | SQLite                                                                        |
+| `directory`            | The 642 bots that ship with Steward, and the index built from them            |
+| `tenants`              | Tenant packages: `steward` and `tempo`                                        |
+| `evals/triage`         | The triage eval set and results                                               |
+| `tests/e2e`            | End-to-end tests                                                              |
+
+[PLAN.md](PLAN.md) holds the contracts and the decisions behind them, and
+[docs/plans](docs/plans) the plans for the bot directory, the phone and other agents.
+[CONTRIBUTING.md](CONTRIBUTING.md) says how to propose a change.
 
 ## Roadmap
 
@@ -349,12 +412,20 @@ says how to propose a change.
 - Optional container isolation for the agent's shell and browser.
 - A native iPhone app with Siri and Action-button shortcuts that appear on install (needs an Apple
   Developer account and review).
+- More AI-made bots: the generator is resumable and the taxonomy has room for about 2,000.
 - More channels: email in, then chat apps.
-- Background research through the day, not only in the morning brief, for suggestions as things arrive.
+- Background research through the day, not only in the morning brief.
 - Exporting the record, and anchoring its newest hash outside the machine.
 - Signing in, for running Steward somewhere other than your own machine.
 
-Ideas and votes are welcome in the issues.
+Ideas and votes are welcome in the [issues](https://github.com/jeevithg090/Steward/issues).
+
+## History
+
+This repository used to hold **Tempo**, a personal agent that wins back money and time. Steward
+replaces that code here. Tempo's last version is kept on the
+[`tempo`](https://github.com/jeevithg090/Steward/tree/tempo) branch and the `tempo-final` tag, and
+its use cases live on as a Steward tenant in `tenants/tempo/`.
 
 ## Credits
 
@@ -362,16 +433,23 @@ Steward includes ideas, designs and code adapted from these MIT-licensed project
 apply to the adapted parts (see [NOTICE](NOTICE)):
 
 - [OpenBot](https://github.com/CopilotKit/openbot) by CopilotKit: the gateway, approvals, the
-  computer, the secret box.
+  computer, the secret box, and coworkers seeded into the directory.
 - [OpenDuet](https://github.com/CopilotKit/OpenDuet) by CopilotKit: the proactive layer, the brief,
   triage, tasks, routines, the tenant package.
 - [CopilotKit](https://github.com/CopilotKit/CopilotKit): the runtime and the React client Steward
   is built on.
 - [AG-UI](https://github.com/ag-ui-protocol/ag-ui): the protocol between the agent and the app.
+- [Happy](https://github.com/slopus/happy): the phone app's crypto, pairing and relay design.
+- [LobeChat agents](https://github.com/lobehub/lobe-chat-agents): 177 bots in the directory, with
+  their authors credited.
+- [Perspective Cuts](https://github.com/taylorarndt/perspective-cuts): reference data for building
+  iPhone shortcuts.
 
-And on the shoulders of Playwright, Hono, the AI SDK, React, Vite, Tailwind, cel-js and many more.
-Steward is an independent project and is not affiliated with or endorsed by CopilotKit or
-Anthropic.
+Skills follow the [Agent Skills](https://agentskills.io) specification, and coding agents are
+reached through the [Agent Client Protocol](https://agentclientprotocol.com) SDK. And on the
+shoulders of Playwright, Hono, the AI SDK, React, Vite, Tailwind, cel-js and many more. Steward is
+an independent project and is not affiliated with or endorsed by CopilotKit, Anthropic, OpenAI,
+Google, xAI, NVIDIA or Apple.
 
 ## License
 

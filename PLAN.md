@@ -468,3 +468,20 @@ for the computer.
     plain 404.
   - Verified on `main`: typecheck and biome clean, 1,617 unit tests (1 skipped: live Codex), 37/37
     e2e.
+- **29 Oct 2026, published on GitHub.** Steward now lives at github.com/jeevithg090/Steward, the
+  repository that held Tempo. Steward reached `main` through a merge that keeps Steward's files and
+  takes Tempo's last commit as its second parent, so the push was a fast-forward and nothing on
+  GitHub was rewritten; Tempo's code is also on the `tempo` branch and the `tempo-final` tag.
+  Before the push:
+  - A scan of every local commit for the real key values and key-shaped strings found none (the
+    key-shaped hits are fake test fixtures). Three local merge commits carried the machine's
+    address as author; they were rewritten to the project identity before anything left the Mac.
+  - The research briefs lost their local paths, and the Bots page no longer shows the path of the
+    folder an installed bot came from ("from the directory on this computer").
+  - Settings → Phone named the default ports (8787, 8788) even when Steward ran on others; the
+    server now sends `mainPort`, and the page uses the real numbers.
+  - 115 AI-made bots had lowercase names ("cc flagger"). The generator now writes names in sentence
+    case with known short forms (`displayName`: "CC flagger", "Wi-Fi security"), and the shipped
+    packs were fixed and rebuilt with their dates kept.
+  - The README was rewritten for the bots, other agents and the phone, with new screenshots
+    (`docs/images/README.md` says how each was taken), plus Dependabot, monthly and grouped.

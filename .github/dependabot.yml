@@ -1,0 +1,30 @@
+# Dependency updates, once a month and grouped, so they arrive as a few pull requests rather than
+# dozens. Every version in package.json is pinned, so each update is a deliberate, reviewed change.
+# The AG-UI packages and rxjs are pinned by `pnpm.overrides` to match CopilotKit; update them with
+# CopilotKit, by hand.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      copilotkit:
+        patterns: ["@copilotkit/*", "@ag-ui/*"]
+      dev-tools:
+        dependency-type: development
+      runtime:
+        dependency-type: production
+    ignore:
+      - dependency-name: "@ag-ui/*"
+      - dependency-name: rxjs
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

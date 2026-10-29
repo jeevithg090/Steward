@@ -53,7 +53,14 @@ pnpm eval:triage          # if you changed triage
 | Mail, calendar, MCP, web fetch and search                   | `packages/connectors`             |
 | Triage, the brief, tasks, routines, memory, skills          | `packages/proactive`              |
 | The prompt, the tools the model sees, models, tenants       | `packages/agent`                  |
-| Routes, wiring, workers                                     | `apps/server`                     |
+| Claude Code, Gemini CLI, Codex and other coding agents      | `packages/harnesses`              |
+| The bot pack format and the directory client                | `packages/bots`                   |
+| Generating bots, the quality judge, the seed converters     | `packages/bots-gen`               |
+| The bots that ship with Steward (then run `seed build`)     | `directory/`                      |
+| The hosted bot directory                                    | `apps/directory`                  |
+| iPhone shortcuts and the phone catalogue                    | `packages/shortcuts`, `packages/phone` |
+| The phone app's crypto and its relay                        | `packages/remote`, `apps/relay`   |
+| Routes, wiring, workers, the phone port                     | `apps/server`                     |
 | Anything on screen                                          | `apps/web`                        |
 | Steward's or Tempo's name, agent, skills, rules             | `tenants/`                        |
 

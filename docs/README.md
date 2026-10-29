@@ -13,6 +13,8 @@
 | [Bot directory](directory.md)           | Run your own bot directory: the site, search, MCP, submissions and review.                        |
 | [Phone](phone.md)                       | Use Steward from your iPhone: reach it safely, pair, launchers, and what to check on a device.    |
 | [Accessibility](accessibility.md)       | Know what is built for screen readers, keyboards, voice and low vision, and how to test it.       |
+| [Plans](plans/)                         | Read how the bot directory, the phone and the coding agents were designed, and what is left.      |
+| [Research](research/)                   | See the briefs behind those plans: Happy's design, iPhone Shortcuts, and running many agents.     |
 
 Also in the repository: [the README](../README.md), [contributing](../CONTRIBUTING.md),
 [reporting a vulnerability](../SECURITY.md), and [the plan](../PLAN.md), which holds the contracts
