@@ -8,7 +8,7 @@ const validateRuleLocally = (when: string) => new CelEngine(CONTEXT_SCHEMA, neut
 import { generateBot, templatePack, toolsForJob } from "../src/generate.ts";
 import { parseJsonObject, repairTrailingCommas } from "../src/json.ts";
 import { isPackTool, RULE_MENU } from "../src/prompt.ts";
-import { displayName, nameFromJob, slugify } from "../src/text.ts";
+import { displayName, distinctName, nameFromJob, slugify } from "../src/text.ts";
 
 const CTX = {
   tools: Object.keys(TOOLS),
@@ -189,5 +189,17 @@ describe("text helpers", () => {
     expect(displayName("k8s health endpoints")).toBe("K8s health endpoints");
     expect(displayName("iPhone helper")).toBe("iPhone helper");
     expect(displayName("Rent scout")).toBe("Rent scout");
+  });
+
+  it("never gives a new bot a name already on the shelf", () => {
+    const taken = new Set(["meal planner", "flat finder"]);
+    expect(distinctName("Gift scout", "find a gift under twenty dollars", taken)).toBe("Gift scout");
+    expect(distinctName("Meal planner", "plan meals for a houseguest with allergies", taken)).not.toMatch(
+      /^Meal planner$/i,
+    );
+    expect(distinctName("Flat finder", "find me a flat I can afford", taken)).toBe("Flat finder 2");
+    expect(distinctName("Flat finder", "find me a flat", new Set([...taken, "flat finder 2"]))).toBe(
+      "Flat finder 3",
+    );
   });
 });

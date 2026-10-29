@@ -50,6 +50,21 @@ export function displayName(text: string): string {
   return flat[0]!.toUpperCase() + flat.slice(1);
 }
 
+/**
+ * A name no bot on the shelf has yet, so the directory never lists two "Meal planner"s: the model's
+ * name if it is free, else one made from the job ("plan meals for a houseguest with allergies" →
+ * "Houseguest meals planner"), else the name with a number. `taken` holds lowercased names.
+ */
+export function distinctName(name: string, job: string, taken: ReadonlySet<string>): string {
+  if (!taken.has(name.toLowerCase())) return name;
+  const fromJob = displayName(nameFromJob(job));
+  if (fromJob && !taken.has(fromJob.toLowerCase())) return fromJob;
+  for (let n = 2; ; n++) {
+    const numbered = `${name} ${n}`;
+    if (!taken.has(numbered.toLowerCase())) return numbered;
+  }
+}
+
 /** Cuts at a sentence end when one fits, else at a word, so a pitch never ends mid-word. */
 export function truncateAtWord(text: string, max: number): string {
   const flat = text.replace(/\s+/g, " ").trim();

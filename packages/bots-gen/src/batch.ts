@@ -6,6 +6,7 @@ import { generateBot, type Problem } from "./generate.ts";
 import type { Job } from "./jobs.ts";
 import { JUDGE_BAR, type Judgement, judgeBot } from "./judge.ts";
 import type { RetiredEntry } from "./retire.ts";
+import { distinctName } from "./text.ts";
 
 /**
  * One generation run: each job becomes a pack through the model, the judge, the validators and
@@ -165,7 +166,16 @@ export async function generateBatch(opts: BatchOptions): Promise<{ written: LogR
           );
         }
         const id = freeId(result.pack.id, taken);
-        const pack = { ...result.pack, id };
+        const name = distinctName(
+          result.pack.name,
+          job.job,
+          new Set(opts.shelf.map((p) => p.name.toLowerCase())),
+        );
+        const readme =
+          name === result.pack.name
+            ? result.pack.readme
+            : result.pack.readme.replace(`# ${result.pack.name}`, `# ${name}`);
+        const pack = { ...result.pack, id, name, readme };
         const valid = validatePack(pack, opts.ctx);
         if (!valid.ok || !valid.pack) return drop(`failed validation: ${describe(valid.problems)}`);
         await writeBotFolder(join(opts.botsDir, id), valid.pack);
