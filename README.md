@@ -7,7 +7,6 @@
 **An open-source AI steward with a computer of its own.**<br>
 It does the work, asks before it acts, and keeps a record you can read.
 
-[![CI](https://github.com/jeevithg090/Steward/actions/workflows/ci.yml/badge.svg)](https://github.com/jeevithg090/Steward/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node ≥ 24](https://img.shields.io/badge/node-%E2%89%A5%2024-417e38.svg)](https://nodejs.org)
 [![642 bots](https://img.shields.io/badge/bots-642-0f6e66.svg)](#bots)
