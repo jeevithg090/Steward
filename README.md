@@ -40,9 +40,9 @@ to sign up for, and no key needed to try it.
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **does the work**               | A morning brief sorts your mail into "needs you" and "can wait". Research, comparisons, forms, drafts and errands run on Steward's own browser, which you can watch live and take over at any time. |
 | **asks first**                  | Sending, paying, signing, deleting and running commands stop on a card that shows exactly what will happen: **Refuse**, **Allow once** or **Always allow**.                                         |
-| **can't be talked into things** | Once it has read a web page or an email, anything risky asks you, whatever your rules say, because what it read might be trying to steer it.                                                      |
+| **can't be talked into things** | Once it has read a web page or an email, anything risky asks you, whatever your rules say, because what it read might be trying to steer it.                                                        |
 | **keeps a record**              | Every row seals the one before it with a hash, and the app checks the whole chain for you.                                                                                                          |
-| **works for everyone**          | Keyboard and screen reader paths throughout, voice in and out, large text, high contrast, reduced motion and a plain-language mode.                                                                |
+| **works for everyone**          | Keyboard and screen reader paths throughout, voice in and out, large text, high contrast, reduced motion and a plain-language mode.                                                                 |
 | **becomes yours**               | Its name, agents, skills, rules and model live in one folder of YAML. Add ready-made bots in one tap, bring Claude Code or Codex as an agent, and take it with you on your iPhone.                  |
 
 More of what it does:
@@ -325,16 +325,16 @@ it. The gateway, the take-the-wheel computer, the secret box, the approval inter
 brief, triage, tasks, routines and tenant packages all started there. Files that adapt their code
 say so at the top.
 
-|                  | OpenBot and OpenDuet                                       | Steward                                                                                   |
-| ---------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Runs with        | Docker, Bun, PostgreSQL, a CopilotKit Intelligence project | Node 24 and `pnpm dev`; one SQLite file                                                   |
+|                  | OpenBot and OpenDuet                                       | Steward                                                                                     |
+| ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Runs with        | Docker, Bun, PostgreSQL, a CopilotKit Intelligence project | Node 24 and `pnpm dev`; one SQLite file                                                     |
 | Model            | OpenAI by default                                          | Any OpenAI-compatible endpoint, per agent, or a built-in scripted model for demos and tests |
-| Agent's computer | One container per agent                                    | One Playwright Chromium profile and workspace per agent, in-process                       |
-| The record       | An audit table                                             | A hash-chained record that verifies itself                                                |
-| Prompt injection | Untrusted-content guidance and an LLM reviewer             | Guidance plus taint: after reading untrusted content, risky actions always ask            |
-| What leaves      | Credential scan and a check on messages to others          | Named findings (card numbers, IBANs, ID numbers, keys, health words) on the approval card |
-| Helpers          | A coworker catalogue                                       | A directory of 642 bots, AI-made and adapted, whose rules can only tighten yours          |
-| Access           | Web (phone-first), Slack, Teams                            | Web, accessibility first; iPhone Shortcuts and a phone app over a relay you host          |
+| Agent's computer | One container per agent                                    | One Playwright Chromium profile and workspace per agent, in-process                         |
+| The record       | An audit table                                             | A hash-chained record that verifies itself                                                  |
+| Prompt injection | Untrusted-content guidance and an LLM reviewer             | Guidance plus taint: after reading untrusted content, risky actions always ask              |
+| What leaves      | Credential scan and a check on messages to others          | Named findings (card numbers, IBANs, ID numbers, keys, health words) on the approval card   |
+| Helpers          | A coworker catalogue                                       | A directory of 642 bots, AI-made and adapted, whose rules can only tighten yours            |
+| Access           | Web (phone-first), Slack, Teams                            | Web, accessibility first; iPhone Shortcuts and a phone app over a relay you host            |
 
 What they do that Steward does not, yet:
 
@@ -377,29 +377,29 @@ pnpm eval:triage    # how well a model sorts mail, on a labelled set
 CI runs all of it on Node 24 and 26 with the scripted model, so it needs no secrets and sends
 nothing to any model provider.
 
-| Folder                 | What is in it                                                                 |
-| ---------------------- | ----------------------------------------------------------------------------- |
-| `apps/web`             | The web app                                                                   |
-| `apps/server`          | The server: wiring, REST, the runtime endpoint, live updates, the phone port  |
-| `apps/directory`       | The hosted bot directory: search, MCP, submissions and review                 |
-| `apps/relay`           | The end-to-end encrypted relay for the phone app                              |
-| `packages/shared`      | Contracts: types, the tool catalogue, the REST routes                         |
-| `packages/gateway`     | Policy, approvals and the record                                              |
-| `packages/agent`       | Models, tools, the prompt, the governed middleware, tenants                   |
-| `packages/computer`    | The agent's browser, files and shell                                          |
-| `packages/connectors`  | Mail and calendar, MCP, web tools                                             |
-| `packages/proactive`   | Triage, the brief, tasks, routines, memory, skills                            |
-| `packages/harnesses`   | Claude Code, Gemini CLI, Codex and other coding agents as Steward agents      |
-| `packages/bots`        | The bot pack format, validation and the directory client                      |
-| `packages/bots-gen`    | The bot generator, the quality judge and the seed converters                  |
-| `packages/phone`       | The phone catalogue built from your profile                                   |
-| `packages/shortcuts`   | Builds, checks and signs the iPhone shortcuts                                 |
-| `packages/remote`      | Crypto and protocol shared by the bridge, the relay and the phone app          |
-| `packages/db`          | SQLite                                                                        |
-| `directory`            | The 642 bots that ship with Steward, and the index built from them            |
-| `tenants`              | Tenant packages: `steward` and `tempo`                                        |
-| `evals/triage`         | The triage eval set and results                                               |
-| `tests/e2e`            | End-to-end tests                                                              |
+| Folder                | What is in it                                                                |
+| --------------------- | ---------------------------------------------------------------------------- |
+| `apps/web`            | The web app                                                                  |
+| `apps/server`         | The server: wiring, REST, the runtime endpoint, live updates, the phone port |
+| `apps/directory`      | The hosted bot directory: search, MCP, submissions and review                |
+| `apps/relay`          | The end-to-end encrypted relay for the phone app                             |
+| `packages/shared`     | Contracts: types, the tool catalogue, the REST routes                        |
+| `packages/gateway`    | Policy, approvals and the record                                             |
+| `packages/agent`      | Models, tools, the prompt, the governed middleware, tenants                  |
+| `packages/computer`   | The agent's browser, files and shell                                         |
+| `packages/connectors` | Mail and calendar, MCP, web tools                                            |
+| `packages/proactive`  | Triage, the brief, tasks, routines, memory, skills                           |
+| `packages/harnesses`  | Claude Code, Gemini CLI, Codex and other coding agents as Steward agents     |
+| `packages/bots`       | The bot pack format, validation and the directory client                     |
+| `packages/bots-gen`   | The bot generator, the quality judge and the seed converters                 |
+| `packages/phone`      | The phone catalogue built from your profile                                  |
+| `packages/shortcuts`  | Builds, checks and signs the iPhone shortcuts                                |
+| `packages/remote`     | Crypto and protocol shared by the bridge, the relay and the phone app        |
+| `packages/db`         | SQLite                                                                       |
+| `directory`           | The 642 bots that ship with Steward, and the index built from them           |
+| `tenants`             | Tenant packages: `steward` and `tempo`                                       |
+| `evals/triage`        | The triage eval set and results                                              |
+| `tests/e2e`           | End-to-end tests                                                             |
 
 [PLAN.md](PLAN.md) holds the contracts and the decisions behind them, and
 [docs/plans](docs/plans) the plans for the bot directory, the phone and other agents.

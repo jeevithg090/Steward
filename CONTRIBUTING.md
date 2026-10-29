@@ -45,24 +45,24 @@ pnpm eval:triage          # if you changed triage
 
 ## Finding your way
 
-| You want to change                                          | Look in                           |
-| ----------------------------------------------------------- | --------------------------------- |
-| A contract between packages: a type, a route, a tool's kind | `packages/shared/src` (see below) |
-| What is allowed, what asks, the record                      | `packages/gateway`                |
-| The agent's browser, files or shell                         | `packages/computer`               |
-| Mail, calendar, MCP, web fetch and search                   | `packages/connectors`             |
-| Triage, the brief, tasks, routines, memory, skills          | `packages/proactive`              |
-| The prompt, the tools the model sees, models, tenants       | `packages/agent`                  |
-| Claude Code, Gemini CLI, Codex and other coding agents      | `packages/harnesses`              |
-| The bot pack format and the directory client                | `packages/bots`                   |
-| Generating bots, the quality judge, the seed converters     | `packages/bots-gen`               |
-| The bots that ship with Steward (then run `seed build`)     | `directory/`                      |
-| The hosted bot directory                                    | `apps/directory`                  |
+| You want to change                                          | Look in                                |
+| ----------------------------------------------------------- | -------------------------------------- |
+| A contract between packages: a type, a route, a tool's kind | `packages/shared/src` (see below)      |
+| What is allowed, what asks, the record                      | `packages/gateway`                     |
+| The agent's browser, files or shell                         | `packages/computer`                    |
+| Mail, calendar, MCP, web fetch and search                   | `packages/connectors`                  |
+| Triage, the brief, tasks, routines, memory, skills          | `packages/proactive`                   |
+| The prompt, the tools the model sees, models, tenants       | `packages/agent`                       |
+| Claude Code, Gemini CLI, Codex and other coding agents      | `packages/harnesses`                   |
+| The bot pack format and the directory client                | `packages/bots`                        |
+| Generating bots, the quality judge, the seed converters     | `packages/bots-gen`                    |
+| The bots that ship with Steward (then run `seed build`)     | `directory/`                           |
+| The hosted bot directory                                    | `apps/directory`                       |
 | iPhone shortcuts and the phone catalogue                    | `packages/shortcuts`, `packages/phone` |
-| The phone app's crypto and its relay                        | `packages/remote`, `apps/relay`   |
-| Routes, wiring, workers, the phone port                     | `apps/server`                     |
-| Anything on screen                                          | `apps/web`                        |
-| Steward's or Tempo's name, agent, skills, rules             | `tenants/`                        |
+| The phone app's crypto and its relay                        | `packages/remote`, `apps/relay`        |
+| Routes, wiring, workers, the phone port                     | `apps/server`                          |
+| Anything on screen                                          | `apps/web`                             |
+| Steward's or Tempo's name, agent, skills, rules             | `tenants/`                             |
 
 [PLAN.md](PLAN.md) explains the architecture and the decisions behind it, and
 [docs/architecture.md](docs/architecture.md) follows one turn of a conversation through the code.
