@@ -1,9 +1,12 @@
 # Fingerprints gitleaks skips (commit:path:rule:line). `gitleaks git` reads this file from the
 # repo root in pre-commit, GitLab CI and GitHub Actions. Only false positives belong here; a real
-# leak is rotated, never ignored. Both checked by hand on 25 Oct 2026 (docs/security.md, "CI audits").
+# leak is rotated, never ignored. Checked by hand on 25 and 29 Oct 2026 (docs/security.md, "CI audits").
 
 # doc.md: a memory item's hashed `key` inside a documented example API response, not a credential.
 bf6b7352927c2a28cdf2892ea6efaa4e853a3da8:doc.md:generic-api-key:729
 
 # mandates.py: the type annotation of the mandate signing key (an Ed25519 private key type, not a value) tripped generic-api-key.
 04b1b9231f1a6465147a0ab77fd11e5678ce7276:apps/gateway/src/tempo_gateway/mandates.py:generic-api-key:82
+
+# test_gateway_tts.py: `elevenlabs_api_key=KEY` passes the test constant KEY = "el-test-key-not-real", not a credential.
+cbd8278ed03dbc7d214bee3dc13b6e94816e5c6b:tests/integration/test_gateway_tts.py:generic-api-key:37
