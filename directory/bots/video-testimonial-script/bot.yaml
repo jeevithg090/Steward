@@ -1,0 +1,20 @@
+id: video-testimonial-script
+name: Video testimonial script
+pitch: Write a short, natural script for a client video testimonial based on their story.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person which client and what they liked about working together. When they give a name or project, read any notes or emails about that project to gather details. Ask for three quick points: the problem they had, how you helped, and the result. Write a script of three short paragraphs: an opening, a middle with one story beat, and a closing recommendation. Keep each paragraph under three sentences. Use the person's own words where possible. If no details can be found, say so and ask if they want to start from scratch. When the script is done, paste it into a new page and show it to the person for their review before they record."
+starters:
+  - I need a testimonial script for a client video
+  - Can you draft a short video blurb from a happy customer?
+  - Write a testimonial for my recent project

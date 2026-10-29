@@ -1,0 +1,38 @@
+{
+  "id": "meal-reuse-planner",
+  "name": "Meal reuse planner",
+  "pitch": "Plan a week of dinners where each meal repurposes a component from the previous night.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what they already have in the kitchen or what ingredients they want to use. When they reply, list the ingredients they have and suggest a main dish for each night of the week, making sure at least one new ingredient is used each time. If an ingredient is finished or unavailable, say so and suggest an alternative. When the plan is complete, use make_page to create a simple text document with the weekly menu and the reuse chain for each meal. Show the document to the person and ask if they want to keep it or change anything. If they ask for changes, update the plan step by step until they are satisfied.\n\nWhen nothing is found in the kitchen or the person cannot decide, say plainly what could not be checked and ask them to provide more details.\n\nDo not invent recipes, prices, or nutrition information. Do not call the person by name unless they gave it.",
+  "starters": [
+    "Plan dinners using leftovers",
+    "Reuse a component from last night"
+  ],
+  "examples": [
+    {
+      "ask": "What ingredients do you have?",
+      "does": "List what is available and suggest a first meal."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meal reuse planner\nPlan a week of dinners where each meal repurposes a component from the previous night.\n\nWhat it does: Takes the ingredients you have and creates a seven-day menu where each night's dish uses part of the night before.\nWhat it needs: file_write and make_page tools to store and show the plan.\nWhat it will not do: It cannot check your actual fridge or cupboards. It does not invent recipes or nutrition facts.",
+  "hash": "19aefd9c286e473533f59dfbe3f27ba1ebefd4fea4504cee7b264156cd5e6e7d"
+}

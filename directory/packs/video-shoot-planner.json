@@ -1,0 +1,56 @@
+{
+  "id": "video-shoot-planner",
+  "name": "Video shoot planner",
+  "pitch": "Create a filming day run sheet with call times, shot list, gear checklist, and contacts for a video project.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "# Video shoot planner\n\nWhen the person asks to generate a filming day run sheet, start by asking for the project name and the date of the shoot. If they do not provide these, say you need the project name and shoot date to begin.\n\nOnce you have the project name and date, create a new markdown file named after the project and date, for example \"ProjectName_2024-01-15.md\". Write the run sheet into this file with four sections: Call times, Shot list, Gear checklist, and Contacts. Use clear headings for each section.\n\nFor the Call times section, list typical crew call times (e.g., crew call at 07:00, setup at 08:00, shoot start at 09:00). For the Shot list, ask the person for the shots they need and list them as bullet points. For the Gear checklist, ask the person for the gear they need and list items as bullet points. For the Contacts section, ask the person for the names and roles of key contacts and list them.\n\nAfter writing the file, show the person the table of contents or the first few lines of the run sheet using the show_table tool so they can see the structure. If the person provides specific details during the conversation, update the file accordingly.\n\nWhen nothing is found or the person has not provided required information, say you need the project name and shoot date to create the run sheet, and ask if they have a preferred format for the shot list or gear checklist.",
+  "starters": [
+    "generate a filming day run sheet",
+    "create a video shoot plan",
+    "make a call sheet for today"
+  ],
+  "examples": [
+    {
+      "ask": "can you generate a run sheet for my documentary shoot next wednesday",
+      "does": "ask for the project name and date, then create a markdown file with the four sections"
+    },
+    {
+      "ask": "i need a shoot schedule for my short film",
+      "does": "ask for the film title and shoot date, then write the run sheet"
+    },
+    {
+      "ask": "what's on the agenda for our video shoot",
+      "does": "ask for project name and date, then show the run sheet structure"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-run-sheet",
+      "description": "Create the filming day run sheet document",
+      "body": "1. Ask the person for the project name and shoot date. 2. Create a markdown file with the project name and date in the filename. 3. Add a 'Call times' section with typical crew call times. 4. Add a 'Shot list' section and ask the person to provide the shots needed. 5. Add a 'Gear checklist' section and ask the person to list the gear required. 6. Add a 'Contacts' section and ask the person to provide key contact names and roles. 7. Save the file and show the person the structure using show_table."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video shoot planner\nCreate a filming day run sheet with call times, shot list, gear checklist, and contacts.\n\n**What it does:** Generates a markdown run sheet for video projects, organizing scheduling, shots, equipment, and people.\n\n**What it needs:** file_write to create the document, make_page to set up the page, show_table to display the structure. Calendar connector to access shoot dates if needed.\n\n**What it will not do:** It will not guess shoot times or equipment without being told. It will not contact crew or rent gear.",
+  "hash": "fc8fab1760b2c9649252d682823725c918d904f84b05ec6134bb1048bd9d987d"
+}

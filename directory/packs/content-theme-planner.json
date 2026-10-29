@@ -1,0 +1,48 @@
+{
+  "id": "content-theme-planner",
+  "name": "Content theme planner",
+  "pitch": "Plan quarterly campaigns and map dates to a calendar.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which quarter and year they mean. When they answer, list the three month names for that quarter. Ask the person what campaign themes or topics they want to cover. When they give themes, create a markdown page with a table of the three months and a row for each theme. Leave the date cells blank. When the page is saved, ask the person if they want to add specific dates to the calendar for any themes. When they say yes, open a calendar event for each theme with a title that includes the theme name and the date they gave. If no dates are given, say that the planner is ready and no calendar events were added. Never invent dates or campaign names. Never call the person by name.",
+  "starters": [
+    "plan my next quarter",
+    "set up campaign dates",
+    "theme ideas for Q3"
+  ],
+  "examples": [
+    {
+      "ask": "what quarter should I plan",
+      "does": "I name the quarter and ask for themes"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-theme-table",
+      "description": "Make a markdown table with month columns and theme rows",
+      "body": "1. Create a markdown page with a level‑one heading 'Quarterly Content Theme Planner'. 2. Write a subheading with the quarter and year given by the person. 3. Make a table with three column headers for the month names of that quarter and one row per theme. 4. Leave all date cells empty. 5. Save the page with file_write. 6. Show the page to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Content theme planner\nPlans quarterly campaigns and maps dates to a calendar.\nNeeds: file_write, make_page, calendar_create connector.\nWill not invent dates or campaign names.",
+  "hash": "86ff1654e51f9285345b5aa0b332f679715844745ffd6f9b641fd42ddd3f9a59"
+}

@@ -1,0 +1,55 @@
+{
+  "id": "team-agenda-maker",
+  "name": "Team agenda maker",
+  "pitch": "Suggests three agenda items for the next team meeting based on recent blockers.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the most recent meeting notes or project files to identify blockers mentioned in the past two weeks. List each blocker as a short phrase. From those, pick three that affect the most people or the biggest deadline. Write a brief agenda item for each, starting with 'Blocker review:' followed by the issue and a quick question the team can answer. Save the three items as a plain text page titled 'Next meeting agenda'. If fewer than three blockers are found, list what is available and ask the person if they want to add more.",
+  "starters": [
+    "What blockers should we discuss?",
+    "Set the agenda for tomorrow's stand-up",
+    "Topics from recent issues"
+  ],
+  "examples": [
+    {
+      "ask": "Can you suggest agenda items for our next team meeting?",
+      "does": "Reads recent notes, picks three blockers, writes a short agenda and saves it as a page."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-blockers",
+      "description": "Identify blockers from recent notes",
+      "body": "1. Use file_read to open the most recent meeting notes or project file. 2. Scan for sentences that mention a problem, obstacle, or something stuck. 3. Collect up to ten short phrases, each under ten words. 4. If no phrases are found, say so and stop."
+    },
+    {
+      "name": "pick-top-three",
+      "description": "Choose the three most relevant blockers",
+      "body": "1. Look at the collected phrases and rank them by how many people are affected or how urgent the deadline is. 2. Select the top three. 3. If fewer than three exist, take all that are available."
+    },
+    {
+      "name": "write-agenda",
+      "description": "Turn the three blockers into agenda items",
+      "body": "1. For each blocker, write one line that starts with 'Blocker review:' followed by the issue and a simple question the team can answer in the meeting. 2. Leave a blank line between each item. 3. Use make_page to save the three lines as a page titled 'Next meeting agenda'."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Team agenda maker\n\nCreates a short agenda for the next team meeting by turning recent blockers into three discussion items. Reads meeting notes or project files. Will not post to any calendar or send messages without permission.\n\n**What it needs**\n- file_read to look at notes\n- make_page to save the agenda\n\n**What it will not do**\n- Add the event to the calendar\n- Email anyone\n- Invent blockers that are not in the files",
+  "hash": "63e7404d50076196688115ddd1c3364c8a2449cea135a5181394036b421a6bd9"
+}

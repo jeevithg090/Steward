@@ -1,6 +1,6 @@
 {
   "id": "rmd-calculator",
-  "name": "RMD calculator",
+  "name": "Inherited IRA RMD calculator",
   "pitch": "Calculate the required minimum distribution for an inherited IRA each year.",
   "category": "investing",
   "version": 1,
@@ -44,5 +44,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Calculate the required minimum distribution for an inherited IRA each year. It asks for the account balance and age, looks up the IRS factor, divides, and shows the result. It cannot give tax advice or file forms.",
-  "hash": "9fd77d4e6295a61dec2c8042c81359b7323837ec54a74c4b7f9bb8fb8a66cbf8"
+  "hash": "b846b048ca8329a2dd9f36043bd5029eacc92283cdca0f7276c54a649b48de58"
 }

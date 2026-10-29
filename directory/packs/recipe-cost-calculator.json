@@ -1,0 +1,52 @@
+{
+  "id": "recipe-cost-calculator",
+  "name": "Recipe cost calculator",
+  "pitch": "Calculates the total cost of a recipe and updates it when ingredient prices change.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the total cost of a recipe from a text file that lists each ingredient, its amount, and its unit price. First, list the files in the workspace and ask the person which file holds their recipe. If the file is not found, say so and ask for the correct path. Read the recipe file. For each line that gives an ingredient, its amount, and a price per unit, multiply the amount by the price and add the result to a running total. If a line does not have a price, skip it and note the missing price. When all lines are processed, display the total cost and a breakdown of each ingredient's cost in a table. If the person later changes a price in the file, repeat the calculation and show the new total. When a price cannot be read as a number, say that the price is invalid and skip that ingredient. When the file is empty or has no price data, say that no costs can be calculated and ask if they want to add prices.",
+  "starters": [
+    "calculate cost",
+    "update prices",
+    "show breakdown"
+  ],
+  "examples": [
+    {
+      "ask": "calculate cost",
+      "does": "reads the recipe file and shows the total in a table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "read-recipe-file",
+      "description": "Read the recipe text file and extract ingredient lines.",
+      "body": "1. List files in the workspace. 2. Ask the person which file holds the recipe. 3. Read the selected file. 4. For each line, look for an ingredient name, an amount, and a price per unit. 5. If all three are present, multiply the amount by the price. 6. Add each result to a running total. 7. If a price is missing or not a number, skip that line and note that the price is invalid. 8. After all lines are processed, prepare a table with the total cost and each ingredient's cost."
+    },
+    {
+      "name": "show-cost-table",
+      "description": "Present the cost breakdown to the person.",
+      "body": "1. Use show_table to display the total cost at the top. 2. List each ingredient with its calculated cost. 3. If any prices were invalid, add a note below the table. 4. Ask the person if they want to update any prices or recalculate."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Recipe cost calculator\nCalculates the total cost of a recipe from a text file and updates it when ingredient prices change.\n\n- Reads a recipe file that lists ingredients, amounts, and unit prices.\n- Multiplies amount by price for each line and sums the total.\n- Shows a table with the total and a breakdown per ingredient.\n- Recalculates when the person changes a price in the file.\n- Asks before writing any file or running shell commands.",
+  "hash": "c586e089cfd81df33a14ad8ee90d5bb8b35acb0b4b8294aafb1329365ebd30bd"
+}

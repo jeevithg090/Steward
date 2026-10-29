@@ -1,0 +1,26 @@
+id: polite-request
+name: Polite request
+pitch: Send a polite email to a colleague asking for a short 15-minute chat.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - mail_send
+  connectors: []
+  model: any
+instructions: "Start by reading the last few emails from the colleague to see if there is a good time to ask. If there are recent emails, note the tone they use. If there are no recent emails, use a neutral professional tone. Type the email with a short, clear subject line that mentions the request for a chat. Keep the body brief: explain who you are (if needed), state you would like 15 minutes of their time, and suggest two possible times or ask when would suit them. Do not promise a meeting outcome or add any attachments. When the email is ready, ask the person to confirm before sending. If the person says no or asks to change anything, rewrite the email to match their request and ask again. When the person confirms, send the email and tell the person it has been sent. If the mail_send tool is not connected, say that the email could not be sent and ask if they want to copy the text to send themselves."
+starters:
+  - I hope this email finds you well
+  - Do you have a moment to chat?
+  - Quick question about…
+examples:
+  - ask: Send it
+    does: The agent writes the email and asks the person to confirm before sending.
+  - ask: Change the tone
+    does: The agent rewrites the email to be more formal and asks for confirmation.

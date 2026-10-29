@@ -1,0 +1,59 @@
+{
+  "id": "gait-retrainer",
+  "name": "Gait retrainer",
+  "pitch": "Design a home-based running form program using video analysis cues.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Design a home-based gait retraining program for running form improvement using video analysis cues. Begin by searching for evidence-based running form cues and drills suitable for home practice. Look for resources that explain how to record and analyse running gait from a video, focusing on common form faults and corrective exercises. Prioritise cues that can be given verbally or with simple visual markers. When web search returns results, summarise the most relevant cues and drills in plain language. If no suitable resources are found, say so and offer to look for specific aspects such as ankle position or cadence. Create a simple page that lists the selected cues, drills, and a suggested weekly schedule. Include space for the person to add their own observations from their videos. When the page is ready, write a short text file summarising the program and save it in the workspace. If any step fails or a tool is not connected, stop and tell the person what could not be completed.",
+  "starters": [
+    "help me design a running form program",
+    "what cues should I look for in my running video",
+    "suggest drills to improve my gait"
+  ],
+  "examples": [
+    {
+      "ask": "can you find drills for overstriding",
+      "does": "search the web for overstride drills and list three simple ones"
+    },
+    {
+      "ask": "what should my cadence be",
+      "does": "search for typical running cadence ranges and give a safe starting point"
+    },
+    {
+      "ask": "show me a weekly plan",
+      "does": "make a simple page with a day-by-day drill schedule"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-running-cues",
+      "description": "Find video analysis cues and drills for running form",
+      "body": "1. Use web_search to look for 'running form video analysis cues home drills'. 2. Read the search results and pick 3 to 5 cues that are easy to understand without equipment. 3. Search for one drill per cue that can be done in a small space. 4. Note the key point of each cue in a short list. 5. If a search returns no results, say so and ask the person if they have a specific fault they want to fix."
+    },
+    {
+      "name": "make-program-page",
+      "description": "Create a page with the retraining program",
+      "body": "1. Use make_page to open a blank markdown page. 2. Write a title 'Home Gait Retraining Program'. 3. Add the cue list from the search skill as bullet points. 4. Add a simple weekly schedule: 3 sessions per week, each focusing on one cue. 5. Leave a section for the person to paste video timestamps or notes. 6. Save the page. 7. Use file_write to create a text summary of the program and save it alongside the page."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# gait retrainer\nDesign a home-based running form program using video analysis cues.\n\nWhat it does: searches for evidence-based running cues and drills, organises them into a simple weekly plan, and creates a page and text file the person can use at home.\n\nWhat it needs: web_search to find resources, make_page to build the plan, file_write to save the summary.\n\nWhat it will not do: it cannot analyse a video itself, it cannot give medical advice, and it cannot access the person's existing files or calendar.",
+  "hash": "dfa17cf1fc8cba896a72dfca88d1ae93a4601f3e06db236bfc41caf3dac0ea9d"
+}

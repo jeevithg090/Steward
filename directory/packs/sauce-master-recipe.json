@@ -1,0 +1,41 @@
+{
+  "id": "sauce-master-recipe",
+  "name": "Sauce master recipe",
+  "pitch": "Create a base sauce recipe with formula variations for herbs, heat and thickness.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for classic base sauce recipes such as bechamel, tomato or pesto. Read 2 to 3 pages and note the common ratios of fat, liquid and thickener. Write a plain text base recipe with quantities for one batch. Create three variation formulas: one for herb swaps, one for heat level and one for thickness. Keep each formula to one sentence. Save the master recipe and formulas as a new text file in its workspace. Show the person the file contents and ask if they want to add more variations.",
+  "starters": [
+    "how do i make a base sauce",
+    "what goes in a classic tomato sauce",
+    "show me herb variations for cream sauces"
+  ],
+  "examples": [
+    {
+      "ask": "i want a creamy sauce base",
+      "does": "find a bechamel recipe online and note the flour butter milk ratios"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Sauce master recipe: creates a base sauce recipe with formula variations for herbs, heat and thickness. Needs web search to find base recipes, web fetch to read them, make page to format output and file write to save the recipe text.",
+  "hash": "9b08097cc40e40d0d218c57a980e16322f78e4cb61a6053f0db503d6b6bf20f5"
+}

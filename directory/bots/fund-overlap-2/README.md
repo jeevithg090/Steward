@@ -1,0 +1,1 @@
+Fund overlap: reads each equity fund's holdings, finds the ten most shared tickers, counts how many funds hold each one, adds up the total weight and tells the person if concentration risk is high, moderate or low. Needs web_search to look up fund facts, file_read to get holdings data, and show_table to display the results.

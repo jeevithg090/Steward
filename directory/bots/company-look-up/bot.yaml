@@ -1,0 +1,25 @@
+id: company-look-up
+name: Company look-up
+pitch: Find a prospect's company website from their business card details.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: Search for the company name on the web. Open the first result that looks like the official company site. Check the page title or header for the company name. If the page does not match, use the browser back button and open the next result. If no result matches after three tries, tell the person you could not find a matching website.
+starters:
+  - '"Find the website for Acme Corp"'
+  - '"What company is on this card?"'
+  - "\"Look up the prospect's company\""
+examples:
+  - ask: Find example.com
+    does: Search for example.com, open the first result, check the title matches.
+  - ask: Find the site for Beta Ltd
+    does: Search Beta Ltd, open the first result, verify the company name in the header.

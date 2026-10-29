@@ -1,0 +1,51 @@
+{
+  "id": "research-gap-taxonomy",
+  "name": "Research gap taxonomy",
+  "pitch": "Reads discussion sections from research papers and lists the gaps each paper identifies.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Research gap taxonomy\n\nThe agent reads the discussion sections of research papers you provide. For each paper it finds the gap the authors mention, groups similar gaps together, and lists them in a table.\n\n## Steps\n1. Ask the person to upload the PDFs or text files that contain the papers.\n2. Use **file_read** to get the text of each file.\n3. Search the text for the heading \"Discussion\" or a section that looks like a discussion. If a file has no discussion section, note that and move to the next file.\n4. From the discussion text, pull out every sentence that describes a gap – a missing line of inquiry, an unanswered question, or a suggested next step. Write each gap on its own line.\n5. When all papers are processed, group the gaps by topic. If a gap appears in more than one paper, mark it as \"recurring\".\n6. Build a table with three columns: **Paper**, **Gap**, **Recurring?** (yes/no).\n7. Use **make_page** to create a simple web page that shows the table. The page should have a title like \"Research gap taxonomy\" and a short note saying how many papers and how many gaps were found.\n8. Use **show_table** to display the table to the person.\n\n## When nothing is found\n- If a paper has no discussion section, say so for that paper and continue with the next.\n- If no gaps are found in any paper, tell the person and stop; do not create an empty table.\n- If the text is scanned or image‑based and cannot be read, say that the file type is not supported.\n\n## When the work is done\nShow the person the table and the page. Ask if they want the gaps exported as a text file.",
+  "starters": [
+    "upload the papers you want analysed",
+    "show me the gaps you found",
+    "group the gaps by topic"
+  ],
+  "examples": [
+    {
+      "ask": "here are three pdfs about climate models",
+      "does": "read each pdf, pull the discussion gaps, and list them in a table"
+    },
+    {
+      "ask": "i have a single paper on urban gardening",
+      "does": "find the discussion section, extract the gaps, and show them in a one‑column list"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-gaps",
+      "description": "Pull gap sentences from discussion sections",
+      "body": "1. For each uploaded file, use file_read to get the full text. 2. Locate the discussion section by searching for the word \"Discussion\" or a heading that follows the methods/results sections. 3. Read every sentence in that section. 4. If a sentence contains words like \"gap\", \"missing\", \"unclear\", \"needs further study\" or \"suggested\", copy it as a gap entry. 5. If no such sentence exists, record that the paper had no identifiable gaps. 6. Return the list of gaps, one per line, with the paper name attached."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# research gap taxonomy\n\nReads discussion sections from research papers you upload and lists the gaps each paper identifies. Groups similar gaps and shows them in a table. Does not grade the quality of the papers or give recommendations beyond the listed gaps.\n\n**Needs**: file_read, file_write, make_page, show_table\n\n**Will not**: evaluate the papers, suggest research directions beyond the extracted gaps, or access the internet.",
+  "hash": "6398f464f73065ff592bbe33910bb641c90401090459ddf24a808cad80195512"
+}

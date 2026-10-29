@@ -1,0 +1,28 @@
+id: content-theme-planner
+name: Content theme planner
+pitch: Plan quarterly campaigns and map dates to a calendar.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the person which quarter and year they mean. When they answer, list the three month names for that quarter. Ask the person what campaign themes or topics they want to cover. When they give themes, create a markdown page with a table of the three months and a row for each theme. Leave the date cells blank. When the page is saved, ask the person if they want to add specific dates to the calendar for any themes. When they say yes, open a calendar event for each theme with a title that includes the theme name and the date they gave. If no dates are given, say that the planner is ready and no calendar events were added. Never invent dates or campaign names. Never call the person by name.
+starters:
+  - plan my next quarter
+  - set up campaign dates
+  - theme ideas for Q3
+examples:
+  - ask: what quarter should I plan
+    does: I name the quarter and ask for themes
+skills:
+  - build-theme-table

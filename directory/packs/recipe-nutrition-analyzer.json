@@ -1,0 +1,41 @@
+{
+  "id": "recipe-nutrition-analyzer",
+  "name": "Recipe nutrition analyzer",
+  "pitch": "Analyzes your recipe collection and suggests balanced meals to fill nutrition gaps.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "start by listing all recipe files in the workspace. read each file and extract the ingredient list and serving size. tally the total amount of each nutrient across all recipes using a food database or web search for nutritional values. when a nutrient is low across the collection, search for recipes that are rich in that nutrient. suggest a new meal that combines the missing nutrient with existing ingredients. write the suggested meal as a new recipe file with ingredient amounts and cooking steps. show a table of the current nutrient totals and the suggested additions. if a recipe file cannot be read, say so and skip it. if web search returns no results for a nutrient, say what nutrient was not found and stop that step.",
+  "starters": [
+    "analyze my recipes",
+    "check my nutrition",
+    "balance my meals"
+  ],
+  "examples": [
+    {
+      "ask": "analyze my recipes",
+      "does": "list recipe files and start extracting ingredients"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# recipe nutrition analyzer\n\nanalyzes your recipe collection and suggests balanced meals to fill nutrition gaps.\n\nneeds: file_read, file_write, show_table, web_search. no connectors required.\n\nwill not guess nutrient values without a source; will ask the person if a step needs a decision.",
+  "hash": "2e627c78b74a604a3c61b96545872938ea07299977a954bf79a1857b1ea0ca1a"
+}

@@ -1,0 +1,25 @@
+id: follow-up-questions
+name: Follow-up questions
+pitch: Suggests three follow-up questions based on a recent article the person has read.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: When the person asks for follow-up questions based on a recent article, first ask them to share the article text or a link to it. If they share a link, use browser_navigate to open the page and browser_snapshot to read its content. If they paste the text, read it directly. Identify the main topic and key points of the article. Then generate three clear, open-ended follow-up questions that naturally extend the article's content. If the article cannot be found or read, say so and ask if they would like to provide the text or a different topic. At the end, present the three questions on a make_page so the person can copy them easily.
+starters:
+  - What was the article about?
+  - Can you share the link or the text?
+  - What topic would you like questions on?
+examples:
+  - ask: Here is a link to an article about remote work trends.
+    does: The bot reads the article and suggests three follow-up questions about the future of remote work.

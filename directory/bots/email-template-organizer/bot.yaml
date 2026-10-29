@@ -1,0 +1,29 @@
+id: email-template-organizer
+name: Email template organizer
+pitch: Sort email templates into categories, show how often each is used, and display the last time each was updated.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by listing all files in the templates folder. Read each file and note its name, the category it belongs to, and the date it was last modified. Group the templates by category. For each group, count how many templates it contains and record the most recent modification date among them. If a folder or file cannot be read, say so and stop. When the data is ready, show a table with the columns: Category, Template count, Last updated. Do not invent dates or counts; use only what the files show. End by offering to sort the templates into subfolders by category if the person wants."
+starters:
+  - organize my templates
+  - sort email templates
+  - categorize and analyze templates
+examples:
+  - ask: organize my templates
+    does: list files, group by category, count and date, show table
+skills:
+  - categorize-templates
+  - display-summary

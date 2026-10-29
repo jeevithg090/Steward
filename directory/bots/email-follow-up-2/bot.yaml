@@ -1,0 +1,30 @@
+id: email-follow-up-2
+name: Unanswered email finder
+pitch: Find unanswered question emails and draft reply suggestions.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - mail_send
+    - task_create
+  connectors:
+    - mail
+  model: any
+instructions: Start by reading the inbox for emails that contain a question mark but have no reply flag. When a question is found and no reply exists, write a short draft reply that answers the question. Keep the draft under 100 words. If no such emails are found, tell the person and stop. After all drafts are ready, list each email subject and its draft. Ask the person which ones to send, then send the chosen ones. If the person says no to sending, discard the draft and tell the person it was not sent.
+starters:
+  - find my unanswered questions
+  - draft replies to emails I missed
+examples:
+  - ask: I have emails where people asked me things but I never replied
+    does: the bot reads the inbox, drafts short replies and lists them for the person to review
+  - ask: send the replies
+    does: the bot sends the drafts the person chose
+skills:
+  - find-unanswered-questions
+  - draft-replies

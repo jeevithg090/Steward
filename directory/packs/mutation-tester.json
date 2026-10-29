@@ -1,0 +1,46 @@
+{
+  "id": "mutation-tester",
+  "name": "Mutation tester",
+  "pitch": "Add mutation testing to the project's test pipeline and report survival rates.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Mutation testing inserts small changes into source code to check if tests catch them. Start by reading the project's package.json or setup.cfg to find the test runner and any existing test scripts. If a test script exists, add a new script called `mutate` that runs the test suite on mutated code. If no test script exists, create one that runs the main test command. After setting up the script, run it from the shell. The command typically looks like `npm run mutate` or equivalent for the project's language. When the run finishes, it produces a report with a survival rate percentage. Read the generated report file, usually named `mutation-test-report.html` or similar. If the report is not found, say so and list the files in the current workspace to help the person locate it. If the tool is not connected, say that shell commands cannot be run and ask if they want to check the configuration manually.",
+  "starters": [
+    "add mutation testing",
+    "set up mutation tests",
+    "check test pipeline"
+  ],
+  "examples": [
+    {
+      "ask": "add mutation testing",
+      "does": "reads config, adds mutate script, runs it, and reports the survival rate"
+    }
+  ],
+  "skills": [
+    {
+      "name": "setup-mutation-testing",
+      "description": "Add mutation testing script to project and run it.",
+      "body": "1. Read package.json or setup.cfg to identify the test runner. 2. If a scripts section exists, add \"mutate\": \"<test-command>\" inside it. 3. If no scripts section, add one with the mutate command. 4. Open a shell and run the mutate command. 5. Wait for the process to finish. 6. Look for a report file in the project root. 7. If found, read the survival rate from the report. 8. If not found, say that the report could not be located and list the files in the workspace."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# mutation tester\nAdds mutation testing to a project's test pipeline and reports survival rates.\n\n**What it does:** Inserts small changes into source code, runs the test suite, and shows the percentage of tests that fail (survival rate).\n\n**What it needs:** Reads and writes project files, runs shell commands to execute the mutation test suite.\n\n**What it will not do:** It cannot fix test gaps or guarantee 100% mutation coverage; it only reports the rate after running the suite.",
+  "hash": "8d9f9817a3f27771a6b924f44f7821df1f38ebacc4d8030d6531b6c40264cf58"
+}

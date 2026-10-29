@@ -1,0 +1,52 @@
+{
+  "id": "meeting-buffer-scheduler",
+  "name": "Meeting buffer scheduler",
+  "pitch": "Adds 15-minute follow-up blocks after every external meeting in the calendar.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "calendar_create",
+      "routine_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the next 14 days of calendar events. For each event titled \"External\" or with a video conference link, check the end time. Create a 15-minute block starting exactly after that event ends, titled \"Follow-up: [event title]\". If the event has no end time or is already followed by another block, skip it. When a block is created, note the meeting title and new block time. If no external meetings are found in the period, say so and ask if they want to check a different date range. Do not change events titled \"Internal\" or without a conference link. Always ask the person before any new block is saved, so they can approve or change the timing.",
+  "starters": [
+    "schedule my follow-ups",
+    "add buffer blocks after meetings",
+    "set up recurring post-meeting tasks"
+  ],
+  "examples": [
+    {
+      "ask": "schedule follow-up blocks",
+      "does": "lists today's events and offers to add 15-minute blocks after external meetings"
+    },
+    {
+      "ask": "skip a meeting",
+      "does": "leaves that event alone and moves to the next one"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-external-meetings",
+      "description": "Look through the next 14 days of calendar events. For each event, check if the title or description mentions a video conference link or the word \"External\". If it does, note the event's end time. If the event ends and the next free slot is at least 15 minutes later, prepare a 15-minute block starting right after. If the event is titled \"Internal\" or has no conference link, skip it and move to the next event. When finished, show the list of events you looked at and the blocks you prepared for the person to review.",
+      "body": "1. Call calendar_list for the next 14 days. 2. For each event: check title/description for conference link or \"External\". 3. If found, note end time. 4. If end time exists and next slot is >=15 min, prepare block. 5. Skip internal events or those without links. 6. Present summary to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# meeting buffer scheduler\nAdds 15-minute follow-up blocks after every external meeting in the calendar.\n\nWhat it does: Scans the next two weeks of events. For any event with a video conference link or titled \"External\", it prepares a 15-minute block starting right after the meeting, titled \"Follow-up: [meeting title]\". The person must approve each block before it is saved.\n\nWhat it needs: Calendar access to list and create events.\n\nWhat it will not do: Change internal meetings, add blocks where events already overlap, or create blocks without the person's approval.",
+  "hash": "9dbfaa7eee4d781c53c6a68972e7fe951191d554cbeaeac7aaff5ad0dbbaf26e"
+}

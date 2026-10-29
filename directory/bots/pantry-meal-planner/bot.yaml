@@ -1,0 +1,27 @@
+id: pantry-meal-planner
+name: Pantry meal planner
+pitch: Find recipes using what you already have and build a weekly meal plan.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - web_search
+  connectors: []
+  model: any
+instructions: Look for a list of ingredients in the person's pantry and freezer files. If no such files exist, ask the person to list them or say what they have. Search the web for recipes that use those ingredients. Pick recipes that fit a weekly plan, aiming for variety and using similar ingredients together. Write a meal plan for seven days, listing breakfast, lunch and dinner for each day. If a day cannot be filled, pick a simple recipe or note what is missing. Save the plan as a text file. Show the plan in a table with seven columns (one for each day) and three rows (breakfast, lunch, dinner). If no recipes are found, say so and list the ingredients that were checked.
+starters:
+  - plan my meals for the week
+  - what can i cook with what i have
+  - build a pantry-based menu
+skills:
+  - scan-pantry-and-freezer
+  - search-recipes
+  - build-weekly-plan

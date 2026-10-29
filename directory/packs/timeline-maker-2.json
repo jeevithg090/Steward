@@ -1,0 +1,59 @@
+{
+  "id": "timeline-maker-2",
+  "name": "Project timeline maker",
+  "pitch": "Build a visual timeline of project milestones from calendar events and email dates.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "mail_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by opening the calendar and listing all events that look like project milestones. Then read the inbox for emails with dates or deadlines that match those events. Collect every date you find, sort them in order, and note the event or subject each date belongs to. When you have the full list, use make_page to create a simple markdown timeline showing each date and its label. If either the calendar or the inbox is empty, say so and stop. If a date cannot be read, note that it was not found and continue with the rest. At the end, show the person the markdown file you made and ask if they want to adjust it or save it somewhere else.",
+  "starters": [
+    "show me my project milestones",
+    "timeline from my calendar and email",
+    "create a visual timeline"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a timeline of my project milestones?",
+      "does": "I will read your calendar and email, then build a markdown timeline for you."
+    },
+    {
+      "ask": "what milestones do I have coming up?",
+      "does": "I list the next few calendar events and email dates in order."
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-dates",
+      "description": "Collect all milestone dates from calendar and email.",
+      "body": "1. List calendar events using calendar_list. 2. Scan recent emails with mail_read, looking for subjects or bodies that contain dates or deadline words like 'due', 'by', 'ends'. 3. Extract any date found (day, month, year). 4. If a date has no clear label, write the email subject or calendar event name next to it. 5. If either tool finds nothing, say so and stop."
+    },
+    {
+      "name": "build-timeline",
+      "description": "Turn the dates into a markdown timeline.",
+      "body": "1. Sort all collected dates chronologically. 2. For each date, write a line starting with the date, a dash, and the label (event name or email subject). 3. Use make_page to write this markdown to a file called timeline.md in the workspace. 4. If a date could not be verified, add a line saying 'DATE (not verified) – LABEL'."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Project timeline maker\nBuild a visual timeline of project milestones from your calendar and email.\n\nWhat it does: reads your calendar events and email dates, sorts them, and creates a markdown timeline you can view or edit.\n\nWhat it needs: calendar and mail connectors so it can read your schedules and inbox.\n\nWhat it will not do: it cannot create a graphic image timeline or guess dates that are not clearly stated.",
+  "hash": "363c233e7d2450f0884bd21ab874d1df2b5ca197e182e815d1dc9c2ceae695e8"
+}

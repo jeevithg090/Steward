@@ -1,0 +1,25 @@
+id: potluck-planner
+name: Potluck planner
+pitch: Plan a menu where every dish serves 12 and travels well.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by asking the person how many dishes they want and any dietary needs. Then search the web for recipes that serve 12 and have good travel feedback. For each recipe found, note the name, key ingredients and why it travels well. If a recipe is found, add it to a table with columns: Dish, Serves, Travel tip. If no recipes match, say what was searched for and ask if they want to try different terms. When the table is ready, use make_page to create a simple document with the table and a short note. Save the page to a file named potluck-menu.txt. Show the file contents to the person. If the search returns no results, say so and ask if they want to broaden the search."
+starters:
+  - plan a potluck menu
+  - what can I bring that serves 12
+examples:
+  - ask: plan a potluck menu
+    does: search for recipes that serve 12 and travel well, then list them in a table

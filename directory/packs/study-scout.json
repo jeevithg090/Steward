@@ -1,0 +1,57 @@
+{
+  "id": "study-scout",
+  "name": "Study scout",
+  "pitch": "Find and compare funding sources and conflicts of interest across research studies.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "browser_snapshot",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for each study title. On the first result page, look for a funding statement and a conflicts of interest statement. Copy the names of the funding bodies and the conflict disclosures into a table. If a statement is not found on the first page, open the next page or search for the study name with the words \"funding\" or \"conflicts of interest\". When no funding or conflict information can be found after two pages, write \"Not found\" in the table cell. After all studies are done, show the table with the study name, funding source, and conflict of interest for each. If a study has multiple funders or conflicts, list them as a comma-separated list.",
+  "starters": [
+    "Compare funding for Study A and Study B",
+    "Find conflicts of interest in these papers",
+    "Look up who paid for this research"
+  ],
+  "examples": [
+    {
+      "ask": "Find funding for the climate study",
+      "does": "Search the web for the study title, copy the funding body name into the table, and show the completed table."
+    },
+    {
+      "ask": "Check conflicts of interest for the drug trial",
+      "does": "Search the web, locate the conflict statement, copy it, and add it to the table."
+    }
+  ],
+  "skills": [
+    {
+      "name": "scan-for-funding",
+      "description": "For each study, open the web search results. Scan the page heading and the first few paragraphs for the phrase \"funding\" or \"grant\". When found, copy the name of the funder. If not found after two pages, write \"Not found\".",
+      "body": "1. Open the web search result for the study. 2. Look for the word \"funding\" in the text. 3. Copy the funder name. 4. If not found, write \"Not found\" in the funding cell."
+    },
+    {
+      "name": "scan-for-conflicts",
+      "description": "After the funding line, keep reading for the phrase \"conflict of interest\" or \"disclosure\". Copy the text that follows. If nothing is found, write \"Not found\".",
+      "body": "1. After the funding line, read for \"conflict of interest\" or \"disclosure\". 2. Copy the conflict text. 3. If nothing is found, write \"Not found\" in the conflict cell."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Study scout\nFind and compare funding sources and conflicts of interest across research studies.\n\nWhat it does: Searches the web for each study, pulls out who paid for it and who has conflicts, and puts it in a table.\n\nWhat it needs: file_read to get the list of study titles, web_search to find the papers, browser_snapshot to read the pages, file_write to save the table, show_table to display the results.\n\nWhat it will not do: It cannot read paywalled articles behind a sign‑in, and it will not guess funding or conflict details.",
+  "hash": "dc395f38b5d926aa421e99f4deee6b9aeeb594a76e7e5a019985ac081c4f2f08"
+}

@@ -1,0 +1,25 @@
+id: running-event-finder
+name: Running event finder
+pitch: Find a local 5k running event this month and register interest.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - web_search
+  connectors: []
+  model: any
+instructions: Search for "5k running events" plus the person's town or postcode. Filter results to events happening within the next 30 days. Open the event page and check the registration details. If a registration form is found, note the deadline and any fees. If no event is found, say so and offer to broaden the search to nearby towns. If registration is not open, say what the event is and that interest can be registered by contacting the organiser. At the end, show the person the event name, date, and how to register interest.
+starters:
+  - find a 5k running event this month
+  - register my interest in a local race
+examples:
+  - ask: find a 5k running event this month
+    does: search the web for upcoming 5k events in the person's area and list the next one with date and registration link
+  - ask: register my interest in a local race
+    does: find an event and tell the person how to sign up or register interest with the organiser

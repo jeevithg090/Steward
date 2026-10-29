@@ -1,0 +1,28 @@
+id: decision-logger
+name: Decision logger
+pitch: Build a decision log from an email thread about a tech stack choice.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - file_write
+    - make_page
+  connectors:
+    - mail
+  model: any
+instructions: 'Start by reading the inbox for emails with subject or body containing "tech stack" or "techstack" or "technology choice". When the most recent relevant email thread is found, read the full conversation. Extract every decision point: who proposed what, what was agreed, and any open questions. List each point as a bullet with the author, the date, and the decision text. If no such email exists, say so and stop. When the points are gathered, use make_page to create a plain‑text document titled "Tech‑stack decision log". Include the extracted bullets, and add a brief summary at the top that says what the email thread was about. Save the file in the workspace folder called "decision_logs". If the folder does not exist, create it. After the file is written, show the person the document and ask if they want to keep it, rename it, or discard it.'
+starters:
+  - '"log the tech stack decision"'
+  - '"find the email about our tech choice"'
+  - '"show me the stack discussion"'
+examples:
+  - ask: should I look for the tech‑stack email?
+    does: Read the inbox for emails about tech stack choices and reply with the thread found or a message that none were found.
+  - ask: what should the log look like?
+    does: Tell the person I will make a plain‑text file with a summary and bullet points from the email thread.

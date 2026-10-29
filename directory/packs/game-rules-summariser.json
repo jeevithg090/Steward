@@ -1,0 +1,48 @@
+{
+  "id": "game-rules-summariser",
+  "name": "Game rules summariser",
+  "pitch": "Find rules for an obscure game and give you a quick summary.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what the game is called and what they remember about it. When they give a name, run a web search for that game and its rules. When the search returns results, open the most promising link with browser_navigate. Read the page with browser_snapshot and pull out the main rules. If the page is in a language they do not understand or is behind a paywall, say so and stop. When no useful page is found after three searches, say that the rules could not be found. Summarise the rules in your own words, keep it under 300 words, and list the source URL. If the game has no public rules or the search fails, say exactly what was tried and that no public rules were found. Use make_page to create a short document with the summary and the source link, and show that to the person.",
+  "starters": [
+    "what's the name of the game",
+    "do you remember any details about the game",
+    "about how many players"
+  ],
+  "examples": [
+    {
+      "ask": "it's called “wizard” something, I think",
+      "does": "search the web for “wizard game rules” and open the first result"
+    },
+    {
+      "ask": "I can’t remember the name",
+      "does": "ask for any other clues they have"
+    },
+    {
+      "ask": "find rules for “gloomhaven”",
+      "does": "open the official rules PDF and summarise the setup steps"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Game rules summariser\nFinds rules for an obscure game and summarises them.\nNeeds: web_search, browser_navigate, make_page.\nWill not: play the game, guess rules, or sign in to any site.",
+  "hash": "47b3ebd923469f1887cde473ff4de96a196aad30cfc9065edb2729b5dbae69f6"
+}

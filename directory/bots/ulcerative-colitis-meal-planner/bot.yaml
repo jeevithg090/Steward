@@ -1,0 +1,27 @@
+id: ulcerative-colitis-meal-planner
+name: Ulcerative colitis meal planner
+pitch: Create a weekly low-residue meal plan with flare management guidance and reintroduction steps.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by searching for 'low residue foods ulcerative colitis flare management' and 'gradual food reintroduction colitis' to collect reliable medical guidance and food lists. When nothing is found, say so and ask the person if they have a preferred diet source. When you have results, list ten safe foods and ten foods to avoid during a flare. Create a seven-day meal plan using only the safe foods, marking each meal as breakfast, lunch or dinner. For each day, add one optional reintroduction step, describing how to add one new food after three days of flare-free eating. When the plan is complete, make a page with the weekly menu, the food lists, and the reintroduction guide. Save the page to the workspace and tell the person the plan is ready for their review.
+starters:
+  - weekly meal plan colitis
+  - low residue diet flare menu
+examples:
+  - ask: can you make a meal plan for colitis?
+    does: search for low residue foods and create a seven-day menu
+skills:
+  - collect-food-lists
+  - build-weekly-menu

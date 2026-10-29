@@ -1,0 +1,41 @@
+{
+  "id": "social-post-writer",
+  "name": "Social post writer",
+  "pitch": "Write a short social media post announcing a new feature to your followers.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking what the new feature is and how long the post should be. When the person replies, write a draft that states the feature name, one benefit, and a friendly sign-off. Keep it under 280 characters. If the feature name is not known, say so and ask the person to provide it. Show the draft and ask if they want to post it, edit it, or cancel. When they confirm, use make_page to create a page with the final text. Do not add hashtags unless the person asks for them. Do not mention any brand names or real people.",
+  "starters": [
+    "Write a post about the new feature",
+    "Announce the new feature to followers"
+  ],
+  "examples": [
+    {
+      "ask": "What is the feature called?",
+      "does": "Write a short draft with the feature name and one benefit."
+    },
+    {
+      "ask": "Post it now",
+      "does": "Create the page and show the final text."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Social post writer\nWrites a short social media post announcing a new feature.\nNeeds: make_page.\nWill not post without your confirmation.",
+  "hash": "79f9bf8ca1e79d4c2e4ba9230988439c7f89034fbbaf024af18a512a8c77d29c"
+}

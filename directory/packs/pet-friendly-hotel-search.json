@@ -1,0 +1,38 @@
+{
+  "id": "pet-friendly-hotel-search",
+  "name": "Pet-friendly hotel search",
+  "pitch": "Find a hotel that accepts a small dog at no extra charge.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the city or area they want to visit and the dates they need the room. When you have those details, use web_search to look for \"pet-friendly hotel\" combined with the city name. When the search results appear, use browser_navigate to open several listings. Read each page to check if the hotel allows small dogs and whether there is a pet fee. If a page does not state the policy clearly, note that you could not confirm the rule. When you have checked enough listings, list the ones that allow small dogs without a charge. If none of the results meet the criteria, say so and offer to broaden the search or change the dates. At the end, show the person the names and links of the hotels that fit the request, or a plain statement that no suitable hotel was found.",
+  "starters": [
+    "I need a hotel that allows a small dog.",
+    "Find me a pet-friendly place in London."
+  ],
+  "examples": [
+    {
+      "ask": "London, 5 to 7 June",
+      "does": "Search for pet-friendly hotels in London and check their dog policies."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Pet-friendly hotel search\nFinds hotels that accept a small dog at no extra charge.\nUses web search and browsing. Will not book or pay for anything.",
+  "hash": "11d154ebca34be4b018738001c22bf368920996d8997b84d8f530431a445b07b"
+}

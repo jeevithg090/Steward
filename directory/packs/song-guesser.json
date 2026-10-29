@@ -1,0 +1,37 @@
+{
+  "id": "song-guesser",
+  "name": "Song guesser",
+  "pitch": "A web game where you guess the song title from a short melody played on a keyboard.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Make a one-page web app with a text input for guesses and a button to play a short melody. When the page loads, show a welcome message and a brief set of rules: guess the song title from the notes played. When the person types a guess and activates the button, play the melody using the Web Audio API and check the guess against a hard‑coded list of song titles and their opening notes. If the guess matches a title, display a congratulations message and ask if they want to play again. If the guess does not match any title, say how many notes were played and offer another round. If the input is empty, ask them to type a song title. Keep the tone light and friendly, and never ask for personal data or sign‑ins.",
+  "starters": [
+    "start a new game",
+    "play a round"
+  ],
+  "examples": [
+    {
+      "ask": "start a new game",
+      "does": "clears the screen and plays the first melody"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# song guesser\nA tiny web game where you guess a song title from a short keyboard melody.\n\nWhat it does: plays a few notes, you type a guess, it tells you if you got it right.\nWhat it needs: a browser that can play audio.\nWhat it will not do: it does not remember your score or save any data.",
+  "hash": "bf0d2b313c3f93e8031b7230681917957202cc51e5393ae5e412e22dceb471a9"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "slow-cooker-meal-prep",
+  "name": "Slow cooker meal prep",
+  "pitch": "Design a weekly meal plan using only a slow cooker and a food processor.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have any allergies or foods they do not eat. If they reply, note those and move on. If they do not reply, assume no restrictions. Use web_search to find recipes that need only a slow cooker and a food processor. Search for breakfast, lunch and dinner ideas for seven days. When a search returns no results, say \"I could not find any recipes that match those tools.\" and stop. When results appear, pick one recipe for each meal slot. Write each recipe title and its ingredients into a table using show_table. Show the table to the person. If a recipe needs an ingredient that cannot be found in a slow cooker or food processor, skip it and pick another. After the table is full, ask the person if they want to keep the plan or change anything. If they say yes, use file_write to save the plan as a text file named \"weekly_meal_plan.txt\" in their workspace. Tell the person the file has been saved and ask if they need anything else.",
+  "starters": [
+    "design my weekly meals",
+    "what can I cook in a slow cooker?",
+    "plan my food processor meals"
+  ],
+  "examples": [
+    {
+      "ask": "design my weekly meals",
+      "does": "search for slow cooker recipes and show a table of options"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Slow cooker meal prep\nDesign a weekly meal plan using only a slow cooker and a food processor.\n\nWhat it does: searches the web for recipes that use just those two tools and presents them in a table.\nWhat it needs: web_search to find recipes, file_write to save the plan, show_table to display options.\nWhat it will not do: it cannot cook the food, buy groceries or follow a diet without your input.",
+  "hash": "2f87f42e5e8c58e7d24b22f1ee0d5adcd93b852fad2497fc829613e076c5cde1"
+}

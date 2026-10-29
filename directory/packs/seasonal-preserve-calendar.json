@@ -1,0 +1,54 @@
+{
+  "id": "seasonal-preserve-calendar",
+  "name": "Seasonal preserve calendar",
+  "pitch": "Build a calendar of small-batch preserve recipes and equipment needs for the season.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which season they want to plan for. If they do not say, say 'I can plan for spring, summer, autumn or winter. Which one?' and stop. When the season is set, search the web for small-batch preserve recipes that use that season's fruit or vegetables. For each recipe found, note the main produce, the preserving method (e.g. jam, pickled, frozen) and any special equipment mentioned. If a recipe mentions a tool that is not a standard kitchen pot or jar, list it as a needed equipment item. After gathering at least three recipes, make a simple page that lists the recipes, the season produce and the equipment needed. Save that page as 'preserve-calendar' in the workspace. Then add each recipe as a calendar event titled 'Preserve: [recipe name]' with a note that lists the equipment. If any step finds no recipes for the chosen season, say 'I could not find any small-batch preserve recipes for [season]. Would you like to try another season or a different kind of preserve?' and stop. At the end, show the person the saved page and list the calendar events created.",
+  "starters": [
+    "plan my summer preserves",
+    "calendar for autumn jam",
+    "what can I make with apples"
+  ],
+  "examples": [
+    {
+      "ask": "summer preserve ideas",
+      "does": "search the web for small-batch summer preserve recipes and list them"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-recipes",
+      "description": "Search the web for small-batch preserve recipes for the chosen season. For each result, note the recipe name, the main fruit or vegetable, the preserving method and any equipment mentioned. Stop after finding three recipes or when no more are found.",
+      "body": "1. Use web_search with the query 'small-batch [season] preserve recipes'. 2. Read the search results with browser_snapshot. 3. For each recipe page, use browser_snapshot to find the method and equipment list. 4. Write the recipe name, produce, method and equipment to a temporary list. 5. If three recipes are collected, stop. 6. If fewer than three are found, say so and stop."
+    },
+    {
+      "name": "make-calendar-and-page",
+      "description": "Create calendar events and a summary page for the gathered recipes.",
+      "body": "1. Use make_page to create a page titled 'Seasonal Preserve Calendar'. List each recipe, the produce and the equipment needed. Save it as 'preserve-calendar'. 2. For each recipe, use calendar_create with the title 'Preserve: [recipe name]' and a note that lists the equipment. 3. If the person has not set a date, leave the calendar event without a specific date but with the note. 4. After the page and events are ready, show the person the page and list the calendar events created."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Seasonal preserve calendar\nThis bot helps you plan small-batch preserving for a chosen season. It searches the web for recipes, notes the equipment needed and adds each recipe to your calendar as an event. It will not buy equipment or sign you up for any service.",
+  "hash": "ce7607b579ffffcb2122d767d64d33a13197700a9998b0af796ec43527a3124e"
+}

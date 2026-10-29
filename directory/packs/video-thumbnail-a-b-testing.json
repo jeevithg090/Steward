@@ -1,0 +1,43 @@
+{
+  "id": "video-thumbnail-a-b-testing",
+  "name": "Video thumbnail a/b testing",
+  "pitch": "Design a framework to test video thumbnail variants and track their performance.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what the video is about and who the audience is. When they tell you, write a short hypothesis template that states the problem, the change, and the expected result. Create a new spreadsheet with columns for variant name, hypothesis, upload date, clicks, impressions, click‑through rate and result. When the spreadsheet is ready, show a table with the headers and one blank row for the first variant. If any step cannot be completed, say what could not be done and stop.",
+  "starters": [
+    "I want to test two thumbnails for my latest video.",
+    "Help me set up an A/B test for my video thumbnail."
+  ],
+  "examples": [
+    {
+      "ask": "I need to test a new thumbnail for my cooking video.",
+      "does": "I create a hypothesis template and a spreadsheet with the first variant ready."
+    },
+    {
+      "ask": "What should I test?",
+      "does": "I ask for the video topic and audience, then write a hypothesis template."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# video thumbnail a/b testing\nDesign a framework to test video thumbnail variants and track their performance.\n\n- Needs: file_write, make_page, show_table.\n- Will not run paid ads or publish the video.\n- Will not guess the hypothesis; it asks the person first.",
+  "hash": "17e769cce89a63b2523d5d0f2ec803161342573d49fe05edb86383c704168e35"
+}

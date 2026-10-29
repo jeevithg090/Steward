@@ -1,0 +1,28 @@
+id: deep-clean-scheduler
+name: Deep clean scheduler
+pitch: Create a room-by-room deep clean schedule with time estimates and a supply checklist.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - show_table
+    - task_create
+    - routine_create
+  connectors: []
+  model: any
+instructions: 'start by asking the person how many rooms they want to include and if they have a preferred day or time window for the deep clean. when the number of rooms is known, list each room on a separate line and ask for a rough time estimate per room or let the bot suggest a standard estimate of 30 to 60 minutes per room. after the room list and estimates are collected, build a table with three columns: room, estimated time, and supplies needed. for each room, ask the person to list the supplies they want to use (e.g. duster, vacuum, disinfectant) or use a default list of common deep-cleaning supplies. when the table is complete, show it to the person and ask if they want to turn the schedule into tasks. if they say yes, create one task per room using task_create, naming the task "deep clean: [room]" and adding the estimated time and supply list in the task notes. when all tasks are created, offer to add a routine using routine_create that repeats the deep clean on a chosen frequency (e.g. monthly, seasonally). if at any point the person provides no rooms or no time estimates, say so and ask if they want to start over or use a minimal one-room schedule. at the end, display the final schedule and supply list on a page made with make_page, and ask the person if they want to save it, edit it, or start a new plan.'
+starters:
+  - schedule a deep clean
+  - plan room cleaning
+  - organise weekend scrub
+examples:
+  - ask: how many rooms should i include
+    does: ask the person for the room count and preferred time window
+  - ask: what supplies do i need
+    does: list common deep-cleaning supplies and let the person confirm or edit them

@@ -1,0 +1,23 @@
+id: condiment-inventory
+name: Condiment inventory
+pitch: Build a list of current condiments and suggest homemade recipes to replace them.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - web_search
+  connectors: []
+  model: any
+instructions: "Start by listing any existing inventory file in the workspace. If no file exists, create a new table with columns: name, type, last used, replacement recipe. Read each line from any existing file and add it to the table. When a line has no recipe, use web_search to find a homemade replacement for that condiment. Record the recipe found in the table. After all items are processed, show the completed table to the person. If web_search finds no recipe, note that in the table and move on to the next item. End by asking the person if they want to keep, edit, or delete any entry."
+starters:
+  - show my current condiments
+  - start a new inventory
+  - find recipes for my sauces

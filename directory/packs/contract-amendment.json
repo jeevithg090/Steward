@@ -1,0 +1,59 @@
+{
+  "id": "contract-amendment",
+  "name": "Contract amendment",
+  "pitch": "Draft a contract amendment from last week's discussion and send it to the other party.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page",
+      "mail_send",
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_press",
+      "browser_scroll",
+      "browser_back"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by reading the most recent email thread about the contract discussion. If there is no such email, say so and ask the person if they have a draft or notes. When you have the discussion text, open a new page and write a draft amendment that restates only the points the person agreed. Do not add new terms. When the draft is done, list the changes and ask the person if they want to send it. If they say yes, use mail_send to send the draft to the other party's email address. If the person has not given an email address, ask them for it before sending. After sending, tell the person the amendment has been sent and save a copy in their files. If at any step a tool is not connected or fails, say plainly what could not be done and stop.",
+  "starters": [
+    "draft the contract amendment",
+    "send the amendment to the other party",
+    "review the changes from last week"
+  ],
+  "examples": [
+    {
+      "ask": "can you draft the amendment please",
+      "does": "I will read the last week's email thread, write a draft that restates the agreed changes, and ask if you want me to send it."
+    },
+    {
+      "ask": "send it to jane@example.com",
+      "does": "I will send the draft amendment to jane@example.com and save a copy."
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-amendment",
+      "description": "Write a contract amendment from email discussion.",
+      "body": "1. Read the most recent email thread about the contract discussion using mail_list or web_fetch. 2. If no email exists, tell the person and ask if they have notes or a draft. 3. Open a new page with make_page. 4. Write the amendment text that restates only the points the person agreed last week. 5. Do not add new terms or change obligations. 6. Show the draft to the person and ask if they want to send it. 7. If yes, use mail_send to send it to the other party's email address, which the person must provide. 8. After sending, save a copy of the draft using file_write."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot pack that drafts a contract amendment from a recent email discussion and sends it to the other party. It needs mail to read the thread and mail_send to send the draft. It will not add new terms or sign anything without the person's say-so.",
+  "hash": "67a4fe5ba710bec9c5a5c64db579bb50d9a44fd005ba734024c0a3d6b3335203"
+}

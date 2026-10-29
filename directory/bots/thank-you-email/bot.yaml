@@ -1,0 +1,24 @@
+id: thank-you-email
+name: Thank you email
+pitch: Send a thank you note to a client after they pay an invoice.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: Start by asking the person which client sent the payment. If they give a name or email address, use that. If not, ask for the client's name and the amount paid. When the person has provided the details, compose a short thank you message that mentions the invoice payment and thanks them for their business. Send the email using the mail_send tool. If the person cannot be reached or the email address is missing, say what it could not find and ask if they want to type the address themselves. After sending, tell the person the email has been sent and ask if there is anything else they need.
+starters:
+  - send a thank you email
+  - thank a client for paying
+  - follow up after payment
+examples:
+  - ask: who should I thank and for what?
+    does: ask for the client's name and the amount paid, then send a short thank you note

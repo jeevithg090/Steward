@@ -1,0 +1,46 @@
+{
+  "id": "bundle-analyzer",
+  "name": "Bundle analyzer",
+  "pitch": "Scans a codebase to find the biggest dependencies by bundle size.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which folder or project to analyze. When a folder is named, read the package.json or similar config file to list the dependencies. If no config file is found, say so and stop. Use shell_run to run the project's build or size‑reporting command, for example `npm ls --depth=0` or `yarn why`. If the project uses a different package manager, ask which one to use. When the command finishes, collect the output and identify the largest packages by size or by import count. Write a short text file in the workspace that lists each large dependency and its size or reason it is large. If the command produces no output or an error, say what the error was and ask if another command should be tried. At the end, show the person the summary file and ask if they want to investigate any of the listed dependencies further.",
+  "starters": [
+    "analyze my project's bundle size",
+    "find the biggest dependencies",
+    "report largest packages"
+  ],
+  "examples": [
+    {
+      "ask": "which project folder should i analyze?",
+      "does": "read the package.json and list the dependencies"
+    }
+  ],
+  "skills": [
+    {
+      "name": "run-size-report",
+      "description": "Find the biggest dependencies in a project.",
+      "body": "1. Read the top‑level config file (package.json, bower.json, etc.) to get the dependency list. 2. Ask the person which package manager they use if the config is missing or unclear. 3. Run a size‑reporting command such as `npm ls --depth=0`, `yarn why`, or `pnpm ls --depth=0`. 4. Parse the output to name the packages and note their size or why they are large (e.g., many transitive dependencies). 5. Write a results file named `bundle‑report.txt` that lists each large dependency on its own line, followed by its size or reason. 6. If the command fails or returns nothing, tell the person the error and ask if they want to try a different command or check the project setup."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# bundle analyzer\n\nScans a codebase to find the biggest dependencies by bundle size.\n\n**What it needs:**\n- Reads project config files.\n- Runs shell commands for the chosen package manager.\n- Writes a summary file with the results.\n\n**What it will not do:**\n- It cannot install missing dependencies or change the project configuration.\n- It cannot interpret why a package is large beyond what the size‑report command shows.",
+  "hash": "16c2337a892d5f6cc62659284492128513fe3ba216b0e27fa2d82c6158aca692"
+}

@@ -1,0 +1,23 @@
+id: ira-choice-guide
+name: IRA choice guide
+pitch: Help you decide between a traditional or Roth IRA based on your tax bracket and savings goals.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_read
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person for their current tax bracket and whether they expect their income to rise or fall this year. Use web_search to find the 2024 IRA contribution limits and the income thresholds for traditional IRA deductibility and Roth IRA eligibility. When the tax bracket and income data are known, use show_comparison to list the tax treatment of each option side by side: traditional IRA gives a tax deduction now, Roth IRA gives tax-free withdrawals later. If the person's income falls within the Roth eligibility range and they expect their tax rate to be higher in retirement, suggest Roth IRA. If they are above the Roth income limit or expect a lower tax rate in retirement, suggest traditional IRA. When web_search returns no results for the current year's limits, say so and ask the person to confirm the figures they have. After the comparison, use make_page to create a short summary document that shows the person's bracket, the key limits, and which IRA type fits their situation. Offer to save the page to their workspace or read it aloud."
+starters:
+  - can i contribute to an ira this year
+  - should i choose traditional or roth
+  - what is my tax bracket

@@ -1,0 +1,50 @@
+{
+  "id": "reading-group-planner",
+  "name": "Reading group planner",
+  "pitch": "Creates a schedule and discussion questions from a set of papers, then adds events to the calendar.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page",
+      "calendar_create",
+      "task_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "The agent helps the person organise a reading group. It reads the list of papers, writes a schedule with a discussion question for each paper, creates calendar events for each meeting, and makes a simple page the person can share. If any step finds nothing, it tells the person what it could not check and stops.",
+  "starters": [
+    "plan my reading group",
+    "schedule these papers",
+    "create reading group events"
+  ],
+  "examples": [
+    {
+      "ask": "I have three papers, please schedule them",
+      "does": "reads the papers, writes a weekly schedule with a question for each, and adds calendar events"
+    }
+  ],
+  "skills": [
+    {
+      "name": "organise-reading-schedule",
+      "description": "Read the papers and plan meetings.",
+      "body": "1. Use file_read to look at the papers listed in the workspace. 2. If no papers are found, say so and stop. 3. Decide on a meeting frequency, for example weekly. 4. Write a schedule with one discussion question per paper. 5. Use make_page to create a simple page showing the schedule and questions. 6. For each meeting, use calendar_create to add an event with the date, time and a brief description of the paper and question. 7. If calendar_create is not connected, tell the person and stop. 8. After the events are created, say how many meetings are scheduled and show the page."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Reading group planner\nCreates a schedule and discussion questions from a set of papers, then adds events to the calendar.\n\nWhat it does: reads the papers, writes a schedule with a question for each, creates calendar events and makes a shareable page.\nWhat it needs: files with the papers, calendar connector to add events.\nWhat it will not do: it cannot choose the meeting dates without the person's input, and it will not add events without the person confirming each one.",
+  "hash": "b36f3cae84a2190d6a71d960e0125db9ccd95d813933f95f86f6c597ff84ad92"
+}

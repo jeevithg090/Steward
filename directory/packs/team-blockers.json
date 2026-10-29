@@ -1,0 +1,42 @@
+{
+  "id": "team-blockers",
+  "name": "Team blockers",
+  "pitch": "Create a one-page summary of the team's current blockers for the director.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the workspace. Read any file that looks like meeting notes, a project tracker, or a list of issues. If no such file exists, ask the person which file or folder contains the blockers. If the person cannot be reached, say so and stop. From the content found, identify the top three blockers. Write a concise one-page summary using make_page. Include a heading 'Team blockers', a short intro, the three blockers with a one-sentence description each, and a closing line. Show the finished page to the person and ask if they want to keep it, edit it, or discard it.",
+  "starters": [
+    "show me the team's blockers",
+    "summarise current blockers for the director"
+  ],
+  "examples": [
+    {
+      "ask": "here are the blockers from our last sprint",
+      "does": "I will read the notes and make a one-page summary for the director."
+    },
+    {
+      "ask": "I can't find a file with blockers",
+      "does": "I will ask you which folder to check."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Team blockers\nCreate a one-page summary of the team's current blockers for the director.\n\n- What it does: reads files, writes a single-page document.\n- Needs: file_read, make_page.\n- Will not: access external sites or send the summary anywhere without your say-so.",
+  "hash": "4bd1a0bfcce6cfabe346519d616d14f29cb10f6be74772515f897dfa3221d13b"
+}

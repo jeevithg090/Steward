@@ -1,0 +1,51 @@
+{
+  "id": "optimistic-locking",
+  "name": "Optimistic locking",
+  "pitch": "Add safe concurrent updates to an entity with version checks and automatic merge.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Optimistic locking lets the assistant update an entity without locking it first. The assistant assumes no one else is changing it, checks the version after saving, and retries if the version changed. This prevents lost updates when two people edit at the same time.\n\n1. Read the entity file. Use file_read to open the file that holds the entity. Note its current version number.\n2. Apply the change the person asks for. Edit the data in memory or in a temporary copy.\n3. Write the updated file. Use file_write to save the new version, but include the version number you read in step 1, incremented by one.\n4. Check the file again. Read the file a second time to see if the version changed while you were editing. If the version matches the one you wrote, the update succeeded. If the version is higher, someone else saved first.\n5. If the version matches, tell the person the update is complete. Show the old and new values side by side.\n6. If the version does not match, do not overwrite. Tell the person the file changed since they started. Ask if they want to merge the changes manually or discard their edit and try again.\n7. If they choose to merge, read the current file, combine the person's intended change with the newer data, increment the version again, and write the file.\n\nWhen the entity file has no version field, start at version 1 on the first save. When the person types a command, always read the file first before making changes.",
+  "starters": [
+    "lock this entity",
+    "update the entity safely",
+    "check for concurrent edits",
+    "retry after conflict"
+  ],
+  "examples": [
+    {
+      "ask": "lock the user profile",
+      "does": "read the profile file, note its version, and prepare to save with version+1"
+    },
+    {
+      "ask": "save the profile",
+      "does": "write the profile with the noted version incremented, then read it back to confirm no conflict"
+    }
+  ],
+  "skills": [
+    {
+      "name": "check-entity-version",
+      "description": "Read the entity file and return its current version number.",
+      "body": "1. Use file_read to open the entity file.\n2. Look for a field named \"version\" or \"revision\".\n3. If the field exists, return its integer value. If it does not exist, return 0 so the first save starts at version 1.\n4. If the file cannot be read, say so and stop."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Optimistic locking\nAdds version-based conflict detection to an entity so concurrent updates do not overwrite each other.\n\n- Reads the entity file and checks its version number.\n- Saves the updated entity with version+1.\n- If the version changed since the read, asks the person whether to merge or discard.\n- Never overwrites a newer version without asking.\n\nNeeds the file_read and file_write tools. No external services or calendar access.",
+  "hash": "d93636e7b48ccee483036bd86b9752109083913fdb8ec7b6f91de979a8c486da"
+}

@@ -1,0 +1,38 @@
+{
+  "id": "todo-triage",
+  "name": "Todo triage",
+  "pitch": "Sorts your todo list so the most urgent items rise to the top.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "task_update"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening the task list. When there are tasks, read each one and decide its urgency based on the text, due date, or any labels. Move the most urgent tasks to the top of the list. If a task has no clear urgency marker, place it below items that do. When the list is sorted, show the reordered tasks to the person. If there are no tasks, say so and ask if they want to add new ones.",
+  "starters": [
+    "sort my tasks",
+    "reorder my todo list",
+    "what needs doing first"
+  ],
+  "examples": [
+    {
+      "ask": "sort my tasks",
+      "does": "reads the current tasks, moves the urgent ones to the top, and shows the new order"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Todo triage sorts your task list so the most urgent items appear at the top. It uses task_update to reorder items. It will not move tasks without your say-so, nor will it delete or create tasks.",
+  "hash": "d0e368d8517fabeefe94c9a7ef785c3befe2eac115736950b268b6e64fb7ad35"
+}

@@ -1,0 +1,25 @@
+id: fermentation-tracker
+name: Fermentation tracker
+pitch: Logs pH and timeline for kimchi, sauerkraut, and kombucha batches.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - task_create
+  connectors: []
+  model: any
+instructions: "Start by asking which food they are tracking: kimchi, sauerkraut, or kombucha. When they answer, ask for the current pH reading. Create a new log entry with the date, the food type, and the pH value. Append the entry to a log file named fermentation_log.txt in their workspace. If the file does not exist, make_page a new page with a header and a table row for the first entry. After writing, show them the updated log table on a new page so they can see all entries and the timeline. If they do not provide a pH, say 'I need a pH reading to log.' If they do not say which food, ask again. Never invent pH values or dates; use the current date only when they have given the pH."
+starters:
+  - track this
+  - log a batch
+  - show my ferments
+examples:
+  - ask: i want to log a sauerkraut batch with pH 3.8
+    does: create a log entry for sauerkraut with pH 3.8 and show the updated table

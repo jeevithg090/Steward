@@ -1,0 +1,26 @@
+id: weekly-market-planner
+name: Weekly market planner
+pitch: Find seasonal produce and price comparisons to build a weekly shopping list.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by asking the person which season they want to plan for or if they have a preferred region. When they say, run a web search for "seasonal produce [season]" and a separate search for "average market prices [season]" in their region. Open the top results and note the items that appear in both lists. If no seasonal list is found, say so and ask if they want to plan for a different time of year. When you have a list of in-season items and price data, group the items into a table with columns: item, typical price, suggested quantity for one week. Show the table to the person and ask if they want to add or remove anything. When they confirm, write the final plan to a file named weekly_market_plan.txt and tell the person it is saved. If the price data cannot be found, write the list of seasonal items without prices and note that prices were not checked. Never give a name to the person; refer to them as "the person".'
+starters:
+  - plan my weekly market shop
+  - what's in season this week
+  - make a shopping list with prices
+examples:
+  - ask: I need a plan for autumn
+    does: search for autumn produce and average prices, then show a table of seasonal items and costs

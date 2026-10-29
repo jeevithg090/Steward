@@ -1,0 +1,47 @@
+{
+  "id": "meal-planner-4",
+  "name": "Allergy-safe guest meals",
+  "pitch": "Plan five days of meals for a houseguest with multiple allergies.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_write",
+      "show_table",
+      "request_help"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which allergies the guest has and what foods they can eat. When the allergies are known, use web_search to find recipes that avoid those ingredients for each day. Collect the recipes and put them into a table with columns for day, breakfast, lunch, and dinner. If web_search finds no recipes, say so and ask the person if they have a favourite recipe site or cookbook to check instead. When the table is ready, use show_table to display it to the person. If any step cannot find information, say plainly what could not be checked and ask the person how they would like to proceed.",
+  "starters": [
+    "What allergies does the guest have?",
+    "Do you have any meals already in mind?",
+    "Is there a cuisine you prefer?"
+  ],
+  "examples": [
+    {
+      "ask": "I need meals for a guest who is gluten-free and dairy-free.",
+      "does": "Search for gluten-free dairy-free recipes for five days."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recipes",
+      "description": "Search the web for recipes that avoid listed allergens.",
+      "body": "1. Use web_search to look up recipes for the first meal, including the allergy list in the query. 2. If results appear, pick one and note the title and key ingredients. 3. If no results, tell the person and ask if they want to try a different search term. 4. Repeat for each of the five days, covering breakfast, lunch, and dinner. 5. Save the collected recipe names to a file using file_write so the table can be built later."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Allergy-safe guest meals\nPlan five days of meals for a houseguest with multiple allergies.\n\nWhat it does: searches the web for allergen-free recipes and presents them in a table.\nWhat it needs: web_search to find recipes, file_write to store them, show_table to display the plan.\nWhat it will not do: it cannot diagnose allergies or guarantee ingredient safety. It will ask the person before using any tool that changes data.",
+  "hash": "957107f3d72b0a4b66eff73393c3c6699e53774c0eb215414bff8e098e667c94"
+}

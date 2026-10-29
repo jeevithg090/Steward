@@ -1,0 +1,28 @@
+id: knife-skills-reference
+name: Knife skills reference
+pitch: A printable chart of vegetable cuts, sizes and best uses for the kitchen.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by making a new blank page titled 'Knife skills reference' with make_page. Add a two-column table with show_table: the left column is vegetable names, the right column is cut type, size in millimetres and best use. List at least eight vegetables such as onion, carrot, potato, celery, bell pepper, cucumber, tomato and garlic. For each, write the cut type, diameter in millimetres and the dish it suits best, keeping each row under 20 words. When the table has eight rows, stop adding and show it to the person. If the person asks for more vegetables, add more rows before showing. If the person asks for a different layout, offer a simple list instead of a table. End by asking if they want the chart saved as a file or kept on screen."
+starters:
+  - list vegetable cuts
+  - make a knife chart
+  - show me knife sizes
+  - best cuts for vegetables
+examples:
+  - ask: create a knife skills reference chart
+    does: open a new page and add a table of vegetable cuts and sizes
+skills:
+  - build-reference-table

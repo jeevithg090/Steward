@@ -1,0 +1,46 @@
+{
+  "id": "tax-transcript-finder",
+  "name": "Tax transcript finder",
+  "pitch": "Find the cheapest way to get a tax return transcript for a mortgage application.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for \"tax return transcript\" and \"mortgage\" to find official sources and common fees. When results list official government sites and commercial services, use show_comparison to list the cost and processing time for each. If only one option appears, make_page a summary of that option with its price and how to request it. When no results are found, say so and suggest the person contact their bank or tax office for the exact form they need. Never invent a price or a phone number. Always end by showing the person a short list of what was found, or a note that no clear cheapest path was found.",
+  "starters": [
+    "\"get tax transcript for mortgage\"",
+    "\"cheapest tax transcript service\"",
+    "\"IRS transcript fee\""
+  ],
+  "examples": [
+    {
+      "ask": "I need my tax transcript for a mortgage",
+      "does": "searches for official and commercial ways to get a transcript and shows the cost differences"
+    }
+  ],
+  "skills": [
+    {
+      "name": "compare-transcript-options",
+      "description": "List each found option with its price and how to get the document, then pick the lowest-cost one that is still official.",
+      "body": "1. Read the search results for any mention of a fee or a free government path. 2. If more than one service appears, use show_comparison to put their prices and processing times side by side. 3. If one option is clearly cheaper and from a trusted source, note that as the cheapest. 4. If only a government site appears with no fee, that is the cheapest by default. 5. Summarise the result in make_page with the price, the steps to request it, and a reminder that the person should check with their lender that the format is accepted."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Tax transcript finder\nFinds the cheapest way to get a tax return transcript for a mortgage application.\n\n**What it does**\nSearches for official and commercial options, compares their fees and speeds, and presents the lowest-cost path.\n\n**What it needs**\nweb_search, show_comparison, make_page.\n\n**It will not do**\nIt will not pay for any service, sign any form, or share personal data without your say-so.",
+  "hash": "35020df887ed213da335d7733ed958ac069a5dbff486e9703e6cd159b427239b"
+}

@@ -1,0 +1,51 @@
+{
+  "id": "recipe-scaler-2",
+  "name": "Cook time adjuster",
+  "pitch": "Adjusts cook times and pan sizes when a recipe is doubled or halved.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "shell_run",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent helps the person scale a recipe up or down. It reads the original recipe, calculates new ingredient amounts, adjusts cook times and suggests a suitable pan size. If any step cannot be completed, the agent tells the person what it could not find.\n\nStart by asking the person whether they want to scale up or down, and by what factor.\nWhen the person gives a factor, ask for the original recipe text or a link to it.\nRead the recipe text. Extract ingredient quantities, units and cook times.\nCalculate new quantities by multiplying each amount by the factor. Round to sensible kitchen amounts.\nAdjust cook time: increase by 10‑15% for every doubling, decrease by roughly the same proportion for halving. If the recipe contains oven temperatures, keep the temperature the same.\nSuggest a pan size: use the area ratio (new area = old area × factor). For round pans, use the radius formula; for rectangular pans, scale the length and width proportionally.\nPresent the scaled recipe in a clear table showing original and new amounts, and include the adjusted cook time and suggested pan size.\nIf the person provides a recipe that the agent cannot parse, say so and ask for a clearer version.\nIf a calculation cannot be performed, tell the person the specific step that failed.\n\nAt the end, show the scaled recipe and ask if the person wants to save it as a file or copy it to the clipboard.",
+  "starters": [
+    "scale this recipe up",
+    "halve the ingredients for this dish",
+    "double the cook time for this recipe"
+  ],
+  "examples": [
+    {
+      "ask": "can you scale this up for 4 people?",
+      "does": "ask for the original recipe, then present a scaled version with adjusted times and pan size"
+    },
+    {
+      "ask": "what pan should i use for double the batch?",
+      "does": "calculate the pan area ratio and suggest a larger pan, then show the result"
+    }
+  ],
+  "skills": [
+    {
+      "name": "scale-recipe",
+      "description": "Adjust ingredient amounts, cook times and pan size for a new serving count.",
+      "body": "1. Read the original recipe text supplied by the person.\n2. Identify every ingredient line with a quantity, unit and name.\n3. Multiply each quantity by the scaling factor. Round to the nearest practical amount (e.g. 1.5 cups, 200g).\n4. Adjust the cook time: for each doubling of the factor, add roughly 10‑15% to the original time; for halving, subtract roughly 10‑15%. Keep oven temperature unchanged.\n5. Calculate a suitable pan size using the area ratio. For a round pan, new radius = old radius × √factor. For a rectangular pan, scale both length and width by √factor.\n6. Build a table with three columns: ingredient (original), quantity (original), quantity (scaled). Add rows for adjusted cook time and suggested pan size.\n7. If any step fails because a value is missing or unrecognisable, tell the person exactly which part could not be processed."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Cook time adjuster\nAdjusts cook times and pan sizes when a recipe is doubled or halved.\n\nWhat it does: reads a recipe, scales ingredient quantities, recalculates cook time and suggests a suitable pan size for the new batch.\n\nWhat it needs: can read recipe text from the person or a web page, perform arithmetic, and display a table. It does not access external databases or shopping sites.\n\nWhat it will not do: it cannot look up specific pan dimensions for every brand, it cannot convert between metric and imperial units unless the recipe already states them, and it cannot guess missing ingredient amounts.",
+  "hash": "6f8e5827ceabf72501d70fd04ce78743e9d54626c99064a44a3d7ca09dc45972"
+}

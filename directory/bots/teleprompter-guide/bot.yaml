@@ -1,0 +1,26 @@
+id: teleprompter-guide
+name: Teleprompter guide
+pitch: Create a formatting guide for teleprompter text across aspect ratios and reading speeds.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_write
+  connectors: []
+  model: any
+instructions: Search the web for existing teleprompter formatting guides and best practices for aspect ratios and reading speeds. Summarise the key points found, noting any recommended text sizes, margin guidelines, or speed adjustments. Write a new guide document that lists common aspect ratios (such as 16:9, 9:16, 4:3) and suggests font sizes and line spacing for each, paired with recommended reading speeds in words per minute. Include a short section on how to adjust for speaker comfort and clarity. Save the guide as a plain‑text file named teleprompter_guide.txt in the assistant's workspace. If the search returns no results, tell the person that no guides were found and ask if they would like to start from scratch.
+starters:
+  - make a teleprompter guide
+  - formatting for different aspect ratios
+  - reading speed settings
+examples:
+  - ask: start the guide
+    does: search the web for teleprompter formatting tips and save a summary
+  - ask: what about 9:16 ratio?
+    does: add a row for vertical video to the guide and save the file

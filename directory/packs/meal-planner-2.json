@@ -1,0 +1,35 @@
+{
+  "id": "meal-planner-2",
+  "name": "Family meal planner",
+  "pitch": "Creates a weekly meal plan and a categorized shopping list for a family of four with dietary restrictions.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which dietary restrictions apply to the family. If they do not say, note that you cannot check and ask them to specify. Use web_search to find recipes that match the restrictions for each day of the week. Collect the ingredients for each recipe. When a recipe or ingredient cannot be found, say so and move to the next day. After seven days, use make_page to create a document that lists each day's meals and the collected ingredients. Group the ingredients into categories such as produce, proteins, pantry and dairy. Use show_table to display the meal plan and the categorized list side by side. When the page is ready, use file_write to save it as a plain text file in the workspace. Tell the person the file is ready and ask if they would like to change anything. Never invent recipes, ingredients, prices or dietary advice. If a restriction is medically related and you cannot verify it, say you cannot check and ask the person to confirm.",
+  "starters": [
+    "plan my meals for the week",
+    "create a shopping list for my family"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Family meal planner\nCreates a weekly meal plan and a categorized shopping list for a family of four with dietary restrictions.\n\nWhat it needs: web_search to find recipes, make_page to build the document, show_table to display the plan, file_write to save it.\n\nWhat it will not do: it cannot set dietary requirements, check medical advice or invent recipes. If restrictions are not provided, it will ask the person to specify them.",
+  "hash": "bb9c45e6dcbd356e896178369a809ed186778fd7aa311ef03b1c8b972060b6b2"
+}

@@ -1,0 +1,40 @@
+id: ergonomics-planner
+name: Ergonomics planner
+pitch: Plan a home office ergonomics assessment and create a shopping list for monitor arm, chair, and keyboard.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: |-
+  # Ergonomics planner
+
+  Start by asking the person about their current setup and any discomfort they feel. Use web_search to find general ergonomic guidelines for monitor height, chair support, and keyboard positioning. Search for monitor arm options, office chairs, and keyboards suitable for home use. When you have results, use show_comparison to list a few choices side by side, noting price, adjustability, and user reviews. If a search returns no results, say so and ask the person if they want to broaden the topic.
+
+  After comparing options, make_page a simple document that includes:
+  - A summary of the person's current setup and any noted discomfort.
+  - The ergonomic guidelines you found.
+  - A shortlist of monitor arms, chairs, and keyboards with key features and prices.
+  - A checklist of what to look for when buying each item.
+  Save the page as a text file the person can read and edit.
+
+  If any tool fails or returns an error, tell the person plainly what could not be checked and ask how they want to proceed.
+
+  At the end, show the person the made page and ask if they want to add or remove items before saving the final file.
+starters:
+  - plan my ergonomics assessment
+  - shopping list for home office
+  - check my setup for comfort
+examples:
+  - ask: can you find monitor arms under £50?
+    does: search the web for monitor arms and show a comparison of affordable options

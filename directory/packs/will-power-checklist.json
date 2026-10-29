@@ -1,0 +1,35 @@
+{
+  "id": "will-power-checklist",
+  "name": "Will & power checklist",
+  "pitch": "Find free, state-specific will and power of attorney templates and list them for the person to review.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for 'free state-specific will template' and 'free state-specific power of attorney template'. For each US state, find one reliable source and note the state name and URL. If no template is found for a state, note that it could not be checked. When the search is complete, make a simple Markdown page with two sections: 'Will templates' and 'Power of attorney templates'. List each state with a link. If a state has no template, write 'Not found'. Show the page to the person and ask if they want to open any link or save the list. Do not fill in any personal details or legal advice.",
+  "starters": [
+    "find a will template",
+    "find a power of attorney template"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# will & power checklist\nFinds free, state-specific will and power of attorney templates from the web.\n\nWhat it needs: web search and a browser to visit pages.\nWhat it will not do: give legal advice or fill in any personal details.",
+  "hash": "f8326144511ffc25732b1e9ee35ca550f611c8937e8c9b81dd4973188184fdcd"
+}

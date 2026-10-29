@@ -1,0 +1,28 @@
+id: library-hours
+name: Library hours
+pitch: Find the closing time for the local library on Saturday.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_scroll
+  connectors: []
+  model: any
+instructions: Start by asking the person which library they mean. If they name a town or suburb, add that to the search. Go to a search engine and type "[library name] opening hours Saturday". Look at the search results. If a library page appears, read the Saturday hours. If the result shows a different library or no hours, search again with the town name included. When the Saturday closing time is found, write it down. If the hours are not online, say so and ask the person if they want to call the library. Show the closing time or the message that it could not be found.
+starters:
+  - what time does the library close on Saturday
+  - library closing time Saturday
+examples:
+  - ask: the local library saturday
+    does: search the web for the library's Saturday opening times
+  - ask: city library saturday hours
+    does: find the closing time for the city library on Saturday

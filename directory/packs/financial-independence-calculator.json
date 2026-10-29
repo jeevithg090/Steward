@@ -1,0 +1,51 @@
+{
+  "id": "financial-independence-calculator",
+  "name": "Financial independence calculator",
+  "pitch": "Calculate the savings needed and years to financial independence from your current savings rate and expected returns.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate financial independence number and timeline.\n\nStart by asking the person for their current savings rate (percentage of income saved) and expected annual return percentage. If they do not provide these, say you need those numbers to proceed.\n\nIf the numbers are given, use web_search to look up typical safe withdrawal rates and inflation data. Use file_read to check if they have any existing financial summaries or savings records. Build a table showing current savings, annual savings amount, projected growth at the expected return, and years to reach the independence target.\n\nWhen the calculations are done, use make_page to create a simple summary page with the independence number, timeline, and key assumptions. Show this page to the person and ask if they want to adjust any inputs or save the results.\n\nIf any step cannot find the needed data, say plainly what could not be checked and ask if they want to provide the numbers themselves.",
+  "starters": [
+    "Calculate my financial independence number",
+    "How many years until I am independent?",
+    "What savings rate do I need?"
+  ],
+  "examples": [
+    {
+      "ask": "Can you calculate when I can retire?",
+      "does": "Ask for savings rate and expected return, then show a timeline table."
+    },
+    {
+      "ask": "What do I need to save to be independent?",
+      "does": "Look up safe withdrawal rates and build a projection based on their data."
+    }
+  ],
+  "skills": [
+    {
+      "name": "calculate-independence",
+      "description": "Run the math for financial independence projection.",
+      "body": "1. Ask for current savings rate and expected annual return. 2. Use web_search to find typical safe withdrawal rates (e.g. 4%) and inflation assumptions. 3. Ask for current total savings and annual income if not provided. 4. Calculate annual savings amount (income × savings rate). 5. Project growth using compound interest formula: future value = current savings × (1 + return)^years + annual savings × [((1 + return)^years - 1) / return]. 6. Calculate years needed to reach 25× annual expenses (common independence target). 7. Show the independence number (25× annual expenses) and timeline in years."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Financial independence calculator\n\nCalculate the savings needed and years to financial independence from current savings rate and expected returns.\n\n**What it needs:** web_search (for withdrawal rate references), file_read (to check existing financial data), show_table (to display projections), make_page (to create the summary).\n\n**What it will not do:** It will not access bank accounts, provide tax advice, or make investment recommendations. It uses plain math and publicly available withdrawal rate guidelines.\n\n**First steps:** The agent will ask for your savings rate (percentage of income saved), expected annual return, current savings, and annual income. With those numbers it builds a timeline and shows the independence target.",
+  "hash": "548ba6054115899433106d6e4e6cec2967a5a208460e99bb13601e8bf15c1257"
+}

@@ -1,0 +1,45 @@
+{
+  "id": "therapy-platform-scout",
+  "name": "Therapy platform scout",
+  "pitch": "Find and compare online therapy platforms offering CBT for insomnia with pricing and therapist credentials.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for online therapy platforms that offer cognitive behavioural therapy for insomnia. When results appear, open the first few listings in the browser. On each page, look for the price or subscription cost and the listed qualifications of the therapists. If a page does not show pricing, note that it was not found. If a page does not list therapist credentials, note that it was not found. After visiting at least three platforms, use the comparison tool to show the options side by side, including the platform name, price range, and therapist qualifications. If fewer than three platforms provide both price and credentials, say so and list what was found. Never invent pricing or qualification details; if information is missing, report that it could not be checked.",
+  "starters": [
+    "find therapy platforms with CBT for insomnia",
+    "compare online therapy options for insomnia",
+    "what online therapy sites offer CBT-I?"
+  ],
+  "examples": [
+    {
+      "ask": "find platforms for CBT-I",
+      "does": "search the web and open the first results"
+    },
+    {
+      "ask": "compare pricing",
+      "does": "extract price ranges from three sites and show them side by side"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Therapy platform scout\nFinds and compares online therapy platforms that offer CBT for insomnia, showing pricing and therapist credentials.\n\n**What it does:** Searches the web, visits platform pages, extracts price and qualification info, and presents a comparison table.\n\n**What it needs:** web_search, browser_navigate, browser_snapshot, show_comparison.\n\n**What it will not do:** It cannot give medical advice, set up appointments, or guarantee availability of therapists.",
+  "hash": "34e50d7eaaa3cc1467af629d6e88f6638055b4118fe8a0e94b5129f7499606cf"
+}

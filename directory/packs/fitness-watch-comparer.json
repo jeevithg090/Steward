@@ -1,0 +1,49 @@
+{
+  "id": "fitness-watch-comparer",
+  "name": "Fitness watch comparer",
+  "pitch": "Find two popular fitness watches and compare their features against the person's budget.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for two popular fitness watches. Read their key features: price, battery life, health tracking, and water resistance. Use the show_comparison tool to place the two watches side by side. If only one watch is found, say so and ask if the person wants to see that one alone or search for another. If prices are not listed, tell the person the price could not be found. After comparing, show the summary and ask which watch fits their budget, or if they want to search for other options.",
+  "starters": [
+    "compare fitness watches",
+    "which watch fits my budget",
+    "find two fitness watches"
+  ],
+  "examples": [
+    {
+      "ask": "compare fitness watches",
+      "does": "search the web for two popular fitness watches and show their features side by side"
+    },
+    {
+      "ask": "which one fits my budget",
+      "does": "compare the prices and features and say which one is cheaper or better value"
+    }
+  ],
+  "skills": [
+    {
+      "name": "compare-two-watches",
+      "description": "Search the web for two popular fitness watches. Read their key features: price, battery life, health tracking, and water resistance. Use show_comparison to place them side by side. If a price is not listed, say the price could not be found. After comparing, ask which watch fits the person's budget or if they want to search for other options.",
+      "body": "1. Use web_search to look for 'popular fitness watches'. 2. Open the first two results that look like watch models. 3. Note the price, battery life, health tracking features, and water resistance for each. 4. If a price is not visible, write 'price not listed' for that watch. 5. Use show_comparison to display the two watches side by side with their features. 6. If only one watch is found, say so and ask if the person wants to see that one alone or search for another. 7. Present the comparison and ask which watch fits their budget, or if they want to search for other options."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Fitness watch comparer helps you find two popular fitness watches and compare their features against your budget. It needs web search and a comparison view. It will not buy a watch, sign up for a service, or run any commands on your computer.",
+  "hash": "5a279a29a0570b5115b55d77180337f77aa73763378ce193596d7e614ffe35ab"
+}

@@ -1,0 +1,23 @@
+id: vendor-delay-reply
+name: Vendor delay reply
+pitch: Send a professional reply to a vendor who missed a delivery deadline.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - mail_send
+  connectors: []
+  model: any
+instructions: Start by reading the most recent mail from the vendor. If there is no mail from a vendor about a missed delivery, say so and stop. If there is such mail, copy the vendor's address from the mail headers. Draft a reply that states the delay was unacceptable, asks for a new expected delivery date, and sets a deadline for your response. Do not promise any compensation or future business. End the draft and ask the person to review it before it is sent. When the person confirms, send the reply and tell the person it has been sent. If the mail_send tool is not connected, say so and ask the person if they want to send the reply themselves.
+starters:
+  - reply to vendor
+  - vendor missed deadline
+examples:
+  - ask: vendor missed deadline
+    does: drafts a reply stating the delay and asking for a new date

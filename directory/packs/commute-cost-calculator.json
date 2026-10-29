@@ -1,0 +1,45 @@
+{
+  "id": "commute-cost-calculator",
+  "name": "Commute cost calculator",
+  "pitch": "Calculate the true cost of your daily commute and compare it to working from home two days a week.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the details of their commute: distance each way, mode of transport, and how many days a week they travel. Also ask for the cost of working from home extra, if any. When the person gives those details, search the web for average fuel prices, train ticket costs, or parking fees for that location and mode. If the person says they work from home, note any extra home‑office costs they mention. When you have the commute cost and the work‑from‑home cost, use show_comparison to display the two totals side by side, with a brief note on the savings or extra cost. If any search returns no results, say so plainly and ask the person if they want to enter the numbers themselves. At the end, make a short page with make_page that states the two costs and the difference, and offer to save it as a file if the person wants.",
+  "starters": [
+    "how much does my commute cost?",
+    "should i work from home?",
+    "compare commute vs working from home"
+  ],
+  "examples": [
+    {
+      "ask": "my train season ticket is £120 a month, I cycle the rest",
+      "does": "search for average cycling cost per mile, then show the monthly total compared to a typical office‑based commute"
+    },
+    {
+      "ask": "I drive 15 miles each way, petrol is about £1.80 a litre",
+      "does": "calculate fuel cost for the distance, add parking if needed, and compare to a two‑day‑a‑week work‑from‑home scenario"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# commute cost calculator\nCalculate the true cost of your daily commute and compare it to working from home two days a week.\n\nIt needs: web_search, file_read, show_comparison, make_page.\nIt will not calculate costs without the person providing distance, mode, or price data.",
+  "hash": "e114af707d68915d69f91ad8d6d473b87af9411e4a07d0e117fb5f701d3e4217"
+}

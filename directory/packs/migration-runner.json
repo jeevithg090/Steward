@@ -1,0 +1,44 @@
+{
+  "id": "migration-runner",
+  "name": "Migration runner",
+  "pitch": "Run database migrations with rollback support and version tracking.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by checking the workspace for a migrations folder. If none exists, say so and stop. Read the migration files in the folder. If no files are found, say and stop. Present the list of available migrations to the person. Ask which migration to run or rollback. When the person chooses, run the chosen migration using shell_run. After running, record the new version number in a version file. If the rollback is requested, run the down script and decrement the version. When a migration file is not found, say and stop. When the version file cannot be updated, say and stop. At the end, show the person a summary of what was run and the new version number.",
+  "starters": [
+    "run migrations",
+    "rollback last migration",
+    "check version"
+  ],
+  "examples": [
+    {
+      "ask": "run the latest migration",
+      "does": "read migrations folder, run the up script, update version file, show summary"
+    },
+    {
+      "ask": "rollback to previous version",
+      "does": "run down script, decrement version, show summary"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Migration runner\nRun database migrations with rollback support and version tracking.\n\nThis bot reads a migrations folder, runs up or down scripts, and keeps a version number. It needs file_read, file_write and shell_run. It will not run without a migrations folder or a version file to update.",
+  "hash": "f553cec67919f38e4308912af95d4a0dedafc41ecbc887d8df9e3c0887acc882"
+}

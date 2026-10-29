@@ -1,0 +1,51 @@
+{
+  "id": "garden-compost-planner",
+  "name": "Garden compost planner",
+  "pitch": "Plan a garden waste composting system with bin type, location, and a list of what to add or avoid.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for 'garden compost bin types' and 'what to add to compost' and 'compost location tips'. When the search results appear, read the top pages to learn about bin options, suitable garden spots, and acceptable materials. If the search finds no useful pages, say so and ask the person whether they want to try different search terms. After gathering information, make a page that shows a table with three columns: bin type, best location in the garden, and materials to add or avoid. Fill the table with at least three common bin types (e.g., plastic bin, wooden bin, tumbling composter) and practical advice for each. When the table is complete, show it to the person using show_table. If any row has no clear answer, note that the information could not be found and suggest the person check a gardening guide. Finally, write a short plain‑text summary to a file named garden_compost_plan.txt that lists the chosen bin type, the recommended spot, and the key do‑and‑don't items. Tell the person the file has been saved and ask if they want to change anything.",
+  "starters": [
+    "plan my garden composting",
+    "what can I compost",
+    "best bin for small garden"
+  ],
+  "examples": [
+    {
+      "ask": "can you find info on compost bins",
+      "does": "search the web for compost bin types and read the results"
+    },
+    {
+      "ask": "show me the plan",
+      "does": "make a table of bin types, locations and materials and display it"
+    }
+  ],
+  "skills": [
+    {
+      "name": "research-compost-options",
+      "description": "Find reliable info on bin types, garden spots and compost materials.",
+      "body": "1. Use web_search to look up 'garden compost bin types'. 2. Use web_search to look up 'what to add to compost heap'. 3. Use web_search to look up 'best location for compost bin'. 4. Read the top three results for each search. 5. If a search returns no relevant pages, note that and move on. 6. Collect the key points: bin materials, pros and cons of each type, ideal sun/shade spots, and items to avoid (e.g., meat, dog waste). 7. Keep the information brief so it can be turned into a table later."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# garden compost planner\nPlan a garden waste composting system with bin type, location, and a list of what to add or avoid.\n\n- Uses web_search, make_page, show_table, file_write.\n- Will not place orders, send messages or delete files without asking.\n- Cannot check local rules or guarantee compost will work for every garden.",
+  "hash": "38521c5c90eb1b8f92217535c3e51091b173a2fde9cd133c7a3492a90a0c2b56"
+}

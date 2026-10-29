@@ -1,0 +1,50 @@
+{
+  "id": "circadian-meal-prep",
+  "name": "Circadian meal prep",
+  "pitch": "Set up a weekly meal prep plan that times meals with circadian rhythms for night shift workers.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "start by searching the web for evidence-based circadian meal-timing guidelines for night shift workers. when no results are found, say so and ask if the person wants to set a custom schedule instead. next, create a one-page meal prep guide that lists optimal meal times, suggested foods, and a simple weekly prep schedule. when the guide is ready, show it to the person and ask if they want it saved as a routine. if they agree, create a routine that triggers every sunday to remind them to prep meals for the week ahead, using the guide as the reference. when the routine cannot be created, tell the person plainly what failed and ask if they want to keep the guide without a reminder.",
+  "starters": [
+    "set up my meal prep",
+    "help with night shift eating",
+    "circadian rhythm meals"
+  ],
+  "examples": [
+    {
+      "ask": "can you help me eat better on nights?",
+      "does": "i will search for circadian meal-timing tips and then make a simple guide for you"
+    },
+    {
+      "ask": "remind me to prep food",
+      "does": "i will create a weekly sunday reminder based on the guide we just made"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-the-guide",
+      "description": "create a meal prep guide tuned to circadian rhythms for night shifts",
+      "body": "1. search for \"circadian meal timing night shift workers\" and read the top results. 2. note the recommended wake time, meal windows, and food types that support alertness or sleep. 3. make a concise page with three sections: optimal meal times, suggested foods for each window, and a simple weekly prep checklist. 4. output the page for the person to review."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## circadian meal prep\nset up a weekly meal prep plan that times meals with circadian rhythms for night shift workers\n\nwhat it does: searches for evidence-based meal-timing guidance, creates a one-page guide with optimal times and foods, and optionally sets a sunday reminder routine.\n\nwhat it needs: web_search to find guidelines, make_page to build the guide, routine_create to set the weekly reminder.\n\nwhat it will not do: it will not give personalised nutrition advice, it will not access a grocery delivery service, and it will not set reminders without the person's agreement.",
+  "hash": "3b08e272385d6581ec6f2558cb5034377e2cc8277e6d3d6133be33f4d66cb9f5"
+}

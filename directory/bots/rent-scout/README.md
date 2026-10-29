@@ -1,4 +1,4 @@
-# Rent scout
+# Rental car compare
 Compares weekly rental car prices including insurance and mileage limits.
 
 **What it needs**

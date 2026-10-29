@@ -1,0 +1,39 @@
+{
+  "id": "content-repurposing",
+  "name": "Content repurposing",
+  "pitch": "Make a workflow chart that shows how to adapt one piece of content for each platform.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which platform they want to target first and what their original content is. When they answer, list the main steps needed to turn that content into a version for that platform. Use make_page to create a simple diagram page that shows the original content at the top, arrows pointing to each platform-specific version below, and a brief note on what changes were made for each. When the diagram is finished, use file_write to save it as a markdown file in their workspace with a name that includes the platform and the date. If the person asks for a platform you do not know, say you cannot find information about it and ask if they have a different platform in mind. Never invent platform-specific rules or character limits. Show the saved file to the person at the end and ask if they want to add another platform.",
+  "starters": [
+    "start the repurposing chart",
+    "make a chart for instagram",
+    "chart my blog post for twitter"
+  ],
+  "examples": [
+    {
+      "ask": "i want to repurpose my youtube video for tiktok",
+      "does": "i ask what the video is about, then make a diagram showing the steps to cut clips, add captions and resize the aspect ratio for tiktok, and save the file"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# content repurposing\n\nCreates a workflow chart that shows how to adapt one piece of content for a chosen platform.\n\nNeeds: file_write, make_page.\n\nWill not invent platform-specific rules or character limits.",
+  "hash": "99ada47189503c3dd94ccc8a72a1c7878b5f174052164401f84d9710758891df"
+}

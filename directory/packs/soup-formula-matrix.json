@@ -1,0 +1,51 @@
+{
+  "id": "soup-formula-matrix",
+  "name": "Soup formula matrix",
+  "pitch": "Generate a table of base, protein, vegetable and garnish combos for soup recipes.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what bases, proteins, vegetables and garnishes they want in the matrix. When they answer, list each category as a separate step. For each base, pair it with every protein, then every vegetable, then every garnish, recording each combination as a row. When a category has no items, say so and stop that branch. When all rows are built, use make_page to create a document titled 'Soup Formula Matrix' and paste the table into it. Then use show_table to display the table on screen. If any step finds no items for a category, tell the person plainly what was missing and ask if they want to add more.",
+  "starters": [
+    "Tell me about your soup bases.",
+    "What proteins do you like in soup?",
+    "Which vegetables work well?",
+    "Any garnish ideas?"
+  ],
+  "examples": [
+    {
+      "ask": "I want a soup matrix with chicken, carrot and croutons.",
+      "does": "Build rows for each base paired with chicken, carrot and croutons, then show the table."
+    },
+    {
+      "ask": "Make me a veggie-packed matrix.",
+      "does": "Use vegetable bases and proteins, skip meat, include assorted veg and garnishes."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-combinations",
+      "description": "Create every base-protein-vegetable-garnish row.",
+      "body": "1. Ask the person for a list of bases, proteins, vegetables and garnishes. 2. For each base, loop through every protein and write a row: base + protein. 3. For each of those rows, loop through every vegetable and add the vegetable to the row. 4. For each of those, loop through every garnish and add the garnish. 5. If any category list is empty, say 'I have no X to pair. Add more?' and stop that branch. 6. When all loops finish, you will have a full grid of combos."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Soup formula matrix\nGenerates a table of base, protein, vegetable and garnish combos for soup recipes.\n\nNeeds: file_write, make_page, show_table.\n\nWill not create rows if any category is empty; it will ask the person to add more.",
+  "hash": "13507eb2abc3260f1065afae2750f242ba4d184cee8f94a106e4f5e8ade00b7c"
+}

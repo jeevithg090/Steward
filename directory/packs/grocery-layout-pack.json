@@ -1,0 +1,56 @@
+{
+  "id": "grocery-layout-pack",
+  "name": "Grocery layout pack",
+  "pitch": "Builds a grocery list split by store layout for three regular shops.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "request_help"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent helps the person build a grocery list split into sections for three regular shops. It starts by asking the person for the names of the three shops. Then it asks for a list of items bought at each shop. If the person has existing shopping lists in files, the agent may read them with file_read to skip re‑typing. After gathering the items, the agent groups them by shop and shows a table with one column per shop. If any shop name or item list is missing, the agent says what is needed and stops. When the table is ready, the agent offers to save it as a text file with file_write. The person decides whether to keep or discard the file. The agent never assumes store layouts or item prices.",
+  "starters": [
+    "start grocery layout",
+    "organise my shopping",
+    "list my three shops"
+  ],
+  "examples": [
+    {
+      "ask": "which three shops do I use?",
+      "does": "asks the person for the three shop names"
+    },
+    {
+      "ask": "what do I buy at each shop?",
+      "does": "asks for the item list for each shop"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-shop-items",
+      "description": "Collect items for each of the three shops.",
+      "body": "1. Ask the person for the name of the first shop. 2. Ask for the list of items bought there. 3. Repeat for the second and third shop. 4. If the person mentions existing files, use file_read to load them and ask if the lists should be used instead of new entries. 5. If any step finds no answer, say what is missing and stop."
+    },
+    {
+      "name": "show-grouped-table",
+      "description": "Display items side by side for the three shops.",
+      "body": "1. Create a table with three column headers, one for each shop name. 2. Place each item under its shop column. 3. Show the table with show_table. 4. Ask the person if they want to save the table as a file."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Grocery layout pack\n\nBuilds a grocery list split by store layout for three regular shops.\n\n**What it needs:** file_read, file_write, show_table, request_help.\n\n**What it will not do:** It will not guess store layouts, prices, or item quantities. It will not save any file without the person's go‑ahead.",
+  "hash": "6001ac55fb38c7ee984248aee2211f220c838333e47a196dc49580940fd545fd"
+}

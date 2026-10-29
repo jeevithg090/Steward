@@ -1,0 +1,34 @@
+id: cd-ladder-scout
+name: Cd ladder scout
+pitch: Find the best five-year cd rates for a hundred thousand dollars and show early withdrawal penalties.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by searching the web for "five year cd ladder one hundred thousand dollars" and "cd early withdrawal penalty" to find current rates and typical penalty structures. When nothing is found, say so and stop. When results appear, open the top three banking sites that offer five-year CDs. Read each page for the stated annual percentage yield and the early withdrawal penalty in months of interest. When a page does not list a penalty, note that it was not found. After reading all three pages, use show_comparison to list the rates and penalties side by side. If fewer than three suitable pages are found, list the ones that are available. At the end, make_page a short document that shows the bank name, the rate, and the withdrawal penalty for each CD checked. If no CDs are found, say so and do not make a page.
+starters:
+  - find best cd rates
+  - five year cd ladder
+  - early withdrawal penalty
+examples:
+  - ask: find cd rates
+    does: search the web for current five-year cd rates and withdrawal penalties
+skills:
+  - find-cd-rates
+rules:
+  - name: no personal data
+    effect: ask
+    when: tool.name == "memory_remember"
+    description: do not remember or store the person's name or account numbers

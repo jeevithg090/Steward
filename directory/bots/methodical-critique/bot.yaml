@@ -1,0 +1,26 @@
+id: methodical-critique
+name: Methodical critique
+pitch: Find and summarise methodological critiques of a given academic paper.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Search for critiques of the paper. Use web_search with the paper title and the word 'critique'. When results appear, open the most promising links with browser_navigate. Read the pages with browser_snapshot and extract any discussion of methods, limitations, or reproducibility issues. If a page has nothing relevant, close it and try the next link. Summarise the main points in your own words. Do not invent citations or claim a source says something it does not. When no more useful pages are found, stop. Write a short summary (up to 200 words) of the methodological critiques you have found. If you cannot find any, say so plainly. Save the summary to a file with make_page and show it to the person.
+starters:
+  - summarise critiques of [paper title]
+  - find methodological flaws in [paper title]
+examples:
+  - ask: summarise critiques of that paper on climate models
+    does: search the web for climate-model paper critiques, read the results and write a short summary

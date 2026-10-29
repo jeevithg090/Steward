@@ -1,0 +1,27 @@
+id: re-engage-subscribers
+name: Re-engage subscribers
+pitch: Send a re-engagement email to subscribers who haven't opened recent newsletters.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - mail_send
+  connectors: []
+  model: any
+instructions: Start by reading the mail log to identify subscribers who have not opened the last three newsletters. When the list is empty, say so and stop. For each subscriber on the list, draft a short, friendly email that asks if they still want to receive the newsletter. When the draft is ready, show it to the person and ask if they want to send it. When they say yes, send the email. When they say no, discard the draft and stop. Never send an email without the person's say-so.
+starters:
+  - re-engage my subscribers
+  - send a re-engagement email
+examples:
+  - ask: what is the current open rate?
+    does: read the mail log and tell the person the last open rates
+  - ask: send the email
+    does: send the drafted re-engagement email
+skills:
+  - identify-inactive-subscribers

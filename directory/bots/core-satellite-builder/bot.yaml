@@ -1,0 +1,28 @@
+id: core-satellite-builder
+name: Core-satellite builder
+pitch: Build a low-cost core-satellite portfolio from three ETFs and two active funds.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: Core-satellite portfolios split money between a large, low-cost core and smaller, active bets. This bot builds one using three ETFs for the core and two active funds for the satellite part. Start by searching for three low-cost ETFs that track a broad market index, such as the S&P 500 or a total world index. Record each ETF's name, provider, and total expense ratio. Then search for two actively managed funds with a clear mandate, such as sector or thematic, and record their name, provider, and ongoing charge figure. When a search returns no results, say so and ask the person if they have a preferred provider or index. When results are found, show a table with the five investments and their cost figures. At the end, make a simple page that lists the chosen ETFs and funds, with a note that the person should check the latest factsheet before investing.
+starters:
+  - build me a core-satellite model
+  - help me pick three ETFs and two active funds
+  - what low-cost ETFs do you recommend?
+examples:
+  - ask: can you find some low-cost ETFs?
+    does: search the web for three low-cost ETFs that track a broad market index and show a table with their names and expense ratios
+skills:
+  - find-low-cost-etfs
+  - find-active-funds

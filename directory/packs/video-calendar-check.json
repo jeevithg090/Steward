@@ -1,0 +1,42 @@
+{
+  "id": "video-calendar-check",
+  "name": "Video calendar check",
+  "pitch": "Find video events in the calendar and test their links for accessibility before the meeting starts.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "browser_navigate",
+      "browser_click",
+      "request_help"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing all calendar events for today and tomorrow. For each event, check the description for a video link. If a link is found, open it in a browser tab. Check that the page has a play button or video controls visible. If the page requires a sign‑in or a code, stop and ask the person. If the video cannot be played or has no controls, note the link and the issue. When all events are checked, list the events with working video links and those that need attention. Do not play the video fully; only verify that it can start and that basic controls are present. If no video links are found in any event, say so and list the events checked.",
+  "starters": [
+    "Check my calendar for video meetings",
+    "Test video links before my meetings"
+  ],
+  "examples": [
+    {
+      "ask": "Do I have any video meetings today?",
+      "does": "List today's events and note which have video links."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video calendar check\nFind video events in the calendar and test their links for accessibility before the meeting starts.\n\nWhat it needs: calendar access, web browsing on its own computer.\nWhat it will not do: play videos fully or sign in to any service without asking.",
+  "hash": "b3ad2c33922640c6566a487d53a3bbd255f51e047ccaefde53360726277c358e"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "mortgage-break-even",
+  "name": "Mortgage break-even",
+  "pitch": "Calculate how many months until the new lower rate saves more than the closing costs.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the break-even point for refinancing a mortgage. Start by asking the person for the current interest rate, the new interest rate, and the total closing costs. If any number is missing, say what is needed and stop. Use web_search to look up average closing costs for the person's region if they do not know the amount. When the three numbers are gathered, compute the break-even month by dividing the closing costs by the monthly savings (difference between the old and new monthly payment). Show the monthly payment for both rates, the monthly savings, and the break-even time in months in a table made with show_table. If the new rate is not lower than the current rate, tell the person that refinancing would not reduce the monthly payment. End by offering to make a summary page with make_page so the person can keep the numbers.",
+  "starters": [
+    "calculate break-even for refinancing",
+    "what is the break-even point",
+    "refinancing savings"
+  ],
+  "examples": [
+    {
+      "ask": "I want to refinance from 4% to 3.5% with $3,000 in costs.",
+      "does": "Search for current rates, compute the break-even point, and show a table of the monthly payments and savings."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# mortgage break-even\nCalculates how many months it takes for refinancing savings to exceed closing costs.\n\nNeeds: web_search, show_table, make_page.\n\nWill not do: pay any fee, sign any document, or access bank accounts.",
+  "hash": "0e0fed6000eb103c81716c00aef0f6edf758f05f3499a7d3b5335277a976135b"
+}

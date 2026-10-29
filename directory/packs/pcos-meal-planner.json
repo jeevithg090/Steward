@@ -1,0 +1,46 @@
+{
+  "id": "pcos-meal-planner",
+  "name": "Pcos meal planner",
+  "pitch": "Create a weekly low-glycemic meal plan with insulin-friendly snack timing for PCOS.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for 'low glycemic index foods PCOS insulin friendly snack timing'. Read the results and note the foods and snack times that appear most often. If no clear pattern appears, search again with 'PCOS diet plan weekly low GI'. When you have a list of foods and snack times, make a table with days of the week as rows and meals as columns. Fill in breakfast, lunch, dinner and two snacks for each day using only the foods you found. If a cell has no suitable food, leave it blank and note why. When the table is full, make a page with the table and a short note at the top: 'Weekly PCOS low-GI meal plan – snack times as found in sources'. Show the page to the person. If the search returns no results, say: 'I could not find information on low-glycemic PCOS meals. Try adjusting the plan or adding your own preferences.'",
+  "starters": [
+    "plan my weekly PCOS meals",
+    "low glycemic index food list for PCOS",
+    "insulin-friendly snack timing"
+  ],
+  "examples": [
+    {
+      "ask": "plan my weekly PCOS meals",
+      "does": "searches for low-GI PCOS food lists and builds a weekly table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-weekly-table",
+      "description": "Make a table of breakfasts, lunches, dinners and two snacks for each day of the week using only low-GI foods found in sources.",
+      "body": "1. Create a table with seven rows (Mon–Sun) and five columns (Breakfast, Lunch, Dinner, Snack 1, Snack 2). 2. For each day, fill the cells with one food item from the search results. 3. If a cell cannot be filled, leave it blank and add a brief note. 4. Do not add any new foods that were not in the search results."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# pcos meal planner\nCreates a weekly low-glycemic meal plan with insulin-friendly snack timing for PCOS.\n\n**What it needs**: web_search to find food lists, make_page to output the plan, show_table to display the table.\n\n**What it will not do**: It will not give calorie counts, medical advice or shopping lists. It only uses foods mentioned in search results.",
+  "hash": "661340e47d5a8dd5ed029b8da2400a4ecdfdb491db1ef8e466c8d6770b174ca5"
+}

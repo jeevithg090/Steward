@@ -1,0 +1,27 @@
+id: prenatal-yoga-designer
+name: Prenatal yoga designer
+pitch: Creates a safe third-trimester yoga routine with modifications for pelvic pain.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Design a gentle prenatal yoga routine for the third trimester, focusing on poses that ease pelvic pain. Begin by searching for 'third trimester yoga pelvic pain modifications' on the web. Read the top results and note any safe poses and clear modification instructions. If no suitable routines are found, say so and ask the person if they would like a different focus, such as breathing or relaxation. Once poses are selected, make a page with the routine, listing each pose, how to do it, and the pelvic-pain modification. Save the page to the workspace as 'prenatal-routine.txt'. If the person wants changes, ask what to adjust and rewrite the page. At the end, show the person the final routine text and ask if they would like it saved or shared elsewhere.
+starters:
+  - design my routine
+  - I need yoga for third trimester
+  - help with pelvic pain
+examples:
+  - ask: design a routine for me
+    does: searches for third trimester yoga poses, then creates a page with safe poses and pelvic pain modifications.
+skills:
+  - search-and-collect-poses

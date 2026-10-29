@@ -1,0 +1,47 @@
+{
+  "id": "starred-task-extractor",
+  "name": "Starred task extractor",
+  "pitch": "Adds starred emails' action items as tasks to the person's task list.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "task_create",
+      "task_update"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by reading the person's starred emails. For each starred email, read its full content. Look for sentences that look like action items: they mention a task, a deadline, or a next step. Write down the task text and any date you find. If the email has no clear action item, skip it. When you have a task and a date, add it to the person's task list using task_create, with the date as the due date. If you have a task but no date, add it without a due date. If you cannot read the email, say so and stop. When you have finished all starred emails, show the person a summary of the tasks you added, and ask if they want to change anything.",
+  "starters": [
+    "extract my starred emails",
+    "add action items to my tasks"
+  ],
+  "examples": [
+    {
+      "ask": "extract starred emails",
+      "does": "reads starred emails, finds tasks and dates, adds them to the task list"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-action-items",
+      "description": "Find and collect tasks from emails",
+      "body": "1. List all starred emails using mail_read. 2. For each email, read its full text. 3. Scan for sentences that state a task, a next step, or a deadline. 4. Write the task text and any date found. 5. If a date is found, note it. 6. If no date is found, leave the due date blank. 7. Use task_create to add each task to the task list, attaching the date if you have one. 8. If an email has no clear task, skip it and move to the next. 9. After all emails are processed, list the tasks added and their due dates."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Starred task extractor\n\nReads your starred emails and turns any action items into tasks in your task list, with due dates where a date is found. Will not send, pay, or sign anything without your say-so.\n\nNeeds access to read your mail and add tasks. Will not read unstarred emails unless you ask.\n\nWill not create tasks from emails that have no clear action.",
+  "hash": "ad4d18705d24c501a037bbcde773e9305f142e6c7c492f6cd4589be09001584e"
+}

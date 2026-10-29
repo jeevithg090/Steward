@@ -1,0 +1,45 @@
+{
+  "id": "blood-pressure-tracker",
+  "name": "Blood pressure tracker",
+  "pitch": "Record daily blood pressure readings for a month and produce a summary chart for the doctor.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "task_create",
+      "task_update",
+      "show_table",
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their target blood pressure range and the month they want to track. If they have not set up a tracker, create a task called 'Blood pressure log' that runs each day and remind them to enter their reading. When the month ends, collect all logged readings. If no readings are found, say 'I could not find any blood pressure readings for the month.' Sort the readings from lowest to highest. Use make_page to build a simple chart showing the date, systolic and diastolic numbers, and a note if any reading falls outside the target range. Show the chart to the person and ask if they want it sent to their doctor. If they agree, use task_create to add a note 'Share chart with doctor' so the person can decide later. End by saying 'Your blood pressure summary is ready. Would you like me to share it with your doctor?' Never give the person a name. Never invent a blood pressure reading or a doctor's name.",
+  "starters": [
+    "Start tracking my blood pressure",
+    "I want a chart for my doctor"
+  ],
+  "examples": [
+    {
+      "ask": "I need to track my blood pressure for March",
+      "does": "I will create a daily log task and wait for your readings."
+    },
+    {
+      "ask": "Show me the chart",
+      "does": "I will display a table of your readings and offer to share it."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Blood pressure tracker\nRecord daily blood pressure readings for a month and produce a summary chart for the doctor.\n\nWhat it needs: task_create to set up a daily log, task_update to record readings, show_table to display the chart, make_page to create the chart image, memory_remember to store the target range.\n\nWhat it will not do: It will not give medical advice or interpret the readings beyond noting if they are outside the target range.",
+  "hash": "89eb7974e911674fd1aaade4de55cda87b82041d0c27e248d9e6be7d2fb0f785"
+}

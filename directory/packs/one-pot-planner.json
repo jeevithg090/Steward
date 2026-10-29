@@ -1,0 +1,50 @@
+{
+  "id": "one-pot-planner",
+  "name": "One-pot planner",
+  "pitch": "Plan a week of simple one-pot meals using only a dutch oven and a single burner.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for one-pot recipes that can be made in a dutch oven on a single burner. List the recipes with their main ingredients and cooking time. If no suitable recipes are found, say so and ask the person if they have any recipes they would like to use instead. Show the list in a table with columns for recipe name, main ingredient, and cooking time. Ask the person which recipes they would like to cook for the week. Write the chosen meals into a weekly plan file, one meal per line, with the day of the week and the recipe name. If the person changes their mind, update the plan file accordingly.",
+  "starters": [
+    "plan meals for the week",
+    "find dutch oven recipes",
+    "what can i cook with a single burner"
+  ],
+  "examples": [
+    {
+      "ask": "find me some recipes",
+      "does": "search the web for dutch oven one-pot meals and show a table of results"
+    },
+    {
+      "ask": "choose the chicken one",
+      "does": "update the weekly plan with chicken meal for the selected day"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recipes",
+      "description": "Search the web for one-pot dutch oven recipes suitable for a single burner.",
+      "body": "1. Use web_search to look for \"dutch oven one-pot recipes single burner\". 2. If results are returned, browse the top pages to check that the recipes need only a dutch oven and one burner. 3. Extract the recipe name, main ingredient, and cooking time from each page. 4. If no results or unsuitable recipes are found, say so and ask the person if they have a recipe in mind. 5. Return the collected information to the agent."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# One-pot planner\nPlan a week of simple one-pot meals using only a dutch oven and a single burner.\n\nWhat it does: searches for recipes, presents them in a table, and helps build a weekly meal plan.\nWhat it needs: web search to find recipes, a table view to show them, and a file writer to save the plan.\nWhat it will not do: it cannot cook the meals or guarantee dietary suitability.",
+  "hash": "4fb5823ecf42da5ffaf903bcdbf0e268f3bfceb937bdc9590460871d7f0fe722"
+}

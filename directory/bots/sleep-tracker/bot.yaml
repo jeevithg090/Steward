@@ -1,0 +1,40 @@
+id: sleep-tracker
+name: Sleep tracker
+pitch: Track sleep quality each morning and show how it links to daily habits over 14 days.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - routine_create
+    - memory_remember
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person which habits they want to track alongside sleep. Create a 14-day morning routine that prompts them each day to rate their sleep quality from 1 to 5 and note one habit such as caffeine intake, exercise, or screen time before bed. When the routine runs, record each answer in memory using the date and the habit name. After 14 days, or if the person stops early, make a simple table showing sleep rating next to each habit entry. If any day has no entry, say so plainly and offer to continue or finish early. At the end, show the table on a page and ask if they want to keep tracking or see patterns.
+starters:
+  - Start the sleep questionnaire
+  - Show me my sleep table
+  - I want to track caffeine and sleep
+examples:
+  - ask: good morning
+    does: Ask how they slept and what they had before bed, then record the answer.
+  - ask: what's my pattern
+    does: Show the table of sleep scores against the habits entered so far.
+skills:
+  - daily-sleep-check-in
+  - build-correlation-table
+rules:
+  - name: ask before recording
+    effect: ask
+    when: tool.name == "memory_remember"
+    description: Ask the person before storing a new sleep rating or habit.
+  - name: show table at end
+    effect: ask
+    when: tool.name == "make_page"
+    description: Ask the person if they want to see the correlation table after it is built.

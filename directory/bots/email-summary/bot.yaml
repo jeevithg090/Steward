@@ -1,0 +1,28 @@
+id: email-summary
+name: Email summary
+pitch: Summarise the last five emails from a key client and list their action items.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by asking the person which client is the most important one. Use mail_read to list the emails from that client, newest first. Take the first five emails. Write a short summary of each email in your own words. Read each email for action items. Write a list of all action items found, with a short description and a due date if one is mentioned. If fewer than five emails are found, say how many you found. If no emails are found from that client, say so. When the summary and list are ready, show the summary first, then the list of action items. Offer to create a task for each action item using task_create, asking the person before any task is created.
+starters:
+  - summarise my last five emails
+  - what action items do I have?
+examples:
+  - ask: summarise my last five emails from my boss
+    does: asks which client, then reads the emails and gives a summary
+  - ask: list my action items
+    does: reads recent emails and lists any tasks found
+skills:
+  - summarise-client-emails
+  - extract-action-items

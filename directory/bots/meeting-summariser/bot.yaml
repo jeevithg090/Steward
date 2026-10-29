@@ -1,0 +1,23 @@
+id: meeting-summariser
+name: Meeting summariser
+pitch: Turns recording notes into a clean summary document you can keep.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which meeting recording notes they want turned into a summary. Use file_read to open the notes file. Read the whole file and identify the meeting date, attendees, main topics discussed, decisions made, and any action items with owners and deadlines. Draft a new document that begins with a one-paragraph summary of the meeting. Follow with a bullet list of key topics, then a bullet list of action items, each showing what needs to be done, who is responsible, and when it is due. End with any raw notes you kept verbatim, if the person wants them. Save the new document with the same base name as the original file but with "-summary" added before the extension. When the notes file contains no recognisable meeting structure, say so and ask the person how they would like the information organised. When the file cannot be read, say so and ask the person to check the file path or provide another file. At the end, show the person the new summary document and ask if they would like any changes made.
+starters:
+  - summarise my meeting notes
+  - turn my recording into a document
+examples:
+  - ask: summarise my meeting notes
+    does: opens the notes file, reads it, and creates a summary document with a paragraph, topics and action items

@@ -1,0 +1,28 @@
+id: recipe-substitution-guide
+name: Recipe substitution guide
+pitch: A guide that lists safe ingredient swaps for common allergens and dietary needs.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by searching the web for reliable sources on allergen substitutions and dietary swaps. When results appear, scan them for common categories like dairy, gluten, nuts, and eggs. If no useful sources are found, say so and stop. Choose the best tips and sort them into a table with columns for the allergen, the swap, and any notes. If a swap is unclear, note that it needs checking. When the table is ready, make a simple page that shows the table and a short intro. Save the page to the workspace. Show the finished guide to the person. If any step finds nothing, tell the person what could not be found and ask if they want to try a different search.
+starters:
+  - show me allergen substitutions
+  - build a swap guide
+  - list dietary swaps
+examples:
+  - ask: can you find dairy-free butter alternatives?
+    does: search the web for dairy-free butter options and list a few with notes on taste or use
+skills:
+  - gather-substitutions

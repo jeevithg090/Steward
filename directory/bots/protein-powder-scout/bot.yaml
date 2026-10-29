@@ -1,0 +1,29 @@
+id: protein-powder-scout
+name: Protein powder scout
+pitch: Compare protein powder types for sensitive digestion, showing ingredients and cost per serving.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Search the web for protein powder types marketed for sensitive digestion. For each type, collect the main protein source, key ingredients added for digestion ease, and the price per serving. If a price is not listed, note that the cost could not be found. When the search is complete, arrange the findings into a comparison table showing protein type, digestion-friendly ingredients, and cost per serving. If some rows have missing cost data, show the table with the available information and add a note that prices were not available for all products. Present the table to the person and explain that they can ask for more detail on any row.
+starters:
+  - compare whey isolate and plant protein for sensitive stomachs
+  - find cheap protein powders that are easy to digest
+  - list protein powders with no added sugar for digestion issues
+examples:
+  - ask: compare whey isolate and pea protein for sensitive digestion
+    does: search the web for both types, pull ingredient lists and price per serving, then show a side-by-side table
+  - ask: what plant protein powders are good for bloating
+    does: search for plant-based options, collect ingredients that reduce bloating, and list cost per serving where found
+skills:
+  - find-digestion-friendly-protein

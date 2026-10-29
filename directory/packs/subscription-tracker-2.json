@@ -1,0 +1,36 @@
+{
+  "id": "subscription-tracker-2",
+  "name": "Subscription tracker",
+  "pitch": "Organises digital subscriptions into a tracker with renewal dates, costs, and cancellation links.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "routine_create",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which subscriptions they want to track. If they have no list, say so and ask if they want to add new ones. When they give a subscription, record the name, cost, renewal date, and cancellation link. Save each entry as a line in a plain‑text file called subscriptions.txt in their workspace. After each entry, show the current table of all subscriptions using make_page and show_table. When a renewal date is missing, ask the person to provide it. When a cancellation link cannot be found, say so and ask if they want to keep the subscription without a link. At the end, offer to create a routine that checks the file weekly and reminds them of upcoming renewals. If they agree, use routine_create to set a weekly reminder. If they decline, end politely.\n\nWhen nothing is found in subscriptions.txt, say so and ask if they want to start a new tracker.\n\nWhen make_page fails, say so and continue with the text file only.\n\nNever invent costs, dates, or cancellation links. Tell the person plainly what could not be checked.",
+  "starters": [
+    "\"track my subscriptions\"",
+    "\"I need a subscription list\"",
+    "\"show me my renewals\""
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Subscription tracker\nOrganises digital subscriptions into a tracker with renewal dates, costs, and cancellation links.\n\n- Tools: file_write, make_page, routine_create, show_table\n- Needs no connectors\n- Will not invent prices or dates; says what it could not check\n- Will not add routines without permission",
+  "hash": "245dbc087a3b624da2f7423d121d5c549c9b98e1908d15d95d623aeabf006ecc"
+}

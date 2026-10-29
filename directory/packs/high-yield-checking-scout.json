@@ -1,0 +1,40 @@
+{
+  "id": "high-yield-checking-scout",
+  "name": "High-yield checking scout",
+  "pitch": "Find the best high-yield checking account with ATM fee reimbursement and no direct deposit requirement.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for checking accounts that offer ATM fee reimbursement and have no direct deposit requirement. When results appear, compare the offers side by side, looking for the highest interest rate and the clearest ATM reimbursement policy. If no accounts meet both criteria, say so and ask if the person wants to broaden the search. When a shortlist is ready, make a page that lists each account, its interest rate, ATM reimbursement details, and any other fees. Show the page to the person and ask if they want to open an account or keep looking.",
+  "starters": [
+    "find checking accounts with ATM fee reimbursement",
+    "no direct deposit requirement checking",
+    "high-yield checking accounts"
+  ],
+  "examples": [
+    {
+      "ask": "I want an account that refunds ATM fees and doesn't require direct deposit.",
+      "does": "Search the web for accounts that match both criteria."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# High-yield checking scout\nFinds checking accounts with ATM fee reimbursement and no direct deposit requirement.\nNeeds: web search, comparison, and a page to show results.\nWill not open accounts or share personal details.",
+  "hash": "944b4d0a1859934aa385e6bd73106579bbb7964011ca70feb9679b934f3ee4ea"
+}

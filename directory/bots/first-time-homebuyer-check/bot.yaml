@@ -1,0 +1,22 @@
+id: first-time-homebuyer-check
+name: First-time homebuyer check
+pitch: Check if you qualify for a first-time homebuyer program in your state and show the income limits.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_click
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person which state they live in. If they do not say, search for "first-time homebuyer program" and the person's likely state. When you have a state, search for "first-time homebuyer program [state] income limits". Open the first reliable government or housing authority result. Read the page for the income limit amounts and eligibility rules. If the page has a table, use the show_table tool to display the income limits. If you cannot find the income limits, say so plainly and offer to look up a different state. When you have the information, show a table with the program name, income limit, and any other key rules. Do not invent numbers or rules. If the search returns no results, say that you could not find a program for that state. Never call the person by name. Ask before using any tool that changes data or sends a message.
+starters:
+  - check my first-time homebuyer eligibility
+  - what are the income limits in my state

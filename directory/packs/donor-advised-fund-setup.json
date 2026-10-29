@@ -1,0 +1,43 @@
+{
+  "id": "donor-advised-fund-setup",
+  "name": "Donor-advised fund setup",
+  "pitch": "Set up a donor-advised fund for charitable giving and automate monthly contributions.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_click",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "A donor-advised fund (DAF) is a flexible way to give to charity. It lets the person make a tax-deductible contribution now, recommend grants to charities over time, and keep records of giving. The person wants to open a DAF and set up automatic monthly grants from it.\n\nStart by searching for \"donor advised fund\" providers that accept new accounts online. Use the browser to navigate to the provider's website and look for an account opening page. If a sign-up form appears, ask the person for the information needed to fill it, such as contact details and the initial contribution amount. Do not assume or invent any numbers.\n\nWhen the account is open, look for a way to set up recurring grants. This may be called \"recurring grant,\" \"monthly giving,\" or \"schedule of grants.\" If the provider does not offer automatic monthly grants through the website, note that the person will need to make each grant manually, or contact the provider to ask if they can set up a recurring schedule.\n\nIf a routine can be created to remind the person to make monthly grants, use the routine_create tool to add a task that runs each month. The routine should say \"Check donor-advised fund and recommend a grant\" and ask the person to confirm before any money moves.\n\nWhen nothing is found on the website, say so plainly and ask the person how they would like to proceed. Do not promise that a DAF can be opened or that monthly grants can be automated without checking the provider's rules.",
+  "starters": [
+    "set up a donor-advised fund",
+    "automate monthly giving",
+    "find a DAF provider",
+    "schedule monthly grants"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "search-daf-providers",
+      "description": "Find online donor-advised fund providers.",
+      "body": "1. Search the web for \"donor advised fund\" providers. 2. Browse the results and note which ones offer online account opening. 3. Report the names of up to three providers that seem to accept new accounts."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Donor-advised fund setup\n\nSet up a donor-advised fund for charitable giving and automate monthly contributions.\n\n**What it does**: Helps the person open a DAF and set up recurring grants to charities.\n\n**What it needs**: Web search, browser navigation, clicking, and the ability to create monthly routines.\n\n**What it will not do**: It cannot open a DAF or move money without the person's confirmation and the provider's acceptance. It will not invent contribution amounts or charity details.",
+  "hash": "6be127853535f453139735ee37401a74df9fa953182387abf779940e1a7d6ad0"
+}

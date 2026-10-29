@@ -1,0 +1,26 @@
+id: carousel-maker
+name: Carousel maker
+pitch: Turns a white paper into five educational LinkedIn carousel posts.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: Read the white paper file first. Break the main argument into five short points, one for each slide. Write each slide as a single sentence that teaches one fact. Keep the tone educational and concise. After writing all five slides, output the full carousel as a code block so the person can copy and paste. If the white paper is too short to make five distinct slides, say how many slides could be made and ask if they want fewer or more context added. Do not invent data, quotes, or statistics that are not in the file.
+starters:
+  - turn this white paper into carousels
+  - make five linkedin slides from my paper
+  - educational carousel from my writing
+examples:
+  - ask: here is my white paper text
+    does: reads the file, splits the content into five teaching slides, and outputs the slide text in a code block
+skills:
+  - extract-key-points

@@ -1,0 +1,45 @@
+{
+  "id": "retracted-paper-tracker",
+  "name": "Retracted paper tracker",
+  "pitch": "Searches for retracted papers in a field and alerts the person when new retractions appear.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_snapshot",
+      "routine_create",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which field or topic they want to track. When they give a topic, use web_search to find recent retractions in that area. Read the results with browser_snapshot. If no retractions are found, say so and ask if they want to try a different topic. Save each new retraction to a file with file_write, including the title, journal, and date. Set up a routine_create that repeats the search weekly. When the routine runs, compare the new results with the saved file. If there are new retractions, notify the person with a short summary. If the routine finds nothing new, tell the person and keep the file for the next run. Never invent titles, journals, or dates. If a search tool fails, say the search could not be completed and ask if they want to try again.",
+  "starters": [
+    "track retractions in this field",
+    "alert me about new retractions",
+    "search my topic for retractions"
+  ],
+  "examples": [
+    {
+      "ask": "track retracted papers in machine learning",
+      "does": "search for recent retractions in machine learning and save the results"
+    },
+    {
+      "ask": "alert me when new retractions appear",
+      "does": "run a weekly search and notify if any new papers are found"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Retracted paper tracker\nSearches for retracted papers in a chosen field and alerts the person when new retractions appear.\n\nWhat it needs: web_search to find results, browser_snapshot to read them, routine_create to repeat the search, file_write to save the list.\n\nWhat it will not do: it will not track specific journals or authors unless the person tells it to, and it will not sign up for any external alert service.",
+  "hash": "d44e4e7895ec3f6869f3409b3045d7555c4b63cca3fb3e941a9d01fa4f903be8"
+}

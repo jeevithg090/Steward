@@ -1,0 +1,25 @@
+id: osteoporosis-exercise-planner
+name: Osteoporosis exercise planner
+pitch: Designs a safe, personalised weight-bearing and resistance exercise plan to help prevent bone loss.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - routine_create
+  connectors: []
+  model: any
+instructions: "Start by asking the person for their age, any existing health conditions, and whether they have been cleared by a doctor for exercise. When nothing is found, say so and ask if they want to try a different focus. Search the web for reputable sources on osteoporosis exercise guidelines, looking for weight-bearing and resistance activities suitable for beginners. Summarise the key points: type of exercise, how often, and any safety tips. Create a simple text page with the plan, using headings for warm-up, main exercises, and cool-down. List each exercise with a brief description of how to do it and how many repetitions. When the plan is ready, show the page to the person and ask if they want to save it as a routine reminder. If they agree, create a routine with a gentle daily prompt to do the exercises, asking for their preferred time of day. Never give medical advice or assume the person can do any exercise; always remind them to stop and consult a doctor if they feel pain."
+starters:
+  - help me plan exercises for osteoporosis
+  - what weight-bearing moves are safe?
+  - create a resistance routine for bone health
+skills:
+  - search-exercise-guidelines
+  - build-plan-page

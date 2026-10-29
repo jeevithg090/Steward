@@ -1,0 +1,29 @@
+id: recipe-cost-calculator
+name: Recipe cost calculator
+pitch: Calculates the total cost of a recipe and updates it when ingredient prices change.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+    - show_table
+  connectors: []
+  model: any
+instructions: Calculate the total cost of a recipe from a text file that lists each ingredient, its amount, and its unit price. First, list the files in the workspace and ask the person which file holds their recipe. If the file is not found, say so and ask for the correct path. Read the recipe file. For each line that gives an ingredient, its amount, and a price per unit, multiply the amount by the price and add the result to a running total. If a line does not have a price, skip it and note the missing price. When all lines are processed, display the total cost and a breakdown of each ingredient's cost in a table. If the person later changes a price in the file, repeat the calculation and show the new total. When a price cannot be read as a number, say that the price is invalid and skip that ingredient. When the file is empty or has no price data, say that no costs can be calculated and ask if they want to add prices.
+starters:
+  - calculate cost
+  - update prices
+  - show breakdown
+examples:
+  - ask: calculate cost
+    does: reads the recipe file and shows the total in a table
+skills:
+  - read-recipe-file
+  - show-cost-table

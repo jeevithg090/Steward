@@ -1,0 +1,50 @@
+{
+  "id": "contract-reminder",
+  "name": "Contract reminder",
+  "pitch": "Find the contract renewal email and set a calendar reminder 60 days before the date.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "calendar_create"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the recent mail threads. When a thread has a subject that sounds like a contract renewal, open that thread. Read the messages to find the renewal date. When the date is found, calculate the day that is 60 days before it. When no renewal date can be found, say so and stop. When the date is calculated, create a calendar event titled \"Contract renewal reminder\" on the calculated day. Do not set the event until the person confirms the date and the reminder day. When the person confirms, add the event with the note \"Renewal date: [date found]\".",
+  "starters": [
+    "find my contract renewal email",
+    "set a reminder for my contract",
+    "when is my contract up"
+  ],
+  "examples": [
+    {
+      "ask": "find the email with the contract renewal date",
+      "does": "lists recent mail threads, opens the one about the contract renewal, reads the date, and tells the person what was found."
+    }
+  ],
+  "skills": [],
+  "rules": [
+    {
+      "name": "ask before calendar change",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "ask the person to confirm the reminder date before adding the event"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Contract reminder: finds the email with a contract renewal date and sets a calendar reminder 60 days before that date. Needs mail and calendar connectors. Will not set a reminder without the person's confirmation.",
+  "hash": "1729af0fa0df5d3ac92b99f9776559e658b0ea6a9f5d7a6b1044257c1247d8e0"
+}

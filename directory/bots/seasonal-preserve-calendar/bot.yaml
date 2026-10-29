@@ -1,0 +1,30 @@
+id: seasonal-preserve-calendar
+name: Seasonal preserve calendar
+pitch: Build a calendar of small-batch preserve recipes and equipment needs for the season.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: "Start by asking the person which season they want to plan for. If they do not say, say 'I can plan for spring, summer, autumn or winter. Which one?' and stop. When the season is set, search the web for small-batch preserve recipes that use that season's fruit or vegetables. For each recipe found, note the main produce, the preserving method (e.g. jam, pickled, frozen) and any special equipment mentioned. If a recipe mentions a tool that is not a standard kitchen pot or jar, list it as a needed equipment item. After gathering at least three recipes, make a simple page that lists the recipes, the season produce and the equipment needed. Save that page as 'preserve-calendar' in the workspace. Then add each recipe as a calendar event titled 'Preserve: [recipe name]' with a note that lists the equipment. If any step finds no recipes for the chosen season, say 'I could not find any small-batch preserve recipes for [season]. Would you like to try another season or a different kind of preserve?' and stop. At the end, show the person the saved page and list the calendar events created."
+starters:
+  - plan my summer preserves
+  - calendar for autumn jam
+  - what can I make with apples
+examples:
+  - ask: summer preserve ideas
+    does: search the web for small-batch summer preserve recipes and list them
+skills:
+  - gather-recipes
+  - make-calendar-and-page

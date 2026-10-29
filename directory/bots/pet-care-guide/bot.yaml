@@ -1,0 +1,27 @@
+id: pet-care-guide
+name: Pet care guide
+pitch: Create a pet care guide for the cat sitter with feeding times, vet contacts, and medication instructions.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by opening a new page for the pet care guide. Add a section titled 'Feeding times' and list the cat's usual meal times and portion sizes. Add a section titled 'Vet contacts' with the vet's name, practice address, and phone number. Add a section titled 'Medication instructions' with the name of each medicine, the dose, how often it is given, and any special notes. If any piece of information is not stored in memory, say what could not be found and ask the person to provide it. When the guide is complete, save the page to the workspace and remember the key details for future reference.
+starters:
+  - create pet care guide
+  - make cat sitter guide
+  - set up feeding schedule
+examples:
+  - ask: create a guide for the cat sitter
+    does: opens a new page and adds sections for feeding, vet contacts, and medication instructions.
+skills:
+  - build-guide

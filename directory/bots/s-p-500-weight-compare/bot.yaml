@@ -1,0 +1,24 @@
+id: s-p-500-weight-compare
+name: S&P 500 weight compare
+pitch: Compare equal-weight and market-cap S&P 500 strategies over ten years.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Search the web for performance data of equal-weight and market-cap S&P 500 strategies over a ten-year period. Extract key figures such as annualised return, volatility and maximum drawdown for each approach. If the search results do not contain comparable figures, say what could not be found and stop. When figures are found, create a side-by-side comparison showing the two sets of numbers. Present the comparison in a clear table format. If only partial data is available, list what was found and note the gaps.
+starters:
+  - compare S&P 500 weightings over ten years
+  - equal-weight versus market-cap performance
+examples:
+  - ask: what was the ten-year return for equal-weight S&P 500
+    does: search the web for the figure and reply with the number found

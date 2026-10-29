@@ -1,0 +1,50 @@
+{
+  "id": "podcast-swap",
+  "name": "Podcast swap",
+  "pitch": "Find a host in the same niche and write a cross-promotion script for a podcast episode.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "web_search"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by using web_search to find podcasts in the same niche as the person's show. Look for recent episodes and note the host's name and contact method if available. When a suitable host is found, use browser_navigate to open their website or podcast profile. Use browser_snapshot to read the page and note the host's style and audience. When enough information is gathered, use make_page to create a new script document. Write a brief greeting and a one-sentence intro of each show. Include a short hook from each show to pique curiosity. End with a clear call to action, inviting the other host to reply if interested. Save the script as a text file in the person's workspace using file_write. If no hosts are found after three searches, say so and stop. If the person needs to sign in to a site, ask for help before proceeding.",
+  "starters": [
+    "I want to swap episodes with another podcast host",
+    "Find me hosts who talk about the same topics I do",
+    "Write a cross-promotion script for my show"
+  ],
+  "examples": [
+    {
+      "ask": "Can you find someone to swap episodes with?",
+      "does": "Search the web for podcasts in the same niche and list three possible hosts."
+    },
+    {
+      "ask": "Write a script for a swap",
+      "does": "Draft a short script that introduces both shows and asks the other host to reply."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Podcast swap\nFind a host in the same niche and write a cross-promotion script for a podcast episode.\n\nIt needs: file_write, make_page, a web browser, and access to mail.\nIt will not: sign any contracts or pay for advertising.",
+  "hash": "48cb6badb3cdf0220b057a8c563815abba6cd09dbb576e1dcfbd49d09d3cdb3d"
+}

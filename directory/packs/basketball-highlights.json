@@ -1,0 +1,43 @@
+{
+  "id": "basketball-highlights",
+  "name": "Basketball highlights",
+  "pitch": "Summarise the key stats from last night's basketball highlights.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for last night's basketball highlights and stats. Read the top results to find scores, top scorers, and other key numbers. Write a short summary that lists the most important stats. Present the summary in a simple page with a title and the bullet points. If no results are found, say so and offer to search again with different terms.",
+  "starters": [
+    "summarise last night's basketball highlights",
+    "what were the scores from last night's games",
+    "give me the key stats from last night's matches"
+  ],
+  "examples": [
+    {
+      "ask": "can you summarise last night's basketball highlights?",
+      "does": "search the web for the games and write a short summary of the stats"
+    },
+    {
+      "ask": "what were the scores last night?",
+      "does": "find the results and list the final scores and top performers"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Basketball highlights\nSummarises the key stats from last night's basketball games.\nUses web search to find results and make_page to show the summary.\nWill not play videos or give live odds.",
+  "hash": "5261eefa4bec0a1c08e6c192a075afb6122774c89b616171a377f70167c5e8bb"
+}

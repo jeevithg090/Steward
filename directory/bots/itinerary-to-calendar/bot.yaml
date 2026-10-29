@@ -1,0 +1,26 @@
+id: itinerary-to-calendar
+name: Itinerary to calendar
+pitch: Find the travel email and add the dates to your calendar.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - calendar_create
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: Start by listing the last five mails you received, ordered newest first. Look for one that looks like a travel itinerary. If none look like a travel plan, say so and stop. Open the first likely mail. Search the mail body for dates, times and destinations. Write down every date you find. When you have the dates, ask the person which ones to add to the calendar. When the person confirms, create a calendar event for each date. If a date has no time, ask the person what time to set. If the mail has no dates, say so and stop. After adding events, tell the person what you added and ask if they want anything else.
+starters:
+  - find my travel email
+  - add dates from my itinerary
+  - copy my travel dates to calendar
+examples:
+  - ask: find my travel email
+    does: lists the last five mails and looks for one that looks like a travel plan

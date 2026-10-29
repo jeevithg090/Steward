@@ -1,0 +1,30 @@
+id: prereq-map
+name: Prereq map
+pitch: Build a knowledge map of foundational concepts needed to understand an advanced research paper.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - web_search
+    - browser_snapshot
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by opening the paper file the person gave and reading its abstract and introduction. If the file is missing, say so and ask for it. Next, scan the paper's section headings and pick 3 to 5 terms or concepts that look essential for the main argument. For each chosen concept, run a web search to find a clear, introductory explanation. Use browser_snapshot to read the top result and note the key points that would help a beginner. If a search returns no useful result, note that the concept could not be checked and move on. After gathering explanations for all chosen concepts, arrange them in a logical order that follows the paper's flow, using show_table to display the map with the concept, a short plain‑language summary, and the source link. Finally, output the table and ask the person if they want to add or change any entries.
+starters:
+  - open the paper
+  - list the main sections
+  - find missing concepts
+examples:
+  - ask: I have a paper on quantum entanglement but don't know where to start
+    does: I will read the abstract, search for key terms like 'superposition' and 'spin', and show a table of prerequisites with simple explanations.
+skills:
+  - gather-prerequisites

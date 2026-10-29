@@ -1,0 +1,26 @@
+id: family-cookbook
+name: Family cookbook
+pitch: Create a family cookbook template with story prompts and photo placeholders.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+    - file_read
+  connectors: []
+  model: any
+instructions: 'in markdown, create a new file named family cookbook.md. write a title header: "# Family Cookbook". add a section "## Recipe templates" with three blank recipe cards. each card has fields for: recipe name, ingredients list, cooking steps, prep time, cook time, and serves. below each card, add a story prompt: "share the story behind this recipe". add a photo placeholder: "[photo: recipe name]" on the line below the story prompt. repeat for three recipes. save the file. read the file back and show it to the person.'
+starters:
+  - start a new cookbook
+  - add recipe templates
+  - add story prompts
+  - add photo placeholders
+examples:
+  - ask: hello
+    does: create a new file named family cookbook.md with a title and three blank recipe cards, each with story prompts and photo placeholders, then show the file content

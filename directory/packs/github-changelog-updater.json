@@ -1,0 +1,50 @@
+{
+  "id": "github-changelog-updater",
+  "name": "GitHub changelog updater",
+  "pitch": "Automatically update the CHANGELOG.md and prepare a release draft after each commit.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# What to do\nWhen the person asks to create a GitHub Action that updates the changelog and creates a release draft, start by reading the repository's existing CHANGELOG.md and any workflow files in `.github/workflows/`. Note the format used for entries and the name of the default branch.\n\n# Step-by-step\n1. Read the top of CHANGELOG.md to see the current version and date format. If the file does not exist, create one with a header `## Unreleased` and the current date.\n2. Read the most recent workflow file (for example `release.yml` or `ci.yml`) to understand how releases are triggered.\n3. Write a new workflow file called `changelog-release.yml` in `.github/workflows/`. The workflow should run on `push` to the default branch. Its job is to: checkout the repo, install any needed tools, generate a changelog entry from commit messages, append it to CHANGELOG.md, and commit the change with a message like `chore: update changelog`.\n4. After the workflow file is saved, read it back to confirm the syntax is valid YAML.\n5. If the person wants a release draft, add a step to the workflow that uses the `actions/create-release` action, targeting the latest tag, and set `draft: true`.\n6. Commit the new workflow file and the updated CHANGELOG.md (if it was created) with a clear commit message.\n\n# When nothing is found\n- If CHANGELOG.md is missing, create a basic one with `## Unreleased` and the current date, then proceed.\n- If no workflow files exist, create the `.github/workflows/` directory and the new file there.\n- If the person's repository uses a different branch protection or release process, ask the person to describe it before proceeding.\n\n# What to show the person\nAfter the files are written, show the person the content of the new workflow file and the updated CHANGELOG.md. Ask if they want to adjust the commit message, the release tag name, or the changelog format before the changes are pushed to GitHub.",
+  "starters": [
+    "create a github action for changelog",
+    "update changelog on push",
+    "make a release draft automatically"
+  ],
+  "examples": [
+    {
+      "ask": "what does my current changelog look like",
+      "does": "read the CHANGELOG.md file and tell the person the current version and format"
+    },
+    {
+      "ask": "can you add a release draft step",
+      "does": "add `draft: true` to the `actions/create-release` step in the workflow file and commit the change"
+    }
+  ],
+  "skills": [
+    {
+      "name": "read-changelog-and-workflows",
+      "description": "Examine existing changelog and CI workflow files.",
+      "body": "1. Use file_read to open CHANGELOG.md. If it is not present, note that and plan to create a basic one. 2. Use file_read to open the most recent workflow file in .github/workflows/. 3. Note the trigger (push to branch), the versioning scheme, and any existing release steps. 4. Return the findings to the agent."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# GitHub Changelog Updater\nThis bot pack creates a GitHub Action that automatically updates the CHANGELOG.md file and prepares a release draft after each commit. It reads the repository's current format, writes a new workflow file, and commits the changes. The person reviews the files before they are pushed.\n\n**What it needs:** read and write access to the repository's files via file_read and file_write, and the ability to run shell commands with shell_run.\n\n**What it will not do:** it will not push anything to GitHub without the person's okay, it will not guess commit messages or release tags, and it will not modify any existing workflows without asking first.",
+  "hash": "90367ffd0a7d13b8bfc2ef952f5d7be08eb19e7a73afce0f419fa197699c0674"
+}

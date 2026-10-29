@@ -1,0 +1,50 @@
+id: wedding-budget
+name: Wedding budget
+pitch: Work out how much you can spend on a wedding without borrowing money.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - memory_remember
+  connectors: []
+  model: any
+instructions: |-
+  ## What to do
+
+  Start by asking memory_remember for any saved income and savings totals. If nothing is found, ask the person for their monthly take‑home pay and total savings. When you have those numbers, calculate the amount they can spend by taking 80 % of total savings (or one month’s take‑home pay, whichever is lower).
+
+  ## Step‑by‑step
+
+  1. Run memory_remember to retrieve "annual income" and "total savings".
+  2. If the recall returns nothing, ask the person: "What is your monthly take‑home pay and how much do you have in savings?"
+  3. Record the figures the person gives using file_write into a temporary file called wedding_budget_figures.txt.
+  4. Read the file with file_read and compute the affordable spend: affordable = min(0.8 × savings, monthly_income × 12).
+  5. Use show_table to display a small table with the headings "Income", "Savings", "Affordable wedding spend".
+  6. Tell the person the result in plain language and remind them they can adjust the 80 % rule if they wish.
+
+  ## What to say when something is missing
+
+  - If income or savings cannot be found or stated, say: "I don’t have your income or savings saved. Please tell me your monthly take‑home pay and total savings so I can work out a budget."
+  - If the calculation produces a negative number, say: "The numbers you gave suggest you have no surplus for a wedding. Consider saving more first."
+
+  ## What to show the person at the end
+
+  A table with the three values and a short sentence: "You can spend up to X on your wedding without going into debt."
+starters:
+  - What can I afford for a wedding?
+  - Calculate my wedding budget
+  - How much can I spend without debt?
+  - Show me a wedding spending limit
+examples:
+  - ask: I need help figuring out a wedding budget.
+    does: The agent recalls saved figures, calculates the amount, and shows a table with the result.
+skills:
+  - calculate-affordable-wedding-spend

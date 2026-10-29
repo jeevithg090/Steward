@@ -485,3 +485,14 @@ for the computer.
     packs were fixed and rebuilt with their dates kept.
   - The README was rewritten for the bots, other agents and the phone, with new screenshots
     (`docs/images/README.md` says how each was taken), plus Dependabot, monthly and grouped.
+- **29 Oct 2026, later: housekeeping on GitHub and 609 more bots.**
+  - The nine Dependabot pull requests left from Tempo were closed with a note (Tempo's code is on
+    the `tempo` branch). Of Steward's first three, the Actions group (#10) and `@hono/node-server`
+    2.1.3 (#12, same API, faster) were merged after local checks: typecheck, 1,619 unit tests and
+    37/37 e2e on the new server. zod 4 (#11) needs code changes in six packages; it was done in
+    its own session on branch `zod-4`, waiting to be merged.
+  - The resumed bot run took the 830 jobs without a bot: 609 written, 221 dropped, 136 minutes.
+    The shelf has 1,251 bots, 1,064 of them AI-made; 30 jobs are left, so more needs `seed jobs`.
+  - 16 names were shared by 35 bots ("Meal planner" five times); 27 were renamed with their ids
+    kept, and the batch writer now gives each new bot a name nobody on the shelf has
+    (`distinctName`). One example used a real-looking address; it is `example.com` now.

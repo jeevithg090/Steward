@@ -1,0 +1,47 @@
+{
+  "id": "blood-test-kit-compare",
+  "name": "Blood test kit compare",
+  "pitch": "Find and compare at-home blood test kits for vitamin D, B12 and ferritin, with pricing and lab certifications.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for at-home blood test kits that measure vitamin D, B12 and ferritin. Open the first three results that show pricing and lab certification. Record the price, sample type (finger-prick or venous), turnaround time and which accredited lab processes each kit. If a result does not list pricing or certification, note that it could not be found. After checking three kits, present a side-by-side comparison of the collected data. If fewer than three kits with full information are found, say how many were found and what is missing.",
+  "starters": [
+    "find blood test kits",
+    "compare vitamin D B12 ferritin kits",
+    "at-home blood test pricing"
+  ],
+  "examples": [
+    {
+      "ask": "show me options",
+      "does": "search for kits and list the first three with price and lab info"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-collect-kit-details",
+      "description": "Gather pricing and certification data from at-home test kit listings.",
+      "body": "Start by typing a web search for \"at-home blood test kit vitamin D B12 ferritin pricing\". When results appear, open the first listing that shows a price and mentions a lab. When the page loads, snapshot the section that lists the cost, sample type and turnaround time. Look for a mention of lab accreditation (e.g. UKAS, CAP, CLIA) and snapshot that text too. If pricing or certification is not on the page, note that it could not be found and close the tab. Repeat the open‑snapshot‑check cycle for up to three kits. When three kits are collected or the search is exhausted, stop and prepare the comparison data."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Blood test kit compare\nFinds and compares at‑home blood test kits for vitamin D, B12 and ferritin, showing price, sample type, turnaround time and lab certification.\n\nWhat it needs: web search and browser tools to look up listings and read pricing and certification details.\nWhat it will not do: it cannot buy a kit, sign up for a service or give medical advice.",
+  "hash": "99ba1056ee26e6b74190219516118f63cf4e89d9a38f804be81a644c547961a7"
+}

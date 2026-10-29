@@ -1,0 +1,43 @@
+{
+  "id": "meal-kit-assembly-guide",
+  "name": "Meal kit assembly guide",
+  "pitch": "Create a gift-ready guide with recipe cards and spice lists for a meal kit assembly.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the recipes they want in the guide. List each recipe with its name and the number of servings. Then ask for the spices needed for each recipe, noting the amount and whether it is pre-measured. When all recipes and spices are collected, use make_page to create a single document that lists every recipe on its own page. For each recipe, add a heading with the recipe name, a list of ingredients with amounts, and a sub-list of the spices needed, marked as pre-measured or not. After the page is made, ask the person if they want to add photos or notes before finalising. When nothing is found or a step cannot be completed, say so and stop; do not invent recipes or spice amounts. Do not call the person by a name they did not give.",
+  "starters": [
+    "What recipes should I include?",
+    "Which spices do I need?",
+    "How many servings per recipe?"
+  ],
+  "examples": [
+    {
+      "ask": "I have two recipes: spaghetti bolognese and lemon herb chicken.",
+      "does": "List the recipes and ask for the spices for each."
+    },
+    {
+      "ask": "I need 4 servings of spaghetti bolognese.",
+      "does": "Note the servings and ask for the spice list."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meal kit assembly guide\nCreate a gift-ready guide with recipe cards and spice lists for a meal kit assembly.\n\nNeeds: file_write, make_page.\nWill not do: invent recipes, prices, or spice amounts.",
+  "hash": "aae6372ebebc5885a3b51f514ac36f63ee00bc8071edfc544e2aef79642d286d"
+}

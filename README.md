@@ -9,7 +9,7 @@ It does the work, asks before it acts, and keeps a record you can read.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node ≥ 24](https://img.shields.io/badge/node-%E2%89%A5%2024-417e38.svg)](https://nodejs.org)
-[![642 bots](https://img.shields.io/badge/bots-642-0f6e66.svg)](#bots)
+[![1,251 bots](https://img.shields.io/badge/bots-1%2C251-0f6e66.svg)](#bots)
 ![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)
 
 [Quick start](#quick-start) · [Try it](#try-it-in-five-minutes) · [How it works](#how-it-works) ·
@@ -196,7 +196,7 @@ copy, nothing to configure.
   <img src="docs/images/steward-bot-dark.png" width="430" alt="The Inbox triage listing in the dark theme: installed, with Talk to it; what it does, what it needs (your mail, connected), what it may do without asking (read your mail), and what it asks before.">
 </p>
 
-- **642 bots ship with Steward** in `directory/`: 455 made by a model from a job taxonomy and
+- **1,251 bots ship with Steward** in `directory/`: 1,064 made by a model from a job taxonomy and
   checked by a second model, a duplicate check by meaning and the gateway's rules (labelled
   **AI-made** until someone uses them; unused ones retire after 90 days), 177 adapted from
   [LobeChat's agent index](https://github.com/lobehub/lobe-chat-agents) with their authors
@@ -333,7 +333,7 @@ say so at the top.
 | The record       | An audit table                                             | A hash-chained record that verifies itself                                                  |
 | Prompt injection | Untrusted-content guidance and an LLM reviewer             | Guidance plus taint: after reading untrusted content, risky actions always ask              |
 | What leaves      | Credential scan and a check on messages to others          | Named findings (card numbers, IBANs, ID numbers, keys, health words) on the approval card   |
-| Helpers          | A coworker catalogue                                       | A directory of 642 bots, AI-made and adapted, whose rules can only tighten yours            |
+| Helpers          | A coworker catalogue                                       | A directory of 1,251 bots, AI-made and adapted, whose rules can only tighten yours          |
 | Access           | Web (phone-first), Slack, Teams                            | Web, accessibility first; iPhone Shortcuts and a phone app over a relay you host            |
 
 What they do that Steward does not, yet:
@@ -396,7 +396,7 @@ nothing to any model provider.
 | `packages/shortcuts`  | Builds, checks and signs the iPhone shortcuts                                |
 | `packages/remote`     | Crypto and protocol shared by the bridge, the relay and the phone app        |
 | `packages/db`         | SQLite                                                                       |
-| `directory`           | The 642 bots that ship with Steward, and the index built from them           |
+| `directory`           | The 1,251 bots that ship with Steward, and the index built from them         |
 | `tenants`             | Tenant packages: `steward` and `tempo`                                       |
 | `evals/triage`        | The triage eval set and results                                              |
 | `tests/e2e`           | End-to-end tests                                                             |
@@ -411,7 +411,8 @@ nothing to any model provider.
 - Optional container isolation for the agent's shell and browser.
 - A native iPhone app with Siri and Action-button shortcuts that appear on install (needs an Apple
   Developer account and review).
-- More AI-made bots: the generator is resumable and the taxonomy has room for about 2,000.
+- More AI-made bots: 1,064 of the 2,000 planned are on the shelf; the rest need new jobs in the
+  taxonomy (`seed jobs`) and the same resumable run.
 - More channels: email in, then chat apps.
 - Background research through the day, not only in the morning brief.
 - Exporting the record, and anchoring its newest hash outside the machine.

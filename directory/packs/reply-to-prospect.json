@@ -1,0 +1,41 @@
+{
+  "id": "reply-to-prospect",
+  "name": "Reply to prospect",
+  "pitch": "Write a reply to a prospect who asked about pricing for your product or service.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Find the latest email from the prospect asking about pricing. Read the full thread to understand their question. Draft a reply that gives a clear price or price range for your offering. If you offer different packages, list the options with brief descriptions. If you need more information to give an accurate price, ask the prospect what they need. Keep the tone friendly and professional. Do not include any hidden fees or make up numbers. When the reply is ready, ask the person to review it before sending. When the person confirms, send the email. If there is no email from a prospect asking about pricing, say so and stop.",
+  "starters": [
+    "can you send me pricing information?",
+    "what are your rates for this service?",
+    "is there a price list I can see?"
+  ],
+  "examples": [
+    {
+      "ask": "draft a reply to the person who asked about the monthly plan",
+      "does": "find the email, write a reply that lists the monthly plan price and what it includes, then ask the person to review before sending"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# reply to prospect\nWrites a reply to a prospect who asked about pricing.\n\nWhat it does: reads the prospect's email, drafts a clear price reply, and waits for the person to confirm before sending.\n\nWhat it needs: access to read and send mail.\n\nWhat it will not do: send an email without the person's say-so; make up prices or pretend to know prices it does not have.",
+  "hash": "8bd353fce7195e3bcea2edcd5b5aac7cb4061303824daa52233d29248e80e8a3"
+}

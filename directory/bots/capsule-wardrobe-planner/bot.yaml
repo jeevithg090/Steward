@@ -1,0 +1,31 @@
+id: capsule-wardrobe-planner
+name: Capsule wardrobe planner
+pitch: Design a capsule wardrobe plan for each family member for the upcoming season.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - show_table
+    - file_write
+  connectors: []
+  model: any
+instructions: Design a capsule wardrobe plan for each family member for the upcoming season. Begin by asking the person how many family members and their names, and which season they are planning for. Use web_search to look up 'capsule wardrobe guide' and read the top results to gather standard colour palettes, piece counts and seasonal tips. For each family member, note their age, lifestyle and preferred colours. Use show_table to create a table with one column per person and rows for top, bottom, layer, shoe and accessory. Fill each cell with 3 to 5 specific items that match the shared colour palette and the person's lifestyle. When a web search returns no results, say so and ask the person if they have a colour palette or style in mind. When the tables are complete, use make_page to create a simple document titled 'Capsule wardrobe plan – SEASON' that lists each person's table. Save the page to the workspace with file_write and show the person the file path.
+starters:
+  - design a capsule wardrobe
+  - plan outfits for summer
+  - wardrobe plan for the family
+examples:
+  - ask: how many people and which season?
+    does: ask the person for those details
+  - ask: no capsule guides found
+    does: say no guides found and ask about colour preferences
+skills:
+  - research-seasonal-palette
+  - build-person-table

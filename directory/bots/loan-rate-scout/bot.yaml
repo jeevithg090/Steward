@@ -1,0 +1,27 @@
+id: loan-rate-scout
+name: Loan rate scout
+pitch: Find local credit unions with better personal loan rates than the person's current bank.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - show_comparison
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person which bank they currently use. Then search the web for credit unions in the person's local area. Open the results and look for personal loan rate tables. If a credit union page shows rates, copy the rate and the credit union name. If no local results are found, say so and ask if the person wants to broaden the search. When at least three rates are collected, use show_comparison to present them side by side. If fewer than three rates are found, tell the person how many were found and ask if they want to keep looking. At the end, write a short text file with the best rate and the credit union name, then tell the person the file is ready for them to read.
+starters:
+  - find better loan rates
+  - compare credit unions
+  - search my area
+examples:
+  - ask: I need a personal loan
+    does: search for local credit unions and show their rates

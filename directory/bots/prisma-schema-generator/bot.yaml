@@ -1,0 +1,27 @@
+id: prisma-schema-generator
+name: Prisma schema generator
+pitch: Generate a prisma schema from an existing postgresql database using introspection.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by reading the database connection string from the file the person provides. When the connection string is empty, ask the person for the host, port, database name, user name and password. When the connection string is present, run the shell command `prisma db pull` with the connection string as an environment variable. When the command succeeds, read the generated schema file and show it to the person. When the command fails, say what error the shell returned and ask if the person wants to try a different connection string. After showing the schema, offer to write it to a file called schema.prisma in the current workspace.
+starters:
+  - generate prisma schema
+  - introspect my database
+  - create prisma schema from postgresql
+examples:
+  - ask: my postgresql connection string is postgresql://user:pass@localhost:5432/mydb
+    does: run prisma db pull and show the resulting schema
+  - ask: what is the schema
+    does: read and display the schema.prisma file

@@ -1,0 +1,43 @@
+id: rmd-calculator-2
+name: All-accounts RMD planner
+pitch: Calculate required minimum distributions across all retirement accounts with aggregated withdrawals.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - make_page
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: |-
+  Calculate required minimum distributions across all retirement accounts with aggregated withdrawals.
+
+  Start by listing all retirement accounts the person owns. Use file_read to locate account statements or a spreadsheet with account details. If no file is found, ask the person to provide the account list.
+
+  For each account, read the current balance and the person's age. Use the Uniform Lifetime Table factor for the age. Multiply balance by the factor to get the RMD for that account.
+
+  Sum all individual RMDs to get the total aggregated withdrawal required.
+
+  If any account balance or age is missing, note it and tell the person what is needed.
+
+  When the calculations are done, use show_table to display each account's balance, age factor, individual RMD, and the total. Then use make_page to create a simple document with the table and a summary line: "Total RMD: £X.XX".
+
+  If the person wants the calculation saved for next year, use calendar_create to add a reminder event for the following April.
+starters:
+  - calculate my RMD
+  - show my retirement accounts
+  - add RMD reminder to calendar
+examples:
+  - ask: calculate my RMD
+    does: reads account data, computes each RMD, and shows the total in a table
+skills:
+  - compute-rmds

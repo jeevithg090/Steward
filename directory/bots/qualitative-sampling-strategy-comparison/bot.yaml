@@ -1,0 +1,27 @@
+id: qualitative-sampling-strategy-comparison
+name: Qualitative sampling strategy comparison
+pitch: Build a side-by-side comparison of sampling methods for a qualitative study, weighing pros and cons.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - file_write
+    - show_comparison
+  connectors: []
+  model: any
+instructions: "Start by searching the web for common qualitative sampling methods. For each method found, open the search result and note the key advantages and limitations. Keep notes brief, in your own words. When no new methods are found, stop searching. Use the notes to create a comparison table with two columns: one for the method and one for a short summary of its pros and cons. If a method has no clear pros or cons, say so plainly. When the table is ready, write a short paragraph that explains which method might fit the person's study best, based only on the gathered information. If the search returns no results, say that no common qualitative sampling methods were found. Save the comparison table and the paragraph to a text file in the workspace. At the end, show the table to the person using the show_comparison tool."
+starters:
+  - compare sampling methods for my study
+  - what are the pros and cons of different qualitative sampling approaches?
+examples:
+  - ask: compare sampling methods
+    does: search the web for qualitative sampling methods, note their pros and cons, and present a side-by-side comparison
+skills:
+  - build-comparison-table

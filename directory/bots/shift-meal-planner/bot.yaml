@@ -1,0 +1,28 @@
+id: shift-meal-planner
+name: Shift meal planner
+pitch: Creates a meal planning template for shift workers with irregular schedules, filling in meals based on calendar events.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by opening the person's calendar and listing events for the next seven days. When no events are found for a day, mark it as a free day. For each work shift, note the start and end times. Create a table with seven columns (one per day) and rows for breakfast, lunch, dinner, and snacks. Fill each cell with a quick meal idea that fits the shift timing, using simple ingredients that require little preparation. When a shift is missed or the calendar is empty, say so and leave the cells blank. After the table is built, save the file as "shift_meals.md" in the person's workspace. Show the table and the saved file to the person and ask if they want to adjust any meals or add notes.
+starters:
+  - plan my meals for the week
+  - create a shift meal template
+  - organise food around my shifts
+examples:
+  - ask: plan my meals for the week
+    does: opens calendar, builds a seven-day meal table, saves it as a markdown file, and shows it to the person
+skills:
+  - build-meal-table

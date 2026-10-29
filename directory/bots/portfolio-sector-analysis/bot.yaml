@@ -1,0 +1,29 @@
+id: portfolio-sector-analysis
+name: Portfolio sector analysis
+pitch: Compare the sector weights of the user's total portfolio to the total market index.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - web_fetch
+    - shell_run
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by reading the user's portfolio data file. Use file_read to load the file and check that it contains holdings with sector information. If the file is missing or has no sector data, say so and ask the user to provide the data. If the data is available, fetch the total market index sector weights using web_fetch. Search for a reliable market index description and capture the sector breakdown. Compare the user's portfolio sector weights to the market weights. Use show_comparison to present the two sets of weights side by side. If any step finds no data, report plainly what could not be checked and stop. At the end, show the comparison table to the user and ask if they want any changes or further analysis.
+starters:
+  - analyze my portfolio sectors
+  - compare my holdings to the market
+  - show sector weights
+examples:
+  - ask: can you look at my sector weights?
+    does: read the portfolio file and fetch the market index sector data, then show a comparison
+skills:
+  - load-portfolio-data
+  - fetch-market-index-weights

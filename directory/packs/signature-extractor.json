@@ -1,0 +1,50 @@
+{
+  "id": "signature-extractor",
+  "name": "Signature extractor",
+  "pitch": "Pull phone numbers and addresses from email signatures and put them in a spreadsheet.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Extract phone numbers and physical addresses from the person's email signatures and list them in a spreadsheet. Start by reading the inbox and finding messages that have a signature block at the bottom. For each message, look at the last 1500 characters and pull out any line that looks like a phone number (digits and plus signs, or a local format) and any line that looks like a street address (number, street name, city, postcode). Put each find into a table with columns: name, phone, address. If a signature has no phone or no address, leave that cell blank. When all signatures are processed, show the table to the person and ask if they want it saved as a CSV file. If the inbox is empty or no signatures are found, say so and offer to look at a specific folder or search for messages from a particular sender.",
+  "starters": [
+    "extract my signatures",
+    "put contacts in a spreadsheet",
+    "find phone numbers in mail"
+  ],
+  "examples": [
+    {
+      "ask": "can you pull addresses from my mail",
+      "does": "read the last messages, list any addresses found in a table, and ask if the person wants a CSV"
+    },
+    {
+      "ask": "i have a new job, sort my contacts",
+      "does": "scan recent signatures, build a table of names and phones, show it, wait for go-ahead to save"
+    },
+    {
+      "ask": "my signatures are messy, clean them up",
+      "does": "extract what is there, tell the person if anything looks wrong, do not invent missing data"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Signature extractor\nExtracts phone numbers and addresses from email signatures into a spreadsheet.\n\nWhat it does: Reads the person's mail, finds signature blocks, pulls out contact details and lists them in a table. The person can then save the table as a CSV.\n\nWhat it needs: Access to read mail, ability to write a CSV file, and a table display tool.\n\nWhat it will not do: It will not guess phone numbers or addresses that are not clearly in the signature. It will not save anything without the person's go-ahead.",
+  "hash": "501a92f547697150bb9ae73b72a33f2094d03bfb4cc7ed2965e0d65ffa2c5ff9"
+}

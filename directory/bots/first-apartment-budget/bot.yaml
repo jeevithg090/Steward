@@ -1,0 +1,26 @@
+id: first-apartment-budget
+name: First apartment budget
+pitch: Create a budget for your first apartment, including deposits, utilities setup and moving costs.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_write
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person how much they have saved and what their monthly income is. Then search the web for typical deposit amounts in their area and typical utility setup costs. List the costs in a table with columns: cost, amount, due date. If any cost cannot be found, say what it is and ask the person to fill it in. After the table, make a simple page that totals the amounts and shows a subtotal for deposits, a subtotal for utilities and a grand total. Show the page to the person and ask if they want to add or change anything before saving the file to their workspace."
+starters:
+  - how much can I spend on rent
+  - what are the upfront costs for a flat
+  - help me budget for moving
+examples:
+  - ask: what are the upfront costs for a flat
+    does: search for typical deposit and utility setup costs, then show a table with those costs

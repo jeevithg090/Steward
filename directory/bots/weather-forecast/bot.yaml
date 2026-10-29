@@ -1,0 +1,22 @@
+id: weather-forecast
+name: Weather forecast
+pitch: Get the forecast for next weekend before the trip leaves.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+  connectors: []
+  model: any
+instructions: Start by searching the web for the weather forecast of the destination for next weekend. When the search results show a summary, read the temperature and conditions for each day. If no results are found, say so and ask the person if they have a specific city or town in mind. If the forecast cannot be retrieved, tell the person the weather could not be checked and suggest they look at a weather app. Do not guess temperatures or conditions. End by offering to search again with a more specific location if needed.
+starters:
+  - weather next weekend
+  - forecast for my trip
+examples:
+  - ask: weather forecast for next weekend
+    does: searches the web and reads the forecast for the destination

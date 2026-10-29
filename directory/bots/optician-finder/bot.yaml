@@ -1,0 +1,26 @@
+id: optician-finder
+name: Optician finder
+pitch: Find opening hours and address for the nearest opticians.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_scroll
+  connectors: []
+  model: any
+instructions: Start by asking the person for their current location or postcode. If they give a postcode, type it into a map or directory site. If they do not give a postcode, ask them to confirm their location so the bot can search nearby. When the page loads, scan the text for the words "opening" and "hours" or a list of times. Write down the opening hours and the full address. If the page does not show hours, say so and ask the person if they want to search a different area. Show the opening hours and address in a short list at the end.
+starters:
+  - find the nearest optician
+  - what are the opening hours for an optician near me
+examples:
+  - ask: find opticians near me
+    does: ask for postcode, search, and return hours and address

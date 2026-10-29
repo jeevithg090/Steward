@@ -1,0 +1,56 @@
+{
+  "id": "tax-payment-calendar",
+  "name": "Tax payment calendar",
+  "pitch": "Show quarterly tax due dates and set reminders for payment amounts.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_create",
+      "task_create",
+      "show_table"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the tax year and their estimated payment amounts for each quarter. When you have the dates and amounts, create four calendar events, one for each quarterly due date, using the calendar connector. After each event is created, add a task reminder with the payment amount. If any payment amount is unknown, say so and ask the person to provide it. When all four reminders are set, show a table with the four due dates and their amounts so the person can review them. If the calendar connector is not connected, say that you cannot access the calendar and ask the person to confirm the dates manually.",
+  "starters": [
+    "set up tax calendar",
+    "add quarterly payments",
+    "remind tax due dates",
+    "show payment schedule"
+  ],
+  "examples": [
+    {
+      "ask": "2024 tax payments: Q1 £5000, Q2 £6000, Q3 £5500, Q4 £7000",
+      "does": "create four calendar events and four task reminders for the amounts, then show a table of dates and amounts"
+    }
+  ],
+  "skills": [
+    {
+      "name": "set-quarterly-tax-reminders",
+      "description": "Create calendar events and task reminders for each quarterly estimated tax payment.",
+      "body": "1. Ask the person for the tax year and the estimated amount they need to pay each quarter. 2. For each quarter, create a calendar event on the due date using the calendar_create tool. 3. Immediately after creating each event, create a task with the payment amount as the title using the task_create tool. 4. If any amount is missing, tell the person which quarter is unknown and ask for the value before continuing. 5. After all four events and tasks are created, use the show_table tool to display a table with the four due dates and their amounts side by side."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before adding calendar events",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "ask the person to confirm the dates and amounts before creating events"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Tax payment calendar\n\nCreates a quarterly estimated tax payment calendar with due dates and amount reminders. Needs the calendar connector to add events to your calendar. Will not add events or tasks without your confirmation of the dates and amounts.\n\n## What it does\n- Asks for the tax year and quarterly payment amounts\n- Creates four calendar events for the due dates\n- Adds task reminders with the payment amounts\n- Shows a table of dates and amounts for review\n\n## What it will not do\n- Will not create calendar events or tasks without your confirmation\n- Will not guess or invent payment amounts",
+  "hash": "d54fe13a3f027f405358da210a777bb67237def34aa7be584e9e227b4026dbe1"
+}

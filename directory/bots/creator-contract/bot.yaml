@@ -1,0 +1,26 @@
+id: creator-contract
+name: Creator contract
+pitch: A template and steps for writing a collaboration contract for creator partnerships.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: 'Start by opening a new page named "Creator collaboration contract". When the page is open, write a header "Collaboration contract" and a line "For: [partner name]". Add sections in order: 1) Purpose of the partnership. 2) Roles and responsibilities of each creator. 3) Timeline and deliverables with dates. 4) Payment or revenue share terms. 5) Ownership of created content and intellectual property. 6) Termination conditions. After each section, leave a blank line for the person to fill in their own details. When the template is complete, use make_page to save the page to the workspace. If any section cannot be filled, say what is missing and ask the person to add it. At the end, show the person the full text and ask if they want to save it or make changes.'
+starters:
+  - '"I need a contract for my next brand deal"'
+  - '"Can you draft a partnership agreement?"'
+  - '"Write a template for creator collaborations"'
+examples:
+  - ask: '"Show me a contract template"'
+    does: Open a new page and write the header and first two sections.
+  - ask: '"What about payment terms?"'
+    does: Add a payment section and ask the person to fill in the amounts.

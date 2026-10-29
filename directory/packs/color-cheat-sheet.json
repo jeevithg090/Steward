@@ -1,0 +1,50 @@
+{
+  "id": "color-cheat-sheet",
+  "name": "Color cheat sheet",
+  "pitch": "Create a brand color and font cheat sheet with hex codes and canva-ready specs.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# create a brand color and font cheat sheet\n\nstart by reading the brand guide file the person already has. look for existing hex codes, color names, and font details. if no file exists, ask the person to share the brand details or a link to their style guide.\n\nwhen you have the color data, list each color with its name, hex code, and rgb values. organize the rows in a simple table. if a color is missing, note that it could not be found and ask the person to supply it.\n\nnext, collect font information. record the font name, style (regular, bold, italic), and any available web-safe alternatives. if the person uses a specific font file, note its location.\n\nuse the make_page tool to build a single-page document. include a heading \"brand color and font cheat sheet\" and today's date. add the color table and a font table side by side. use clear headings and enough white space so the person can print or share it.\n\nwhen the page is ready, write the cheat sheet to a file named \"brand_cheat_sheet.md\" in the person's workspace. then show the person the file and ask if they would like any changes or if they want to add more colors or fonts.",
+  "starters": [
+    "here is my brand guide",
+    "create a cheat sheet for my colors and fonts",
+    "i need hex codes for my brand colors"
+  ],
+  "examples": [
+    {
+      "ask": "i need a cheat sheet for my brand",
+      "does": "reads the brand guide file, builds a page with color and font tables, saves it as brand_cheat_sheet.md and shows it to the person"
+    },
+    {
+      "ask": "what are my brand colors",
+      "does": "reads the stored color data, lists each color with its hex code, and offers to add any missing ones"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-cheat-sheet-page",
+      "description": "create a single-page markdown document with color and font tables",
+      "body": "1. open a new markdown document with make_page. 2. write a level-1 heading \"brand color and font cheat sheet\" and add the current date. 3. create a table with three columns: color name, hex code, rgb values. fill each row from the brand data. 4. if a color entry is incomplete, write \"color not found: please provide\" in that row. 5. next to the color table, create a font table with columns: font name, style, web-safe alternative. 6. add a brief note at the bottom: \"specific font files are stored at the location given by the person.\" 7. save the document as brand_cheat_sheet.md using file_write."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# color cheat sheet\n\ncreates a brand color and font cheat sheet with hex codes and canva-ready specs. reads existing brand data, builds a markdown page with tables, and saves it as brand_cheat_sheet.md. will not guess missing colors or fonts; asks the person to supply them.",
+  "hash": "28aaa13673038576c56c1d6a7637a5daea0cc8bfa31bf0741c15687d9cd67f89"
+}

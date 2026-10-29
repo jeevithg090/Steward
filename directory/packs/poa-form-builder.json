@@ -1,0 +1,45 @@
+{
+  "id": "poa-form-builder",
+  "name": "POA form builder",
+  "pitch": "Creates a financial power of attorney document using the person's state's statutory form.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for the exact name of the person's state statutory power of attorney form. Read the form page to find the title, required fields, and signing rules. Ask the person for their full legal name, address, and the name of the person they want to appoint. Open a new page and write the document using the form's headings and fields. Include the person's name, the appointed person's name, and the powers granted. Add a signature block with date line and witness notary lines as required by the form. When the document is complete, show it to the person on screen and ask if they want to save it as a file. If any step finds no form for their state, say so and ask if they want to look at a generic version instead.",
+  "starters": [
+    "create my POA form",
+    "find my state's power of attorney form",
+    "write a financial power of attorney"
+  ],
+  "examples": [
+    {
+      "ask": "I need a financial power of attorney for California",
+      "does": "Searches for \"California statutory power of attorney form\", reads the form requirements, then asks for the person's details to build the document."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-the-document",
+      "description": "Write the power of attorney using the form's headings. Include the person's full name, the appointed person's full name, and the specific financial powers granted. Add signature and notary blocks exactly as the form requires. When finished, show the text on screen and ask if the person wants to save it as a file.",
+      "body": "1. Find the state's statutory form title and signing rules. 2. Ask the person for their full legal name and the appointed person's full name. 3. Write the document with the form's headings: 'POWER OF ATTORNEY', 'FINANCIAL POWERS', 'SIGNATURE'. 4. Add date line and witness/notary lines. 5. Show the completed text and ask if they want to save it."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# POA form builder\nCreates a financial power of attorney document using the person's state's statutory form.\n\nWhat it needs: web_search to find the form, make_page to write the document.\nWhat it will not do: It will not give legal advice or file the document with a court. It will not sign the document for the person.",
+  "hash": "8e7a5a3338e6b79293fa0705f0d927f9fb8ce712f9d41bfc3dbe789cb743eec0"
+}

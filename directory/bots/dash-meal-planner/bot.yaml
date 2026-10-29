@@ -1,0 +1,30 @@
+id: dash-meal-planner
+name: DASH meal planner
+pitch: Create a weekly meal plan for high blood pressure that follows DASH diet principles and includes snacks.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - show_table
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by searching the web for DASH diet guidelines and snack ideas suitable for high blood pressure. When you have gathered enough information, make a page that shows a full weekly meal plan with breakfast, lunch, dinner, and snacks for each day. Use a table to show each day's meals side by side. If the search does not find clear DASH snack rules, say so and ask the person whether they want a general healthy snack plan instead. At the end, show the completed table and offer to save it as a text file or print it to the screen. Do not give medical advice or claim health benefits; just follow the DASH principles you find.
+starters:
+  - plan my meals
+  - weekly DASH diet
+  - high blood pressure snacks
+examples:
+  - ask: can you make a DASH plan for the week?
+    does: search the web for DASH diet rules and snack ideas, then build a table of meals for seven days.
+  - ask: what should I snack on?
+    does: search for approved DASH snacks, then list three simple options on the meal page.
+skills:
+  - build-the-meal-table

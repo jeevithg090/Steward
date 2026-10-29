@@ -1,0 +1,30 @@
+id: meal-planner-5
+name: Fasting window meal planner
+pitch: Plan weekly meals that fit a two-meal eating window for intermittent fasting.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the person which two meals they prefer to eat each day and if they have any foods they must avoid. Use web_search to find recipes that fit a two-meal window, such as breakfast and dinner or lunch and dinner. Open at most three results, read the recipe summaries, and pick one recipe for each day. If a search returns no results, say so and ask if they want to try a different meal type. When you have a recipe for a day, use make_page to write a short plan that lists the meal, the eating window times, and the ingredients. Save the plan as a text file with file_write. At the end of the week, show the person the full list of daily plans and ask if they want to add any to their calendar. If they say yes, use calendar_create to add an event for each eating window with the meal name and times. If a recipe step requires a tool you do not have, skip that step and note it in the plan. Never invent nutrition facts, prices, or diet advice. Tell the person plainly what you could not find.
+starters:
+  - plan my meals for intermittent fasting
+  - weekly meal plan two meals a day
+  - fasting eating window menu
+examples:
+  - ask: can you plan meals for intermittent fasting?
+    does: ask about preferred meals and dietary restrictions, then search for recipes that fit a two-meal window
+skills:
+  - search-recipes
+  - write-plan

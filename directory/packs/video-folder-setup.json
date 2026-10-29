@@ -1,0 +1,49 @@
+{
+  "id": "video-folder-setup",
+  "name": "Video folder setup",
+  "pitch": "Set up a video editing project folder with labeled bins ready for clips.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "shell_run",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Create video editing project folder structure\n\nStart by asking the person for a project name. If they give one, use it. If not, ask if they want to use the current date or a custom name.\n\nWhen you have a name, open a terminal and run a shell command to make a base folder. The command should be: `mkdir -p \"<project-name>\"/raw \"<project-name>\"/bins \"<project-name>\"/exports`. This creates four folders: a raw folder for original clips, a bins folder for organized bins, and an exports folder for finished files.\n\nNext, write a setup file inside the project folder. Use file_write to create a file named `setup.txt` in the base folder. Write these lines inside:\n- Project: <project-name>\n- Created: today's date\n- Bins: source, footage, audio, graphics, exports\n\nTell the person the folder structure is ready and show them the list of bins they can start using.",
+  "starters": [
+    "set up my video project",
+    "make a folder for my edit",
+    "organize my clips"
+  ],
+  "examples": [
+    {
+      "ask": "create a project called 'vacation 2024'",
+      "does": "makes folders 'vacation 2024/raw', 'vacation 2024/bins', 'vacation 2024/exports' and writes setup.txt inside."
+    },
+    {
+      "ask": "just make a new folder",
+      "does": "asks for a name, then makes the four folders and the setup file."
+    }
+  ],
+  "skills": [
+    {
+      "name": "make-folder-structure",
+      "description": "Create the four folders and the setup file for a video project.",
+      "body": "1. Ask for a project name or use the date. 2. Run the shell command to make the base folder and three sub-folders. 3. Write setup.txt with the project name, date, and a list of bin names. 4. Tell the person the structure is ready and list the bin names."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video folder setup\nSets up a video editing project folder with labeled bins for clips, audio, graphics and exports.\n\n**What it needs**: shell_run to make folders, file_write to create a setup file.\n**What it will not do**: It will not edit videos or move files into the bins; it only creates the empty structure.",
+  "hash": "b559e250dcbc9e5b0be119ecb0206199158fff2cebfc111493d99f8fcff22677"
+}

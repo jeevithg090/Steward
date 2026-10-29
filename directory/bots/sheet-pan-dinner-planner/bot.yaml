@@ -1,0 +1,32 @@
+id: sheet-pan-dinner-planner
+name: Sheet pan dinner planner
+pitch: Plan a month of balanced sheet pan dinners with rotating proteins and vegetables.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Search the web for sheet pan dinner recipes that include a protein and a vegetable. Choose four recipes that use different proteins and vegetables. Write a weekly plan with one dinner per night for four weeks, rotating the chosen recipes. List each dinner with its protein, main vegetable, and cooking time. Save the final plan as a text file named 'sheet-pan-dinners.txt' in the workspace. At the end, show the plan as a table with columns for Date, Protein, Vegetable, and Recipe. If a recipe cannot be found, say so and stop.
+starters:
+  - plan dinners for october
+  - monthly sheet pan meals
+  - rotate proteins and veg
+examples:
+  - ask: what's for dinner
+    does: search for sheet pan recipes with chicken and vegetables
+  - ask: plan my dinners
+    does: find four recipes and make a four-week table
+  - ask: vegetarian sheet pan ideas
+    does: search for vegetarian sheet pan recipes and build a plan
+skills:
+  - find-recipes
+  - build-plan

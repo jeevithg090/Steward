@@ -1,0 +1,45 @@
+{
+  "id": "bingo-card-set",
+  "name": "Bingo card set",
+  "pitch": "Create a printable bingo card set with baby-related prompts for a baby shower.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Make a bingo card set with baby-related prompts.\n\nStart by making a new page titled \"Baby shower bingo\".\nAdd a section called \"How to play\" with plain text: each player marks off prompts as they happen. The first to get a line or full house wins.\n\nCreate a 5×5 grid. Fill the centre square with \"Free space\". Randomly place baby-related prompts in the other twenty-four squares. Good prompts are: \"Baby laughs\", \"Someone mentions feeding\", \"Diaper change needed\", \"Stroller passed by\", \"Sleepy baby spotted\", \"Bottle warmed\", \"Onesie worn\", \"Baby photo shown\", \"Game started\", \"Guest arrives late\". Use plain text, no images.\n\nMake a second grid for a different set of prompts so there are two cards. Keep the prompts the same but shuffle the order.\n\nWhen the grids are done, write the page to a file named \"bingo-cards.txt\" in plain text. Use a simple marker, for example \"A1\" for the top left square and \"E5\" for the bottom right.\n\nWhen nothing is found or a tool is not connected, say so plainly and stop.\n\nAt the end, show the person the text file they can print and cut out.",
+  "starters": [
+    "create bingo cards",
+    "baby shower bingo",
+    "printable prompts"
+  ],
+  "examples": [
+    {
+      "ask": "make me a bingo card",
+      "does": "makes a page with a 5×5 grid and baby prompts, saves it as a text file"
+    }
+  ],
+  "skills": [
+    {
+      "name": "make-bingo-grid",
+      "description": "Make a 5×5 grid of baby prompts.",
+      "body": "1. Start with a blank line for the column headers A B C D E.\n2. Write a line for the row labels 1 2 3 4 5.\n3. Put \"Free space\" in the centre cell C3.\n4. Choose twelve baby prompts from the list and place one in each of the remaining cells of the top half.\n5. Choose another twelve prompts and place one in each cell of the bottom half, avoiding repeats.\n6. Check that every cell has a prompt or the free space.\n7. Write the grid lines exactly as they appear, using the A1‑E5 markers."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Bingo card set\nCreate a printable bingo card set with baby-related prompts for a baby shower.\n\n**What it needs**: make_page, file_write.\n**What it will not do**: It cannot draw images or choose prompts that require personal details.",
+  "hash": "486feb0b9cd2657d9a3098917a802a8e08f65f46adb9750ad1d448ff9cea34ae"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "donor-advised-fund-guide",
+  "name": "Donor-advised fund guide",
+  "pitch": "Explain how a donor-advised fund works for appreciated securities and model the tax benefit.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for 'donor-advised fund appreciated securities tax benefit' and read the top results. Summarise how a donor-advised fund works when someone donates appreciated securities: the immediate income tax deduction, the avoidance of capital gains tax on the growth, and the ability to recommend grants over time. If the search finds no clear explanation, say so and list what was found. Create a Markdown page with three sections: 'How it works', 'Tax benefits', and 'Example calculation'. In the 'Example calculation' section, show a table with two rows: one for donating cash and one for donating appreciated securities. The table must have columns for 'Donation type', 'Income tax deduction', 'Capital gains tax avoided', and 'Charitable deduction limit'. Fill the 'Donation type' column with 'Cash' and 'Appreciated securities'. For the other columns, use realistic but made-up numbers. Do not look up real people's tax data. At the bottom of the page, add a plain‑English note saying the model is illustrative and the person should consult a tax professional. If any step finds nothing, say what could not be found and stop.",
+  "starters": [
+    "explain donor-advised fund",
+    "tax benefit appreciated securities",
+    "model donation strategy"
+  ],
+  "examples": [
+    {
+      "ask": "what is a donor-advised fund?",
+      "does": "Search the web and write a short summary of the basics."
+    },
+    {
+      "ask": "show me the tax benefit",
+      "does": "Create a table comparing cash and securities donations."
+    }
+  ],
+  "skills": [
+    {
+      "name": "research-and-summarise",
+      "description": "Find and summarise how a donor-advised fund works for appreciated securities.",
+      "body": "1. Use web_search with the query 'donor-advised fund appreciated securities tax benefit'. 2. Read the top results with browser_snapshot. 3. Write 3 to 5 plain sentences explaining the process: donation of securities, avoidance of capital gains, and income tax deduction. 4. If the search returns no useful result, say 'I could not find a clear explanation of how a donor-advised fund works for appreciated securities.' and stop."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Donor-advised fund guide\n\nSummarises how a donor-advised fund works for appreciated securities and models the tax benefit with a simple table. \n\n**What it needs**: web_search, make_page, show_table.\n\n**What it will not do**: It will not give personal tax advice or look up real people's data.",
+  "hash": "853938a346b33a1b6d6fafed2a1e2f9697a529e19b6bc3262ca745386688bb7f"
+}

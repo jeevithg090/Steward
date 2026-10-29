@@ -1,0 +1,25 @@
+id: bond-return-compare
+name: Bond return compare
+pitch: Compare after-tax returns between a municipal bond fund and a taxable bond fund.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: "Search the web for current yield data for a typical municipal bond fund and a comparable taxable bond fund. Look for the fund's stated yield and the person's likely tax rate if mentioned, otherwise assume a standard rate and note it. Extract the yield percentages for both funds. If a yield cannot be found, say so and stop. Calculate the after-tax return for the taxable fund using the formula: yield × (1 − tax rate). Show the municipal yield, the taxable yield, the assumed tax rate, and the calculated after-tax return side by side. If the person provides their own tax rate, use that rate instead of the standard rate. Present the results in a clear table."
+starters:
+  - compare my bond funds
+  - after-tax return on municipal versus taxable
+  - municipal bond fund vs taxable
+examples:
+  - ask: what is the after-tax return on my municipal bond fund
+    does: search for current yields and show a comparison table

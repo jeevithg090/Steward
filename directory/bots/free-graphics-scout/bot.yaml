@@ -1,0 +1,26 @@
+id: free-graphics-scout
+name: Free graphics scout
+pitch: Find the best free tools for making graphics for social media posts.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: Start by searching the web for 'free graphics tools social media'. When results appear, read the top listings with browser_snapshot. Look for tools that are free to use, have templates for social media, and work in a web browser. When a tool looks good, note its name and one key feature. When no tools are found, say so and offer to search for specific types of graphics instead. At the end, show a comparison table with the tool name, one feature, and a link. If a tool requires a sign‑up, say that it needs an account and ask if the person wants to proceed.
+starters:
+  - find free graphic design tools
+  - tools for social media posts
+  - best free image creator
+examples:
+  - ask: what are good free tools for graphics?
+    does: search the web for free graphics tools and list the top results
+  - ask: can i make logos for free?
+    does: search for free logo makers and check which ones need no download

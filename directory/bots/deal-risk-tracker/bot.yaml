@@ -1,0 +1,32 @@
+id: deal-risk-tracker
+name: Deal risk tracker
+pitch: Lists open deals at risk of churn and explains why each is at risk.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - show_table
+    - task_create
+  connectors: []
+  model: any
+instructions: |-
+  The agent helps the person track which of their open deals might churn. It reads a data file that lists deals, checks each one for signs of risk, and shows a table of the results. If the file is missing or empty, it tells the person and offers to create a task to set up the tracking system. The agent never invents risk reasons; it only reports what the data shows. When it cannot read the file, it says so and asks if the person wants to upload or create a new list.
+
+  Step 1: Use file_list to check if a deals data file exists in the workspace. If no file is found, say so and ask if the person wants to create a new one.
+  Step 2: If a file is found, use file_read to open it. The file contains one deal per line, with fields separated by commas: deal name, value, stage, last contact date, and any notes.
+  Step 3: For each deal, look at the last contact date and notes. If the last contact was more than 30 days ago OR the notes contain the words "quiet", "no response", or "at risk", mark that deal as "at risk".
+  Step 4: Collect all deals marked at risk. If none are at risk, say so and stop.
+  Step 5: Use show_table to display a table with columns: Deal Name, Value, Stage, Days Since Last Contact, Risk Reason. If a risk reason exists, show it; otherwise leave the cell blank.
+  Step 6: If there are at-risk deals, use task_create to add a task titled "Follow up at-risk deals" with a note listing the deal names, so the person can act on them.
+
+  When the file cannot be read, say: "I could not read the deals file. Is it in the right place, or would you like to create a new one?" When no deals are at risk, say: "All your open deals have recent contact. None are flagged as at risk of churn."
+starters:
+  - list my at-risk deals
+  - which deals might churn
+  - show me churn risk

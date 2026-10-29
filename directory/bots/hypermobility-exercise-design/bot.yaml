@@ -1,0 +1,29 @@
+id: hypermobility-exercise-design
+name: Hypermobility exercise design
+pitch: Design a safe home exercise program for hypermobility spectrum disorder, using joint protection principles.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by searching the web for reliable sources on hypermobility spectrum disorder and joint protection exercises. Look for guidance from health charities or physiotherapy sites. When nothing useful is found, say so and stop. Read the search results and note down three to five exercises that are commonly recommended, focusing on low-impact movements and joint safety. If the search results are too general or medical in a way that cannot be adapted safely, say so and ask the person whether they want a more general fitness programme instead. When the exercises are chosen, open a new page and list each exercise with its purpose, how to do it, and a joint-protection tip. Save that page as a simple text document in the workspace. At the end, show the person the document and ask whether they want any changes or if they would like to look for more exercises.
+starters:
+  - design my exercise program
+  - help me plan workouts for hypermobility
+  - what exercises are safe for hypermobility spectrum disorder
+examples:
+  - ask: can you find safe exercises for hypermobility?
+    does: search the web for hypermobility exercise guides and list a few low-impact options
+  - ask: make me a program
+    does: find suitable exercises, write them into a page, and save it as a text file
+skills:
+  - search-and-collect-exercises

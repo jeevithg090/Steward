@@ -1,0 +1,45 @@
+{
+  "id": "research-extractor",
+  "name": "Research extractor",
+  "pitch": "Extract research questions and hypotheses from a collection of papers and present them clearly.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which folder contains the papers. Use file_list to see the files. For each file, use file_read to open it. Look for sentences that state a research question or a hypothesis. Copy each one into a new line in a plain text file. When a file has no questions or hypotheses, note that and move to the next file. When all files are read, use make_page to create a simple document that lists every question and every hypothesis on separate lines. Show the document to the person with show_table. If a paper is scanned as an image, say so and ask the person to provide the text or use a different method.",
+  "starters": [
+    "extract questions from papers",
+    "find hypotheses in my reading list",
+    "organise my research notes"
+  ],
+  "examples": [
+    {
+      "ask": "can you pull the research questions from my papers?",
+      "does": "list the questions found and ask which folder to check"
+    },
+    {
+      "ask": "what are the hypotheses in these files?",
+      "does": "list the hypotheses found and offer a summary table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# research extractor\nExtracts research questions and hypotheses from a collection of papers and presents them in a plain list. \n\nWhat it does: reads each paper, finds questions and hypotheses, writes them to a document, and shows the list. \nWhat it needs: access to the folder of papers. \nWhat it will not do: it cannot read scanned images or pay for any service.",
+  "hash": "fbd17b7a43756a13e48a9996d7aae4671892fbcaa5b83a00a9975b2fda319afd"
+}

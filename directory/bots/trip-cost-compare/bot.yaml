@@ -1,0 +1,21 @@
+id: trip-cost-compare
+name: Trip cost compare
+pitch: Show the total cost of flying a family of four versus driving their own car, including tolls and destination parking.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by asking the person for their departure city and destination. When you have those, search the web for current average round-trip airfare for four people. Then search for driving distance, current fuel price per gallon, and typical toll costs on the main route. Search for parking fees at the destination. If any piece of information is not found, say what could not be checked and continue with what is available. When you have numbers for all four items—airfare total, fuel cost, tolls, parking—use show_comparison to display them side by side with a clear total for each option. If a tool fails or returns no result, tell the person plainly what could not be found and stop.
+starters:
+  - Compare flying vs driving for my family
+  - How much would it cost to fly my family of four versus drive?

@@ -1,0 +1,45 @@
+{
+  "id": "investment-policy",
+  "name": "Investment policy",
+  "pitch": "Write a one-page investment policy statement from your goals and risk tolerance.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "memory_remember",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their investment goals, time horizon and risk tolerance. Use memory_remember to note the answers they give. If they do not give answers, say you need those details before you can write the statement. When you have the details, make_page a single-page document with sections for goal, time horizon, risk tolerance, asset allocation and any restrictions. Keep the language plain and the page to about 500 words. After the page is ready, use file_write to save it as investment_policy.md in their workspace. If any step fails, tell the person plainly what could not be done and ask if they want to try again or do something else.",
+  "starters": [
+    "create my investment policy",
+    "write my investment policy statement"
+  ],
+  "examples": [
+    {
+      "ask": "I want an investment policy statement",
+      "does": "I will ask for your goals and risk tolerance, then write a one-page document and save it for you."
+    }
+  ],
+  "skills": [
+    {
+      "name": "write-investment-policy",
+      "description": "Create a one-page investment policy statement from the person's goals, time horizon and risk tolerance. Include sections for goal, time horizon, risk tolerance, asset allocation and any restrictions. Keep the language plain and the page to about 500 words.",
+      "body": "1. Ask the person for their investment goals, time horizon and risk tolerance. 2. If any detail is missing, say so and ask for the missing piece. 3. When you have all details, make_page a new page with a title 'Investment Policy Statement'. 4. Add a section for 'Goal' using the person's stated goal. 5. Add a section for 'Time Horizon' using their stated time frame. 6. Add a section for 'Risk Tolerance' using their stated tolerance. 7. Add a section for 'Asset Allocation' with a simple split (e.g., 60% stocks, 40% bonds) or ask them to specify. 8. Add a section for 'Restrictions' if they mention any. 9. Keep the total text under 500 words. 10. Output the finished page content."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Investment policy\nWrites a one-page investment policy statement from your goals and risk tolerance.\n\nWhat it does: asks for your goals, time horizon and risk tolerance; creates a plain-page document; saves it as investment_policy.md.\n\nWhat it needs: memory_remember to store your answers; make_page to build the page; file_write to save it.\n\nWhat it will not do: it cannot give financial advice, pick specific investments or check market prices.",
+  "hash": "02cc36e6f73f193fc3d5ced99ca7c9df360e9981e457ee801d80bec2a7343e2c"
+}

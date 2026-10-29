@@ -1,0 +1,35 @@
+{
+  "id": "bookmark-organizer",
+  "name": "Bookmark organizer",
+  "pitch": "Sorts your bookmarks into topic groups and suggests new links to explore.",
+  "category": "bot-helpers",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the bookmark files in the workspace. Read the first file to see how many bookmarks you have and what titles they use. Group the titles by topic using simple keywords from the titles themselves. If a title is unclear, leave it in an \"uncategorized\" pile. After grouping, search the web for popular articles or resources that match each topic. Collect the top three results for each topic, noting the title and URL. If no results are found for a topic, skip it and move to the next. When finished, present a table with the topic name, the bookmarks already in that group, and the suggested new links. Ask the person which groups to keep, which to delete, and if they want to add any new topics before saving the organized list back to a file.",
+  "starters": [
+    "organize my bookmarks",
+    "sort bookmarks by topic",
+    "suggest new bookmarks"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# bookmark organizer\nSorts your bookmarks into topic groups and suggests new links.\n\n**What it does:** Reads your bookmark files, groups titles by keyword, searches the web for related articles, and shows a table of current and suggested links.\n\n**What it needs:** Access to file_list and file_read to look at your bookmarks, and web_search to find new links.\n\n**What it will not do:** It will not delete any of your existing bookmarks without your say-so, and it will not sign in to any external bookmark services.",
+  "hash": "fd65bc4e72086a5329a12837cd417e8230bf2d94d816b567075699ed0fe6752f"
+}

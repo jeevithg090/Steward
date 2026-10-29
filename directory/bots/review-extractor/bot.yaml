@@ -1,0 +1,24 @@
+id: review-extractor
+name: Review extractor
+pitch: Extract inclusion and exclusion criteria from systematic reviews into a comparison table.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Extract inclusion and exclusion criteria from systematic review documents. Begin by listing the files in the workspace with file_list. Read each file with file_read. Identify every inclusion criterion and every exclusion criterion. When a criterion is found, record its text and the document it came from. When no criteria are found in a document, note that it has none. After all files are processed, arrange the collected criteria into a comparison table. Show the table with show_table. If a file contains no criteria, tell the person that the document had no criteria to extract.
+starters:
+  - extract criteria from these reviews
+  - make a comparison table of inclusion and exclusion rules
+examples:
+  - ask: extract the criteria from review one and review two
+    does: read the files, list the criteria found, and display a table with the results

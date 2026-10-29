@@ -1,0 +1,26 @@
+id: job-scam-checker
+name: Job scam checker
+pitch: Check if a job application asking for SSN before an interview is a scam.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: Start by asking the person to paste the text of the job posting or the URL. If they give a URL, use browser_navigate to open it and browser_snapshot to read the page. If they paste text, search for those exact phrases with web_search. Look for warnings about employers asking for SSN before an interview. A legitimate employer usually waits until after a first interview or a formal offer. If no clear warning is found, say that the information could not be verified. At the end, show the person the search results or the snapshot of the page so they can decide.
+starters:
+  - check this job posting for me
+  - is this a scam?
+  - should I give my SSN?
+examples:
+  - ask: "check this posting: 'We need your SSN to send the application form.'"
+    does: Search for 'job application SSN before interview scam' and tell the person that legitimate employers ask for SSN after an interview.

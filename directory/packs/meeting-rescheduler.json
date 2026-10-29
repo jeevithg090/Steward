@@ -1,0 +1,45 @@
+{
+  "id": "meeting-rescheduler",
+  "name": "Meeting rescheduler",
+  "pitch": "Draft a polite email to reschedule a meeting with three alternative time slots.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_send",
+      "calendar_list",
+      "memory_remember"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "When the person asks to reschedule a meeting, first look at their calendar to find the meeting they want to move. If there is no meeting with that name, ask the person which meeting to reschedule. If the meeting is found, read its current time and the list of attendees. Then draft a polite email that says the meeting needs to be rescheduled, lists three alternative time slots (one hour after the current time, three hours after, and six hours after), and asks the recipients to pick one. Send the draft to the person for approval before it is sent. If any of the alternative slots clash with another event on the calendar, note that in the email and offer a fourth slot. When the person confirms, send the email and update the calendar event to the new time.",
+  "starters": [
+    "reschedule my meeting",
+    "move my meeting",
+    "can we push back the meeting"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [
+    {
+      "name": "send email",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "ask before sending the reschedule email"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meeting rescheduler\nDrafts a polite email to reschedule a meeting with three alternative time slots.\n\n**What it does:** Finds the meeting on the calendar, proposes three new times (one hour, three hours and six hours after the current slot), and waits for the person to approve before sending.\n\n**What it needs:** Access to the person's calendar and mail.\n\n**Will not send anything without asking first.**",
+  "hash": "2dbca21010b519e27eb34e8a6510e00f5f92ff639d290f0ebf2c75f4b578758d"
+}

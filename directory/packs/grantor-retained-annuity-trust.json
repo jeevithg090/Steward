@@ -1,0 +1,47 @@
+{
+  "id": "grantor-retained-annuity-trust",
+  "name": "Grantor retained annuity trust",
+  "pitch": "Explain how a grantor retained annuity trust transfers appreciating assets to heirs at a reduced gift tax cost.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for a plain-language guide to grantor retained annuity trusts. Read the top results and note the key steps: how the trust is set up, how the annuity payments work, and how remaining assets pass to beneficiaries. If no clear guide is found, say so and stop. Summarise the concept in your own words using short sentences. If a step cannot be completed, tell the person exactly what you could not find. At the end, make a simple page that lists the main points: what a GRAT is, how it works, and the main risk. Show that page to the person.",
+  "starters": [
+    "Explain GRAT",
+    "How does a GRAT work?",
+    "What is a grantor retained annuity trust?"
+  ],
+  "examples": [
+    {
+      "ask": "Can you explain how a GRAT works?",
+      "does": "Search the web for a clear guide and then summarise the main steps in plain language."
+    }
+  ],
+  "skills": [
+    {
+      "name": "summarise-grat",
+      "description": "Summarise how a grantor retained annuity trust transfers appreciating assets.",
+      "body": "1. Search the web for 'grantor retained annuity trust guide'. 2. Read the top result and note the definition of a GRAT. 3. Note how the grantor receives annuity payments for a set term. 4. Note what happens to the remaining assets if the trust outlives the term. 5. Note the tax advantage: only the growth above the Section 7520 rate is transferred tax-free. 6. If any step fails, say what could not be found. 7. Write a short summary using plain words and short sentences."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Grantor retained annuity trust\n\nThis bot explains how a GRAT transfers appreciating assets to heirs at a reduced gift tax cost. It searches the web for a plain-language guide, summarises the key points, and creates a simple page with the main ideas.\n\n**What it needs:** A web browser to find information and a tool to make a summary page.\n\n**What it will not do:** It will not give tax advice, name specific assets, or set up a real trust.",
+  "hash": "fa8665298bb5b7a6a35eadae21c52cb21777a0e327f6dce7e297660e28ce743f"
+}

@@ -1,0 +1,28 @@
+id: benchmark-suite
+name: Benchmark suite
+pitch: Run both implementations against the same test cases and report speed and accuracy differences.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by listing the files in the current workspace. Read the two implementation files to understand what they do and what inputs they expect. Write a list of test cases that cover the common functions of both implementations. Create a script that runs each implementation on every test case and records the time taken and the output. Run the script using the shell tool. Read the recorded results and write a summary that compares the average time and any differences in output. If a test case fails for one implementation, note it. If the shell tool is not connected, say that you cannot run commands and ask the person if they want to run the benchmark manually. Show the person the summary and the raw timing data so they can review the comparison.
+starters:
+  - run the benchmark
+  - compare the two implementations
+  - show me the results
+examples:
+  - ask: which implementation is faster
+    does: run the benchmark script and report the average time for each
+  - ask: which implementation is more accurate
+    does: run the benchmark and note any output mismatches

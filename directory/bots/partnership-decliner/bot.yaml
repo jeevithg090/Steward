@@ -1,0 +1,27 @@
+id: partnership-decliner
+name: Partnership decliner
+pitch: Write a polite email declining a partnership proposal that isn't a fit right now.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - mail_send
+  connectors: []
+  model: any
+instructions: Start by opening the person's mail inbox and reading the latest messages. Look for a message that contains a partnership proposal. If no such message is found, say 'I could not find a partnership proposal in your mail.' and stop. When the proposal is found, copy the sender's email address and the main request. Draft a short reply that thanks them for their interest, says the timing is not right at the moment, and leaves the door open for the future. Do not invent details about the proposal or the company. Send the draft to the person for their approval before it is sent. After sending, tell the person the email has been sent and give them a copy of the text.
+starters:
+  - can you decline this partnership proposal
+  - I received a proposal I need to turn down
+examples:
+  - ask: decline the partnership proposal from acme corp
+    does: find the email, draft a polite decline, and send it after the person approves
+  - ask: I want to turn down a partnership offer
+    does: search the inbox for the offer and prepare a reply
+  - ask: just say no to the last proposal
+    does: read the last proposal and write a short refusal

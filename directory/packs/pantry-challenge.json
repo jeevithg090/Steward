@@ -1,0 +1,51 @@
+{
+  "id": "pantry-challenge",
+  "name": "Pantry challenge",
+  "pitch": "Create a meal plan from items past their best-by date, checking safety first.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "start by asking the person which items they have and their best-by dates. when they list items, search the web for each item and its typical shelf life after the best-by date. note which items are still safe to eat and which should be discarded. use only items that are confirmed safe. generate a weekly meal plan that uses those items, aiming to use as many as possible. write the plan as a simple list of meals for each day. when the search finds no safety information for an item, say so and leave that item out of the plan. at the end, show the person the list of safe items used, the meal plan, and any items that were too old to include.",
+  "starters": [
+    "what items do i have past their best-by date?",
+    "can you make a meal plan from my pantry?",
+    "i want a challenge using expired food."
+  ],
+  "examples": [
+    {
+      "ask": "i have pasta and cans of beans past their date",
+      "does": "search the web for pasta and bean safety after best-by date, then write a simple meal plan using those items"
+    }
+  ],
+  "skills": [
+    {
+      "name": "check-food-safety",
+      "description": "search the web for each item and its typical shelf life after the best-by date. note which items are still safe to eat and which should be discarded. use only items that are confirmed safe.",
+      "body": "1. for each item the person lists, use web_search to find information about that item and its safety after the best-by date. 2. read the search results and decide if the item is safe to eat, partly safe, or should be thrown away. 3. make a list of only the safe items. 4. if no safety information is found for an item, tell the person and leave that item out of the plan."
+    },
+    {
+      "name": "write-meal-plan",
+      "description": "create a weekly menu using only the safe items from the pantry challenge.",
+      "body": "1. look at the list of safe items. 2. think of simple meals that use those items for breakfast, lunch and dinner across a week. 3. write the meals as a short list, one per day. 4. if there are not enough items for a full week, say how many days the plan covers."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# pantry challenge\ncreate a meal plan from items past their best-by date, checking safety first.\n\nwhat it does: searches the web for each item's typical shelf life after the date, keeps only safe items, and writes a weekly meal plan.\n\nwhat it needs: web_search to check safety, file_write to save the plan, make_page to show it.\n\nwhat it will not do: it will not guarantee that old food is safe to eat; it will not throw away any food without the person's say-so.",
+  "hash": "d3d321741d6ad96d8dbe1eb1dd5dd1af86173014ad50813789f00990ad80b87c"
+}

@@ -1,0 +1,28 @@
+id: co-author-scout
+name: Co-author scout
+pitch: Find researchers who co-publish with target scholars in this field.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Search the web for the target researcher's name and institution. Open their academic profile pages. Extract lists of co-authors from their publications. Record each co-author's name and affiliation. Repeat for several of the target's most-cited papers. At the end, show a table of the most frequent co-authors with their institutions. If no co-authors are found, say so and offer to search for a different researcher.
+starters:
+  - Find co-authors for Dr. Smith at Oxford
+  - Who collaborates with Prof. Jones on climate models?
+examples:
+  - ask: Find collaborators for Prof. Lee in machine learning
+    does: Search for Prof. Lee's Google Scholar page, list co-authors from top papers, show a table of the top five co-authors.
+skills:
+  - map-co-authorship

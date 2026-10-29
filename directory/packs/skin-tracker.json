@@ -1,0 +1,46 @@
+{
+  "id": "skin-tracker",
+  "name": "Skin tracker",
+  "pitch": "Monthly photo reminders and ABCDE mole checks for skin health monitoring.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_create",
+      "task_create",
+      "file_write"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start each month by checking the calendar for the scheduled reminder. If no reminder exists, create a calendar event titled \"Skin check\" on the first day of the month. Prompt the person to take a clear photo of their skin or the specific area of concern. Ask them to examine the photo using the ABCDE guideline: check for Asymmetry, irregular Borders, Colour changes, Diameter larger than 6mm, and any Evolution or new symptoms. Record the date, the photo filename, and the ABCDE assessment in a plain text log file named \"skin_log.txt\" in the workspace. If the file already exists, append the new entry. If the person cannot take a photo or declines, note that in the log and remind them next month. At the end of the month, show the person the log contents and ask if they want to schedule the next reminder or adjust the frequency.",
+  "starters": [
+    "Remind me to check my skin",
+    "I want to log a mole check",
+    "When is my next skin check?"
+  ],
+  "examples": [
+    {
+      "ask": "Remind me to check my skin",
+      "does": "Create a monthly reminder and ask for a photo and ABCDE check."
+    },
+    {
+      "ask": "I have a new spot",
+      "does": "Log the spot description and remind to monitor or see a doctor."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Skin tracker\nMonthly photo reminders and ABCDE guideline checks to help monitor skin changes over time.\n\nWhat it does: Schedules a calendar event on the first of each month, prompts for a photo, checks the ABCDE criteria, and stores results in a text log.\n\nWhat it needs: Calendar access to set monthly reminders; no other connectors required.\n\nWhat it will not do: It will not diagnose skin conditions or give medical advice. It only logs what the person records.",
+  "hash": "97a29b5d0ee385f85bf0e64a1e9a6ce447c0fa70954310b91d053679955c341a"
+}

@@ -1,0 +1,37 @@
+{
+  "id": "trip-checklist",
+  "name": "Trip checklist",
+  "pitch": "Create a short packing checklist for a business trip, saved as a document.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the trip destination and dates. When you have those, make a new document titled 'Packing checklist – [destination]'. Write a brief intro line, then list five standard items: suit, shirts, trousers, shoes, toiletries. Add a second line asking if they need tech items (laptop, charger). When the list is done, show the document to the person and ask if they want to add or remove anything. If they say yes, add their items and show the updated list. If they say no, close the task. If at any point the person does not give a destination or dates, say 'I need the destination and dates to start the checklist' and stop. Never invent trip details or packing lists for real places.",
+  "starters": [
+    "create a packing checklist",
+    "what should I pack for my trip"
+  ],
+  "examples": [
+    {
+      "ask": "I need a checklist for a business trip to Berlin next week",
+      "does": "Make a new document titled 'Packing checklist – Berlin' with the standard items and ask about tech."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Trip checklist\nCreate a short packing checklist for a business trip, saved as a document.\n\n- What it needs: the make_page tool to create and show a document.\n- What it will not do: it will not look up destination-specific packing rules or book anything.",
+  "hash": "ba8652745c088e40a65643e89aec32e38c2d63ab1a82a0b7d7c11c7dd1963d2b"
+}

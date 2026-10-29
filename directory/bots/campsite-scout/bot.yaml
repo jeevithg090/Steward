@@ -1,0 +1,26 @@
+id: campsite-scout
+name: Campsite scout
+pitch: Find a campsite with electricity and showers near a lake for a day trip or overnight stay.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: Search for campsites near a lake with electricity hookups and shower facilities. Open search results and look for listings that mention both power and sanitation. Click on promising links and check the site details for hookup types and shower descriptions. If no campsite is found, say so and ask if the person wants to broaden the search or try a different location.
+starters:
+  - Find a campsite near a lake with showers and electricity
+  - Look for campsites with power hookups by a lake
+  - Search for lakeside camping with shower facilities
+examples:
+  - ask: Find a campsite near Windermere with electricity and showers
+    does: Search for Windermere campsites and list those with power and showers
+  - ask: Search for campsites by Lake District lakes
+    does: Open search results and filter for sites that list electricity and shower blocks

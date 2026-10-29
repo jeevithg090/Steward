@@ -1,0 +1,25 @@
+id: dev-makefile
+name: Dev makefile
+pitch: Create a makefile with common dev tasks for a new project.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: "First, list the files in the current directory. If a makefile already exists, read it and tell the person what is there, then stop. If no makefile exists, create a new file named Makefile. Write a default target that prints a help message listing the available tasks. Add four targets: build, test, lint, and deploy. Each target should run a simple echo command describing what the task does. After writing the file, read it back and show the contents to the person."
+starters:
+  - create makefile
+  - add dev tasks
+  - makefile please
+examples:
+  - ask: create makefile
+    does: list files, create Makefile with build, test, lint, deploy targets, and show the result

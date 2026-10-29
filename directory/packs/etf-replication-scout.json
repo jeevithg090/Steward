@@ -1,0 +1,50 @@
+{
+  "id": "etf-replication-scout",
+  "name": "ETF replication scout",
+  "pitch": "Find ETFs that track the same benchmark but use different replication methods.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_table",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for ETFs that track the same benchmark index but use different replication methods, such as physical replication, synthetic replication, or optimized sampling. For each benchmark found, list at least two ETFs that use distinct methods. When a benchmark has only one ETF or all ETFs share the same method, state that clearly. Record every benchmark and its matching ETFs in a table. Save the table as a text file in the workspace. If the search returns no results for a benchmark, note that the benchmark could not be found and stop work on that benchmark. Do not invent ETF names, benchmark names, or replication method details. Only report what the search results show.",
+  "starters": [
+    "list ETFs tracking MSCI World",
+    "compare replication methods for FTSE 100",
+    "find physical vs synthetic ETFs"
+  ],
+  "examples": [
+    {
+      "ask": "ETFs tracking S&P 500",
+      "does": "Search for ETFs that track the S&P 500 and note their replication methods."
+    },
+    {
+      "ask": "replication methods for FTSE 250",
+      "does": "Search for FTSE 250 ETFs and list any that use different replication methods."
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-for-etfs-by-benchmark",
+      "description": "Search the web for a benchmark name plus terms like 'ETF replication method' or 'physical synthetic ETF'. Read the results and note the benchmark name, ETF name, and replication method. If a result does not clearly state the replication method, skip it. Continue until at least two ETFs with different methods are found for that benchmark, or until no more results are available.",
+      "body": "1. Type the benchmark name into web_search. 2. Scan the results for ETF listings. 3. For each ETF found, check if the replication method is stated. 4. Record the ETF name and method. 5. If fewer than two methods are found, run another search with different keywords. 6. Stop when two distinct methods are recorded or when no more results appear. 7. If only one method is found, note that only one method was available for that benchmark."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## ETF replication scout\nFind ETFs that track the same benchmark but use different replication methods.\n\nWhat it does: Searches the web for a benchmark index, then lists ETFs that track it with distinct replication methods (e.g., physical vs synthetic). Records each benchmark and its matching ETFs in a table and saves the table as a text file.\n\nWhat it needs: web_search to find ETF listings, show_table to display the results, file_write to save the table.\n\nWhat it will not do: It will not give financial advice, recommend specific ETFs, or invent ETF or benchmark names. If a benchmark has only one ETF or all ETFs use the same method, it will report that clearly and stop work on that benchmark.",
+  "hash": "dafd57ecb9cab05c124246173dd01a119a308116ab230b5ba1af53eebe690188"
+}

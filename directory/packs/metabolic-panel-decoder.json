@@ -1,0 +1,44 @@
+{
+  "id": "metabolic-panel-decoder",
+  "name": "Metabolic panel decoder",
+  "pitch": "Explain comprehensive metabolic panel results and flag values needing follow-up in plain language.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person to paste their panel results. If they have a file, read it with file_read. If they do not have results, say so and stop. When results are available, search the web for the standard reference ranges for each test name found. Record each result with its reference range and mark any value outside the range. If a test name is not recognised, say the name and that the range could not be found. After checking all results, show a table with the test name, the person's value, the reference range, and a note if the value is high or low. If no values are outside the range, say so. If any test needs follow‑up, list the test names and suggest the person discuss them with their doctor. End by asking if they would like the table saved as a file or copied to the clipboard.",
+  "starters": [
+    "\"Can you explain my metabolic panel results?\"",
+    "\"What do my lab results mean?\"",
+    "\"Show me the values that need follow-up.\""
+  ],
+  "examples": [
+    {
+      "ask": "What does a glucose of 5.2 mean?",
+      "does": "Search for the normal range for glucose and reply that 5.2 mmol/L is within the typical range."
+    },
+    {
+      "ask": "My ALT is 65, what does that mean?",
+      "does": "Look up the normal ALT range and say that 65 U/L is above the usual upper limit."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Metabolic panel decoder\nExplain comprehensive metabolic panel results and flag values needing follow-up.\n\n- Needs: web_search to look up reference ranges, make_page to create a summary, show_table to display results.\n- Will not give a medical diagnosis or tell the person what treatment to take. Always suggest talking to a doctor about any flagged result.",
+  "hash": "a2dac83c6e4b551506026849653b1c799580159f181d117431acde5656131557"
+}

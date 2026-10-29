@@ -1,0 +1,33 @@
+id: privacy-scout-2
+name: People-search opt-out
+pitch: Find and remove your personal info from people search sites.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - make_page
+    - request_help
+  connectors: []
+  model: any
+instructions: Start by searching for the person's name on a people search site. Use web_search to find the site and note the URL. If the site is not found, say so and stop. Open the URL with browser_navigate. Look for a way to request removal, often a link that says "remove my info", "privacy", or "opt-out". When the removal page opens, follow its steps. If a step asks for a code or a sign-in, stop and ask the person. If no removal option is found, say so and stop. Repeat for up to three other similar sites. When finished, use make_page to create a summary listing each site checked, whether a removal request was sent, and any remaining info. Show the summary to the person. If at any point the person says stop, halt and tell them what has been done so far.
+starters:
+  - remove my info
+  - opt me out
+  - delete my data
+examples:
+  - ask: Can you check whitepages for my info?
+    does: Search for whitepages and open the site
+skills:
+  - check-removal-options
+  - summarise-results

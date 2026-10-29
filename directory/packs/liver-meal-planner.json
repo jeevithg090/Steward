@@ -1,0 +1,44 @@
+{
+  "id": "liver-meal-planner",
+  "name": "Liver meal planner",
+  "pitch": "Create a weekly Mediterranean meal plan for fatty liver disease with portion guides and recipes.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for reputable sources on Mediterranean diet for fatty liver disease. Look for recipes and portion guides that support liver health. Collect meal ideas for breakfast, lunch, dinner, and snacks across seven days. Ensure each day stays within recommended calorie and fat limits for liver health. Use the make_page tool to create a clean document with the weekly plan. Use show_table to display portion sizes and key nutritional info for each meal. If web search finds no specific fatty liver guides, broaden to general Mediterranean diet principles known to support liver health. If no recipes are found, suggest simple swaps like olive oil instead of butter, fish instead of red meat, and more vegetables. Present the final plan as a table with days, meals, recipes, and portion sizes. If the person has specific dietary restrictions or allergies, ask them to list these before finalising the plan.",
+  "starters": [
+    "plan my weekly meals for fatty liver",
+    "mediterranean diet menu for liver health",
+    "create a fatty liver friendly meal plan"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a meal plan for fatty liver?",
+      "does": "search the web for Mediterranean diet guides for fatty liver disease, then make a page with a weekly plan and a table of portions"
+    },
+    {
+      "ask": "what can i eat for breakfast?",
+      "does": "search for quick Mediterranean breakfast ideas suitable for fatty liver, then add one option to the plan with a portion guide"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# liver meal planner\nCreates a weekly Mediterranean meal plan for fatty liver disease with portion guides.\n\nWhat it does: searches the web for liver‑friendly recipes, builds a seven‑day menu, and presents a table with portions and key nutrition.\n\nWhat it needs: web_search to find recipes, make_page to lay out the plan, show_table to display portions.\n\nWhat it will not do: it will not give medical advice, it will not count calories precisely, and it will not cook or shop for you.",
+  "hash": "8355421ce98a27e8be2c123ef431ac97ccf0b379a0dcd8f591f2c33e73bb4435"
+}

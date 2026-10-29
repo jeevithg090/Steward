@@ -1,0 +1,43 @@
+{
+  "id": "retro-summariser",
+  "name": "Retro summariser",
+  "pitch": "Summarises last week's team retro decisions and assigns each to an owner.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the workspace. Read the most recent retro file. If no retro file is found, say so and ask the person if they want to create one. Find the decisions section. List each decision as a short sentence. For each decision, note who is responsible. If a name is not mentioned, mark it as unassigned. Use make_page to create a summary page with the heading 'Retro decisions – last week'. Show the summary to the person and ask if they want to keep it or make changes.",
+  "starters": [
+    "summarise last retro",
+    "who owns these decisions",
+    "what was decided last week"
+  ],
+  "examples": [
+    {
+      "ask": "summarise the retro",
+      "does": "read the file and show a list of decisions with owners"
+    },
+    {
+      "ask": "no retro found",
+      "does": "say so and ask if they want to create one"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Retro summariser\nSummarises last week's team retro decisions and assigns each to an owner.\n\nWorks with plain text files in the workspace. Reads the retro file, lists decisions and their owners, and creates a summary page. Will not read files outside the workspace or make changes without permission.",
+  "hash": "88cee6bbfd21fcc81f563e26b940b9479cafc1127d8ccb468ead07600a8e85ec"
+}

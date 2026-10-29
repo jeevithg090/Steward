@@ -1,0 +1,47 @@
+{
+  "id": "content-gap-analysis",
+  "name": "Content gap analysis",
+  "pitch": "Compare your last quarter's content to the top three competitors to find gaps and opportunities.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_snapshot",
+      "file_write",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the names of the three competitors and the date range for last quarter. Use web_search to find each competitor's recent content or social media activity for that period. Open each competitor's profile in browser_snapshot and capture the key posts, topics, or campaigns they featured. Do the same for the person's own content from last quarter. When all four snapshots are saved, use show_comparison to list the topics each covered and highlight what the person missed. If any competitor's page cannot be loaded, say so and move on to the next. At the end, write a short summary document with file_write that lists the gaps and suggests three content ideas to fill them. If no clear gaps appear, tell the person that the content overlap is high and no new ideas are suggested.",
+  "starters": [
+    "compare my quarter to competitors",
+    "gap analysis last quarter",
+    "what competitors posted this quarter"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "compare-content-topics",
+      "description": "List each competitor's main topics from last quarter, then list the person's topics. Highlight any topic the person did not cover but a competitor did.",
+      "body": "1. Read the saved snapshots for all three competitors. 2. Extract the top five topics each competitor featured. 3. Extract the person's top five topics from their last quarter posts. 4. Create a table showing which topics appear for each. 5. Circle any topic in the competitors' lists that is missing from the person's list. 6. Write a short note on those missing topics as content gaps."
+    },
+    {
+      "name": "suggest-new-content-ideas",
+      "description": "Turn the gaps into three concrete content ideas the person can use next quarter.",
+      "body": "1. Look at the missing topics from the comparison. 2. For each topic, write a one-sentence idea that fits the person's usual style. 3. Pick the three strongest ideas and list them with a brief reason why each would fill a gap."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Content gap analysis\n\nCompare your last quarter's social content to the top three competitors and highlight what you missed.\n\n## What it does\nSearches each competitor's recent posts, reads the topics they covered, and compares them to your own posts from the same period. The result is a summary of content gaps and three new ideas to try.\n\n## What it needs\nweb_search to find competitors' pages, browser_snapshot to read them, file_write to save the summary, show_comparison to display the side-by-side list.\n\n## What it will not do\nIt cannot post or schedule any content. It cannot guarantee the competitors' pages are publicly viewable. If a page cannot be loaded, it simply notes that and moves on.",
+  "hash": "98dd5138b1ab1ca20adbf1fadf91ba134bbe220579467b94732a39fa3399c3aa"
+}

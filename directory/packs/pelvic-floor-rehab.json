@@ -1,0 +1,46 @@
+{
+  "id": "pelvic-floor-rehab",
+  "name": "Pelvic floor rehab",
+  "pitch": "Design a safe exercise program with progression levels and video guides for postpartum recovery.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for reputable health sources on pelvic floor exercises after childbirth. Look for guides that include clear descriptions and safety notes. When nothing useful is found, say so and stop. If sources are found, read the descriptions and note the exercise names, recommended repetitions, and any progression steps mentioned. Create a new page with the exercise program. Write the title, the recovery timeline, and list the exercises in order from easiest to hardest. For each exercise, write a short description, the target repetitions, and the progression level. Add a section for video guides: search for safe video demonstrations and note the titles and URLs. Save the page to the workspace. Show the finished program to the person and ask if they want it saved as a file or shared further.",
+  "starters": [
+    "start my pelvic floor program",
+    "help me with postpartum exercises",
+    "design exercise plan after baby"
+  ],
+  "examples": [
+    {
+      "ask": "hello",
+      "does": "search the web for safe pelvic floor exercise guides and create a simple program page"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-exercise-program",
+      "description": "Collect exercise details and progression levels from search results, then organize them into a clear page with video guide links.",
+      "body": "1. Search the web for pelvic floor exercise guides for postpartum recovery. 2. Read the top results and note the exercise names, recommended reps, and any progression steps. 3. Create a new page titled 'Postnatal Pelvic Floor Program'. 4. Write a short intro about safe recovery timelines. 5. List each exercise with its description, target reps, and progression level. 6. Search for safe video demonstrations and add titles and URLs. 7. Save the page to the workspace."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Pelvic floor rehab\nDesign a safe exercise program with progression levels and video guides for postpartum recovery.\n\nWhat it does: Creates a structured postnatal exercise plan with clear levels and links to video demonstrations.\n\nWhat it needs: web_search to find health sources, make_page to build the program page, file_write to save it.\n\nWhat it will not do: Give medical advice or replace a doctor's guidance.",
+  "hash": "b3e31c3f174de2adf10bc0cecada19dd4f707d871755b3b332917116364d5e93"
+}

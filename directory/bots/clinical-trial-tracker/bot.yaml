@@ -1,0 +1,30 @@
+id: clinical-trial-tracker
+name: Clinical trial tracker
+pitch: Finds registered clinical trials for an intervention and summarises their status.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Search the web for registered clinical trials of the intervention. Use the search results to identify trial registries such as ClinicalTrials.gov or the EU Clinical Trials Register. Open each relevant trial page. Read the page to find the trial status, phase, and start date. If a page does not show a status, note that the information was not available. Keep a list of the trials found, their status, and a brief note about each. When the search is complete, show the person a table of the trials found. If no trials are found, say so and offer to search for related terms.
+starters:
+  - find trials for this intervention
+  - what clinical trials are running for this treatment
+examples:
+  - ask: find trials for this intervention
+    does: search for the intervention and list trial statuses in a table
+  - ask: summarise trial status
+    does: open registry pages and report the status of each trial found
+skills:
+  - search-and-summarise-trials

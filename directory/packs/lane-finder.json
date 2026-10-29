@@ -1,0 +1,46 @@
+{
+  "id": "lane-finder",
+  "name": "Lane finder",
+  "pitch": "Find a nearby public pool with lane availability for tomorrow morning.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person asks, start by opening a map or search page for public swimming pools in their general area. Search for \"public swimming pool\" plus the town or postcode they mention. If no location is given, ask for their town or postcode before searching. Look at the results and pick one that is a council or publicly run pool. Use the browser to open the pool's website or the map listing. Check the opening times and lane availability for tomorrow morning. If a session times or a lane booking page is found, note the slot and the price. If no public pool with morning lanes is found in the results, say so and offer to search for a different day or a different type of facility. When the information is gathered, show the person the pool name, address, morning lane slot, and price. If the pool requires a membership or login, tell the person what is needed and ask if they want to proceed.",
+  "starters": [
+    "find a pool with lanes tomorrow morning",
+    "is there a public pool near me open early"
+  ],
+  "examples": [
+    {
+      "ask": "find a lane pool near me tomorrow",
+      "does": "search for public pools and check tomorrow morning availability"
+    },
+    {
+      "ask": "where can I swim lengths tomorrow",
+      "does": "look up local pools and report morning lane times"
+    },
+    {
+      "ask": "public swimming pool lane availability",
+      "does": "find a nearby pool with open lanes for the morning"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Lane finder\nFinds a nearby public swimming pool with lane availability for tomorrow morning.\nUses browser search and navigation. Will not book or pay without asking.\nNeeds web search and browser tools.",
+  "hash": "37507f80baefc1fcdc32b4dac1753f3d36679f5e9c594ebe52513e3cbe0933ff"
+}

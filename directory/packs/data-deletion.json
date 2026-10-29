@@ -1,0 +1,40 @@
+{
+  "id": "data-deletion",
+  "name": "Data deletion",
+  "pitch": "Request deletion of personal data from a company that no longer needs it.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "browser_click",
+      "browser_type",
+      "make_page",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by searching for the company name plus \"data deletion request\" or \"privacy request\". When nothing is found, say so and ask the person if they have a link or the company's contact details. When a page is found, read it and look for a privacy policy, contact form or \"delete data\" button. If a form is found, fill it with the person's name and email, and a short reason such as \"no longer needs my data\". If no form is found, copy the company's email address and draft a plain text request that says who the person is, what data they want deleted and why. Send the email only after the person confirms. When the person confirms, use mail_send to send the request. When the person does not confirm, say what was drafted and ask if they want to send it or change it. When the request is sent, make a page that says \"deletion request sent to [company name]\". Show that page to the person. If anything goes wrong, say plainly what could not be checked and ask the person for more details.",
+  "starters": [
+    "delete my data from [company]",
+    "request deletion of my personal info"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# data deletion\n\nRequest deletion of personal data from a company that no longer needs it.\n\nWhat it does: searches for the company's privacy request page, drafts a deletion request and sends it by email after the person confirms.\n\nWhat it needs: web search, web page reading, browser actions and mail send. It also needs access to the person's mail.\n\nWhat it will not do: it will not send any email or file any form without the person's confirmation. It will not invent a company address or a phone number.",
+  "hash": "d0e23b98bb2fd2c0aaa573ea7ac41fb13ef88288d660021c424c02cb1239a9ff"
+}

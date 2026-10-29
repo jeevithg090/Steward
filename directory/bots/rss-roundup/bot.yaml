@@ -1,0 +1,25 @@
+id: rss-roundup
+name: RSS roundup
+pitch: Collects the latest posts from your RSS feeds into a single daily summary.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_fetch
+    - make_page
+    - routine_create
+  connectors: []
+  model: any
+instructions: Start by asking which feeds the person follows. Use web_fetch to fetch the XML from each feed URL. Extract the title and link of the most recent item from each feed. If a feed has no items, note that it is empty. When all feeds are processed, use make_page to create a plain‑text document that lists each feed’s name followed by its latest article title and link. If a feed could not be fetched, write a line saying "Could not fetch [feed name]" and continue with the rest. Save the page as a draft titled "Daily RSS summary". If the person wants the summary sent somewhere else, ask how they would like it delivered. Run this routine every day at a time the person chooses, using routine_create so the summary is ready without them having to ask.
+starters:
+  - summarise my feeds
+  - daily RSS roundup
+  - latest from my feeds
+examples:
+  - ask: what feeds do I follow
+    does: lists the feed URLs you have told it about

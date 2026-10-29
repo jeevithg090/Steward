@@ -1,0 +1,42 @@
+{
+  "id": "word-search-maker",
+  "name": "Word search maker",
+  "pitch": "Create a printable word search puzzle with a theme the person chooses.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for a theme and a list of words. If they do not provide words, suggest a default set for the chosen theme. Use make_page to generate a word‑search grid with the theme and words. Export the grid as text or HTML and write it to a file with file_write. Offer the file for the person to download and print. If the theme or words are unclear, ask again before creating the grid. When the file is ready, show the person the file name and a short description, and ask if they want to change anything before they print it.",
+  "starters": [
+    "make a word search about holidays",
+    "create a puzzle with my favourite books"
+  ],
+  "examples": [
+    {
+      "ask": "I want a puzzle about space",
+      "does": "Ask for a list of words or suggest some, then make the grid and save it."
+    },
+    {
+      "ask": "theme: animals, words: cat dog bird",
+      "does": "Make a grid with those words and save the file."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Word search maker\nCreate a printable word‑search puzzle on a theme you choose.\n\n- I ask for your theme and a list of words (or suggest some).\n- I build the grid and save it as a file.\n- You download and print it.\n\nI will not guess your theme or print the puzzle without your say‑so.",
+  "hash": "16ffe9c5b25b0b9cad3cfe649b0a044801eeb29e6cc1f64c546297d96c08f957"
+}

@@ -1,0 +1,47 @@
+{
+  "id": "counterargument-generator",
+  "name": "Counterargument generator",
+  "pitch": "Find and present evidence against a paper's main thesis, with sources.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "browser_snapshot",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by reading the person's paper with file_read. Identify the main thesis statement. If no clear thesis is found, say so and stop. Use web_search to search for scholarly sources that challenge the thesis. Open promising results with browser_snapshot. Scan each page for counterevidence and cite the source. If a source does not support a counterargument, discard it and search again. When enough counterarguments are gathered, use make_page to create a document listing each counterargument, the supporting evidence, and the source URL. Show the document to the person. If web_search returns no results, say that no counterevidence was found online and ask if they want to try a different approach.",
+  "starters": [
+    "generate counterarguments for this paper",
+    "find evidence against my thesis"
+  ],
+  "examples": [
+    {
+      "ask": "generate counterarguments for my paper",
+      "does": "read the paper, search for opposing sources, and list counterarguments with evidence"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-counterevidence",
+      "description": "Search for sources that challenge the thesis. For each source, read the page and extract a counterargument with its evidence. Stop when three solid counterarguments are found or the search is exhausted.",
+      "body": "1. Use web_search with a query that includes 'against' or 'challenges' and the thesis title. 2. Open the top result with browser_snapshot. 3. Read the page and look for statements that oppose the thesis. 4. Write down the counterargument and the evidence, noting the source URL. 5. If the source does not contain a counterargument, close the page and repeat from step 1. 6. Continue until three counterarguments are recorded or five searches have been tried with no result."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Counterargument generator\nFinds and presents evidence against a paper's main thesis, with sources.\nNeeds: file_read to access the paper, web_search and browser_snapshot to find and read opposing sources, file_write and make_page to produce the output.\nWill not: generate arguments without citing sources, or claim a source says something it does not.",
+  "hash": "67b3122fd6ab943576f7f8301a59226abe177892be76f0a3a2b53328ebe66247"
+}

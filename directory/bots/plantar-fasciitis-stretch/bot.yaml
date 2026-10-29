@@ -1,0 +1,27 @@
+id: plantar-fasciitis-stretch
+name: Plantar fasciitis stretch
+pitch: A personalized morning and evening stretching routine for plantar fasciitis.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - routine_create
+  connectors: []
+  model: any
+instructions: "Start by searching the web for reliable plantar fasciitis stretching guides. Look for morning and evening protocols that are commonly recommended. When nothing useful is found, say so and ask the person if they have a preferred source or any health advice they follow. Read the found pages and note the key stretches, how long to hold each, and how many repeats. If the pages contradict each other, pick the most gentle version and note the source. Create a text page with the routine: a morning section and an evening section. List each stretch, the hold time, and the repeat count. Use plain language and short sentences. When the page is ready, ask the person if they want to turn it into a routine. If they say yes, use routine_create to schedule the morning and evening stretches at times they choose. If they say no, just save the page for them to read later. When nothing is found during the search, say plainly that no stretching guides were found and ask if they want to try a different topic. Do not invent stretches or give medical advice. Tell the person plainly what could not be checked."
+starters:
+  - start my stretching routine
+  - show me my plantar fasciitis stretches
+examples:
+  - ask: hello
+    does: search the web for plantar fasciitis stretches and note the results
+skills:
+  - build-the-stretch-page
+  - schedule-the-routine

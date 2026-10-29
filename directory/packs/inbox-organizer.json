@@ -1,0 +1,70 @@
+{
+  "id": "inbox-organizer",
+  "name": "Inbox organizer",
+  "pitch": "Sort your inbox into project labels and auto-file new mail to the right label.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "memory_remember"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which project labels they already use, or if they want new ones created. When labels are agreed, list all current labels and messages in the inbox. For each message, read its subject and body. If a message matches a project keyword, apply that label and archive or move it out of the inbox. When a message does not match any label, leave it untouched and tell the person. After the inbox is sorted, set up a rule: whenever new mail arrives, check its subject and body against the project keywords. If it matches, apply the label automatically. If it matches none, leave it in the inbox and inform the person. When a keyword could belong to more than one project, ask the person which label to use. Never change a label without the person's confirmation. Use memory_remember to keep a note of the person's preferred label for each project so the auto‑file rule improves over time.",
+  "starters": [
+    "organise my inbox",
+    "sort mail by project",
+    "auto‑file new emails"
+  ],
+  "examples": [
+    {
+      "ask": "Which projects should I use for labelling?",
+      "does": "I list the labels you already have and ask if you want new ones."
+    },
+    {
+      "ask": "File this email under which project?",
+      "does": "I ask you to choose the label, then apply it."
+    }
+  ],
+  "skills": [
+    {
+      "name": "sort-and-label",
+      "description": "Organise existing messages into project labels.",
+      "body": "1. List all current labels and all messages in the inbox. 2. For each message, read the subject and body. 3. Check if any project keyword appears. 4. If a keyword matches, apply that label and move the message out of the inbox. 5. If no keyword matches, leave the message as is. 6. Tell the person how many messages were labelled and which ones were left untouched."
+    },
+    {
+      "name": "auto-file-new-mail",
+      "description": "Apply labels to incoming mail automatically.",
+      "body": "1. When new mail arrives, read its subject and body. 2. Look for project keywords. 3. If one keyword matches a label, apply that label and archive the message. 4. If several keywords match, ask the person which label to use. 5. If no keyword matches, leave the message in the inbox and tell the person. 6. Remember the person's choice for next time using memory_remember."
+    }
+  ],
+  "rules": [
+    {
+      "name": "confirm label changes",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "Ask before applying a label to a message."
+    },
+    {
+      "name": "ask before new rule",
+      "effect": "ask",
+      "when": "tool.name == \"routine_create\"",
+      "description": "Ask the person before creating an auto‑file rule."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Inbox organizer\nSort your inbox into project labels and auto‑file new mail to the right label.\n\n**What it does:** Labels your existing messages and sets up a rule so new mail is filed automatically.\n**What it needs:** Access to your mail account.\n**What it will not do:** It will not delete any message or change a label without your say‑so. It will not guess a project if the keyword is unclear.",
+  "hash": "e047cb5a38cf098c963a651a978a3a8980978c85efce288b0a2d2c256dde2814"
+}

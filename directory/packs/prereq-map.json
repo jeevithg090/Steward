@@ -1,0 +1,49 @@
+{
+  "id": "prereq-map",
+  "name": "Prereq map",
+  "pitch": "Build a knowledge map of foundational concepts needed to understand an advanced research paper.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "browser_snapshot",
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening the paper file the person gave and reading its abstract and introduction. If the file is missing, say so and ask for it. Next, scan the paper's section headings and pick 3 to 5 terms or concepts that look essential for the main argument. For each chosen concept, run a web search to find a clear, introductory explanation. Use browser_snapshot to read the top result and note the key points that would help a beginner. If a search returns no useful result, note that the concept could not be checked and move on. After gathering explanations for all chosen concepts, arrange them in a logical order that follows the paper's flow, using show_table to display the map with the concept, a short plain‑language summary, and the source link. Finally, output the table and ask the person if they want to add or change any entries.",
+  "starters": [
+    "open the paper",
+    "list the main sections",
+    "find missing concepts"
+  ],
+  "examples": [
+    {
+      "ask": "I have a paper on quantum entanglement but don't know where to start",
+      "does": "I will read the abstract, search for key terms like 'superposition' and 'spin', and show a table of prerequisites with simple explanations."
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-prerequisites",
+      "description": "Find and summarise the foundational concepts a reader needs before tackling the paper.",
+      "body": "1. Read the paper's abstract and introduction to grasp its topic and goals. 2. Scan the headings and pick 3‑5 terms that seem essential for understanding the argument. 3. For each term, run a web search and use browser_snapshot to read a top result. 4. Note the main idea of the result in a short sentence. 5. If a search fails, record that the term could not be checked. 6. After all terms are processed, use show_table to present a table with three columns: Concept, Summary, Source. 7. Return the table to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# prereq map\nBuild a knowledge map of foundational concepts needed to understand an advanced research paper.\n\nWhat it does: reads the paper, searches for key terms, gathers simple explanations, and displays them in a table.\nWhat it needs: the person must provide the paper file; web search and browser tools must be connected.\nWhat it will not do: it cannot read paywalled content beyond the first snippet, it cannot guarantee the accuracy of third‑party explanations, and it will not assign grades or give personalised tuition.",
+  "hash": "3d4e678b7bc7350053271a618a67cf5f781933a71f540ee91391dc5a0c95bdea"
+}

@@ -1,0 +1,28 @@
+id: anti-inflammatory-meal-prep
+name: Anti-inflammatory meal prep
+pitch: Plan a week of anti-inflammatory meals with batch cooking steps and a cost breakdown.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - show_table
+    - file_write
+  connectors: []
+  model: any
+instructions: "Start by searching for 'anti-inflammatory meal prep batch cooking guide' and 'anti-inflammatory ingredients cost'. When results appear, read the top three guides and note the key batch cooking steps and ingredient lists. If no guide is found, say so and ask the person whether they have a preferred recipe source. Build a seven-day meal plan using the gathered steps, aiming for at least one anti-inflammatory food per meal. Create a table with columns: Day, Breakfast, Lunch, Dinner, Key Batch Step. Show the table to the person. Below the table, list each ingredient with its estimated cost per unit and the total estimated cost for the week. If a price cannot be found, write 'price unknown' rather than guess. Write the plan and cost list to a text file named anti-inflammatory-meal-prep.txt in the workspace. End by showing the file contents to the person and asking if they would like any changes."
+starters:
+  - plan my anti-inflammatory meals for the week
+  - give me a batch cooking guide and cost breakdown
+examples:
+  - ask: plan my anti-inflammatory meals
+    does: searches for guides and builds a seven-day plan with a cost table
+skills:
+  - gather-anti-inflammatory-meal-plans
+  - build-meal-plan-and-cost-table

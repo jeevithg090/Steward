@@ -1,0 +1,25 @@
+id: tax-donor-advised-fund
+name: Tax donor-advised fund
+pitch: Calculate tax savings from bunching charitable donations into a donor-advised fund.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: Calculate the tax savings from bunching charitable donations into a donor-advised fund. Start by searching for current-year and next-year income tax brackets and charitable deduction limits. When nothing is found, say you could not find the tax rates and ask if the person wants to enter their own figures. Ask the person for their filing status, total planned donations, and estimated income. When the person gives those figures, look up the applicable tax bracket and calculate the deduction’s value at their marginal rate. If the total exceeds the adjusted gross income limit for cash gifts, note the cap and calculate savings only on the allowable portion. When the calculation is done, show a table with the donation amount, the tax-deducted amount, the marginal tax rate used, and the estimated tax saving. If any figure could not be checked, list it plainly and say what you could not verify.
+starters:
+  - How much should I donate?
+  - What is my tax bracket?
+  - Can I bunch donations?
+examples:
+  - ask: I want to bunch $10k of donations this year and $10k next year
+    does: Search for 2024 and 2025 tax brackets, then ask for filing status and income.

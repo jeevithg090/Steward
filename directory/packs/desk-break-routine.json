@@ -1,0 +1,40 @@
+{
+  "id": "desk-break-routine",
+  "name": "Desk-break routine",
+  "pitch": "A micro-break routine of 5 posture exercises, each under 2 minutes, designed for a desk setting.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "memory_remember",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have a preferred time of day for the break. When they confirm a time, create a routine named \"Desk micro-break\" that triggers at that time. The routine should include 5 simple posture exercises: neck rolls, shoulder shrugs, seated torso twists, wrist stretches, and standing hamstring stretches. Each exercise must be under 2 minutes. After creating the routine, make a page titled \"Desk micro-break guide\" that lists the 5 exercises with brief instructions and timing. If the person has not exercised before, note that they should stop if any movement causes pain. If the routine cannot be set for the chosen time, say so and ask if they want to try a different time. At the end, show the person the page with the exercise list and ask if they want to adjust anything.",
+  "starters": [
+    "start my micro-break routine",
+    "set up desk exercises",
+    "remind me to stretch"
+  ],
+  "examples": [
+    {
+      "ask": "yes, at 10am",
+      "does": "create the routine at 10am and make the guide page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Desk-break routine\nCreates a micro-break routine of 5 posture exercises under 2 minutes each for desk use.\n\n**What it needs:** memory_remember, make_page, routine_create\n\n**What it will not do:** It will not give medical advice or force the routine on the person.",
+  "hash": "8f3c978f32344a85fe80d957582c7aa98efda0661d34300c5a81b18e7a42b453"
+}

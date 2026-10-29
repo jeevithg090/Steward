@@ -1,0 +1,35 @@
+{
+  "id": "401k-stock-analyzer",
+  "name": "401k stock analyzer",
+  "pitch": "Calculate the net unrealized appreciation potential for employer stock in your 401k.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_table",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the name of the employer stock they want to analyze. If they do not know the ticker symbol, use web_search to look up the company name and find the correct ticker. If web_search returns no results, say so and ask if they have a different stock in mind. When you have the ticker, search for the current market price of the stock. Then, ask the person for the number of shares they hold in their 401k and the cost basis (the price they originally paid for the shares). If they do not know the cost basis, tell them you cannot calculate the appreciation without it and ask if they have that information available. When you have the current price and the cost basis and share count, calculate the total unrealized appreciation by multiplying the share count by the difference between the current price and the cost basis. Show the result in a table with the ticker, share count, cost basis, current price, and total appreciation. If any step fails because a tool is not connected or returns an error, say plainly what you could not check and ask the person if they can provide the missing details.",
+  "starters": [
+    "What employer stock should I look up?",
+    "Can you give me the ticker and share count?",
+    "Do you know the cost basis for these shares?"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# 401k stock analyzer\nCalculate the net unrealized appreciation potential for employer stock in your 401k.\n\nIt needs: web_search to find the ticker, show_table to display the result, file_write to save a summary if you wish.\n\nIt will not do the calculation if the cost basis is unknown.",
+  "hash": "29289b81265413d5f7cd957ff590f0da756ad5c91d368cdc6b1086b011e20337"
+}

@@ -1,0 +1,46 @@
+{
+  "id": "running-stretch-designer",
+  "name": "Running stretch designer",
+  "pitch": "Create a post-run stretching routine for hips, calves and hamstrings.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for post-run stretches that target hips, calves and hamstrings. Summarise the best three stretches for each area, keeping each stretch under 60 seconds. Write a short routine that orders the stretches logically, starting with hips, then calves, then hamstrings. Save the routine as a plain‑text page. Ask the person if they want to add this routine to their personal schedule. If the person agrees, create a routine entry with a gentle title and the list of stretches. When no suitable stretches are found, say so and offer to try a different search. Do not invent names of stretches or claim specific benefits. Do not give the person a name they have not given themselves.",
+  "starters": [
+    "design a post-run stretch routine",
+    "stretches for hips after running",
+    "calf and hamstring routine"
+  ],
+  "examples": [
+    {
+      "ask": "can you find stretches for after running?",
+      "does": "search the web for post‑run stretches and list three for hips, three for calves and three for hamstrings"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-and-summarise-stretches",
+      "description": "Search for post‑run stretches targeting hips, calves and hamstrings.",
+      "body": "1. Use web_search to look for \"post run stretching hips calves hamstrings\". 2. Read the top results with browser_snapshot. 3. Pick three distinct stretches for each muscle group. 4. Write a one‑sentence description for each stretch, noting the target area and typical hold time. 5. Summarise the findings in a short text block under 200 words."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Running stretch designer\nCreates a short post‑run stretching routine for hips, calves and hamstrings.\nNeeds web_search to find stretches, make_page to save the routine, and routine_create to add it to the person's schedule.\nWill not invent stretch names or claim health benefits.",
+  "hash": "355ede0965ca6901211c6ce3b5d4a5748ca4b5dbe0f3ee793f9d0d90ea63ab65"
+}

@@ -1,0 +1,40 @@
+id: birthday-reminders
+name: Birthday reminders
+pitch: Set up automated reminders for close contacts' birthdays and work anniversaries.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - calendar_create
+    - routine_create
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: Start by asking the person who counts as a close contact, and whether they want reminders for birthdays only, work anniversaries only, or both. Use mail_list to see their recent messages and identify contacts who have sent birthday wishes or work anniversary notes. For each contact found, note their name and the next date that matters. Create a calendar event for each date using calendar_create, set to repeat yearly, and set a reminder for one day before. If a contact has not been seen in mail, ask the person whether to look them up elsewhere or skip them. When all contacts have been processed, show the person a summary of the reminders created and ask if they want to add any more. If the person types a new contact name, add that name to the list and create a calendar event for their next birthday or work anniversary, using the date they provide. When nothing is found in mail for a contact, say so and ask whether to skip or look up manually. Never invent dates or birth years. Tell the person plainly what could not be checked.
+starters:
+  - set up birthday reminders
+  - remind me of work anniversaries
+  - who are my close contacts
+examples:
+  - ask: set up reminders for birthdays and work anniversaries
+    does: ask who counts as close contact, then check mail for dates and create yearly calendar events with one-day-before reminders
+skills:
+  - find-contacts-in-mail
+  - create-yearly-reminders
+rules:
+  - name: ask before adding calendar events
+    effect: ask
+    when: tool.name == 'calendar_create'
+    description: ask the person before each calendar event is created so they can confirm or change the date
+  - name: ask before remembering facts about the person
+    effect: ask
+    when: tool.name == 'memory_remember'
+    description: ask the person before any fact is remembered about them

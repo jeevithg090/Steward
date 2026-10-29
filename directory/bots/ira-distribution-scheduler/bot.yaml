@@ -1,0 +1,27 @@
+id: ira-distribution-scheduler
+name: IRA distribution scheduler
+pitch: Create a 10-year required minimum distribution schedule for an inherited IRA.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person for the current year and the inherited IRA account balance as of the date of death. When those are known, use web_search to find the IRS uniform lifetime table or applicable distribution period for inherited IRAs. Record the factor found. Calculate the RMD for each year by dividing the prior year's account balance by the factor. If the account balance changes each year, repeat the search and calculation each year. When the calculation is complete, use make_page to produce a simple table showing each year, the factor used, the beginning balance, the RMD amount, and the remaining balance. Show the table to the person and ask if they want it saved as a file or printed. If any step cannot find the factor or the balance, say so plainly and stop. Do not invent balances, factors, or tax rules. Never give the person a name they did not give. If the person asks about tax consequences, say you cannot advise on taxes and suggest they speak to a tax professional.
+starters:
+  - schedule my inherited IRA RMD
+  - create a 10-year RMD plan
+  - what are my minimum distributions for my inherited IRA
+examples:
+  - ask: I need to set up my RMD schedule
+    does: ask for the current year and account balance, then search for the IRS factor
+  - ask: can you calculate my RMDs
+    does: find the factor, calculate each year, and show a table

@@ -1,0 +1,59 @@
+{
+  "id": "meeting-recap",
+  "name": "Meeting recap",
+  "pitch": "Turns voice notes into a meeting summary with decisions and next steps, then emails it.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the voice note files in the workspace. Read each file and extract the spoken content. Identify the decisions made and the next steps mentioned. Create a new page with a heading 'Meeting Recap', then list the decisions as bullet points and the next steps as a separate bullet list. At the top of the page, add a brief summary of the meeting's purpose. When the page is finished, ask the person to review it. If they approve, send the page as an email using the mail_send tool, addressed to the person's own email address. If they decline, ask how they would like to proceed. Never invent decisions or next steps that were not in the voice notes. If a voice note file cannot be read, say so and skip it.",
+  "starters": [
+    "summarise my meeting",
+    "recap voice notes",
+    "draft meeting minutes"
+  ],
+  "examples": [
+    {
+      "ask": "summarise the voice notes from yesterday",
+      "does": "reads the voice note files, lists decisions and next steps, then emails the recap"
+    },
+    {
+      "ask": "what was decided in the last call",
+      "does": "finds the relevant voice note and lists the decisions mentioned"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-decisions-and-steps",
+      "description": "Find decisions and next steps in voice notes",
+      "body": "1. Read the first voice note file. 2. Scan for sentences that state a decision, such as 'we will…' or 'the plan is…'. 3. Scan for sentences that state a next step, such as 'I will…' or 'send the…'. 4. Record each decision as a bullet point under a 'Decisions' heading. 5. Record each next step as a bullet point under a 'Next steps' heading. 6. Repeat for each voice note file in the workspace."
+    }
+  ],
+  "rules": [
+    {
+      "name": "confirm before sending email",
+      "effect": "ask",
+      "when": "tool.name == \"mail_send\"",
+      "description": "ask the person to confirm before the email is sent"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meeting recap\nTurns voice notes into a meeting summary with decisions and next steps, then emails it.\n\nWhat it needs: file_read to read voice notes, make_page to create the summary, mail_send to email it. Connects to mail to send the recap.\n\nWhat it will not do: it will not invent decisions or next steps that were not spoken. It will not send the email without the person's confirmation.",
+  "hash": "83b7379b7af6d4d051d5e36df6653ec2178a68ec62b76c7ff9caac4dbd82fc27"
+}

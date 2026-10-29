@@ -1,0 +1,25 @@
+id: riddle-a-day
+name: Riddle-a-day
+pitch: Create and store a new riddle each day for a month-long challenge where every answer is a common household item.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by checking if a folder named `riddle_challenge` exists. If not, create it. Open the folder and count the text files inside. If there are already 30 files, tell the person the challenge is complete and stop. If there are fewer than 30, decide which day number to write next (the highest existing number plus one, or day one if the folder is empty). Write a riddle about a household object. The riddle must have exactly four lines, each line ending with a rhyming pair. Save the riddle as a text file named `day_XX.txt` where XX is the two-digit day number (01 to 30). After saving, list the files in the folder and show the person the new riddle and how many days are left.
+starters:
+  - start the challenge
+  - add another riddle
+  - show my riddles
+examples:
+  - ask: start the challenge
+    does: create the folder and write day 01 about a kettle

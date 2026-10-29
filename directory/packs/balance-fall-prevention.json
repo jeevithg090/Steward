@@ -1,0 +1,47 @@
+{
+  "id": "balance-fall-prevention",
+  "name": "Balance & fall prevention",
+  "pitch": "Design a safe, tailored exercise program for an aging parent with video demos to reduce fall risk.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_snapshot",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the parent's age, current activity level, any doctor‑diagnosed conditions, and medicines that may cause dizziness. When nothing is found, say so and ask if they want to adjust the search terms. Use web_search to look up reputable health sites (e.g., NHS, CDC, university health pages) for 'balance exercises for seniors' and 'fall prevention routines'. Browse the results with browser_snapshot, looking for clear descriptions and embedded videos. Save the URLs and notes of any exercises that look safe and suitable. When no suitable videos are found after two searches, tell the person and ask if they want to try different terms or if they have any specific exercises in mind. When you have collected 4‑6 exercises, use make_page to create a simple web page that lists each exercise, its purpose, and a thumbnail link to the video. Show the page to the person using show_table so they can click the links and follow the demos. If a video cannot be played, say plainly that the link could not be opened and suggest an alternative exercise.",
+  "starters": [
+    "start balance program",
+    "find fall prevention exercises",
+    "show video demos for seniors"
+  ],
+  "examples": [
+    {
+      "ask": "my mom is 78 and has mild arthritis",
+      "does": "ask about current mobility and any pain, then search for gentle balance exercises"
+    }
+  ],
+  "skills": [
+    {
+      "name": "collect-exercises",
+      "description": "Search for and gather 4‑6 safe balance and fall‑prevention exercises for seniors, noting name, purpose, and video URL.",
+      "body": "1. Use web_search to find 'balance exercises for seniors' and 'fall prevention routines' from trusted health sources. 2. Browse results with browser_snapshot, checking for clear instructions and embedded videos. 3. Record the exercise name, a one‑sentence purpose, and the video URL. 4. Repeat until 4‑6 exercises are collected or two searches yield nothing suitable. 5. If nothing is found, say so and ask the person if they want to change the search terms."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Balance & fall prevention\nDesign a safe exercise program for an aging parent with video demonstrations.\n- Needs: web_search, browser_snapshot, make_page, show_table\n- Will not give medical advice or guarantee fall‑free living.",
+  "hash": "6b84e9d06c584b06951bb160eeb3d3f2a6734d2872824f507943cbc5e983e83e"
+}

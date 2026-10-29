@@ -1,0 +1,27 @@
+id: viral-sound-tracker
+name: Viral sound tracker
+pitch: Build a spreadsheet of trending TikTok and Reels sounds with expiration dates, ready to share.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by asking the person what kind of sounds they want to track: a specific genre, a creator, or just the biggest hits right now. When they answer, search the web for current trending sounds on TikTok and Instagram Reels. Open several results and note the sound name, creator, and any view or play counts visible. If a sound has a known expiration date or is part of a limited‑time trend, write that down. If a result does not list a date, mark the cell as "unknown" rather than guess. After gathering a list of 10 to 15 sounds, open a new spreadsheet file and write each sound on its own row. Add columns for sound name, creator, platform (TikTok or Reels), stats seen, and expiration date. When the sheet is full, show the table to the person and ask if they want to add more or change anything. If the web search finds no sounds, say so plainly and ask if they want to try a different search term or stop there. Never invent view counts, dates, or trends. Always tell the person exactly what the search returned.'
+starters:
+  - track trending sounds for my reels
+  - make a spreadsheet of viral TikTok audio
+  - find sounds that are popular right now
+examples:
+  - ask: what are the hottest sounds right now
+    does: search the web for TikTok and Reels trends and note the top results
+  - ask: add a new column
+    does: update the spreadsheet heading and move the table to show the change

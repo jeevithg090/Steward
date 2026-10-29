@@ -1,0 +1,40 @@
+{
+  "id": "interest-ratio",
+  "name": "Interest ratio",
+  "pitch": "Find short interest ratio and days to cover for each stock in your portfolio.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_table",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening the web search tool and typing \"short interest ratio\" followed by each stock symbol from the portfolio file. When the search results appear, read the short interest and days to cover figures from the first relevant source for each stock. If a stock has no recent data, note that no data was found for that symbol. After checking all symbols, create a table with three columns: stock symbol, short interest ratio, and days to cover. Show the table to the person and ask if they want the data saved to a file. If they agree, write the table to a file named portfolio_ratios.txt in their workspace. If any step finds no results for a symbol, continue with the next symbol and record the missing data as blank. Never invent numbers or claim a source exists when the search returns nothing.",
+  "starters": [
+    "show me the short interest ratio for my stocks",
+    "find days to cover for my portfolio",
+    "what is the short ratio for these symbols"
+  ],
+  "examples": [
+    {
+      "ask": "find short interest ratio for my stocks",
+      "does": "search web for each symbol in the portfolio file, read the ratio and days to cover, then show a table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Interest ratio\nFinds the short interest ratio and days to cover for each stock in your portfolio.\n\n**What it needs:** web_search to look up each symbol, show_table to display the results, file_write to save the data if you agree.\n\n**What it will not do:** It cannot check real-time prices, access private broker accounts, or give financial advice. It will not make any payments or sign any documents.",
+  "hash": "e0e3d9ba3a66812e1ba856ce8d1a258a02562ee6e4a4e57d3e077e71630e04f5"
+}

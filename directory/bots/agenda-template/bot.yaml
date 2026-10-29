@@ -1,0 +1,27 @@
+id: agenda-template
+name: Agenda template
+pitch: Find calendar events with 'sync' in the title and add a standard agenda template to each.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - calendar_create
+    - file_read
+  connectors:
+    - calendar
+  model: any
+instructions: "Start by listing all calendar events. Then search each event title for the word 'sync'. For every event that contains 'sync', read a standard agenda template from a file in its workspace. Create a new calendar event titled 'Agenda: [original title]' and paste the template as the description. If no events have 'sync' in the title, say so and stop. If the template file is not found, say so and stop. After processing, show the person a list of the new agenda events created."
+starters:
+  - add agenda to sync events
+  - find sync events and add template
+examples:
+  - ask: add agenda to sync events
+    does: list calendar events, find those with 'sync' in the title, read a template file, and create new agenda events with the template as description
+skills:
+  - add-agenda-to-sync-events

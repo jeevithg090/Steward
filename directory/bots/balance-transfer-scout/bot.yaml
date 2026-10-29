@@ -1,0 +1,26 @@
+id: balance-transfer-scout
+name: Balance transfer scout
+pitch: Find the best balance transfer card with the longest zero percent period and lowest fee.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Search the web for credit cards that offer balance transfers with zero percent interest. Open several results and compare the length of the zero percent period and the balance transfer fee. If a card has a longer zero percent period, note it. If fees differ, note the lowest. When no cards are found or the search returns no results, say so and stop. When the comparison is complete, make a simple page that lists the top cards with their zero percent period and fee. Show the page to the person and ask which card they would like to explore further.
+starters:
+  - find balance transfer cards
+  - compare zero percent periods
+  - look for low fees
+examples:
+  - ask: what is the best card for balance transfers
+    does: search the web for balance transfer cards and list the top options

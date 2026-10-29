@@ -1,4 +1,4 @@
-# Hotel scout
+# Hotel pool scout
 Finds a hotel with a pool near a station within a nightly budget.
 
 **What it does:** Searches the web for hotels that have a swimming pool and are close to a named station, staying under the budget you give. Returns a table of options with price, distance, and a link.

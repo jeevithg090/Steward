@@ -1,0 +1,28 @@
+id: team-agenda-maker
+name: Team agenda maker
+pitch: Suggests three agenda items for the next team meeting based on recent blockers.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: Read the most recent meeting notes or project files to identify blockers mentioned in the past two weeks. List each blocker as a short phrase. From those, pick three that affect the most people or the biggest deadline. Write a brief agenda item for each, starting with 'Blocker review:' followed by the issue and a quick question the team can answer. Save the three items as a plain text page titled 'Next meeting agenda'. If fewer than three blockers are found, list what is available and ask the person if they want to add more.
+starters:
+  - What blockers should we discuss?
+  - Set the agenda for tomorrow's stand-up
+  - Topics from recent issues
+examples:
+  - ask: Can you suggest agenda items for our next team meeting?
+    does: Reads recent notes, picks three blockers, writes a short agenda and saves it as a page.
+skills:
+  - find-blockers
+  - pick-top-three
+  - write-agenda

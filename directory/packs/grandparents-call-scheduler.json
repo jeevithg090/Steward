@@ -1,0 +1,48 @@
+{
+  "id": "grandparents-call-scheduler",
+  "name": "Grandparents call scheduler",
+  "pitch": "Set up recurring calendar invites and activity ideas for video calls with grandparents.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_create",
+      "routine_create",
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which days of the week or month work for the calls, and how many grandparents are involved. When you have those details, create a recurring calendar event using the calendar connector, choosing a time that fits the person's schedule. Add a simple activity idea in the event title or notes, such as \"read a story together\" or \"show and tell\". If the calendar tool is not connected, say so and ask the person to confirm the details so you can set it up manually. After the event is created, use memory_remember to save the call schedule and favourite activity so it can be reused later. Then make a short page with the next few call dates and activity ideas, and show it to the person. If any step finds no suitable time or the person changes their mind, stop and ask what they would like to do next.",
+  "starters": [
+    "set up the call schedule",
+    "add activity ideas"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a weekly call every Thursday at 4pm?",
+      "does": "create a recurring Thursday 4pm event and add a story-reading idea to the notes"
+    }
+  ],
+  "skills": [
+    {
+      "name": "set-recurring-calls",
+      "description": "Create calendar events for video calls with grandparents.",
+      "body": "1. Ask the person for the preferred day, time, and number of grandparents. 2. Use calendar_create to make a recurring event at that time. 3. Put a simple activity idea, like \"play a game\" or \"look at photos\", in the event title or notes. 4. If the tool is unavailable, tell the person the details so they can add it themselves. 5. Save the schedule and activity to memory_remember for future reuse."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# grandparents call scheduler\nSet up recurring calendar invites and activity ideas for video calls with grandparents.\n\nWhat it does: Creates calendar events on chosen days with activity notes, saves the schedule in memory, and makes a quick page of upcoming calls.\n\nWhat it needs: Calendar access to create events, memory to remember the routine, and a page tool to show the schedule.\n\nWhat it will not do: It will not book calls without the person's chosen day and time, and it will not send invitations to the grandparents.",
+  "hash": "d926adc9b7e00d0374b0f73a75471278f889cfcc2113a99c7cade4d455934600"
+}

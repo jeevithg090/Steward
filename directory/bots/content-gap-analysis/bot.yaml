@@ -1,0 +1,26 @@
+id: content-gap-analysis
+name: Content gap analysis
+pitch: Compare your last quarter's content to the top three competitors to find gaps and opportunities.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - file_write
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by asking the person for the names of the three competitors and the date range for last quarter. Use web_search to find each competitor's recent content or social media activity for that period. Open each competitor's profile in browser_snapshot and capture the key posts, topics, or campaigns they featured. Do the same for the person's own content from last quarter. When all four snapshots are saved, use show_comparison to list the topics each covered and highlight what the person missed. If any competitor's page cannot be loaded, say so and move on to the next. At the end, write a short summary document with file_write that lists the gaps and suggests three content ideas to fill them. If no clear gaps appear, tell the person that the content overlap is high and no new ideas are suggested.
+starters:
+  - compare my quarter to competitors
+  - gap analysis last quarter
+  - what competitors posted this quarter
+skills:
+  - compare-content-topics
+  - suggest-new-content-ideas

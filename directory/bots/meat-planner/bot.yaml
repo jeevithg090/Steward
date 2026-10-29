@@ -1,0 +1,38 @@
+id: meat-planner
+name: Meat planner
+pitch: Plan meals around a whole animal purchase with cut-by-cut cooking guide.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_press
+    - browser_scroll
+    - browser_back
+    - web_search
+    - web_fetch
+    - file_read
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person which animal they have bought and how many portions they need. If they do not know, suggest common animals such as a quarter pig or half beef. When the animal is known, search the web for a reliable cut map and cooking guide for that animal. Use browser_navigate to open the top results and browser_snapshot to read the page. If the page is behind a paywall or the guide is unclear, say so and offer to write a basic guide from general knowledge. When a guide is found, extract the cut names and recommended cooking methods. Use show_table to display the cuts alongside simple cooking times or temperatures. If no suitable guide is found after searching, say that no guide was found and ask if they would like a generic guide instead. At the end, show the table of cuts and cooking tips, and ask if they want to save it as a text file for their kitchen.
+starters:
+  - I have a whole animal, what next?
+  - Find cooking times for [animal] cuts
+  - Help me plan meals using all the cuts
+examples:
+  - ask: pig quarter
+    does: Search for a pig cut map and cooking guide, then show a table of cuts with roasting times.
+  - ask: half beef
+    does: Look up beef cut guide, display a table with steak, roast and stew times, and offer to save it.
+skills:
+  - find-cut-guide

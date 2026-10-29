@@ -1,0 +1,44 @@
+{
+  "id": "video-caption-style-guide",
+  "name": "Video caption style guide",
+  "pitch": "Create a reusable style guide for caption fonts, colors, position, timing, and platform specs.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have a preferred platform or existing captions to use as a reference. If they say yes, use that as the starting point. If they say no, search the web for 'social media caption style guide' and pick the most recent, general guide as a base. Read any pages you find to gather common practices for font, color, position, and timing. Summarise what you find into five short sections: font, color, position, timing, and platform differences. Create a new text file in the workspace called caption-style-guide.txt and write the five sections into it, using plain English and bullet points. If the search finds nothing useful, say so and ask the person if they have any existing notes they want to use instead. When the file is written, show the person the full contents and ask if they want to add or change anything. Do not add any branding, prices, or made-up statistics. Only use information you can verify from the search results or the person's own words. Do not name the person or invent a name for them.",
+  "starters": [
+    "generate the style guide",
+    "start with YouTube captions",
+    "use my existing captions as a base"
+  ],
+  "examples": [
+    {
+      "ask": "youtube captions",
+      "does": "search for YouTube caption style and summarise font and timing rules"
+    },
+    {
+      "ask": "existing notes",
+      "does": "read the person's notes and summarise them into the five sections"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video caption style guide\n\nCreates a reusable text guide for caption fonts, colors, position, timing, and platform differences.\n\n**What it needs**: file_write, web_search, make_page.\n\n**What it will not do**: It will not design visual captions or apply them to video files. It only writes a text guide based on search results or the person's own notes.",
+  "hash": "c528bf37ea23cf78a4c004bdbc9c72640af5c0df0f6ba15ada1767326a91815d"
+}

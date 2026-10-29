@@ -1,0 +1,25 @@
+id: calendar-overlap-checker
+name: Calendar overlap checker
+pitch: Lists all recurring meetings and flags any times that overlap.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - show_comparison
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the calendar tool to list all recurring events. When the list is returned, read each event's title, start time, end time, and frequency. Build a comparison of every pair of events to check if their time slots overlap on the same day of the week. If an overlap is found, note both events and the conflicting time range. When no overlaps exist, tell the person clearly. When the calendar tool returns no recurring events, say so and stop. Show the person a summary table of all recurring meetings and any overlaps found.
+starters:
+  - list my recurring meetings
+  - check for calendar overlaps
+  - show my repeated events
+examples:
+  - ask: list my recurring meetings
+    does: shows all repeated events from your calendar

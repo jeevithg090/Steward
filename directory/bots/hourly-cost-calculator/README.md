@@ -1,0 +1,1 @@
+Calculate the real hourly rate of a side gig after taxes, expenses and unpaid admin time. Ask for gross earnings, expenses, admin hours and tax rate. Show a table with the breakdown and the final hourly rate. Will not invent tax rates or expense amounts.

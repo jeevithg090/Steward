@@ -1,0 +1,57 @@
+{
+  "id": "knee-friendly-bike-plan",
+  "name": "Knee-friendly bike plan",
+  "pitch": "Design a low-impact cardio plan for knee osteoarthritis using a stationary bike, with gentle routines and progress tracking.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for low-impact stationary bike cardio plans suitable for knee osteoarthritis. Look for advice on resistance levels, session length, and warm-up/cool-down steps. When nothing useful is found, say so and ask the person if they want to try a different approach. Create a simple text page with the plan, including a weekly schedule, recommended duration, and signs to stop. When the page is ready, show it to the person and ask if they want to save it as a routine for daily or weekly reminders. If they agree, set up a routine with a gentle start and the option to add time each week. Never give medical advice or claim to diagnose. Tell the person plainly what the plan includes and what it does not.",
+  "starters": [
+    "design a knee-friendly bike plan",
+    "help me plan cardio with osteoarthritis",
+    "stationary bike routine for bad knees"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a bike plan for my knees?",
+      "does": "search for low-impact stationary bike routines and offer a plan"
+    },
+    {
+      "ask": "what should my session look like?",
+      "does": "give a short, gentle session outline and ask if they want it saved"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-the-plan",
+      "description": "Create a low-impact cardio plan from search results.",
+      "body": "1. Search the web for 'stationary bike cardio osteoarthritis beginner'. 2. Read the top results and note the recommended resistance, time, and warm-up steps. 3. Write a simple plan with a 5-minute warm-up, 15‑20 minutes at low resistance, and a 5‑cool-down. 4. Add a weekly progression idea: add 2 minutes each week if comfortable. 5. Save the plan as a text page using make_page. 6. Show the plan to the person and ask if they want a routine reminder."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before adding routine",
+      "effect": "ask",
+      "when": "tool.name == \"routine_create\"",
+      "description": "check if the person wants a reminder before creating a routine"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# knee-friendly bike plan\nDesigns a low-impact cardio plan for knee osteoarthritis using a stationary bike.\n\nWhat it does: searches for gentle bike routines, creates a text plan, and offers to set up a reminder routine.\n\nWhat it needs: web search to find advice, a page to show the plan, and a routine tool for reminders.\n\nWhat it will not do: give medical diagnosis, prescribe exercise doses, or replace a doctor's advice.",
+  "hash": "f4bb001906b7108dca0127032fc67110b79de8fb8907dd1884d6e5701bbad002"
+}

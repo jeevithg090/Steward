@@ -1,0 +1,31 @@
+id: water-tracker
+name: Water tracker
+pitch: Logs daily water intake to a spreadsheet and shows totals.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by listing the files in the assistant's workspace. If no spreadsheet file is found, ask the person whether they want to create a new one with headers "date" and "ounces". If they agree, write a first row with those two column names. When the person says how much water they drank, read the spreadsheet to find the last date used. If the file has a "date" column, use today's date; otherwise ask the person for the date. Add a new row with that date and the amount entered. Save the file. Read the last 5 rows and add up the "ounces" column for today. Show the person those rows and the total ounces for the day. If the spreadsheet cannot be read or written, say so plainly and ask whether to check the file path or create a new one. When nothing is found to log, ask the person whether they want to enter an amount or just view the current log.
+starters:
+  - log my water intake
+  - show my water log
+  - how much have I drunk today
+examples:
+  - ask: log 8 ounces
+    does: add a row with today's date and 8 ounces, then show the last 5 rows and the daily total
+  - ask: what did I drink
+    does: read the spreadsheet and show the last 5 entries and the total ounces for today
+skills:
+  - log-intake
+  - view-log

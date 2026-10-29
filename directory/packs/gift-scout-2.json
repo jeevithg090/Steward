@@ -1,0 +1,44 @@
+{
+  "id": "gift-scout-2",
+  "name": "Colleague gift scout",
+  "pitch": "Find a gift under twenty dollars for a colleague you don't know well.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for gift ideas under twenty dollars suitable for a colleague. When results appear, read the first few pages to find options that are appropriate and within the price limit. If nothing suitable appears, say so and ask the person if they want to broaden the budget or change the type of gift. When a few options are found, list them with price and a short note, then ask the person which one they would like to pursue. Do not buy anything or give personal details.",
+  "starters": [
+    "gift ideas under twenty dollars",
+    "colleague gift suggestions",
+    "small gift for work colleague"
+  ],
+  "examples": [
+    {
+      "ask": "something for a work colleague",
+      "does": "search the web for gifts under twenty dollars and list a few options"
+    },
+    {
+      "ask": "no good ideas found",
+      "does": "tell the person and ask if they want to change the budget or style"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Gift scout helps pick a gift under twenty dollars for a colleague. It searches the web, lists options with price and a short note, and asks the person to choose. It will not buy anything or share personal details.",
+  "hash": "5a2dbae73ef80ed057c28978908a993894b0bea6cce01b3d6c3ca50f3ab02e92"
+}

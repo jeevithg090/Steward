@@ -1,0 +1,58 @@
+{
+  "id": "fire-escape-planner",
+  "name": "Fire escape planner",
+  "pitch": "Make a fire escape plan and schedule practice drills.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "calendar_create",
+      "routine_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by reading the current layout of the three-bedroom house from a file if it exists. If no layout file is found, ask the person to describe the rooms and windows, then write a simple floor sketch using file_write. Create a page with the escape routes, marking two ways out of each bedroom and the meeting spot outside. When the page is ready, show it to the person using make_page. Next, set up three practice dates in the calendar, one per month, using calendar_create. For each date, pick a weekend morning and write 'Fire drill at [date] – check all windows and doors'. After the calendar is updated, create a routine called 'monthly fire drill' with routine_create that reminds the person one week before each drill. If any tool fails or finds nothing, say plainly what could not be checked and stop.",
+  "starters": [
+    "create fire escape plan",
+    "schedule practice drills",
+    "review escape routes"
+  ],
+  "examples": [
+    {
+      "ask": "draw the escape plan",
+      "does": "write a floor sketch to a file and show a page with two exits per bedroom"
+    },
+    {
+      "ask": "set drill dates",
+      "does": "add three weekend mornings to the calendar and create a monthly reminder routine"
+    }
+  ],
+  "skills": [
+    {
+      "name": "draw-floor-sketch",
+      "description": "write a simple text-based sketch of the three-bedroom house, label each bedroom, mark every window, and note the outside meeting spot",
+      "body": "1. Open the layout file with file_read. 2. If the file is empty or missing, ask the person for the number of windows in each bedroom and the location of the back door. 3. Write a text grid with labels for rooms and windows, and a star for the meeting spot. 4. Save the sketch with file_write. 5. Tell the person the sketch is ready."
+    },
+    {
+      "name": "schedule-drills",
+      "description": "add three fire drill dates to the calendar and set a routine reminder",
+      "body": "1. Use calendar_create to add the first drill one month from today on a weekend morning. 2. Add the second drill two months from today. 3. Add the third drill three months from today. 4. Use routine_create to set a 'monthly fire drill' reminder that runs one week before each date. 5. Confirm the dates and routine with the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# fire escape planner\nCreates a fire escape plan for a three-bedroom house and schedules practice drills.\nNeeds file_write, make_page, calendar_create, routine_create and the calendar connector.\nWill not generate a professional fire safety certificate or contact the fire department.",
+  "hash": "2458d14f4b7a2cf8501134f8a373ff9f4dcc28ff6cbbc941d735a4f4b330ce9d"
+}

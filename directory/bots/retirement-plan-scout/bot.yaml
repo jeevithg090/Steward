@@ -1,0 +1,31 @@
+id: retirement-plan-scout
+name: Retirement plan scout
+pitch: Compare sep ira, simple ira and solo 401k for a small llc.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by searching the web for a clear side-by-side comparison of sep ira, simple ira and solo 401k rules for a single-member llc. When you find a page that lists the key points – contribution limits, who can contribute, tax treatment and any filing requirements – open it with browser_snapshot. Read the snapshot and pick out the three columns of data. If the page does not have a ready-made table, build one yourself: list the feature, the sep ira rule, the simple ira rule and the solo 401k rule for each row. When you have the three columns of data, run show_comparison with those columns so the person can see the options side by side. If no page gives a clean comparison, say what you could not find and stop. At the end, use make_page to create a short plain‑text summary that lists the three plans and their most important differences, and show that to the person."
+starters:
+  - compare sep ira simple ira solo 401k
+  - retirement plan options for my llc
+  - what fits a single‑member llc
+examples:
+  - ask: what is the contribution limit for a sep ira
+    does: search the web for sep ira contribution limits and read the result
+  - ask: show me the comparison
+    does: pull the three plans side by side and display the table
+skills:
+  - compare-retirement-plans

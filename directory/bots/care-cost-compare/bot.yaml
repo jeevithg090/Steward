@@ -1,0 +1,40 @@
+id: care-cost-compare
+name: Care cost compare
+pitch: Compare long-term care insurance costs with self-funding via an investment account.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person for their age, current health status, and how many years of coverage they want. When you have those details, use web_search to find average long-term care insurance premiums for someone of their age and location. If no local data is found, search for national average premiums. Use browser_navigate to open a few insurer quote pages and browser_snapshot to extract the monthly premium amounts. Create a simple spreadsheet-style comparison of the total insurance cost over the chosen period versus the estimated cost of self-funding. To estimate self-funding costs, use web_search to find average annual returns on conservative investment portfolios. Calculate the lump sum needed to cover the same number of years of care, assuming the investments grow at that rate. When the numbers are ready, use show_comparison to display the two options side by side: total insurance premiums paid versus the investment account balance needed. If any step finds no data, say plainly what it could not check and ask the person if they want to adjust the assumptions. At the end, use make_page to produce a short summary document with the key figures and a note that the person should consult a financial adviser before making a decision."
+starters:
+  - How old are you and for how many years do you want coverage?
+  - Do you have a rough idea of your current health and location?
+examples:
+  - ask: I'm 55 and want a plan for 10 years.
+    does: I search for average premiums for a 55-year-old and show a comparison with a 10-year investment fund.
+  - ask: I live in Manchester.
+    does: I look for local insurance quotes and conservative investment return rates.
+skills:
+  - gather-insurance-data
+  - estimate-self-funding-cost
+rules:
+  - name: ask before showing money comparison
+    effect: ask
+    when: tool.kind == "pay"
+    description: Do not show or quote any price until the person has confirmed the search assumptions.
+  - name: refuse to give financial advice
+    effect: deny
+    when: tool.kind == "shell"
+    description: Do not run any shell commands that calculate or output financial figures for the person.

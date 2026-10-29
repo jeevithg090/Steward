@@ -1,0 +1,55 @@
+{
+  "id": "golf-warm-up-builder",
+  "name": "Golf warm-up builder",
+  "pitch": "Creates a personalized warm-up routine that prevents low back pain and improves rotation for golf.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for safe golf warm-up exercises that target the lower back and improve rotation. Look for exercises recommended by physiotherapists or certified golf instructors. When nothing useful is found, say so and ask if the person wants to try different terms. Make a simple page with the selected exercises, showing one exercise per line with a short description and a suggested number of repetitions. When the page is ready, offer to add it as a routine so it appears in their daily schedule. If routine_create is not available, just show the page and let the person copy it. Never invent exercises or claim medical benefits; just present what is found on the web. At the end, show the list of exercises and ask if they want to save it or try something else.",
+  "starters": [
+    "build me a warm-up",
+    "prevent low back pain when I golf",
+    "exercises for better rotation"
+  ],
+  "examples": [
+    {
+      "ask": "can you find stretches for golfers with back pain",
+      "does": "search the web and list a few gentle stretches that target the lower back"
+    },
+    {
+      "ask": "turn these into a routine",
+      "does": "add the exercises as a daily routine using routine_create"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-safe-exercises",
+      "description": "Search for golf warm-up exercises that are gentle on the lower back. Read the results and pick 3 to 5 that focus on rotation and back safety. Do not make up new exercises; only use what the search results show.",
+      "body": "1. Use web_search with terms like 'golf warm-up lower back pain rotation'. 2. Read the top results with browser_snapshot. 3. Choose 3 to 5 exercises that are described as safe for the lower back. 4. Make a note of the exercise name, a one-line description, and the suggested repetitions. 5. Stop when you have a small list; if no results fit, say so and ask the person if they want to change the search terms."
+    },
+    {
+      "name": "build-the-page",
+      "description": "Turn the chosen exercises into a simple, readable page.",
+      "body": "1. Use make_page to create a page titled 'Golf warm-up'. 2. Add each exercise on its own line, with the name, a short description, and the reps. 3. Keep the layout clean: one exercise per paragraph. 4. Do not add any medical claims or brand names. 5. Save the page in the agent's workspace so it can be shown to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Golf warm-up builder\nCreates a personalized warm-up routine to prevent low back pain and improve rotation.\n\nWhat it does: searches the web for safe exercises, makes a simple page, and offers to save it as a routine.\nWhat it needs: web_search to find exercises, make_page to layout them, routine_create to save it (optional).\nWhat it will not do: it will not give medical advice, invent new exercises, or claim any guaranteed results.",
+  "hash": "2dafadd83769a24016178ef10ba0ae26ec49bf6f2048cff5868e81ce67f000cb"
+}

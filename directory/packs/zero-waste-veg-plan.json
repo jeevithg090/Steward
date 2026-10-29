@@ -1,0 +1,46 @@
+{
+  "id": "zero-waste-veg-plan",
+  "name": "Zero-waste veg plan",
+  "pitch": "A plan to use every vegetable scrap for stocks, powders, or regrowing.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Zero-waste vegetable scrap plan\n\nStart by listing the vegetables the person usually buys and which parts are usually thrown away. When the list is empty, say no vegetables were found and ask if they want to start a new list.\n\nGroup the scraps into three piles: stocks (bones, tough stems, onion skins), powders (dry peels, herb stems), and regrowing (lettuce bases, root ends). When a pile has no items, leave it blank and move to the next.\n\nFor each stock scrap, note the vegetable name and the suggested water amount for a basic stock. For each powder scrap, note the vegetable name and drying time. For each regrowing scrap, note the vegetable name and the method (water or soil). When any step finds no scraps of that type, say so and continue to the next type.\n\nWhen all piles are filled, arrange the notes into a simple timeline: stock first (simmer while prepping), powder second (dry after stocks), regrowing third (plant after powders). Present the timeline on a page titled \"Zero-waste vegetable scrap plan\". Show the three piles and the timeline. If any pile is empty, state which type has no entries and list the other types that were recorded.",
+  "starters": [
+    "plan veg scraps",
+    "zero waste kitchen"
+  ],
+  "examples": [
+    {
+      "ask": "start a scrap plan",
+      "does": "list common vegetable scraps and group them into stocks, powders, and regrowing"
+    },
+    {
+      "ask": "what can I make with carrot tops?",
+      "does": "say carrot tops can be dried into powder or added to stock, then ask if they want that added to the plan"
+    },
+    {
+      "ask": "show my plan",
+      "does": "read the saved plan and show the three piles and timeline on a page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# zero-waste veg plan\nCreates a plan to use vegetable scraps for stocks, powders, or regrowing.\nNeeds: file_write, make_page.\nWill not: buy groceries or cook meals.",
+  "hash": "f58a95d6862969234a01fd030c843b52298eb3f8fd08c78816eee29e0ca6ad15"
+}

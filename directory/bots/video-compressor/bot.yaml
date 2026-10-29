@@ -1,0 +1,25 @@
+id: video-compressor
+name: Video compressor
+pitch: Compress a video file for web delivery while keeping quality at a target bitrate.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - shell_run
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person which video file they want to compress and what target bitrate they have in mind. When the file path and bitrate are given, check that the file exists. If it does not, say so and stop. If the file exists, run a compression command using ffmpeg with the -b:v flag set to the target bitrate. Keep the audio stream unchanged. After the command finishes, check that the output file was created. If it was not, say the compression failed and stop. When the output file exists, read its size and the original file size. Show both sizes to the person. If the output is larger than the original, tell the person the compression did not reduce the size as expected. If the output is smaller, tell the person the new file size and that the bitrate target was met. In both cases, ask the person if they want to keep the compressed file or delete it.
+starters:
+  - compress this video
+  - make this smaller for the web
+  - what bitrate should I use?
+examples:
+  - ask: I have a 500MB MP4 I need for the website
+    does: asks for target bitrate, runs ffmpeg, shows before and after sizes

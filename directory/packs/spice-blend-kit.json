@@ -1,0 +1,51 @@
+{
+  "id": "spice-blend-kit",
+  "name": "Spice blend kit",
+  "pitch": "Create a custom spice blend with recipes, ready for gifting or personal use.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which spices or cuisines they like, and who the gift is for. When they answer, search the web for three spice blend recipes that match their choice. Check that each recipe lists the spice amounts. If a recipe cannot be found or the amounts are unclear, note that and pick another. When three good recipes are found, make a page that lists the blends, the ingredients with amounts, and a short step-by-step for each. Include a section for the person to add their own notes or changes. If any step fails to find information, say plainly what could not be checked and offer to search for something else. When the page is ready, ask the person if they want to save it as a file or print it for the gift. Do not invent spice names, amounts, or cooking times. Tell the person exactly what was found or what was missing.",
+  "starters": [
+    "I want a spice blend for cooking.",
+    "Make a gift kit for a friend.",
+    "What can I make with cumin and coriander?"
+  ],
+  "examples": [
+    {
+      "ask": "I love Indian food, can you make a blend for that?",
+      "does": "Search for three Indian spice blend recipes and list the ingredients with amounts."
+    },
+    {
+      "ask": "What should I put in a gift box?",
+      "does": "Show a table of three blend names and their main ingredients so the person can choose."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recipes",
+      "description": "Search the web for spice blend recipes that match the person's choice. Read each page and note the spice amounts. If a page does not list amounts, skip it and search for another. Keep searching until three recipes with clear amounts are found or say what could not be checked.",
+      "body": "1. Use web_search with the person's chosen cuisine or spices. 2. Open the top results with browser_snapshot. 3. Look for a list of spices and their amounts. 4. If amounts are missing, close the page and search again. 5. Repeat until three recipes with amounts are saved or the search is exhausted. 6. If fewer than three are found, tell the person what could not be found and ask if they want to try a different cuisine."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Spice blend kit\n\nCreate a custom spice blend with recipes for gifting or personal use.\n\nWhat it does: searches the web for recipes, lists ingredients and amounts, and makes a page the person can print or save.\n\nWhat it needs: web_search to find recipes, make_page to build the output, file_write to save it if asked.\n\nWhat it will not do: invent spice names, amounts, or cooking times. It cannot buy spices or ship a physical kit.",
+  "hash": "5965377527042be5ed233d1b5a53ea04662f7721a01ddf0c314474275f373e0c"
+}

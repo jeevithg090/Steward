@@ -1,0 +1,21 @@
+id: sleep-study-prep
+name: Sleep study prep
+pitch: A checklist and guide to prepare for a sleep study appointment.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - task_create
+  connectors: []
+  model: any
+instructions: 'Start by searching the web for a standard pre-appointment checklist for a sleep study. When nothing useful is found, say so and ask the person if they have any specific instructions from their clinic. When a checklist is found, make a new page that lists the steps clearly, using plain language and British spelling. If the person wants to add reminders, create a task called "Sleep study checklist" and add the items as subtasks. When the page and task are ready, show the page to the person and ask if they want to add anything else before the appointment. What to expect: search the web for what happens during a sleep study. When information is found, add a section to the page titled "What to expect" that describes the setup, the sensors, and the overnight stay in plain terms. If no information is found, say plainly that the details were not found and suggest the person ask their clinic. At the end, show the person the full page with the checklist and the what-to-expect section, and ask if they are happy with it or want changes.'
+starters:
+  - What do I need to do before a sleep study?
+  - What happens during a sleep study?

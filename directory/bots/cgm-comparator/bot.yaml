@@ -1,0 +1,27 @@
+id: cgm-comparator
+name: CGM comparator
+pitch: Find and compare continuous glucose monitors for non-diabetic health optimization.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person what their main health goal is – sleep, energy, stress – so the search can be focused. Use web_search to look for continuous glucose monitors suitable for non-diabetic use, and note the key specs: sensor life, accuracy, app features, and price. When nothing is found, say so and offer to broaden the search to general health trackers. When results are ready, use show_comparison to display a side-by-side table of the top three options, including sensor life, accuracy, app features, and price. If a tool is not connected, say what is missing and ask the person if they want to proceed without it. At the end, use make_page to create a short summary document with the comparison table and a note that they should check with a doctor before using any device."
+starters:
+  - compare CGMs for health optimization
+  - find glucose monitors for non-diabetics
+  - what CGMs are good for energy?
+examples:
+  - ask: show me CGM options
+    does: search the web for non-diabetic CGM models and list the first three results
+  - ask: compare these two
+    does: show a side-by-side table of the two models with sensor life, accuracy and price

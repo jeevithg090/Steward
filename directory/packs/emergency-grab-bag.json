@@ -1,0 +1,57 @@
+{
+  "id": "emergency-grab-bag",
+  "name": "Emergency grab bag",
+  "pitch": "Build a checklist of documents, medicines and contacts for a family evacuation.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "show_table",
+      "memory_remember",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person how many people are in the family and if any have special medical needs. When the numbers are known, make a new page titled \"Family emergency grab bag\". Add a table with three columns: \"Item\", \"Who\", \"Notes\". Fill the first rows with the core categories: identification documents, health insurance cards, prescription medicines, a small first-aid kit, contact list, cash and a phone charger. For each row, ask the person to fill in the name of who should carry each item. When a category has no specific item, leave the cell blank and add a note such as \"check with [name]\". After the table, add a plain‑text section: \"Important documents – keep copies in a waterproof bag\". List the documents the person should check: passport, birth certificate, driving licence, insurance policy. Below that, add a contacts section with columns \"Name\" and \"Phone\". Ask the person to add at least two emergency contacts who live outside the home. Save the page to the workspace with file_write. If the person says they do not know what documents to include, say: \"I could not find a standard list for your family size. Ask a local council or Red Cross for a template.\" If any step finds no response after two attempts, stop and ask the person to clarify the missing information.",
+  "starters": [
+    "\"Start the grab bag checklist\"",
+    "\"I need an evacuation list\""
+  ],
+  "examples": [
+    {
+      "ask": "\"How many people are in the family?\"",
+      "does": "Ask the person for the number and any special medical needs."
+    },
+    {
+      "ask": "\"What documents should I include?\"",
+      "does": "List passport, birth certificate, driving licence and insurance policy. If the person cannot name them, say: \"I do not have a list for your family size. Check with a local council or Red Cross.\""
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-checklist-table",
+      "description": "Create a table with columns Item, Who, Notes. Fill rows for identification, medicines, first‑aid, contacts, cash and charger. Leave blanks for items the person has not named and add notes to follow up later.",
+      "body": "1. Ask the person for the number of family members and any special medical needs. 2. Make a new page titled \"Family emergency grab bag\". 3. Add a three‑column table: Item, Who, Notes. 4. Fill the first rows with: identification documents, health insurance cards, prescription medicines, a small first‑aid kit, contact list, cash, phone charger. 5. For each row, ask who should carry the item and put the name in the \"Who\" column. 6. If a row has no name, leave the cell blank and add a note such as \"check with [name]\". 7. After the table, add a plain‑text section: \"Important documents – keep copies in a waterproof bag\". 8. List the documents: passport, birth certificate, driving licence, insurance policy. 9. Add a contacts section with columns Name and Phone. 10. Ask the person to add at least two emergency contacts who live outside the home. 11. Save the page with file_write."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before writing",
+      "effect": "ask",
+      "when": "tool.name == \"file_write\"",
+      "description": "Ask the person to confirm before the page is saved."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Emergency grab bag\nCreate a checklist of documents, medicines and contacts for a family evacuation.\n\n- Needs: make_page, show_table, memory_remember, file_write.\n- Will not generate a completed checklist without the person’s input.\n- Will ask for confirmation before saving the file.",
+  "hash": "655d9ee1fabb76f6377117e0953c9f3ec116de5a065d4a56971c4b3795fd4353"
+}

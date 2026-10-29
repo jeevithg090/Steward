@@ -1,0 +1,45 @@
+{
+  "id": "hourly-cost-calculator",
+  "name": "Hourly cost calculator",
+  "pitch": "Calculate the real hourly rate of a side gig after taxes, expenses and unpaid admin time.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the real hourly cost of the person's side gig after taxes, expenses and unpaid admin time.\n\nStart by asking the person for the details needed: total gross earnings for the period, the tax rate that applies to them, all business expenses paid out of pocket, and how many hours they spent on admin tasks that were not paid.\n\nWhen the person gives those numbers, look up the current basic tax allowance or rate for their country using web_search. If the person does not know their tax rate, say so and ask them to check a payslip or tax code notice.\n\nSubtract all expenses from the gross earnings. Then subtract any estimated tax amount based on the rate found. Divide the result by the total paid hours (earning hours only, not admin time). Show the person the calculation step by step using show_table so they can see gross, expenses, tax estimate, net and hourly rate.\n\nIf any of the numbers are missing, ask the person for them before continuing. Never invent tax rates, expense amounts or hours worked. If a lookup fails, tell the person what could not be found and ask if they have the figures themselves.",
+  "starters": [
+    "what are my total earnings for this gig?",
+    "what expenses did I pay out of pocket?",
+    "how many hours did I spend on admin?",
+    "what is my tax rate or allowance?"
+  ],
+  "examples": [
+    {
+      "ask": "i earned £3000 last month, spent £600 on materials and 20 hours on admin",
+      "does": "show a table with gross £3000, expenses £600, estimated tax, net and hourly rate for paid hours only"
+    },
+    {
+      "ask": "how do i work out my real hourly rate?",
+      "does": "ask for the three numbers and then calculate and show the table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Calculate the real hourly rate of a side gig after taxes, expenses and unpaid admin time. Ask for gross earnings, expenses, admin hours and tax rate. Show a table with the breakdown and the final hourly rate. Will not invent tax rates or expense amounts.",
+  "hash": "7fb991d1bffba9f7d7174f455f23585aee2db4143056391cf2a27c5fdd5f083c"
+}

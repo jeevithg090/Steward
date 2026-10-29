@@ -1,0 +1,41 @@
+{
+  "id": "solo-401k-calculator",
+  "name": "Solo 401k calculator",
+  "pitch": "Calculate the maximum contribution to a solo 401k from self-employment income.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the maximum contribution to a solo 401k based on self-employment income.\n\nStart by searching for the current year's solo 401k contribution limits for self-employed individuals.\nWhen the search results appear, browse the first reliable source that shows the employee elective deferral limit and the employer nonelective contribution limit.\nRead the page to find the total maximum contribution percentage or amount based on net earnings.\nIf the limits page does not show a formula based on net self-employment income, search for \"solo 401k contribution calculation net earnings\" and read the result.\nWhen the calculation steps are found, note the two parts: the employee contribution limit and the employer contribution limit.\nIf no current limits page is found, say what the agent could not find and ask the person if they have the prior year's limits.\n\nShow the person a table with the found limits and a brief note on how they are applied to net self-employment income.",
+  "starters": [
+    "calculate my solo 401k contribution",
+    "what is the maximum I can put in a solo 401k",
+    "solo 401k limits 2024"
+  ],
+  "examples": [
+    {
+      "ask": "I'm self-employed and want to know the most I can contribute to a solo 401k this year.",
+      "does": "Search for the current solo 401k limits and show the person the employee and employer contribution amounts."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# solo 401k calculator\nCalculate the maximum contribution to a solo 401k from self-employment income.\n\nWhat it does: Looks up the current employee elective deferral limit and employer contribution limit, then explains how to apply them to net self-employment income.\nWhat it needs: web_search and browser_navigate to find the limits page; show_table to display them.\nWhat it will not do: It will not give personalised tax advice or calculate the exact amount without the person's net income figures.",
+  "hash": "0455ef3aea39d01e3b5f3a909fb93c653ebacfbc58a4276da9fd8398fbdd65d5"
+}

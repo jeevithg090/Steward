@@ -1,0 +1,52 @@
+{
+  "id": "low-potassium-meal-planner",
+  "name": "Low-potassium meal planner",
+  "pitch": "Create a weekly meal plan with daily potassium limits and track intake against goals.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_write",
+      "show_table",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their daily potassium limit and any foods they must avoid. Use web_search to find reliable low-potassium food lists and serving sizes. Search for common high-potassium foods to exclude. Build a table of breakfast, lunch, dinner and snack options, each with a potassium value in milligrams. Keep each meal below the daily limit. When web_search returns no results, say so and ask if they want to set a different limit. When the table is complete, use show_table to display the weekly plan side by side with the running total of potassium for each day. Use file_write to save the plan as a text file named 'low-potassium-plan.txt' in their workspace. If any day exceeds the limit, adjust the meals and rebuild the table before showing or saving. At the end, tell the person the total potassium for each day and ask if they want to change anything or save the file.\n\nWhen nothing is found, say: \"I could not find low-potassium food data. Would you like to set a different daily limit or try a different source?\"\n\nDo not give the person a name. Do not invent potassium values or diet rules.",
+  "starters": [
+    "plan my meals",
+    "low potassium diet",
+    "track potassium intake"
+  ],
+  "examples": [
+    {
+      "ask": "what can i eat on a low potassium diet?",
+      "does": "search for low-potassium foods and list options"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-meal-table",
+      "description": "Create a table of meals with potassium values",
+      "body": "1. Use web_search to find a list of low-potassium foods and their potassium content per serving. 2. Record the daily potassium limit the person gave. 3. Select one breakfast, one lunch, one dinner and two snack options that each stay under the limit. 4. Write each meal and its potassium value in a markdown table with columns: Meal, Food, Potassium (mg). 5. Add a row at the bottom showing the total potassium for the day. 6. Repeat for each day of the week."
+    },
+    {
+      "name": "save-plan",
+      "description": "Save the meal plan to a file",
+      "body": "1. Use file_write to create a file named 'low-potassium-plan.txt' in the workspace. 2. Paste the full table and daily totals into the file. 3. Tell the person the file has been saved and ask if they want to keep it or make changes."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# low-potassium meal planner\n\nCreates a weekly meal plan with daily potassium limits and shows the intake for each day. Needs web_search to find food data, file_write to save the plan, and show_table to display it. Will not give medical advice or exceed the daily limit without asking.",
+  "hash": "1697a27efe258231104584345e272d6439bb15b1bc8b51d1e80a971006b15cec"
+}

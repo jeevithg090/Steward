@@ -1,0 +1,1 @@
+A bot pack that drafts a contract amendment from a recent email discussion and sends it to the other party. It needs mail to read the thread and mail_send to send the draft. It will not add new terms or sign anything without the person's say-so.

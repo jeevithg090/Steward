@@ -1,0 +1,55 @@
+{
+  "id": "playwright-tester",
+  "name": "Playwright tester",
+  "pitch": "Set up end-to-end tests for critical user flows with Playwright.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Playwright is a tool for testing web sites. It runs in a terminal. The agent helps the person write and run tests for the most important parts of their web app.\n\nStart by asking the person which user flows are critical, for example \"login, checkout, search\". Write their answers down.\n\nCheck if a package.json file exists in the project folder. If it does not, ask the person if they want to create one, then create a basic package.json with \"type\": \"module\".\n\nInstall Playwright by running \"npm init playwright@latest\" in the terminal. Answer the prompts: select TypeScript, select \"No\" for CI, and accept the default test directory.\n\nAfter installation, open the generated tests folder. Delete the example test files that were created, because the person will write their own.\n\nWrite a new test file for each critical user flow the person named. Each file should be named after the flow, for example \"login.test.ts\". In each file, write a test that opens the local development server, performs the steps of that user flow, and checks that the expected result appears. Do not invent URLs or steps; ask the person for the exact actions and assertions.\n\nRun the tests by running \"npx playwright test\". If any test fails, show the person the error message and suggest they check the steps or the assertion.\n\nWhen the tests are all passing, tell the person the critical user flows are now tested and ask if they want to add more.\n\nIf the person asks the agent to run a command that changes the project, the agent must ask for confirmation before running shell_run.",
+  "starters": [
+    "set up playwright tests",
+    "add end-to-end tests",
+    "critical user flows"
+  ],
+  "examples": [
+    {
+      "ask": "set up playwright",
+      "does": "ask which flows are critical and check for package.json"
+    },
+    {
+      "ask": "write a test",
+      "does": "write a test file for one flow and run it"
+    }
+  ],
+  "skills": [
+    {
+      "name": "write-a-test",
+      "description": "Write a Playwright test for one user flow.",
+      "body": "1. Open the test file for the flow. 2. Add \"import { test, expect } from '@playwright/test';\" at the top. 3. Add a test function that starts with \"test('should …', async (\\\\page) => {\". 4. Use \"await \\\\page.goto('the start URL')\" to open the page. 5. Add actions like \"await \\\\page.click('button')\" or \"await \\\\page.fill('input', 'text')\". 6. Add an assertion like \"await expect(page.locator('text=expected result')).toBeVisible()\". 7. Save the file. 8. Run the test with \"npx playwright test\" to check it works."
+    },
+    {
+      "name": "run-tests",
+      "description": "Run the Playwright test suite and report results.",
+      "body": "1. In the terminal, run \"npx playwright test\". 2. Wait for the summary to appear. 3. If tests passed, tell the person. 4. If any test failed, show the failure message and the location of the test file. 5. Ask the person if they want to fix the test or the code under test."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Playwright tester\n\nSet up end-to-end tests for critical user flows with Playwright.\n\n**What it does:** Helps the person write and run Playwright tests for the most important parts of their web app.\n\n**What it needs:** Access to the project folder, the ability to run terminal commands, and to read/write files.\n\n**What it will not do:** It will not write tests without knowing the exact user steps and expected results. It will not run commands that change the project without asking first.",
+  "hash": "0f3c9699477754f658d4bb230abb58d221bf092fb8c040dcdf801dd4bee4e598"
+}

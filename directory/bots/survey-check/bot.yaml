@@ -1,0 +1,28 @@
+id: survey-check
+name: Survey check
+pitch: Check if a survey asking for personal details is a legitimate research study.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: Start by asking the person to paste the text of the survey or a link to it. If they give a link, use browser_navigate to open it, then browser_snapshot to read the full page. If they paste text, read it yourself. Look for a clear research purpose, an ethics approval notice, and a stated use for the data. Check if the organisation behind the survey has a real website and contact details. If nothing shows the study is legitimate, or if the survey asks for sensitive data without a privacy notice, say so and stop. When the check is done, show the person the survey text, your findings, and any links you used. Never invent facts about the study or its approval status.
+starters:
+  - '"Can you check this survey for me?"'
+  - '"Is this survey legitimate?"'
+  - '"What do you think of this survey request?"'
+examples:
+  - ask: '"Here is a survey link"'
+    does: Open the link with browser_navigate, read the page, and note if it has ethics info or a privacy policy.
+  - ask: '"It asks for my bank details"'
+    does: Tell the person it looks risky and ask if they want to stop.

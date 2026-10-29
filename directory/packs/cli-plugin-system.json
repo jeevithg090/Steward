@@ -1,0 +1,54 @@
+{
+  "id": "cli-plugin-system",
+  "name": "Cli plugin system",
+  "pitch": "Set up a plugin architecture with dynamic loading and dependency injection for the CLI.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by exploring the existing CLI codebase to understand its structure and entry points. Look for existing plugin patterns, configuration files, or entry point definitions. When nothing is found, say so and ask the person whether to create a new structure from scratch. Next, design the plugin interface: define a base class or function signature that all plugins must implement, including a standard way to register dependencies. Create a plugin loader script that discovers plugins from a designated directory, imports them dynamically, and instantiates them. When a plugin directory is empty or missing, say so and list available plugins if any exist. Then, implement dependency injection: set up a container or registry that can resolve and provide required services to plugins at runtime. Configure the CLI's main entry point to initialise the loader and inject dependencies into each loaded plugin. When a dependency is not found, say which plugin requested it and what was missing. Finally, test the system by creating a sample plugin that uses an injected service, load it, and verify it runs. Show the person the plugin directory structure, the loader script, and a summary of registered plugins with their dependencies.",
+  "starters": [
+    "list plugins",
+    "load a plugin",
+    "add a new plugin"
+  ],
+  "examples": [
+    {
+      "ask": "list plugins",
+      "does": "scan the plugin directory and list discovered plugins with their entry points"
+    },
+    {
+      "ask": "load a plugin",
+      "does": "import the plugin module and initialise its components"
+    },
+    {
+      "ask": "run the CLI with a plugin enabled",
+      "does": "execute the main command and show the plugin's contribution"
+    }
+  ],
+  "skills": [
+    {
+      "name": "plugin-loader",
+      "description": "Create a script that scans a plugins directory, imports each module dynamically using importlib, verifies it implements the required interface, and registers it in a central registry. Handle errors for missing modules, interface mismatches, and circular imports. Provide clear feedback on each plugin's status.",
+      "body": "1. Define a base Plugin class with required methods: activate(), deactivate(), and get_dependencies(). 2. Write a loader script that iterates over .py files in the plugins directory. 3. For each file, use importlib.util.module_from_spec to load the module without executing top-level code. 4. Check if the module has a Plugin subclass or function matching the interface. 5. Instantiate the plugin and collect its get_dependencies() return value. 6. Add the plugin to the registry dictionary mapping names to instances. 7. Log successes and failures to a file or stdout. 8. Save the registry as JSON for the CLI to use at startup."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# cli plugin system\n\nSets up a plugin architecture with dynamic loading and dependency injection for the CLI.\n\n**What it does:** Discovers plugins from a directory, loads them dynamically, and injects required services at runtime.\n\n**What it needs:** file_read, file_write, shell_run to create and modify plugin files and scripts.\n\n**What it will not do:** It will not auto-generate production-ready packaging or publish plugins to external registries.",
+  "hash": "6a2aaa07a87dd13e6e1f8350cd6f67ce0005fb658f7e0feb858979a088e8ed80"
+}

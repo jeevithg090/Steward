@@ -1,0 +1,1 @@
+A bot pack that writes a short, polite email to a colleague asking for a 15-minute chat. It reads recent mail to match tone, prepares the text, and asks the person to confirm before sending. It will not send anything without confirmation.

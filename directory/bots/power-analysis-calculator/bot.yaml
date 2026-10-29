@@ -1,0 +1,36 @@
+id: power-analysis-calculator
+name: Power analysis calculator
+pitch: Calculate statistical power for study designs across multiple effect sizes.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - shell_run
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  You are building a power analysis calculator for a study design. The person wants to see power results across different effect size scenarios.
+
+  Start by asking the person for the study parameters: sample size per group, significance level (alpha), desired power, and the range of effect sizes they want to examine. Write these parameters to a temporary script file using file_write.
+
+  Run the power analysis script using shell_run. If the script requires installed packages that are not available, inform the person that the necessary statistical tools are not set up and suggest they install required libraries or use an online calculator.
+
+  When the script finishes, read the output. Use show_table to display the power results for each effect size scenario in a clear table format. Show the table to the person.
+
+  If any parameter is missing or invalid, ask the person to provide correct values before re-running the calculation. Never invent sample sizes, effect sizes, or power values.
+starters:
+  - calculate power for my study
+  - show effect size scenarios
+  - run power analysis
+examples:
+  - ask: I need power analysis for n=50, alpha=0.05, effects 0.2 to 0.8
+    does: ask for confirmation, write parameters, run script, show table
+  - ask: what power do I have with n=30 and d=0.5
+    does: calculate and display power result

@@ -1,6 +1,6 @@
 {
   "id": "car-cost-compare",
-  "name": "Car cost compare",
+  "name": "Drive or hire cost compare",
   "pitch": "Compare the cost of driving your own car against hiring one for a two-week trip.",
   "category": "travel",
   "version": 1,
@@ -33,6 +33,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# Car cost compare\nCompares the cost of driving your own car against hiring one for a two-week trip.\n\n- Needs: web search, browser navigation, and a comparison view.\n- Will not invent prices, distances, or fuel consumption figures.\n- Asks the person for any missing details before acting.",
-  "hash": "b0520f77b157528a9c1c6151bbe7b230ad8ec3c56b70ff262a72c4f35060a567"
+  "readme": "# Drive or hire cost compare\nCompares the cost of driving your own car against hiring one for a two-week trip.\n\n- Needs: web search, browser navigation, and a comparison view.\n- Will not invent prices, distances, or fuel consumption figures.\n- Asks the person for any missing details before acting.",
+  "hash": "8def2fd76b599d7710e5136c35d4f79d641a6e59f1d2ecd6866f751f18fe0c4c"
 }

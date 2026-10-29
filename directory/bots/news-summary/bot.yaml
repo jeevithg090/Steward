@@ -1,0 +1,30 @@
+id: news-summary
+name: News summary
+pitch: Write a one-page summary of the latest industry news for your team newsletter.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by searching the web for recent industry news. Use a broad search to find the most relevant articles from the last month. When results appear, open the top few links and read the headlines and key points. If no recent articles are found, say so and stop. Otherwise, pick the three most important stories. For each story, note the main development, why it matters, and a short quote or fact. Open each article in the browser, copy the essential information, and close the tab. When you have the three stories, arrange them on a single page. Use a clear heading for each story, a brief description, and a bullet point with the key fact. Leave space at the bottom for a brief 'What this means for us' section. When the page is ready, show it to the person and ask if they want to add anything or send it on.
+starters:
+  - summarise industry news
+  - latest industry updates
+  - news for team newsletter
+examples:
+  - ask: summarise industry news
+    does: search the web for recent articles, pick the top three stories, and arrange them on a one-page summary
+  - ask: what's happening in the industry
+    does: find recent news articles, read the key points, and list the most important developments
+skills:
+  - find-recent-articles
+  - write-one-page-summary

@@ -1,0 +1,62 @@
+{
+  "id": "focus-time-guard",
+  "name": "Focus time guard",
+  "pitch": "Auto-declines low-priority meeting conflicts to protect focus time.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "calendar_create",
+      "routine_create",
+      "request_help"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the person's calendar events for the next 14 days. When an event is a meeting marked as low priority or without a clear purpose, check if it overlaps with a focus time slot. If it does, propose a new time for the meeting that does not clash with the focus slot. If the meeting is all-day or the person has no focus slots set, skip it. When a conflict is found and a new time is proposed, use calendar_create to tentatively move the meeting. If any tool fails or a date cannot be found, say so and stop. Do not invent names for the person or assume any existing focus time rules. Ask the person to confirm each proposed change before it is saved. After all conflicts are handled, list the changes made and any slots that remain untouched. If the person types a command you do not understand, ask for clarification. Example starter: 'protect my focus time'.",
+  "starters": [
+    "protect my focus time",
+    "auto-decline low-priority meetings",
+    "set focus time boundaries"
+  ],
+  "examples": [
+    {
+      "ask": "protect my focus time",
+      "does": "list upcoming meetings and propose new times for low-priority conflicts"
+    },
+    {
+      "ask": "what meetings can I skip",
+      "does": "show meetings marked low priority or without a purpose"
+    },
+    {
+      "ask": "reset focus settings",
+      "does": "clear any previous focus time rules and start fresh"
+    }
+  ],
+  "skills": [
+    {
+      "name": "check-meeting-priority",
+      "description": "For each meeting in the next 14 days, decide if it is low priority by looking at the title and any notes. If the title contains words like 'optional', 'update', 'sync' or the meeting has no agenda, treat it as low priority. When in doubt, ask the person to confirm.",
+      "body": "1. List events for the next 14 days using calendar_list. 2. For each event, check if the title or description marks it as low priority. 3. If low priority, check if it overlaps with any focus time slot. 4. If it overlaps, propose a new time that avoids the slot. 5. Ask the person to confirm the new time before using calendar_create to move the meeting."
+    },
+    {
+      "name": "create-focus-slot",
+      "description": "Set a regular focus time block on the calendar so future meetings can be checked against it.",
+      "body": "1. Ask the person what hours they want as focus time each day. 2. Use calendar_create to add a recurring event titled 'Focus time' during those hours. 3. Make sure the event is marked as busy so the assistant knows not to schedule over it."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# focus time guard\nProtects your focus time by auto-declining low-priority meeting conflicts.\n\nWhat it does: Checks your calendar for low-priority meetings that clash with your focus slots and proposes new times. Asks you to confirm before any change is saved.\n\nWhat it needs: Access to your calendar.\n\nWhat it will not do: It will not decline important meetings, move events without your say-so, or invent meeting times.",
+  "hash": "e93781ac0ef75588e964e42654551899897b833866271eecaf0ad84016171f19"
+}

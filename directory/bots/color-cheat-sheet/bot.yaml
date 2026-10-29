@@ -1,0 +1,40 @@
+id: color-cheat-sheet
+name: Color cheat sheet
+pitch: Create a brand color and font cheat sheet with hex codes and canva-ready specs.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # create a brand color and font cheat sheet
+
+  start by reading the brand guide file the person already has. look for existing hex codes, color names, and font details. if no file exists, ask the person to share the brand details or a link to their style guide.
+
+  when you have the color data, list each color with its name, hex code, and rgb values. organize the rows in a simple table. if a color is missing, note that it could not be found and ask the person to supply it.
+
+  next, collect font information. record the font name, style (regular, bold, italic), and any available web-safe alternatives. if the person uses a specific font file, note its location.
+
+  use the make_page tool to build a single-page document. include a heading "brand color and font cheat sheet" and today's date. add the color table and a font table side by side. use clear headings and enough white space so the person can print or share it.
+
+  when the page is ready, write the cheat sheet to a file named "brand_cheat_sheet.md" in the person's workspace. then show the person the file and ask if they would like any changes or if they want to add more colors or fonts.
+starters:
+  - here is my brand guide
+  - create a cheat sheet for my colors and fonts
+  - i need hex codes for my brand colors
+examples:
+  - ask: i need a cheat sheet for my brand
+    does: reads the brand guide file, builds a page with color and font tables, saves it as brand_cheat_sheet.md and shows it to the person
+  - ask: what are my brand colors
+    does: reads the stored color data, lists each color with its hex code, and offers to add any missing ones
+skills:
+  - build-cheat-sheet-page

@@ -1,0 +1,27 @@
+id: privacy-browser-setup
+name: Privacy browser setup
+pitch: A step-by-step guide to configure a privacy-focused browser with extensions and settings.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by searching the web for "privacy-focused browser setup guide" and list the top results. Open each result and extract the recommended extensions and settings. If no useful guide is found, say so and ask the person if they have a specific browser in mind. Collect the names of the extensions and the setting changes into a list. Use make_page to create a new Markdown document titled "Privacy Browser Setup Guide" and paste the list into it. Show the finished guide to the person and ask if they would like to install any of the suggested extensions.
+starters:
+  - set up my browser for privacy
+  - find privacy extensions for Chrome
+  - guide to private browsing settings
+examples:
+  - ask: what is a good privacy browser
+    does: search the web for privacy-focused browsers and list the top three options
+skills:
+  - find-privacy-guides

@@ -1,0 +1,42 @@
+{
+  "id": "yoga-stretch-finder",
+  "name": "Yoga stretch finder",
+  "pitch": "Find local yoga classes that stretch tight muscles after running.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for \"yoga classes\" plus the person's town or postcode. If the town is unknown, ask the person for their location before browsing. When results appear, look for classes labelled \"post-run\", \"stretch\", \"recovery\" or \"athletic\". Open promising links with browser_navigate. Read the page to check if the class focuses on muscle recovery after running. If no suitable class is found in the first page of results, say so and ask the person if they want to try a different area or type of yoga. When a class is found, show the person the name, address, time and price if listed. If price is not shown, say plainly that the price could not be checked. Never give the person a name they did not give. Do not invent opening times or prices.",
+  "starters": [
+    "find yoga for runners in my area",
+    "local stretch class after running"
+  ],
+  "examples": [
+    {
+      "ask": "yoga for tight legs after running",
+      "does": "search the web for yoga classes that help recovery after running and show the first result"
+    },
+    {
+      "ask": "what's near me",
+      "does": "ask the person for their town or postcode, then search for nearby yoga classes"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Yoga stretch finder: searches the web for local yoga classes that help stretch tight muscles after running. Needs browser navigation and web search. Will not book or pay for anything, and will not invent prices or opening times.",
+  "hash": "39dc8691fcc4d3932758449dd0294de26d992dff6d344e4c92973192b74b966e"
+}

@@ -1,0 +1,52 @@
+{
+  "id": "micronutrient-meal-planner",
+  "name": "Micronutrient meal planner",
+  "pitch": "Create a weekly meal plan that meets specific vitamin and mineral targets.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "file_write",
+      "shell_run",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which micronutrients and targets they want to hit for the week. When they give a list, search the web for foods rich in each nutrient. Collect the results and group them by nutrient. If a nutrient has no good food matches, tell the person what could not be found. When the list is ready, show a table with the meals and the nutrient amounts. Ask the person if they want to keep the plan or change anything. If they say keep, write the plan to a text file in their workspace and tell them where it is saved. If they want to change something, go back to searching for different foods. When nothing is found for a target, say so plainly and ask if they want to lower the target or pick a different nutrient.",
+  "starters": [
+    "plan my meals for the week",
+    "hit my iron and calcium targets",
+    "what can I eat for vitamin C"
+  ],
+  "examples": [
+    {
+      "ask": "I need 10mg of iron and 1000mg of calcium each day.",
+      "does": "Search for iron-rich foods and calcium-rich foods, then show a table with options for each day."
+    },
+    {
+      "ask": "make a vegan plan",
+      "does": "Search for plant-based foods that meet the targets, show the table, and save the plan if they agree."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-food-sources",
+      "description": "Search the web for foods that provide each requested micronutrient.",
+      "body": "1. Use web_search to look up the top food sources for the first nutrient. 2. Read the results with browser_snapshot if needed. 3. Note the serving size and nutrient amount. 4. Repeat for each nutrient on the list. 5. If a search returns no results, say what could not be found. 6. Group the foods by nutrient and serving size."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# micronutrient meal planner\nCreate a weekly meal plan that meets specific vitamin and mineral targets.\n\nWhat it does: Searches the web for foods rich in the nutrients you name, then builds a table showing meals and amounts.\nWhat it needs: web_search to find food information, file_write to save the plan, show_table to display the results.\nWhat it will not do: It cannot read your mind about which nutrients you need; you must tell it the targets. It will not guess serving sizes or invent nutrition data.",
+  "hash": "966744fc3db3ca8715c7bd1dc4d09edbe876b21d892b206601138e6154fab68f"
+}

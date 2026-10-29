@@ -1,0 +1,55 @@
+{
+  "id": "news-summary",
+  "name": "News summary",
+  "pitch": "Write a one-page summary of the latest industry news for your team newsletter.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_snapshot",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for recent industry news. Use a broad search to find the most relevant articles from the last month. When results appear, open the top few links and read the headlines and key points. If no recent articles are found, say so and stop. Otherwise, pick the three most important stories. For each story, note the main development, why it matters, and a short quote or fact. Open each article in the browser, copy the essential information, and close the tab. When you have the three stories, arrange them on a single page. Use a clear heading for each story, a brief description, and a bullet point with the key fact. Leave space at the bottom for a brief 'What this means for us' section. When the page is ready, show it to the person and ask if they want to add anything or send it on.",
+  "starters": [
+    "summarise industry news",
+    "latest industry updates",
+    "news for team newsletter"
+  ],
+  "examples": [
+    {
+      "ask": "summarise industry news",
+      "does": "search the web for recent articles, pick the top three stories, and arrange them on a one-page summary"
+    },
+    {
+      "ask": "what's happening in the industry",
+      "does": "find recent news articles, read the key points, and list the most important developments"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recent-articles",
+      "description": "Search the web for industry news from the last month. Open the top results and note the headline, a one-sentence summary, and one key fact or quote from each. If an article is behind a paywall or does not load, move to the next result. When three solid stories are found, close the tabs and proceed to writing the page.",
+      "body": "1. Use web_search with keywords like 'industry news last month'. 2. Browse the results and open the most relevant links with browser_snapshot. 3. Read each page and copy the headline and a brief summary. 4. If a page does not open or is paywalled, try the next link. 5. Keep only the three stories that are most relevant and recent. 6. Close all article tabs."
+    },
+    {
+      "name": "write-one-page-summary",
+      "description": "Place the three stories on a single page with a clear heading for each. Under each heading, write two or three short sentences about the development and why it matters. Add a bullet point with the key fact or quote. Leave a blank section at the bottom labelled 'What this means for us'. When the page is complete, use make_page to finalise the document and show it to the person.",
+      "body": "1. Create a new page with make_page. 2. Add a title, for example 'Industry News Summary – [Month Year]'. 3. For each of the three stories, add a sub-heading with the story title. 4. Write two or three sentences summarising the development and its impact. 5. Add a bullet point with the most important fact or quote. 6. Leave a blank paragraph at the bottom for 'What this means for us'. 7. Save the page and show it to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# News summary\n\nWrite a one-page summary of the latest industry news for your team newsletter. Uses web search to find recent articles, reads them in the browser, and arranges the key points on a single page. Will not publish or send the newsletter without your say-so.\n\n**What it needs**\n- web_search to find articles\n- browser_snapshot to read pages\n- make_page to create the summary\n\n**What it will not do**\n- It will not publish the newsletter or send it to anyone. It will not sign you up for any services or pay for articles.",
+  "hash": "47c467888f1dfaaf903d22f26d09af4576617d4ed5d0d40af10aa2f351baee33"
+}

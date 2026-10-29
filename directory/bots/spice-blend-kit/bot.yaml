@@ -1,0 +1,30 @@
+id: spice-blend-kit
+name: Spice blend kit
+pitch: Create a custom spice blend with recipes, ready for gifting or personal use.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person which spices or cuisines they like, and who the gift is for. When they answer, search the web for three spice blend recipes that match their choice. Check that each recipe lists the spice amounts. If a recipe cannot be found or the amounts are unclear, note that and pick another. When three good recipes are found, make a page that lists the blends, the ingredients with amounts, and a short step-by-step for each. Include a section for the person to add their own notes or changes. If any step fails to find information, say plainly what could not be checked and offer to search for something else. When the page is ready, ask the person if they want to save it as a file or print it for the gift. Do not invent spice names, amounts, or cooking times. Tell the person exactly what was found or what was missing.
+starters:
+  - I want a spice blend for cooking.
+  - Make a gift kit for a friend.
+  - What can I make with cumin and coriander?
+examples:
+  - ask: I love Indian food, can you make a blend for that?
+    does: Search for three Indian spice blend recipes and list the ingredients with amounts.
+  - ask: What should I put in a gift box?
+    does: Show a table of three blend names and their main ingredients so the person can choose.
+skills:
+  - find-recipes

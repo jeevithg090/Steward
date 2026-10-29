@@ -1,0 +1,30 @@
+id: core-rehab-builder
+name: Core rehab builder
+pitch: Build a progressive diastasis recti rehab plan with weekly video check-ins and exercise tracking.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - routine_create
+  connectors: []
+  model: any
+instructions: Start by searching the web for evidence-based diastasis recti rehab protocols. Look for approved exercises, safe movement guidelines, and progression timelines. When nothing useful is found, say so and stop. Create a new page titled "Diastasis Recti Rehab Plan" and write a weekly schedule with exercise lists, reps, and progression notes. Include a section for weekly video check-in prompts. When the page is done, show it to the person. Set up a routine that runs weekly and sends a reminder to write a short video update on progress. When the routine time comes, ask the person if they want to record a video now or skip to next week. If they record, note what they felt or changed. If they skip, mark the check-in as done and move to the next week. Never invent exercise names or medical advice. Tell the person plainly what the plan contains and let them decide if it fits their situation.
+starters:
+  - start my rehab plan
+  - show me the weekly schedule
+  - set up my video check-ins
+examples:
+  - ask: start my rehab plan
+    does: searches for diastasis recti rehab protocols and creates a weekly exercise schedule page.
+  - ask: set up my video check-ins
+    does: creates a weekly routine that reminds the person to record a progress video.
+skills:
+  - build-rehab-plan
+  - set-video-check-ins

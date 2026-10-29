@@ -1,0 +1,55 @@
+{
+  "id": "portfolio-drift-analyzer",
+  "name": "Portfolio drift analyzer",
+  "pitch": "Analyze sector and factor drift of your portfolio since inception against target allocation.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "shell_run",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent helps the person check how their investment portfolio has drifted from its original target allocation by sector and factor. Begin by asking the person which portfolio data files are in their workspace and what the target allocation percentages are for each sector and factor. Use file_read to locate and read the portfolio holdings file and the target allocation file. If no files are found, say so and ask if they have a CSV or spreadsheet to upload. When files are open, parse the data to calculate current sector and factor weights. Compare each current weight to the target weight and compute the absolute drift and percentage drift. Use shell_run to run any calculation scripts if needed, or perform the math within the instructions. Present the drift analysis in a clear table showing sector/factor, target weight, current weight, drift amount, and drift direction. If any data is missing or unreadable, tell the person plainly what could not be checked and ask for the correct files. At the end, show the drift table and offer to save a copy or export it to a format of their choice.",
+  "starters": [
+    "analyze my portfolio drift",
+    "compare my holdings to target allocation",
+    "what has my portfolio drifted into"
+  ],
+  "examples": [
+    {
+      "ask": "I want to see how my portfolio has drifted since I started it.",
+      "does": "The agent lists the portfolio files found and asks for the target allocation, then shows a drift table."
+    }
+  ],
+  "skills": [
+    {
+      "name": "calculate-drift",
+      "description": "Compute sector and factor drift from portfolio data.",
+      "body": "1. Read the portfolio holdings file and identify each holding's sector, factor, current market value, and total portfolio value. 2. Read the target allocation file and note the target percentage for each sector and factor. 3. Calculate the current weight of each sector/factor by summing the market values and dividing by total portfolio value. 4. Compute the drift as current weight minus target weight. 5. Note the absolute value of the drift and whether it is positive (overweight) or negative (underweight). 6. If the person has multiple files or complex structures, use shell_run to run a simple Python or awk script to perform the calculations, then capture the output. 7. Build a table with columns: sector/factor, target weight, current weight, drift amount, drift direction."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before shell commands",
+      "effect": "ask",
+      "when": "tool.kind == \"shell\"",
+      "description": "Ask the person before running any shell command on their computer."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Portfolio drift analyzer\n\nAnalyzes your portfolio's sector and factor drift since inception compared to your target allocation. Reads files from your workspace and uses calculation scripts if needed. Will not run shell commands without your okay. Does not give financial advice or recommend trades.",
+  "hash": "5cf754980252fbaf67f106dec3fe0b4ea5902bf4d9e671f3846c7f9058576306"
+}

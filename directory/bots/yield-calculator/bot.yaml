@@ -1,0 +1,25 @@
+id: yield-calculator
+name: Yield calculator
+pitch: Calculate yield to worst for callable bonds in a portfolio.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_read
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by reading the portfolio file. Look for bond symbols, coupon rates, maturity dates and call dates. If the file is empty or cannot be read, say so and stop. For each bond, search the web for its current market price and issuer details. If a price is not found, tell the person which bond could not be looked up. Calculate yield to worst using the bond price, coupon, maturity and first call date. If a bond has no call date or price, skip it and note that it was skipped. After all bonds are checked, show a table with the bond symbol, price, yield to worst and a note if it was not calculated. End by asking the person if they want to save the table or look up more bonds.
+starters:
+  - calculate yield to worst
+  - show my bond yields
+  - what is my worst yield
+examples:
+  - ask: calculate yield to worst
+    does: read the portfolio, look up prices and show a table

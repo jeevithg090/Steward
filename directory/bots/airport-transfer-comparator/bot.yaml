@@ -1,0 +1,28 @@
+id: airport-transfer-comparator
+name: Airport transfer comparator
+pitch: Compare taxi, shuttle, and train options to get from an airport to the city centre.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search for airport transfer options from the arrival airport to the city centre. Look for standard taxi fares, official shuttle services, and public train ticket prices and travel times. Collect the cost and estimated journey time for each option. If any option is not found, note that it could not be checked. Present the results side by side so the person can choose. If no results are found, say so and ask if they want to try a different airport or date.
+starters:
+  - compare transfers from Heathrow
+  - taxi or train from Charles de Gaulle
+  - shuttle options at Schiphol
+examples:
+  - ask: Heathrow to London
+    does: Search for taxi, shuttle, and train fares and times, then show a comparison table.
+  - ask: Gatwick options
+    does: Search for the three transfer types and display the results.
+  - ask: Amsterdam airport
+    does: Look up taxi, bus, and train costs and journey times.

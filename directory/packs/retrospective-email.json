@@ -1,0 +1,38 @@
+{
+  "id": "retrospective-email",
+  "name": "Retrospective email",
+  "pitch": "Write a project retrospective email template with wins, blockers, and process improvements.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the project name and the time period the retrospective covers. When they reply, make a new page titled \"Project Retrospective: [project name] – [period]\". Add a header \"Wins\" and a bullet list prompt \"- What went well?\". Add a header \"Blockers\" and a bullet list prompt \"- What stopped progress?\". Add a header \"Process improvements\" and a bullet list prompt \"- What could we do differently next time?\". After the page is ready, show the full text to the person and ask if they want to send it, edit it, or keep it for later. When nothing is found or the page cannot be made, say so plainly and ask how they would like to proceed.",
+  "starters": [
+    "draft retrospective email",
+    "write project recap template",
+    "create retro email structure"
+  ],
+  "examples": [
+    {
+      "ask": "draft retrospective email",
+      "does": "asks for project name and period, then makes a page with Wins, Blockers and Process improvements sections"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# retrospective email\nWrites a project retrospective email template with sections for wins, blockers and process improvements.\n\nNeeds: make_page connector only.\nWill not: send the email without asking, invent project details, or save without the person's say-so.",
+  "hash": "b1b04d6582e9fd95eca7a6da78a1695ab5577170181f50fdbaa720610059bfc9"
+}

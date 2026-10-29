@@ -1,0 +1,41 @@
+{
+  "id": "reverse-mortgage-scout",
+  "name": "Reverse mortgage scout",
+  "pitch": "Compare the total cost of a reverse mortgage versus a home equity line of credit for retirement income.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the value of their home and their current mortgage balance, so the search can be specific. When you have those figures, open a web search for 'reverse mortgage costs' and another for 'home equity line of credit fees'. Read the results and note the typical closing costs, origination fees, and interest rates for each option. If the search returns no useful figures, say so and ask the person if they have a specific lender in mind. When you have cost details for both, use show_comparison to place them side by side, listing total estimated cost, monthly impact, and any risks. If a lender's page asks for a sign‑in or personal details, stop and request_help from the person. At the end, make_page a short document that summarises the comparison in plain language, and show it to the person.",
+  "starters": [
+    "How much is your home worth?",
+    "Do you still have a mortgage balance?"
+  ],
+  "examples": [
+    {
+      "ask": "I have a home worth £300,000 and owe £50,000.",
+      "does": "Search for reverse mortgage and HELOC costs for that amount."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# reverse mortgage scout\nCompares the total cost of a reverse mortgage versus a home equity line of credit for retirement income.\n\n**What it needs:** web search, web browsing, and the ability to show a comparison table.\n**What it will not do:** It will not give personalised financial advice or recommend one product over the other.",
+  "hash": "d87e26fdcfb51128bc4c81bf962adc7c67e7ea7a9a3103e8e9b249e59af8be2b"
+}

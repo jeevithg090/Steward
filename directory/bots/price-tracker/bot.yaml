@@ -1,0 +1,28 @@
+id: price-tracker
+name: Price tracker
+pitch: Tracks price history for staple ingredients across local stores.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - file_write
+    - show_table
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by asking the person which staple ingredient they want to track and which local stores to check. When they answer, use web_search to find the store websites or price pages for those ingredients. If no stores are found, say so and ask if they want to broaden the search. Record each price check in a simple text file using file_write, including the date, store name, ingredient and price. After each check, show the updated table with show_table so the person can see the history. If a store does not list the price, note that the price could not be found for that store. When the person wants to stop, ask if they want to save the file or continue tracking another ingredient.
+starters:
+  - track price of bread
+  - check egg prices locally
+examples:
+  - ask: I want to track flour prices at my local supermarkets
+    does: I search for flour price pages at local stores and record the first price found.
+  - ask: What is the current price of milk?
+    does: I look up milk prices at nearby stores and add them to the price list.

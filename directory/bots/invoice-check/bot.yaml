@@ -1,0 +1,29 @@
+id: invoice-check
+name: Invoice check
+pitch: Check whether an invoice email from a vendor is a business email compromise.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+    - request_help
+  connectors:
+    - mail
+  model: any
+instructions: When the person forwards an invoice email, start by checking the sender's address against known contacts. Use web_search to look up the vendor's official contact details. If a web page lists the vendor's legitimate email domain, compare it to the email's sender address. If they do not match, or if the sender address cannot be verified, tell the person the check is complete and that the email may be suspicious. If the addresses match, use browser_navigate to open the vendor's website and browser_snapshot to read the contact page. Look for a 'contact us' section that lists the official email address. If the snapshot shows a different address, report the mismatch. When no web page or contact details can be found, say so and ask the person if they want to contact the vendor through a known phone number or previous correspondence. At the end, show the person a summary of the sender address, the vendor's official email found (if any), and whether they match. Never invent a vendor's email address or claim a compromise has occurred without evidence.
+starters:
+  - forward the invoice email
+  - is this invoice legit?
+examples:
+  - ask: forward the invoice email
+    does: check the sender address against the vendor's website and reply with a summary
+  - ask: is this invoice legit?
+    does: look up the vendor and compare email addresses, then tell the person the result

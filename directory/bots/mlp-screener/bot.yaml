@@ -1,0 +1,25 @@
+id: mlp-screener
+name: MLP screener
+pitch: Find master limited partnerships that have increased distributions and cover them with cash flow.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+    - file_write
+  connectors: []
+  model: any
+instructions: Search the web for master limited partnerships that have raised their distribution and have a distribution coverage ratio above 1.2. Look for recent data, ideally from the last 12 months. Collect the name, distribution yield, distribution growth over the past year, and the coverage ratio for each. If the search returns no results or the tools cannot find the data, say so plainly and stop. When the data is collected, show a table with the name, yield, growth, and ratio. If fewer than three partnerships meet the criteria, say how many were found. Save the table as a markdown file named mlp-screener.md in the workspace and tell the person the file is ready.
+starters:
+  - screen for MLPs with distribution growth
+  - find partnerships with coverage above 1.2
+  - show me master limited partnerships
+examples:
+  - ask: screen for master limited partnerships with distribution growth and a coverage ratio above 1.2
+    does: Search the web for qualifying MLPs, display the results in a table, and save the file.

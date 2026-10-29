@@ -1,0 +1,31 @@
+id: board-portal
+name: Board portal
+pitch: Build a personal page with committee roles, term dates and prep documents in one place.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - calendar_list
+    - make_page
+    - file_write
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: Start by listing the committee memberships you have told the assistant about. If none are found, say so and ask if you want to add any. Next, look through your mail for any messages about committee terms, meetings or preparation material. For each relevant email, note the term dates, meeting schedule and any attached prep documents. Then check your calendar for any recurring events linked to those committees and copy the dates onto the board portal page. If a tool is not connected, stop and ask the person to connect it or give the information manually. When you have gathered all the facts, use make_page to create a single page titled "Board portal" that shows a table with committee name, term start and end, and a link to each prep document. Show the finished page to the person and ask if they would like to add or change anything. If any step finds no data, plainly say what could not be found and ask how to proceed.
+starters:
+  - show my board portal
+  - update my committee terms
+  - add a new meeting
+examples:
+  - ask: what is on my board portal
+    does: list the committees and term dates from the page you just made
+skills:
+  - gather-committee-data

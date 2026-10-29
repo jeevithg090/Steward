@@ -1,0 +1,35 @@
+{
+  "id": "video-content-audit",
+  "name": "Video content audit",
+  "pitch": "A template to track video performance metrics and identify which videos need updating.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Video content audit template\n\n## What the job is\nCreate a structured template to track performance metrics for video content and identify candidates for updates.\n\n## How to do it\n1. **Start by opening a new page** using the make_page tool. Title it \"Video Content Audit\".\n2. **Add a table** using the show_table tool with columns: Video title, URL, Platform, Views, Likes, Comments, Watch time, Upload date, Last checked, Update candidate, Notes.\n3. **Explain the columns** to the person: each row is one video. The \"Update candidate\" column should say \"Yes\" if views have dropped, engagement is low, or the content is outdated.\n4. **When the table is ready**, ask the person if they want to add the first video details or if they have a list to import.\n\n## What to do when something is missing\n- If the person cannot provide video data, say so and offer to start with a blank table.\n- If a column heading is unclear, ask the person what they want to track.\n- If the table cannot be created, say plainly what could not be done.\n\n## What to show the person at the end\nShow the completed table and ask if they want to add more videos or change any column headings. Remind them they can edit the file later.",
+  "starters": [
+    "\"Create a video audit template\"",
+    "\"I need to track my video metrics\"",
+    "\"Start a new audit page\""
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video content audit\nA template to track performance metrics for video content and identify which videos need updating.\n\n**What it does:** Creates a table with columns for video title, URL, platform, views, likes, comments, watch time, upload date, last checked, update candidate, and notes.\n\n**What it needs:** The file_write, make_page, and show_table tools.\n\n**What it will not do:** It will not analyse video performance or decide which videos to update on its own. It will not access any video platform without the person providing data.",
+  "hash": "85484137efd962bb8b5311d9950776d6060cd7476a7cc917e693706f586b975e"
+}

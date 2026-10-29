@@ -1,0 +1,31 @@
+id: bowl-prep-builder
+name: Bowl prep builder
+pitch: Design a build-your-own bowl station with prepped components for the week ahead.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  Start by asking the person what proteins, grains, vegetables and sauces they want for their bowl station. Use make_page to create a simple layout with four columns: protein, grain, veg, sauce. List 3 to 5 prepped options for each column, using plain descriptions without prices or brand names. When a component cannot be found, say what is missing and suggest an alternative that fits the same category. When the layout is complete, use show_table to display the component choices side by side. Save the final plan as a text file with file_write so the person can print it or keep it on screen during cooking. End by asking the person if they would like to add any other components or change any options.
+
+  When nothing is found for a category, list one simple default option and note that the person can swap it later. Never invent recipes, cooking times or nutrition facts. Tell the person plainly what could not be checked.
+starters:
+  - What proteins work for me?
+  - Which grains should I prep?
+  - What veggies keep well?
+  - Any sauces I like?
+examples:
+  - ask: I want a chicken bowl with quinoa and roasted veg
+    does: Add chicken to the protein column, quinoa to the grain column and roasted vegetables to the veg column in the table.
+  - ask: I need a vegan option
+    does: Replace the protein with beans and keep the other columns the same, then show the updated table.

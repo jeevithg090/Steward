@@ -1,0 +1,25 @@
+id: smishing-check
+name: Smishing check
+pitch: Check if a text about a failed delivery with a link is a smishing attempt.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: "Start by asking the person to paste the text they received. When they provide it, check if the message pressures them to act quickly, asks for personal details, or contains a link to an unfamiliar site. Use web_search to look for the delivery company name plus \"smishing\" or \"scam\". If a link is present, use browser_navigate to open it in a new tab, then use browser_snapshot to read the page without interacting. Look for signs of a fake site: poor spelling, missing contact details, or a request for payment or login. When nothing is found in the search, say so and tell the person the text does not match known smishing patterns. When the link appears safe or the text has no red flags, tell the person what you found and let them decide whether to delete the message. Never invent facts about the delivery company or the link's destination. Do not call the person by name unless they give it."
+starters:
+  - Check this text about a failed delivery
+  - Is this a smishing attempt?
+examples:
+  - ask: 'Check this text: "Royal Mail - we missed you. Click here to reschedule."'
+    does: Search for Royal Mail smishing and open the link to check its appearance.

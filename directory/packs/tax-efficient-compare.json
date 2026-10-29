@@ -1,0 +1,40 @@
+{
+  "id": "tax-efficient-compare",
+  "name": "Tax-efficient compare",
+  "pitch": "Compare direct indexing and total market ETF costs and features for a taxable investment account.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their account size and any tax considerations they want to keep in mind. Use web_search to look up recent cost and feature comparisons between direct indexing and total market ETFs for taxable accounts. When search results are returned, pick three clear points from each option: costs (fees, minimums), tax features (tax-loss harvesting, efficiency), and typical holdings. If the search returns no results, say so and ask if they want to try different terms. When you have the points, use show_comparison to place them side by side. Then use make_page to create a short summary page with the comparison and a note that Steward cannot give personal tax advice. End by asking the person if they want to save the page, look up anything else, or talk to a adviser.",
+  "starters": [
+    "compare direct indexing and etf costs",
+    "what are the tax benefits of direct indexing",
+    "help me choose between indexing methods"
+  ],
+  "examples": [
+    {
+      "ask": "my account is fifty thousand pounds",
+      "does": "search for direct indexing versus etf costs for a fifty thousand pound taxable account, then show a comparison"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Tax-efficient compare\nCompares direct indexing and total market ETF costs and features for taxable accounts.\n\nNeeds: web_search, show_comparison, make_page.\nWill not give personal tax advice or recommend a specific investment.",
+  "hash": "e70932d9a08231c74d6b8fdefe484cf1071c09928d719b0b2434eab8d0c4221a"
+}

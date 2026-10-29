@@ -1,0 +1,27 @@
+id: opentelemetry-tracer
+name: Opentelemetry tracer
+pitch: Add OpenTelemetry instrumentation to a codebase for distributed tracing.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: Check the codebase for existing OpenTelemetry setup. If none exists, create a basic configuration file. Identify entry points and key functions that need tracing. Add tracer providers and context managers around those points. Use the appropriate SDK for the language found. Write a summary file listing what was instrumented and how to run the tracing backend.
+starters:
+  - add tracing
+  - instrument my code
+  - set up opentelemetry
+examples:
+  - ask: add opentelemetry to my python project
+    does: scan the project for python files, add a basic tracer setup, and instrument the main entry point
+skills:
+  - instrument-codebase

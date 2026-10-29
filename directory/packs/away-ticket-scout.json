@@ -1,0 +1,43 @@
+{
+  "id": "away-ticket-scout",
+  "name": "Away ticket scout",
+  "pitch": "Finds the cheapest official away ticket for your team each season.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the official club website and the league's ticket exchange for away fixtures. When a fixture list appears, pick the next away game that has tickets available. Browse the ticket page, check the price, and note the cheapest option found so far. If the page asks you to sign in or pay, stop and ask the person before proceeding. If no tickets are listed for that fixture, move to the next away game. Repeat until you have checked all away fixtures for the season or found a ticket you can show. When you have finished, show the person a short table with the match, the cheapest price found, and the link to the ticket. If you cannot find any tickets after checking all fixtures, say so plainly and offer to look again next season.",
+  "starters": [
+    "find the cheapest away ticket",
+    "search for away tickets this season",
+    "what are the away ticket prices"
+  ],
+  "examples": [
+    {
+      "ask": "cheapest away ticket",
+      "does": "search official sites and list the lowest price found"
+    },
+    {
+      "ask": "no tickets available",
+      "does": "say plainly that no tickets were found and offer to try again later"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Away ticket scout\nFinds the cheapest official away ticket for your team each season.\n\nNeeds: a web browser to search ticket sites.\nWill not: buy a ticket, sign in to an account, or pay any fee without your say-so.",
+  "hash": "54960176c3aa95d39b1864727f310b92adeb8d5a4154a00ce4bcc8303009cb2c"
+}

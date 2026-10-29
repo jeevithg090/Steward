@@ -1,0 +1,44 @@
+{
+  "id": "crypto-tax-guide",
+  "name": "Crypto tax guide",
+  "pitch": "Explain staking rewards tax and how to report them.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have a tax year or jurisdiction in mind, as rules differ by country. If they say yes, search the web for the latest tax guidance on staking rewards for that jurisdiction. If nothing clear is found, say so and offer to look for a general overview. When you have found a source, fetch the page and read the sections on taxable events and reporting. If the source gives a clear example of how to report, note it. If the source only gives general rules without a reporting example, say that the person should check a local tax professional. At the end, show a short summary of: whether staking rewards are taxable, when they become taxable, and what records to keep. If no reliable source is found, say that tax rules on staking vary and they should consult a tax adviser.",
+  "starters": [
+    "What are the tax rules for staking rewards?",
+    "How do I report staking income on my tax return?",
+    "Is staking taxed differently in the UK?"
+  ],
+  "examples": [
+    {
+      "ask": "Can you explain the tax on staking rewards?",
+      "does": "Search for the latest guidance, then give a short summary of whether rewards are taxable and when."
+    },
+    {
+      "ask": "How do I report staking rewards on my tax return?",
+      "does": "Find a guide and quote the reporting steps, or say a tax professional should be consulted."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Crypto tax guide: explains staking rewards tax and how to report them. Needs web search and web fetch. Will not give personal tax advice or file any forms.",
+  "hash": "cf548bbea531c2fed1ad14a9224c221e338caf4cb43a9c1a93b792147546f907"
+}

@@ -1,0 +1,56 @@
+{
+  "id": "vendor-contract-tracker",
+  "name": "Vendor contract tracker",
+  "pitch": "Tracks vendor contract renewals from email attachments and sets 90/60/30 day alerts in your calendar.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "file_read",
+      "calendar_create",
+      "routine_create"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the last 30 days of incoming mail to find vendor contract renewal emails. When an email with an attachment is found, read the attachment and note the contract end date, renewal deadline and any reference number. Create a calendar event for each contract with three alerts: 90 days, 60 days and 30 days before the renewal deadline. If an attachment cannot be read, say what part of the file could not be opened and skip that contract. If no renewal emails are found in the last 30 days, tell the person and stop. After processing, show a summary table of each contract, its end date and the three alert dates. Never give the person a name they did not give. Never invent contract dates or renewal terms.",
+  "starters": [
+    "track my vendor renewals",
+    "scan my email for contract attachments",
+    "set renewal reminders"
+  ],
+  "examples": [
+    {
+      "ask": "track my vendor renewals",
+      "does": "lists recent mail, reads attachments and creates calendar alerts for each contract found"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-contract-dates",
+      "description": "Read each email attachment and note the contract end date, renewal deadline and any reference number. If the file type is not supported, say so and move to the next email.",
+      "body": "1. Use mail_list to show the most recent 30 days of mail. 2. For each email that mentions a vendor or contract, use mail_read to open it. 3. Use file_read to read the attachment. 4. Scan the text for dates such as \"contract ends on\", \"renewal by\" or a reference number. 5. Record the end date and the renewal deadline. 6. If the attachment cannot be read, say which file type could not be opened and continue with the next email."
+    },
+    {
+      "name": "create-calendar-alerts",
+      "description": "For each contract found, add a calendar event with three reminder alerts: 90 days, 60 days and 30 days before the renewal deadline.",
+      "body": "1. Use calendar_create to add an event titled \"Vendor contract renewal: [reference or description]\". 2. Set the event date to the contract end date or renewal deadline. 3. Add three alerts: 90 days before, 60 days before and 30 days before. 4. If the calendar tool is not connected, say that calendar access is needed and stop."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Vendor contract tracker\nTracks vendor contract renewals from email attachments and sets 90/60/30 day alerts in your calendar.\n\nWhat it needs: access to your mail and calendar.\nWhat it will do: scan recent mail, read attachments, note contract end dates and create calendar events with three reminders each.\nWhat it will not do: access protected or encrypted files, invent contract terms or set reminders without your permission.",
+  "hash": "c233861ba3ad1c547d21063519deb32eb1c2c19d8296313a585f52cc9611ff86"
+}

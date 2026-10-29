@@ -1,0 +1,42 @@
+{
+  "id": "team-heatmap",
+  "name": "Team heatmap",
+  "pitch": "Create a weekly availability heatmap from shared calendars.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing all calendars to see who has shared them. For each calendar, read the events of the next seven days. Mark each hour as busy or free on a grid. If a calendar is not shared, note that it could not be read and move on. When all calendars are processed, arrange the grids side by side in a table. If some calendars have no events, leave those rows blank. After the table is built, use make_page to create a simple HTML page with the table embedded. Show the HTML page to the person and ask if they would like it saved as a file or copied to the clipboard.",
+  "starters": [
+    "heatmap",
+    "weekly availability",
+    "team calendar"
+  ],
+  "examples": [
+    {
+      "ask": "show me the heatmap",
+      "does": "list calendars, read events and build a table of busy/free hours, then display the HTML page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# team heatmap\nCreates a weekly availability heatmap from everyone's shared calendars.\n\nWhat it does: reads shared calendars, marks each hour busy or free, arranges the grids in a table, and outputs an HTML page.\n\nWhat it needs: calendar connector to read calendars; calendar_list, show_table and make_page tools.\n\nWhat it will not do: it cannot read calendars that are not shared, and it will not create or modify any files without asking.",
+  "hash": "5742a1289393a5e34c120ce570bb2a83bc870c7025a4ca2fd6fea94873dc0aaa"
+}

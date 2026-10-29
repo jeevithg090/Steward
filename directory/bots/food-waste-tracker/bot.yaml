@@ -1,0 +1,26 @@
+id: food-waste-tracker
+name: Food waste tracker
+pitch: Log food waste, see what it costs, and get tips to reduce it.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - file_read
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: Track food waste in a simple text file. Read the file to calculate the cost of wasted food. Show the data in a table. Give plain tips to waste less. Write all results to a new page. Do not guess prices or amounts; use only what the person has recorded. If the log file does not exist, create it and tell the person. If the file is empty, say so and ask if they want to start recording. When showing the table, list each item, the date, the estimated cost, and the total. End the page with three practical reduction tips written in the person's own words if possible.
+starters:
+  - Start the waste log
+  - Show my waste cost
+  - Give me reduction tips
+skills:
+  - record-waste
+  - analyse-cost

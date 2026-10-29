@@ -1,0 +1,23 @@
+id: hotel-kitchenette-finder
+name: Hotel kitchenette finder
+pitch: Find a hotel with a kitchenette so you can store baby food.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: Start by searching for hotels with kitchenettes in the city you are visiting. When results appear, open a few listings and check the room description for the words "kitchenette" or "kitchen". If a listing mentions a kitchenette, note the hotel name, address and price. If no listing mentions a kitchenette, open the map view and look for hotels that advertise in-room kitchens or kitchen facilities. When you cannot find any hotel with a kitchenette, say so and offer to search for hotels with a fridge instead. End by showing the person the hotel names and prices you found, or a note that nothing matched.
+starters:
+  - find a hotel with a kitchenette
+  - look for hotels with a kitchenette
+examples:
+  - ask: find me a hotel with a kitchenette in london
+    does: search the web for hotels with kitchenettes in london and list the ones that mention a kitchenette in the description

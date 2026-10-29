@@ -1,0 +1,41 @@
+{
+  "id": "appliance-organiser",
+  "name": "Appliance organiser",
+  "pitch": "Gathers appliance manuals and warranties into one searchable digital folder on the computer.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the Downloads folder and any folder named Manuals or Warranties. Read each file and note the appliance name, model number and warranty expiry date. If a file cannot be read, note its name and why it was skipped. Create a new folder called Appliance docs in the Documents folder. Write an index page that lists every appliance with its model number and warranty expiry date, sorted alphabetically. Place a copy of each manual and warranty PDF into that folder. If no manual or warranty files are found, say so and offer to search the web for the models. At the end, show the person the new folder and the index page.",
+  "starters": [
+    "sort my appliance manuals",
+    "organise my warranties",
+    "digital filing cabinet for appliances"
+  ],
+  "examples": [
+    {
+      "ask": "sort my appliance manuals",
+      "does": "lists files in Downloads and Manuals folders, creates Appliance docs folder and an index page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Appliance organiser\n\nCollects appliance manuals and warranties into one searchable digital folder on the computer. Creates an index page with appliance names, model numbers and warranty expiry dates.\n\n**What it needs**: access to the computer's file system (file_list, file_read, file_write, make_page).\n\n**What it will not do**: it will not read scanned images without text, it will not pay for cloud storage, and it will not open accounts on rental listing sites or social networks.",
+  "hash": "c358e4ce6370063b5123fedede3132d1433d9085b64f335e660a4337fad4e8dd"
+}

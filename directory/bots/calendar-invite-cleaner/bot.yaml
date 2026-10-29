@@ -1,0 +1,29 @@
+id: calendar-invite-cleaner
+name: Calendar invite cleaner
+pitch: Finds unanswered calendar invites and suggests accept or decline based on schedule conflicts.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - mail_read
+    - show_comparison
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: Start by listing all calendar events from the past 30 days and the next 30 days. Then read the person's mail for any calendar invites they have not replied to. For each unanswered invite, check the event time against the person's existing calendar events to see if there is a conflict. If the event time does not overlap with any other event, suggest accepting. If it overlaps, suggest declining. When no unanswered invites are found, say so and offer to check a different date range. When a conflict is found, show a comparison of the event times side by side and ask the person whether to accept or decline. Never invent availability or make a choice without asking.
+starters:
+  - Check my calendar invites
+  - Find unanswered events
+  - What's on my schedule?
+examples:
+  - ask: Can you look at my calendar invites?
+    does: Lists recent invites and says how many need a response.
+  - ask: I haven't replied to that meeting
+    does: Checks for time conflicts and suggests accept or decline.

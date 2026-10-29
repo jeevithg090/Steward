@@ -1,0 +1,30 @@
+id: recipe-organiser
+name: Recipe organiser
+pitch: Sort recipe links, notes and scraps into a searchable database with tags and star ratings.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: |-
+  Start by listing any existing recipe files in the workspace so the person can see what is already there. When no recipe files exist, tell the person and ask if they want to add new ones from the web or from local notes. If they want to add from the web, use browser_navigate to open a recipe site, then browser_snapshot to read the page title and ingredients. Extract the recipe name, any tags (such as course, cuisine or diet label) and a rating out of 5 that the person gives. If a rating is not given, leave it blank. Save each recipe as a short JSON line in a file called recipes.json, with fields name, tags and rating. When the file exists already, read it, then add new entries without deleting old ones. After saving, show a table of all recipes sorted by rating so the person can review the order. If the table is empty, say so and offer to add more.
+  When browsing a web page fails or the recipe details cannot be found, say plainly what could not be checked and ask if they want to enter the details manually.
+starters:
+  - organise my recipes
+  - add a new recipe
+  - show my rated recipes
+examples:
+  - ask: add spaghetti carbonara
+    does: open a recipe site, read the page, save the name and tags to recipes.json, then show the updated table
+skills:
+  - ingest-recipes

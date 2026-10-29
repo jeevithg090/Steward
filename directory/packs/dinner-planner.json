@@ -1,0 +1,51 @@
+{
+  "id": "dinner-planner",
+  "name": "Dinner planner",
+  "pitch": "Plan a week of dinners, each using a different cooking technique.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which cuisine style they prefer for the week. Then search the web for five distinct cooking techniques, such as roasting, sautéing, steaming, braising, and grilling. For each technique, find one simple recipe that uses it. When a technique has no results, note that and move to the next. After gathering the recipes, make a page that lists the seven days and the assigned technique and recipe for each. Show the plan to the person and ask if they want to keep it, change any day, or start over. If they approve, write the plan to a text file in their workspace so they can refer to it later.",
+  "starters": [
+    "plan dinners for the week",
+    "different cooking techniques",
+    "what's for dinner this week"
+  ],
+  "examples": [
+    {
+      "ask": "can you plan dinners for the week",
+      "does": "search for cooking techniques and recipes, then show a weekly plan"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-recipes",
+      "description": "Find one recipe per cooking technique using web search.",
+      "body": "1. Type the name of a cooking technique into web search. 2. Read the results and pick the first recipe that looks simple and uses that technique. 3. Note the recipe name, key ingredients, and short steps. 4. Repeat for four more techniques. 5. If a search returns no useful recipe, note the technique as unavailable and try the next one."
+    },
+    {
+      "name": "format-plan",
+      "description": "Arrange the recipes into a weekly schedule.",
+      "body": "1. Create a table with seven rows (one per day) and three columns (day, technique, recipe). 2. Fill in one technique and its recipe per day, using the results from the search skill. 3. Leave a day blank if fewer than seven techniques were found. 4. Make the page look clean with headings and bullet points."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# dinner planner\nPlan a week of dinners, each using a different cooking technique.\n\nWhat it does: searches for recipes that use distinct techniques, arranges them into a seven-day plan, and saves the plan as a text file.\n\nWhat it needs: web search to find recipes, a page to show the plan, and a text file to store it.\n\nWhat it will not do: it cannot cook the meals, check the person's pantry, or account for dietary restrictions unless told.",
+  "hash": "a57d9865fd4ddc19ccbec6866f5c61d3c887fa7c7d9e728ecd3efbb553c6a186"
+}

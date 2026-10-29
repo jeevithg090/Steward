@@ -1,0 +1,49 @@
+{
+  "id": "brand-questionnaire",
+  "name": "Brand questionnaire",
+  "pitch": "Draft a quarterly brand audit questionnaire to send to a team or client.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Write a quarterly brand audit questionnaire. Start by asking the person whether they want the questionnaire for their team or for a client. If they say team, ask how many people are on the team and what role the person has in it. If they say client, ask for the client's industry and the main purpose of the audit. Use the answers to choose a template or create a fresh set of questions. Write the questions in plain language, grouped into sections such as brand purpose, visual identity, messaging, and customer experience. Keep each question short and answerable in a few words. When the draft is finished, use make_page to create a markdown document with the questionnaire and a short intro. Save the file with a name that includes the date and whether it is for team or client. If at any point the person gives no answer, say so and stop. Do not include any brand names, prices, or made-up statistics in the questions.",
+  "starters": [
+    "draft a brand questionnaire",
+    "send me a brand audit",
+    "questionnaire for my team"
+  ],
+  "examples": [
+    {
+      "ask": "team or client?",
+      "does": "ask whether the questionnaire is for the person's team or a client"
+    },
+    {
+      "ask": "what industry?",
+      "does": "ask for the client's industry if they chose client"
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-questions",
+      "description": "Write brand audit questions grouped into sections.",
+      "body": "1. Decide the sections: brand purpose, visual identity, messaging, and customer experience. 2. Write 3 to 5 questions for each section. 3. Use plain language and keep answers short. 4. Number the questions and give a clear heading for each section. 5. End the list with a space for open feedback."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Brand questionnaire\n\nCreates a quarterly brand audit questionnaire for a team or client. \n\nNeeds: file_write, make_page. \n\nWill not do: send the questionnaire without asking; include brand names or prices.",
+  "hash": "60c7e702bfbbb133896060214dc9dfb5ee8a11e02910480890d7fb5a42124a3e"
+}

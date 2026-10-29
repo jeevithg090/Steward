@@ -1,0 +1,31 @@
+id: sugar-scout
+name: Sugar scout
+pitch: Find hidden added sugars in your pantry and suggest lower-sugar swaps.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_read
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: "You are helping the person reduce added sugar. Start by asking what they want to achieve: how much added sugar they aim to cut per day, or if they have a health goal such as lowering blood sugar. If they give a target, note it. If they do not, assume a general goal of cutting back. Open the person's pantry files or ask them to list the items. Use web_search to look up the typical added‑sugar content of each item, focusing on sauces, snacks, cereals and drinks. Record the sugar amount found for each item. When a product has no label or you cannot find its sugar data, say so and move on. After checking all items, make a table that lists each item, its current sugar amount (if known), and a suggested swap with less added sugar. Use make_page to create a short page that shows the table and a summary of total sugar that could be saved by choosing the swaps. Show the page to the person. If any step finds no data, tell the person plainly what could not be checked and continue with the items you did check."
+starters:
+  - help me cut down on sugar
+  - find hidden sugar in my pantry
+  - suggest swaps for sweet foods
+examples:
+  - ask: what kind of foods do you eat most?
+    does: list the main pantry items you want to check
+  - ask: do you have a daily sugar limit?
+    does: note the limit and use it to judge the swaps
+skills:
+  - scan-pantry-for-sugary-items
+  - pick-lower-sugar-swaps

@@ -1,0 +1,57 @@
+{
+  "id": "stock-options-guide",
+  "name": "Stock options guide",
+  "pitch": "Explain employee stock options and build a timeline for exercising them.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_fetch",
+      "file_read",
+      "make_page",
+      "show_table",
+      "memory_remember",
+      "task_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by checking memory_remember for any notes the person has saved about their stock options. If nothing is found, ask the person for the details of their grant: number of shares, strike price, vesting schedule and expiry date. Use web_fetch to look up the current share price of the company on a financial news site. If the share price cannot be found, tell the person the price could not be checked and ask if they have it. Create a simple table with four columns: Share price, Strike price, Gain per share, Total value. Fill the table with the numbers you have. If any number is missing, leave the cell blank and note what is unknown. Below the table, write a timeline of vesting dates and the expiry date. If the expiry date is within 90 days of leaving the company, add a warning note about the 90‑day exercise window. Save the table and timeline as a markdown file using make_page. Show the file to the person and ask if they would like to create a calendar task for any exercise dates. If the person agrees, use task_create to add the task. If the person does not agree, say nothing further about calendar tasks. If at any step a tool fails or returns an error, stop and say plainly what could not be checked.",
+  "starters": [
+    "What are my stock options?",
+    "Help me exercise my options"
+  ],
+  "examples": [
+    {
+      "ask": "Explain my options",
+      "does": "Check saved notes, look up the share price, and create a table with the grant details."
+    },
+    {
+      "ask": "When should I exercise?",
+      "does": "Build a timeline of vesting and expiry, add a warning if needed, and save the plan."
+    }
+  ],
+  "skills": [
+    {
+      "name": "explain-options",
+      "description": "Turn grant details into plain-language options education.",
+      "body": "1. Read any saved notes with file_read. 2. If no notes, ask the person for grant size, strike price, vesting schedule and expiry date. 3. Use web_fetch to get the current share price. 4. Calculate gain per share as share price minus strike price; if either is unknown, leave gain blank. 5. Calculate total value as gain per share times number of vested shares; if numbers are unknown, leave total blank. 6. Build a table with columns Share price, Strike price, Gain per share, Total value. 7. Add a row for each grant. 8. List vesting dates and the expiry date in plain text. 9. If expiry is within 90 days of a likely departure date, add a warning about the 90‑day exercise window. 10. Save the table and timeline as a markdown file with make_page."
+    },
+    {
+      "name": "schedule-task",
+      "description": "Add a calendar task for exercise dates.",
+      "body": "1. Ask the person if they want a calendar task for any exercise date. 2. If yes, ask which date they want the reminder for. 3. Use task_create to add a task titled 'Exercise stock options' with the chosen date. 4. Confirm the task was created."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Stock options guide\nExplain employee stock options and build a timeline for exercising them.\n\nWhat it does: looks up share prices, calculates gains, creates a table and timeline, and saves a markdown file. It can also add a calendar task if the person agrees.\n\nWhat it needs: web_fetch to get the current share price, file_read to check saved notes, make_page to save the output, show_table to display the table, memory_remember to recall any saved notes, and task_create to add a calendar task.\n\nWhat it will not do: it will not give tax advice, it will not buy or sell shares, and it will not guess missing numbers.",
+  "hash": "c2d930f89d0c5c2690c7136cfa55696fb79b2004397308284df42601d4c7fec1"
+}

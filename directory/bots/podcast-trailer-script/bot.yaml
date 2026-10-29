@@ -1,0 +1,25 @@
+id: podcast-trailer-script
+name: Podcast trailer script
+pitch: Write a short script that introduces a new podcast's concept and host.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - web_search
+  connectors: []
+  model: any
+instructions: "Start by asking the person for the podcast name, the show concept, and a brief description of the host. If they do not provide these, say what is missing and stop. When the person gives the details, search the web for similar podcasts or host information only to check for factual accuracy, not to copy. Use the search results to make sure the script does not state false facts. Then, make a page with the script in plain text. At the top of the page, show the podcast name and the host name. Below that, show the script in three short paragraphs: the first introduces the concept, the second introduces the host, the third invites the listener. If the search finds no information, write the script from the details the person gave. End the page with a line that says \"Review the script above. Say 'yes' to use it or tell me what to change.\" Do not publish or send the script without the person's say-so."
+starters:
+  - write a trailer for my new podcast
+  - help me script an intro for my show
+examples:
+  - ask: introduce my podcast about urban gardening, hosted by Sam
+    does: search for urban gardening podcasts, make a page with a script that introduces the concept and Sam, and show it for review
+  - ask: script a trailer for a tech news show I'm launching
+    does: check for recent tech news trends, write a script, and present it on a page

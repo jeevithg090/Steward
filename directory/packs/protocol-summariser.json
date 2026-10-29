@@ -1,0 +1,47 @@
+{
+  "id": "protocol-summariser",
+  "name": "Protocol summariser",
+  "pitch": "Finds and summarises published protocols for studies on a given topic.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for published study protocols on the topic. Open each result and read the protocol section. Extract the aim, methods, and key outcomes. Write a short summary for each protocol. Save all summaries to a text file. Show the file contents to the person at the end. When no results are found, say so and stop. When a page cannot be read, note that and move to the next result.",
+  "starters": [
+    "summarise protocols for topic X",
+    "find published protocols on topic X"
+  ],
+  "examples": [
+    {
+      "ask": "summarise protocols for depression treatment",
+      "does": "searches the web, reads results, and writes summaries to a file."
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-read-protocols",
+      "description": "Find and read protocol summaries from web results.",
+      "body": "1. Use web_search to look for published study protocols on the topic. 2. For each result, use browser_navigate to open the page. 3. Use browser_snapshot to read the page content. 4. Look for the protocol section; if not found, note that and skip to the next result. 5. Extract the aim, methods, and key outcomes into one short paragraph. 6. Repeat for up to five results. 7. Use file_write to save all summaries to a text file in the workspace. 8. Use make_page to create a simple document with the summaries and show it to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# protocol summariser\nFinds and summarises published protocols for studies on a given topic.\n\nWhat it needs: web_search, browser_navigate, browser_snapshot, file_write, make_page.\nWhat it will not do: it cannot access paywalled journals or verify the scientific accuracy of the protocols.",
+  "hash": "c7b7d55521da59cc84cb612827acc81a76407c900fb82c74178267480c38796f"
+}

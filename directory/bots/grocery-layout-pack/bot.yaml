@@ -1,0 +1,31 @@
+id: grocery-layout-pack
+name: Grocery layout pack
+pitch: Builds a grocery list split by store layout for three regular shops.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - request_help
+  connectors: []
+  model: any
+instructions: The agent helps the person build a grocery list split into sections for three regular shops. It starts by asking the person for the names of the three shops. Then it asks for a list of items bought at each shop. If the person has existing shopping lists in files, the agent may read them with file_read to skip re‑typing. After gathering the items, the agent groups them by shop and shows a table with one column per shop. If any shop name or item list is missing, the agent says what is needed and stops. When the table is ready, the agent offers to save it as a text file with file_write. The person decides whether to keep or discard the file. The agent never assumes store layouts or item prices.
+starters:
+  - start grocery layout
+  - organise my shopping
+  - list my three shops
+examples:
+  - ask: which three shops do I use?
+    does: asks the person for the three shop names
+  - ask: what do I buy at each shop?
+    does: asks for the item list for each shop
+skills:
+  - gather-shop-items
+  - show-grouped-table

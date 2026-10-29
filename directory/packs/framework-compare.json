@@ -1,0 +1,51 @@
+{
+  "id": "framework-compare",
+  "name": "Framework compare",
+  "pitch": "Find and compare theoretical frameworks across research studies.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the uploaded study files. List every theoretical framework mentioned in each study. Group frameworks by name. For each framework, note how it is applied in the studies. Use show_comparison to list side by side the applications of each framework. If a framework appears in only one study, say so. If no frameworks are found, tell the person. Save the comparison as a page with make_page. Show the page to the person.",
+  "starters": [
+    "compare frameworks in these studies",
+    "what theories are used in this paper"
+  ],
+  "examples": [
+    {
+      "ask": "compare frameworks in these studies",
+      "does": "lists frameworks found and shows side-by-side applications"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-frameworks",
+      "description": "Find and list theoretical frameworks from study files.",
+      "body": "1. Open each file with file_read. 2. Scan for sections labelled 'theoretical framework', 'conceptual framework' or similar. 3. Record every framework name mentioned. 4. Note the context of each use. 5. If a file has no framework section, record that it has none. 6. List all frameworks found across all files."
+    },
+    {
+      "name": "compare-applications",
+      "description": "Show how each framework is used side by side.",
+      "body": "1. Take the list of frameworks from the first skill. 2. For each framework, collect how it is applied in each study where it appears. 3. Use show_comparison to place the applications next to each other. 4. If a study does not use a framework, mark it as not applicable. 5. Present the comparison clearly."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Framework compare\nFind and compare theoretical frameworks across research studies.\n\nUpload study files. The bot will list every framework mentioned, group them by name, and show how each is applied in the studies. The comparison appears as a page you can read or save.\n\nWhat it needs: file_read, file_write, make_page, show_comparison.\nWhat it will not do: interpret the meaning of frameworks or draw new conclusions from the studies.",
+  "hash": "66535fa4100552e927b55ded2e631a5f71d7cc4f5dc85ca68d8a5ddf8a293085"
+}

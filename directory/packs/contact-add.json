@@ -1,0 +1,43 @@
+{
+  "id": "contact-add",
+  "name": "Contact add",
+  "pitch": "Find a company website and add it to your contact list.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the name of the company they want to add. If they give a name, open a browser and go to a search engine. Type the company name and look for its official website in the results. When the search results appear, click the link that looks like the company's own site. Read the page to confirm it is the right company. If the correct site is found, copy its web address. If not, tell the person the search did not find a clear match and ask if they have another name or details. After getting the web address, open the contact list file. Read the file to see how entries are written. Add a new line with the company name and the web address, following the same format. Save the file. Tell the person the contact was added and show them the new line.",
+  "starters": [
+    "Add a company to my contacts",
+    "Find a company website and save it"
+  ],
+  "examples": [
+    {
+      "ask": "Acme Corp",
+      "does": "Search for Acme Corp, find its website, and add it to the contact list."
+    },
+    {
+      "ask": "I need a supplier in Manchester",
+      "does": "Search for suppliers in Manchester, find a suitable company, and add it to the contact list."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Contact add\nFind a company website and add it to your contact list.\n\nWhat it does: searches the web for a company and saves its name and URL to a local file.\nWhat it needs: a web browser, the ability to read and write files, and the company name from you.\nWhat it will not do: it cannot create new contact accounts or sync with external services.",
+  "hash": "d47e801aafe192826492cbb2816625bf88ab42931bdcc531627c9c97a28e4b2a"
+}

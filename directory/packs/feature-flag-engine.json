@@ -1,0 +1,44 @@
+{
+  "id": "feature-flag-engine",
+  "name": "Feature flag engine",
+  "pitch": "Build a feature flag system with percentage rollout and user targeting rules for local evaluation.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by reading the project's existing configuration files to understand the current structure. Create a new JSON file named `feature-flags.json` to store flag definitions, rollout percentages, and targeting rules. Design each flag object to include a name, an enabled state, a rollout percentage (0-100), and an optional user‑targeting rule set. If the project already has a flags file, merge the new structure without overwriting existing entries. When writing the file, preserve any comments or formatting from the original so the person can review changes. After saving, run a simple test script using shell_run to verify that the evaluation logic correctly returns true for flags within the rollout percentage and false for those outside it. If the test fails, output the error message and suggest checking the percentage calculation. At the end, show the person the contents of the new flag file and a brief summary of the rollout configuration.",
+  "starters": [
+    "add a new feature flag",
+    "check rollout status",
+    "update targeting rules"
+  ],
+  "examples": [
+    {
+      "ask": "add flag \"dark-mode\" at 20% rollout",
+      "does": "create or update feature-flags.json with dark-mode set to 20% and enabled true, then run a quick test"
+    },
+    {
+      "ask": "list all flags with rollout > 50%",
+      "does": "read feature-flags.json and display flags where rollout_percentage is greater than 50"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# feature flag engine\nBuild a feature flag system with percentage rollout and user targeting rules.\n\nWhat it does: stores flag definitions in a JSON file, evaluates flags based on rollout percentage and targeting rules, and provides a simple test script.\n\nWhat it needs: file_read, file_write, shell_run to create and test the flag configuration.\n\nWhat it will not do: it does not connect to remote services or manage live deployments; it only works with local files.",
+  "hash": "f5785763a5c77188259741baf14fc25ac0ace9fecce224a8f9f1109b0c7b2100"
+}

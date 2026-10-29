@@ -1,64 +1,65 @@
 # Directory report
 
-Generated 2026-10-28. 642 packs in `directory/bots/`.
+Generated 2026-10-29. 1251 packs in `directory/bots/`.
 
 ## By category
 
-- Research & learning (`research`): 64
-- Developers & tools (`dev`): 59
-- Work & teams (`work`): 41
-- Social & creators (`social`): 40
-- Email & productivity (`productivity`): 40
-- Business & marketing (`business`): 38
-- Everyday tasks (`misc`): 35
-- Health & fitness (`health`): 34
-- Build & manage bots (`bot-helpers`): 33
-- Food & cooking (`food`): 31
-- Games & fun (`games`): 31
-- Video & audio (`video-audio`): 28
-- Sales & CRM (`sales-crm`): 27
-- Money & finance (`money`): 26
-- Privacy & scams (`privacy`): 24
-- Sports & fantasy (`sports`): 24
-- Home & family (`home`): 23
-- Travel & cars (`travel`): 23
-- Investing & crypto (`investing`): 21
+- Health & fitness (`health`): 112
+- Developers & tools (`dev`): 101
+- Food & cooking (`food`): 97
+- Money & finance (`money`): 95
+- Research & learning (`research`): 94
+- Email & productivity (`productivity`): 83
+- Investing & crypto (`investing`): 74
+- Social & creators (`social`): 65
+- Work & teams (`work`): 60
+- Business & marketing (`business`): 59
+- Video & audio (`video-audio`): 55
+- Games & fun (`games`): 52
+- Home & family (`home`): 49
+- Everyday tasks (`misc`): 48
+- Build & manage bots (`bot-helpers`): 48
+- Travel & cars (`travel`): 46
+- Privacy & scams (`privacy`): 40
+- Sales & CRM (`sales-crm`): 38
+- Sports & fantasy (`sports`): 35
 
 ## By author
 
-- AI-made (nvidia/nemotron-3.5-lightning-30b-a3b): 328
+- AI-made (nvidia/nemotron-3.5-lightning-30b-a3b): 937
 - person (LobeChat author): 177
 - AI-made (nvidia/nemotron-3-ultra-550b-a55b): 127
 - person (OpenBot): 10
 
 ## Problems
 
-0 errors, 299 warnings across 175 packs.
+0 errors, 362 warnings across 231 packs.
 
-- 64 × uses jargon: …; say it in plain words
-- 23 × a sentence has 36 words; keep sentences short …
+- 69 × uses jargon: …; say it in plain words
+- 38 × a sentence has 36 words; keep sentences short …
+- 29 × a sentence has 37 words; keep sentences short …
+- 22 × a sentence has 38 words; keep sentences short …
 - 22 × uses jargon: …, …; say it in plain words
-- 17 × a sentence has 37 words; keep sentences short …
-- 15 × a sentence has 41 words; keep sentences short …
-- 13 × a sentence has 39 words; keep sentences short …
-- 13 × a sentence has 38 words; keep sentences short …
+- 18 × a sentence has 39 words; keep sentences short …
+- 16 × a sentence has 41 words; keep sentences short …
+- 16 × a sentence has 42 words; keep sentences short …
 - 13 × a sentence has 40 words; keep sentences short …
-- 12 × a sentence has 42 words; keep sentences short …
+- 11 × a sentence has 43 words; keep sentences short …
 - 10 × a sentence has 44 words; keep sentences short …
-- 9 × a sentence has 43 words; keep sentences short …
-- 7 × a sentence has 49 words; keep sentences short …
-- 6 × a sentence has 46 words; keep sentences short …
-- 5 × a sentence has 48 words; keep sentences short …
+- 9 × a sentence has 46 words; keep sentences short …
+- 8 × a sentence has 49 words; keep sentences short …
+- 6 × a sentence has 48 words; keep sentences short …
 - 5 × a sentence has 52 words; keep sentences short …
+- 5 × a sentence has 53 words; keep sentences short …
 - 4 × a sentence has 47 words; keep sentences short …
-- 4 × a sentence has 53 words; keep sentences short …
 - 4 × uses jargon: …, …, …; say it in plain words
+- 4 × a sentence has 54 words; keep sentences short …
 - 4 × a sentence has 56 words; keep sentences short …
 - 3 × a sentence has 45 words; keep sentences short …
 - 3 × a sentence has 67 words; keep sentences short …
-- 3 × a sentence has 54 words; keep sentences short …
+- 3 × a sentence has 50 words; keep sentences short …
 - 3 × a sentence has 57 words; keep sentences short …
-- 2 × a sentence has 50 words; keep sentences short …
+- 2 × a sentence has 63 words; keep sentences short …
 - 2 × a sentence has 66 words; keep sentences short …
 - 1 × a sentence has 65 words; keep sentences short …
 - 1 × a sentence has 72 words; keep sentences short …
@@ -66,7 +67,6 @@ Generated 2026-10-28. 642 packs in `directory/bots/`.
 - 1 × a sentence has 74 words; keep sentences short …
 - 1 × a sentence has 41 words; keep sentences short … or …")
 - 1 × a sentence has 107 words; keep sentences short …
-- 1 × a sentence has 63 words; keep sentences short …
 - 1 × a sentence has 76 words; keep sentences short …
 - 1 × a sentence has 41 words; keep sentences short … or give me the source.** - You n
 - 1 × uses jargon: …, …, …, …, …; say it in plain words
@@ -93,28 +93,34 @@ Generated 2026-10-28. 642 packs in `directory/bots/`.
 - 1 × a sentence has 49 words; keep sentences short …: - Monday: hummus wrap,…")
 - 1 × a sentence has 92 words; keep sentences short …
 - 1 × a sentence has 68 words; keep sentences short …
+- 1 × a sentence has 40 words; keep sentences short … th…")
 
 ## Generation log
 
-455 written, 228 dropped.
+1064 written, 449 dropped.
 
-- 120 × model failed
-- 96 × below the bar
-- 8 × judge failed
+- 282 × below the bar
+- 144 × model failed
+- 14 × judge failed
 - 1 × duplicate of monthly-budget-builder
 - 1 × duplicate of packed-lunch-planner
 - 1 × duplicate of birthday-reminder
 - 1 × duplicate of email-date-remider
+- 1 × duplicate of release-notes-writer
+- 1 × duplicate of vendor-delay-reply
+- 1 × duplicate of phone-plan-compare
+- 1 × duplicate of gestational-diabetes-meal-planner
+- 1 × duplicate of robo-advisor-compare
 
 ## Toward the launch target
 
-455 AI-made bots on the shelf, of 2000 planned; 0 retired.
-1384 jobs in the taxonomy (224 by people, 1160 proposed by a model and not yet read by a person); 830 without a bot yet.
+1064 AI-made bots on the shelf, of 2000 planned; 0 retired.
+1384 jobs in the taxonomy (224 by people, 1160 proposed by a model and not yet read by a person); 30 without a bot yet.
 
 | Writer                                | Bots | Seconds per bot, one worker (median) | Bots per minute of run time |
 | ------------------------------------- | ---- | ------------------------------------ | --------------------------- |
 | nvidia/nemotron-3-ultra-550b-a55b     | 127  | 115                                  | 2.8                         |
-| nvidia/nemotron-3.5-lightning-30b-a3b | 328  | 52                                   | 2.7                         |
+| nvidia/nemotron-3.5-lightning-30b-a3b | 937  | 33                                   | 4.4                         |
 
 Resume with the same command; it skips jobs that already have a bot or were dropped for good:
 

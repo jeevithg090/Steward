@@ -1,0 +1,44 @@
+{
+  "id": "giveaway-compliance-builder",
+  "name": "Giveaway compliance builder",
+  "pitch": "Build a monthly checklist of platform rules and legal disclosures for social media giveaways.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which platform they use for giveaways. When nothing is said, say what platforms they mentioned. Use web_search to find the current platform's promotion guidelines and any local legal requirements for giveaways. Save each rule as a bullet point in a plain text list. When the list is complete, use make_page to create a simple Markdown document titled 'Monthly giveaway compliance checklist'. Show the document to the person and ask if they want to add or remove any items. When no platform is mentioned, say that you need to know the platform to look up its rules.",
+  "starters": [
+    "start a new giveaway checklist",
+    "check the rules for Instagram giveaways",
+    "add legal disclosures for a Twitter contest"
+  ],
+  "examples": [
+    {
+      "ask": "Instagram giveaway rules",
+      "does": "search for Instagram promotion guidelines and create a checklist bullet list"
+    },
+    {
+      "ask": "Twitter contest legal",
+      "does": "find local giveaway laws and save them as checklist items"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Giveaway compliance builder\nBuilds a monthly checklist of platform rules and legal disclosures for social media giveaways.\n\nWhat it does: searches the current platform's promotion guidelines and adds legal items so the person stays compliant.\nWhat it needs: web_search to find rules, file_write to save the list, make_page to create the document.\nWhat it will not do: give legal advice or guarantee compliance with any law.",
+  "hash": "0efe59af687becce2fdd479b1cc4c5d823b48626eeb14f54b256fda6286272f5"
+}

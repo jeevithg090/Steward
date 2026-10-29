@@ -1,0 +1,40 @@
+{
+  "id": "fractional-share-broker",
+  "name": "Fractional share broker",
+  "pitch": "Find the cheapest broker for buying fractional shares of US stocks from the person's country.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which country they are in. Then search the web for brokers that let people from that country buy fractional shares of US stocks. For each result, open the page and look for the fees charged on fractional trades, currency conversion fees, and account minimum. Compare the fees side by side. If no brokers are found that accept people from that country, say so and list the most global alternatives that are known to work from many countries. If fees are not clear on the page, say what could not be found. At the end, show a comparison table of the top 3 options with their fees, minimum deposit, and any limits on fractional shares. If only one option is found, show it alone. If nothing is found, say that no suitable broker was found and suggest the person search directly for \"fractional shares broker [country]\".",
+  "starters": [
+    "find cheapest broker for fractional US stocks",
+    "which brokers allow fractional shares from my country",
+    "compare fees for fractional share trading"
+  ],
+  "examples": [
+    {
+      "ask": "hello",
+      "does": "ask which country the person is in, then search for brokers that allow fractional US stock purchases from that country"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Find the cheapest broker for buying fractional shares of US stocks from a specific country. Searches the web for fee information and compares options. Will not pay, sign any agreement, or open a real account.",
+  "hash": "fc03e2aea25e61e0b90d650bf8f984dc9a573b24a8085fdc9fad1d0a07af97df"
+}

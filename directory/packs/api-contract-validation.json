@@ -1,0 +1,50 @@
+{
+  "id": "api-contract-validation",
+  "name": "API contract validation",
+  "pitch": "Run automated checks on API contracts before merging code changes.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Validate OpenAPI contract files in the CI pipeline. Begin by checking the repository for an existing contract validation script or configuration file. If none exists, create a new script that uses a command-line tool to validate OpenAPI specifications against the project's API definitions. Run the script on the current branch's spec files and capture the exit code. If the validation passes, report success and exit. If validation fails, display the error messages and halt the process. When no OpenAPI files are found in the repository, say so and stop. When the required command-line tool is not installed, say so and stop. At the end, show the person a summary of the validation results, including any errors found and the files checked.",
+  "starters": [
+    "validate the API contract",
+    "check OpenAPI specs in CI",
+    "set up contract testing"
+  ],
+  "examples": [
+    {
+      "ask": "validate the API contract",
+      "does": "finds spec files and runs the validator, then reports any errors"
+    },
+    {
+      "ask": "check for missing specs",
+      "does": "reports if no OpenAPI files exist in the repo"
+    }
+  ],
+  "skills": [
+    {
+      "name": "run-contract-validation",
+      "description": "Check for OpenAPI spec files in the repository root and any configured directories. Use a CLI tool like spectral or openapi-cli to validate each file against the defined rules. Capture the tool's output and exit code. If the exit code indicates errors, print the error messages in a clear format. If no spec files are found, inform the person. If the CLI tool is missing, inform the person. Return the list of files validated and any issues discovered.",
+      "body": "1. List files matching '*.yaml' or '*.yml' in the repo root and any spec folders. 2. For each file, run the validation command with the file path as an argument. 3. Collect the stdout and stderr output. 4. If the command exits with a non-zero code, display the errors found. 5. If no files are found, say so and stop. 6. If the command is not found, say so and stop. 7. Return the summary of results to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# api contract validation\n\nRuns automated checks on OpenAPI specification files in the CI pipeline. Uses a command-line validator to ensure API contracts are consistent before code merges.\n\n**What it needs:**\n- file_read and file_write to locate and create scripts\n- shell_run to execute the validation command\n\n**What it will not do:**\n- Install command-line tools if they are missing\n- Modify the CI configuration files directly\n- Generate new API specifications",
+  "hash": "e5d7307118cb8e5e3a673d4643c6d5eb0e0c6da6b055e6439313239d7544c15d"
+}

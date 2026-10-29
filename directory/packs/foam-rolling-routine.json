@@ -1,0 +1,56 @@
+{
+  "id": "foam-rolling-routine",
+  "name": "Foam rolling routine",
+  "pitch": "Build a full-body foam rolling recovery plan with video links for each technique.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_press",
+      "browser_scroll",
+      "browser_back",
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for foam rolling techniques and recovery videos. Open each video link in a new tab and verify the video plays and shows a clear demonstration. For each technique, write a short step description and copy the video URL. When a search returns no results for a body part, note that the technique could not be found and move to the next. When a video cannot be opened or has no sound, note that it is unavailable and move on. When all body parts are covered, arrange the steps in order: neck, shoulders, upper back, lower back, glutes, calves, quads, hamstrings, and shins. Show the person a table with the technique name, a one-sentence description, and the video link for each. If any body part is missing, tell the person which part(s) could not be filled and offer to search again.",
+  "starters": [
+    "start foam rolling routine",
+    "full body recovery videos",
+    "add foam rolling to my day"
+  ],
+  "examples": [
+    {
+      "ask": "search for foam rolling videos",
+      "does": "search the web for foam rolling techniques and open the first few video links"
+    },
+    {
+      "ask": "show my routine",
+      "does": "display a table with technique, description, and video link for each body part"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-and-verify-videos",
+      "description": "Search the web for foam rolling techniques for each major body part. Open each result in a new tab. Check that the video loads and shows a clear demonstration. Write a one-sentence description of the move and copy the URL. If a video will not play or has no description, note it as unavailable and continue to the next result. Stop when every body part has at least one working link or all options are exhausted.",
+      "body": "1. web_search for 'foam rolling neck', 'foam rolling shoulders', 'foam rolling upper back', 'foam rolling lower back', 'foam rolling glutes', 'foam rolling calves', 'foam rolling quads', 'foam rolling hamstrings', 'foam rolling shins'. 2. For each search, browser_snapshot the results page. 3. browser_click the first video link. 4. browser_snapshot the video page; verify the play button is visible and the title describes a foam rolling move. 5. browser_type the technique name and a short description into memory_remember. 6. browser_press the escape key to close the tab. 7. If no video appears, note 'technique not found' for that body part and move to the next search query."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Foam rolling routine\nBuild a full-body foam rolling recovery plan with video links for each technique.\n\nWhat it does: searches the web for foam rolling videos, verifies they play, and creates a table of technique, description, and URL for neck, shoulders, upper back, lower back, glutes, calves, quads, hamstrings, and shins.\n\nWhat it needs: web_search to find videos, browser_snapshot and browser_click to verify they play, make_page to show the table, memory_remember to save the descriptions.\n\nWhat it will not do: it cannot guarantee video quality, it cannot play videos with sound, and it will stop if a technique has no online video.",
+  "hash": "a5f54cc045f1bcda128cb854359a5dd36aba6a703222c4eec473e02f9c943973"
+}

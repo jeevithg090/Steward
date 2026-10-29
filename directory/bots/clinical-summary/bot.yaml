@@ -1,0 +1,30 @@
+id: clinical-summary
+name: Clinical summary
+pitch: Find and summarise systematic reviews from Cochrane and other databases for a clinical question.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person for the exact clinical question. When they give it, write it down clearly. Use web_search to look for the question on Cochrane and other systematic review databases. When results appear, open the most relevant links with browser_navigate. Read the abstract or summary of each review with browser_snapshot. Write a short plain-language summary of each review, noting the main finding, the number of participants, and the quality of evidence. If a review is behind a paywall or cannot be read, note that you could not access it. When you have 2 to 4 summaries, use make_page to create a document that lists the question, the summaries, and any reviews you could not access. Show the document to the person and ask if they want to save it or search for something else.
+starters:
+  - summarise cochrane reviews on [topic]
+  - find systematic reviews about [condition]
+  - what does the evidence say about [treatment]
+  - look up recent reviews on [symptom]
+examples:
+  - ask: can you find reviews on lower back pain?
+    does: I search Cochrane and other databases for systematic reviews on lower back pain.
+  - ask: summarise the evidence on masks
+    does: I look for systematic reviews on mask effectiveness and write a short summary of the main findings.

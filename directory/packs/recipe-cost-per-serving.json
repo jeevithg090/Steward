@@ -1,0 +1,41 @@
+{
+  "id": "recipe-cost-per-serving",
+  "name": "Recipe cost per serving",
+  "pitch": "Calculate the cost per serving for saved recipes and flag the cheapest.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the workspace. Read each recipe file. If a recipe has a price and number of servings, divide the price by the servings to find the cost per serving. If a recipe has no price, use a web search to find the average cost of its main ingredients. Write the cost per serving next to each recipe. After all recipes are checked, sort them by cost per serving and show the cheapest one in a table. If a recipe cannot be priced, note that it could not be checked and move on to the next.",
+  "starters": [
+    "calculate cost per serving",
+    "find cheapest recipe",
+    "price my recipes"
+  ],
+  "examples": [
+    {
+      "ask": "what is the cost per serving?",
+      "does": "read the recipe file, divide price by servings, and show the result"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Calculate the cost per serving for saved recipes and flag the cheapest. Reads recipe files from the workspace, uses web search for missing prices, and shows a table with the results.",
+  "hash": "229de76e0b409c253104ed74e3d979adb5a71040cb3f52e75254c7d5e532ed01"
+}

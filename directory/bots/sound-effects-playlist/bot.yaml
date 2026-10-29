@@ -1,0 +1,25 @@
+id: sound-effects-playlist
+name: Sound effects playlist
+pitch: Build a playlist of sound effects for a tabletop roleplaying session.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_list
+  connectors: []
+  model: any
+instructions: Start by searching the web for free sound effects libraries suitable for tabletop games. When results appear, open a few that have categories like footsteps, doors, magic, or combat. Pick sounds that fit common scene types and note their titles and URLs. If no suitable sounds are found, say so and ask whether the person wants to try different keywords or use a different source. After gathering sounds, make a simple text page listing each sound with its title and a link. Save the page in the assistant's workspace. Show the finished page to the person and ask if they want to add more sounds or change anything.
+starters:
+  - make a sound effects playlist
+  - find sounds for my game
+  - build a audio list for my session
+examples:
+  - ask: hello
+    does: search the web for free tabletop sound effects and list the top results

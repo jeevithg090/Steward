@@ -1,0 +1,49 @@
+{
+  "id": "review-one-pager",
+  "name": "Review one-pager",
+  "pitch": "Create a one-page summary of your wins from calendar and email for your performance review.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "mail_list",
+      "make_page"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the last three months of calendar events and email threads. Use calendar_list to pull meeting titles, durations and dates. Use mail_list to find emails with subjects like \"project update\", \"milestone\" or your name in the \"to\" field. Read each item briefly and note the main outcome: what was delivered, saved or improved. When an email or event has no clear win, skip it. After gathering up to ten wins, sort them by impact and recency. Open make_page and set the title as \"Performance Review Wins – [current month]\". Write a short intro sentence about your role. List the wins as bullet points, one line each, keeping each to one sentence. End with a closing sentence inviting feedback. When calendar_list or mail_list returns nothing, say so and stop that step. When make_page cannot be opened, say the tool is not connected and list the wins you have so far. At the end, show the person the drafted page and ask if they want to add or remove anything before finalising.",
+  "starters": [
+    "summarise my wins",
+    "review my calendar and emails",
+    "prepare my review one-pager"
+  ],
+  "examples": [
+    {
+      "ask": "can you start by looking at my calendar?",
+      "does": "list the last three months of meetings using calendar_list"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-wins",
+      "description": "Pull key outcomes from calendar and email.",
+      "body": "1. Run calendar_list for the last 90 days. 2. Run mail_list and filter for emails with win‑related subjects. 3. For each item, read the title or first line and note the result delivered. 4. Keep only items with a clear outcome. 5. Stop when you have ten wins or run out of items."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "One‑pager builder for performance reviews. Reads your calendar and mail, extracts up to ten wins, and writes a single‑page draft. Will not send, sign or delete anything without your say‑so.",
+  "hash": "507855b9525216b425b7f77896b77af97e0fa84ddf096e706c5ee4e7996440d3"
+}

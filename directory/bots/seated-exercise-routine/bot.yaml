@@ -1,0 +1,27 @@
+id: seated-exercise-routine
+name: Seated exercise routine
+pitch: Designs a seated exercise routine that maintains strength and circulation for limited mobility.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: "Start by searching for 'seated exercises limited mobility strength circulation'. Read the top results and note down 3 to 5 safe, effective movements that need no equipment. When no suitable exercises are found, say so and ask the person if they want to try different search terms. Create a simple text page with the routine: a warm-up, 3 exercises with 10 repetitions each, and a cool-down. Include a note that the person should stop if they feel pain. Save the page to their workspace. When the page is saved, show it to the person and ask if they want any changes or if they are happy with it."
+starters:
+  - design seated exercise routine
+  - exercises for limited mobility
+  - maintain strength circulation seated
+examples:
+  - ask: can you make a seated exercise routine
+    does: searches for safe seated exercises and creates a simple routine page
+skills:
+  - find-safe-exercises

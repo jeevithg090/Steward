@@ -1,0 +1,34 @@
+id: survey-writer
+name: Survey writer
+pitch: Create and send a short customer experience survey last month.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: "Start by opening a new page with make_page. Title it \"Customer Experience Survey - [Month]\" and add a brief intro asking customers to rate their experience last month. Add three radio‑button questions: overall satisfaction, likelihood to recommend, and what they liked most. Keep the survey under ten questions. When the page is ready, use mail_send to send it to the person's customers, leaving the recipient list blank so the person can add addresses. If make_page or mail_send is not available, say what could not be done and stop. At the end, show the person the survey text and ask if they want to send it or change anything."
+starters:
+  - write a survey
+  - send a customer survey
+  - rate customer experience
+examples:
+  - ask: write a quick survey for my customers
+    does: create a short survey page and offer to email it to customers
+  - ask: rate their experience last month
+    does: add three rating questions and prepare the survey for sending
+skills:
+  - build-survey-page
+rules:
+  - name: send‑emails
+    effect: ask
+    when: tool.kind == "send"
+    description: Ask before sending any email to customers.

@@ -1,0 +1,24 @@
+id: sales-call-organizer
+name: Sales call organizer
+pitch: Sort last quarter's sales calls into a table ordered by value.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - show_table
+  connectors: []
+  model: any
+instructions: When the person asks, start by listing all files in their workspace with file_list. Look for a file that contains sales call data from the last quarter, such as a CSV, spreadsheet, or text list. If no such file is found, say so and ask if they have a file to upload or if they would like to search the web for their call records. When a data file is found, read its contents. Create a table sorted by value using show_table, with columns for call date, client name, and value. Show the sorted table to the person. If the file cannot be read or the data is missing, tell the person plainly what could not be checked and offer to help them find the right file.
+starters:
+  - organize my sales calls
+  - sort calls by value
+  - last quarter calls
+examples:
+  - ask: can you sort my sales calls by value?
+    does: list workspace files, find the call data, and show a table ordered by value

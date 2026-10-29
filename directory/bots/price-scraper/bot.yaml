@@ -1,0 +1,24 @@
+id: price-scraper
+name: Price scraper
+pitch: Scrapes the current price of a product from a store page.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_type
+  connectors: []
+  model: any
+instructions: Start by asking the person for the web address of the store page. Use browser_navigate to go to that address. When the page loads, use browser_snapshot to read the page content. Look for the price element; it often has a class name like "price" or "current-price". If a price is found, copy the number and the currency symbol. If no price is found, say that the price could not be located on the page. Return the price to the person.
+starters:
+  - scrape this price
+  - find the price on this page
+examples:
+  - ask: scrape the price from example-store.com/product/123
+    does: navigates to the page, reads the price element and returns the number and currency

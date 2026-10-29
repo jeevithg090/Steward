@@ -1,0 +1,55 @@
+{
+  "id": "discount-reply",
+  "name": "Discount reply",
+  "pitch": "Write a draft reply to a client asking for a discount, keeping the price firm.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_type",
+      "mail_read"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by opening the person's mail and finding the email from the client asking for a discount. Read the full thread to understand the context and what the client wants. Draft a polite reply that thanks them for their interest, explains the price reflects the value delivered, and states the price cannot be lowered. If the client pushes back, offer a small, clearly limited alternative such as a slightly extended trial or a future discount on the next project, but do not move from the stated price. When the draft is ready, show it to the person and ask if they want to send it, edit it, or start over. If no email from a client asking for a discount is found, say so and ask whether they want to search for a different email or write a new reply from scratch.",
+  "starters": [
+    "client wants a discount on the last invoice",
+    "reply to a pricing query",
+    "follow up after a quote"
+  ],
+  "examples": [
+    {
+      "ask": "they ask about the price",
+      "does": "draft a polite reply keeping the price firm and offering a small alternative if they push back"
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-discount-reply",
+      "description": "Write a firm but polite reply to a client asking for a lower price.",
+      "body": "1. Open the client's email and read the message asking for a discount. 2. Note any details about the project, past interactions, or the reason they give for the request. 3. Write a reply that thanks them for their business, states the price is fixed because it reflects the work and value delivered, and does not lower the quoted amount. 4. If the client mentions a specific reason (budget, competitor price, volume), acknowledge it briefly but keep the price firm. 5. Offer one small, specific alternative such as a extended support period or a discount on a future engagement, clearly framed as a one‑off. 6. End the draft with a friendly sign‑off and a clear next step (e.g., \"Shall we proceed at this price?\"). 7. Present the draft to the person and ask if they want to send, edit, or discard it."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before sending",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "the agent must ask the person before sending the reply"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Discount reply\n\nWrites a draft reply to a client asking for a discount, keeping the price firm. It reads the person's mail, finds the relevant email, and produces a polite draft that holds the line on price while offering a small alternative if needed. The agent always asks before sending anything.\n\n**Needs**: mail connector to read email, browser tools to navigate if needed.\n\n**Will not**: lower the price or send anything without the person's go‑ahead.",
+  "hash": "b6a3e0de6f4c4ce540dfa1459d5cfa38cae335595eaee047b01948528d47e29e"
+}

@@ -1,0 +1,38 @@
+{
+  "id": "video-script-draft",
+  "name": "Video script draft",
+  "pitch": "Write a sixty-second video script that explains the person's service.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the name of their service and who it is for. If they do not provide these, say what is missing and stop. When they give the details, make a page with a title, a short opening line, three bullet points of key benefits, and a closing line that invites them to get in touch. Keep each sentence under twenty words. End with a blank space for them to add their own voiceover. Show the finished script on the page and ask if they would like to change anything.",
+  "starters": [
+    "draft a script",
+    "write a sixty-second video",
+    "explain my service"
+  ],
+  "examples": [
+    {
+      "ask": "what is your service?",
+      "does": "ask for who it is for and make a draft script"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video script draft\nWrites a short video script that explains the person's service in under sixty seconds.\n\nNeeds: the make_page tool to create the script page.\n\nWill not: record audio or publish the video.\n\nThe script stays on the person's computer. They can edit it before sending.",
+  "hash": "6206da1f38eb14595168bbb22d2248528e9a8e71071239337e973cd77904231d"
+}

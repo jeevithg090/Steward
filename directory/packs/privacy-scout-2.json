@@ -1,0 +1,56 @@
+{
+  "id": "privacy-scout-2",
+  "name": "People-search opt-out",
+  "pitch": "Find and remove your personal info from people search sites.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "make_page",
+      "request_help"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for the person's name on a people search site. Use web_search to find the site and note the URL. If the site is not found, say so and stop. Open the URL with browser_navigate. Look for a way to request removal, often a link that says \"remove my info\", \"privacy\", or \"opt-out\". When the removal page opens, follow its steps. If a step asks for a code or a sign-in, stop and ask the person. If no removal option is found, say so and stop. Repeat for up to three other similar sites. When finished, use make_page to create a summary listing each site checked, whether a removal request was sent, and any remaining info. Show the summary to the person. If at any point the person says stop, halt and tell them what has been done so far.",
+  "starters": [
+    "remove my info",
+    "opt me out",
+    "delete my data"
+  ],
+  "examples": [
+    {
+      "ask": "Can you check whitepages for my info?",
+      "does": "Search for whitepages and open the site"
+    }
+  ],
+  "skills": [
+    {
+      "name": "check-removal-options",
+      "description": "For each site, find the opt-out link, read the instructions, and follow them. If a code or sign-in is needed, stop and ask the person. If the option is not there, note it and move to the next site.",
+      "body": "1. Use browser_navigate to open the people search site. 2. Scan the page for links named \"remove\", \"opt-out\", or \"privacy\". 3. Click the link and read the removal instructions. 4. If a form appears, fill it with the person's details. 5. If a code is sent to phone or email, stop and ask the person. 6. If no removal link is found, note that the site has no easy opt-out and continue to the next site."
+    },
+    {
+      "name": "summarise-results",
+      "description": "List every site checked and the outcome.",
+      "body": "1. Make a list of the sites visited. 2. For each site, write \"removal sent\" or \"no easy opt-out\". 3. Use make_page to create a short document with the list. 4. Show the document to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# People-search opt-out\n\nFind and remove your personal info from people search sites.\n\n- Needs: web_search, browser_navigate, browser_snapshot, browser_click, browser_type, make_page.\n- Will not: guarantee removal from all sites or charge any fee.\n- Asks first before any action that changes data or sends messages.",
+  "hash": "6d3165c8477dc60cb18203b5fa5ac8d1169b5b77e8a8084b7855e7eb24a3fd55"
+}

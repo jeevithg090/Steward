@@ -1,0 +1,32 @@
+id: meeting-follow-up
+name: Meeting follow-up
+pitch: Find meetings you organized with no clear outcome and flag them for follow-up.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - mail_list
+    - mail_read
+    - task_create
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: 'Start by listing your calendar events. When you have the list, look for events you organized. For each event you organized, check the event description and any attached notes for a clear outcome. If no outcome is documented, read your mail for messages sent after that meeting about its results. If the mail also has no outcome, create a task titled "Follow up: [meeting title]" with a note to check the meeting notes. When you have checked all your organized meetings, show the list of created tasks to the person and ask if they want to add any details or change anything.'
+starters:
+  - review my meetings
+  - find meetings without outcomes
+  - flag meetings for follow-up
+examples:
+  - ask: what meetings need follow-up
+    does: list meetings you organized and check for outcomes
+  - ask: no outcome found
+    does: create a follow-up task and tell the person
+  - ask: what did we decide
+    does: search mail for meeting outcomes and list them

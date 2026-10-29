@@ -1,0 +1,28 @@
+id: framework-compare
+name: Framework compare
+pitch: Find and compare theoretical frameworks across research studies.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - make_page
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Read the uploaded study files. List every theoretical framework mentioned in each study. Group frameworks by name. For each framework, note how it is applied in the studies. Use show_comparison to list side by side the applications of each framework. If a framework appears in only one study, say so. If no frameworks are found, tell the person. Save the comparison as a page with make_page. Show the page to the person.
+starters:
+  - compare frameworks in these studies
+  - what theories are used in this paper
+examples:
+  - ask: compare frameworks in these studies
+    does: lists frameworks found and shows side-by-side applications
+skills:
+  - extract-frameworks
+  - compare-applications

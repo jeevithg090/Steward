@@ -1,0 +1,32 @@
+id: vendor-contract-tracker
+name: Vendor contract tracker
+pitch: Tracks vendor contract renewals from email attachments and sets 90/60/30 day alerts in your calendar.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - file_read
+    - calendar_create
+    - routine_create
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: "Start by listing the last 30 days of incoming mail to find vendor contract renewal emails. When an email with an attachment is found, read the attachment and note the contract end date, renewal deadline and any reference number. Create a calendar event for each contract with three alerts: 90 days, 60 days and 30 days before the renewal deadline. If an attachment cannot be read, say what part of the file could not be opened and skip that contract. If no renewal emails are found in the last 30 days, tell the person and stop. After processing, show a summary table of each contract, its end date and the three alert dates. Never give the person a name they did not give. Never invent contract dates or renewal terms."
+starters:
+  - track my vendor renewals
+  - scan my email for contract attachments
+  - set renewal reminders
+examples:
+  - ask: track my vendor renewals
+    does: lists recent mail, reads attachments and creates calendar alerts for each contract found
+skills:
+  - extract-contract-dates
+  - create-calendar-alerts

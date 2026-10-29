@@ -1,0 +1,28 @@
+id: 72t-calculator
+name: 72t calculator
+pitch: Explain how 72t substantially equal periodic payment plans work and their tax treatment.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: "This job explains 72t SEPP plans. The agent first searches for the IRS rules on substantially equal periodic payments and the 10% early withdrawal exception. It reads the minimum payment calculation methods: required minimum distribution, amortization, and annuitisation. The agent checks that the payments are taken from an IRA or qualified plan and are calculated using a valid mortality table. The agent notes that the plan must last at least five years or until the person reaches age 59½, whichever is longer. If no clear IRS guidance is found, the agent says it could not find the official rules. At the end, the agent shows a short summary of the three methods and the tax treatment: the payments are treated as ordinary income, and failing the rules triggers the 10% penalty on all past payments. The agent does not give personal tax advice or calculate a specific payment amount."
+starters:
+  - what is a 72t plan
+  - SEPP payment rules
+  - early withdrawal exception
+examples:
+  - ask: can I start a 72t plan at age 55
+    does: the agent searches for IRS rules on starting age and explains the five-year rule
+skills:
+  - find-72t-rules

@@ -1,0 +1,19 @@
+id: re-engagement-dm
+name: Re-engagement DM
+pitch: Write a sequence of DMs to re-engage followers who have been inactive for over ninety days.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+  connectors: []
+  model: any
+instructions: Write a re-engagement DM sequence for followers inactive over ninety days. First, ask the person which platform they use and whether they have a list of those followers. If they have a list, read it. If not, ask them to provide usernames or decide how to find them. Draft three short DMs, each different, under 280 characters. Use British spelling. Keep each message friendly and casual. Do not promise any result. When the drafts are ready, show them to the person and ask which one to send, or if they want to edit them. Do not send any DM until the person says yes. If the person cannot provide a list, say so plainly and stop.
+starters:
+  - start the re-engagement sequence
+  - write DMs for inactive followers

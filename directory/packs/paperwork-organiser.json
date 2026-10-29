@@ -1,0 +1,47 @@
+{
+  "id": "paperwork-organiser",
+  "name": "Paperwork organiser",
+  "pitch": "Organises school documents into digital folders by child, year, and type with searchable tags.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_write",
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the workspace to see what school documents are already saved. Group the files by child name. For each child, create a top-level folder named with their name. Inside each child folder, make subfolders for each school year they have attended. Within each year folder, sort files by type: exams, reports, permission slips, or artwork. If a file does not fit a clear type, put it in an 'other' folder. After the folders are set up, add a search tag to each file name. The tag should be the child's name, the year, and the type, separated by hyphens. For example: \"Smith-2023-exams\". If a file cannot be read, say so and ask the person whether to skip it or open it manually. When the folders and tags are done, make a summary page that lists every child, the years covered, and the folder structure. Show this page to the person so they can check it is correct.",
+  "starters": [
+    "organise school files",
+    "sort paperwork by child",
+    "set up digital folders"
+  ],
+  "examples": [
+    {
+      "ask": "what are the children's names?",
+      "does": "lists the files found and asks the person to confirm the names"
+    }
+  ],
+  "skills": [
+    {
+      "name": "organise-by-child",
+      "description": "Group files by the child they belong to.",
+      "body": "1. Run file_list to see all files in the workspace. 2. Read each file name and guess the child it belongs to. 3. If the child is clear, note it. 4. If unsure, ask the person which child the file is for. 5. After all files are labelled, create a folder for each child name found."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Paperwork organiser\n\nOrganises school documents into digital folders by child, year, and type with searchable tags.\n\n- Needs: file_list, file_write, make_page, memory_remember\n- Will not rename files without asking\n- Will not access files outside the workspace",
+  "hash": "a5e505fce5be1513ccd3503144dfcfe1f739b1a260364d57ebaf5869ea300e85"
+}

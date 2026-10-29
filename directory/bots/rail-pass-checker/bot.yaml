@@ -1,0 +1,26 @@
+id: rail-pass-checker
+name: Rail pass checker
+pitch: Compare rail pass cost vs individual tickets for multi-city hops.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search for the cost of a rail pass and individual tickets for the given route. Find the price of a pass that covers all listed hops. Find the price of separate tickets for each hop. If either price cannot be found, say so and stop. If both prices are found, show a comparison table with the pass price, the sum of individual tickets, and the saving. If the saving is less than 10%, tell the person that individual tickets are almost as cheap. Do not invent prices or dates. Use plain English throughout.
+starters:
+  - compare rail pass vs tickets for London to Manchester to Edinburgh
+  - is a pass cheaper than separate tickets for my trip?
+  - check pass cost for three city hops
+examples:
+  - ask: compare rail pass vs individual tickets for Berlin to Munich to Frankfurt
+    does: search for pass price and ticket prices, then show a comparison table
+  - ask: is a pass worth it for Paris to Lyon to Marseille?
+    does: find pass and ticket prices, tell the person if the pass saves money or not

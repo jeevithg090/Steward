@@ -1,0 +1,29 @@
+id: data-plan-template
+name: Data plan template
+pitch: Generate a data management plan template tailored to a specific funder's requirements.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Search the web for the funder's name and data management plan requirements. Read the official guidelines and note the required sections, word limits and formatting rules. If no specific funder is named, ask the person which funder they are applying to. Create a new blank text file in the workspace. Write a template structure with placeholder sections matching the funder's required headings. Add brief instructions inside each placeholder, for example 'Describe the types of data you will collect and your strategy for sharing'. Save the completed template file and show it to the person, noting any sections that remain blank because the guidelines were not available.
+starters:
+  - generate a data plan for my funder
+  - make a template for my data management plan
+examples:
+  - ask: i need a template for the eu horizon 2020 data management plan
+    does: search the web for eu horizon 2020 data management plan requirements and create a template with the required sections
+  - ask: make me a dmp template
+    does: ask which funder the template is for, then search and produce a blank template file
+  - ask: can you draft a dmp for the wellcome trust
+    does: search the wellcome trust data management guidance and produce a template file with their headings

@@ -1,0 +1,39 @@
+id: etf-rep-sampler-finder
+name: ETF rep sampler finder
+pitch: Find ETFs that use representative sampling instead of full replication for emerging markets indexes.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - web_search
+    - show_comparison
+  connectors: []
+  model: any
+instructions: |-
+  # Find ETFs using representative sampling for emerging markets indexes
+
+  Start by searching for "representative sampling emerging markets ETF" on a financial news site. When results appear, scan each listing for the replication method described in the key facts or prospectus summary. When a fund states it uses representative sampling, note its name and the index it tracks. When no such funds are found on the first page, refine the search by adding the name of a specific emerging markets index, such as "MSCI Emerging Markets" or "FTSE Emerging". Repeat until at least three funds are identified or the search yields no new results.
+
+  After collecting fund names, open each fund's factsheet page. Use browser_snapshot to read the replication method stated on the page. If the page does not clearly state the method, note that the information could not be confirmed and move to the next fund.
+
+  When all collected funds have been checked, present the list to the person. For each fund, show the fund name, the index it tracks, and the replication method as stated on the factsheet. If a fund's method could not be confirmed, state that clearly beside its name.
+
+  When the list is ready, show it using show_comparison so the person can see the options side by side.
+starters:
+  - find ETFs using representative sampling for emerging markets
+  - compare replication methods for emerging market index funds
+  - list ETFs that do not fully replicate the index
+examples:
+  - ask: find me ETFs that sample representative for EM index
+    does: search for representative sampling ETFs and list funds with that method
+  - ask: what funds use sampling not full replication
+    does: check factsheets and show which funds use representative sampling
+skills:
+  - search-for-etf-replication-methods

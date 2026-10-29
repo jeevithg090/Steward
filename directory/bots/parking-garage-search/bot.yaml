@@ -1,0 +1,26 @@
+id: parking-garage-search
+name: Parking garage search
+pitch: Find parking garages with height clearance for a high-roof van.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: Search for parking garages that can accommodate a high-roof van. Look for listings that mention height restrictions, clearance heights, or vehicle size limits. Check multiple results to compare clearance measurements. When a result looks promising, open it and scan the page for the exact height clearance figure. If the height is not stated, note that the clearance is unknown. After checking several options, list the garages found with their stated clearance heights, or say that no suitable garages were found with clear height information.
+starters:
+  - find parking garage for high-roof van
+  - search height clearance parking
+  - where can i park my high-top van
+examples:
+  - ask: looking for parking with height limit for high roof van
+    does: search for garages with height restrictions and open a few results to check clearance
+skills:
+  - search-and-check-clearance

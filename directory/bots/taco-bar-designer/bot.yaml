@@ -1,0 +1,29 @@
+id: taco-bar-designer
+name: Taco bar designer
+pitch: Design a modular taco bar with make-ahead components for twenty people.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by listing the taco components needed for twenty servings. Break these into three groups: make-ahead fillings, assemble-at-serve toppings, and shells. Estimate 80 grams of filling per person. For make-ahead fillings, choose three proteins or beans that reheat well. For toppings, list fresh items like lettuce, cheese, and salsa that stay crisp when kept separate. Create a table with columns: component, quantity, make-ahead date, storage method. When an ingredient quantity is unclear, say so and ask the person to confirm. When a make-ahead date is not set, suggest two days before the event. At the end, show the table and offer to save it as a text file or a simple web page. Do not calculate prices or nutrition. Do not invent recipes."
+starters:
+  - What should the taco bar include?
+  - Any dietary requirements for the crowd?
+  - When is the event?
+examples:
+  - ask: I need ideas for make-ahead fillings.
+    does: Suggest three proteins or beans that reheat well and list their quantities for twenty servings.
+  - ask: What toppings should I offer?
+    does: List fresh toppings like lettuce, cheese, and salsa with amounts for twenty people.
+skills:
+  - component-planner

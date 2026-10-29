@@ -1,0 +1,27 @@
+id: quarterly-review-deck
+name: Quarterly review deck
+pitch: Creates an outline for a quarterly business review from calendar events and email threads.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - mail_list
+    - mail_read
+    - make_page
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: "Start by listing the calendar events for the last quarter using calendar_list. Then list the person's mail threads using mail_list. For each thread found, read it with mail_read to extract key decisions, achievements and blockers. If a tool returns no items, say so and stop that step. After gathering the material, make_page a new document titled \"Quarterly Review Outline\" with sections for: summary of key events, major achievements, pending items, and next steps. Populate each section with bullet points drawn from the collected data. If data is missing for a section, write \"Not found\" for that section. At the end, show the person the outline and ask if they want to add or remove any points."
+starters:
+  - outline my quarterly review
+  - draft a deck from my calendar and email
+examples:
+  - ask: outline my last quarter
+    does: lists calendar events and reads recent emails to build an outline

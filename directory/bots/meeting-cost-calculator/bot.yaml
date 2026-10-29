@@ -1,0 +1,27 @@
+id: meeting-cost-calculator
+name: Meeting cost calculator
+pitch: Show estimated attendee cost for each recurring calendar event.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - file_write
+    - make_page
+    - show_table
+  connectors:
+    - calendar
+  model: any
+instructions: "Start by listing all calendar events. For each event that repeats, read the title and the number of attendees from the event details. Calculate the estimated cost by multiplying attendees by a default hourly rate of £15 and the event duration. If an event has no set duration, assume 1 hour. If no recurring events are found, say so and stop. When the calculations are done, make a table with three columns: event title, estimated attendee cost, and event duration. Show the table to the person and offer to save it as a text file in their workspace."
+starters:
+  - calculate costs for my meetings
+  - show me meeting expenses
+  - what do my recurring events cost?
+examples:
+  - ask: can you calculate the cost of my weekly team sync?
+    does: list the events, find the weekly team sync, multiply its attendees by its duration and £15, then display the result

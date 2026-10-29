@@ -1,0 +1,54 @@
+{
+  "id": "request-deduplicator",
+  "name": "Request deduplicator",
+  "pitch": "Collapses identical concurrent requests so the same work is not done twice.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# request deduplicator\n\nThis bot pack implements a request deduplication layer that collapses identical concurrent requests.\n\n## What it does\nThe layer sits in front of an operation that can be called multiple times at once. It ensures that when the same request arrives multiple times, only one execution happens and the others get the same result.\n\n## How it works\n1. On each incoming request, compute a hash of the request parameters (method, url, body, headers).\n2. Check an in‑memory map for that hash.\n3. If the hash exists, return the cached result immediately.\n4. If not, register the request as \"in progress\", run the real operation, store the result, then remove the hash so future identical requests will start fresh.\n5. Use a mutex per hash to prevent two threads from both starting the same work if they arrive at the exact same moment.\n\n## Step‑by‑step\n- Read the existing codebase with `file_list` and `file_read` to find where requests are handled.\n- Identify the function or endpoint that runs the operation.\n- Wrap that function with the deduplication logic described above.\n- Write the wrapper using `file_write`.\n- Test by triggering multiple concurrent calls with the same parameters and verify only one execution occurs.\n\n## When something is missing\n- If the codebase uses a different request‑identification scheme, ask the person how to build the hash.\n- If the operation is asynchronous, add a promise/future cache instead of a simple return value.\n- If the person wants the cache to persist across runs, suggest a file‑based store and implement it with `file_read`/`file_write`.\n\n## What it shows at the end\nA short summary: the wrapper function name, how the hash is computed, and a note that concurrent identical requests now share one execution.\n\n## Starters\n- \"deduplicate this endpoint\"\n- \"add a request cache\"\n- \"make concurrent calls share one result\"\n\n## Examples\n[{ \"ask\": \"can you deduplicate the api call\", \"does\": \"read the api handler file, wrap it with the dedup logic, write the file back\" }, { \"ask\": \"test it\", \"does\": \"run two simultaneous requests and show the log that only one executed\" }, { \"ask\": \"what changed\", \"does\": \"list the new wrapper function and explain the hash\" }]\n\n## skills\n- [\n  {\"name\": \"wrap‑operation\", \"description\": \"add deduplication around a function\", \"body\": \"1. Read the target function. 2. Create a new wrapper that computes a hash of its arguments. 3. Check an in‑memory map guarded by a mutex. 4. If a result exists, return it. 5. Otherwise, call the original function, store its return value, and return that. 6. Delete the entry when the call finishes.\", \"body\": \"1. Use file_read to locate the function. 2. Construct the wrapper code. 3. Use file_write to replace the original with the wrapper. 4. Verify the wrapper uses a thread‑safe map.\"}]\n\n## rules: []\n\n## readme\n# request deduplicator\n\nCollapses identical concurrent requests so the same work is not done twice.\n\n- **Tools**: file_read, file_write, shell_run\n- **Will not**: modify production traffic without permission; cannot guarantee deduplication across separate process restarts unless a persistent store is added.\n- **Needs a person**: to confirm the hash scheme and approve any file changes.",
+  "starters": [
+    "deduplicate this endpoint",
+    "add a request cache",
+    "make concurrent calls share one result"
+  ],
+  "examples": [
+    {
+      "ask": "can you deduplicate the api call",
+      "does": "read the api handler file, wrap it with the dedup logic, write the file back"
+    },
+    {
+      "ask": "test it",
+      "does": "run two simultaneous requests and show the log that only one executed"
+    },
+    {
+      "ask": "what changed",
+      "does": "list the new wrapper function and explain the hash"
+    }
+  ],
+  "skills": [
+    {
+      "name": "wrap-operation",
+      "description": "add deduplication around a function",
+      "body": "1. Read the target function. 2. Create a new wrapper that computes a hash of its arguments. 3. Check an in‑memory map guarded by a mutex. 4. If a result exists, return it. 5. Otherwise, call the original function, store its return value, and return that. 6. Delete the entry when the call finishes."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "",
+  "hash": "6f2c84e2de768596ee437d684f1119eecf37590c74fdb786c2f9ca57541df880"
+}

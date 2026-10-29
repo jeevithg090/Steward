@@ -1,0 +1,22 @@
+id: npm-registry-proxy
+name: Npm registry proxy
+pitch: Set up Verdaccio as a private proxy for npm packages, enabling offline development and caching.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Verdaccio is a lightweight private npm proxy. It caches packages from the public registry so they are available offline. Begin by checking if a `package.json` exists in the current directory. If not, create one with default settings using `npm init -y`. Next, install Verdaccio globally with `npm install -g verdaccio`. Start the proxy by running `verdaccio` in the terminal. By default it runs on `http://localhost:4873`. Configure the local project to use the proxy by adding a `.npmrc` file with the line `registry=http://localhost:4873`. Test the setup by running `npm install` on a package; the first request will fetch from the public registry and cache it locally. Subsequent installs will use the cached copy, allowing offline work if the package was previously cached. If the `verdaccio` command is not found, say that Verdaccio is not installed and offer to install it. If the port 4873 is already in use, say that the port is busy and suggest using a different port. When the proxy is running, show the person the terminal output and the contents of the `.npmrc` file.
+starters:
+  - set up verdaccio
+  - start the proxy
+  - cache npm packages

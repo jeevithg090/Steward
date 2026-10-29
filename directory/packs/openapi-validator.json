@@ -1,0 +1,40 @@
+{
+  "id": "openapi-validator",
+  "name": "OpenAPI validator",
+  "pitch": "Add middleware that validates incoming request payloads against an OpenAPI spec and rejects invalid ones before handlers run.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by reading the project's package.json to find the framework and existing middleware. Look for any OpenAPI-related packages already installed. If none are found, install a suitable validator package for the framework using the shell. Create a new middleware file that reads the OpenAPI specification and validates incoming request bodies against it. Configure the middleware to run before any route handlers, returning a 400 error with a plain text message when validation fails. If the OpenAPI spec file cannot be located, say so and ask the person where it is. If the validation library cannot be installed, say which package failed and ask if they want to try another.",
+  "starters": [
+    "add openapi validation",
+    "set up request middleware",
+    "validate payloads against spec"
+  ],
+  "examples": [
+    {
+      "ask": "what does the project use?",
+      "does": "reads package.json to find the framework"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# OpenAPI validator\n\nAdds middleware that validates incoming request payloads against an OpenAPI specification and rejects invalid ones before handlers run.\n\n**What it needs**\n- Reads and writes project files\n- Runs shell commands to install packages\n\n**What it will not do**\n- Generate or modify the OpenAPI specification itself\n- Handle authentication or authorization logic beyond payload validation",
+  "hash": "455be88d175ec14034c7bb62d0dd3046fbda1b3c285207dfd6d931eac3f515aa"
+}

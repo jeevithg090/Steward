@@ -1,0 +1,37 @@
+{
+  "id": "family-limited-partnership-vs-llc",
+  "name": "Family limited partnership vs llc",
+  "pitch": "Explain the differences between a family limited partnership and an LLC for investment management.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "web_search",
+      "make_page",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for a clear comparison between a family limited partnership and an LLC for investment management. When results appear, read the key features of each structure, focusing on liability, taxation, control, and formation cost. If no useful comparison is found on the first page, search again with different terms. When you have enough information, make a comparison table showing the main differences. If information is missing for one structure, note that clearly rather than inventing details. At the end, show the comparison table to the person and ask if they want more detail on any point.",
+  "starters": [
+    "what is a family limited partnership",
+    "what is an LLC for investment",
+    "compare flp and llc"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# family limited partnership vs llc\n\nExplains the differences between a family limited partnership and an LLC for investment management. Uses web search to find reliable comparisons. Will not give legal advice or pick one structure over the other. Does not set up either structure.",
+  "hash": "f6780cf20f23387f77ec9f787d14ac6a0f7b33ec7be248ec1e99e94637fa5390"
+}

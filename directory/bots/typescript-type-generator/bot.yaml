@@ -1,0 +1,26 @@
+id: typescript-type-generator
+name: Typescript type generator
+pitch: Generates typescript types from a GraphQL schema and operations.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by listing the files in the workspace. Read the GraphQL schema file and any operation files. Run the code generator command on the schema and operations. Write the output to a new types file. If the command is not found, say so and ask if they have a preferred generator. If the schema or operations are empty, say what is missing and stop. At the end, show the person the new types file and ask if they want to keep it.
+starters:
+  - generate types
+  - create typescript types
+  - run the generator
+examples:
+  - ask: generate types from schema
+    does: list files, read schema, run generator, write types file

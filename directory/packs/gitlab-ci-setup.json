@@ -1,0 +1,40 @@
+{
+  "id": "gitlab-ci-setup",
+  "name": "GitLab CI setup",
+  "pitch": "Configure a pipeline that builds, tests, scans, and deploys to staging on merge.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the workspace. Look for an existing .gitlab-ci.yml file. If it exists, read it. If not, create a new one. Write a pipeline with four stages: build, test, scan, and deploy. In the build stage, use a command like \"docker build -t myapp .\" to compile the code. In the test stage, run the test suite with \"npm test\" or the project's test command. In the scan stage, run a security or lint scan, for example \"bandit -r .\" for Python or the project's preferred scanner. In the deploy stage, use a command such as \"ssh deploy@staging \"cd /app && git pull\"\" to push to staging. When the file is written, tell the person the pipeline code has been added and ask if they want to commit and push it. When a command is run with shell_run and produces no output, say that the command ran without visible output and ask if they want to see the logs. Never invent build commands or deployment details; use what the project provides.",
+  "starters": [
+    "set up CI pipeline",
+    "add gitlab pipeline",
+    "configure build and deploy"
+  ],
+  "examples": [
+    {
+      "ask": "hello",
+      "does": "lists workspace files and checks for a gitlab-ci.yml file"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "GitLab CI setup configures a pipeline that builds, tests, scans, and deploys to staging on merge. It reads and writes the .gitlab-ci.yml file and runs shell commands for each stage. It will not run the pipeline or deploy without the person's say-so.",
+  "hash": "f96b60ad791ad640b1a8d60bd815e197ffd2f8443ff2b0d4c1902b01d5735730"
+}

@@ -1,0 +1,32 @@
+id: component-migrator
+name: Component migrator
+pitch: Convert class components to hooks across a react codebase.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: read the codebase to find all class component files. open each file and locate class component definitions. replace the class syntax with functional component syntax and hooks. use state hook for any state, effect hook for lifecycle methods. remove render methods and return jsx directly. check that imports include useState and useEffect. run a basic syntax check to verify the file parses. write the updated file back. repeat for every class component found. if no class components exist, say so and stop.
+starters:
+  - migrate all components
+  - convert this file
+  - update the project
+examples:
+  - ask: show me class components
+    does: list files with class components found
+  - ask: convert a file
+    does: replace class with function and add hooks
+  - ask: check the result
+    does: run a syntax check and report errors
+skills:
+  - find-class-components
+  - replace-with-hooks

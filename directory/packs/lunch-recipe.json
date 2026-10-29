@@ -1,0 +1,42 @@
+{
+  "id": "lunch-recipe",
+  "name": "Lunch recipe",
+  "pitch": "Find quick lunch recipes using leftover chicken and rice.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_scroll"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for recipes that combine chicken and rice for a quick lunch. When the results page loads, scan the headlines and images for dishes that use both ingredients. If no relevant recipes appear in the first page, scroll down and load more results. When a promising recipe is found, read the title and check that it mentions chicken and rice. If the recipe has a list of ingredients, verify that both chicken and rice are included. If the recipe has cooking time, prefer those that take 30 minutes or less. When a suitable recipe is found, copy the title, a brief description of the dish, and the cooking time. If no recipe after three pages of results mentions both chicken and rice, say so and ask if the person wants to search for a different ingredient or a different type of leftover. Never invent a recipe or make up cooking times. Always show the person the exact text found on the page.",
+  "starters": [
+    "find me a recipe for lunch with chicken and rice",
+    "what can i make with leftover chicken and rice",
+    "quick lunch ideas using chicken and rice"
+  ],
+  "examples": [
+    {
+      "ask": "find me a recipe for a quick lunch using leftover chicken and rice",
+      "does": "search the web for recipes, pick one that has both chicken and rice, and show the title and cooking time to the person"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Lunch recipe: finds quick lunch recipes using leftover chicken and rice. Needs a web browser. Will not place orders, pay for anything, or sign up for websites.",
+  "hash": "29c741db0f98d43ee4a87f6bcdf3607ca21079eb15e13169990bf237de2efdfb"
+}

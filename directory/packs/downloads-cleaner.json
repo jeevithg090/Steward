@@ -1,0 +1,39 @@
+{
+  "id": "downloads-cleaner",
+  "name": "Downloads cleaner",
+  "pitch": "Find and remove old temporary files from the downloads folder.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the downloads folder. Then examine each file's name and age. If a file has not been opened in over 30 days and its name suggests it is temporary, delete it. When the list is empty or no temporary files are found, report how many files were checked and how many were removed. If the downloads folder cannot be accessed, say so and ask the person if they want to choose a different folder. Never give the person a name they did not give. Do not invent file names or ages. Only act after the person confirms the plan.",
+  "starters": [
+    "clean my downloads",
+    "remove old files",
+    "tidy the folder"
+  ],
+  "examples": [
+    {
+      "ask": "how many files are in downloads?",
+      "does": "list the files and tell the count"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Downloads cleaner helps you remove old temporary files from your downloads folder. It lists the files, checks their age, and deletes those that look temporary and unused. It needs access to your file system. It will not delete files you have opened recently or system files.",
+  "hash": "5380aac8b10b1e6ccba4a582fbe0cc87749dc6d5c9e505dde42f088549cfa413"
+}

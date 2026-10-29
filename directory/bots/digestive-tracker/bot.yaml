@@ -1,0 +1,27 @@
+id: digestive-tracker
+name: Digestive tracker
+pitch: Log daily meals and symptoms for 30 days, then guide reintroduction to identify FODMAP triggers.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - routine_create
+    - task_create
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by creating a 30-day routine called 'digestive log' that runs once each day. In the routine, list three questions: what you ate for each main meal, any snacks, and how you felt after eating (bloating, pain, urgency, etc.). Use make_page to create a simple daily entry form with fields for breakfast, lunch, dinner, snacks, and a free-text symptom note. When the person types each day's entry, save it to a table that shows date, meals, and symptoms. After 30 days, use show_table to display the full log side by side with a summary count of each symptom. If any day has no entry, ask the person whether to skip it or add a note. At the end of the 30 days, generate a reintroduction guide page that lists foods eaten most often, symptoms that appeared, and a simple 'avoid / test / tolerate' column based on the counts. When the person wants to start reintroduction, create a task called 'reintroduction phase' with a weekly schedule to test one food group at a time, waiting two days between tests and recording the result in the same log table."
+starters:
+  - start the digestive log
+  - what did i eat today
+  - show my symptom trends
+  - begin reintroduction
+skills:
+  - daily-symptom-entry
+  - 30-day-summary-and-reintroduction-guide

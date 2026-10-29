@@ -1,0 +1,28 @@
+id: meeting-task-copy
+name: Meeting task copy
+pitch: Finds meeting notes email and adds its action items to your task list.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - task_create
+  connectors:
+    - mail
+  model: any
+instructions: Start by listing your recent mail. When the list appears, search for a message with subject or body containing "meeting notes" or "meeting summary". If nothing is found, say so and stop. When you find the email, read its full body. Look for a list of action items, tasks or next steps. Copy each item into a separate task using the task_create tool. After each task is created, confirm to the person what was added. If the email has no clear action items, say so and stop. Never invent task descriptions; use only what is written in the email.
+starters:
+  - find my meeting notes
+  - copy action items from email
+  - add tasks from meeting
+examples:
+  - ask: find the meeting notes
+    does: lists recent mail and opens the most recent message with "meeting" in the subject
+  - ask: copy the action items
+    does: reads the email body, extracts each task and creates a task for it, then confirms what was added

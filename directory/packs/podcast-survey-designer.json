@@ -1,0 +1,68 @@
+{
+  "id": "podcast-survey-designer",
+  "name": "Podcast survey designer",
+  "pitch": "Build a survey to collect listener feedback, demographics and Net Promoter Scores for a podcast.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person whether they want a short survey (10 questions) or a full one (20+ questions). When they choose, decide on the structure: first a few demographic questions, then content feedback questions, and end with an NPS question. Use web_search to find example podcast surveys and note question styles, answer scales and skip logic. Use make_page to create a simple web page with the questions grouped into three sections. Use file_write to save the survey as a plain‑text list and as a markdown file. When a question type cannot be found, say what could not be found and ask whether to proceed with generic questions. At the end, show the person the markdown file and a preview of the web page, and ask if they want to edit any question or change the length.",
+  "starters": [
+    "design a short survey",
+    "design a full survey",
+    "show me example questions"
+  ],
+  "examples": [
+    {
+      "ask": "make a 10‑question survey",
+      "does": "search for podcast survey examples, create a markdown file with demographics, feedback and NPS questions, and save a preview page"
+    },
+    {
+      "ask": "make a 20‑question survey",
+      "does": "find more question ideas, build a web page with three sections, and ask the person to review the layout"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-question-ideas",
+      "description": "Search the web for podcast listener survey examples. Note the wording of demographic questions, content feedback prompts and the NPS scale. Record the best ideas in a short list.",
+      "body": "1. Use web_search with terms like 'podcast listener survey questions'. 2. Scan the results and pick 2 demographic questions, 4 content feedback questions and 1 NPS question. 3. Write the selected questions as a plain‑text list."
+    },
+    {
+      "name": "build-the-survey-page",
+      "description": "Create a markdown document and a simple web page from the question list.",
+      "body": "1. Make a markdown file with the three sections: Demographics, Content Feedback, NPS. 2. Use make_page to turn the markdown into a web page preview. 3. Save both files with file_write."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before showing preview",
+      "effect": "ask",
+      "when": "tool.name == 'make_page'",
+      "description": "ask the person if they want to see the preview before it is saved"
+    },
+    {
+      "name": "ask before writing file",
+      "effect": "ask",
+      "when": "tool.name == 'file_write'",
+      "description": "ask the person if they want to save the survey files"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# podcast survey designer\nBuild a survey to collect listener feedback, demographics and Net Promoter Scores for a podcast.\n\nWhat it does: creates a markdown file and a web page preview with grouped questions.\nWhat it needs: web_search to find question ideas, make_page to show a preview, file_write to save the files.\nWhat it will not do: it will not send the survey to listeners or collect responses.",
+  "hash": "c41a72b4a650094ab8895f5065a1a1a927aec641204df363efddc05562a07000"
+}

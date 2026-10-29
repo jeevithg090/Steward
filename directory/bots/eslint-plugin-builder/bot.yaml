@@ -1,0 +1,29 @@
+id: eslint-plugin-builder
+name: Eslint plugin builder
+pitch: Create a custom eslint plugin with rules for internal coding standards.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: start by listing the internal coding standards that need eslint rules. read any existing eslint configuration in the workspace. create a new folder for the plugin and initialise it with npm init. install eslint and the typescript types as dev dependencies. write a configuration file that registers the new rules. create a rule file for each standard, writing the rule logic that checks for the described pattern. export the rules object at the end of the index file. run the eslint test suite to verify each rule works. if a rule cannot be tested, say so and stop.
+starters:
+  - create eslint plugin
+  - add coding standard rules
+  - setup eslint config
+examples:
+  - ask: what are the coding standards
+    does: list the standards found in the repo
+  - ask: create rule for no unused vars
+    does: write a rule file that flags unused variables
+skills:
+  - write-rule-logic

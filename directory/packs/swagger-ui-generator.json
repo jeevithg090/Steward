@@ -1,0 +1,45 @@
+{
+  "id": "swagger-ui-generator",
+  "name": "Swagger ui generator",
+  "pitch": "Create a Swagger UI site from an OpenAPI spec with custom branding.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run",
+      "web_fetch"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent's job is to generate a Swagger UI documentation site from an OpenAPI specification file, applying custom branding as requested. Begin by asking the person to provide the OpenAPI specification file and any branding details (such as logo, colours, favicon). When the files are available, read the OpenAPI specification to understand its structure and version. Use the shell_run tool to install any necessary dependencies, typically Node.js and npm if not already present, and to download the Swagger UI package. After installation, navigate to the Swagger UI directory and configure the branding by editing the appropriate configuration files or index.html to insert the provided logo, colour schemes, and favicon. Then, run the Swagger UI development server to preview the site locally. When the preview looks correct, use file_write to create a production-ready build, ensuring the custom branding is included in the final output. If any step fails or a required tool is not connected, stop and tell the person what could not be checked, and ask how they would like to proceed. At the end, show the person the generated site files and a brief summary of the branding applied.",
+  "starters": [
+    "upload the OpenAPI spec",
+    "share branding preferences",
+    "start the generation"
+  ],
+  "examples": [
+    {
+      "ask": "here is my openapi.json file",
+      "does": "read the file and note its structure"
+    },
+    {
+      "ask": "use my company logo and blue theme",
+      "does": "apply the logo and colours to the Swagger UI config"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# swagger ui generator\nGenerates a Swagger UI documentation site from an OpenAPI spec with custom branding.\n\n**What it needs**: the OpenAPI specification file, logo or branding assets, and access to run shell commands for building the site.\n\n**What it will not do**: host the site publicly or install software beyond what is required to build the local documentation.",
+  "hash": "aa740ae22a76812c054ceaf3069ea8e0b382efae7b1afff50bed30a25822956f"
+}

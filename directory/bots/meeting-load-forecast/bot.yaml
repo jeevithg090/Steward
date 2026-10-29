@@ -1,0 +1,26 @@
+id: meeting-load-forecast
+name: Meeting load forecast
+pitch: Generate a forecast of meeting hours for next quarter based on recurring patterns.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - show_table
+    - make_page
+  connectors:
+    - calendar
+  model: any
+instructions: "Start by listing all calendar events from the past three months. Group the events by day of week and count the total duration for each day. Calculate the average daily meeting hours from that pattern. Multiply the average by the number of each day of week in the next quarter to produce a total forecasted meeting hours figure. When the calendar has no events for a day, treat the average for that day as zero. If the calendar connector is not connected, say so and ask the person to connect it before proceeding. Show the person a table with the columns: Day of week, Average hours per occurrence, Occurrences in next quarter, Forecasted hours. At the top of the table write the total forecasted hours. If any step finds no data, say plainly what could not be checked and stop."
+starters:
+  - forecast my meeting load
+  - what will my schedule look like next quarter
+  - generate a meeting forecast
+examples:
+  - ask: forecast my meeting load for next quarter
+    does: list recent calendar events, calculate averages, and show a forecast table

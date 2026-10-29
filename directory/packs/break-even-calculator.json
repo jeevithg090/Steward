@@ -1,0 +1,47 @@
+{
+  "id": "break-even-calculator",
+  "name": "Break-even calculator",
+  "pitch": "Find the implied break-even inflation rate from tips and nominal treasury yields.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for \"break-even inflation rate tips vs nominal treasuries\" on a financial data site. When the results appear, read the first table that shows tip yields and nominal yields for the same tenors. If no table is found, say so and ask the person if they want to try a different site. Extract the row for the longest tenor shown, usually 10-year. Subtract the nominal yield from the tip yield; that difference is the break-even inflation rate. Show the two yields and the calculated rate in a table. If the site requires sign‑in, stop and ask the person to provide the needed credentials before continuing.",
+  "starters": [
+    "calculate break-even inflation",
+    "compare tips and nominal yields",
+    "find 10-year break-even rate"
+  ],
+  "examples": [
+    {
+      "ask": "what is the break-even inflation for 10-year?",
+      "does": "search the web, pull the 10-year tip and nominal yields, subtract them and display the result."
+    }
+  ],
+  "skills": [
+    {
+      "name": "fetch-and-calculate-breakeven",
+      "description": "Search for tip vs nominal yields, extract the 10-year row, subtract nominal from tip, and present the break-even inflation rate.",
+      "body": "1. Use web_search to look for \"break-even inflation rate tips vs nominal treasuries\". 2. Use browser_navigate to open the top result. 3. Use browser_snapshot to read the table of yields. 4. Find the row with the 10-year tenor for both tip and nominal yields. 5. Subtract the nominal yield from the tip yield. 6. Use show_table to display the tip yield, nominal yield and the calculated break-even inflation rate."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# break-even calculator\nFinds the implied break-even inflation rate from tips and nominal treasury yields.\n\n**What it does**\nSearches financial data, extracts the 10-year tip and nominal yields, and subtracts them to show the break-even rate.\n\n**What it needs**\nweb_search, browser_navigate, browser_snapshot, show_table\n\n**It will not** perform the calculation if the data cannot be found or the site requires sign‑in.",
+  "hash": "6919624db4a616b9c507433c083f67888e31b153ba91bdd75737b78af5440218"
+}

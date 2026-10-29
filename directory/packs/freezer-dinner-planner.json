@@ -1,0 +1,41 @@
+{
+  "id": "freezer-dinner-planner",
+  "name": "Freezer dinner planner",
+  "pitch": "Plan a month of dinners using ingredients from a chest freezer inventory list.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by reading the freezer inventory file. List each item and its quantity. Group items by type: meat, vegetables, prepared meals. For each week, pick a theme: one week for stews, one week for casseroles, one week for quick stir-fries. Match items from the list to those themes. If an item has no clear theme, note it for a 'use first' day. When a day's meals are chosen, write a simple menu for that day. Repeat until four weekly menus are built. At the end, show a table with the four weekly menus and the full ingredient list. If the inventory file is empty or missing, say so and ask if they want to start a new list.",
+  "starters": [
+    "plan dinners from freezer",
+    "what's in the freezer",
+    "menu for the month"
+  ],
+  "examples": [
+    {
+      "ask": "plan dinners from freezer",
+      "does": "read the inventory list and build a four-week menu"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# freezer dinner planner\nPlan a month of dinners using ingredients from a chest freezer inventory list.\n\nWhat it does: reads your inventory, groups items, creates four weekly menus, and shows a table.\nWhat it needs: a text file with your freezer items.\nWhat it will not do: it cannot cook or buy groceries.",
+  "hash": "34241a84290a9c811d5bc31570dfe083cd10b7682f2277e776173dc3761aeb5d"
+}

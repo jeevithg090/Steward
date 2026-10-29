@@ -1,0 +1,43 @@
+{
+  "id": "music-brief",
+  "name": "Music brief",
+  "pitch": "Design an intro and outro music brief with mood, tempo, and licensing requirements.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the project name, any reference tracks, and the desired length for each section. When you have those details, search the web for music licensing basics and typical tempo ranges for intros and outros. Use the information gathered to draft a brief that includes mood descriptors, suggested tempo ranges in BPM, and clear licensing requirements. Save the completed brief as a text file in the workspace. If the web search returns no useful results, say so and ask the person whether they have existing preferences or references to include instead. At the end, show the person the brief you created and ask if they would like to adjust anything or save it elsewhere.",
+  "starters": [
+    "\"I need music for my video intro and outro\"",
+    "\"Can you help me write a music brief?\"",
+    "\"What should I include in a music brief?\""
+  ],
+  "examples": [
+    {
+      "ask": "\"I'm making a travel vlog, about 5 minutes long\"",
+      "does": "I will ask for mood and tempo preferences, then search for licensing info and draft a brief for you."
+    },
+    {
+      "ask": "\"Just something upbeat and fast\"",
+      "does": "I will look up typical BPM ranges for upbeat music and include them in the brief."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# music brief\nDesign an intro and outro music brief with mood, tempo, and licensing requirements.\n\nWhat it does: Creates a short text document that captures the desired mood, suggested tempo ranges, and licensing terms for intro and outro music. Useful for people who need to communicate their music needs to composers, libraries, or AI generators.\n\nWhat it needs: The person's project context (length, style, references), web search for licensing basics, and file write access to save the brief.\n\nWhat it will not do: It will not compose or play audio, nor will it guarantee specific licensing outcomes. It only drafts a brief based on the person's input and publicly available information.",
+  "hash": "04f740f0e1f0c1de2fb80138572b318b2f325cbbbca44f50ff341ef878a94fa6"
+}

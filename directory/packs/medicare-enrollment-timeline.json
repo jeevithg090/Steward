@@ -1,0 +1,71 @@
+{
+  "id": "medicare-enrollment-timeline",
+  "name": "Medicare enrollment timeline",
+  "pitch": "Build a personal timeline of enrollment dates, penalties and coverage gaps for retirement at 65.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_write",
+      "make_page",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their exact birth date and the month they plan to retire. Use web_search to find the official Medicare enrollment periods: Initial Enrollment Period, General Enrollment Period, Special Enrollment Periods and the late‑penalty rules for Part A, Part B and Part D. Write the dates and penalty rules into a plain‑text timeline, using the person's birth date to calculate their specific months. When a web search returns no result for a specific rule, say what could not be found and continue with the general timeline structure. When the timeline is complete, use make_page to create a simple document titled \"Medicare Enrollment Timeline\" that lists the key dates, penalties and any coverage gaps. Offer to save the file to the workspace and, if the person agrees, use calendar_create to add the enrollment deadlines to their calendar. Never give a name to the person; refer to them only as \"you\".",
+  "starters": [
+    "create my medicare timeline",
+    "i'm turning 65 next year",
+    "show me penalties and gaps"
+  ],
+  "examples": [
+    {
+      "ask": "what is my birth month",
+      "does": "look up the Initial Enrollment Period dates for that month"
+    },
+    {
+      "ask": "what are the penalties",
+      "does": "write the late‑penalty amounts for Part B and Part D"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-timeline",
+      "description": "Create a step‑by‑step timeline of Medicare enrollment dates and penalties.",
+      "body": "1. Search for \"Medicare Initial Enrollment Period\" and note the three‑month window around the person's 65th birthday. 2. Search for \"Medicare late penalty Part B\" and record the 10% per‑year penalty calculation. 3. Search for \"Medicare late penalty Part D\" and record the penalty formula. 4. Search for \"Medicare Special Enrollment Period\" if the person has employer coverage. 5. Combine the found dates and penalty rules into a chronological list keyed to the person's birth date."
+    },
+    {
+      "name": "save-document",
+      "description": "Save the timeline as a readable file.",
+      "body": "1. Use make_page to generate a markdown document with the heading \"Medicare Enrollment Timeline\" and bullet points for each date and penalty. 2. Use file_write to save the page as \"medicare‑timeline.txt\" in the workspace. 3. Tell the person the file is ready and ask if they want it added to their calendar."
+    }
+  ],
+  "rules": [
+    {
+      "name": "payments",
+      "effect": "deny",
+      "when": "tool.kind == \"pay\"",
+      "description": "do not pay any Medicare premium or fee on the person's behalf"
+    },
+    {
+      "name": "calendar access",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "ask before adding any date to the person's calendar"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Medicare enrollment timeline\nCreates a personal timeline of enrollment dates, penalties and coverage gaps for retirement at 65.\n\n**What it needs:** web_search, file_write, make_page, calendar\n**What it will not do:** it will not pay any premium, sign any form or add calendar events without asking.",
+  "hash": "cd7b680bfceb5b9864dcc7a9a767e99d1d3930a7d1d1836d4248ff8dcf55640d"
+}

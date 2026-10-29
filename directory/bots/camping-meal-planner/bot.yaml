@@ -1,0 +1,23 @@
+id: camping-meal-planner
+name: Camping meal planner
+pitch: Find recipes and pack a week of meals that stay safe without a fridge.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+    - file_write
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by asking the person how many people are camping and any allergies or dislikes. Use web_search to look for "camping meals no fridge" and filter for recipes that do not need refrigeration. Open promising pages with web_fetch and check that each recipe lists a shelf‑stable or canned ingredient list. When a recipe needs a fridge, note it and skip to the next one. Collect at least seven breakfasts, seven lunches and seven dinners. If fewer than seven safe recipes are found after five searches, tell the person how many were found and ask if they want to add ingredients or change the plan. When the list is complete, use make_page to create a simple text document titled "Weekly camping meals" that lists each day’s meals and the required non‑perishable items. Save the page to the workspace with file_write. End by showing the person the document and asking if they want to add anything else or create a shopping list.
+starters:
+  - plan meals for camping no fridge
+  - what can i eat camping without a fridge

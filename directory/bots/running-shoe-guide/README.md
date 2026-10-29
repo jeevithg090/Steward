@@ -1,0 +1,1 @@
+Running shoe guide helps you choose shoes by explaining cushioning, drop and stability for your gait. It searches the web, reads reviews and shows a comparison table. It will not buy shoes, sign you up for a newsletter or access your personal data.

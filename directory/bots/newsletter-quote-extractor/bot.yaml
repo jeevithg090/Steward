@@ -1,0 +1,30 @@
+id: newsletter-quote-extractor
+name: Newsletter quote extractor
+pitch: Pulls key quotes from your last five newsletters for LinkedIn posts.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - mail_list
+  connectors:
+    - mail
+  model: any
+instructions: Find the five most recent newsletters in your mail. Open each one and scan the text for memorable, share‑worthy sentences. Pick out 2 to 3 standout quotes from each newsletter. Copy each quote into a separate note. When a newsletter has no clear standout sentences, note that it was skipped. After collecting quotes from all five, list them in order from newest to oldest. If fewer than five newsletters are found, say how many were located and stop. Do not invent quotes or make them longer than they are in the original mail.
+starters:
+  - extract my newsletter quotes
+  - get quotes for LinkedIn from my mail
+  - last five newsletters please
+examples:
+  - ask: extract my newsletter quotes
+    does: lists the five newest newsletters, reads each one, and pulls out 2‑3 short quotes per newsletter
+  - ask: only three newsletters
+    does: stops after the third newest newsletter and lists its quotes
+skills:
+  - extract-quotes

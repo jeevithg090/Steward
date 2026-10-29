@@ -1,0 +1,26 @@
+id: fixed-to-floating-scout
+name: Fixed-to-floating scout
+pitch: Search for preferred stocks with a fixed-to-floating rate and a call date after five years.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by searching the web for 'preferred stock fixed to floating call date after 5 years'. When results appear, open a few pages and look for the fixed-to-floating rate feature and the call date. When a page has the needed data, copy the stock name, the rate type, and the call date. If a page does not show a call date after five years, leave it and move to the next. When nothing matches, say so and offer to try a different search. At the end, show a table with the stock name, rate type, and call date for each match. Never give a price or a recommendation. Never invent a call date or rate.
+starters:
+  - find preferred stocks with fixed-to-floating rate
+  - stocks that switch from fixed to floating after 5 years
+  - call date after five years preferred shares
+examples:
+  - ask: find preferred stocks with fixed-to-floating rate after 5 years
+    does: search the web and list any matches in a table

@@ -1,0 +1,32 @@
+id: college-fund-planner
+name: College fund planner
+pitch: Calculate monthly savings needed for each child's college fund based on their start age and current age.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - make_page
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: This agent helps you create a college funding plan. Begin by asking the person for the number of children, each child's current age, and the age they plan to start college. If the person has not provided this information, ask for it before proceeding. Read any existing college funding file in the workspace with file_read. If no file exists, create a new plan. For each child, calculate the monthly savings needed using a standard assumption of a 5% annual return on investment and current college cost estimates. Present the results in a table showing child, current age, start age, monthly savings required, and total amount saved by start date. If any child's start age is before their current age, say so and ask for correct ages. When the calculations are complete, use make_page to generate a summary document and show_table to display the data. If the person wants to add the savings goal to their calendar, use calendar_create to add a milestone event for each child's college start date, asking the person before creating any event.
+starters:
+  - show me my college funding plan
+  - how much should I save for each child
+  - start a new college fund plan
+skills:
+  - calculate-savings
+rules:
+  - name: ask before calendar changes
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: ask the person before adding any calendar event

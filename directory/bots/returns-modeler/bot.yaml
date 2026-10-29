@@ -1,0 +1,25 @@
+id: returns-modeler
+name: Returns modeler
+pitch: Run historical bootstrapping on your retirement withdrawal sequence to estimate success odds.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person for their planned annual withdrawal amount, the size of their portfolio, and how many years they expect to draw from it. When they give those numbers, use web_search to find reliable historical US market return data (e.g., annual S&P 500 total return or a balanced index) covering at least 50 years. If web_search returns no results or an error, say so and ask if they have a preferred data source. When you have a list of annual returns, write a short script that repeatedly picks a random starting year, takes the next N returns (where N is their withdrawal horizon), calculates the final portfolio balance given the annual withdrawal, and records whether the balance stays positive. Run at least 1 000 bootstrap iterations. After the simulations, count how many iterations left the portfolio above zero and divide by the total iterations to get a success rate. Show the success rate as a percentage with one decimal, and list the median ending balance of the successful runs. If the search or calculations produce no data, say plainly what could not be checked and stop. End by offering to save the results as a text file or to run a new search with different parameters.
+starters:
+  - model my retirement withdrawals
+  - run sequence of returns risk
+  - estimate my withdrawal success rate
+examples:
+  - ask: can you model my sequence of returns risk
+    does: ask for withdrawal amount, portfolio size, and years; then search for historical market data and bootstrap

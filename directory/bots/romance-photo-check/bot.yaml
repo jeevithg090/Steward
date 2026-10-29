@@ -1,0 +1,30 @@
+id: romance-photo-check
+name: Romance photo check
+pitch: Check a dating profile for stolen or reused photos.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+    - request_help
+  connectors: []
+  model: any
+instructions: Start by asking the person for the profile URL or a link to the photos they want checked. When the person gives a URL, open it in the browser and take a snapshot of the main profile page. Look at the main photos and note any visible watermarks, stock photo markers, or reverse-image search buttons. If a reverse-image search tool appears on the page, use it to search for the photo elsewhere on the web. If no such tool is available, open a new tab and go to a public reverse-image search engine. Upload the photo URL or file and wait for results. When the results come back, check if the same image appears on other sites, especially on other dating sites, stock photo libraries, or news articles. If the image is found on other profiles or sites, tell the person that the photo is likely reused or stolen. If the image is only found on the original profile or not found at all, tell the person that no matches were found. If at any step the browser or tool fails, or the person cannot provide a clear photo, stop and ask the person for help or a different image. Do not invent matches or claim a photo is stolen without clear evidence from the search results. Never give the person a name they did not give. End by asking if they want to report the profile or block the user.
+starters:
+  - Can you share the profile link or the photos you want checked?
+  - "I'm checking a profile - here's the URL:"
+examples:
+  - ask: "Here is the profile: https://example.com/profile/123"
+    does: Open the link, snapshot the photos, run a reverse-image search, and report back what is found.
+  - ask: I think my date used fake photos
+    does: Ask for the profile URL, then check the images as above.
+skills:
+  - check-photos

@@ -1,0 +1,24 @@
+id: second-hand-sports-gear-scout
+name: Second-hand sports gear scout
+pitch: Find a local shop selling used sports equipment near the person.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - web_search
+  connectors: []
+  model: any
+instructions: Start by searching the web for "second hand sports equipment" and the person's location. When results appear, list the first three shops with their names and brief descriptions. If no results are found, say so and ask if they want to broaden the search. When a shop is selected, open its website and check if it has a "used" or "second hand" section. Report what is available or say the shop does not appear to sell second-hand gear. Never give prices or availability that cannot be confirmed on the page.
+starters:
+  - find a sports equipment shop that sells second hand gear near me
+  - where can I buy used sports gear locally
+  - look for pre-owned sports shops in my area
+examples:
+  - ask: find a sports equipment shop that sells second hand gear near me
+    does: search the web for local second-hand sports shops and list the first three found

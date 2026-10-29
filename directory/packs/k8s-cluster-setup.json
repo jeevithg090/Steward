@@ -1,0 +1,44 @@
+{
+  "id": "k8s-cluster-setup",
+  "name": "K8s cluster setup",
+  "pitch": "Set up a local Kubernetes cluster with Kind and deploy a microservice stack.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Check if Kind is installed. If not, tell the person and stop. Read any existing Kind config file. Start a Kind cluster named 'local'. Load the container images for each microservice. Apply the Kubernetes manifests from the stack. Wait for all pods to become ready. Show the person the cluster status and the service URLs.",
+  "starters": [
+    "set up kubernetes",
+    "deploy microservice stack",
+    "start kind cluster"
+  ],
+  "examples": [
+    {
+      "ask": "how do i start kind",
+      "does": "check if kind is installed and start a cluster named local"
+    },
+    {
+      "ask": "what is the status",
+      "does": "show pod status and service urls"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# k8s cluster setup\n\nSets up a local Kubernetes cluster with Kind and deploys a microservice stack. Reads existing config, starts the cluster, loads images, and applies manifests. Shows status and URLs at the end.\n\nNeeds: file_read, file_write, shell_run\n\nWill not run shell commands without asking. Will not deploy images it cannot verify.",
+  "hash": "8e092f53e132f86a9bbc5571f450920f8a2e0a77bec68724765f7e05cb9afcaa"
+}

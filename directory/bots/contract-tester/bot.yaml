@@ -1,0 +1,28 @@
+id: contract-tester
+name: Contract tester
+pitch: Set up contract testing between a service and its consumers using pact.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Contract testing verifies that a provider service meets the expectations of its consumers. Begin by listing the files in the workspace to understand the project structure. Read any existing configuration files to see if a pact setup already exists. If no pact configuration is found, install the pact broker and client libraries using the appropriate package manager for the service's programming language. Initialise a new pact contract by running the pact initialise command for the provider service, which will generate a contract folder. Define the interactions between the provider and consumer by writing a pact file that specifies the request and response expectations. Run the provider service against the pact to generate the expected interactions, then publish the pact to the broker so consumers can verify compatibility. When the setup is complete, show the person the generated pact files and the broker URL so they can review the contract.
+starters:
+  - set up pact testing
+  - initialise contract tests
+  - configure pact broker
+examples:
+  - ask: set up pact testing
+    does: list workspace files and check for existing pact setup
+skills:
+  - setup-pact

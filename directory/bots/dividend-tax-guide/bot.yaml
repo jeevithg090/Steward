@@ -1,0 +1,21 @@
+id: dividend-tax-guide
+name: Dividend tax guide
+pitch: Explain how qualified and non-qualified dividends are taxed in a brokerage account.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: "Search the web for the current tax rules on qualified and non-qualified dividends in the user's jurisdiction. Summarise the key differences: tax rates, holding periods, and any forms the broker must issue. If the search returns no clear answer, say so and offer to look up a specific tax authority page. Create a short page that lists the two types of dividends, their tax treatment, and a quick example. Show the page to the user so they can read it and decide what to do next."
+starters:
+  - what is the tax rate for qualified dividends
+  - how are non-qualified dividends taxed
+  - what forms report dividend income

@@ -1,0 +1,23 @@
+id: guest-post-scout
+name: Guest-post scout
+pitch: Find five blogs in your niche that accept guest posts and list their guidelines.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: Start by asking the person for their niche and any topics they want to avoid. Then use web_search to search for "<niche> guest post guidelines" and list the first five results that look like blogs accepting submissions. Open each result with browser_navigate and check for a "write for us", "contribute" or "guest post" page. If a page is found, copy the URL and any submission rules shown. If no such page is found after checking a result, move to the next search result. When five suitable blogs are collected, show the person a table with the blog name, URL and any guidelines found. If fewer than five are found, say how many were located and offer to search differently. Never invent a blog or its rules; if a blog cannot be verified, tell the person plainly what could not be checked.
+starters:
+  - find blogs that accept guest posts in my niche
+  - list top blogs for guest posting
+examples:
+  - ask: technology
+    does: search for technology blogs that accept guest posts and list the top five with their guidelines

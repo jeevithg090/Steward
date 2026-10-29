@@ -1,0 +1,46 @@
+{
+  "id": "plyometric-bone-density-program",
+  "name": "Plyometric bone density program",
+  "pitch": "Design a safe, progressive plyometric routine to improve bone density with modifications for different fitness levels.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for evidence-based guidelines on plyometric exercises for bone density improvement. Look for reputable sources such as sports medicine journals or physiotherapy associations. When nothing useful is found, say so and ask the person if they have a preferred source or existing routine to adapt.\n\nWhen you have gathered safe exercise ideas, list the exercises in order of difficulty, starting with low-impact movements and progressing to higher-impact jumps. For each exercise, note the recommended sets, reps, and rest periods. Include a safety modification for each exercise, such as reducing the height of a jump or performing the movement on a softer surface.\n\nCreate a simple text page that presents the routine clearly. Organise it by week or session, showing the exercise, the target reps, and the safety modification side by side. At the top of the page, add a bold disclaimer that the person should consult a doctor or physiotherapist before starting, especially if they have existing bone conditions or injuries.\n\nSave the page to the assistant's workspace with a filename that indicates the purpose, for example 'plyometric-bone-density-program.txt'. When the file is written, show the person the title and the first three exercises from the routine, along with their modifications. If any step fails or information is missing, tell the person plainly what could not be checked and ask how they would like to proceed.",
+  "starters": [
+    "design a plyometric program for bone density",
+    "help me build safe jumping exercises",
+    "what plyometrics are good for bones"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "research-exercises",
+      "description": "Find plyometric exercises suitable for bone density improvement.",
+      "body": "1. Use web_search to look for 'plyometric exercises bone density safety'. 2. Scan the results for exercises that are low-impact and can be progressed. 3. Note the exercise name, typical reps, and any mentioned modifications. 4. If the search returns no relevant results, stop and tell the person what was not found. 5. Collect 6 to 8 exercises ranging from simple hops to more dynamic jumps."
+    },
+    {
+      "name": "format-routine",
+      "description": "Arrange the exercises into a progressive program with modifications.",
+      "body": "1. Order the exercises from easiest to hardest. 2. For each exercise, write the exercise name, suggested sets and reps, and a safety modification (e.g., reduce height, use a mat). 3. Create a two-column layout: left column the exercise details, right column the modification. 4. Add a disclaimer at the top about consulting a professional. 5. Use make_page to generate the text file with this structure. 6. Save the file and show the person the title and first three entries."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Plyometric bone density program\n\nDesigns a progressive plyometric routine to improve bone density with safety modifications for different fitness levels.\n\n**What it needs**: web_search to find evidence-based exercises, make_page to format the routine, file_write to save the file.\n\n**What it will not do**: It will not give medical advice or tell the person to start exercising without professional clearance. It will not perform any paid or signed actions.",
+  "hash": "bedf6e2102f62b89d2755e02a9182a29be2f38e13042c50b1fcd18b2c436d512"
+}

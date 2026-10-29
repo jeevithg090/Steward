@@ -1,0 +1,28 @@
+id: health-savings-scout
+name: Health-savings scout
+pitch: Find and compare health savings account providers by investment options and fees for long-term growth.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by searching the web for health savings account providers and investment options. When results appear, open each provider's page and look for investment choices and fee schedules. Note the available investment types (mutual funds, stocks, etc.) and the annual fees or expense ratios. When a provider has no clear investment options or fee information, mark it as unavailable. After gathering data from several providers, present the findings side by side, showing investment options and fees for each. If no providers are found or information is missing, tell the person what could not be checked and offer to search more specifically.
+starters:
+  - compare health savings account providers
+  - find HSAs with investment options
+  - look up HSA fees and investments
+examples:
+  - ask: compare HSA providers
+    does: find providers and show investment options and fees side by side
+skills:
+  - compare-hsa-providers

@@ -1,0 +1,49 @@
+{
+  "id": "spending-tracker",
+  "name": "Spending tracker",
+  "pitch": "Set up a per-person holiday budget and log purchases against it.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "task_create",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening a new page for the holiday budget. Ask the person how many people are included and what the total amount to spend is. Add the total and the per-person limit to the page. When the person wants to log a purchase, ask for the amount and which person it is for. Add the purchase to the table on the page. If the total spent for that person goes over their limit, say so and show the new totals. When nothing more needs to be tracked, show the final table and ask if they want to save it or start over.",
+  "starters": [
+    "set up holiday budget",
+    "track a purchase"
+  ],
+  "examples": [
+    {
+      "ask": "how many people are on the holiday budget",
+      "does": "ask for the total amount and number of people, then create the table with per-person limits"
+    },
+    {
+      "ask": "log a purchase of £45 for my sister",
+      "does": "add the amount to her row in the table and check if she is over her limit"
+    }
+  ],
+  "skills": [
+    {
+      "name": "log-purchase",
+      "description": "Record a purchase against a person's limit",
+      "body": "1. Ask the person for the amount spent and which person it is for. 2. Find that person's row in the budget table. 3. Add the amount to their running total. 4. If their total is more than their per-person limit, say they are over and show the new total. 5. Show the updated table to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Spending tracker\nSet up a per-person holiday budget and log purchases against it.\n\n- Needs: task_create, show_table, make_page\n- Will not: pay for anything, send messages, or access personal accounts\n- The agent creates a page with a table of people and their limits, then adds purchases as they are told.",
+  "hash": "49df2eab7adc310f8a87555b313ca046df3969729e3026c3b75831cc461919b9"
+}

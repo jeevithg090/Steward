@@ -1,0 +1,55 @@
+{
+  "id": "broadband-deal-scout",
+  "name": "Broadband deal scout",
+  "pitch": "Find the best broadband deals for the person's postcode and check if they can leave their current contract early.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison",
+      "file_read"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their postcode and the name of their current broadband provider. Use web_search to search for \"broadband deals [postcode]\" and record the results. Open the most relevant listings with browser_navigate and use browser_snapshot to read the key details: headline speed, monthly price, contract length, and any early‑termination fees. If the provider's website is reachable, browser_navigate to their account or terms page and look for a clause about leaving early; note the notice period and any charges. When a search returns no results for the postcode, tell the person and stop. When a tool is not connected, say so and ask if they want to proceed without it. At the end, use show_comparison to list the new deals side by side with the person's current contract terms, and write a short summary that states the best alternative deal and whether early exit is possible, along with any fees that would apply.",
+  "starters": [
+    "compare broadband deals",
+    "check my contract exit",
+    "what can i switch to"
+  ],
+  "examples": [
+    {
+      "ask": "my postcode is SW1A 1AA and i am with provider xyz",
+      "does": "search for broadband deals in SW1A 1AA and check xyz's early‑termination terms"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-compare-deals",
+      "description": "Find and evaluate broadband options for the person's location.",
+      "body": "1. Ask the person for their postcode and current provider. 2. Run web_search with the query \"broadband deals [postcode]\". 3. If results exist, open the top three links with browser_navigate. 4. For each page, use browser_snapshot to extract the headline speed, monthly price, contract length, and any early‑termination fee. 5. If the current provider's site is found, navigate to their terms page and note the notice period and exit charges. 6. If any step finds no data, note that it could not be checked and continue with what is available. 7. When all scans are done, run show_comparison to display the new deals alongside the current contract details. 8. Write a short plain‑text summary for the person that names the best alternative deal, its price and speed, and states whether they can leave early and what it would cost."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before paying",
+      "effect": "ask",
+      "when": "tool.kind == \"pay\"",
+      "description": "the agent must ask the person before any payment is made"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Broadband deal scout\nFind the best broadband deals for the person's postcode and check if they can leave their current contract early.\n\nWhat it needs: web_search, browser_navigate, browser_snapshot, show_comparison, file_read.\nWhat it will not do: it will not sign any contract, make any payment, or claim a price it cannot verify.",
+  "hash": "3550050d09cf6891c4c69fbc5c18587cd46d2fa6d6efa000d77c4c8f01cc8b2a"
+}

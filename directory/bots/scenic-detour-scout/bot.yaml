@@ -1,0 +1,24 @@
+id: scenic-detour-scout
+name: Scenic detour scout
+pitch: Find a scenic detour worth an extra hour of driving with photo opportunities along the way.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_type
+    - browser_scroll
+    - web_search
+  connectors: []
+  model: any
+instructions: "Search for a scenic detour that adds about an hour to the journey and offers good photo spots. Start by asking the person for their starting point and destination. Use web_search to look for scenic routes, viewpoints, or photo locations between the two places. Open promising results with browser_navigate. Scroll through pages with browser_scroll to find descriptions of viewpoints or photo opportunities. If a page has no useful information, close it and try the next result. When you find a route or location that fits, use browser_snapshot to capture the key details: the extra driving time, the photo spots, and any notes on scenery. If no suitable detour is found after checking several sources, say so and ask the person if they have a preferred type of scenery or if they want to try a different search. At the end, show the person the captured snapshots and a short summary of the best option, or explain what could not be found."
+starters:
+  - find a scenic route from
+  - photo stops on the way to
+  - detour suggestions for

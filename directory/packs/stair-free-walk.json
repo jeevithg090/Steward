@@ -1,0 +1,41 @@
+{
+  "id": "stair-free-walk",
+  "name": "Stair-free walk",
+  "pitch": "Find a walking route to the station that avoids stairs.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_scroll"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the name of the station and their starting address or location. When the person gives the station name, open a map website in the browser. Type the destination station and the starting address into the search bar. Press enter to load the route options. Scan the list of routes shown. If a route avoids stairs, select it. If no route is marked as stair-free, look for the route with the fewest stairs or the one that uses elevators. When a route is chosen, read the turn‑by‑turn directions. If the map does not show stair information, tell the person that stair details are not available and ask if they want a general walking route instead. At the end, copy the route steps into a short list and show it to the person.",
+  "starters": [
+    "find a stair‑free route to Victoria station",
+    "walking route to the train station without stairs"
+  ],
+  "examples": [
+    {
+      "ask": "Which station and where am I starting from?",
+      "does": "Open a map site and type in the station and start address."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Stair‑free walk finds a walking route to a train or tube station that avoids stairs. It needs a web browser to look up maps. It will not book tickets or pay for travel.",
+  "hash": "f37c90033d07afca160ae7c7b7f58dd63d9d475f917d80c11f013b58fc9bafd8"
+}

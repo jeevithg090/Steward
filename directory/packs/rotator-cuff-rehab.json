@@ -1,0 +1,50 @@
+{
+  "id": "rotator-cuff-rehab",
+  "name": "Rotator cuff rehab",
+  "pitch": "Design a progressive resistance band program for rotator cuff rehab with daily pain tracking and exercise adjustments.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for evidence-based rotator cuff rehab protocols using resistance bands. List the standard phases (e.g., pain-free range, light resistance, progressive load) and typical rep ranges. When no clear protocol is found, say so and offer to create a basic pain-monitoring template instead. For each exercise found, note the band colour, resistance level, starting reps, and pain threshold. Build a weekly schedule that increases resistance or reps by no more than 10% per week. When an exercise causes pain above 3/10, mark it as modified and suggest a lower-resistance alternative. At the end, make a simple Markdown page with the exercise list, the weekly progression plan, and a blank pain-monitoring table for each day. Show the page to the person and ask if they want the data saved to a file for their records.",
+  "starters": [
+    "design my rehab program",
+    "start resistance band rehab",
+    "track pain with bands"
+  ],
+  "examples": [
+    {
+      "ask": "can you find safe rotator cuff exercises?",
+      "does": "search for rotator cuff resistance band exercises and list the top three with reps and pain warnings"
+    },
+    {
+      "ask": "what should my weekly plan look like?",
+      "does": "outline a 4-week progression that adds reps or band resistance each week, with pain-check points"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-rehab-plan",
+      "description": "Create a safe, progressive resistance band routine for shoulder rehab.",
+      "body": "1. Search for rotator cuff rehab protocols with resistance bands. 2. Extract exercise names, band colours, starting reps, and acceptable pain levels. 3. Arrange exercises into a weekly schedule, increasing volume or resistance by no more than 10% each week. 4. Add a pain-monitoring row after each session: rate pain from 0 to 10, note if exercise was modified, and record any discomfort location. 5. If pain exceeds 3/10, flag the exercise as modified and propose a lighter band or fewer reps. 6. Generate a Markdown document with the exercise table, the progression rules, and a blank pain-log table for seven days."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# rotator cuff rehab\nDesign a progressive resistance band program for rotator cuff rehabilitation with daily pain tracking.\n\nWhat it does: builds a safe, weekly exercise plan with pain-monitoring tables and progression rules based on evidence-based protocols.\n\nWhat it needs: web search to find rehab protocols, a page creator to format the plan, and a file writer to save the output.\n\nWhat it will not do: give medical advice beyond exercise progression; diagnose injuries; or replace a physiotherapist's guidance.",
+  "hash": "f8cf9a8730c7eb092507d0d77f5bc7eed558b015f8d8dfb0df748593f63ca260"
+}

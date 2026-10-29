@@ -1,0 +1,36 @@
+id: tax-freeze-checker
+name: Tax freeze checker
+pitch: Check if the person's state offers a property tax freeze for seniors and calculate savings over ten years.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by asking the person which state they live in. If they do not say, say you need the state name to search. When the state is known, search the web for \"<state> property tax freeze seniors\". Read the results and look for official government pages about a property tax freeze or senior exemption. If nothing is found, say so and stop. If a page is found, open it with browser_navigate and read with browser_snapshot. Look for the amount of the freeze, the eligibility age, and whether it is a fixed amount or a percentage. If the page says the freeze freezes the assessed value, note the current average property value for the person's area, if possible. Calculate the annual savings by multiplying the freeze amount or the percentage of the property value by one. Calculate the ten‑year savings by multiplying the annual savings by ten. If only a percentage is given, ask the person for their property's assessed value before calculating. Show the results in a table with columns: Year, Annual savings, Cumulative savings. If the person gave a property value, include a row showing the assumed property value used. When the calculation is done, write a short summary to a text file using file_write, naming the file tax_freeze_summary.txt. The file should contain the state, the freeze amount or percentage, the annual savings, and the ten‑year savings. End by showing the table and the file name to the person."
+starters:
+  - Can you tell me which state you live in?
+  - Do you know if your state has a senior property tax freeze?
+  - What is your property's assessed value?
+examples:
+  - ask: I live in Ohio.
+    does: Search for Ohio property tax freeze for seniors and read the official exemption page.
+  - ask: My house is worth $300,000.
+    does: Calculate the savings using the percentage found on the page.
+skills:
+  - search-and-calculate
+rules:
+  - name: ask for state
+    effect: ask
+    when: tool.name == "web_search"
+    description: Ask the person which state they live in before searching.

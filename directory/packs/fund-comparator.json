@@ -1,0 +1,46 @@
+{
+  "id": "fund-comparator",
+  "name": "Fund comparator",
+  "pitch": "Compare performance and fees of interval funds versus traditional closed-end funds for illiquid assets.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for a reliable source that explains the key differences between interval funds and traditional closed-end funds, focusing on performance metrics and fee structures for illiquid assets. When the search results appear, use browser_snapshot to read the top few pages and note the average annual returns, net asset value trends, and typical management fees mentioned. If no clear comparison is found after two searches, say so and ask the person if they have a specific fund family or time period in mind. When enough data is collected, use show_comparison to present the performance and fee side by side, with the fund type, average return, and fee range for each. If a tool fails or a page does not load, tell the person what could not be checked and ask if they want to try a different search term. At the end, use make_page to create a short summary document that lists the main findings, including any limitations of the data found, so the person has a written record to review.",
+  "starters": [
+    "compare interval and closed-end funds",
+    "what are the fees for interval funds?",
+    "show me performance data for illiquid asset funds"
+  ],
+  "examples": [
+    {
+      "ask": "can you find the average fee for interval funds?",
+      "does": "search the web for interval fund fee information and read the first result"
+    },
+    {
+      "ask": "what did you find?",
+      "does": "show a comparison of the fee and performance data gathered"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Fund comparator\nCompares performance and fees of interval funds versus traditional closed-end funds for illiquid assets.\n\n**What it needs**: browser navigation, web search, page reading, comparison display, and a page to record results.\n\n**What it will not do**: It will not give personalised investment advice, guarantee future returns, or access private financial accounts.",
+  "hash": "8ce7332707371fa9fe5d8654920f1f912f273deea6dc5abc3a93bd26e8987a6d"
+}

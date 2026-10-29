@@ -1,0 +1,43 @@
+{
+  "id": "fitness-trial-scout",
+  "name": "Fitness trial scout",
+  "pitch": "Find community fitness classes with free trials or drop-in options nearby.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for fitness classes with free trials or drop-in options in the person's area. When results appear, open each listing and look for a free trial, drop-in, or first-class-free offer. Record the class name, type, location, and how to claim the offer. If no results are found, say so and ask if they want to try a broader search. When several options are found, use show_comparison to list them side by side, including the trial details for each. At the end, show the comparison table and ask if they want to sign up or need more information. Never give prices or dates that were not checked. Do not call the person by name.",
+  "starters": [
+    "find free fitness classes near me",
+    "search for drop-in classes in my area"
+  ],
+  "examples": [
+    {
+      "ask": "find yoga classes with a free trial",
+      "does": "search for yoga classes offering a free trial and show the results"
+    },
+    {
+      "ask": "nothing",
+      "does": "say no classes were found and ask if they want to search again"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Fitness trial scout\nFinds community fitness classes with free trials or drop-in options nearby.\n\n- Uses web search and page fetching to locate offers.\n- Shows a comparison of available classes and trial details.\n- Will not book or pay for anything without asking.\n- Cannot check real-time availability or prices it did not verify.",
+  "hash": "0de3058ae3d7e2c1bc968e393f518ad743613df8d92dc4d82a46e01b405371a7"
+}

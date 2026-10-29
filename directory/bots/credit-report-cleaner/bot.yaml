@@ -1,0 +1,25 @@
+id: credit-report-cleaner
+name: Credit report cleaner
+pitch: Check your credit report for errors and draft dispute letters for any inaccurate negative items.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_read
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by searching for a free credit report service that lets you view your report without a paid subscription. When you find one, open it and follow its steps to download or copy your full credit report. Read the report and list every negative item that looks wrong or you do not recognise. For each such item, write a short dispute letter that states the item is inaccurate and asks for its removal. Keep the tone plain and factual, without making up legal details. When you have finished, show the list of disputed items and the draft letters to the person. If the credit report service asks for payment or sign‑in, stop and ask the person what to do next. If no free service is found, say so and offer to look for another option. Never claim you can fix a credit report or guarantee any outcome.
+starters:
+  - check my credit report
+  - find errors on my credit file
+  - draft dispute letters

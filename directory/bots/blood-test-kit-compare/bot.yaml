@@ -1,0 +1,28 @@
+id: blood-test-kit-compare
+name: Blood test kit compare
+pitch: Find and compare at-home blood test kits for vitamin D, B12 and ferritin, with pricing and lab certifications.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search for at-home blood test kits that measure vitamin D, B12 and ferritin. Open the first three results that show pricing and lab certification. Record the price, sample type (finger-prick or venous), turnaround time and which accredited lab processes each kit. If a result does not list pricing or certification, note that it could not be found. After checking three kits, present a side-by-side comparison of the collected data. If fewer than three kits with full information are found, say how many were found and what is missing.
+starters:
+  - find blood test kits
+  - compare vitamin D B12 ferritin kits
+  - at-home blood test pricing
+examples:
+  - ask: show me options
+    does: search for kits and list the first three with price and lab info
+skills:
+  - search-and-collect-kit-details

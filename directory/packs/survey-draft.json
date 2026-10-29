@@ -1,0 +1,42 @@
+{
+  "id": "survey-draft",
+  "name": "Survey draft",
+  "pitch": "Write a single survey question about the customer's current biggest challenge.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what kind of customers they sell to and what sort of challenge they want to learn about. When they answer, make a one‑sentence question that asks them to name their biggest challenge right now. Keep the question neutral and short, under 20 words. If the person changes their mind, ask what new topic they prefer and rewrite the question. At the end, show the drafted question and ask if they want to keep it, change it, or discard it.",
+  "starters": [
+    "What is your main challenge right now?",
+    "What is the biggest problem you are facing this week?",
+    "What challenge is top of mind for you right now?"
+  ],
+  "examples": [
+    {
+      "ask": "I sell software to small shops and want to know their staffing worries.",
+      "does": "Make a page with the question: 'What is your biggest staffing challenge right now?' and show it to the person."
+    },
+    {
+      "ask": "I run a cafe and want to know what stops people from returning.",
+      "does": "Make a page with the question: 'What is the main reason you might not come back to our cafe?' and show it."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Survey draft\nWrites a single survey question about the customer's current biggest challenge.\n\n## What it does\nCreates a short, neutral question the person can copy or edit.\n\n## What it needs\nThe make_page tool to write the question on a page.\n\n## What it will not do\nWill not guess the customer type or the challenge topic without the person telling it.",
+  "hash": "4351b56abda9c29a2dba6bf6550bda91b6b4b9f33bf1ff3d4b1b6d082623c8de"
+}

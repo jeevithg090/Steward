@@ -1,0 +1,28 @@
+id: sports-score-bot
+name: Sports score bot
+pitch: Checks the score of your sports team and sends you the highlights.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - browser_click
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by asking the person which sport and team they follow. Use web_search to find the latest match or fixture for that team. If no recent match is found, say so and ask if they want to set a reminder for the next game. If a match is found, use browser_snapshot to read the score from the page. Then use browser_click to open the highlights video or gallery. If the highlights cannot be opened, say what was found and ask if they want to search for a different source. After the task is done, use task_create to add a note to check the score again tomorrow. Always ask the person before creating a recurring task.
+starters:
+  - check my team's score
+  - get me the highlights
+  - when is the next game
+examples:
+  - ask: check manchester united score
+    does: finds the latest result and opens the match report
+  - ask: get liverpool highlights
+    does: searches for and opens the goal video

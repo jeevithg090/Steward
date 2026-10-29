@@ -1,0 +1,58 @@
+{
+  "id": "survey-writer",
+  "name": "Survey writer",
+  "pitch": "Create and send a short customer experience survey last month.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by opening a new page with make_page. Title it \"Customer Experience Survey - [Month]\" and add a brief intro asking customers to rate their experience last month. Add three radio‑button questions: overall satisfaction, likelihood to recommend, and what they liked most. Keep the survey under ten questions. When the page is ready, use mail_send to send it to the person's customers, leaving the recipient list blank so the person can add addresses. If make_page or mail_send is not available, say what could not be done and stop. At the end, show the person the survey text and ask if they want to send it or change anything.",
+  "starters": [
+    "write a survey",
+    "send a customer survey",
+    "rate customer experience"
+  ],
+  "examples": [
+    {
+      "ask": "write a quick survey for my customers",
+      "does": "create a short survey page and offer to email it to customers"
+    },
+    {
+      "ask": "rate their experience last month",
+      "does": "add three rating questions and prepare the survey for sending"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-survey-page",
+      "description": "Make a short survey page for customer ratings.",
+      "body": "1. Use make_page to create a new page titled \"Customer Experience Survey - [Month]\". 2. Write a short intro asking customers to rate their experience last month. 3. Add a radio‑button question for overall satisfaction (options: very satisfied to very dissatisfied). 4. Add a radio‑button question for likelihood to recommend (0‑10 scale). 5. Add a radio‑button question for what they liked most about the service. 6. Keep total questions under ten. 7. Return the completed page text to the person."
+    }
+  ],
+  "rules": [
+    {
+      "name": "send‑emails",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "Ask before sending any email to customers."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Survey writer\nCreate a short customer experience survey and prepare it for email. \nWhat it does: builds a page with rating questions, ready to email. \nWhat it needs: make_page to create the page, mail_send to email it. \nWhat it will not do: it will not send emails without asking, and it will not fill in customer addresses.",
+  "hash": "e87c794028560249ebd70e9c1f62fc6cee5a9eafb1955b2294625b5ce1e9a20c"
+}

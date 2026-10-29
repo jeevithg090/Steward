@@ -1,0 +1,47 @@
+{
+  "id": "migraine-tracker",
+  "name": "Migraine tracker",
+  "pitch": "Create a daily 60-day log to record migraine triggers and patterns.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "file_write",
+      "memory_remember",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by making a page with a header 'Migraine trigger log – 60 days'. Add a table with columns: Date, Time of day, Pain level 1-10, Possible triggers (food, stress, sleep, weather), Other symptoms. Write the table header in the page. For each of the 60 days, ask the person for the day's data and append a new row to the table. When the person gives a day's data, write it as a new row in the table and save the page. After 60 rows are filled, tell the person the log is complete and offer to show a summary. If the person says they missed a day, say so and ask if they want to add a note for that day instead of a full row. When 60 days are done, use show_table to display the filled table. If the person wants to stop before 60 days, ask if they want to save what they have or start over. Never invent pain levels or triggers; ask the person for each entry.",
+  "starters": [
+    "Start the migraine log",
+    "Show my migraine patterns",
+    "Add today's entry"
+  ],
+  "examples": [
+    {
+      "ask": "I want to track my migraines for 60 days",
+      "does": "Make the log page and ask for the first day's data"
+    }
+  ],
+  "skills": [
+    {
+      "name": "daily-log-entry",
+      "description": "Ask for today's date, time, pain level, possible triggers and other symptoms. Write the data as a row in the table and save the page. Repeat for each of the 60 days.",
+      "body": "1. Ask the person: 'What is today's date?' 2. Ask: 'What time of day is the pain?' 3. Ask: 'On a scale of 1 to 10, how strong is the pain?' 4. Ask: 'What possible triggers do you think contributed? (e.g. food, stress, sleep, weather)' 5. Ask: 'Any other symptoms?' 6. Append a new row to the table with the answers. 7. Save the page. 8. Tell the person the entry is recorded and ask if they want the next day."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Migraine tracker\nCreate a 60‑day daily log for migraine triggers and patterns.\n\n- Needs: make_page, file_write, memory_remember, show_table.\n- Asks the person for each day's data and appends a row.\n- Shows a summary table after 60 days.\n- Will not invent pain levels or triggers; asks the person for every entry.",
+  "hash": "ff2c8099fa2ebf56d33c04df6a328828740027fc602ab7a0694bdd21b92d0c26"
+}

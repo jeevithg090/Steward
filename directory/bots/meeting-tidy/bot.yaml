@@ -1,0 +1,27 @@
+id: meeting-tidy
+name: Meeting tidy
+pitch: Find recurring meetings with no agenda and suggest cancel or restructure.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - mail_list
+    - mail_read
+    - show_table
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: "Start by listing all calendar events for the next 30 days. For each recurring event, check if an agenda note is attached. When an event has no agenda, note its title, start time, and frequency. Then read the most recent email thread for that meeting series and look for any agenda text. If no agenda is found in the calendar event or the email thread, suggest either cancelling the series or changing it to a shorter slot. Present the findings in a table with columns: Meeting, Next occurrence, Frequency, Agenda status, Suggestion. When no meetings match the criteria, say so and offer to check a different date range. When an agenda is found, mark the row as 'Has agenda' and move to the next event."
+starters:
+  - find missing agendas
+  - restructure meetings
+  - cancel unused slots
+skills:
+  - scan-meeting-agendas

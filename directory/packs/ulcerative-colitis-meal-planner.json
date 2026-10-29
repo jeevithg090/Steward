@@ -1,0 +1,50 @@
+{
+  "id": "ulcerative-colitis-meal-planner",
+  "name": "Ulcerative colitis meal planner",
+  "pitch": "Create a weekly low-residue meal plan with flare management guidance and reintroduction steps.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for 'low residue foods ulcerative colitis flare management' and 'gradual food reintroduction colitis' to collect reliable medical guidance and food lists. When nothing is found, say so and ask the person if they have a preferred diet source. When you have results, list ten safe foods and ten foods to avoid during a flare. Create a seven-day meal plan using only the safe foods, marking each meal as breakfast, lunch or dinner. For each day, add one optional reintroduction step, describing how to add one new food after three days of flare-free eating. When the plan is complete, make a page with the weekly menu, the food lists, and the reintroduction guide. Save the page to the workspace and tell the person the plan is ready for their review.",
+  "starters": [
+    "weekly meal plan colitis",
+    "low residue diet flare menu"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a meal plan for colitis?",
+      "does": "search for low residue foods and create a seven-day menu"
+    }
+  ],
+  "skills": [
+    {
+      "name": "collect-food-lists",
+      "description": "Search for trusted colitis diet guides. Write down ten low-residue foods safe during a flare and ten to avoid. Cite the source if possible.",
+      "body": "1. Use web_search with the colitis diet query. 2. Scan the results for medical or dietitian advice. 3. List ten safe foods and ten avoided foods in plain text. 4. If sources are unclear, note that the lists come from general web results and ask the person to verify."
+    },
+    {
+      "name": "build-weekly-menu",
+      "description": "Turn the safe-food list into a seven-day plan with breakfast, lunch and dinner each day.",
+      "body": "1. Open make_page with a blank template. 2. Write the heading 'Weekly Ulcerative Colitis Flare Menu'. 3. For each day, list breakfast, lunch and dinner using only the safe foods. 4. Keep sentences short; use bullet points. 5. After the menu, add a section titled 'Gradual Reintroduction Guide'. 6. Write three steps: wait three flare-free days, add one new food, monitor symptoms for two days. 7. Save the page with file_write."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Ulcerative colitis meal planner\nCreates a weekly low-residue menu and a simple reintroduction guide for flare management.\n\nWhat it does: searches for safe foods, builds a seven-day menu, and writes a page with the plan and reintroduction steps.\n\nWhat it needs: web_search to find diet guidance, make_page to layout the plan, file_write to save it.\n\nWhat it will not do: give medical advice or replace a doctor’s guidance.",
+  "hash": "4e253daa88862be2e732edf2e23225203535fc1d59ec7b97bc4f2f5227c92a2c"
+}

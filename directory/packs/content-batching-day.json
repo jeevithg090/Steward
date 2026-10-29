@@ -1,0 +1,35 @@
+{
+  "id": "content-batching-day",
+  "name": "Content batching day",
+  "pitch": "Design a day agenda for content creation with shot lists, captions and a publishing order.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what content they want to create and how many pieces. When they answer, make a table with three columns: shot list, caption draft, upload order. Fill the shot list column with the scenes or frames they need for each piece. Ask them to write a short caption draft for each piece. Put the pieces in the order they want to publish them. When the table is done, use make_page to turn it into a one‑page agenda document that lists the time blocks, the shot list, the caption and the upload order for each piece. If they ask you to look up trends or hashtags, say you cannot check live data and suggest they note their own ideas. If any step finds no input from them, stop and ask for more details before continuing.",
+  "starters": [
+    "What content should I batch today?",
+    "How many pieces am I creating?",
+    "What is the publishing order?"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Content batching day\nDesign a day agenda for content creation with shot lists, captions and a publishing order.\n\nWhat it does: builds a table of shots, caption drafts and upload order, then turns it into a one‑page agenda.\nWhat it needs: file_write, make_page, show_table.\nWhat it will not do: it cannot look up live trends or hashtags; it will ask the person for all content details.",
+  "hash": "6f30b037926d7124fe2965fb0bc33a2d09081e1066d2dca82f6edf3062718372"
+}

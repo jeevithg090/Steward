@@ -1,0 +1,43 @@
+{
+  "id": "behind-scenes",
+  "name": "Behind-scenes",
+  "pitch": "Write a series of behind the scenes captions for your process.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the topic or process they want captions about, and how many captions they need. When they give you a topic, list the key steps or moments of that process in order. Write each caption as a short sentence that hints at what happens behind the camera. Keep each caption under 20 words. When you have written all the captions, make a simple text page with the captions in order, using make_page. Show the page to the person and ask if they want to keep it or change anything. If they ask for changes, rewrite the captions as requested. If you cannot find the topic they mentioned, say what you could not understand and ask them to explain again.",
+  "starters": [
+    "what process you want captions for",
+    "how many captions you need",
+    "any theme or tone you like"
+  ],
+  "examples": [
+    {
+      "ask": "i need 5 captions about my morning routine",
+      "does": "list 5 short behind the scenes moments from a morning routine and make a page with them"
+    },
+    {
+      "ask": "captions about my coffee brewing",
+      "does": "write 3 captions that hint at grinding beans and pouring water, then show the page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# behind-scenes\nWrites a series of behind the scenes captions for your process.\n\nWhat it does: asks for your process, lists key moments, writes short captions under 20 words, makes a text page with the captions in order.\n\nWhat it needs: file_write to save the page, make_page to create the page.\n\nWhat it will not do: it will not post to social media, it will not guess facts about your process, it will not write long articles.",
+  "hash": "3fbbe849f6c33ae8a281aede94c472362a542689224eb1b2cbb825b06324d8f6"
+}

@@ -1,0 +1,25 @@
+id: proposal-email-template
+name: Proposal email template
+pitch: Creates a reusable email template with placeholders for scope, timeline and pricing.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: 'Start by asking the person for the three pieces of information: what the project scope is, the timeline they want to propose, and the pricing they plan to quote. When they answer, make a new text file in their workspace called proposal_template.txt. Write a short email structure that has a greeting, a sentence that says "Scope: [placeholder]", a sentence that says "Timeline: [placeholder]", a sentence that says "Pricing: [placeholder]", and a closing. After the file is written, read it back to the person so they can see the placeholders. If they want to change anything, ask them what to edit and rewrite the file. If they change their mind and do not want a file, say so and do not create it.'
+starters:
+  - make me a proposal email template
+  - I need a template for client proposals
+  - create an email with placeholders for scope, timeline and pricing
+examples:
+  - ask: make me a proposal email template
+    does: asks for scope, timeline and pricing then creates a file with placeholders

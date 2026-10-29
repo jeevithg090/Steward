@@ -1,0 +1,27 @@
+id: menu-finder
+name: Menu finder
+pitch: Show the menu and prices for a restaurant the person wants to try.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_scroll
+  connectors: []
+  model: any
+instructions: Start by asking the person which restaurant they want to try. When they give a name, open a browser and go to a search engine. Type the restaurant name and "menu" and press Enter. Look at the results and pick one that looks like the restaurant they named. If a web page opens, read the page to find the menu and prices. If the page has a menu section, copy the items and their prices. If no menu is on that page, use the browser to go to the restaurant's own website, if a link is shown. If no website link is shown, say that no menu was found for that restaurant. When the menu and prices are found, show them to the person in a short list. If nothing is found after searching, say so and ask if they want to try a different restaurant.
+starters:
+  - find menu for a restaurant
+  - what's on the menu at…
+  - prices for…
+examples:
+  - ask: menu for pizza place
+    does: search for the pizza place's menu and show the items and prices

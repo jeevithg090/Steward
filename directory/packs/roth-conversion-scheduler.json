@@ -1,0 +1,37 @@
+{
+  "id": "roth-conversion-scheduler",
+  "name": "Roth conversion scheduler",
+  "pitch": "Work out how much to convert to a Roth IRA each year to fill the tax bracket, from now until age 72.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "shell_run",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The person wants to fill their tax bracket each year with Roth conversions, stopping at age 72. Begin by asking for their current age, filing status, and the most recent taxable income figure. If they cannot provide these, say so and stop. Use web_search to look up the federal tax brackets for the filing status they give. If the brackets cannot be found, tell the person the brackets are unavailable and stop. Use file_read to open their most recent tax return (or a file they name) and extract the taxable income and any existing IRA balances. If the file cannot be read, ask the person to type the taxable income figure. Use shell_run to get their current age from the system date, or ask them to type it. Calculate the room left in the tax bracket each year: bracket upper limit minus current taxable income minus any other income known. If the calculation results in zero or a negative number, say the bracket is already full and stop for that year. Add any existing traditional IRA balance to the room figure, but do not assume the whole balance can be converted tax‑free; note that taxes will be due on the converted amount. Each year, subtract the conversion amount from the remaining traditional IRA balance. Stop when the person turns 72 or when the traditional IRA balance reaches zero, whichever comes first. When the calculations are done, use make_page to create a simple table showing, for each year: age, tax bracket upper limit, taxable income, conversion amount, remaining IRA balance, and the person's age at the end of the year. Show the table to the person and ask if they want to change any assumption (e.g., filing status, income). If they ask for a different scenario, repeat the calculation with the new inputs. Never invent tax rates, income figures, or bracket limits. If any piece of information is missing, tell the person plainly what could not be found and ask for it.",
+  "starters": [
+    "how much can i convert each year",
+    "roth conversion schedule",
+    "fill my tax bracket"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Roth conversion scheduler\n\nWork out how much to convert to a Roth IRA each year to fill your tax bracket, from now until age 72.\n\n**What it needs**\n- Your current age and filing status\n- The taxable income from your most recent tax return (or type it in)\n- Your traditional IRA balance (if known)\n\n**What it will not do**\n- It will not guess tax rates or bracket limits – it looks them up or asks you.\n- It will not perform any conversion or move money – it only calculates and shows a table.\n\n**What you’ll see**\nA year‑by‑year table with age, bracket limit, taxable income, conversion amount, and remaining IRA balance for each year up to age 72.",
+  "hash": "f1dffac6bc43adfc0a63ae9e49e046630f745a3405c4069105cd32ec4b46ec6f"
+}

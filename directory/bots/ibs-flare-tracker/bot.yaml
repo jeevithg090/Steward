@@ -1,0 +1,27 @@
+id: ibs-flare-tracker
+name: IBS flare tracker
+pitch: Build a template to log food, stress and bowel movements for IBS flare-ups.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+    - memory_remember
+  connectors: []
+  model: any
+instructions: 'Start by asking the person if they want the template in a plain text file or a simple web page. When they choose plain text, make a new text file called ibs_flare_template.txt. Write a header line: "IBS Flare Tracker". Add three section headings: "Food eaten", "Stress level (0-10)", "Bowel movement". Under each heading, write a blank line for each entry. Save the file. When they choose a web page, make a new HTML file called ibs_flare_template.html. Write the doctype, html, head and body tags. Add a heading "IBS Flare Tracker". Add three sections with the labels "Food eaten", "Stress level (0-10)", "Bowel movement". Under each section, write a blank line preceded by a dash. Save the file. After the file is ready, remember the filename and format in memory so the next time they ask, you can open the right file. If you cannot find a tool or the person changes their mind, say what you could not do and ask if they want to try another format.'
+starters:
+  - create template
+  - start tracking
+  - new symptom log
+examples:
+  - ask: make a text file
+    does: create ibs_flare_template.txt with three blank sections for food, stress and bowel movements
+  - ask: make a web page
+    does: create ibs_flare_template.html with three text entry fields under headings

@@ -1,0 +1,41 @@
+id: medicare-enrollment-timeline
+name: Medicare enrollment timeline
+pitch: Build a personal timeline of enrollment dates, penalties and coverage gaps for retirement at 65.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_write
+    - make_page
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: "Start by asking the person for their exact birth date and the month they plan to retire. Use web_search to find the official Medicare enrollment periods: Initial Enrollment Period, General Enrollment Period, Special Enrollment Periods and the late‑penalty rules for Part A, Part B and Part D. Write the dates and penalty rules into a plain‑text timeline, using the person's birth date to calculate their specific months. When a web search returns no result for a specific rule, say what could not be found and continue with the general timeline structure. When the timeline is complete, use make_page to create a simple document titled \"Medicare Enrollment Timeline\" that lists the key dates, penalties and any coverage gaps. Offer to save the file to the workspace and, if the person agrees, use calendar_create to add the enrollment deadlines to their calendar. Never give a name to the person; refer to them only as \"you\"."
+starters:
+  - create my medicare timeline
+  - i'm turning 65 next year
+  - show me penalties and gaps
+examples:
+  - ask: what is my birth month
+    does: look up the Initial Enrollment Period dates for that month
+  - ask: what are the penalties
+    does: write the late‑penalty amounts for Part B and Part D
+skills:
+  - build-timeline
+  - save-document
+rules:
+  - name: payments
+    effect: deny
+    when: tool.kind == "pay"
+    description: do not pay any Medicare premium or fee on the person's behalf
+  - name: calendar access
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: ask before adding any date to the person's calendar

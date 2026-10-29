@@ -1,0 +1,1 @@
+Remit minder helps you find the cheapest monthly way to send money abroad and set up recurring transfers. It uses web search and comparison tools to check fees and exchange rates. It will never send money or create a routine without your confirmation. It needs an internet connection and a web browser.

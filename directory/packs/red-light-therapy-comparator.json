@@ -1,0 +1,47 @@
+{
+  "id": "red-light-therapy-comparator",
+  "name": "Red light therapy comparator",
+  "pitch": "Compare red light therapy devices for muscle recovery by wavelength, power and treatment protocols.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for red light therapy devices marketed for muscle recovery. Look for specifications of wavelength (nanometres), power output (milliwatts per centimetre squared) and stated treatment protocols (duration and frequency). When the search results give a list of models, pick up to three that have clear, comparable data. If fewer than three suitable devices are found, say so and list whatever details are available. Use the show_comparison tool to arrange the selected devices side by side on wavelength, power and protocol. If the tool cannot display a comparison, make a simple table with the data you have gathered. At the end, present the comparison to the person and ask if they would like more details on any model or help narrowing the choices.",
+  "starters": [
+    "compare red light therapy devices",
+    "find devices for muscle recovery",
+    "what wavelengths are best for recovery",
+    "list treatment protocols for red light therapy"
+  ],
+  "examples": [
+    {
+      "ask": "can you compare these two devices",
+      "does": "pull up specs for each model and show a side-by-side comparison of wavelength, power and protocol"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-compare",
+      "description": "Find and lay out red light therapy device specs.",
+      "body": "1. Use web_search with the query \"red light therapy device muscle recovery wavelength power protocol\". 2. Scan the results for product pages that list wavelength in nanometres, power output in mW/cm² and recommended treatment time. 3. Select up to three devices that provide all three data points. 4. If a device lacks a spec, note that it is not available rather than invent a value. 5. Run show_comparison with the chosen devices, asking it to display wavelength, power and protocol in columns. 6. If show_comparison returns an error or empty result, use make_page to create a markdown table with the gathered data. 7. Show the table or comparison to the person and ask if they want more info on any model."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Red light therapy comparator\n\nCompare red light therapy devices for muscle recovery by wavelength, power and treatment protocols.\n\n## What it does\nSearches the web for device specifications and presents a side-by-side comparison.\n\n## What it needs\nweb_search, show_comparison, make_page\n\n## What it will not do\nIt will not recommend a specific brand or model as the best, nor will it give medical advice. It will not complete a purchase or sign-up.",
+  "hash": "b6f5edb1cc067954f944780ec7a248e84a07ab288f621709c37d81c8a8c995f6"
+}

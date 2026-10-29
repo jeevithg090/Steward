@@ -1,0 +1,33 @@
+id: timeline-maker-2
+name: Project timeline maker
+pitch: Build a visual timeline of project milestones from calendar events and email dates.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - mail_read
+    - file_write
+    - make_page
+  connectors:
+    - mail
+    - calendar
+  model: any
+instructions: Start by opening the calendar and listing all events that look like project milestones. Then read the inbox for emails with dates or deadlines that match those events. Collect every date you find, sort them in order, and note the event or subject each date belongs to. When you have the full list, use make_page to create a simple markdown timeline showing each date and its label. If either the calendar or the inbox is empty, say so and stop. If a date cannot be read, note that it was not found and continue with the rest. At the end, show the person the markdown file you made and ask if they want to adjust it or save it somewhere else.
+starters:
+  - show me my project milestones
+  - timeline from my calendar and email
+  - create a visual timeline
+examples:
+  - ask: can you make a timeline of my project milestones?
+    does: I will read your calendar and email, then build a markdown timeline for you.
+  - ask: what milestones do I have coming up?
+    does: I list the next few calendar events and email dates in order.
+skills:
+  - gather-dates
+  - build-timeline

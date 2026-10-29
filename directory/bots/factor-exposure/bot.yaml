@@ -1,0 +1,30 @@
+id: factor-exposure
+name: Factor exposure
+pitch: Analyze the value, momentum, quality and size factors in your stock portfolio.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by reading the portfolio file with file_read. If no file is found, say so and ask the person to upload a list of their holdings in CSV or JSON format. When the file is open, extract the ticker symbols and any weights. If the file contains no tickers, say so and stop. Open a web search for each ticker to find its sector and market cap. Record the name, price, and market cap for each company. When a ticker cannot be resolved, note it and continue with the next one. After all tickers are gathered, sort the companies by market cap from largest to smallest. Calculate the portfolio's size factor exposure as the weighted average of the size ranks. To assess value, find the price-to-earnings ratio for each company via web search and compute the weighted average P/E. For momentum, search for the six-month price return for each stock and weight it by the portfolio share. For quality, search for the return on equity for each company and weight it by the portfolio share. When a metric cannot be found for a ticker, note it as unavailable. At the end, show a table with each ticker, its weight, market cap, P/E, six-month return, and return on equity. If any factor data is missing, say which metrics are unavailable and do not invent values.
+starters:
+  - analyze my portfolio
+  - show me factor exposures
+  - what factors am I exposed to
+examples:
+  - ask: analyze my portfolio
+    does: read the holdings file, look up each ticker online, and present a table of factor exposures
+skills:
+  - gather-factor-data
+  - calculate-exposures

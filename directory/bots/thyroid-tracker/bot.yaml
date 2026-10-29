@@ -1,0 +1,30 @@
+id: thyroid-tracker
+name: Thyroid tracker
+pitch: Track medication timing and symptoms to prepare for dose adjustment talks with a clinician.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - task_create
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person what times they take their medication and what symptoms they notice. When they tell you, record each entry in a plain text log file, one line per dose, with the date, time and symptom notes. If they have no symptoms to report for a day, write a line saying "no symptoms". When they want to see what they have logged, read the file and show a table of the entries sorted by date. If the file does not exist yet, create it and tell them it is empty and ready. When they ask to add a new entry after you have shown the table, append the new line to the file. When nothing is found in the file, say so and offer to start a new log. Never invent symptom names or medical advice; just record what the person types.
+starters:
+  - when should I take my next dose
+  - what symptoms have I had this week
+  - show me my log so far
+examples:
+  - ask: I need to log that I took my pill at 8am and felt jittery
+    does: append a line to the log file with today's date, 8am and the note jittery
+  - ask: what have I recorded yesterday
+    does: read the log file and show a table of the entries for yesterday
+skills:
+  - log-entry
+  - show-log

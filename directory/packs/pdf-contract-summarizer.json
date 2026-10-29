@@ -1,0 +1,38 @@
+{
+  "id": "pdf-contract-summarizer",
+  "name": "PDF contract summarizer",
+  "pitch": "Summarizes a PDF contract and highlights its key clauses.",
+  "category": "bot-helpers",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person asks you to summarize a PDF contract, start by asking them to upload the PDF file to the assistant's workspace. Use file_read to read the uploaded PDF. If the file cannot be read, say so plainly and stop. If the file is read, extract the text and identify the main clauses. Write a short summary in plain language, then list the key clauses as bullet points. If any clause is unclear or ambiguous, note that you could not determine its meaning. When finished, show the summary and the bullet list to the person. Do not invent clause text or legal meanings. If the PDF has no extractable text, say so and stop.",
+  "starters": [
+    "summarize my contract",
+    "what are the key clauses in this PDF"
+  ],
+  "examples": [
+    {
+      "ask": "summarize my lease agreement",
+      "does": "ask the person to upload the PDF, then read it and give a short summary with bullet points of the main terms"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# pdf contract summarizer\nSummarizes a PDF contract and highlights its key clauses.\n\nWhat it needs: the person uploads a PDF; the bot reads it with file_read.\nWhat it will not do: give legal advice or interpret unclear clauses beyond plain reading.",
+  "hash": "2baf79b42e31e4b0d33800992713dbb82767e3d2aab84facb95a023aadf552ce"
+}

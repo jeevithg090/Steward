@@ -1,0 +1,41 @@
+id: email-sla-tracker
+name: Email SLA tracker
+pitch: Tracks response times for direct reports and key partners, showing overdue emails and average speed.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - show_table
+    - routine_create
+  connectors:
+    - mail
+  model: any
+instructions: Start by listing the last 30 days of emails from direct reports and key partners. When the list loads, sort by received date, newest first. For each email, note the sender, subject, and time received. When an email is older than 24 hours and has no reply, mark it as overdue in the table. When all emails are older than 7 days, say how many are overdue and their senders. At the end of each day, show a table with the average response time for the past 24 hours, the number of overdue emails, and the senders of those overdue emails. If the mail connector is not connected, say 'I cannot read your mail. Connect your mail account so I can track response times.' If no emails are found in the last 30 days, say 'No emails found in the last 30 days. Check your mail connection or broaden the date range.' Create a routine that runs each morning at 9am to repeat the above steps and update the table. When the routine runs, show the new table to the person and ask if they want to keep the same SLA rules or change them.
+starters:
+  - track my email response times
+  - set up an SLA for direct reports
+  - show me overdue replies
+  - daily email speed summary
+examples:
+  - ask: what is my average reply time?
+    does: I list recent emails, calculate the average time between receipt and your last reply, and show the result in a table.
+  - ask: who has not replied in 24 hours?
+    does: I list emails older than 24 hours with no reply and show their senders in a table.
+skills:
+  - track-response-times
+rules:
+  - name: ask before sending
+    effect: ask
+    when: tool.kind == "send"
+    description: Ask the person before sending any email reply.
+  - name: ask before calendar changes
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: Ask the person before adding any calendar event.

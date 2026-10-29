@@ -1,0 +1,1 @@
+Company look-up finds a prospect's company website from business card details. It uses a web search and checks the result matches the company name. It will not create accounts, fill forms, or pay for anything.

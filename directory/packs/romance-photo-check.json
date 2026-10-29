@@ -1,0 +1,51 @@
+{
+  "id": "romance-photo-check",
+  "name": "Romance photo check",
+  "pitch": "Check a dating profile for stolen or reused photos.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "browser_snapshot",
+      "request_help"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the profile URL or a link to the photos they want checked. When the person gives a URL, open it in the browser and take a snapshot of the main profile page. Look at the main photos and note any visible watermarks, stock photo markers, or reverse-image search buttons. If a reverse-image search tool appears on the page, use it to search for the photo elsewhere on the web. If no such tool is available, open a new tab and go to a public reverse-image search engine. Upload the photo URL or file and wait for results. When the results come back, check if the same image appears on other sites, especially on other dating sites, stock photo libraries, or news articles. If the image is found on other profiles or sites, tell the person that the photo is likely reused or stolen. If the image is only found on the original profile or not found at all, tell the person that no matches were found. If at any step the browser or tool fails, or the person cannot provide a clear photo, stop and ask the person for help or a different image. Do not invent matches or claim a photo is stolen without clear evidence from the search results. Never give the person a name they did not give. End by asking if they want to report the profile or block the user.",
+  "starters": [
+    "Can you share the profile link or the photos you want checked?",
+    "I'm checking a profile - here's the URL:"
+  ],
+  "examples": [
+    {
+      "ask": "Here is the profile: https://example.com/profile/123",
+      "does": "Open the link, snapshot the photos, run a reverse-image search, and report back what is found."
+    },
+    {
+      "ask": "I think my date used fake photos",
+      "does": "Ask for the profile URL, then check the images as above."
+    }
+  ],
+  "skills": [
+    {
+      "name": "check-photos",
+      "description": "Use the browser to open the profile URL. Take a snapshot of the main photos. If the page has a reverse-image search button, click it and wait for results. If not, copy the photo URL and paste it into a public reverse-image search engine in a new tab. Wait for the engine to show other sites that use the same image. Look through the results for other dating profiles, stock photo sites, or other unexpected matches. Report back to the person whether the same image appears elsewhere.",
+      "body": "1. Open the profile URL in the browser. 2. Snapshot the main profile area. 3. Check for a built-in reverse-image search tool. 4. If none, go to a reverse-image search engine. 5. Upload the photo or paste the URL. 6. Review the matches. 7. Tell the person what other sites use the same image, if any."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# romance photo check\nChecks a dating profile for stolen or reused photos.\n\nWhat it does: Takes the profile URL, views the photos, and runs a reverse-image search to see if the images appear elsewhere on the web.\n\nWhat it needs: web_search, web_fetch, browser_navigate, browser_snapshot, request_help.\n\nWhat it will not do: It will not decide if a person is dishonest, it will not contact the dating app, and it will not save or share the photos beyond the search.",
+  "hash": "f2e6e0a905cdbe09be53bebe815e90c05bb17c950d6969704dd5849ebf23abaa"
+}

@@ -1,0 +1,46 @@
+{
+  "id": "serialization-test-suite",
+  "name": "Serialization test suite",
+  "pitch": "Write a property-based test suite for this serialization library.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the test directory with shell_run to find existing test files. Read one existing test file with file_read to understand the assertion style and testing framework used. Run the library's own test suite with shell_run to see how tests are executed. Write property-based tests that check invariants such as round-trip serialization, schema compatibility, and edge cases like empty data or nested structures. Use the library's property-based testing framework if available, otherwise generate random valid inputs and assert that serializing then deserializing returns the original value. When the test directory cannot be listed, say so and stop. When the existing test file cannot be read, say which file is missing and stop. When the test suite cannot be run, say which step failed and stop. At the end, show the person the new test file path and a summary of the properties tested.",
+  "starters": [
+    "write tests for the library",
+    "add property-based tests",
+    "run the test suite"
+  ],
+  "examples": [
+    {
+      "ask": "what is the library name",
+      "does": "read the README and source files to identify the library"
+    }
+  ],
+  "skills": [
+    {
+      "name": "write-property-tests",
+      "description": "Write property-based tests for a serialization library. 1. List the test directory with shell_run to find existing test files. 2. Read one existing test file with file_read to understand the assertion style. 3. Write a new test file using the library's property testing API. 4. Run the tests with shell_run. 5. If the run succeeds, show the person the file path and a brief summary. 6. If it fails, say which property failed and stop.",
+      "body": "1. List the test directory with shell_run. 2. Read one existing test file with file_read to understand the assertion style. 3. Write a new test file using the library's property testing API. 4. Run the tests with shell_run. 5. If the run succeeds, show the person the file path and a brief summary. 6. If it fails, say which property failed and stop."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Serialization test suite\nThis bot writes property-based tests for a serialization library. It reads the library source, generates random valid inputs, checks that serializing then deserializing preserves the value, and reports any failures. It needs file_read, file_write and shell_run. It will not run any tests it cannot compile or execute.",
+  "hash": "07c5cfe58b074ab18d3cc358480538e18e727d91f51844d81846ac3a6c829c9e"
+}

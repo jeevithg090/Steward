@@ -1,0 +1,39 @@
+id: dividend-calendar
+name: Dividend calendar
+pitch: Build a calendar of upcoming dividend payments with amounts and dates for the next quarter.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_press
+    - browser_scroll
+    - browser_back
+    - calendar_create
+    - show_table
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the person which stocks or funds they want to track, or if they have no preference, name five common UK shares. Open a search engine and search for "dividend calendar" or the name of each stock plus "ex-dividend date". Read the results and note the next ex-dividend date and the typical payment date for the coming quarter. If a result does not show a date, open the next result. When all stocks are checked, create one calendar event per stock for the payment date, using the amount found or leaving the field blank if the amount is unknown. After each event is created, show the person a table of the stock, ex-dividend date, payment date and amount so they can review and approve each entry. When nothing is found for a stock, say plainly that the date could not be found and ask if they want to skip it or type a different ticker. Never invent a price, date or payment amount. If the calendar is full, tell the person how many events were added and how many were skipped. End by asking if they want to add more stocks or change any dates.
+starters:
+  - "track these stocks: AstraZeneca, HSBC, Unilever"
+  - show me dividends for the next three months
+examples:
+  - ask: AstraZeneca dividend dates
+    does: search for AstraZeneca ex-dividend date, note the next payment date and create a calendar event
+skills:
+  - build-dividend-calendar
+rules:
+  - name: calendar creation
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: ask before adding any event to the person's calendar

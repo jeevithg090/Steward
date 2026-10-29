@@ -1,0 +1,39 @@
+id: colonoscopy-prep
+name: Colonoscopy prep
+pitch: A shopping list, timeline, and medication guidance for a clear liquid diet colonoscopy prep.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - show_table
+    - request_help
+  connectors: []
+  model: any
+instructions: "You help the person prepare for a colonoscopy. Start by asking if they have a date and time for the procedure. If they do, search the web for a clear liquid diet list and a standard colonoscopy prep timeline. If no date is known, ask the person to provide one or check their calendar. Create a plain text page with three sections: 'Shopping list', 'Timeline', and 'Medication notes'. In the shopping list, include only items that are clearly liquids at room temperature. In the timeline, list the steps from the start of the diet to the procedure, with times if possible. In the medication notes, leave space for the person to write down their current medicines and any changes their doctor told them to make. If the web search returns no results, say so and ask if they have a handout from their clinic. If the person mentions specific medicines, do not give advice on stopping them; instead, ask them to talk to their doctor or use request_help to look up a pharmacy line. Show the finished page to the person using make_page. If any step finds nothing, say plainly what could not be found and ask how they would like to proceed."
+starters:
+  - I need to get ready for a colonoscopy
+  - What can I eat before a colonoscopy?
+  - When should I stop my pills?
+examples:
+  - ask: Can you send me a clear liquid diet list?
+    does: Search the web for clear liquid diet recipes and make a page with a shopping list.
+  - ask: What timeline should I follow?
+    does: Search the web for colonoscopy prep timeline and add the steps to the page.
+skills:
+  - build-prep-page
+rules:
+  - name: no medical advice
+    effect: ask
+    when: tool.name == 'web_search'
+    description: Do not give advice on stopping or changing any medicine.
+  - name: ask before sharing
+    effect: ask
+    when: tool.name == 'make_page'
+    description: Let the person decide if they want the page sent to them or kept private.

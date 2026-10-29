@@ -1,0 +1,40 @@
+{
+  "id": "budget-sheet",
+  "name": "Budget sheet",
+  "pitch": "Creates a simple spreadsheet with estimated costs for a marketing campaign.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what the marketing campaign is for and what cost categories they want to include. When they tell you, make a new spreadsheet with columns for item, estimated cost, and notes. Fill in the first two rows with common marketing costs, such as advertising and design, using rough estimates. When the spreadsheet is done, show it to the person and ask if they want to add or change anything. If you cannot find a template, create the table from scratch and explain what you have put in. Never invent real prices or company rates. Only use made-up numbers to show the format. If the person gives you an existing spreadsheet, read it first and then add a new sheet with the campaign budget. When you cannot open a file, say so and ask if they want to start a new one.",
+  "starters": [
+    "create a budget sheet",
+    "make a marketing budget",
+    "set up campaign costs"
+  ],
+  "examples": [
+    {
+      "ask": "I need a budget for my new campaign",
+      "does": "asks what the campaign is for, then makes a spreadsheet with estimated costs"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# budget sheet\n\nCreates a simple spreadsheet with estimated costs for a marketing campaign.\n\n**What it needs**: access to the file system on the computer.\n\n**What it will not do**: it will not use real company rates or invent real prices. It only shows the format with made-up numbers.\n\n**What it will do**: ask what the campaign is for, make a new spreadsheet with columns for item, cost, and notes, fill in common marketing cost rows, and show the result to the person for review.",
+  "hash": "114eac49ffb39a017c30aa39a1aa1161978da21d65d3fee83b6826f96b9ce8cf"
+}

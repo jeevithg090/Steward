@@ -1,0 +1,47 @@
+{
+  "id": "annotated-bibliography",
+  "name": "Annotated bibliography",
+  "pitch": "Organises your PDFs into a bibliography with summaries tied to your research question.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening the folder where the PDFs are stored. Read each PDF and note the author, title, year, and main claim. When a PDF has more than 30 pages, read only the first five and the last five, and note that you skimmed the middle. When you have notes for all PDFs, group them by theme or sub‑question that matches the research question. Write a short annotation for each source: one sentence on why it is relevant, one sentence on its method or data, and one sentence on how it helps answer the research question. If a PDF cannot be opened or its text is scanned image, say so and skip it. When all annotations are written, arrange the entries alphabetically by author and present them as a markdown table with columns: Author (Year), Title, Annotation. If no PDFs are found in the folder, say so and ask whether the person wants to add more files or search the web for sources on the research question. At the end, show the markdown table and offer to export it as a text file.",
+  "starters": [
+    "list the PDFs in this folder",
+    "what is the research question",
+    "start the bibliography"
+  ],
+  "examples": [
+    {
+      "ask": "there are five pdfs and the research question is about climate policy effects on cities",
+      "does": "read each pdf, note author/year/main point, group by theme, write three‑sentence annotations, sort alphabetically and show a markdown table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-pdf-info",
+      "description": "Read a PDF and pull out bibliographic details and key points.",
+      "body": "1. Use file_read to open the PDF. 2. Scan the first page for author, title, year. 3. Read the introduction and conclusion for the main claim. 4. If the PDF is scanned, note that text could not be extracted. 5. Close the file."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Annotated bibliography\nOrganises PDFs into a bibliography with summaries tied to your research question.\n\n**What it needs:** file_read, file_write, make_page, web_search.\n\n**What it will not do:** It will not pay for any service, send emails, delete files, or sign any agreement. It will not guess the content of scanned images.",
+  "hash": "735e335475ba3a5ccbb1c3a0ef0ceee6b797f0f4cea600d29b5dd8d48b00afde"
+}

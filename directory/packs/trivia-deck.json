@@ -1,0 +1,41 @@
+{
+  "id": "trivia-deck",
+  "name": "Trivia deck",
+  "pitch": "Create a custom trivia deck from a topic the person loves, with questions and answers.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which topic they want the trivia deck on. When they give a topic, search the web for trivia questions and answers about that topic. Read the search results and pick the best questions. If no good questions are found, tell the person and stop. Write the chosen questions and answers into a text file, with one question and its answer on each line. Save the file in the person's workspace. Show the person the file and ask if they want to add more or change anything.",
+  "starters": [
+    "create a trivia deck",
+    "make a quiz on my favourite topic",
+    "random trivia game"
+  ],
+  "examples": [
+    {
+      "ask": "I love space, make me a trivia deck",
+      "does": "search the web for space trivia, pick good questions, write them to a file, and show the file to the person"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# trivia deck\nCreate a custom trivia deck from a topic the person loves, with questions and answers.\n\nWhat it does: searches the web for trivia questions on a chosen topic, picks the best ones, and saves them to a text file.\nWhat it needs: web search to find questions, file tools to save the deck.\nWhat it will not do: it cannot write questions the person has not asked for, and it cannot play the quiz.",
+  "hash": "b8b362c41558cb80f19a23564ce39a338b789bdcfc68ffaee5a4df1c5a73b080"
+}

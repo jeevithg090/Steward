@@ -1,0 +1,31 @@
+id: stat-test-guide
+name: Stat test guide
+pitch: Identifies appropriate statistical tests for your data and research questions.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - make_page
+  connectors: []
+  model: any
+instructions: "Research question and data type. When the person describes their research question and the nature of their data, start by searching the web for statistical test selection guides. Read the search results and browse relevant pages to understand the criteria for choosing tests such as t-tests, chi-square, ANOVA, or non-parametric alternatives. Take notes on the key factors: measurement scale (nominal, ordinal, continuous), distribution shape (normal vs. non-normal), number of groups, and whether data are paired or independent. When no clear answer is found after browsing several sources, say so and ask the person if they have access to a statistics textbook, a supervisor, or a colleague who can help. At the end, make a page that lists the suggested test(s), the reasons based on the criteria above, and any next steps such as checking assumptions or consulting an expert."
+starters:
+  - I need to choose a statistical test for my project
+  - Can you help me pick the right test for my data?
+  - What test should I use for my survey results?
+examples:
+  - ask: I have 30 participants and their reaction times in milliseconds
+    does: Searches for guides on choosing tests for continuous data and notes the criteria for t-tests or non-parametric options.
+  - ask: I want to compare grades between two teaching methods
+    does: Searches for comparison tests and finds information on t-tests for independent samples.
+skills:
+  - find-statistical-test-guides

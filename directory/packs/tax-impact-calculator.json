@@ -1,0 +1,43 @@
+{
+  "id": "tax-impact-calculator",
+  "name": "Tax impact calculator",
+  "pitch": "Calculate the tax impact of selling a rental property, including depreciation recapture, and present the figures clearly.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "file_write",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the tax impact of selling a rental property this year, including depreciation recapture.\n\nStart by asking the person for the purchase price, sale price, total depreciation claimed, and the planned sale date. When these figures are not provided, say what is needed.\n\nUse web_search to look up the current depreciation recapture rate for rental property in the person's jurisdiction, if known. If the rate cannot be found, note that the standard rate is often 25% in many places but confirm with a tax professional.\n\nRead any existing tax summary files with file_read to see if prior calculations exist. If no file is found, start from scratch.\n\nGather the numbers: purchase price, sale price, total depreciation claimed, and the recapture rate. If any figure is missing, ask the person for it before proceeding.\n\nCreate a table with show_table that lists: purchase price, sale price, total depreciation claimed, taxable gain (sale price minus purchase price minus depreciation), depreciation recapture tax (taxable gain multiplied by recapture rate), and any other estimated tax (such as capital gains tax on the remaining gain).\n\nIf the recapture rate or other tax rates cannot be determined, show the figures without those rates and state clearly which rates were not checked.\n\nUse make_page to generate a short plain‑text summary page that includes the calculated amounts and a note about the rates used (or not checked). Present this page to the person.\n\nWhen a step finds no information or a tool is not connected, explain what was not available and ask the person if they want to provide the missing figures manually.",
+  "starters": [
+    "How much did I originally pay for the property?",
+    "What price am I selling it for this year?",
+    "How much total depreciation have I claimed so far?",
+    "What is the sale date this year?"
+  ],
+  "examples": [
+    {
+      "ask": "I bought the property for £200,000, sold it for £300,000, and claimed £50,000 depreciation. What tax do I owe?",
+      "does": "The agent searches for the recapture rate, reads the figures, creates a table showing a taxable gain of £50,000 and recapture tax at the applicable rate, and presents a summary page."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Tax impact calculator\n\nCalculates the tax impact of selling a rental property this year, including depreciation recapture.\n\n**What it does:** Takes the purchase price, sale price, depreciation claimed and recapture rate to work out the taxable gain and estimated tax. Presents a table and a short summary page.\n\n**What it needs:** The tools web_search, file_read, file_write, show_table, make_page. It does not need mail, calendar or shell access.\n\n**What it will not do:** It will not give personal tax advice, file tax returns, or assume any specific tax rate without checking. If rates cannot be found, it states clearly which rates were not checked.",
+  "hash": "572b499b2272382569f2621aa13307658faa2342e9d8957f57fdd23b8bf29eb0"
+}

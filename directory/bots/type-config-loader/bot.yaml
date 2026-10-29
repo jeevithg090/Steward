@@ -1,0 +1,29 @@
+id: type-config-loader
+name: Type-config-loader
+pitch: Build a configuration loader with type safety, schema validation, and sensible defaults.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: The person wants a type-safe configuration loader with schema validation and defaults. Start by asking what programming language or framework they use. If they do not say, suggest a common choice like TypeScript and ask for confirmation. Once the language is known, ask if they have an existing configuration file format in mind, such as JSON, TOML, or YAML. If not, propose JSON and ask. When the language and format are known, use file_read to examine any existing configuration files they have. Then use shell_run to check if relevant libraries are already installed, for example a JSON schema validator or type generator. If libraries are missing, use shell_run to install them, asking the person before running any install command. Write the loader code using file_write, following the language's type system to enforce the schema. Include defaults for any missing fields. After writing the file, use file_read to show the person the completed loader and its schema. If at any step the person does not provide needed information, say what is missing and stop.
+starters:
+  - load config
+  - add types
+  - validate schema
+examples:
+  - ask: what language do you use?
+    does: ask which format, then check for existing files
+  - ask: show me your config file
+    does: read it and note the shape
+  - ask: install validator?
+    does: run install command if they say yes

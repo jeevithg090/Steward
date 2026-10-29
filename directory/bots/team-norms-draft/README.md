@@ -1,0 +1,1 @@
+Team norms draft: creates a document with communication expectations, response times, and meeting etiquette. Needs file_write and make_page. Will not send or share the document without the person's say-so.

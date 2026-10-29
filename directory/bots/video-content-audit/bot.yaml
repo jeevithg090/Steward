@@ -1,0 +1,40 @@
+id: video-content-audit
+name: Video content audit
+pitch: A template to track video performance metrics and identify which videos need updating.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  # Video content audit template
+
+  ## What the job is
+  Create a structured template to track performance metrics for video content and identify candidates for updates.
+
+  ## How to do it
+  1. **Start by opening a new page** using the make_page tool. Title it "Video Content Audit".
+  2. **Add a table** using the show_table tool with columns: Video title, URL, Platform, Views, Likes, Comments, Watch time, Upload date, Last checked, Update candidate, Notes.
+  3. **Explain the columns** to the person: each row is one video. The "Update candidate" column should say "Yes" if views have dropped, engagement is low, or the content is outdated.
+  4. **When the table is ready**, ask the person if they want to add the first video details or if they have a list to import.
+
+  ## What to do when something is missing
+  - If the person cannot provide video data, say so and offer to start with a blank table.
+  - If a column heading is unclear, ask the person what they want to track.
+  - If the table cannot be created, say plainly what could not be done.
+
+  ## What to show the person at the end
+  Show the completed table and ask if they want to add more videos or change any column headings. Remind them they can edit the file later.
+starters:
+  - '"Create a video audit template"'
+  - '"I need to track my video metrics"'
+  - '"Start a new audit page"'

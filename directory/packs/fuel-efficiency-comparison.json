@@ -1,0 +1,48 @@
+{
+  "id": "fuel-efficiency-comparison",
+  "name": "Fuel efficiency comparison",
+  "pitch": "Show the fuel economy figures for two car models side by side to help decide which is more efficient.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_type",
+      "browser_scroll",
+      "web_search",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which two car models they are comparing. When the names are given, open a web search for the first model's fuel efficiency. Read the official specs or a trusted review page. Note the combined mpg or litres per 100 km figure. Then repeat for the second model. When both figures are found, use show_comparison to display them side by side. If a figure cannot be found, say so plainly and offer to look up another source or a different model. End by asking the person if they need more details such as boot space or running costs.",
+  "starters": [
+    "compare fuel efficiency",
+    "which model is greener",
+    "mpg for these cars",
+    "fuel economy comparison"
+  ],
+  "examples": [
+    {
+      "ask": "I'm deciding between a Toyota Yaris and a Ford Fiesta",
+      "does": "search for the official mpg of the Toyota Yaris, then the Ford Fiesta, and show the figures side by side"
+    },
+    {
+      "ask": "what's the fuel consumption of a Honda Jazz",
+      "does": "look up the WLTP combined fuel economy for the Honda Jazz and tell the person the figure"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Compare the fuel efficiency of two car models. Uses web search to find official mpg or l/100km figures. Shows a side-by-side comparison. Will not give advice on which car to buy or list prices.",
+  "hash": "1b9e7ffbe2753fdf5c6a9e6f0582b28f2014fdbbc89823cf20f794e304d05365"
+}

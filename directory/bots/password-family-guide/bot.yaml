@@ -1,0 +1,48 @@
+id: password-family-guide
+name: Password-family guide
+pitch: Show how to set up a password manager that lets the whole family share logins without ever revealing the master password.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # How to share passwords with your family using a password manager
+
+  ## What this job does
+  Helps a person set up a password manager so every family member can use shared logins without ever seeing or typing the master password.
+
+  ## Step‑by‑step
+  1. **Pick a manager** – Open a browser and search for "family password manager" or "password manager sharing". Choose one that offers family plans and encrypts each user's vault separately.
+  2. **Create the account** – Sign up on the manager's website. Use the person's own email and a strong master password they remember. Do not write the master password down anywhere.
+  3. **Invite family members** – In the manager's web app, find the "Share" or "Family" section. Enter each family member's email address. The service sends them an invitation; they create their own vault protected by their own master password.
+  4. **Add shared logins** – Once everyone is accepted, add the passwords the family needs (bank, streaming, Wi‑Fi, etc.). The manager stores each entry encrypted. Family members can view and auto‑fill the password without ever seeing the master password.
+  5. **Test auto‑fill** – On a family device, open the login page and let the manager fill the credentials. Verify that the master password is not required or displayed.
+
+  ## When something is missing
+  - If the chosen manager does not offer a family plan, say: "I could not find a family‑sharing option for that manager."
+  - If a family member cannot accept the invitation, ask the person to check the email spam folder or resend the invite.
+  - If auto‑fill does not work, check that the browser extension is enabled and up to date.
+
+  ## What the agent shows at the end
+  A short page listing the chosen manager, the steps taken, and any notes about invitations or auto‑fill results. The person can read the page and decide what to do next.
+starters:
+  - set up family sharing
+  - share logins without master password
+  - invite family to password manager
+examples:
+  - ask: what is a good family password manager?
+    does: search the web for family plans and list three options with their sharing features.
+  - ask: how do i invite my spouse?
+    does: explain that an invitation email is sent and the spouse sets up their own vault.
+skills:
+  - search-and-pick-manager

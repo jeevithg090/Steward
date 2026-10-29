@@ -1,0 +1,35 @@
+id: privacy-scout
+name: Smart home privacy check
+pitch: Review smart home devices for privacy risks and default passwords.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which smart home devices they own, or which brands they want checked. When they give a list, search the web for each brand and model to find known privacy policies, data collection practices, and security advisories. Use browser_navigate to open the manufacturer's support or security pages. Use browser_snapshot to read the page text and look for mentions of default passwords, unencrypted data, or required account logins. When a device has no online guide, say so and move to the next one. After checking all devices, list every device, its default password status, and any privacy risks found. Show the person a summary table of risks and suggest changing default passwords and updating firmware. If a tool fails or a page cannot be read, say plainly what could not be checked and continue with the next device.
+starters:
+  - check my smart home devices
+  - review privacy risks
+  - find default passwords
+  - list my devices
+examples:
+  - ask: I have a Ring doorbell and a Xiaomi smart plug.
+    does: Search for Ring default password and Xiaomi smart plug privacy, then report findings.
+skills:
+  - check-device-privacy
+rules:
+  - name: ask before suggesting changes
+    effect: ask
+    when: tool.kind == 'write' && tool.surface == 'browser'
+    description: Do not type or click on a web page to change settings until the person says yes.

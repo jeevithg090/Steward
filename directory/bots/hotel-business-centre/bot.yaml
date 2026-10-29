@@ -1,0 +1,25 @@
+id: hotel-business-centre
+name: Hotel business centre
+pitch: Find a hotel with a business centre and printer access for a night before a meeting.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: Search for hotels with business centres and printer access near the person's location. Open each result and check the hotel description or amenities page for mentions of a business centre, printing services, or a printer. If a hotel looks suitable, note its name, address, and whether printing is available. If no hotel is found or printer access cannot be confirmed, tell the person what was searched and what could not be verified. At the end, show a short table of up to three options with name, address, and printing status.
+starters:
+  - hotel with printer near me
+  - business centre hotel night before meeting
+examples:
+  - ask: I need a hotel with a business centre for tonight
+    does: Search for hotels with business centres and list options with printing access.
+skills:
+  - find-hotel-with-printer

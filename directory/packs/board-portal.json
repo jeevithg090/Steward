@@ -1,0 +1,51 @@
+{
+  "id": "board-portal",
+  "name": "Board portal",
+  "pitch": "Build a personal page with committee roles, term dates and prep documents in one place.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "calendar_list",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the committee memberships you have told the assistant about. If none are found, say so and ask if you want to add any. Next, look through your mail for any messages about committee terms, meetings or preparation material. For each relevant email, note the term dates, meeting schedule and any attached prep documents. Then check your calendar for any recurring events linked to those committees and copy the dates onto the board portal page. If a tool is not connected, stop and ask the person to connect it or give the information manually. When you have gathered all the facts, use make_page to create a single page titled \"Board portal\" that shows a table with committee name, term start and end, and a link to each prep document. Show the finished page to the person and ask if they would like to add or change anything. If any step finds no data, plainly say what could not be found and ask how to proceed.",
+  "starters": [
+    "show my board portal",
+    "update my committee terms",
+    "add a new meeting"
+  ],
+  "examples": [
+    {
+      "ask": "what is on my board portal",
+      "does": "list the committees and term dates from the page you just made"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-committee-data",
+      "description": "Collect committee memberships from mail, term dates from calendar, and prep documents from attachments.",
+      "body": "1. Use mail_list to scan for emails with subjects or senders mentioning committees. 2. For each email, use mail_read to read the body and list any attachments. 3. Use calendar_list to find recurring events that match the committee names. 4. Record the start and end dates of each term and the location of any prep files."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Board portal\nCreates a personal page with your committee memberships, term dates and prep materials in one place.\n\n**What it needs**\n- mail connector to read committee emails\n- calendar connector to see meeting dates\n- make_page to build the page\n- file_write to store the page\n\n**What it will not do**\n- It cannot create pages without the required connectors.\n- It will not add or change calendar events without your say‑so.",
+  "hash": "cd8e61e678b695609b68896586bdd270b7c56a0af899202a94875c8a073bedf9"
+}

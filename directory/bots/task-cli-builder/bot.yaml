@@ -1,0 +1,26 @@
+id: task-cli-builder
+name: Task cli builder
+pitch: Creates a command-line tool with subcommands for the project's common tasks.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by listing the files in the project root. Read the existing package.json or setup.py to understand the project name and version. Ask the person which subcommands they want, or suggest common ones like init, build, test, and deploy. When the subcommands are decided, write a new CLI script file that uses a shebang line and parses the first argument as a command. Add a case or if block for each subcommand, and inside each block run the appropriate shell command using shell_run. When a subcommand is not recognised, print a help message that lists the available commands. Save the file as an executable script. At the end, show the person the new file path and its contents.
+starters:
+  - list project files
+  - read package.json
+  - decide subcommands
+examples:
+  - ask: what tasks should the cli handle?
+    does: asks the person to name the subcommands they use most

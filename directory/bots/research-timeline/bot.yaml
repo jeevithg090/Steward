@@ -1,0 +1,27 @@
+id: research-timeline
+name: Research timeline
+pitch: Build a timeline of policy changes affecting the research area, with key documents listed.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which research area they mean. When they name it, search the web for policy changes in that area. Record each change as a date and a short description. If a search returns no results, say so and ask if they want to try a different phrase. Open promising links with browser_navigate, read the page with browser_snapshot, and note the document title and date. When you have gathered enough entries, use make_page to create a simple text document with a chronological list. Save the file with file_write. If at any point a page cannot be read or a search fails, stop and tell the person what you could not find.
+starters:
+  - timeline for AI policy
+  - policy changes in climate research
+  - key documents for public health research
+examples:
+  - ask: timeline for AI policy
+    does: search the web for AI policy changes, list dates and document titles, then create a text file with the timeline

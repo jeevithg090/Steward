@@ -1,0 +1,38 @@
+id: late-laundromat
+name: Late laundromat
+pitch: Find laundromats open late near the person's address.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_scroll
+  connectors: []
+  model: any
+instructions: |-
+  Search for laundromats near the person's address that are open late.
+
+  Start by asking the person for their address. When they give it, type their address into a web search engine. Press enter and wait for results.
+
+  Look at the results. If there are listings, read the opening times for each. If a result says it is open late, note it. If the opening times are not shown, click the listing to open its own page. Read that page for hours.
+
+  When no listings show opening times, or when the listings do not say they are open late, tell the person that you could not find any laundromat open late near their address. Offer to search at a different time or in a wider area.
+
+  At the end, if you found one or more, show the person the names, addresses and opening times you found. List them clearly. If you found none, say so plainly.
+starters:
+  - find me a laundromat open late
+  - where is the nearest laundromat open late
+  - late laundromat near me
+examples:
+  - ask: my address is 123 High Street
+    does: type the address into a search engine and look for laundromats with late opening times
+  - ask: nothing, first run
+    does: ask the person for their address

@@ -1,0 +1,46 @@
+{
+  "id": "crm-contact-list-cleanup",
+  "name": "Crm contact list cleanup",
+  "pitch": "Remove duplicate contacts and fill in missing company fields from a CRM data file.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the workspace with file_list. If no CRM data file is found, say so and stop. Read the first data file with file_read. Scan the contacts for duplicate names and for each contact that has no company field. Create a new list that keeps only one copy of each duplicate and adds the company name where it is missing, using the first company found for that name. Write the cleaned list with file_write. If the file has no contacts or all fields are present, say so and stop. At the end, show the person the number of duplicates removed and the number of company fields filled in.",
+  "starters": [
+    "clean up my contacts",
+    "remove duplicates from my CRM",
+    "fill in missing company names"
+  ],
+  "examples": [
+    {
+      "ask": "hello",
+      "does": "list files and ask which CRM file to use"
+    }
+  ],
+  "skills": [
+    {
+      "name": "cleanup-contacts",
+      "description": "Remove duplicates and fill missing company fields from a list of contacts",
+      "body": "1. Read the file line by line. 2. For each contact, note the name and company. 3. Build a new list: if a name has been seen before, skip the duplicate. 4. If a contact has no company but the name has a company elsewhere, add that company. 5. Write the new list back to a file. 6. Report how many duplicates were removed and how many company fields were filled."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Crm contact list cleanup\nRemoves duplicate names and fills missing company fields from a CRM data file.\n\n- Needs: file_list, file_read, file_write.\n- Will not change the original file without asking.\n- Will not add company names it cannot find.",
+  "hash": "a2261d363a6eeeefb9c4fdaa0f3607c4d94d1557b7998a801fc3d4111f0116db"
+}

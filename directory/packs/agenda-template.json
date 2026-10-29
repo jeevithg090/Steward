@@ -1,0 +1,47 @@
+{
+  "id": "agenda-template",
+  "name": "Agenda template",
+  "pitch": "Find calendar events with 'sync' in the title and add a standard agenda template to each.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "calendar_create",
+      "file_read"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing all calendar events. Then search each event title for the word 'sync'. For every event that contains 'sync', read a standard agenda template from a file in its workspace. Create a new calendar event titled 'Agenda: [original title]' and paste the template as the description. If no events have 'sync' in the title, say so and stop. If the template file is not found, say so and stop. After processing, show the person a list of the new agenda events created.",
+  "starters": [
+    "add agenda to sync events",
+    "find sync events and add template"
+  ],
+  "examples": [
+    {
+      "ask": "add agenda to sync events",
+      "does": "list calendar events, find those with 'sync' in the title, read a template file, and create new agenda events with the template as description"
+    }
+  ],
+  "skills": [
+    {
+      "name": "add-agenda-to-sync-events",
+      "description": "Find events with 'sync' in the title and attach a standard agenda template.",
+      "body": "1. List all calendar events. 2. For each event, check if the title contains 'sync' (case‑insensitive). 3. If it does, read the file 'agenda_template.txt' from the workspace. 4. If the file exists, create a new calendar event titled 'Agenda: [original title]'. 5. Set the description of the new event to the content of the template file. 6. If the file is not found, say 'I could not find the agenda template file.' and stop. 7. After all events are processed, list the titles of the new agenda events created."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# agenda template\nFind calendar events with 'sync' in the title and add a standard agenda template to each.\n\nWhat it does: searches your calendar for 'sync' events and creates new events that contain a reusable agenda description.\n\nWhat it needs: access to your calendar, the ability to read a template file from its workspace.\n\nWhat it will not do: it will not modify or delete existing events, and it will not create events without a template file present.",
+  "hash": "edf7b5c58d81e12f3c6abc24fd790d1fb7dcf992d650d1b3af85d26ffc38bb0c"
+}

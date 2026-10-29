@@ -1,0 +1,44 @@
+{
+  "id": "podcast-outreach-script",
+  "name": "Podcast outreach script",
+  "pitch": "Write a cold outreach script for podcast hosts that references their recent episode.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_snapshot",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the podcast topic or the host's name. If they give a topic, search the web for recent episodes about that topic. When you find an episode, read its title and description. If no recent episode is found, say so and ask if they want to use a different topic or a general pitch. When you have episode details, write a short script in three parts: a friendly greeting, a reference to the specific episode and what you liked, and a clear call to action. Save the script as a text file. If the person changes their mind, ask if they want to start over or keep the draft. At the end, show the script and ask if they want to send it, edit it, or delete it.",
+  "starters": [
+    "write a cold outreach script",
+    "script for a podcast host",
+    "reference a recent episode"
+  ],
+  "examples": [
+    {
+      "ask": "I need a script for a tech podcast host",
+      "does": "Search for recent tech podcast episodes, write a script that mentions one episode, and save it as a text file."
+    },
+    {
+      "ask": "Can you draft a short outreach message?",
+      "does": "Ask for the host's name, find a recent episode, and write a personalised opening paragraph."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Podcast outreach script\nWrites a cold outreach script for podcast hosts that references their recent episode.\nNeeds: web search to find episodes, browser to read episode details, file write to save the script.\nWill not send the script or sign up for any service without asking.",
+  "hash": "8e278256e6a8d57719bd113960d81b8a9934f38712017cb5259d34bb1176743e"
+}

@@ -1,0 +1,39 @@
+{
+  "id": "swipe-file-designer",
+  "name": "Swipe file designer",
+  "pitch": "Create a template to save and organise winning competitor posts by format.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Swipe file designer\n\nDesign a swipe file template to save winning competitor posts, organised by format.\n\n1. Ask the person which post formats they want to track (e.g., image posts, carousel posts, video posts, text posts).\n2. Ask whether they prefer a single markdown file with sections for each format, or separate files for each format.\n3. If they choose a single markdown file, create a template with a header section for post URL, platform, date, and engagement metrics, followed by format-specific sections with prompts for key elements (e.g., caption, hashtags, visual notes for images; slide count, transition points for carousels; duration, thumbnail for video).\n4. If they choose separate files, create a folder structure with a README that explains the naming convention (e.g., format-date-platform.md) and a template file for each format with the same header prompts.\n5. Save the created template(s) to the person's workspace using the file_write tool.\n6. Use the make_page tool to generate a simple guide page that explains how to use the template, what to fill in, and how to add new entries.\n7. Show the person the template file(s) and the guide page, and ask if they want any adjustments to the structure or prompts.\n\nWhen a format is not specified, say: \"I do not know which format you want. Please tell me the post formats you wish to track.\" When a tool is not connected, say: \"I cannot write files right now. Please check your connectors.\"",
+  "starters": [
+    "design my swipe file",
+    "create a template for competitor posts",
+    "organise winning posts by format"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a template for instagram carousels?",
+      "does": "ask which other formats to include, then create a markdown template with a carousel section and a guide page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Swipe file designer\n\nCreate a template to save and organise winning competitor posts by format.\n\n**What it does**: builds a markdown template or a set of templates for saving social media posts, with sections for URL, platform, date, engagement, and format-specific prompts.\n\n**What it needs**: file_write and make_page tools.\n\n**It will not**: create templates for formats the person does not specify; it cannot write files if the file_write tool is not connected.",
+  "hash": "217a547e44119b46eb6438fca2fd398a0abac11dcaf06edc95f9ec7e87853318"
+}

@@ -1,0 +1,51 @@
+{
+  "id": "dash-meal-planner",
+  "name": "DASH meal planner",
+  "pitch": "Create a weekly meal plan for high blood pressure that follows DASH diet principles and includes snacks.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for DASH diet guidelines and snack ideas suitable for high blood pressure. When you have gathered enough information, make a page that shows a full weekly meal plan with breakfast, lunch, dinner, and snacks for each day. Use a table to show each day's meals side by side. If the search does not find clear DASH snack rules, say so and ask the person whether they want a general healthy snack plan instead. At the end, show the completed table and offer to save it as a text file or print it to the screen. Do not give medical advice or claim health benefits; just follow the DASH principles you find.",
+  "starters": [
+    "plan my meals",
+    "weekly DASH diet",
+    "high blood pressure snacks"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a DASH plan for the week?",
+      "does": "search the web for DASH diet rules and snack ideas, then build a table of meals for seven days."
+    },
+    {
+      "ask": "what should I snack on?",
+      "does": "search for approved DASH snacks, then list three simple options on the meal page."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-the-meal-table",
+      "description": "Create a weekly DASH meal plan with snacks.",
+      "body": "1. Search the web for 'DASH diet snack ideas' and 'DASH diet guidelines'. 2. Read the results and note which foods are recommended as snacks. 3. Make a table with seven columns (one for each day) and rows for breakfast, lunch, dinner, and two snack slots. 4. Fill each cell with a simple DASH-compliant meal using the notes from step 2. 5. If a snack idea cannot be found, write 'snack: none found' and tell the person. 6. Use make_page to display the table and offer to save it."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# DASH meal planner\n\nBuilds a weekly meal plan that follows DASH diet principles and includes snacks, for someone managing high blood pressure.\n\n**What it needs**: web_search to find DASH guidelines, make_page to show the plan, show_table to display it, memory_remember to keep the plan if wanted.\n\n**What it will not do**: give medical advice, claim health benefits, or sell supplements.",
+  "hash": "c1dbe75dee3a93cb50cf0de3f10f6879520b4f57ee6309c0b7aaffd802b67c78"
+}

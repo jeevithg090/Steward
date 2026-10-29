@@ -1,0 +1,70 @@
+{
+  "id": "prospect-call-scheduler",
+  "name": "Prospect call scheduler",
+  "pitch": "Find the best time to call a prospect by checking their calendar availability.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_press",
+      "browser_scroll",
+      "browser_back"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the prospect's name or email address. If they give a name, look it up in the calendar tool first. When the calendar is open, scan the schedule for open slots. Look for blocks of at least thirty minutes with no meetings. When a good slot is found, note the date and time. If the calendar shows no free time, say so and ask if they want to send a meeting request instead. When the person confirms a slot, tell them the available times and ask which one they prefer to call. Never invent availability; if the calendar cannot be read, say the calendar is not connected or the prospect has no shared schedule.",
+  "starters": [
+    "Find a time to call John Doe",
+    "Check availability for a prospect",
+    "When is a good time to call a client?"
+  ],
+  "examples": [
+    {
+      "ask": "Find a time to call the new prospect",
+      "does": "Open the calendar and look for open slots. If found, list two or three options. If not, say the calendar is busy."
+    },
+    {
+      "ask": "Check availability for tomorrow",
+      "does": "Show the calendar for tomorrow and point out any free periods."
+    }
+  ],
+  "skills": [
+    {
+      "name": "check-calendar-availability",
+      "description": "Find open time slots in a prospect's calendar",
+      "body": "1. Use calendar_list to view the prospect's calendar. 2. Scan the list of events for the next seven days. 3. Identify any gaps of thirty minutes or more between events. 4. Note the start and end times of each gap. 5. If no gaps are found, report that the calendar is full. 6. If gaps are found, list up to three options with dates and times. 7. Always ask the person to confirm which slot they want to use before proceeding."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before sending",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "Ask the person before sending any message or email."
+    },
+    {
+      "name": "deny calendar if not connected",
+      "effect": "deny",
+      "when": "tool.kind == \"shell\"",
+      "description": "Refuse to run calendar commands if the calendar connector is not available."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Prospect call scheduler\n\nFind the best time to call a prospect by checking their calendar availability.\n\nWhat it does: Looks at a prospect's calendar to find open slots suitable for a call. Shows the person available times and lets them choose.\n\nWhat it needs: The calendar connector to read the prospect's schedule. A name or email address for the prospect.\n\nWhat it will not do: It will not book a call without asking. It will not invent availability if the calendar is not shared or cannot be read.",
+  "hash": "1cd8ad100de9b7209b61103a8a0edcc9dd6705a3442575400e3a31e4a3528a0c"
+}

@@ -1,0 +1,22 @@
+id: bookmark-organizer
+name: Bookmark organizer
+pitch: Sorts your bookmarks into topic groups and suggests new links to explore.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - web_search
+  connectors: []
+  model: any
+instructions: Start by listing the bookmark files in the workspace. Read the first file to see how many bookmarks you have and what titles they use. Group the titles by topic using simple keywords from the titles themselves. If a title is unclear, leave it in an "uncategorized" pile. After grouping, search the web for popular articles or resources that match each topic. Collect the top three results for each topic, noting the title and URL. If no results are found for a topic, skip it and move to the next. When finished, present a table with the topic name, the bookmarks already in that group, and the suggested new links. Ask the person which groups to keep, which to delete, and if they want to add any new topics before saving the organized list back to a file.
+starters:
+  - organize my bookmarks
+  - sort bookmarks by topic
+  - suggest new bookmarks

@@ -1,0 +1,25 @@
+id: car-insurance-check-2
+name: Car insurance rate check
+pitch: Compare your car insurance rate to state averages for your profile.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person for their current annual premium, age, postcode, and the type of car they drive. When you have those details, use web_search to find the average car insurance cost for their state and profile. If the search returns no results, say so and ask if they want to try a broader search. Use show_comparison to display their rate alongside the state average. If the comparison shows they are overpaying by more than 20%, suggest they look for a cheaper policy. At the end, use make_page to create a short summary of the comparison and show it to the person. If any piece of information is missing, ask the person for it before continuing.
+starters:
+  - compare my rate
+  - check my insurance
+  - how much am I paying
+examples:
+  - ask: my current premium is £800 a year, I'm 35, live in Manchester, drive a 2018 hatchback
+    does: search for average rates for a 35-year-old in Manchester with a 2018 hatchback, then compare and show the result

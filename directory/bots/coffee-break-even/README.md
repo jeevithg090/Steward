@@ -1,0 +1,1 @@
+Coffee break-even: compares the one‑off cost of a coffee machine against two years of daily café coffee. Needs web search for average coffee prices and the person's machine price. Will not guess prices or statistics.

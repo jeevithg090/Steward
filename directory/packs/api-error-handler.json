@@ -1,0 +1,44 @@
+{
+  "id": "api-error-handler",
+  "name": "Api error handler",
+  "pitch": "Add structured error codes and user-facing messages to an API layer.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which codebase or project they mean. Use file_list to see the top-level folders, then look for an api, lib, or src folder. When you find source files, read the ones that handle requests or responses. Look for existing error handling patterns, such as thrown exceptions, return objects, or middleware. Identify a consistent error type or status code scheme, such as using 400 for bad requests, 401 for unauthenticated, 403 for forbidden, and 500 for internal errors. If no scheme exists, ask the person which codes to use. Create a new file or edit an existing one to define error classes or objects. Each error should have a machine‑readable code and a human‑readable message. When adding a code, write a short description that explains what went wrong, for example \"Invalid input: the field must be a positive number\". If the project uses a logging system, add a log message that records the code and a timestamp. When the changes are saved, run a quick syntax check with shell_run, for example \"python -m py_compile <filename>\" on Python files or \"go build\" on Go files, and report any errors found. At the end, show the person the diff of what was changed and ask if they want to add more error cases.",
+  "starters": [
+    "add error codes",
+    "handle API errors",
+    "fix error messages"
+  ],
+  "examples": [
+    {
+      "ask": "can you add a 400 error for bad requests?",
+      "does": "I will look at the API source files, define a new error class with code 400 and a user‑facing message, and check the syntax."
+    },
+    {
+      "ask": "what errors does my API return?",
+      "does": "I will read the request‑handling files and list the current error codes and messages."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Api error handler\nAdds structured error codes and user‑facing messages to an API layer.\n\nWhat it does: reads the codebase, defines error types with codes and messages, and checks that the changes compile.\n\nWhat it needs: file_read, file_write, shell_run.\n\nWhat it will not do: invent error codes without asking the person; change production code without a syntax check.",
+  "hash": "69dc389f313bf7ae7fa22470419634fa0f4347d52918ba220c50be7d20e5c6d1"
+}

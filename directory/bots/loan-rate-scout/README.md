@@ -1,0 +1,1 @@
+Loan rate scout helps you find credit unions with better personal loan rates than your current bank. It searches the web, collects rates, and presents them in a comparison. It will not pay any fees, sign any agreements, or share your data.

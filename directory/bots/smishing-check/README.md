@@ -1,0 +1,1 @@
+A bot that helps the person decide if a delivery‑text link is a smishing attempt. It searches the web for the company name and scam reports, then reads any linked page. It will not click "Agree" or enter any details. It tells the person what it finds and lets them decide.

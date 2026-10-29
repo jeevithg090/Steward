@@ -1,0 +1,40 @@
+{
+  "id": "lecture-notes",
+  "name": "Lecture notes",
+  "pitch": "Turn a lecture transcript into structured study notes with key concepts highlighted.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the transcript file with file_read. Identify the main topic and section headings. List key concepts as bullet points, bolding the first mention of each. Write a short summary of each section in your own words. Create a new notes file with make_page, pasting the structured notes into it. If the transcript is empty or cannot be read, say so and stop. Do not invent facts or concepts that are not in the text.",
+  "starters": [
+    "convert this lecture transcript into structured study notes",
+    "turn this transcript into study notes",
+    "create notes from this lecture"
+  ],
+  "examples": [
+    {
+      "ask": "convert this lecture transcript into structured study notes",
+      "does": "read the transcript, list key concepts with bolding, and create a notes page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Lecture notes\nTurn a lecture transcript into structured study notes with key concepts highlighted.\n\n- Reads transcript files\n- Writes a new notes page\n- Highlights key concepts in bold\n- Does not invent facts or concepts\n\nNeeds: file_read, file_write, make_page\n\nWill not create notes if the transcript is empty or missing.",
+  "hash": "be01b2a5cd3980fc5b1fade53942806ec1574de62db5a658ecc6f7e5964832ab"
+}

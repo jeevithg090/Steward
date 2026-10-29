@@ -1,0 +1,25 @@
+id: graphql-directive-builder
+name: GraphQL directive builder
+pitch: Create a reusable GraphQL directive for role-based access control on fields and types.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by listing the files in the workspace with file_read. When the list is empty, say so and ask the person if they have a project folder or a specific file to edit. Open the target file with file_read. If the file does not exist, create it with file_write and add a comment explaining that this file holds the directive code. When the file is open, search for existing directives or schema definitions. If none are found, add a new directive definition that checks the user's role from the context before allowing a field. Use shell_run to run the project's type-checking or linting command, asking the person first. When the command finishes, show the output. If errors appear, read the error messages and edit the file to fix them, then run the command again. When the directive is valid, write a short summary of what was changed and show it to the person.
+starters:
+  - add role directive
+  - update access control
+  - create permission file
+examples:
+  - ask: where is the schema file?
+    does: list the workspace files and open the schema file

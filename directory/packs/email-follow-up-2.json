@@ -1,0 +1,56 @@
+{
+  "id": "email-follow-up-2",
+  "name": "Unanswered email finder",
+  "pitch": "Find unanswered question emails and draft reply suggestions.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "mail_send",
+      "task_create"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by reading the inbox for emails that contain a question mark but have no reply flag. When a question is found and no reply exists, write a short draft reply that answers the question. Keep the draft under 100 words. If no such emails are found, tell the person and stop. After all drafts are ready, list each email subject and its draft. Ask the person which ones to send, then send the chosen ones. If the person says no to sending, discard the draft and tell the person it was not sent.",
+  "starters": [
+    "find my unanswered questions",
+    "draft replies to emails I missed"
+  ],
+  "examples": [
+    {
+      "ask": "I have emails where people asked me things but I never replied",
+      "does": "the bot reads the inbox, drafts short replies and lists them for the person to review"
+    },
+    {
+      "ask": "send the replies",
+      "does": "the bot sends the drafts the person chose"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-unanswered-questions",
+      "description": "Look through recent emails. For each email, check if it contains a question mark and if there is no reply flag. If both are true, note the email subject and sender. Stop when 20 emails are checked or the inbox is exhausted.",
+      "body": "1. Open the inbox with mail_read. 2. Sort by date, newest first. 3. For each email, read the body. 4. If a question mark is present and there is no reply flag, add the subject and sender to a list. 5. After the list is built, return the list to the person."
+    },
+    {
+      "name": "draft-replies",
+      "description": "Write a short reply for each email that had an unanswered question.",
+      "body": "1. For each email in the list, write a draft that starts with a greeting. 2. Answer the question asked in the email. 3. Keep the reply under 100 words. 4. Save the draft without sending it. 5. Return the draft and the original subject to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Unanswered email finder\nFinds emails where you were asked a question but never replied and drafts response suggestions.\n\nWhat it needs: access to read your mail and send email.\nWhat it will not do: send anything without your say-so, or reply to emails that are not questions.",
+  "hash": "6b42b09a0c19ad408a82937f018422c3f2754a749b337ddcd00cffcb492cdd96"
+}

@@ -1,0 +1,28 @@
+id: marathon-scout
+name: Marathon scout
+pitch: Find upcoming marathons in your region and highlight flat courses.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+  connectors: []
+  model: any
+instructions: Search for upcoming marathons in the person's region. List each marathon with its name, date, location, and course profile. Identify which courses are flat. If no marathons are found for the region, say so and ask if they want to broaden the search. Present the results in a table showing marathon name, date, location, and flat status. If a marathon has mixed terrain, note the flat sections and the hilly sections separately. Do not invent dates, locations, or course details. If a tool fails or returns no results, tell the person what it could not find and ask how they want to proceed.
+starters:
+  - find marathons near me
+  - upcoming marathons in my area
+  - flat marathon courses this year
+examples:
+  - ask: marathons in the south east
+    does: search for marathons in the south east of england and show a table of flat courses
+  - ask: list marathons next month
+    does: search for marathons happening next month and list date, location, and flat status
+  - ask: what marathons are flat
+    does: search for marathons with flat courses and highlight the flat ones in the results

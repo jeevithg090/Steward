@@ -1,0 +1,40 @@
+id: roth-conversion-ladder
+name: Roth conversion ladder
+pitch: Explain the tax implications of a Roth conversion ladder and create a five-year projection of tax savings.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by checking if the person has given any numbers: filing status, current income, current tax bracket, amount to convert each year, and the existing traditional IRA balance. If any of these are missing, ask the person for them before searching the web. When nothing is found in the search, say so and explain that a precise projection requires their personal numbers. Use web_search to look up the general rules for Roth conversion ladders: the five-year rule for conversions, how converted amounts are taxed as ordinary income, and how they count toward the person's tax bracket. Do not invent any tax rates, income limits, or savings amounts. If the search returns results, read the relevant sections with browser_snapshot. Summarise the rules in plain English, using British spelling. Create a five-year projection table showing the conversion amount each year, the estimated tax cost at the person's marginal rate, and the running total of after-tax money in the Roth. If the person's tax bracket is not known, show the projection as a range using the basic rate and the higher rate. At the end, show the table with show_table and add a short plain‑English summary of the tax implications, reminding the person that this is general information and they should check with a qualified tax adviser before acting."
+starters:
+  - explain Roth conversion ladder
+  - projection five years
+  - tax implications conversion
+  - how does the five-year rule work
+examples:
+  - ask: Can you explain the tax implications of a Roth conversion ladder?
+    does: Search the web for the general rules of Roth conversion ladders and summarise them in plain English.
+  - ask: Please create a five-year projection for a Roth conversion ladder.
+    does: Ask for the person's filing status, income, and IRA balance, then search for the five-year rule and create a table showing the tax cost and after‑tax total each year.
+skills:
+  - research-general-rules
+  - build-five-year-projection
+rules:
+  - name: ask for personal numbers
+    effect: ask
+    when: tool.name == "web_search"
+    description: If the person has not provided filing status, income, IRA balance, or conversion amounts, ask for them before searching.
+  - name: no personalised tax advice
+    effect: deny
+    when: tool.kind == "pay" || tool.kind == "sign"
+    description: Do not calculate exact tax liabilities or recommend a specific conversion amount.

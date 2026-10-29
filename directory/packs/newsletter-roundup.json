@@ -1,0 +1,58 @@
+{
+  "id": "newsletter-roundup",
+  "name": "Newsletter roundup",
+  "pitch": "Creates a monthly team accomplishment roundup from calendar and email data.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "mail_list",
+      "mail_read",
+      "make_page"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the last 30 days of calendar events and reading the person's inbox. Look for events marked as meetings, deadlines, or project milestones. Scan email subjects and bodies for mentions of completed work, awards, or project finishes. Collect the person's own summaries or notes from the start of the month. Group the found items into a short headline, a one-sentence description, and the date. If no calendar events or emails are found, say so and stop. When items are collected, arrange them in reverse chronological order. Use make_page to create a plain-text document with the headline, each accomplishment on its own line, and a closing sentence. Save the file as 'newsletter-roundup.txt' in the workspace. Show the finished page to the person and ask if they want to send it, edit it, or discard it.",
+  "starters": [
+    "draft the monthly roundup",
+    "create this month's team summary",
+    "send the newsletter"
+  ],
+  "examples": [
+    {
+      "ask": "draft the monthly roundup",
+      "does": "lists recent calendar events and emails, groups them into accomplishments, and creates a text file"
+    },
+    {
+      "ask": "create this month's team summary",
+      "does": "finds completed projects and milestones from the last 30 days and formats them into a roundup"
+    },
+    {
+      "ask": "send the newsletter",
+      "does": "asks the person to review the draft before it is sent"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-accomplishments",
+      "description": "Collect calendar events and email mentions of completed work from the last 30 days.",
+      "body": "1. Run calendar_list to get the last 30 days of events. 2. If the list is empty, tell the person and stop. 3. Run mail_list to see the person's recent emails. 4. For each email, check the subject and body for words like 'finished', 'completed', 'award', or 'milestone'. 5. Collect up to five accomplishments, noting the date and a one-sentence summary. 6. If fewer than three are found, tell the person how many were located."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Newsletter roundup\nCreates a monthly team accomplishment roundup from calendar and email data.\n\n**What it needs:** calendar_list, mail_list, mail_read, make_page + mail and calendar connectors.\n\n**What it will not do:** It will not write about events it cannot find, and it will not send the file without the person's say-so.",
+  "hash": "75a3bc72247bb71ca048cdea42e11ed7f27c9643acf8bea59d2c97ae37ad221b"
+}

@@ -1,0 +1,51 @@
+{
+  "id": "email-knowledge-base",
+  "name": "Email knowledge base",
+  "pitch": "Build a searchable list of key decisions and reference links from your sent emails.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing all sent emails. For each email, read its contents and look for sentences that state a decision, a deadline, or a link to another resource. Extract the decision text and the link URL. If an email has no clear decision or link, skip it. Collect all extracted items into a plain‑text list, one item per line, with the decision text followed by a space and the URL. When the list is complete, use make_page to create a markdown file titled \"Email decisions\" that contains the list. Save the file in the assistant's workspace. If at any point mail_list returns no emails, say so and stop. If mail_read cannot open an email, note that the email could not be read and move to the next one. When the markdown file is ready, show it to the person and ask if they want it saved elsewhere or turned into a searchable table.",
+  "starters": [
+    "list my sent emails",
+    "find decisions in my email",
+    "make a knowledge base from my mail"
+  ],
+  "examples": [
+    {
+      "ask": "can you look at my sent mail?",
+      "does": "list the sent emails and read the first one to look for decisions"
+    },
+    {
+      "ask": "what decisions did I make last month?",
+      "does": "filter the list for decisions dated last month and show the text and links"
+    },
+    {
+      "ask": "show me the knowledge base",
+      "does": "display the markdown file with all extracted decisions and links"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Email knowledge base\nBuild a searchable list of key decisions and reference links from your sent emails.\n\nWhat it does: reads your sent mail, extracts decisions and URLs, and writes a markdown file.\nWhat it needs: access to your mail, the ability to read and list emails, and write files.\nWhat it will not do: it does not read private personal messages, it does not keep the file on any server, and it does not make the file searchable beyond the markdown text.",
+  "hash": "367ef5a139f23004401856fe6e25ec8a5332f9f95776e74ad77a445808d8ac42"
+}

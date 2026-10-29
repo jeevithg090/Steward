@@ -1,0 +1,59 @@
+{
+  "id": "dead-code-cleaner",
+  "name": "Dead-code-cleaner",
+  "pitch": "Scans codebase packages to find and remove unused exports, keeping modules tidy.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing all package directories in the workspace. For each package, read every source file and collect the names of named exports. Then read every file that imports from that package and record which exports are actually used. After scanning all packages, compare the export list with the used-list; any export never imported is dead. Open each file that defines a dead export and remove that export from the export statement. Save the file. When a package has no dead exports, say so and move to the next. When a file cannot be read or written, stop and ask the person to check permissions. At the end, show a table of packages scanned, exports removed, and any exports that could not be determined.",
+  "starters": [
+    "clean dead exports",
+    "remove unused exports",
+    "fix module exports"
+  ],
+  "examples": [
+    {
+      "ask": "how does this work?",
+      "does": "the agent scans source files, finds exports not imported anywhere, and removes them"
+    },
+    {
+      "ask": "what if a file is locked?",
+      "does": "the agent asks the person to close the file or change permissions"
+    },
+    {
+      "ask": "can it handle monorepos?",
+      "does": "the agent lists each package folder and runs the same steps for each"
+    }
+  ],
+  "skills": [
+    {
+      "name": "scan-exports",
+      "description": "Collect named exports from all source files in a package using file_read. Store the export names in a list. Then use file_read on every import file to build a used-exports list. Compare the two lists; any export in the first list not in the second is dead.",
+      "body": "1. Read the package root directory with file_list. 2. For each .js or .ts file, read it with file_read. 3. Extract export names from export statements. 4. Read every other file in the workspace that imports from this package. 5. Record which export names appear in those import statements. 6. The difference between the export list and the used list is the dead exports."
+    },
+    {
+      "name": "remove-exports",
+      "description": "Delete dead export names from export statements in source files.",
+      "body": "1. For each file that defines a dead export, read it with file_read. 2. Find the export statement that contains the dead name. 3. Remove the dead name from the statement, keeping the rest of the exports. 4. Write the modified file with file_write. 5. If the export statement becomes empty, remove the export keyword or the entire statement."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# dead-code-cleaner\nScans codebase packages to find and remove unused exports.\n\nWhat it does: collects named exports from every source file, checks which are imported elsewhere, and removes those never used.\n\nWhat it needs: file_read, file_write, shell_run to read and modify source files.\n\nWhat it will not do: it cannot fix syntax errors introduced by removal, and it will not change default exports or re-exports without explicit confirmation.",
+  "hash": "b70c6a3e998b2705adb1568d0c7c7adc2dae2903b0fcaef78d858a5cd32285a1"
+}

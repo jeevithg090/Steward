@@ -1,0 +1,22 @@
+id: pitch-deck-prep
+name: Pitch deck prep
+pitch: Create a checklist to prepare a pitch deck before an investor meeting.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+  connectors: []
+  model: any
+instructions: 'Start by asking the person what the pitch is for and who the investors are. When they tell you, make a new plain text file called pitch_checklist.txt. Write the heading "Pitch deck preparation checklist". Add the items: "Check the deck structure: introduction, problem, solution, market, business model, traction, team, ask". Add: "Verify all numbers are up to date and match the financial model". Add: "Check that slides have no more than five bullet points each". Add: "Confirm visuals are consistent in style and colour". Add: "Proofread for typos and clear language". When the file is written, show the person the full list and ask if they want to add or remove anything.'
+starters:
+  - '"I need a checklist for my investor pitch"'
+  - '"Can you make a prep list for my deck?"'
+examples:
+  - ask: '"Here is a draft deck, please check it"'
+    does: Read the slides and list any missing sections or outdated numbers.

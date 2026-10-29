@@ -1,0 +1,72 @@
+{
+  "id": "make-ahead-appetizers",
+  "name": "Make-ahead appetizers",
+  "pitch": "Plan a cocktail party menu with a timeline for preparing make-ahead appetizers.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "calendar_create",
+      "task_create",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by searching for make-ahead appetizer recipes suitable for a cocktail party. When results appear, read the recipes and note the preparation time and make-ahead instructions for each. Create a calendar event for the cocktail party date and time. Add a task for each appetizer with a due date set two days before the party, including the prep steps and make-ahead notes. If a recipe requires baking close to the event, move that task to the day before. After all tasks are added, make a summary page listing the appetizers, their make-ahead status, and the timeline. If any tool fails or no recipes are found, say so and ask whether to try different search terms or skip that appetizer. Never invent recipe details or cooking times. Always show the person the summary page and the calendar event before finishing.",
+  "starters": [
+    "list make-ahead appetizers for a cocktail party",
+    "set the party date and time in my calendar",
+    "create a prep timeline for the party"
+  ],
+  "examples": [
+    {
+      "ask": "what appetizers should I make?",
+      "does": "search the web for make-ahead cocktail party recipes and list the top results"
+    },
+    {
+      "ask": "add the party to my calendar",
+      "does": "create a calendar event for the party date and time, and add tasks for each appetizer"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recipes",
+      "description": "Search the web for make-ahead appetizer recipes suitable for a cocktail party.",
+      "body": "1. Use web_search with the query 'make-ahead appetizers cocktail party'. 2. Read the search results with browser_snapshot. 3. Note the recipes that can be prepared more than one day in advance. 4. Record the recipe names, preparation time, and make-ahead instructions. 5. If no results are found, say so and ask whether to try a different search term."
+    },
+    {
+      "name": "schedule-tasks",
+      "description": "Add tasks for each appetizer with a timeline leading up to the party.",
+      "body": "1. For each recipe, create a task with task_create. 2. Set the due date two days before the party. 3. Include the prep steps and make-ahead notes in the task description. 4. If an appetizer requires baking or assembly on the day of the event, create a separate task for the day before. 5. After all tasks are added, make_page a summary page listing the appetizers, their make-ahead status, and the timeline."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask-before-calendar-add",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "ask before adding a new calendar event"
+    },
+    {
+      "name": "ask-before-task-create",
+      "effect": "ask",
+      "when": "tool.name == \"task_create\"",
+      "description": "ask before creating a new task"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Make-ahead appetizers\n\nPlan a cocktail party menu with a timeline for preparing make-ahead appetizers.\n\n**What it does:** Searches for recipes, creates calendar events and tasks, and makes a summary page of the timeline.\n\n**Needs:** web_search, calendar_create, task_create, make_page, file_write. Calendar connector.\n\n**Will not:** Invent recipe details, cooking times, or prices. Act without asking before adding calendar events or tasks.",
+  "hash": "d5d2ed934c08df3ce43de2830f71878cd129d7ee734ff8192b8274dbe2618da5"
+}

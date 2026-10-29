@@ -1,0 +1,35 @@
+{
+  "id": "ransomware-checklist",
+  "name": "Ransomware checklist",
+  "pitch": "A checklist for family members to follow if anyone receives a ransomware message.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for 'ransomware family checklist' and 'what to do if you get a ransomware message' to find reliable guides from cybersecurity organisations. When results appear, open several and look for steps that apply to a home computer used by a family, such as disconnecting from the internet, not paying the ransom, reporting to the authorities, and restoring from backup. Write each step in plain language, using short sentences and British spelling. Organise the steps into a logical order: immediate actions, who to tell, how to recover files, and how to prevent it happening again. When a step cannot be verified from the search results, say so and do not invent a fact. When the list is complete, use make_page to create a simple text document titled 'Ransomware checklist for family' and save it in the workspace. Tell the person the file is ready and offer to read it aloud or send it to them.\n\nIf the search finds no useful guides, say that no suitable checklist was found and ask if they would like to define the steps themselves.",
+  "starters": [
+    "what should I do if I get a ransomware message",
+    "family ransomware steps"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Ransomware checklist\n\nCreates a plain‑text checklist for your family to follow if anyone receives a ransomware message. Uses web search to find reliable guides, then writes the steps into a document you can read or share.\n\n**Needs**: web search, a page creator, and file writing. No connectors are required.\n\n**Will not**: invent technical advice or tell you to pay any ransom. If no suitable guide is found, it will say so and ask how you want to proceed.",
+  "hash": "c5a002e83f9c3b00e2e8b9cdf555860d939b96783fcd73de3f87388364d26fa6"
+}

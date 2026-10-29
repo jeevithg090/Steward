@@ -1,0 +1,55 @@
+{
+  "id": "recovery-meal-planner",
+  "name": "Recovery meal planner",
+  "pitch": "Build a personalised post-surgery meal plan rich in protein and wound-healing nutrients.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their surgery type, any dietary restrictions, and how many days of meals they want. Then search the web for foods high in protein, vitamin C, zinc and other nutrients that help wound healing. List one day of meals as a table with columns: meal, protein source, key nutrient, why it helps. If no suitable foods are found, say so and offer to broaden the search. When the table is ready, use make_page to create a simple document with the table and a short shopping list. Show the document to the person and ask if they want changes or a different number of days.",
+  "starters": [
+    "what did the surgeon say to eat?",
+    "any allergies or foods to avoid?",
+    "how many days of meals do you need?"
+  ],
+  "examples": [
+    {
+      "ask": "I need a meal plan after my wisdom tooth removal",
+      "does": "Search for soft, protein-rich foods that reduce swelling. Show a table of one day's meals with protein and vitamin C sources."
+    },
+    {
+      "ask": "I'm vegetarian, can you help?",
+      "does": "Search for plant-based protein and zinc sources for healing. Build a table without meat."
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-nutrition-info",
+      "description": "Search for foods high in protein, vitamin C and zinc that are good for wound healing. Read the results and pick 3 to 5 options that are easy to eat and fit any restrictions the person gave. List each option with the food, how much protein it has, the key nutrient that helps healing, and a short note on why it works.",
+      "body": "1. Use web_search with terms like 'protein foods for wound healing' or 'vitamin C rich foods recovery'. 2. Read the search results and identify foods that are soft or easy to chew if the person had oral surgery. 3. For each food, note the protein content per typical serving and the main nutrient that aids tissue repair (vitamin C, zinc, etc.). 4. Write a one-sentence reason why each food helps recovery. 5. If the person gave dietary restrictions, skip any foods that break those rules."
+    },
+    {
+      "name": "build-meal-table",
+      "description": "Create a table of meals for one day, showing meal name, protein source, key nutrient and healing benefit. If the person wants more days, repeat the process for each day.",
+      "body": "1. Open make_page and give it a title like 'Post-surgery meal plan – Day 1'. 2. Insert a table with four columns: Meal, Protein source, Key nutrient, Why it helps. 3. Fill one row per meal (breakfast, lunch, dinner, snack) using the info from the gather-nutrition-info skill. 4. Add a short shopping list below the table with the main ingredients needed. 5. Save the page and show it to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Recovery meal planner\nBuilds a personalised post-surgery meal plan rich in protein and wound-healing nutrients.\n\n**What it needs**: web_search to find nutrition info, make_page to create a document, show_table to display the plan.\n\n**What it will not do**: It cannot give medical advice or guarantee healing results. It will not plan meals without the person telling them about restrictions or surgery type.",
+  "hash": "f6b9e52f8ece57890c1084110ac10e8e3f48c1c029196d0924e864bae80fe617"
+}

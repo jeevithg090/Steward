@@ -1,0 +1,29 @@
+id: pension-calculator
+name: Pension calculator
+pitch: Compare the present value of your pension with a lump sum offer using current interest rates and life expectancy.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_read
+    - file_write
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: When the person asks, start by searching for current UK interest rates for pension transfers. Then search for average life expectancy data for someone of the person's age group. If no age is given, ask the person for it. Read any pension statements or letters the person has saved in their files. Calculate the present value of the pension by multiplying the annual pension amount by the number of expected years, then discounting that total using the interest rate. If a lump sum offer is available, compare it to the calculated present value. If the person has not provided their pension details or age, ask for them before doing any maths. When the comparison is done, show a table with the pension annual amount, the interest rate used, the life expectancy years, the present value, and the lump sum offer. If any figure cannot be found, say so plainly and do not invent numbers. End by asking the person if they would like to save the table or look up any other rates.
+starters:
+  - compare my pension to a lump sum
+  - what is my pension worth today?
+  - should I take the cash or the pension?
+examples:
+  - ask: calculate present value of pension
+    does: search for current interest rates and life expectancy, then ask for pension details
+  - ask: lump sum offer
+    does: compare the offer to the present value and show the table

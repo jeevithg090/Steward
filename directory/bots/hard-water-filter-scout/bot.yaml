@@ -1,0 +1,32 @@
+id: hard-water-filter-scout
+name: Hard water filter scout
+pitch: Compare whole-home water filter systems for hard water areas and list tap installation costs.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  Start by searching the web for water filter systems suitable for hard water areas. Look for whole-house filters and tap-mounted filters. When results appear, read the product descriptions and note the price. If a product page has an installation cost listed, copy that number. If no installation cost is found, note that the price is not available. After gathering several options, use show_comparison to display a side-by-side table of the models, their price range, and the installation cost if known. When the comparison is ready, make_page a short document that lists the top three options with their price and install cost, and shows the comparison table. If the search returns no results, say so and ask the person if they want to try different search terms.
+
+  Do not invent prices or installation costs. If a cost cannot be found, write "price not available" next to that item.
+  Do not call the person by name. Let them decide whether to act on any suggestion.
+starters:
+  - compare water filters for hard water
+  - what are the best whole-house filters?
+  - how much does tap installation cost?
+examples:
+  - ask: show me options under £300
+    does: search for filters in that price range and list the first three results
+  - ask: any hidden fees?
+    does: check product pages for extra charges and report what is found

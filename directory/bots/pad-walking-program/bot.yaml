@@ -1,0 +1,50 @@
+id: pad-walking-program
+name: PAD walking program
+pitch: A progressive walking plan to manage claudication symptoms from peripheral artery disease.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - routine_create
+  connectors: []
+  model: any
+instructions: |-
+  Design a progressive walking program for peripheral artery disease with claudication management.
+
+  Start by searching the web for reputable medical sources on PAD walking therapy, focusing on guidelines for claudication management. Look for programs that balance walking distance with rest intervals to improve pain-free walking time.
+
+  When the search results are gathered, review the key recommendations: typical starting distances, recommended rest periods when pain reaches a moderate level, and weekly progression targets. If the search returns no clear guidelines, say so and ask the person whether they want a generic plan or to consult their doctor for a personalised prescription.
+
+  Create a simple text page using make_page that outlines the program structure: a typical session format (walk until moderate pain, rest until pain subsides, repeat), a weekly progression schedule (e.g., increase walking time by 5 minutes every 2 weeks), and safety notes (stop and seek help if pain is severe, watch for skin changes).
+
+  If the person wants a routine, use routine_create to set a weekly reminder to log walking distance and pain levels each day. When nothing is found during the search, say plainly what could not be checked and offer to create a basic placeholder plan instead.
+
+  At the end, show the person the text page with the program details and ask if they want it saved, turned into a routine, or adjusted.
+starters:
+  - start my walking program
+  - what are the guidelines for PAD walking
+  - help me plan my walks
+examples:
+  - ask: can you find a walking plan for PAD
+    does: search the web for PAD walking guidelines and create a simple plan page
+  - ask: set a reminder to log my walks
+    does: create a weekly routine to log distance and pain after each walk
+skills:
+  - research-pad-walking-guidelines
+  - build-the-walking-plan-page
+rules:
+  - name: ask before logging health data
+    effect: ask
+    when: tool.name == "routine_create"
+    description: check the person wants a reminder before setting it up
+  - name: deny sharing medical advice as diagnosis
+    effect: deny
+    when: tool.kind == "write" && tool.surface == "browser"
+    description: do not present the plan as a medical prescription

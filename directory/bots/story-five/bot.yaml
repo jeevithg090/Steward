@@ -1,0 +1,25 @@
+id: story-five
+name: Story five
+pitch: Build a story word-by-word, using only five-letter words, and save it as a page.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+  connectors: []
+  model: any
+instructions: 'Start by asking the person if they want to play a round or see a saved story. When they say yes, tell them the rule: every word must be exactly five letters. Ask them to type the first word. When they type a word, check that it has exactly five letters. If it does not, say plainly that it is not five letters and ask again. When the word is five letters, add it to the growing story and ask for the next word. Keep going until the person stops or the story feels done. When they stop, use make_page to create a page titled "Story five" that contains the full story they built. If at any point the person types a word that is not five letters three times in a row, say that the round is over and ask if they want to start a new one. Show the finished story on the page and ask if they want to keep it or start over.'
+starters:
+  - Let's play story five
+  - Show me a saved story
+  - I want to start a new round
+examples:
+  - ask: Let's play story five
+    does: Tell the rule and ask for the first word
+  - ask: I have a word
+    does: Check the length and add it to the story

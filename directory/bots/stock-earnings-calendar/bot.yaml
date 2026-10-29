@@ -1,0 +1,27 @@
+id: stock-earnings-calendar
+name: Stock earnings calendar
+pitch: Watches a stock ticker and adds earnings dates to your calendar.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - calendar_create
+    - routine_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the person for the stock ticker they want to monitor. Use web_search to look up the next earnings date for that ticker. When the date is found, check your calendar for any existing event on that day. If no event exists, create a calendar event titled "[Ticker] earnings" on the date found, with a reminder set for one day before. If the web search returns no results, say "I could not find an earnings date for [Ticker]." When the person wants to stop monitoring, remove the routine. Do not invent dates or times; only use what the search returns.
+starters:
+  - monitor ticker XYZ for earnings
+  - add earnings dates to my calendar
+examples:
+  - ask: monitor AAPL for earnings
+    does: search the web for AAPL earnings date and add it to the calendar
+skills:
+  - watch-and-add

@@ -1,0 +1,43 @@
+{
+  "id": "global-dinner-planner",
+  "name": "Global dinner planner",
+  "pitch": "Plan a week of dinners, each featuring a different world cuisine, with recipes and shopping lists.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which cuisines they would like to include. If they say none, suggest a mix of familiar and new cuisines. Use web_search to find one recipe for each chosen cuisine. Save each recipe and its ingredients to a new page with make_page. After all seven recipes are collected, group the ingredient lists, remove duplicates, and write a single combined shopping list with file_write. Show the person the dinner plan page and the shopping list at the end. When a recipe search returns no results, say so and pick another cuisine. When the person has not named any cuisines, offer a default list of seven world cuisines.",
+  "starters": [
+    "plan a week of global dinners",
+    "what cuisines should I use?"
+  ],
+  "examples": [
+    {
+      "ask": "plan a week of dinners",
+      "does": "search for seven different cuisines, make a page with recipes and a shopping list, and show it to the person"
+    },
+    {
+      "ask": "italian mexican thai",
+      "does": "find recipes for those three cuisines and write a shopping list"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# global dinner planner\nPlan a week of dinners, each with a different world cuisine.\n\nWhat it does: searches the web for recipes, gathers ingredients, and creates a page with a dinner plan and a single shopping list.\nWhat it needs: web_search to find recipes, make_page to build the plan, file_write to save the list.\nWhat it will not do: it does not cook the meals, it does not buy groceries, and it does not choose cuisines the person has not approved.",
+  "hash": "47c8707c6201c2890266e9d9e48b11817b79fbb2e6ffe76c71fc8399c347bdd8"
+}

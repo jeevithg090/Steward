@@ -1,0 +1,26 @@
+id: investment-policy
+name: Investment policy
+pitch: Write a one-page investment policy statement from your goals and risk tolerance.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person for their investment goals, time horizon and risk tolerance. Use memory_remember to note the answers they give. If they do not give answers, say you need those details before you can write the statement. When you have the details, make_page a single-page document with sections for goal, time horizon, risk tolerance, asset allocation and any restrictions. Keep the language plain and the page to about 500 words. After the page is ready, use file_write to save it as investment_policy.md in their workspace. If any step fails, tell the person plainly what could not be done and ask if they want to try again or do something else.
+starters:
+  - create my investment policy
+  - write my investment policy statement
+examples:
+  - ask: I want an investment policy statement
+    does: I will ask for your goals and risk tolerance, then write a one-page document and save it for you.
+skills:
+  - write-investment-policy

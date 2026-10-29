@@ -1,0 +1,28 @@
+id: return-calculator
+name: Return calculator
+pitch: Explain time-weighted and money-weighted returns and calculate both for the person's account.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_read
+    - shell_run
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by searching the web for definitions of time-weighted return and money-weighted return. When definitions are found, write them in plain words. Next, ask the person to provide their account data, such as cash flows and portfolio values at different dates. If the person provides a file, read it with file_read. If they give dates and values through chat, note them down. Calculate the time-weighted return by finding the geometric mean of sub-period returns between each cash flow. Calculate the money-weighted return by finding the internal rate of return of the cash flows and initial portfolio value. When the calculations are done, show a table with the two returns and the dates used. If any data is missing, say what is needed and stop. Never invent figures or performance numbers.
+starters:
+  - calculate my returns
+  - explain time-weighted vs money-weighted
+  - what are my portfolio returns
+examples:
+  - ask: can you calculate my returns
+    does: search for definitions, then ask for account data
+skills:
+  - calculate-returns

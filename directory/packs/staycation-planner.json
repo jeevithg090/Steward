@@ -1,0 +1,54 @@
+{
+  "id": "staycation-planner",
+  "name": "Staycation planner",
+  "pitch": "Plan a free October half-term itinerary with museums, parks and rainy day backups.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "calendar_create",
+      "show_table"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by searching for free museums and free parks open in October half term in the person's town or city. If the location is unknown, ask the person for it. When results are found, list each attraction with its address and opening hours. Next, search for rainy day backup activities such as indoor exhibitions, libraries or free workshops that are also open in October. If no indoor options are found, say so and ask the person if they have a preferred type of backup. After gathering all options, use show_table to display the attractions side by side: one column for free museums and parks, another for rainy day backups. Then ask the person which days they are free during half term. For each free day, pick one museum or park and one backup activity, and use calendar_create to add an event with the time, location and a note whether it is a main activity or a backup. If a tool fails or returns no results, say plainly what could not be checked and ask the person how they would like to proceed. At the end, make_page a simple text summary of the itinerary with dates, activities and any notes the person added.",
+  "starters": [
+    "plan a staycation for october half term",
+    "free things to do in the holidays",
+    "rainy day activities for kids"
+  ],
+  "examples": [
+    {
+      "ask": "plan a staycation for october half term",
+      "does": "search for free museums and parks, show a table, ask which days are free, then add events to the calendar"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-free-activities",
+      "description": "Search the web for free museums and parks open in October half term. List each with address and opening hours. If nothing is found, say so and ask the person for their location.",
+      "body": "1. Use web_search to look for \"free museums October half term\" followed by the person's town or city. 2. If the person has not given a location, ask them for it before searching. 3. Scan the results for museums that list free entry. 4. Record the name, address and opening hours for each. 5. If no free museums are found, say \"I could not find any free museums for October half term in [location]. Would you like me to search for paid ones or a different area?\" and stop. 6. Repeat the same process for free parks, noting any opening times or seasonal closures. 7. If a search returns no results, tell the person plainly what could not be checked and ask how they would like to proceed."
+    },
+    {
+      "name": "plan-rainy-day-backups",
+      "description": "Search for indoor free activities to use as rainy day backup. If none are found, tell the person and ask if they have a preference.",
+      "body": "1. Use web_search to look for \"rainy day free activities October half term\" and the person's location. 2. Look for indoor options such as libraries, indoor exhibitions, free workshops or museum branches with free entry. 3. Record the name, address and any booking requirements. 4. If no indoor activities are found, say \"I could not find any free rainy day activities for October half term in [location]. Would you like me to look for something else?\" and stop. 5. Present the backup options to the person alongside the museums and parks."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Staycation planner\nPlan a free October half-term itinerary with museums, parks and rainy day backups.\n\nWhat it does: searches for free attractions, organises them in a table, and adds chosen days to the person's calendar.\n\nWhat it needs: web_search to find activities, make_page to create a summary, calendar_create to add events, show_table to compare options. It also needs calendar access to add events.\n\nWhat it will not do: it cannot book tickets, pay for anything, or sign up for services. It will always ask the person before adding anything to the calendar.",
+  "hash": "5494a4024dea8d0ae27d85b63e37fd1f7873ef42e658d0925cc6fa5519a554ab"
+}

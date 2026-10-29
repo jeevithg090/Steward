@@ -1,0 +1,1 @@
+Yoga stretch finder: searches the web for local yoga classes that help stretch tight muscles after running. Needs browser navigation and web search. Will not book or pay for anything, and will not invent prices or opening times.

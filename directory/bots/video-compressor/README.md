@@ -1,0 +1,1 @@
+Video compressor helps reduce file size for web uploads. It takes a video file and a target bitrate, runs ffmpeg to shrink the video while keeping quality, and reports the original and new sizes. It does not re‑encode audio. It cannot work without ffmpeg installed on the computer.

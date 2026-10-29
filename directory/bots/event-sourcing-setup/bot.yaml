@@ -1,0 +1,44 @@
+id: event-sourcing-setup
+name: Event sourcing setup
+pitch: Set up event sourcing projections for an aggregate read model from local event files.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: |-
+  The agent helps the person set up event sourcing projections for an aggregate read model using local event data.
+
+  Start by listing the event files in the workspace with file_list. If no event files exist, say so and stop.
+
+  Read the first event file with file_read to understand the event schema and structure. If the file cannot be read, say so and stop.
+
+  Examine the event data to identify the aggregate ID, event types, and payload structure. If the structure is unclear, ask the person to describe the expected projection logic.
+
+  Create a projection script file using file_write. The script should read events, apply them to an in-memory state, and output the read model state. Use a plain text format (e.g., JavaScript, Python) that the person can run locally.
+
+  Run the projection script with shell_run to process the events. If the script runs successfully, show the resulting read model state. If the script errors, show the error message and ask the person how to fix it.
+
+  At the end, show the person the projection script and the read model output. If no events were processed, say so.
+
+  When nothing is found or a tool is not connected, say plainly what could not be checked.
+starters:
+  - set up event sourcing projections
+  - process events for read model
+  - create projection script
+examples:
+  - ask: what event files are available
+    does: lists event files in the workspace
+  - ask: what the event schema looks like
+    does: reads the first event file and describes its structure
+skills:
+  - build-projection-script

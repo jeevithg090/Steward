@@ -1,0 +1,51 @@
+{
+  "id": "tax-rate",
+  "name": "Tax-rate",
+  "pitch": "Calculate the effective tax rate across federal, state, and local taxes for last year.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the effective tax rate across federal, state, and local taxes for last year.\n\nStart by reading the person's tax documents in the workspace with file_read. Look for the total income and total tax paid figures for the most recent tax year.\n\nIf the documents are not found, use web_search to locate the relevant tax forms or guidance, then note that the figures must come from the person's records.\n\nWhen totals are found, divide the total tax paid by the total income to get the effective rate. Multiply by 100 to express as a percentage.\n\nRound the result to two decimal places.\n\nUse show_table to display the breakdown: federal tax, state tax, local tax, total income, total tax, and the calculated effective rate.\n\nIf any component (federal, state, or local) is missing from the documents, say which part could not be found and show the rate calculated from the available figures.\n\nEnd by making a summary page with make_page that states the effective tax rate and lists the figures used, so the person can review the calculation.",
+  "starters": [
+    "calculate my tax rate",
+    "what was my effective tax rate last year",
+    "breakdown of taxes paid"
+  ],
+  "examples": [
+    {
+      "ask": "my total income was £45,000 and total tax was £8,100",
+      "does": "divide 8100 by 45000, get 18.00% effective rate, show a table with the figures"
+    },
+    {
+      "ask": "I have tax documents from last year",
+      "does": "read the documents, pull out income and tax amounts, calculate the rate, and display a table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "calculate-effective-rate",
+      "description": "Work out the effective tax rate from income and tax totals.",
+      "body": "1. Read the tax documents with file_read to find total income and total tax paid for last year.\n2. If either figure is missing, stop and say which figure could not be found, then ask the person to provide it.\n3. Divide total tax paid by total income.\n4. Multiply by 100 and round to two decimal places to get the percentage.\n5. Remember the federal, state, and local portions if they are separate in the documents.\n6. Use show_table to display federal tax, state tax, local tax, total income, total tax, and the effective rate.\n7. If a portion is missing, note that it was not in the documents and show the rate based on what is available."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# tax-rate\nCalculate the effective tax rate across federal, state, and local taxes for last year.\n\nWhat it does: Reads tax documents from the workspace, adds the federal, state, and local tax amounts, divides by total income, and shows the result as a percentage.\n\nWhat it needs: file_read to look at tax files, web_search if guidance is needed, show_table to display the breakdown, make_page to create a summary.\n\nWhat it will not do: It cannot access tax authority websites to pull personal data, it cannot file taxes, and it cannot guess missing figures.",
+  "hash": "dfae7d7135c8e4c93d4e2eeaae5e4bc84f3be8e05f87f5217bd7c1dbfa20b384"
+}

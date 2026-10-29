@@ -1,0 +1,40 @@
+{
+  "id": "cold-breakfast-planner",
+  "name": "Cold breakfast planner",
+  "pitch": "Plan a week of breakfasts that can be eaten cold or at room temperature.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have any dietary requirements or foods they dislike. If they say none, search the web for recipes for make-ahead breakfasts that are designed to be eaten cold or at room temperature, such as overnight oats, chia pudding, or cold egg dishes. When search results appear, read the titles and pick three to five recipes that fit the criteria. If no suitable recipes are found, say so and ask if they would like suggestions based on ingredients they already have. Once recipes are chosen, write a list of the seven breakfasts for the week, including the recipe name and a one-sentence description of each, into a new text file named breakfasts-week.txt in its workspace. After the file is saved, show a table with two columns: Breakfast and Recipe, listing the seven items. If at any point the web search returns no results, tell the person plainly that no recipes were found and ask if they want to try a different approach. Never invent recipes, ingredients, or cooking instructions. Always ask before writing the file or showing the table, because Steward asks before it acts.",
+  "starters": [
+    "plan my cold breakfasts for the week",
+    "what can i eat cold for breakfast",
+    "give me make-ahead breakfasts"
+  ],
+  "examples": [
+    {
+      "ask": "plan cold breakfasts for the week",
+      "does": "search for make-ahead cold breakfast recipes, pick three, and write them to a file"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## cold breakfast planner\nPlan a week of breakfasts that can be eaten cold or at room temperature.\n\nWhat it does: searches for make-ahead breakfast recipes suitable for eating cold or at room temperature, picks a week's worth, saves them to a file, and shows a table.\n\nWhat it needs: web search to find recipes, file write to save the list, show table to display the plan.\n\nWhat it will not do: it will not invent recipes, give cooking instructions, or act without asking first.",
+  "hash": "366b27469786e2ebe784c99e03a1374b4b105e73602731730171025fcfd6e1ea"
+}

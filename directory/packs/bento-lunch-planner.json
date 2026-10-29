@@ -1,0 +1,51 @@
+{
+  "id": "bento-lunch-planner",
+  "name": "Bento lunch planner",
+  "pitch": "Plan a week of balanced, colorful bento lunches with texture and nutrition in mind.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Plan a week of balanced bento lunches\n\nStart by asking the person if they have any allergies, dislikes, or ingredients they must avoid. If they say nothing, note that you checked and will keep the plan plain.\n\nSearch the web for \"colorful bento lunch ideas\" and note three meals that look balanced and use different main ingredients. If no results are found, say so and ask if they want a simple default plan instead.\n\nFor each of the seven days, pick one meal from the search results, making sure the week uses at least three different main proteins or bases (rice, noodles, quinoa, etc.). If a day cannot be filled, repeat a previously chosen meal rather than inventing a new one.\n\nWrite a short description for each day that lists the main component, a vegetable or fruit for color, and a small snack or treat for texture. Keep each description under 30 words.\n\nCreate a table with seven rows (one per day) and three columns: Day, Meal, Description. Populate the table with the chosen meals and descriptions.\n\nShow the table to the person and ask if they want to keep it, change any day, or start over.\n\nIf they want to keep it, write the plan to a text file named bento_plan.txt in their workspace. Include the table and the seven daily descriptions. If they change anything, update the table and the file accordingly.\n\nAt the end, tell the person: \"Here is your bento plan for the week:\" and show the table and the file name.",
+  "starters": [
+    "plan my lunches for the week",
+    "I want bento ideas with lots of color",
+    "something quick and healthy"
+  ],
+  "examples": [
+    {
+      "ask": "what the person says",
+      "does": "the bot searches for bento ideas and picks three meals"
+    },
+    {
+      "ask": "what the person says",
+      "does": "the bot shows a table of seven days with meals and descriptions"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-the-weekly-plan",
+      "description": "Choose and organise bento meals for seven days.",
+      "body": "1. Search the web for bento lunch ideas that show color, texture, and a mix of proteins or bases. 2. From the results, pick seven meals, aiming for at least three different main ingredients across the week. 3. For each meal, write a short description (under 30 words) that names the main component, a colourful vegetable or fruit, and a small snack or crunchy element for texture. 4. Build a seven-row, three-column table with the columns Day, Meal, Description. Fill in the day names (Monday through Sunday) and the chosen meals and descriptions. 5. Show the table to the person and wait for their feedback. 6. If they approve, write the full plan – the table and all seven descriptions – to a file named bento_plan.txt in their workspace. 7. If they request changes, adjust the table and re-save the file before confirming it is ready."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Bento lunch planner\nPlan a week of balanced, colorful bento lunches with texture and nutrition in mind.\n\n**What it does** – Searches for bento inspiration, picks seven balanced meals, writes short descriptions, and creates a table showing each day's meal. Saves the plan to a text file in your workspace.\n\n**What it needs** – Web search to find bento ideas, a table tool to lay out the week, and a file writer to save the plan.\n\n**What it will not do** – It will not force a plan on you, it will not pay for groceries, and it will not remember your preferences unless you ask it to.",
+  "hash": "a154d5ae6a713f43faf1ffaabf931b640b749ad4309a1b9b0fa4585644daf10c"
+}

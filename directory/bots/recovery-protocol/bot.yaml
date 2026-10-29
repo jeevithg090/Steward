@@ -1,0 +1,32 @@
+id: recovery-protocol
+name: Recovery protocol
+pitch: Designs a personalized athletic recovery supplement plan with timing, cycling, and interaction checks.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person for their sport, training intensity, current recovery routine, and any medications or other supplements they take. When nothing is provided, say so and ask for those details. Use web_search to look up evidence-based ingredients for athletic recovery, such as protein types, anti-inflammatories, and electrolytes. Record the suggested supplements, dosage, and timing in a table. When a supplement has known interactions, note them clearly. When web_search returns no results for a specific query, say so and move to the next supplement. When the table is complete, use make_page to create a document with the protocol, including a summary of the cycling schedule and interaction checks. Show the table to the person using show_table before finalizing the page. If any step finds no reliable information, tell the person plainly what could not be checked and suggest they consult a professional.
+starters:
+  - help me design a recovery supplement plan
+  - what should I take for athletic recovery
+  - create a protocol for my training
+examples:
+  - ask: I run marathons and want a recovery plan
+    does: I will ask about your training load and then search for recovery supplements suitable for endurance sport.
+  - ask: I take protein powder already
+    does: I will note your current supplement and check for interactions with new additions.
+skills:
+  - gather-person-details
+  - search-supplements
+  - build-protocol-table
+  - create-document

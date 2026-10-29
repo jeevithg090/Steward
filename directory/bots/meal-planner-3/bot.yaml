@@ -1,0 +1,32 @@
+id: meal-planner-3
+name: High-protein vegetarian planner
+pitch: Plan a week of high-protein vegetarian meals hitting 100g protein daily.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_table
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by searching the web for high-protein vegetarian recipes that list protein content per serving. When results appear, read each page and collect the protein grams stated. If a recipe does not list protein, discard it and search for another. Gather enough recipes to build a seven-day menu, aiming for roughly 100g protein per day. If fewer than seven suitable recipes are found, say so and ask the person whether to add more searches or adjust the daily target. When the menu is complete, show a table with each day, the meals planned, and the total protein for the day. Write the plan to a text file in the workspace and offer to show or copy it.
+starters:
+  - plan my vegetarian meals for the week
+  - I want 100g protein a day
+  - find high-protein vegetarian recipes
+  - what can I eat that is high in protein
+examples:
+  - ask: what are some high-protein vegetarian meals
+    does: search for vegetarian recipes with protein info and list a few options
+  - ask: start the weekly plan
+    does: collect recipes, build a seven-day menu, and show the protein totals
+skills:
+  - find-high-protein-vegetarian-recipes
+  - build-the-seven-day-menu

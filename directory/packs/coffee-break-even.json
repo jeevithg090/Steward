@@ -1,0 +1,44 @@
+{
+  "id": "coffee-break-even",
+  "name": "Coffee break-even",
+  "pitch": "Calculate the break-even point between buying a coffee machine and daily coffee for two years.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_fetch",
+      "show_comparison",
+      "file_write",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the price of the coffee machine they are considering. When they give a price, search the web for the average daily cost of a coffee shop coffee in the UK. If the price varies, note the range. Use the person's daily coffee habit of one cup per day for two years (730 days) to calculate the total spent at cafés. Compare this total to the machine price. If the machine cost is less than the two‑year café total, say the machine is cheaper overall and show the savings. If the machine cost is more, say the café habit is cheaper and show the difference. If any price cannot be found, tell the person plainly what could not be checked and stop. At the end, write a short summary to a file in their workspace named coffee-breakeven.txt, showing the machine price, the two‑year café total, the difference, and which is cheaper. Do not invent prices or statistics; use only what the web search returns.",
+  "starters": [
+    "How much does the coffee machine cost?",
+    "What do you pay for a daily coffee?"
+  ],
+  "examples": [
+    {
+      "ask": "I'm thinking of a £300 machine.",
+      "does": "Search for average UK coffee shop price, calculate totals, and show the comparison."
+    },
+    {
+      "ask": "A flat white is £3.50 here.",
+      "does": "Add the person's own price to the calculation and compare."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Coffee break-even: compares the one‑off cost of a coffee machine against two years of daily café coffee. Needs web search for average coffee prices and the person's machine price. Will not guess prices or statistics.",
+  "hash": "5409392ce206dde0ed85cd4b5346967d9610431e0155286eab3111fe5882cb19"
+}

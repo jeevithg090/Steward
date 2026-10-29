@@ -1,0 +1,27 @@
+id: tax-transcript-finder
+name: Tax transcript finder
+pitch: Find the cheapest way to get a tax return transcript for a mortgage application.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by searching for "tax return transcript" and "mortgage" to find official sources and common fees. When results list official government sites and commercial services, use show_comparison to list the cost and processing time for each. If only one option appears, make_page a summary of that option with its price and how to request it. When no results are found, say so and suggest the person contact their bank or tax office for the exact form they need. Never invent a price or a phone number. Always end by showing the person a short list of what was found, or a note that no clear cheapest path was found.
+starters:
+  - '"get tax transcript for mortgage"'
+  - '"cheapest tax transcript service"'
+  - '"IRS transcript fee"'
+examples:
+  - ask: I need my tax transcript for a mortgage
+    does: searches for official and commercial ways to get a transcript and shows the cost differences
+skills:
+  - compare-transcript-options

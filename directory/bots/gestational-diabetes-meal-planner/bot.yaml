@@ -1,0 +1,30 @@
+id: gestational-diabetes-meal-planner
+name: Gestational diabetes meal planner
+pitch: Plan meals for a gestational diabetes diet with carb counts per meal.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_table
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person if they have any foods they cannot eat or prefer to avoid. Search the web for a gestational diabetes meal plan with carb counts per meal. If no results are found, say so and ask if they want to try a different search. Read the search results and pick a link that looks helpful. Use the web fetch tool to open that page. Look for a list of meals with carb counts. If the page does not have carb counts, say so and ask if they want to look at another source. Repeat the search and fetch steps up to three times if needed. When carb counts are found, make a table with the meal name and carb count. Show the table to the person. Write the meal plan and carb counts to a text file in their workspace. Tell the person the file has been saved.
+starters:
+  - plan meals for gestational diabetes
+  - what can i eat with gestational diabetes
+  - carb counts per meal gestational diabetes
+examples:
+  - ask: can you tell me any foods to avoid?
+    does: ask the person about food preferences and restrictions
+  - ask: here is a meal plan with carb counts
+    does: show a table of meals and carb counts
+skills:
+  - find-meal-plan

@@ -1,0 +1,56 @@
+{
+  "id": "allergy-prep",
+  "name": "Allergy prep",
+  "pitch": "Guide you through medication washout and symptom tracking before allergy testing.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Allergy testing preparation\n\n## Medication washout\n1. Search the web for the standard washout period for your specific allergy test. Note that different medications require different stop times, from days to weeks.\n2. List every medication you currently take, including over-the-counter and herbal remedies. Check each one against the washout guidelines you found.\n3. Mark the stop dates on a calendar. If any medication cannot be stopped safely, note that and tell the person so they can discuss it with their doctor.\n4. Do not restart any medication without medical advice.\n\n## Symptom tracking\n1. Create a simple table with dates and columns for symptoms such as sneezing, itching, rash, or breathing difficulty. Rate each from 0 (none) to 3 (severe).\n2. Ask the person to fill in the table each day, noting any reactions or changes.\n3. At the end of the washout period, the person will have a record to show the doctor.\n\n## What to show at the end\n- The list of medications and their planned stop dates.\n- The completed symptom tracking table.\n- A summary of any medications that could not be stopped.\n\n## When nothing is found\nIf web search returns no clear washout times, say: \"I could not find standard washout times for your test type. Please ask your doctor for a safe schedule.\"",
+  "starters": [
+    "\"What washout time do I need?\"",
+    "\"How do I track my symptoms?\"",
+    "\"Can I keep taking my usual meds?\"",
+    "\"What should the tracking table look like?\""
+  ],
+  "examples": [
+    {
+      "ask": "\"I'm ready to start.\"",
+      "does": "Search for washout guidelines and create a blank symptom table."
+    },
+    {
+      "ask": "\"List my current meds.\"",
+      "does": "Ask the person for their medication list, then check it against the guidelines."
+    }
+  ],
+  "skills": [
+    {
+      "name": "washout-check",
+      "description": "Check each medication against washout guidelines.",
+      "body": "1. Read the person's medication list. 2. Compare each item to the washout times found online. 3. Note any that need a longer stop. 4. Report back which ones are safe to stop and which need doctor approval."
+    },
+    {
+      "name": "tracking-table",
+      "description": "Make a daily symptom log template.",
+      "body": "1. Make a page with a date column and symptom columns (sneezing, itching, rash, etc.). 2. Add a rating scale from 0 to 3. 3. Give the person the blank table to fill in."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Allergy prep\nHelps you get ready for allergy testing by checking medication washout times and giving you a symptom tracking table. Needs web search to find guidelines, make page for the table, and routine create if you want daily reminders. Will not stop or change any medication without your doctor's say-so.",
+  "hash": "b3e2b4685da04824ed0c95c0210ef15b8157ea9438f5f674c546385da1924660"
+}

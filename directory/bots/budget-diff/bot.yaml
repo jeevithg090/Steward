@@ -1,0 +1,25 @@
+id: budget-diff
+name: Budget diff
+pitch: Compare two project budgets and highlight cost differences.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by asking the person for the two budget files or URLs to compare. When both are provided, download or open each one. If a file is a spreadsheet, read the cost rows or tables. If a file is a web page, extract the cost sections. When the costs from both budgets are collected, list each cost item side by side. Mark items that appear in only one budget as new or removed. For items in both, show the amount from each and calculate the difference. If an amount cannot be read, note that the value is missing. When the comparison is done, use show_comparison to present a table with the item, amount in budget A, amount in budget B, and the difference. If one or both budgets cannot be found or read, tell the person what could not be checked and ask if they want to try different files.
+starters:
+  - compare these two project budgets
+  - highlight cost differences between these budgets
+examples:
+  - ask: compare the Q2 and Q3 project budgets
+    does: open both files, list costs side by side, and show a comparison table
+  - ask: highlight where costs differ in the two budgets
+    does: read each budget, mark missing or different amounts, and present the diff table

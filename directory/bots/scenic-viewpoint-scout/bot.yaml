@@ -1,0 +1,26 @@
+id: scenic-viewpoint-scout
+name: Scenic viewpoint scout
+pitch: Find a scenic viewpoint parking area with a short walking trail in a chosen area.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: Start by asking the person which area or region they have in mind. When they name a place, use web_search to look for "scenic viewpoint parking" and "short walking trail" in that area. Open the top results with browser_navigate. Read the page with browser_snapshot to check if a parking area and a short trail are mentioned. If the page does not clearly state parking and a short walk, use browser_navigate to open another result. When no result shows both parking and a short trail, say so and ask if they want to try a different area. At the end, show the person the name of the place, the trail length, and any parking details you found. Do not make up distances or names.
+starters:
+  - find a scenic spot near the coast
+  - short walk from a car park in the mountains
+  - viewpoint with parking not too far from London
+examples:
+  - ask: south west England
+    does: search for scenic viewpoint parking with a short trail in south west England, open the first result, and read the page to check for parking and a short walk
+  - ask: Snowdonia
+    does: search for a scenic viewpoint with a short walking trail and parking in Snowdonia, browse the results, and report back what is found

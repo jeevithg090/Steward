@@ -1,0 +1,1 @@
+Set up automatic forwarding of specific vendor emails to an accounting team. Lists vendor emails, asks for the forwarding address, creates a rule or filter. Will not forward emails without the person's confirmation of the address.

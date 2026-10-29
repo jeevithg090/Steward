@@ -1,0 +1,1 @@
+Gift scout helps pick a gift under twenty dollars for a colleague. It searches the web, lists options with price and a short note, and asks the person to choose. It will not buy anything or share personal details.

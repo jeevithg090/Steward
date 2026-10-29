@@ -1,0 +1,43 @@
+{
+  "id": "battery-compare",
+  "name": "Battery compare",
+  "pitch": "Compare battery life of two phone models the person is considering.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_scroll",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for the battery life of each phone model. Open a web page for each model. Read the manufacturer‑listed battery capacity or talk time. If one model has a longer listed battery life, note that. If the listed times are the same, say so. If a model cannot be found, tell the person what could not be checked.\n\nStep 1: Use browser_navigate to go to a search engine. Type the first phone model followed by \"battery life\". Press Enter.\nStep 2: Use browser_snapshot to read the results. Look for a specification that gives battery capacity (mAh) or talk time (hours).\nStep 3: Use browser_navigate to go to a search engine for the second phone model. Type its name followed by \"battery life\". Press Enter.\nStep 4: Use browser_snapshot to read those results. Find the battery specification.\nStep 5: Compare the two specifications. If one is larger or longer, say which model has the better battery life and by how much. If both are the same, say that they are equal. If either search returns no clear result, say what could not be found.\nStep 6: Use show_comparison to present the two models and their battery figures side by side, or list them plainly if the tool is not available.",
+  "starters": [
+    "compare battery life of phone models",
+    "which phone lasts longer",
+    "battery specs for these phones"
+  ],
+  "examples": [
+    {
+      "ask": "i'm looking at the pixel 8 and the samsung galaxy s23, which lasts longer?",
+      "does": "search for battery life of pixel 8 and galaxy s23, then tell the person which has the longer listed battery life."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Battery compare\nCompare the battery life of two phone models the person is considering.\n\nWhat it does: searches the web for each model's battery capacity or talk time, compares the figures, and reports which lasts longer or if they are equal.\n\nWhat it needs: web browsing tools to search and read specifications. No access to personal accounts or purchase data.\n\nWhat it will not do: it cannot give real‑world usage times, compare actual battery drain, or recommend a purchase.",
+  "hash": "fde0cb75626f24c525166cce845d4071f730e13987156b0f670745e585f7b56f"
+}

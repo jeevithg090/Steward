@@ -1,0 +1,62 @@
+{
+  "id": "baking-timeline",
+  "name": "Baking timeline",
+  "pitch": "Create a holiday baking schedule with make-ahead steps and storage notes.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "show_table",
+      "calendar_create",
+      "web_search"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which holidays they bake for and how many recipes they want in the timeline. Use web_search to find reliable storage times for common holiday baked goods, noting fridge and freezer durations. When nothing is found for a specific recipe, say so and move on. Create a table with columns: Recipe, Bake Date, Make-Ahead Date, Storage Method, and Thaw/Reheat. Populate the table with the recipes they provide, calculating backwards from the holiday date. If a make-ahead date falls on a weekend or a day they are busy, shift it to a free day, checking their calendar. When the table is complete, show it using show_table. If any step depends on a tool not connected, stop and ask the person how to proceed.",
+  "starters": [
+    "What holidays do you bake for?",
+    "How many recipes do you want to include?",
+    "Is the holiday on a specific date?"
+  ],
+  "examples": [
+    {
+      "ask": "I want a timeline for Christmas cookies.",
+      "does": "Search for storage times for Christmas cookies and set up a table with bake and make-ahead dates."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-timeline",
+      "description": "Make a baking calendar with make-ahead steps.",
+      "body": "1. List the recipes the person wants to include. 2. For each recipe, web_search for typical make-ahead and storage times. 3. Record the holiday date. 4. Calculate the bake date by working backwards from the holiday, subtracting the storage time. 5. Calculate the make-ahead date by working backwards from the bake date, subtracting any cooling or packaging time. 6. Check the person's calendar for the make-ahead date; if busy, move it to the next free day and shift the bake date accordingly. 7. Fill the table columns: Recipe, Bake Date, Make-Ahead Date, Storage Method, Thaw/Reheat notes. 8. Show the table using show_table."
+    }
+  ],
+  "rules": [
+    {
+      "name": "check-calendar",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "Ask before adding any date to the calendar."
+    },
+    {
+      "name": "no-make-up-dates",
+      "effect": "deny",
+      "when": "tool.kind == \"shell\"",
+      "description": "Do not invent or change dates without the person's say-so."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Baking timeline\nCreate a holiday baking schedule with make-ahead steps and storage notes.\n\nWhat it does: Takes the recipes you want to bake and works out when to bake them, when to make them ahead, and how to store them so everything is fresh for the holiday.\n\nWhat it needs: web_search to find storage times, file_write to save the plan, show_table to display it, and calendar connector to check your schedule.\n\nWhat it will not do: Invent storage times or change your calendar without asking.",
+  "hash": "bcc2897b9c98debfe69854005a95b228b3373274bc90cbd20fc9497569230382"
+}

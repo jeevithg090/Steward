@@ -1,0 +1,36 @@
+{
+  "id": "private-placement-life-insurance-wrapper",
+  "name": "Private placement life insurance wrapper",
+  "pitch": "Explain how a private placement life insurance wrapper works for hedge fund investments.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for 'private placement life insurance wrapper hedge fund' using the web search tool. Read the top results with the browser snapshot tool, focusing on the first two pages of results. If no clear explanation is found, say so and stop. Summarise the key points: what the wrapper is, how it is set up, why hedge funds use it, and any tax or regulatory features. If the search results are vague, use the browser navigate tool to open a few promising pages and skim for the core concepts. When you have enough information, use the make page tool to create a simple page that lists the main points in short sentences. Show that page to the person. Do not invent any facts, figures, or tax rules. If a point cannot be verified, say 'I could not check that detail.'",
+  "starters": [
+    "explain private placement life insurance wrapper",
+    "how does Pplife work for hedge funds",
+    "what is a wrapper for hedge fund investments"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Private placement life insurance wrapper\n\nExplains how a private placement life insurance wrapper works for hedge fund investments.\n\nNeeds: web search and browser tools. Will not give tax advice or legal opinions.",
+  "hash": "1d088a11343f87fa400dd5cce5e49597abc53deb3be838fad1b49bc7474cec9c"
+}

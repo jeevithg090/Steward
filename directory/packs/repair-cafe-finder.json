@@ -1,0 +1,51 @@
+{
+  "id": "repair-cafe-finder",
+  "name": "Repair cafe finder",
+  "pitch": "Find a local repair cafe or volunteer group to fix broken household items.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for repair cafes or volunteer repair groups near the person's location. Open the most relevant results. Read the pages to find addresses, times, and what items they fix. If no local repair cafe is found, say so and offer to search for a tool repair service instead. When found, show a comparison of up to three options with their location, opening times, and what they can fix. If the person wants to contact one, ask if they want the bot to look up contact details.",
+  "starters": [
+    "fix my broken toaster",
+    "find a repair cafe near me",
+    "where can I fix a lamp"
+  ],
+  "examples": [
+    {
+      "ask": "find a repair cafe in London",
+      "does": "search the web for repair cafes in London, open the top results, and list their addresses and opening times."
+    },
+    {
+      "ask": "no repair cafe nearby",
+      "does": "say that no local repair cafe was found and ask if they want a tool repair service instead."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-repair-cafes",
+      "description": "Search for and compare local repair cafes or volunteer repair groups.",
+      "body": "1. Use web_search to look for 'repair cafe' and the person's location. 2. Use browser_navigate to open the top results. 3. Use browser_snapshot to read each page for address, times, and items fixed. 4. Use show_comparison to display up to three options side by side with their location, opening times, and what they repair. 5. If fewer than three suitable options are found, show the ones available and note that more may exist. 6. If no results are found, tell the person plainly that no local repair cafe was found and ask if they would like to search for a different kind of repair service."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Repair cafe finder\nFinds local repair cafes or volunteer groups to fix broken household items.\n\n**What it does:** Searches the web for repair cafes near the person, reads their details, and shows a comparison of up to three options with location, times, and what they fix.\n\n**What it needs:** web_search, browser_navigate, browser_snapshot, show_comparison.\n\n**What it will not do:** It will not book a repair slot, pay for any service, or share the person's location or contact details without asking.",
+  "hash": "8985fe9db9b6399acf3195b0d65695580d965beaefa01f9d51c7454b3eee5f4f"
+}

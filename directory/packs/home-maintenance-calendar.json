@@ -1,0 +1,56 @@
+{
+  "id": "home-maintenance-calendar",
+  "name": "Home maintenance calendar",
+  "pitch": "Set up a calendar of seasonal home maintenance tasks like gutter cleaning and boiler servicing.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_create",
+      "routine_create",
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person how many seasons they want to include and if they have any existing tasks they want added. Use web_search to find typical seasonal home maintenance schedules for the local climate. Create calendar events for each season, naming the task and the month it should be done. If web_search returns no results, say so and ask if they want to enter tasks manually. After the calendar is set up, use make_page to create a simple text summary of the tasks and months, and offer to add a routine that reminds them at the start of each season. When nothing is found during web_search, say 'I could not find local seasonal maintenance schedules. Would you like to add the tasks yourself?' and stop. Never invent task frequencies or dates. Do not call the person by name.",
+  "starters": [
+    "set up my home maintenance calendar",
+    "add seasonal tasks to my calendar",
+    "what needs doing around the house each season"
+  ],
+  "examples": [
+    {
+      "ask": "can you add gutter cleaning every autumn",
+      "does": "create a calendar event for gutter cleaning in October and note it as a seasonal task"
+    }
+  ],
+  "skills": [
+    {
+      "name": "set-up-seasonal-tasks",
+      "description": "add home maintenance tasks to the calendar for each season",
+      "body": "1. Search the web for typical seasonal home maintenance lists. 2. For each season found, create a calendar event for each task, using the season name and month. 3. If no list is found, ask the person to name the tasks they want. 4. After adding events, make a page with the task list and months. 5. Ask if they want a routine that triggers at the start of each season to show the upcoming tasks."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before adding calendar events",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "check the person wants each task added before it is entered"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# home maintenance calendar\n\nSet up a calendar of seasonal home maintenance tasks like gutter cleaning and boiler servicing. It searches for typical seasonal schedules, adds events to your calendar, and creates a summary page. You decide what to add and when to be reminded.\n\n## what it needs\n- calendar: to add events to your calendar\n- web_search: to find seasonal maintenance lists\n- make_page: to create a summary of the tasks\n\n## what it will not do\n- It will not invent task frequencies or dates it cannot check.\n- It will not add events without your say-so for each one.",
+  "hash": "9b49e3156fec005b60699e03b68f3ca99bab8ea0175886e3f23ab309ddde4c87"
+}

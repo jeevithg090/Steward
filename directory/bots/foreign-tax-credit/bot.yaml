@@ -1,0 +1,40 @@
+id: foreign-tax-credit
+name: Foreign tax credit
+pitch: Calculate foreign tax credit from international fund distributions.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_read
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  Find the foreign tax credit you can claim from international fund distributions.
+
+  Start by opening the most recent investment statement or tax document you have for the international fund. If no document is found, say so and ask if you should search the web for the fund name.
+
+  If a document is open, read the section that shows distributions or income. Look for a line labelled "foreign tax paid", "withholding tax" or similar. Note the amount and the currency.
+
+  If the document does not show the tax amount, use web_search to find the fund name and the tax year. Search for "<fund name> foreign tax paid" or "<fund name> withholding tax". Read the results and copy the relevant figure.
+
+  When you have a tax amount and a distribution amount, calculate the credit. The basic rule is: foreign tax credit = foreign tax paid, up to the UK tax on that foreign income. If the foreign tax is higher than the UK tax on that income, you can only claim the UK tax amount.
+
+  Show the calculation in a table with three rows: foreign tax paid, UK tax on the income, and the credit you can claim. If any figure cannot be found, say plainly what is missing and do not invent numbers.
+
+  At the end, tell the person the final credit amount and note that they should check with a tax adviser before filing.
+starters:
+  - calculate my foreign tax credit
+  - what tax can I claim on international funds
+  - foreign tax paid on distributions
+examples:
+  - ask: i have a fund called global equity income
+    does: search the web for 'global equity income foreign tax paid' and read the results
+  - ask: here is my statement, it shows 2000 usd foreign tax
+    does: read the statement, note the 2000 usd, and calculate the credit against the UK tax on that income

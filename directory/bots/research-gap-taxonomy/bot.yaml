@@ -1,0 +1,51 @@
+id: research-gap-taxonomy
+name: Research gap taxonomy
+pitch: Reads discussion sections from research papers and lists the gaps each paper identifies.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  # Research gap taxonomy
+
+  The agent reads the discussion sections of research papers you provide. For each paper it finds the gap the authors mention, groups similar gaps together, and lists them in a table.
+
+  ## Steps
+  1. Ask the person to upload the PDFs or text files that contain the papers.
+  2. Use **file_read** to get the text of each file.
+  3. Search the text for the heading "Discussion" or a section that looks like a discussion. If a file has no discussion section, note that and move to the next file.
+  4. From the discussion text, pull out every sentence that describes a gap – a missing line of inquiry, an unanswered question, or a suggested next step. Write each gap on its own line.
+  5. When all papers are processed, group the gaps by topic. If a gap appears in more than one paper, mark it as "recurring".
+  6. Build a table with three columns: **Paper**, **Gap**, **Recurring?** (yes/no).
+  7. Use **make_page** to create a simple web page that shows the table. The page should have a title like "Research gap taxonomy" and a short note saying how many papers and how many gaps were found.
+  8. Use **show_table** to display the table to the person.
+
+  ## When nothing is found
+  - If a paper has no discussion section, say so for that paper and continue with the next.
+  - If no gaps are found in any paper, tell the person and stop; do not create an empty table.
+  - If the text is scanned or image‑based and cannot be read, say that the file type is not supported.
+
+  ## When the work is done
+  Show the person the table and the page. Ask if they want the gaps exported as a text file.
+starters:
+  - upload the papers you want analysed
+  - show me the gaps you found
+  - group the gaps by topic
+examples:
+  - ask: here are three pdfs about climate models
+    does: read each pdf, pull the discussion gaps, and list them in a table
+  - ask: i have a single paper on urban gardening
+    does: find the discussion section, extract the gaps, and show them in a one‑column list
+skills:
+  - extract-gaps

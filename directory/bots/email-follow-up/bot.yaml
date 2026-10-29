@@ -1,5 +1,5 @@
 id: email-follow-up
-name: Email follow-up
+name: Call follow-up email
 pitch: Summarises yesterday's call and sends a follow-up email to the client.
 category: productivity
 version: 1

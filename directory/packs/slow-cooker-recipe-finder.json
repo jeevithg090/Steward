@@ -1,0 +1,51 @@
+{
+  "id": "slow-cooker-recipe-finder",
+  "name": "Slow cooker recipe finder",
+  "pitch": "Find and organize slow cooker recipes that cook unattended for 8-10 hours.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for slow cooker recipes with a cook time of 8 to 10 hours. When the search results appear, read the titles and descriptions. Pick up to five recipes that match the time range. For each chosen recipe, fetch the full page and copy the ingredient list and step-by-step directions. If a recipe page does not list a cook time, skip it and move to the next result. When you have gathered the recipes, arrange them in a table with columns: Recipe Name, Cook Time, Ingredients, Steps. Show the table to the person. If no recipes are found that match the 8-10 hour range, say so and offer to broaden the search to 6-12 hours.",
+  "starters": [
+    "find slow cooker recipes",
+    "organize my recipes",
+    "8 hour cook time"
+  ],
+  "examples": [
+    {
+      "ask": "find me slow cooker recipes that cook for 8 hours",
+      "does": "search the web for recipes with an 8-hour cook time and list the top results."
+    },
+    {
+      "ask": "show me the ingredients for the first recipe",
+      "does": "fetch the recipe page and list the ingredients."
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-collect-recipes",
+      "description": "Find and save slow cooker recipes with 8-10 hour cook times.",
+      "body": "1. Use web_search with the query \"slow cooker recipe 8-10 hours\". 2. Read the search results with browser_snapshot. 3. Select up to five recipes that show a cook time of 8 to 10 hours. 4. For each selected recipe, use web_fetch to open the full page. 5. Copy the ingredient list and the step-by-step directions. 6. If a page has no cook time, discard it and go to the next result. 7. When all chosen recipes are saved, use file_write to store the ingredient and step data in a text file named slow_cooker_recipes.txt."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# slow cooker recipe finder\n\nFind and organize slow cooker recipes that cook unattended for 8-10 hours. \n\n**What it does:** Searches the web for recipes matching the time range, gathers ingredients and steps, and presents them in a table. \n\n**What it needs:** web_search, web_fetch, file_write, show_table. \n\n**What it will not do:** It cannot cook the food, it cannot guarantee the recipe tastes good, and it cannot access paid membership sites without the person signing in.",
+  "hash": "a009a6861c969bdef5a95597a61b0a4198f2af947e73212ea9a7433e6f714ce5"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "weekend-travel-scout",
+  "name": "Weekend travel scout",
+  "pitch": "Find the cheapest train or bus option for a weekend trip on a given date.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person gives a travel date, start by searching for train and bus options to their likely destination. If the destination is not mentioned, ask which city or town they plan to visit. Use web_search to look up train schedules and bus timetables for that date. Open the relevant pages with browser_navigate. Compare the prices shown, noting the total cost including any fees. If one option is clearly cheaper, pick it. If prices are similar or unclear, show the options side by side with show_comparison. When no results are found for either train or bus, say so and ask if they have a specific origin and destination in mind. Never invent prices or travel times. Always tell the person the total cost before they decide.",
+  "starters": [
+    "find me the cheapest train for next weekend",
+    "what bus times are there for saturday",
+    "compare train and bus prices for my trip"
+  ],
+  "examples": [
+    {
+      "ask": "where are you travelling to and on what date",
+      "does": "ask for the destination and date, then search for options"
+    },
+    {
+      "ask": "sunday to london",
+      "does": "search train and bus schedules for sunday to london, show the cheapest price found"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "weekend travel scout\nhelps you find the cheapest train or bus option for a weekend trip\nneeds web_search and a browser to look up schedules\nwill not book anything or pay for tickets without your say-so",
+  "hash": "9d78fee4ba97d075679f7505ee9a816597fd5b885e9257a3179ea965625157d0"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "gift-tax-calculator",
+  "name": "Gift tax calculator",
+  "pitch": "Calculate the gift tax impact of funding five 529 plans for grandchildren this tax year.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## Calculate gift tax for 529 plan funding\n\nStart by searching the web for the 2024 annual gift tax exclusion amount and the 529 plan per-beneficiary contribution limits. When nothing is found, say you could not find the current exclusion limit and ask the person if they have a specific figure they are working from.\n\nCheck whether the person has already given any gifts this year that count toward the exclusion. If no prior gifts are recorded, assume the full exclusion applies to each 529 contribution.\n\nFor each of the five grandchildren, add the planned contribution to any other gifts already given to that beneficiary. If the total for any one grandchild stays at or below the annual exclusion, no gift tax is due for that amount. When a contribution would exceed the exclusion, calculate the excess and note that it may use part of the lifetime exemption.\n\nWhen the calculations are complete, use make_page to create a simple table showing each grandchild, the planned contribution, the total given this year, and whether the exclusion applies. Show the table to the person and explain any amounts that exceed the annual limit and may need lifetime exemption tracking.\n\nTell the person you are not a tax professional and that they should confirm the numbers with a qualified advisor before acting on them.",
+  "starters": [
+    "calculate gift tax for 529 plans",
+    "what is the 2024 exclusion limit",
+    "funding five 529 plans for grandchildren"
+  ],
+  "examples": [
+    {
+      "ask": "can you check the 2024 gift tax exclusion",
+      "does": "search the web for the current annual exclusion figure and read the result"
+    },
+    {
+      "ask": "show me the table for five grandchildren",
+      "does": "make a table with each grandchild's name, planned gift, total given, and exclusion status"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# gift tax calculator\n\nCalculates the gift tax impact of funding 529 college savings plans for grandchildren. Searches the web for the annual exclusion limit, adds up contributions per beneficiary, and shows a table of which amounts fall within the limit and which may use lifetime exemption. Will not give tax advice or file forms.",
+  "hash": "2177413215cc5ef7c8df528b83516fd33b132a1e5434f42474a15f346bd5a765"
+}

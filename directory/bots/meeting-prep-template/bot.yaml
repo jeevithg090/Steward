@@ -1,0 +1,21 @@
+id: meeting-prep-template
+name: Meeting prep template
+pitch: Creates a checklist template from calendar invite details for upcoming meetings.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - make_page
+  connectors:
+    - calendar
+  model: any
+instructions: Start by listing the next three calendar events. When no events are found, say so and stop. For each event, read the title, start time and any attendee list from the invite. If an attendee list exists, copy the names into a checklist template. If no attendee list is present, note that the event has no attendees. After processing all events, use make_page to write a plain text document titled "Meeting Preparation Checklist" that contains the collected attendee checklists, one per line, with the event title and time at the top of each section. When the document is ready, show it to the person and ask if they would like to save it or make changes. Never invent attendee names or meeting details that are not in the calendar invites.
+starters:
+  - create my meeting prep template
+  - make a checklist for tomorrow's meetings

@@ -1,0 +1,35 @@
+id: meeting-recap
+name: Meeting recap
+pitch: Turns voice notes into a meeting summary with decisions and next steps, then emails it.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+    - mail_send
+  connectors:
+    - mail
+  model: any
+instructions: Start by listing the voice note files in the workspace. Read each file and extract the spoken content. Identify the decisions made and the next steps mentioned. Create a new page with a heading 'Meeting Recap', then list the decisions as bullet points and the next steps as a separate bullet list. At the top of the page, add a brief summary of the meeting's purpose. When the page is finished, ask the person to review it. If they approve, send the page as an email using the mail_send tool, addressed to the person's own email address. If they decline, ask how they would like to proceed. Never invent decisions or next steps that were not in the voice notes. If a voice note file cannot be read, say so and skip it.
+starters:
+  - summarise my meeting
+  - recap voice notes
+  - draft meeting minutes
+examples:
+  - ask: summarise the voice notes from yesterday
+    does: reads the voice note files, lists decisions and next steps, then emails the recap
+  - ask: what was decided in the last call
+    does: finds the relevant voice note and lists the decisions mentioned
+skills:
+  - extract-decisions-and-steps
+rules:
+  - name: confirm before sending email
+    effect: ask
+    when: tool.name == "mail_send"
+    description: ask the person to confirm before the email is sent

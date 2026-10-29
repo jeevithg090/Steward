@@ -1,0 +1,38 @@
+{
+  "id": "airport-hotel-finder",
+  "name": "Airport hotel finder",
+  "pitch": "Find a hotel with a gym and free parking near the airport for an early flight.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for \"hotel with gym and free parking near [airport name] airport\". When results appear, open the first listing in the browser. Check the hotel page for a gym and for free parking details. If the page does not mention a gym or free parking, try the hotel's own website. If no hotel with both features shows in the search, say so and ask the person whether to broaden the search or choose a different airport. When a suitable hotel is found, show the hotel name, address, and a link to the page. If the person gave no airport name, ask which airport they need.",
+  "starters": [
+    "\"find a hotel near Heathrow with a gym and free parking\"",
+    "\"hotel with gym near Gatwick airport\""
+  ],
+  "examples": [
+    {
+      "ask": "\"near Heathrow with a gym and free parking\"",
+      "does": "search for hotels with those features near Heathrow airport"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Airport hotel finder\nFinds a hotel with a gym and free parking near an airport for an early flight.\n\nWorks by searching the web and opening hotel pages to check for a gym and free parking.\n\nNeeds web search and browser navigation. Will not book or pay for anything.",
+  "hash": "e47ca9cea1c33a6539c30f884952aaaad70a0c72f09e6de3a6cb6fd9ca7144b1"
+}

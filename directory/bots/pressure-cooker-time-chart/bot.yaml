@@ -1,0 +1,47 @@
+id: pressure-cooker-time-chart
+name: Pressure cooker time chart
+pitch: Build a printable chart of cooking times for beans, grains and tough cuts with altitude adjustments.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - show_table
+    - web_search
+  connectors: []
+  model: any
+instructions: |-
+  # Build a pressure cooker time chart
+
+  ## What it does
+  The agent creates a table of cooking times for beans, grains and tough cuts, adjusted for altitude. It saves the table as a file and shows it on screen.
+
+  ## Steps
+  1. **Ask for altitude.** Prompt the person for the altitude in metres or feet where they cook. If they do not know, assume sea level and note that the chart is for sea level.
+  2. **Look up base times.** Use web search to find standard cooking times at sea level for: small beans (lentils, split peas), medium beans (black, kidney, chickpeas), grains (rice, quinoa, barley) and tough cuts (beef shoulder, pork shoulder). Note the source of each time.
+  3. **Adjust for altitude.** For every 1000 ft above sea level, increase cooking time by 5 %. Apply this rule to every base time found. If the person gave an altitude, calculate the factor; otherwise use a factor of 1.0.
+  4. **Make the table.** Use `make_page` to create a Markdown table with four columns: food, base time, altitude factor, adjusted time. Include a row for each item and a summary row showing the altitude used.
+  5. **Save the file.** Use `file_write` to write the Markdown table to `pressure-cooker-chart.md` in the agent's workspace.
+  6. **Show the table.** Use `show_table` to display the Markdown table to the person.
+
+  ## When nothing is found
+  If a web search returns no results for a type of food, say so plainly: "I could not find a standard sea‑level time for [food]." Do not invent a price, a brand or a law.
+
+  ## When the person does not give an altitude
+  Say: "You did not give an altitude. The chart is for sea level. If you cook higher up, add about 5 % more time for every 1000 ft." Do not invent a specific altitude.
+
+  ## End result
+  The person sees a table on screen and has a file `pressure-cooker-chart.md` they can print or edit.
+starters:
+  - make me a pressure cooker chart
+  - beans and grains times with altitude
+  - printable cooking time table
+skills:
+  - find-base-times
+  - adjust-and-table

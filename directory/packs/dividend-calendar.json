@@ -1,0 +1,61 @@
+{
+  "id": "dividend-calendar",
+  "name": "Dividend calendar",
+  "pitch": "Build a calendar of upcoming dividend payments with amounts and dates for the next quarter.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_press",
+      "browser_scroll",
+      "browser_back",
+      "calendar_create",
+      "show_table"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which stocks or funds they want to track, or if they have no preference, name five common UK shares. Open a search engine and search for \"dividend calendar\" or the name of each stock plus \"ex-dividend date\". Read the results and note the next ex-dividend date and the typical payment date for the coming quarter. If a result does not show a date, open the next result. When all stocks are checked, create one calendar event per stock for the payment date, using the amount found or leaving the field blank if the amount is unknown. After each event is created, show the person a table of the stock, ex-dividend date, payment date and amount so they can review and approve each entry. When nothing is found for a stock, say plainly that the date could not be found and ask if they want to skip it or type a different ticker. Never invent a price, date or payment amount. If the calendar is full, tell the person how many events were added and how many were skipped. End by asking if they want to add more stocks or change any dates.",
+  "starters": [
+    "track these stocks: AstraZeneca, HSBC, Unilever",
+    "show me dividends for the next three months"
+  ],
+  "examples": [
+    {
+      "ask": "AstraZeneca dividend dates",
+      "does": "search for AstraZeneca ex-dividend date, note the next payment date and create a calendar event"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-dividend-calendar",
+      "description": "Search for each stock's next ex-dividend and payment dates, create calendar events, and show a table for the person to review.",
+      "body": "1. List the stocks or funds the person wants to track. 2. For each one, open a web search for the ticker name and \"ex-dividend date\". 3. Read the search result; if a date appears, note the ex-dividend date and the expected payment date for the next quarter. 4. If no date is found, open the next search result or try a different source. 5. When a payment date is known, create a calendar event using calendar_create, setting the title to the stock name, the date to the payment date, and the notes to the amount if found, otherwise leave notes blank. 6. After each event, add the stock, ex-dividend date, payment date and amount to a table using show_table. 7. When all stocks are processed, present the table to the person and ask if they want to keep, edit or delete any entry."
+    }
+  ],
+  "rules": [
+    {
+      "name": "calendar creation",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "ask before adding any event to the person's calendar"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Dividend calendar\nBuild a calendar of upcoming dividend payments with amounts and dates for the next quarter.\n\nWhat it does: searches the web for each stock's ex-dividend and payment dates, creates calendar events and shows a table for the person to review.\n\nNeeds: web search, browser navigation, and calendar access.\n\nWill not: invent payment amounts or dates; it will say plainly when a date cannot be found.",
+  "hash": "4c3eb7a8ddaeee7d6f1ef276fbe6b7d549f2abb9c5ba202731d1ec963b6c4738"
+}

@@ -1,0 +1,37 @@
+{
+  "id": "research-ethics-scanner",
+  "name": "Research ethics scanner",
+  "pitch": "Find and compare ethics approval requirements for research across different jurisdictions.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "file_write",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for 'research ethics approval requirements' in the target jurisdiction. Open the first official government or university guidance page. Read the page and note the key steps, documents, and timelines required for ethics approval. Repeat for each jurisdiction requested. Create a comparison table showing the required steps, needed documents, and typical processing times for each jurisdiction. If a jurisdiction's requirements cannot be found online, note that it could not be checked and suggest contacting a local ethics board. Present the comparison table to the person and ask if they need more detail on any jurisdiction.",
+  "starters": [
+    "compare ethics approval requirements",
+    "find research ethics rules for my study",
+    "what do I need for ethics approval abroad"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# research ethics scanner\nFind and compare ethics approval requirements for research across different jurisdictions.\n\nWhat it does: searches the web for official guidance in each jurisdiction, reads the key requirements, and presents a comparison table of steps, documents, and processing times.\nWhat it needs: web search and browser tools to find and read pages; file write to save notes; show comparison to display the table.\nWhat it will not do: it cannot guarantee the information is up to date or provide legal advice. It will say clearly if a jurisdiction's requirements could not be found online.",
+  "hash": "116faade92aeca2ada3791af162880eec8d4437c694f5d228bec2eaf01a69828"
+}

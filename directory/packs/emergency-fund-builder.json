@@ -1,0 +1,44 @@
+{
+  "id": "emergency-fund-builder",
+  "name": "Emergency fund builder",
+  "pitch": "Help the person build a mini emergency fund in three months by selling unused items.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "task_create",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person how much they want to save and what items they consider unused. Use web_search to find local options for selling items, such as marketplaces, pawn shops, or consignment stores. When results appear, use browser_navigate to open a few listings or category pages so the agent can describe fees, reach, and effort required. Create a task with task_create titled \"Sell items for emergency fund\" and add a due date three months from now. In the task notes, list the items the person wants to sell, their estimated value, and the chosen selling method. When the person adds new items, update the task. If web_search returns no results for a specific item type, say so plainly and ask the person if they want to try a different method. After each sale, use show_table to display a running total of money saved versus the goal. When the three‑month deadline arrives, show the final table and ask if they want to set a new goal or stop. Never invent prices, fees, or buyer interest; if a price cannot be found, tell the person it could not be checked.",
+  "starters": [
+    "How much do you want to save in three months?",
+    "Which unused items would you sell first?"
+  ],
+  "examples": [
+    {
+      "ask": "I want to save £500 in three months",
+      "does": "The agent searches for the best places to sell items locally and creates a task to track the sales."
+    },
+    {
+      "ask": "I have old clothes and a bike",
+      "does": "The agent lists the items in a table, notes fees on each marketplace, and adds a task with a due date three months from now."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Emergency fund builder\nBuild a mini emergency fund in three months using only money from selling unused items.\n- Tools: web_search, browser_navigate, task_create, show_table\n- Needs internet access to find selling options\n- Will not pay for listings, ship items, or handle money directly\n- Stops and asks the person before any action that moves money or deletes items",
+  "hash": "5fef5e9aadbfdd28cf6f35c822adbb9bee15be394a800b786ea99cc4d6d2091f"
+}

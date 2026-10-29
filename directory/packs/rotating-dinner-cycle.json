@@ -1,0 +1,46 @@
+{
+  "id": "rotating-dinner-cycle",
+  "name": "Rotating dinner cycle",
+  "pitch": "Build a four-week dinner plan with no repeated main proteins.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which main proteins they like to eat and which ones they avoid. When they have answered, search the web for recipes that use each chosen protein. Write each recipe on a separate line in a plain text file, grouping them by week. After the file is saved, read it back and show a table with four columns (Week 1 to Week 4) and one row per dinner. If a protein is not found after three searches, tell the person and stop that protein. When all four weeks are full, ask the person if they want to keep the plan or change anything.",
+  "starters": [
+    "I'm tired of what's for dinner every night.",
+    "Can we do a four-week rotation?",
+    "I want no repeat main proteins."
+  ],
+  "examples": [
+    {
+      "ask": "What proteins do you like?",
+      "does": "Search the web for recipes using those proteins."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-dinner-cycle",
+      "description": "Create a four-week dinner plan with no repeated main proteins.",
+      "body": "1. Ask the person to list up to eight main proteins they enjoy and up to three they avoid. 2. For each chosen protein, web_search for a simple recipe, limiting to three attempts per protein. 3. If a recipe is found, file_write the protein name and recipe link on a new line. 4. If not found, tell the person and skip that protein. 5. Once all proteins are recorded, file_write a blank line after each week's entries. 6. file_read the file to check that each week has at least three dinners. 7. show_table the contents with weeks as columns."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Rotating dinner cycle\nBuild a four-week dinner plan with no repeated main proteins.\n\n- Needs: file_write, show_table, web_search.\n- Will not generate grocery lists or cook the meals.\n- Stops if a protein cannot be found after three web searches.",
+  "hash": "efb0d0753e5279264ca56ee2c4ebbd4d8e86885bea8fe982c50e82486300e550"
+}

@@ -1,0 +1,49 @@
+{
+  "id": "remit-minder",
+  "name": "Remit minder",
+  "pitch": "Find the cheapest monthly way to send money abroad and set up recurring transfers.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_click",
+      "show_comparison",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for \"cheapest way to send money abroad monthly\" on a web search tool. When results appear, open the first two comparison sites in browser tabs. Use the browser to compare fees and exchange rates for sending a typical amount, for example £200 to a common destination. When one service clearly costs less, note its name, fees and exchange rate. If no site lists clear prices, ask the person which destination and amount they use, then search again. When the cheapest service is found, ask the person to confirm they want to set up a recurring transfer. If they say yes, open the service's website in a new browser tab and guide them to the recurring transfer setup page. Fill in the amount, frequency and destination details. When the setup page is ready, show the person the summary on screen and ask them to confirm before anything is sent. After confirmation, create a routine in the routine_create tool to remind them to check the transfer each month. If at any point the tools cannot find prices or the person does not recognise a service, say plainly what could not be checked and stop. Never invent prices, fees or exchange rates. Tell the person the exact destination and amount you are comparing, and let them decide. Do not call the person by a name they did not give.",
+  "starters": [
+    "set up monthly transfer",
+    "find cheapest way to send money abroad"
+  ],
+  "examples": [
+    {
+      "ask": "I need to send £200 to India every month",
+      "does": "search for comparison sites and open the first two"
+    },
+    {
+      "ask": "which service is cheapest",
+      "does": "compare fees and exchange rates and tell the person the result"
+    },
+    {
+      "ask": "start the recurring transfer",
+      "does": "open the service site and guide them through the setup page"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Remit minder helps you find the cheapest monthly way to send money abroad and set up recurring transfers. It uses web search and comparison tools to check fees and exchange rates. It will never send money or create a routine without your confirmation. It needs an internet connection and a web browser.",
+  "hash": "c2841a5136d6059b440485727c7c6063dad249fbb90a4cb87849b0c741eaa11e"
+}

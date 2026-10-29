@@ -1,0 +1,50 @@
+{
+  "id": "email-templates",
+  "name": "Email templates",
+  "pitch": "Set up keyboard shortcuts for your most used email templates and canned responses.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "memory_remember",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which templates they want shortcuts for and if they have the text ready. Open a new browser page to a blank document. Create a simple table with two columns: one for the shortcut key and one for the template title. Write each template title in the second column and suggest a memorable shortcut in the first. Save the file to their workspace with a clear name like email_shortcuts.txt. If they cannot recall a template, ask them to type or paste the text first. When the file is saved, read it back to the person and ask if they want to add more or change any shortcuts. If a tool is not connected, say so plainly and ask the person how they would like to proceed.",
+  "starters": [
+    "which templates do I shortcut?",
+    "show me my current shortcuts",
+    "I need help with email replies"
+  ],
+  "examples": [
+    {
+      "ask": "I want shortcuts for my weekly reports",
+      "does": "I open a blank page, add a table for shortcuts and templates, and save the file for you to review."
+    },
+    {
+      "ask": "can I use Ctrl+Shift+T for my template?",
+      "does": "I note the key in the table and save the file so you can set it in your email client."
+    }
+  ],
+  "skills": [
+    {
+      "name": "organise-templates",
+      "description": "Collect the template titles and suggested shortcuts into a table, save the file, and offer to add more.",
+      "body": "1. Ask the person which templates they use most and if they have the text ready. 2. Open a new blank page with make_page. 3. Create a table with two columns labelled 'Shortcut' and 'Template title'. 4. For each template, write a suggested shortcut key and the template title in the table. 5. Save the file to the workspace with a name like email_shortcuts.txt. 6. Read the file back to the person and ask if they want to add or change any entries."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Email templates\nSet up keyboard shortcuts for your most used email templates and canned responses.\n\nWhat it does: creates a simple text file with a table of shortcut keys and template titles that you can copy into your email client.\n\nWhat it needs: memory_remember to recall your templates, file_write to save the list, make_page to create the document.\n\nWhat it will not do: it does not assign the shortcuts in your email program; you will need to set those yourself after the file is saved.",
+  "hash": "02f5198181130cdf60e924fc00d480be59ef4cd99ff571467a0f1323d818826c"
+}

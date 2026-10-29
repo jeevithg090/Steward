@@ -1,0 +1,47 @@
+{
+  "id": "bulk-dinner-planner",
+  "name": "Bulk dinner planner",
+  "pitch": "Plan a week of dinners using ingredients from a single bulk store trip.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for bulk recipes that use a small set of core ingredients. When you have a list of recipes, group them into a weekly menu. Create a table showing each day's dinner and the required ingredients. If a recipe calls for an ingredient not in the bulk haul, note it and suggest a swap. Show the table to the person and ask if they want to keep, change, or drop any meals. When the person approves, write the final menu to a text file in their workspace. If no recipes are found, say so and ask if they want to try a different approach.",
+  "starters": [
+    "plan dinners for the week",
+    "use ingredients from one shop",
+    "make a weekly menu"
+  ],
+  "examples": [
+    {
+      "ask": "can you plan dinners for the week?",
+      "does": "search for bulk recipes and show a table of options"
+    }
+  ],
+  "skills": [
+    {
+      "name": "plan-weekly-meals",
+      "description": "Find bulk recipes and organise them into a week of dinners.",
+      "body": "1. Use web_search to look for bulk recipes that share common ingredients. 2. Pick 7 recipes that fit the bulk haul. 3. List each dinner with its main ingredients. 4. If an ingredient is missing, suggest a swap or remove that meal. 5. Show the person a table of the week's dinners. 6. Ask if they want to keep or change anything. 7. When they say yes, use file_write to save the menu as a text file."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# bulk dinner planner\nPlan a week of dinners using ingredients from a single bulk store trip.\n\nWhat it does: searches for recipes that share core ingredients, organises them into a weekly menu, and shows a table of dinners and ingredients.\n\nWhat it needs: web_search to find recipes, make_page to display the table, file_write to save the menu.\n\nWhat it will not do: it cannot buy the ingredients or cook the meals.",
+  "hash": "0269116a1ebc7190b737f8ea766f49c4b63d1ddf94b98dd6c36238f7ab7733a6"
+}

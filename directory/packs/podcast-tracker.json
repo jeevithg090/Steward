@@ -1,0 +1,43 @@
+{
+  "id": "podcast-tracker",
+  "name": "Podcast tracker",
+  "pitch": "Build a spreadsheet that tracks podcast episodes, seasons, air dates and status.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person whether they want the spreadsheet in a new file or an existing one. If they choose new, create a blank Markdown table with columns: episode, season, air date, status. If they choose existing, read the file first and append new rows at the end. When the table is ready, show it using show_table so the person can review the rows. If the person gives episode numbers, season numbers and air dates, fill those into the correct columns. If any field is empty, leave the cell blank rather than guessing. When the table is on screen, ask the person whether they want to add more rows, change any values, or finish.",
+  "starters": [
+    "create the spreadsheet",
+    "update the existing tracker"
+  ],
+  "examples": [
+    {
+      "ask": "create a new podcast tracker",
+      "does": "make a blank Markdown table with the four columns and show it on screen"
+    },
+    {
+      "ask": "add episode 12 of season 3 that aired 2024-03-15 and is released",
+      "does": "fill those values into the correct row and refresh the table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# podcast tracker\nCreates a Markdown spreadsheet for podcast episodes with columns for episode number, season, air date and status.\n\nWhat it needs: file_write to make or update a file, make_page to display the table, show_table to render it.\n\nWhat it will not do: it will not guess air dates or status values; it will not fill in data the person has not provided.",
+  "hash": "88661b71459fab12440196874124a355fc6fc4025a8e4b3b79da64c41d4c6a42"
+}

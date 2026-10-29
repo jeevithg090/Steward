@@ -1,0 +1,26 @@
+id: family-medical-history
+name: Family medical history
+pitch: Create a summary of conditions and medications for a new GP registration.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+    - memory_remember
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by asking the person which conditions and medications they want included. If they do not know, suggest common items: chronic illnesses, current prescriptions, and over-the-counter drugs they take regularly. When the list is agreed, make a page with a table of conditions and a table of medications. Fill each row with the name, start date, and any notes. If a field has no information, leave it blank and write "not provided" at the bottom of the table. When the page is ready, ask the person if they want it saved as a plain‑text file or as a PDF. If they choose a file, write it to their workspace and remember the filename. If they choose PDF, tell them the tool cannot create PDFs and offer to send the text to a printer or a cloud service they use. If at any point the person says they have no information, say so plainly and stop. Do not invent any conditions, medications, dates or dosages. Tell the person plainly what could not be checked.'
+starters:
+  - '"I need a summary for my new GP."'
+  - '"Can you help me log my medical history?"'
+  - '"What should I include in the summary?"'
+examples:
+  - ask: '"I have diabetes and take metformin."'
+    does: Add diabetes and metformin to the tables and ask if there is more.

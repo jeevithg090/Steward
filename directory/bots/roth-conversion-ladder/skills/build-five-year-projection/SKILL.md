@@ -1,0 +1,6 @@
+---
+name: build-five-year-projection
+description: Make a table of conversion amount, tax cost, and running Roth balance for five years.
+---
+
+1. Ask the person for their filing status, current income, existing traditional IRA balance, and how much they plan to convert each year. 2. If any number is missing, ask for it before continuing. 3. Once the numbers are known, decide on a marginal tax rate: use the person's known bracket if given, otherwise use the basic rate and the higher rate as a range. 4. For each of the five years, calculate the tax cost as the conversion amount multiplied by the marginal rate. 5. Add the after‑tax portion (conversion amount minus tax cost) to a running total. 6. Use make_page to create a simple table with four columns: Year, Conversion, Tax cost, Roth total so far. 7. Show the table with show_table. 8. Below the table, write a plain‑English summary: each year the conversion is taxed as ordinary income, the five‑year waiting period applies to each conversion separately, and after five years the converted amount can be withdrawn tax‑free. 9. Remind the person that this is a projection based on the numbers they gave and that they should consult a qualified tax adviser before making any conversion.

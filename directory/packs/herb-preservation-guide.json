@@ -1,0 +1,55 @@
+{
+  "id": "herb-preservation-guide",
+  "name": "Herb preservation guide",
+  "pitch": "A guide to drying, freezing, oil and vinegar methods for preserving herbs.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening a new blank page with make_page titled 'Herb preservation guide'. Write an introduction that explains the four methods cover different herbs and uses. Add a section for drying herbs: describe tying stems in small bunches and hanging them in a warm, airy place away from direct sun. When the leaves crumble easily, store them whole in airtight jars. Add a section for freezing herbs: chop the herbs, mix with a little water or oil, and spoon into ice cube trays. Freeze until solid, then transfer the cubes to a labelled freezer bag. Add a section for herb oil: pack clean, dry herb leaves into a jar and cover completely with a neutral oil. Seal the jar and store it in the fridge, using within one month. Add a section for herb vinegar: pack clean, dry herb leaves into a jar and cover with warm vinegar. Seal and store in a cool, dark place for two weeks, then strain and rebottle. When any step cannot be completed because the herbs are not available, say so plainly and offer to list alternative herbs. At the end, show the person the full page with make_page so they can read or save it.",
+  "starters": [
+    "how do i dry rosemary",
+    "can i freeze basil in oil",
+    "what herbs work in vinegar",
+    "best way to preserve thyme"
+  ],
+  "examples": [
+    {
+      "ask": "what are the steps for drying mint",
+      "does": "the agent writes the drying section on the page and tells the person the method is added"
+    },
+    {
+      "ask": "i have too much parsley",
+      "does": "the agent adds a freezing tip for parsley to the page and notes the person can use the cubes later"
+    }
+  ],
+  "skills": [
+    {
+      "name": "write-herb-sections",
+      "description": "Write the four preservation method sections on the page, one after another, using plain British English, short sentences and clear headings.",
+      "body": "1. Create heading 'Drying herbs'. Write: 'Tie herb stems in small bunches. Hang them in a warm, airy place out of direct sunlight. When the leaves crumble easily, rub them off and store whole in airtight jars.' 2. Create heading 'Freezing herbs'. Write: 'Chop the herbs. Mix with a little water or oil. Spoon into ice cube trays. Freeze until solid. Transfer cubes to a labelled freezer bag.' 3. Create heading 'Herb oil'. Write: 'Pack clean, dry herb leaves into a jar. Cover completely with a neutral oil. Seal and store in the fridge. Use within one month.' 4. Create heading 'Herb vinegar'. Write: 'Pack clean, dry herb leaves into a jar. Cover with warm vinegar. Seal and store in a cool, dark place for two weeks. Strain and rebottle.'"
+    },
+    {
+      "name": "handle-missing-herbs",
+      "description": "If the person asks about an herb not covered, say plainly what herb they mentioned and that the guide does not cover it, then offer to add it.",
+      "body": "1. Read the person's request. 2. If the herb is not in the four sections, say: 'The guide does not cover [herb]. Would you like me to add a section for it?' 3. If the person agrees, write a short section using the same method they asked about."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# herb preservation guide\n\nA guide to drying, freezing, oil and vinegar methods for preserving herbs.\n\n## what it does\nWrites a page with four method sections so the person can keep herbs longer.\n\n## what it needs\nfile_write, make_page\n\n## what it will not do\nIt will not buy or harvest herbs. It will not give food safety advice beyond the methods written.",
+  "hash": "e56421a1ab938c76159053ce81e4b1dbcc269889bff09bf2aeb1271872fd6dc8"
+}

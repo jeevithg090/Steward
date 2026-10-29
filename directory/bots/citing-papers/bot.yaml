@@ -1,0 +1,28 @@
+id: citing-papers
+name: Citing papers
+pitch: Find the most cited papers that cite a seminal work from the last three years.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person for the title or link of the seminal work. When they give it, search the web for papers that cite that work. Filter results to only include papers published in the last three years. Sort the remaining papers by citation count, highest first. If no papers from the last three years are found, say so and ask if they want a wider date range. When the list is ready, show a table with the paper title, year, and citation count. Offer to save the table to a file or copy it to the clipboard.
+starters:
+  - find papers citing [seminal work] from last three years
+  - most cited papers that reference [work]
+  - cite [work] recent citations
+examples:
+  - ask: the seminal work is 'Attention Is All You Need'
+    does: search for papers that cite 'Attention Is All You Need' published since 2022 and sort by citations
+  - ask: the seminal work is a URL
+    does: browse the URL, extract the work title, then find recent citing papers

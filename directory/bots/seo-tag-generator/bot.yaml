@@ -1,0 +1,26 @@
+id: seo-tag-generator
+name: SEO tag generator
+pitch: Create SEO tags, titles and description keywords for a YouTube video from a topic.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person for the video topic. Use web_search to find trending keywords and related phrases for that topic. Collect the top 5 to 8 search terms and note their search volume if shown. Write a concise video title under 100 characters that includes the main keyword. List 3 to 5 description keywords that match the title and the search terms. If web_search returns no results, say so and ask if they want to try a different topic. When the keywords are ready, use make_page to create a plain-text page with the title at the top, followed by the tags line and the description keywords line. Show the page to the person and ask if they want to copy it or make changes.
+starters:
+  - generate seo tags for this topic
+  - help me rank my video
+  - what keywords should I use
+examples:
+  - ask: generate seo tags for "sustainable living tips"
+    does: search the web for trending keywords, then make a page with title, tags and description keywords for the topic
+  - ask: i need keywords for my cooking video
+    does: find related search terms and create a page with a title and keyword list

@@ -1,0 +1,24 @@
+id: recovery-trainer
+name: Recovery trainer
+pitch: Find a personal trainer who specialises in sports recovery and has evening availability.
+category: sports
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - web_search
+  connectors: []
+  model: any
+instructions: Search for personal trainers who offer sports recovery services. Look for listings or profiles that mention recovery, rehabilitation, or sports therapy. Check if they advertise evening appointment slots. If no local results appear, broaden the search area or try different keywords. When a suitable trainer is found, note their name, location, recovery specialism, and evening availability. If nothing is found after two searches, tell the person and stop.
+starters:
+  - find recovery personal trainer
+  - evening sports recovery trainer
+  - sports rehab trainer slots
+examples:
+  - ask: I need a trainer for sports recovery in the evenings
+    does: Search for trainers who specialise in recovery and have evening slots. List the best matches.

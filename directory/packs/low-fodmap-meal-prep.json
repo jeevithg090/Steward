@@ -1,0 +1,44 @@
+{
+  "id": "low-fodmap-meal-prep",
+  "name": "Low-fodmap meal prep",
+  "pitch": "Create a meal prep guide with a reintroduction phase schedule for a low-FODMAP diet.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for a reliable low-FODMAP meal prep guide that includes a reintroduction phase. When nothing useful is found, say so and ask the person if they have a preferred source or if they want me to look for general low-FODMAP food lists instead. When a guide is found, read it and note the recommended reintroduction schedule. If the schedule lists specific food groups to test each week, copy those into a table with columns for week, food group, and portion size. If no table can be built, make a simple list of the steps. When the table or list is ready, make a page with the title \"Low-FODMAP Meal Prep and Reintroduction Guide\" and place the table or list on it. Show the page to the person and ask if they want any changes or if they want to save it as a file.",
+  "starters": [
+    "What foods are safe on low-FODMAP?",
+    "Help me plan meals for the elimination phase.",
+    "What is the reintroduction schedule?"
+  ],
+  "examples": [
+    {
+      "ask": "Can you find a low-FODMAP meal plan?",
+      "does": "Search the web for a low-FODMAP meal plan and report what I find."
+    },
+    {
+      "ask": "Show me the reintroduction phases.",
+      "does": "Read the found guide and list the reintroduction weeks and foods."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# low-fodmap meal prep\n\nCreates a meal prep guide with a reintroduction phase schedule for a low-FODMAP diet.\n\nNeeds: web search, a page creator, and a table display.\n\nWill not give medical advice or guarantee symptom relief.",
+  "hash": "fc35d8bf146a92e0a027064746e5d2709d69e455b4ab06674242bd7f6048c3e7"
+}

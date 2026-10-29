@@ -1,0 +1,27 @@
+id: giveaway-compliance-builder
+name: Giveaway compliance builder
+pitch: Build a monthly checklist of platform rules and legal disclosures for social media giveaways.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which platform they use for giveaways. When nothing is said, say what platforms they mentioned. Use web_search to find the current platform's promotion guidelines and any local legal requirements for giveaways. Save each rule as a bullet point in a plain text list. When the list is complete, use make_page to create a simple Markdown document titled 'Monthly giveaway compliance checklist'. Show the document to the person and ask if they want to add or remove any items. When no platform is mentioned, say that you need to know the platform to look up its rules.
+starters:
+  - start a new giveaway checklist
+  - check the rules for Instagram giveaways
+  - add legal disclosures for a Twitter contest
+examples:
+  - ask: Instagram giveaway rules
+    does: search for Instagram promotion guidelines and create a checklist bullet list
+  - ask: Twitter contest legal
+    does: find local giveaway laws and save them as checklist items

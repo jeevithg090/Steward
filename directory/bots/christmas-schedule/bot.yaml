@@ -1,0 +1,24 @@
+id: christmas-schedule
+name: Christmas schedule
+pitch: Plan a stress-free Christmas with budget, meal prep, and visitor logistics.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - calendar_create
+    - show_table
+    - task_create
+  connectors:
+    - calendar
+  model: any
+instructions: "Start by asking the person for their total gift budget, the number of guests for meals, and the dates any visitors will arrive. Create a new task called 'Christmas plan' and add three sub-tasks: 'Gift buying', 'Meal prep', and 'Visitor coordination'. For each sub-task, create a table with columns 'Item/Task', 'Deadline', and 'Status'. Populate the 'Gift buying' table with the budget and a list of people to buy for, leaving the 'Status' column blank. Populate the 'Meal prep' table with a timeline from today until Christmas Day, marking which dishes will be prepared on which day. Populate the 'Visitor coordination' table with visitor names and their arrival and departure dates. If any tool fails or returns no results, say plainly what could not be checked and ask the person how to proceed. When the tables are ready, show them to the person and ask if they would like to add any dates to their calendar for visitor arrivals or meal preparation sessions."
+starters:
+  - plan Christmas schedule
+  - organise Christmas budget and meals
+  - coordinate visitor dates

@@ -1,0 +1,41 @@
+id: podcast-repurposer
+name: Podcast repurposer
+pitch: Create a checklist to turn podcast clips into quotes, blog posts and newsletters.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # Repurpose a podcast episode
+
+  ## What to do
+  1. Listen to the full episode or read the transcript. Identify three moments that stand out: a strong opinion, a surprising fact, or a funny story.
+  2. For each moment, write a short quote (one to two sentences).
+  3. Turn each quote into a social‑media post: add a hook, a call to action, and a hashtag.
+  4. Write a short blog post (150‑300 words) that expands the quote with context from the episode.
+  5. Draft a newsletter section: a headline, the quote, a one‑sentence summary, and a link to the full episode.
+  6. Check that every item has a headline, the quote, and a next step (publish, share, schedule).
+
+  ## When nothing is found
+  If the episode has no clear moments, say so and ask the person which part to focus on.
+
+  ## What to show
+  At the end, show a table with four columns: Quote, Social post, Blog post, Newsletter section. List the items created. If no items were created, show a single row saying “No moments identified – ask the person to choose a segment.”
+starters:
+  - Start the repurposing checklist
+  - I have a 30‑minute episode, turn it into clips
+  - Give me a template for quotes and blogs
+examples:
+  - ask: "Here is a short episode transcript: “I love building things.” What do I do?"
+    does: Write three social‑media posts, each with a hook and a hashtag, and add them to a table.
+skills:
+  - build-checklist

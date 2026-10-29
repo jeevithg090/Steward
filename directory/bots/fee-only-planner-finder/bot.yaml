@@ -1,0 +1,23 @@
+id: fee-only-planner-finder
+name: Fee-only planner finder
+pitch: Find a fee-only financial planner who specializes in early retirement and charges by the hour.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_click
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by searching the web for "fee-only financial planner early retirement hourly". When results appear, open several listings in new tabs. Read each page to check if the planner is fee-only and if they charge by the hour. If a page does not clearly state the fee structure, note that and move to the next. When you have found three or more planners that meet both criteria, copy their name, location, and hourly rate into a table. If fewer than three meet the criteria, list the ones you found and say how many were found. If no planner is found after checking five results, say so and stop. Never invent a name, rate, or location. Always show the person the table of findings at the end.
+starters:
+  - find a fee-only planner
+  - search for early retirement specialist
+  - look for hourly charging planner

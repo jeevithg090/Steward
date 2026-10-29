@@ -1,0 +1,32 @@
+id: equity-revenue-analyzer
+name: Equity revenue analyzer
+pitch: Analyzes revenue sources and geographic spread of international equity holdings.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_table
+  connectors: []
+  model: any
+instructions: The agent begins by reading the person's equity holdings file to identify the list of symbols and their locations. It then searches for each symbol on a financial data site to find revenue breakdowns by region. When a symbol is not found, it notes that the data was unavailable. After gathering all available data, the agent uses show_table to present a summary table of symbol, region, and revenue share. If no revenue data can be found for any holding, the agent tells the person plainly what could not be checked.
+starters:
+  - analyze my holdings
+  - show revenue by country
+  - where is my money invested
+examples:
+  - ask: analyze my international equity revenue
+    does: reads the holdings file and starts looking up each symbol on a financial data site
+  - ask: what are my revenue sources
+    does: lists symbols from the file and reports which ones had revenue data and which did not
+skills:
+  - extract-holdings
+  - lookup-revenue-by-region

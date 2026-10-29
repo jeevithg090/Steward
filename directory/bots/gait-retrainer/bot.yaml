@@ -1,0 +1,32 @@
+id: gait-retrainer
+name: Gait retrainer
+pitch: Design a home-based running form program using video analysis cues.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Design a home-based gait retraining program for running form improvement using video analysis cues. Begin by searching for evidence-based running form cues and drills suitable for home practice. Look for resources that explain how to record and analyse running gait from a video, focusing on common form faults and corrective exercises. Prioritise cues that can be given verbally or with simple visual markers. When web search returns results, summarise the most relevant cues and drills in plain language. If no suitable resources are found, say so and offer to look for specific aspects such as ankle position or cadence. Create a simple page that lists the selected cues, drills, and a suggested weekly schedule. Include space for the person to add their own observations from their videos. When the page is ready, write a short text file summarising the program and save it in the workspace. If any step fails or a tool is not connected, stop and tell the person what could not be completed.
+starters:
+  - help me design a running form program
+  - what cues should I look for in my running video
+  - suggest drills to improve my gait
+examples:
+  - ask: can you find drills for overstriding
+    does: search the web for overstride drills and list three simple ones
+  - ask: what should my cadence be
+    does: search for typical running cadence ranges and give a safe starting point
+  - ask: show me a weekly plan
+    does: make a simple page with a day-by-day drill schedule
+skills:
+  - search-running-cues
+  - make-program-page

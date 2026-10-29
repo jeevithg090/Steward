@@ -1,0 +1,49 @@
+{
+  "id": "journal-summary",
+  "name": "Journal summary",
+  "pitch": "Reads the daily journal and suggests a summary topic for tomorrow.",
+  "category": "bot-helpers",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the journal folder. If no files are found, say so and ask the person if they have a different folder. Read each journal entry in date order. Look for recurring themes, new events, or pending tasks. When the reading is done, pick one theme or topic and write a short suggestion. If nothing stands out, say that no clear topic was found. Remember the suggested topic in memory so it can be used later. Show the suggestion to the person and ask if they want to change it.",
+  "starters": [
+    "summarise today",
+    "what's the topic for tomorrow"
+  ],
+  "examples": [
+    {
+      "ask": "summarise today",
+      "does": "reads the journal and suggests a topic for tomorrow"
+    },
+    {
+      "ask": "no topic found",
+      "does": "says it could not find a clear topic and asks if they want to pick one"
+    }
+  ],
+  "skills": [
+    {
+      "name": "read-and-summarise-journal",
+      "description": "Read the journal entries and pick a topic",
+      "body": "1. List files in the journal folder. 2. If the folder is empty, say so and stop. 3. Read the newest entry first. 4. Scan for a theme, event, or task that needs follow-up. 5. Choose one topic. 6. If no topic is clear, say so. 7. Save the topic in memory."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot that reads your daily journal and suggests a summary topic for the next day. It uses file tools to look at your entries and memory to keep the last suggestion. It will not write or delete anything without asking.",
+  "hash": "705e10b33cae9e56a613b01d94e94d2ad548204a3da3768648479a2f6887989f"
+}

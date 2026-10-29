@@ -1,4 +1,4 @@
-# Meal planner
+# Grocery list by aisle
 Create a grocery list grouped by store section from your weekly meal plan.
 
 - Tools: reads a meal plan text file, organises items into sections, outputs a table.

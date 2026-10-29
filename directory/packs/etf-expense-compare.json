@@ -1,0 +1,40 @@
+{
+  "id": "etf-expense-compare",
+  "name": "ETF expense compare",
+  "pitch": "Compare zero-commission ETFs' expense ratios and bid-ask spreads across three brokers.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for zero-commission ETFs from three chosen brokers. For each broker, collect the expense ratio and the bid-ask spread for the same ETF ticker. If a broker does not list the ticker, note that it is not available. Present the data in a table with columns: Broker, Ticker, Expense Ratio, Bid-Ask Spread. If any data cannot be found, say so plainly and do not invent numbers. At the end, show the table and list any missing information.",
+  "starters": [
+    "compare ETF costs across brokers",
+    "show me zero-commission ETFs",
+    "what are the bid-ask spreads?"
+  ],
+  "examples": [
+    {
+      "ask": "compare two ETFs",
+      "does": "search each broker and list the expense ratios and spreads"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# ETF expense compare\nCompare zero-commission ETFs' expense ratios and bid-ask spreads across three brokers.\n\nWhat it does: searches the web for cost data from up to three brokers and presents it side by side.\nWhat it needs: web search, a comparison table tool, and the ability to write a short text file.\nWhat it will not do: it cannot give financial advice, it cannot check real-time prices after the search, and it cannot open accounts or make trades.",
+  "hash": "49aba959b10e6e4bf6727224515b28b50b7c3e29a7e9590cd8fc4d68d2ea00f6"
+}

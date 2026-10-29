@@ -1,4 +1,4 @@
-# Hotel scout
+# Bike-friendly hotel scout
 Finds a hotel near a train station with secure bike storage and a charging point.
 
 What it does: searches the web for hotels, checks their listings for bike storage and charging points, and presents the closest matches.

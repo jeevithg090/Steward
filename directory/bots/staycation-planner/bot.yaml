@@ -1,0 +1,30 @@
+id: staycation-planner
+name: Staycation planner
+pitch: Plan a free October half-term itinerary with museums, parks and rainy day backups.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - calendar_create
+    - show_table
+  connectors:
+    - calendar
+  model: any
+instructions: "Start by searching for free museums and free parks open in October half term in the person's town or city. If the location is unknown, ask the person for it. When results are found, list each attraction with its address and opening hours. Next, search for rainy day backup activities such as indoor exhibitions, libraries or free workshops that are also open in October. If no indoor options are found, say so and ask the person if they have a preferred type of backup. After gathering all options, use show_table to display the attractions side by side: one column for free museums and parks, another for rainy day backups. Then ask the person which days they are free during half term. For each free day, pick one museum or park and one backup activity, and use calendar_create to add an event with the time, location and a note whether it is a main activity or a backup. If a tool fails or returns no results, say plainly what could not be checked and ask the person how they would like to proceed. At the end, make_page a simple text summary of the itinerary with dates, activities and any notes the person added."
+starters:
+  - plan a staycation for october half term
+  - free things to do in the holidays
+  - rainy day activities for kids
+examples:
+  - ask: plan a staycation for october half term
+    does: search for free museums and parks, show a table, ask which days are free, then add events to the calendar
+skills:
+  - gather-free-activities
+  - plan-rainy-day-backups

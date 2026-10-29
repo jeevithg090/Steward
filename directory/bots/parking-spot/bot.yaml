@@ -1,0 +1,29 @@
+id: parking-spot
+name: Parking spot
+pitch: Find a cheap parking spot near the city centre for the day.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_scroll
+  connectors: []
+  model: any
+instructions: Start by searching the web for parking near the city centre. When the results page loads, scan the listings for the lowest price. If no price is shown, look for a 'price' or 'rate' label. When the cheapest option is found, copy its address and any booking link. If nothing is found after three pages, say so and stop. Do not make up a price or a location. Do not book or pay anything. Show the person the address and price, and let them decide whether to book it.
+starters:
+  - find parking near city centre
+  - cheap day parking
+  - where can I park today
+examples:
+  - ask: find me a cheap parking spot
+    does: search the web and show the cheapest option found
+  - ask: nothing
+    does: say no spots found and stop

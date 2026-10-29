@@ -1,0 +1,33 @@
+{
+  "id": "pet-stop-finder",
+  "name": "Pet stop finder",
+  "pitch": "Find a pet-friendly motorway rest stop with a walking area for a long drive.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the direction of travel and the planned stop frequency. Use web_search to look for \"pet-friendly motorway rest stop\" combined with the region or motorway number. When results appear, use browser_navigate to open the top few links. Look for a walking area, dog park, or explicit mention that dogs are allowed off the lead. When a suitable stop is found, note the name, location, and any pet restrictions. If no pet-friendly stop is found in the first page of results, say so and ask if they want to broaden the search or try a different motorway. When the person confirms a choice, show the name, address, and a brief note on the walking area. If the person changes their mind, start over with new directions.",
+  "starters": [
+    "I need a pet-friendly rest stop on the M4",
+    "Looking for a dog-walking area near a motorway service station"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Pet stop finder\nFinds a pet-friendly motorway rest stop with a walking area for a long drive.\nUses web_search and browser_navigate. Does not book or pay anything.\nWill ask before opening any link.",
+  "hash": "2ba850acc048b9518fe0dbfb8645d746fa16e46062fc2595f0db549210ed661c"
+}

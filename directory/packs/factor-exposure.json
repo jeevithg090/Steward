@@ -1,0 +1,53 @@
+{
+  "id": "factor-exposure",
+  "name": "Factor exposure",
+  "pitch": "Analyze the value, momentum, quality and size factors in your stock portfolio.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by reading the portfolio file with file_read. If no file is found, say so and ask the person to upload a list of their holdings in CSV or JSON format. When the file is open, extract the ticker symbols and any weights. If the file contains no tickers, say so and stop. Open a web search for each ticker to find its sector and market cap. Record the name, price, and market cap for each company. When a ticker cannot be resolved, note it and continue with the next one. After all tickers are gathered, sort the companies by market cap from largest to smallest. Calculate the portfolio's size factor exposure as the weighted average of the size ranks. To assess value, find the price-to-earnings ratio for each company via web search and compute the weighted average P/E. For momentum, search for the six-month price return for each stock and weight it by the portfolio share. For quality, search for the return on equity for each company and weight it by the portfolio share. When a metric cannot be found for a ticker, note it as unavailable. At the end, show a table with each ticker, its weight, market cap, P/E, six-month return, and return on equity. If any factor data is missing, say which metrics are unavailable and do not invent values.",
+  "starters": [
+    "analyze my portfolio",
+    "show me factor exposures",
+    "what factors am I exposed to"
+  ],
+  "examples": [
+    {
+      "ask": "analyze my portfolio",
+      "does": "read the holdings file, look up each ticker online, and present a table of factor exposures"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-factor-data",
+      "description": "For each ticker in the portfolio, search the web for market cap, P/E ratio, six-month price return, and return on equity. Record the value and the portfolio weight. If a search returns no result, mark it as unavailable and move to the next ticker.",
+      "body": "1. Read the portfolio file and list all tickers and their weights. 2. For each ticker, open a web search for 'ticker market cap'. Note the market cap value. 3. Open a web search for 'ticker P/E ratio'. Note the P/E value. 4. Open a web search for 'ticker six month return'. Note the return percentage. 5. Open a web search for 'ticker return on equity'. Note the ROE percentage. 6. If any search returns no result, write 'unavailable' for that metric. 7. Continue until all tickers have been checked."
+    },
+    {
+      "name": "calculate-exposures",
+      "description": "Compute the weighted average for each factor using the portfolio weights. Sort companies by market cap to determine size exposure.",
+      "body": "1. Sort the companies by market cap from largest to smallest. 2. Calculate the size exposure as the weighted average of the size ranks, where rank 1 is the largest company. 3. Calculate the value exposure as the weighted average of the P/E ratios, inverted so that lower P/E gives higher value score. 4. Calculate the momentum exposure as the weighted average of the six-month price returns. 5. Calculate the quality exposure as the weighted average of the return on equity values. 6. If a metric is 'unavailable', exclude it from the weighted average and note the number of missing values."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# factor exposure\nAnalyze the value, momentum, quality and size factors in a stock portfolio.\n\nWhat it does: reads a holdings file, looks up market data for each ticker, and calculates weighted factor exposures.\n\nWhat it needs: a portfolio file in CSV or JSON with ticker symbols and weights; web access to look up financial metrics.\n\nWhat it will not do: it cannot analyze a portfolio without a file, and it will not invent financial data when a metric is unavailable.",
+  "hash": "87484256d92d97a9de074b8896ce95a7b8f31a9e7ea34c73697723eae62f6a97"
+}

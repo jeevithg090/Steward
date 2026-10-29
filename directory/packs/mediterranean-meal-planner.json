@@ -1,0 +1,61 @@
+{
+  "id": "mediterranean-meal-planner",
+  "name": "Mediterranean meal planner",
+  "pitch": "Plan a week of Mediterranean meals hitting daily olive oil and fish targets.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_table",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for Mediterranean recipes that feature olive oil and fish. Collect 7 breakfasts, 7 lunches, and 7 dinners. Record each recipe's olive oil grams and fish portion size. Check that every day meets the person's targets. If a day falls short, find a substitute recipe. Show a table of the 7-day plan with recipe names, olive oil amount, and fish portion. Ask the person to confirm the plan before saving it to a text file in their workspace.",
+  "starters": [
+    "plan my mediterranean week",
+    "olive oil and fish targets for 7 days",
+    "mediterranean meals with fish"
+  ],
+  "examples": [
+    {
+      "ask": "can you find recipes with at least 20g olive oil and 150g fish per day?",
+      "does": "Search for recipes and check their olive oil and fish amounts."
+    },
+    {
+      "ask": "show me the weekly plan",
+      "does": "Display a table of 7 days with recipe names, olive oil grams, and fish grams."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recipes",
+      "description": "Search the web for Mediterranean recipes that include olive oil and fish. Record the URL, olive oil amount in grams, and fish portion size for each.",
+      "body": "1. Use web_search with keywords 'Mediterranean recipe olive oil fish'. 2. Use web_fetch to read the top results. 3. Look for ingredients lists that name olive oil and fish. 4. Note the grams of olive oil and the weight of fish per serving. 5. If a recipe does not list amounts, skip it and move to the next result. 6. Repeat until 21 recipes (breakfast, lunch, dinner) are collected with usable data."
+    },
+    {
+      "name": "check-targets",
+      "description": "Verify that each day's chosen recipes meet the daily olive oil and fish minimums.",
+      "body": "1. For each of the 7 days, add the olive oil grams from the three meals. 2. Add the fish grams from the three meals. 3. Compare the totals to the person's targets. 4. If any day is below the olive oil minimum, find one extra recipe for that day's meal and add its amount. 5. If any day is below the fish minimum, find a fish-based recipe for that day's meal and add its portion. 6. Repeat the check until all 7 days meet both targets."
+    },
+    {
+      "name": "show-and-save",
+      "description": "Present the weekly plan as a table and save it as a text file.",
+      "body": "1. Use show_table to display the 7-day plan with columns for Day, Meal, Recipe, Olive oil (g), Fish (g). 2. Ask the person if the plan looks good. 3. If they say yes, use file_write to create a text file named 'mediterranean-week.txt' with the same table inside. 4. Tell the person the file has been saved in their workspace."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Mediterranean meal planner\n\nPlan a week of Mediterranean meals that hit daily olive oil and fish targets. It searches for recipes, checks the amounts, and presents a table for the person to review. The final plan is saved as a text file in their workspace.\n\n**What it needs:** web_search, web_fetch, show_table, file_write.\n**What it will not do:** It will not set calorie goals, suggest supplements, or create a shopping list unless asked.",
+  "hash": "d9e32d3089dcc8b3f65f31cbfd0a52c45b5240e1fc88facf4897e117c2889026"
+}

@@ -1,0 +1,37 @@
+{
+  "id": "report-scheduler",
+  "name": "Report scheduler",
+  "pitch": "Schedule quarterly check-ins with each direct report for the rest of the year.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "calendar_create",
+      "task_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing all people the person calls direct reports. If no reports are found, say so and ask if there are other people to schedule.\n\nFor each report, find the next available quarter that has not yet passed. If the current quarter has passed, move to the next quarter. If no open quarter exists for the rest of the year, say so and stop.\n\nOpen the calendar for the chosen quarter and create an event titled \"Quarterly check-in with [report name]\". Set the duration to 30 minutes. If the calendar tool cannot create an event, say that the event could not be added and ask the person to check their calendar settings.\n\nAfter the event is created, add a task titled \"Follow up with [report name]\" due one week after the event. If the task tool cannot create the task, say so and continue with the next report.\n\nWhen all reports have been processed, show the person a summary table of the events created, including date, time, and report name. If no events were created, tell the person no check-ins were scheduled.",
+  "starters": [
+    "schedule check-ins",
+    "set up quarterly meetings",
+    "organise reports"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# report scheduler\nSchedule quarterly check-ins with each direct report for the rest of the year.\n\nIt needs the calendar connector to read and add events. It will not book anything without the person's say-so, and it will ask before creating any task.",
+  "hash": "30a30fe303e18b8ef7c9641bb082fc9edba2af5fd55c9e23762cb5b4eac46f51"
+}

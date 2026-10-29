@@ -1,0 +1,56 @@
+{
+  "id": "trivia-card-set",
+  "name": "Trivia card set",
+  "pitch": "Make a printable set of trivia game cards from your favourite books.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_write",
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which books they want in the set and how many questions per card. When nothing is found, say so and ask if they want to add more books. Use web_search to look up the book title and author, and find trivia questions and answers. If a book has no online trivia, ask the person if they want to write their own questions. Use make_page to create a clean page with one question and answer per card, leaving space for printing. Repeat for each card. When all cards are done, use make_page to create a cover page with the title \"Trivia: [books]\" and a list of the books included. Use file_write to save each page as a separate PDF or image file in the workspace, naming them \"card-1\", \"card-2\", etc., and \"cover\". When the files are saved, show the person the list of files and ask if they want to print them or add more cards. Never give the person a name they did not give. Never invent facts, prices, laws, dates or statistics. If a search returns no results, say plainly what could not be found and ask how to proceed.",
+  "starters": [
+    "start the trivia card set",
+    "make cards for my favourite books",
+    "how many questions per card"
+  ],
+  "examples": [
+    {
+      "ask": "can you do the harry potter books",
+      "does": "search for harry potter trivia and make the first card"
+    },
+    {
+      "ask": "i want five cards",
+      "does": "ask how many questions and make five cards"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-trivia",
+      "description": "look up trivia for one book",
+      "body": "1. Use web_search with the book title and author. 2. Read the search results for questions and answers. 3. If results exist, copy the best question and answer. 4. If no results, say so and ask the person if they want to write their own. 5. Return the question and answer."
+    },
+    {
+      "name": "make-card",
+      "description": "put one question on a printable page",
+      "body": "1. Use make_page to create a page with the question at the top and the answer below. 2. Leave blank space at the bottom for the person to write their answer if printing. 3. Use a simple font and no colours so the page prints well in black and white. 4. Return the page content."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# trivia card set\n\nMakes a printable set of trivia game cards from your favourite books. You tell me which books and how many questions per card, and I find trivia or let you write your own. I save each card as a separate file and a cover page. I will not sign any form, run any shell command, or post to any website without your say-so.\n\n**needs**: file_list, file_write, make_page, web_search\n\n**will not do**: pay for anything, send email, delete files, sign agreements, remember facts, or create routines.",
+  "hash": "34910e85d03a6456b187204d489bcf51e184e02c1448b3a8e61d00029d6f2241"
+}

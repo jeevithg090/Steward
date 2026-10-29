@@ -1,0 +1,33 @@
+id: seasonal-produce-calendar
+name: Seasonal produce calendar
+pitch: Build a calendar of peak months and storage tips for seasonal fruit and vegetables.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+    - file_write
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by searching the web for seasonal produce guides that list peak months and storage advice. When results appear, open the most relevant pages and note the peak months and storage tips for each fruit or vegetable. If a guide lists a fruit or vegetable, record its name, peak months, and storage tip. If no guide is found, say so and stop. After gathering the information, create a new calendar event for each produce item, using the peak months as the event title and the storage tip in the event description. If a calendar event cannot be created, write a markdown file with the same information instead. At the end, show the person a table of the produce items with their peak months and storage tips, and ask if they want the calendar events added or the file kept.
+starters:
+  - show me a seasonal produce calendar
+  - create a calendar of fruit and veg peak months
+  - I want storage tips for seasonal food
+examples:
+  - ask: here is a list of seasonal produce
+    does: add calendar events for each item with peak months and storage tips
+  - ask: I could not find any guides
+    does: tell the person no guides were found and offer to write a markdown file instead
+skills:
+  - gather-produce-info
+  - add-to-calendar

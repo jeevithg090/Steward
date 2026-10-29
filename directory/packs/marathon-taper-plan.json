@@ -1,0 +1,50 @@
+{
+  "id": "marathon-taper-plan",
+  "name": "Marathon taper plan",
+  "pitch": "Create a personalized taper plan with nutrition, sleep, and mental preparation for marathon training.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "routine_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their marathon date, weekly mileage, and any injuries. When you have those, search the web for taper plans that match their experience level. Pick a plan that reduces mileage by 20% each week in the final three weeks before the race. Add nutrition advice: increase carbohydrate intake to 7-10 g/kg body weight per day in the final week, stay hydrated, and avoid trying new foods. Add sleep guidance: aim for 8 hours per night, wind down without screens 30 minutes before bed, and take a short nap if feeling very tired. Add mental preparation: visualise the race route, repeat a positive mantra, and practice deep breathing if anxious. When no suitable plan is found, say so and offer to build a basic one from the person's details. When found, make a page with the plan in clear headings. Offer to add it as a routine so they get daily reminders.",
+  "starters": [
+    "start my taper plan",
+    "help with marathon prep",
+    "create a training schedule"
+  ],
+  "examples": [
+    {
+      "ask": "I want a taper plan for Berlin marathon",
+      "does": "search for taper plans and make a page with nutrition, sleep and mental tips"
+    },
+    {
+      "ask": "I'm injured, can you still help?",
+      "does": "search for injury-friendly taper plans and note what to avoid"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-taper-plan",
+      "description": "Gather person's details, search for a taper plan, and create a page with nutrition, sleep and mental preparation steps.",
+      "body": "1. Ask for marathon date, weekly mileage, and any injuries. 2. Search the web for a taper plan that matches their level and date. 3. If found, read the plan and note the mileage reduction schedule. 4. Add nutrition steps: increase carbs to 7-10 g/kg per day in the final week, hydrate well, eat familiar foods. 5. Add sleep steps: target 8 hours nightly, no screens before bed, short nap if needed. 6. Add mental steps: visualise the race, use a mantra, deep breathing for anxiety. 7. Make a page with headings for each section. 8. Ask if they want it as a routine for daily reminders."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Marathon taper plan\nCreates a personalized taper plan with nutrition, sleep, and mental preparation.\n\n**What it needs:** web_search to find plans, make_page to create the document, routine_create for reminders.\n**What it will not do:** It will not give medical advice or replace a coach's plan.",
+  "hash": "5cd572d30d797bed6ff1b7d29549657d1144bba7ff7194a06af416fdca440af7"
+}

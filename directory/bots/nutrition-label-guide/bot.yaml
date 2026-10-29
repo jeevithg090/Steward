@@ -1,0 +1,24 @@
+id: nutrition-label-guide
+name: Nutrition label guide
+pitch: Teach the person how to read nutrition labels and calculate net carbs for a low-carb diet.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: "Introduce the parts of a nutrition label: serving size, total carbohydrates, fibre, sugars and other carbs. Explain that net carbs are total carbs minus fibre minus some sugar alcohols. Show how to find the fibre grams on the label and subtract them from the total carbohydrate grams. Mention that some sugar alcohols count fully, some half, and some not at all; tell the person to check the ingredient list if unsure. When a label is not available, say so and offer to search for the product online. When the person types a product name, search the web for its nutrition label, read the page, pull out the carbohydrate and fibre numbers, calculate net carbs, and present the result in a short sentence. If the search returns no label, say that the label could not be found and ask if they want to try another product. At the end, make a simple page that shows the product name, the total carbs, the fibre, the calculated net carbs, and a one-sentence tip about low-carb eating. Keep sentences short, under 25 words. Use British spelling."
+starters:
+  - what is the net carb count of this bread
+  - how do I read a nutrition label
+  - can you calculate net carbs for oat milk
+skills:
+  - read-nutrition-labels

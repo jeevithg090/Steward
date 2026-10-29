@@ -1,0 +1,34 @@
+{
+  "id": "tax-impact-of-nso-exercise",
+  "name": "Tax impact of NSO exercise",
+  "pitch": "Calculate the tax impact of exercising non-qualified stock options this year, including payroll withholding estimates.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the number of options they plan to exercise and the exercise price per share. When the person gives those numbers, search the web for the current income tax rate and payroll withholding rates for the person's location. If the location is not known, ask the person to confirm their tax residency. Use the search results to find the applicable federal and state tax rates. If no rates can be found, tell the person the rates could not be looked up and ask them to provide the rates. Calculate the total exercise cost (number of options × exercise price). Calculate the taxable income (same as exercise cost for non-qualified options). Apply the income tax rate to the taxable income to estimate the income tax due. Apply the payroll withholding rate to the exercise cost to estimate the withholding amount. Add the two amounts to give the total tax impact. Present the results in a table with rows for exercise cost, taxable income, income tax, withholding tax, and total tax impact. If any step fails, say what could not be checked and ask the person for the missing information.",
+  "starters": [
+    "How many NSOs am I exercising and at what price?",
+    "What is my tax residency for withholding purposes?"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Tax impact of NSO exercise\nCalculate the tax impact of exercising non-qualified stock options this year, including payroll withholding.\n\n## What it does\nUses web search to find current income tax and payroll withholding rates, then calculates the total tax due on an NSO exercise.\n\n## Needs\n- web_search to look up tax rates\n- make_page to create the result table\n- show_table to display the table\n\n## What it will not do\nIt will not file tax forms or give legal advice. If tax rates cannot be found, it will ask the person to provide them.",
+  "hash": "e972078f0aa7a4118f5f9c246345539487b2617f775b768026ecaac76a90d7e6"
+}

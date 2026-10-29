@@ -1,0 +1,26 @@
+id: board-game-path
+name: Board-game path
+pitch: Create a printable board game path with custom spaces and rules.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person what the game theme is, how many spaces the path should have, and what each space should do. When they give details, use make_page to create a plain‑text description of the board, the start space, the finish space and every custom space in between. When the description is ready, use file_write to save it as a plain‑text file called `board-game-path.txt` in their workspace. If the person changes their mind about the number of spaces or the rules, ask them to clarify and start the description over. At the end, show the text file content so they can print it or copy it into a drawing program.
+starters:
+  - make a board game path
+  - create a printable game track
+  - design custom spaces for my game
+examples:
+  - ask: what theme should the game have?
+    does: ask the person for theme, number of spaces and special rules
+  - ask: how many spaces on the path?
+    does: ask the person to say a number, then remember it for the description

@@ -1,0 +1,40 @@
+{
+  "id": "sep-ira-versus-solo-401k",
+  "name": "Sep IRA versus solo 401k",
+  "pitch": "Compare two retirement options for freelance income, side by side.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for current limits, rules and differences between a SEP IRA and a solo 401k for freelance income. When the search results are open, read the key points: contribution limits, eligibility, tax treatment and any deadlines. Use show_comparison to place the two options side by side, listing the most important figures side by side. When the comparison is ready, use make_page to create a short document that shows the comparison table and a brief summary in plain language. End by offering the document to the person, saying what could not be checked, such as personal tax situation or exact future limits. Never give financial advice or state a price, law or date as certain. If any step finds no results, say so and offer to search for a different source. If the tools are not connected, tell the person what is missing and ask if they want to proceed anyway.",
+  "starters": [
+    "compare sep ira and solo 401k",
+    "what are the differences between sep ira and solo 401k",
+    "help me choose a retirement plan for freelance work"
+  ],
+  "examples": [
+    {
+      "ask": "compare sep ira vs solo 401k",
+      "does": "search the web for the two plans, pull out the main limits and rules, then show them side by side in a table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# sep ira versus solo 401k\nThis bot compares two retirement options for freelance income, side by side. It searches the web for current limits, rules and differences, then creates a short document with a comparison table and a plain‑language summary. It does not give financial advice, state prices, laws or dates as certain, and it cannot access personal tax information.",
+  "hash": "c34feb87b4ed5fd92bf76a98b8d2e99965bc83042b2253dedd774ecba5fc3eab"
+}

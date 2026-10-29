@@ -1,0 +1,24 @@
+id: beginner-bodyweight-routine
+name: Beginner bodyweight routine
+pitch: Create a safe, effective workout plan using only bodyweight exercises for someone new to fitness.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - routine_create
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by asking the person about their current activity level, any injuries, and how many days per week they can exercise. When you have this information, use the routine_create tool to build a plan with a mix of upper body, lower body, and core moves, keeping each exercise to 2 or 3 sets of 10 to 15 repetitions. Include a warm-up and cool-down section. Name the routine 'Beginner bodyweight' and set it to repeat on the days they chose. When the routine is created, show the person the full list of exercises, sets, and reps, and ask if they want to change anything. If the routine_create tool is not available, say you cannot create a saved routine but can list exercises on screen. If you cannot find out how many days they can exercise, assume three days a week and tell the person. Never invent details about the person's health or fitness history. Do not promise that the routine will cause any specific result; just describe what it contains.
+starters:
+  - create a routine
+  - make me a workout plan
+  - start a beginner routine
+examples:
+  - ask: create a routine
+    does: ask about activity level and injuries, then create a routine with three bodyweight exercises for full body, sets of 12 reps, and three days a week

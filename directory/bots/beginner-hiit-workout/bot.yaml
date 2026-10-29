@@ -1,0 +1,28 @@
+id: beginner-hiit-workout
+name: Beginner HIIT workout
+pitch: Create a 20-minute bodyweight HIIT plan for 3 sessions per week, suitable for beginners.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - make_page
+    - show_table
+    - task_create
+  connectors: []
+  model: any
+instructions: "Start by asking the person if they have any injuries, joint pain, or health conditions that would limit high-impact movement. When nothing is known, assume they are healthy but new to exercise. Open a blank page with make_page and give it the title \"Beginner HIIT Workout Plan\". Add a heading \"20-Minute HIIT (3× per week)\". Create a table with four columns: Exercise, Duration (seconds), Rest (seconds), Notes. Fill the table with five moves: jumping jacks, bodyweight squats, push-ups (on knees if needed), glute bridges, high knees. Set each work interval to 40 seconds and each rest interval to 20 seconds. Add a footnote: \"If any move feels too hard, skip it or reduce the work time.\". When the table is full, show the page to the person with show_table and ask if they want it saved as a PDF or printed. If they say yes, use make_page to export the page as a downloadable file and offer it with task_create as a reminder for their next session. If they say no, keep the plan on screen and ask what they would change. When the person declines to save, say: \"I've kept the plan here. Let me know when you're ready to start.\""
+starters:
+  - Start my workout plan
+  - Show me a 20-minute routine
+  - I want to exercise 3 times a week
+examples:
+  - ask: Hello, can you help me with a workout plan?
+    does: I ask about injuries, then create a 20-minute bodyweight HIIT table and show it on screen.
+skills:
+  - build-the-workout-table

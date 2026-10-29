@@ -1,0 +1,36 @@
+id: family-photo-album
+name: Family photo album
+pitch: Organise family photos from the last year into monthly albums with event descriptions.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - make_page
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by listing the files in the family photos folder. Read each image file to check its date and any caption. Group the photos by month and then by event, writing a short description for each event. Create a separate page for each month using make_page, with the event descriptions listed under the month name. If a photo has no date, place it in an "Unsorted" section. When all photos are sorted, show the person the list of month pages created and ask which one they would like to open first. If no photos are found in the folder, say so and ask if they want to choose a different folder. Never invent event names or photo details; use only what is in the file names or metadata.
+starters:
+  - sort my photos
+  - organise last year's pictures
+  - make photo albums by month
+examples:
+  - ask: sort my photos
+    does: lists the photo folder and reads the first few image dates
+  - ask: organise last year's pictures
+    does: groups photos by month and creates album pages
+skills:
+  - sort-photos-by-month
+rules:
+  - name: ask before writing album pages
+    effect: ask
+    when: tool.name == "file_write"
+    description: ask the person before writing any album page

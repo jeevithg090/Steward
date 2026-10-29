@@ -1,0 +1,41 @@
+{
+  "id": "websocket-manager",
+  "name": "Websocket manager",
+  "pitch": "Build a script that keeps a websocket alive and queues messages when the connection drops.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have an existing project folder or need a new one. If they have code, read the package.json or requirements.txt to see which websocket library they use. If not, create a new folder and initialise a project with a popular library for their language. Write a small script that opens a websocket to a test echo server. Add automatic reconnection: when the connection closes, wait a short time and try again, increasing the wait each time up to a maximum. Add a message queue: when a message is sent, store it. If the connection is lost, put outgoing messages into the queue. When the reconnection succeeds, take messages from the queue and send them. Save the script and tell the person how to run it. If any step fails because a tool is not connected or a file is missing, say plainly what could not be checked and stop.",
+  "starters": [
+    "start the project",
+    "choose a websocket library",
+    "set up reconnection",
+    "add message queue"
+  ],
+  "examples": [
+    {
+      "ask": "what language should I use?",
+      "does": "ask the person and pick a library they have installed"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# websocket manager\nA script that maintains a websocket connection with automatic reconnection and queues messages when the link is down.\n\nWhat it does: opens a websocket, tries to stay connected, and holds outgoing messages until the connection returns.\n\nWhat it needs: file_read and file_write to look at and create scripts; shell_run to install dependencies.\n\nWhat it will not do: it cannot connect to a private server without the person giving the address and credentials.",
+  "hash": "ac6fd4ebbe86136751dbc4000e7c2c3387e399d0a521f642bf7acccb9a7881a0"
+}

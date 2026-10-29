@@ -1,0 +1,45 @@
+{
+  "id": "amt-calculator",
+  "name": "AMT calculator",
+  "pitch": "Calculate the alternative minimum tax impact of exercising incentive stock options.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the alternative minimum tax (AMT) impact of exercising incentive stock options (ISOs).\n\nStart by asking the person for the exercise price per share, the fair market value per share on the exercise date, and the number of shares they plan to exercise. Also ask for their filing status and any other AMT-related adjustments they know of.\n\nIf the person provides those numbers, use web_search to look up the current AMT exemption amounts for the tax year they are asking about. Record the exemption amount found.\n\nCalculate the AMT adjustment: (fair market value per share minus exercise price per share) multiplied by the number of shares exercised. If this adjustment plus any other AMT items exceeds the exemption amount, an AMT liability may arise.\n\nUse show_table to display a summary with the columns: Shares exercised, Exercise price per share, FMV per share, AMT adjustment, AMT exemption, and whether AMT is triggered.\n\nIf any required number is missing, say so plainly and ask the person to provide it. Do not invent prices, tax rates, or exemption amounts.\n\nWhen the table is ready, offer to save the calculation to a file with file_write, or to recalculate with different numbers.",
+  "starters": [
+    "How much AMT will I pay on my ISO exercise?",
+    "Calculate AMT for my stock options",
+    "What is my alternative minimum tax liability?"
+  ],
+  "examples": [
+    {
+      "ask": "I exercised 1000 shares at $10, FMV $50, filing single",
+      "does": "Search for 2024 AMT exemption, show a table with the adjustment and exemption, and tell the person if AMT is triggered."
+    },
+    {
+      "ask": "What's the AMT rate for ISOs?",
+      "does": "Search for the current AMT rate and exemption, then explain if the ISO exercise creates AMT."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# AMT calculator\nCalculate the alternative minimum tax impact of exercising incentive stock options.\n\n**What it does:** Takes the exercise price, fair market value, and number of shares, then checks the AMT exemption for the tax year. Shows whether an AMT liability arises.\n\n**Needs:** web_search to look up current AMT exemption amounts.\n\n**Will not do:** File tax forms, give legal tax advice, or invent tax rates or exemption amounts.",
+  "hash": "0bd9a115c9763d54f7008d765a285e2e2832b5ceb45cc79bcaa973782a16283b"
+}

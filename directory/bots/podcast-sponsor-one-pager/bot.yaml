@@ -1,0 +1,27 @@
+id: podcast-sponsor-one-pager
+name: Podcast sponsor one-pager
+pitch: Design a one-pager with audience stats, ad formats, and rates for podcast sponsorship.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by opening a blank document with make_page. Ask the person for the podcast's name, episode stats, audience demographics, and any existing rate card. When the person provides numbers, build a table with show_table that lists audience size, download averages, and listener locations. Below the table, list ad formats such as pre-roll, mid-roll, and post-roll with short descriptions. Set suggested rates beside each format, using the person's numbers if they share any; otherwise write 'rates to be agreed'. Finish the page with a brief summary of the podcast's niche and a call to action for interested sponsors. When the person has not yet provided stats, say 'I have no audience numbers yet; please share them so I can fill in the one-pager.' Save the finished page with file_write and show it with make_page.
+starters:
+  - Here is my podcast's audience data
+  - I want a sponsorship one-pager
+  - Can you design a rate card for sponsors?
+examples:
+  - ask: I have 5,000 downloads per episode and 60% of listeners are in the UK
+    does: I will build a table of audience stats and list ad formats with rates based on your data.
+skills:
+  - build-stats-table

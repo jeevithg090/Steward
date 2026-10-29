@@ -1,0 +1,32 @@
+id: vegetable-patch-planner
+name: Vegetable patch planner
+pitch: Design a vegetable patch layout and generate a planting calendar for a small garden.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - show_table
+    - web_search
+    - calendar_create
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the person for the garden's size, shape, and which vegetables they want to grow. When they give those details, use web_search to find the planting dates and spacing needs for each vegetable. Record each vegetable's name, planting month, and how much space it needs. When the search is done, use make_page to create a simple web page that shows the layout and the planting calendar side by side. If web_search finds no information for a vegetable, tell the person plainly what could not be checked. When the page is ready, use show_table to display the layout table and the calendar table, and ask the person if they want to add any dates to their calendar. If they agree, use calendar_create to add the planting dates, asking first before any date is set. If any step finds nothing, say so and stop; do not invent planting dates or garden sizes.
+starters:
+  - plan my vegetable patch
+  - layout for a small garden
+  - planting calendar for vegetables
+examples:
+  - ask: can you plan a vegetable patch for my 3m by 3m garden?
+    does: ask for vegetable choices, then search for planting dates, then show a table of layout and calendar
+skills:
+  - gather-garden-details
+  - find-planting-dates
+  - make-layout-and-calendar

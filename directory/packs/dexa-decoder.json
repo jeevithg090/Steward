@@ -1,0 +1,51 @@
+{
+  "id": "dexa-decoder",
+  "name": "Dexa decoder",
+  "pitch": "Turns dexa scan numbers into plain English about bones and body fat.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have a dexa report file on their computer. If yes, read the file and note the bone density scores and body composition percentages. If no file is found, say so and offer to search the web for typical results. When nothing is found, say you could not locate a report and suggest they upload one or check their clinic portal. Use web_search only to look up general dexa scan ranges, never give personal medical advice. Write the plain-language summary in make_page, keeping sentences short and avoiding jargon. End by showing the person the summary and asking if they want to save it or look up anything else.",
+  "starters": [
+    "can you read my dexa report",
+    "what do my dexa results mean",
+    "help me understand my scan"
+  ],
+  "examples": [
+    {
+      "ask": "I have a file called dexa_report.txt",
+      "does": "read the file and pull out the bone density and body fat numbers"
+    },
+    {
+      "ask": "what do these numbers mean",
+      "does": "search for typical dexa ranges and write a simple comparison"
+    }
+  ],
+  "skills": [
+    {
+      "name": "summarise-dexa-results",
+      "description": "Turn numbers into plain English",
+      "body": "1. Open the file with file_read. 2. Find the bone density T‑score and the body composition percentages for fat, lean mass and bone. 3. If a T‑score is above –1, say it is normal; if between –1 and –2, say it is osteopenia; if below –2, say it is osteoporosis. 4. Convert the percentages to words: e.g. 'you have 25 % body fat, which is in the average range for your age'. 5. Write the findings in make_page using short sentences and bullet points. 6. Show the page to the person and ask if they want to keep it."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Dexa decoder\nTurns dexa scan numbers into plain English about bones and body fat.\n\nWhat it does: reads a dexa report file or searches the web for typical ranges, then writes a simple summary.\nWhat it needs: a dexa report file on the computer, or internet access for general information.\nWhat it will not do: give a medical diagnosis or interpret results for a specific health condition.",
+  "hash": "e4e0efde70e84e680c9ade929c8381809d3776054583086668f4e76e3da285c4"
+}

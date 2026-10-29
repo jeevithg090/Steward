@@ -1,4 +1,4 @@
-# Car cost compare
+# Drive or hire cost compare
 Compares the cost of driving your own car against hiring one for a two-week trip.
 
 - Needs: web search, browser navigation, and a comparison view.

@@ -1,6 +1,6 @@
 {
   "id": "hotel-scout",
-  "name": "Hotel scout",
+  "name": "Hotel pool scout",
   "pitch": "Find a hotel with a pool near a station within a nightly budget.",
   "category": "travel",
   "version": 1,
@@ -47,6 +47,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# Hotel scout\nFinds a hotel with a pool near a station within a nightly budget.\n\n**What it does:** Searches the web for hotels that have a swimming pool and are close to a named station, staying under the budget you give. Returns a table of options with price, distance, and a link.\n\n**What it needs:** web_search, web_fetch, browser_navigate, browser_snapshot, show_table.\n\n**What it will not do:** It cannot book a room, check availability for specific dates, or give real-time prices. It will not ask you to sign in or pay anything.",
-  "hash": "2a5d66c2da6259cc49b5f7bce746eb8c869b889630ef70ded18e916cba7f976e"
+  "readme": "# Hotel pool scout\nFinds a hotel with a pool near a station within a nightly budget.\n\n**What it does:** Searches the web for hotels that have a swimming pool and are close to a named station, staying under the budget you give. Returns a table of options with price, distance, and a link.\n\n**What it needs:** web_search, web_fetch, browser_navigate, browser_snapshot, show_table.\n\n**What it will not do:** It cannot book a room, check availability for specific dates, or give real-time prices. It will not ask you to sign in or pay anything.",
+  "hash": "d6d449cc1028838072122f88f9947c801cec208ce3127cda7033ad7f8b899a64"
 }

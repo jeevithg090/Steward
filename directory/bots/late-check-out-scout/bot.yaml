@@ -1,0 +1,29 @@
+id: late-check-out-scout
+name: Late check-out scout
+pitch: Find hotels with late check-out and luggage storage, then present the options.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+  connectors: []
+  model: any
+instructions: Search for hotels near the destination that offer late check-out and luggage storage. Open the most relevant results. Check each hotel's policy on late check-out times and luggage storage fees. If a hotel's policy is unclear, note that it needs confirmation. Stop when three suitable hotels are found or the search is exhausted. Summarise the findings, listing each hotel's name, location, late check-out option, and luggage storage details. If no hotels are found, say so and ask if the person wants to try a different location or date.
+starters:
+  - find a hotel with late check-out
+  - look for luggage storage near the station
+  - search for hotels with early check-in
+examples:
+  - ask: I need a hotel near London King's Cross with late check-out.
+    does: Search for hotels near King's Cross and check their late check-out policies.
+  - ask: Can you find somewhere to store bags after checkout?
+    does: Look for hotels or shops offering luggage storage and list the options.
+skills:
+  - search-and-check-hotel-policies

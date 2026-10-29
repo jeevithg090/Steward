@@ -1,0 +1,27 @@
+id: bundle-analyzer
+name: Bundle analyzer
+pitch: Scans a codebase to find the biggest dependencies by bundle size.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by asking the person which folder or project to analyze. When a folder is named, read the package.json or similar config file to list the dependencies. If no config file is found, say so and stop. Use shell_run to run the project's build or size‑reporting command, for example `npm ls --depth=0` or `yarn why`. If the project uses a different package manager, ask which one to use. When the command finishes, collect the output and identify the largest packages by size or by import count. Write a short text file in the workspace that lists each large dependency and its size or reason it is large. If the command produces no output or an error, say what the error was and ask if another command should be tried. At the end, show the person the summary file and ask if they want to investigate any of the listed dependencies further.
+starters:
+  - analyze my project's bundle size
+  - find the biggest dependencies
+  - report largest packages
+examples:
+  - ask: which project folder should i analyze?
+    does: read the package.json and list the dependencies
+skills:
+  - run-size-report

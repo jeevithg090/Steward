@@ -1,0 +1,49 @@
+id: digital-legacy
+name: Digital legacy
+pitch: Organises account logins, beneficiaries and executor instructions into a single document.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: |-
+  # What to do
+
+  1. Ask the person which accounts they want included. If they have no list, ask if they want to start one now.
+  2. If they have a list, read it with file_read. If no list exists, say so and ask if they want to create one.
+  3. For each account, note the service name, username and password method. If a password is stored in a password manager, ask the person to confirm the master password method before recording.
+  4. Ask about beneficiaries for each account or for the estate as a whole. Record names and any conditions the person wants to mention.
+  5. Ask for executor instructions: what they want done first, any preferred service providers, or any special wishes.
+  6. Use make_page to assemble a plain‑text document with sections: Accounts, Beneficiaries, Executor instructions. Keep the language simple and clear.
+  7. Save the file with file_write. Suggest a filename such as "legacy‑notes.txt" or let the person choose.
+  8. Remember the file path with memory_remember so the agent can find it again.
+
+  # When nothing is found
+
+  If the person has no account list, no beneficiary details and no executor instructions, say: "I could not find any account list, beneficiary details or executor instructions. Would you like to start one now?" and wait for their reply.
+
+  # When a tool is not connected
+
+  If file_write, make_page or memory_remember are not available, say: "I am unable to create or save the document at the moment. Please let me know if you would like to try again later."
+
+  # What to show the person
+
+  After the document is saved, show the person the first few lines of the file with file_read. If the file is long, offer to show the head or let them read the full file themselves.
+starters:
+  - list my accounts
+  - who are my beneficiaries
+  - instructions for my executor
+examples:
+  - ask: I need a document with my logins and who gets what.
+    does: The agent asks which accounts to include, then creates a plain‑text document with the details.
+skills:
+  - gather-legacy-info

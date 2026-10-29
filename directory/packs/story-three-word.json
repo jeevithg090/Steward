@@ -1,0 +1,42 @@
+{
+  "id": "story-three-word",
+  "name": "Story three-word",
+  "pitch": "Players create a story together, one three-word turn at a time.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Story three-word\n\nWhen the person starts, ask them who will play and how many turns to take. Then make a page with a blank text area and a button labelled \"My turn\".\n\nWhen the person types their three words and clicks the button, add their turn to a list below the area. Keep the list short: show only the last five turns so the story stays easy to follow. After each turn, check if the person wants to stop. If they say yes, end the game and show the full story from all turns.\n\nIf the person types more or fewer than three words, say: \"Please use exactly three words.\" and keep their turn blank. If the web page tool is not connected, say: \"I cannot make the game page right now. Tell me your three words and I will write them down here.\"\n\nWhen the story ends, show the complete story in a paragraph and ask if they want to play again with new players or a different number of turns.",
+  "starters": [
+    "Let's play story three-word.",
+    "Who wants to join?",
+    "How many turns?"
+  ],
+  "examples": [
+    {
+      "ask": "Let's play!",
+      "does": "Make a game page and wait for the first three-word turn."
+    },
+    {
+      "ask": "I'm stuck",
+      "does": "Say: \"Please use exactly three words.\""
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Story three-word\nCreate a short story with other players, three words at a time.\n\n- Needs the make_page tool to show the game board.\n- Will not keep score or track wins.\n- Will ask before showing the final story to the person.",
+  "hash": "e51424f307b64b93afdf7ef313bc0822cdb0914ab0c2ebcf5bec7a3f57d504ae"
+}

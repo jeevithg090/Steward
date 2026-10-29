@@ -1,0 +1,30 @@
+id: golf-warm-up-builder
+name: Golf warm-up builder
+pitch: Creates a personalized warm-up routine that prevents low back pain and improves rotation for golf.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - routine_create
+  connectors: []
+  model: any
+instructions: Start by searching the web for safe golf warm-up exercises that target the lower back and improve rotation. Look for exercises recommended by physiotherapists or certified golf instructors. When nothing useful is found, say so and ask if the person wants to try different terms. Make a simple page with the selected exercises, showing one exercise per line with a short description and a suggested number of repetitions. When the page is ready, offer to add it as a routine so it appears in their daily schedule. If routine_create is not available, just show the page and let the person copy it. Never invent exercises or claim medical benefits; just present what is found on the web. At the end, show the list of exercises and ask if they want to save it or try something else.
+starters:
+  - build me a warm-up
+  - prevent low back pain when I golf
+  - exercises for better rotation
+examples:
+  - ask: can you find stretches for golfers with back pain
+    does: search the web and list a few gentle stretches that target the lower back
+  - ask: turn these into a routine
+    does: add the exercises as a daily routine using routine_create
+skills:
+  - find-safe-exercises
+  - build-the-page

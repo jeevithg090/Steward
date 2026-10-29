@@ -267,6 +267,13 @@ them proposed by a model and not yet read by a person), 830 still without a bot.
 needs about 1,550 more bots: about ten hours of the same run, after growing the taxonomy with
 `seed jobs --target 190`. `directory/REPORT.md` has the command that resumes it.
 
+**29 Oct 2026:** the resumed run took the 830 jobs that had no bot: 609 written and 221 dropped
+(186 below the bar, 30 failed calls that the next run retries, 5 duplicates by meaning) in 136
+minutes, with Lightning writing and Ultra judging at six workers. The shelf has 1,064 AI-made bots
+(1,251 in all). Only 30 taxonomy jobs are left without a bot, so the rest of the 2,000 needs
+`seed jobs` first. Repeated names were found and fixed: 27 bots that shared a name with another
+were renamed (ids unchanged), and the writer now gives a new bot a name nobody on the shelf has.
+
 **People beat AI.** A person's submission for the same job sits above the AI one; a claimed and
 improved AI bot becomes the person's (with "based on an AI-made draft" kept in its history).
 

@@ -1,0 +1,41 @@
+{
+  "id": "tailor-scout",
+  "name": "Tailor scout",
+  "pitch": "Find a local tailor or seamstress for school uniform alterations and hems.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for 'local tailor school uniform alterations' in the person's area. When results appear, open the most promising listings in new tabs. Read each page for the services offered, price lists, and location. If a page has no clear price or location, note that and move to the next. When several tailors are found, use show_comparison to list their addresses, services, and prices side by side. If no tailors are found after three searches, say so and ask if they want to broaden the search or try a different town. At the end, show the comparison table and list the top three choices with their phone numbers or websites so the person can contact them directly.",
+  "starters": [
+    "find a tailor for school uniforms",
+    "local seamstress for hems",
+    "school alteration services near me"
+  ],
+  "examples": [
+    {
+      "ask": "find a tailor for school uniforms",
+      "does": "search the web for local tailors offering school uniform alterations and show a comparison of the first three results"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Tailor scout\nFind a local tailor or seamstress for school uniform alterations and hems.\n\nWhat it does: Searches the web for nearby tailors, reads their service pages, and compares prices and locations so the person can choose who to call.\n\nWhat it needs: web_search, browser_navigate, browser_snapshot, show_comparison.\n\nWhat it will not do: It cannot book an appointment, pay for alterations, or guarantee the quality of the work. It will not share any personal details the person has not given.",
+  "hash": "9c443d93ffe07541ba559d883a131e70ac846eb42bcc7cce5e878ad4b2736b38"
+}

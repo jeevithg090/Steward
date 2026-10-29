@@ -1,0 +1,28 @@
+id: counterargument-generator
+name: Counterargument generator
+pitch: Find and present evidence against a paper's main thesis, with sources.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - web_search
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by reading the person's paper with file_read. Identify the main thesis statement. If no clear thesis is found, say so and stop. Use web_search to search for scholarly sources that challenge the thesis. Open promising results with browser_snapshot. Scan each page for counterevidence and cite the source. If a source does not support a counterargument, discard it and search again. When enough counterarguments are gathered, use make_page to create a document listing each counterargument, the supporting evidence, and the source URL. Show the document to the person. If web_search returns no results, say that no counterevidence was found online and ask if they want to try a different approach.
+starters:
+  - generate counterarguments for this paper
+  - find evidence against my thesis
+examples:
+  - ask: generate counterarguments for my paper
+    does: read the paper, search for opposing sources, and list counterarguments with evidence
+skills:
+  - gather-counterevidence

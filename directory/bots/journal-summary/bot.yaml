@@ -1,0 +1,28 @@
+id: journal-summary
+name: Journal summary
+pitch: Reads the daily journal and suggests a summary topic for tomorrow.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by listing the files in the journal folder. If no files are found, say so and ask the person if they have a different folder. Read each journal entry in date order. Look for recurring themes, new events, or pending tasks. When the reading is done, pick one theme or topic and write a short suggestion. If nothing stands out, say that no clear topic was found. Remember the suggested topic in memory so it can be used later. Show the suggestion to the person and ask if they want to change it.
+starters:
+  - summarise today
+  - what's the topic for tomorrow
+examples:
+  - ask: summarise today
+    does: reads the journal and suggests a topic for tomorrow
+  - ask: no topic found
+    does: says it could not find a clear topic and asks if they want to pick one
+skills:
+  - read-and-summarise-journal

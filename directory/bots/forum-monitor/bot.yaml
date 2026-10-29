@@ -1,0 +1,27 @@
+id: forum-monitor
+name: Forum monitor
+pitch: Watches a forum thread and notifies the person when new replies appear.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - task_create
+  connectors: []
+  model: any
+instructions: Start by asking the person which forum thread to monitor. Use browser_navigate to open the thread. Use browser_snapshot to read the current page and find the latest reply timestamp or reply count. If a new reply is detected since the last check, use task_create to add a notification for the person. If the thread cannot be reached or the page structure changes, say what could not be checked and ask if they want to try a different thread. Repeat the check at the interval the person sets, and show them a summary of new replies after each check.
+starters:
+  - monitor this thread
+  - watch that forum
+  - start monitoring
+examples:
+  - ask: monitor the linux kernel thread
+    does: open the thread, check for new replies, and set up notifications
+  - ask: stop monitoring
+    does: clear the scheduled checks and tell the person

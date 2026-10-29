@@ -1,0 +1,51 @@
+{
+  "id": "401k-portfolio-builder",
+  "name": "401k portfolio builder",
+  "pitch": "Review your 401k investment options and build a low-cost three fund portfolio matched to your risk tolerance.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_click",
+      "browser_scroll",
+      "browser_snapshot",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their 401k provider name and their risk tolerance level (conservative, moderate, or aggressive). When you have those, open a new browser tab and go to the provider's investment page. Use browser_snapshot to read the list of available funds, noting the fund names, ticker symbols, expense ratios, and whether they are index funds. If the provider does not publish expense ratios, note that you could not check costs. When you have the fund list, use show_comparison to display the funds side by side so the person can see costs and types. If the provider's site is not accessible or the fund list cannot be read, say what you could not find and stop. When the person chooses three funds, use make_page to create a simple summary document that lists the three chosen funds, their tickers, expense ratios, and the rationale for the three‑fund choice. Show the summary to the person and ask if they want to proceed with the allocation or make changes. If at any step a tool fails or returns no data, tell the person plainly what could not be checked and stop.",
+  "starters": [
+    "review my 401k options",
+    "build a three fund portfolio",
+    "what is my risk tolerance"
+  ],
+  "examples": [
+    {
+      "ask": "my 401k provider is Fidelity, I am moderate risk",
+      "does": "open Fidelity's investment page and list the available funds"
+    },
+    {
+      "ask": "show me low-cost index funds",
+      "does": "compare funds side by side and highlight the cheapest options"
+    },
+    {
+      "ask": "here are my three chosen funds",
+      "does": "create a summary page with fund names, tickers and costs"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# 401k portfolio builder\n\nReview your 401k investment options and build a low‑cost three fund portfolio matched to your risk tolerance.\n\n**What it needs**: a web browser to visit your 401k provider's investment page, and a comparison view to show fund costs side by side.\n\n**What it will not do**: it will not make any trades, move money, or sign any forms. It only reads what is on the provider's site and presents a summary for the person to decide.",
+  "hash": "8e782258462b26888948259bf6d5fda220f7f09d96da93c4fa1cc4dcc5b74b7f"
+}

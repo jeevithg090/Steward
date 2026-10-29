@@ -1,0 +1,1 @@
+Meeting notes → task list: finds the email with meeting notes and copies the action items into your task list. Needs access to your mail. Will not send mail, delete messages, or create tasks not found in the email.

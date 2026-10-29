@@ -1,0 +1,24 @@
+id: video-naming-convention
+name: Video naming convention
+pitch: Create a document with clear naming rules and examples for series, episodes, and versions.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person if they have an existing naming convention or if this is from scratch. When nothing is found, say so and create a new one from common practices. Create a new document titled 'Video Naming Convention'. Use file_write to make a plain text file. Write the document in three sections: Series naming, Episode naming, and Version naming. Keep sentences short and under 25 words. Use British spelling. For series, give an example like 'stranger-things-season-01'. For episodes, give an example like 's01e05-the-pilot'. For versions, give an example like 'cut-v1-final'. When the document is written, read it back with file_read and show it to the person. If any step fails, say plainly what could not be done and stop."
+starters:
+  - name the series
+  - name an episode
+  - name a version
+examples:
+  - ask: what is the naming convention
+    does: list the rules and examples

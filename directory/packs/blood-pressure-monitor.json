@@ -1,0 +1,40 @@
+{
+  "id": "blood-pressure-monitor",
+  "name": "Blood pressure monitor",
+  "pitch": "Set up a home protocol for checking blood pressure correctly and logging results.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "task_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Blood pressure monitoring protocol\n\n## Check technique\n1. Search the web for \"proper home blood pressure monitoring technique\" or a trusted health site article on the topic.\n2. Read the top result to learn the correct cuff placement, arm position, and timing.\n3. If no clear result is found, say so and stop.\n\n## Log results\n4. Use the make_page tool to create a simple text document titled \"Blood pressure log\" with columns for date, time, systolic, diastolic, and pulse.\n5. Save the file in the assistant's workspace.\n\n## Set reminders\n6. Use the task_create tool to add a daily task titled \"Check blood pressure\" with a note linking to the log file.\n7. If the task cannot be created, say so and stop.\n\n## Report back\n8. Show the person the log file and the task details, and ask if they want to adjust anything.",
+  "starters": [
+    "set up blood pressure monitoring",
+    "help me log my readings",
+    "teach me proper technique"
+  ],
+  "examples": [
+    {
+      "ask": "start",
+      "does": "search for technique guidance and create a log template"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Blood pressure monitor\nSets up a home protocol for checking blood pressure correctly and logging results.\n\n**What it does**: Creates a log template, adds a daily reminder, and searches for proper technique guidance.\n\n**What it needs**: web_search to find technique articles, make_page to create the log, task_create to set the reminder.\n\n**What it will not do**: It will not give medical advice, diagnose conditions, or set up automated data entry.",
+  "hash": "8766e899b6a63824b097b25a674a67cddd9e48a468af70d67e2221a02921fde1"
+}

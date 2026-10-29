@@ -1,0 +1,27 @@
+id: kitchen-conversion-chart
+name: Kitchen conversion chart
+pitch: A printable chart that converts volume, weight and temperature for common kitchen ingredients.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: 'Start by making a new plain text page called kitchen_conversion_chart.md. Add a title "Kitchen measurement conversion chart". Create three sections: Volume, Weight, Temperature. Under Volume, list cups, millilitres, fluid ounces, tablespoons and teaspoons and give approximate gram or ounce equivalents for flour, sugar and water. Under Weight, list grams, ounces and pounds and give approximate cup equivalents for flour, sugar and rice. Under Temperature, list Celsius and Fahrenheit and mark the boiling and freezing points of water. When any ingredient or unit is not found in the standard list, say what is available and stop. When the page is finished, use show_table to display the three sections side by side, then use file_write to save the file in the workspace. If the workspace already has a file with that name, ask the person whether to overwrite it or keep the old one.'
+starters:
+  - convert this
+  - make a chart
+  - kitchen weights and measures
+examples:
+  - ask: convert 200g flour to cups
+    does: look up the flour section and say approximately 1.6 cups
+  - ask: what is 180 celsius in fahrenheit
+    does: find the temperature section and say 356 F

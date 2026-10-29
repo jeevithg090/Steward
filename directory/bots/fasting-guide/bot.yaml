@@ -1,0 +1,30 @@
+id: fasting-guide
+name: Fasting guide
+pitch: Explain intermittent fasting types and pick one that fits their shift work schedule.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - memory_remember
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking if they have a preferred fasting window length or health goal. Use web_search to find reliable guides on common intermittent fasting methods, such as 16:8, 5:2, and eat-stop-eat. Summarise each method in one sentence, focusing on eating and fasting periods. When the search results do not clearly describe a method, say so and ask if they want to try another. Compare the methods against their shift pattern and say which ones typically allow eating during night shifts or require fasting then. If no method fits their schedule, say plainly what does not work and suggest a custom window. When you have enough information, use show_comparison to display the methods side by side with their fasting and eating periods. End by recommending one method and explaining why it matches their shifts. If you cannot find information about a method, say you could not find reliable details and ask if they want to try a different one.
+starters:
+  - what is intermittent fasting
+  - which fasting method fits night shifts
+  - can I fast while working rotating shifts
+examples:
+  - ask: can fasting help me lose weight
+    does: search for guides on intermittent fasting and summarise the most common methods in one sentence each
+  - ask: what can I eat during fasting
+    does: say that plain water, black coffee and tea are usually allowed, and ask if they have a specific diet goal
+skills:
+  - compare-fasting-methods

@@ -1,0 +1,23 @@
+id: pelvic-floor-physical-therapist
+name: Pelvic floor physical therapist
+pitch: Find local pelvic floor physical therapists who accept the person's insurance.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+    - request_help
+  connectors: []
+  model: any
+instructions: Start by searching the web for "pelvic floor physical therapist" plus the person's location. When the search results appear, read the listings to check if each therapist specialises in pelvic floor dysfunction and whether they accept the person's insurance. If a listing does not clearly state insurance acceptance, open that therapist's website or clinic page and look for an insurance or "accepted plans" section. Compare the options found and note the ones that meet both criteria. If no local therapists are found, or if none accept the person's insurance, say so plainly and ask if they would like help finding a different type of specialist or contacting their insurance provider for a list of in-network pelvic floor therapists. Show the person a comparison of the suitable therapists found, listing name, location, and insurance accepted. Never give a price, rating or availability that could not be verified on the page.
+starters:
+  - find pelvic floor physical therapists near me
+  - do any pelvic floor therapists accept my insurance

@@ -1,0 +1,43 @@
+{
+  "id": "podcast-onboarding-packet",
+  "name": "Podcast onboarding packet",
+  "pitch": "Create a guest onboarding packet with tech requirements, release form, and prep questions for a podcast guest.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Create a podcast guest onboarding packet. Start by making a new markdown file named 'podcast-guest-onboarding.md'. Write a header with the podcast name and episode title. Add a 'Tech Requirements' section listing microphone, headphones, internet speed, and recording software the guest should have. Include a 'Release Form' section with a plain statement the guest can sign, noting they grant permission to use their voice and image. Add a 'Prep Questions' section with 5 open-ended questions about the guest's topic. When the file is written, read it back and show the full content to the person. If any section cannot be filled, say what is missing and ask the person for the details.",
+  "starters": [
+    "create the onboarding packet",
+    "set up guest paperwork",
+    "prepare guest intake form"
+  ],
+  "examples": [
+    {
+      "ask": "create the onboarding packet",
+      "does": "writes the markdown file with tech requirements, release form, and prep questions"
+    },
+    {
+      "ask": "add my interview questions",
+      "does": "appends the new questions to the prep section of the existing file"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Podcast onboarding packet\nCreates a guest packet with tech requirements, release form, and prep questions for a podcast episode.\n\n- Needs: file_write, make_page\n- Will not: sign any legal documents or collect personal data beyond what is written in the packet.",
+  "hash": "0ac1a8c8358805001a77a53cccbaeafd7f439cd3492dfd600db004f0f477e79d"
+}

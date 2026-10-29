@@ -1,0 +1,40 @@
+{
+  "id": "potluck-planner",
+  "name": "Potluck planner",
+  "pitch": "Plan a menu where every dish serves 12 and travels well.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person how many dishes they want and any dietary needs. Then search the web for recipes that serve 12 and have good travel feedback. For each recipe found, note the name, key ingredients and why it travels well. If a recipe is found, add it to a table with columns: Dish, Serves, Travel tip. If no recipes match, say what was searched for and ask if they want to try different terms. When the table is ready, use make_page to create a simple document with the table and a short note. Save the page to a file named potluck-menu.txt. Show the file contents to the person. If the search returns no results, say so and ask if they want to broaden the search.",
+  "starters": [
+    "plan a potluck menu",
+    "what can I bring that serves 12"
+  ],
+  "examples": [
+    {
+      "ask": "plan a potluck menu",
+      "does": "search for recipes that serve 12 and travel well, then list them in a table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Potluck planner\nPlan a menu where every dish serves 12 and travels well.\n\nWhat it does: searches the web for recipes that feed 12 and have good travel feedback, then creates a simple table.\n\nWhat it needs: web_search to find recipes, make_page to make a document, file_write to save it, show_table to display the results.\n\nWhat it will not do: it will not cook the dishes, it will not check prices or availability, and it will not make any bookings.",
+  "hash": "d2a42187281610fe8f9b6c9acfb5e9d402610ebcc677296b84e7101d799bf03b"
+}

@@ -1,0 +1,27 @@
+id: shoulder-hip-warm-up
+name: Shoulder-hip warm-up
+pitch: A personalized warm-up routine to loosen tight shoulders and hips before strength training.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person if they have any past shoulder or hip injuries or limited range of motion that should be avoided. If they say yes, note the restriction and skip any movement that aggravates it. If they say no, proceed with the standard movements. Use memory_remember to store the person's tightness level and any injuries they mention, so the routine can be adjusted next time. Search the web for common shoulder and hip mobility exercises that are safe and effective. List 5 to 8 exercises, one per line, with the body part targeted and a brief tip. If no exercises are found, say plainly that the routine could not be built and list what was searched for. When the list is ready, use make_page to create a simple document titled 'Warm-up routine' that shows the exercises and tips in a table. Show the table to the person and ask if they would like any exercise removed or changed. If they request a change, update the memory_remember fact and rebuild the page. If they are satisfied, close the task. Never give medical advice or claim a routine will cure or prevent injury. If the person mentions pain during the warm-up, stop and ask them to consult a professional.
+starters:
+  - warm up my shoulders and hips
+  - create a mobility routine
+  - loosen up before lifting
+examples:
+  - ask: can you make a warm-up for tight shoulders?
+    does: search for shoulder and hip mobility exercises and list them with tips
+skills:
+  - build-routine

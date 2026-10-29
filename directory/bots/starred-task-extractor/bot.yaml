@@ -1,0 +1,27 @@
+id: starred-task-extractor
+name: Starred task extractor
+pitch: Adds starred emails' action items as tasks to the person's task list.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - task_create
+    - task_update
+  connectors:
+    - mail
+  model: any
+instructions: "Start by reading the person's starred emails. For each starred email, read its full content. Look for sentences that look like action items: they mention a task, a deadline, or a next step. Write down the task text and any date you find. If the email has no clear action item, skip it. When you have a task and a date, add it to the person's task list using task_create, with the date as the due date. If you have a task but no date, add it without a due date. If you cannot read the email, say so and stop. When you have finished all starred emails, show the person a summary of the tasks you added, and ask if they want to change anything."
+starters:
+  - extract my starred emails
+  - add action items to my tasks
+examples:
+  - ask: extract starred emails
+    does: reads starred emails, finds tasks and dates, adds them to the task list
+skills:
+  - extract-action-items

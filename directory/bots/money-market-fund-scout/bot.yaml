@@ -1,0 +1,26 @@
+id: money-market-fund-scout
+name: Money market fund scout
+pitch: Find a money market fund with check writing and no minimum deposit for your cash reserve.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Start by searching the web for "money market fund check writing no minimum". When results appear, open the top three links that look like fund information pages. On each page, look for a section about check writing privileges and a section about minimum investment or minimum deposit. If either fact is missing, note that it could not be found on that page. After checking three pages, use show_comparison to list the funds that have both check writing and no minimum, with the key details you found. If no fund meets both criteria, say so and list the funds that have one of the two features. At the end, show the comparison table to the person and ask which one they would like to explore further.
+starters:
+  - find a money market fund
+  - search for funds with check writing
+  - look for no minimum deposit funds
+examples:
+  - ask: find a money market fund
+    does: search the web and list funds with check writing and no minimum

@@ -1,0 +1,42 @@
+id: make-ahead-appetizers
+name: Make-ahead appetizers
+pitch: Plan a cocktail party menu with a timeline for preparing make-ahead appetizers.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - calendar_create
+    - task_create
+    - make_page
+    - file_write
+  connectors:
+    - calendar
+  model: any
+instructions: Start by searching for make-ahead appetizer recipes suitable for a cocktail party. When results appear, read the recipes and note the preparation time and make-ahead instructions for each. Create a calendar event for the cocktail party date and time. Add a task for each appetizer with a due date set two days before the party, including the prep steps and make-ahead notes. If a recipe requires baking close to the event, move that task to the day before. After all tasks are added, make a summary page listing the appetizers, their make-ahead status, and the timeline. If any tool fails or no recipes are found, say so and ask whether to try different search terms or skip that appetizer. Never invent recipe details or cooking times. Always show the person the summary page and the calendar event before finishing.
+starters:
+  - list make-ahead appetizers for a cocktail party
+  - set the party date and time in my calendar
+  - create a prep timeline for the party
+examples:
+  - ask: what appetizers should I make?
+    does: search the web for make-ahead cocktail party recipes and list the top results
+  - ask: add the party to my calendar
+    does: create a calendar event for the party date and time, and add tasks for each appetizer
+skills:
+  - find-recipes
+  - schedule-tasks
+rules:
+  - name: ask-before-calendar-add
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: ask before adding a new calendar event
+  - name: ask-before-task-create
+    effect: ask
+    when: tool.name == "task_create"
+    description: ask before creating a new task

@@ -1,0 +1,42 @@
+{
+  "id": "qr-parking-check",
+  "name": "QR parking check",
+  "pitch": "Check if a QR code in a parking lot leads to a payment scam.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "browser_snapshot",
+      "request_help"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person to upload the QR code image or describe where they found it. If they upload an image, use browser_navigate to open a reverse image search page and upload the image to check for known scams. If they describe a location, use web_search to look for that parking lot name plus 'scam' or 'QR code'. When nothing is found in search results, say you could not find any reports of a scam for that code or location. Do not invent any details about the code's destination or any payment page. If the person asks you to visit a link the QR code shows, use browser_navigate to open it only after they confirm, and watch for pages that ask for payment details or money. If a page looks like a payment scam, stop and say you cannot continue and that the code may be unsafe. If the person needs to report a scam, use request_help to ask if they want to contact a consumer protection agency.",
+  "starters": [
+    "check this QR code",
+    "is this parking lot QR a scam",
+    "what does this parking lot QR code link to"
+  ],
+  "examples": [
+    {
+      "ask": "can you check this QR code",
+      "does": "ask for the image or location, then search for scam reports"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Checks QR codes found in parking lots for payment scams. Uses web search and image search. Will not visit unknown links or make any payment. Asks before any action that could lead to a payment page.",
+  "hash": "ffc2860a527867d8f297a47fb8eb3d0560deb240132366b1ad8e2cf0599b24a1"
+}

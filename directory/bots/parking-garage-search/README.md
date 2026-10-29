@@ -1,0 +1,1 @@
+Parking garage search finds parking spots that fit a high-roof van. It searches the web for garages and checks their height clearance. It will not book a spot, pay a fee, or give driving directions. It only reports what height is listed on the page.

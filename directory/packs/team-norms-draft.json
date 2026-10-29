@@ -1,0 +1,44 @@
+{
+  "id": "team-norms-draft",
+  "name": "Team norms draft",
+  "pitch": "Create a document with communication expectations, response times, and meeting etiquette for a team.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening a new page titled 'Team communication norms'. Write a section called 'Communication expectations' and list how the team should use email, chat, and phone. Add a section 'Response times' with expected reply times for each channel. Add a section 'Meeting etiquette' with rules for joining on time, muting when not speaking, and keeping cameras on when possible. When the draft is complete, show the person the full text and ask if they want to save it or make changes. If the person gives a name for the team, remember it for future drafts.",
+  "starters": [
+    "I need a draft for our team's communication rules.",
+    "Can you write up meeting etiquette for us?",
+    "Help me set response time expectations."
+  ],
+  "examples": [
+    {
+      "ask": "What should our response time be for Slack?",
+      "does": "I will add a response time section and ask the person for their preference."
+    },
+    {
+      "ask": "Send this to the team.",
+      "does": "I will not send anything; I will ask the person to confirm before any sending."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Team norms draft: creates a document with communication expectations, response times, and meeting etiquette. Needs file_write and make_page. Will not send or share the document without the person's say-so.",
+  "hash": "303e3c2fda06b0928b4be20b2e1ab36f510e7d2e9e737156bc917b82cf0cbbfd"
+}

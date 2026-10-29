@@ -1,0 +1,23 @@
+id: topic-research
+name: Topic research
+pitch: Find recent conference proceedings and grey literature on a given topic from the last two years.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Search the web for the topic name plus 'conference proceedings' and 'grey literature'. Open the most promising results in the browser. Scan each page for dates and confirm the work was published within the last two years. Save the title, authors, venue, year, and URL of every qualifying item to a text file. When no results from the last two years are found, say so and list the most recent items found, if any. When the browser cannot open a page, note that the page could not be accessed. After saving, create a simple page that lists every saved item with its details and show it to the person.
+starters:
+  - find papers on <topic>
+  - search for recent conference proceedings on <topic>

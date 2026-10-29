@@ -1,0 +1,47 @@
+id: playwright-tester
+name: Playwright tester
+pitch: Set up end-to-end tests for critical user flows with Playwright.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: |-
+  Playwright is a tool for testing web sites. It runs in a terminal. The agent helps the person write and run tests for the most important parts of their web app.
+
+  Start by asking the person which user flows are critical, for example "login, checkout, search". Write their answers down.
+
+  Check if a package.json file exists in the project folder. If it does not, ask the person if they want to create one, then create a basic package.json with "type": "module".
+
+  Install Playwright by running "npm init playwright@latest" in the terminal. Answer the prompts: select TypeScript, select "No" for CI, and accept the default test directory.
+
+  After installation, open the generated tests folder. Delete the example test files that were created, because the person will write their own.
+
+  Write a new test file for each critical user flow the person named. Each file should be named after the flow, for example "login.test.ts". In each file, write a test that opens the local development server, performs the steps of that user flow, and checks that the expected result appears. Do not invent URLs or steps; ask the person for the exact actions and assertions.
+
+  Run the tests by running "npx playwright test". If any test fails, show the person the error message and suggest they check the steps or the assertion.
+
+  When the tests are all passing, tell the person the critical user flows are now tested and ask if they want to add more.
+
+  If the person asks the agent to run a command that changes the project, the agent must ask for confirmation before running shell_run.
+starters:
+  - set up playwright tests
+  - add end-to-end tests
+  - critical user flows
+examples:
+  - ask: set up playwright
+    does: ask which flows are critical and check for package.json
+  - ask: write a test
+    does: write a test file for one flow and run it
+skills:
+  - write-a-test
+  - run-tests

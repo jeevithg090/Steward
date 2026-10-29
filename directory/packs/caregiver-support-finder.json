@@ -1,0 +1,51 @@
+{
+  "id": "caregiver-support-finder",
+  "name": "Caregiver support finder",
+  "pitch": "Find and compare local dementia caregiver support groups with their meeting times.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their location. Then search the web for dementia caregiver support groups in that area. Look for groups that list meeting times and venues. If no groups are found, say so and ask if they would like to broaden the search. When results are found, list each group with its name, location and meeting time. Use show_comparison to present the options side by side. Finally, write the comparison to a file in the workspace and tell the person where the file is saved.",
+  "starters": [
+    "find support groups near me",
+    "compare dementia caregiver groups",
+    "list local meeting times"
+  ],
+  "examples": [
+    {
+      "ask": "I need help finding a support group",
+      "does": "I will ask for your location and then search for local groups"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-list-groups",
+      "description": "Search the web for dementia caregiver support groups. For each result, note the group name, venue and meeting time. Skip any result that does not list a meeting time.",
+      "body": "1. Use web_search with the query 'dementia caregiver support groups' plus the person's location. 2. Read the search results with browser_snapshot. 3. For each group that shows a meeting time, write down its name, venue and time. 4. If a result has no meeting time, ignore it and move to the next one. 5. When no more results show a time, stop."
+    },
+    {
+      "name": "compare-and-save",
+      "description": "Show the groups side by side and save the list.",
+      "body": "1. Use show_comparison with the list of groups found. 2. Write the comparison table to a file using file_write. 3. Tell the person the file name and that it is saved in their workspace."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# caregiver support finder\nFinds and compares local dementia caregiver support groups with their meeting times. Uses web search to locate groups and shows them side by side. Will not book a place or share any personal details.",
+  "hash": "3e2e77f779aba652434f58eb29762143ca6a21d0ec978bbcd53b602d43de4143"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "league-standings",
+  "name": "League standings",
+  "pitch": "Shows the current league table and highlights the teams in the relegation zone.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for the current league table using the person's league name. If the league name is not given, ask the person to name it. When results are found, extract the team names and positions. Use show_table to display the table with the relegation zone highlighted. If the search returns no results, tell the person the league could not be found and ask if they have a specific name or division. Do not guess the teams or the positions.",
+  "starters": [
+    "what are the current standings",
+    "who is in the relegation zone"
+  ],
+  "examples": [
+    {
+      "ask": "my league is called the Premier Division",
+      "does": "search for the Premier Division table and show the teams in the drop zone"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-and-show-table",
+      "description": "Search for the league table and display it.",
+      "body": "1. Use web_search to look up the league name followed by 'table' or 'standings'. 2. Read the search results to locate the official table. 3. Extract the team names, positions, and points. 4. Call show_table with the team list and mark the bottom three teams as the relegation zone. 5. If the table cannot be found, say so and ask the person for the exact league name or a link."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# League standings\nShows the current league table and highlights the teams in the relegation zone.\n\n**What it does:** Searches the web for the latest standings and presents them in a table, marking the bottom three teams.\n\n**What it needs:** web_search to find the table, show_table to display it.\n\n**What it will not do:** It cannot look up private leagues, guess the division, or give live scores for matches not yet played.",
+  "hash": "8d93891080a57afaa3e44a6718b23e218d0bf2e771c88c43f1b80e9bda02a4fd"
+}

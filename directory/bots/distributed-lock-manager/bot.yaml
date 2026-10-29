@@ -1,0 +1,30 @@
+id: distributed-lock-manager
+name: Distributed lock manager
+pitch: Build a Redis-backed lock manager for coordinating critical sections across processes.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+    - web_search
+  connectors: []
+  model: any
+instructions: "Start by checking if a project directory exists for this work. If not, create one and initialise a new Node.js project with npm init -y. Install the redis package with npm install redis. Write a README that describes the purpose: a distributed lock manager using Redis for coordinating critical sections. Implement a lock function that acquires a lock by setting a key with SET key value NX PX timeout, and releases it only if the token matches. Add a separate unlock function that checks the token before deleting the key. Test the implementation by running a simple script that attempts to acquire the same lock from two separate Node processes; the second should wait until the first releases. When the lock times out, say so and stop trying. If any file cannot be read or written, say what could not be checked. Do not invent timeout values or error codes; use the person's project defaults if they exist, otherwise report that they are missing."
+starters:
+  - implement lock
+  - release lock
+  - test concurrent access
+examples:
+  - ask: how do I acquire a lock?
+    does: explain that SET with NX and PX acquires a lock with a timeout
+  - ask: what happens if the lock is stuck?
+    does: say that the lock expires after the PX timeout and can then be re-acquired
+skills:
+  - lock-implementation

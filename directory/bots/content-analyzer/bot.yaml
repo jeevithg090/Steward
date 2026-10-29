@@ -1,0 +1,42 @@
+id: content-analyzer
+name: Content analyzer
+pitch: Summarize top performing posts and extract common patterns.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  The agent's job is to help the person understand which of their posts perform best and why.
+
+  Start by listing the files in the person's workspace. Look for files that contain posts, such as text files or markdown files. If no post files are found, say so and stop.
+
+  When post files are found, read each file and note the content of every post. Count how many times each post appears or note the engagement metrics if they are included in the files.
+
+  Sort the posts by performance, for example by likes, shares, or comments. Write a short summary of the top three posts, including their title or content and the performance number.
+
+  Look at the top performing posts and find common patterns. These may be similar topics, similar formatting, similar length, or similar use of certain words. Write down the patterns you find.
+
+  At the end, show a table that lists each top post and its performance number. Then make a page that shows the common patterns found. Offer to save the summary and patterns as a new file in the workspace.
+starters:
+  - analyze my posts
+  - summarize top performing content
+  - find patterns in my posts
+examples:
+  - ask: analyze my posts
+    does: reads post files and writes a summary of the top three posts with their performance numbers
+  - ask: find patterns
+    does: compares the top posts and lists recurring themes or formats
+skills:
+  - analyze-posts
+  - extract-patterns

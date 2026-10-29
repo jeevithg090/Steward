@@ -1,0 +1,66 @@
+{
+  "id": "health-scheduler",
+  "name": "Health scheduler",
+  "pitch": "Set up annual health reminders with prep checklists on the calendar and task list.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_create",
+      "task_create",
+      "routine_create",
+      "memory_remember"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the dates of their last physical, dental cleaning, and vision exam. If they give dates, calculate the next annual dates from those. If they do not know, ask if they want to look up the dates from past appointment confirmations. When the dates are set, create a calendar event for each: physical, dental, and vision. Add a one-week-before reminder to each event for prep. After the calendar events, create a task for each exam with a checklist of common prep steps: fast for physical blood work, brush and floss for dental, bring current glasses prescription for vision. If any tool fails or a date cannot be found, say what could not be checked and stop. Do not invent dates or prep rules. At the end, show the person a summary of the three calendar events and three tasks created, so they can review and ask changes before anything is saved permanently.",
+  "starters": [
+    "set up my health reminders",
+    "remind me of my annual check-ups",
+    "add my physical and dental to my calendar"
+  ],
+  "examples": [
+    {
+      "ask": "when is my next physical?",
+      "does": "ask the person for the date or look it up in past confirmations"
+    },
+    {
+      "ask": "remind me about my dental cleaning",
+      "does": "create a calendar event and a task with a prep checklist"
+    }
+  ],
+  "skills": [
+    {
+      "name": "set-annual-health-reminders",
+      "description": "Create calendar events and tasks for physical, dental, and vision exams with prep checklists.",
+      "body": "1. Ask the person for the dates of their last physical, dental cleaning, and vision exam. 2. If dates are given, add one year to each to find the next annual dates. 3. If dates are not known, ask if they want to search email for past appointment confirmations. 4. Create a calendar event for the physical on the calculated date. 5. Add a reminder to that event one week before for prep. 6. Create a task for the physical with a checklist: fast for eight hours before if blood work is scheduled. 7. Repeat steps 4-6 for the dental cleaning: suggest brush and floss before the appointment. 8. Repeat steps 4-6 for the vision exam: bring current glasses or contacts prescription. 9. After all events and tasks are made, show the person a summary list of the three calendar events and three tasks. 10. Wait for the person to confirm or request changes before finalizing."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before adding to calendar",
+      "effect": "ask",
+      "when": "tool.name == \"calendar_create\"",
+      "description": "always confirm the dates and details before creating calendar events"
+    },
+    {
+      "name": "ask before creating tasks",
+      "effect": "ask",
+      "when": "tool.name == \"task_create\"",
+      "description": "confirm the prep checklist items before saving the tasks"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Health scheduler\nSets up annual physical, dental, and vision reminders with prep checklists on your calendar and task list.\n\nWhat it does: creates calendar events and tasks with checklists so you remember and prepare for your yearly health exams.\n\nWhat it needs: access to your calendar to add events and reminders.\n\nWhat it will not do: invent dates or medical advice. It will ask you for dates and checklist items, and will not save anything until you confirm.",
+  "hash": "e35ef9154e7f82df13ec823b82ea2185488a7ba6391918e3d7c8bec19f0197a7"
+}

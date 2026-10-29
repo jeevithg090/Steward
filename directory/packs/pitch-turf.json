@@ -1,0 +1,43 @@
+{
+  "id": "pitch-turf",
+  "name": "Pitch turf",
+  "pitch": "Compare synthetic and natural turf for a football pitch, showing pros and cons side by side.",
+  "category": "sports",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have a budget or a preferred playing style, as these affect the choice. When nothing is known, say so and ask. Use web_search to find recent articles about synthetic vs natural turf for football pitches. Look for information on cost, maintenance, player safety, and durability. When search results are found, pick the most relevant points: cost per year, typical maintenance tasks, injury rates if mentioned, and expected lifespan. Use show_comparison to put the points into a side-by-side table. If the search returns no results, say 'I could not find recent information about synthetic versus natural turf for football pitches.' At the end, show the comparison table and ask the person if they want to narrow the search, for example by looking at a specific climate or budget range.",
+  "starters": [
+    "compare synthetic and natural turf for a football pitch",
+    "what are the pros and cons of artificial grass for sports",
+    "help me choose between artificial and real grass for a pitch"
+  ],
+  "examples": [
+    {
+      "ask": "can you compare synthetic and natural turf?",
+      "does": "I search for recent articles and show a comparison of cost, maintenance and safety."
+    },
+    {
+      "ask": "what's better for a football pitch?",
+      "does": "I list the main pros and cons of each option side by side."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Pitch turf\nCompare synthetic and natural turf for a football pitch.\nWhat it does: searches the web for cost, maintenance, safety and durability, then shows a side-by-side comparison.\nWhat it needs: web_search and show_comparison tools.\nWhat it will not do: it will not give a final recommendation or quote prices; it only presents the information it finds.",
+  "hash": "824f75fd58bf8525bb2f0edd8e9d629a0bede0f6962c9abf7882cb088ae0c64c"
+}

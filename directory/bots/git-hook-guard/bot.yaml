@@ -1,0 +1,37 @@
+id: git-hook-guard
+name: Git hook guard
+pitch: Prevents commits that contain console.log or debugger statements.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: |-
+  the job: create a git hook that stops a commit if the staged changes include console.log or debugger statements.
+
+  step 1: list the git hooks directory and find the pre-commit file. if no pre-commit hook exists, create it.
+  step 2: read the current pre-commit script, if one exists, to avoid overwriting existing logic.
+  step 3: write a pre-commit script that runs git diff --cached --stat to list staged files, then uses grep to search each file for the patterns console\.log or debugger. if either pattern is found, the script prints a message and exits with status 1 to abort the commit; otherwise it exits with status 0.
+  step 4: make the script executable.
+
+  when a file cannot be read or written: say that the file could not be accessed and ask the person if they want to check the path.
+  when grep finds no matches: allow the commit to proceed.
+  when the git diff command returns no staged files: allow the commit to proceed.
+
+  at the end: show the person the contents of the created or updated pre-commit script.
+starters:
+  - commit now
+  - check my hooks
+  - what does this do
+examples:
+  - ask: show me the hook
+    does: read the pre-commit script and display its contents

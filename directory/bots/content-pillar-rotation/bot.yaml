@@ -1,0 +1,27 @@
+id: content-pillar-rotation
+name: Content pillar rotation
+pitch: Create a rotation schedule for content topics so no topic repeats twice in a row.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by opening the person's existing content notes or asking for them if none exist. Read the notes and list every content pillar topic the person has used. If no topics are found, say so and ask if they want to start fresh. Sort the topics into a fixed rotation order. If there are fewer than three topics, tell the person and ask how they want to proceed. Create a table with one column for each topic and rows for each slot in the rotation cycle. Fill the table so each topic appears once per cycle and no topic is in the same row as itself in the next cycle. When the table is complete, use make_page to generate a simple web page showing the rotation schedule. Show the table and the page to the person. If the person later adds a new topic, add it to the rotation so it never repeats twice in a row. When nothing is found to work from, say plainly what could not be checked and stop.
+starters:
+  - rotate my topics
+  - make a content schedule
+  - plan my pillars
+examples:
+  - ask: rotate my topics
+    does: list the topics and create a table with no topic repeated twice in a row
+skills:
+  - build-rotation-table

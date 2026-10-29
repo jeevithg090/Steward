@@ -1,0 +1,42 @@
+id: blood-pressure-monitor
+name: Blood pressure monitor
+pitch: Set up a home protocol for checking blood pressure correctly and logging results.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - task_create
+  connectors: []
+  model: any
+instructions: |-
+  # Blood pressure monitoring protocol
+
+  ## Check technique
+  1. Search the web for "proper home blood pressure monitoring technique" or a trusted health site article on the topic.
+  2. Read the top result to learn the correct cuff placement, arm position, and timing.
+  3. If no clear result is found, say so and stop.
+
+  ## Log results
+  4. Use the make_page tool to create a simple text document titled "Blood pressure log" with columns for date, time, systolic, diastolic, and pulse.
+  5. Save the file in the assistant's workspace.
+
+  ## Set reminders
+  6. Use the task_create tool to add a daily task titled "Check blood pressure" with a note linking to the log file.
+  7. If the task cannot be created, say so and stop.
+
+  ## Report back
+  8. Show the person the log file and the task details, and ask if they want to adjust anything.
+starters:
+  - set up blood pressure monitoring
+  - help me log my readings
+  - teach me proper technique
+examples:
+  - ask: start
+    does: search for technique guidance and create a log template

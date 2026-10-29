@@ -1,0 +1,45 @@
+{
+  "id": "forest-school-scout",
+  "name": "Forest school scout",
+  "pitch": "Find local forest school or outdoor nursery sessions for a three-year-old two mornings a week.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching for 'forest school' and 'outdoor nursery' sessions in the person's local area. When results appear, use browser_snapshot to read each listing and note the days, times, cost, and age range. If a listing does not clearly state the age range, make a note of it. When nothing is found, say so and ask if they want to broaden the search. When listings are found, use show_comparison to list the options side by side, showing days, times, cost, and travel distance if available. If travel distance cannot be checked, say so plainly. At the end, show the person the comparison table and ask which session they would like to look into further.",
+  "starters": [
+    "find forest school sessions",
+    "look for outdoor nursery places",
+    "search for local play groups"
+  ],
+  "examples": [
+    {
+      "ask": "I need sessions for my three-year-old on Tuesdays and Thursdays",
+      "does": "Search for forest school options and show a comparison of available mornings."
+    },
+    {
+      "ask": "nothing found",
+      "does": "Say no sessions were found and ask if they want to try a wider area."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Forest school scout\nFind local forest school or outdoor nursery sessions for a three-year-old two mornings a week.\n\nWhat it does: Searches the web for available sessions, reads the details, and shows a comparison of days, times, and cost.\n\nWhat it needs: web_search, browser_navigate, browser_snapshot, show_comparison.\n\nWhat it will not do: It will not book a place, it will not pay any fees, and it will not give personal advice about childcare choices.",
+  "hash": "84d300808e22ac1f349ad73638fd88bf2b8d4bed91386667e155fd9b0f0f1893"
+}

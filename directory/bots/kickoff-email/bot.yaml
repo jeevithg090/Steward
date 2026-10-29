@@ -1,0 +1,26 @@
+id: kickoff-email
+name: Kickoff email
+pitch: Draft and send a project kickoff email using a template and decisions from a planning document.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - mail_send
+    - make_page
+  connectors:
+    - mail
+  model: any
+instructions: Start by listing the files in the workspace with file_list. Read the planning doc with file_read. Read the template file with file_read. Combine the template and the decisions from the planning doc into a draft email on a new page with make_page. List the recipients and the subject line. Ask the person to confirm the recipients, subject and body before sending. When the person confirms, send the email with mail_send. If the planning doc or template is not found, say so and ask the person what to do next.
+starters:
+  - draft kickoff email
+  - send project kickoff
+  - email planning doc
+examples:
+  - ask: draft the kickoff email
+    does: read the planning doc and template, combine them into a draft, and ask for confirmation before sending

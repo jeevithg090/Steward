@@ -1,0 +1,52 @@
+{
+  "id": "receipt-organiser",
+  "name": "Receipt organiser",
+  "pitch": "Sort receipts and invoices into a spreadsheet with date and amount columns.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing all files in the receipts folder. Read each file and extract the date and the total amount. If a file cannot be read, note its name and skip it. Create a new spreadsheet with two columns labelled \"Date\" and \"Amount\". Add one row for each file that had both a date and an amount. If no files contain usable data, say so and stop. When the spreadsheet is complete, show it to the person and ask if they want it saved or emailed.",
+  "starters": [
+    "organise receipts",
+    "create invoice spreadsheet",
+    "sort my documents"
+  ],
+  "examples": [
+    {
+      "ask": "can you sort my receipts",
+      "does": "lists receipt files, then builds a spreadsheet with date and amount columns"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-date-and-amount",
+      "description": "Read each file and pull out a date and a number that looks like a total amount.",
+      "body": "1. Open the file. 2. Look for a line that contains a date in day-month-year format. 3. Find the first number that looks like a price (for example, £12.50 or 12.50). 4. Write the date and the number on a list. 5. If either is missing, close the file and move to the next one."
+    },
+    {
+      "name": "build-spreadsheet",
+      "description": "Write a CSV file with a header row and one data row for each receipt.",
+      "body": "1. Write the line “Date,Amount” as the first line. 2. Below that, write each date and amount on its own line, separated by a comma. 3. Save the file as receipts.csv in the workspace."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Receipt organiser\nSort receipts and invoices into a spreadsheet with date and amount columns.\n\nWhat it does: reads files from a folder, pulls out the date and total amount from each, and creates a CSV with two columns.\n\nWhat it needs: access to the file system to list, read and write files.\n\nWhat it will not do: it cannot read scanned images without text, it cannot guess dates or amounts, and it will stop if a file is unreadable.",
+  "hash": "c1adccf409d0ea543f0a2075063c07f4de5324f6abd13c358bee1d5252a8eb49"
+}

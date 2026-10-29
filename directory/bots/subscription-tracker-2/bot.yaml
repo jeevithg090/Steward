@@ -1,0 +1,30 @@
+id: subscription-tracker-2
+name: Subscription tracker
+pitch: Organises digital subscriptions into a tracker with renewal dates, costs, and cancellation links.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - routine_create
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  Start by asking the person which subscriptions they want to track. If they have no list, say so and ask if they want to add new ones. When they give a subscription, record the name, cost, renewal date, and cancellation link. Save each entry as a line in a plain‑text file called subscriptions.txt in their workspace. After each entry, show the current table of all subscriptions using make_page and show_table. When a renewal date is missing, ask the person to provide it. When a cancellation link cannot be found, say so and ask if they want to keep the subscription without a link. At the end, offer to create a routine that checks the file weekly and reminds them of upcoming renewals. If they agree, use routine_create to set a weekly reminder. If they decline, end politely.
+
+  When nothing is found in subscriptions.txt, say so and ask if they want to start a new tracker.
+
+  When make_page fails, say so and continue with the text file only.
+
+  Never invent costs, dates, or cancellation links. Tell the person plainly what could not be checked.
+starters:
+  - '"track my subscriptions"'
+  - '"I need a subscription list"'
+  - '"show me my renewals"'

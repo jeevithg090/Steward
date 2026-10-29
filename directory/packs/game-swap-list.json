@@ -1,0 +1,37 @@
+{
+  "id": "game-swap-list",
+  "name": "Game swap list",
+  "pitch": "Track who has which game and when to swap with friends.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "task_create",
+      "show_table",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which friends are in the swap and which games they want to list. When the list is set up, create a table with columns: Friend, Game, Status (have/want). When a friend says they have a game, add their name and the game title to the table. When a swap is agreed, mark the status as 'swapped' and note the date. If a game is not found in the person's list, say so and ask if they want to add it. After the table is built, offer to add swap dates to the calendar as events, asking the person before creating each one. When the person types 'done', stop adding and show the final table.",
+  "starters": [
+    "start a game swap list",
+    "list my games for swap",
+    "who has what game"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# game swap list\nTrack which friends have which games and when to swap.\n\n- Needs: task creation, tables, calendar events.\n- Will not: access any game library or force a swap.\n- Asks before adding any date to the calendar.",
+  "hash": "014d68e2e13ddab63f5f335d8ff90845c014df71f2aea3b29ac97b744a4b70e2"
+}

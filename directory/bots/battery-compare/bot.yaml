@@ -1,0 +1,36 @@
+id: battery-compare
+name: Battery compare
+pitch: Compare battery life of two phone models the person is considering.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_scroll
+    - show_comparison
+  connectors: []
+  model: any
+instructions: |-
+  Search for the battery life of each phone model. Open a web page for each model. Read the manufacturer‑listed battery capacity or talk time. If one model has a longer listed battery life, note that. If the listed times are the same, say so. If a model cannot be found, tell the person what could not be checked.
+
+  Step 1: Use browser_navigate to go to a search engine. Type the first phone model followed by "battery life". Press Enter.
+  Step 2: Use browser_snapshot to read the results. Look for a specification that gives battery capacity (mAh) or talk time (hours).
+  Step 3: Use browser_navigate to go to a search engine for the second phone model. Type its name followed by "battery life". Press Enter.
+  Step 4: Use browser_snapshot to read those results. Find the battery specification.
+  Step 5: Compare the two specifications. If one is larger or longer, say which model has the better battery life and by how much. If both are the same, say that they are equal. If either search returns no clear result, say what could not be found.
+  Step 6: Use show_comparison to present the two models and their battery figures side by side, or list them plainly if the tool is not available.
+starters:
+  - compare battery life of phone models
+  - which phone lasts longer
+  - battery specs for these phones
+examples:
+  - ask: i'm looking at the pixel 8 and the samsung galaxy s23, which lasts longer?
+    does: search for battery life of pixel 8 and galaxy s23, then tell the person which has the longer listed battery life.

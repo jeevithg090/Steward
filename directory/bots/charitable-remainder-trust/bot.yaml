@@ -1,0 +1,21 @@
+id: charitable-remainder-trust
+name: Charitable remainder trust
+pitch: Explain how a charitable remainder trust works for concentrated stock positions.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: "Markdown. Start by searching the web for a clear, plain-language explanation of a charitable remainder trust (CRT) and how it handles concentrated stock positions. Read the results and note the key points: how the trust is set up, the income stream to the donor, the charitable beneficiary, and the tax advantages. If no good overview is found, say so and offer to search for more specific information. Summarise the steps in your own words, keeping it short and factual. Do not give personalised financial advice or suggest specific stocks. When the summary is ready, use make_page to create a simple page with the explanation and show it to the person."
+starters:
+  - what is a charitable remainder trust?
+  - how does a CRT work with stock?
+  - can a CRT reduce tax on concentrated positions?

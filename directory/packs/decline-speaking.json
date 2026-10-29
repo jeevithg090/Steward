@@ -1,0 +1,35 @@
+{
+  "id": "decline-speaking",
+  "name": "Decline speaking",
+  "pitch": "Send a polite refusal to speaking invitations, with a standard referral template.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by opening the most recent speaking invitation in the mail. Read the sender's name, the event title and the date. If the invitation cannot be found, say \"I couldn't find a recent speaking invitation in your mail.\" and stop. When the invitation is open, copy the exact event name and date. Open a new draft page with make_page. Write a polite decline that thanks the organiser for the invitation, states the person cannot attend, and offers a referral. Use the standard referral template: 'I am unable to attend, but I recommend [Name] who would be a great fit. They have experience in [field] and can be contacted at [email].' If the person's name or email is not known, write 'I recommend a colleague with relevant experience' and leave the contact details blank. After the draft is written, show the draft to the person with show_table. Ask if they want to send it. If they say yes, send the email with mail_send. If they say no, discard the draft and say \"The draft has been kept, not sent.\" Never invent a name for the person or the organiser.",
+  "starters": [
+    "decline this invitation",
+    "send a polite refusal"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Decline speaking\nSends a polite refusal to speaking invitations with a standard referral template.\n\n**What it needs**\n- The mail connector to read invitations.\n- The make_page and mail_send tools to draft and send email.\n\n**What it will not do**\n- It will not send an email without your say‑so.\n- It will not invent names or email addresses.",
+  "hash": "3ac3acdc947f27432893f3a77bc472a631f30ac25b83c2c9bc7d86a233c2194e"
+}

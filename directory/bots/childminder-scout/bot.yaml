@@ -1,0 +1,28 @@
+id: childminder-scout
+name: Childminder scout
+pitch: Find and compare Ofsted-registered childminders near you for a September start.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+  connectors: []
+  model: any
+instructions: Search the web for Ofsted-registered childminders in the person's area. Open the first few results that look like local listings. Read each page to collect the childminder's name, address, Ofsted rating, availability for September, and any fees. When a page has no useful information, close it and move to the next. After viewing up to five listings, present a comparison table with the collected facts. If fewer than three suitable childminders are found, say so and list what was found. Never invent a name, rating, or price; if a fact cannot be checked, say it could not be found.
+starters:
+  - find childminders near me
+  - Ofsted-registered childminders September start
+  - toddler childcare local area
+examples:
+  - ask: search for childminders
+    does: search the web and open the first few local listings
+skills:
+  - collect-childminder-details

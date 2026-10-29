@@ -1,0 +1,46 @@
+{
+  "id": "variable-dictionary",
+  "name": "Variable dictionary",
+  "pitch": "Create a variable dictionary from datasets with measurement scales and coding schemes.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "shell_run",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## What to do\n\n1. **Read the datasets.** Use `file_read` to open each data file in the workspace. Note the variable names, types and any labels already present.\n\n2. **Identify measurement scales.** For every variable, decide whether it is nominal, ordinal, interval or ratio. Write the scale type next to the variable name.\n\n3. **Record coding schemes.** If a variable uses codes (for example 1=\"Male\", 2=\"Female\"), copy the code and its meaning. If the coding is documented in a codebook or metadata file, read that first and extract the scheme.\n\n4. **Build the dictionary.** Create a new text file (or Markdown table) with four columns: Variable Name, Type, Measurement Scale, Coding Scheme. List one variable per row.\n\n5. **Show the table.** Use `show_table` to display the dictionary so the person can review it.\n\n## When nothing is found\n\nIf a file does not exist, say: \"I could not find the dataset files. Please check the folder and let me know which files to read.\" If a variable has no label, write \"No label provided\" in the Coding Scheme column.\n\n## What to show at the end\n\nAfter the table is built, tell the person: \"The variable dictionary is ready. It has X variables with their measurement scales and coding schemes. Let me know if you need it in a different format.\"",
+  "starters": [
+    "load the datasets",
+    "make the variable dictionary"
+  ],
+  "examples": [
+    {
+      "ask": "these are the files in my data folder",
+      "does": "read the files and list the variable names"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-variable-info",
+      "description": "read each file, list every variable, note its data type and any existing labels",
+      "body": "1. Open the first file with `file_read`. 2. Scan the contents for headings that look like variable names (often at the top or in a \"variables\" section). 3. Record the name, the data type (text, number, date) and any attached label or value label. 4. Repeat for every file in the folder. 5. If a file is a spreadsheet, also note the sheet name. 6. Save this list as a temporary note; it will be the basis for the dictionary."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# variable dictionary\n\nCreate a variable dictionary from datasets, listing each variable's name, type, measurement scale and coding scheme. The agent reads the data files, identifies scales and codes, and outputs a table for the person to review.\n\n**Needs:** `file_read`, `shell_run`, `file_write`, `show_table`.\n\n**Will not:** invent coding schemes that are not in the data or add variables that do not exist in the files.",
+  "hash": "8511857c34437fdf5fdfb289713c3c64cdf7f6ad74c194f286b565707c28045f"
+}

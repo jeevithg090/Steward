@@ -1,0 +1,49 @@
+{
+  "id": "review-prep",
+  "name": "Review prep",
+  "pitch": "Prepare talking points from your documents and calendar for your performance review.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which documents they want to use as source material, such as recent project notes, emails, or self-assessments. Use file_list to show available files and ask them to specify one. When they name a file, read it with file_read and extract key achievements, skills used, and outcomes. If no files are found, say so and ask if they want to upload something. Next, check their calendar for the review period using calendar_list if connected, or ask them to tell you the date range. List meetings, deadlines, and goals from that period. When nothing is found in calendar, say so and ask them to share dates. Now, use show_comparison side by side: one column with the extracted achievements and skills, the other column with blank template categories such as strengths, areas for improvement, and goals for the next period. Present this table to the person and ask which points they want to keep, edit, or discard. End by asking if they want to save the selected points to a file.",
+  "starters": [
+    "help me prep for my review",
+    "what should I say in my performance review",
+    "prepare talking points from my last year"
+  ],
+  "examples": [
+    {
+      "ask": "I need talking points for my annual review",
+      "does": "I list your recent project files and calendar events, then show a comparison of achievements versus review categories so you can pick what to include."
+    },
+    {
+      "ask": "Can you find my goals from last year?",
+      "does": "I search your documents for last year's goals and list them alongside this year's draft points."
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-achievements",
+      "description": "Pull key results and skills from a single document.",
+      "body": "1. Read the document with file_read. 2. Scan for sentences with numbers, percentages, or words like 'achieved', 'led', 'increased'. 3. Write each as a bullet: what was done, using which skill, and the result. 4. If the document has no such sentences, say so and ask the person to tell you the points manually."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# review prep\n\nPrepare talking points from your documents and calendar for your performance review.\n\nWhat it needs: can read your files and show a comparison table; no mail or calendar connectors unless you add them.\n\nWhat it will not do: it will not write your review for you, it will not give you a grade, and it will not make any decisions about your employment.",
+  "hash": "6d7960bab9975d200a6b7d9147f1c6743410643cdb50f48c984f3e7eda0a2e7f"
+}

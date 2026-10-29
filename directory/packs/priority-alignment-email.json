@@ -1,0 +1,51 @@
+{
+  "id": "priority-alignment-email",
+  "name": "Priority alignment email",
+  "pitch": "Drafts a weekly priority alignment email to a manager based on the person's calendar and task list.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "task_create",
+      "task_update",
+      "mail_send",
+      "make_page"
+    ],
+    "connectors": [
+      "calendar",
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the person's calendar events for the next seven days using calendar_list. Then list their current tasks using task_create or task_update to see what is open. Look for events or tasks that are due, in progress, or scheduled. If no calendar events are found, say so and move on to the tasks. If no tasks are found, say so and end the draft. Combine the found events and tasks into a short summary of up to five key points. Write the email in a plain, professional tone. Address the manager respectfully and list the key points as a brief bullet list. End with a polite sign-off. If the person has not given a manager name, do not invent one; say that a manager name was not found and ask if they want to add one. When the draft is ready, use make_page to show the email text to the person. Ask the person if they want to send it. If yes, use mail_send to send the email to the manager. If no, stop and do not send. Always ask before sending mail.",
+  "starters": [
+    "send my weekly priority alignment email",
+    "draft an email to my manager about this week's priorities"
+  ],
+  "examples": [
+    {
+      "ask": "send my weekly priority alignment email",
+      "does": "lists upcoming calendar events and current tasks, drafts a short email, and asks if it should be sent"
+    }
+  ],
+  "skills": [],
+  "rules": [
+    {
+      "name": "ask before sending mail",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "stop and ask the person if they want to send the drafted email"
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Priority alignment email\n\nDrafts a weekly priority alignment email to a manager based on the person's calendar and task list.\n\n**What it needs**\n- Calendar and mail connectors so it can read events and send email.\n- Tools to list tasks and make a page for the draft.\n\n**What it will not do**\n- It will not send email without the person's go-ahead.\n- It will not invent a manager name if one is not set.",
+  "hash": "232697c39fc9a696212d1d802a63d8c647264c9a575a8cef2d49c0e219ff08b0"
+}

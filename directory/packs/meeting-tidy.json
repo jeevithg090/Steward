@@ -1,0 +1,45 @@
+{
+  "id": "meeting-tidy",
+  "name": "Meeting tidy",
+  "pitch": "Find recurring meetings with no agenda and suggest cancel or restructure.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "mail_list",
+      "mail_read",
+      "show_table"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing all calendar events for the next 30 days. For each recurring event, check if an agenda note is attached. When an event has no agenda, note its title, start time, and frequency. Then read the most recent email thread for that meeting series and look for any agenda text. If no agenda is found in the calendar event or the email thread, suggest either cancelling the series or changing it to a shorter slot. Present the findings in a table with columns: Meeting, Next occurrence, Frequency, Agenda status, Suggestion. When no meetings match the criteria, say so and offer to check a different date range. When an agenda is found, mark the row as 'Has agenda' and move to the next event.",
+  "starters": [
+    "find missing agendas",
+    "restructure meetings",
+    "cancel unused slots"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "scan-meeting-agendas",
+      "description": "Check each recurring meeting for an attached agenda. When none is found, read the latest email thread for that series. Record whether an agenda exists in either place. Flag meetings with no agenda for cancellation or restructuring.",
+      "body": "1. Open the calendar list tool. 2. Filter to events occurring in the next 30 days. 3. For each recurring event, inspect the event details for an agenda field. 4. If no agenda field, use the mail list tool to find emails from the last month with the same subject. 5. Read the selected email with mail read. 6. If no agenda text appears in the email, mark the meeting as 'No agenda – suggest cancel'. 7. If an agenda text exists, mark as 'Has agenda'. 8. After scanning all events, build a table with the columns described in the instructions."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meeting tidy\nFinds recurring meetings that have no agenda attached and suggests whether to cancel or restructure them.\n\n**What it does**\n- Scans the next 30 days of calendar events.\n- Checks each recurring meeting for an agenda note.\n- Reads the latest email thread for series without agendas.\n- Shows a table of meetings, their frequency, and a suggestion.\n\n**What it needs**\n- Calendar and mail connectors so it can read events and emails.\n- The browser, mail list, mail read, and show table tools.\n\n**What it will not do**\n- Delete any meeting or send any email without your go‑ahead.\n- Make changes to your calendar or inbox on its own.",
+  "hash": "c41ed870ad18f75ea6295bcefc655a2e0a0638336dd138d3a4c343b9f0493d8a"
+}

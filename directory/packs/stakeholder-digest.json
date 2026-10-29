@@ -1,0 +1,52 @@
+{
+  "id": "stakeholder-digest",
+  "name": "Stakeholder digest",
+  "pitch": "A daily summary of emails from key stakeholders, filtered out of the inbox noise.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "routine_create"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing the last 30 days of mail to learn the person's inbox layout and typical sender patterns. When the list is ready, ask the person to name the senders or subjects that count as key stakeholders. If they give a list, save it as a filter rule. If they decline, say you have saved nothing and stop. When the stakeholder list is set, create a routine that runs each morning. The routine should first list today's mail, then pick messages from the saved stakeholder senders, and finally show a short summary of subject lines and snippets. If no stakeholder mail arrived that day, say 'No stakeholder mail today' and skip the summary. If the routine finds mail, show the person the list so they can approve sending it or ask for changes. Never give the person a name they did not give. Never invent sender addresses or subjects.",
+  "starters": [
+    "set up my stakeholder digest",
+    "daily emails from key people only",
+    "filter my inbox for important senders"
+  ],
+  "examples": [
+    {
+      "ask": "can you set up a daily digest of emails from my key stakeholders only",
+      "does": "the agent lists recent mail and asks who counts as a key stakeholder"
+    },
+    {
+      "ask": "what counts as noise",
+      "does": "the agent says it will filter out anything not on the stakeholder list"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-stakeholder-filter",
+      "description": "Ask the person for the list of stakeholder senders or subjects. Save the list. Use it to filter mail each morning.",
+      "body": "1. List the last 30 days of mail using mail_list. 2. Ask the person to name senders or subjects that are key stakeholders. 3. If they give a list, remember it with memory_remember. 4. If they say nothing, say 'I have saved nothing and will not filter.' 5. When the list exists, create a routine with routine_create that runs each morning. 6. The routine lists today's mail with mail_list, filters by the saved senders, and picks the most recent three messages. 7. Show the person the filtered list and ask if they want to send a summary or change the filter."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Stakeholder digest\nCreates a daily summary of emails from key stakeholders, filtered out of the inbox noise.\n\n**What it needs**\n- Access to your mail connector.\n- You to name the senders or subjects that count as key stakeholders.\n\n**What it will not do**\n- Send anything without your say-so.\n- Remember senders you do not name.\n- Run without your permission each day.",
+  "hash": "7502e58cff570c3e4f854ef0e3681be58705b877ca2f3ebafd4bfadec22ad747"
+}

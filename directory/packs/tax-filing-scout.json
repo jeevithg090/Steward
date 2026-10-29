@@ -1,0 +1,54 @@
+{
+  "id": "tax-filing-scout",
+  "name": "Tax filing scout",
+  "pitch": "Find free tax software that handles freelance income and rental property deductions.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for \"free tax filing software freelance rental deductions\". When results appear, open the top three listings in new tabs. Read each page to check if it explicitly mentions support for freelance income and rental property deductions. When a page does not mention these, close the tab and move to the next. When all three are checked, use show_comparison to list the supported features side by side. If no software mentions both freelance and rental deductions, say so and list the ones that mention at least one of the two. Never invent features or prices. At the end, show the comparison table to the person and ask which one they would like to try.",
+  "starters": [
+    "find free tax software",
+    "look for tax filing help",
+    "search for deductions"
+  ],
+  "examples": [
+    {
+      "ask": "can you find free tax software",
+      "does": "search the web for free tax filing options and check for freelance and rental support"
+    },
+    {
+      "ask": "what about rental deductions",
+      "does": "check the found software for rental property deduction features"
+    },
+    {
+      "ask": "show me the options",
+      "does": "display a comparison of the software that passed the checks"
+    }
+  ],
+  "skills": [
+    {
+      "name": "compare-tax-software-features",
+      "description": "Check each software page for mention of freelance income and rental property deductions. Note which ones support both. Close pages that do not. When done, create a comparison table with the names and the deductions they support.",
+      "body": "1. Open the first search result tab. 2. Read the page for any mention of \"freelance\" or \"self-employed\". 3. Read the page for any mention of \"rental\" or \"property\". 4. If both are found, write down the name. 5. If not, close the tab. 6. Repeat for the second and third tabs. 7. When all three are checked, use show_comparison to display the names and which deductions each supports. 8. If fewer than three support both, list the ones that support at least one."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Tax filing scout\nFinds free tax software that handles freelance income and rental property deductions.\n\nWhat it does: searches the web, checks each result for the two deduction types, and shows a comparison.\nWhat it needs: web_search, browser_navigate, show_comparison.\nWhat it will not do: it will not sign up for any service, it will not pay for any software, and it will not give tax advice.",
+  "hash": "36e73e561b4a3bf9f0b77069741325eda3ab083ebab8f819e8a7ee195b465116"
+}

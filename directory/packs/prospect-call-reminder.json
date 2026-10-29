@@ -1,0 +1,45 @@
+{
+  "id": "prospect-call-reminder",
+  "name": "Prospect call reminder",
+  "pitch": "Set a calendar reminder to call a prospect on their preferred day.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the prospect's name and their preferred day and time to call. When you have those, list any existing calendar events for that day to check for conflicts. Create the reminder as a calendar event titled 'Call [prospect name]' on the preferred day, setting the time to their preferred call time. If no preferred time is given, set it for 9am on that day. After creating the event, tell the person the reminder is set and confirm the details. If you cannot find the preferred day or time, say what you could not check and ask the person to provide the missing information.",
+  "starters": [
+    "set a call reminder",
+    "remind me to call a prospect",
+    "when should I call this prospect"
+  ],
+  "examples": [
+    {
+      "ask": "I need to call Alex on Thursday afternoon",
+      "does": "I'll check Thursday's calendar and set a reminder to call Alex in the afternoon."
+    },
+    {
+      "ask": "remind me to call Jamie tomorrow",
+      "does": "I'll create a reminder for tomorrow to call Jamie."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Set a reminder to call a prospect on their preferred day. Needs calendar access to create the event. Will not create the event without the prospect's name and preferred day.",
+  "hash": "ce8a22dc0b3cf4ae6850174eb006bd79b132f113aaf474e9daa9f05be21569bf"
+}

@@ -1,0 +1,41 @@
+{
+  "id": "tax-equivalent-yield",
+  "name": "Tax-equivalent yield",
+  "pitch": "Calculate the after-tax return of a municipal bond fund for federal and state taxes.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the tax-equivalent yield of a municipal bond fund. Step 1: Ask the person for the fund's name or ticker, their federal tax bracket as a percentage, and their state tax bracket as a percentage. If any are missing, say what is needed and stop. Step 2: Search the web for the fund's current yield or distribution rate. If found, note the rate. If not found, say the yield could not be found and stop. Step 3: Use the formula: tax-equivalent yield = fund yield ÷ (1 − federal rate − state rate). Show the calculation with the numbers entered. Step 4: If the fund yield was found, show a table with the fund yield, federal rate, state rate, and the calculated tax-equivalent yield. If the yield could not be found, show a table with the rates entered but leave the tax-equivalent yield blank. Step 5: Ask the person if they want the result saved to a file or if they need anything else.",
+  "starters": [
+    "What is the fund's name or ticker?",
+    "What is your federal tax bracket percentage?",
+    "What is your state tax bracket percentage?"
+  ],
+  "examples": [
+    {
+      "ask": "I have Vanguard Tax-Exempt Bond Fund and I'm in the 24% federal bracket and 5% state bracket.",
+      "does": "Search for the fund's current yield, then calculate and show the tax-equivalent yield using the formula."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Tax-equivalent yield\nCalculate the after-tax return of a municipal bond fund for federal and state taxes.\n\nWhat it does: Takes the fund's yield and your tax brackets, then works out the tax-equivalent yield so you can compare it to taxable bonds.\nWhat it needs: web_search to find the fund's current yield, file_read and file_write if you want to save the result, show_table to display the numbers.\nWhat it will not do: It does not give personalised tax advice or file any forms.",
+  "hash": "8daa085350e538764a01433675fbfba76ff084acc1e8ed51fa03864b8e5ddbc3"
+}

@@ -1,0 +1,29 @@
+id: sleep-study-helper
+name: Sleep study helper
+pitch: Explain sleep apnea results and build a CPAP mask fitting guide.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: "Read the person's sleep study report if it is saved in their workspace. If no report is found, search the web for 'sleep apnea hypopnea index' and 'sleep apnea oxygen saturation' to give plain, general explanations of the common terms. When the report is available, read each line and put the numbers into plain language: e.g. 'Your AHI was 23, which means about 23 breathing pauses per hour.' If numbers are missing or unclear, say so and do not invent values. After the explanation, ask the person if they have a CPAP machine and mask. If they do, search for 'CPAP mask fitting tips' and 'CPAP mask size guide'. Read the top results and pull out three practical tips, such as 'Adjust the headgear snugly but not tight' or 'Try the mask on while lying down'. Write a short page that lists the explained results on the left and the mask tips on the right. Save this page as 'sleep-apnea-summary.txt' in their workspace. If the person cannot find their report, offer to search for general sleep apnea information instead."
+starters:
+  - What do my sleep numbers mean?
+  - Help me fit my CPAP mask
+examples:
+  - ask: Can you explain my AHI of 12?
+    does: Search for what AHI means and reply in plain language, e.g. 'An AHI of 12 means about 12 pauses per hour.'
+  - ask: Give me mask fitting tips.
+    does: Search for CPAP mask fitting advice and list three short tips.
+skills:
+  - explain-sleep-study-results
+  - cpap-mask-fitting-tips

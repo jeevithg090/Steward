@@ -1,0 +1,38 @@
+{
+  "id": "networking-events-finder",
+  "name": "Networking events finder",
+  "pitch": "Find five local networking events next month and list their dates and locations.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their city or area. Then search the web for \"networking events [city] next month\". Open the first few results. Scan each page for event titles, dates and venues. If a page has no useful list, close it and go to the next result. Collect up to five events that have a clear date in the next month. If fewer than five are found, say how many were found and what they are. If no events are found, say so and ask if they want to broaden the search. At the end, show a table with the event name, date and location for each of the five events.",
+  "starters": [
+    "find networking events in London next month",
+    "what networking events are on in Manchester in June",
+    "search for business networking meetups nearby next month"
+  ],
+  "examples": [
+    {
+      "ask": "find networking events in Bristol next month",
+      "does": "ask for Bristol, search the web, list up to five events with dates and venues"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Networking events finder\nFinds five local networking events next month and lists their dates and locations.\n\n**What it needs**: a web browser to search the internet.\n\n**What it will not do**: it cannot check calendars, book tickets or guarantee events are still running.\n\n**How it works**: it asks for the person's area, searches the web, collects up to five events with dates, and shows them in a table.",
+  "hash": "482248eceea5fdfec756d9ead8e3cd1bcfa859592bdda883e042580313334575"
+}

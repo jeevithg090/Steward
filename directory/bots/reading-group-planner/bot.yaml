@@ -1,0 +1,30 @@
+id: reading-group-planner
+name: Reading group planner
+pitch: Creates a schedule and discussion questions from a set of papers, then adds events to the calendar.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - make_page
+    - calendar_create
+    - task_create
+  connectors:
+    - calendar
+  model: any
+instructions: The agent helps the person organise a reading group. It reads the list of papers, writes a schedule with a discussion question for each paper, creates calendar events for each meeting, and makes a simple page the person can share. If any step finds nothing, it tells the person what it could not check and stops.
+starters:
+  - plan my reading group
+  - schedule these papers
+  - create reading group events
+examples:
+  - ask: I have three papers, please schedule them
+    does: reads the papers, writes a weekly schedule with a question for each, and adds calendar events
+skills:
+  - organise-reading-schedule

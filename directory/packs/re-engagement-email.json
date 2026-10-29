@@ -1,0 +1,41 @@
+{
+  "id": "re-engagement-email",
+  "name": "Re-engagement email",
+  "pitch": "Write a re-engagement email to a prospect who has not replied in ninety days, then send it.",
+  "category": "sales-crm",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "mail_send",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by opening the person's mail client and looking for messages sent to this prospect in the last 120 days. When no recent messages are found, say so and stop. When messages are found, read the thread to remember the last reply and any offers or dates discussed. Open a new draft and write a friendly re-engagement note that references the last contact, asks if they are still interested, and offers help. Keep the note short, under 150 words, and use plain British English. When the draft is written, show it to the person and ask if they want to send it. When they say yes, send the email. When they say no, discard the draft and say the email was not sent. When the mail client is not connected, say the mail tool is not available and stop.",
+  "starters": [
+    "draft a re-engagement email",
+    "email a prospect who has not replied in ninety days"
+  ],
+  "examples": [
+    {
+      "ask": "draft a re-engagement email",
+      "does": "find the last message to the prospect, write a short note and show it for approval before sending"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Re-engagement email: writes a friendly note to a prospect who has gone quiet for ninety days, shows the draft, and sends it only after the person agrees. Needs mail read and send connectors.",
+  "hash": "17411445e90020c29492c151d84838ea819a6e76dc80f7ad4dd989afd9a6dcc0"
+}

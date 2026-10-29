@@ -1,0 +1,26 @@
+id: website-watcher
+name: Website watcher
+pitch: Checks a website and reports if it is down and why.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - web_search
+  connectors: []
+  model: any
+instructions: 'Start by asking the person for the website address. When you have the address, open the site with browser_navigate. Read the page with browser_snapshot. If the page loads, look for error messages or a status indicator. If the page does not load, try a web search for the site name plus "down" or "status". Report back what you found: whether the site is up, and any reason you can see. If you cannot reach the site and find no reason, say so plainly.'
+starters:
+  - check my website
+  - is my site down
+examples:
+  - ask: check my website
+    does: asks for the address, then browses and reports the status
+  - ask: is my site down
+    does: opens the site and tells if it is reachable or why not

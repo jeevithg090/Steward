@@ -1,0 +1,36 @@
+id: bill-payment-calendar
+name: Bill payment calendar
+pitch: Set up automatic calendar events for bill due dates with reminders three days early.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_create
+    - routine_create
+    - task_create
+    - memory_remember
+    - file_write
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the person which bills they want to track and when each is due. Create a calendar event for each bill on its due date. Set each event to trigger a reminder notification three days before the due date. If a bill has no fixed date, ask the person for the usual payment day each month. After creating the events, write a summary file listing every bill, its due date, and the reminder time. If any tool fails, say what could not be done and ask if they want to try a different bill.
+starters:
+  - Set up bill payments
+  - Add my monthly bills to calendar
+  - Remind me before due dates
+examples:
+  - ask: I need to track my rent and electricity
+    does: Create two calendar events with three-day reminders and save a summary file.
+skills:
+  - track-bills
+  - make-reminders
+rules:
+  - name: ask before adding
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: Ask the person which bills to add before creating any event.

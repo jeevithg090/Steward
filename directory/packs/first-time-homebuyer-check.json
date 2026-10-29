@@ -1,0 +1,35 @@
+{
+  "id": "first-time-homebuyer-check",
+  "name": "First-time homebuyer check",
+  "pitch": "Check if you qualify for a first-time homebuyer program in your state and show the income limits.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_click",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which state they live in. If they do not say, search for \"first-time homebuyer program\" and the person's likely state. When you have a state, search for \"first-time homebuyer program [state] income limits\". Open the first reliable government or housing authority result. Read the page for the income limit amounts and eligibility rules. If the page has a table, use the show_table tool to display the income limits. If you cannot find the income limits, say so plainly and offer to look up a different state. When you have the information, show a table with the program name, income limit, and any other key rules. Do not invent numbers or rules. If the search returns no results, say that you could not find a program for that state. Never call the person by name. Ask before using any tool that changes data or sends a message.",
+  "starters": [
+    "check my first-time homebuyer eligibility",
+    "what are the income limits in my state"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# first-time homebuyer check\nChecks if you qualify for a first-time homebuyer program in your state and shows the income limits.\n\nWhat it does: searches the web for your state's program, reads the income limits and rules, and displays them in a table.\n\nWhat it needs: web_search and browser tools to find and read the program details.\n\nWhat it will not do: it cannot guarantee you qualify; it only reports the published income limits. It will not sign you up or apply for any program.",
+  "hash": "5f7eece3d04032e877e27bbfaac8e71d5c5a4663f096642db3328fcf1d4d9861"
+}

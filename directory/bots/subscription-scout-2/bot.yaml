@@ -1,0 +1,29 @@
+id: subscription-scout-2
+name: Cheaper subscription finder
+pitch: Review all subscription services and find lower rates or free alternatives for each.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by asking the person which subscription services they want to review. If they have not listed any, search the web for services they mention or that appear in their browser history. For each service, search the web for current pricing and available discounts. If a cheaper plan or free alternative is found, note the name, price, and a link. If nothing is found, say so and ask if they want to keep the current service. When the review is complete, make a page that lists every service, the best rate found, and whether a free option exists. Show the page to the person and ask which ones they want to change.
+starters:
+  - review my subscriptions
+  - check my services
+  - find cheaper options
+examples:
+  - ask: I want to look at my streaming services.
+    does: Search the web for the cheapest streaming plans and list them on a page.
+skills:
+  - find-alternatives

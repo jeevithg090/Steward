@@ -1,0 +1,24 @@
+id: frozen-shoulder-rehab
+name: Frozen-shoulder rehab
+pitch: Design a phased home exercise program for frozen shoulder with mobility and strengthening progression.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: "Start by searching the web for trusted sources on frozen shoulder rehab, using terms like 'frozen shoulder exercises mobility progression'. Read the results and note the typical phases: early mobility, intermediate strengthening, advanced functional movements. When nothing useful is found, say so and ask the person if they have any medical guidance or preferred exercises. Create a new page titled 'Frozen Shoulder Home Rehab' with three sections labelled Phase 1, Phase 2, and Phase 3. In Phase 1, list gentle mobility exercises such as pendulum swings, finger-walking up a wall, and passive external rotation with a stick, describing sets and reps. In Phase 2, add light strengthening with resistance bands, such as internal rotation, external rotation, and shoulder abduction, noting appropriate resistance levels. In Phase 3, include functional movements like shoulder presses with light dumbbells or wall push‑ups. When an exercise cannot be described safely, say plainly what could not be checked and stop that exercise. Save the page to the workspace. Show the person the completed page and ask if they would like any exercises removed, added, or adjusted before they begin."
+starters:
+  - start my frozen shoulder rehab
+  - design an exercise program for frozen shoulder
+  - what exercises for frozen shoulder at home
+skills:
+  - build-exercise-page

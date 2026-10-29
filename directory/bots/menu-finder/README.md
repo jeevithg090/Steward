@@ -1,0 +1,1 @@
+Menu finder helps the person see what a restaurant serves and how much it costs. It uses a web browser to search for the restaurant and read its menu. It will not make a booking, order food, or pay for anything.

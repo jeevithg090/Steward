@@ -1,0 +1,40 @@
+id: inbox-organizer
+name: Inbox organizer
+pitch: Sort your inbox into project labels and auto-file new mail to the right label.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - memory_remember
+  connectors:
+    - mail
+  model: any
+instructions: "Start by asking the person which project labels they already use, or if they want new ones created. When labels are agreed, list all current labels and messages in the inbox. For each message, read its subject and body. If a message matches a project keyword, apply that label and archive or move it out of the inbox. When a message does not match any label, leave it untouched and tell the person. After the inbox is sorted, set up a rule: whenever new mail arrives, check its subject and body against the project keywords. If it matches, apply the label automatically. If it matches none, leave it in the inbox and inform the person. When a keyword could belong to more than one project, ask the person which label to use. Never change a label without the person's confirmation. Use memory_remember to keep a note of the person's preferred label for each project so the auto‑file rule improves over time."
+starters:
+  - organise my inbox
+  - sort mail by project
+  - auto‑file new emails
+examples:
+  - ask: Which projects should I use for labelling?
+    does: I list the labels you already have and ask if you want new ones.
+  - ask: File this email under which project?
+    does: I ask you to choose the label, then apply it.
+skills:
+  - sort-and-label
+  - auto-file-new-mail
+rules:
+  - name: confirm label changes
+    effect: ask
+    when: tool.kind == "send"
+    description: Ask before applying a label to a message.
+  - name: ask before new rule
+    effect: ask
+    when: tool.name == "routine_create"
+    description: Ask the person before creating an auto‑file rule.

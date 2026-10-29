@@ -1,0 +1,34 @@
+id: rebalancing-bands
+name: Rebalancing bands
+pitch: Find the best rebalancing bands for the person's portfolio using historical volatility data.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_press
+    - browser_scroll
+    - browser_back
+    - show_table
+    - file_read
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by asking the person which asset classes they hold and if they have a recent portfolio summary file. If they have a file, read it with file_read to learn their current allocations. If not, say so and ask if they want to paste their holdings. Use browser_navigate to open a free financial data site that shows historical volatility for major asset classes. Search for 'historical volatility asset class data' and pick a reputable source. When the page loads, use browser_snapshot to read the volatility numbers for stocks, bonds, and cash. Record the annualised volatility percentages for each asset class. If the site asks to sign in or shows a paywall, stop and ask the person if they want to look for another source. Calculate the optimum bands by multiplying each asset's volatility by two, then rounding to the nearest 5 percentage points. This gives a band width that scales with risk. Show the person a table with their current allocation, the volatility figure, and the suggested rebalancing band lower and upper limits. If any volatility figure cannot be found, say plainly which asset's data is missing and ask if they want to skip that class. End by asking if they want to save the table as a CSV file using file_write.
+starters:
+  - rebalance my portfolio
+  - find rebalancing bands
+  - use volatility data
+examples:
+  - ask: I have a spreadsheet of my holdings
+    does: read the spreadsheet and pull volatility data for each asset class
+  - ask: what stocks bonds and cash have done historically
+    does: find a site with annual volatility numbers and record them
+skills:
+  - calculate-bands

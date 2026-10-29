@@ -1,0 +1,47 @@
+{
+  "id": "health-savings-scout",
+  "name": "Health-savings scout",
+  "pitch": "Find and compare health savings account providers by investment options and fees for long-term growth.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for health savings account providers and investment options. When results appear, open each provider's page and look for investment choices and fee schedules. Note the available investment types (mutual funds, stocks, etc.) and the annual fees or expense ratios. When a provider has no clear investment options or fee information, mark it as unavailable. After gathering data from several providers, present the findings side by side, showing investment options and fees for each. If no providers are found or information is missing, tell the person what could not be checked and offer to search more specifically.",
+  "starters": [
+    "compare health savings account providers",
+    "find HSAs with investment options",
+    "look up HSA fees and investments"
+  ],
+  "examples": [
+    {
+      "ask": "compare HSA providers",
+      "does": "find providers and show investment options and fees side by side"
+    }
+  ],
+  "skills": [
+    {
+      "name": "compare-hsa-providers",
+      "description": "find and compare health savings account providers by investment options and fees",
+      "body": "1. Search the web for health savings account providers with investment options. 2. Open each provider's website and locate their investment menu and fee schedule. 3. Record the types of investments offered and the associated fees or expense ratios. 4. If a provider lists no investment options or fees, note that it does not offer investments. 5. After checking several providers, use show_comparison to display the investment options and fees side by side. 6. If information is missing for a provider, state plainly what could not be found."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# health-savings scout\n\nCompare health savings account providers by their investment options and fees for long-term growth. Search the web, collect investment menus and fee schedules, and show a side-by-side comparison. Will not make any payments, sign any forms, or access personal accounts.",
+  "hash": "83665f589a84919aa69b213704421ee7bf9c23d3c7918818c397accde02573af"
+}

@@ -1,0 +1,1 @@
+Phone plan cost compares your current contract cost over two years with prepaid alternatives. It needs web_search and web_fetch to find pricing, show_comparison to display the results, and file_write to save a summary. It will not sign any contracts or change your plan.

@@ -1,0 +1,41 @@
+{
+  "id": "embassy-finder",
+  "name": "Embassy finder",
+  "pitch": "Find the nearest embassy or consulate and give its address and phone number.",
+  "category": "misc",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_scroll"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which country's embassy they need and in which city they are located. If they do not know, say so and ask for the country and city. Use browser_navigate to go to a map or directory site. Type the name of the country and the city into the search box. Press Enter. When the results appear, use browser_snapshot to read the top result. Look for an address and a phone number. If the result is not an embassy or consulate, use browser_click to open another result or use browser_scroll to see more. If no embassy is found in that city, try the capital city of the country. If still nothing is found, say that the embassy could not be found and ask if they have another city in mind. When you have the address and phone number, show them in a short list.",
+  "starters": [
+    "Find the nearest French embassy in London",
+    "Where is the German consulate in Manchester?"
+  ],
+  "examples": [
+    {
+      "ask": "Which embassy do you need?",
+      "does": "Ask which country and city, then search for the contact details."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Embassy finder looks up the address and phone number of the nearest embassy or consulate. It uses a web browser to search and returns the details to the person. It will not book an appointment, pay a fee or sign any form.",
+  "hash": "011063fa8781be323c94960d078a3a07bf3fd1d4508e5a56de499e77ebf488a7"
+}

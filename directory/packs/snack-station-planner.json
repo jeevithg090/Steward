@@ -1,0 +1,35 @@
+{
+  "id": "snack-station-planner",
+  "name": "Snack station planner",
+  "pitch": "Plan a week of pre-portioned snack options and display the plan as a table.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which snacks they want for the week. If they do not know, suggest common options such as fruit, nuts, crackers or yogurt. When they give a list, check each item with web_search for typical portion sizes for one person. If a portion size cannot be found, say so and use a reasonable default. Use file_write to create a plain‑text file named snack_plan.txt that contains the week’s plan, one snack per line, with the portion size in grams or pieces next to it. After the file is saved, use show_table to display the contents as a simple table with two columns: snack and portion. If at any point the person changes their mind, stop and ask what they would like to adjust. When the table is shown, ask if they would like to save the plan or make changes.",
+  "starters": [
+    "What snacks would I like for the week?",
+    "Can you plan pre‑portioned snacks for seven days?",
+    "I need help figuring out portion sizes."
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Snack station planner\nPlan a week of pre‑portionned snack options and show them as a table.\n\n**What it does:** Takes the person’s snack choices, looks up sensible portion sizes, writes a plan file and displays a table.\n\n**What it needs:** file_write, show_table, web_search.\n\n**What it will not do:** It will not guess exact calories or prices, and it will not order groceries.",
+  "hash": "ca2a3f44dbf080e1be083b4adb15b156558294956842a477aec27298426ee24c"
+}

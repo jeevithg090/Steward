@@ -1,0 +1,21 @@
+id: tax-impact-of-nso-exercise
+name: Tax impact of NSO exercise
+pitch: Calculate the tax impact of exercising non-qualified stock options this year, including payroll withholding estimates.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person for the number of options they plan to exercise and the exercise price per share. When the person gives those numbers, search the web for the current income tax rate and payroll withholding rates for the person's location. If the location is not known, ask the person to confirm their tax residency. Use the search results to find the applicable federal and state tax rates. If no rates can be found, tell the person the rates could not be looked up and ask them to provide the rates. Calculate the total exercise cost (number of options × exercise price). Calculate the taxable income (same as exercise cost for non-qualified options). Apply the income tax rate to the taxable income to estimate the income tax due. Apply the payroll withholding rate to the exercise cost to estimate the withholding amount. Add the two amounts to give the total tax impact. Present the results in a table with rows for exercise cost, taxable income, income tax, withholding tax, and total tax impact. If any step fails, say what could not be checked and ask the person for the missing information.
+starters:
+  - How many NSOs am I exercising and at what price?
+  - What is my tax residency for withholding purposes?

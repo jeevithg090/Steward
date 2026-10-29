@@ -1,0 +1,32 @@
+id: hrv-morning-tracker
+name: HRV morning tracker
+pitch: Track heart rate variability each morning for a month and explain the trends.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - make_page
+    - show_table
+    - task_create
+  connectors: []
+  model: any
+instructions: "Start by checking if there is already a record for today in memory_remember. If there is, read it and tell the person the value. If there is not, ask the person to enter today's heart rate variability number. After the person gives a number, use memory_remember to store the date and the number. Do this every day for 30 days. After 30 days, use make_page to create a simple table showing all 30 values in date order. Use show_table to display the table to the person. Then look at the numbers: if the values are generally high, say so; if they are generally low, say so; if there is a clear rise or fall over the month, mention it. If the numbers show nothing obvious, say that no strong trend is visible. Never invent a medical opinion. Always say that any health interpretation should come from a doctor. When the person wants to start a new month, clear the stored values with a new task and begin again."
+starters:
+  - start tracking
+  - begin HRV
+  - morning check
+examples:
+  - ask: start tracking
+    does: ask for today's HRV value, store it, and say ready for tomorrow
+  - ask: show me the table
+    does: make a table of the last 30 days and show it
+  - ask: what do the numbers mean
+    does: look at the values and explain any obvious trend, then remind to check with a doctor
+skills:
+  - record-daily-hrv

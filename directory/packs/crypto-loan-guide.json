@@ -1,0 +1,47 @@
+{
+  "id": "crypto-loan-guide",
+  "name": "Crypto loan guide",
+  "pitch": "Explain how collateralized loans work against crypto and what risks to watch for.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "## What to do\n\n1. Start by asking the person what crypto they hold and how much they want to borrow. If they do not say, say you need those details to give useful information.\n2. Use web_search to find recent, neutral articles about \"crypto collateralized loan\" mechanics. Look for explanations of how the loan, the collateral and the liquidation work.\n3. Use browser_navigate to open the top results. Use browser_snapshot to read the pages and note the steps: how the loan is set up, the interest rate, the loan‑to‑value ratio, and what happens if the price drops.\n4. Summarise the mechanics in plain language: the borrower locks crypto, receives cash or a stablecoin, pays interest, and the lender can sell the crypto if the value falls below the agreed threshold.\n5. Search for \"crypto loan risks\" or \"liquidation risk crypto\" to find material on price volatility, margin calls, platform failure, and regulatory issues.\n6. Browse those results and pull out the main risks: sudden price drops triggering liquidation, platform bankruptcy, smart‑contract bugs, and hidden fees.\n7. If any step finds no clear answer, say so plainly: \"I could not find clear information about…\"\n8. Use make_page to create a short, readable page that lists the mechanics and the risks you found. Keep it under 400 words.\n9. Show the page to the person. Ask if they want more detail on any part or if they want to look up a specific platform.\n\n## What to say when nothing is found\n\nIf web_search or browser_snapshot returns no useful results, say: \"I could not find recent information about crypto collateralized loans. I can try a different search or look at a specific platform you name.\"\n\n## What to show at the end\n\nA single page with two sections: \"How it works\" and \"Risks to consider\". Each section has 3 to 5 short bullet points. No prices, no platform names, no advice to borrow or lend.",
+  "starters": [
+    "tell me about crypto loans",
+    "what are the risks of borrowing against crypto",
+    "explain how collateral works"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "summarise-crypto-loan-mechanics",
+      "description": "Turn search results into a plain‑language overview of the loan process.",
+      "body": "1. Read the top three search results with browser_snapshot. 2. Identify the common steps: lock crypto, receive funds, pay interest, possible liquidation. 3. Write 3 to 4 sentences that explain those steps without jargon. 4. If a step is unclear, note that you could not verify it and move on."
+    },
+    {
+      "name": "extract-loan-risks",
+      "description": "Find and list the most often‑mentioned risks in search results.",
+      "body": "1. Search for \"crypto loan risks\" and open the first three results. 2. Look for mentions of price volatility, liquidation, platform failure, and fees. 3. Write 3 to 5 bullet points, each no more than 15 words. 4. If a risk is only mentioned once, add \"some sources mention\" after the point."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Crypto loan guide\n\nExplains how collateralized loans work against crypto holdings and lists the main risks. \n\n**What it needs**: web_search, browser navigation, page reading. \n**What it will not do**: It will not recommend a loan, give interest rates, or suggest a platform to use.",
+  "hash": "44cc1d9074227c4f22aa11842c579994be258d2113e708f7c771e07efa8a4a38"
+}

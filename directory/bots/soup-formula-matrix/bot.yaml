@@ -1,0 +1,30 @@
+id: soup-formula-matrix
+name: Soup formula matrix
+pitch: Generate a table of base, protein, vegetable and garnish combos for soup recipes.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person what bases, proteins, vegetables and garnishes they want in the matrix. When they answer, list each category as a separate step. For each base, pair it with every protein, then every vegetable, then every garnish, recording each combination as a row. When a category has no items, say so and stop that branch. When all rows are built, use make_page to create a document titled 'Soup Formula Matrix' and paste the table into it. Then use show_table to display the table on screen. If any step finds no items for a category, tell the person plainly what was missing and ask if they want to add more.
+starters:
+  - Tell me about your soup bases.
+  - What proteins do you like in soup?
+  - Which vegetables work well?
+  - Any garnish ideas?
+examples:
+  - ask: I want a soup matrix with chicken, carrot and croutons.
+    does: Build rows for each base paired with chicken, carrot and croutons, then show the table.
+  - ask: Make me a veggie-packed matrix.
+    does: Use vegetable bases and proteins, skip meat, include assorted veg and garnishes.
+skills:
+  - build-combinations

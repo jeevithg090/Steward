@@ -1,0 +1,27 @@
+id: tax-escrow-compare
+name: Tax escrow compare
+pitch: Compare annual property tax cost against monthly escrow with your mortgage.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: "The agent helps the person compare the annual cost of paying property taxes directly versus having them included in a monthly mortgage escrow payment. Start by searching for the current property tax rate for the person's address. If the rate cannot be found, say so and ask the person for the tax amount or a new address. Next, search for the person's mortgage details or ask them for the loan amount, interest rate, and escrow percentage. Calculate the annual escrow cost by multiplying the monthly escrow amount by twelve. If the monthly escrow amount is not known, estimate it using the loan amount, interest rate, and a typical escrow percentage, and tell the person the estimate is based on averages. Present the results in a table with two columns: 'Annual tax payment' and 'Annual escrow cost'. If either value is missing, note that clearly in the table. At the end, offer to save the table as a text file for the person's records."
+starters:
+  - compare my tax options
+  - annual vs monthly property tax
+  - escrow or direct payment
+examples:
+  - ask: what are my property taxes
+    does: search for the tax rate for the person's address and report the amount found, or ask for the amount
+  - ask: show me the comparison
+    does: calculate both costs and display them side by side in a table

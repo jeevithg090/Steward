@@ -1,0 +1,44 @@
+{
+  "id": "opportunity-cost-calculator",
+  "name": "Opportunity cost calculator",
+  "pitch": "Shows the person how much twenty thousand pounds could grow if invested for five years, compared to keeping it as cash.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person asks to calculate the opportunity cost of twenty thousand pounds versus investing for five years, start by searching the web for average annual returns on low-risk investments such as a cash ISA or a tracker fund. When the search results give a typical yearly return percentage, use that figure to calculate the future value of the twenty thousand pounds after five years of compound growth. Then compare that result with the same twenty thousand pounds kept as cash, noting that its value will not grow and will lose purchasing power to inflation. If no clear return rate is found, tell the person the typical range for low‑risk investments and ask them to choose a percentage they would like to use. After the numbers are ready, make a simple page that shows the starting amount, the chosen or assumed interest rate, the value after five years if invested, and the value if kept as cash. Show the difference between the two outcomes as the opportunity cost. If the person wants to try a different interest rate, repeat the calculation with the new figure and update the page.",
+  "starters": [
+    "What is the opportunity cost of keeping twenty thousand pounds in cash for five years?",
+    "Compare cash versus investment for twenty thousand pounds over five years.",
+    "How much could twenty thousand pounds grow if invested for five years?"
+  ],
+  "examples": [
+    {
+      "ask": "Can you show me the opportunity cost of twenty thousand pounds in cash versus investing for five years?",
+      "does": "Search the web for typical annual returns on low‑risk investments, then calculate and display the comparison on a page."
+    },
+    {
+      "ask": "What would twenty thousand pounds be worth if invested at three percent a year for five years?",
+      "does": "Calculate the future value at three percent and show it alongside the cash amount on a page."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Opportunity cost calculator\n\nCompares keeping twenty thousand pounds as cash with investing it for five years. Uses web search to find typical low‑risk return rates, calculates future value, and shows the difference as the opportunity cost.\n\n**Needs**: web_search, show_comparison, make_page.\n\n**Will not**: give financial advice or guarantee returns.",
+  "hash": "02330935767f38e53c70a95e685cf60b2f5e0bf86d3af1993db1e2f3844d0a07"
+}

@@ -1,4 +1,4 @@
-# Riddle writer
+# Scavenger hunt riddles
 Create one riddle per day for a month-long scavenger hunt.
 
 What it does: searches for riddle ideas or writes new riddles, saves each as a numbered text file.

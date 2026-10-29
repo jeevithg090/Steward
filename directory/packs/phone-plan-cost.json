@@ -1,0 +1,45 @@
+{
+  "id": "phone-plan-cost",
+  "name": "Phone plan cost",
+  "pitch": "Compare current phone plan total cost over two years with prepaid alternatives.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "show_comparison",
+      "file_write",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the details of their current phone plan: monthly cost, contract length, and any one-time fees. When the person provides those, search the web for typical prepaid plan costs in the UK over a two-year period. Record the current plan total and the best prepaid total found. When the search results show no clear pricing, say so and ask if they want to refine the search. When you have both totals, use show_comparison to display the two-year cost side by side. If either total cannot be found, tell the person plainly what could not be checked. At the end, write a short summary to a file using file_write so the person has a record they can review later.",
+  "starters": [
+    "What is my current monthly phone cost?",
+    "Are there any upfront fees on my contract?"
+  ],
+  "examples": [
+    {
+      "ask": "I pay £30 a month on a 24-month contract with a £20 upfront fee.",
+      "does": "Search for prepaid SIM-only deals and compare the total cost over two years."
+    },
+    {
+      "ask": "Show me the comparison.",
+      "does": "Display the current plan total versus the best prepaid total found, and save the summary to a file."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Phone plan cost compares your current contract cost over two years with prepaid alternatives. It needs web_search and web_fetch to find pricing, show_comparison to display the results, and file_write to save a summary. It will not sign any contracts or change your plan.",
+  "hash": "cc169f525a24e60b77e2b9d7fecef5309b6d9af89f9c24f08cd3df7cfb628614"
+}

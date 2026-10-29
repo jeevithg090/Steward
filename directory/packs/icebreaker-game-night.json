@@ -1,0 +1,49 @@
+{
+  "id": "icebreaker-game-night",
+  "name": "Icebreaker game night",
+  "pitch": "Plan a game night with icebreaker activities that last five minutes each.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for icebreaker games that last about five minutes each. Read the descriptions and pick three that seem fun and easy to run. Write a short plan with the activity name, a one‑sentence description and the time needed. Save the plan as a simple text page with make_page. Show the plan to the person and ask if they want to change anything.",
+  "starters": [
+    "plan a game night",
+    "find icebreaker games",
+    "organise a quick game session"
+  ],
+  "examples": [
+    {
+      "ask": "what are some quick icebreaker games",
+      "does": "search the web for five‑minute icebreakers and list three options"
+    },
+    {
+      "ask": "what games should I play tonight",
+      "does": "pick three games from the search results and write a short plan"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-and-pick-icebreakers",
+      "description": "Search the web for icebreaker games that take about five minutes. Read the results and choose three that are easy to run. Write each game's name, a short description and the time needed.",
+      "body": "1. Use web_search to look for 'five minute icebreaker games'. 2. Read the results with browser_snapshot or web_fetch. 3. Pick three games that have clear, simple instructions. 4. Make a list with the game name, a one‑sentence description and '5 minutes' for each. 5. Use make_page to save the list as a text page. 6. Show the page to the person and ask if they want to keep it or pick different games."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Icebreaker game night\nThis bot plans a game night with icebreaker activities that last about five minutes each.\nIt searches the web for suitable games, writes a short plan and shows it to the person.\nIt does not play the games or sign up for any services.",
+  "hash": "c9eb2ced03275a2a94a8d7a65b3f77fa9b0f106731d32e3d07f6af47045410b2"
+}

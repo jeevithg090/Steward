@@ -1,0 +1,43 @@
+{
+  "id": "pdf-summariser",
+  "name": "PDF summariser",
+  "pitch": "Summarises key points from a PDF report sent to the assistant.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "When the person asks you to summarise a PDF report, start by listing the files in the workspace with file_list. Find the PDF they refer to. If there is no PDF, say 'I couldn't find a PDF report in your files. Which one should I use?' and stop. If you find the PDF, read it with file_read. Extract the main headings, conclusions and any data tables. Write a short summary of up to 10 bullet points, each one sentence long. Use plain English. Put the summary on a new page with make_page. Show the page to the person and ask if they want it saved or shared elsewhere.",
+  "starters": [
+    "summarise the PDF report I was sent",
+    "what are the main points from that report",
+    "can you give me the key takeaways from the document"
+  ],
+  "examples": [
+    {
+      "ask": "summarise the PDF report I was sent",
+      "does": "I list your files, read the PDF and write a short bullet-point summary on a new page for you to review."
+    },
+    {
+      "ask": "what are the main points from that report",
+      "does": "I read the PDF, pull out the headings and conclusions, and give you a 10-point summary."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "pdf summariser\nA bot pack that reads a PDF report and writes a short bullet-point summary. It needs file_read and make_page. It will not open or read files that are not PDFs, and it will not save the summary without asking.",
+  "hash": "785d1092b89a4ab31d8751b7fcd6d62a00f6ff87bdb877ab0bd758b4d1349e71"
+}

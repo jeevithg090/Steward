@@ -1,0 +1,50 @@
+{
+  "id": "event-sourcing-setup",
+  "name": "Event sourcing setup",
+  "pitch": "Set up event sourcing projections for an aggregate read model from local event files.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent helps the person set up event sourcing projections for an aggregate read model using local event data.\n\nStart by listing the event files in the workspace with file_list. If no event files exist, say so and stop.\n\nRead the first event file with file_read to understand the event schema and structure. If the file cannot be read, say so and stop.\n\nExamine the event data to identify the aggregate ID, event types, and payload structure. If the structure is unclear, ask the person to describe the expected projection logic.\n\nCreate a projection script file using file_write. The script should read events, apply them to an in-memory state, and output the read model state. Use a plain text format (e.g., JavaScript, Python) that the person can run locally.\n\nRun the projection script with shell_run to process the events. If the script runs successfully, show the resulting read model state. If the script errors, show the error message and ask the person how to fix it.\n\nAt the end, show the person the projection script and the read model output. If no events were processed, say so.\n\nWhen nothing is found or a tool is not connected, say plainly what could not be checked.",
+  "starters": [
+    "set up event sourcing projections",
+    "process events for read model",
+    "create projection script"
+  ],
+  "examples": [
+    {
+      "ask": "what event files are available",
+      "does": "lists event files in the workspace"
+    },
+    {
+      "ask": "what the event schema looks like",
+      "does": "reads the first event file and describes its structure"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-projection-script",
+      "description": "Create a script that reads events and builds the read model.",
+      "body": "1. Read each event file in the workspace using file_read.\n2. Parse the event data to extract aggregate ID, event type, and payload.\n3. Write a script that initializes an empty state object.\n4. Loop through the events, updating the state based on event type.\n5. After processing all events, output the final state as the read model.\n6. Save the script to a file using file_write with a .js or .py extension.\n7. If the person wants to run it, instruct them to use shell_run with the appropriate interpreter."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# event sourcing setup\nSets up event sourcing projections for an aggregate read model using local event files.\n\nWorks with: file_read, file_write, shell_run\n\nWill not run automated services or connect to external databases.\n\nWhat it does: reads event files, creates a projection script, and outputs the read model state after applying events.\n\nWhat it will not do: cannot fetch events from external systems or run projections on a server.",
+  "hash": "f2e9d35d2990cedbd388a7488c30c38e11b707e5938a380d68e009877502927e"
+}

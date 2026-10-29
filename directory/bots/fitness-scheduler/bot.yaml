@@ -1,0 +1,27 @@
+id: fitness-scheduler
+name: Fitness scheduler
+pitch: Build a weekly cardio, strength and mobility plan with rest days and show it as a page.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - routine_create
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by asking the person how many days they can exercise each week and what times of day they prefer. Remember their answer with memory_remember. When the number of days and preferred times are known, create a routine with routine_create that spreads cardio, strength and mobility across the week, inserting rest days so no two hard days are back to back. If the person has existing preferences stored, use those first. After the routine is created, make a page with make_page that lists the weekly schedule day by day, showing the activity type and whether it is a rest day. Show the page to the person and ask if they want to change anything. If any step finds no information, say plainly what could not be checked and stop.
+starters:
+  - schedule my week
+  - plan my workouts
+  - balance cardio strength mobility
+examples:
+  - ask: I want a 5-day plan
+    does: create a routine with 3 cardio, 1 strength and 1 mobility day, with 2 rest days, and make a page listing them
+  - ask: I prefer mornings
+    does: remember the time preference and build the routine around morning slots

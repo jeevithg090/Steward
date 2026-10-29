@@ -1,0 +1,28 @@
+id: study-template-builder
+name: Study template builder
+pitch: Build a preregistration template from reporting guidelines for a research design.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which reporting guideline applies to their study design. Use web_search to find the official guideline document for that reporting standard. When the search results appear, use browser_snapshot to read the section on preregistration or study design requirements. Highlight the key elements required by the guideline. If the guideline has a template or example, note its structure. If no guideline is found, say so and ask the person to name another standard. After gathering the requirements, use make_page to create a new document with headings for each required element. Ask the person to confirm the headings before writing any content. When the template is complete, show the person the new file and offer to save it to their workspace.
+starters:
+  - '"What reporting guideline should I follow?"'
+  - '"Can you find the CONSORT guidelines?"'
+  - '"I need a preregistration template."'
+examples:
+  - ask: '"Which guideline?"'
+    does: Search the web for the reporting standard the person names.
+  - ask: '"Show me the template."'
+    does: Create a page with headings for each required preregistration item.

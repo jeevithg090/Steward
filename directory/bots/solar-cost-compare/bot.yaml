@@ -1,0 +1,27 @@
+id: solar-cost-compare
+name: Solar cost compare
+pitch: Compare the total cost of leasing versus financing solar panels over twenty years including tax credits.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person for the key numbers: the upfront cost of buying a system, the monthly lease payment, the interest rate for financing, and their estimated tax credit amount. When those are given, search the web for typical solar installation costs and current federal tax credit percentages. Use browser_navigate to open at least two reputable sources that list average system prices and tax credit details. Use browser_snapshot to read the relevant figures from each page. When nothing is found for a specific figure, say so plainly and use the best available estimate. After gathering the numbers, use show_comparison to display a side-by-side total cost breakdown for leasing versus financing, including the subtotal for each, the tax credit applied, and the grand total over twenty years. Show the comparison to the person and ask if they want the details saved as a page with make_page, or if they want to adjust any of the numbers."
+starters:
+  - how much does a solar system cost
+  - what is the current federal tax credit for solar
+  - compare lease vs finance solar panels
+examples:
+  - ask: what is the average cost of a solar installation
+    does: search the web for average system prices, read the typical figure, and tell the person the amount found

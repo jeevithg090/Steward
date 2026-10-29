@@ -1,0 +1,38 @@
+{
+  "id": "video-pitch-deck-outline",
+  "name": "Video pitch deck outline",
+  "pitch": "Create a structured outline for a video series pitch covering concept, audience, format, distribution and monetisation.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the video series topic and any existing notes. Create a new outline file with sections for concept, audience, format, distribution and monetisation. Ask the person to fill in each section one at a time. When each section is complete, add it to the file. When all sections are filled, use make_page to format the outline as a clean document. If the person does not know an answer, say what could not be found and ask if they want to skip it. At the end, show the finished outline and ask if they want to add anything else or save it elsewhere.",
+  "starters": [
+    "Start a new video series pitch deck",
+    "Outline a video series I'm planning"
+  ],
+  "examples": [
+    {
+      "ask": "I need an outline for a cooking show pitch",
+      "does": "Ask for the show concept, then create an outline with sections for concept, audience, format, distribution and monetisation."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video pitch deck outline\nCreate a structured outline for a video series pitch covering concept, audience, format, distribution and monetisation.\n\n## What it does\nBuilds a blank outline with the five required sections and guides the person to fill them in.\n\n## What it needs\nfile_write to save the outline, make_page to format it as a document.\n\n## What it will not do\nWrite the full pitch content or research audience data.",
+  "hash": "76a511eed5e9706e028db0a7e8d5c9bbbfe94226f031b4c96f1064a175360532"
+}

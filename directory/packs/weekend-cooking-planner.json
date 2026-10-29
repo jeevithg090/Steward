@@ -1,0 +1,58 @@
+{
+  "id": "weekend-cooking-planner",
+  "name": "Weekend cooking planner",
+  "pitch": "Plan a weekend cooking project with a step-by-step guide for complex dishes like croissants or ramen.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which complex dish they want to cook and if they have a weekend day in mind. When they answer, use web_search to find a reliable recipe for that dish. Read the recipe and note the total time, key steps, and any special equipment needed. If no recipe is found, say so and ask if they have another dish in mind. Next, use make_page to create a simple project plan with the recipe title, a timeline, and a checklist of ingredients and steps. Show the plan to the person and ask if they want to add it to their calendar. If they say yes, use calendar_create to add a cooking block for the chosen weekend day. If they decline, keep the plan in a file. Write the plan to a file using file_write so they can revisit it later. End by asking if they need help finding another recipe or adjusting the schedule.",
+  "starters": [
+    "Plan a weekend cooking project",
+    "I want to cook croissants this weekend",
+    "Help me plan a ramen dinner"
+  ],
+  "examples": [
+    {
+      "ask": "I'm thinking of making ramen this weekend",
+      "does": "The agent searches for a ramen recipe and creates a step-by-step plan on a page."
+    },
+    {
+      "ask": "Yes, add it to my Saturday calendar",
+      "does": "The agent adds a cooking event to Saturday and saves the plan to a file."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recipe",
+      "description": "Search the web for a recipe, read it, and note the time, steps, and equipment needed.",
+      "body": "1. Use web_search with the dish name and 'recipe'. 2. Read the search results with browser_snapshot. 3. Identify the total time, main ingredients, and key steps. 4. If the results are not a recipe, say so and search again. 5. Save the notes mentally for the next step."
+    },
+    {
+      "name": "build-plan",
+      "description": "Create a project page with the recipe and a timeline.",
+      "body": "1. Use make_page with a title like 'Weekend cooking project: [dish]'. 2. Add a timeline section with the total time and key milestones. 3. Add a checklist of ingredients and steps. 4. Save the page and show it to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Weekend cooking planner\nPlans a weekend cooking project with a step-by-step guide for complex dishes.\nNeeds: web_search to find recipes, make_page to create the plan, file_write to save it, calendar_create to add a cooking block.\nWill not: sign up for any service or pay for ingredients.",
+  "hash": "029e7ec1d495103f0d0ae3bd534486f56623f5bf162be9212d467bf449344bf9"
+}

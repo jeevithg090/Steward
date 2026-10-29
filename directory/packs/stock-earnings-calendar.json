@@ -1,0 +1,47 @@
+{
+  "id": "stock-earnings-calendar",
+  "name": "Stock earnings calendar",
+  "pitch": "Watches a stock ticker and adds earnings dates to your calendar.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "calendar_create",
+      "routine_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the stock ticker they want to monitor. Use web_search to look up the next earnings date for that ticker. When the date is found, check your calendar for any existing event on that day. If no event exists, create a calendar event titled \"[Ticker] earnings\" on the date found, with a reminder set for one day before. If the web search returns no results, say \"I could not find an earnings date for [Ticker].\" When the person wants to stop monitoring, remove the routine. Do not invent dates or times; only use what the search returns.",
+  "starters": [
+    "monitor ticker XYZ for earnings",
+    "add earnings dates to my calendar"
+  ],
+  "examples": [
+    {
+      "ask": "monitor AAPL for earnings",
+      "does": "search the web for AAPL earnings date and add it to the calendar"
+    }
+  ],
+  "skills": [
+    {
+      "name": "watch-and-add",
+      "description": "Check earnings date and schedule it.",
+      "body": "1. Search the web for \"[Ticker] earnings date\". 2. Read the search result for the official announcement date. 3. If a date is found, create a calendar event titled \"[Ticker] earnings\" on that date with a reminder one day prior. 4. If no date is found, tell the person and stop."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Stock earnings calendar\nWatches a stock ticker and adds earnings dates to your calendar.\n\n**What it needs**\n- web_search to find earnings announcements\n- calendar_create to add events\n- calendar connector to read and write your calendar\n\n**What it will not do**\n- Predict future dates beyond what the search returns\n- Monitor multiple tickers at once\n- Set reminders other than one day before the event",
+  "hash": "d8a6d3df5422329f7cb976323ea0efece9df812b42cfa205352d34dcb0999ea0"
+}

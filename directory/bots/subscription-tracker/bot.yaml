@@ -1,5 +1,5 @@
 id: subscription-tracker
-name: Subscription tracker
+name: Unused subscription flagger
 pitch: List monthly subscription costs and flag unused ones from the last three months
 category: home
 version: 1

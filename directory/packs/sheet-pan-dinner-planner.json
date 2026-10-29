@@ -1,0 +1,59 @@
+{
+  "id": "sheet-pan-dinner-planner",
+  "name": "Sheet pan dinner planner",
+  "pitch": "Plan a month of balanced sheet pan dinners with rotating proteins and vegetables.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for sheet pan dinner recipes that include a protein and a vegetable. Choose four recipes that use different proteins and vegetables. Write a weekly plan with one dinner per night for four weeks, rotating the chosen recipes. List each dinner with its protein, main vegetable, and cooking time. Save the final plan as a text file named 'sheet-pan-dinners.txt' in the workspace. At the end, show the plan as a table with columns for Date, Protein, Vegetable, and Recipe. If a recipe cannot be found, say so and stop.",
+  "starters": [
+    "plan dinners for october",
+    "monthly sheet pan meals",
+    "rotate proteins and veg"
+  ],
+  "examples": [
+    {
+      "ask": "what's for dinner",
+      "does": "search for sheet pan recipes with chicken and vegetables"
+    },
+    {
+      "ask": "plan my dinners",
+      "does": "find four recipes and make a four-week table"
+    },
+    {
+      "ask": "vegetarian sheet pan ideas",
+      "does": "search for vegetarian sheet pan recipes and build a plan"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-recipes",
+      "description": "Search the web for sheet pan dinner recipes. Open at least three results. Look for ones that list a protein and a vegetable. If a result is an ad or does not have a clear recipe, close it and try the next. Note the protein, vegetable, and cooking time for each good result. Stop when four recipes are noted.",
+      "body": "1. Use web_search to look for 'sheet pan dinner recipes'. 2. Read the search results with browser_snapshot. 3. If a result looks like a recipe with a protein and vegetable, write down the name, protein, vegetable, and cooking time. 4. If the result is an ad or unclear, close it and try the next result. 5. Repeat until four recipes are noted."
+    },
+    {
+      "name": "build-plan",
+      "description": "Create a four-week dinner plan from the four chosen recipes. Assign one recipe per night, rotating through the cycle. Write the plan in a text file. Show the table at the end.",
+      "body": "1. Take the four saved recipes. 2. For each of the 28 dinners, pick the next recipe in the cycle (night 1: recipe A, night 2: recipe B, night 3: recipe C, night 4: recipe D, night 5: recipe A, and so on). 3. For each dinner, note the date, the protein, the main vegetable, and the recipe name. 4. Write these 28 lines into a file named 'sheet-pan-dinners.txt' using file_write. 5. Use show_table to display the plan with columns Date, Protein, Vegetable, Recipe. 6. If any step finds no recipe, say so and stop."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Sheet pan dinner planner\n\nPlan a month of balanced sheet pan dinners with rotating proteins and vegetables.\n\nWhat it does: searches for recipes, picks four that rotate proteins and veg, and writes a 28‑day table.\nWhat it needs: web search, file write, and a table view.\nWhat it will not do: it cannot cook the meals or decide what the person likes; it only suggests recipes it finds online.",
+  "hash": "e90fd645f4bfaf7e9b351da8fe96477f529e8d9aa938495cc915c8fe25746bbc"
+}

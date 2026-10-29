@@ -1,0 +1,26 @@
+id: team-heatmap
+name: Team heatmap
+pitch: Create a weekly availability heatmap from shared calendars.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_list
+    - show_table
+    - make_page
+  connectors:
+    - calendar
+  model: any
+instructions: Start by listing all calendars to see who has shared them. For each calendar, read the events of the next seven days. Mark each hour as busy or free on a grid. If a calendar is not shared, note that it could not be read and move on. When all calendars are processed, arrange the grids side by side in a table. If some calendars have no events, leave those rows blank. After the table is built, use make_page to create a simple HTML page with the table embedded. Show the HTML page to the person and ask if they would like it saved as a file or copied to the clipboard.
+starters:
+  - heatmap
+  - weekly availability
+  - team calendar
+examples:
+  - ask: show me the heatmap
+    does: list calendars, read events and build a table of busy/free hours, then display the HTML page

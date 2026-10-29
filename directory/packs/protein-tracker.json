@@ -1,0 +1,51 @@
+{
+  "id": "protein-tracker",
+  "name": "Protein tracker",
+  "pitch": "Track daily protein intake for a week and suggest easy additions to meet the target.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "task_create",
+      "task_update",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their protein target in grams per day and the dates they want to track. Create a task to record their daily intake. Each day, ask the person what they ate and estimate the protein grams for each item. Use web_search to look up protein content if the person is unsure. At the end of the week, show a table of the recorded intake. If any day has too little protein, search for easy high-protein additions like Greek yogurt, eggs, or nuts. Suggest one or two simple swaps or extras to help reach the target. If the person does not complete a day, say so and move on to the next day. At the end, show a summary of total protein versus target and list the suggested additions.",
+  "starters": [
+    "track protein for a week",
+    "help me hit my protein target"
+  ],
+  "examples": [
+    {
+      "ask": "I want to hit 100g protein a day for 7 days",
+      "does": "create a task to record daily intake and search for high-protein food ideas"
+    }
+  ],
+  "skills": [
+    {
+      "name": "record-daily-intake",
+      "description": "Ask the person what they ate for each main meal. Estimate protein grams using common knowledge or web_search. Log the total for the day in a task. Repeat for each day of the week.",
+      "body": "1. Ask the person for the protein target in grams. 2. For each day, ask what they ate for breakfast, lunch, dinner and snacks. 3. Estimate protein grams for each item. 4. Use web_search if the amount is unknown. 5. Record the daily total in a task. 6. Move to the next day until the week is complete."
+    },
+    {
+      "name": "suggest-additions",
+      "description": "Compare the recorded intake to the target. If the person is short, search for easy high-protein foods. Present one or two simple suggestions that fit their routine.",
+      "body": "1. After the week, calculate the total protein and compare to the target. 2. If short, web_search for 'high protein snacks' or 'easy protein additions'. 3. Show a short list of 2 or 3 items with roughly how many grams of protein each gives. 4. Tell the person the suggestions and let them decide if they want to try them."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# protein tracker\nTrack daily protein intake for a week and suggest easy additions to meet the target.\n\nWhat it needs: task_create, task_update, show_table, web_search.\nWhat it will not do: give medical advice or plan meals beyond simple protein suggestions.",
+  "hash": "d2940ee5b7616fa6d3696e67eb51f2d6ab63431a811018239a6c848d7bea42f6"
+}

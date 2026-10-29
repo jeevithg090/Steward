@@ -1,0 +1,39 @@
+{
+  "id": "thermal-lunch-guide",
+  "name": "Thermal lunch guide",
+  "pitch": "A guide on keeping lunch cold with ice pack placement and time limits.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "# Lunchbox thermal safety guide\n\nStart by opening a new page titled \"Lunchbox thermal safety\" with sections for ice pack placement and time limits.\nWhen the page is empty, write an introduction explaining that proper packing keeps food safe.\n\nPlace the ice pack against the food container, not against the lunchbox wall, to maximise cooling.\nWhen no ice pack is available, say so and suggest using a frozen water bottle instead.\n\nSet a time limit based on the food type: perishable foods like meat or dairy should not stay above 8 °C for more than two hours.\nWhen the person cannot check the fridge temperature, say plainly that you could not read it.\n\nAdd a checklist at the end: ice pack position, packed time, and food type.\nWhen the checklist is complete, show the page to the person and ask if they want to save it.",
+  "starters": [
+    "guide my lunchbox",
+    "thermal safety for lunch",
+    "ice pack placement help"
+  ],
+  "examples": [
+    {
+      "ask": "hello",
+      "does": "open a new page titled 'lunchbox thermal safety' and write the introduction"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# thermal lunch guide\nKeeps your lunch cold with ice pack placement and time limits.\nNeeds: file_write, make_page.\nWill not: set a timer or check your fridge temperature.",
+  "hash": "71715c33795510129c1474e0c88489fc773417a00fe18589daa87a15ba09fd63"
+}

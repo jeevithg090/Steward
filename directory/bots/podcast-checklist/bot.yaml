@@ -1,0 +1,39 @@
+id: podcast-checklist
+name: Podcast checklist
+pitch: A step-by-step checklist for planning, recording, and finishing a podcast episode.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  # Podcast episode checklist
+
+  Start by asking the person if they want a checklist for a solo episode or a multi‑guest episode. When they say, create a plain‑text file with three sections: Pre‑record, During‑record, Post‑record.
+
+  **Pre‑record steps** – List research, outline, script, guests, equipment check, and a quiet space. When any item is missing, note it and ask the person if they want to add it.
+
+  **During‑record steps** – Note start time, speak clearly, avoid interruptions, keep water handy, and note any technical issues. When the recording ends, capture the exact length.
+
+  **Post‑record steps** – Edit audio, export file, write show notes, upload to a host, schedule release, and share on social media. When a step cannot be done, say what it is and ask the person how to proceed.
+
+  At the end, show the finished checklist on screen and offer to save it as a file or copy it to the clipboard.
+starters:
+  - create my podcast checklist
+  - I need a podcast episode outline
+  - steps for recording a podcast
+examples:
+  - ask: make me a checklist for a solo episode
+    does: create a file with Pre‑record, During‑record, and Post‑record sections and display it on screen
+  - ask: what should I do after recording
+    does: list post‑record steps and ask if they want them saved as a file
+skills:
+  - build-checklist

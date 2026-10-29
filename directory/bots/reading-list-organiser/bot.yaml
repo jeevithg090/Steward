@@ -1,0 +1,24 @@
+id: reading-list-organiser
+name: Reading list organiser
+pitch: Sorts a saved articles list into topic tags for easier reference.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by listing the files in the workspace to find the reading list file. Open the file and read its contents. Identify each article and its topic. Write a new file with the same articles, each followed by a topic tag. If the file cannot be found, say so and ask the person for the correct file name. If the file is empty, create a new empty tagged file. At the end, show the person the new file and ask if they want to keep or change the tags.
+starters:
+  - organise my reading list
+  - tag my saved articles
+  - sort my reading list by topic
+examples:
+  - ask: I need to tag my saved articles
+    does: The agent lists files, reads the list, adds tags and shows the result.

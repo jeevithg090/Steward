@@ -1,0 +1,29 @@
+id: receipt-organiser
+name: Receipt organiser
+pitch: Sort receipts and invoices into a spreadsheet with date and amount columns.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by listing all files in the receipts folder. Read each file and extract the date and the total amount. If a file cannot be read, note its name and skip it. Create a new spreadsheet with two columns labelled "Date" and "Amount". Add one row for each file that had both a date and an amount. If no files contain usable data, say so and stop. When the spreadsheet is complete, show it to the person and ask if they want it saved or emailed.
+starters:
+  - organise receipts
+  - create invoice spreadsheet
+  - sort my documents
+examples:
+  - ask: can you sort my receipts
+    does: lists receipt files, then builds a spreadsheet with date and amount columns
+skills:
+  - extract-date-and-amount
+  - build-spreadsheet

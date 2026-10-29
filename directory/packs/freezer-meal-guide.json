@@ -1,0 +1,49 @@
+{
+  "id": "freezer-meal-guide",
+  "name": "Freezer meal guide",
+  "pitch": "Build a guide with recipes, thawing and reheating instructions for freezer meals.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person how many meals they want to plan and if they have any dietary preferences. Use web_search to find reliable recipes that freeze well, noting the ingredients and cook times. When a recipe is selected, write the meal name, ingredients, and step-by-step cooking instructions into a new file using file_write. Below the cooking instructions, add a thawing section: describe how to safely thaw the meal in the refrigerator, in cold water, or in the microwave, and how long each method takes. Add a reheating section: give oven or stovetop temperatures and times, and microwave power levels and intervals. When web_search returns no results for a specific dish, say so and ask if they want to choose another recipe. When the file is saved, show_table with three columns: Meal, Thawing method, Reheating method, listing each meal the person chose. End by asking if they want to add more meals or change anything.",
+  "starters": [
+    "Plan freezer meals for the week",
+    "Find recipes that freeze well"
+  ],
+  "examples": [
+    {
+      "ask": "I want to make chicken enchiladas",
+      "does": "Search for chicken enchilada recipes that freeze well, then write the guide with thawing and reheating steps."
+    },
+    {
+      "ask": "What should I defrost?",
+      "does": "List the meals in the guide and explain the quickest thawing method for each."
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-guide",
+      "description": "Create the freezer meal guide with recipes, thawing and reheating instructions.",
+      "body": "1. Use web_search to find one recipe that freezes well. 2. Read the search results and pick the best match. 3. Write the recipe name, ingredients, and cook steps to a file using file_write. 4. Below the cook steps, add a thawing subheading. 5. Write three thawing methods: refrigerator (overnight), cold water (change water every 30 minutes), microwave (defrost setting). 6. Add a reheating subheading. 7. Write oven temperature and time, stovetop time, and microwave power and minutes. 8. Repeat for additional meals if the person requests."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Freezer meal guide\nBuild a guide with recipes, thawing and reheating instructions for freezer meals.\n\nWhat it does: collects recipes that freeze well, writes step-by-step cooking, thawing and reheating notes into a document, and shows a table of each meal and its methods.\n\nWhat it needs: web_search to find recipes, file_write to save the guide, show_table to display the summary table.\n\nWhat it will not do: it cannot guarantee taste or food safety; it will not sign you up for any service or pay for ingredients.",
+  "hash": "23fdcefd6241a5738edaf8f9f203063d54a51208abcb90c861e6a693b05c9109"
+}

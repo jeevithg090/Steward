@@ -1,6 +1,6 @@
 {
   "id": "email-follow-up",
-  "name": "Email follow-up",
+  "name": "Call follow-up email",
   "pitch": "Summarises yesterday's call and sends a follow-up email to the client.",
   "category": "productivity",
   "version": 1,
@@ -55,5 +55,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## Email follow-up\nSummarises a call and sends a follow-up email to a client.\n\nWhat it does: reads memory of the call, writes a short summary, asks to send, then sends the email.\n\nWhat it needs: access to your mail account, and a memory of the call.\n\nWhat it will not do: send email without your confirmation, or invent what was agreed on the call.",
-  "hash": "a680b83459db1eda7a948283e1d115f5affd41934956fb064761263f995fbdc1"
+  "hash": "7d144d0fab71f541db94616e90d0f787244056656de61db4c43e35f8632f758a"
 }

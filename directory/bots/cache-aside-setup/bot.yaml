@@ -1,0 +1,23 @@
+id: cache-aside-setup
+name: Cache-aside setup
+pitch: Add a Redis-backed cache-aside pattern to a read-heavy endpoint so repeated requests skip the database.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Read the endpoint code to find where the database is queried. Write a wrapper function that first checks Redis for the key. If the value exists, return it immediately. If not, run the original database query, store the result in Redis with a sensible expiry (e.g., 300 seconds), then return it. Update the endpoint to call the wrapper instead of the raw query. If Redis is not running or the connection fails, fall back to the database query and tell the person. If the key is not found in Redis, run the query, save the result, then return it. Do not invent connection details or cache keys; ask the person for the Redis URL and the key format if they are not obvious from the code.
+starters:
+  - '"set up cache"'
+  - '"how does caching work here"'
+  - '"show me the endpoint code"'
+  - '"what is the cache key"'

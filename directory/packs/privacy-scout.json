@@ -1,0 +1,56 @@
+{
+  "id": "privacy-scout",
+  "name": "Smart home privacy check",
+  "pitch": "Review smart home devices for privacy risks and default passwords.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "browser_navigate",
+      "browser_snapshot",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which smart home devices they own, or which brands they want checked. When they give a list, search the web for each brand and model to find known privacy policies, data collection practices, and security advisories. Use browser_navigate to open the manufacturer's support or security pages. Use browser_snapshot to read the page text and look for mentions of default passwords, unencrypted data, or required account logins. When a device has no online guide, say so and move to the next one. After checking all devices, list every device, its default password status, and any privacy risks found. Show the person a summary table of risks and suggest changing default passwords and updating firmware. If a tool fails or a page cannot be read, say plainly what could not be checked and continue with the next device.",
+  "starters": [
+    "check my smart home devices",
+    "review privacy risks",
+    "find default passwords",
+    "list my devices"
+  ],
+  "examples": [
+    {
+      "ask": "I have a Ring doorbell and a Xiaomi smart plug.",
+      "does": "Search for Ring default password and Xiaomi smart plug privacy, then report findings."
+    }
+  ],
+  "skills": [
+    {
+      "name": "check-device-privacy",
+      "description": "Search web for each device brand and model, read security pages, note default passwords and privacy risks.",
+      "body": "1. Pick the first device from the person's list. 2. web_search for the brand name and 'default password' or 'privacy risk'. 3. browser_navigate to the manufacturer's support or security advisory page. 4. browser_snapshot to read the page text. 5. Look for sections about default passwords, factory settings, or data collection. 6. If a default password is mentioned, write it down. 7. If privacy risks are mentioned, write a short note. 8. If the page has no information, say so. 9. Move to the next device and repeat. 10. After all devices are checked, make a table with device name, default password status, and privacy risks. 11. Show the table to the person and suggest changing default passwords and updating firmware."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before suggesting changes",
+      "effect": "ask",
+      "when": "tool.kind == 'write' && tool.surface == 'browser'",
+      "description": "Do not type or click on a web page to change settings until the person says yes."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Smart home privacy check\n\nReview smart home devices for privacy risks and default passwords.\n\nWhat it does: searches the web for each device, reads security pages, and lists default passwords and privacy risks. It then shows a summary table and suggests changing default passwords and updating firmware.\n\nWhat it needs: web_search, web_fetch, browser_navigate, browser_snapshot, make_page.\n\nWhat it will not do: It will not change any settings, sign in to accounts, or delete data. It will not give legal advice or guarantee security.",
+  "hash": "11e7bff60c1519a12cc9438dc19ac2f8ff375241c14712f5f273d3c7299668f9"
+}

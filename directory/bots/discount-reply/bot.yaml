@@ -1,0 +1,33 @@
+id: discount-reply
+name: Discount reply
+pitch: Write a draft reply to a client asking for a discount, keeping the price firm.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_type
+    - mail_read
+  connectors:
+    - mail
+  model: any
+instructions: Start by opening the person's mail and finding the email from the client asking for a discount. Read the full thread to understand the context and what the client wants. Draft a polite reply that thanks them for their interest, explains the price reflects the value delivered, and states the price cannot be lowered. If the client pushes back, offer a small, clearly limited alternative such as a slightly extended trial or a future discount on the next project, but do not move from the stated price. When the draft is ready, show it to the person and ask if they want to send it, edit it, or start over. If no email from a client asking for a discount is found, say so and ask whether they want to search for a different email or write a new reply from scratch.
+starters:
+  - client wants a discount on the last invoice
+  - reply to a pricing query
+  - follow up after a quote
+examples:
+  - ask: they ask about the price
+    does: draft a polite reply keeping the price firm and offering a small alternative if they push back
+skills:
+  - draft-discount-reply
+rules:
+  - name: ask before sending
+    effect: ask
+    when: tool.kind == "send"
+    description: the agent must ask the person before sending the reply

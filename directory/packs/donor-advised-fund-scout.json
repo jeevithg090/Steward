@@ -1,0 +1,47 @@
+{
+  "id": "donor-advised-fund-scout",
+  "name": "Donor-advised fund scout",
+  "pitch": "Compare fees, features and limits of donor-advised fund providers to inform your charitable giving strategy.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what they value most in a donor-advised fund: minimum initial contribution, fee structure, investment options or grant flexibility. When they answer, use web_search to find current fee schedules and feature lists for the top three providers. Open each provider's site with browser_navigate, then use browser_snapshot to read the key pages about fees and features. Extract the fee percentages, minimum grants, and any administrative costs. When nothing is found on a page, say so and move to the next provider. After gathering data from all providers, use show_comparison to place the fee and feature data side by side. If a provider's site requires sign-in, ask the person for help or skip that provider. At the end, present the comparison table and note which provider best matches their stated priorities.",
+  "starters": [
+    "Compare donor-advised fund fees",
+    "What are the best donor-advised fund providers?",
+    "Help me choose a donor-advised fund"
+  ],
+  "examples": [
+    {
+      "ask": "Show me the fees for three DAF providers",
+      "does": "I will search for current fee schedules and show them side by side."
+    }
+  ],
+  "skills": [
+    {
+      "name": "compare-daf-providers",
+      "description": "Compare fees and features of donor-advised fund providers.",
+      "body": "1. Ask the person which features matter most: minimum contribution, fee type, investment choices or grant flexibility. 2. Search the web for \"donor-advised fund provider fees\" and pick the three most-mentioned providers. 3. For each provider, navigate to their main page and snapshot the fee schedule and feature summary. 4. Record the annual administration fee percentage, any setup fee, minimum initial contribution and grant minimum. 5. If a page has no fee data, say \"I could not find fee information for that provider\" and continue to the next. 6. When all three are done, run show_comparison with the three rows of data. 7. Tell the person which provider best fits their priorities and ask if they want to sign up or need more details."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Donor-advised fund scout\n\nCompare fees, features and limits of donor-advised fund providers to inform your charitable giving strategy.\n\n**What it needs**\n- web_search to find provider information\n- browser_navigate to open provider sites\n- browser_snapshot to read fee and feature pages\n- show_comparison to display the side-by-side table\n\n**What it will not do**\n- It will not sign you up for any provider\n- It will not give tax advice or recommend a specific provider as the best option\n- It will not access any account you may already have",
+  "hash": "2b9868987bf7ce480b6ef42a7f81aa355b6f757cadcbf1ba4fd4da2e11f4f2f0"
+}

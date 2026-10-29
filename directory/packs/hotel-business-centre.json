@@ -1,0 +1,44 @@
+{
+  "id": "hotel-business-centre",
+  "name": "Hotel business centre",
+  "pitch": "Find a hotel with a business centre and printer access for a night before a meeting.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for hotels with business centres and printer access near the person's location. Open each result and check the hotel description or amenities page for mentions of a business centre, printing services, or a printer. If a hotel looks suitable, note its name, address, and whether printing is available. If no hotel is found or printer access cannot be confirmed, tell the person what was searched and what could not be verified. At the end, show a short table of up to three options with name, address, and printing status.",
+  "starters": [
+    "hotel with printer near me",
+    "business centre hotel night before meeting"
+  ],
+  "examples": [
+    {
+      "ask": "I need a hotel with a business centre for tonight",
+      "does": "Search for hotels with business centres and list options with printing access."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-hotel-with-printer",
+      "description": "Search for hotels with business centres. Open results and check for printing services in the amenities. If found, note name, address, and printing availability. If not found, say so and offer to search more broadly.",
+      "body": "1. Use web_search to look for 'hotel with business centre and printer access'. 2. Use browser_navigate to open the first few results. 3. Read the page for mentions of 'business centre', 'printing', or 'printer'. 4. If found, copy the hotel name, address, and printing status. 5. If not found on a page, close it and move to the next result. 6. After checking up to three results, present a table of options or say no hotel was confirmed with printer access."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot to find hotels with business centres and printer access for a night before a meeting. Needs web_search and browser_navigate. Will not book or pay for anything.",
+  "hash": "143f82e51581d442491fa2d352cdcc97854c17d60d33a799157d6f546784bde3"
+}

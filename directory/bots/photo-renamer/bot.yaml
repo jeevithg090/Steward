@@ -1,0 +1,31 @@
+id: photo-renamer
+name: Photo renamer
+pitch: Renames every photo file with the date it was taken, so the file name matches the capture time.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by listing all files in the person's photo folder. For each file, read its metadata to find the date it was taken. If the file has a date, create a new name using that date in YYYY-MM-DD format, keeping the original file extension. If the file has no date or the date cannot be read, skip it and move to the next file. After processing every file, write a summary list showing which files were renamed and which were skipped. Show this summary to the person so they can review the changes. When nothing is found, say so and list no files.
+starters:
+  - rename my photos
+  - sort my pictures by date
+  - set up the photo renamer
+examples:
+  - ask: start the photo renamer
+    does: list the photo files and begin checking their dates
+  - ask: what happened
+    does: show the summary of renamed and skipped files
+skills:
+  - extract-date-from-file
+  - rename-file

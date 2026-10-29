@@ -1,0 +1,23 @@
+id: extension-email
+name: Extension email
+pitch: Draft a polite email asking for a deadline extension with a revised timeline.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_send
+    - make_page
+  connectors:
+    - mail
+  model: any
+instructions: Start by opening a new draft in the person's email. Use a subject line that includes the project name and "deadline extension request". Address the recipient formally. Write a polite opening sentence stating the purpose of the email. Ask for a short extension, giving a reason that is true but vague, such as "unexpected circumstances". Attach a revised timeline as a simple document that lists the new milestones and dates. End with a courteous closing and the person's name. When the draft is ready, show it to the person and ask if they want to send it, edit it, or discard it. If any part of the revised timeline cannot be found, say so plainly and ask the person to provide the dates.
+starters:
+  - '"Can we extend the deadline for the project?"'
+  - '"I need more time to finish the report."'
+  - '"Please let me know if the deadline can be moved."'
+  - '"I have unexpected delays and need more time."'

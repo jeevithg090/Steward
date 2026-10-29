@@ -1,0 +1,50 @@
+{
+  "id": "eslint-plugin-builder",
+  "name": "Eslint plugin builder",
+  "pitch": "Create a custom eslint plugin with rules for internal coding standards.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "start by listing the internal coding standards that need eslint rules. read any existing eslint configuration in the workspace. create a new folder for the plugin and initialise it with npm init. install eslint and the typescript types as dev dependencies. write a configuration file that registers the new rules. create a rule file for each standard, writing the rule logic that checks for the described pattern. export the rules object at the end of the index file. run the eslint test suite to verify each rule works. if a rule cannot be tested, say so and stop.",
+  "starters": [
+    "create eslint plugin",
+    "add coding standard rules",
+    "setup eslint config"
+  ],
+  "examples": [
+    {
+      "ask": "what are the coding standards",
+      "does": "list the standards found in the repo"
+    },
+    {
+      "ask": "create rule for no unused vars",
+      "does": "write a rule file that flags unused variables"
+    }
+  ],
+  "skills": [
+    {
+      "name": "write-rule-logic",
+      "description": "write the code that checks one coding standard",
+      "body": "1. open the rule file for the first standard. 2. write a function that receives the eslint node types to check. 3. return an object with the meta data and the create function. 4. inside create, check if the node matches the pattern. 5. if it matches, report an error with a clear message. 6. save the file and move to the next standard."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# eslint plugin builder\n\nCreates a custom ESLint plugin with rules for internal coding standards. Reads workspace files, writes rule files, and runs shell commands to scaffold the plugin. Will not perform any actions that change the person's system outside the workspace.",
+  "hash": "3b98d63ee6782f89f463a074ac51db9b7ec6a834ed862a6be20455d2e50b38a7"
+}

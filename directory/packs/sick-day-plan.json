@@ -1,0 +1,45 @@
+{
+  "id": "sick-day-plan",
+  "name": "Sick day plan",
+  "pitch": "A written plan for sick days with type 1 diabetes, covering ketone monitoring and insulin adjustments.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for a standard sick day management guide for type 1 diabetes. When nothing useful is found, say you could not find a guide and ask the person if they have a doctor's advice to follow. If a guide is found, read it and note the key points about ketone testing frequency, when to contact a doctor, and how to adjust basal or correction insulin. If no guide is found, ask the person if they have a recent diabetes clinic summary or education leaflet they can share. After the search, make a new page titled \"Sick day management plan\". Write the plan in clear, short steps. Include sections for: checking ketones, what to do if ketones are low, what to do if ketones are moderate or high, and when to seek help. Use bullet points. Keep language simple and avoid giving medical advice beyond what is in the guide. When the page is written, offer to save it as a file named \"sick-day-plan.txt\" in the person's workspace. If the person agrees, write the plan text to that file. If the person does not agree, say the plan was not saved. At the end, show the person the plan text on screen so they can read it or copy it elsewhere.",
+  "starters": [
+    "create a sick day plan",
+    "I need a sick day guide for type 1 diabetes"
+  ],
+  "examples": [
+    {
+      "ask": "create a sick day plan",
+      "does": "search the web for a type 1 diabetes sick day guide, then make a page with monitoring and insulin adjustment steps"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-sick-day-plan",
+      "description": "Create a sick day management plan for type 1 diabetes with ketone monitoring and insulin adjustments.",
+      "body": "1. Search the web for a standard sick day management guide for type 1 diabetes. If no guide is found, ask the person if they have doctor's advice to follow. 2. Read the guide and note the key points about ketone testing frequency, when to contact a doctor, and how to adjust basal or correction insulin. 3. Make a new page titled \"Sick day management plan\". 4. Write the plan in clear, short steps with sections for checking ketones, what to do if ketones are low, what to do if ketones are moderate or high, and when to seek help. 5. Use bullet points and simple language. 6. Offer to save the page as \"sick-day-plan.txt\". 7. If the person agrees, write the plan text to that file. 8. Show the plan text on screen for the person to read or copy."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Sick day plan\nA written plan for sick days with type 1 diabetes, covering ketone monitoring and insulin adjustments.\n\nWhat it does: Creates a step-by-step guide the person can follow when they are ill, including when to test ketones and how to adjust insulin.\n\nWhat it needs: Web search to find a guide, a page to write the plan, and a file to save it.\n\nWhat it will not do: Give medical advice beyond what is found in a guide. It will not replace a doctor's instructions.",
+  "hash": "188cfef1aae3a0bd8db8230938098b73c522e302ee637ac7830331185fd1e87d"
+}

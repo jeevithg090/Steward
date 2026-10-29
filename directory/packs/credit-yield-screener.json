@@ -1,0 +1,44 @@
+{
+  "id": "credit-yield-screener",
+  "name": "Credit yield screener",
+  "pitch": "Find securities with investment-grade credit rating and yield above 6% and show a comparison table.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_table",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for investment-grade securities with a current yield above six percent. When nothing is found, say so and ask if they want to broaden the search. When results are found, use show_table to display the data side by side with the credit rating and yield columns. If a column is missing, note that the information could not be verified. Ask the person if they want to save the table to a file. When they agree, write the table data to a file named credit_yield_screen.txt in their workspace. If the tool is not connected, say that the table cannot be saved and offer to copy the data instead.",
+  "starters": [
+    "screen for preferred securities",
+    "find investment-grade yields above 6%",
+    "compare credit ratings and yields"
+  ],
+  "examples": [
+    {
+      "ask": "screen for preferred securities",
+      "does": "search the web for investment-grade securities with yield above 6%"
+    },
+    {
+      "ask": "show results",
+      "does": "display a comparison table with credit rating and yield"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Credit yield screener\nFinds securities with investment-grade credit rating and yield above 6% and shows a comparison table.\n\nNeeds: web_search, show_table, file_write\n\nWill not: give financial advice, guarantee returns, or access private accounts.",
+  "hash": "6f0e158829290a99219da3d80afaf5b5b0c75d951408af4a925fe14fe782ff5d"
+}

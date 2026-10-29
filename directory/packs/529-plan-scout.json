@@ -1,0 +1,45 @@
+{
+  "id": "529-plan-scout",
+  "name": "529 plan scout",
+  "pitch": "Find and compare 529 college savings plans by state tax benefits and investment fees.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for 529 college savings plans and their state tax benefits and investment fees. When results appear, collect the name of each plan, the state it belongs to, the state tax benefit offered, and the annual investment fee. If a plan has no fee or no tax benefit listed, note that it has no fee or no listed benefit. When you have five or more plans, stop searching. Use show_comparison to display the collected plans side by side, listing plan name, state, tax benefit, and fee. If fewer than five plans are found, say how many were found and what information is missing. At the end, use make_page to create a short text document that lists the plans compared, their states, tax benefits, and fees. If no plans are found, say so and do not create a document.",
+  "starters": [
+    "compare 529 plans",
+    "find state tax benefits for 529 plans",
+    "list investment fees for 529 plans",
+    "show me 529 college savings options"
+  ],
+  "examples": [
+    {
+      "ask": "what is the tax benefit for the California 529 plan",
+      "does": "search for the California 529 plan tax benefit and reply with what is found or say it was not found"
+    },
+    {
+      "ask": "compare fees of New York 529 plans",
+      "does": "search for New York 529 plan fees and show a comparison of the results"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "529 plan scout\nFind and compare 529 college savings plans by state tax benefits and investment fees.\nNeeds: web_search, show_comparison, make_page.\nWill not do: sign any forms, pay any fees, or create accounts.",
+  "hash": "9d8a98eabf3afb933cdc9c3be312adf133a9868ad1b2f8e16fb553531e876ad7"
+}

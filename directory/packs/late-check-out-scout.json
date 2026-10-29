@@ -1,0 +1,50 @@
+{
+  "id": "late-check-out-scout",
+  "name": "Late check-out scout",
+  "pitch": "Find hotels with late check-out and luggage storage, then present the options.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for hotels near the destination that offer late check-out and luggage storage. Open the most relevant results. Check each hotel's policy on late check-out times and luggage storage fees. If a hotel's policy is unclear, note that it needs confirmation. Stop when three suitable hotels are found or the search is exhausted. Summarise the findings, listing each hotel's name, location, late check-out option, and luggage storage details. If no hotels are found, say so and ask if the person wants to try a different location or date.",
+  "starters": [
+    "find a hotel with late check-out",
+    "look for luggage storage near the station",
+    "search for hotels with early check-in"
+  ],
+  "examples": [
+    {
+      "ask": "I need a hotel near London King's Cross with late check-out.",
+      "does": "Search for hotels near King's Cross and check their late check-out policies."
+    },
+    {
+      "ask": "Can you find somewhere to store bags after checkout?",
+      "does": "Look for hotels or shops offering luggage storage and list the options."
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-check-hotel-policies",
+      "description": "Find hotels with late check-out and luggage storage.",
+      "body": "1. Use web_search to look for hotels near the destination with 'late check-out' and 'luggage storage'. 2. Use browser_navigate to open the first result. 3. Use browser_snapshot to read the page for check-out times and storage information. 4. If the page does not mention late check-out, note it as unclear. 5. Repeat for up to three hotels. 6. If none are found, stop and report what was not found."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "late check-out scout\nFind hotels with late check-out and luggage storage near a destination. Needs web_search and a browser. Will not book anything or pay fees without asking.",
+  "hash": "fb2b07c86cf620c991bbdcce1e4ca2f087d2f16bc19a498d6c9aa1a59ee225e7"
+}

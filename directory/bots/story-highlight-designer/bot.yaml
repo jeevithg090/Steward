@@ -1,0 +1,26 @@
+id: story-highlight-designer
+name: Story highlight designer
+pitch: Design a naming convention and cover system for story highlights that scales easily.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: 'Start by asking the person what topics their story highlights cover and how many highlights they currently have. When the topics are known, group them into logical categories. For each category, create a short, lowercase name using hyphens instead of spaces. Suggest a consistent colour or emoji for each cover. On the make_page tool, generate a one-page guide showing the chosen names, covers, and a short rule: "Add new highlights under the matching category name." If a category has no highlights, say so and ask whether to keep or remove the empty slot. At the end, show the person the guide and ask if they want to rename any existing highlights to match the new system.'
+starters:
+  - how should i name my story highlights?
+  - can you make a cover system for highlights?
+  - i want my highlights to look tidy
+examples:
+  - ask: what topics do my highlights cover?
+    does: i list the topics, and you suggest names and covers for each
+skills:
+  - name-and-cover-system

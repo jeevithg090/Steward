@@ -1,0 +1,42 @@
+{
+  "id": "kitchen-game-inventor",
+  "name": "Kitchen game inventor",
+  "pitch": "Invent a game using exactly three kitchen items, then save the rules and a printable board.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening a blank page on the computer. Ask the person to name three kitchen items they have at hand. When they give the three items, write a short set of rules for a game that uses only those items, keeping the rules to under ten steps. If any item is unclear or missing, ask the person to clarify or pick another. After the rules are set, make a simple printable game board or score sheet using only the three named items as props. Show the person the text of the rules and the layout of the board on screen, and ask if they want to save the file or print it later. If the person changes their mind about the items, start over with new items. Never invent facts about the items or give prices or shop links.",
+  "starters": [
+    "let's play a game with three kitchen items",
+    "invent a game we can play at home",
+    "what three things shall we use?"
+  ],
+  "examples": [
+    {
+      "ask": "we have a spoon, a plate and a mug",
+      "does": "write simple rules for a racing game using those three items, then make a track layout on the page"
+    },
+    {
+      "ask": "can we use a bowl, a fork and a glass?",
+      "does": "create a board with spaces named after the items and printable tokens"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Kitchen game inventor\n\nInvent a game using exactly three kitchen items and save the rules as a printable page.\n\n**What it does**: Asks for three items, writes game rules, creates a simple board layout, and offers to save a file.\n\n**What it needs**: The `make_page` tool to create and save the document.\n\n**What it will not do**: It will not give prices, shop links, or real‑world facts about the items. It will not play the game for the person.",
+  "hash": "ac79cd508e522cfb042ff0f9d0d2c0542fc5e559a35fa04d72c5bfc40d37d3c0"
+}

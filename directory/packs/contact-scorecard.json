@@ -1,0 +1,47 @@
+{
+  "id": "contact-scorecard",
+  "name": "Contact scorecard",
+  "pitch": "Show a table of the person's top 20 contacts with their average reply time and message importance.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by running mail_list to get the person's mailbox list. Then run mail_read on each of the top 20 conversations. For each contact, calculate the average time between their messages and the person's replies. Give each message a value label of high, medium or low based on the sender's usual importance. If a contact has fewer than three messages, note that there is not enough data. When the calculations are done, use make_page to create a simple table showing contact name, average reply time, and value label. If any tool is not connected, say so and stop. Do not give the person a name. Do not invent reply times or value labels.",
+  "starters": [
+    "show my scorecard",
+    "top contacts report",
+    "contact response table"
+  ],
+  "examples": [
+    {
+      "ask": "hello",
+      "does": "run mail_list and then mail_read on the latest conversations"
+    },
+    {
+      "ask": "start the scorecard",
+      "does": "list the mailbox, read top threads, calculate times and labels, then show the table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot pack that reads the person's mail, calculates reply-time averages and value labels for their top 20 contacts, and displays the results in a table. It needs access to the mail connector. It will not post, send or delete any mail.",
+  "hash": "00c34bd2edeaeab7c9b2bb279ebad480cffe7c8be3de2b6761d54fb30b0b8558"
+}

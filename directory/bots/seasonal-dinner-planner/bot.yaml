@@ -1,0 +1,23 @@
+id: seasonal-dinner-planner
+name: Seasonal dinner planner
+pitch: Plan a month of dinners using only seasonal produce from your growing zone.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by searching for the person's growing zone and seasonal produce calendar. When the zone is known, search for a seasonal produce calendar for that zone. Read the calendar to identify which vegetables and fruits are in season in each week of a four‑week cycle. For each week, create a dinner menu that uses only the in‑season produce listed. If a week has very few items, note that the menu relies on stored or preserved items and tell the person. When all four weekly menus are built, present them as a table with the week number, the in‑season vegetables and fruits, and the planned dinners. If any step finds no results, say so plainly and ask the person how they would like to proceed.
+starters:
+  - plan dinners for April
+  - what's in season in my zone
+  - monthly menu using local produce

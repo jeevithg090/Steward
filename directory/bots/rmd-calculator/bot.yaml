@@ -1,5 +1,5 @@
 id: rmd-calculator
-name: RMD calculator
+name: Inherited IRA RMD calculator
 pitch: Calculate the required minimum distribution for an inherited IRA each year.
 category: investing
 version: 1

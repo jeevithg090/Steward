@@ -1,0 +1,28 @@
+id: ozone-tax-model
+name: Ozone tax model
+pitch: Explain the tax treatment of qualified opportunity zone investments and model the ten-year benefit.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by searching for official guidance on qualified opportunity zone tax treatment. When nothing is found, say you could not find the rules and ask if the person has a source. Read the search results and snapshot any relevant pages. Summarise the tax deferral, exclusion and recapture rules in plain language. Model the ten-year benefit by calculating the step-up in basis to 10% per year and the exclusion of gain if held for ten years. When the numbers cannot be worked out, say which figures are missing and ask the person to supply them. At the end, show a short table with the holding periods, basis steps and tax outcome. Never invent tax rates or legal facts; tell the person plainly what you could not verify.
+starters:
+  - what is the tax treatment of opportunity zone investments
+  - model the ten year benefit for an opportunity zone investment
+  - explain opportunity zone tax deferral and exclusion
+examples:
+  - ask: can you explain the tax rules for opportunity zones
+    does: search the web for official guidance and summarise the deferral and exclusion rules
+skills:
+  - tax-summary

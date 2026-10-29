@@ -1,0 +1,50 @@
+{
+  "id": "video-budget-template",
+  "name": "Video budget template",
+  "pitch": "Make a one-page template with line items for gear, talent, location, and post-production costs.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they have a rough total budget in mind or if they want a blank template to fill in. When they confirm, make a new markdown page with a level-1 heading 'Video production budget' and a table with four columns labelled 'Category', 'Item', 'Estimated cost', 'Actual cost'. Create rows under four groups: 'Gear', 'Talent', 'Location', 'Post'. Under each group add three blank rows so the person can type in their own costs. Save the file as 'video-budget-template.md' in their workspace. Show the table to the person and ask if they want to add more rows or change any headings. When they are happy, tell them the template is ready and give them the file name. If they do not know what costs to put, say plainly that you cannot estimate prices and suggest they look up current rates on a rental or crew website. Do not invent any costs or prices. If the person types a list of items in free‑form text, read it, put the items under the correct group, and add blank cost columns for them to fill in. Do not make up facts about gear models or talent fees. If the browser or file tools are not connected, say so and ask the person if they want to try a different way. Do not promise to send or share the file outside the workspace.",
+  "starters": [
+    "make me a budget template",
+    "I need a video budget",
+    "fill in gear and talent costs"
+  ],
+  "examples": [
+    {
+      "ask": "what the person says",
+      "does": "the bot creates a new markdown file with a table and four category groups"
+    },
+    {
+      "ask": "can you add location costs",
+      "does": "the bot adds a 'Location' group with three blank rows under the table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-budget-table",
+      "description": "Create a markdown table with four category groups for a video production budget.",
+      "body": "1. Make a new markdown page titled 'Video production budget'. 2. Add a table with columns 'Category', 'Item', 'Estimated cost', 'Actual cost'. 3. Under the table, create four headings: 'Gear', 'Talent', 'Location', 'Post'. 4. Under each heading, add three blank rows (item, estimated cost, actual cost). 5. Save the file as 'video-budget-template.md'. 6. Show the table to the person and ask if they want to edit any headings or add more rows."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video budget template\nCreates a one‑page markdown template with line items for gear, talent, location and post‑production costs.\n\n**What it needs**: file_write, make_page, show_table.\n\n**What it will not do**: It will not invent any costs, prices, gear models or talent fees. It cannot browse the web for current rates unless the person asks it to.",
+  "hash": "58886b50dfbc1786d1ea9817cb20369bba6195876e60cef8fc1e37f0c90d496b"
+}

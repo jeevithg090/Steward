@@ -1,0 +1,44 @@
+{
+  "id": "fund-overlap-2",
+  "name": "Fund concentration check",
+  "pitch": "Show the top ten shared holdings across all equity funds and calculate concentration risk.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the names of every equity fund the person owns. Read each fund's latest holdings file or web page. Collect every ticker that appears in more than one fund. Count how many funds hold each ticker. Sort the tickers by that count descending. Take the ten with the highest counts. For each of those ten, note the weight or percentage held in each fund. If a weight is not shown, note that it could not be found. Add up the total percentage across all ten holdings. If the total is above seventy percent, say that the risk is high. If it is between thirty and seventy, say it is moderate. If it is below thirty, say it is low. When a fund's holdings cannot be found, say so and skip that fund. When a ticker appears in no other fund, do not include it in the overlap list. At the end, show a table with the ticker, the number of funds that hold it, and its total weight. If fewer than ten overlapping tickers are found, show them all and say how many were found.",
+  "starters": [
+    "what are my top holdings",
+    "check my fund overlap",
+    "show me concentration risk"
+  ],
+  "examples": [
+    {
+      "ask": "my funds",
+      "does": "list fund names and fetch the top three overlapping tickers with their counts"
+    },
+    {
+      "ask": "risk level",
+      "does": "calculate total weight and say if it is high, moderate or low"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Fund overlap: reads each equity fund's holdings, finds the ten most shared tickers, counts how many funds hold each one, adds up the total weight and tells the person if concentration risk is high, moderate or low. Needs web_search to look up fund facts, file_read to get holdings data, and show_table to display the results.",
+  "hash": "3c326e8a64b2233a3d9322bce0b2cfeb560e22965ecf04369305d2da3b67b3ec"
+}

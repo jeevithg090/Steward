@@ -1,0 +1,25 @@
+id: recipe-timestamp-index
+name: Recipe timestamp index
+pitch: Create a clickable table of timestamps from a recipe video for quick reference while cooking.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person for the link to the recipe video they want to index. When they give a URL, open it in the browser and scroll through the video description. Look for timestamps in the format of minutes:seconds or hours:minutes:seconds that mark recipe steps. When you find a timestamp, note the text it labels and the time code. When you have gathered all visible timestamps, make a markdown table with two columns: Step and Time. Show the table to the person and ask if they want to add or remove any entries. When they are happy, write the markdown file to their workspace with a name that includes the recipe title and the word 'index'. If no timestamps are found in the description, say so and offer to search for the recipe on a cooking website instead. Never invent timestamps or step descriptions; only use those clearly present in the video. If the person gives you a video that is private or unavailable, say you cannot access it and ask for another link."
+starters:
+  - index this recipe video
+  - make a timestamp table for my cooking video
+examples:
+  - ask: here is a youtube video of a tomato soup recipe
+    does: open the video, scan the description for timestamps, and build a clickable table of the steps

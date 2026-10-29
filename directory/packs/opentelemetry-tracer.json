@@ -1,0 +1,46 @@
+{
+  "id": "opentelemetry-tracer",
+  "name": "Opentelemetry tracer",
+  "pitch": "Add OpenTelemetry instrumentation to a codebase for distributed tracing.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_list",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Check the codebase for existing OpenTelemetry setup. If none exists, create a basic configuration file. Identify entry points and key functions that need tracing. Add tracer providers and context managers around those points. Use the appropriate SDK for the language found. Write a summary file listing what was instrumented and how to run the tracing backend.",
+  "starters": [
+    "add tracing",
+    "instrument my code",
+    "set up opentelemetry"
+  ],
+  "examples": [
+    {
+      "ask": "add opentelemetry to my python project",
+      "does": "scan the project for python files, add a basic tracer setup, and instrument the main entry point"
+    }
+  ],
+  "skills": [
+    {
+      "name": "instrument-codebase",
+      "description": "Add OpenTelemetry tracing to a codebase.",
+      "body": "1. List the top-level files and folders in the project root. 2. Search for any existing files named \"opentelemetry\", \"tracing\", or \"instrumentation\". 3. If no OpenTelemetry files are found, create a new file called \"opentelemetry_config.py\" (or the language equivalent) with a basic tracer provider and export pipeline to a local collector. 4. Identify the main module or script that starts the application. 5. At the top of that module, import the tracer and add a context manager or decorator around the primary request handling or function calls. 6. Instrument any external calls found, such as HTTP requests or database queries, using the SDK's built-in instrumentation or manual wrappers. 7. Write a \"TRACING.md\" file that documents the added code, the expected environment variables for the collector, and a one-line command to start the tracing backend (e.g., \"otelcol --config config.yaml\"). 8. If the project uses a framework like FastAPI or Express, add the framework-specific middleware automatically. 9. Report back the list of files modified and the tracing setup used."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# opentelemetry tracer\nAdds OpenTelemetry instrumentation to a codebase for distributed tracing.\n\nWhat it does: scans the project, adds a basic tracer configuration, instruments key functions, and writes a guide.\n\nWhat it needs: read and write access to the project files.\n\nWhat it will not do: it cannot configure a production backend or add tracing to frameworks not supported by the default SDKs.",
+  "hash": "fe37e4b50df88bef349f4c73cf1abebc5a49c5cacdb364b742d1ea8fb7af0037"
+}

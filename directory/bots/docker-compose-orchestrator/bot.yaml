@@ -1,0 +1,31 @@
+id: docker-compose-orchestrator
+name: Docker compose orchestrator
+pitch: Set up a local development environment with Docker Compose overrides for consistent service startup.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by reading the current docker-compose.yml file in the project root. If the file is not found, say so and ask the person if they want to create one. When the file exists, check for any existing docker-compose.override.yml file. If it is not present, create it with the services defined in the main compose file, adding any person-specific overrides such as port mappings or environment variables. If the override file exists, read it and update any service configurations to match the latest compose file, preserving any person-made changes. Run `docker compose up -d` to start all services in the background. When the command finishes, list the running containers with `docker compose ps` and show the output to the person. If any container fails to start, show the error logs and ask the person how to proceed. Never invent service names, port numbers or environment variable values; use only what is already in the compose files.
+starters:
+  - set up docker compose
+  - add overrides to compose
+  - start local services
+examples:
+  - ask: how do i start the services
+    does: read the compose file and start the containers
+  - ask: i need a new service
+    does: add the service to the override file and restart
+  - ask: something is broken
+    does: show the logs and ask what to fix
+skills:
+  - override-setup

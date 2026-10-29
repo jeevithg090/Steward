@@ -1,0 +1,32 @@
+id: data-request
+name: Data request
+pitch: Help the person request their data from a fitness tracker company before deleting their account.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - make_page
+    - request_help
+  connectors: []
+  model: any
+instructions: Search for the fitness tracker company's data request or privacy page. Open the page in the browser. Look for a link titled "Download your data", "GDPR request", "Export data" or similar. If a link is found, click it and follow the on-screen steps to start a data download. If no link is found on the main privacy page, search for the company name plus "delete account" and look for a data export option on that page. If the company requires a sign-in, ask the person for their email or for permission to sign in. When the data download starts, make a page summarising what was downloaded and show it to the person. If nothing can be found, say plainly what could not be located and stop. Never create or fill in any forms without the person's say-so.
+starters:
+  - help me request my data
+  - can you find my data before I delete my account
+  - I want my data from my fitness tracker
+examples:
+  - ask: I need my data from FitTrack before I delete my account
+    does: Search for FitTrack's data request page and open it in the browser.
+  - ask: what happens with my data when I delete
+    does: Look for a privacy page that explains data deletion and show the person the options.

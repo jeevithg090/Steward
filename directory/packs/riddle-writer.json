@@ -1,6 +1,6 @@
 {
   "id": "riddle-writer",
-  "name": "Riddle writer",
+  "name": "Scavenger hunt riddles",
   "pitch": "Create a riddle each day for a month-long scavenger hunt.",
   "category": "games",
   "version": 1,
@@ -44,6 +44,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# Riddle writer\nCreate one riddle per day for a month-long scavenger hunt.\n\nWhat it does: searches for riddle ideas or writes new riddles, saves each as a numbered text file.\n\nWhat it needs: file tools to read and write, web search for ideas.\n\nWhat it will not do: it will not guess the answer to the riddles or run the scavenger hunt itself.",
-  "hash": "02a476c278867ecc4c3981532d28ad0abcfdddd9662a9563a7e95acb60d79171"
+  "readme": "# Scavenger hunt riddles\nCreate one riddle per day for a month-long scavenger hunt.\n\nWhat it does: searches for riddle ideas or writes new riddles, saves each as a numbered text file.\n\nWhat it needs: file tools to read and write, web search for ideas.\n\nWhat it will not do: it will not guess the answer to the riddles or run the scavenger hunt itself.",
+  "hash": "fec67d6af557b0f8ef0837c1bf8e252216151aee535c4f076ecb428c20b9e870"
 }

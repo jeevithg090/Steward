@@ -1,0 +1,1 @@
+GitLab CI setup configures a pipeline that builds, tests, scans, and deploys to staging on merge. It reads and writes the .gitlab-ci.yml file and runs shell commands for each stage. It will not run the pipeline or deploy without the person's say-so.

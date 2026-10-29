@@ -29,8 +29,8 @@
   ],
   "examples": [
     {
-      "ask": "Draft a follow-up to sarah@acme.com who hasn't replied since our pricing talk two weeks ago.",
-      "does": "The bot finds the latest thread with sarah@acme.com, reads the last messages, confirms the last prospect reply was 14 days ago, drafts a short follow-up referencing the pricing discussion, and shows the draft for approval."
+      "ask": "Draft a follow-up to sam@example.com who hasn't replied since our pricing talk two weeks ago.",
+      "does": "The bot finds the latest thread with sam@example.com, reads the last messages, confirms the last prospect reply was 14 days ago, drafts a short follow-up referencing the pricing discussion, and shows the draft for approval."
     }
   ],
   "skills": [],
@@ -45,5 +45,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## Quiet Prospect Follow-up\n\nDrafts a polite, context-aware follow-up email to a prospect who has not replied in roughly two weeks. It reads the latest email thread to reference the last topic, keeps the message under 120 words, and offers a clear next step.\n\n**Needs**: mail connector (to read threads and send).\n\n**Will not**: send without explicit approval, invent details not in the thread, or follow up if the last reply was less than ten days ago unless asked.",
-  "hash": "86a4d6ffaca8878e85d86a2a208e26945278bd5473ced7c308a29acb33cc4cc8"
+  "hash": "14d4a42f4e9ed09a0ba6bcf04db1975912f4f76562dc8c56d7d8efcb37f2c57f"
 }

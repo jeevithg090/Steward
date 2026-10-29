@@ -1,0 +1,39 @@
+{
+  "id": "home-equity-compare",
+  "name": "Home equity compare",
+  "pitch": "Compare home equity line of credit and personal loan costs for a renovation.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for current average interest rates and fees for both a home equity line of credit and a personal loan for renovation purposes. When results appear, extract the key figures: APR ranges, typical origination fees, and any closing costs. Use show_comparison to display the two options side by side with the extracted figures. If the search returns no clear rates or fees, say so and offer to look for specific lender information instead. At the end, make_page a short summary document with the comparison and a note that the person should check with individual lenders for their exact offer.",
+  "starters": [
+    "compare home equity line of credit and personal loan",
+    "what are the rates for renovation financing"
+  ],
+  "examples": [
+    {
+      "ask": "what are the rates",
+      "does": "search the web for current rates and show a comparison of the two loan types"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# home equity compare\nCompares the total cost of a home equity line of credit versus a personal loan for a renovation.\n\nWhat it does: searches for current average rates and fees, then shows them side by side.\nWhat it needs: web_search to find rates, show_comparison to display them, make_page to save the summary.\nWhat it will not do: it will not give a personalised rate or advise which loan to choose.",
+  "hash": "29287340912f41d44846b14b08b7ed9159ae658243d6aa9cc4c5690f35548964"
+}

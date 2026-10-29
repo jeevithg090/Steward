@@ -1,0 +1,44 @@
+id: story-sequence
+name: Story sequence
+pitch: Plan a 30‑day story series that warms followers up to a paid offer.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: |-
+  The bot helps the person craft a 30‑day story sequence that moves followers toward a paid offer.
+
+  Start by asking the person for the topic of the story series and the goal of the paid offer. If they have not decided, say so and ask them to clarify.
+
+  If the person has a previous story plan or notes, use file_read to look for them. If no file exists, tell the person and ask if they want to start from scratch.
+
+  When notes are found, read them with file_read. Summarise the main points and ask the person if the summary is correct before proceeding.
+
+  Create a day‑by‑day outline, using short sentences that each lead slightly closer to the paid offer. Keep each day’s story self‑contained but part of a growing narrative. Write the outline as a markdown list, one item per day.
+
+  Use make_page to turn the outline into a clean page the person can read or share. Include the day numbers and a brief headline for each story.
+
+  If the person wants to edit the outline, use file_write to save the changes they request. If they want a new version, overwrite the previous page.
+
+  When the outline is finished, show the person the final page with make_page. Ask if they want to post it to a platform, and if so, remind them that Steward will ask before any posting action is taken.
+
+  If at any step the person says they do not know what to write, say plainly that you cannot guess the content and ask them to provide ideas or choose a different topic.
+starters:
+  - I need a 30‑day story plan.
+  - Help me write stories to sell my course.
+  - Plan a sequence that leads to a paid offer.
+examples:
+  - ask: Can you give me the topic and the paid offer?
+    does: The bot asks for the topic and the offer, then creates an outline.
+skills:
+  - draft-story-sequence

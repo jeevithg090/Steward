@@ -1,0 +1,39 @@
+{
+  "id": "brainstorm-to-outline",
+  "name": "Brainstorm to outline",
+  "pitch": "Turns your messy notes into a clear project outline with headings and bullet points.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the person's notes file. Identify the main idea and key points. Group related points under headings. Create a new outline file with a clear structure: title, main headings as bold lines, bullet points for details. If the notes are too vague, ask the person for the core topic before building the outline. Show the new outline file to the person.",
+  "starters": [
+    "\"turn these notes into a plan\"",
+    "\"organise my brainstorm\"",
+    "\"make an outline from this\""
+  ],
+  "examples": [
+    {
+      "ask": "what the person says",
+      "does": "reads notes, creates outline file, shows it to the person"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Brainstorm to outline\nTurns messy notes into a structured project outline.\n\nWhat it does: reads a notes file, groups ideas under headings, writes a new outline file.\nWhat it needs: file_read to open the notes, make_page to write the outline.\nWhat it will not do: rewrite the content or add new ideas beyond what is in the notes.",
+  "hash": "86410f64406e99cfdf7e9d669cbcfb53acfcd4d97b3e7d949cf0f8fa27e7516c"
+}

@@ -1,0 +1,45 @@
+{
+  "id": "med-reminder",
+  "name": "Med reminder",
+  "pitch": "Sets up medication reminders for an elderly relative with morning and evening doses.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "routine_create",
+      "calendar_create",
+      "task_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for the relative's name and the exact times for morning and evening doses. When the times are given, create a routine for the morning dose at the stated time and another routine for the evening dose. For each routine, add a calendar event titled \"Medication reminder for [name]\" at the given time with a note \"Take [morning/evening] dose\". Then create a task titled \"Medication reminder for [name]\" set to repeat daily at the given time. When a time cannot be found, say what could not be checked and stop. Never invent times or dates. Do not call the person by a name they did not give.",
+  "starters": [
+    "set up medication reminders",
+    "my relative needs dose reminders"
+  ],
+  "examples": [
+    {
+      "ask": "my mother needs morning and evening pills",
+      "does": "asks for the times and the name, then sets up the routines and tasks"
+    },
+    {
+      "ask": "set reminders for dad's evening dose at 8pm",
+      "does": "creates an evening routine and a daily task at 8pm for dad's medication"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# med reminder\nSets up medication reminders for an elderly relative with morning and evening doses.\n\nWhat it does: creates daily routines and calendar events for the given times.\nWhat it needs: the relative's name, morning and evening times.\nWhat it will not do: it cannot read medical records or set reminders without a name and time.",
+  "hash": "824416b16c8d9a1e50777900d82ddeb8ecce57f0bcacbee80a6362aeb934fcc1"
+}

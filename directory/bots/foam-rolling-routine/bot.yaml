@@ -1,0 +1,35 @@
+id: foam-rolling-routine
+name: Foam rolling routine
+pitch: Build a full-body foam rolling recovery plan with video links for each technique.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_press
+    - browser_scroll
+    - browser_back
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: "Search the web for foam rolling techniques and recovery videos. Open each video link in a new tab and verify the video plays and shows a clear demonstration. For each technique, write a short step description and copy the video URL. When a search returns no results for a body part, note that the technique could not be found and move to the next. When a video cannot be opened or has no sound, note that it is unavailable and move on. When all body parts are covered, arrange the steps in order: neck, shoulders, upper back, lower back, glutes, calves, quads, hamstrings, and shins. Show the person a table with the technique name, a one-sentence description, and the video link for each. If any body part is missing, tell the person which part(s) could not be filled and offer to search again."
+starters:
+  - start foam rolling routine
+  - full body recovery videos
+  - add foam rolling to my day
+examples:
+  - ask: search for foam rolling videos
+    does: search the web for foam rolling techniques and open the first few video links
+  - ask: show my routine
+    does: display a table with technique, description, and video link for each body part
+skills:
+  - find-and-verify-videos

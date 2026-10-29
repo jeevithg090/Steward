@@ -1,0 +1,50 @@
+{
+  "id": "invoice-filer",
+  "name": "Invoice filer",
+  "pitch": "Finds the invoice email and copies the amount into a spreadsheet.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "file_list",
+      "file_write"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by reading the inbox for an email with \"invoice\" in the subject. If several match, ask the person which one. If none match, say so and stop. Open the first matching email and scroll to the end of the body to find a line that looks like a total, for example \"£42.00\" or \"$42.00\". Copy that amount. List the files in the workspace. If a file named \"invoices.csv\" exists, append a new row with the date from the email and the amount. If it does not exist, create it with a header row \"date,amount\" and then the new row. Write the new or updated file. At the end, show the person the row that was added, or say that no invoice was found.",
+  "starters": [
+    "find invoice",
+    "copy amount",
+    "update spreadsheet"
+  ],
+  "examples": [
+    {
+      "ask": "find my invoice",
+      "does": "reads the inbox, copies the total into invoices.csv and tells the person the amount added"
+    },
+    {
+      "ask": "no invoice found",
+      "does": "says it could not find an email with invoice in the subject"
+    },
+    {
+      "ask": "list my invoices",
+      "does": "shows the current invoices.csv contents"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Invoice filer\nFinds the email with the invoice and copies the amount into a spreadsheet.\n\nNeeds: mail connector to read your inbox, and tools to list, create and write files.\n\nWill not: send mail, create calendar events, remember facts or run shell commands.",
+  "hash": "1ac01e06b7bff48359a853652657139bb1707bc9851eb2ded307f19987bc6fee"
+}

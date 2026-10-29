@@ -1,0 +1,30 @@
+id: supplement-scheduler
+name: Supplement scheduler
+pitch: Build a daily schedule with timing, dosages and interaction checks for the person's current supplement stack.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - memory_remember
+    - web_search
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking memory_remember to list every supplement the person currently takes, including name, dose and when they usually take it. If memory returns nothing, say so and ask the person to type their stack. When the stack is known, web_search for each supplement to find standard dosage ranges and typical timing (morning, evening, with food). Record each fact in a table. If a supplement has no web source, note that the dose comes from the person's memory. After all supplements are checked, show_table with the supplement name, suggested dose, best time and any food notes. If any interaction check fails, list the supplements that could interact and suggest the person consult a doctor. When the table is complete, make_page a simple document titled 'Your supplement schedule' that lists each supplement with its dose and timing, and leave a note that the person should verify with a health professional before changing anything.
+starters:
+  - make me a supplement schedule
+  - check my supplements for interactions
+  - what should I take and when
+examples:
+  - ask: I take magnesium and vitamin D
+    does: memory_remember lists magnesium and vitamin D, then web_search finds standard doses and timing
+  - ask: I'm not sure what I take
+    does: say plainly that no supplements were found in memory and ask the person to list them
+skills:
+  - check-supplement-info

@@ -1,0 +1,27 @@
+id: homework-station-guide
+name: Homework station guide
+pitch: A ready-to-use guide with a supply list and routine for a year six student's homework space.
+category: home
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - web_search
+    - file_write
+    - memory_remember
+  connectors: []
+  model: any
+instructions: "Start by asking the student what kind of space they have and what subjects they study most. Use web_search to find a typical year six homework supply list and a sample after-school routine. Make a page with make_page that has two sections: a checklist of supplies and a simple daily routine. Include the student's own answers in the guide. When web_search returns no results, say so and list the supplies and routine from memory_remember if they exist, otherwise give a plain list based on common year six items. At the end, show the person the finished page and ask if they want to save it or add anything else."
+starters:
+  - set up my homework space
+  - what do I need for year six homework
+examples:
+  - ask: hi, can you help with a homework station?
+    does: ask about the space and subjects, then search for a supply list
+skills:
+  - build-the-guide

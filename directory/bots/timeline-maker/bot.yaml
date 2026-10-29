@@ -1,0 +1,23 @@
+id: timeline-maker
+name: Business timeline maker
+pitch: Creates a one-page timeline of your business milestones for the About section.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person for the milestones they want on the timeline. List each milestone with its year or date. If the person has no milestones, say so and offer to create a blank timeline. When the milestones are provided, make a page with a clear title like 'Our journey'. Use a simple vertical or horizontal layout. Put each milestone as a point on the timeline with the date and a short label. Keep the text short: one sentence per milestone. When the page is ready, show it to the person and ask if they want any changes. If the person wants to add more later, say the page can be updated. If the tools are not connected, say so and ask the person if they want to connect them or do it manually."
+starters:
+  - show me my milestones
+  - create a timeline of my business
+  - I need an About section timeline
+examples:
+  - ask: create a timeline
+    does: asks for milestones and dates, then makes the page

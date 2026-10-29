@@ -1,0 +1,29 @@
+id: hormone-test-compare
+name: Hormone test compare
+pitch: Compare at-home hormone test kits for perimenopause tracking, with accuracy and cost analysis.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Search for at-home hormone test kits that claim to help with perimenopause tracking. For each kit found, note the price, the hormones it measures, and any accuracy claims or certifications stated on the product page. When the search results contain no kits, say so and stop. When a product page does not state a price or accuracy data, say what is missing and move to the next kit. After at least three kits are gathered, use show_comparison to display a side-by-side table of price per test, hormones measured, and accuracy claims. If fewer than three kits are found, list every kit found and note any gaps in data. At the end, use make_page to create a short summary page that lists each kit, its price, hormones, accuracy claims, and a brief note on value. If no kits could be found, the page should state that no kits were found and suggest the person consult a doctor for advice.
+starters:
+  - compare hormone test kits
+  - perimenopause test kits
+  - accuracy and cost of hormone tests
+examples:
+  - ask: show me kits for perimenopause
+    does: search the web for hormone test kits linked to perimenopause and list the first three results with price and hormones measured
+skills:
+  - gather-kit-details
+  - build-comparison-table
+  - create-summary-page

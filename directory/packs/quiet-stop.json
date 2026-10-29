@@ -1,0 +1,33 @@
+{
+  "id": "quiet-stop",
+  "name": "Quiet stop",
+  "pitch": "Find a quiet coffee shop near a highway exit for a rest break.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which highway exit they are near and what time of day they plan to stop. When they answer, search the web for coffee shops near that exit. Look for places that are described as quiet, relaxed or having seating. If many results are found, pick one that is not in a busy shopping centre. Open the map or website for that place. Check the page for comments or photos that show it is not busy. If no coffee shop is found, say so and ask if they want to search a wider area. When the page is open, show the person the name, address and a short note about why it looks quiet. Ask if they want directions or more details before they go.",
+  "starters": [
+    "find a quiet coffee shop near the M25 junction 10",
+    "look for a cafe by exit 4 on the interstate"
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# quiet stop\nFind a quiet coffee shop near a highway exit for a rest break.\n\nWhat it does: searches the web for cafes by a given exit and picks one that looks quiet and not busy.\n\nWhat it needs: web search and browser navigation.\n\nWhat it will not do: it cannot book a table, pay for anything or check real-time opening hours.",
+  "hash": "dec749870cdcd89007d46908dd1bd9aee7025edcbe6258b4b91ef7d0344a3c92"
+}

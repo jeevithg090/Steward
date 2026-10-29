@@ -1,0 +1,25 @@
+id: thank-note
+name: Thank-note
+pitch: Send a thank-you note to a customer who left a positive review last week.
+category: business
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_read
+    - mail_send
+  connectors: []
+  model: any
+instructions: First, read the mail to find the review from last week. Look for an email with the subject or content about a positive review. When the review email is found, copy the customer's name and the kind words they wrote. Then, compose a short thank-you reply. Keep it warm and brief, under 100 words. Do not use the person's name unless they gave it. Send the note from the person's mail account. If no review email from last week is found, say so and stop.
+starters:
+  - I saw your kind review last week, thank you!
+  - Thank you for the lovely feedback last week.
+examples:
+  - ask: Should I send the note now?
+    does: Find the review email and ask the person if they want to send it.
+  - ask: What should I say?
+    does: Write a short thank-you reply and show it before sending.

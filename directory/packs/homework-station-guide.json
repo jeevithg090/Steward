@@ -1,0 +1,46 @@
+{
+  "id": "homework-station-guide",
+  "name": "Homework station guide",
+  "pitch": "A ready-to-use guide with a supply list and routine for a year six student's homework space.",
+  "category": "home",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "web_search",
+      "file_write",
+      "memory_remember"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the student what kind of space they have and what subjects they study most. Use web_search to find a typical year six homework supply list and a sample after-school routine. Make a page with make_page that has two sections: a checklist of supplies and a simple daily routine. Include the student's own answers in the guide. When web_search returns no results, say so and list the supplies and routine from memory_remember if they exist, otherwise give a plain list based on common year six items. At the end, show the person the finished page and ask if they want to save it or add anything else.",
+  "starters": [
+    "set up my homework space",
+    "what do I need for year six homework"
+  ],
+  "examples": [
+    {
+      "ask": "hi, can you help with a homework station?",
+      "does": "ask about the space and subjects, then search for a supply list"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-the-guide",
+      "description": "Create the homework station page with a supply checklist and routine steps.",
+      "body": "1. Ask the student about their study space and favourite subjects. 2. web_search for 'year six homework supply list' and 'after school routine year six'. 3. If results exist, pull the most common items and routine steps. 4. If no results, use memory_remember to check if a list was saved earlier, otherwise use a plain list: pens, pencils, eraser, ruler, notebook, laptop or tablet, lamp, water bottle. 5. make_page a document titled 'Homework Station Guide'. 6. Add a 'Supplies' checklist with the items found. 7. Add a 'Routine' section with: come home, have a snack, unpack bag, start homework, take a break after 45 minutes, finish and pack up. 8. Show the person the page and ask if they want to keep it or change anything."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Homework station guide\nCreates a ready-to-use guide with a supply list and routine for a year six student's homework space.\n\n## What it does\nMakes a page with a checklist of supplies and a simple after-school routine tuned to a year six student.\n\n## What it needs\n- make_page to build the guide\n- web_search to find typical supplies and routines\n- file_write to save the page if the person asks\n- memory_remember to recall any saved lists from earlier\n\n## What it will not do\n- Buy or send any supplies\n- Set up the physical space\n- Give advice that depends on the student's school or teacher",
+  "hash": "313cfe1d7401c40873a41ead11c5b087228b652124cdc5e159221142fde05f1c"
+}

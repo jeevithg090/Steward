@@ -1,0 +1,47 @@
+{
+  "id": "72t-calculator",
+  "name": "72t calculator",
+  "pitch": "Explain how 72t substantially equal periodic payment plans work and their tax treatment.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "web_search",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "This job explains 72t SEPP plans. The agent first searches for the IRS rules on substantially equal periodic payments and the 10% early withdrawal exception. It reads the minimum payment calculation methods: required minimum distribution, amortization, and annuitisation. The agent checks that the payments are taken from an IRA or qualified plan and are calculated using a valid mortality table. The agent notes that the plan must last at least five years or until the person reaches age 59½, whichever is longer. If no clear IRS guidance is found, the agent says it could not find the official rules. At the end, the agent shows a short summary of the three methods and the tax treatment: the payments are treated as ordinary income, and failing the rules triggers the 10% penalty on all past payments. The agent does not give personal tax advice or calculate a specific payment amount.",
+  "starters": [
+    "what is a 72t plan",
+    "SEPP payment rules",
+    "early withdrawal exception"
+  ],
+  "examples": [
+    {
+      "ask": "can I start a 72t plan at age 55",
+      "does": "the agent searches for IRS rules on starting age and explains the five-year rule"
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-72t-rules",
+      "description": "Search for IRS Publication 575 and 72t guidance",
+      "body": "1. Use web_search to look for \"IRS 72t substantially equal periodic payments\" and \"IRS Publication 575 early withdrawal\". 2. Use browser_navigate to open the top results. 3. Use browser_snapshot to read the sections on the three calculation methods and the tax treatment. 4. If the pages are paywalled or the text is unclear, note that the official IRS guidance could not be retrieved. 5. Summarise the three methods: required minimum distribution, amortisation, and annuitisation, and state that payments are taxed as ordinary income."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# 72t calculator\n\nExplain how 72t substantially equal periodic payment plans work and their tax treatment.\n\n**What it needs**: a web browser to search IRS guidance; no personal data or accounts are required.\n\n**What it will not do**: it will not calculate a payment amount for you, it will not give personal tax advice, and it will not set up a plan in any account.",
+  "hash": "5734058690b713bc0ff9c50a9ae87c3e3c54eef0b670b2ddb68a4a5ffd957fe9"
+}

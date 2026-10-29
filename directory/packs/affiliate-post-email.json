@@ -1,0 +1,41 @@
+{
+  "id": "affiliate-post-email",
+  "name": "Affiliate post & email",
+  "pitch": "Writes an affiliate program announcement post and emails it to a list of subscribers.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Write an announcement post and email for an affiliate program. First, list the files in the workspace to find any existing drafts or details about the program. If no details exist, ask the person for the program name, commission rate, and any special offer. Create a new page for the announcement post using make_page, writing a short, friendly paragraph that explains the program, who can join, and how to sign up. Save the page as 'affiliate-announcement.md'. Then, write an email to the subscribers. List the recent emails in the mail inbox to find the subscriber list or a template. If no list exists, create a simple email with a greeting, the announcement, and a sign-up link. Send the email using mail_send, asking the person to confirm the recipient list and any personal greeting before sending. If the person has not provided the necessary details after asking, say what information is missing and stop.",
+  "starters": [
+    "announce the affiliate program",
+    "email subscribers about the new program"
+  ],
+  "examples": [
+    {
+      "ask": "I need to tell my subscribers about the new affiliate program.",
+      "does": "The agent creates an announcement page and drafts an email to send to the subscriber list."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Affiliate post & email\nWrites an affiliate program announcement post and emails it to a list of subscribers.\n\n**What it needs**: Access to the mail connector to read subscriber lists, and the ability to write files and pages.\n\n**What it will not do**: It will not send the email without the person confirming the recipient list and greeting.",
+  "hash": "0b7305c78e2fc36e906b5cc3b9e009f96f94351799a3950bb4fdd3566e75cd2f"
+}

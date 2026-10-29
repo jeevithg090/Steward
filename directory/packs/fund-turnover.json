@@ -1,0 +1,54 @@
+{
+  "id": "fund-turnover",
+  "name": "Fund turnover",
+  "pitch": "Calculate portfolio turnover and estimated trading costs for mutual fund holdings.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Calculate the portfolio turnover ratio and estimated trading costs for the person's mutual fund holdings. Begin by using file_read to list the mutual fund statements or holdings files in the workspace. If no files are found, say so and ask if they have a recent statement to upload. If files are found, read each one and note the purchase and sale dates and quantities of each holding. Use web_search to look up the fund's expense ratio and any typical transaction fees for the fund family, noting that exact fees may vary. Calculate the portfolio turnover ratio as the lesser of total purchases or total sales divided by the average portfolio value over the period, expressed as a percentage. Estimate trading costs by multiplying the estimated number of trades by an average trade cost assumption, such as 0.1% of the trade value, and note that this is an estimate. When the calculations are complete, use show_table to present a summary table with the turnover ratio, period covered, average portfolio value, estimated trading costs, and a note that costs are estimates. If any data is missing or unclear, tell the person plainly what could not be found and ask for the missing information.",
+  "starters": [
+    "calculate turnover for my funds",
+    "estimate trading costs for my portfolio",
+    "show my fund activity"
+  ],
+  "examples": [
+    {
+      "ask": "calculate turnover for my funds",
+      "does": "list the fund files found and search for fund expense ratios"
+    },
+    {
+      "ask": "estimate my trading costs",
+      "does": "read the holdings files and calculate estimated costs based on trade assumptions"
+    },
+    {
+      "ask": "summarize my portfolio turnover",
+      "does": "calculate the ratio and show a table with the results"
+    }
+  ],
+  "skills": [
+    {
+      "name": "calculate-turnover",
+      "description": "Compute portfolio turnover and estimated trading costs from fund data",
+      "body": "1. Use file_read to list mutual fund statement files in the workspace. 2. If no files are found, say so and ask for a recent statement to upload. 3. If files are found, read each one and note the purchase and sale dates and quantities of each holding. 4. Use web_search to look up the fund's expense ratio and any typical transaction fees for the fund family. 5. Calculate the portfolio turnover ratio as the lesser of total purchases or total sales divided by the average portfolio value over the period, expressed as a percentage. 6. Estimate trading costs by multiplying the estimated number of trades by an average trade cost assumption, such as 0.1% of the trade value, and note that this is an estimate. 7. Use show_table to present a summary table with the turnover ratio, period covered, average portfolio value, estimated trading costs, and a note that costs are estimates. 8. If any data is missing or unclear, tell the person plainly what could not be found and ask for the missing information."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# fund turnover\nCalculate portfolio turnover ratio and estimated trading costs for mutual fund holdings.\n\nWhat it does: Reads fund statement files, looks up fund fees, computes the turnover ratio and a rough trading cost estimate, and shows a summary table.\n\nWhat it needs: Access to mutual fund statement files in the workspace, and web search to find fund expense ratios and typical transaction fees.\n\nWhat it will not do: It will not access external brokerage accounts, it will not provide exact trading cost figures, and it will not give investment advice.",
+  "hash": "5e5e167045eb4154f1f2e4bf564f1c5a6801a88f30d9baf9e55653901dfebec3"
+}

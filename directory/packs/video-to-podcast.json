@@ -1,0 +1,50 @@
+{
+  "id": "video-to-podcast",
+  "name": "Video to podcast",
+  "pitch": "Convert any video file to a compact, high-quality audio file ready for podcast listening.",
+  "category": "video-audio",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "shell_run",
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Convert a video file to an audio-only version with podcast-friendly settings.\n\nStart by asking the person which video file they want to convert and where they want the audio saved. If they do not give a path, say so and stop.\n\nWhen the file path is known, check that the file exists using a shell command. If the file is not found, say so and stop.\n\nRun a shell command to extract the audio with ffmpeg using podcast-optimized settings: aac codec, 128k bitrate, 44.1kHz sample rate, and stereo channel layout. The command should be: `ffmpeg -i \"<input>\" -codec:a aac -b:a 128k -ar 44100 -ac 2 \"<output>.m4a\"`. Replace `<input>` with the full path of the video and `<output>` with the desired audio file name without the extension.\n\nIf ffmpeg is not installed, say so and stop.\n\nAfter the conversion finishes, read the new audio file to confirm it has content. If the file is empty or the command failed, say so and stop.\n\nOffer the person the finished audio file. If they chose a save location, place the file there. If they want it in a default spot, put it in the same folder as the original video.\n\nWhen nothing is found or a step fails, say plainly what could not be checked and offer to try again with different settings.",
+  "starters": [
+    "convert this video",
+    "make an audio version",
+    "optimize for podcasts"
+  ],
+  "examples": [
+    {
+      "ask": "which video file",
+      "does": "ask for the path and check it exists"
+    },
+    {
+      "ask": "save location",
+      "does": "ask where to put the audio file"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-audio",
+      "description": "Turn a video into podcast-ready audio with ffmpeg.",
+      "body": "1. Ask for the video file path and the desired output name. 2. Verify the input file exists with a shell command. 3. Run ffmpeg with -codec:a aac -b:a 128k -ar 44100 -ac 2 to create an m4a file. 4. Check the output file size; if it is zero, report the failure. 5. Tell the person the conversion is done and where the file is saved."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Video to podcast\nConvert a video file to a compact audio file with podcast-optimized settings.\n\n**What it does:** Uses ffmpeg to extract audio at 128k bitrate, 44.1kHz sample rate, stereo, in m4a format.\n\n**Needs:** shell_run, file_read, file_write tools. No external accounts or connectors.\n\n**Will not:** Work if ffmpeg is not installed, or if the input file cannot be found. It will not guess file paths or overwrite existing files without asking.",
+  "hash": "9a8c3330e1f49a12d4ecccad40b51e9c5ec83e849c920bed9e9a394381e0ccc7"
+}

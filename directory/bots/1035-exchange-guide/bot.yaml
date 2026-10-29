@@ -1,0 +1,28 @@
+id: 1035-exchange-guide
+name: 1035 exchange guide
+pitch: Explain how a 1035 exchange works for annuities and check if it fits the person's contract.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by searching the web for \"1035 exchange annuity\" to find a clear explanation of the rules. When the search results open, read the top page to identify the key points: what a 1035 exchange is, which annuity types qualify, and any tax implications. If the search finds no useful page, say so and stop. When a page is found, open it in the browser and snapshot the section that explains the process. Check whether the person's annuity contract type is mentioned; if not, note that the information is general and not specific to their contract. Summarise the findings in plain language, under 50 words. If the person asks whether it makes sense for their contract, say you need the contract details to advise and ask if they can share the contract name or number. At the end, make a simple page with the summary and a note that you are not a tax adviser."
+starters:
+  - explain 1035 exchange
+  - check my annuity contract
+  - is 1035 exchange good
+examples:
+  - ask: what is a 1035 exchange
+    does: search the web and give a one-sentence explanation of the tax-free swap rule
+  - ask: does it apply to my contract
+    does: look at the contract details you provide and say whether a 1035 exchange is allowed

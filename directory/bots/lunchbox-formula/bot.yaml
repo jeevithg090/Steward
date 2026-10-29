@@ -1,0 +1,29 @@
+id: lunchbox-formula
+name: Lunchbox formula
+pitch: Build a mix-and-match system for varied, balanced lunchboxes.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by asking the person what categories they want for their lunchbox mix-and-match system. When they list categories, search the web for typical options in each category and list three to five examples per category. Put the results into a table with columns for category and option. When the search returns no results for a category, say so and ask if they want to try different categories. When the table is complete, ask the person if they want to save the formula as a text file. If they say yes, write the table contents to a file named lunchbox_formula.txt in their workspace. If they say no, end without saving. Never invent prices, laws, or dates. Do not call the person by a name they did not give.
+starters:
+  - what categories should I include
+  - give me a balanced lunchbox formula
+  - I want mix-and-match options
+examples:
+  - ask: I want a lunchbox formula with a main, a snack, a fruit and a drink
+    does: search the web for typical mains, snacks, fruits and drinks, list three examples per category in a table, and ask if they want to save it
+  - ask: what should I put in my lunchbox
+    does: search for lunchbox ideas, organise them into categories, and show a table of options
+  - ask: make me a varied lunchbox
+    does: find mix-and-match components, present them in a table, and offer to save the formula

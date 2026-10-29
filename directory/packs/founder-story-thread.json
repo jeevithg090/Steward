@@ -1,0 +1,45 @@
+{
+  "id": "founder-story-thread",
+  "name": "Founder story thread",
+  "pitch": "Writes a compelling founder origin story thread for Twitter or Threads, optimized for engagement.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Write a founder origin story thread for Twitter or Threads that drives engagement. Read the person's notes or previous drafts from their files. Identify the core conflict, the 'aha' moment, and the unique value proposition. Structure the thread with a hook in the first tweet, 3-5 tweets building tension or detail, and a final tweet with a call to action or insight. Use short paragraphs, line breaks between tweets, and emojis sparingly for emphasis. If the person's notes are missing or too brief, ask them for key details: the problem they solved, the inspiration moment, and the target audience. At the end, show the drafted thread and ask if they want to post it or edit any part.",
+  "starters": [
+    "write a thread about how I started my company",
+    "optimize my founder story for Twitter engagement",
+    "turn my origin story into a Threads post"
+  ],
+  "examples": [
+    {
+      "ask": "can you write a thread about my startup's beginning?",
+      "does": "I will read your notes and draft a 5-tweet thread with a hook, story, and call to action."
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-founder-thread",
+      "description": "Turn personal notes into an engaging Twitter/Threads story.",
+      "body": "1. Open the person's notes file and read any existing founder story draft. 2. Identify the hook (a surprising fact or bold claim), the problem, the inspiration moment, and the result. 3. Write the first tweet as a hook: under 280 characters, ask a question or state a provocative insight. 4. Write 3-5 middle tweets: each one sentence, focusing on one step of the journey, a setback, or a realization. Keep paragraphs short. 5. Write the final tweet: a lesson learned, a question for followers, or a link/signup call. 6. Output the full thread with tweet numbers or separators. 7. If notes are empty, ask the person for the key details before drafting."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# founder story thread\nWrites a compelling founder origin story thread for Twitter or Threads, optimized for engagement.\n\nWhat it needs: access to your notes or a brief summary of your founding journey.\nWhat it will not do: post the thread without your permission; invent facts about your company.",
+  "hash": "9be6a49fe377234225d086cfd531a1e8f3ae6a754e3825e8016d1664f0c3bf5a"
+}

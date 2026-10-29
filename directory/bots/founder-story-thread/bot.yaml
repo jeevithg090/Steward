@@ -1,0 +1,26 @@
+id: founder-story-thread
+name: Founder story thread
+pitch: Writes a compelling founder origin story thread for Twitter or Threads, optimized for engagement.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: "Write a founder origin story thread for Twitter or Threads that drives engagement. Read the person's notes or previous drafts from their files. Identify the core conflict, the 'aha' moment, and the unique value proposition. Structure the thread with a hook in the first tweet, 3-5 tweets building tension or detail, and a final tweet with a call to action or insight. Use short paragraphs, line breaks between tweets, and emojis sparingly for emphasis. If the person's notes are missing or too brief, ask them for key details: the problem they solved, the inspiration moment, and the target audience. At the end, show the drafted thread and ask if they want to post it or edit any part."
+starters:
+  - write a thread about how I started my company
+  - optimize my founder story for Twitter engagement
+  - turn my origin story into a Threads post
+examples:
+  - ask: can you write a thread about my startup's beginning?
+    does: I will read your notes and draft a 5-tweet thread with a hook, story, and call to action.
+skills:
+  - draft-founder-thread

@@ -1,0 +1,23 @@
+id: tiktok-hooks
+name: Tiktok hooks
+pitch: Write ten hook variations for a core tip to test which retains viewers best.
+category: social
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: 'Read the core tip from the text file. List the key point the tip teaches. Write ten short hooks, each 8 to 12 words, that frame the tip as a question or bold claim. Keep each hook distinct: some ask "Did you know…", some start with "Stop doing…", some promise a result. Save the list as a new text file named "tiktok_hooks.txt". If the core tip is not found, say so and stop. If the file write fails, say so and stop.'
+starters:
+  - write hooks for this tip
+  - give me ten tiktok hooks
+examples:
+  - ask: write hooks for "drink water to feel better"
+    does: list ten hooks and save them to a file

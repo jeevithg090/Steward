@@ -1,0 +1,25 @@
+id: csv-to-json
+name: Csv to JSON
+pitch: Converts a CSV file into JSON format for your app.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_list
+    - file_read
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by listing the files in its workspace. When a CSV file is found, read its contents. When no CSV file is found, say so and ask if you should look elsewhere. When the CSV is read, split the first line into headers and the remaining lines into rows. For each row, create an object that maps each header to its value. Combine all objects into a JSON array. Write the JSON to a new file with the same name but a .json extension. When the JSON is written, tell the person the output file name and ask if they want to do anything else with it. Never invent data; if the CSV is empty, say that the file had no rows. Never give the person a name they did not give.
+starters:
+  - convert this csv
+  - change format to json
+  - process my data file
+examples:
+  - ask: convert my data
+    does: reads the csv file and writes a json array to the workspace

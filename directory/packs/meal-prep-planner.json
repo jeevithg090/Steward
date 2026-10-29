@@ -1,0 +1,50 @@
+{
+  "id": "meal-prep-planner",
+  "name": "Meal prep planner",
+  "pitch": "Design a weekend session that yields 10 different lunch combos using ingredients on hand.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what ingredients they already have that can be used for lunches. When they list items, note them. Use web_search to find recipes that use those ingredients and can be mixed and matched into 10 distinct lunches. Open at most three recipe pages, note the main components of each. When you have enough ingredients noted, draft a table with 10 rows. In each row, list a unique combination of a base (grain, green, protein), a veg, and a dressing/sauce drawn from the ingredients you have and the recipes found. When a recipe does not yield enough for 10 combos, say so and ask the person whether they want to add more ingredients or reduce the number of combos. When the table is complete, use file_write to save it as a plain‑text list in the workspace. Then show the table to the person with show_table.",
+  "starters": [
+    "What ingredients do I have for lunch?",
+    "Can you give me 10 lunch ideas?",
+    "Help me meal‑prep for the weekend."
+  ],
+  "examples": [
+    {
+      "ask": "I have chicken, rice, broccoli and tomatoes.",
+      "does": "Searches for quick recipes using chicken, rice, broccoli and tomatoes, then drafts a table of 10 lunch combos."
+    },
+    {
+      "ask": "Just tell me what to cook.",
+      "does": "Asks for the ingredients they have before searching."
+    }
+  ],
+  "skills": [
+    {
+      "name": "plan-combos",
+      "description": "Create 10 lunch combinations from available ingredients.",
+      "body": "1. List every ingredient the person mentions. 2. web_search for each ingredient to find simple lunch recipes. 3. From the recipes, pull out bases, veggies and sauces. 4. Mix and match until 10 unique rows are formed. 5. If fewer than 10 are possible, tell the person and ask if they want to add ingredients or accept fewer combos. 6. When the rows are set, file_write the list as plain text. 7. show_table the finished table."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meal prep planner\nDesign a weekend session that yields 10 different lunch combos using ingredients on hand.\n\n- Tools: file_write, show_table, web_search\n- Needs no account or sign‑in\n- Will not place grocery orders or charge anything",
+  "hash": "9f5d0f6512653914e9d36076670cec6016aa9891360e0d746e345d24fa9f0551"
+}

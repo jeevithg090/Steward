@@ -1,0 +1,64 @@
+{
+  "id": "alcohol-free-challenge",
+  "name": "Alcohol-free challenge",
+  "pitch": "A 30-day alcohol-free challenge with daily tips, mocktail recipes, and coping strategies for social events.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page",
+      "routine_create",
+      "task_create",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person if they want a 30-day alcohol-free challenge with daily tips, mocktail recipes, and coping strategies for social events. When they agree, create a new page titled '30-Day Alcohol-Free Challenge'. Add a header with the goal and a blank calendar grid for 30 days. Use web_search to find reliable alcohol-free mocktail recipes and coping strategies for social events. Save the best three recipes and three strategies as the first entries. Create a task titled 'Daily challenge check-in' that repeats every day for 30 days. In the task description, include a placeholder for the person to write a short note each evening. When web_search finds no results, say 'I could not find any alcohol-free mocktail recipes or coping strategies. Would you like me to try different search terms?' Do not invent recipes or strategies. When the person types 'start', open the page and read the first day's tip and recipe aloud. When the task is due, show the person the task and ask if they want to log their evening note now. At the end of 30 days, show the person the finished page and ask if they want to start again or keep the page.",
+  "starters": [
+    "start",
+    "begin challenge",
+    "help me stop drinking for 30 days"
+  ],
+  "examples": [
+    {
+      "ask": "start",
+      "does": "create the page and first task, then show the first day's tip and mocktail recipe"
+    },
+    {
+      "ask": "what's my plan",
+      "does": "show the 30-day page with the calendar and first entries"
+    }
+  ],
+  "skills": [
+    {
+      "name": "set-up-challenge-page",
+      "description": "Create the 30-day page with a calendar grid and save the first recipes and strategies found.",
+      "body": "1. Use make_page to make a new page called '30-Day Alcohol-Free Challenge'. 2. Add a level-1 heading '30-Day Alcohol-Free Challenge'. 3. Add a short paragraph explaining the goal: stop drinking alcohol for 30 days. 4. Insert a blank table with 5 columns (Day, Tip, Mocktail, Strategy, Notes) and 31 rows (including a header row). 5. Use web_search to look for 'easy alcohol-free mocktail recipes'. 6. Pick the first three results that look like simple drinks. 7. Write the recipe name and a one-sentence description under the 'Mocktail' column for Day 1. 8. Use web_search to look for 'coping strategies social events no alcohol'. 9. Pick the first three results that look like practical tips. 10. Write the tip summary under the 'Strategy' column for Day 1. 11. Save the page. 12. Use task_create to make a task called 'Daily challenge check-in' that repeats every day for 30 days. 13. In the task description, write 'Evening note: How did your day go? Did you stick to the plan? Write a short note.' 14. Save the task."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before sending",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "Ask the person before the bot sends any message or email."
+    },
+    {
+      "name": "ask before creating routine",
+      "effect": "ask",
+      "when": "tool.name == \"routine_create\"",
+      "description": "Ask the person before the bot sets up a routine that runs on its own."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Alcohol-free challenge\n\nA 30-day alcohol-free challenge with daily tips, mocktail recipes, and coping strategies for social events.\n\n**What it does:** Creates a page with a 30-day calendar, adds the first mocktail recipes and coping strategies found on the web, and sets a daily task so the person can log their progress.\n\n**What it needs:** make_page to build the page, web_search to find recipes and strategies, task_create for the daily check-in, routine_create if a repeating routine is wanted.\n\n**What it will not do:** It will not give medical advice or tell the person how to quit drinking. It will not force a routine on the person without asking.",
+  "hash": "7ea67c48a0b3bc862dc9fe462e68688a43aae34551c4331183cc4f03e1fbe5e9"
+}

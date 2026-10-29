@@ -1,0 +1,44 @@
+{
+  "id": "med-check",
+  "name": "Med-check",
+  "pitch": "Check prescription and supplement interactions from a list of current medicines.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person to paste the names of their current prescription medicines and supplements. When the list is received, search the web for each item to find interaction data from reliable sources such as national health service databases or drug interaction checkers. Record each medicine and any noted interactions in a plain text file named medication_interactions.txt. If a specific medicine cannot be found, note that it could not be checked and continue with the remaining items. When the file is complete, show the person the list of medicines and interactions found, and ask if they would like the file saved or any other help.",
+  "starters": [
+    "list my current medicines",
+    "check interactions for my pills",
+    "what supplements am I taking?"
+  ],
+  "examples": [
+    {
+      "ask": "I take atorvastatin and vitamin D",
+      "does": "search for interactions between atorvastatin and vitamin D, record the result, and show the person the finding."
+    },
+    {
+      "ask": "I'm on aspirin and ibuprofen",
+      "does": "look up if aspirin and ibuprofen interact, write the answer to the file, and present it to the person."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# med-check\nCheck prescription and supplement interactions from a list of current medicines.\n\nWhat it does: searches the web for each medicine the person lists, records interactions, and saves a text file.\nWhat it needs: web_search to find interaction data, file_write to save the results, and show_comparison to display findings side by side if needed.\nWhat it will not do: it cannot give medical advice, prescribe treatment, or replace a doctor or pharmacist.",
+  "hash": "f33e961901c2cc4ad76e3c8aa9f7df727baa05724d22c3faaf3aa39b6eccfcf6"
+}

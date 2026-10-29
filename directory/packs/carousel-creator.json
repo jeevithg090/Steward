@@ -1,0 +1,34 @@
+{
+  "id": "carousel-creator",
+  "name": "Carousel creator",
+  "pitch": "Turn a course outline into a twelve-post educational carousel series for social media.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the course outline file. Break the outline into twelve logical post topics. Write each post as a short, standalone educational point. Format each post for a carousel: a hook sentence, 3 bullet points of key info, and a summary sentence. Save each post as a separate text file in the output folder. Offer to show the person the files so they can review before posting.",
+  "starters": [
+    "\"Here is my course outline\"",
+    "\"Start a carousel from this outline\"",
+    "\"Make twelve posts from my material\""
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Carousel creator\nTurns a course outline into a twelve-post educational carousel series.\n\nWhat it does: reads an outline file, splits the content into twelve topics, writes each as a hook-plus-bullets post, and saves the files.\n\nWhat it needs: a course outline file in the workspace.\n\nWhat it will not do: it cannot design graphics, write captions, or post to social media.",
+  "hash": "3b4c11f36c20099c23133ac949fa850f5f6ac8a6b51f37b1c24385b7b5548c91"
+}

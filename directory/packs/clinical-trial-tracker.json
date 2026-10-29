@@ -1,0 +1,51 @@
+{
+  "id": "clinical-trial-tracker",
+  "name": "Clinical trial tracker",
+  "pitch": "Finds registered clinical trials for an intervention and summarises their status.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search the web for registered clinical trials of the intervention. Use the search results to identify trial registries such as ClinicalTrials.gov or the EU Clinical Trials Register. Open each relevant trial page. Read the page to find the trial status, phase, and start date. If a page does not show a status, note that the information was not available. Keep a list of the trials found, their status, and a brief note about each. When the search is complete, show the person a table of the trials found. If no trials are found, say so and offer to search for related terms.",
+  "starters": [
+    "find trials for this intervention",
+    "what clinical trials are running for this treatment"
+  ],
+  "examples": [
+    {
+      "ask": "find trials for this intervention",
+      "does": "search for the intervention and list trial statuses in a table"
+    },
+    {
+      "ask": "summarise trial status",
+      "does": "open registry pages and report the status of each trial found"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-summarise-trials",
+      "description": "search the web for the intervention name and clinical trials. open the first few registry pages. read each page for the status, phase, and start date. write down the trial name, status, and any other details found. if a page has no status, note it as unavailable. stop when 5 trials are listed or the search is exhausted.",
+      "body": "1. type the intervention name into web_search. 2. look at the results and pick registry pages. 3. use browser_navigate to open each registry page. 4. use browser_snapshot to read the page. 5. find the status, phase, and start date. 6. write the trial name and status to a list. 7. repeat for up to 5 trials. 8. if no trials are found, say so."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# clinical trial tracker\n\nFinds registered clinical trials for an intervention and summarises their status. Uses web search and registry pages to collect trial information. Shows a table of trials found, or says if none are available.\n\nNeeds: web_search, browser_navigate, browser_snapshot, file_write, show_table. No connectors required.\n\nWill not: claim a trial is safe or effective. give medical advice. pay for anything.",
+  "hash": "d8a853c22d93a9c86ebcc85af7d68184b1f4d9203ca0b46608aa1c39f97da1dc"
+}

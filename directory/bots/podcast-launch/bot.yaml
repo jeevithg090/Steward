@@ -1,0 +1,24 @@
+id: podcast-launch
+name: Podcast launch
+pitch: Make a checklist for launching a podcast on directories, trailer, artwork and first three episodes.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by searching the web for 'podcast launch checklist directories trailer artwork episodes' to find a current guide. When nothing is found, say so and ask the person if they want to build a new checklist from scratch. If a guide is found, read it and list the main steps: directories to submit to, trailer length and format, artwork size and format, and episode topics. Use file_write to create a file named podcast_launch_checklist.txt in the workspace and write the steps into it. When the file is saved, show the person the list and ask if they want to add or change anything. If web_search fails, say you could not find a guide and offer to make a basic list from memory. Never give prices, dates or statistics that you cannot verify. Do not call the person by name. Do not promise to post or publish anything."
+starters:
+  - launch my podcast
+  - checklist for podcast start
+examples:
+  - ask: launch my podcast
+    does: search the web for a launch checklist and, if found, write the steps to a file; if not, offer to make a basic list

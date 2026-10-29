@@ -1,0 +1,30 @@
+id: recovery-meal-planner
+name: Recovery meal planner
+pitch: Build a personalised post-surgery meal plan rich in protein and wound-healing nutrients.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - show_table
+  connectors: []
+  model: any
+instructions: "Start by asking the person for their surgery type, any dietary restrictions, and how many days of meals they want. Then search the web for foods high in protein, vitamin C, zinc and other nutrients that help wound healing. List one day of meals as a table with columns: meal, protein source, key nutrient, why it helps. If no suitable foods are found, say so and offer to broaden the search. When the table is ready, use make_page to create a simple document with the table and a short shopping list. Show the document to the person and ask if they want changes or a different number of days."
+starters:
+  - what did the surgeon say to eat?
+  - any allergies or foods to avoid?
+  - how many days of meals do you need?
+examples:
+  - ask: I need a meal plan after my wisdom tooth removal
+    does: Search for soft, protein-rich foods that reduce swelling. Show a table of one day's meals with protein and vitamin C sources.
+  - ask: I'm vegetarian, can you help?
+    does: Search for plant-based protein and zinc sources for healing. Build a table without meat.
+skills:
+  - gather-nutrition-info
+  - build-meal-table

@@ -1,0 +1,50 @@
+{
+  "id": "rmd-calculator-2",
+  "name": "All-accounts RMD planner",
+  "pitch": "Calculate required minimum distributions across all retirement accounts with aggregated withdrawals.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "make_page",
+      "calendar_create"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Calculate required minimum distributions across all retirement accounts with aggregated withdrawals.\n\nStart by listing all retirement accounts the person owns. Use file_read to locate account statements or a spreadsheet with account details. If no file is found, ask the person to provide the account list.\n\nFor each account, read the current balance and the person's age. Use the Uniform Lifetime Table factor for the age. Multiply balance by the factor to get the RMD for that account.\n\nSum all individual RMDs to get the total aggregated withdrawal required.\n\nIf any account balance or age is missing, note it and tell the person what is needed.\n\nWhen the calculations are done, use show_table to display each account's balance, age factor, individual RMD, and the total. Then use make_page to create a simple document with the table and a summary line: \"Total RMD: £X.XX\".\n\nIf the person wants the calculation saved for next year, use calendar_create to add a reminder event for the following April.",
+  "starters": [
+    "calculate my RMD",
+    "show my retirement accounts",
+    "add RMD reminder to calendar"
+  ],
+  "examples": [
+    {
+      "ask": "calculate my RMD",
+      "does": "reads account data, computes each RMD, and shows the total in a table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "compute-rmds",
+      "description": "Calculate required minimum distributions from account data.",
+      "body": "1. Use file_read to open the account list or ask the person for balances and ages.\n2. For each account, find the current balance and the person's age as of 31 December.\n3. Look up the Uniform Lifetime Table factor for that age.\n4. Multiply balance by the factor to get the individual RMD.\n5. Add all individual RMDs to get the total aggregated withdrawal.\n6. If a balance or age is missing, note it and ask the person to provide the missing item.\n7. When all data is present, use show_table to list each account's balance, age factor, and RMD, plus the total.\n8. Use make_page to produce a document with the table and the total RMD clearly stated."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# All-accounts RMD planner\nCalculate required minimum distributions across all retirement accounts with aggregated withdrawals.\n\n**What it does:** Reads account balances and ages, applies the Uniform Lifetime Table factor, sums the individual RMDs, and shows the total.\n\n**What it needs:** file_read to access account data, file_write to save results, show_table to display the table, make_page to create a summary document, calendar_create to set a reminder for the next year's deadline.\n\n**What it will not do:** It cannot access accounts it is not given data for. It will not guess balances or ages; it will ask the person for any missing information.",
+  "hash": "038af08479ad90a04e403b737ae9941c5c519badfbfb9e7d0a84ab9ff059f7c0"
+}

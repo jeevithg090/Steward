@@ -1,6 +1,6 @@
 {
   "id": "rent-scout-2",
-  "name": "Rent scout",
+  "name": "Holiday rental compare",
   "pitch": "Compare two short-term holiday rentals you are considering, showing key details side by side.",
   "category": "misc",
   "version": 1,
@@ -43,6 +43,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# Rent scout\nCompares two short-term holiday rentals you are considering.\n\nIt searches the web for each listing, reads price, location, size and cancellation policy, and shows them in a side‑by‑side table. It will not book anything, send messages, or pay fees. It needs web search and the comparison tool. It cannot check availability for specific dates or verify the accuracy of listings.",
-  "hash": "f89513c470487e97ac413f5946079094c692af73e1d5ed4a98c86f55c947b02f"
+  "readme": "# Holiday rental compare\nCompares two short-term holiday rentals you are considering.\n\nIt searches the web for each listing, reads price, location, size and cancellation policy, and shows them in a side‑by‑side table. It will not book anything, send messages, or pay fees. It needs web search and the comparison tool. It cannot check availability for specific dates or verify the accuracy of listings.",
+  "hash": "c3d879405b0dd7c3749ce0585b9ddca87145791a3b4f0a7df77669a966bf43a6"
 }

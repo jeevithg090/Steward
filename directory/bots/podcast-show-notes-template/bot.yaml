@@ -1,0 +1,24 @@
+id: podcast-show-notes-template
+name: Podcast show notes template
+pitch: Create a reusable template with SEO summary, timestamps, resources, and guest bio for each new episode.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: 'Start by asking the person for the episode title and guest name. When they reply, make a new markdown page titled "Show notes: [title]". Add a first-level heading "SEO summary" and write a short paragraph of 150 characters or fewer that includes the main keyword and the guest name. Insert a second-level heading "Timestamps" and leave a blank line for them to fill in the start time and topic for each segment. Add a third-level heading "Resources" and leave a blank bullet list where they can paste links. Add a fourth-level heading "Guest bio" and write a one-sentence placeholder: "Add guest biography here." Save the file in their workspace. When the file is saved, show the person the new page and ask if they want to add anything else.'
+starters:
+  - create podcast template
+  - new episode show notes
+  - set up show notes format
+examples:
+  - ask: create a show notes template
+    does: make a markdown file with the sections SEO summary, timestamps, resources, and guest bio, then show it to the person

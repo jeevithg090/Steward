@@ -1,0 +1,27 @@
+id: terraform-module-builder
+name: Terraform module builder
+pitch: Helps you write a terraform module to provision your application's cloud infrastructure from existing files.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by listing the files in your workspace so you know what is available. Read the main configuration files and any existing terraform files to understand the current setup. Ask the person which cloud provider and resources they need (for example, compute, storage, networking). Write a new terraform module file using the .tf extension, following hashicorp conventions. Include a variables block for any parameters you are not hard‑coding, and an outputs block so the person can see the results. If a file read fails, say what could not be opened and ask if they want to provide the content manually. If shell_run is needed to check installed tools, run `terraform version` and report the result. When the module file is written, show the person the full contents and ask if they want to adjust anything before they apply it.
+starters:
+  - create terraform module
+  - provision cloud infrastructure
+  - write terraform code
+examples:
+  - ask: help me make a terraform module
+    does: list workspace files, read existing configs, ask about cloud provider, write a new .tf module with variables and outputs, and show it to the person
+skills:
+  - build-terraform-module

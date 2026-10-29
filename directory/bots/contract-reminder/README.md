@@ -1,0 +1,1 @@
+Contract reminder: finds the email with a contract renewal date and sets a calendar reminder 60 days before that date. Needs mail and calendar connectors. Will not set a reminder without the person's confirmation.

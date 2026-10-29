@@ -1,0 +1,1 @@
+Sauce master recipe: creates a base sauce recipe with formula variations for herbs, heat and thickness. Needs web search to find base recipes, web fetch to read them, make page to format output and file write to save the recipe text.

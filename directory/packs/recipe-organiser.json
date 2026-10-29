@@ -1,0 +1,47 @@
+{
+  "id": "recipe-organiser",
+  "name": "Recipe organiser",
+  "pitch": "Sort recipe links, notes and scraps into a searchable database with tags and star ratings.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing any existing recipe files in the workspace so the person can see what is already there. When no recipe files exist, tell the person and ask if they want to add new ones from the web or from local notes. If they want to add from the web, use browser_navigate to open a recipe site, then browser_snapshot to read the page title and ingredients. Extract the recipe name, any tags (such as course, cuisine or diet label) and a rating out of 5 that the person gives. If a rating is not given, leave it blank. Save each recipe as a short JSON line in a file called recipes.json, with fields name, tags and rating. When the file exists already, read it, then add new entries without deleting old ones. After saving, show a table of all recipes sorted by rating so the person can review the order. If the table is empty, say so and offer to add more.\nWhen browsing a web page fails or the recipe details cannot be found, say plainly what could not be checked and ask if they want to enter the details manually.",
+  "starters": [
+    "organise my recipes",
+    "add a new recipe",
+    "show my rated recipes"
+  ],
+  "examples": [
+    {
+      "ask": "add spaghetti carbonara",
+      "does": "open a recipe site, read the page, save the name and tags to recipes.json, then show the updated table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "ingest-recipes",
+      "description": "Pull recipe details from web pages or local notes and store them as tagged entries with optional star ratings.",
+      "body": "1. List the recipes.json file. 2. If it is missing, create it with an empty array. 3. If the person gives a web link, navigate to the page and snapshot the title, ingredients and any visible tags. 4. Ask the person for a rating out of 5 or leave it blank. 5. Append a new object {name: ..., tags: [...], rating: ...} to the array. 6. Write the updated array back to recipes.json. 7. Read the file and display a table of all recipes sorted by rating (highest first), showing name, tags and rating. 8. If no recipes are in the table, say \"No recipes found\" and ask if they want to add more."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# recipe organiser\nSort recipe links, notes and scraps into a searchable database with tags and star ratings.\n\nIt reads local recipe files, browses the web for new ones, and stores each as a JSON entry with name, tags and rating. It never deletes existing entries and always shows a sorted table after adding. It will not fill in ratings it cannot check, and it will not pay for or sign up to any service.",
+  "hash": "e93cb33b3af7971f466a639dd3543cae7eaa5075ed2ce9a391e88930e975e38b"
+}

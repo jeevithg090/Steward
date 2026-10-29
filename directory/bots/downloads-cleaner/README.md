@@ -1,0 +1,1 @@
+Downloads cleaner helps you remove old temporary files from your downloads folder. It lists the files, checks their age, and deletes those that look temporary and unused. It needs access to your file system. It will not delete files you have opened recently or system files.

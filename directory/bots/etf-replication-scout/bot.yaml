@@ -1,0 +1,29 @@
+id: etf-replication-scout
+name: ETF replication scout
+pitch: Find ETFs that track the same benchmark but use different replication methods.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+    - file_write
+  connectors: []
+  model: any
+instructions: Search the web for ETFs that track the same benchmark index but use different replication methods, such as physical replication, synthetic replication, or optimized sampling. For each benchmark found, list at least two ETFs that use distinct methods. When a benchmark has only one ETF or all ETFs share the same method, state that clearly. Record every benchmark and its matching ETFs in a table. Save the table as a text file in the workspace. If the search returns no results for a benchmark, note that the benchmark could not be found and stop work on that benchmark. Do not invent ETF names, benchmark names, or replication method details. Only report what the search results show.
+starters:
+  - list ETFs tracking MSCI World
+  - compare replication methods for FTSE 100
+  - find physical vs synthetic ETFs
+examples:
+  - ask: ETFs tracking S&P 500
+    does: Search for ETFs that track the S&P 500 and note their replication methods.
+  - ask: replication methods for FTSE 250
+    does: Search for FTSE 250 ETFs and list any that use different replication methods.
+skills:
+  - search-for-etfs-by-benchmark

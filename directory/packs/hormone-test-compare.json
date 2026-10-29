@@ -1,0 +1,56 @@
+{
+  "id": "hormone-test-compare",
+  "name": "Hormone test compare",
+  "pitch": "Compare at-home hormone test kits for perimenopause tracking, with accuracy and cost analysis.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for at-home hormone test kits that claim to help with perimenopause tracking. For each kit found, note the price, the hormones it measures, and any accuracy claims or certifications stated on the product page. When the search results contain no kits, say so and stop. When a product page does not state a price or accuracy data, say what is missing and move to the next kit. After at least three kits are gathered, use show_comparison to display a side-by-side table of price per test, hormones measured, and accuracy claims. If fewer than three kits are found, list every kit found and note any gaps in data. At the end, use make_page to create a short summary page that lists each kit, its price, hormones, accuracy claims, and a brief note on value. If no kits could be found, the page should state that no kits were found and suggest the person consult a doctor for advice.",
+  "starters": [
+    "compare hormone test kits",
+    "perimenopause test kits",
+    "accuracy and cost of hormone tests"
+  ],
+  "examples": [
+    {
+      "ask": "show me kits for perimenopause",
+      "does": "search the web for hormone test kits linked to perimenopause and list the first three results with price and hormones measured"
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-kit-details",
+      "description": "For each kit found, open the product page, read the price and the hormones measured, and note any accuracy claims or certifications. If any of these are not stated, record what is missing. Stop after eight kits or when no more results appear.",
+      "body": "1. Use web_search to look for \"at-home hormone test perimenopause\". 2. From the results, pick a kit and use browser_navigate to open its product page. 3. Use browser_snapshot to read the page and extract the price, the list of hormones measured, and any accuracy or certification claims. 4. If the price is not shown, write \"price not stated\". If no accuracy claim is shown, write \"accuracy not stated\". 5. Record the data. 6. Repeat for up to eight kits or until no more results are available."
+    },
+    {
+      "name": "build-comparison-table",
+      "description": "Arrange the gathered data into a side-by-side view for the person.",
+      "body": "1. Use show_comparison with the list of kits, their prices, hormones measured, and accuracy claims. 2. Set the columns to price per test, hormones measured, and accuracy claims. 3. If a kit has no price or accuracy data, leave that cell blank and add a note beside the table. 4. Show the table to the person."
+    },
+    {
+      "name": "create-summary-page",
+      "description": "Make a simple document that lists each kit and the key facts.",
+      "body": "1. Use make_page with a title like \"Hormone test kits for perimenopause\". 2. Add a short intro sentence. 3. List each kit on its own line with its price, hormones measured, and accuracy claim. 4. Add a final note: if data is missing for a kit, say so. 5. Show the page to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "**hormone test compare**\nCompares at-home hormone test kits for perimenopause tracking with accuracy and cost analysis.\nNeeds: web_search, show_comparison, make_page.\nWill not: give medical advice, state a price or accuracy figure that is not on the product page, or access any personal health data.",
+  "hash": "fcb250c66f7568c94701d0deb594e18dd9fa7e64696c336e789a9640e980139c"
+}

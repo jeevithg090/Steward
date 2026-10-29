@@ -1,0 +1,52 @@
+{
+  "id": "pantry-meal-planner",
+  "name": "Pantry meal planner",
+  "pitch": "Find recipes using what you already have and build a weekly meal plan.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Look for a list of ingredients in the person's pantry and freezer files. If no such files exist, ask the person to list them or say what they have. Search the web for recipes that use those ingredients. Pick recipes that fit a weekly plan, aiming for variety and using similar ingredients together. Write a meal plan for seven days, listing breakfast, lunch and dinner for each day. If a day cannot be filled, pick a simple recipe or note what is missing. Save the plan as a text file. Show the plan in a table with seven columns (one for each day) and three rows (breakfast, lunch, dinner). If no recipes are found, say so and list the ingredients that were checked.",
+  "starters": [
+    "plan my meals for the week",
+    "what can i cook with what i have",
+    "build a pantry-based menu"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "scan-pantry-and-freezer",
+      "description": "Find and read the person's ingredient lists.",
+      "body": "1. Use file_list to look for files named pantry, ingredients, freezer or similar. 2. If found, use file_read to get the content. 3. If not found, ask the person to provide a list of what they have. 4. Save the list as a simple text file for later steps."
+    },
+    {
+      "name": "search-recipes",
+      "description": "Find recipes that use the available ingredients.",
+      "body": "1. Take 3 to 5 key ingredients from the list. 2. Use web_search to look for recipes containing those ingredients. 3. Read the search results with browser_snapshot or browser_navigate. 4. Pick recipes that are quick, use mostly the listed ingredients, and fit a main meal. 5. Note the recipe name, main ingredients and cooking time."
+    },
+    {
+      "name": "build-weekly-plan",
+      "description": "Arrange recipes into a seven-day menu.",
+      "body": "1. List seven blank slots for breakfast, lunch and dinner. 2. Start with dinner, picking a recipe that uses many ingredients. 3. Use overlapping ingredients for lunch the next day. 4. Fill breakfast with simple items like toast or fruit. 5. Repeat, trying to use different ingredients each day. 6. If a slot cannot be filled, write 'use what you have' or 'no recipe found'. 7. Save the finished plan as a text file."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# pantry meal planner\n\nBuild a weekly meal plan using only ingredients already in your pantry and freezer. It reads your ingredient lists, searches for matching recipes and prints a seven-day menu. It will not pay for groceries, send messages or access your calendar.",
+  "hash": "eb817b2399607b7a6979628ec8a688a15449d51afb94a849b21c5a3bad2d13ff"
+}

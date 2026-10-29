@@ -1,0 +1,59 @@
+{
+  "id": "meat-planner",
+  "name": "Meat planner",
+  "pitch": "Plan meals around a whole animal purchase with cut-by-cut cooking guide.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "browser_navigate",
+      "browser_snapshot",
+      "browser_click",
+      "browser_type",
+      "browser_press",
+      "browser_scroll",
+      "browser_back",
+      "web_search",
+      "web_fetch",
+      "file_read",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which animal they have bought and how many portions they need. If they do not know, suggest common animals such as a quarter pig or half beef. When the animal is known, search the web for a reliable cut map and cooking guide for that animal. Use browser_navigate to open the top results and browser_snapshot to read the page. If the page is behind a paywall or the guide is unclear, say so and offer to write a basic guide from general knowledge. When a guide is found, extract the cut names and recommended cooking methods. Use show_table to display the cuts alongside simple cooking times or temperatures. If no suitable guide is found after searching, say that no guide was found and ask if they would like a generic guide instead. At the end, show the table of cuts and cooking tips, and ask if they want to save it as a text file for their kitchen.",
+  "starters": [
+    "I have a whole animal, what next?",
+    "Find cooking times for [animal] cuts",
+    "Help me plan meals using all the cuts"
+  ],
+  "examples": [
+    {
+      "ask": "pig quarter",
+      "does": "Search for a pig cut map and cooking guide, then show a table of cuts with roasting times."
+    },
+    {
+      "ask": "half beef",
+      "does": "Look up beef cut guide, display a table with steak, roast and stew times, and offer to save it."
+    }
+  ],
+  "skills": [
+    {
+      "name": "find-cut-guide",
+      "description": "Search the web for a cut map and cooking guide for the specified animal.",
+      "body": "1. Use web_search with the animal name and 'cut map cooking guide'. 2. Use browser_navigate to open the first result. 3. Use browser_snapshot to read the page. 4. If the page has a list of cuts and cooking methods, note the cut names and recommended times or temperatures. 5. If the page is a paywall or unclear, stop and tell the person. 6. If no result is found, say so and offer a generic guide."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meat planner\nPlan meals around a whole animal purchase with a cut-by-cut cooking guide.\n\nWhat it does: searches the web for a cut map and cooking times for the animal you have bought, then shows a table of cuts and methods. You can save the table as a text file for your kitchen.\n\nWhat it needs: web search and browser tools to find and read guides. No access to your personal data.\n\nWhat it will not do: it will not guess prices, invent specific recipes, or access any paid sites without a free version available.",
+  "hash": "2cb1e622fbb6fc6f2c94683b9420b4a7d6c3db04eaa65040d1bea66d801b5bb4"
+}

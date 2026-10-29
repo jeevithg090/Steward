@@ -1,0 +1,53 @@
+{
+  "id": "email-summary",
+  "name": "Email summary",
+  "pitch": "Summarise the last five emails from a key client and list their action items.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_read",
+      "task_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which client is the most important one. Use mail_read to list the emails from that client, newest first. Take the first five emails. Write a short summary of each email in your own words. Read each email for action items. Write a list of all action items found, with a short description and a due date if one is mentioned. If fewer than five emails are found, say how many you found. If no emails are found from that client, say so. When the summary and list are ready, show the summary first, then the list of action items. Offer to create a task for each action item using task_create, asking the person before any task is created.",
+  "starters": [
+    "summarise my last five emails",
+    "what action items do I have?"
+  ],
+  "examples": [
+    {
+      "ask": "summarise my last five emails from my boss",
+      "does": "asks which client, then reads the emails and gives a summary"
+    },
+    {
+      "ask": "list my action items",
+      "does": "reads recent emails and lists any tasks found"
+    }
+  ],
+  "skills": [
+    {
+      "name": "summarise-client-emails",
+      "description": "Read the last five emails from a named client and write a short summary for each.",
+      "body": "1. Use mail_read to show emails from the client, sorted newest first. 2. Take the first five emails shown. 3. For each email, write two or three sentences that capture the main point. 4. If an email has no clear main point, say what it is about instead. 5. If mail_read returns an error or no emails, say you could not read the mail."
+    },
+    {
+      "name": "extract-action-items",
+      "description": "Find action items in the emails and list them short and clear.",
+      "body": "1. Look through the five emails for sentences that look like tasks, deadlines or requests. 2. Write each item as a short phrase, no more than 15 words. 3. If a due date is mentioned, write it next to the item. 4. If no action items are found, say so. 5. If the agent cannot read an email, say which email could not be checked."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Email summary\nSummarise the last five emails from your most important client and list their action items.\n\n- Reads your mail with mail_read.\n- Writes a short summary for each email.\n- Lists any action items found.\n- Will not create tasks without your say‑so.",
+  "hash": "71513a746e306763cb911735ddfba6552af85aede73b48555eb699aa14df9aba"
+}

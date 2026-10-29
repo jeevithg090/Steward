@@ -1,0 +1,55 @@
+{
+  "id": "car-cost-compare-2",
+  "name": "New or used car cost compare",
+  "pitch": "Compare total cost of certified pre-owned versus new car over five years, including warranty and depreciation.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for certified pre-owned and new car price data from reliable automotive sources. Calculate total cost of ownership over five years including purchase price, depreciation, and warranty coverage. Present findings side by side. If data is unavailable, state what could not be checked.",
+  "starters": [
+    "compare car costs over five years",
+    "new vs certified pre-owned cost",
+    "car depreciation and warranty"
+  ],
+  "examples": [
+    {
+      "ask": "compare certified pre-owned vs new car cost",
+      "does": "search automotive pricing data and show side-by-side comparison"
+    },
+    {
+      "ask": "what is depreciation on a new car",
+      "does": "look up typical depreciation rates and explain what could not be verified"
+    },
+    {
+      "ask": "warranty details for certified pre-owned",
+      "does": "find warranty terms and note if exact figures could not be confirmed"
+    }
+  ],
+  "skills": [
+    {
+      "name": "compare-car-costs",
+      "description": "Search for purchase prices, depreciation estimates, and warranty terms for both new and certified pre-owned vehicles. Calculate five-year total cost of ownership. Present results in a comparison table. If any figure cannot be found, state what was not available rather than inventing numbers.",
+      "body": "Search for purchase price data, depreciation estimates, and warranty terms for both new and certified pre-owned vehicles. Calculate five-year total cost of ownership. Present results side by side. If any figure cannot be found, state what was not available rather than inventing numbers."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# New or used car cost compare\nCompare total cost of certified pre-owned versus new car over five years, including warranty and depreciation.\n\nWhat it does: Searches automotive pricing data and calculates five-year cost of ownership including purchase price, depreciation, and warranty coverage.\n\nWhat it needs: Web search to find pricing and warranty information from automotive sources.\n\nWhat it will not do: It will not invent prices, depreciation rates, or warranty terms. If data is unavailable, it will state what could not be checked rather than make up figures.",
+  "hash": "757c28fb8f00d2cb0e700a5e0e10d128031c32be60f816d5d55088ede064f783"
+}

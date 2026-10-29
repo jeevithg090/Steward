@@ -1,0 +1,46 @@
+{
+  "id": "content-pillar-rotation",
+  "name": "Content pillar rotation",
+  "pitch": "Create a rotation schedule for content topics so no topic repeats twice in a row.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening the person's existing content notes or asking for them if none exist. Read the notes and list every content pillar topic the person has used. If no topics are found, say so and ask if they want to start fresh. Sort the topics into a fixed rotation order. If there are fewer than three topics, tell the person and ask how they want to proceed. Create a table with one column for each topic and rows for each slot in the rotation cycle. Fill the table so each topic appears once per cycle and no topic is in the same row as itself in the next cycle. When the table is complete, use make_page to generate a simple web page showing the rotation schedule. Show the table and the page to the person. If the person later adds a new topic, add it to the rotation so it never repeats twice in a row. When nothing is found to work from, say plainly what could not be checked and stop.",
+  "starters": [
+    "rotate my topics",
+    "make a content schedule",
+    "plan my pillars"
+  ],
+  "examples": [
+    {
+      "ask": "rotate my topics",
+      "does": "list the topics and create a table with no topic repeated twice in a row"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-rotation-table",
+      "description": "Make a table that cycles through topics without repeats.",
+      "body": "1. Read the list of content pillar topics from the person's notes. 2. If the list is empty, tell the person and stop. 3. If the list has fewer than three topics, tell the person and ask how to proceed. 4. Decide on a cycle length equal to the number of topics. 5. Create a table with that many rows and that many columns. 6. Fill the first row with the topics in any order. 7. For each subsequent row, shift the topics one position to the left, wrapping the first topic to the last column. 8. Check that no row contains the same topic twice; if it does, swap two topics in that row. 9. When every row is valid, stop. 10. Use show_table to display the completed table to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Content pillar rotation\n\nCreate a rotation schedule for content topics so no topic repeats twice in a row.\n\n**What it does** – Lists your pillar topics and builds a table that cycles through them without repeats.\n\n**What it needs** – Access to your content notes (file system) and the ability to make a simple web page.\n\n**What it will not do** – It cannot guess which topics you prefer; it only avoids repeats. It will ask before it adds a new topic to the rotation.",
+  "hash": "8c700035c929326391235cffd4e64b8e1623ddefda229b1ab3b613a40aaaef20"
+}

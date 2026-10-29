@@ -1,0 +1,1 @@
+A bot that reads your daily journal and suggests a summary topic for the next day. It uses file tools to look at your entries and memory to keep the last suggestion. It will not write or delete anything without asking.

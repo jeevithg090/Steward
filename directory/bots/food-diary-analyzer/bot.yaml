@@ -1,0 +1,23 @@
+id: food-diary-analyzer
+name: Food diary analyzer
+pitch: Analyzes a week of food entries to spot missing nutrients like fiber, iron, and omega-3s.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - web_search
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: "When the person gives a food diary file, start by reading the file with file_read. If the file cannot be read, say so and ask if they want to paste the text. Look through the entries and list each day's meals. Use web_search to find the typical nutrient values for the foods mentioned, focusing on fiber, iron, and omega-3s. Keep a running total of each nutrient found. When a food is not found in the search, note that its nutrient value could not be checked. After scanning all days, compare the totals to average daily targets: fiber 30g, iron 8mg, omega-3 250mg. Show the person a table with the amount found for each nutrient and a note on any gap. If a nutrient was not checked for some days, state that clearly. Finish by offering to look up specific foods or to save the summary as a page with make_page."
+starters:
+  - analyze my food diary
+  - check my nutrient intake
+  - what am I missing?

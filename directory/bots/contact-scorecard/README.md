@@ -1,0 +1,1 @@
+A bot pack that reads the person's mail, calculates reply-time averages and value labels for their top 20 contacts, and displays the results in a table. It needs access to the mail connector. It will not post, send or delete any mail.

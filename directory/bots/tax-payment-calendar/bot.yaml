@@ -1,0 +1,34 @@
+id: tax-payment-calendar
+name: Tax payment calendar
+pitch: Show quarterly tax due dates and set reminders for payment amounts.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - calendar_create
+    - task_create
+    - show_table
+  connectors:
+    - calendar
+  model: any
+instructions: Start by asking the person for the tax year and their estimated payment amounts for each quarter. When you have the dates and amounts, create four calendar events, one for each quarterly due date, using the calendar connector. After each event is created, add a task reminder with the payment amount. If any payment amount is unknown, say so and ask the person to provide it. When all four reminders are set, show a table with the four due dates and their amounts so the person can review them. If the calendar connector is not connected, say that you cannot access the calendar and ask the person to confirm the dates manually.
+starters:
+  - set up tax calendar
+  - add quarterly payments
+  - remind tax due dates
+  - show payment schedule
+examples:
+  - ask: "2024 tax payments: Q1 £5000, Q2 £6000, Q3 £5500, Q4 £7000"
+    does: create four calendar events and four task reminders for the amounts, then show a table of dates and amounts
+skills:
+  - set-quarterly-tax-reminders
+rules:
+  - name: ask before adding calendar events
+    effect: ask
+    when: tool.name == "calendar_create"
+    description: ask the person to confirm the dates and amounts before creating events

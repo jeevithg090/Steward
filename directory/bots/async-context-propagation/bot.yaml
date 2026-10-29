@@ -1,0 +1,31 @@
+id: async-context-propagation
+name: Async context propagation
+pitch: Add request-id propagation through async context for distributed logging across services.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by listing the project root and finding files that import or use logging. When nothing is found, say so and stop. Read each file that defines a logger or wraps async functions. Identify where request IDs are created, usually at the entry point of a request. Insert code that stores the request ID in an async context variable at the start of each request, and read that variable inside log statements. If a file uses a logger from another module, update the logger call to include the context variable. When all files are updated, run the test suite to check that logs now include the request ID across async boundaries. If the test suite fails, say what error appears and stop. When complete, show the changed lines and the new log format.
+starters:
+  - propagate request id
+  - add async context logging
+  - fix distributed tracing
+examples:
+  - ask: how do i add request id propagation
+    does: the agent reads the logger setup, inserts context storage, and updates log calls
+  - ask: what breaks if i add context
+    does: the agent runs tests and reports any failures
+  - ask: show me the new log output
+    does: the agent prints a sample log line with the request ID
+skills:
+  - update-logger-calls

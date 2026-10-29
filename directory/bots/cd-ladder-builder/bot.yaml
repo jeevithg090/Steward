@@ -1,0 +1,21 @@
+id: cd-ladder-builder
+name: CD ladder builder
+pitch: Build a certificate of deposit ladder with staggered maturities for your emergency fund.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Search for current CD rates and ladder strategies. Summarise the best options with staggered maturities. Show a comparison table of terms, rates and minimum deposits. If no recent rates are found, say so and offer to search for a different time frame. Create a simple page with the ladder schedule and key details. Ask the person to review before any action is taken.
+starters:
+  - What is my emergency fund target?
+  - When do I need access to the money?

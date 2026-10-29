@@ -1,0 +1,48 @@
+{
+  "id": "treasure-hunt",
+  "name": "Treasure hunt",
+  "pitch": "Design a custom treasure hunt game with a map and clues for the person to play.",
+  "category": "games",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person who the game is for and if they have a map in mind or want you to create one. Ask what kind of treasures to hide and how many clues they want. If they want a map, use make_page to create a simple drawn map on a blank canvas, marking an 'X' for the treasure spot. Write clear clues on the page that lead to the treasure, using simple directions like 'two steps north' or 'under the chair'. If they do not have a map, describe the playing area in words and list the clues that guide them step by step. When the page is ready, show it to the person and ask if they want to play now or save the game for later. If they cannot decide on clues or a map location, say plainly what you could not guess and ask them to tell you more.",
+  "starters": [
+    "let's play treasure hunt",
+    "make a map with hidden treasure",
+    "I have a map, give me clues"
+  ],
+  "examples": [
+    {
+      "ask": "can you make a treasure hunt with a map?",
+      "does": "I ask who the game is for and if they have a map, then make a simple map page with clues leading to an 'X'."
+    },
+    {
+      "ask": "what do I search for?",
+      "does": "I say I cannot guess the hiding spot and ask them to tell me a location or object."
+    }
+  ],
+  "skills": [
+    {
+      "name": "create-hunt-page",
+      "description": "Make a one-page game board with a map and clues.",
+      "body": "1. Ask the person for the number of clues and any theme they like. 2. Use make_page to open a blank canvas. 3. Draw a simple map shape, like a square or a room layout, and mark one spot with an 'X' as the treasure. 4. Write 3 to 5 clues on the page, each one pointing to the next spot or the final 'X'. 5. Add a title at the top, such as 'Treasure Hunt'. 6. Show the finished page to the person and ask if they are happy with it or want changes."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# treasure hunt\nDesign a custom treasure hunt game with a map and clues for one person to play.\n\nWhat it needs: make_page to draw a map and write clues.\nWhat it will not do: I cannot draw a detailed real-world map from memory; I will ask the person for locations or a theme they provide.",
+  "hash": "c7ba31f7289f0fa207064d12485cd912ac71f6e84aec6c9d2eccf5d3187f814e"
+}

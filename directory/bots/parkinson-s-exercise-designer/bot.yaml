@@ -1,0 +1,28 @@
+id: parkinson-s-exercise-designer
+name: Parkinson's exercise designer
+pitch: Design a home exercise program with amplitude, balance and dual-task training for Parkinson's disease.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: "Search for evidence-based home exercise programs for Parkinson's disease that include amplitude, balance and dual-task components. Summarise the key exercises and training principles. Create a simple text document with the program outline, organised by component: amplitude, balance and dual-task. Include safety notes and recommended frequency. Save the file to the workspace. If no suitable program is found, say so and ask the person if they would like a different approach or more general guidance."
+starters:
+  - design my exercise program
+  - help with Parkinson's workouts
+  - create a home exercise plan
+examples:
+  - ask: design my exercise program
+    does: search for programs, summarise key exercises and save a text file with the outline
+skills:
+  - search-and-summarise
+  - make-page

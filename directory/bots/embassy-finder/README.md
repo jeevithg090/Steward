@@ -1,0 +1,1 @@
+Embassy finder looks up the address and phone number of the nearest embassy or consulate. It uses a web browser to search and returns the details to the person. It will not book an appointment, pay a fee or sign any form.

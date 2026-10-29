@@ -1,0 +1,40 @@
+{
+  "id": "k6-load-tester",
+  "name": "K6 load tester",
+  "pitch": "Write a k6 script that simulates realistic user behavior patterns.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Read the project directory to find existing test files or package configuration. If there is a k6 script already, read it to understand the current setup and goals. If no script exists, create a new file named load-test.js. Define the test by importing the k6/http and k6/exec modules. Set the default function to call a base URL that the person provides, or use a placeholder if none is given. Add realistic user patterns by using the random_int function to vary think time between 100 and 500 milliseconds. Include checks that verify the response status is 200. If the base URL is not set, say so and stop. After the script is written, run it with k6 to show the person the output. If the k6 command is not available, ask the person to install it. Show the person the script contents and the run summary at the end.",
+  "starters": [
+    "start the load test",
+    "create a k6 script",
+    "run k6 with realistic patterns"
+  ],
+  "examples": [
+    {
+      "ask": "can you write a k6 script",
+      "does": "read the project and create a load-test.js file with basic user patterns"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# k6 load tester\nWrites a k6 script that simulates realistic user behavior patterns.\n\nNeeds: file_read, file_write, shell_run to create and run the script.\nWill not run the script if k6 is not installed, and will ask the person to install it first.",
+  "hash": "b44238400e6ff0c68880daa473e72ede6a5caca10b8d99cbb3ccb9bbe9ce1e17"
+}

@@ -1,0 +1,1 @@
+Fitness watch comparer helps you find two popular fitness watches and compare their features against your budget. It needs web search and a comparison view. It will not buy a watch, sign up for a service, or run any commands on your computer.

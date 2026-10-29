@@ -1,0 +1,57 @@
+{
+  "id": "equity-revenue-analyzer",
+  "name": "Equity revenue analyzer",
+  "pitch": "Analyzes revenue sources and geographic spread of international equity holdings.",
+  "category": "investing",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent begins by reading the person's equity holdings file to identify the list of symbols and their locations. It then searches for each symbol on a financial data site to find revenue breakdowns by region. When a symbol is not found, it notes that the data was unavailable. After gathering all available data, the agent uses show_table to present a summary table of symbol, region, and revenue share. If no revenue data can be found for any holding, the agent tells the person plainly what could not be checked.",
+  "starters": [
+    "analyze my holdings",
+    "show revenue by country",
+    "where is my money invested"
+  ],
+  "examples": [
+    {
+      "ask": "analyze my international equity revenue",
+      "does": "reads the holdings file and starts looking up each symbol on a financial data site"
+    },
+    {
+      "ask": "what are my revenue sources",
+      "does": "lists symbols from the file and reports which ones had revenue data and which did not"
+    }
+  ],
+  "skills": [
+    {
+      "name": "extract-holdings",
+      "description": "Read the equity holdings file. List each symbol and its reported location if present.",
+      "body": "1. Use file_read to open the holdings file. 2. Identify each stock symbol and any geographic tag. 3. Output a list of symbols to process."
+    },
+    {
+      "name": "lookup-revenue-by-region",
+      "description": "Find revenue breakdown by region for each symbol on a financial data site.",
+      "body": "1. For each symbol, use web_search to find a financial data page showing revenue by region. 2. Use browser_navigate to open the page. 3. Use browser_snapshot to read the revenue breakdown. 4. If the page does not show regional data, note that data is unavailable for that symbol. 5. Record the region and revenue share found, or the fact that no data was available."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Equity revenue analyzer\n\nAnalyzes revenue sources and geographic spread of international equity holdings. Reads a holdings file, looks up each symbol on financial sites, and shows a table of region and revenue share. Will not invent revenue figures or force any action without the person's say-so.\n\n**Needs**: file_read, web_search, browser_navigate, browser_snapshot, show_table\n\n**Will not**: make up revenue numbers, sign into accounts, or pay for any service.",
+  "hash": "93c076bb8f95ef07a01f989432d38cbfc7edc35d7762e461333b8f17998c5ceb"
+}

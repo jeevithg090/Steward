@@ -1,0 +1,39 @@
+{
+  "id": "dietary-translation-cards",
+  "name": "Dietary translation cards",
+  "pitch": "Create a set of cards that translate dietary restrictions into ten languages for safe dining out.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "web_search"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which dietary restrictions they want cards for. When they tell you, use web_search to find reliable translations for each restriction in ten languages. Record the translations clearly. Use make_page to design a clean layout for each language pair, listing the restriction in English and the translation below. Use file_write to save each card as a separate page in the person's workspace. When a translation cannot be found online, say so plainly and ask the person if they want to provide the translation themselves. At the end, show the person the set of cards and ask if they want them printed or shared further.",
+  "starters": [
+    "What restrictions should the cards cover?",
+    "Which ten languages do you want?"
+  ],
+  "examples": [
+    {
+      "ask": "I need cards for gluten-free and nut allergies in French and Spanish",
+      "does": "Search for translations and make two card pages."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "## Dietary translation cards\nCreate a set of cards that translate dietary restrictions into ten languages for safe dining out.\n\nWhat it does: Looks up translations for common allergies and diet rules, then makes printable card pages.\nWhat it needs: web_search to find translations, file_write to save the cards, make_page to layout them.\nWhat it will not do: It cannot check medical advice or guarantee accuracy of translations; it will say when a translation is missing.",
+  "hash": "d4615efc2e0841302301ec3f6840021e4b4bab18c7419cf1f6fd402c007dcb6e"
+}

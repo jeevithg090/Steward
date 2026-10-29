@@ -1,0 +1,57 @@
+{
+  "id": "handoff-document",
+  "name": "Handoff document",
+  "pitch": "Create a vacation handoff document covering active projects, contacts, and deadlines.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "mail_read",
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [
+      "mail",
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by listing all events from the calendar for the vacation period. Then read the inbox for messages about active projects, contacts, and deadlines. Collect every project name, the person responsible, and its due date. If a tool finds nothing, say so and move to the next step. When all information is gathered, use make_page to create a document titled \"Vacation handoff\" with three sections: Active projects, Contacts, and Deadlines. List each item as a bullet point with the project name, owner, and deadline. If any item is missing, write \"Not checked: [item]\" next to it. Save the file in the workspace as vacation_handoff.md. Finally, tell the person the document is ready and ask if they want to review it before sending it to anyone.",
+  "starters": [
+    "write handoff",
+    "vacation document",
+    "cover projects contacts deadlines"
+  ],
+  "examples": [
+    {
+      "ask": "I'm going on vacation next week.",
+      "does": "The agent lists calendar events and reads recent mail to build a handoff document."
+    }
+  ],
+  "skills": [
+    {
+      "name": "gather-information",
+      "description": "Collect calendar events and mail messages about projects and deadlines.",
+      "body": "1. Use calendar_list to get all events during the vacation dates. 2. Use mail_read to look for messages with subjects about projects, contacts, or deadlines. 3. For each event or message, note the project name, the person responsible, and the due date. 4. If calendar_list or mail_read returns no results, note that nothing was found for that step and continue. 5. Repeat until all relevant items are collected."
+    }
+  ],
+  "rules": [
+    {
+      "name": "ask before sending",
+      "effect": "ask",
+      "when": "tool.kind == \"send\"",
+      "description": "The agent must ask the person before sending the document to anyone."
+    }
+  ],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Handoff document\n\nCreate a vacation handoff document covering active projects, contacts, and deadlines.\n\n**What it needs:** calendar_list, mail_read, file_write, make_page connectors mail and calendar.\n\n**What it will not do:** It will not send the document to anyone without asking.",
+  "hash": "d167d3beb49fe0a2865424d74676cdb83580dc1f9204d9993f0f731ff827f0b3"
+}

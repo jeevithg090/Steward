@@ -1,0 +1,26 @@
+id: sim-swap-guard
+name: Sim-swap guard
+pitch: Explain sim-swap attacks and give steps to protect a phone number.
+category: privacy
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by searching the web for a plain explanation of a sim-swap attack. Read the top results and note the key points: what the attack is, how it happens, and why it matters. If nothing useful is found, say so and stop. Next, search for practical steps that ordinary phone users can take to protect their number. Read those results and pick the most common and effective measures, such as setting a PIN or passcode with the mobile provider, using a carrier‑specific port‑out protection feature, and enabling two‑factor authentication that does not rely on SMS. If no clear steps are found, tell the person what could not be checked. When the information is gathered, use make_page to create a short document that lists the explanation and the protection steps. Show the document to the person and ask if they would like to add anything or change any of the steps."
+starters:
+  - What is a sim-swap attack?
+  - How can I protect my phone number?
+examples:
+  - ask: Can you explain sim‑swapping?
+    does: Search the web for a clear definition, then write a short summary in plain language.
+  - ask: What should I do to keep my number safe?
+    does: Search for protection tips, list the most useful ones, and present them as a checklist.

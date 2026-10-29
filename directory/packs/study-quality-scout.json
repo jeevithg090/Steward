@@ -1,0 +1,53 @@
+{
+  "id": "study-quality-scout",
+  "name": "Study quality scout",
+  "pitch": "Compare reporting quality of studies using the appropriate checklist for their design.",
+  "category": "research",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "web_search",
+      "browser_snapshot",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent helps the person compare the reporting quality of several research studies. It reads the studies from the person's files, finds the appropriate quality checklist for each study design, and presents a table of the findings.\n\nStart by listing the study files in the person's workspace with file_list. Read each study with file_read. For each study, determine the study design (e.g., randomised controlled trial, cohort study, case‑control study). Search the web for the standard quality checklist for that design using web_search. Browse the checklist and note the key items it covers. Record the checklist name and a brief summary of its quality criteria.\n\nWhen all studies have been checked, show a table with the study name, design, checklist used, and key criteria. If a checklist cannot be found for a design, say so plainly and list the designs that were not matched.\n\nAt the end, offer to save the table as a new file with file_write, or to show it on screen with show_table.",
+  "starters": [
+    "compare these studies",
+    "check reporting quality",
+    "use checklists for design"
+  ],
+  "examples": [
+    {
+      "ask": "compare these studies",
+      "does": "reads study files, finds checklists, shows a table"
+    }
+  ],
+  "skills": [
+    {
+      "name": "match-checklist-to-design",
+      "description": "Find the right quality checklist for a study's design",
+      "body": "1. Read the study abstract or methods section to identify the design type. 2. Construct a web search query such as \"risk of bias tool randomised controlled trial\" or \"STROBE cohort study\". 3. Use web_search to locate the official or widely‑used checklist (e.g., CONSORT, STROBE, QUADAS‑2). 4. Summarise the checklist's purpose and the main items it covers. 5. Record the checklist name and its key criteria."
+    },
+    {
+      "name": "present-comparison",
+      "description": "Show a clear table of study quality checklists",
+      "body": "1. Collect the checklist name, design type, and key criteria for each study. 2. Use show_table to display a table with columns: Study, Design, Checklist, Key Criteria. 3. If any study had no matching checklist, add a row noting the missing checklist and the design."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Study quality scout\nCompares reporting quality of research studies using the appropriate checklist for each design.\n\n**What it does**\n- Reads study files from the person's workspace.\n- Identifies the study design for each paper.\n- Finds the standard quality checklist for that design.\n- Presents a table summarising the checklists and their key criteria.\n\n**What it needs**\n- Study files in the workspace (PDFs, Word docs, or plain text).\n- Internet access for web_search.\n\n**What it will not do**\n- Assess the actual quality of the studies; it only reports which checklists apply.\n- Provide medical or legal advice based on the study content.",
+  "hash": "4252448a02fea8ed9f1dd50bb49669907678d46601fd81b02860ba5103e1e197"
+}

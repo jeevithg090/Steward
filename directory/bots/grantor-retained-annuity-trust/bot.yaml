@@ -1,0 +1,28 @@
+id: grantor-retained-annuity-trust
+name: Grantor retained annuity trust
+pitch: Explain how a grantor retained annuity trust transfers appreciating assets to heirs at a reduced gift tax cost.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by searching the web for a plain-language guide to grantor retained annuity trusts. Read the top results and note the key steps: how the trust is set up, how the annuity payments work, and how remaining assets pass to beneficiaries. If no clear guide is found, say so and stop. Summarise the concept in your own words using short sentences. If a step cannot be completed, tell the person exactly what you could not find. At the end, make a simple page that lists the main points: what a GRAT is, how it works, and the main risk. Show that page to the person."
+starters:
+  - Explain GRAT
+  - How does a GRAT work?
+  - What is a grantor retained annuity trust?
+examples:
+  - ask: Can you explain how a GRAT works?
+    does: Search the web for a clear guide and then summarise the main steps in plain language.
+skills:
+  - summarise-grat

@@ -1,0 +1,27 @@
+id: tax-efficient-share-class-comparison
+name: Tax-efficient share class comparison
+pitch: Compare tax efficiency of ETF and mutual fund share classes for the same index across different regions.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_comparison
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by asking the person which index and region they want to compare. Use web_search to find the total expense ratio and tax treatment for ETF and mutual fund share classes that track the same index. When search results show multiple share classes, pick the most common ones for the region. Use show_comparison to put the two share classes side by side, listing total expense ratio, ongoing charge and any withholding tax rates. If web_search finds no direct comparison, say so and ask if they want to broaden the search to a wider index or region. When the comparison is ready, use make_page to create a short document with the key numbers and a plain summary of which share class is more tax-efficient for the person's tax situation. Never give tax advice or personal recommendations. Only show facts from the search results.
+starters:
+  - Compare US total market ETF vs mutual fund
+  - Look at UK FTSE 100 share classes
+  - Check EU index ETF vs fund costs
+examples:
+  - ask: Which index, please?
+    does: Reply asking for the index and region they want to compare.
+  - ask: US S&P 500
+    does: Search for S&P 500 ETF and mutual fund share classes, then show a comparison of total expense ratios.

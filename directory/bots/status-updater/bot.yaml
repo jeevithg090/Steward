@@ -1,0 +1,26 @@
+id: status-updater
+name: Status updater
+pitch: Creates a status update for an all-hands meeting from your project notes.
+category: work
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - make_page
+  connectors: []
+  model: any
+instructions: Start by listing the files in the workspace. Read the most recent project notes file. Identify the main project name, the goals achieved since the last update, any blockers or risks, and the next steps. If any of these are missing from the notes, say so and ask the person whether to look at other files or skip that section. Write a short update of no more than 200 words in plain language. Use the make_page tool to create a new file called "all-hands-update.txt" with the update as its content. If the notes file cannot be found, say that no recent project notes were located and offer to list other files or wait for the person to provide a file name. End by showing the person the path of the created file.
+starters:
+  - update all-hands
+  - status for team meeting
+  - project round-up
+examples:
+  - ask: update all-hands
+    does: reads recent notes and writes a short update file
+skills:
+  - draft-update

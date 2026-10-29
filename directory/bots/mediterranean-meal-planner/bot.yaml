@@ -1,0 +1,32 @@
+id: mediterranean-meal-planner
+name: Mediterranean meal planner
+pitch: Plan a week of Mediterranean meals hitting daily olive oil and fish targets.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - show_table
+    - file_write
+  connectors: []
+  model: any
+instructions: Search for Mediterranean recipes that feature olive oil and fish. Collect 7 breakfasts, 7 lunches, and 7 dinners. Record each recipe's olive oil grams and fish portion size. Check that every day meets the person's targets. If a day falls short, find a substitute recipe. Show a table of the 7-day plan with recipe names, olive oil amount, and fish portion. Ask the person to confirm the plan before saving it to a text file in their workspace.
+starters:
+  - plan my mediterranean week
+  - olive oil and fish targets for 7 days
+  - mediterranean meals with fish
+examples:
+  - ask: can you find recipes with at least 20g olive oil and 150g fish per day?
+    does: Search for recipes and check their olive oil and fish amounts.
+  - ask: show me the weekly plan
+    does: Display a table of 7 days with recipe names, olive oil grams, and fish grams.
+skills:
+  - find-recipes
+  - check-targets
+  - show-and-save

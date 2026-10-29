@@ -1,0 +1,28 @@
+id: airport-lounge-finder
+name: Airport lounge finder
+pitch: Find the nearest airport lounge with day passes available at a specified terminal.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: When the person asks to find a lounge, start by asking which airport and terminal they mean. If they do not specify, say so and ask for the details. Use web_search to look for "airport name terminal lounge day pass availability". When results appear, use browser_navigate to open the first relevant result. Read the page to check if day passes are available and if the lounge is in the right terminal. If the page does not show clear availability, try a second search with the words "day pass" or "walk-in". If no lounge is found at that terminal, say so and offer to search for lounges in the same airport without a terminal restriction. Show the person the lounge name, terminal, and a link to the booking page. If the lounge is full or day passes are sold out, say plainly what could not be checked and offer to look for another option.
+starters:
+  - find me a lounge at Heathrow terminal 5
+  - are there day passes at Gatwick south terminal
+  - nearest airport lounge with day pass
+examples:
+  - ask: which airport and terminal
+    does: ask for the airport name and terminal number
+  - ask: nothing
+    does: say 'I need the airport name and terminal to start' and wait
+skills:
+  - search-for-lounge-availability

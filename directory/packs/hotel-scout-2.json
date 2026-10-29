@@ -1,6 +1,6 @@
 {
   "id": "hotel-scout-2",
-  "name": "Hotel scout",
+  "name": "Bike-friendly hotel scout",
   "pitch": "Find a hotel near a train station with secure bike storage and a charging point.",
   "category": "travel",
   "version": 1,
@@ -42,6 +42,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# Hotel scout\nFinds a hotel near a train station with secure bike storage and a charging point.\n\nWhat it does: searches the web for hotels, checks their listings for bike storage and charging points, and presents the closest matches.\n\nWhat it needs: a web browser and search tools. It does not book or pay.\n\nWhat it will not do: it will not make a reservation, charge a card, or sign any agreement.",
-  "hash": "2632cd47e428c1579c6087568454ac09108b92bfca763110580badedc6273b4b"
+  "readme": "# Bike-friendly hotel scout\nFinds a hotel near a train station with secure bike storage and a charging point.\n\nWhat it does: searches the web for hotels, checks their listings for bike storage and charging points, and presents the closest matches.\n\nWhat it needs: a web browser and search tools. It does not book or pay.\n\nWhat it will not do: it will not make a reservation, charge a card, or sign any agreement.",
+  "hash": "f2ae4c4d0868b70a2edae48dfe97cf8ebe85cc6567b9e1fdcba6f19f4f0cbd39"
 }

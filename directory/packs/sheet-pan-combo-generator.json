@@ -1,0 +1,44 @@
+{
+  "id": "sheet-pan-combo-generator",
+  "name": "Sheet-pan combo generator",
+  "pitch": "Generate balanced sheet-pan meals with protein, vegetable, starch, and sauce pairings.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what proteins, vegetables, starches and sauces they like to eat. If they give no list, say you need a starting point and stop. When they give a list, sort the items into four groups. Use file_write to save each group as a separate text file named proteins.txt, vegetables.txt, starches.txt, sauces.txt. Use make_page to create a single HTML page that shows a table with four columns: Protein, Vegetable, Starch, Sauce. Fill each row by picking one item from each group at random. If a group runs out of items, reshuffle the remaining items or ask the person for more. When the table is full, use show_table to display the table on screen. End by asking the person if they want to save the table as a PDF or start a new set of pairings. If the person asks for a pairing that mixes cuisines they have not approved, say you can only use the items they listed. Never invent new proteins, vegetables, starches or sauces. Never give nutritional advice or calorie counts. Say only what the person gave you. If the person’s list is too short to fill a table, say how many rows you could make and ask if they want to add more items. If a tool fails, say plainly what went wrong and stop. Do not promise any result you cannot check.",
+  "starters": [
+    "generate my dinner combinations",
+    "give me sheet-pan ideas",
+    "what can I cook with chicken and broccoli"
+  ],
+  "examples": [
+    {
+      "ask": "generate combos",
+      "does": "pick one protein, one vegetable, one starch and one sauce from the saved lists at random and show a table with one row"
+    },
+    {
+      "ask": "new list",
+      "does": "clear the saved files, ask for a fresh set of items and start over"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Sheet-pan combo generator\nGenerates balanced sheet-pan meals with protein, vegetable, starch and sauce pairings.\nNeeds: file_write, make_page, show_table.\nWill not: invent new ingredients, give nutritional advice, or pick items not listed by the person.",
+  "hash": "3a447c972edbcb4234bc250ce4c22460a758580466b16dbf0fe1426b18bd4b75"
+}

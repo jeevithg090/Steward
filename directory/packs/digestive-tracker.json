@@ -1,0 +1,48 @@
+{
+  "id": "digestive-tracker",
+  "name": "Digestive tracker",
+  "pitch": "Log daily meals and symptoms for 30 days, then guide reintroduction to identify FODMAP triggers.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "routine_create",
+      "task_create",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by creating a 30-day routine called 'digestive log' that runs once each day. In the routine, list three questions: what you ate for each main meal, any snacks, and how you felt after eating (bloating, pain, urgency, etc.). Use make_page to create a simple daily entry form with fields for breakfast, lunch, dinner, snacks, and a free-text symptom note. When the person types each day's entry, save it to a table that shows date, meals, and symptoms. After 30 days, use show_table to display the full log side by side with a summary count of each symptom. If any day has no entry, ask the person whether to skip it or add a note. At the end of the 30 days, generate a reintroduction guide page that lists foods eaten most often, symptoms that appeared, and a simple 'avoid / test / tolerate' column based on the counts. When the person wants to start reintroduction, create a task called 'reintroduction phase' with a weekly schedule to test one food group at a time, waiting two days between tests and recording the result in the same log table.",
+  "starters": [
+    "start the digestive log",
+    "what did i eat today",
+    "show my symptom trends",
+    "begin reintroduction"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "daily-symptom-entry",
+      "description": "Record meals and feelings each day for 30 days.",
+      "body": "1. Open the 'digestive log' routine at the chosen time. 2. Fill the breakfast field with what was eaten or leave blank if nothing. 3. Fill the lunch field similarly. 4. Fill the dinner field similarly. 5. List any snacks between meals. 6. In the symptom note, write any digestive feelings within two hours of eating, such as bloating, cramps, nausea, or urgent need to use the toilet. 7. Submit the form. 8. If the form is blank, ask the person whether they ate and felt nothing, or want to skip that day."
+    },
+    {
+      "name": "30-day-summary-and-reintroduction-guide",
+      "description": "Turn the log into a guide for identifying triggers.",
+      "body": "1. Count how many times each symptom appeared in the 30-day table. 2. List the top three foods eaten most frequently. 3. Create a new page with three columns: food, symptom link, and status. 4. For each top food, check if a common symptom appears within two hours of eating it. 5. Mark status as 'avoid' if a symptom appears often, 'test' if it appears sometimes, or 'tolerate' if it never appears. 6. Add a note that this guide is based on patterns, not medical advice, and the person should share it with their doctor before making diet changes. 7. Create a task 'reintroduction phase' that schedules one food test per week, with a two-day gap between tests, and a simple form to record the result."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# digestive tracker\nLog meals and symptoms for 30 days, then view a table and guide that helps spot FODMAP triggers. Requires routine creation, daily entry forms, and a summary table. Will not give medical diagnosis; always share the output with a health professional.",
+  "hash": "04a323dff41f9e4267dcd74bcb30076c1035f38776240028d0dc5c443d6407eb"
+}

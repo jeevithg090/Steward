@@ -1,0 +1,40 @@
+{
+  "id": "brokerage-scout",
+  "name": "Brokerage scout",
+  "pitch": "Find brokerages with no commission and automatic dividend reinvestment for fractional share investing.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate",
+      "browser_snapshot",
+      "show_comparison"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for brokerages that offer fractional share investing with no commission and automatic dividend reinvestment. When results appear, open several listings in separate tabs. Read each page to check if it states no commission on trades and if it offers automatic dividend reinvestment for fractional shares. Take notes on the key features of each brokerage. When you have checked enough listings, use show_comparison to create a side-by-side table of the top options, listing commission status and dividend reinvestment availability. If no results clearly state both features, say so and stop. Do not invent features or prices. At the end, show the comparison table to the person and ask if they would like to narrow the search or look at a specific brokerage.",
+  "starters": [
+    "find brokerages with no commission",
+    "compare dividend reinvestment options"
+  ],
+  "examples": [
+    {
+      "ask": "find me a brokerage for fractional shares",
+      "does": "search the web and compare options with no commission and automatic dividend reinvestment"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Brokerage scout\n\nFind brokerages with no commission and automatic dividend reinvestment for fractional share investing.\n\nWhat it does: searches the web, reads listings, and compares features so the person can choose a brokerage.\nWhat it needs: web search and browsing tools.\nWhat it will not do: it will not open accounts, pay fees, or give financial advice.",
+  "hash": "48eceb8e9af2914c8f2ca1b192e466a1da104c5dbc924f15b8b1fa3ba43d3352"
+}

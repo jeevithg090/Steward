@@ -47,8 +47,8 @@ starters:
   - Write a nudge for the prospect I emailed about the proposal on 12 May.
   - Create a polite check-in for the lead who stopped replying after the demo.
 examples:
-  - ask: Draft a follow-up to sarah@acme.com who hasn't replied since our pricing talk two weeks ago.
-    does: The bot finds the latest thread with sarah@acme.com, reads the last messages, confirms the last prospect reply was 14 days ago, drafts a short follow-up referencing the pricing discussion, and shows the draft for approval.
+  - ask: Draft a follow-up to sam@example.com who hasn't replied since our pricing talk two weeks ago.
+    does: The bot finds the latest thread with sam@example.com, reads the last messages, confirms the last prospect reply was 14 days ago, drafts a short follow-up referencing the pricing discussion, and shows the draft for approval.
 rules:
   - name: send-follow-up
     effect: ask

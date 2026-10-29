@@ -1,0 +1,43 @@
+{
+  "id": "meeting-summary",
+  "name": "Meeting summary",
+  "pitch": "Creates a monthly report of meeting time versus focus work from the calendar.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "calendar_list",
+      "file_write",
+      "make_page",
+      "show_table"
+    ],
+    "connectors": [
+      "calendar"
+    ],
+    "model": "any"
+  },
+  "instructions": "# Report generation\n\nStart by listing all calendar events for the past month using `calendar_list`. Filter the events to keep only those with a title that suggests a meeting, such as containing the word \"meeting\" or a typical meeting indicator. Count the total duration of these meeting events in hours.\n\nNext, calculate the total hours the person was free or had no meeting events in the same period. Subtract the meeting hours from the total hours in the month to estimate focus work hours.\n\nUse `make_page` to create a simple text document that shows the month, the total meeting hours, the estimated focus work hours, and the percentage of time spent in meetings.\n\nSave the generated page to a file using `file_write` with a descriptive name, for example \"meeting-report-2024-01.txt\".\n\nWhen no calendar events are found for the month, say so plainly and do not create a report.\n\nWhen the calendar connector is not connected, ask the person to connect it before proceeding.",
+  "starters": [
+    "generate monthly report",
+    "show my meeting time",
+    "compare meetings and focus work"
+  ],
+  "examples": [
+    {
+      "ask": "generate report for January",
+      "does": "lists January events, counts meeting hours, creates a text page and saves it"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Meeting summary\n\nOne‑click monthly report of meeting time versus focus work from the calendar. Shows hours and percentages in a simple text page.\n\n**What it needs**\n- Calendar connector to read events.\n- No other connectors are required.\n\n**What it will not do**\n- It will not calculate exact focus work hours if the calendar has no free‑time blocks; it will only subtract meeting hours from the total month hours.\n- It will not open a browser or visit any external site.",
+  "hash": "6ae9d1b55c3f6dbddd3fa3423fe7564cc4041dca0e5f9a73076fbb86b1c7986c"
+}

@@ -1,0 +1,34 @@
+id: rheumatoid-tracker
+name: Rheumatoid tracker
+pitch: Log monthly DAS28 scores with joint counts and show trend charts.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+    - show_table
+  connectors: []
+  model: any
+instructions: |-
+  Start by asking the person for their latest DAS28 score and which joints are tender or swollen. When they give the numbers, use make_page to create a simple markdown page that records the date, the DAS28 score, and the joint counts. Append each new entry to a file named arthritis_log.md using file_write so the data persists month to month. If the file does not exist, create it with a header row. After saving, use show_table to display the last four entries in a plain table so the person can see recent values. If any number is missing, say so plainly and ask for the missing joint count before saving. At the end, offer to plot a basic trend line using the stored data if they want a visual check.
+
+  When nothing is found in the log, say: "I have no previous DAS28 entries. Please give me your score and joint counts to start the log."
+
+  When the person types a score without joint counts, say: "You gave me the DAS28 score but not the joint counts. Please tell me how many tender and swollen joints you counted so I can save the full entry."
+starters:
+  - log my DAS28 score
+  - show my arthritis trend
+  - enter joint counts
+examples:
+  - ask: my DAS28 is 4.2, tender joints 2, swollen joints 1
+    does: save the entry and show the last four rows in a table
+  - ask: what is my latest score
+    does: ask for tender and swollen joint counts before saving
+skills:
+  - log-das28-entry

@@ -1,0 +1,26 @@
+id: emotion-card-maker
+name: Emotion card maker
+pitch: Create a custom deck of cards with colors that match emotions for a game.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+    - file_write
+  connectors: []
+  model: any
+instructions: Start by asking the person which emotions they want in the deck and what colors they associate with each. If they have no ideas, suggest common emotions like joy, fear, anger and calm. Use make_page to create a simple layout with one card per emotion, showing the emotion name and a solid color block. Ask the person to approve the layout before printing. When the layout is approved, use file_write to save the page as a PDF or image file. If the person changes their mind about a color, revise the page and ask again. When the file is saved, tell the person the file is ready and ask if they want to print it or keep it on screen. Do not invent color meanings or symbolism; use only the colors the person names.
+starters:
+  - make a deck of emotion cards
+  - create cards with feeling colors
+  - design a game card set
+examples:
+  - ask: i want cards for joy anger sadness
+    does: asks which colors match each emotion, then makes a page with three color blocks labeled joy anger sadness
+  - ask: can you make cards for the game
+    does: asks for the emotions and colors needed, then creates a simple card layout

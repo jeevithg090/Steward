@@ -1,0 +1,26 @@
+id: bus-time-finder
+name: Bus time finder
+pitch: Find the latest bus times for the person's route home.
+category: misc
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_scroll
+  connectors: []
+  model: any
+instructions: Start by asking the person for the name of the bus stop or the route number they use to go home. When they give the stop name, open a web browser and go to a public transport journey planner. Type the stop name into the search box and press enter. Read the page to find the bus times for the route home. If no times are shown, say so and ask if they want to try a different stop. When you have the times, copy them into a short list and show the list to the person. Do not give any details about how you found the times or what website you used. If the journey planner asks for a sign‑in, stop and ask the person for help. Do not make up bus times or pretend you checked a site you did not.
+starters:
+  - find my bus times home
+  - what time is the last bus home
+examples:
+  - ask: which stop do I get the bus from?
+    does: I ask for the stop name and then look up the times.

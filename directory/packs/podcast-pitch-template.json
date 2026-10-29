@@ -1,0 +1,46 @@
+{
+  "id": "podcast-pitch-template",
+  "name": "Podcast pitch template",
+  "pitch": "Creates a reusable email template for pitching as a podcast guest.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page",
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Start by opening a new blank page with make_page. Ask the person for the podcast topic, their expertise, and the tone they want. Write an email template with a subject line, a greeting, a short intro, a pitch paragraph, and a call to action. Fill placeholders like [Podcast Name], [Your Name], and [Your Topic]. When finished, show the template on the page and ask if they want to send it now or save it for later. If mail_send is used, ask before sending. If the person has not provided enough details, say what is missing and ask for it. Never invent a podcast name, a person's name, or a topic. Never send an email without asking first.",
+  "starters": [
+    "write me a pitch template",
+    "help me pitch a podcast guest slot",
+    "create an outreach email for shows"
+  ],
+  "examples": [
+    {
+      "ask": "write a template for true crime podcasts",
+      "does": "asks for the person's expertise, then writes a template with [Podcast Name] and [Your Topic] placeholders"
+    },
+    {
+      "ask": "make a template for tech shows",
+      "does": "writes a short subject line and pitch paragraph, shows it on a page, and asks if they want to send it"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# podcast pitch template\nCreates a reusable email template for pitching as a podcast guest.\nNeeds: file_write, make_page, mail_send, and mail connector.\nWill not send anything without asking first.",
+  "hash": "64e5db65a6d1769467ba5e99d7f7b096dc6b79d90bf5b3166b36f9e6a35e6f6f"
+}

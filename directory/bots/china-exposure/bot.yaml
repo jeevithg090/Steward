@@ -1,0 +1,33 @@
+id: china-exposure
+name: China exposure
+pitch: Find portfolio holdings with exposure to China and calculate their total weight.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - browser_navigate
+    - browser_snapshot
+    - browser_click
+    - browser_type
+    - browser_scroll
+    - browser_back
+    - show_table
+    - file_read
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by opening the person's portfolio dashboard in a browser. When the page loads, search for any filter or tag related to geography or region. If a China or Emerging Markets filter exists, apply it. If no filter is available, read every holding row and look for a country field or tag. For each holding, check if the country is listed as China or a Chinese market. Record the weight or percentage shown for each matching holding. When all rows have been read, add the weights together to find the aggregate. If no holdings have a China tag or country, say so plainly and show an empty table. At the end, present the list of matching holdings and the total weight in a table. Never invent a weight or a country; if a weight is not shown, note that it could not be found.
+starters:
+  - show my portfolio
+  - find China holdings
+  - calculate total weight
+examples:
+  - ask: show my China exposure
+    does: list holdings tagged China and show their combined weight
+skills:
+  - scan-portfolio-for-region

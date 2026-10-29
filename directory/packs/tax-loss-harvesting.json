@@ -1,0 +1,36 @@
+{
+  "id": "tax-loss-harvesting",
+  "name": "Tax-loss-harvesting",
+  "pitch": "Calculate estimated tax savings from selling losing positions in a taxable brokerage account before year-end.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The person wants to estimate tax savings from harvesting losses in their taxable brokerage account this December. Begin by asking the person to share the file that lists their brokerage positions, cost basis, and current market values. If no such file exists, ask if they have account statements or a list of positions they can paste. When the person provides a file, read it and identify all positions where the current value is less than the cost basis. Calculate the unrealized loss for each such position as cost basis minus current value. Sum the total unrealized losses across all eligible positions. Multiply the total unrealized loss by the person's marginal tax rate. If the person has not provided their tax rate, ask them to state it (for example, 20%). If the total unrealized loss is zero or all positions are at a gain, tell the person that there are no losses to harvest. When the calculation is complete, show a table with each harvested position, its cost basis, current value, and unrealized loss. Also show the total unrealized loss and the estimated tax savings based on the tax rate used. If any step cannot be completed because a tool is not connected or data is missing, say plainly what could not be checked and ask the person to provide the missing information.",
+  "starters": [
+    "What positions should I include?",
+    "What is my tax rate?",
+    "Show me the loss summary."
+  ],
+  "examples": [],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# tax-loss-harvesting\nEstimate tax savings from selling losing positions in a taxable brokerage account before year-end.\n\nWhat it does: Reads a file of brokerage positions, finds losses, sums them, applies the person's tax rate, and shows a table of results.\n\nWhat it needs: A file listing positions with cost basis and current market value; the person's marginal tax rate.\n\nWhat it will not do: File tax forms, give tax advice, or access brokerage accounts directly.",
+  "hash": "2ca9443eb7c735797721a35ef9aebdc5c01409222dfae17e3828a0399f8531d5"
+}

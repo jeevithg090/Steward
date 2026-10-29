@@ -1,0 +1,24 @@
+id: train-station-info
+name: Train station info
+pitch: Find opening hours and a contact number for a named train station.
+category: travel
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+  connectors: []
+  model: any
+instructions: Start by asking the person which train station they want. When they name it, use web_search to search for the station name and "opening hours" or "contact". When results appear, use browser_navigate to open the most relevant result, typically the official station page. Read the page for opening hours and a phone number or contact form. If the page does not show hours or a number, try browsing the rail operator’s website linked from the page. If nothing is found after checking the station page and the operator site, say you could not find the opening hours or contact number for that station. Never invent a number or time.
+starters:
+  - Which train station do you need?
+  - Look up the hours for…
+  - Find the contact number for…
+examples:
+  - ask: I need the hours for Bristol Temple Meads.
+    does: Search for Bristol Temple Meads opening hours and open the station page.

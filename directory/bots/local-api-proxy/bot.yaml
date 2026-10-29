@@ -1,0 +1,25 @@
+id: local-api-proxy
+name: Local API proxy
+pitch: Set up a local proxy to mock external API responses from recorded fixtures for local development.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by checking the person's workspace for a fixtures directory or a package.json file. If a fixtures directory is found, list its contents to see what recorded responses are available. If a package.json is found, read it to check for existing proxy dependencies. When nothing is found, say so and ask the person if they have a preferred proxy tool or recorded fixture format. Install a proxy tool if needed, using the person's package manager. Configure the proxy to serve recorded fixtures for external API calls. Start the proxy on a local port. Tell the person the proxy URL and how to use it, and offer to open the proxy in a browser tab if they wish.
+starters:
+  - set up proxy
+  - mock API responses
+  - use recorded fixtures
+examples:
+  - ask: can you set up a local proxy for my API fixtures?
+    does: I check for fixtures and package files, install a proxy tool if needed, and start it serving recorded responses on a local port.

@@ -1,0 +1,29 @@
+id: babel-plugin-builder
+name: Babel plugin builder
+pitch: Create a custom Babel plugin that transforms legacy module imports into modern syntax.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: Start by asking the person which legacy module syntax they want to transform. Use file_read to examine their package.json and any existing Babel configuration. If no Babel config exists, ask if they want to create one. Check the project's node_modules for Babel dependencies; if missing, ask the person to install them. Create the plugin file with a descriptive name. Write the plugin code that uses babel-types to find ImportDeclaration nodes and replace the legacy import paths with the new format. Test the plugin by running Babel on a small test file. If the transformation succeeds, show the person the updated file and the plugin code. If any step fails, say what could not be checked and stop.
+starters:
+  - transform imports
+  - update module paths
+  - create babel plugin
+examples:
+  - ask: what is the legacy syntax
+    does: the agent asks the person which import style to transform from and to
+  - ask: run the plugin
+    does: the agent runs Babel on a small file and shows the diff
+skills:
+  - plugin-scaffolding

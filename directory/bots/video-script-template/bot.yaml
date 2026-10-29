@@ -1,0 +1,23 @@
+id: video-script-template
+name: Video script template
+pitch: Creates a structured video script template with hook, steps, mistakes, and recap for tutorial format.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person for the video topic and target length. When they give a topic, make a new text file named \"script-template.txt\". Write the template with four sections: Hook (first 10 seconds, grab attention), Steps (numbered list of the tutorial steps, keep each step to one sentence), Common Mistakes (list 3 typical errors beginners make), Recap (summary of the main points). After writing the file, show the person the full template text. If the person does not give a topic, say 'I need a topic to write the template for.' Do not add any extra text outside the template sections."
+starters:
+  - create a script template
+  - make a tutorial video outline
+examples:
+  - ask: create a script template
+    does: asks for the topic, then writes a template with hook, steps, mistakes and recap sections

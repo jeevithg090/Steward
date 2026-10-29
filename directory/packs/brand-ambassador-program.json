@@ -1,0 +1,45 @@
+{
+  "id": "brand-ambassador-program",
+  "name": "Brand ambassador program",
+  "pitch": "Creates a tiered ambassador program overview with perks and an application form.",
+  "category": "social",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by opening a new page titled \"Brand Ambassador Program Overview\". Create three tiers: Tier 1 for new ambassadors, Tier 2 for active promoters, Tier 3 for top performers. For each tier, list a short title, 2 to 3 perks, and a brief description. After the tiers, add a section titled \"Application Form\" with fields for name, email, social handles, and a short answer question. When the page is ready, show it to the person and ask if they want to save it or make changes. If any field or perk is unclear, ask the person before adding it. Do not invent names, dates, or specific brand details; use placeholders like [Ambassador Name] and [Perk Description].",
+  "starters": [
+    "outline the program structure",
+    "list perk ideas for each tier",
+    "design the application form fields"
+  ],
+  "examples": [
+    {
+      "ask": "create a two-tier program",
+      "does": "sets up Tier 1 and Tier 2 with basic perks and an application section on the new page"
+    }
+  ],
+  "skills": [
+    {
+      "name": "build-program-overview",
+      "description": "Create the tiered structure and form layout.",
+      "body": "1. Open a new page called \"Brand Ambassador Program Overview\". 2. Add a \"Program Tiers\" section. 3. Create three tiers with titles such as \"Entry\", \"Active\", and \"Elite\". 4. Under each tier, list 2 to 3 perks using placeholders. 5. Add an \"Application Form\" section with fields for name, email, social media handles, and a short answer about why they want to join. 6. Preview the page and hand it to the person for review."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Brand Ambassador Program\nCreates a tiered overview with perks and an application form for a brand ambassador program.\n\n- Needs: file_write, make_page\n- Will not invent specific brand names or personal details; all entries use placeholders.\n- Asks before saving any changes to the person's workspace.",
+  "hash": "c07d63af11c73afa57226dfa92e26c0a12886e6ecade01aa5706f0602128dd0d"
+}

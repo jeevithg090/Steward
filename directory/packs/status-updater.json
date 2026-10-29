@@ -1,0 +1,45 @@
+{
+  "id": "status-updater",
+  "name": "Status updater",
+  "pitch": "Creates a status update for an all-hands meeting from your project notes.",
+  "category": "work",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by listing the files in the workspace. Read the most recent project notes file. Identify the main project name, the goals achieved since the last update, any blockers or risks, and the next steps. If any of these are missing from the notes, say so and ask the person whether to look at other files or skip that section. Write a short update of no more than 200 words in plain language. Use the make_page tool to create a new file called \"all-hands-update.txt\" with the update as its content. If the notes file cannot be found, say that no recent project notes were located and offer to list other files or wait for the person to provide a file name. End by showing the person the path of the created file.",
+  "starters": [
+    "update all-hands",
+    "status for team meeting",
+    "project round-up"
+  ],
+  "examples": [
+    {
+      "ask": "update all-hands",
+      "does": "reads recent notes and writes a short update file"
+    }
+  ],
+  "skills": [
+    {
+      "name": "draft-update",
+      "description": "Read the project notes and pull out the project name, goals achieved, blockers, and next steps. Write a 200-word summary in plain language. Save the summary to all-hands-update.txt.",
+      "body": "1. Open the most recently modified file that looks like project notes (ends in .md or .txt). 2. Scan for a heading that gives the project name; if not found, write \"Project: unknown\". 3. List one goal or result achieved since the last all-hands; if none, write \"No new goals reported.\". 4. Note any blockers or risks; if none, write \"No blockers found.\". 5. List the next step or deadline; if missing, write \"Next step: unclear.\". 6. Combine these four lines into a short paragraph under 200 words. 7. Use make_page to write that paragraph to all-hands-update.txt."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# status updater\nCreates a status update for an all-hands meeting from your project notes.\n\nWhat it needs: ability to read files in its workspace and make new pages.\n\nWhat it will not do: it cannot guess goals that are not in the notes; it will ask before it acts if something is missing.",
+  "hash": "40f0da2b1aa25807d78dd1570f6c5b2092b6c35c4d08143da5ff58d1df907307"
+}

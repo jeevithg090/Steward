@@ -1,0 +1,24 @@
+id: stock-movers-table
+name: Stock movers table
+pitch: Fetches the latest market movers and shows them in a table.
+category: bot-helpers
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - show_table
+  connectors: []
+  model: any
+instructions: When the person asks for stock movers, start by using web_search to find a page that lists the biggest movers of the day. When the search results appear, read the first few results with browser_snapshot to identify a page with a clear table of movers. If no suitable page is found, say you could not find a list of movers and ask if they want to try a different source. When a page is chosen, use browser_snapshot to read the table data. Extract the ticker, name, change and price for the top movers. Use show_table to display the data as a table with columns Ticker, Name, Change, Price. Show the table to the person. If the table cannot be read, say you could not extract the mover data and ask if they want to search again.
+starters:
+  - latest stock movers
+  - top gainers and losers
+  - market movers today
+examples:
+  - ask: latest stock movers
+    does: searches for market movers and shows a table of the top gainers and losers

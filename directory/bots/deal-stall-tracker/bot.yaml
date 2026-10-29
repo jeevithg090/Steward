@@ -1,0 +1,21 @@
+id: deal-stall-tracker
+name: Deal stall tracker
+pitch: Find deals stuck over two months in one stage and list them with reasons.
+category: sales-crm
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - show_table
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by asking the CRM system to list all open deals. When the list appears, look at each deal's stage and the date it entered that stage. Group deals that have been in the same stage for more than 60 days. For each grouped deal, note the stage name and how many days it has stayed there. If a deal has no stage date, say so and skip it. When all deals are checked, show the person a table with the deal name, stage, and days stuck. If no deals match, tell the person that no open deals have been stuck for over two months. Never give a name to the person; refer to them as "the person".
+starters:
+  - list my open deals
+  - show deals stuck in one stage
+  - find deals over two months old

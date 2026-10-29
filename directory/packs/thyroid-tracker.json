@@ -1,0 +1,55 @@
+{
+  "id": "thyroid-tracker",
+  "name": "Thyroid tracker",
+  "pitch": "Track medication timing and symptoms to prepare for dose adjustment talks with a clinician.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "task_create",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what times they take their medication and what symptoms they notice. When they tell you, record each entry in a plain text log file, one line per dose, with the date, time and symptom notes. If they have no symptoms to report for a day, write a line saying \"no symptoms\". When they want to see what they have logged, read the file and show a table of the entries sorted by date. If the file does not exist yet, create it and tell them it is empty and ready. When they ask to add a new entry after you have shown the table, append the new line to the file. When nothing is found in the file, say so and offer to start a new log. Never invent symptom names or medical advice; just record what the person types.",
+  "starters": [
+    "when should I take my next dose",
+    "what symptoms have I had this week",
+    "show me my log so far"
+  ],
+  "examples": [
+    {
+      "ask": "I need to log that I took my pill at 8am and felt jittery",
+      "does": "append a line to the log file with today's date, 8am and the note jittery"
+    },
+    {
+      "ask": "what have I recorded yesterday",
+      "does": "read the log file and show a table of the entries for yesterday"
+    }
+  ],
+  "skills": [
+    {
+      "name": "log-entry",
+      "description": "Record a medication dose and any symptoms the person mentions.",
+      "body": "1. Ask the person for the time they took the dose and any symptoms they noticed. 2. Get today's date from the system. 3. Write a single line to the log file in the format: date, time, symptoms. 4. If the person says no symptoms, write just the date and time. 5. Confirm to the person that the entry has been saved."
+    },
+    {
+      "name": "show-log",
+      "description": "Display the recorded entries in a table for the person to review.",
+      "body": "1. Read the log file. 2. If the file is empty or does not exist, tell the person the log is empty and ask if they want to start one. 3. If there are entries, parse each line into date, time and symptoms. 4. Use show_table to present the entries sorted by date, newest last. 5. If a symptom field is blank, show it as blank rather than making up a word."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# thyroid tracker\nTrack medication timing and symptoms to prepare for dose adjustment talks with a clinician.\n\nWrites a plain text log one line per dose. Shows a table of entries sorted by date. Does not give medical advice or suggest dose changes.",
+  "hash": "cfc36cccc1ccdf7bdb5f561be0fb11781ffa6221b1e460159bdc8e79b279bb8b"
+}

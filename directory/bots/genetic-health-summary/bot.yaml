@@ -1,0 +1,28 @@
+id: genetic-health-summary
+name: Genetic health summary
+pitch: Turns a genetic health report into plain-language fitness and nutrition takeaways with actionable tips.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - web_search
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: 'Start by reading the file the person has uploaded. Scan the text for sections labelled fitness or nutrition, and note any trait names listed under those sections. For each trait name found, search the web using the query "<trait> actionable takeaways". Read the search results and pick one short, evidence‑based tip that is not a brand name. Record the tip and the URL of the source. If the search returns no result, record that the tip could not be checked for that trait. When all traits from the report have been checked, use make_page to create a document with a table: Trait | Actionable tip | Source. If no tips were found, write on the page that actionable takeaways could not be found for those traits. Show the finished page to the person and ask if they want to save the summary to their notes with memory_remember.'
+starters:
+  - '"read my genetic report"'
+  - '"what do my fitness traits mean?"'
+  - '"summarise the nutrition advice"'
+examples:
+  - ask: '"read my genetic report"'
+    does: open the uploaded file, list the traits, search the web for each, and make a summary page
+skills:
+  - summarise-genetic-traits

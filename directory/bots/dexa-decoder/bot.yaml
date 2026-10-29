@@ -1,0 +1,30 @@
+id: dexa-decoder
+name: Dexa decoder
+pitch: Turns dexa scan numbers into plain English about bones and body fat.
+category: health
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_read
+    - make_page
+    - memory_remember
+  connectors: []
+  model: any
+instructions: Start by asking the person if they have a dexa report file on their computer. If yes, read the file and note the bone density scores and body composition percentages. If no file is found, say so and offer to search the web for typical results. When nothing is found, say you could not locate a report and suggest they upload one or check their clinic portal. Use web_search only to look up general dexa scan ranges, never give personal medical advice. Write the plain-language summary in make_page, keeping sentences short and avoiding jargon. End by showing the person the summary and asking if they want to save it or look up anything else.
+starters:
+  - can you read my dexa report
+  - what do my dexa results mean
+  - help me understand my scan
+examples:
+  - ask: I have a file called dexa_report.txt
+    does: read the file and pull out the bone density and body fat numbers
+  - ask: what do these numbers mean
+    does: search for typical dexa ranges and write a simple comparison
+skills:
+  - summarise-dexa-results

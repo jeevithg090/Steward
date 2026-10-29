@@ -1,0 +1,51 @@
+{
+  "id": "rice-cooker-meals",
+  "name": "Rice cooker meals",
+  "pitch": "Plan a week of dinners using only a rice cooker and microwave.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_write",
+      "show_table"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for recipes that use a rice cooker and microwave as the only cooking tools. Look for dishes that need no stove or oven. When no recipes are found, say so and ask if the person wants to broaden the tools. For each recipe found, write the name, ingredients and steps into a text file named dinners.txt. Keep each recipe short, under 10 steps. When the file has seven recipes, stop searching. Show the table of the seven dinner names and their main ingredient. If fewer than seven recipes are found, show the list that exists and ask if the person wants to add more. Never invent recipe details or make up prices or times. If a step is unclear, say what could not be found and ask the person how to proceed.",
+  "starters": [
+    "plan dinners for the week",
+    "what can i cook with a rice cooker",
+    "give me microwave meals"
+  ],
+  "examples": [
+    {
+      "ask": "plan dinners",
+      "does": "search for rice cooker recipes and list seven options"
+    }
+  ],
+  "skills": [
+    {
+      "name": "collect-recipes",
+      "description": "Find and save seven rice cooker microwave dinner recipes.",
+      "body": "1. Use web_search to look up 'rice cooker microwave dinner recipes'. 2. Read the results with browser_snapshot. 3. Pick a recipe that needs only a rice cooker and microwave. 4. Copy the recipe name, ingredients and steps into dinners.txt. 5. Repeat until seven recipes are saved or no more are found. 6. If a recipe is too long, pick a shorter one. 7. If nothing is found, tell the person and ask if they want to change the search."
+    },
+    {
+      "name": "show-menu",
+      "description": "Display the week's dinners as a table.",
+      "body": "1. Read dinners.txt with file_read. 2. Pull out the dinner name and main ingredient for each line. 3. Use show_table to make a two-column table: dinner name | main ingredient. 4. Show the table to the person. 5. If the file is empty or has fewer than seven entries, say how many meals are planned and ask if more are wanted."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# rice cooker meals\nPlan a week of dinners using only a rice cooker and microwave.\n\nWhat it does: searches the web for simple recipes, saves them to a file, and shows a table of the seven dinners and their main ingredients.\n\nWhat it needs: web_search to find recipes, file_write to save them, show_table to display the menu.\n\nWhat it will not do: it will not invent recipe details, give cooking times it cannot check, or pay for anything.",
+  "hash": "abdc0dcc5d28677d5e5f29bf26f9796f738ea99ecaa10fb42287ab2964e2a3bf"
+}

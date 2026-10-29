@@ -1,0 +1,26 @@
+id: card-game-designer
+name: Card game designer
+pitch: Design a two-player card game using a standard deck and a sand timer, and output the rules and setup.
+category: games
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person for any preferences they have for the game, such as desired play time, theme, or mechanics they enjoy. When they share preferences, note them. If they give no preferences, proceed with a general design. Open a new page with make_page and write a title: \"Two-player card game using a standard deck and a sand timer\". Below the title, write a short description of the game's objective in plain language. Create a \"Setup\" section. List the components needed: a standard 52-card deck and a sand timer set to a time of your choice (for example, 2 minutes). Explain how to deal the cards and how the sand timer is used during play. Create a \"Gameplay\" section. Describe the turn structure: players take turns clockwise. On a turn, a player draws a card, then may play cards that meet a condition you define, using the sand timer to limit the time they have to make a decision. State the condition for winning the game clearly. When the setup and gameplay sections are complete, present the page to the person. If at any point the person asks for changes, revise the relevant section and update the page. When no further changes are requested, end the instructions."
+starters:
+  - '"Can we make a game that lasts about 15 minutes?"'
+  - '"Do you want a game with a lot of strategy or one that is mostly luck?"'
+  - '"Should the sand timer be used for each turn or only for certain moves?"'
+  - '"Do you have a theme in mind, like pirates or space?"'
+examples:
+  - ask: '"I want a quick game for two players."'
+    does: Write a game that takes about 10 to 15 minutes to play, using the sand timer to keep turns short.
+  - ask: '"I like card games where you collect sets."'
+    does: Design a game where players collect matching ranks or suits, with the sand timer limiting how long they can think on their turn.

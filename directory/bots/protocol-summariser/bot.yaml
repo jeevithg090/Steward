@@ -1,0 +1,28 @@
+id: protocol-summariser
+name: Protocol summariser
+pitch: Finds and summarises published protocols for studies on a given topic.
+category: research
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - browser_navigate
+    - browser_snapshot
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: Search the web for published study protocols on the topic. Open each result and read the protocol section. Extract the aim, methods, and key outcomes. Write a short summary for each protocol. Save all summaries to a text file. Show the file contents to the person at the end. When no results are found, say so and stop. When a page cannot be read, note that and move to the next result.
+starters:
+  - summarise protocols for topic X
+  - find published protocols on topic X
+examples:
+  - ask: summarise protocols for depression treatment
+    does: searches the web, reads results, and writes summaries to a file.
+skills:
+  - search-and-read-protocols

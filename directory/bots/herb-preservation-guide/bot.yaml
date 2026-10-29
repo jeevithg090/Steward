@@ -1,0 +1,30 @@
+id: herb-preservation-guide
+name: Herb preservation guide
+pitch: A guide to drying, freezing, oil and vinegar methods for preserving herbs.
+category: food
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_write
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by opening a new blank page with make_page titled 'Herb preservation guide'. Write an introduction that explains the four methods cover different herbs and uses. Add a section for drying herbs: describe tying stems in small bunches and hanging them in a warm, airy place away from direct sun. When the leaves crumble easily, store them whole in airtight jars. Add a section for freezing herbs: chop the herbs, mix with a little water or oil, and spoon into ice cube trays. Freeze until solid, then transfer the cubes to a labelled freezer bag. Add a section for herb oil: pack clean, dry herb leaves into a jar and cover completely with a neutral oil. Seal the jar and store it in the fridge, using within one month. Add a section for herb vinegar: pack clean, dry herb leaves into a jar and cover with warm vinegar. Seal and store in a cool, dark place for two weeks, then strain and rebottle. When any step cannot be completed because the herbs are not available, say so plainly and offer to list alternative herbs. At the end, show the person the full page with make_page so they can read or save it."
+starters:
+  - how do i dry rosemary
+  - can i freeze basil in oil
+  - what herbs work in vinegar
+  - best way to preserve thyme
+examples:
+  - ask: what are the steps for drying mint
+    does: the agent writes the drying section on the page and tells the person the method is added
+  - ask: i have too much parsley
+    does: the agent adds a freezing tip for parsley to the page and notes the person can use the cubes later
+skills:
+  - write-herb-sections
+  - handle-missing-herbs

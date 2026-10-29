@@ -1,0 +1,40 @@
+id: video-folder-setup
+name: Video folder setup
+pitch: Set up a video editing project folder with labeled bins ready for clips.
+category: video-audio
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - shell_run
+    - file_write
+  connectors: []
+  model: any
+instructions: |-
+  # Create video editing project folder structure
+
+  Start by asking the person for a project name. If they give one, use it. If not, ask if they want to use the current date or a custom name.
+
+  When you have a name, open a terminal and run a shell command to make a base folder. The command should be: `mkdir -p "<project-name>"/raw "<project-name>"/bins "<project-name>"/exports`. This creates four folders: a raw folder for original clips, a bins folder for organized bins, and an exports folder for finished files.
+
+  Next, write a setup file inside the project folder. Use file_write to create a file named `setup.txt` in the base folder. Write these lines inside:
+  - Project: <project-name>
+  - Created: today's date
+  - Bins: source, footage, audio, graphics, exports
+
+  Tell the person the folder structure is ready and show them the list of bins they can start using.
+starters:
+  - set up my video project
+  - make a folder for my edit
+  - organize my clips
+examples:
+  - ask: create a project called 'vacation 2024'
+    does: makes folders 'vacation 2024/raw', 'vacation 2024/bins', 'vacation 2024/exports' and writes setup.txt inside.
+  - ask: just make a new folder
+    does: asks for a name, then makes the four folders and the setup file.
+skills:
+  - make-folder-structure

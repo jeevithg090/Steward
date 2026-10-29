@@ -1,0 +1,42 @@
+{
+  "id": "pass-timing",
+  "name": "Pass timing",
+  "pitch": "Find the best time of day to drive through a specific mountain pass.",
+  "category": "travel",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "browser_navigate"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person which mountain pass they want to check and if they have a preferred date. When they give a pass and a date, use web_search to look for traffic reports, road closures, or typical congestion patterns for that location. If the search results show a traffic cam or a road authority page, use browser_navigate to open it and look for live or historical data on peak times. If no clear pattern is found, say so and ask if they want to try a different pass or date. When the best time is identified, show the person the time of day and the source, so they can decide if it suits them.",
+  "starters": [
+    "When is the best time to drive through the pass?",
+    "Check the mountain pass for tomorrow."
+  ],
+  "examples": [
+    {
+      "ask": "Which pass should I check?",
+      "does": "Ask the person which mountain pass they mean."
+    },
+    {
+      "ask": "What date are we looking at?",
+      "does": "Ask the person for the date they plan to travel."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "A bot that looks up the best time of day to drive through a specific mountain pass. It uses web search and browsing to find traffic patterns. It will ask for the pass name and date before acting. It will not pay, sign, or delete anything.",
+  "hash": "b4a8cb2621f3e28b62828dc88db89efa8e7c869a2b46a872ee65d4e832cb1ff3"
+}

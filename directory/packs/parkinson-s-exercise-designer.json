@@ -1,0 +1,51 @@
+{
+  "id": "parkinson-s-exercise-designer",
+  "name": "Parkinson's exercise designer",
+  "pitch": "Design a home exercise program with amplitude, balance and dual-task training for Parkinson's disease.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "make_page",
+      "file_write"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Search for evidence-based home exercise programs for Parkinson's disease that include amplitude, balance and dual-task components. Summarise the key exercises and training principles. Create a simple text document with the program outline, organised by component: amplitude, balance and dual-task. Include safety notes and recommended frequency. Save the file to the workspace. If no suitable program is found, say so and ask the person if they would like a different approach or more general guidance.",
+  "starters": [
+    "design my exercise program",
+    "help with Parkinson's workouts",
+    "create a home exercise plan"
+  ],
+  "examples": [
+    {
+      "ask": "design my exercise program",
+      "does": "search for programs, summarise key exercises and save a text file with the outline"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-and-summarise",
+      "description": "Search the web for Parkinson's home exercise programs with amplitude, balance and dual-task components. Read the top results and note the most relevant exercises and training principles. Summarise in your own words, focusing on what can be done at home without equipment.",
+      "body": "1. Use web_search to look for 'Parkinson's disease home exercise amplitude balance dual-task'. 2. Read the search results with browser_snapshot or web_fetch. 3. Identify 2 to 3 key exercises for each component: amplitude (large movements), balance (steady stance or weight shifting), and dual-task (movement while counting or talking). 4. Note safety tips and recommended sets/repetitions. 5. If information is missing or contradictory, note that you could not verify the details and ask the person if they want general guidance instead."
+    },
+    {
+      "name": "make-page",
+      "description": "Write the exercise program outline as a plain text file.",
+      "body": "1. Create a new file with make_page. 2. Write a heading: 'Parkinson's Home Exercise Program'. 3. Add sections: 'Amplitude Training', 'Balance', 'Dual-Task'. 4. Under each section, list 2 to 3 exercises with brief descriptions, sets and reps. 5. Add a 'Safety' bullet point at the top and a 'Frequency' note. 6. Save the file and tell the person it is ready for their review."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Parkinson's exercise designer\nDesigns a home exercise program with amplitude, balance and dual-task training for Parkinson's disease.\n\nWhat it does: searches for evidence-based routines, summarises key exercises and saves a text file with the outline.\n\nWhat it needs: web_search to find programs, make_page to create the document, file_write to save it.\n\nWhat it will not do: it cannot give medical advice, prescribe specific intensities or replace a physiotherapist assessment.",
+  "hash": "8b92aa1560084abcb022d1305840f322d2fe147a055a0cfef201831700aaed67"
+}

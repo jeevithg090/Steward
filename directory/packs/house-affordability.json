@@ -1,0 +1,40 @@
+{
+  "id": "house-affordability",
+  "name": "House affordability",
+  "pitch": "Calculate how much house you can afford with a 20% down payment and a 36% debt-to-income ratio.",
+  "category": "money",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "file_read",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person for their yearly gross income and any monthly debt payments. Use web_search to look up current average mortgage rates for a standard 30-year fixed loan in the UK. When you have the interest rate, calculate the maximum monthly mortgage payment by taking 36% of the gross monthly income and subtracting the person's total monthly debt payments. If the result is zero or negative, say so and stop. If there is a positive amount, calculate the affordable house price by dividing the monthly payment by the monthly interest rate (annual rate divided by 12) and multiplying by 0.8 (to account for the 20% down payment). If the monthly debt payments are not known, ask the person for them before calculating. Show the results in a table with the gross income, monthly debt, maximum mortgage payment, and affordable house price. If any input is missing, say what is needed and stop.",
+  "starters": [
+    "How much do you earn per year before tax?",
+    "Do you have any other monthly debt payments, such as car loans or credit cards?"
+  ],
+  "examples": [
+    {
+      "ask": "I earn £40,000 a year and have no other debts.",
+      "does": "Look up current mortgage rates, calculate the affordable house price, and show the result in a table."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# House affordability\n\nCalculate how much house you can afford with a 20% down payment and a 36% debt-to-income ratio.\n\n**What it needs:** web_search, file_read, show_table, make_page.\n\n**What it will not do:** It will not give financial advice or guarantee loan approval. It uses average market rates and your inputs only.",
+  "hash": "7242ebf961ee7182875be271c3ddf7b8bb42de74173e3e87870e671cc6e81119"
+}

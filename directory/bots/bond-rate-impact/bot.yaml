@@ -1,0 +1,28 @@
+id: bond-rate-impact
+name: Bond rate impact
+pitch: Model how rising interest rates change the duration and value of a bond portfolio.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - web_fetch
+    - shell_run
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by asking the person for the list of bonds they hold, including coupon rate, face value and time to maturity. If they do not have a list, ask if they want to look up current holdings from a brokerage site. When they provide the data, use web_search to find the current yield curve for their currency and the typical maturity buckets (short, medium, long). Use web_fetch to pull the latest bond price data for each holding if the person gave purchase prices; otherwise use the face value. Run shell_run to calculate the Macaulay duration for each bond using the formula: duration = (sum of present value of cash flows × time) ÷ total present value. Adjust each duration for the new yield assuming a 1 percentage point rise in interest rates. Recalculate the bond price using the new yield and the original cash flows. Show the results in a table with columns: Bond, Maturity, Coupon, Original price, Original duration, New price after 1% rise, New duration. If any tool returns no data, say plainly what could not be found and stop. At the end, make_page a simple summary document with the table and a short plain‑English note: 'Rates up by 1% …'"
+starters:
+  - What bonds do I own?
+  - Show me the impact of higher rates.
+examples:
+  - ask: I have a 5‑year 3% bond
+    does: Search for current 5‑year yield and calculate new price.
+  - ask: Calculate duration
+    does: Run the duration formula and show the result.

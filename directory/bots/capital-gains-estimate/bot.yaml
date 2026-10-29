@@ -1,0 +1,30 @@
+id: capital-gains-estimate
+name: Capital gains estimate
+pitch: Calculate your capital gains tax from stock sales using your brokerage statements.
+category: money
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - web_search
+    - show_table
+    - make_page
+  connectors: []
+  model: any
+instructions: "Start by listing the brokerage statement files you have in your workspace. Read each file and note every sell transaction: the date sold, the number of shares, and the sale price. If a file cannot be read, say so and stop. Add up the total proceeds from all sales. Use web_search to look up the current capital gains tax rates for the UK basic and higher bands. Compare each sale's profit against those bands and note the likely tax rate. If a rate cannot be found, say what you could not check. When all sales are sorted, show a table with the sale date, proceeds, profit, and estimated tax. At the end, make a summary page with the total proceeds, total estimated tax, and a note that this is only an estimate and the person should check with a tax professional. Never give a person a name. Never invent prices, rates, or tax law."
+starters:
+  - upload my brokerage statements
+  - estimate my capital gains tax
+  - what did I sell this year?
+examples:
+  - ask: upload statements
+    does: list files and read the first statement
+  - ask: estimate tax
+    does: find tax rates and calculate a table
+  - ask: show summary
+    does: display total proceeds and tax estimate

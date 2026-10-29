@@ -1,0 +1,44 @@
+{
+  "id": "hearing-aid-compare",
+  "name": "Hearing aid compare",
+  "pitch": "Find and compare hearing aid features and prices for mild high-frequency hearing loss.",
+  "category": "health",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "show_comparison",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by searching the web for hearing aids suitable for mild high-frequency hearing loss. Look for listings that mention both feature sets and price ranges. When you have several options, use show_comparison to arrange them side by side, highlighting key features like amplification range, battery life, and price. If the search returns no results or only one option, say so and ask the person if they want to broaden the search or try a different term. After comparing, make_page a short summary page that lists the top three choices with their main features and prices. Show that page to the person so they can decide which to look into further.",
+  "starters": [
+    "compare hearing aids for mild high-frequency loss",
+    "find hearing aids under £500 with telecoil",
+    "what are the best budget hearing aids for high-frequency loss"
+  ],
+  "examples": [
+    {
+      "ask": "I need help comparing hearing aids",
+      "does": "I will search for hearing aids suitable for mild high-frequency hearing loss and show you a comparison of features and prices."
+    },
+    {
+      "ask": "show me options",
+      "does": "I search the web and arrange the results side by side for you to review."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# hearing aid compare\nFinds and compares hearing aid features and prices for mild high-frequency hearing loss.\nUses web search to locate options, show_comparison to arrange them side by side, and make_page to present a summary.\nWill not make a purchase, book an appointment, or give medical advice.",
+  "hash": "beda1e9bc0d33113e069dcbaba99b6836a86c0624bd530ad2fdd2bee2316fc85"
+}

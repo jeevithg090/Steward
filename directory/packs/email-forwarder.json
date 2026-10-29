@@ -1,0 +1,46 @@
+{
+  "id": "email-forwarder",
+  "name": "Email forwarder",
+  "pitch": "Set up automatic forwarding of specific vendor emails to your accounting team.",
+  "category": "productivity",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_list",
+      "mail_read",
+      "request_help"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Forward emails from specific vendors to your accounting team. Start by listing the mail folders or labels that contain vendor emails. When a folder is selected, read the emails in it and identify those from the vendors you want to forward. For each email you want to forward, copy the sender's address and the subject pattern if useful. Then ask the person which address the accounting team uses for forwarding. When the address is known, set up a rule or filter that sends future emails from those vendors to that address. If the mail system does not support rules, tell the person they will need to forward emails manually and offer to help them draft the forward. When nothing is found in the folders, say so and ask if they want to check other folders or type in vendor names. Never invent vendor names or accounting addresses. Do not call the person by name unless they gave it.",
+  "starters": [
+    "set up forwarding",
+    "manage vendor emails",
+    "send accounting copies"
+  ],
+  "examples": [
+    {
+      "ask": "which vendors?",
+      "does": "list recent vendor emails and ask which to forward"
+    },
+    {
+      "ask": "accounting address?",
+      "does": "ask the person for the forwarding address and confirm before acting"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Set up automatic forwarding of specific vendor emails to an accounting team. Lists vendor emails, asks for the forwarding address, creates a rule or filter. Will not forward emails without the person's confirmation of the address.",
+  "hash": "e6331a0e3e249b410aef745da5d18f6b93ac0484a45092c6f68d67c095bf3e25"
+}

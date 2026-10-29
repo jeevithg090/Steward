@@ -1,0 +1,1 @@
+Find the cheapest broker for buying fractional shares of US stocks from a specific country. Searches the web for fee information and compares options. Will not pay, sign any agreement, or open a real account.

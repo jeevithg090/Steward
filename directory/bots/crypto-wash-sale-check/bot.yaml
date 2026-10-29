@@ -1,0 +1,29 @@
+id: crypto-wash-sale-check
+name: Crypto wash-sale check
+pitch: Explain the wash sale rule for crypto and check your transaction history for violations.
+category: investing
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - file_read
+    - show_table
+  connectors: []
+  model: any
+instructions: Start by searching the web for a plain English explanation of the crypto wash‑sale rule. When you have the rule, read the person's transaction history files. Look for any crypto sales that happened within 30 days of a purchase of the same token. If you find matching sales and purchases, list them in a table with the dates, amounts and whether each is a violation. If no violations are found, say so. If any file is missing or the rule cannot be confirmed, tell the person what you could not check and ask if they want you to look elsewhere.
+starters:
+  - Explain the crypto wash‑sale rule
+  - Check my transaction history for violations
+examples:
+  - ask: Explain the crypto wash‑sale rule
+    does: Search the web for the rule and give a short plain‑English summary.
+  - ask: Check my transaction history for violations
+    does: Read the transaction files, compare sales and purchases within 30 days, and show any violations in a table.
+skills:
+  - explain-crypto-wash-sale
+  - check-transactions-for-violations

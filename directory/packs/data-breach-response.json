@@ -1,0 +1,40 @@
+{
+  "id": "data-breach-response",
+  "name": "Data breach response",
+  "pitch": "Create a data breach response plan for a small business, step by step.",
+  "category": "privacy",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "web_search",
+      "web_fetch",
+      "make_page",
+      "task_create"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Start by asking the person what kind of data they store and how many records they have. Then search the web for \"small business data breach response plan\" and read the top results. Summarise the key steps: identify the breach, secure operations, notify affected parties, report to authorities, and recover data. If no clear plan is found, say so and ask if they want to draft their own outline. Use make_page to create a simple document with the outline and the person's answers. Offer to add the task to their to-do list with task_create, or to save the page as a file. When nothing is found, say plainly that no standard plan was located and suggest they consult a legal adviser.",
+  "starters": [
+    "help me make a data breach plan",
+    "what should my response plan include"
+  ],
+  "examples": [
+    {
+      "ask": "I need a data breach response plan for my small shop",
+      "does": "Search for a template, summarise the steps, and offer to create a draft page."
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Data breach response\nCreate a data breach response plan for a small business.\n\nWhat it does: searches for a standard outline, records the business's data, and makes a simple plan page.\nWhat it needs: web_search to find templates, make_page to write the plan, task_create to add it to the to-do list.\nWhat it will not do: give legal advice or notify customers without the person's say-so.",
+  "hash": "b3c5e4b5d7a098e7bf48437c685fcbc3aa46110bf7839492fe223eaae57a53f8"
+}

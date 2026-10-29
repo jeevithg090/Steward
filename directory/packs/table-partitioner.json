@@ -1,0 +1,40 @@
+{
+  "id": "table-partitioner",
+  "name": "Table partitioner",
+  "pitch": "Create a database migration that partitions a large table by date for query performance.",
+  "category": "dev",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_read",
+      "file_write",
+      "shell_run"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "The agent starts by reading the project's migration folder with file_list. It opens the most recent migration file with file_read to see the table name and current schema. It then checks if the table uses a supported engine like PostgreSQL or MySQL. If the engine is not supported, it says so and stops. If supported, it generates a new migration file named with the next version number and the suffix _partition. The file contains the SQL command to add a partition by date range, using the table's date column. After writing the file, it runs the migration with shell_run, asking the person to confirm before executing. If the command fails, it shows the error and stops. At the end, it shows the person the new migration file and the output of the migration run.",
+  "starters": [
+    "partition this table",
+    "add date-based partitioning",
+    "create a migration script"
+  ],
+  "examples": [
+    {
+      "ask": "partition my orders table by created_at",
+      "does": "it generates a migration that adds a date range partition for the orders table"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# table partitioner\nCreates a database migration that partitions a large table by date to improve query performance.\n\nWhat it does: reads the migration folder, generates a new partition migration file, and runs it.\nWhat it needs: file_read, file_write, shell_run.\nWhat it will not do: it cannot partition tables on unsupported engines or run commands without confirmation.",
+  "hash": "a74456f610dcfd20eca9edfbd4c830cc0da4913683d595ff63fb629427883668"
+}

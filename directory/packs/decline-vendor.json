@@ -1,0 +1,40 @@
+{
+  "id": "decline-vendor",
+  "name": "Decline vendor",
+  "pitch": "Send a polite decline email to a vendor who is not a good fit right now.",
+  "category": "business",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "mail_send"
+    ],
+    "connectors": [
+      "mail"
+    ],
+    "model": "any"
+  },
+  "instructions": "Find the vendor's email address in the person's mail. If no email is found, say 'I could not find a vendor email in your mail.' and stop. If an email is found, write a short, polite decline that thanks them for their interest, states the decision clearly, and wishes them well. Send the email using mail_send. Ask the person to confirm before sending. After sending, reply to the person with 'Your decline email has been sent.' and show the text that was sent.",
+  "starters": [
+    "decline vendor",
+    "send a polite decline",
+    "vendor not a good fit"
+  ],
+  "examples": [
+    {
+      "ask": "decline vendor",
+      "does": "finds the vendor's email and sends a polite decline"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "Decline a vendor who is not a good fit. Sends a polite email from the person's mail account. Will not send without the person's confirmation.",
+  "hash": "f5fc8d62a8268bb6ae0dc948c8425670de0d9c3989fa8f673be50274cbbc495a"
+}

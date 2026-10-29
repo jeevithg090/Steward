@@ -1,0 +1,31 @@
+id: cli-plugin-system
+name: Cli plugin system
+pitch: Set up a plugin architecture with dynamic loading and dependency injection for the CLI.
+category: dev
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - file_read
+    - file_write
+    - shell_run
+  connectors: []
+  model: any
+instructions: "Start by exploring the existing CLI codebase to understand its structure and entry points. Look for existing plugin patterns, configuration files, or entry point definitions. When nothing is found, say so and ask the person whether to create a new structure from scratch. Next, design the plugin interface: define a base class or function signature that all plugins must implement, including a standard way to register dependencies. Create a plugin loader script that discovers plugins from a designated directory, imports them dynamically, and instantiates them. When a plugin directory is empty or missing, say so and list available plugins if any exist. Then, implement dependency injection: set up a container or registry that can resolve and provide required services to plugins at runtime. Configure the CLI's main entry point to initialise the loader and inject dependencies into each loaded plugin. When a dependency is not found, say which plugin requested it and what was missing. Finally, test the system by creating a sample plugin that uses an injected service, load it, and verify it runs. Show the person the plugin directory structure, the loader script, and a summary of registered plugins with their dependencies."
+starters:
+  - list plugins
+  - load a plugin
+  - add a new plugin
+examples:
+  - ask: list plugins
+    does: scan the plugin directory and list discovered plugins with their entry points
+  - ask: load a plugin
+    does: import the plugin module and initialise its components
+  - ask: run the CLI with a plugin enabled
+    does: execute the main command and show the plugin's contribution
+skills:
+  - plugin-loader

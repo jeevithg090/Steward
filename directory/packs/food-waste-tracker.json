@@ -1,0 +1,47 @@
+{
+  "id": "food-waste-tracker",
+  "name": "Food waste tracker",
+  "pitch": "Log food waste, see what it costs, and get tips to reduce it.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "ai",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "generated": "2026-10-29"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": [
+      "file_write",
+      "file_read",
+      "show_table",
+      "make_page"
+    ],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Track food waste in a simple text file. Read the file to calculate the cost of wasted food. Show the data in a table. Give plain tips to waste less. Write all results to a new page. Do not guess prices or amounts; use only what the person has recorded. If the log file does not exist, create it and tell the person. If the file is empty, say so and ask if they want to start recording. When showing the table, list each item, the date, the estimated cost, and the total. End the page with three practical reduction tips written in the person's own words if possible.",
+  "starters": [
+    "Start the waste log",
+    "Show my waste cost",
+    "Give me reduction tips"
+  ],
+  "examples": [],
+  "skills": [
+    {
+      "name": "record-waste",
+      "description": "Log a waste entry with item, date, and cost.",
+      "body": "1. Check if the waste log file exists using file_read. 2. If it does not exist, create it with a header line: 'Food waste log – date, item, cost (£)'. 3. If it exists, read the file to see the last entry. 4. Ask the person for the item name and estimated cost in pounds. 5. Append a new line to the file in the format: 'YYYY-MM-DD, item, cost'. 6. Confirm the entry has been saved."
+    },
+    {
+      "name": "analyse-cost",
+      "description": "Calculate total wasted cost from the log.",
+      "body": "1. Read the waste log file using file_read. 2. If the file is empty or does not exist, say 'No waste logged yet' and stop. 3. Skip the header line. 4. For each remaining line, split by comma. 5. Take the cost value (the third part), convert it to a number, and add it to a running total. 6. If any line does not have a valid cost, ignore that line and continue. 7. After all lines are processed, show the total cost to the person."
+    }
+  ],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Food waste tracker\n\nLog food waste, see what it costs, and get tips to reduce it.\n\n- Tools: file_write, file_read, show_table, make_page\n- Will not guess prices or invent amounts\n- Asks before writing any file",
+  "hash": "bef999cb03eaaa6bd173cee56c7cb24f03b0d06a2c370676f326763141bfeea5"
+}

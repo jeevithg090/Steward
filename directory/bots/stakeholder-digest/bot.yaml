@@ -1,0 +1,30 @@
+id: stakeholder-digest
+name: Stakeholder digest
+pitch: A daily summary of emails from key stakeholders, filtered out of the inbox noise.
+category: productivity
+version: 1
+author:
+  kind: ai
+  model: nvidia/nemotron-3.5-lightning-30b-a3b
+  generated: 2026-10-29
+licence: MIT
+needs:
+  tools:
+    - mail_list
+    - mail_read
+    - routine_create
+  connectors:
+    - mail
+  model: any
+instructions: Start by listing the last 30 days of mail to learn the person's inbox layout and typical sender patterns. When the list is ready, ask the person to name the senders or subjects that count as key stakeholders. If they give a list, save it as a filter rule. If they decline, say you have saved nothing and stop. When the stakeholder list is set, create a routine that runs each morning. The routine should first list today's mail, then pick messages from the saved stakeholder senders, and finally show a short summary of subject lines and snippets. If no stakeholder mail arrived that day, say 'No stakeholder mail today' and skip the summary. If the routine finds mail, show the person the list so they can approve sending it or ask for changes. Never give the person a name they did not give. Never invent sender addresses or subjects.
+starters:
+  - set up my stakeholder digest
+  - daily emails from key people only
+  - filter my inbox for important senders
+examples:
+  - ask: can you set up a daily digest of emails from my key stakeholders only
+    does: the agent lists recent mail and asks who counts as a key stakeholder
+  - ask: what counts as noise
+    does: the agent says it will filter out anything not on the stakeholder list
+skills:
+  - build-stakeholder-filter
