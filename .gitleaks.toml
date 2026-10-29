@@ -1,0 +1,31 @@
+# gitleaks: the default rules, minus the fake secrets Steward's own tests are built on.
+#
+# Each allowlisted value below is a deliberate fake or a published test vector. They have to look
+# like secrets: the outbound check, the secret box and the phone app's crypto are tested against
+# them. Allowlist an exact value, never a whole test folder, so a real key that lands in the same
+# file is still caught. Real keys live outside the repository (STEWARD_ENV_FILE).
+#
+#   gitleaks git --log-opts="--all" .
+
+title = "Steward"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Published crypto test vectors: RFC 7748 §6.1, NaCl's own tests, Happy's key tree"
+paths = ['''^packages/remote/src/vectors\.ts$''']
+
+[[allowlists]]
+description = "Fake key-shaped values the outbound check, the record and the secret box are tested on"
+regexTarget = "match"
+regexes = [
+  '''ghp_aBcDeF1234567890aBcDeF1234567890abcd''',
+  '''api_key=a1b2c3d4e5f6''',
+  '''Bearer abcDEF123456ghiJKL789''',
+  '''sk-or-v1-0123456789abcdef0123456789abcdef''',
+  '''xoxb-1234567890-abcdefghij''',
+  '''correct-horse-battery-9137''',
+  # RFC 6455 §1.3's sample Sec-WebSocket-Key ("the sample nonce").
+  '''dGhlIHNhbXBsZSBub25jZQ==''',
+]

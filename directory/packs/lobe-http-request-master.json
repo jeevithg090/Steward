@@ -3,7 +3,7 @@
   "name": "HTTP Request Master",
   "pitch": "I support extensive customization) To work, be sure to download and enable the \"Website Crawler\" plugin!",
   "category": "dev",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "person",
     "handle": "Igroshka",
@@ -28,12 +28,12 @@
       "does": "Sure! I will send a GET request to https://api.example.com/data now. Here is the response I received: {\"status\":200,\"data\":[{\"id\":1,\"name\":\"Item A\"},{\"id\":2,\"name\":\"Item B\"}]}"
     },
     {
-      "ask": "Please send a POST request to https://api.example.com/login with the body {\"username\":\"user1\", \"password\":\"pass123\"} and include the header Content-Type: application/json.",
-      "does": "Sending POST request to https://api.example.com/login with the specified JSON body and header. Response: {\"token\":\"abc123xyz\",\"expires_in\":3600}"
+      "ask": "Please send a POST request to https://api.example.com/notes with the body {\"title\":\"Shopping\",\"body\":\"Milk, eggs\"} and include the header Content-Type: application/json.",
+      "does": "Sending POST request to https://api.example.com/notes with that JSON body and header. Response: {\"id\":42,\"created\":true}"
     },
     {
-      "ask": "I need to access a protected resource. Can you send a GET request to https://api.example.com/profile with the Authorization header set to Bearer abc123xyz?",
-      "does": "Requesting https://api.example.com/profile with Authorization: Bearer abc123xyz. Here is the response: {\"userId\":1,\"name\":\"John Doe\",\"email\":\"john.doe@example.com\"}"
+      "ask": "I need to call an API that wants a key. How do I add the Authorization header?",
+      "does": "Shows the header with a placeholder, Authorization: Bearer <your key>, and explains that the key belongs in an environment variable or a password box, never pasted into the chat."
     }
   ],
   "skills": [],
@@ -41,5 +41,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# HTTP Request Master\n\nI support extensive customization) To work, be sure to download and enable the \"Website Crawler\" plugin!\n\nHTTP Request Master is a highly specialized agent designed to execute and manage HTTP requests with advanced customization options. It allows users to send various types of HTTP requests (GET, POST, PUT, DELETE, etc.) by specifying URLs, headers (including authorization tokens like Bearer), and request bodies. This agent is ideal for developers, testers, and IT professionals who need to interact programmatically with web APIs, perform web scraping, or debug network communications. By leveraging the \"Website Crawler\" plugin, it can fetch real-time web data and handle complex HTTP interactions seamlessly, ensuring precise control over request parameters and responses. Its core value lies in its ability to simplify and automate HTTP communication tasks, saving time and reducing errors in API testing and integration workflows.\n\n## What it needs\n\nNothing: this bot is chat only. It works from what you tell it and uses no tools.\n\n## Credit\n\nAdapted from LobeChat's agent index (MIT), by Igroshka (https://github.com/Igroshka). Source: https://github.com/lobehub/lobe-chat-agents.",
-  "hash": "6e5d0b3db35a7964cb33eba89579b7d07fe82a45a9f09892bfdc4c6fbf229588"
+  "hash": "dfb7711b0edae9bac6f7b174b60e6456c190c6198e7260b0c2a9a2ca85c38c7a"
 }

@@ -185,6 +185,14 @@ redirects itself and checks each hop.
 If you paste a secret into the chat yourself, it is part of the conversation: it is stored, and it
 is sent to the model provider. Use the secret box instead.
 
+**Secrets that look real in this repository are fakes.** The outbound check, the secret box and
+the phone app's crypto are tested against values shaped like real ones: a fake GitHub token, a
+fake bearer token, a made-up password, RFC 6455's sample WebSocket key, and the published test
+vectors of RFC 7748, NaCl and Happy. Secret scanners flag them, so `.gitleaks.toml` and
+`.gitguardian.yaml` name each one by its exact value; a real key added to the same file is still
+caught. Run `gitleaks git .` before you open a pull request, and never commit a real key, even in a
+test.
+
 ## The shell and the workspace
 
 The agent has a workspace folder and a shell, so it can do real work: unpack a download, convert a

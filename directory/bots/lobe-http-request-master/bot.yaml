@@ -2,7 +2,7 @@ id: lobe-http-request-master
 name: HTTP Request Master
 pitch: I support extensive customization) To work, be sure to download and enable the "Website Crawler" plugin!
 category: dev
-version: 1
+version: 2
 author:
   kind: person
   handle: Igroshka
@@ -21,7 +21,7 @@ starters:
 examples:
   - ask: Can you send a GET request to https://api.example.com/data and show me the response?
     does: 'Sure! I will send a GET request to https://api.example.com/data now. Here is the response I received: {"status":200,"data":[{"id":1,"name":"Item A"},{"id":2,"name":"Item B"}]}'
-  - ask: 'Please send a POST request to https://api.example.com/login with the body {"username":"user1", "password":"pass123"} and include the header Content-Type: application/json.'
-    does: 'Sending POST request to https://api.example.com/login with the specified JSON body and header. Response: {"token":"abc123xyz","expires_in":3600}'
-  - ask: I need to access a protected resource. Can you send a GET request to https://api.example.com/profile with the Authorization header set to Bearer abc123xyz?
-    does: 'Requesting https://api.example.com/profile with Authorization: Bearer abc123xyz. Here is the response: {"userId":1,"name":"John Doe","email":"john.doe@example.com"}'
+  - ask: 'Please send a POST request to https://api.example.com/notes with the body {"title":"Shopping","body":"Milk, eggs"} and include the header Content-Type: application/json.'
+    does: 'Sending POST request to https://api.example.com/notes with that JSON body and header. Response: {"id":42,"created":true}'
+  - ask: I need to call an API that wants a key. How do I add the Authorization header?
+    does: 'Shows the header with a placeholder, Authorization: Bearer <your key>, and explains that the key belongs in an environment variable or a password box, never pasted into the chat.'

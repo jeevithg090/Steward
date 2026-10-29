@@ -1,6 +1,6 @@
 {
   "name": "Steward bots",
-  "generatedAt": "2026-10-29T11:18:18.494Z",
+  "generatedAt": "2026-10-29T11:32:49.772Z",
   "categories": {
     "food": "Food & cooking",
     "health": "Health & fitness",
@@ -7178,7 +7178,7 @@
       "name": "HTTP Request Master",
       "pitch": "I support extensive customization) To work, be sure to download and enable the \"Website Crawler\" plugin!",
       "category": "dev",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "person",
         "handle": "Igroshka",
@@ -7191,7 +7191,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T12:25:49.532Z",
+      "updatedAt": "2026-10-29T11:32:48.591Z",
       "packUrl": "packs/lobe-http-request-master.json"
     },
     {

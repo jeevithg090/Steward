@@ -1,0 +1,32 @@
+# GitGuardian (ggshield): the fake secrets Steward's own tests are built on, so a scan reports only
+# what could be real. Each value is a deliberate fake or a published test vector; see .gitleaks.toml
+# for why they look like secrets. Ignore an exact value, never a whole test folder.
+#
+#   ggshield secret scan repo .
+
+version: 2
+
+secret:
+  ignored_paths:
+    # Published crypto test vectors: RFC 7748 §6.1, NaCl's own tests, Happy's key tree.
+    - packages/remote/src/vectors.ts
+
+  ignored_matches:
+    - name: RFC 7748 §6.1 test vector, Alice's private key
+      match: 77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a
+    - name: RFC 7748 §6.1 test vector, Bob's private key
+      match: 5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb
+    - name: NaCl test vector, crypto_box_beforenm of the RFC 7748 keys
+      match: 1b27556473e985d462cd51197a9a46c76009549eac6474f206c4ee0844f68389
+    - name: Happy's key-tree test vector (seed "test seed")
+      match: 1011C097D2105D27362B987A631496BBF68B836124D1D072E9D1613C6028CF75
+    - name: Fake GitHub token in the outbound-check tests
+      match: ghp_aBcDeF1234567890aBcDeF1234567890abcd
+    - name: Fake bearer token in the record tests
+      match: abcDEF123456ghiJKL789
+    - name: Fake OpenRouter key in the outbound-check tests
+      match: sk-or-v1-0123456789abcdef0123456789abcdef
+    - name: Fake password in the secret-box tests
+      match: correct-horse-battery-9137
+    - name: RFC 6455 sample Sec-WebSocket-Key
+      match: dGhlIHNhbXBsZSBub25jZQ==
