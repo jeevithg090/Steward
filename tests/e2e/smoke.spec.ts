@@ -8,7 +8,7 @@ import { expect, test, type Page } from "@playwright/test";
 const PAGES: ReadonlyArray<readonly [path: string, heading: string]> = [
   ["/#/missions", "Mission Control"],
   ["/#/memory", "Memory"],
-  ["/#/profiles", "Profiles"],
+  ["/#/profiles", "Summary"],
   ["/#/skills", "Skills"],
   ["/#/read", "Read It To Me"],
   ["/#/owed", "Am I Owed Anything?"],

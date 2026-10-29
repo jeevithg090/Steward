@@ -8,7 +8,7 @@ import { SITE, TUNNEL } from "./playwright.live.config";
 test.skip(!SITE || !TUNNEL, "no live demo running: run make live-demo first");
 
 const PAGES: ReadonlyArray<readonly [path: string, heading: string]> = [
-  ["/#/missions", "Mission Control"], ["/#/memory", "Memory"], ["/#/profiles", "Profiles"],
+  ["/#/missions", "Mission Control"], ["/#/memory", "Memory"], ["/#/profiles", "Summary"],
   ["/#/skills", "Skills"], ["/#/shield", "Scam Shield"], ["/#/read", "Read It To Me"],
   ["/#/owed", "Am I Owed Anything?"], ["/#/callers", "Who's calling?"], ["/#/devices", "Devices"],
   ["/#/privacy", "Privacy Proof"], ["/#/story", "The story"], ["/#/settings", "Settings"],
