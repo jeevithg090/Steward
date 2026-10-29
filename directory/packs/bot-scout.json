@@ -1,6 +1,6 @@
 {
   "id": "bot-scout",
-  "name": "bot scout",
+  "name": "Bot scout",
   "pitch": "Find two bots that do the same job and recommend the best one to install.",
   "category": "bot-helpers",
   "version": 1,
@@ -34,6 +34,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# bot scout\nFind two bots that do the same job and recommend the best one to install.\n\nNeeds: directory_find to look up bots, show_comparison to list them side by side.\nWill not install anything without your go‑ahead.",
-  "hash": "88b68d6c0ed3ce9712d3698f02984f03dce41a2a5a2442c29605be040c2c6ae3"
+  "readme": "# Bot scout\nFind two bots that do the same job and recommend the best one to install.\n\nNeeds: directory_find to look up bots, show_comparison to list them side by side.\nWill not install anything without your go‑ahead.",
+  "hash": "2144f8a39cdd5bc0881ad23b37486f22cddd80bb0cb1af68154ec4903359183c"
 }

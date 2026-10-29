@@ -1,6 +1,6 @@
 {
   "id": "video-reformat",
-  "name": "video reformat",
+  "name": "Video reformat",
   "pitch": "Convert horizontal videos to vertical with safe zone overlays for social platforms.",
   "category": "video-audio",
   "version": 1,
@@ -41,6 +41,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# video reformat\nConvert horizontal videos to vertical format with safe zone overlays for social platforms.\n\nWhat it does: Resizes videos to 1080x1920 and adds a centered safe zone rectangle.\n\nWhat it needs: shell_run (ffmpeg), file_read, file_write.\n\nWhat it will not do: It will not crop faces or add custom branding; it only places a safe zone overlay.",
-  "hash": "d9b0e30d43d85ffd06988157d0818ba8678f3aeee70dd20513017054c31019a7"
+  "readme": "# Video reformat\nConvert horizontal videos to vertical format with safe zone overlays for social platforms.\n\nWhat it does: Resizes videos to 1080x1920 and adds a centered safe zone rectangle.\n\nWhat it needs: shell_run (ffmpeg), file_read, file_write.\n\nWhat it will not do: It will not crop faces or add custom branding; it only places a safe zone overlay.",
+  "hash": "33b2fa2b6338853b054bc6a7f56c3aeb9ca0c57f95268e13faf73c1c663d58b9"
 }

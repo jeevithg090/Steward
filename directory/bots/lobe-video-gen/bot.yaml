@@ -1,5 +1,5 @@
 id: lobe-video-gen
-name: task_id
+name: Task_id
 pitch: POST https://api.minimaxi.chat/v1/video_generation
 category: bot-helpers
 version: 1

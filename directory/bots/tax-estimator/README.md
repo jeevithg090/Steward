@@ -1,4 +1,4 @@
-# tax estimator
+# Tax estimator
 Estimate quarterly tax payments from freelance income and expenses.
 
 What it does: reads income and expense files, applies current tax rates, and produces a table of four quarterly payments.

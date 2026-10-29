@@ -1,5 +1,5 @@
 id: timesheet-logger
-name: timesheet logger
+name: Timesheet logger
 pitch: Parses a timesheet file and logs work hours into a task list.
 category: bot-helpers
 version: 1

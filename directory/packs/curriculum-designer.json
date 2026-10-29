@@ -1,6 +1,6 @@
 {
   "id": "curriculum-designer",
-  "name": "curriculum designer",
+  "name": "Curriculum designer",
   "pitch": "Build a free self-study curriculum with quality resources for a new skill from scratch.",
   "category": "research",
   "version": 1,
@@ -32,6 +32,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# curriculum designer\n\nBuild a free self-study curriculum with quality resources for a new skill from scratch.\n\n**What it does** – searches the web, picks good free resources, and creates a simple study list page.\n\n**What it needs** – web_search, browser_snapshot, file_write, make_page, task_create.\n\n**What it will not do** – it cannot sign up for sites, pay for courses, or create accounts on your behalf.",
-  "hash": "b733a1f26ca7bf81a33c41ee3043447ccfdb51435f4dd867e01ad1c88e704303"
+  "readme": "# Curriculum designer\n\nBuild a free self-study curriculum with quality resources for a new skill from scratch.\n\n**What it does** – searches the web, picks good free resources, and creates a simple study list page.\n\n**What it needs** – web_search, browser_snapshot, file_write, make_page, task_create.\n\n**What it will not do** – it cannot sign up for sites, pay for courses, or create accounts on your behalf.",
+  "hash": "b2e3fc6b5d37ee6b207f1199915afae62f2dc341879c447af71a550c9522b1ee"
 }

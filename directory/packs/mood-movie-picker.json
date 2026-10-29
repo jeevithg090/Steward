@@ -1,6 +1,6 @@
 {
   "id": "mood-movie-picker",
-  "name": "mood movie picker",
+  "name": "Mood movie picker",
   "pitch": "Pick a movie to watch tonight based on your mood.",
   "category": "misc",
   "version": 1,
@@ -35,6 +35,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# mood movie picker\nPick a movie to watch tonight based on your mood.\n\nWhat it does: searches the web for movies matching your mood and shows them in a table.\nWhat it needs: web_search, show_table.\nWhat it will not do: pick a movie for you or watch it.",
-  "hash": "784d0385e3e7970703edc57e827cf839f1858f3931880ff25a49e10db6661990"
+  "readme": "# Mood movie picker\nPick a movie to watch tonight based on your mood.\n\nWhat it does: searches the web for movies matching your mood and shows them in a table.\nWhat it needs: web_search, show_table.\nWhat it will not do: pick a movie for you or watch it.",
+  "hash": "61ed2abb99273140bd2081f6776b7b30ecefd50ebe36311d2cad88a45b46ca6d"
 }

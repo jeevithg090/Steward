@@ -1,5 +1,5 @@
 id: text-checker
-name: text checker
+name: Text checker
 pitch: Check whether a text from a government agency demanding payment is real.
 category: privacy
 version: 1

@@ -1,5 +1,5 @@
 id: schema-migrator
-name: schema migrator
+name: Schema migrator
 pitch: Write migration scripts for schema changes the person describes.
 category: dev
 version: 1

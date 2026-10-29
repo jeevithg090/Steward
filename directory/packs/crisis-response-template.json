@@ -1,6 +1,6 @@
 {
   "id": "crisis-response-template",
-  "name": "crisis response template",
+  "name": "Crisis response template",
   "pitch": "Create a template for responding to negative feedback on social media or review sites.",
   "category": "social",
   "version": 1,
@@ -29,6 +29,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# crisis response template\nCreates three ready‑to‑use drafts for replying to negative feedback on social media or review sites.\n\n**What it needs**: file_write and make_page tools.\n**What it will not do**: It will not post replies or contact customers directly.",
-  "hash": "e97020ccf884caf9a108b9c1ebfa76a8159800a3ab9cb527b546d9420c028ffd"
+  "readme": "# Crisis response template\nCreates three ready‑to‑use drafts for replying to negative feedback on social media or review sites.\n\n**What it needs**: file_write and make_page tools.\n**What it will not do**: It will not post replies or contact customers directly.",
+  "hash": "68748d5734306d3d47e44ba4cd8b6c2ffa544ba2b2eab26ec404a5819c85a62f"
 }

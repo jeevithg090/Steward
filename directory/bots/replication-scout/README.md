@@ -1,4 +1,4 @@
-# replication scout
+# Replication scout
 finds and saves replication studies for key experiments in a research paper
 
 what it does: searches the web for peer‑reviewed repeats or reanalyses of the paper's experiments, collects the findings in a table and offers to save the list.

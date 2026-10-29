@@ -1,6 +1,6 @@
 id: paper-citations
-name: paper citations
-pitch: finds which authors cite each other most in a collection of papers
+name: Paper citations
+pitch: Finds which authors cite each other most in a collection of papers.
 category: research
 version: 1
 author:

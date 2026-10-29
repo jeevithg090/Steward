@@ -1,6 +1,6 @@
 {
   "id": "team-results",
-  "name": "team results",
+  "name": "Team results",
   "pitch": "Show the last five games with scores and goal differences",
   "category": "sports",
   "version": 1,
@@ -35,5 +35,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Team results\nShows the last five games with scores and goal differences.\n\nNeeds: web search to find recent matches, and a table to display them.\nWill not: visit paywalled sites or invent scores.\n\nType \"last five games\" or the team name to start.",
-  "hash": "62c8d35e775a32834bb2681e527f2ae30ab7fc51c9ac4f801edf7af943907ea3"
+  "hash": "9a3074ef88f02702761989958fd377aceafad794cdd588e65e31906b48b220f2"
 }

@@ -1,6 +1,6 @@
 {
   "id": "lobe-video-gen",
-  "name": "task_id",
+  "name": "Task_id",
   "pitch": "POST https://api.minimaxi.chat/v1/video_generation",
   "category": "bot-helpers",
   "version": 1,
@@ -39,6 +39,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# task_id\n\nPOST https://api.minimaxi.chat/v1/video_generation\n\nThis Agent facilitates video generation through an API endpoint, enabling users to create AI-generated videos by sending structured requests. It supports specifying prompts and model parameters, allowing for customizable video content creation. Ideal for developers and technical users, it streamlines the integration of video generation capabilities into applications or workflows. The Agent’s core value lies in its ability to automate video creation with minimal input, making it a powerful tool for content creators, marketers, and developers seeking to leverage AI-driven multimedia generation.\n\n## What it needs\n\nNothing: this bot is chat only. It works from what you tell it and uses no tools.\n\n## Credit\n\nAdapted from LobeChat's agent index (MIT), by Born2BeKind (https://github.com/Born2BeKind). Source: https://github.com/lobehub/lobe-chat-agents.",
-  "hash": "d62e55f7320f8e7a326d33836caba432a33cb8f736d07d9dfd1d8ee38ab29592"
+  "readme": "# Task_id\n\nPOST https://api.minimaxi.chat/v1/video_generation\n\nThis Agent facilitates video generation through an API endpoint, enabling users to create AI-generated videos by sending structured requests. It supports specifying prompts and model parameters, allowing for customizable video content creation. Ideal for developers and technical users, it streamlines the integration of video generation capabilities into applications or workflows. The Agent’s core value lies in its ability to automate video creation with minimal input, making it a powerful tool for content creators, marketers, and developers seeking to leverage AI-driven multimedia generation.\n\n## What it needs\n\nNothing: this bot is chat only. It works from what you tell it and uses no tools.\n\n## Credit\n\nAdapted from LobeChat's agent index (MIT), by Born2BeKind (https://github.com/Born2BeKind). Source: https://github.com/lobehub/lobe-chat-agents.",
+  "hash": "b0ea33eee75a17f192d91fd3337eb14ffa016c0e0ec8d37acfea7d96b827c4da"
 }

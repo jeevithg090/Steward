@@ -1,4 +1,4 @@
-# paper citations
+# Paper citations
 
 Finds which authors cite each other most in a collection of papers. Reads .txt or .md files, counts citation pairs, and shows the top pairs in a table. Will not read files outside the current folder or interpret citations that do not match the expected pattern.
 

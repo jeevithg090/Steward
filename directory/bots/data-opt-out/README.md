@@ -1,4 +1,4 @@
-# data opt-out
+# Data opt-out
 Removes your personal information from broker databases that sell it.
 
 What it does: searches for broker lists, fills in opt-out forms, and reports which brokers were completed.

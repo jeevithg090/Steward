@@ -1,4 +1,4 @@
-# json schema converter
+# JSON schema converter
 
 Converts JSON data into a typed schema and a validator.
 

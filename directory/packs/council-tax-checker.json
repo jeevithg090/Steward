@@ -1,6 +1,6 @@
 {
   "id": "council-tax-checker",
-  "name": "council tax checker",
+  "name": "Council tax checker",
   "pitch": "Check if you qualify for council tax discounts or benefits you are not claiming.",
   "category": "home",
   "version": 1,
@@ -37,5 +37,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "council tax checker: checks if you qualify for council tax discounts or benefits you are not claiming. needs web_search and a browser to look at council websites. will not fill in forms or apply for benefits without your say-so.",
-  "hash": "64a537221b385250beb3ea7aff25909b00977526ed7558f3df0f7fb20d93ce17"
+  "hash": "dc0f524734f11da3375049673e8bf4b565338eaac12b2b41a9552e3b3e36029e"
 }

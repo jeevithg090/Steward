@@ -1,6 +1,6 @@
 {
   "id": "content-batching",
-  "name": "content batching",
+  "name": "Content batching",
   "pitch": "A checklist to plan and run filming days so edits are ready later",
   "category": "social",
   "version": 1,
@@ -43,6 +43,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# content batching\n\na checklist to plan and run filming days so edits are ready later.\n\nwhat it does: lists videos, gathers gear, sets a time, records clips and notes next steps.\nwhat it needs: file_write and make_page tools.\nwhat it will not do: it cannot film the videos for you or choose the upload times.",
-  "hash": "e1a4476d162594f59ce761eb6be85d6f5a9061cc0a4151be2bcc6a441bd0c6ee"
+  "readme": "# Content batching\n\na checklist to plan and run filming days so edits are ready later.\n\nwhat it does: lists videos, gathers gear, sets a time, records clips and notes next steps.\nwhat it needs: file_write and make_page tools.\nwhat it will not do: it cannot film the videos for you or choose the upload times.",
+  "hash": "a5116cc66a38bc0969a50e1feb33274cbf15bc5d7366c4b48f6dc78ea9657ff3"
 }

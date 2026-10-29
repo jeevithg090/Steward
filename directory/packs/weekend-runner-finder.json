@@ -1,6 +1,6 @@
 {
   "id": "weekend-runner-finder",
-  "name": "weekend runner finder",
+  "name": "Weekend runner finder",
   "pitch": "Find a local weekend running group with a beginner schedule.",
   "category": "sports",
   "version": 1,
@@ -38,5 +38,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "A bot to find a local weekend running group with a beginner schedule. It searches the web, checks group descriptions, and reports what it finds. It will not sign up for anything or pay fees.",
-  "hash": "b4342bb775b12199ef088054ea8958ae923e4f2b54a24ecce566aadd65679fd4"
+  "hash": "7459884c8b7f4b93819a2675c74f2d75fc056fc01f41cac9f7277dc5a998230d"
 }

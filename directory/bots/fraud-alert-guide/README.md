@@ -1,4 +1,4 @@
-# fraud alert guide
+# Fraud alert guide
 
 Explains the difference between a fraud alert and a credit freeze and helps you set one up.
 

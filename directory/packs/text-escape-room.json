@@ -1,6 +1,6 @@
 {
   "id": "text-escape-room",
-  "name": "text escape room",
+  "name": "Text escape room",
   "pitch": "Build a text-only escape room with linked clues and puzzles.",
   "category": "games",
   "version": 1,
@@ -46,6 +46,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# text escape room\n\nBuild a text-only escape room using only hyperlinks and written clues. The agent creates a single text file with an opening clue, linked middle clues, and a final solution. It works only from files in the assistant's workspace and may search the open web for example formats only. It never copies puzzles or claims originality. The person receives a file they can copy, share, or host anywhere.\n\n**What it needs**: file_list, file_read, file_write, and optionally web_search for example formats only.\n**What it will not do**: It will not browse the open web for answers, it will not copy someone else's puzzle, and it will not invent facts or real-world details.",
-  "hash": "bd0b23fae4172f5fd87143a8367530797a241e388d84e97e70c234d7065fb944"
+  "readme": "# Text escape room\n\nBuild a text-only escape room using only hyperlinks and written clues. The agent creates a single text file with an opening clue, linked middle clues, and a final solution. It works only from files in the assistant's workspace and may search the open web for example formats only. It never copies puzzles or claims originality. The person receives a file they can copy, share, or host anywhere.\n\n**What it needs**: file_list, file_read, file_write, and optionally web_search for example formats only.\n**What it will not do**: It will not browse the open web for answers, it will not copy someone else's puzzle, and it will not invent facts or real-world details.",
+  "hash": "0f46e4c0def09e871c2037b1e9da3b06284e37940f63c1a271792f5a2d5fe5a4"
 }

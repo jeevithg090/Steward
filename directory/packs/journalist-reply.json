@@ -1,6 +1,6 @@
 {
   "id": "journalist-reply",
-  "name": "journalist reply",
+  "name": "Journalist reply",
   "pitch": "Draft a reply to a journalist asking for a comment on industry news.",
   "category": "business",
   "version": 1,
@@ -32,6 +32,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# journalist reply\n\nReply to a journalist who wants a comment on industry news. It reads your mail, drafts a plain reply, and shows it to you before sending. It will not send anything without your go-ahead.\n\n**What it needs**\n- Your mail connector so it can read and send emails.\n\n**What it will not do**\n- Send a reply unless you confirm.\n- Make up quotes or facts.\n- Contact journalists it hasn't found in your mail.",
-  "hash": "48bc8b12aa532ae7b9675fcc561f4330f44c19d5f9fe6a422f0ab71c37d0334b"
+  "readme": "# Journalist reply\n\nReply to a journalist who wants a comment on industry news. It reads your mail, drafts a plain reply, and shows it to you before sending. It will not send anything without your go-ahead.\n\n**What it needs**\n- Your mail connector so it can read and send emails.\n\n**What it will not do**\n- Send a reply unless you confirm.\n- Make up quotes or facts.\n- Contact journalists it hasn't found in your mail.",
+  "hash": "3deee20085749bd50dc3d9c24b047ee3cc1b1604c2331855052f8c9f0d0f7d36"
 }

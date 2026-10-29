@@ -1,4 +1,4 @@
-# collab scout
+# Collab scout
 Find creators in your field and draft a first outreach message.
 
 What it does: searches the web for people who make content in your topic, notes what they do, and writes a short friendly message you can send or edit.

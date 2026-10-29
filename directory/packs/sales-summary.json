@@ -1,7 +1,7 @@
 {
   "id": "sales-summary",
-  "name": "sales summary",
-  "pitch": "summarizes three months of sales data and identifies the biggest trend",
+  "name": "Sales summary",
+  "pitch": "Summarizes three months of sales data and identifies the biggest trend.",
   "category": "business",
   "version": 1,
   "author": {
@@ -41,6 +41,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# sales summary\nSummarizes the last three months of sales data from a spreadsheet and spots the biggest trend.\n\n**What it needs**: file_read to open the spreadsheet, shell_run for any calculations, show_table to display the results.\n\n**What it will not do**: it cannot interpret business strategy, it only reports the numbers it finds.",
-  "hash": "05f7d6c0331e5232d88fb1dd0b9afac687c0e95bccf0aa0696c5af77caffe205"
+  "readme": "# Sales summary\nSummarizes the last three months of sales data from a spreadsheet and spots the biggest trend.\n\n**What it needs**: file_read to open the spreadsheet, shell_run for any calculations, show_table to display the results.\n\n**What it will not do**: it cannot interpret business strategy, it only reports the numbers it finds.",
+  "hash": "a01d6d4c836c1f81c45ce289d7a7435c852f3520ce9261e09b33ceec3530026a"
 }

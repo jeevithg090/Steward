@@ -1,6 +1,6 @@
 {
   "id": "client-reminder",
-  "name": "client reminder",
+  "name": "Client reminder",
   "pitch": "Draft a polite reminder to a client who has not replied.",
   "category": "work",
   "version": 1,
@@ -55,5 +55,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "client reminder\nA bot pack that drafts a polite reminder email to a client who has not replied. It reads the latest email thread, writes a short friendly reminder, and shows the draft for the person to approve before sending. It needs access to the mail connector. It will not send anything without the person's say-so.",
-  "hash": "3b2aeeb19eae5cf782188a424910d3468c28313c27ca95a486a2e90a746b9e4f"
+  "hash": "93c899a0be15e56b8a6d3bdf2d17b1652f1f19ad447b0435c4972615407c3ca8"
 }

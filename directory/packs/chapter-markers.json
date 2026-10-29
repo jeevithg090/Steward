@@ -1,7 +1,7 @@
 {
   "id": "chapter-markers",
-  "name": "chapter markers",
-  "pitch": "creates a chapter markers file for youtube from timestamp notes",
+  "name": "Chapter markers",
+  "pitch": "Creates a chapter markers file for youtube from timestamp notes.",
   "category": "video-audio",
   "version": 1,
   "author": {
@@ -35,6 +35,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# chapter markers\ncreates a chapter markers file for youtube from timestamp notes\n\nwhat it does: reads a text file of timestamps and captions, extracts the times and text, and writes a new file formatted for youtube upload.\n\nwhat it needs: can read and write files on its workspace. no internet access or sign-ins required.\n\nwhat it will not do: it cannot guess missing timestamps. it will skip lines it cannot parse and tell the person how many were skipped.",
-  "hash": "3dc39d0fbc9190161b8d55888805342358bf79ec2d05cebeeb47b37a0b42c6cb"
+  "readme": "# Chapter markers\ncreates a chapter markers file for youtube from timestamp notes\n\nwhat it does: reads a text file of timestamps and captions, extracts the times and text, and writes a new file formatted for youtube upload.\n\nwhat it needs: can read and write files on its workspace. no internet access or sign-ins required.\n\nwhat it will not do: it cannot guess missing timestamps. it will skip lines it cannot parse and tell the person how many were skipped.",
+  "hash": "5bd61d76b5cc3fcd20e306068890bab9ebf8880a2e461f4d8d8f766964bff2d5"
 }

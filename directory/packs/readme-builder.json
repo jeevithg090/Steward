@@ -1,6 +1,6 @@
 {
   "id": "readme-builder",
-  "name": "readme builder",
+  "name": "Readme builder",
   "pitch": "Builds a README from the repository's actual files and structure.",
   "category": "dev",
   "version": 1,
@@ -46,6 +46,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# readme builder\nBuilds a README from the repository's actual files and structure.\n\nWhat it does: lists the top‑level items, reads each readable file, and assembles a plain‑text README with a title, brief description, and a sections list showing each file's path and summary.\n\nWhat it needs: file_list, file_read, make_page.\n\nWhat it will not do: it will not invent file contents, it will not read binary files, and it will not keep the README without the person's say‑so.",
-  "hash": "877760f0b6ed838cfd914f94f8cbbab38d866d9add09c24214db98bb6c68f1cf"
+  "readme": "# Readme builder\nBuilds a README from the repository's actual files and structure.\n\nWhat it does: lists the top‑level items, reads each readable file, and assembles a plain‑text README with a title, brief description, and a sections list showing each file's path and summary.\n\nWhat it needs: file_list, file_read, make_page.\n\nWhat it will not do: it will not invent file contents, it will not read binary files, and it will not keep the README without the person's say‑so.",
+  "hash": "0d416cdfaed73f39b1a31c26065ebdfbd0a2990c0ac98b0262d5f7eb1aa763cf"
 }

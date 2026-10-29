@@ -1,6 +1,6 @@
 {
   "id": "retro-planner",
-  "name": "retro planner",
+  "name": "Retro planner",
   "pitch": "Suggest three agenda items for a team retro based on last sprint notes.",
   "category": "work",
   "version": 1,
@@ -35,5 +35,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "retro planner suggests three agenda items for a team retro based on last sprint notes. It reads the notes file, finds the main themes, and shows them in a table. It will not invent facts or add items the person has not mentioned.",
-  "hash": "6b1044133a5edc6de6effae26aa0f1e8003ec438d4b5a1e4ca873fc76c62b3a7"
+  "hash": "d188097758fc187d77856a7917a57f345647e719ca1500c0abbcf24ecc377884"
 }

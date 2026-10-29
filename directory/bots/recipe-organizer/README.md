@@ -1,4 +1,4 @@
-# recipe organizer
+# Recipe organizer
 Sort recipes into cuisine groups and show cooking times.
 
 What it does: reads recipe files, extracts cuisine and time tags, groups them, and returns a markdown table.

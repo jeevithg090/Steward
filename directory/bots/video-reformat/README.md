@@ -1,4 +1,4 @@
-# video reformat
+# Video reformat
 Convert horizontal videos to vertical format with safe zone overlays for social platforms.
 
 What it does: Resizes videos to 1080x1920 and adds a centered safe zone rectangle.

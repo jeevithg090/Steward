@@ -1,6 +1,6 @@
 {
   "id": "rock-climbing-gym-finder",
-  "name": "rock climbing gym finder",
+  "name": "Rock climbing gym finder",
   "pitch": "Find a local climbing gym with a day pass available this weekend.",
   "category": "sports",
   "version": 1,
@@ -38,6 +38,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# rock climbing gym finder\nFinds a local climbing gym with a day pass available this weekend.\n\n**What it needs**\n- Web search and browsing on its own computer.\n- No access to your mail, calendar, or files.\n\n**What it will not do**\n- It will not book a pass, pay for anything, or sign you up.\n- It will not invent prices or opening times.",
-  "hash": "2bd7509ce9dc39146f79fabd378b8ac2654c25eef25c8732f5414cce033ee55a"
+  "readme": "# Rock climbing gym finder\nFinds a local climbing gym with a day pass available this weekend.\n\n**What it needs**\n- Web search and browsing on its own computer.\n- No access to your mail, calendar, or files.\n\n**What it will not do**\n- It will not book a pass, pay for anything, or sign you up.\n- It will not invent prices or opening times.",
+  "hash": "428b91aae49618888209c7a8de9a911a83d01f68c7d17ded305237e132b0083c"
 }

@@ -1,4 +1,4 @@
-# readme builder
+# Readme builder
 Builds a README from the repository's actual files and structure.
 
 What it does: lists the top‑level items, reads each readable file, and assembles a plain‑text README with a title, brief description, and a sections list showing each file's path and summary.

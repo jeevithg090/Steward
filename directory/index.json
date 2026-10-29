@@ -1,6 +1,6 @@
 {
   "name": "Steward bots",
-  "generatedAt": "2026-10-28T15:13:29.189Z",
+  "generatedAt": "2026-10-29T11:18:18.494Z",
   "categories": {
     "food": "Food & cooking",
     "health": "Health & fitness",
@@ -101,7 +101,7 @@
     },
     {
       "id": "after-school-clubs",
-      "name": "after-school clubs",
+      "name": "After-school clubs",
       "pitch": "Find local after-school clubs that finish at 6 pm for a seven-year-old.",
       "category": "home",
       "version": 1,
@@ -229,7 +229,7 @@
     },
     {
       "id": "api-updater",
-      "name": "api updater",
+      "name": "API updater",
       "pitch": "Find and replace deprecated API calls across a codebase with their modern equivalents.",
       "category": "dev",
       "version": 1,
@@ -381,7 +381,7 @@
     },
     {
       "id": "baby-proofing-checklist",
-      "name": "baby-proofing checklist",
+      "name": "Baby-proofing checklist",
       "pitch": "Make a room-by-room baby-proofing checklist for a crawling nine-month-old.",
       "category": "home",
       "version": 1,
@@ -648,7 +648,7 @@
     },
     {
       "id": "bin-reminders",
-      "name": "bin reminders",
+      "name": "Bin reminders",
       "pitch": "Weekly reminders for bin collection days from the council calendar.",
       "category": "home",
       "version": 1,
@@ -700,7 +700,7 @@
     },
     {
       "id": "bio-writer",
-      "name": "bio writer",
+      "name": "Bio writer",
       "pitch": "Writes a 150-character summary of what the person actually does.",
       "category": "social",
       "version": 1,
@@ -997,7 +997,7 @@
     },
     {
       "id": "bot-scout",
-      "name": "bot scout",
+      "name": "Bot scout",
       "pitch": "Find two bots that do the same job and recommend the best one to install.",
       "category": "bot-helpers",
       "version": 1,
@@ -1173,7 +1173,7 @@
     },
     {
       "id": "call-buffer-scheduler",
-      "name": "call buffer scheduler",
+      "name": "Call buffer scheduler",
       "pitch": "Adds prep and note time around client calls in the calendar.",
       "category": "productivity",
       "version": 1,
@@ -1224,7 +1224,7 @@
     },
     {
       "id": "callback-to-promise",
-      "name": "callback-to-promise",
+      "name": "Callback-to-promise",
       "pitch": "Convert a callback-based API to use promises with proper error handling.",
       "category": "dev",
       "version": 1,
@@ -1249,8 +1249,8 @@
     },
     {
       "id": "calorie-calculator",
-      "name": "calorie calculator",
-      "pitch": "calculate your daily calorie needs from age, weight, height and activity level",
+      "name": "Calorie calculator",
+      "pitch": "Calculate your daily calorie needs from age, weight, height and activity level.",
       "category": "health",
       "version": 1,
       "author": {
@@ -1298,8 +1298,8 @@
     },
     {
       "id": "caption-guide",
-      "name": "caption guide",
-      "pitch": "extracts tone, style and themes from your last 20 captions into a reusable guide",
+      "name": "Caption guide",
+      "pitch": "Extracts tone, style and themes from your last 20 captions into a reusable guide.",
       "category": "social",
       "version": 1,
       "author": {
@@ -1432,7 +1432,7 @@
     },
     {
       "id": "car-repair-scout",
-      "name": "car repair scout",
+      "name": "Car repair scout",
       "pitch": "Find a nearby garage with good reviews that fixes the person's car model",
       "category": "travel",
       "version": 1,
@@ -1561,8 +1561,8 @@
     },
     {
       "id": "cc-flagger",
-      "name": "cc flagger",
-      "pitch": "flags emails where you are cc'd but your name is mentioned in the body",
+      "name": "CC flagger",
+      "pitch": "Flags emails where you are cc'd but your name is mentioned in the body.",
       "category": "productivity",
       "version": 1,
       "author": {
@@ -1588,8 +1588,8 @@
     },
     {
       "id": "chapter-markers",
-      "name": "chapter markers",
-      "pitch": "creates a chapter markers file for youtube from timestamp notes",
+      "name": "Chapter markers",
+      "pitch": "Creates a chapter markers file for youtube from timestamp notes.",
       "category": "video-audio",
       "version": 1,
       "author": {
@@ -1613,7 +1613,7 @@
     },
     {
       "id": "charity-checker",
-      "name": "charity checker",
+      "name": "Charity checker",
       "pitch": "Check if a charity asking for donations is legitimate.",
       "category": "privacy",
       "version": 1,
@@ -1739,7 +1739,7 @@
     },
     {
       "id": "client-follow-up",
-      "name": "client follow-up",
+      "name": "Client follow-up",
       "pitch": "Send a polite follow-up email to a client who stopped replying after the first meeting.",
       "category": "business",
       "version": 1,
@@ -1765,7 +1765,7 @@
     },
     {
       "id": "client-reminder",
-      "name": "client reminder",
+      "name": "Client reminder",
       "pitch": "Draft a polite reminder to a client who has not replied.",
       "category": "work",
       "version": 1,
@@ -1874,7 +1874,7 @@
     },
     {
       "id": "collab-scout",
-      "name": "collab scout",
+      "name": "Collab scout",
       "pitch": "Find creators in your field and draft a first outreach message",
       "category": "social",
       "version": 1,
@@ -2084,7 +2084,7 @@
     },
     {
       "id": "content-batching",
-      "name": "content batching",
+      "name": "Content batching",
       "pitch": "A checklist to plan and run filming days so edits are ready later",
       "category": "social",
       "version": 1,
@@ -2108,7 +2108,7 @@
     },
     {
       "id": "content-calendar-template",
-      "name": "content calendar template",
+      "name": "Content calendar template",
       "pitch": "Create a reusable monthly content calendar template that can be duplicated each month.",
       "category": "social",
       "version": 1,
@@ -2209,7 +2209,7 @@
     },
     {
       "id": "council-tax-checker",
-      "name": "council tax checker",
+      "name": "Council tax checker",
       "pitch": "Check if you qualify for council tax discounts or benefits you are not claiming.",
       "category": "home",
       "version": 1,
@@ -2259,7 +2259,7 @@
     },
     {
       "id": "crisis-response-template",
-      "name": "crisis response template",
+      "name": "Crisis response template",
       "pitch": "Create a template for responding to negative feedback on social media or review sites.",
       "category": "social",
       "version": 1,
@@ -2334,7 +2334,7 @@
     },
     {
       "id": "curriculum-designer",
-      "name": "curriculum designer",
+      "name": "Curriculum designer",
       "pitch": "Build a free self-study curriculum with quality resources for a new skill from scratch.",
       "category": "research",
       "version": 1,
@@ -2567,7 +2567,7 @@
     },
     {
       "id": "data-complaint",
-      "name": "data complaint",
+      "name": "Data complaint",
       "pitch": "Write and submit a formal complaint to a data protection authority about a company.",
       "category": "privacy",
       "version": 1,
@@ -2593,7 +2593,7 @@
     },
     {
       "id": "data-leak-check",
-      "name": "data leak check",
+      "name": "Data leak check",
       "pitch": "Inspect a bot pack for anything that might expose the person's data to others.",
       "category": "bot-helpers",
       "version": 1,
@@ -2617,7 +2617,7 @@
     },
     {
       "id": "data-opt-out",
-      "name": "data opt-out",
+      "name": "Data opt-out",
       "pitch": "Help remove your personal data from broker databases that sell it.",
       "category": "privacy",
       "version": 1,
@@ -2672,7 +2672,7 @@
     },
     {
       "id": "deadline-decliner",
-      "name": "deadline decliner",
+      "name": "Deadline decliner",
       "pitch": "Help the person turn down a deadline politely while protecting their reputation.",
       "category": "work",
       "version": 1,
@@ -2697,7 +2697,7 @@
     },
     {
       "id": "debt-avalanche",
-      "name": "debt avalanche",
+      "name": "Debt avalanche",
       "pitch": "Build a payoff plan for credit cards and a loan, ordered by highest interest first.",
       "category": "money",
       "version": 1,
@@ -2927,7 +2927,7 @@
     },
     {
       "id": "dish-cost-compare",
-      "name": "dish cost compare",
+      "name": "Dish cost compare",
       "pitch": "Compare the cost of cooking a dish from scratch versus buying it ready-made.",
       "category": "food",
       "version": 1,
@@ -2952,7 +2952,7 @@
     },
     {
       "id": "dockerfile-composer",
-      "name": "dockerfile composer",
+      "name": "Dockerfile composer",
       "pitch": "Generates a Dockerfile and docker-compose.yml with sensible defaults for a project.",
       "category": "dev",
       "version": 1,
@@ -3050,8 +3050,8 @@
     },
     {
       "id": "dog-walker-finder",
-      "name": "dog walker finder",
-      "pitch": "finds a reliable dog walker with weekday morning availability near the person",
+      "name": "Dog walker finder",
+      "pitch": "Finds a reliable dog walker with weekday morning availability near the person.",
       "category": "home",
       "version": 1,
       "author": {
@@ -3362,7 +3362,7 @@
     },
     {
       "id": "emergency-fund-plan",
-      "name": "emergency fund plan",
+      "name": "Emergency fund plan",
       "pitch": "Build a prioritized three-month financial safety plan based on your current income and outgoings.",
       "category": "money",
       "version": 1,
@@ -3468,7 +3468,7 @@
     },
     {
       "id": "evening-journal",
-      "name": "evening journal",
+      "name": "Evening journal",
       "pitch": "A daily question to reflect on each evening, recorded in a personal journal.",
       "category": "misc",
       "version": 1,
@@ -3751,7 +3751,7 @@
     },
     {
       "id": "food-storage-guide",
-      "name": "food storage guide",
+      "name": "Food storage guide",
       "pitch": "Tell you how long leftovers keep and how to store them safely.",
       "category": "food",
       "version": 1,
@@ -3826,7 +3826,7 @@
     },
     {
       "id": "fraud-alert-guide",
-      "name": "fraud alert guide",
+      "name": "Fraud alert guide",
       "pitch": "Explain the difference between a fraud alert and a credit freeze and help set one up.",
       "category": "privacy",
       "version": 1,
@@ -3929,7 +3929,7 @@
     },
     {
       "id": "fuel-cost-calculator",
-      "name": "fuel cost calculator",
+      "name": "Fuel cost calculator",
       "pitch": "Calculate fuel cost vs electric charging for a planned route.",
       "category": "travel",
       "version": 1,
@@ -3956,7 +3956,7 @@
     },
     {
       "id": "fund-overlap",
-      "name": "fund overlap",
+      "name": "Fund overlap",
       "pitch": "Find the five largest holdings shared by your two biggest mutual funds.",
       "category": "investing",
       "version": 1,
@@ -4188,7 +4188,7 @@
     },
     {
       "id": "gluten-free-meal-planner",
-      "name": "gluten-free meal planner",
+      "name": "Gluten-free meal planner",
       "pitch": "Build a week of cheap, gluten-free and dairy-free meals and print it as a page.",
       "category": "health",
       "version": 1,
@@ -4347,8 +4347,8 @@
     },
     {
       "id": "health-prep",
-      "name": "health prep",
-      "pitch": "organise symptoms and questions before a telehealth visit",
+      "name": "Health prep",
+      "pitch": "Organise symptoms and questions before a telehealth visit.",
       "category": "health",
       "version": 1,
       "author": {
@@ -4423,7 +4423,7 @@
     },
     {
       "id": "home-insurance-renewal",
-      "name": "home insurance renewal",
+      "name": "Home insurance renewal",
       "pitch": "Compare building and contents quotes at policy renewal to find a cheaper deal.",
       "category": "home",
       "version": 1,
@@ -4474,8 +4474,8 @@
     },
     {
       "id": "home-workout-plan",
-      "name": "home workout plan",
-      "pitch": "create a simple home workout plan using only a resistance band and bodyweight",
+      "name": "Home workout plan",
+      "pitch": "Create a simple home workout plan using only a resistance band and bodyweight.",
       "category": "health",
       "version": 1,
       "author": {
@@ -4806,7 +4806,7 @@
     },
     {
       "id": "investment-scam-check",
-      "name": "investment scam check",
+      "name": "Investment scam check",
       "pitch": "Searches the web to see if a described investment is a known scam.",
       "category": "privacy",
       "version": 1,
@@ -4884,7 +4884,7 @@
     },
     {
       "id": "ira-explain",
-      "name": "ira explain",
+      "name": "IRA explain",
       "pitch": "Explain the difference between a traditional IRA and a Roth IRA for the person's income level.",
       "category": "investing",
       "version": 1,
@@ -4983,7 +4983,7 @@
     },
     {
       "id": "journalist-reply",
-      "name": "journalist reply",
+      "name": "Journalist reply",
       "pitch": "Draft a reply to a journalist asking for a comment on industry news.",
       "category": "business",
       "version": 1,
@@ -5010,7 +5010,7 @@
     },
     {
       "id": "json-schema-converter",
-      "name": "json schema converter",
+      "name": "JSON schema converter",
       "pitch": "Converts JSON data into a typed schema and a validator for developer use.",
       "category": "dev",
       "version": 1,
@@ -5034,7 +5034,7 @@
     },
     {
       "id": "k8s-health-endpoints",
-      "name": "k8s health endpoints",
+      "name": "K8s health endpoints",
       "pitch": "Adds health check and readiness probes to a Kubernetes deployment YAML file.",
       "category": "dev",
       "version": 1,
@@ -5289,7 +5289,7 @@
     },
     {
       "id": "link-in-bio-designer",
-      "name": "link-in-bio designer",
+      "name": "Link-in-bio designer",
       "pitch": "Design a page that shows your offers and links in one place, ready to share.",
       "category": "social",
       "version": 1,
@@ -6438,7 +6438,7 @@
     {
       "id": "lobe-english",
       "name": "Mistaker",
-      "pitch": "killed in clear explanations and examples of grammar and pronunciation.",
+      "pitch": "Killed in clear explanations and examples of grammar and pronunciation.",
       "category": "research",
       "version": 1,
       "author": {
@@ -8969,7 +8969,7 @@
     },
     {
       "id": "lobe-video-gen",
-      "name": "task_id",
+      "name": "Task_id",
       "pitch": "POST https://api.minimaxi.chat/v1/video_generation",
       "category": "bot-helpers",
       "version": 1,
@@ -9179,7 +9179,7 @@
     },
     {
       "id": "local-lead-finder",
-      "name": "local lead finder",
+      "name": "Local lead finder",
       "pitch": "Find twenty local businesses that might need the person's product or service.",
       "category": "sales-crm",
       "version": 1,
@@ -9204,7 +9204,7 @@
     },
     {
       "id": "low-cost-activity-planner",
-      "name": "low-cost activity planner",
+      "name": "Low-cost activity planner",
       "pitch": "Find free local events and build a half-term schedule for a ten-year-old.",
       "category": "home",
       "version": 1,
@@ -9330,7 +9330,7 @@
     },
     {
       "id": "meal-planner",
-      "name": "meal planner",
+      "name": "Meal planner",
       "pitch": "Create a grocery list grouped by store section from your weekly meal plan.",
       "category": "health",
       "version": 1,
@@ -9484,7 +9484,7 @@
     },
     {
       "id": "meeting-decliner",
-      "name": "meeting decliner",
+      "name": "Meeting decliner",
       "pitch": "Write a respectful decline to a meeting invitation in your own tone.",
       "category": "work",
       "version": 1,
@@ -9590,7 +9590,7 @@
     },
     {
       "id": "meta-analysis-finder",
-      "name": "meta-analysis finder",
+      "name": "Meta-analysis finder",
       "pitch": "Find and summarise every meta-analysis on a topic from the last five years.",
       "category": "research",
       "version": 1,
@@ -9665,7 +9665,7 @@
     },
     {
       "id": "mood-movie-picker",
-      "name": "mood movie picker",
+      "name": "Mood movie picker",
       "pitch": "Pick a movie to watch tonight based on your mood.",
       "category": "misc",
       "version": 1,
@@ -9771,7 +9771,7 @@
     },
     {
       "id": "motorway-stop",
-      "name": "motorway stop",
+      "name": "Motorway stop",
       "pitch": "Find a motorway service area with a budget restaurant and overnight parking.",
       "category": "travel",
       "version": 1,
@@ -9823,7 +9823,7 @@
     },
     {
       "id": "movie-trivia-maker",
-      "name": "movie trivia maker",
+      "name": "Movie trivia maker",
       "pitch": "Make a trivia game from your favourite movies and keep a scoreboard.",
       "category": "games",
       "version": 1,
@@ -9949,7 +9949,7 @@
     },
     {
       "id": "news-summarizer",
-      "name": "news summarizer",
+      "name": "News summarizer",
       "pitch": "Builds a summary of the latest headlines from the person's chosen sources.",
       "category": "bot-helpers",
       "version": 1,
@@ -10003,7 +10003,7 @@
     },
     {
       "id": "nhs-dentist-scout",
-      "name": "nhs dentist scout",
+      "name": "NHS dentist scout",
       "pitch": "Find an NHS dentist taking new patients within two miles of where the person lives.",
       "category": "home",
       "version": 1,
@@ -10029,7 +10029,7 @@
     },
     {
       "id": "noise-cleaner",
-      "name": "noise cleaner",
+      "name": "Noise cleaner",
       "pitch": "Remove background noise from an audio file using a noise profile.",
       "category": "video-audio",
       "version": 1,
@@ -10102,8 +10102,8 @@
     },
     {
       "id": "onboarding-checklist",
-      "name": "onboarding checklist",
-      "pitch": "makes a checklist for onboarding a new virtual assistant",
+      "name": "Onboarding checklist",
+      "pitch": "Makes a checklist for onboarding a new virtual assistant.",
       "category": "business",
       "version": 1,
       "author": {
@@ -10125,7 +10125,7 @@
     },
     {
       "id": "one-on-one-template",
-      "name": "one-on-one template",
+      "name": "One-on-one template",
       "pitch": "Build a reusable weekly one-on-one note template with sections for updates, blockers and feedback.",
       "category": "productivity",
       "version": 1,
@@ -10606,8 +10606,8 @@
     },
     {
       "id": "paper-citations",
-      "name": "paper citations",
-      "pitch": "finds which authors cite each other most in a collection of papers",
+      "name": "Paper citations",
+      "pitch": "Finds which authors cite each other most in a collection of papers.",
       "category": "research",
       "version": 1,
       "author": {
@@ -10831,8 +10831,8 @@
     },
     {
       "id": "pdf-invoice-organiser",
-      "name": "pdf invoice organiser",
-      "pitch": "organises pdf invoices into a single searchable document",
+      "name": "PDF invoice organiser",
+      "pitch": "Organises pdf invoices into a single searchable document.",
       "category": "work",
       "version": 1,
       "author": {
@@ -10956,7 +10956,7 @@
     },
     {
       "id": "phone-privacy",
-      "name": "phone privacy",
+      "name": "Phone privacy",
       "pitch": "Checks public people-search sites to see if your phone number appears online.",
       "category": "privacy",
       "version": 1,
@@ -11033,7 +11033,7 @@
     },
     {
       "id": "phrase-page",
-      "name": "phrase page",
+      "name": "Phrase page",
       "pitch": "Create a single page with key travel phrases in the target language.",
       "category": "travel",
       "version": 1,
@@ -11253,7 +11253,7 @@
     },
     {
       "id": "policy-explainer",
-      "name": "policy explainer",
+      "name": "Policy explainer",
       "pitch": "Writes a plain-words summary of a policy for the whole team.",
       "category": "work",
       "version": 1,
@@ -11327,7 +11327,7 @@
     },
     {
       "id": "post-guard",
-      "name": "post guard",
+      "name": "Post guard",
       "pitch": "Scans a draft post for risky content before it is published.",
       "category": "social",
       "version": 1,
@@ -11584,8 +11584,8 @@
     },
     {
       "id": "progressive-dinner",
-      "name": "progressive dinner",
-      "pitch": "plan a menu across three households, one course each",
+      "name": "Progressive dinner",
+      "pitch": "Plan a menu across three households, one course each.",
       "category": "food",
       "version": 1,
       "author": {
@@ -11970,7 +11970,7 @@
     },
     {
       "id": "readme-builder",
-      "name": "readme builder",
+      "name": "Readme builder",
       "pitch": "Builds a README from the repository's actual files and structure.",
       "category": "dev",
       "version": 1,
@@ -12045,7 +12045,7 @@
     },
     {
       "id": "recipe-organizer",
-      "name": "recipe organizer",
+      "name": "Recipe organizer",
       "pitch": "Sort recipes into cuisine groups and show cooking times so meals are easier to find.",
       "category": "food",
       "version": 1,
@@ -12122,7 +12122,7 @@
     },
     {
       "id": "refund-request",
-      "name": "refund request",
+      "name": "Refund request",
       "pitch": "Draft a refund letter for an undelivered service and send it to the company.",
       "category": "money",
       "version": 1,
@@ -12300,8 +12300,8 @@
     },
     {
       "id": "replication-scout",
-      "name": "replication scout",
-      "pitch": "finds and saves replication studies for key experiments in a research paper",
+      "name": "Replication scout",
+      "pitch": "Finds and saves replication studies for key experiments in a research paper.",
       "category": "research",
       "version": 1,
       "author": {
@@ -12326,7 +12326,7 @@
     },
     {
       "id": "report-summariser",
-      "name": "report summariser",
+      "name": "Report summariser",
       "pitch": "Turns a long report into a one-page summary for a director in minutes.",
       "category": "work",
       "version": 1,
@@ -12350,7 +12350,7 @@
     },
     {
       "id": "research-matrix",
-      "name": "research matrix",
+      "name": "Research matrix",
       "pitch": "Compare research methods side by side to help decide the best fit for the study design.",
       "category": "research",
       "version": 1,
@@ -12402,7 +12402,7 @@
     },
     {
       "id": "rest-stop-finder",
-      "name": "rest stop finder",
+      "name": "Rest stop finder",
       "pitch": "Find a scenic rest stop with toilets and charging points on a long motorway drive.",
       "category": "travel",
       "version": 1,
@@ -12479,7 +12479,7 @@
     },
     {
       "id": "retirement-calculator",
-      "name": "retirement calculator",
+      "name": "Retirement calculator",
       "pitch": "Calculate the future value of retirement accounts at age 65 with a 7% annual return.",
       "category": "investing",
       "version": 1,
@@ -12504,7 +12504,7 @@
     },
     {
       "id": "retro-planner",
-      "name": "retro planner",
+      "name": "Retro planner",
       "pitch": "Suggest three agenda items for a team retro based on last sprint notes.",
       "category": "work",
       "version": 1,
@@ -12528,7 +12528,7 @@
     },
     {
       "id": "review-checker",
-      "name": "review checker",
+      "name": "Review checker",
       "pitch": "Searches for complaints and negative reviews of an online seller across the web.",
       "category": "privacy",
       "version": 1,
@@ -12704,7 +12704,7 @@
     },
     {
       "id": "robo-advisor-compare",
-      "name": "robo-advisor compare",
+      "name": "Robo-advisor compare",
       "pitch": "Compare three robo-advisors' features and fees for a hands-off portfolio.",
       "category": "investing",
       "version": 1,
@@ -12729,7 +12729,7 @@
     },
     {
       "id": "rock-climbing-gym-finder",
-      "name": "rock climbing gym finder",
+      "name": "Rock climbing gym finder",
       "pitch": "Find a local climbing gym with a day pass available this weekend.",
       "category": "sports",
       "version": 1,
@@ -12753,7 +12753,7 @@
     },
     {
       "id": "route-charger",
-      "name": "route charger",
+      "name": "Route charger",
       "pitch": "Find the nearest working charging station on your route.",
       "category": "travel",
       "version": 1,
@@ -12909,8 +12909,8 @@
     },
     {
       "id": "sales-summary",
-      "name": "sales summary",
-      "pitch": "summarizes three months of sales data and identifies the biggest trend",
+      "name": "Sales summary",
+      "pitch": "Summarizes three months of sales data and identifies the biggest trend.",
       "category": "business",
       "version": 1,
       "author": {
@@ -12959,8 +12959,8 @@
     },
     {
       "id": "savings-scout",
-      "name": "savings scout",
-      "pitch": "find the best savings rate without locking money away for over a year",
+      "name": "Savings scout",
+      "pitch": "Find the best savings rate without locking money away for over a year.",
       "category": "money",
       "version": 1,
       "author": {
@@ -13008,7 +13008,7 @@
     },
     {
       "id": "scam-alert",
-      "name": "scam alert",
+      "name": "Scam alert",
       "pitch": "Write a message to an elderly relative explaining how to spot a phone scam.",
       "category": "privacy",
       "version": 1,
@@ -13031,7 +13031,7 @@
     },
     {
       "id": "scam-helper",
-      "name": "scam helper",
+      "name": "Scam helper",
       "pitch": "Helps the person check if something is a scam and what to do next.",
       "category": "privacy",
       "version": 1,
@@ -13083,7 +13083,7 @@
     },
     {
       "id": "schema-migrator",
-      "name": "schema migrator",
+      "name": "Schema migrator",
       "pitch": "Write migration scripts for schema changes the person describes.",
       "category": "dev",
       "version": 1,
@@ -13109,7 +13109,7 @@
     },
     {
       "id": "script-profiler",
-      "name": "script profiler",
+      "name": "Script profiler",
       "pitch": "Find why a script runs slow and suggest the smallest fix.",
       "category": "dev",
       "version": 1,
@@ -13134,7 +13134,7 @@
     },
     {
       "id": "shared-expense-tracker",
-      "name": "shared expense tracker",
+      "name": "Shared expense tracker",
       "pitch": "Tracks shared costs and calculates automatic monthly settlements for roommates.",
       "category": "money",
       "version": 1,
@@ -13185,7 +13185,7 @@
     },
     {
       "id": "shop-checker",
-      "name": "shop checker",
+      "name": "Shop checker",
       "pitch": "Checks a shop's website before the person buys from it for the first time.",
       "category": "privacy",
       "version": 1,
@@ -13308,7 +13308,7 @@
     },
     {
       "id": "social-scout",
-      "name": "social scout",
+      "name": "Social scout",
       "pitch": "Summarise competitor posting frequency and content themes this month",
       "category": "social",
       "version": 1,
@@ -13361,7 +13361,7 @@
     },
     {
       "id": "spending-analyzer",
-      "name": "spending analyzer",
+      "name": "Spending analyzer",
       "pitch": "Analyze your spending to find three easy cut-back categories.",
       "category": "money",
       "version": 1,
@@ -13535,7 +13535,7 @@
     },
     {
       "id": "step-tracker",
-      "name": "step tracker",
+      "name": "Step tracker",
       "pitch": "Track your daily steps and suggest when to rest based on your history.",
       "category": "sports",
       "version": 1,
@@ -13712,8 +13712,8 @@
     },
     {
       "id": "structured-logger",
-      "name": "structured logger",
-      "pitch": "adds structured logging with correlation ids and log levels to a codebase",
+      "name": "Structured logger",
+      "pitch": "Adds structured logging with correlation ids and log levels to a codebase.",
       "category": "dev",
       "version": 1,
       "author": {
@@ -13943,7 +13943,7 @@
     },
     {
       "id": "task-tracker",
-      "name": "task tracker",
+      "name": "Task tracker",
       "pitch": "Helps you see what each team member is waiting on from you.",
       "category": "work",
       "version": 1,
@@ -13968,7 +13968,7 @@
     },
     {
       "id": "task-update-email",
-      "name": "task update email",
+      "name": "Task update email",
       "pitch": "Write a status update email from completed tasks to stakeholders.",
       "category": "productivity",
       "version": 1,
@@ -13995,7 +13995,7 @@
     },
     {
       "id": "tax-estimator",
-      "name": "tax estimator",
+      "name": "Tax estimator",
       "pitch": "Estimate quarterly tax payments from freelance income and expenses.",
       "category": "money",
       "version": 1,
@@ -14022,7 +14022,7 @@
     },
     {
       "id": "tax-letter-helper",
-      "name": "tax letter helper",
+      "name": "Tax letter helper",
       "pitch": "Explain a tax letter and tell you what to do and by when.",
       "category": "money",
       "version": 1,
@@ -14072,7 +14072,7 @@
     },
     {
       "id": "tax-summary",
-      "name": "tax summary",
+      "name": "Tax summary",
       "pitch": "Create a year-end tax summary document organized by category for the person's accountant.",
       "category": "money",
       "version": 1,
@@ -14099,7 +14099,7 @@
     },
     {
       "id": "team-lineup",
-      "name": "team lineup",
+      "name": "Team lineup",
       "pitch": "Find the most likely starting eleven for tomorrow's match and explain the choices.",
       "category": "sports",
       "version": 1,
@@ -14147,7 +14147,7 @@
     },
     {
       "id": "team-results",
-      "name": "team results",
+      "name": "Team results",
       "pitch": "Show the last five games with scores and goal differences",
       "category": "sports",
       "version": 1,
@@ -14171,7 +14171,7 @@
     },
     {
       "id": "teleprompter-builder",
-      "name": "teleprompter builder",
+      "name": "Teleprompter builder",
       "pitch": "Turns your outline into a scrolling script with speed markers for video recording.",
       "category": "video-audio",
       "version": 1,
@@ -14268,7 +14268,7 @@
     },
     {
       "id": "text-checker",
-      "name": "text checker",
+      "name": "Text checker",
       "pitch": "Check whether a text from a government agency demanding payment is real.",
       "category": "privacy",
       "version": 1,
@@ -14294,7 +14294,7 @@
     },
     {
       "id": "text-escape-room",
-      "name": "text escape room",
+      "name": "Text escape room",
       "pitch": "Build a text-only escape room with linked clues and puzzles.",
       "category": "games",
       "version": 1,
@@ -14345,7 +14345,7 @@
     },
     {
       "id": "thank-you-note",
-      "name": "thank-you note",
+      "name": "Thank-you note",
       "pitch": "Writes and sends a thank-you note to the boss for feedback.",
       "category": "work",
       "version": 1,
@@ -14397,7 +14397,7 @@
     },
     {
       "id": "thumbnail-designer",
-      "name": "thumbnail designer",
+      "name": "Thumbnail designer",
       "pitch": "Makes a video thumbnail template with placeholders for consistent branding across clips.",
       "category": "video-audio",
       "version": 1,
@@ -14448,7 +14448,7 @@
     },
     {
       "id": "timesheet-logger",
-      "name": "timesheet logger",
+      "name": "Timesheet logger",
       "pitch": "Parses a timesheet file and logs work hours into a task list.",
       "category": "bot-helpers",
       "version": 1,
@@ -14500,8 +14500,8 @@
     },
     {
       "id": "toll-checker",
-      "name": "toll checker",
-      "pitch": "finds toll costs and vignette requirements for driving through a specific country",
+      "name": "Toll checker",
+      "pitch": "Finds toll costs and vignette requirements for driving through a specific country.",
       "category": "travel",
       "version": 1,
       "author": {
@@ -14582,7 +14582,7 @@
     },
     {
       "id": "trade-log",
-      "name": "trade log",
+      "name": "Trade log",
       "pitch": "Record every trade with your thoughts and the reasoning behind it.",
       "category": "investing",
       "version": 1,
@@ -14656,7 +14656,7 @@
     },
     {
       "id": "travel-expense-organiser",
-      "name": "travel expense organiser",
+      "name": "Travel expense organiser",
       "pitch": "Sorts travel receipts and tickets into a date‑ordered spreadsheet.",
       "category": "work",
       "version": 1,
@@ -14834,7 +14834,7 @@
     },
     {
       "id": "used-car-check",
-      "name": "used car check",
+      "name": "Used car check",
       "pitch": "Helps the person inspect a used car before paying, so they avoid hidden faults.",
       "category": "travel",
       "version": 1,
@@ -15012,7 +15012,7 @@
     },
     {
       "id": "video-intro-script",
-      "name": "video intro script",
+      "name": "Video intro script",
       "pitch": "Write a short video intro script for their website based on their notes.",
       "category": "business",
       "version": 1,
@@ -15036,7 +15036,7 @@
     },
     {
       "id": "video-reformat",
-      "name": "video reformat",
+      "name": "Video reformat",
       "pitch": "Convert horizontal videos to vertical with safe zone overlays for social platforms.",
       "category": "video-audio",
       "version": 1,
@@ -15261,7 +15261,7 @@
     },
     {
       "id": "weekend-runner-finder",
-      "name": "weekend runner finder",
+      "name": "Weekend runner finder",
       "pitch": "Find a local weekend running group with a beginner schedule.",
       "category": "sports",
       "version": 1,
@@ -15444,7 +15444,7 @@
     },
     {
       "id": "welcome-dm-sequence",
-      "name": "welcome dm sequence",
+      "name": "Welcome DM sequence",
       "pitch": "Write a warm welcome message series for new followers on the social network they use.",
       "category": "social",
       "version": 1,
@@ -15468,7 +15468,7 @@
     },
     {
       "id": "wifi-security",
-      "name": "wifi security",
+      "name": "Wi-Fi security",
       "pitch": "Help the person lock down their home wifi and router settings to stop unauthorised access.",
       "category": "privacy",
       "version": 1,
@@ -15596,7 +15596,7 @@
     },
     {
       "id": "youtube-summary",
-      "name": "youtube summary",
+      "name": "Youtube summary",
       "pitch": "Summarise key points from a YouTube tutorial watched yesterday.",
       "category": "work",
       "version": 1,

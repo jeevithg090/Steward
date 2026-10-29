@@ -1,6 +1,6 @@
 {
   "id": "report-summariser",
-  "name": "report summariser",
+  "name": "Report summariser",
   "pitch": "Turns a long report into a one-page summary for a director in minutes.",
   "category": "work",
   "version": 1,
@@ -44,6 +44,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# report summariser\nTurns a long report into a one-page summary for a director.\n\n**What it does:** Reads a report file, pulls out the key points and writes a short briefing.\n\n**What it needs:** The report file to read from; creates a new summary page.\n\n**What it will not do:** It will not write the summary if the report is shorter than 200 words, and it will not keep the file without asking the person first.",
-  "hash": "86c939db30eacade007a44fecea450530fda500416d8821c1a11cf58d823cbb2"
+  "readme": "# Report summariser\nTurns a long report into a one-page summary for a director.\n\n**What it does:** Reads a report file, pulls out the key points and writes a short briefing.\n\n**What it needs:** The report file to read from; creates a new summary page.\n\n**What it will not do:** It will not write the summary if the report is shorter than 200 words, and it will not keep the file without asking the person first.",
+  "hash": "368c29358edfd5bf57c41ae7421621c3936e6146a51e207270041b2d5c626c96"
 }

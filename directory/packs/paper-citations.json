@@ -1,7 +1,7 @@
 {
   "id": "paper-citations",
-  "name": "paper citations",
-  "pitch": "finds which authors cite each other most in a collection of papers",
+  "name": "Paper citations",
+  "pitch": "Finds which authors cite each other most in a collection of papers.",
   "category": "research",
   "version": 1,
   "author": {
@@ -46,6 +46,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# paper citations\n\nFinds which authors cite each other most in a collection of papers. Reads .txt or .md files, counts citation pairs, and shows the top pairs in a table. Will not read files outside the current folder or interpret citations that do not match the expected pattern.\n\n**Needs**: file_read, file_write, show_table\n\n**Will not**: read protected files, guess citations, or write to folders other than the current one.",
-  "hash": "54bfa0dd1b50859f67c223699cee4eb114f33db967c066c983ee6ea1de275de6"
+  "readme": "# Paper citations\n\nFinds which authors cite each other most in a collection of papers. Reads .txt or .md files, counts citation pairs, and shows the top pairs in a table. Will not read files outside the current folder or interpret citations that do not match the expected pattern.\n\n**Needs**: file_read, file_write, show_table\n\n**Will not**: read protected files, guess citations, or write to folders other than the current one.",
+  "hash": "0811aabcc5ec5421fb47c88fafa73a27879fce876698cb0fcf49efcbcdaded39"
 }

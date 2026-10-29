@@ -1,6 +1,6 @@
 {
   "id": "recipe-organizer",
-  "name": "recipe organizer",
+  "name": "Recipe organizer",
   "pitch": "Sort recipes into cuisine groups and show cooking times so meals are easier to find.",
   "category": "food",
   "version": 1,
@@ -48,6 +48,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# recipe organizer\nSort recipes into cuisine groups and show cooking times.\n\nWhat it does: reads recipe files, extracts cuisine and time tags, groups them, and returns a markdown table.\n\nWhat it needs: file_list, file_read, file_write, show_table, make_page.\n\nWhat it will not do: it cannot read recipes that have no tags, and it cannot guess cuisine or cooking time.",
-  "hash": "2dcb8c2146b755d3f58dcf88382f6ccf690f1cf689bdeb086aa02afaee46720d"
+  "readme": "# Recipe organizer\nSort recipes into cuisine groups and show cooking times.\n\nWhat it does: reads recipe files, extracts cuisine and time tags, groups them, and returns a markdown table.\n\nWhat it needs: file_list, file_read, file_write, show_table, make_page.\n\nWhat it will not do: it cannot read recipes that have no tags, and it cannot guess cuisine or cooking time.",
+  "hash": "e5bf1b348f7b19487609a74ef3a036190056f90ee45c6bc02a503d34f01e7b54"
 }

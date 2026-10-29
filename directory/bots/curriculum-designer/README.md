@@ -1,4 +1,4 @@
-# curriculum designer
+# Curriculum designer
 
 Build a free self-study curriculum with quality resources for a new skill from scratch.
 

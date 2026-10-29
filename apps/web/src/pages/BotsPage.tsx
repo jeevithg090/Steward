@@ -410,12 +410,15 @@ function InstalledRow({ bot }: { bot: InstalledBot }) {
 }
 
 /** "bots.steward.dev" from an index address; the address itself when it is a path. */
+/** Where an installed bot came from, in words: a web directory's host, or this computer's folder. */
 function sourceHost(source: string): string {
   try {
-    return new URL(source).host;
+    const host = new URL(source).host;
+    if (host) return host;
   } catch {
-    return source.length > 40 ? `…${source.slice(-39)}` : source;
+    // Not a web address: a path to the directory on this machine.
   }
+  return "the directory on this computer";
 }
 
 /** The listing inside the Add dialog: preview fetched on open, Add at the bottom. */

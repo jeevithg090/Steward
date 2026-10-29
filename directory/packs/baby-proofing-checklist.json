@@ -1,6 +1,6 @@
 {
   "id": "baby-proofing-checklist",
-  "name": "baby-proofing checklist",
+  "name": "Baby-proofing checklist",
   "pitch": "Make a room-by-room baby-proofing checklist for a crawling nine-month-old.",
   "category": "home",
   "version": 1,
@@ -49,6 +49,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# baby-proofing checklist\n\nCreate a room-by-room baby-proofing checklist for a crawling nine-month-old.\n\n**What it does**\nSearches the web for a ready-made checklist, extracts the room-by-room items, shows them in a table, and saves a text file with the same list.\n\n**What it needs**\nWeb search and browser tools. No mail, calendar, or file system access beyond writing the output file.\n\n**What it will not do**\nIt will not give medical advice, recommend specific products by brand, or charge for any service.",
-  "hash": "06dfa0e3d39a8be9332bd2fd9d7cc693102315e15a411bbec447e98d124aab5f"
+  "readme": "# Baby-proofing checklist\n\nCreate a room-by-room baby-proofing checklist for a crawling nine-month-old.\n\n**What it does**\nSearches the web for a ready-made checklist, extracts the room-by-room items, shows them in a table, and saves a text file with the same list.\n\n**What it needs**\nWeb search and browser tools. No mail, calendar, or file system access beyond writing the output file.\n\n**What it will not do**\nIt will not give medical advice, recommend specific products by brand, or charge for any service.",
+  "hash": "c6274ee6379b0a70c0dc6c29df428c5fa234d7d4cb21f086207c95bb0a6802f8"
 }

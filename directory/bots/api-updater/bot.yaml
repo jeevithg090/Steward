@@ -1,5 +1,5 @@
 id: api-updater
-name: api updater
+name: API updater
 pitch: Find and replace deprecated API calls across a codebase with their modern equivalents.
 category: dev
 version: 1

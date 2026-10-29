@@ -1,6 +1,6 @@
 {
   "id": "content-calendar-template",
-  "name": "content calendar template",
+  "name": "Content calendar template",
   "pitch": "Create a reusable monthly content calendar template that can be duplicated each month.",
   "category": "social",
   "version": 1,
@@ -34,6 +34,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# content calendar template\n\nCreates a reusable monthly content calendar template that can be duplicated each month.\n\nWhat it needs: file_write, make_page\n\nWhat it will not do: It will not suggest specific content ideas or platform rules; it only provides the blank structure.\n\nThe agent will ask what type of content is typically posted each month and any fixed dates or recurring events to include. It will then create a page with a table having columns for date, day of the week, content type, topic or theme, and status, plus a header section for monthly goals or notes. The person can then duplicate the page for each new month.",
-  "hash": "dc852e9ad325e7106f470d6aa71b466f75d666944e2dfba095d69795c38ebc80"
+  "readme": "# Content calendar template\n\nCreates a reusable monthly content calendar template that can be duplicated each month.\n\nWhat it needs: file_write, make_page\n\nWhat it will not do: It will not suggest specific content ideas or platform rules; it only provides the blank structure.\n\nThe agent will ask what type of content is typically posted each month and any fixed dates or recurring events to include. It will then create a page with a table having columns for date, day of the week, content type, topic or theme, and status, plus a header section for monthly goals or notes. The person can then duplicate the page for each new month.",
+  "hash": "4443ecd48469c922b091d0955b585a8d2508c88ff96552e9420d09209c1da346"
 }

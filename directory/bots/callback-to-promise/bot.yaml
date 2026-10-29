@@ -1,5 +1,5 @@
 id: callback-to-promise
-name: callback-to-promise
+name: Callback-to-promise
 pitch: Convert a callback-based API to use promises with proper error handling.
 category: dev
 version: 1

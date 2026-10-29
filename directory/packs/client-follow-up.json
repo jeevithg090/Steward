@@ -1,6 +1,6 @@
 {
   "id": "client-follow-up",
-  "name": "client follow-up",
+  "name": "Client follow-up",
   "pitch": "Send a polite follow-up email to a client who stopped replying after the first meeting.",
   "category": "business",
   "version": 1,
@@ -37,5 +37,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "A bot that sends a follow-up email to a client who went silent after the first meeting. It reads the mailbox to find the meeting thread, drafts a polite note, and asks before sending. It will not send anything without the person's say-so.",
-  "hash": "51e8abdb2e7e18412cff39c9af53a006f0cb85d51cbba9bdc5601a4953e90f1e"
+  "hash": "9d8d7b97edb1265329f67681faa9f39d0966855d855184eeab48c35fe45b28c4"
 }

@@ -1,6 +1,6 @@
 {
   "id": "data-opt-out",
-  "name": "data opt-out",
+  "name": "Data opt-out",
   "pitch": "Help remove your personal data from broker databases that sell it.",
   "category": "privacy",
   "version": 1,
@@ -43,6 +43,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# data opt-out\nRemoves your personal information from broker databases that sell it.\n\nWhat it does: searches for broker lists, fills in opt-out forms, and reports which brokers were completed.\n\nWhat it needs: web search, web browsing, and the ability to type into web forms. It does not have access to your accounts or payment methods.\n\nWhat it will not do: it cannot sign documents, pay fees, or access private accounts. It will stop and ask you if it needs a sign-in or verification code.",
-  "hash": "ced2033ae3f33c379de2fe83dc6825ee87909c173cb05f01b1a635f13253f699"
+  "readme": "# Data opt-out\nRemoves your personal information from broker databases that sell it.\n\nWhat it does: searches for broker lists, fills in opt-out forms, and reports which brokers were completed.\n\nWhat it needs: web search, web browsing, and the ability to type into web forms. It does not have access to your accounts or payment methods.\n\nWhat it will not do: it cannot sign documents, pay fees, or access private accounts. It will stop and ask you if it needs a sign-in or verification code.",
+  "hash": "f01a0e55881ff0dda75e74c2c705a657c317087289ffb439b9fa49397fb12517"
 }

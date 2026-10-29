@@ -1,5 +1,5 @@
 id: script-profiler
-name: script profiler
+name: Script profiler
 pitch: Find why a script runs slow and suggest the smallest fix.
 category: dev
 version: 1

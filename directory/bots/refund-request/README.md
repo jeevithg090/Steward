@@ -1,4 +1,4 @@
-# refund request
+# Refund request
 
 Draft a refund letter for an undelivered service and send it to the company.
 

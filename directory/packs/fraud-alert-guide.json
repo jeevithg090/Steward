@@ -1,6 +1,6 @@
 {
   "id": "fraud-alert-guide",
-  "name": "fraud alert guide",
+  "name": "Fraud alert guide",
   "pitch": "Explain the difference between a fraud alert and a credit freeze and help set one up.",
   "category": "privacy",
   "version": 1,
@@ -34,6 +34,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# fraud alert guide\n\nExplains the difference between a fraud alert and a credit freeze and helps you set one up.\n\n**What it needs**: web search to find comparisons, and the ability to make a page to show the summary.\n\n**What it will not do**: It will not place a fraud alert or credit freeze on your account. You will need to contact the credit bureaus yourself.",
-  "hash": "26f36f8c1016a7fcedc388e63268d346ecc70a07817c0d5066b8654a69c054fc"
+  "readme": "# Fraud alert guide\n\nExplains the difference between a fraud alert and a credit freeze and helps you set one up.\n\n**What it needs**: web search to find comparisons, and the ability to make a page to show the summary.\n\n**What it will not do**: It will not place a fraud alert or credit freeze on your account. You will need to contact the credit bureaus yourself.",
+  "hash": "496350812aefa906a1b1793d00504987b9c04961107647c3cec45f075d2ab8d4"
 }

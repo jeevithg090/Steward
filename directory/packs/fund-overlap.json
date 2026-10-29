@@ -1,6 +1,6 @@
 {
   "id": "fund-overlap",
-  "name": "fund overlap",
+  "name": "Fund overlap",
   "pitch": "Find the five largest holdings shared by your two biggest mutual funds.",
   "category": "investing",
   "version": 1,
@@ -30,6 +30,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# fund overlap\nFinds the top five holdings shared by your two largest mutual funds.\n\n**What it needs:** web_fetch to read fund fact sheets, file_read if holdings are stored locally, show_comparison to display the overlap table.\n\n**What it will not do:** It cannot access private fund accounts, it cannot calculate exact performance returns, and it cannot give tax or investment advice.",
-  "hash": "5f6cd63bee379f4c7efccef39caea3ec1bc79b2a781d07d28f55b8ea4c351974"
+  "readme": "# Fund overlap\nFinds the top five holdings shared by your two largest mutual funds.\n\n**What it needs:** web_fetch to read fund fact sheets, file_read if holdings are stored locally, show_comparison to display the overlap table.\n\n**What it will not do:** It cannot access private fund accounts, it cannot calculate exact performance returns, and it cannot give tax or investment advice.",
+  "hash": "b26693768a49da561469ca5f5499aa72474e942df98e772c9b0a4587dac8a933"
 }

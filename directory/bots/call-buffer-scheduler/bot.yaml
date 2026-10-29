@@ -1,5 +1,5 @@
 id: call-buffer-scheduler
-name: call buffer scheduler
+name: Call buffer scheduler
 pitch: Adds prep and note time around client calls in the calendar.
 category: productivity
 version: 1

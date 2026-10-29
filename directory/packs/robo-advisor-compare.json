@@ -1,6 +1,6 @@
 {
   "id": "robo-advisor-compare",
-  "name": "robo-advisor compare",
+  "name": "Robo-advisor compare",
   "pitch": "Compare three robo-advisors' features and fees for a hands-off portfolio.",
   "category": "investing",
   "version": 1,
@@ -35,6 +35,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# robo-advisor compare\nCompares three robo-advisors' features and fees for a hands-off portfolio.\n\nNeeds: web_search, web_fetch, show_comparison.\nWill not: promise returns, give tax advice, or pick a winner.\n\nWhen it cannot find three usable results, it tells the person how many it found and what was missing.",
-  "hash": "3ed640776d2fbea6c0a654f04f71d1de6c2ad3d40cfd87233d0134101ffa8e1d"
+  "readme": "# Robo-advisor compare\nCompares three robo-advisors' features and fees for a hands-off portfolio.\n\nNeeds: web_search, web_fetch, show_comparison.\nWill not: promise returns, give tax advice, or pick a winner.\n\nWhen it cannot find three usable results, it tells the person how many it found and what was missing.",
+  "hash": "6ca12c07a7b33913855e92b8b5e65ec0fe788b66974397d20a8bbe196221e2f3"
 }

@@ -1,4 +1,4 @@
-# sales summary
+# Sales summary
 Summarizes the last three months of sales data from a spreadsheet and spots the biggest trend.
 
 **What it needs**: file_read to open the spreadsheet, shell_run for any calculations, show_table to display the results.

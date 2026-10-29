@@ -1,6 +1,6 @@
 {
   "id": "script-profiler",
-  "name": "script profiler",
+  "name": "Script profiler",
   "pitch": "Find why a script runs slow and suggest the smallest fix.",
   "category": "dev",
   "version": 1,
@@ -42,5 +42,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Script profiler: reads a script, times its run, and suggests the smallest change to make it faster. Needs file_read and shell_run. Will not run commands that change files or install packages.",
-  "hash": "54af90a122f675dfe272b407c9c84f131a858d960316e73681cfa7c6fc942d97"
+  "hash": "b80be0a8f49d2dcb9d1416a109d7821876e67bb393c01fd06873d04b03bd2b64"
 }

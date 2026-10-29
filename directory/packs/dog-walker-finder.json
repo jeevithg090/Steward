@@ -1,7 +1,7 @@
 {
   "id": "dog-walker-finder",
-  "name": "dog walker finder",
-  "pitch": "finds a reliable dog walker with weekday morning availability near the person",
+  "name": "Dog walker finder",
+  "pitch": "Finds a reliable dog walker with weekday morning availability near the person.",
   "category": "home",
   "version": 1,
   "author": {
@@ -36,6 +36,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# dog walker finder\nFinds a reliable dog walker with weekday morning availability near the person.\n\nWhat it needs: web search and browser tools to look at listings.\nWhat it will not do: it cannot book or contact anyone, and it will not invent availability times or names.",
-  "hash": "3f37ca80e00bfc926fe8491f545c7161b881a0532d9c2deb67f6f7d8afc024f5"
+  "readme": "# Dog walker finder\nFinds a reliable dog walker with weekday morning availability near the person.\n\nWhat it needs: web search and browser tools to look at listings.\nWhat it will not do: it cannot book or contact anyone, and it will not invent availability times or names.",
+  "hash": "b9e6880f1207d5b8803791d49b5f561327216809f970697afee307b00a07311c"
 }

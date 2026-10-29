@@ -1,6 +1,6 @@
 {
   "id": "low-cost-activity-planner",
-  "name": "low-cost activity planner",
+  "name": "Low-cost activity planner",
   "pitch": "Find free local events and build a half-term schedule for a ten-year-old.",
   "category": "home",
   "version": 1,
@@ -52,5 +52,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "low-cost activity planner: finds free local half-term events and adds chosen ones to your calendar. needs web_search, browser_navigate, calendar_create, show_table. will not pay for events or sign up for anything without asking.",
-  "hash": "3b56823d44340b6fb2d8f4d60ce0ab7ec451c1391cf08c86475e4c28ef485b36"
+  "hash": "4046eb7a003fdaf53a7f877aaca270354f4ad9d360ceaac558ea04c9ff2e9a9c"
 }

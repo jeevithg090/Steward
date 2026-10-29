@@ -11,6 +11,7 @@ afterEach(() => {
 
 const info = (over: Partial<PhoneInfo> = {}): PhoneInfo => ({
   listener: { port: 8788, running: true },
+  mainPort: 8787,
   url: "https://mac.tail1234.ts.net",
   hosts: ["mac.tail1234.ts.net"],
   transports: [
@@ -91,6 +92,18 @@ describe("Settings → Phone", () => {
     const add = await screen.findByRole("button", { name: "Add iPhone" });
     expect((add as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText("Set the phone address under Connection first.")).toBeTruthy();
+  });
+
+  it("names the ports this Steward really uses, not the defaults", async () => {
+    mockFetch((req) => {
+      if (req.path === "/api/phone")
+        return { body: info({ listener: { port: 8798, running: true }, mainPort: 8797 }) };
+      if (req.path === "/api/devices") return { body: [] };
+      return undefined;
+    });
+    renderWithProviders(<PhoneSection />);
+    expect(await screen.findByText(/Tunnel port 8798, never Steward's main port 8797/)).toBeTruthy();
+    expect(screen.getByText(/http:\/\/your-mac\.local:8798 also works/)).toBeTruthy();
   });
 
   it("keeps saying yes off until switched on, with the plain warning, and revokes after a confirm", async () => {

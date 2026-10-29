@@ -1,6 +1,6 @@
 {
   "id": "bin-reminders",
-  "name": "bin reminders",
+  "name": "Bin reminders",
   "pitch": "Weekly reminders for bin collection days from the council calendar.",
   "category": "home",
   "version": 1,
@@ -37,5 +37,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "A bot pack that sets up a weekly reminder for bin collection days. It creates a routine that adds a calendar event each week. It does not know the collection day until the person tells it.",
-  "hash": "c7cc856ee7805900ec2c2190fdacd97e7ff4c4d55b2d62fbc7b7bda3f021637c"
+  "hash": "22710ca4a3ae23a9021ed7b4b042927c4d5d45c707ee073c9c41dec09d631a7f"
 }

@@ -1,4 +1,4 @@
-# charity checker
+# Charity checker
 Check if a charity asking for donations is legitimate.
 
 What it does: searches the web for the charity name, reads results, and looks for registration numbers or warnings.

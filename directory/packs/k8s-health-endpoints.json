@@ -1,6 +1,6 @@
 {
   "id": "k8s-health-endpoints",
-  "name": "k8s health endpoints",
+  "name": "K8s health endpoints",
   "pitch": "Adds health check and readiness probes to a Kubernetes deployment YAML file.",
   "category": "dev",
   "version": 1,
@@ -35,5 +35,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "This bot adds or updates health check and readiness probes in a Kubernetes deployment YAML file. It works locally on files in the workspace. It does not apply changes to a running cluster.",
-  "hash": "c4cd2d4b28754658fb3a8ee22627bb18a2a18b534366f520af41b130ea9e4659"
+  "hash": "e24ecd38d273dafd8bc3672ac0fc571b5ac27bc2bbcb99fa1e9aa68becf1dfe5"
 }

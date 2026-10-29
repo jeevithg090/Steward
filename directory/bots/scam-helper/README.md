@@ -1,4 +1,4 @@
-# scam helper
+# Scam helper
 Helps the person check if something is a scam and what to do next.
 
 What it needs: web_search, web_fetch, make_page, task_create.

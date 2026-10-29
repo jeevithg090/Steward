@@ -1,4 +1,4 @@
-# local lead finder
+# Local lead finder
 Find twenty local businesses that might need the person's product or service.
 
 What it does: searches the web for businesses in a given area and checks if they look like good leads.

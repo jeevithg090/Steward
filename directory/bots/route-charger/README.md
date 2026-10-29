@@ -1,4 +1,4 @@
-# route charger
+# Route charger
 Find the nearest working charging station on your route.
 
 It uses a web search and checks station pages for payment terminals. It will not book or pay for you.

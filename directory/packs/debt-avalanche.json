@@ -1,6 +1,6 @@
 {
   "id": "debt-avalanche",
-  "name": "debt avalanche",
+  "name": "Debt avalanche",
   "pitch": "Build a payoff plan for credit cards and a loan, ordered by highest interest first.",
   "category": "money",
   "version": 1,
@@ -32,6 +32,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# debt avalanche\nBuild a payoff plan for credit cards and a loan using the avalanche method (highest interest first).\n\n**What it does** – Asks for each balance and interest rate, sorts them, calculates the extra monthly payment and shows a table. If the person confirms, it creates a recurring task for the extra payment.\n\n**What it needs** – The person's current balances, interest rates and minimum payments for the three credit cards and the personal loan. It also needs the person's total monthly debt budget.\n\n**What it will not do** – It does not negotiate with lenders, it does not make payments and it does not assume any interest rate or balance that the person has not provided.",
-  "hash": "a63c3464db95d82cecf30e3ecfa72536ae0f3ba7b62c4ab16761651884a0767b"
+  "readme": "# Debt avalanche\nBuild a payoff plan for credit cards and a loan using the avalanche method (highest interest first).\n\n**What it does** – Asks for each balance and interest rate, sorts them, calculates the extra monthly payment and shows a table. If the person confirms, it creates a recurring task for the extra payment.\n\n**What it needs** – The person's current balances, interest rates and minimum payments for the three credit cards and the personal loan. It also needs the person's total monthly debt budget.\n\n**What it will not do** – It does not negotiate with lenders, it does not make payments and it does not assume any interest rate or balance that the person has not provided.",
+  "hash": "b094f609078106a17657a7f258a6827896d972359aa741d042061ca2e6ef4179"
 }

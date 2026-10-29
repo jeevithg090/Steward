@@ -1,4 +1,4 @@
-# robo-advisor compare
+# Robo-advisor compare
 Compares three robo-advisors' features and fees for a hands-off portfolio.
 
 Needs: web_search, web_fetch, show_comparison.

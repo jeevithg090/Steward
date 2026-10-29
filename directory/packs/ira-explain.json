@@ -1,6 +1,6 @@
 {
   "id": "ira-explain",
-  "name": "ira explain",
+  "name": "IRA explain",
   "pitch": "Explain the difference between a traditional IRA and a Roth IRA for the person's income level.",
   "category": "investing",
   "version": 1,
@@ -39,6 +39,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# ira explain\nThis bot explains the difference between a traditional IRA and a Roth IRA for the person's income level.\n\nWhat it does: searches the web for current income limits and tax rules, then gives a plain-language comparison.\nWhat it needs: web search and fetch tools.\nWhat it will not do: give tax advice, recommend which IRA to choose, or use the person's name.",
-  "hash": "0bbdbfe2e5211df5e6c627a7ce7cf4e70f9d9ba9df8b51433eba401f5fa25972"
+  "readme": "# IRA explain\nThis bot explains the difference between a traditional IRA and a Roth IRA for the person's income level.\n\nWhat it does: searches the web for current income limits and tax rules, then gives a plain-language comparison.\nWhat it needs: web search and fetch tools.\nWhat it will not do: give tax advice, recommend which IRA to choose, or use the person's name.",
+  "hash": "a1b394f363825572dfa2afcdeadf3dc648b927491f0658191e2e1881d61e8063"
 }

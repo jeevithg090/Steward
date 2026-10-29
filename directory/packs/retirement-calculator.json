@@ -1,6 +1,6 @@
 {
   "id": "retirement-calculator",
-  "name": "retirement calculator",
+  "name": "Retirement calculator",
   "pitch": "Calculate the future value of retirement accounts at age 65 with a 7% annual return.",
   "category": "investing",
   "version": 1,
@@ -44,6 +44,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# retirement calculator\nCalculate the future value of retirement accounts at age 65 with a 7% annual return.\n\nWhat it needs: memory to store the account values and ages, shell to compute powers, and a table to display the results.\nWhat it will not do: it cannot access live account balances or predict actual market performance.",
-  "hash": "7fcbc274b563e85f45d72a72f6c4025476b73e295816da7aba194342c8ef1b97"
+  "readme": "# Retirement calculator\nCalculate the future value of retirement accounts at age 65 with a 7% annual return.\n\nWhat it needs: memory to store the account values and ages, shell to compute powers, and a table to display the results.\nWhat it will not do: it cannot access live account balances or predict actual market performance.",
+  "hash": "7df6a63c74a89b5f8ff2c876dd49398167d77341bf4daaa90d79846fabcee3aa"
 }

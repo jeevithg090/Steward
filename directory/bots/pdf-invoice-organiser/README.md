@@ -1,4 +1,4 @@
-# pdf invoice organiser
+# PDF invoice organiser
 Organises pdf invoices into a single searchable document.
 
 Needs: file_read, file_write, browser_navigate.

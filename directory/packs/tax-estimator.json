@@ -1,6 +1,6 @@
 {
   "id": "tax-estimator",
-  "name": "tax estimator",
+  "name": "Tax estimator",
   "pitch": "Estimate quarterly tax payments from freelance income and expenses.",
   "category": "money",
   "version": 1,
@@ -37,6 +37,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# tax estimator\nEstimate quarterly tax payments from freelance income and expenses.\n\nWhat it does: reads income and expense files, applies current tax rates, and produces a table of four quarterly payments.\nWhat it needs: file_read, file_write, web_fetch, show_table, memory_remember.\nWhat it will not do: it cannot file a tax return or guarantee the exact amount owed; it only gives a based-on-the-figures estimate.",
-  "hash": "81aed24ae4356c7f29b612622a7cd7504a590df02fc01886fcac882ca57eb19d"
+  "readme": "# Tax estimator\nEstimate quarterly tax payments from freelance income and expenses.\n\nWhat it does: reads income and expense files, applies current tax rates, and produces a table of four quarterly payments.\nWhat it needs: file_read, file_write, web_fetch, show_table, memory_remember.\nWhat it will not do: it cannot file a tax return or guarantee the exact amount owed; it only gives a based-on-the-figures estimate.",
+  "hash": "3fc3700e52a4f98b104ec70f1c6ea5495884b96a3275b9c0aa926884a797569a"
 }

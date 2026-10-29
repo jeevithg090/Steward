@@ -9,7 +9,7 @@ import {
   isPackTool,
   plainWords,
 } from "./prompt.ts";
-import { nameFromJob, sentence, slugify, truncateAtWord } from "./text.ts";
+import { displayName, nameFromJob, sentence, slugify, truncateAtWord } from "./text.ts";
 
 /**
  * One job in, one pack out. With a model: one call, parsed robustly, validated, retried once with
@@ -261,7 +261,10 @@ export function assembleCandidate(
   input: GenerateInput,
   ctx: GenerateContext,
 ): unknown {
-  const name = truncateAtWord(input.name?.trim() || str(raw.name) || nameFromJob(input.job), MAX_NAME);
+  const name = truncateAtWord(
+    displayName(input.name?.trim() || str(raw.name) || nameFromJob(input.job)),
+    MAX_NAME,
+  );
   const needs = (typeof raw.needs === "object" && raw.needs !== null ? raw.needs : {}) as Record<
     string,
     unknown
@@ -269,7 +272,8 @@ export function assembleCandidate(
   const category =
     input.category ??
     (CATEGORY_KEYS.includes(raw.category as BotCategory) ? (raw.category as BotCategory) : undefined);
-  const pitch = str(raw.pitch);
+  const rawPitch = str(raw.pitch);
+  const pitch = rawPitch ? sentence(rawPitch) : undefined;
   const examples = Array.isArray(raw.examples)
     ? raw.examples
         .filter((e): e is Record<string, unknown> => typeof e === "object" && e !== null)

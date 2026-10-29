@@ -1,6 +1,6 @@
 {
   "id": "task-update-email",
-  "name": "task update email",
+  "name": "Task update email",
   "pitch": "Write a status update email from completed tasks to stakeholders.",
   "category": "productivity",
   "version": 1,
@@ -37,6 +37,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# task update email\nWrites a status update email from your completed tasks and sends it to stakeholders.\n\nWhat it needs: access to your tasks and mail.\nWhat it will not do: send anything without your say-so; invent task details it has not checked.",
-  "hash": "7f750840c184b81dfd288e657a89d7263e8fa54ba4e2d686d7d650b56be4febc"
+  "readme": "# Task update email\nWrites a status update email from your completed tasks and sends it to stakeholders.\n\nWhat it needs: access to your tasks and mail.\nWhat it will not do: send anything without your say-so; invent task details it has not checked.",
+  "hash": "4a625550f9e63a8901311ff69f0c05eed6107cfe84e1c617f9ca4da45b66133f"
 }

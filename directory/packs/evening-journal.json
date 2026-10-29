@@ -1,6 +1,6 @@
 {
   "id": "evening-journal",
-  "name": "evening journal",
+  "name": "Evening journal",
   "pitch": "A daily question to reflect on each evening, recorded in a personal journal.",
   "category": "misc",
   "version": 1,
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## evening journal\nKeeps a daily question-and-answer journal for one person.\n\nWhat it does: Each evening it asks one reflection question and records the answer in a plain text file.\n\nWhat it needs: routine_create to trigger each evening, file_write to save entries, memory_remember to store the last question asked.\n\nWhat it will not do: It will not answer the questions itself, it will not suggest answers, and it will not share the journal with anyone.",
-  "hash": "f108088e02004e0a0ecde8353083ecd3bcc296b17e4390ef8e4570039c04d52d"
+  "hash": "36fd92e6ad190a6e3df884ed647f82454c62d43befefc4afe1aee1c0246763c5"
 }

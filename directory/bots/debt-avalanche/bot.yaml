@@ -1,5 +1,5 @@
 id: debt-avalanche
-name: debt avalanche
+name: Debt avalanche
 pitch: Build a payoff plan for credit cards and a loan, ordered by highest interest first.
 category: money
 version: 1

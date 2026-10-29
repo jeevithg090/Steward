@@ -1,4 +1,4 @@
-# travel expense organiser
+# Travel expense organiser
 Sorts travel receipts and tickets into a date‑ordered spreadsheet.
 
 What it does: reads receipt files, extracts date/vendor/amount, writes a CSV sorted by date.

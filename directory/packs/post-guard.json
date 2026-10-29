@@ -1,6 +1,6 @@
 {
   "id": "post-guard",
-  "name": "post guard",
+  "name": "Post guard",
   "pitch": "Scans a draft post for risky content before it is published.",
   "category": "social",
   "version": 1,
@@ -33,6 +33,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# post guard\nScans a draft post for anything that could come back to bite the person before publishing. Reads the text, flags risky content, and gives a summary. Will not edit the post or publish anything without permission.",
-  "hash": "4a75aeccc2f327d451794701c25986bedc04369e52f879d89aad4ff30a79da4a"
+  "readme": "# Post guard\nScans a draft post for anything that could come back to bite the person before publishing. Reads the text, flags risky content, and gives a summary. Will not edit the post or publish anything without permission.",
+  "hash": "c556ee36b90eab2cfc0e79dfe765f2bf2361d86e78ddc41041f570aa42e8c83f"
 }

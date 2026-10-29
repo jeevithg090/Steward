@@ -1,6 +1,6 @@
 {
   "id": "review-checker",
-  "name": "review checker",
+  "name": "Review checker",
   "pitch": "Searches for complaints and negative reviews of an online seller across the web.",
   "category": "privacy",
   "version": 1,
@@ -35,6 +35,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# review checker\nSearches for complaints and negative reviews of an online seller across the web.\n\nIt needs web search and page‑fetch tools. It will not pay, sign or delete anything. It will not give a rating or a verdict; it only reports what it finds (or does not find) in publicly available text.",
-  "hash": "e0d31ab84e17f995c667333e228ec42db6e54e88e5ca2b4b01a15024972cbc6e"
+  "readme": "# Review checker\nSearches for complaints and negative reviews of an online seller across the web.\n\nIt needs web search and page‑fetch tools. It will not pay, sign or delete anything. It will not give a rating or a verdict; it only reports what it finds (or does not find) in publicly available text.",
+  "hash": "accbad508767c32d2b6016618e29ff44ba12f6dcd58b7f518b792b659cef8aab"
 }

@@ -1,6 +1,6 @@
 {
   "id": "text-checker",
-  "name": "text checker",
+  "name": "Text checker",
   "pitch": "Check whether a text from a government agency demanding payment is real.",
   "category": "privacy",
   "version": 1,
@@ -41,5 +41,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "A bot that helps a person check whether a message claiming to be from a government agency is genuine. It searches the web for the agency name and compares the text with official warnings. It does not give legal advice and will not tell the person to pay.",
-  "hash": "f5a54f8b4a92213f429017b77678a124c1a514c2a0d3effb16a8985c48440a99"
+  "hash": "c189f885e1e0f3f56689de8a5b0de673cd5039478e5ad2dea7d2d5b273f37f0e"
 }

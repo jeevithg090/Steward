@@ -1,4 +1,4 @@
-# phone privacy
+# Phone privacy
 Checks public people-search sites to see if your phone number appears online.
 
 **What it does:** Searches the web for the phone number you give it, visits a few directories, and tells you if the number shows up in the preview.

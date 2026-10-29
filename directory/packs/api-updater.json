@@ -1,6 +1,6 @@
 {
   "id": "api-updater",
-  "name": "api updater",
+  "name": "API updater",
   "pitch": "Find and replace deprecated API calls across a codebase with their modern equivalents.",
   "category": "dev",
   "version": 1,
@@ -42,6 +42,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# api updater\nThis bot finds and replaces deprecated API calls across your codebase. It uses file listing, reading, and writing tools, plus shell commands when needed. It will not run any commands without your say-so, and it will not change files you have not approved.",
-  "hash": "e70f6d252231d66cec5a8005f48afa44fb724d18f6f55e3868d851d11053f126"
+  "readme": "# API updater\nThis bot finds and replaces deprecated API calls across your codebase. It uses file listing, reading, and writing tools, plus shell commands when needed. It will not run any commands without your say-so, and it will not change files you have not approved.",
+  "hash": "b86595c872205bd3d9f3d45f433f19f686b7c8c0062910735fe1dbe0f2fced6b"
 }

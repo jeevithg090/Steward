@@ -1,4 +1,4 @@
-# callback-to-promise
+# Callback-to-promise
 Converts a callback-based API to use promises with proper error handling.
 
 **What it does:** Reads a source file, finds callback-based functions, and creates promise wrappers that reject on error and resolve on success.

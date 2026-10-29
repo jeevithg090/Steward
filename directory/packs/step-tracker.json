@@ -1,6 +1,6 @@
 {
   "id": "step-tracker",
-  "name": "step tracker",
+  "name": "Step tracker",
   "pitch": "Track your daily steps and suggest when to rest based on your history.",
   "category": "sports",
   "version": 1,
@@ -35,6 +35,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# step tracker\nTracks daily step count from a text file and suggests rest based on the average. Reads and writes a local file only. Does not connect to any account or service.",
-  "hash": "c03ab9ba3cbcc0261fa869e6ae2059b8031edeaac35282f44a973560077f8b37"
+  "readme": "# Step tracker\nTracks daily step count from a text file and suggests rest based on the average. Reads and writes a local file only. Does not connect to any account or service.",
+  "hash": "5d4d26a828d3d8b664cda89038529ce291cd409f2ee8b36a66f9e48906fa466d"
 }

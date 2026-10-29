@@ -1,6 +1,6 @@
 {
   "id": "food-storage-guide",
-  "name": "food storage guide",
+  "name": "Food storage guide",
   "pitch": "Tell you how long leftovers keep and how to store them safely.",
   "category": "food",
   "version": 1,
@@ -44,6 +44,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# food storage guide\nTell you how long leftovers keep and how to store them safely.\n\nWhat it does: searches the web for how many days a food stays good in the fridge, and how to store it to stay safe. Shows the person the time and method, or says it could not check.\n\nWhat it needs: web_search and web_fetch. No other tools are needed.\n\nWhat it will not do: it will not give a time if it cannot find one, and it will not invent a storage method.",
-  "hash": "4ee02225b6365f0183d7365b6536645851eb618a3e76ad4a68f9f2404d90e0a0"
+  "readme": "# Food storage guide\nTell you how long leftovers keep and how to store them safely.\n\nWhat it does: searches the web for how many days a food stays good in the fridge, and how to store it to stay safe. Shows the person the time and method, or says it could not check.\n\nWhat it needs: web_search and web_fetch. No other tools are needed.\n\nWhat it will not do: it will not give a time if it cannot find one, and it will not invent a storage method.",
+  "hash": "90081d3f2cec78502182279095350ff0b7f19228bf1535d4bf9438e7bf1473f8"
 }

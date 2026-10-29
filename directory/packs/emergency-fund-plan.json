@@ -1,6 +1,6 @@
 {
   "id": "emergency-fund-plan",
-  "name": "emergency fund plan",
+  "name": "Emergency fund plan",
   "pitch": "Build a prioritized three-month financial safety plan based on your current income and outgoings.",
   "category": "money",
   "version": 1,
@@ -50,6 +50,6 @@
   ],
   "routines": [],
   "shortcuts": [],
-  "readme": "# emergency fund plan\n\nBuild a prioritized three-month financial safety plan.\n\nWhat it does: works out how much you need to save if your income stops for three months, based on your take-home pay and essential costs.\n\nWhat it needs: access to your workspace to save the plan, and the memory connector to remember the target amount.\n\nWhat it will not do: it cannot create the plan without your monthly income and essential expense figures.",
-  "hash": "2ba742f5f6b0fadf9124d26ad5f48e50dd341d57ca9d61c6e492ddf7db1353e4"
+  "readme": "# Emergency fund plan\n\nBuild a prioritized three-month financial safety plan.\n\nWhat it does: works out how much you need to save if your income stops for three months, based on your take-home pay and essential costs.\n\nWhat it needs: access to your workspace to save the plan, and the memory connector to remember the target amount.\n\nWhat it will not do: it cannot create the plan without your monthly income and essential expense figures.",
+  "hash": "23a98cbaa16a4e080c997a69e4a4bb7154e8a40a5832b5ddda29a7ab4578ea40"
 }

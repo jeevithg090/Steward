@@ -1,6 +1,6 @@
 {
   "id": "teleprompter-builder",
-  "name": "teleprompter builder",
+  "name": "Teleprompter builder",
   "pitch": "Turns your outline into a scrolling script with speed markers for video recording.",
   "category": "video-audio",
   "version": 1,
@@ -34,6 +34,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# teleprompter builder\nTurns an outline into a scrolling script with speed markers for video recording.\n\nWorks with text files you provide. Adds ★ for slow sections, ▶ for fast sections, and words-per-minute numbers at the start of each line. Saves a new file and shows the speed summary.\n\nNeeds: file_read, make_page. Will not access the internet or sign anything.",
-  "hash": "09fdeaf089c92c746759ebf7dc489c27a41762c0c8f797c7cea91b981f89f64f"
+  "readme": "# Teleprompter builder\nTurns an outline into a scrolling script with speed markers for video recording.\n\nWorks with text files you provide. Adds ★ for slow sections, ▶ for fast sections, and words-per-minute numbers at the start of each line. Saves a new file and shows the speed summary.\n\nNeeds: file_read, make_page. Will not access the internet or sign anything.",
+  "hash": "6367bae78041ef6a5a1cf92ea0bec4a332dace08c4b1c41df355f630af7997a2"
 }

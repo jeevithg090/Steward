@@ -1,6 +1,6 @@
 {
   "id": "travel-expense-organiser",
-  "name": "travel expense organiser",
+  "name": "Travel expense organiser",
   "pitch": "Sorts travel receipts and tickets into a date‑ordered spreadsheet.",
   "category": "work",
   "version": 1,
@@ -46,6 +46,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# travel expense organiser\nSorts travel receipts and tickets into a date‑ordered spreadsheet.\n\nWhat it does: reads receipt files, extracts date/vendor/amount, writes a CSV sorted by date.\nWhat it needs: file_read, file_write, shell_run.\nWhat it will not do: it cannot read receipts that are scanned images without text, it cannot guess missing dates, and it will ask before writing any new file.",
-  "hash": "4bc5775aff8f7f3fd8dce8f99d43c9530bbb9db36bf32fbdd688a16172d91a29"
+  "readme": "# Travel expense organiser\nSorts travel receipts and tickets into a date‑ordered spreadsheet.\n\nWhat it does: reads receipt files, extracts date/vendor/amount, writes a CSV sorted by date.\nWhat it needs: file_read, file_write, shell_run.\nWhat it will not do: it cannot read receipts that are scanned images without text, it cannot guess missing dates, and it will ask before writing any new file.",
+  "hash": "5cac270d3080320e09b6c1d1131a23c91d44539716e08f60bbd5c74eac830970"
 }

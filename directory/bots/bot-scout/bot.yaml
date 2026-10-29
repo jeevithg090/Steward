@@ -1,5 +1,5 @@
 id: bot-scout
-name: bot scout
+name: Bot scout
 pitch: Find two bots that do the same job and recommend the best one to install.
 category: bot-helpers
 version: 1

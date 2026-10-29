@@ -1,6 +1,6 @@
 {
   "id": "local-lead-finder",
-  "name": "local lead finder",
+  "name": "Local lead finder",
   "pitch": "Find twenty local businesses that might need the person's product or service.",
   "category": "sales-crm",
   "version": 1,
@@ -40,6 +40,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# local lead finder\nFind twenty local businesses that might need the person's product or service.\n\nWhat it does: searches the web for businesses in a given area and checks if they look like good leads.\nWhat it needs: web_search, web_fetch, show_table. No accounts or sign‑ins required.\nWhat it will not do: guarantee sales, give prices or contact details, or invent business information.",
-  "hash": "3a780040fc46057934077aa42d57cde647ecd3ef284ec5f122f3db0ad39f1d6c"
+  "readme": "# Local lead finder\nFind twenty local businesses that might need the person's product or service.\n\nWhat it does: searches the web for businesses in a given area and checks if they look like good leads.\nWhat it needs: web_search, web_fetch, show_table. No accounts or sign‑ins required.\nWhat it will not do: guarantee sales, give prices or contact details, or invent business information.",
+  "hash": "60d96c45cc913a817663cd7caefa4755cc9603785cc9fc4044c2b63c79165af7"
 }

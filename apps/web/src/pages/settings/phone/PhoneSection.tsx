@@ -106,13 +106,13 @@ function Connection({ info }: { info: PhoneInfo }) {
           : "The phone port is switched off (STEWARD_DEVICE_PORT=off)."}
       </p>
       <Notice tone="needs" className="mt-3" role="note" title="Point a tunnel at the phone port only">
-        Tunnel port {port}, never Steward's main port 8787: that one has no sign-in, so anyone who reached it
-        could act as you.
+        Tunnel port {port}, never Steward's main port {info.mainPort}: that one has no sign-in, so anyone who
+        reached it could act as you.
       </Notice>
       <form onSubmit={submit} className="mt-4 flex flex-col gap-3">
         <Field
           label="Phone address"
-          description="The https address your tunnel gives the phone port, such as https://your-mac.your-tailnet.ts.net. At home, http://your-mac.local:8788 also works."
+          description={`The https address your tunnel gives the phone port, such as https://your-mac.your-tailnet.ts.net. At home, http://your-mac.local:${port} also works.`}
           error={save.error?.message}
         >
           <Input

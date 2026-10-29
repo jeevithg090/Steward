@@ -1,4 +1,4 @@
-# shared expense tracker
+# Shared expense tracker
 Tracks shared costs and calculates automatic monthly settlements for roommates.
 
 ## what it does

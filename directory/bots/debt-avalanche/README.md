@@ -1,4 +1,4 @@
-# debt avalanche
+# Debt avalanche
 Build a payoff plan for credit cards and a loan using the avalanche method (highest interest first).
 
 **What it does** – Asks for each balance and interest rate, sorts them, calculates the extra monthly payment and shows a table. If the person confirms, it creates a recurring task for the extra payment.

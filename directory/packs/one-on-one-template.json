@@ -1,6 +1,6 @@
 {
   "id": "one-on-one-template",
-  "name": "one-on-one template",
+  "name": "One-on-one template",
   "pitch": "Build a reusable weekly one-on-one note template with sections for updates, blockers and feedback.",
   "category": "productivity",
   "version": 1,
@@ -34,5 +34,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# one-on-one-template\nCreates a reusable markdown template for weekly one-on-one notes with sections for Updates, Blockers and Feedback.\n\nNeeds: make_page to create the file, memory_remember to store the save location.\n\nWill not: save to a location not given by the person.",
-  "hash": "6bf75711317d5630c431a8a92abae517353192cf53721cfd39b659fe44032fa3"
+  "hash": "9bd2c007933b546a4eb549cfd66ef1ca21251d874700ccaff157059ac73c3d60"
 }

@@ -1,5 +1,5 @@
 id: phone-privacy
-name: phone privacy
+name: Phone privacy
 pitch: Checks public people-search sites to see if your phone number appears online.
 category: privacy
 version: 1

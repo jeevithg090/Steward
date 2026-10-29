@@ -1,4 +1,4 @@
-# fuel cost calculator
+# Fuel cost calculator
 Calculate the total cost of fuel vs electric charging for a planned route.
 
 What it does: looks up current fuel and electricity prices, then compares the cost of driving the route on petrol versus charging an electric car.

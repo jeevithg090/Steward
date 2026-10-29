@@ -1,4 +1,4 @@
-# team lineup
+# Team lineup
 Find the most likely starting eleven for tomorrow's match and explain the choices.
 
 Works with any professional team. Needs only web search. Will not place bets, send messages or sign up for anything.

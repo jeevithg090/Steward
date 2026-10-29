@@ -1,4 +1,4 @@
-# home workout plan
+# Home workout plan
 create a simple home workout plan using only a resistance band and bodyweight
 
 what it does: searches the web for a beginner-friendly plan, makes a page with the exercises and reps, and adds it to a routine if the person agrees.

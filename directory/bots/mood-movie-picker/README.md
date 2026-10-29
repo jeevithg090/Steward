@@ -1,4 +1,4 @@
-# mood movie picker
+# Mood movie picker
 Pick a movie to watch tonight based on your mood.
 
 What it does: searches the web for movies matching your mood and shows them in a table.

@@ -1,5 +1,5 @@
 id: data-leak-check
-name: data leak check
+name: Data leak check
 pitch: Inspect a bot pack for anything that might expose the person's data to others.
 category: bot-helpers
 version: 1

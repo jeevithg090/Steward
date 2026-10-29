@@ -1,6 +1,6 @@
 id: chapter-markers
-name: chapter markers
-pitch: creates a chapter markers file for youtube from timestamp notes
+name: Chapter markers
+pitch: Creates a chapter markers file for youtube from timestamp notes.
 category: video-audio
 version: 1
 author:

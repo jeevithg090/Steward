@@ -1,6 +1,6 @@
 id: cc-flagger
-name: cc flagger
-pitch: flags emails where you are cc'd but your name is mentioned in the body
+name: CC flagger
+pitch: Flags emails where you are cc'd but your name is mentioned in the body.
 category: productivity
 version: 1
 author:

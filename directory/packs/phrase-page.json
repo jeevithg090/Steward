@@ -1,6 +1,6 @@
 {
   "id": "phrase-page",
-  "name": "phrase page",
+  "name": "Phrase page",
   "pitch": "Create a single page with key travel phrases in the target language.",
   "category": "travel",
   "version": 1,
@@ -33,5 +33,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## phrase page\nCreate a single page with key travel phrases in the target language.\n\nWhat it does: puts essential greetings, directions and food phrases on one easy-to-read page.\nWhat it needs: the language they are visiting, any phrases they already have.\nWhat it will not do: it will not guess translations or add personal details.",
-  "hash": "c50a54db3890f153846d714c6cb909376ee521788ac4669a98d92dcb9229b6bf"
+  "hash": "45a20382c29428117bf4a4c4f1f39b52cc0fec523d848b3524b0c370a5be7b87"
 }

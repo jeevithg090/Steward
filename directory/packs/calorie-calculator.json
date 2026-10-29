@@ -1,7 +1,7 @@
 {
   "id": "calorie-calculator",
-  "name": "calorie calculator",
-  "pitch": "calculate your daily calorie needs from age, weight, height and activity level",
+  "name": "Calorie calculator",
+  "pitch": "Calculate your daily calorie needs from age, weight, height and activity level.",
   "category": "health",
   "version": 1,
   "author": {
@@ -41,6 +41,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# calorie calculator\nThis bot pack works out your daily calorie needs from age, weight, height and activity level. It searches the web for a standard formula, calculates the result and shows it in a table. It does not give medical advice or guarantee weight change. It will ask you for the four numbers before it searches.",
-  "hash": "0ce67e16e13653a9c644efe0708071d75c2b18f699870cd38d790e2bb21f6649"
+  "readme": "# Calorie calculator\nThis bot pack works out your daily calorie needs from age, weight, height and activity level. It searches the web for a standard formula, calculates the result and shows it in a table. It does not give medical advice or guarantee weight change. It will ask you for the four numbers before it searches.",
+  "hash": "5fb0c9b61a370a155fa76a83baa5333b5f449a81eb9d917c7a1a3849e1fd47fb"
 }

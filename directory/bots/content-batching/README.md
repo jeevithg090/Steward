@@ -1,4 +1,4 @@
-# content batching
+# Content batching
 
 a checklist to plan and run filming days so edits are ready later.
 

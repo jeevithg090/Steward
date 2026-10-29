@@ -1,6 +1,6 @@
 {
   "id": "meeting-decliner",
-  "name": "meeting decliner",
+  "name": "Meeting decliner",
   "pitch": "Write a respectful decline to a meeting invitation in your own tone.",
   "category": "work",
   "version": 1,
@@ -42,6 +42,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# meeting decliner\nWrites a respectful decline to a meeting invitation in the person's tone.\n\n**What it needs**\n- mail_read and mail_send tools\n- mail connector\n\n**What it will not do**\n- Send anything without the person's okay\n- Invent reasons or attendance details",
-  "hash": "5e6f9415c083f50606b1d5dd469ac2f013eb95a4a39ca325724a64dc0ca49d13"
+  "readme": "# Meeting decliner\nWrites a respectful decline to a meeting invitation in the person's tone.\n\n**What it needs**\n- mail_read and mail_send tools\n- mail connector\n\n**What it will not do**\n- Send anything without the person's okay\n- Invent reasons or attendance details",
+  "hash": "e859dc78b840c74b86ae8f01a2d014d95f0844c8beaaf94384ec31b8995f4846"
 }

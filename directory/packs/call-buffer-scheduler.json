@@ -1,6 +1,6 @@
 {
   "id": "call-buffer-scheduler",
-  "name": "call buffer scheduler",
+  "name": "Call buffer scheduler",
   "pitch": "Adds prep and note time around client calls in the calendar.",
   "category": "productivity",
   "version": 1,
@@ -40,5 +40,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## call buffer scheduler\nAdds 15-minute prep and note slots around client calls on your calendar.\n\nWhat it does: Scans your calendar for call events and inserts buffer time before and after so you have time to prepare and jot notes.\n\nWhat it needs: Access to your calendar.\n\nWhat it will not do: It will not move or delete existing events. It only adds new buffer events if the gaps are smaller than 15 minutes.",
-  "hash": "f6f2d4f4f2a33beea96e1a96bebb5bb6233ad5f6e99a7f85733c22ba15eb3165"
+  "hash": "25cc425e3ff1fadaa86725b779111059867bdc65ea551d75cabf859965866036"
 }

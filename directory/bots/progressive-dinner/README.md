@@ -1,4 +1,4 @@
-# progressive dinner
+# Progressive dinner
 Plan a menu across three households, one course each.
 
 What it does: searches for menu ideas, creates a calendar event with three start times, sends an email to all households and makes a page listing the course, host and next stop.

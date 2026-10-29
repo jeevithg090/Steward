@@ -1,6 +1,6 @@
 id: structured-logger
-name: structured logger
-pitch: adds structured logging with correlation ids and log levels to a codebase
+name: Structured logger
+pitch: Adds structured logging with correlation ids and log levels to a codebase.
 category: dev
 version: 1
 author:

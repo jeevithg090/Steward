@@ -1,6 +1,6 @@
 {
   "id": "tax-summary",
-  "name": "tax summary",
+  "name": "Tax summary",
   "pitch": "Create a year-end tax summary document organized by category for the person's accountant.",
   "category": "money",
   "version": 1,
@@ -37,6 +37,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# tax summary\nCreate a year-end tax summary document organised by category for the person's accountant.\n\nWhat it does: reads financial files in the workspace, groups income and expenses by category and produces a single summary page.\nWhat it needs: read and write access to the workspace, ability to make a new page.\nWhat it will not do: give tax advice, file anything with HMRC, or create categories the person has not defined.",
-  "hash": "6104989c5ce7238ce47aab25c71721b020fd2c0ab6256481e0fea6f07fbb4f5f"
+  "readme": "# Tax summary\nCreate a year-end tax summary document organised by category for the person's accountant.\n\nWhat it does: reads financial files in the workspace, groups income and expenses by category and produces a single summary page.\nWhat it needs: read and write access to the workspace, ability to make a new page.\nWhat it will not do: give tax advice, file anything with HMRC, or create categories the person has not defined.",
+  "hash": "efbfa396645a1076bbb1eb29a4c961af26a463510466b486f12e82a31f9093db"
 }

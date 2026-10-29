@@ -1,7 +1,7 @@
 {
   "id": "progressive-dinner",
-  "name": "progressive dinner",
-  "pitch": "plan a menu across three households, one course each",
+  "name": "Progressive dinner",
+  "pitch": "Plan a menu across three households, one course each.",
   "category": "food",
   "version": 1,
   "author": {
@@ -62,6 +62,6 @@
   ],
   "routines": [],
   "shortcuts": [],
-  "readme": "# progressive dinner\nPlan a menu across three households, one course each.\n\nWhat it does: searches for menu ideas, creates a calendar event with three start times, sends an email to all households and makes a page listing the course, host and next stop.\n\nWhat it needs: web search to find menu ideas, calendar to set the date and times, mail to invite the households, a page maker to show the route, task tools to keep track of steps.\n\nWhat it will not do: it will not book a restaurant, it will not buy groceries and it will not force any household to take part.",
-  "hash": "9902bde975c5fbd340df4db9cc6ad31357dee9f1ea116717892e43f17c4fa9e0"
+  "readme": "# Progressive dinner\nPlan a menu across three households, one course each.\n\nWhat it does: searches for menu ideas, creates a calendar event with three start times, sends an email to all households and makes a page listing the course, host and next stop.\n\nWhat it needs: web search to find menu ideas, calendar to set the date and times, mail to invite the households, a page maker to show the route, task tools to keep track of steps.\n\nWhat it will not do: it will not book a restaurant, it will not buy groceries and it will not force any household to take part.",
+  "hash": "e0d46f8277e2ea93813737c10aaf099352f776a508f2383e9b0e8d1b5e460a21"
 }

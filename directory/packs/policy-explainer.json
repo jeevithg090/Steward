@@ -1,6 +1,6 @@
 {
   "id": "policy-explainer",
-  "name": "policy explainer",
+  "name": "Policy explainer",
   "pitch": "Writes a plain-words summary of a policy for the whole team.",
   "category": "work",
   "version": 1,
@@ -34,6 +34,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# policy explainer\nWrites a plain-words summary of a policy for the whole team.\n\nNeeds: file_read, make_page\n\nWill not rewrite the policy or give legal advice.",
-  "hash": "11ba8ff94d41d51c612538c66fc0a18613f336e002c393ecc7d2550c3b7b3dfb"
+  "readme": "# Policy explainer\nWrites a plain-words summary of a policy for the whole team.\n\nNeeds: file_read, make_page\n\nWill not rewrite the policy or give legal advice.",
+  "hash": "c216efd8547dde8f48330639b4e4cd60e1c9f89342eacda0fbd4c7690a44f0f0"
 }

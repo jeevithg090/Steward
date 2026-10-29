@@ -1,6 +1,6 @@
 {
   "id": "deadline-decliner",
-  "name": "deadline decliner",
+  "name": "Deadline decliner",
   "pitch": "Help the person turn down a deadline politely while protecting their reputation.",
   "category": "work",
   "version": 1,
@@ -48,6 +48,6 @@
   ],
   "routines": [],
   "shortcuts": [],
-  "readme": "# deadline decliner\nTurn down a work deadline without burning bridges.\n\nWhat it does: searches mail for the deadline, drafts a polite decline email, and sends it only after the person says yes.\nWhat it needs: access to the person's mail to read and send messages.\nWhat it will not do: invent a reason for the delay or send anything without the person's go‑ahead.",
-  "hash": "559ce9bc30d629422884d12c01ae0a4c1732fe0db9ae610dc0f1da675535419f"
+  "readme": "# Deadline decliner\nTurn down a work deadline without burning bridges.\n\nWhat it does: searches mail for the deadline, drafts a polite decline email, and sends it only after the person says yes.\nWhat it needs: access to the person's mail to read and send messages.\nWhat it will not do: invent a reason for the delay or send anything without the person's go‑ahead.",
+  "hash": "ac08f39a7bc6231230c65a058005f20bf8cfecf28b4dea392ce9b59e9742a057"
 }

@@ -1,4 +1,4 @@
-# shop checker
+# Shop checker
 Checks a shop's website before the person buys from it for the first time.
 
 What it does: Finds the shop's website, reads its privacy policy, and summarises what it says about data collection. If no privacy policy is found, it tells the person.

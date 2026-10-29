@@ -37,6 +37,7 @@ export function registerDeviceRoutes(app: Hono, s: StewardServices): void {
     const warning = phone.warning();
     return {
       listener: { port: s.phoneListener.port, running: s.phoneListener.running },
+      mainPort: s.config.port,
       url,
       ...(warning ? { urlWarning: warning } : {}),
       hosts: phone.hosts(),

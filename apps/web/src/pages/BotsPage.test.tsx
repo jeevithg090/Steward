@@ -151,6 +151,20 @@ describe("BotsPage", () => {
     expect(calls.find((c) => c.method === "DELETE")?.path).toBe("/api/bots/installed/rent-scout");
   });
 
+  it("names where an installed bot came from without showing a path on this machine", async () => {
+    serve({
+      installed: [
+        installedOf(RENT_SCOUT),
+        installedOf(INVOICE_CHASER, { source: "/home/someone/steward/directory/index.json" }),
+      ],
+    });
+    renderWithProviders(<BotsPage />, { route: "/bots" });
+    const region = await screen.findByRole("region", { name: "Installed" });
+    expect(await within(region).findByText(/from bots\.example/)).toBeTruthy();
+    expect(within(region).getByText(/from the directory on this computer/)).toBeTruthy();
+    expect(within(region).queryByText(/someone/)).toBeNull();
+  });
+
   it("opens a listing from Add and shows what it may do before adding", async () => {
     const { calls } = serve();
     renderWithProviders(<BotsPage />, { route: "/bots" });

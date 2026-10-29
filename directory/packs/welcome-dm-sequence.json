@@ -1,6 +1,6 @@
 {
   "id": "welcome-dm-sequence",
-  "name": "welcome dm sequence",
+  "name": "Welcome DM sequence",
   "pitch": "Write a warm welcome message series for new followers on the social network they use.",
   "category": "social",
   "version": 1,
@@ -38,6 +38,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# welcome dm sequence\nWrites a warm welcome message series for new followers on the social network you use.\n\nWhat it needs: file_write to save the messages, make_page to create the document.\nWhat it will not do: post the messages or follow anyone. Steward asks before any action is taken.",
-  "hash": "041d4fef9a69d2bedd6f3105985aa532d3e8e2a194a3c1452da3fbcfd054f921"
+  "readme": "# Welcome DM sequence\nWrites a warm welcome message series for new followers on the social network you use.\n\nWhat it needs: file_write to save the messages, make_page to create the document.\nWhat it will not do: post the messages or follow anyone. Steward asks before any action is taken.",
+  "hash": "155968660a03cc2b73aa6038ea6e30d3eb60546cfdcf51d6910556fe57471699"
 }

@@ -1,6 +1,6 @@
 {
   "id": "data-complaint",
-  "name": "data complaint",
+  "name": "Data complaint",
   "pitch": "Write and submit a formal complaint to a data protection authority about a company.",
   "category": "privacy",
   "version": 1,
@@ -42,6 +42,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# data complaint\nWrite and submit a formal complaint to a data protection authority about a company.\n\nWhat it does: Searches for the correct authority, gathers submission requirements, and creates a draft complaint template.\n\nWhat it needs: web_search, web_fetch, make_page, file_write.\n\nWhat it will not do: It will not submit the complaint without the person's confirmation, and it will not give legal advice or guarantee the complaint will be accepted.",
-  "hash": "7dba84ee64f7d8ac575993fbfe1c962b1357c09b93f801437bff6defdd5370be"
+  "readme": "# Data complaint\nWrite and submit a formal complaint to a data protection authority about a company.\n\nWhat it does: Searches for the correct authority, gathers submission requirements, and creates a draft complaint template.\n\nWhat it needs: web_search, web_fetch, make_page, file_write.\n\nWhat it will not do: It will not submit the complaint without the person's confirmation, and it will not give legal advice or guarantee the complaint will be accepted.",
+  "hash": "d6a640a064a19331097fdd25c8f9d1829a28462d61dd047c341b369a95e62165"
 }

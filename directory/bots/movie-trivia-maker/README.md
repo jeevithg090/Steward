@@ -1,4 +1,4 @@
-# movie trivia maker
+# Movie trivia maker
 
 Create a trivia game from your favourite movies and track scores.
 

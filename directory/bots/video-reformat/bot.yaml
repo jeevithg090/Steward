@@ -1,5 +1,5 @@
 id: video-reformat
-name: video reformat
+name: Video reformat
 pitch: Convert horizontal videos to vertical with safe zone overlays for social platforms.
 category: video-audio
 version: 1

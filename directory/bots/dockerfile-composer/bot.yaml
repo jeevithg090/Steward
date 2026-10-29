@@ -1,5 +1,5 @@
 id: dockerfile-composer
-name: dockerfile composer
+name: Dockerfile composer
 pitch: Generates a Dockerfile and docker-compose.yml with sensible defaults for a project.
 category: dev
 version: 1

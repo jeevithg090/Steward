@@ -1,6 +1,6 @@
 {
   "id": "movie-trivia-maker",
-  "name": "movie trivia maker",
+  "name": "Movie trivia maker",
   "pitch": "Make a trivia game from your favourite movies and keep a scoreboard.",
   "category": "games",
   "version": 1,
@@ -36,6 +36,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# movie trivia maker\n\nCreate a trivia game from your favourite movies and track scores.\n\nIt needs: memory_remember, file_list, file_write, web_search.\n\nIt will not generate questions without internet info or write files without your say-so.",
-  "hash": "9321413f347e04a4ebc6069cb511a6557e0f098962db0133b8ed3cfe8bd34a78"
+  "readme": "# Movie trivia maker\n\nCreate a trivia game from your favourite movies and track scores.\n\nIt needs: memory_remember, file_list, file_write, web_search.\n\nIt will not generate questions without internet info or write files without your say-so.",
+  "hash": "5c3cf6affdf82a34b393cd19abbe26ed54d58293ec111192005231cbe3e5f413"
 }

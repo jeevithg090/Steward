@@ -1,6 +1,6 @@
 {
   "id": "news-summarizer",
-  "name": "news summarizer",
+  "name": "News summarizer",
   "pitch": "Builds a summary of the latest headlines from the person's chosen sources.",
   "category": "bot-helpers",
   "version": 1,
@@ -30,6 +30,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# news summarizer\n\nBuilds a summary of the latest headlines from the person's chosen news sources. Uses web search to find current articles, fetches the text, and creates a short summary for each source. The person decides which sources to follow and can change them at any time.\n\n**What it needs:** web_search, web_fetch, make_page.\n**What it will not do:** It cannot read paywalled articles unless the text is freely available, and it will not sign in to any accounts.",
-  "hash": "e15a9031b660aa6158da3ce7dff463d44ac89ee251ade37e4384c5132b8b9aa2"
+  "readme": "# News summarizer\n\nBuilds a summary of the latest headlines from the person's chosen news sources. Uses web search to find current articles, fetches the text, and creates a short summary for each source. The person decides which sources to follow and can change them at any time.\n\n**What it needs:** web_search, web_fetch, make_page.\n**What it will not do:** It cannot read paywalled articles unless the text is freely available, and it will not sign in to any accounts.",
+  "hash": "35e29dc234fed6b5ec6263569ffce3c59920ac4536614490a5fcd7b67d07c835"
 }

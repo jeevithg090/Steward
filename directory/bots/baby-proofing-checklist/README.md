@@ -1,4 +1,4 @@
-# baby-proofing checklist
+# Baby-proofing checklist
 
 Create a room-by-room baby-proofing checklist for a crawling nine-month-old.
 

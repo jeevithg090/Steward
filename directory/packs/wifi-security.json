@@ -1,6 +1,6 @@
 {
   "id": "wifi-security",
-  "name": "wifi security",
+  "name": "Wi-Fi security",
   "pitch": "Help the person lock down their home wifi and router settings to stop unauthorised access.",
   "category": "privacy",
   "version": 1,
@@ -61,6 +61,6 @@
   ],
   "routines": [],
   "shortcuts": [],
-  "readme": "# wifi security\n\nLock down your home wifi and router so only trusted devices can join. The bot will guide you to change the network name, security type and password, and will give you a summary page at the end. It will never change anything without your say‑so.",
-  "hash": "6bceef2308fea68f5f73d430c59bcb998f3995ba5abd210a947b18de8bb2d706"
+  "readme": "# Wi-Fi security\n\nLock down your home wifi and router so only trusted devices can join. The bot will guide you to change the network name, security type and password, and will give you a summary page at the end. It will never change anything without your say‑so.",
+  "hash": "b8663d294c68e6590d305f0df5bebbb1e1eb0491a386132f9c194b0b5c1b56d7"
 }

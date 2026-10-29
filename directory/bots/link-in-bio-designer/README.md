@@ -1,4 +1,4 @@
-# link-in-bio designer
+# Link-in-bio designer
 Design a page that shows your offers and links in one place, ready to share.
 
 What it does: Takes a list of titles and URLs and turns them into a simple HTML page you can copy and paste anywhere.

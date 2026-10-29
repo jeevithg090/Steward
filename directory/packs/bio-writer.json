@@ -1,6 +1,6 @@
 {
   "id": "bio-writer",
-  "name": "bio writer",
+  "name": "Bio writer",
   "pitch": "Writes a 150-character summary of what the person actually does.",
   "category": "social",
   "version": 1,
@@ -34,5 +34,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "A bot that writes a 150-character bio. It remembers a fact about the person's work and returns a short summary. It cannot invent what the person does.",
-  "hash": "e48586471ac12a5e1049d1ea7992736fabd3b848030b3c313ab491da3165d5e4"
+  "hash": "37358e8fc4d35a2bba54ff744a468d2b41f47033b9ae0e41db1fb7490e10dad1"
 }

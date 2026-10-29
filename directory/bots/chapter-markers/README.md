@@ -1,4 +1,4 @@
-# chapter markers
+# Chapter markers
 creates a chapter markers file for youtube from timestamp notes
 
 what it does: reads a text file of timestamps and captions, extracts the times and text, and writes a new file formatted for youtube upload.

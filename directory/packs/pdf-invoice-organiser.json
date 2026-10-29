@@ -1,7 +1,7 @@
 {
   "id": "pdf-invoice-organiser",
-  "name": "pdf invoice organiser",
-  "pitch": "organises pdf invoices into a single searchable document",
+  "name": "PDF invoice organiser",
+  "pitch": "Organises pdf invoices into a single searchable document.",
   "category": "work",
   "version": 1,
   "author": {
@@ -35,6 +35,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# pdf invoice organiser\nOrganises pdf invoices into a single searchable document.\n\nNeeds: file_read, file_write, browser_navigate.\n\nWill not: open or read any pdf that is password-protected; create or send any file outside the workspace.\n\nWhat it does: lists pdfs in the workspace, reads each one, combines the text into combined-invoices.pdf, and reports back.",
-  "hash": "52f34399ede99be6bd6fd907ceaed1a153d14c95f2a8359289983f3eab85681d"
+  "readme": "# PDF invoice organiser\nOrganises pdf invoices into a single searchable document.\n\nNeeds: file_read, file_write, browser_navigate.\n\nWill not: open or read any pdf that is password-protected; create or send any file outside the workspace.\n\nWhat it does: lists pdfs in the workspace, reads each one, combines the text into combined-invoices.pdf, and reports back.",
+  "hash": "78c79d6ffc050a6455ec94e0b390b1ca109827804be1b0b37dae63b5f963f116"
 }

@@ -1,6 +1,6 @@
 {
   "id": "collab-scout",
-  "name": "collab scout",
+  "name": "Collab scout",
   "pitch": "Find creators in your field and draft a first outreach message",
   "category": "social",
   "version": 1,
@@ -42,6 +42,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# collab scout\nFind creators in your field and draft a first outreach message.\n\nWhat it does: searches the web for people who make content in your topic, notes what they do, and writes a short friendly message you can send or edit.\n\nWhat it needs: web search, page fetching, a table to show results, and a page to present the final message.\n\nWhat it will not do: it will not sign you up for anything, it will not send a message without your go-ahead, and it will not invent facts about the creators it finds.",
-  "hash": "89a0ed3f590c87ecad3324a63b216d1d7daa139c0d97d4d39e37ba6e8102c022"
+  "readme": "# Collab scout\nFind creators in your field and draft a first outreach message.\n\nWhat it does: searches the web for people who make content in your topic, notes what they do, and writes a short friendly message you can send or edit.\n\nWhat it needs: web search, page fetching, a table to show results, and a page to present the final message.\n\nWhat it will not do: it will not sign you up for anything, it will not send a message without your go-ahead, and it will not invent facts about the creators it finds.",
+  "hash": "5c1a690190888d3693d54e36419596b62b08d137c8242e2494cb239aa61237b1"
 }

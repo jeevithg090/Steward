@@ -1,4 +1,4 @@
-# content calendar template
+# Content calendar template
 
 Creates a reusable monthly content calendar template that can be duplicated each month.
 

@@ -1,5 +1,5 @@
 id: readme-builder
-name: readme builder
+name: Readme builder
 pitch: Builds a README from the repository's actual files and structure.
 category: dev
 version: 1

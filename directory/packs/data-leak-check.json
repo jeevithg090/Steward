@@ -1,6 +1,6 @@
 {
   "id": "data-leak-check",
-  "name": "data leak check",
+  "name": "Data leak check",
   "pitch": "Inspect a bot pack for anything that might expose the person's data to others.",
   "category": "bot-helpers",
   "version": 1,
@@ -35,5 +35,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## data leak check\nInspect a bot pack for anything that might expose the person's data to others.\n\nWhat it needs: a bot pack file to read.\nWhat it will not do: it will not change the bot pack, it will only report what it finds.",
-  "hash": "473d92d408708783d87a7ad7edda10652dd1304c8f5a882ecd067f3f187c46c7"
+  "hash": "443e8e246cd3090b4bafcc4b308d392be8b58648a904de2bb8208552596bd8b2"
 }

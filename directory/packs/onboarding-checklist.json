@@ -1,7 +1,7 @@
 {
   "id": "onboarding-checklist",
-  "name": "onboarding checklist",
-  "pitch": "makes a checklist for onboarding a new virtual assistant",
+  "name": "Onboarding checklist",
+  "pitch": "Makes a checklist for onboarding a new virtual assistant.",
   "category": "business",
   "version": 1,
   "author": {
@@ -34,5 +34,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## onboarding checklist\nCreates a checklist for onboarding a new virtual assistant.\nNeeds: make_page.\nWill not create the checklist if the tool is not connected.",
-  "hash": "c56a97277654958bc9df3b7429113522aacd7e39f36a8747fc095abeb2fea9c2"
+  "hash": "25c255ef610ce3734095c9e2832ab30f33e029cfbd5612945704f08e84d8318c"
 }

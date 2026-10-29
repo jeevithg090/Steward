@@ -1,6 +1,6 @@
 id: calorie-calculator
-name: calorie calculator
-pitch: calculate your daily calorie needs from age, weight, height and activity level
+name: Calorie calculator
+pitch: Calculate your daily calorie needs from age, weight, height and activity level.
 category: health
 version: 1
 author:

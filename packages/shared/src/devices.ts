@@ -109,6 +109,8 @@ export const SHORTCUT_HEADER = "x-steward-shortcut";
 export interface PhoneInfo {
   /** The device listener (127.0.0.1:8788 by default); `port` is null when it is switched off. */
   listener: { port: number | null; running: boolean };
+  /** Steward's main port, which a tunnel must never point at: it has no sign-in. */
+  mainPort: number;
   /** The address the phone uses to reach the device listener, or null until it is set. */
   url: string | null;
   /** A plain warning about that address (plain http at home), when there is one. */

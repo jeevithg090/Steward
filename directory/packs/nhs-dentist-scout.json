@@ -1,6 +1,6 @@
 {
   "id": "nhs-dentist-scout",
-  "name": "nhs dentist scout",
+  "name": "NHS dentist scout",
   "pitch": "Find an NHS dentist taking new patients within two miles of where the person lives.",
   "category": "home",
   "version": 1,
@@ -31,6 +31,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# nhs dentist scout\nFinds NHS dentists taking new patients within two miles of the person's location.\n\nWhat it needs: web search and a browser to read pages.\nWhat it will not do: call a surgery, book an appointment, or give prices.",
-  "hash": "1afb55cd8df5a48ac90f4c1bfab7e89021b2a6721594ea8894ce31e3f4ff6f74"
+  "readme": "# NHS dentist scout\nFinds NHS dentists taking new patients within two miles of the person's location.\n\nWhat it needs: web search and a browser to read pages.\nWhat it will not do: call a surgery, book an appointment, or give prices.",
+  "hash": "81bfa2f58a28aa7f0ec4ddce2b44803e00c56a842fb9635f90869fbb83e07938"
 }

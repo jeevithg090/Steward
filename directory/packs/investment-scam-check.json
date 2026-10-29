@@ -1,6 +1,6 @@
 {
   "id": "investment-scam-check",
-  "name": "investment scam check",
+  "name": "Investment scam check",
   "pitch": "Searches the web to see if a described investment is a known scam.",
   "category": "privacy",
   "version": 1,
@@ -39,6 +39,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# investment scam check\nSearches the web to see if a described investment is a known scam.\n\nNeeds: web search and browsing tools.\nWill not: give financial advice, guarantee safety, or claim something is definitely a scam.",
-  "hash": "81963524d7ee4a6627bacc7b5887855715157e54e367783fcff87256b3f55837"
+  "readme": "# Investment scam check\nSearches the web to see if a described investment is a known scam.\n\nNeeds: web search and browsing tools.\nWill not: give financial advice, guarantee safety, or claim something is definitely a scam.",
+  "hash": "9e1c6dbb9dce4ec9dbb9c770febc667caf89d01ba3dd492dee9981724607ac47"
 }

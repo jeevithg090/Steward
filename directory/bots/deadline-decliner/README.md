@@ -1,4 +1,4 @@
-# deadline decliner
+# Deadline decliner
 Turn down a work deadline without burning bridges.
 
 What it does: searches mail for the deadline, drafts a polite decline email, and sends it only after the person says yes.

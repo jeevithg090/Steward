@@ -1,6 +1,6 @@
 {
   "id": "social-scout",
-  "name": "social scout",
+  "name": "Social scout",
   "pitch": "Summarise competitor posting frequency and content themes this month",
   "category": "social",
   "version": 1,
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "social scout: summarises how often competitors post and what themes they cover this month. needs web_search, browser_snapshot, file_write, show_table. will not post or message anyone.",
-  "hash": "99778e986b2bc7ca193d978c67522deb12e3c9866439c5b3448b4a0d5aaa5d4b"
+  "hash": "79aeb2925a6617231c2afa0ad663b51102f157593883dc8749d04133bfad1832"
 }

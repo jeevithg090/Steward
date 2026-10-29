@@ -1,5 +1,5 @@
 id: k8s-health-endpoints
-name: k8s health endpoints
+name: K8s health endpoints
 pitch: Adds health check and readiness probes to a Kubernetes deployment YAML file.
 category: dev
 version: 1

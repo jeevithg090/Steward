@@ -1,6 +1,6 @@
 {
   "id": "refund-request",
-  "name": "refund request",
+  "name": "Refund request",
   "pitch": "Draft a refund letter for an undelivered service and send it to the company.",
   "category": "money",
   "version": 1,
@@ -40,6 +40,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# refund request\n\nDraft a refund letter for an undelivered service and send it to the company.\n\n**What it needs**\n- mail connector to read receipts and send the letter\n- make_page to write the letter text\n\n**What it will not do**\n- Guarantee the refund is granted\n- Quote consumer law or make binding promises\n- Send without the person's final approval",
-  "hash": "ba6bbeb7cd4de5d47a7785fa4b872b2075a2791b9be12a3777b18cfff3cad2b7"
+  "readme": "# Refund request\n\nDraft a refund letter for an undelivered service and send it to the company.\n\n**What it needs**\n- mail connector to read receipts and send the letter\n- make_page to write the letter text\n\n**What it will not do**\n- Guarantee the refund is granted\n- Quote consumer law or make binding promises\n- Send without the person's final approval",
+  "hash": "33496f0975c5e11dbc8c75f480b744b8c302857eed6ccf5fd4d203127f030e85"
 }

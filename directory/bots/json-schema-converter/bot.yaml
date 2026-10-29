@@ -1,5 +1,5 @@
 id: json-schema-converter
-name: json schema converter
+name: JSON schema converter
 pitch: Converts JSON data into a typed schema and a validator for developer use.
 category: dev
 version: 1

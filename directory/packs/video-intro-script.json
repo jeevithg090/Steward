@@ -1,6 +1,6 @@
 {
   "id": "video-intro-script",
-  "name": "video intro script",
+  "name": "Video intro script",
   "pitch": "Write a short video intro script for their website based on their notes.",
   "category": "business",
   "version": 1,
@@ -40,6 +40,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# video intro script\nWrites a short video intro script for a website based on the person's topic and tone.\nNeeds: make_page, file_write.\nWill not write a script without a topic and tone.",
-  "hash": "e434a995973771205c09b8565be68bb7d40a29fd44239edf85d7636944aef54b"
+  "readme": "# Video intro script\nWrites a short video intro script for a website based on the person's topic and tone.\nNeeds: make_page, file_write.\nWill not write a script without a topic and tone.",
+  "hash": "ef4d9303072bf5594106db872eebeb013af64f915b2654247ab3c5381e5ef777"
 }

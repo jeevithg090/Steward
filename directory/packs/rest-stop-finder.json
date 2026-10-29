@@ -1,6 +1,6 @@
 {
   "id": "rest-stop-finder",
-  "name": "rest stop finder",
+  "name": "Rest stop finder",
   "pitch": "Find a scenic rest stop with toilets and charging points on a long motorway drive.",
   "category": "travel",
   "version": 1,
@@ -38,5 +38,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "rest stop finder: looks for scenic motorway rest stops with toilets and charging points. needs browser navigation and web search. will not book or pay for anything.",
-  "hash": "71ab987a314d64f2df10cf4850915de5cb2285011d191573d219275972513987"
+  "hash": "3fa86974bfce14d0b96583f8c1c5b990dd08e6b64d92b8d2cd13d6af1366b8da"
 }

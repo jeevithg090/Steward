@@ -1,7 +1,7 @@
 {
   "id": "structured-logger",
-  "name": "structured logger",
-  "pitch": "adds structured logging with correlation ids and log levels to a codebase",
+  "name": "Structured logger",
+  "pitch": "Adds structured logging with correlation ids and log levels to a codebase.",
   "category": "dev",
   "version": 1,
   "author": {
@@ -40,5 +40,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "structured logger: adds structured logging with correlation ids and log levels to a codebase. needs file_list, file_read, file_write. will not modify any running service or add dependencies without asking.",
-  "hash": "804b2c9a2449a81ea7bf0810306ef3bb75fe04415e68928369166556b65e0d53"
+  "hash": "a2a48eb4b6ab0810a5138051c3cac64010228dcdce646845875b8dc263437abf"
 }

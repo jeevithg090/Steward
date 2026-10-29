@@ -1,5 +1,5 @@
 id: noise-cleaner
-name: noise cleaner
+name: Noise cleaner
 pitch: Remove background noise from an audio file using a noise profile.
 category: video-audio
 version: 1

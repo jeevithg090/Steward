@@ -1,6 +1,6 @@
 id: dog-walker-finder
-name: dog walker finder
-pitch: finds a reliable dog walker with weekday morning availability near the person
+name: Dog walker finder
+pitch: Finds a reliable dog walker with weekday morning availability near the person.
 category: home
 version: 1
 author:

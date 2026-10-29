@@ -1,4 +1,4 @@
-# dog walker finder
+# Dog walker finder
 Finds a reliable dog walker with weekday morning availability near the person.
 
 What it needs: web search and browser tools to look at listings.

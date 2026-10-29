@@ -1,6 +1,6 @@
 {
   "id": "scam-helper",
-  "name": "scam helper",
+  "name": "Scam helper",
   "pitch": "Helps the person check if something is a scam and what to do next.",
   "category": "privacy",
   "version": 1,
@@ -44,6 +44,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# scam helper\nHelps the person check if something is a scam and what to do next.\n\nWhat it needs: web_search, web_fetch, make_page, task_create.\nWhat it will not do: it cannot contact banks, it cannot change passwords, it cannot decide if something is definitely a scam – it can only report what it finds on the web.",
-  "hash": "0be5ae8baaa9ebe0f1c64801c6318a3a3a8e83effbbb5f3fd9b67ff64e0cc537"
+  "readme": "# Scam helper\nHelps the person check if something is a scam and what to do next.\n\nWhat it needs: web_search, web_fetch, make_page, task_create.\nWhat it will not do: it cannot contact banks, it cannot change passwords, it cannot decide if something is definitely a scam – it can only report what it finds on the web.",
+  "hash": "9019e130386f502ecebd2166ec2b1d340aa853fb89a08c0d401cd7df6a4a9328"
 }

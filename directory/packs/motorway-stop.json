@@ -1,6 +1,6 @@
 {
   "id": "motorway-stop",
-  "name": "motorway stop",
+  "name": "Motorway stop",
   "pitch": "Find a motorway service area with a budget restaurant and overnight parking.",
   "category": "travel",
   "version": 1,
@@ -42,5 +42,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "motorway stop: finds motorway service areas with a budget restaurant and overnight parking. needs browser navigation and web search. will not book anything or pay for parking.",
-  "hash": "fad82d8c35f66e5a26654d731abbf021bf9c3843cf7e2dc591b0a3bc5f922243"
+  "hash": "48fee01e16401471dae4a5da5406467b15b4c46fd93c1e2086f183a352dbda29"
 }

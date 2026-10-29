@@ -1,4 +1,4 @@
-# dockerfile composer
+# Dockerfile composer
 
 Generates a Dockerfile and docker-compose.yml with sensible defaults for a project.
 

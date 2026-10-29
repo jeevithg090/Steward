@@ -1,4 +1,4 @@
-# welcome dm sequence
+# Welcome DM sequence
 Writes a warm welcome message series for new followers on the social network you use.
 
 What it needs: file_write to save the messages, make_page to create the document.

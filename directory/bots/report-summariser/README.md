@@ -1,4 +1,4 @@
-# report summariser
+# Report summariser
 Turns a long report into a one-page summary for a director.
 
 **What it does:** Reads a report file, pulls out the key points and writes a short briefing.

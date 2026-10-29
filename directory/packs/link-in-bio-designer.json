@@ -1,6 +1,6 @@
 {
   "id": "link-in-bio-designer",
-  "name": "link-in-bio designer",
+  "name": "Link-in-bio designer",
   "pitch": "Design a page that shows your offers and links in one place, ready to share.",
   "category": "social",
   "version": 1,
@@ -34,6 +34,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# link-in-bio designer\nDesign a page that shows your offers and links in one place, ready to share.\n\nWhat it does: Takes a list of titles and URLs and turns them into a simple HTML page you can copy and paste anywhere.\n\nWhat it needs: file_write to save the page, make_page to show a preview. No other tools are needed.\n\nWhat it will not do: It will not add images, videos, or custom styling beyond basic headings and links. It will not publish the page to a website; you host the HTML yourself.",
-  "hash": "7c5a5ca5810e58be39d67127633f12ebe021f0579bdfe1bc78cea5122fa3145e"
+  "readme": "# Link-in-bio designer\nDesign a page that shows your offers and links in one place, ready to share.\n\nWhat it does: Takes a list of titles and URLs and turns them into a simple HTML page you can copy and paste anywhere.\n\nWhat it needs: file_write to save the page, make_page to show a preview. No other tools are needed.\n\nWhat it will not do: It will not add images, videos, or custom styling beyond basic headings and links. It will not publish the page to a website; you host the HTML yourself.",
+  "hash": "cb7a51960b93d63c14f536461bbd8ae3553d50d9a53efec514b4bdb244450ca3"
 }

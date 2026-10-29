@@ -1,6 +1,6 @@
 {
   "id": "research-matrix",
-  "name": "research matrix",
+  "name": "Research matrix",
   "pitch": "Compare research methods side by side to help decide the best fit for the study design.",
   "category": "research",
   "version": 1,
@@ -33,6 +33,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# research matrix\n\nCompare research methods side by side to help decide the best fit for a study design.\n\n**What it needs:** web search, browser snapshot, file write, show comparison, show table.\n**What it will not do:** It will not pick a method for the person; it only presents the data it can find. It will not sign in to any account or pay for access to paywalled content.",
-  "hash": "2bf5b5d474a08ebf2db3c521fc4c2a50277b572b693877070a3adea9038d1a03"
+  "readme": "# Research matrix\n\nCompare research methods side by side to help decide the best fit for a study design.\n\n**What it needs:** web search, browser snapshot, file write, show comparison, show table.\n**What it will not do:** It will not pick a method for the person; it only presents the data it can find. It will not sign in to any account or pay for access to paywalled content.",
+  "hash": "fbe5f98f24c12c7e14bf87454ba14d7eccb41e4fd6c9739a158b20665f0ce557"
 }

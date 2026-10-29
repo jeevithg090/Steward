@@ -1,6 +1,6 @@
 {
   "id": "tax-letter-helper",
-  "name": "tax letter helper",
+  "name": "Tax letter helper",
   "pitch": "Explain a tax letter and tell you what to do and by when.",
   "category": "money",
   "version": 1,
@@ -35,6 +35,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# tax letter helper\n\nReads a tax letter you give it, summarises what it says and lists any actions and deadlines. Creates a simple page showing the summary and what you need to do by when. Will not give tax advice or guess what the letter means.",
-  "hash": "69b7b24aab20ccc46a60505d78ed63a48b251938f430fa23fac298af4940ab35"
+  "readme": "# Tax letter helper\n\nReads a tax letter you give it, summarises what it says and lists any actions and deadlines. Creates a simple page showing the summary and what you need to do by when. Will not give tax advice or guess what the letter means.",
+  "hash": "11fa77f3d8a1a6e216e11315f8540f276bd853a8660f780a8ecb24ebcf6f76d4"
 }

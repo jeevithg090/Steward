@@ -1,6 +1,6 @@
 id: sales-summary
-name: sales summary
-pitch: summarizes three months of sales data and identifies the biggest trend
+name: Sales summary
+pitch: Summarizes three months of sales data and identifies the biggest trend.
 category: business
 version: 1
 author:

@@ -1,6 +1,6 @@
 {
   "id": "trade-log",
-  "name": "trade log",
+  "name": "Trade log",
   "pitch": "Record every trade with your thoughts and the reasoning behind it.",
   "category": "investing",
   "version": 1,
@@ -45,6 +45,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# trade log\nRecord every trade you make and the thought behind it.\n\n- Needs: memory_remember, file_write, show_table\n- Will not: make any trades, send money, or access external accounts\n- At the end of each entry, show a table of all recorded trades so you can review them at a glance.",
-  "hash": "62a7362db6fe67beac50778ee6f64a9bd4cb365d08b4388a2d17fc090986d559"
+  "readme": "# Trade log\nRecord every trade you make and the thought behind it.\n\n- Needs: memory_remember, file_write, show_table\n- Will not: make any trades, send money, or access external accounts\n- At the end of each entry, show a table of all recorded trades so you can review them at a glance.",
+  "hash": "4eed84290dc2ada52bd391cccb7ecb865d05332fe0ea32847bc82118355bc0ff"
 }

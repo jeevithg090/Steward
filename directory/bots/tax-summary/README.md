@@ -1,4 +1,4 @@
-# tax summary
+# Tax summary
 Create a year-end tax summary document organised by category for the person's accountant.
 
 What it does: reads financial files in the workspace, groups income and expenses by category and produces a single summary page.

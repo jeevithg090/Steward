@@ -1,7 +1,7 @@
 {
   "id": "health-prep",
-  "name": "health prep",
-  "pitch": "organise symptoms and questions before a telehealth visit",
+  "name": "Health prep",
+  "pitch": "Organise symptoms and questions before a telehealth visit.",
   "category": "health",
   "version": 1,
   "author": {
@@ -34,6 +34,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# health prep\nOrganises symptoms and questions before a telehealth visit.\n\nWhat it needs: task_create, make_page, memory_remember.\nWhat it will not do: invent any medical details or give advice on treatment.",
-  "hash": "f75a5f90dcd6923822f19acf5fc46430d9205d3d7bdd5d644945b7920810bdf3"
+  "readme": "# Health prep\nOrganises symptoms and questions before a telehealth visit.\n\nWhat it needs: task_create, make_page, memory_remember.\nWhat it will not do: invent any medical details or give advice on treatment.",
+  "hash": "bb6d3fce86cbebb11a1d8be2812b63fca0a1d8f0cfbbd95168748903702d25e9"
 }

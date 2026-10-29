@@ -21,6 +21,35 @@ export function sentence(text: string): string {
   return /[.!?]$/.test(capped) ? capped : `${capped}.`;
 }
 
+/** Words a small model writes in lowercase that a listing should show as people write them. */
+const NAME_WORDS: Record<string, string> = {
+  api: "API",
+  cc: "CC",
+  cv: "CV",
+  dm: "DM",
+  ira: "IRA",
+  json: "JSON",
+  nhs: "NHS",
+  pdf: "PDF",
+  seo: "SEO",
+  sql: "SQL",
+  uk: "UK",
+  wifi: "Wi-Fi",
+};
+
+/**
+ * A listing name in sentence case: "cc flagger" → "CC flagger", "wifi security" → "Wi-Fi security".
+ * Only the first letter and the known short forms change, so "iPhone helper" and "Rent scout" stay.
+ */
+export function displayName(text: string): string {
+  const flat = text
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b[a-z]+\b/g, (word) => NAME_WORDS[word] ?? word);
+  if (!flat || !/^[a-z]/.test(flat) || /^[a-z]+[A-Z]/.test(flat)) return flat;
+  return flat[0]!.toUpperCase() + flat.slice(1);
+}
+
 /** Cuts at a sentence end when one fits, else at a word, so a pitch never ends mid-word. */
 export function truncateAtWord(text: string, max: number): string {
   const flat = text.replace(/\s+/g, " ").trim();

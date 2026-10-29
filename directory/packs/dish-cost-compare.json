@@ -1,6 +1,6 @@
 {
   "id": "dish-cost-compare",
-  "name": "dish cost compare",
+  "name": "Dish cost compare",
   "pitch": "Compare the cost of cooking a dish from scratch versus buying it ready-made.",
   "category": "food",
   "version": 1,
@@ -35,5 +35,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "A bot that puts the cost of a home-cooked meal up against a bought version. It searches for recipes and prices, then shows the difference. It does not buy anything or sign in to any account.",
-  "hash": "06d89804bf8eb214d74cc36406f3fb8e3ae66b1cefe0e9621fec4c3f79ca6d66"
+  "hash": "888277c6fc5904aa48c325ac843b013be2262c6f061f4f5ed14a793b071e7417"
 }

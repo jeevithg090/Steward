@@ -1,7 +1,7 @@
 {
   "id": "replication-scout",
-  "name": "replication scout",
-  "pitch": "finds and saves replication studies for key experiments in a research paper",
+  "name": "Replication scout",
+  "pitch": "Finds and saves replication studies for key experiments in a research paper.",
   "category": "research",
   "version": 1,
   "author": {
@@ -46,6 +46,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# replication scout\nfinds and saves replication studies for key experiments in a research paper\n\nwhat it does: searches the web for peer‑reviewed repeats or reanalyses of the paper's experiments, collects the findings in a table and offers to save the list.\nwhat it needs: web_search, browser_snapshot, file_write, show_table\nwhat it will not do: it cannot access pay‑walled journals, it cannot guarantee a perfect match to every experiment, and it will not claim a study replicates the work without checking the summary.",
-  "hash": "80e6764244a40307b4a5af8a435e9bd07037df49136e6af91275548c851fc072"
+  "readme": "# Replication scout\nfinds and saves replication studies for key experiments in a research paper\n\nwhat it does: searches the web for peer‑reviewed repeats or reanalyses of the paper's experiments, collects the findings in a table and offers to save the list.\nwhat it needs: web_search, browser_snapshot, file_write, show_table\nwhat it will not do: it cannot access pay‑walled journals, it cannot guarantee a perfect match to every experiment, and it will not claim a study replicates the work without checking the summary.",
+  "hash": "4858d6461aa201ad46729e5b936c24f6968d708ae99cffaa2cd0b4b2d66fd4dc"
 }

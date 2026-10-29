@@ -1,4 +1,4 @@
-# task tracker
+# Task tracker
 Helps you see what each team member is waiting on from you.
 
 What it needs: memory_remember to recall notes, task_create to list open tasks, show_table to display the results.

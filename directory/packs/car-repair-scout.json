@@ -1,6 +1,6 @@
 {
   "id": "car-repair-scout",
-  "name": "car repair scout",
+  "name": "Car repair scout",
   "pitch": "Find a nearby garage with good reviews that fixes the person's car model",
   "category": "travel",
   "version": 1,
@@ -42,5 +42,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "car repair scout: finds a garage with good reviews that fixes a specific car model near a named station. needs browser tools and web search. will not book or pay for any service.",
-  "hash": "4598e6c9cb3e5bef4c2cc58cb45a1577968076277d350c07de8e26a6f9a27ca5"
+  "hash": "6d081a9adb6cdc308c46a5b7d529929413875d1f481d5f66ac134b111dd7f524"
 }

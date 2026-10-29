@@ -1,6 +1,6 @@
 {
   "id": "thank-you-note",
-  "name": "thank-you note",
+  "name": "Thank-you note",
   "pitch": "Writes and sends a thank-you note to the boss for feedback.",
   "category": "work",
   "version": 1,
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "A bot that drafts and sends a thank-you note to your boss for feedback. Needs access to your mail.",
-  "hash": "58d3f56038a75019785d2940d953c139ab1e2c36fcc966c758afe9e0e3ffd2f8"
+  "hash": "ef0e86edeaa50e34e838e5af48c92d2ecf21076e615f812adfc6438bbb59bbc9"
 }

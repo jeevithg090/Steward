@@ -1,6 +1,6 @@
 {
   "id": "thumbnail-designer",
-  "name": "thumbnail designer",
+  "name": "Thumbnail designer",
   "pitch": "Makes a video thumbnail template with placeholders for consistent branding across clips.",
   "category": "video-audio",
   "version": 1,
@@ -41,5 +41,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "thumbnail designer\nCreates a video thumbnail template with placeholders for channel name and logo so branding stays consistent across all uploads.\nNeeds: make_page to draw the image, web_search only if the person asks for branding ideas.\nWill not: change the video file itself or upload anything to a platform.",
-  "hash": "68afdeee95a6bebb1b65e39a7b6ed361a0e0e7906c7bb96948e152e24b84ae7f"
+  "hash": "77a44c51c190a37f40e8693b7b2ab45dde1e029d40519a674567d4ba85fbf631"
 }

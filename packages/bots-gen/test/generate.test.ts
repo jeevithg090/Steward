@@ -8,7 +8,7 @@ const validateRuleLocally = (when: string) => new CelEngine(CONTEXT_SCHEMA, neut
 import { generateBot, templatePack, toolsForJob } from "../src/generate.ts";
 import { parseJsonObject, repairTrailingCommas } from "../src/json.ts";
 import { isPackTool, RULE_MENU } from "../src/prompt.ts";
-import { nameFromJob, slugify } from "../src/text.ts";
+import { displayName, nameFromJob, slugify } from "../src/text.ts";
 
 const CTX = {
   tools: Object.keys(TOOLS),
@@ -179,5 +179,15 @@ describe("text helpers", () => {
     expect(slugify("--a--b--")).toBe("a-b");
     expect(nameFromJob("find me a flat I can afford")).toBe("Flat finder");
     expect(nameFromJob("plan a week of dinners for four")).toBe("Week dinners planner");
+  });
+
+  it("puts listing names in sentence case without touching the rest", () => {
+    expect(displayName("cc flagger")).toBe("CC flagger");
+    expect(displayName("wifi security")).toBe("Wi-Fi security");
+    expect(displayName("rest stop finder")).toBe("Rest stop finder");
+    expect(displayName("  welcome dm   sequence ")).toBe("Welcome DM sequence");
+    expect(displayName("k8s health endpoints")).toBe("K8s health endpoints");
+    expect(displayName("iPhone helper")).toBe("iPhone helper");
+    expect(displayName("Rent scout")).toBe("Rent scout");
   });
 });

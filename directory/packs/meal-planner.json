@@ -1,6 +1,6 @@
 {
   "id": "meal-planner",
-  "name": "meal planner",
+  "name": "Meal planner",
   "pitch": "Create a grocery list grouped by store section from your weekly meal plan.",
   "category": "health",
   "version": 1,
@@ -30,6 +30,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# meal planner\nCreate a grocery list grouped by store section from your weekly meal plan.\n\n- Tools: reads a meal plan text file, organises items into sections, outputs a table.\n- Will not: invent meal plans or guess quantities.\n- Needs a meal plan text file to start.",
-  "hash": "062306409658e34a5d24ab78a9077597f22d2122cd98e0832d1b7048df9ebf9f"
+  "readme": "# Meal planner\nCreate a grocery list grouped by store section from your weekly meal plan.\n\n- Tools: reads a meal plan text file, organises items into sections, outputs a table.\n- Will not: invent meal plans or guess quantities.\n- Needs a meal plan text file to start.",
+  "hash": "c3d62638dd0e4bacb5f80f4b09db693ead74b51108d97c937132b789cd2fd2fa"
 }

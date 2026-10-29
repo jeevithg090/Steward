@@ -1,4 +1,4 @@
-# news summarizer
+# News summarizer
 
 Builds a summary of the latest headlines from the person's chosen news sources. Uses web search to find current articles, fetches the text, and creates a short summary for each source. The person decides which sources to follow and can change them at any time.
 

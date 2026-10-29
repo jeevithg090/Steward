@@ -1,6 +1,6 @@
 id: toll-checker
-name: toll checker
-pitch: finds toll costs and vignette requirements for driving through a specific country
+name: Toll checker
+pitch: Finds toll costs and vignette requirements for driving through a specific country.
 category: travel
 version: 1
 author:

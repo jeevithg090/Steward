@@ -1,4 +1,4 @@
-# meeting decliner
+# Meeting decliner
 Writes a respectful decline to a meeting invitation in the person's tone.
 
 **What it needs**

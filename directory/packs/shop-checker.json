@@ -1,6 +1,6 @@
 {
   "id": "shop-checker",
-  "name": "shop checker",
+  "name": "Shop checker",
   "pitch": "Checks a shop's website before the person buys from it for the first time.",
   "category": "privacy",
   "version": 1,
@@ -42,6 +42,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# shop checker\nChecks a shop's website before the person buys from it for the first time.\n\nWhat it does: Finds the shop's website, reads its privacy policy, and summarises what it says about data collection. If no privacy policy is found, it tells the person.\n\nWhat it needs: web_fetch, web_search, browser_navigate, browser_snapshot.\n\nWhat it will not do: It will not buy anything, sign up for anything, or give a safety verdict. It only reports what it finds.",
-  "hash": "00d14af6d16aa41fa5a08fccb8b3c25d1ee7ea8e8036e93a777177d10478f609"
+  "readme": "# Shop checker\nChecks a shop's website before the person buys from it for the first time.\n\nWhat it does: Finds the shop's website, reads its privacy policy, and summarises what it says about data collection. If no privacy policy is found, it tells the person.\n\nWhat it needs: web_fetch, web_search, browser_navigate, browser_snapshot.\n\nWhat it will not do: It will not buy anything, sign up for anything, or give a safety verdict. It only reports what it finds.",
+  "hash": "488aefec0c13d8254929ad79af2ceb8bb8c64e8e4fb1f3596e4c21945dc39bfc"
 }

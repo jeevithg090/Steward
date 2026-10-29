@@ -1,6 +1,6 @@
 {
   "id": "after-school-clubs",
-  "name": "after-school clubs",
+  "name": "After-school clubs",
   "pitch": "Find local after-school clubs that finish at 6 pm for a seven-year-old.",
   "category": "home",
   "version": 1,
@@ -36,6 +36,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# after-school clubs\nFind local after-school clubs that finish at 6 pm for a seven-year-old.\n\nWhat it does: searches the web for clubs, checks their finish times and age ranges, and presents a comparison table.\n\nWhat it needs: web search and browser tools.\n\nWhat it will not do: it cannot book a place, it cannot guarantee availability, and it cannot give prices unless clearly stated on the page.",
-  "hash": "0df6fdcce7f91f609814299f445afb002eaeb2976269fbd37693eff90333956e"
+  "readme": "# After-school clubs\nFind local after-school clubs that finish at 6 pm for a seven-year-old.\n\nWhat it does: searches the web for clubs, checks their finish times and age ranges, and presents a comparison table.\n\nWhat it needs: web search and browser tools.\n\nWhat it will not do: it cannot book a place, it cannot guarantee availability, and it cannot give prices unless clearly stated on the page.",
+  "hash": "34cfa3dff4366e273bfe6bd5f347602b07e26b5d131fe6e2bd1e3fc449b66fa6"
 }

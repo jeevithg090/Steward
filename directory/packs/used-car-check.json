@@ -1,6 +1,6 @@
 {
   "id": "used-car-check",
-  "name": "used car check",
+  "name": "Used car check",
   "pitch": "Helps the person inspect a used car before paying, so they avoid hidden faults.",
   "category": "travel",
   "version": 1,
@@ -43,6 +43,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# used car check\nHelps you inspect a used car before paying, so you avoid hidden faults.\n\nWhat it needs: web_search to look up known issues, make_page to summarise findings.\nWhat it will not do: it cannot verify the car's actual condition or give a price valuation.",
-  "hash": "950bb270ef81e8cece290ffdad2ae4473bcf0e7c4b2b5e3d76cb1f718355eacc"
+  "readme": "# Used car check\nHelps you inspect a used car before paying, so you avoid hidden faults.\n\nWhat it needs: web_search to look up known issues, make_page to summarise findings.\nWhat it will not do: it cannot verify the car's actual condition or give a price valuation.",
+  "hash": "c6bf2ed252150e8625baedcb47551a6f702f39c4c7081a0c40bacec3d008330b"
 }

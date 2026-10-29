@@ -1,6 +1,6 @@
 {
   "id": "home-insurance-renewal",
-  "name": "home insurance renewal",
+  "name": "Home insurance renewal",
   "pitch": "Compare building and contents quotes at policy renewal to find a cheaper deal.",
   "category": "home",
   "version": 1,
@@ -43,6 +43,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# home insurance renewal\nCompare building and contents quotes at policy renewal to find a cheaper deal.\n\nWhat it does: searches the web for renewal quotes, reads the cover details and presents a comparison table.\nWhat it needs: web search and browser tools. It does not contact insurers or switch policies without the person's say-so.\nWhat it will not do: it will not book a policy, take payment or sign any documents.",
-  "hash": "a405e12f927515b337e0c8f54e03a1269aa58861cb327df03f22247bfa356eb2"
+  "readme": "# Home insurance renewal\nCompare building and contents quotes at policy renewal to find a cheaper deal.\n\nWhat it does: searches the web for renewal quotes, reads the cover details and presents a comparison table.\nWhat it needs: web search and browser tools. It does not contact insurers or switch policies without the person's say-so.\nWhat it will not do: it will not book a policy, take payment or sign any documents.",
+  "hash": "8ab8d791665e3768eec6971250150a4a1e7daef12f00dbb379f101ca0df4431d"
 }

@@ -1,4 +1,4 @@
-# food storage guide
+# Food storage guide
 Tell you how long leftovers keep and how to store them safely.
 
 What it does: searches the web for how many days a food stays good in the fridge, and how to store it to stay safe. Shows the person the time and method, or says it could not check.

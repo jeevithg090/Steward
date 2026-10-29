@@ -1,7 +1,7 @@
 {
   "id": "caption-guide",
-  "name": "caption guide",
-  "pitch": "extracts tone, style and themes from your last 20 captions into a reusable guide",
+  "name": "Caption guide",
+  "pitch": "Extracts tone, style and themes from your last 20 captions into a reusable guide.",
   "category": "social",
   "version": 1,
   "author": {
@@ -45,6 +45,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# caption guide\nExtracts tone, style and themes from the person's last 20 captions and writes a short guide file. The guide lists tone words, sentence length habits, emoji use and recurring topics so the person can reuse them. Needs read/write access to the workspace. Will not publish or share the guide outside the workspace.",
-  "hash": "aa3d48242f52f0725aee039e83cb49c6be3ce23e0815a9be9f505e336ee5d927"
+  "readme": "# Caption guide\nExtracts tone, style and themes from the person's last 20 captions and writes a short guide file. The guide lists tone words, sentence length habits, emoji use and recurring topics so the person can reuse them. Needs read/write access to the workspace. Will not publish or share the guide outside the workspace.",
+  "hash": "e9b5e98efd8f88fa95da7de3213ca679eb163ad89a84e01aa3befc7f128b37bd"
 }

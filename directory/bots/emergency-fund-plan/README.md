@@ -1,4 +1,4 @@
-# emergency fund plan
+# Emergency fund plan
 
 Build a prioritized three-month financial safety plan.
 

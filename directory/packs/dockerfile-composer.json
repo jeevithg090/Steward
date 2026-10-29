@@ -1,6 +1,6 @@
 {
   "id": "dockerfile-composer",
-  "name": "dockerfile composer",
+  "name": "Dockerfile composer",
   "pitch": "Generates a Dockerfile and docker-compose.yml with sensible defaults for a project.",
   "category": "dev",
   "version": 1,
@@ -47,6 +47,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# dockerfile composer\n\nGenerates a Dockerfile and docker-compose.yml with sensible defaults for a project.\n\n**What it does:** Reads the project files, detects the language, and writes configuration files for Docker.\n\n**What it needs:** Access to the project folder and the ability to write files.\n\n**What it will not do:** It will not configure databases, external services, or custom networking unless the person asks.",
-  "hash": "233161cc18bda64c95d64fa798856d6c0381d5b5e4032f8df0134f8ca688da27"
+  "readme": "# Dockerfile composer\n\nGenerates a Dockerfile and docker-compose.yml with sensible defaults for a project.\n\n**What it does:** Reads the project files, detects the language, and writes configuration files for Docker.\n\n**What it needs:** Access to the project folder and the ability to write files.\n\n**What it will not do:** It will not configure databases, external services, or custom networking unless the person asks.",
+  "hash": "d1b53a96113a7b7fbf526700c85e0f8d411fdec4aad92afa73f6a175373e0a98"
 }

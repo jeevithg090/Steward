@@ -1,4 +1,4 @@
-# data complaint
+# Data complaint
 Write and submit a formal complaint to a data protection authority about a company.
 
 What it does: Searches for the correct authority, gathers submission requirements, and creates a draft complaint template.

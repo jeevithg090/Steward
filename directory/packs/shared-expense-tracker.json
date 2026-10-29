@@ -1,6 +1,6 @@
 {
   "id": "shared-expense-tracker",
-  "name": "shared expense tracker",
+  "name": "Shared expense tracker",
   "pitch": "Tracks shared costs and calculates automatic monthly settlements for roommates.",
   "category": "money",
   "version": 1,
@@ -47,6 +47,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# shared expense tracker\nTracks shared costs and calculates automatic monthly settlements for roommates.\n\n## what it does\n- Logs rent, groceries, bills and any other shared cost.\n- After each entry it recalculates who owes what.\n- At month end it shows a settlement table of net balances.\n- Can run a routine on the first of each month to reset.\n\n## what it needs\n- file_write to store the cost log.\n- show_table to display balances and settlements.\n- routine_create to offer a monthly reset.\n- memory_remember to store names.\n- task_create to remind on the first of the month.\n\n## what it will not do\n- It will not move money or pay bills.\n- It will not guess amounts or look up prices.\n- It will not sign any agreement or send money requests.",
-  "hash": "9f1121ce3f18587449d11aa661bb72cd1408d4c4c91cf12abca75e51dbc848c2"
+  "readme": "# Shared expense tracker\nTracks shared costs and calculates automatic monthly settlements for roommates.\n\n## what it does\n- Logs rent, groceries, bills and any other shared cost.\n- After each entry it recalculates who owes what.\n- At month end it shows a settlement table of net balances.\n- Can run a routine on the first of each month to reset.\n\n## what it needs\n- file_write to store the cost log.\n- show_table to display balances and settlements.\n- routine_create to offer a monthly reset.\n- memory_remember to store names.\n- task_create to remind on the first of the month.\n\n## what it will not do\n- It will not move money or pay bills.\n- It will not guess amounts or look up prices.\n- It will not sign any agreement or send money requests.",
+  "hash": "8cb608afb8e4eb81920c7953a4a56072e35744a1037a08637934ad7826abcad7"
 }

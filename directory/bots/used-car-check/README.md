@@ -1,4 +1,4 @@
-# used car check
+# Used car check
 Helps you inspect a used car before paying, so you avoid hidden faults.
 
 What it needs: web_search to look up known issues, make_page to summarise findings.

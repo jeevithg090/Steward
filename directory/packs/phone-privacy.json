@@ -1,6 +1,6 @@
 {
   "id": "phone-privacy",
-  "name": "phone privacy",
+  "name": "Phone privacy",
   "pitch": "Checks public people-search sites to see if your phone number appears online.",
   "category": "privacy",
   "version": 1,
@@ -31,6 +31,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# phone privacy\nChecks public people-search sites to see if your phone number appears online.\n\n**What it does:** Searches the web for the phone number you give it, visits a few directories, and tells you if the number shows up in the preview.\n\n**What it needs:** web_search, web_fetch, browser_navigate, browser_snapshot.\n\n**What it will not do:** It will not remove the number from any site, it will not create accounts, and it will not claim the number is definitely private—only whether it appears in a preview.",
-  "hash": "ecb2f8589a5e41127a7fbe6e5957daa61e6e950401c32bedd588dfb113875884"
+  "readme": "# Phone privacy\nChecks public people-search sites to see if your phone number appears online.\n\n**What it does:** Searches the web for the phone number you give it, visits a few directories, and tells you if the number shows up in the preview.\n\n**What it needs:** web_search, web_fetch, browser_navigate, browser_snapshot.\n\n**What it will not do:** It will not remove the number from any site, it will not create accounts, and it will not claim the number is definitely private—only whether it appears in a preview.",
+  "hash": "6979269f9539b25cb54545888e1d5fa206f7e8dc39b874624edfd30f67e440da"
 }

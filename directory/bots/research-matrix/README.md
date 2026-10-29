@@ -1,4 +1,4 @@
-# research matrix
+# Research matrix
 
 Compare research methods side by side to help decide the best fit for a study design.
 

@@ -1,4 +1,4 @@
-# trade log
+# Trade log
 Record every trade you make and the thought behind it.
 
 - Needs: memory_remember, file_write, show_table

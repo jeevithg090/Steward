@@ -1,4 +1,4 @@
-# rock climbing gym finder
+# Rock climbing gym finder
 Finds a local climbing gym with a day pass available this weekend.
 
 **What it needs**

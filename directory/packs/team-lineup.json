@@ -1,6 +1,6 @@
 {
   "id": "team-lineup",
-  "name": "team lineup",
+  "name": "Team lineup",
   "pitch": "Find the most likely starting eleven for tomorrow's match and explain the choices.",
   "category": "sports",
   "version": 1,
@@ -40,6 +40,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# team lineup\nFind the most likely starting eleven for tomorrow's match and explain the choices.\n\nWorks with any professional team. Needs only web search. Will not place bets, send messages or sign up for anything.\n\nIf the lineup cannot be found, the agent will say so and offer to check a different source or the next match.",
-  "hash": "459f5e4b4015b42714ab33151a13ecf53de7617e015e90032ec6181f15ec32d7"
+  "readme": "# Team lineup\nFind the most likely starting eleven for tomorrow's match and explain the choices.\n\nWorks with any professional team. Needs only web search. Will not place bets, send messages or sign up for anything.\n\nIf the lineup cannot be found, the agent will say so and offer to check a different source or the next match.",
+  "hash": "5766ee59ac2800704035f00d544d12b6ab609177ddfe8174f6540df54bc2117a"
 }

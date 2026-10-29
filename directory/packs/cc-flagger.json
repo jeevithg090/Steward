@@ -1,7 +1,7 @@
 {
   "id": "cc-flagger",
-  "name": "cc flagger",
-  "pitch": "flags emails where you are cc'd but your name is mentioned in the body",
+  "name": "CC flagger",
+  "pitch": "Flags emails where you are cc'd but your name is mentioned in the body.",
   "category": "productivity",
   "version": 1,
   "author": {
@@ -43,6 +43,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# cc flagger\nFlags emails where you are cc'd but your name appears in the body, so you can quickly see what needs your input.\n\n**What it does:** Scans recent mail, checks the Cc line and body for your name, and lists matches.\n\n**What it needs:** Access to your mail box.\n\n**What it will not do:** It will not reply to or forward any email, and it will not read messages you mark as private.",
-  "hash": "7f65f09ac7d972614c5ee4f233d19cbf3f0714a4915b6ace93e8485461bba9b6"
+  "readme": "# CC flagger\nFlags emails where you are cc'd but your name appears in the body, so you can quickly see what needs your input.\n\n**What it does:** Scans recent mail, checks the Cc line and body for your name, and lists matches.\n\n**What it needs:** Access to your mail box.\n\n**What it will not do:** It will not reply to or forward any email, and it will not read messages you mark as private.",
+  "hash": "b518f48be3e33ae36a12f9d956a55bc29cde712794d8dd5ac0b007aed5f92ed4"
 }

@@ -1,6 +1,6 @@
 {
   "id": "fuel-cost-calculator",
-  "name": "fuel cost calculator",
+  "name": "Fuel cost calculator",
   "pitch": "Calculate fuel cost vs electric charging for a planned route.",
   "category": "travel",
   "version": 1,
@@ -41,6 +41,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# fuel cost calculator\nCalculate the total cost of fuel vs electric charging for a planned route.\n\nWhat it does: looks up current fuel and electricity prices, then compares the cost of driving the route on petrol versus charging an electric car.\nWhat it needs: web search to find up-to-date prices in the person's region.\nWhat it will not do: it cannot know the person's exact car efficiency or route distance without being told.",
-  "hash": "5b9d4e7778a7cb37b0a8985b0cc09d41baa7660bc9594ae1976198a17a019db8"
+  "readme": "# Fuel cost calculator\nCalculate the total cost of fuel vs electric charging for a planned route.\n\nWhat it does: looks up current fuel and electricity prices, then compares the cost of driving the route on petrol versus charging an electric car.\nWhat it needs: web search to find up-to-date prices in the person's region.\nWhat it will not do: it cannot know the person's exact car efficiency or route distance without being told.",
+  "hash": "0860f0c633794c0228d5fdf03fc98afd785c4ef4b0038b2041cbea4dcbfcb68e"
 }

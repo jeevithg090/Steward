@@ -1,6 +1,6 @@
 {
   "id": "charity-checker",
-  "name": "charity checker",
+  "name": "Charity checker",
   "pitch": "Check if a charity asking for donations is legitimate.",
   "category": "privacy",
   "version": 1,
@@ -43,6 +43,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# charity checker\nCheck if a charity asking for donations is legitimate.\n\nWhat it does: searches the web for the charity name, reads results, and looks for registration numbers or warnings.\nWhat it needs: web search and browsing tools.\nWhat it will not do: claim a charity is definitely safe or definitely a scam. It can only report what facts it could check.",
-  "hash": "6800cf7b32c81620ade1b8fd0c951ff5b57df67d019ab32e0ca12b8b656284ea"
+  "readme": "# Charity checker\nCheck if a charity asking for donations is legitimate.\n\nWhat it does: searches the web for the charity name, reads results, and looks for registration numbers or warnings.\nWhat it needs: web search and browsing tools.\nWhat it will not do: claim a charity is definitely safe or definitely a scam. It can only report what facts it could check.",
+  "hash": "819a9ef9fd65b8707c4b4715e1e83d40531e5506396aa1fcd62f71865e3b63a3"
 }

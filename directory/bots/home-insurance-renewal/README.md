@@ -1,4 +1,4 @@
-# home insurance renewal
+# Home insurance renewal
 Compare building and contents quotes at policy renewal to find a cheaper deal.
 
 What it does: searches the web for renewal quotes, reads the cover details and presents a comparison table.

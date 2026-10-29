@@ -1,6 +1,6 @@
 {
   "id": "scam-alert",
-  "name": "scam alert",
+  "name": "Scam alert",
   "pitch": "Write a message to an elderly relative explaining how to spot a phone scam.",
   "category": "privacy",
   "version": 1,
@@ -33,6 +33,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# scam alert\nWrites a message to an elderly relative about phone scams.\nNeeds: make_page.\nWill not: invent names or call anyone.",
-  "hash": "087e01d26cbbf074f020413adc4063b5e68c173d8e6150830776f618f54abd77"
+  "readme": "# Scam alert\nWrites a message to an elderly relative about phone scams.\nNeeds: make_page.\nWill not: invent names or call anyone.",
+  "hash": "cb1b484941b48298cb7911606991d06b5f2ffed7514ab31e4012ad19a0ba8c87"
 }

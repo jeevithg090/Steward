@@ -1,6 +1,6 @@
 {
   "id": "timesheet-logger",
-  "name": "timesheet logger",
+  "name": "Timesheet logger",
   "pitch": "Parses a timesheet file and logs work hours into a task list.",
   "category": "bot-helpers",
   "version": 1,
@@ -37,6 +37,6 @@
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# timesheet logger\n\nParses a timesheet text file and logs work hours into a task list. Looks for a file named timesheet.txt or similar, reads each line that has a start time, end time, and description, and creates a task for each session. Will not create tasks if no matching lines are found. Needs access to file_list, file_read, file_write, and task_create.",
-  "hash": "604174d055227ee09155e896793ae26a64e56527542a2ae71e8860dafefef4f9"
+  "readme": "# Timesheet logger\n\nParses a timesheet text file and logs work hours into a task list. Looks for a file named timesheet.txt or similar, reads each line that has a start time, end time, and description, and creates a task for each session. Will not create tasks if no matching lines are found. Needs access to file_list, file_read, file_write, and task_create.",
+  "hash": "b3bb3ef7d551961ad4f3900c4f550f05d2929c1dea42c6546eb6a869ea5e5cb5"
 }
