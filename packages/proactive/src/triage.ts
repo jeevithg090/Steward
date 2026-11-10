@@ -15,9 +15,11 @@
  * the person did not give, so the prompt speaks of "the person" and their address.
  */
 
+import { createHash } from "node:crypto";
 import type { Db } from "@steward/db";
 import type { EmailAddress, EmailSummary, TextModel, TriageItem, TriageVerdict } from "@steward/shared";
 import { z } from "zod";
+import { stripReasoning } from "./reasoning.ts";
 
 /** An email as triage reads it. Connectors that know headers, cc or the body may pass them along. */
 export interface TriageEmail extends EmailSummary {
@@ -310,32 +312,90 @@ const answerSchema = z.object({
   reason: z.string().trim().min(1).max(400),
 });
 
+/** Every balanced `{…}` in the text, by where it starts; braces inside JSON strings do not count. */
+function jsonCandidates(text: string): { start: number; end: number }[] {
+  const found: { start: number; end: number }[] = [];
+  const open: number[] = [];
+  let inString = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (ch === "\\") i++;
+      else if (ch === '"') inString = false;
+    } else if (ch === '"' && open.length > 0) {
+      inString = true;
+    } else if (ch === "{") {
+      open.push(i);
+    } else if (ch === "}" && open.length > 0) {
+      found.push({ start: open.pop() as number, end: i + 1 });
+    }
+  }
+  return found;
+}
+
 /**
- * Reads the model's answer: the text between the first `{` and the last `}`, so a fenced block or
- * a sentence around it does no harm. Anything without a verdict and a reason is refused, never
- * guessed.
+ * Reads the model's answer. Its thinking (`<think>…</think>`) is dropped first. Then every balanced
+ * `{…}` is tried, the last one first, so a fenced block, a sentence around it, a draft in the
+ * thinking or a note after it does no harm. Anything without a verdict and a reason is refused,
+ * never guessed.
  */
 export function parseTriageAnswer(text: string): { verdict: TriageVerdict; reason: string } {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end <= start) throw new TriageAnswerError("The model's answer had no JSON object.");
-  let value: unknown;
-  try {
-    value = JSON.parse(text.slice(start, end + 1));
-  } catch {
-    throw new TriageAnswerError("The model's answer was not valid JSON.");
+  const answer = stripReasoning(text);
+  const candidates = jsonCandidates(answer).sort((a, b) => b.end - a.end || a.start - b.start);
+  if (candidates.length === 0) throw new TriageAnswerError("The model's answer had no JSON object.");
+  let readable = false;
+  for (const { start, end } of candidates) {
+    let value: unknown;
+    try {
+      value = JSON.parse(answer.slice(start, end));
+    } catch {
+      continue;
+    }
+    readable = true;
+    const parsed = answerSchema.safeParse(value);
+    if (parsed.success)
+      return { verdict: parsed.data.verdict, reason: parsed.data.reason.replace(/\s+/g, " ") };
   }
-  const parsed = answerSchema.safeParse(value);
-  if (!parsed.success) throw new TriageAnswerError("The model's answer did not have a verdict and a reason.");
-  return { verdict: parsed.data.verdict, reason: parsed.data.reason.replace(/\s+/g, " ") };
+  throw new TriageAnswerError(
+    readable
+      ? "The model's answer did not have a verdict and a reason."
+      : "The model's answer was not valid JSON.",
+  );
 }
 
 // ── Sorting a batch ────────────────────────────────────────────────────────────────────────────
 
-/** Model verdicts kept by email id, so the brief and the inbox do not pay for the same answer twice. */
+/** Which model gave a verdict, and with what it knew: a verdict is reused only for the same pair. */
+export interface TriageCacheKey {
+  /** The model's label. Undefined when no model is set up: any model's recent verdict then serves. */
+  model?: string;
+  /** A short hash of the prompt and what the person has said about themselves (`triageContextKey`). */
+  context: string;
+}
+
+/**
+ * Model verdicts kept by email id, so the brief and the inbox do not pay for the same answer twice.
+ * A verdict from another model, from before the person told Steward something new about themselves,
+ * or older than 30 days, is not served.
+ */
 export interface TriageCache {
-  get(emailId: string): { verdict: TriageVerdict; reason: string } | undefined;
-  set(emailId: string, answer: { verdict: TriageVerdict; reason: string }, model: string): void;
+  get(emailId: string, key: TriageCacheKey): { verdict: TriageVerdict; reason: string } | undefined;
+  set(
+    emailId: string,
+    answer: { verdict: TriageVerdict; reason: string },
+    key: Required<TriageCacheKey>,
+  ): void;
+}
+
+/** How long a cached verdict is served. */
+export const TRIAGE_CACHE_DAYS = 30;
+
+/** The cache's context for a run: changes when the prompt or what the person told Steward changes. */
+export function triageContextKey(about: string | undefined): string {
+  return createHash("sha256")
+    .update(`${TRIAGE_SYSTEM}\n${about ?? ""}`)
+    .digest("hex")
+    .slice(0, 16);
 }
 
 export interface TriageRun {
@@ -423,7 +483,8 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
     ownerNames: ownerNames(emails, deps.ownerEmail),
   };
   const named = (reason: string) => withoutOwnerNames(reason, run.ownerNames);
-  const context: TriageContext = {
+  const context = triageContextKey(deps.about);
+  const promptContext: TriageContext = {
     now: deps.now,
     ...(deps.ownerEmail ? { ownerEmail: deps.ownerEmail } : {}),
     ...(deps.about ? { about: deps.about } : {}),
@@ -437,7 +498,10 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
       return item(email, "can_wait", ruled.reason, CONFIDENCE.rules, "rules");
     }
     run.forModel += 1;
-    const cached = deps.cache?.get(email.id);
+    const cached = deps.cache?.get(email.id, {
+      context,
+      ...(deps.model ? { model: deps.model.label } : {}),
+    });
     if (cached) {
       run.byModel += 1;
       return item(email, cached.verdict, named(cached.reason), CONFIDENCE.model, "model");
@@ -447,7 +511,7 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
       return item(email, "needs_you", UNSORTED_REASON, CONFIDENCE.unsorted, "rules");
     }
     try {
-      const { system, prompt } = triagePrompt(email, context);
+      const { system, prompt } = triagePrompt(email, promptContext);
       const text = await deps.model.complete({
         system,
         prompt,
@@ -456,7 +520,7 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
       });
       const parsed = parseTriageAnswer(text);
       const answer = { verdict: parsed.verdict, reason: named(parsed.reason) };
-      deps.cache?.set(email.id, answer, deps.model.label);
+      deps.cache?.set(email.id, answer, { model: deps.model.label, context });
       run.byModel += 1;
       return item(email, answer.verdict, answer.reason, CONFIDENCE.model, "model");
     } catch (error) {
@@ -494,31 +558,32 @@ export function inboxOwner(emails: readonly TriageEmail[], label?: string): stri
   return best;
 }
 
-/** The triage cache in SQLite. Entries older than 30 days are dropped as new ones arrive. */
+/** The triage cache in SQLite. Entries older than 30 days are never served, and are dropped. */
 export function createTriageCache(db: Db, now: () => Date): TriageCache {
   let writes = 0;
+  const cutoff = (at: Date) => new Date(at.getTime() - TRIAGE_CACHE_DAYS * 24 * 3600_000).toISOString();
+  const prune = (at: Date) => db.run("DELETE FROM proactive_triage_cache WHERE created_at < ?", [cutoff(at)]);
+  prune(now());
   return {
-    get(emailId) {
+    get(emailId, key) {
       const row = db.get<{ verdict: string; reason: string }>(
-        "SELECT verdict, reason FROM proactive_triage_cache WHERE email_id = ?",
-        [emailId],
+        `SELECT verdict, reason FROM proactive_triage_cache
+         WHERE email_id = ? AND context = ? AND created_at >= ? ${key.model !== undefined ? "AND model = ?" : ""}`,
+        [emailId, key.context, cutoff(now()), ...(key.model !== undefined ? [key.model] : [])],
       );
       if (!row || (row.verdict !== "needs_you" && row.verdict !== "can_wait")) return undefined;
       return { verdict: row.verdict, reason: row.reason };
     },
-    set(emailId, answer, model) {
+    set(emailId, answer, key) {
       const at = now();
       db.run(
-        `INSERT INTO proactive_triage_cache (email_id, verdict, reason, confidence, model, created_at)
-         VALUES (?, ?, ?, ?, ?, ?)
+        `INSERT INTO proactive_triage_cache (email_id, verdict, reason, confidence, model, context, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT (email_id) DO UPDATE SET verdict = excluded.verdict, reason = excluded.reason,
-           model = excluded.model, created_at = excluded.created_at`,
-        [emailId, answer.verdict, answer.reason, CONFIDENCE.model, model, at.toISOString()],
+           model = excluded.model, context = excluded.context, created_at = excluded.created_at`,
+        [emailId, answer.verdict, answer.reason, CONFIDENCE.model, key.model, key.context, at.toISOString()],
       );
-      if (++writes % 100 === 0) {
-        const cutoff = new Date(at.getTime() - 30 * 24 * 3600_000).toISOString();
-        db.run("DELETE FROM proactive_triage_cache WHERE created_at < ?", [cutoff]);
-      }
+      if (++writes % 100 === 0) prune(at);
     },
   };
 }

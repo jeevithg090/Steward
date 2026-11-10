@@ -387,6 +387,14 @@ describe("the brief's summary", () => {
     expect(cleanSummary("```\n- hi\n```")).toBeUndefined();
   });
 
+  it("never shows a reasoning model's thinking", () => {
+    expect(
+      cleanSummary("<think> The user wants a brief. Sam has 3 emails. </think> Three emails need you today."),
+    ).toBe("Three emails need you today.");
+    expect(cleanSummary("Planning the brief.\n</think>\nTwo emails can wait.")).toBe("Two emails can wait.");
+    expect(cleanSummary("<think>Still thinking about the brief and")).toBeUndefined();
+  });
+
   it("writes a plain summary that is always true", () => {
     const base = {
       date: "2026-10-22",

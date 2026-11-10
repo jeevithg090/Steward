@@ -14,6 +14,7 @@ import type {
 } from "@steward/shared";
 import { newId } from "@steward/shared";
 import { ProactiveError } from "./errors.ts";
+import { stripReasoning } from "./reasoning.ts";
 import { suggestFromBrief } from "./suggestions.ts";
 import { isIsoDate, isKnownTimeZone, localDate, localDayBounds, localTime, weekdayOf } from "./time.ts";
 import { type TriageEmail, withoutOwnerNames } from "./triage.ts";
@@ -145,11 +146,11 @@ export function summaryPrompt(input: SummaryInput): string {
 }
 
 /**
- * Tidies a model's summary: no fences, quotes, markdown or greeting, at most three sentences.
+ * Tidies a model's summary: no thinking, fences, quotes, markdown or greeting, at most three sentences.
  * Returns undefined when nothing usable is left, so the plain summary takes over.
  */
 export function cleanSummary(text: string): string | undefined {
-  let out = text
+  let out = stripReasoning(text)
     .replace(/```[a-z]*\n?|```/gi, " ")
     .replace(/^\s*(#+|[-*•]|\d+[.)])\s+/gm, "")
     .replace(/\*\*|__|(?<!\w)[*_](?!\s)|(?<!\s)[*_](?!\w)/g, "")

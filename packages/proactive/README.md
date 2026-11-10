@@ -95,7 +95,14 @@ Needs you or can wait, with a one-line reason, for each email. Adapted from Open
    "Couldn't sort this one; showing it to be safe.", `by: "rules"`, confidence 0, and the brief says
    how many and why. Provider error text is never stored: it can echo parts of a key.
 
-Model verdicts are cached by email id, so the inbox and the brief do not pay twice.
+The model's answer is read after dropping any thinking (`<think>…</think>`, as reasoning models such
+as qwen3 and deepseek-r1 write it); then each `{…}` in it is tried, the last first. The brief's
+summary drops thinking too.
+
+Model verdicts are cached by email id, so the inbox and the brief do not pay twice. A cached verdict
+is reused only from the same model, with the same prompt and the same facts you gave in Memory, and
+for 30 days; telling Steward who your accountant is takes effect on the next sort. With no model set
+up, a recent verdict from any model is still shown.
 `EmailSummary` has no headers; connectors may add `headers`, `cc` and `body` (see `TriageEmail`).
 
 ### The morning brief

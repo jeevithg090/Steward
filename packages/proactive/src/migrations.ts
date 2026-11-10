@@ -95,4 +95,12 @@ export const migrations: Migration[] = [
       );
     `,
   },
+  {
+    // A cached verdict is reused only with the prompt and the facts about you it was made with.
+    // Rows from before this have no context, so they are asked again once.
+    id: "proactive.002_triage_cache_context",
+    sql: `
+      ALTER TABLE proactive_triage_cache ADD COLUMN context TEXT NOT NULL DEFAULT '';
+    `,
+  },
 ];

@@ -146,6 +146,27 @@ describe("the model's prompt and answer", () => {
     expect(() => parseTriageAnswer('{"verdict":"maybe","reason":"x"}')).toThrow(TriageAnswerError);
     expect(() => parseTriageAnswer("{not json}")).toThrow(TriageAnswerError);
   });
+
+  it("reads past a reasoning model's thinking and a note after the answer", () => {
+    const answer = '{"verdict":"needs_you","reason":"Asks you to sign by Friday."}';
+    const expected = { verdict: "needs_you", reason: "Asks you to sign by Friday." };
+    expect(
+      parseTriageAnswer(`<think>Use {"verdict": "can_wait", "reason": "draft"} maybe.</think>\n${answer}`),
+    ).toEqual(expected);
+    expect(parseTriageAnswer(`${answer}\nNote: I used {verdict, reason}.`)).toEqual(expected);
+    expect(parseTriageAnswer(`Okay, the user wants a verdict.\n</think>\n\n${answer}`)).toEqual(expected);
+    expect(parseTriageAnswer(`{"verdict":"needs_you","reason":"Mentions {braces} in the text."}`)).toEqual({
+      verdict: "needs_you",
+      reason: "Mentions {braces} in the text.",
+    });
+    // Thinking that ran out of room never counts as an answer, even with a draft inside.
+    expect(() => parseTriageAnswer('<think>Maybe {"verdict":"can_wait","reason":"x"}')).toThrow(
+      TriageAnswerError,
+    );
+    expect(() => parseTriageAnswer('{"verdict":"needs_you"} and {"reason":"x"}')).toThrow(
+      "did not have a verdict and a reason",
+    );
+  });
 });
 
 describe("sorting a batch", () => {
@@ -315,6 +336,42 @@ describe("the triage service", () => {
     const second = await proactive.triage.triage(emails);
     expect(second).toEqual(first);
     expect(model.calls).toHaveLength(1);
+  });
+
+  it("asks again after a change of model, of what you told Steward, or 30 days", async () => {
+    const answer = (reason: string) => () => `{"verdict":"can_wait","reason":"${reason}"}`;
+    const a = fakeModel(answer("Model A says wait."), "model-a");
+    const b = fakeModel(answer("Model B says wait."), "model-b");
+    let current = a;
+    const proactive = setup({ model: () => current });
+    const emails = [email({ subject: "Hello" })];
+    expect((await proactive.triage.triage(emails))[0]?.reason).toBe("Model A says wait.");
+
+    current = b;
+    expect((await proactive.triage.triage(emails))[0]?.reason).toBe("Model B says wait.");
+    expect((await proactive.triage.triage(emails))[0]?.reason).toBe("Model B says wait.");
+    expect(b.calls).toHaveLength(1);
+
+    proactive.memory.add("Lee Park is my accountant.", "you");
+    await proactive.triage.triage(emails);
+    expect(b.calls).toHaveLength(2);
+
+    proactive.clock.advance(31 * 24 * 3600_000);
+    await proactive.triage.triage(emails);
+    expect(b.calls).toHaveLength(3);
+    expect(a.calls).toHaveLength(1);
+  });
+
+  it("with no model set up, still shows a verdict a model gave recently", async () => {
+    let model: ReturnType<typeof subjectModel> | undefined = subjectModel();
+    const proactive = setup({ model: () => model });
+    const emails = [email({ subject: "Confirm today!" })];
+    await proactive.triage.triage(emails);
+    model = undefined;
+    expect((await proactive.triage.run(emails)).items[0]).toMatchObject({
+      by: "model",
+      verdict: "needs_you",
+    });
   });
 
   it("gives the model only what the person said about themselves, and the inbox owner", async () => {
