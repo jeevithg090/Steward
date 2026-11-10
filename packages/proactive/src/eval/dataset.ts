@@ -66,6 +66,16 @@ export function toTriageEmail(row: LabelledEmail): TriageEmail {
   };
 }
 
+/**
+ * A row the way a mail list's summary carries it: a 200-character snippet, no body and, from the
+ * Gmail connector today, no Cc. Steward reads the whole message before the model sorts it, so this
+ * is what triage sees only when that read fails. `pnpm eval:triage --summaries` measures it.
+ */
+export function summaryShape(row: LabelledEmail): TriageEmail {
+  const { body: _body, cc: _cc, ...summary } = toTriageEmail(row);
+  return { ...summary, snippet: row.body.slice(0, 200) };
+}
+
 export interface Metrics {
   total: number;
   labelledNeedsYou: number;

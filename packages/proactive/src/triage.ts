@@ -423,6 +423,12 @@ export interface TriageDeps {
   signal?: AbortSignal;
   concurrency?: number;
   cache?: TriageCache;
+  /**
+   * Fills in what a summary lacks (the body, Cc, headers) before the model reads a message. Called
+   * only for mail the rules leave and the cache does not know, and only when there is a model. It
+   * must not throw: on any trouble it returns the email as given.
+   */
+  complete?: (email: TriageEmail) => Promise<TriageEmail>;
 }
 
 function item(
@@ -483,6 +489,13 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
     ownerNames: ownerNames(emails, deps.ownerEmail),
   };
   const named = (reason: string) => withoutOwnerNames(reason, run.ownerNames);
+  /** A full message can name the owner where its summary did not (on the Cc line). */
+  const learnNames = (email: TriageEmail) => {
+    const fresh = ownerNames([email], deps.ownerEmail).filter((name) => !run.ownerNames.includes(name));
+    if (fresh.length === 0) return;
+    run.ownerNames.push(...fresh);
+    run.ownerNames.sort((a, b) => b.length - a.length);
+  };
   const context = triageContextKey(deps.about);
   const promptContext: TriageContext = {
     now: deps.now,
@@ -510,8 +523,21 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
       run.unsorted += 1;
       return item(email, "needs_you", UNSORTED_REASON, CONFIDENCE.unsorted, "rules");
     }
+    let full = email;
+    if (deps.complete) {
+      full = await deps.complete(email);
+      deps.signal?.throwIfAborted();
+      learnNames(full);
+      // The whole message can show what its summary hid, such as an auto-reply's headers.
+      const late = full === email ? undefined : ruleVerdict(full);
+      if (late) {
+        run.forModel -= 1;
+        run.byRules += 1;
+        return item(email, "can_wait", late.reason, CONFIDENCE.rules, "rules");
+      }
+    }
     try {
-      const { system, prompt } = triagePrompt(email, promptContext);
+      const { system, prompt } = triagePrompt(full, promptContext);
       const text = await deps.model.complete({
         system,
         prompt,

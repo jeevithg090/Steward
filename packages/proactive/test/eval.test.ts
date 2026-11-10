@@ -9,6 +9,7 @@ import {
   parseDataset,
   renderResults,
   score,
+  summaryShape,
   summaryTable,
   toTriageEmail,
 } from "../src/eval/dataset.ts";
@@ -17,7 +18,7 @@ import {
   DEFAULT_OPENROUTER_EVAL_MODEL,
   evalModelConfig,
 } from "../src/eval/model.ts";
-import { triageEmails } from "../src/triage.ts";
+import { triageEmails, triagePrompt } from "../src/triage.ts";
 import { fakeModel } from "./helpers.ts";
 
 const DATASET = fileURLToPath(new URL("../../../evals/triage/dataset.jsonl", import.meta.url));
@@ -105,6 +106,21 @@ describe("the triage eval set", () => {
     expect(new Set(table.map((line) => line.length)).size).toBe(1);
     expect(markdown).toContain("### Disagreements\n\nNone.");
     expect(summaryTable(sections)).toContain("Rules, then the model");
+  });
+
+  it("can measure the summary a mail list carries: a snippet and no Cc", () => {
+    const n13 = set.find((row) => row.id === "n13")!;
+    const summary = summaryShape(n13);
+    expect(summary.body).toBeUndefined();
+    expect(summary.cc).toBeUndefined();
+    expect(summary.snippet).toBe(n13.body.slice(0, 200));
+    const context = { now: EVAL_NOW, ownerEmail: EVAL_OWNER };
+    expect(triagePrompt(toTriageEmail(n13), context).prompt).toContain(
+      "(The person is copied, not a direct recipient.)",
+    );
+    expect(triagePrompt(summary, context).prompt).toContain("(The person is not named as a recipient.)");
+    const long = set.find((row) => row.body.length > 200)!;
+    expect(triagePrompt(summaryShape(long), context).prompt).not.toContain(long.body);
   });
 
   it("weights recall over precision in F2", () => {

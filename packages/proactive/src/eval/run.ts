@@ -4,6 +4,8 @@
  *
  *   pnpm eval:triage                rules only, then the model when one is configured
  *   pnpm eval:triage --rules-only   rules only, no model calls
+ *   pnpm eval:triage --summaries    also the model on summaries only (snippet, no Cc): what triage
+ *                                   reads when the whole message can't be fetched
  *
  * The model comes from STEWARD_EVAL_BASE_URL + STEWARD_EVAL_MODEL (+ STEWARD_EVAL_API_KEY), or from
  * OPENROUTER_API_KEY (model STEWARD_EVAL_MODEL, default anthropic/claude-haiku-5.5). Prints a table
@@ -23,6 +25,7 @@ import {
   renderResults,
   type Section,
   score,
+  summaryShape,
   summaryTable,
   toTriageEmail,
 } from "./dataset.ts";
@@ -33,6 +36,7 @@ const DATASET = `${EVAL_DIR}dataset.jsonl`;
 const RESULTS = `${EVAL_DIR}results.md`;
 
 const rulesOnly = process.argv.includes("--rules-only");
+const summariesToo = process.argv.includes("--summaries");
 const set = parseDataset(await readFile(DATASET, "utf8"));
 const emails = set.map(toTriageEmail);
 const context = { now: EVAL_NOW, ownerEmail: EVAL_OWNER, about: EVAL_ABOUT };
@@ -67,6 +71,17 @@ if (config) {
     metrics: score(rows, names),
     ...(run.failure ? { failure: run.failure } : {}),
   });
+  if (summariesToo) {
+    const summaryRun = await triageEmails(set.map(summaryShape), { ...context, model, concurrency: 6 });
+    const summaryRows = pairResults(set, summaryRun);
+    sections.push({
+      title: "Rules, then the model, on summaries",
+      model: config.model,
+      rows: summaryRows,
+      metrics: score(summaryRows, names),
+      ...(summaryRun.failure ? { failure: summaryRun.failure } : {}),
+    });
+  }
 } else {
   note = rulesOnly
     ? "Rules only, as asked (`--rules-only`)."

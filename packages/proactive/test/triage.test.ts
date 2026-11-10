@@ -1,6 +1,10 @@
+import { memoryDb } from "@steward/db";
 import { describe, expect, it } from "vitest";
+import { createMemoryStore } from "../src/memory.ts";
+import { migrations } from "../src/migrations.ts";
 import {
   CONFIDENCE,
+  createTriageCache,
   inboxOwner,
   ownerNames,
   parseTriageAnswer,
@@ -11,6 +15,7 @@ import {
   UNSORTED_REASON,
   withoutOwnerNames,
 } from "../src/triage.ts";
+import { createTriageService } from "../src/triage-service.ts";
 import { email, fakeMail, fakeModel, setup, subjectModel } from "./helpers.ts";
 
 const NOW = new Date("2026-10-22T07:30:00Z");
@@ -372,6 +377,92 @@ describe("the triage service", () => {
       by: "model",
       verdict: "needs_you",
     });
+  });
+
+  it("reads each message whole before the model sorts it, as the eval does", async () => {
+    const summary = email({
+      subject: "Re: catalogue shoot",
+      to: [{ email: "sam@studio.example" }],
+      snippet: "Sam, thanks for the photos. Quick note on the",
+    });
+    const settled = email({ subject: "Sale", labels: ["CATEGORY_PROMOTIONS"] });
+    const mail = fakeMail({
+      label: "owner@studio.example",
+      getEmail: (id) =>
+        id === summary.id
+          ? {
+              ...summary,
+              cc: [{ email: "owner@studio.example" }],
+              body: "Sam, thanks for the photos. And to the owner, copied here: can you approve the budget today?",
+            }
+          : undefined,
+    });
+    const model = subjectModel();
+    const proactive = setup({ model: () => model, mail: () => mail });
+    await proactive.triage.triage([summary, settled]);
+    expect(mail.fullReads).toEqual([summary.id]);
+    const prompt = model.calls[0]!.prompt;
+    expect(prompt).toContain("can you approve the budget today?");
+    expect(prompt).toContain("(The person is copied, not a direct recipient.)");
+
+    // Cached mail is not read again.
+    await proactive.triage.triage([summary]);
+    expect(mail.fullReads).toEqual([summary.id]);
+  });
+
+  it("lets the whole message settle a rule the summary could not", async () => {
+    const summary = email({ subject: "Re: your order" });
+    const mail = fakeMail({
+      getEmail: () => ({
+        ...summary,
+        cc: [],
+        body: "I'm away.",
+        headers: { "Auto-Submitted": "auto-replied" },
+      }),
+    });
+    const model = subjectModel();
+    const run = await setup({ model: () => model, mail: () => mail }).triage.run([summary]);
+    expect(run.items[0]).toMatchObject({ verdict: "can_wait", by: "rules" });
+    expect(run).toMatchObject({ byRules: 1, forModel: 0, byModel: 0 });
+    expect(model.calls).toEqual([]);
+  });
+
+  it("keeps the summary when the whole message can't be read, and stops asking for that run", async () => {
+    const emails = [
+      email({ subject: "A", snippet: "Only the snippet A." }),
+      ...Array.from({ length: 11 }, (_, i) => email({ subject: `M${i}` })),
+    ];
+    const failing = fakeMail({
+      getEmail: () => {
+        throw new Error("Gmail answered 500, token=abc");
+      },
+    });
+    const model = subjectModel();
+    const proactive = setup({ model: () => model, mail: () => failing });
+    const run = await proactive.triage.run(emails);
+    expect(run.items.every((i) => i.by === "model")).toBe(true);
+    expect(model.calls[0]!.prompt).toContain("Only the snippet A.");
+    // The first ones were asked for at once; once one failed, the rest used their summaries.
+    expect(failing.fullReads.length).toBeLessThanOrEqual(8);
+    expect(JSON.stringify(run)).not.toContain("token=");
+
+    const slow = fakeMail({ getEmail: () => new Promise(() => {}) });
+    const slowModel = subjectModel();
+    const db = memoryDb();
+    db.migrate(migrations);
+    const quick = createTriageService({
+      mail: () => slow,
+      model: () => slowModel,
+      memory: createMemoryStore({ db, now: () => NOW }),
+      cache: createTriageCache(db, () => NOW),
+      now: () => NOW,
+      fullEmailTimeoutMs: 20,
+    });
+    const started = Date.now();
+    const slowRun = await quick.run(Array.from({ length: 12 }, (_, i) => email({ subject: `M${i}` })));
+    expect(slowRun.byModel).toBe(12);
+    expect(Date.now() - started).toBeLessThan(2_000);
+    expect(slow.fullReads.length).toBeLessThanOrEqual(8);
   });
 
   it("gives the model only what the person said about themselves, and the inbox owner", async () => {

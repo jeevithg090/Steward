@@ -103,7 +103,11 @@ Model verdicts are cached by email id, so the inbox and the brief do not pay twi
 is reused only from the same model, with the same prompt and the same facts you gave in Memory, and
 for 30 days; telling Steward who your accountant is takes effect on the next sort. With no model set
 up, a recent verdict from any model is still shown.
-`EmailSummary` has no headers; connectors may add `headers`, `cc` and `body` (see `TriageEmail`).
+Before the model sorts a message, triage reads it whole with `getEmail` (body, Cc and headers), as
+the eval does, so "you are copied" and the ask at the end of a long message are seen. Mail the rules
+settle, or the cache knows, is never fetched. A read that fails or takes over five seconds keeps the
+summary, and the rest of that run uses summaries. Connectors may also put `headers`, `cc` and `body`
+on summaries (see `TriageEmail`).
 
 ### The morning brief
 

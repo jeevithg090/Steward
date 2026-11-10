@@ -57,7 +57,13 @@ Each row: `id` (`n01`–`n28`, `c01`–`c35`), `label`, `why`, `from`, `to`, `cc
 ```sh
 pnpm eval:triage                 # rules only, then the model when one is configured
 pnpm eval:triage --rules-only    # rules only, no model calls
+pnpm eval:triage --summaries     # also the model on summaries only
 ```
+
+"Rules, then the model" is what Steward does: before the model sorts a message, triage reads it
+whole (body, Cc and headers), as each row here gives it. `--summaries` adds a run on what a mail
+list's summary carries (a 200-character snippet, no body, no Cc), which is what triage falls back to
+when the whole message can't be read.
 
 The model comes from the environment, first match wins:
 
