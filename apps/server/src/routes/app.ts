@@ -1,4 +1,4 @@
-import { type AgentsResponse, type AppInfo, ROUTES, SettingsBody } from "@steward/shared";
+import { type AgentsResponse, type AppInfo, type ModelConfig, ROUTES, SettingsBody } from "@steward/shared";
 import type { Hono } from "hono";
 import type { StewardServices } from "../context.ts";
 import { readBody } from "../http/errors.ts";
@@ -20,6 +20,20 @@ export function appInfo(s: StewardServices): AppInfo {
     version: s.version,
     singleUser: true,
   };
+}
+
+/**
+ * A model choice as the record keeps it: the provider, the model and only the host of an address,
+ * which can carry a key in its user part or query.
+ */
+function modelFacts(m: Pick<ModelConfig, "provider" | "model" | "baseUrl">): Record<string, string> {
+  let host: string | undefined;
+  try {
+    host = m.baseUrl ? new URL(m.baseUrl).host : undefined;
+  } catch {
+    host = undefined;
+  }
+  return { provider: m.provider, model: m.model, ...(host ? { host } : {}) };
 }
 
 /** `/api/health`, `/api/info`, `/api/agents`, `/api/settings`, `/api/setup`. */
@@ -52,7 +66,15 @@ export function registerAppRoutes(app: Hono, s: StewardServices): void {
       (after.provider !== before?.provider ||
         after.model !== before?.model ||
         after.baseUrl !== before?.baseUrl);
-    if (changed) await s.models.configure(after);
+    if (changed) {
+      // Where every conversation goes from now on: on the record before the model is switched.
+      s.gateway.audit.append({
+        type: "settings.model_changed",
+        actorId: s.actorId,
+        detail: { ...(before ? { from: modelFacts(before) } : {}), to: modelFacts(after) },
+      });
+      await s.models.configure(after);
+    }
     return c.json(s.settings.read(shown()));
   });
 

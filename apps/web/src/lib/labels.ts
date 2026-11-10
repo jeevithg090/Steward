@@ -146,6 +146,11 @@ export const AUDIT_TYPE_LABELS: Record<AuditType, string> = {
   "device.changed": "Phone access changed",
   "device.revoked": "Phone removed",
   "device.refused": "Phone refused",
+  "settings.model_changed": "Model changed",
+  "mcp.server_added": "Tool server added",
+  "mcp.server_changed": "Tool server changed",
+  "mcp.server_removed": "Tool server removed",
+  "phone.address_changed": "Phone address changed",
 };
 
 /**

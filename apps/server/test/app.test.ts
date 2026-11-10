@@ -592,5 +592,28 @@ describe.runIf(missing.length === 0)(
       expect(put.body.model.baseUrl).toBeUndefined();
       expect(t.server.services.models.config.baseUrl).toBe("https://openrouter.ai/api/v1");
     });
+
+    it("puts each change of model on the record, with only the host of an address", async () => {
+      const rows = async () =>
+        (await t.api<AuditPage>("/api/audit?type=settings.model_changed&limit=50")).body.events;
+      const put = (model: unknown) => t.api("/api/settings", { method: "PUT", json: { model } });
+      await put({ provider: "openrouter", model: "anthropic/claude-sonnet-5.5" });
+      const before = (await rows()).length;
+      const address = "https://user:sk-in-the-address@models.example:8443/v1?key=sk-in-the-query";
+      await put({ provider: "openai-compatible", model: "local-1", baseUrl: address });
+      // The same choice again, and a change to something else, are not a new place to send to.
+      await put({ provider: "openai-compatible", model: "local-1", baseUrl: address });
+      await t.api("/api/settings", { method: "PUT", json: { plainLanguage: true } });
+      const after = await rows();
+      expect(after.length).toBe(before + 1);
+      const row = after[0]!;
+      expect(row.actorId).toBe("local");
+      expect(row.detail).toEqual({
+        from: { provider: "openrouter", model: "anthropic/claude-sonnet-5.5" },
+        to: { provider: "openai-compatible", model: "local-1", host: "models.example:8443" },
+      });
+      expect(JSON.stringify(row)).not.toMatch(/sk-|user:|\/v1/);
+      expect((await t.api<ChainCheck>("/api/audit/verify")).body.ok).toBe(true);
+    });
   },
 );
