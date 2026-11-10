@@ -55,13 +55,13 @@ as feature requests.
 Settings → Accessibility, saved in this browser and applied before the page first paints, so a
 setting never flashes the default first:
 
-| Setting   | Choices                           | What it does                                                                                                       |
-| --------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Text size | Standard (100%), 115%, 130%, 150% | Scales all text and the layout with it. Browser zoom works too.                                                    |
-| Contrast  | Match this device, More contrast  | Stronger text, borders and focus rings, no translucent surfaces. The system's "Increase contrast" turns it on too. |
-| Colours   | Match this device, Light, Dark    | Follows the system by default, and changes with it.                                                                |
-| Lettering | Standard, Easier to read          | A high-legibility face with wider letter spacing.                                                                  |
-| Motion    | Match this device, Reduce motion  | No animation. The system's reduced-motion setting is honoured either way.                                          |
+| Setting   | Choices                          | What it does                                                                                                       |
+| --------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Text size | Standard, Large, Larger, Largest | 100%, 115%, 130% or 150%. Scales all text and the layout with it. Browser zoom works too.                          |
+| Contrast  | Match this device, More contrast | Stronger text, borders and focus rings, no translucent surfaces. The system's "Increase contrast" turns it on too. |
+| Colours   | Match this device, Light, Dark   | Follows the system by default, and changes with it.                                                                |
+| Lettering | Standard, Easier to read         | A high-legibility face with wider letter spacing.                                                                  |
+| Motion    | Match this device, Reduce motion | No animation. The system's reduced-motion setting is honoured either way.                                          |
 
 **Windows High Contrast** (forced colours) repaints the page in the system's own colours and drops
 shadows and tints. Steward draws its edges and states so they survive that: switches keep an
