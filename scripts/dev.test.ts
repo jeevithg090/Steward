@@ -114,6 +114,7 @@ describe.skipIf(process.platform === "win32")("pnpm dev", () => {
     );
     const r = run([], [pnpm, "/usr/bin", "/bin"]);
     await r.waitFor(/Steward is ready: open http:\/\/localhost:5173\//);
+    await r.waitFor(/│ {3}tenant {4}steward\n/);
     // Each line once, whole, with its prefix; the blank line the server prints is kept.
     expect(r.output()).toMatch(/server\S*│ Steward is ready at http:\/\/127\.0\.0\.1:8787\n/);
     expect(r.output()).toMatch(/server\S*│ \n/);
