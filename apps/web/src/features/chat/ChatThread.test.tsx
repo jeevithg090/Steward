@@ -518,6 +518,86 @@ describe("ChatThread", () => {
     expect(within(panel).getByText("plan.md").closest("li")?.getAttribute("aria-current")).toBe("true");
   });
 
+  describe("following the end of the conversation", () => {
+    let grow: () => void;
+    let scrollTo: ReturnType<typeof vi.fn>;
+    let restoreScroll: () => void;
+    beforeEach(() => {
+      const observers: (() => void)[] = [];
+      grow = () => {
+        for (const observer of observers) observer();
+      };
+      vi.stubGlobal(
+        "ResizeObserver",
+        class {
+          constructor(callback: () => void) {
+            observers.push(callback);
+          }
+          observe() {}
+          disconnect() {}
+        },
+      );
+      vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+        callback(0);
+        return 1;
+      });
+      scrollTo = vi.fn();
+      const spy = vi
+        .spyOn(window, "scrollTo")
+        .mockImplementation(scrollTo as unknown as typeof window.scrollTo);
+      restoreScroll = () => spy.mockRestore();
+    });
+    afterEach(() => {
+      restoreScroll();
+      Reflect.deleteProperty(document.documentElement, "scrollHeight");
+    });
+    /** The person scrolls up, away from the end of a long conversation. */
+    const scrollUp = () => {
+      Object.defineProperty(document.documentElement, "scrollHeight", { configurable: true, value: 5000 });
+      act(() => {
+        window.dispatchEvent(new Event("scroll"));
+      });
+    };
+
+    it("keeps the end in view when something grows in place, not only on a new message", async () => {
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      scrollTo.mockClear();
+      grow();
+      expect(scrollTo).toHaveBeenCalledTimes(1);
+      grow();
+      expect(scrollTo).toHaveBeenCalledTimes(2);
+    });
+
+    it("leaves the view where the person scrolled it", async () => {
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      scrollUp();
+      scrollTo.mockClear();
+      grow();
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it("jumps to the latest without gliding when motion is reduced", async () => {
+      localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify({ motion: "reduce" }));
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      scrollUp();
+      scrollTo.mockClear();
+      fireEvent.click(screen.getByRole("button", { name: "Jump to the latest" }));
+      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "auto" }));
+    });
+
+    it("glides there otherwise", async () => {
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      scrollUp();
+      scrollTo.mockClear();
+      fireEvent.click(screen.getByRole("button", { name: "Jump to the latest" }));
+      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
+    });
+  });
+
   it("names the current step while Steward works, and Stop ends the run", async () => {
     draw();
     await screen.findByRole("heading", { name: /What can Steward do for you/ });

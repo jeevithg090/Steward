@@ -149,7 +149,9 @@ function Conversation({
   const localAgentId = `thread:${threadId}`;
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: localAgentId, runtimeAgentId, threadId, throttleMs: 40 });
-  const { readAloud } = useAccessibility();
+  const { readAloud, reducedMotion } = useAccessibility();
+  /** Scrolling started from here glides, unless the person asked for less motion. */
+  const glide: ScrollBehavior = reducedMotion ? "auto" : "smooth";
   const speaker = useSpeak();
   const wide = useMediaQuery(WIDE);
   const info = useInfo();
@@ -171,6 +173,7 @@ function Conversation({
   const [view, setView] = useState<ComputerView & { n: number }>({ n: 0 });
   const [pinned, setPinned] = useState(true);
   const approvalsRef = useRef<HTMLDivElement>(null);
+  const columnRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -453,6 +456,31 @@ function Conversation({
     if (pinned) window.scrollTo?.({ top: document.documentElement.scrollHeight });
   }, [tail, pinned]);
 
+  // Much of the conversation grows in place without a new message: a draft or a table streaming
+  // into its card, a handed-on task's steps, an approval, a notice. While the person is at the end,
+  // any growth of the column keeps the end in view, at most once a frame.
+  const pinnedRef = useRef(pinned);
+  pinnedRef.current = pinned;
+  useEffect(() => {
+    const column = columnRef.current;
+    if (!column || typeof ResizeObserver === "undefined") return;
+    let queued = false;
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      if (!pinnedRef.current || queued) return;
+      queued = true;
+      frame = requestAnimationFrame(() => {
+        queued = false;
+        if (pinnedRef.current) window.scrollTo?.({ top: document.documentElement.scrollHeight });
+      });
+    });
+    observer.observe(column);
+    return () => {
+      observer.disconnect();
+      if (queued) cancelAnimationFrame(frame);
+    };
+  }, []);
+
   // An answered card goes at once, so before it does the keyboard moves somewhere that stays: the
   // next request if one is left, else the composer on wide screens, else where the requests were
   // (so a phone's keyboard does not open uninvited). The answer itself is announced by the card.
@@ -468,7 +496,7 @@ function Conversation({
   const focusApprovals = () => {
     const target =
       approvalsRef.current?.querySelector<HTMLElement>("[data-approval-id]") ?? approvalsRef.current;
-    target?.scrollIntoView({ block: "center", behavior: "smooth" });
+    target?.scrollIntoView({ block: "center", behavior: glide });
     target?.focus({ preventScroll: true });
   };
 
@@ -507,7 +535,7 @@ function Conversation({
             </header>
 
             <div className="flex-1 px-4 sm:px-6">
-              <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 py-6">
+              <div ref={columnRef} className="mx-auto flex w-full max-w-3xl flex-col gap-4 py-6">
                 {load === "failed" ? (
                   <Notice
                     tone="problem"
@@ -628,7 +656,7 @@ function Conversation({
                     className="pointer-events-auto shadow-float"
                     onClick={() => {
                       setPinned(true);
-                      window.scrollTo?.({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+                      window.scrollTo?.({ top: document.documentElement.scrollHeight, behavior: glide });
                     }}
                   >
                     Jump to the latest
