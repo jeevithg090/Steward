@@ -28,4 +28,26 @@ server.registerTool(
   }),
 );
 
+server.registerTool(
+  "env_check",
+  {
+    description: "A variable's value, reversed, so a test can see it arrived without Steward hiding it.",
+    inputSchema: { name: z.string() },
+  },
+  async ({ name }) => ({
+    content: [{ type: "text", text: process.env[name]?.split("").reverse().join("") ?? "(unset)" }],
+  }),
+);
+
+server.registerTool(
+  "env_echo",
+  { description: "A variable's value as it is.", inputSchema: { name: z.string() } },
+  async ({ name }) => ({ content: [{ type: "text", text: process.env[name] ?? "(unset)" }] }),
+);
+
+server.registerTool("crash", { description: "Writes a variable to stderr and exits." }, async () => {
+  process.stderr.write(`fatal: bad token ${process.env.STEWARD_FIXTURE_TOKEN ?? ""}\n`);
+  process.exit(1);
+});
+
 await server.connect(new StdioServerTransport());

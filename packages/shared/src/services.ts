@@ -165,6 +165,10 @@ export interface McpManager {
      * it since it was allowed is withheld until it is allowed again.
      */
     allowAgain?: string[];
+    /** stdio: environment variables to set (a string) or remove (null). Others keep their value. */
+    env?: Record<string, string | null>;
+    /** http: an access token to set, or null to remove it. Left out, the saved one stays. */
+    bearerToken?: string | null;
   }): Promise<McpServerInfo>;
   /**
    * Starts a server's connection again without changing its config: for one that failed to start or

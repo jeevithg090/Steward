@@ -33,6 +33,8 @@ export function registerConnectionRoutes(app: Hono, s: StewardServices): void {
         sends: body.sends,
         deletes: body.deletes,
         allowAgain: body.allowAgain,
+        ...(body.env !== undefined ? { env: body.env } : {}),
+        ...(body.bearerToken !== undefined ? { bearerToken: body.bearerToken } : {}),
       });
     } catch (err) {
       // The manager's own sentences say what to fix. A server that saves but fails to connect is not

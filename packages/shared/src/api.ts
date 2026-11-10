@@ -115,6 +115,16 @@ export const McpServerBody = z.object({
   deletes: z.array(z.string()).default([]),
   /** Granted tools the person looked at again after their server changed them: allowed as they are now. */
   allowAgain: z.array(z.string()).default([]),
+  /**
+   * For stdio: environment variables for the program, such as an access token. Write-only: saved
+   * values never come back. A name set to null is removed; names left out keep their saved value.
+   * PATH and HOME are Steward's to set.
+   */
+  env: z
+    .record(z.string().regex(/^[A-Z_][A-Z0-9_]{0,63}$/), z.string().min(1).max(8192).nullable())
+    .optional(),
+  /** For http: an access token, sent as `Authorization: Bearer …`. Write-only; null removes it. */
+  bearerToken: z.string().min(1).max(8192).nullable().optional(),
 });
 
 export const SettingsBody = z.object({
@@ -216,10 +226,17 @@ export interface McpServerInfo {
   transport: "stdio" | "http";
   status: "connected" | "connecting" | "error" | "disabled";
   error?: string;
-  /** The saved configuration, so the Connections page can edit it. None of it is secret. */
+  /**
+   * The saved configuration, so the Connections page can edit it. The address has the value of any
+   * key-looking query parameter shown as `***` (sending that address back keeps the saved one).
+   */
   command?: string;
   args?: string[];
   url?: string;
+  /** For stdio: the names of the environment variables saved for it. Never their values. */
+  envNames?: string[];
+  /** For http: whether an access token is saved for it. Never the token. */
+  hasToken?: boolean;
   /** Something the person should know about the listing, e.g. that it was cut at 200 tools. */
   notice?: string;
   tools: {

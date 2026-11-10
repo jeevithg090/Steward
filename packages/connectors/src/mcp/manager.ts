@@ -21,10 +21,25 @@ import { migrations } from "../migrations.ts";
 import { assertPublicHost, BlockedAddressError, checkWebAddress, type LookupFn } from "../net/address.ts";
 import { createGuardedFetch } from "../net/guarded-fetch.ts";
 import { type McpCallOutput, resultText } from "./result.ts";
+import {
+  ENV_NAME,
+  hideValues,
+  loadSecrets,
+  MAX_SECRET_CHARS,
+  maskedUrl,
+  RESERVED_ENV,
+  type Secrets,
+  sameSecrets,
+  saveSecrets,
+  secretValues,
+} from "./secrets.ts";
 
 export type McpServerConfig = Parameters<McpManager["upsert"]>[0];
 /** A config as the manager keeps it: every list present, and nothing that only applies to one save. */
-type SavedConfig = Omit<McpServerConfig, "allowAgain"> & { sends: string[]; deletes: string[] };
+type SavedConfig = Omit<McpServerConfig, "allowAgain" | "env" | "bearerToken"> & {
+  sends: string[];
+  deletes: string[];
+};
 
 export interface McpManagerOptions {
   db: Db;
@@ -138,6 +153,8 @@ interface ServerState {
   more?: boolean;
   /** Each granted tool's fingerprint when the person allowed it. A tool that no longer matches is withheld. */
   pins: Record<string, string>;
+  /** Its environment variables or access token. Never in `info`, errors or results. */
+  secrets: Secrets;
   status: "connected" | "error";
   /** Steward's own sentence for what went wrong. */
   error?: string;
@@ -247,6 +264,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       // Bounded again, in case it was saved before the bounds existed.
       tools: bounded(fromJson<ListedTool[]>(row.tools_json, [])).tools,
       pins: fromJson<Record<string, string>>(row.pins_json, {}),
+      secrets: loadSecrets(db, row.id),
       status: "error",
       error: opts.connectOnStart === false ? "Not connected yet. It connects on first use." : CONNECTING,
       generation: 0,
@@ -265,7 +283,8 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       const transport = new StdioClientTransport({
         command: config.command as string,
         args: config.args,
-        env: scrubbedEnv(),
+        // The person's own variables for this server, on top of the scrubbed four.
+        env: { ...scrubbedEnv(), ...state.secrets.env },
         cwd: homedir(),
         stderr: "pipe",
       });
@@ -276,8 +295,11 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       return transport;
     }
     const url = await checkServerUrl(config.url as string);
+    const token = state.secrets.bearer;
     return new StreamableHTTPClientTransport(url, {
       fetch: createGuardedFetch({ allowPrivateHosts: opts.allowPrivateHosts, lookup: opts.lookup }),
+      // The guarded fetch never follows a redirect, so the token goes only to this address.
+      ...(token ? { requestInit: { headers: { Authorization: `Bearer ${token}` } } } : {}),
     });
   }
 
@@ -384,12 +406,18 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       setFailure(state, failure);
       void client.close().catch(() => {});
     }
-    return new McpCallError(failure.message, failure.said);
+    return callError(state, failure.message, failure.said);
   }
 
   /** The call can't go ahead because the server isn't connected: Steward's words, then the server's. */
   function unreachable(state: ServerState): McpCallError {
-    return new McpCallError(`Couldn't reach ${state.config.name}. ${state.error ?? ""}`.trim(), state.said);
+    return callError(state, `Couldn't reach ${state.config.name}. ${state.error ?? ""}`.trim(), state.said);
+  }
+
+  /** A failed call, with the server's secrets hidden from both parts. */
+  function callError(state: ServerState, message: string, said?: string): McpCallError {
+    const hide = hider(state);
+    return new McpCallError(hide(message), said === undefined ? undefined : hide(said));
   }
 
   function setListing(state: ServerState, listing: Listing): void {
@@ -453,7 +481,10 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       ...(state.status === "error" && state.error && !connecting ? { error: shownError(state) } : {}),
       ...(config.command ? { command: config.command } : {}),
       ...(config.transport === "stdio" ? { args: config.args } : {}),
-      ...(config.url ? { url: config.url } : {}),
+      ...(config.url ? { url: maskedUrl(config.url) } : {}),
+      ...(config.transport === "stdio"
+        ? { envNames: Object.keys(state.secrets.env).sort() }
+        : { hasToken: state.secrets.bearer !== undefined }),
       ...(state.more
         ? { notice: `It lists more than ${MAX_TOOLS} tools. Steward shows the first ${MAX_TOOLS}.` }
         : {}),
@@ -461,7 +492,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         const why = unofferable(config.id, t);
         return {
           name: t.name,
-          description: t.description,
+          description: hider(state)(t.description),
           granted: config.granted.includes(t.name),
           kind: kindOf(config, t),
           ...(t.destructive ? { destructive: true } : {}),
@@ -491,7 +522,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
             server: state.config.id,
             tool: tool.name,
             // The person named the server; the rest is the server's own words, and the model is told so.
-            description: `${tool.description || tool.name}\n\nWritten by the MCP server "${state.config.name}", not by Steward.`,
+            description: `${hider(state)(tool.description) || tool.name}\n\nWritten by the MCP server "${state.config.name}", not by Steward.`,
             parameters: objectSchema(tool.inputSchema),
             kind: kindOf(state.config, tool),
           });
@@ -552,20 +583,27 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
           ? resultText([], { toolResult: result.toolResult })
           : resultText(result.content, result.structuredContent);
       if (result.isError === true) {
-        throw new McpCallError(`${state.config.name} reported an error.`, output.text);
+        throw callError(state, `${state.config.name} reported an error.`, output.text);
       }
-      return output;
+      // A server that echoes its own token must not put it in the transcript.
+      return { ...output, text: hider(state)(output.text) };
     },
 
     async upsert(input) {
       if (closed) throw new Error("MCP connections are closed.");
       const config = validate(input);
-      if (config.transport === "http") await checkServerUrl(config.url as string);
       const existing = servers.get(config.id);
+      // The page shows the address with its keys hidden; that address sent back means "unchanged".
+      if (existing?.config.url && config.url === maskedUrl(existing.config.url)) {
+        config.url = existing.config.url;
+      }
+      const secrets = nextSecrets(existing?.secrets, input, config, opts.allowPrivateHosts);
+      if (config.transport === "http") await checkServerUrl(config.url as string);
       const pins = keptPins(existing, config, input.allowAgain ?? []);
       const now = new Date().toISOString();
-      db.run(
-        `INSERT INTO connectors_mcp_servers
+      db.tx(() => {
+        db.run(
+          `INSERT INTO connectors_mcp_servers
            (id, name, transport, command, args_json, url, granted_json, reads_json, sends_json,
             deletes_json, pins_json, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -575,25 +613,33 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
            reads_json = excluded.reads_json, sends_json = excluded.sends_json,
            deletes_json = excluded.deletes_json, pins_json = excluded.pins_json,
            updated_at = excluded.updated_at`,
-        [
-          config.id,
-          config.name,
-          config.transport,
-          config.command ?? null,
-          toJson(config.args),
-          config.url ?? null,
-          toJson(config.granted),
-          toJson(config.reads),
-          toJson(config.sends),
-          toJson(config.deletes),
-          toJson(pins),
-          now,
-          now,
-        ],
-      );
+          [
+            config.id,
+            config.name,
+            config.transport,
+            config.command ?? null,
+            toJson(config.args),
+            config.url ?? null,
+            toJson(config.granted),
+            toJson(config.reads),
+            toJson(config.sends),
+            toJson(config.deletes),
+            toJson(pins),
+            now,
+            now,
+          ],
+        );
+        saveSecrets(db, config.id, secrets);
+      });
 
-      if (existing && sameConnection(existing.config, config) && (existing.client || existing.connecting)) {
-        // Grants, reads or the name changed: no reason to restart the server.
+      const sameSignIn = existing !== undefined && sameSecrets(existing.secrets, secrets);
+      if (
+        existing &&
+        sameConnection(existing.config, config) &&
+        sameSignIn &&
+        (existing.client || existing.connecting)
+      ) {
+        // Grants, kinds or the name changed: no reason to restart the server.
         existing.config = config;
         existing.pins = pins;
         if (fillPins(existing)) persistPins(existing);
@@ -603,6 +649,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       if (existing) {
         if (!sameConnection(existing.config, config)) existing.tools = [];
         existing.config = config;
+        existing.secrets = secrets;
         existing.pins = pins;
         if (fillPins(existing)) persistPins(existing);
         await restart(existing);
@@ -612,6 +659,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         config,
         tools: [],
         pins,
+        secrets,
         status: "error",
         error: CONNECTING,
         generation: 0,
@@ -633,7 +681,10 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
     async remove(id) {
       const state = servers.get(id);
       servers.delete(id);
-      db.run("DELETE FROM connectors_mcp_servers WHERE id = ?", [id]);
+      db.tx(() => {
+        db.run("DELETE FROM connectors_mcp_secrets WHERE server_id = ?", [id]);
+        db.run("DELETE FROM connectors_mcp_servers WHERE id = ?", [id]);
+      });
       if (state) await disconnect(state);
     },
 
@@ -923,7 +974,91 @@ function setFailure(state: ServerState, failure: Failure): void {
 /** The error as the Connections page shows it: Steward's sentence, then what the server said. */
 function shownError(state: ServerState): string | undefined {
   if (!state.error) return undefined;
-  return state.said ? `${state.error} It said: ${JSON.stringify(serverWords(state.said))}` : state.error;
+  const shown = state.said
+    ? `${state.error} It said: ${JSON.stringify(serverWords(state.said))}`
+    : state.error;
+  return hider(state)(shown);
+}
+
+/** Hides the server's saved secrets, and any key in its address, from text that leaves the manager. */
+function hider(state: ServerState): (text: string) => string {
+  const values = secretValues(state.secrets, state.config.url);
+  return values.length === 0 ? (text) => text : (text) => hideValues(text, values);
+}
+
+/**
+ * The secrets to save: the stored ones, with the save's changes applied. A name set to null, or a
+ * token of null, is removed; anything left out keeps its saved value, because the page never has
+ * it to send back. Secrets for the other transport are dropped.
+ */
+function nextSecrets(
+  stored: Secrets | undefined,
+  input: McpServerConfig,
+  config: SavedConfig,
+  allowPrivateHosts: boolean | undefined,
+): Secrets {
+  const env: Record<string, string> = config.transport === "stdio" ? { ...(stored?.env ?? {}) } : {};
+  let bearer = config.transport === "http" ? stored?.bearer : undefined;
+  if (input.env !== undefined) {
+    if (config.transport !== "stdio") {
+      throw new McpConfigError(
+        "Environment variables are for a program on this computer. A web address takes an access token instead.",
+      );
+    }
+    if (input.env === null || typeof input.env !== "object" || Array.isArray(input.env)) {
+      throw new McpConfigError("Environment variables must be names with text values.");
+    }
+    for (const [name, value] of Object.entries(input.env)) {
+      if (!ENV_NAME.test(name)) {
+        throw new McpConfigError(
+          `"${name}" isn't a variable name a program reads. Use capital letters, digits and _, starting with a letter or _.`,
+        );
+      }
+      if (RESERVED_ENV.has(name)) {
+        throw new McpConfigError(
+          `${name} is Steward's to set: it decides where the program is found and runs.`,
+        );
+      }
+      if (value === null) {
+        delete env[name];
+        continue;
+      }
+      if (
+        typeof value !== "string" ||
+        value === "" ||
+        value.includes("\0") ||
+        value.length > MAX_SECRET_CHARS
+      ) {
+        throw new McpConfigError(`${name} needs a value of one to ${MAX_SECRET_CHARS} characters.`);
+      }
+      env[name] = value;
+    }
+  }
+  if (input.bearerToken !== undefined) {
+    if (config.transport !== "http") {
+      throw new McpConfigError(
+        "An access token is for a server at a web address. A program on this computer takes environment variables instead.",
+      );
+    }
+    if (input.bearerToken === null) bearer = undefined;
+    else {
+      const token = String(input.bearerToken)
+        .trim()
+        .replace(/^bearer\s+/i, "");
+      if (!/^[\x21-\x7e]+$/.test(token) || token.length > MAX_SECRET_CHARS) {
+        throw new McpConfigError(
+          "An access token is one line of letters, digits and symbols, with no spaces.",
+        );
+      }
+      bearer = token;
+    }
+  }
+  if (bearer !== undefined && config.url && new URL(config.url).protocol !== "https:" && !allowPrivateHosts) {
+    throw new McpConfigError(
+      "Steward sends an access token only to an https address, so nobody on the way can read it.",
+    );
+  }
+  return bearer === undefined ? { env } : { env, bearer };
 }
 
 /** A server's own words, on one line, cut at `MAX_SERVER_SAID_CHARS`. */
@@ -978,8 +1113,13 @@ function plainError(err: unknown, state: ServerState): Failure {
   const network = networkCode(err);
   if (network)
     return { message: `The connection to ${name} failed (${network}). It reconnects on the next call.` };
-  if (code === 401)
-    return { message: `${name} turned the connection down (401). It needs a sign-in Steward can't do yet.` };
+  if (code === 401) {
+    return {
+      message: state.secrets.bearer
+        ? `${name} turned down the access token (401). Check it is right and still valid, and replace it on the Connections page.`
+        : `${name} turned the connection down (401). If it takes an access token, add one on the Connections page. Signing in through a web page isn't supported yet.`,
+    };
+  }
   if (code === 403) return { message: `${name} refused the connection (403).` };
   if (typeof code === "number" && code >= 400) return { message: `${name} answered ${code}.` };
   // The transport's own errors can carry the server's reply.

@@ -25,6 +25,7 @@ import {
   MAX_SERVER_SAID_CHARS,
   MAX_TOOLS,
   McpCallError,
+  McpConfigError,
   type McpManagerOptions,
   objectSchema,
   SERVER_WORDS_NOTICE,
@@ -733,6 +734,77 @@ describe("MCP manager over real transports", () => {
     expect(row?.last_error).toMatch(/wasn't found/);
   });
 
+  describe("credentials", () => {
+    const TOKEN = "tok-7f3a9c21e5";
+    const fixture = fileURLToPath(new URL("./fixtures/stdio-server.ts", import.meta.url));
+    const FIXTURE = {
+      id: "fixture",
+      name: "Fixture",
+      transport: "stdio" as const,
+      command: process.execPath,
+      args: [fixture],
+      granted: ["env_check", "env_echo", "crash"],
+      reads: ["env_check", "env_echo"],
+    };
+    const reversed = (text: string) => text.split("").reverse().join("");
+    beforeEach(() => {
+      db.run("DELETE FROM connectors_mcp_servers");
+    });
+
+    it("hands a stdio server its variables, and never shows, records or returns their values", async () => {
+      const mcp = manager();
+      const info = await mcp.upsert({ ...FIXTURE, env: { STEWARD_FIXTURE_TOKEN: TOKEN } });
+      expect(info).toMatchObject({ status: "connected", envNames: ["STEWARD_FIXTURE_TOKEN"] });
+      expect((await mcp.call("fixture", "env_check", { name: "STEWARD_FIXTURE_TOKEN" })).text).toBe(
+        reversed(TOKEN),
+      );
+      // A server that echoes it back does not put it in the transcript.
+      expect((await mcp.call("fixture", "env_echo", { name: "STEWARD_FIXTURE_TOKEN" })).text).toBe("***");
+      expect(JSON.stringify(mcp.list())).not.toContain(TOKEN);
+      expect(JSON.stringify(db.all("SELECT * FROM connectors_mcp_servers"))).not.toContain(TOKEN);
+
+      // Saving a switch keeps it; the page never has it to send back.
+      await mcp.upsert({ ...FIXTURE, reads: [] });
+      const restarted = manager();
+      await restarted.ready();
+      expect((await restarted.call("fixture", "env_check", { name: "STEWARD_FIXTURE_TOKEN" })).text).toBe(
+        reversed(TOKEN),
+      );
+
+      // Its stderr is the server's words, with the value hidden there too.
+      const err = (await restarted.call("fixture", "crash", {}).catch((e: unknown) => e)) as McpCallError;
+      expect(err).toBeInstanceOf(McpCallError);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      const shown = restarted.list()[0]?.error ?? "";
+      for (const text of [err.message, shown]) {
+        expect(text).not.toContain(TOKEN);
+      }
+      expect(shown).toMatch(/fatal: bad token \*\*\*/);
+
+      // Removed by name: the program no longer sees it.
+      const removed = await restarted.upsert({ ...FIXTURE, env: { STEWARD_FIXTURE_TOKEN: null } });
+      expect(removed.envNames).toEqual([]);
+      expect((await restarted.call("fixture", "env_check", { name: "STEWARD_FIXTURE_TOKEN" })).text).toBe(
+        "(unset)",
+      );
+    });
+
+    it("refuses variables Steward sets itself, bad names, and secrets for the other kind of server", async () => {
+      const mcp = manager({ createTransport: inMemory().createTransport });
+      await expect(mcp.upsert({ ...NOTES, env: { PATH: "/tmp" } })).rejects.toThrow(
+        /PATH is Steward's to set/,
+      );
+      await expect(mcp.upsert({ ...NOTES, env: { "bad-name": "x" } })).rejects.toThrow(McpConfigError);
+      await expect(mcp.upsert({ ...NOTES, bearerToken: TOKEN })).rejects.toThrow(
+        /access token is for a server/,
+      );
+      await expect(
+        mcp.upsert({ ...NOTES, transport: "http", url: "https://mcp.example.com/mcp", env: { A_KEY: "x" } }),
+      ).rejects.toThrow(/Environment variables are for a program/);
+      expect(mcp.list()).toEqual([]);
+    });
+  });
+
   describe("streamable http", () => {
     let url: string;
     let close: () => Promise<void>;
@@ -764,6 +836,94 @@ describe("MCP manager over real transports", () => {
       await expect(mcp.call("remote", "search_notes", { query: "invoices" })).resolves.toMatchObject({
         text: "Found 2 notes about invoices.",
       });
+    });
+  });
+
+  describe("streamable http with an access token", () => {
+    const TOKEN = "sk-live-0a9b8c7d6e";
+    const KEY = "k3y-5ecret-42";
+    let base: string;
+    let close: () => Promise<void>;
+    const seen: { auth: string | null; key: string | null }[] = [];
+
+    beforeAll(async () => {
+      const server = serve({
+        fetch: async (req) => {
+          const auth = req.headers.get("authorization");
+          const key = new URL(req.url).searchParams.get("api_key");
+          seen.push({ auth, key });
+          if (auth !== `Bearer ${TOKEN}`) return new Response("no", { status: 401 });
+          const transport = new WebStandardStreamableHTTPServerTransport({
+            sessionIdGenerator: undefined,
+            enableJsonResponse: true,
+          });
+          const mcp = new McpServer({ name: "echo", version: "1.0.0" });
+          mcp.registerTool("whoami", { description: "Says which token it got." }, async () => ({
+            content: [{ type: "text", text: `You sent ${auth} and key ${key}.` }],
+          }));
+          await mcp.connect(transport);
+          return transport.handleRequest(req);
+        },
+        hostname: "127.0.0.1",
+        port: 0,
+      });
+      await new Promise<void>((resolve) => server.once("listening", () => resolve()));
+      base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/mcp`;
+      close = () => new Promise<void>((resolve) => server.close(() => resolve()));
+    });
+    afterAll(() => close());
+    beforeEach(() => {
+      db.run("DELETE FROM connectors_mcp_servers");
+      seen.length = 0;
+    });
+
+    const REMOTE = {
+      id: "remote",
+      name: "Remote",
+      transport: "http" as const,
+      args: [],
+      granted: ["whoami"],
+      reads: ["whoami"],
+    };
+
+    it("sends the token only as a header, shows only that one is saved, and hides keys in the address", async () => {
+      const mcp = manager({ allowPrivateHosts: true });
+      const url = `${base}?api_key=${KEY}&team=blue`;
+      const info = await mcp.upsert({ ...REMOTE, url, bearerToken: `Bearer ${TOKEN}` });
+      expect(info).toMatchObject({ status: "connected", hasToken: true });
+      expect(info.url).toBe(`${base}?api_key=***&team=blue`);
+      expect(seen.every((s) => s.auth === `Bearer ${TOKEN}` && s.key === KEY)).toBe(true);
+      const out = await mcp.call("remote", "whoami", {});
+      expect(out.text).toBe("You sent Bearer *** and key ***.");
+      expect(JSON.stringify(mcp.list())).not.toContain(TOKEN);
+      expect(JSON.stringify(mcp.list())).not.toContain(KEY);
+
+      // The page sends back what it was shown: the saved address and token stay.
+      const again = await mcp.upsert({ ...REMOTE, url: info.url as string, reads: [] });
+      expect(again).toMatchObject({ status: "connected", hasToken: true, url: info.url });
+      expect(seen.at(-1)).toEqual({ auth: `Bearer ${TOKEN}`, key: KEY });
+    });
+
+    it("says the token was turned down, and that one is needed when there is none", async () => {
+      const mcp = manager({ allowPrivateHosts: true });
+      const wrong = await mcp.upsert({ ...REMOTE, url: base, bearerToken: "not-the-token" });
+      expect(wrong).toMatchObject({
+        status: "error",
+        error: expect.stringMatching(/turned down the access token/),
+      });
+      const none = await mcp.upsert({ ...REMOTE, url: base, bearerToken: null });
+      expect(none).toMatchObject({
+        status: "error",
+        hasToken: false,
+        error: expect.stringMatching(/add one on the Connections page/),
+      });
+    });
+
+    it("sends a token only over https unless private hosts are allowed", async () => {
+      const mcp = manager({ lookup: async () => [{ address: "93.184.216.34", family: 4 }] });
+      await expect(
+        mcp.upsert({ ...REMOTE, url: "http://mcp.example.com/mcp", bearerToken: TOKEN }),
+      ).rejects.toThrow(/only to an https address/);
     });
   });
 

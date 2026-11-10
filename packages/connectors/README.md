@@ -135,6 +135,7 @@ await mcp.upsert({
   transport: "stdio",
   command: "npx",
   args: ["-y", "@modelcontextprotocol/server-github"],
+  env: { GITHUB_PERSONAL_ACCESS_TOKEN: token }, // write-only: never comes back from list()
   granted: ["search_issues", "create_issue"],
   reads: ["search_issues"],
   sends: ["create_issue"], // it posts where other people read it
@@ -162,6 +163,15 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
 - **http servers** (Streamable HTTP) pass the same address checks as `web_fetch`, when saved and on
   every request: loopback and private networks are refused unless `allowPrivateHosts`, and metadata
   addresses always. Requests connect to the exact addresses that were checked.
+- **Secrets.** A stdio server can be given environment variables (`env`, such as an access token),
+  set on top of the scrubbed four; `PATH` and `HOME` are refused. An http server can be given an
+  access token (`bearerToken`), sent as `Authorization: Bearer …` only to its own address (redirects
+  are never followed) and only over https unless `allowPrivateHosts`. They are write-only: kept in
+  `connectors_mcp_secrets`, apart from the config; a save that leaves them out keeps them, and a
+  name (or the token) set to `null` removes it. `list()` returns only `envNames` and `hasToken`. Every
+  saved value, and any key-looking query value in the address (`api_key`, `token`, `sig`…), is
+  replaced by `***` in errors, stderr, results and descriptions, and the address is shown with those
+  values as `***` (sending that address back keeps the saved one).
 - **Kinds.** A tool's kind is what the person marked: `sends` make it a `send`, `deletes` a
   `delete`, `reads` a `read`; anything unmarked is a `write`. A tool the server marks
   `destructiveHint: true` is a `delete` whatever it was marked, unless it was marked a send. A
@@ -236,6 +246,7 @@ first, and the root dot is dropped (`metadata.google.internal.`), so no spelling
 | `connectors.001_mcp_servers` | `connectors_mcp_servers`: id, name, transport, command, args, url, granted, reads, the last tool listing, the last error. |
 | `connectors.002_mcp_kinds`   | Adds the tools the person marked as sending (`sends_json`) and deleting (`deletes_json`).                                 |
 | `connectors.003_mcp_pins`    | Adds `pins_json`: each granted tool's fingerprint when the person allowed it.                                             |
+| `connectors.004_mcp_secrets` | `connectors_mcp_secrets`: each server's environment variables and access token, write-only, removed with the server.      |
 
 ## Tests
 

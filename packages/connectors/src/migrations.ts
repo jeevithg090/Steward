@@ -41,4 +41,19 @@ export const migrations: Migration[] = [
       ALTER TABLE connectors_mcp_servers ADD COLUMN pins_json TEXT NOT NULL DEFAULT '{}';
     `,
   },
+  {
+    // What a server needs to sign in: environment variables (stdio) or an access token (http).
+    // Write-only: handed to the server, never sent back to the page. Kept apart from the config so
+    // nothing that lists servers reads them by accident.
+    id: "connectors.004_mcp_secrets",
+    sql: `
+      CREATE TABLE connectors_mcp_secrets (
+        server_id TEXT NOT NULL REFERENCES connectors_mcp_servers (id) ON DELETE CASCADE,
+        kind      TEXT NOT NULL CHECK (kind IN ('env', 'bearer')),
+        name      TEXT NOT NULL,
+        value     TEXT NOT NULL,
+        PRIMARY KEY (server_id, kind, name)
+      );
+    `,
+  },
 ];
