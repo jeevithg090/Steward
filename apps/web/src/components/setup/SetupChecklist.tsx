@@ -41,8 +41,15 @@ export function summariseSetup(checks: SetupCheck[]): string {
  * What is ready and what needs setting up. Ready means it works, not merely that something is set:
  * the server checks each row for real, and "Check again" asks it to look once more.
  * `headingLevel` is the level of the heading this list sits under; each row is one below it.
+ * `onNavigate` hears a "Go to …" link being followed, before the app moves there.
  */
-export function SetupChecklist({ headingLevel = 2 }: { headingLevel?: 1 | 2 | 3 }) {
+export function SetupChecklist({
+  headingLevel = 2,
+  onNavigate,
+}: {
+  headingLevel?: 1 | 2 | 3;
+  onNavigate?: () => void;
+}) {
   const setup = useSetup();
   const check = useCheckSetup();
   const [announcement, setAnnouncement] = useState("");
@@ -120,6 +127,7 @@ export function SetupChecklist({ headingLevel = 2 }: { headingLevel?: 1 | 2 | 3 
                   item.href.startsWith("/") ? (
                     <Link
                       to={item.href}
+                      onClick={onNavigate}
                       className="mt-1 inline-flex min-h-target items-center text-accent text-sub underline underline-offset-4"
                     >
                       Go to {item.label}

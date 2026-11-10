@@ -100,6 +100,12 @@ export function WelcomePage() {
             </Point>
             <Point>It writes down everything it does, in a record you can read and check.</Point>
           </ul>
+          {info.data?.model.scripted ? (
+            <Notice tone="needs" title="You're trying it with a scripted model">
+              It follows a script and doesn't really think, so you can try everything without a key. You can
+              set up a real model in Settings when you're ready.
+            </Notice>
+          ) : null}
           {info.data?.mail.isDemo ? (
             <Notice tone="needs" title="You're trying it with a demo inbox">
               The mail and calendar you'll see are made up, so you can try everything safely.
@@ -184,7 +190,8 @@ export function WelcomePage() {
           <p className="text-body text-ink">
             See what is ready and what needs setting up. {name} works without the optional parts.
           </p>
-          <SetupChecklist headingLevel={1} />
+          {/* Leaving for Settings or Connections from here counts as having seen the welcome. */}
+          <SetupChecklist headingLevel={1} onNavigate={finishWelcome} />
         </>
       ),
     },
