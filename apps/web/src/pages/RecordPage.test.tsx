@@ -137,6 +137,44 @@ describe("RecordPage: entries and filters", () => {
     expect(screen.getByText("You")).toBeTruthy();
   });
 
+  it("says a routine started a run, and an action, when no decision is on screen", async () => {
+    serve({
+      events: [
+        // A run's row names its starter as a word.
+        entry({
+          seq: 3,
+          type: "run.finished",
+          runId: "run_7",
+          detail: { outcome: "success", initiator: "routine" },
+        }),
+        // A failure carries its own initiator, so the Failed filter, which hides decisions, still knows.
+        entry({
+          seq: 2,
+          type: "tool.failed",
+          toolCallId: "call_8",
+          runId: "run_8",
+          tool,
+          detail: { error: "The server said no.", initiator: { kind: "routine", id: "rtn_1" } },
+        }),
+      ],
+    });
+    renderWithProviders(<RecordPage />, { route: "/record?effect=failed" });
+    const rows = await screen.findAllByRole("button", { name: /Show details/ });
+    expect(rows).toHaveLength(2);
+    for (const row of rows) expect(row.textContent).toContain("Started by a routine");
+    expect(screen.getAllByText("A routine, for you")).toHaveLength(2);
+    expect(screen.queryByText(/^You$/)).toBeNull();
+  });
+
+  it("keeps the space after a word while the search runs, so the next word isn't joined on", async () => {
+    const server = serve();
+    renderWithProviders(<RecordPage />);
+    const search = (await screen.findByRole("searchbox", { name: "Search" })) as HTMLInputElement;
+    fireEvent.change(search, { target: { value: "web " } });
+    await waitFor(() => expect(auditCalls(server).at(-1)?.query.get("q")).toBe("web"));
+    expect(search.value).toBe("web ");
+  });
+
   it("reads its filters from the address and keeps them there, Failed included", async () => {
     const server = serve({ total: (req) => (req.query.get("effect") === "failed" ? 1 : 2) });
     renderWithProviders(<RecordPage />, { route: "/record?effect=deny&q=example.com" });

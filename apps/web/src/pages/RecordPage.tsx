@@ -70,8 +70,9 @@ export function RecordPage() {
     );
   }
 
-  // Back or a link can change the search in the address; the field follows it.
-  useEffect(() => setSearch(q), [q]);
+  // Back or a link can change the search in the address; the field follows it. The field keeps
+  // what is being typed when only the spaces at its ends differ: "web " stays, ready for the next word.
+  useEffect(() => setSearch((typed) => (typed.trim() === q ? typed : q)), [q]);
 
   // Search as the person pauses typing, not on every key.
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs when the typed search changes.
@@ -273,8 +274,14 @@ function startersOf(events: AuditEvent[]): Map<string, Initiator> {
   return started;
 }
 
+const INITIATOR_KINDS = new Set<string>(["person", "routine", "task", "resume", "system", "device"]);
+
 function initiatorOf(event: AuditEvent): Initiator | undefined {
-  const initiator = event.detail?.initiator as Partial<Initiator> | undefined;
+  const initiator = event.detail?.initiator as Partial<Initiator> | string | undefined;
+  // A run's own row (`run.finished`) records only the kind, as a word.
+  if (typeof initiator === "string") {
+    return INITIATOR_KINDS.has(initiator) ? { kind: initiator as Initiator["kind"], id: "" } : undefined;
+  }
   return initiator && typeof initiator.kind === "string" ? (initiator as Initiator) : undefined;
 }
 
