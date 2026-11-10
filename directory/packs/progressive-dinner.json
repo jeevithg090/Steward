@@ -3,7 +3,7 @@
   "name": "Progressive dinner",
   "pitch": "Plan a menu across three households, one course each.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -48,20 +48,20 @@
   ],
   "rules": [
     {
-      "name": "check availability",
+      "name": "Ask before adding to the calendar",
       "effect": "ask",
-      "when": "tool.kind == \"calendar_create\"",
-      "description": "ask before adding the event if any household is away"
+      "when": "tool.name == \"calendar_create\"",
+      "description": "Asks you before it adds anything to your calendar."
     },
     {
-      "name": "confirm email send",
+      "name": "Ask before sending",
       "effect": "ask",
-      "when": "tool.kind == \"mail_send\"",
-      "description": "ask the person to read the email draft before it is sent"
+      "when": "tool.kind == \"send\"",
+      "description": "Asks you before it sends a message or an email."
     }
   ],
   "routines": [],
   "shortcuts": [],
   "readme": "# Progressive dinner\nPlan a menu across three households, one course each.\n\nWhat it does: searches for menu ideas, creates a calendar event with three start times, sends an email to all households and makes a page listing the course, host and next stop.\n\nWhat it needs: web search to find menu ideas, calendar to set the date and times, mail to invite the households, a page maker to show the route, task tools to keep track of steps.\n\nWhat it will not do: it will not book a restaurant, it will not buy groceries and it will not force any household to take part.",
-  "hash": "e0d46f8277e2ea93813737c10aaf099352f776a508f2383e9b0e8d1b5e460a21"
+  "hash": "a56f4d79043f67674f9ef7790a4a641509d91edd4729bd8fd8e166a64cd7ce9e"
 }

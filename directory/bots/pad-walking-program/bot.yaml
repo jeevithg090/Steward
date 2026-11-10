@@ -2,7 +2,7 @@ id: pad-walking-program
 name: PAD walking program
 pitch: A progressive walking plan to manage claudication symptoms from peripheral artery disease.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -39,12 +39,3 @@ examples:
 skills:
   - research-pad-walking-guidelines
   - build-the-walking-plan-page
-rules:
-  - name: ask before logging health data
-    effect: ask
-    when: tool.name == "routine_create"
-    description: check the person wants a reminder before setting it up
-  - name: deny sharing medical advice as diagnosis
-    effect: deny
-    when: tool.kind == "write" && tool.surface == "browser"
-    description: do not present the plan as a medical prescription

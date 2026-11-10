@@ -3,7 +3,7 @@
   "name": "Release Notes Writer",
   "pitch": "Generates release notes from git commits since the last tag.",
   "category": "dev",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -47,16 +47,10 @@
       "effect": "ask",
       "when": "tool.kind == \"shell\"",
       "description": "Running git commands requires shell access on the agent's computer."
-    },
-    {
-      "name": "write-release-file",
-      "effect": "ask",
-      "when": "tool.name == \"file_write\"",
-      "description": "Creating the release notes file in the workspace writes to disk."
     }
   ],
   "routines": [],
   "shortcuts": [],
   "readme": "## Release Notes Writer\n\nGenerates a Markdown release notes document from git commits since the last tag. It groups commits by conventional commit type (Features, Bug Fixes, etc.) and saves the file to the workspace for review.\n\n**What it needs**\n- A git repository on the agent's computer with at least one tag.\n- Shell access to run `git` commands.\n\n**What it will not do**\n- Push the notes to a remote repository or create a GitHub/GitLab release.\n- Modify source code or commit messages.\n- Work without a git history or tags (will ask for a fallback range).",
-  "hash": "d390f58497d7cf45a7408cb96cddf3270d51b5bad6efedf31a63df88d8e9521c"
+  "hash": "37c7a00067fd7ecf62d1d4b8434b2cee2e1c09d1ef6372ee9b06107f255b0f9a"
 }

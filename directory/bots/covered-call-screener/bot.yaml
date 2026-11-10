@@ -2,7 +2,7 @@ id: covered-call-screener
 name: Covered call screener
 pitch: Explain covered calls and screen holdings for candidates that could generate income.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -38,12 +38,3 @@ starters:
 skills:
   - explain-covered-call
   - screen-holdings
-rules:
-  - name: no real data invented
-    effect: ask
-    when: tool.kind == "pay"
-    description: do not invent prices or premiums; say if data is unavailable
-  - name: no names for the person
-    effect: deny
-    when: tool.name == "memory_remember"
-    description: do not store the person's name or portfolio details without permission

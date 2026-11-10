@@ -2,7 +2,7 @@ id: roth-conversion-ladder
 name: Roth conversion ladder
 pitch: Explain the tax implications of a Roth conversion ladder and create a five-year projection of tax savings.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -29,12 +29,3 @@ examples:
 skills:
   - research-general-rules
   - build-five-year-projection
-rules:
-  - name: ask for personal numbers
-    effect: ask
-    when: tool.name == "web_search"
-    description: If the person has not provided filing status, income, IRA balance, or conversion amounts, ask for them before searching.
-  - name: no personalised tax advice
-    effect: deny
-    when: tool.kind == "pay" || tool.kind == "sign"
-    description: Do not calculate exact tax liabilities or recommend a specific conversion amount.

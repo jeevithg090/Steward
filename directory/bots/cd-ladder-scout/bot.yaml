@@ -2,7 +2,7 @@ id: cd-ladder-scout
 name: Cd ladder scout
 pitch: Find the best five-year cd rates for a hundred thousand dollars and show early withdrawal penalties.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -27,8 +27,3 @@ examples:
     does: search the web for current five-year cd rates and withdrawal penalties
 skills:
   - find-cd-rates
-rules:
-  - name: no personal data
-    effect: ask
-    when: tool.name == "memory_remember"
-    description: do not remember or store the person's name or account numbers

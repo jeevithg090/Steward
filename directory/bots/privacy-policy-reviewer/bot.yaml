@@ -2,7 +2,7 @@ id: privacy-policy-reviewer
 name: Privacy policy reviewer
 pitch: Review any app's privacy policy and list the data it collects.
 category: privacy
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -38,8 +38,3 @@ examples:
     does: List the data types found and their purposes on a summary page.
 skills:
   - extract-data-types
-rules:
-  - name: ask before sharing
-    effect: ask
-    when: tool.kind == "send"
-    description: Ask the person before showing any summary page that includes their data.

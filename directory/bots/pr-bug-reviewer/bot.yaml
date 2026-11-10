@@ -2,7 +2,7 @@ id: pr-bug-reviewer
 name: PR Bug Reviewer
 pitch: Reviews pull request diffs and identifies potential bugs, logic errors, and security issues without commenting on style or formatting.
 category: dev
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -70,8 +70,3 @@ examples:
     does: Runs the git command, parses the diff output, checks for bug patterns across all changed files, and produces a structured report page.
 skills:
   - analyse-diff-for-bugs
-rules:
-  - name: no-external-fetch
-    effect: deny
-    when: tool.surface == "browser" && tool.kind == "write"
-    description: Do not browse to PR URLs; the person must provide the diff locally.

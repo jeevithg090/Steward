@@ -2,7 +2,7 @@ id: progressive-dinner
 name: Progressive dinner
 pitch: Plan a menu across three households, one course each.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -31,11 +31,11 @@ examples:
 skills:
   - plan-menu
 rules:
-  - name: check availability
+  - name: Ask before adding to the calendar
     effect: ask
-    when: tool.kind == "calendar_create"
-    description: ask before adding the event if any household is away
-  - name: confirm email send
+    when: tool.name == "calendar_create"
+    description: Asks you before it adds anything to your calendar.
+  - name: Ask before sending
     effect: ask
-    when: tool.kind == "mail_send"
-    description: ask the person to read the email draft before it is sent
+    when: tool.kind == "send"
+    description: Asks you before it sends a message or an email.

@@ -1,4 +1,5 @@
 import { type BotPack, BotPackSchema, type BotProblem } from "@steward/shared";
+import { checkRuleMeaning } from "./meaning.ts";
 import { issueMessage, issuePath, ONLY_TIGHTEN } from "./pack.ts";
 import { scanForInjection } from "./scan.ts";
 
@@ -228,6 +229,9 @@ export function validatePack(input: unknown, ctx: ValidateContext): ValidationRe
   if (pack.author.kind === "ai" && !DATE_RE.test(pack.author.generated.trim())) {
     problems.push(error("author.generated", "must be the date the bot was generated, such as 2026-10-28"));
   }
+
+  // What the rules mean: one that can never fire, or that refuses the bot's own tools.
+  problems.push(...checkRuleMeaning(pack, ctx));
 
   return { ok: !problems.some((p) => p.severity === "error"), pack, problems };
 }

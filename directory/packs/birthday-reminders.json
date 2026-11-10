@@ -3,7 +3,7 @@
   "name": "Birthday reminders",
   "pitch": "Set up automated reminders for close contacts' birthdays and work anniversaries.",
   "category": "productivity",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -53,16 +53,10 @@
       "effect": "ask",
       "when": "tool.name == 'calendar_create'",
       "description": "ask the person before each calendar event is created so they can confirm or change the date"
-    },
-    {
-      "name": "ask before remembering facts about the person",
-      "effect": "ask",
-      "when": "tool.name == 'memory_remember'",
-      "description": "ask the person before any fact is remembered about them"
     }
   ],
   "routines": [],
   "shortcuts": [],
   "readme": "# Birthday reminders\nAutomated reminders for close contacts' birthdays and work anniversaries.\n\nWhat it does: checks recent mail for birthday and work anniversary messages, then creates yearly calendar events with one-day-before reminders.\nWhat it needs: access to mail and calendar.\nWhat it will not do: invent birth years or dates it cannot find. It will ask the person before adding any calendar event.",
-  "hash": "8143a5e481508f29309e193b03e21498f1279f69ab757e7d62cefe36ab7903d8"
+  "hash": "6f7562d57d5dd883dbb3e3069411810abde17497e98bb344a2127c4539f28df7"
 }

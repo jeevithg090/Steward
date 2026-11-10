@@ -2,7 +2,7 @@ id: emergency-fund-plan
 name: Emergency fund plan
 pitch: Build a prioritized three-month financial safety plan based on your current income and outgoings.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -27,8 +27,3 @@ examples:
     does: I ask for your monthly take-home pay and essential outgoings.
 skills:
   - calculate-emergency-fund
-rules:
-  - name: ask for figures
-    effect: ask
-    when: tool.name == "file_write" || tool.name == "show_table"
-    description: ask the person for monthly take-home pay and essential outgoings before calculating

@@ -2,7 +2,7 @@ id: wifi-security
 name: Wi-Fi security
 pitch: Help the person lock down their home wifi and router settings to stop unauthorised access.
 category: privacy
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -31,10 +31,6 @@ examples:
 skills:
   - check-router-settings
 rules:
-  - name: ask before changing password
-    effect: ask
-    when: tool.kind == 'write'
-    description: ask the person to confirm the new wifi password before it is saved
   - name: ask before applying changes
     effect: ask
     when: tool.kind == 'write'

@@ -3,7 +3,7 @@
   "name": "Cd ladder scout",
   "pitch": "Find the best five-year cd rates for a hundred thousand dollars and show early withdrawal penalties.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -40,16 +40,9 @@
       "body": "1. Use web_search with the query \"five year cd ladder one hundred thousand dollars\" and note the URLs that look like bank or credit union offerings. 2. For each selected URL, use browser_navigate to open the page. 3. Use browser_snapshot to read the page and locate the annual percentage yield and the early withdrawal penalty. 4. If the penalty is given in months of interest, record that number. 5. If the page does not show a penalty, record that it was not found. 6. Repeat for up to three banks. 7. When all pages are read, use show_comparison to display the bank, rate, and penalty side by side. 8. Use make_page to create a document that lists each bank, its rate, and its withdrawal penalty. If any step finds nothing, note that clearly and continue with the next bank."
     }
   ],
-  "rules": [
-    {
-      "name": "no personal data",
-      "effect": "ask",
-      "when": "tool.name == \"memory_remember\"",
-      "description": "do not remember or store the person's name or account numbers"
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# cd ladder scout\nFinds the best five-year cd rates for a hundred thousand dollars and shows early withdrawal penalties.\n\n- needs: web_search, browser_navigate, browser_snapshot, show_comparison, make_page\n- will not: promise a specific rate or penalty; those vary by bank and time\n- output: a short document listing each bank checked, its rate, and its withdrawal penalty",
-  "hash": "43682361ffcbcc0141a5d321b55bec4094bfb6afc48f5d9323e68c4fb43497a4"
+  "hash": "41fa4d0ae762e4d8b966a60496a230c3365bf680017f5793a35567b1ffbbf3dc"
 }

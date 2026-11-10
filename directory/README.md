@@ -20,7 +20,8 @@ folder's `index.json`; a fork or a company can point it anywhere else.
 ## What a pack can and cannot do
 
 - Its rules may only `ask` or `deny`. An `allow` is refused at validation; a pack can only tighten
-  the gateway, never loosen it.
+  the gateway, never loosen it. A rule that could never fire is refused too, and one that none of
+  the bot's tools can trigger, or that refuses its own tools, is a warning.
 - Skills grant nothing; the agent holds what its profile grants, through the gateway.
 - Instructions are untrusted text: shown to the person before Add, scanned for anything that reads
   as orders for the model, and never above the person or the gateway.

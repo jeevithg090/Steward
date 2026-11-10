@@ -3,7 +3,7 @@
   "name": "Game night planner",
   "pitch": "Plan a themed game night with snacks that match the game genre.",
   "category": "games",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -51,16 +51,10 @@
       "effect": "ask",
       "when": "tool.name == \"calendar_create\"",
       "description": "Ask the person before adding any event to their calendar."
-    },
-    {
-      "name": "do not invent snack details",
-      "effect": "deny",
-      "when": "tool.kind == \"write\"",
-      "description": "If a snack recipe cannot be found, say so plainly and do not make one up."
     }
   ],
   "routines": [],
   "shortcuts": [],
   "readme": "**Game night planner** – Plans a themed game night with snacks that match the game genre. Uses web search to find snack ideas, makes a page with the plan, and can add the event to the person's calendar after they say yes. Will not invent recipes or add calendar events without asking.",
-  "hash": "482d7f9707c91fe97844e29fa434ae7bb57df32bcd0e46edbbd51d81a8bfd00d"
+  "hash": "40b5e44678c791513eced52c346aad6342da67f593f7d4b6f28f450642d4e994"
 }

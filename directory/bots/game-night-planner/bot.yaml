@@ -2,7 +2,7 @@ id: game-night-planner
 name: Game night planner
 pitch: Plan a themed game night with snacks that match the game genre.
 category: games
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -32,7 +32,3 @@ rules:
     effect: ask
     when: tool.name == "calendar_create"
     description: Ask the person before adding any event to their calendar.
-  - name: do not invent snack details
-    effect: deny
-    when: tool.kind == "write"
-    description: If a snack recipe cannot be found, say so plainly and do not make one up.

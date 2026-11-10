@@ -2,7 +2,7 @@ id: password-strengthener
 name: Password Strengthener
 pitch: Creates a personal password plan with strong unique passwords and a rotation schedule for reused ones.
 category: privacy
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -11,7 +11,6 @@ licence: MIT
 needs:
   tools:
     - make_page
-    - memory_remember
     - task_create
   connectors: []
   model: any
@@ -25,7 +24,7 @@ instructions: |-
   Ask the person how they store passwords now (memory, browser, paper, password manager). Ask roughly how many accounts they have and how many share passwords. Do not ask for the actual passwords.
 
   ## Step 2: Choose a password manager
-  If they do not use a password manager, explain the benefit of one. Suggest they pick a reputable manager (open-source or commercial). Offer to list well-known options without endorsing any brand. When they choose, note the choice with memory_remember.
+  If they do not use a password manager, explain the benefit of one. Suggest they pick a reputable manager (open-source or commercial). Offer to list well-known options without endorsing any brand. When they choose, say which one they picked in your summary.
 
   ## Step 3: Generate strong passwords
   For each important account (email, banking, main social, work), create a new passphrase: 4 to 6 random words, or a 16+ character random string. Use make_page to write a private reference sheet the person can save offline. Do not store the passwords yourself.

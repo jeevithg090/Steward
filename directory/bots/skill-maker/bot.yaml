@@ -2,7 +2,7 @@ id: skill-maker
 name: Skill maker
 pitch: Turns repeated requests into reusable slash-callable skills with memory and documentation.
 category: bot-helpers
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -52,10 +52,6 @@ examples:
 skills:
   - write-skill-file
 rules:
-  - name: write-skill-file
-    effect: ask
-    when: tool.name == "file_write"
-    description: Ask before writing the skill file to the workspace.
   - name: remember-skill
     effect: ask
     when: tool.name == "memory_remember"

@@ -2,7 +2,7 @@ id: lift-tracker
 name: Lift Tracker
 pitch: Logs your gym lifts and signals when to add weight based on simple progression rules.
 category: sports
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -51,7 +51,3 @@ rules:
     effect: ask
     when: tool.name == "memory_remember"
     description: Ask before saving or changing the lift plan.
-  - name: remember-log
-    effect: ask
-    when: tool.name == "memory_remember"
-    description: Ask before writing a session to the log.

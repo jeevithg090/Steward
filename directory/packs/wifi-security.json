@@ -3,7 +3,7 @@
   "name": "Wi-Fi security",
   "pitch": "Help the person lock down their home wifi and router settings to stop unauthorised access.",
   "category": "privacy",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -47,12 +47,6 @@
   ],
   "rules": [
     {
-      "name": "ask before changing password",
-      "effect": "ask",
-      "when": "tool.kind == 'write'",
-      "description": "ask the person to confirm the new wifi password before it is saved"
-    },
-    {
       "name": "ask before applying changes",
       "effect": "ask",
       "when": "tool.kind == 'write'",
@@ -62,5 +56,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Wi-Fi security\n\nLock down your home wifi and router so only trusted devices can join. The bot will guide you to change the network name, security type and password, and will give you a summary page at the end. It will never change anything without your say‑so.",
-  "hash": "b8663d294c68e6590d305f0df5bebbb1e1eb0491a386132f9c194b0b5c1b56d7"
+  "hash": "824d452c1df9c52bea24746b1daf2a4d294868ef52c99e6676a344d3e1dd3cf5"
 }

@@ -2,7 +2,7 @@ id: prospect-call-scheduler
 name: Prospect call scheduler
 pitch: Find the best time to call a prospect by checking their calendar availability.
 category: sales-crm
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -38,7 +38,3 @@ rules:
     effect: ask
     when: tool.kind == "send"
     description: Ask the person before sending any message or email.
-  - name: deny calendar if not connected
-    effect: deny
-    when: tool.kind == "shell"
-    description: Refuse to run calendar commands if the calendar connector is not available.

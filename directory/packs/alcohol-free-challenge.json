@@ -3,7 +3,7 @@
   "name": "Alcohol-free challenge",
   "pitch": "A 30-day alcohol-free challenge with daily tips, mocktail recipes, and coping strategies for social events.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -45,12 +45,6 @@
   ],
   "rules": [
     {
-      "name": "ask before sending",
-      "effect": "ask",
-      "when": "tool.kind == \"send\"",
-      "description": "Ask the person before the bot sends any message or email."
-    },
-    {
       "name": "ask before creating routine",
       "effect": "ask",
       "when": "tool.name == \"routine_create\"",
@@ -60,5 +54,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Alcohol-free challenge\n\nA 30-day alcohol-free challenge with daily tips, mocktail recipes, and coping strategies for social events.\n\n**What it does:** Creates a page with a 30-day calendar, adds the first mocktail recipes and coping strategies found on the web, and sets a daily task so the person can log their progress.\n\n**What it needs:** make_page to build the page, web_search to find recipes and strategies, task_create for the daily check-in, routine_create if a repeating routine is wanted.\n\n**What it will not do:** It will not give medical advice or tell the person how to quit drinking. It will not force a routine on the person without asking.",
-  "hash": "7ea67c48a0b3bc862dc9fe462e68688a43aae34551c4331183cc4f03e1fbe5e9"
+  "hash": "5765d9fb43a812b54c0972a5561e4eb71c51f8876da33d8bb95c0b13c13b8cd4"
 }

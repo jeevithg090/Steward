@@ -1,5 +1,14 @@
 import type { PackProblem } from "@steward/bots";
-import { BOT_CATEGORIES, type BotPack, TOOL_PLAIN_WORDS } from "@steward/shared";
+import { escalateKind } from "@steward/gateway";
+import {
+  BOT_CATEGORIES,
+  type BotPack,
+  isBuiltinTool,
+  TOOL_PLAIN_WORDS,
+  TOOLS,
+  type ToolKind,
+  type ToolSurface,
+} from "@steward/shared";
 
 /**
  * The prompts. One call writes a pack, one call judges it. Steward's writing rules are in the
@@ -33,19 +42,133 @@ export function plainWords(tool: string): string {
   return TOOL_PLAIN_WORDS[tool] ?? EXTRA_PLAIN_WORDS[tool] ?? tool.replace(/_/g, " ");
 }
 
-/** The `when` conditions a generated rule may use. Each compiles in the gateway's engine. */
-export const RULE_MENU: readonly { when: string; means: string }[] = [
-  { when: 'tool.kind == "pay"', means: "paying for anything" },
-  { when: 'tool.kind == "send"', means: "sending a message or an email" },
-  { when: 'tool.kind == "delete"', means: "deleting anything" },
-  { when: 'tool.kind == "sign"', means: "signing or agreeing to anything" },
-  { when: 'tool.kind == "shell"', means: "running a command" },
-  { when: 'tool.name == "calendar_create"', means: "adding to the calendar" },
-  { when: 'tool.name == "memory_remember"', means: "remembering a fact about the person" },
-  { when: 'tool.name == "routine_create"', means: "setting up a routine that runs on its own" },
-  { when: 'tool.name == "file_write"', means: "writing a file in its workspace" },
-  { when: 'tool.surface == "browser" && tool.kind == "write"', means: "clicking or typing on a web page" },
+/**
+ * The `when` conditions a generated rule may use, each with the name and description it gets.
+ * Each compiles in the gateway's engine. The model only picks the condition and ask or deny: a
+ * name it wrote itself too often said something else ("no medical advice" over a rule that asked
+ * before every web search), so the name always comes from here and says what the condition does.
+ */
+export interface RuleMenuEntry {
+  when: string;
+  means: string;
+  /** What the condition matches, so a rule is only given to a bot that has such a tool. */
+  covers: { name?: string; kind?: ToolKind; surface?: ToolSurface };
+  ask: { name: string; description: string };
+  deny: { name: string; description: string };
+}
+
+export const RULE_MENU: readonly RuleMenuEntry[] = [
+  {
+    when: 'tool.kind == "pay"',
+    covers: { kind: "pay" },
+    means: "paying for anything",
+    ask: { name: "Ask before paying", description: "Asks you before it pays for anything." },
+    deny: { name: "Never pay", description: "Refuses to pay for anything." },
+  },
+  {
+    when: 'tool.kind == "send"',
+    covers: { kind: "send" },
+    means: "sending a message or an email",
+    ask: { name: "Ask before sending", description: "Asks you before it sends a message or an email." },
+    deny: { name: "Never send", description: "Refuses to send messages or emails." },
+  },
+  {
+    when: 'tool.kind == "delete"',
+    covers: { kind: "delete" },
+    means: "deleting anything",
+    ask: { name: "Ask before deleting", description: "Asks you before it deletes anything." },
+    deny: { name: "Never delete", description: "Refuses to delete anything." },
+  },
+  {
+    when: 'tool.kind == "sign"',
+    covers: { kind: "sign" },
+    means: "signing or agreeing to anything",
+    ask: { name: "Ask before signing", description: "Asks you before it signs or agrees to anything." },
+    deny: { name: "Never sign", description: "Refuses to sign or agree to anything." },
+  },
+  {
+    when: 'tool.kind == "shell"',
+    covers: { kind: "shell" },
+    means: "running a command",
+    ask: { name: "Ask before running commands", description: "Asks you before it runs a command." },
+    deny: { name: "Never run commands", description: "Refuses to run commands." },
+  },
+  {
+    when: 'tool.name == "calendar_create"',
+    covers: { name: "calendar_create" },
+    means: "adding to the calendar",
+    ask: {
+      name: "Ask before adding to the calendar",
+      description: "Asks you before it adds anything to your calendar.",
+    },
+    deny: { name: "Never add to the calendar", description: "Refuses to add anything to your calendar." },
+  },
+  {
+    when: 'tool.name == "memory_remember"',
+    covers: { name: "memory_remember" },
+    means: "remembering a fact about the person",
+    ask: { name: "Ask before remembering", description: "Asks you before it remembers a fact about you." },
+    deny: { name: "Never remember facts", description: "Refuses to remember facts about you." },
+  },
+  {
+    when: 'tool.name == "routine_create"',
+    covers: { name: "routine_create" },
+    means: "setting up a routine that runs on its own",
+    ask: {
+      name: "Ask before setting up a routine",
+      description: "Asks you before it sets up a routine that runs on its own.",
+    },
+    deny: { name: "Never set up routines", description: "Refuses to set up routines that run on their own." },
+  },
+  {
+    when: 'tool.name == "file_write"',
+    covers: { name: "file_write" },
+    means: "writing a file in its workspace",
+    ask: {
+      name: "Ask before writing files",
+      description: "Asks you before it writes a file in its workspace.",
+    },
+    deny: { name: "Never write files", description: "Refuses to write files in its workspace." },
+  },
+  {
+    when: 'tool.surface == "browser" && tool.kind == "write"',
+    covers: { surface: "browser", kind: "write" },
+    means: "clicking or typing on a web page",
+    ask: {
+      name: "Ask before clicking or typing",
+      description: "Asks you before it clicks or types on a web page.",
+    },
+    deny: { name: "Never click or type on pages", description: "Refuses to click or type on web pages." },
+  },
 ];
+
+/**
+ * Whether a menu rule does anything for a bot with these tools. A rule on one tool needs that
+ * tool. An ask on a kind needs a tool that can be that kind, counting a click the gateway raises
+ * ("Pay" pays); a deny on a kind is kept even without one, as a promise ("Never send").
+ */
+export function menuRuleFits(
+  entry: RuleMenuEntry,
+  effect: "ask" | "deny",
+  tools: ReadonlySet<string>,
+): boolean {
+  const { name, kind, surface } = entry.covers;
+  if (name) return tools.has(name);
+  if (effect === "deny") return true;
+  return [...tools].some((tool) => {
+    if (!isBuiltinTool(tool)) return tool.startsWith("mcp__") && (!surface || surface === "mcp");
+    const own = TOOLS[tool];
+    if (surface && own.surface !== surface) return false;
+    if (!kind || own.kind === kind) return true;
+    return escalateKind(tool, { key: "Enter", submit: true }, { name: kind }) === kind;
+  });
+}
+
+/** The menu entry a condition is, whatever its quote marks and spacing. */
+export function ruleMenuEntry(when: string): RuleMenuEntry | undefined {
+  const key = (w: string) => w.replace(/'/g, '"').replace(/\s+/g, "");
+  return RULE_MENU.find((r) => key(r.when) === key(when));
+}
 
 export const WRITING_RULES = `## How to write
 
@@ -57,6 +180,9 @@ export const WRITING_RULES = `## How to write
 - Examples may use made-up people and places, and must say so, for example "(a made-up example)".
 - No brands: no company, product, website, app or service names, not even as examples. Say "a rental listing site", "a journey planner", "the social network they use". No real people, no email addresses, no phone numbers, no card numbers.
 - Steward itself asks the person before anything is sent, paid, signed or deleted. Do not write that into the instructions as a promise; write what the agent should prepare so the person can decide.
+- For health, money and investing jobs, tell the agent to say it is not a doctor or a financial adviser, and to suggest the person checks with one (a doctor, pharmacist, dietitian or a qualified adviser) before acting on anything.
+- Name only tools from needs.tools in the instructions and skills. memory_remember only saves a fact: what the agent remembers is already in front of it, so write "check what you remember about the person", never "check memory_remember".
+- Starters are what the person types: no quote marks around them and no [placeholders]. Write a real example instead.
 - The pack is refused if it contains text that reads as orders for the model. Do not use the phrases "ignore previous instructions", "you are now", "system prompt", "disregard", or "forward … to".`;
 
 export function buildGenerateSystem(tools: readonly string[]): string {
@@ -81,10 +207,10 @@ needs.connectors lists "mail" when the bot reads or sends mail, "calendar" when 
 
 ## Rules
 
-A pack may bring up to 2 rules that make the agent ask first ("ask") or refuse ("deny"). A rule may never "allow". The "when" text must be copied exactly from this list:
+A pack may bring up to 2 rules that make the agent ask first ("ask") or refuse ("deny"). A rule may never "allow". The "when" text must be copied exactly from this list; any other rule is dropped:
 ${ruleLines}
 
-Leave rules as [] when none fits the job.
+A rule only decides whether a tool may run. It cannot change what the agent says: "no medical advice" or "do not invent prices" belong in the instructions, not in a rule. Only bring a rule for a tool in needs.tools. Leave rules as [] when none fits the job.
 
 ## Shape
 
@@ -97,7 +223,7 @@ Leave rules as [] when none fits the job.
   "starters": ["2 to 4 things the person might type first, each one sentence"],
   "examples": [{ "ask": "what the person says", "does": "what the bot does, one or two sentences" }],
   "skills": [{ "name": "lowercase-with-hyphens", "description": "one sentence", "body": "numbered steps the agent follows for one part of the job, 80 to 300 words" }],
-  "rules": [{ "name": "short name", "effect": "ask or deny", "when": "copied from the list", "description": "one sentence" }],
+  "rules": [{ "effect": "ask or deny", "when": "copied from the list" }],
   "readme": "Markdown for the listing page, 80 to 200 words: a heading with the name, what it does, what it needs, what it will not do."
 }
 
@@ -147,20 +273,39 @@ Fix every problem and return the whole corrected JSON object only. Your previous
 ${previous.slice(0, 12_000)}`;
 }
 
+/**
+ * Categories whose bots touch someone's health or money. The judge scores their safety too. The
+ * pack validator in `@steward/bots` (content.ts) warns about the same categories when a bot never
+ * sends the person to a professional.
+ */
+export const SAFETY_CATEGORIES: ReadonlySet<string> = new Set(["health", "money", "investing"]);
+
 export const JUDGE_SYSTEM = `You check bot packs for Steward before they are listed. Steward is an assistant that does small jobs for one person with a fixed set of tools, and asks before it sends, pays, signs or deletes anything.
 
 Score the pack from 1 to 5 on three things, and give one sentence for each:
 - usefulness: would a real person want this for the job, and do the instructions get the job done with the tools listed?
-- honesty: does it avoid invented facts, tell the agent to say what it could not check, never promise what the tools cannot do, and name no brands, companies, websites or apps? Take a point off for each brand it names.
+- honesty: does it avoid invented facts, tell the agent to say what it could not check, never promise what the tools cannot do, and name no brands, companies, websites or apps? Does each rule's name say what its condition does? A rule only decides whether a tool may run; take a point off for each brand it names and each rule whose name says something else ("no medical advice" over a rule that asks before a web search).
 - clarity: plain words, short sentences, steps a model can follow without guessing.
 
+When the prompt asks for safety (health, money and investing bots), score it as well:
+- safety: does it tell the agent to say it is not a doctor or a financial adviser, and to suggest checking with one before the person acts? Does it avoid doses, diagnoses, targets or investment picks taken from search results? A bot that does neither scores 1 or 2.
+
 Output ONE JSON object and nothing else:
-{"usefulness": {"score": 1, "note": "…"}, "honesty": {"score": 1, "note": "…"}, "clarity": {"score": 1, "note": "…"}}`;
+{"usefulness": {"score": 1, "note": "…"}, "honesty": {"score": 1, "note": "…"}, "clarity": {"score": 1, "note": "…"}}
+With safety: {"usefulness": …, "honesty": …, "clarity": …, "safety": {"score": 1, "note": "…"}}`;
+
+function describeRule(rule: BotPack["rules"][number]): string {
+  const said = rule.description ? ` (${rule.description})` : "";
+  return `- "${rule.name}"${said}: ${rule.effect} when ${rule.when}`;
+}
 
 /** `catalogue` is every tool Steward has, so the judge does not mark a real tool as made up. */
 export function buildJudgePrompt(pack: BotPack, catalogue: readonly string[] = []): string {
   const skills = pack.skills.map((s) => `### Skill: ${s.name}\n${s.description}\n${s.body}`).join("\n\n");
   const known = catalogue.filter(isPackTool);
+  const safety = SAFETY_CATEGORIES.has(pack.category)
+    ? `\n\nThis is a ${pack.category} bot: score safety as well as the other three.`
+    : "";
   return `${known.length > 0 ? `Tools that exist in Steward: ${known.join(", ")}.\n\n` : ""}Name: ${pack.name}
 Pitch: ${pack.pitch}
 Category: ${pack.category}
@@ -176,7 +321,10 @@ ${pack.starters.map((s) => `- ${s}`).join("\n") || "(none)"}
 ## Examples
 ${pack.examples.map((e) => `- Ask: ${e.ask}\n  Does: ${e.does}`).join("\n") || "(none)"}
 
+## Rules
+${pack.rules.map(describeRule).join("\n") || "(none)"}
+
 ${skills}
 
-Score it.`;
+Score it.${safety}`;
 }

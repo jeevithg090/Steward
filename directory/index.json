@@ -1,6 +1,6 @@
 {
   "name": "Steward bots",
-  "generatedAt": "2026-10-29T13:55:49.707Z",
+  "generatedAt": "2026-11-10T21:43:41.958Z",
   "categories": {
     "food": "Food & cooking",
     "health": "Health & fitness",
@@ -464,7 +464,7 @@
       "name": "Alcohol-free challenge",
       "pitch": "A 30-day alcohol-free challenge with daily tips, mocktail recipes, and coping strategies for social events.",
       "category": "health",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -482,7 +482,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:13:33.665Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/alcohol-free-challenge.json"
     },
     {
@@ -1078,7 +1078,7 @@
       "name": "Baking timeline",
       "pitch": "Create a holiday baking schedule with make-ahead steps and storage notes.",
       "category": "food",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -1098,7 +1098,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:31:04.012Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/baking-timeline.json"
     },
     {
@@ -1723,7 +1723,7 @@
       "name": "Birthday reminders",
       "pitch": "Set up automated reminders for close contacts' birthdays and work anniversaries.",
       "category": "productivity",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -1744,7 +1744,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:39:51.879Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/birthday-reminders.json"
     },
     {
@@ -2382,7 +2382,7 @@
       "name": "Broadband deal scout",
       "pitch": "Find the best broadband deals for the person's postcode and check if they can leave their current contract early.",
       "category": "home",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -2401,7 +2401,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T11:42:59.303Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/broadband-deal-scout.json"
     },
     {
@@ -3259,7 +3259,7 @@
       "name": "Care cost compare",
       "pitch": "Compare long-term care insurance costs with self-funding via an investment account.",
       "category": "money",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -3278,7 +3278,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:47:24.014Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/care-cost-compare.json"
     },
     {
@@ -3487,7 +3487,7 @@
       "name": "Cd ladder scout",
       "pitch": "Find the best five-year cd rates for a hundred thousand dollars and show early withdrawal penalties.",
       "category": "money",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -3506,7 +3506,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:51:06.142Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/cd-ladder-scout.json"
     },
     {
@@ -4222,7 +4222,7 @@
       "name": "Colonoscopy prep",
       "pitch": "A shopping list, timeline, and medication guidance for a clear liquid diet colonoscopy prep.",
       "category": "health",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -4240,7 +4240,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:25:29.091Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/colonoscopy-prep.json"
     },
     {
@@ -5026,7 +5026,7 @@
       "name": "Cortisol test guide",
       "pitch": "Explain your cortisol saliva test results and build a personal stress management plan.",
       "category": "health",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -5043,7 +5043,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:45:18.365Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/cortisol-test-guide.json"
     },
     {
@@ -5128,7 +5128,7 @@
       "name": "Covered call screener",
       "pitch": "Explain covered calls and screen holdings for candidates that could generate income.",
       "category": "investing",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -5146,7 +5146,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:03:59.730Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/covered-call-screener.json"
     },
     {
@@ -7371,7 +7371,7 @@
       "name": "Email SLA tracker",
       "pitch": "Tracks response times for direct reports and key partners, showing overdue emails and average speed.",
       "category": "productivity",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -7391,7 +7391,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:38:02.139Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/email-sla-tracker.json"
     },
     {
@@ -7554,7 +7554,7 @@
       "name": "Emergency fund plan",
       "pitch": "Build a prioritized three-month financial safety plan based on your current income and outgoings.",
       "category": "money",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -7573,7 +7573,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T15:06:30.410Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/emergency-fund-plan.json"
     },
     {
@@ -9176,7 +9176,7 @@
       "name": "Freezer inventory",
       "pitch": "List freezer items, their expiration dates, and suggest meals to use them up.",
       "category": "food",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -9197,7 +9197,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T14:42:22.121Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/freezer-inventory.json"
     },
     {
@@ -9535,7 +9535,7 @@
       "name": "Game night planner",
       "pitch": "Plan a themed game night with snacks that match the game genre.",
       "category": "games",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -9554,7 +9554,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T14:10:54.709Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/game-night-planner.json"
     },
     {
@@ -10386,7 +10386,7 @@
       "name": "Handoff document",
       "pitch": "Create a vacation handoff document covering active projects, contacts, and deadlines.",
       "category": "productivity",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -10407,7 +10407,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:10:45.019Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/handoff-document.json"
     },
     {
@@ -11203,7 +11203,7 @@
       "name": "Inbox organizer",
       "pitch": "Sort your inbox into project labels and auto-file new mail to the right label.",
       "category": "productivity",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -11222,7 +11222,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T11:42:36.958Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/inbox-organizer.json"
     },
     {
@@ -11510,7 +11510,7 @@
       "name": "Invoice Bot Writer",
       "pitch": "Helps you write clear, complete bot packs for chasing invoices so Steward can do the work reliably.",
       "category": "bot-helpers",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -11527,7 +11527,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T12:25:49.496Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/invoice-bot-writer.json"
     },
     {
@@ -12322,7 +12322,7 @@
       "name": "Leave Handover Writer",
       "pitch": "Drafts a two-week leave handover by scanning mail, calendar, and tasks, then produces a structured document for your team.",
       "category": "work",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -12346,7 +12346,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T12:25:49.498Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/leave-handover-writer.json"
     },
     {
@@ -12431,7 +12431,7 @@
       "name": "Lift Tracker",
       "pitch": "Logs your gym lifts and signals when to add weight based on simple progression rules.",
       "category": "sports",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -12448,7 +12448,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T12:52:30.915Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/lift-tracker.json"
     },
     {
@@ -19391,7 +19391,7 @@
       "name": "PAD walking program",
       "pitch": "A progressive walking plan to manage claudication symptoms from peripheral artery disease.",
       "category": "health",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19408,7 +19408,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:40:08.971Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/pad-walking-program.json"
     },
     {
@@ -19895,7 +19895,7 @@
       "name": "Password Strengthener",
       "pitch": "Creates a personal password plan with strong unique passwords and a rotation schedule for reused ones.",
       "category": "privacy",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -19904,7 +19904,6 @@
       "needs": {
         "tools": [
           "make_page",
-          "memory_remember",
           "task_create"
         ],
         "connectors": [],
@@ -19912,7 +19911,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T12:27:57.671Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/password-strengthener.json"
     },
     {
@@ -21372,7 +21371,7 @@
       "name": "PR Bug Reviewer",
       "pitch": "Reviews pull request diffs and identifies potential bugs, logic errors, and security issues without commenting on style or formatting.",
       "category": "dev",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -21389,7 +21388,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T12:25:49.576Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/pr-bug-reviewer.json"
     },
     {
@@ -21705,7 +21704,7 @@
       "name": "Privacy policy reviewer",
       "pitch": "Review any app's privacy policy and list the data it collects.",
       "category": "privacy",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21724,7 +21723,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T15:01:21.393Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/privacy-policy-reviewer.json"
     },
     {
@@ -21732,7 +21731,7 @@
       "name": "Smart home privacy check",
       "pitch": "Review smart home devices for privacy risks and default passwords.",
       "category": "privacy",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21751,7 +21750,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:04:47.513Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/privacy-scout.json"
     },
     {
@@ -21872,7 +21871,7 @@
       "name": "Progressive dinner",
       "pitch": "Plan a menu across three households, one course each.",
       "category": "food",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21894,7 +21893,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T14:35:56.550Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/progressive-dinner.json"
     },
     {
@@ -22077,7 +22076,7 @@
       "name": "Prospect call scheduler",
       "pitch": "Find the best time to call a prospect by checking their calendar availability.",
       "category": "sales-crm",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -22101,7 +22100,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T11:43:33.541Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/prospect-call-scheduler.json"
     },
     {
@@ -23294,7 +23293,7 @@
       "name": "Release Notes Writer",
       "pitch": "Generates release notes from git commits since the last tag.",
       "category": "dev",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -23310,7 +23309,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T12:29:41.356Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/release-notes-writer.json"
     },
     {
@@ -24417,7 +24416,7 @@
       "name": "Road trip planner",
       "pitch": "Plan a road trip with stops every two hours and charging stations along the route.",
       "category": "travel",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -24435,7 +24434,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T13:29:48.064Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/road-trip-planner.json"
     },
     {
@@ -24569,7 +24568,7 @@
       "name": "Roth conversion ladder",
       "pitch": "Explain the tax implications of a Roth conversion ladder and create a five-year projection of tax savings.",
       "category": "investing",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -24586,7 +24585,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:39:10.676Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/roth-conversion-ladder.json"
     },
     {
@@ -25793,7 +25792,7 @@
       "name": "Skill maker",
       "pitch": "Turns repeated requests into reusable slash-callable skills with memory and documentation.",
       "category": "bot-helpers",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -25809,7 +25808,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T12:25:49.580Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/skill-maker.json"
     },
     {
@@ -25918,7 +25917,7 @@
       "name": "Sleep tracker",
       "pitch": "Track sleep quality each morning and show how it links to daily habits over 14 days.",
       "category": "health",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -25936,7 +25935,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:20:49.413Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/sleep-tracker.json"
     },
     {
@@ -27652,7 +27651,7 @@
       "name": "Takeout analyst",
       "pitch": "Review takeout spending and suggest cheaper homemade alternatives.",
       "category": "food",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -27673,7 +27672,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T11:49:03.968Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/takeout-analyst.json"
     },
     {
@@ -27937,7 +27936,7 @@
       "name": "Tax freeze checker",
       "pitch": "Check if the person's state offers a property tax freeze for seniors and calculate savings over ten years.",
       "category": "money",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -27956,7 +27955,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:50:02.198Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/tax-freeze-checker.json"
     },
     {
@@ -30889,7 +30888,7 @@
       "name": "Weekly review",
       "pitch": "Write a weekly review every Friday of what the person finished and what slipped.",
       "category": "productivity",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -30911,7 +30910,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T13:12:17.074Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/weekly-review.json"
     },
     {
@@ -30995,7 +30994,7 @@
       "name": "Wi-Fi security",
       "pitch": "Help the person lock down their home wifi and router settings to stop unauthorised access.",
       "category": "privacy",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -31014,7 +31013,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T15:03:25.375Z",
+      "updatedAt": "2026-11-10T21:43:41.958Z",
       "packUrl": "packs/wifi-security.json"
     },
     {

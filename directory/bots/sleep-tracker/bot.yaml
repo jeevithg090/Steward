@@ -2,7 +2,7 @@ id: sleep-tracker
 name: Sleep tracker
 pitch: Track sleep quality each morning and show how it links to daily habits over 14 days.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -34,7 +34,3 @@ rules:
     effect: ask
     when: tool.name == "memory_remember"
     description: Ask the person before storing a new sleep rating or habit.
-  - name: show table at end
-    effect: ask
-    when: tool.name == "make_page"
-    description: Ask the person if they want to see the correlation table after it is built.

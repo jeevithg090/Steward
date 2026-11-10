@@ -3,7 +3,7 @@
   "name": "Roth conversion ladder",
   "pitch": "Explain the tax implications of a Roth conversion ladder and create a five-year projection of tax savings.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -48,22 +48,9 @@
       "body": "1. Ask the person for their filing status, current income, existing traditional IRA balance, and how much they plan to convert each year. 2. If any number is missing, ask for it before continuing. 3. Once the numbers are known, decide on a marginal tax rate: use the person's known bracket if given, otherwise use the basic rate and the higher rate as a range. 4. For each of the five years, calculate the tax cost as the conversion amount multiplied by the marginal rate. 5. Add the after‑tax portion (conversion amount minus tax cost) to a running total. 6. Use make_page to create a simple table with four columns: Year, Conversion, Tax cost, Roth total so far. 7. Show the table with show_table. 8. Below the table, write a plain‑English summary: each year the conversion is taxed as ordinary income, the five‑year waiting period applies to each conversion separately, and after five years the converted amount can be withdrawn tax‑free. 9. Remind the person that this is a projection based on the numbers they gave and that they should consult a qualified tax adviser before making any conversion."
     }
   ],
-  "rules": [
-    {
-      "name": "ask for personal numbers",
-      "effect": "ask",
-      "when": "tool.name == \"web_search\"",
-      "description": "If the person has not provided filing status, income, IRA balance, or conversion amounts, ask for them before searching."
-    },
-    {
-      "name": "no personalised tax advice",
-      "effect": "deny",
-      "when": "tool.kind == \"pay\" || tool.kind == \"sign\"",
-      "description": "Do not calculate exact tax liabilities or recommend a specific conversion amount."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Roth conversion ladder\n\nExplains the tax implications of a Roth conversion ladder and creates a five‑year projection of tax costs and after‑tax savings.\n\n**What it needs**\n- web_search to find the general five‑year rule and tax treatment\n- make_page and show_table to display the projection\n\n**What it will not do**\n- Give personalised tax advice or calculate exact tax liabilities\n- Act on any conversion or move money\n- Provide investment recommendations\n\n**What the person should provide**\n- Filing status (e.g. single, married filing jointly)\n- Current income or tax bracket\n- Existing traditional IRA balance\n- Planned conversion amount each year",
-  "hash": "7cf098b79d0265a0b5521558aafe7e503dd2b6027223884746b92b29cf5ab6e8"
+  "hash": "6feac41b65454e70e56a0f85a45ae69dc499c74f6536480633bac5b57b5fc4f2"
 }

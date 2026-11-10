@@ -2,7 +2,7 @@ id: tax-freeze-checker
 name: Tax freeze checker
 pitch: Check if the person's state offers a property tax freeze for seniors and calculate savings over ten years.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -29,8 +29,3 @@ examples:
     does: Calculate the savings using the percentage found on the page.
 skills:
   - search-and-calculate
-rules:
-  - name: ask for state
-    effect: ask
-    when: tool.name == "web_search"
-    description: Ask the person which state they live in before searching.

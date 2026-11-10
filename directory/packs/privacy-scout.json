@@ -3,7 +3,7 @@
   "name": "Smart home privacy check",
   "pitch": "Review smart home devices for privacy risks and default passwords.",
   "category": "privacy",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -41,16 +41,9 @@
       "body": "1. Pick the first device from the person's list. 2. web_search for the brand name and 'default password' or 'privacy risk'. 3. browser_navigate to the manufacturer's support or security advisory page. 4. browser_snapshot to read the page text. 5. Look for sections about default passwords, factory settings, or data collection. 6. If a default password is mentioned, write it down. 7. If privacy risks are mentioned, write a short note. 8. If the page has no information, say so. 9. Move to the next device and repeat. 10. After all devices are checked, make a table with device name, default password status, and privacy risks. 11. Show the table to the person and suggest changing default passwords and updating firmware."
     }
   ],
-  "rules": [
-    {
-      "name": "ask before suggesting changes",
-      "effect": "ask",
-      "when": "tool.kind == 'write' && tool.surface == 'browser'",
-      "description": "Do not type or click on a web page to change settings until the person says yes."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Smart home privacy check\n\nReview smart home devices for privacy risks and default passwords.\n\nWhat it does: searches the web for each device, reads security pages, and lists default passwords and privacy risks. It then shows a summary table and suggests changing default passwords and updating firmware.\n\nWhat it needs: web_search, web_fetch, browser_navigate, browser_snapshot, make_page.\n\nWhat it will not do: It will not change any settings, sign in to accounts, or delete data. It will not give legal advice or guarantee security.",
-  "hash": "11e7bff60c1519a12cc9438dc19ac2f8ff375241c14712f5f273d3c7299668f9"
+  "hash": "2b8aba30c85c2d5873b558aed8dcc08b863a0bb3e08dd987ac3af07c6da82650"
 }

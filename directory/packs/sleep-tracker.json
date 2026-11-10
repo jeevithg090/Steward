@@ -3,7 +3,7 @@
   "name": "Sleep tracker",
   "pitch": "Track sleep quality each morning and show how it links to daily habits over 14 days.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -54,16 +54,10 @@
       "effect": "ask",
       "when": "tool.name == \"memory_remember\"",
       "description": "Ask the person before storing a new sleep rating or habit."
-    },
-    {
-      "name": "show table at end",
-      "effect": "ask",
-      "when": "tool.name == \"make_page\"",
-      "description": "Ask the person if they want to see the correlation table after it is built."
     }
   ],
   "routines": [],
   "shortcuts": [],
   "readme": "# Sleep tracker\nA 14-day morning questionnaire to rate sleep quality and note daily habits. Records each answer and, after enough data, shows a table linking sleep to the habits you choose. Will not share data outside this assistant, and will ask before storing each new entry.",
-  "hash": "d572f9a1fab9214638e70b11949dc06cac741c6e2bb19aaeb1cd5887275663f5"
+  "hash": "c778a76d7fd4e6f95f90dacd0cb0e23328f0c9d29e9c2c704c7f3137721940d5"
 }

@@ -3,7 +3,7 @@
   "name": "Invoice Bot Writer",
   "pitch": "Helps you write clear, complete bot packs for chasing invoices so Steward can do the work reliably.",
   "category": "bot-helpers",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -48,16 +48,10 @@
       "effect": "ask",
       "when": "tool.name == \"file_write\"",
       "description": "Ask before writing the final bot pack JSON file."
-    },
-    {
-      "name": "send-chase-email",
-      "effect": "ask",
-      "when": "tool.kind == \"send\"",
-      "description": "Ask before the chase bot sends any email."
     }
   ],
   "routines": [],
   "shortcuts": [],
   "readme": "## Invoice Bot Writer\n\nHelps you write a complete, runnable bot pack for chasing unpaid invoices. You tell it where your invoices live, how to spot unpaid ones, who to contact, what to say, when to chase, and what to do when things go wrong. It produces a single JSON file that Steward can load.\n\n**What it needs**\n- Your answers to seven questions about your invoice workflow.\n- Access to the tools your chase bot will use (email, web, files, shell).\n\n**What it will not do**\n- It will not chase invoices itself; it only writes the pack.\n- It will not connect to your accounting software or email for you.\n- It will not guess missing details; it asks you to decide.",
-  "hash": "7612d826b2c2b087abfb361e31bc5ae9eec7a0e8afe2b9d6c23ad882c3c87128"
+  "hash": "b129651596acbada158edd000e3d2700fb28de3524a1446566498d5bd0f12ced"
 }

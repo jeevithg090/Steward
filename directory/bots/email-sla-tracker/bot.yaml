@@ -2,7 +2,7 @@ id: email-sla-tracker
 name: Email SLA tracker
 pitch: Tracks response times for direct reports and key partners, showing overdue emails and average speed.
 category: productivity
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -30,12 +30,3 @@ examples:
     does: I list emails older than 24 hours with no reply and show their senders in a table.
 skills:
   - track-response-times
-rules:
-  - name: ask before sending
-    effect: ask
-    when: tool.kind == "send"
-    description: Ask the person before sending any email reply.
-  - name: ask before calendar changes
-    effect: ask
-    when: tool.name == "calendar_create"
-    description: Ask the person before adding any calendar event.

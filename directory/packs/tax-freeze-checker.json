@@ -3,7 +3,7 @@
   "name": "Tax freeze checker",
   "pitch": "Check if the person's state offers a property tax freeze for seniors and calculate savings over ten years.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -44,16 +44,9 @@
       "body": "1. Ask the person for their state. 2. Search the web for the state name and \"property tax freeze seniors\". 3. If no results, say you could not find any information and stop. 4. If a result is found, open it and read the page. 5. Look for the freeze amount, the age requirement, and whether it is a fixed dollar amount or a percentage of the property value. 6. If only a percentage is found, ask the person for their property's assessed value. 7. Calculate annual savings: if a fixed amount, use that amount; if a percentage, multiply the percentage by the assessed value. 8. Calculate ten‑year savings by multiplying the annual savings by ten. 9. Create a table with columns Year, Annual savings, Cumulative savings. 10. Write a summary file tax_freeze_summary.txt with the state, freeze detail, annual savings, and ten‑year savings. 11. Show the table and the file name to the person."
     }
   ],
-  "rules": [
-    {
-      "name": "ask for state",
-      "effect": "ask",
-      "when": "tool.name == \"web_search\"",
-      "description": "Ask the person which state they live in before searching."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Tax freeze checker\n\nCheck if the person's state offers a property tax freeze for seniors and calculate savings over ten years.\n\n**What it needs**: web_search, browser_navigate, browser_snapshot, file_write, show_table.\n\n**What it will not do**: It will not look up personal property values unless the person provides them. It will not file any forms or apply for the freeze.",
-  "hash": "ac3898f203f93c8339e802262efc614fc564b303a0ad12dbe3d89d0fef77c2ce"
+  "hash": "b3882459ee5dd7758fea19ae943edbe28bcb1c91915b5bde5d9c36d26c834aaa"
 }

@@ -3,7 +3,7 @@
   "name": "Privacy policy reviewer",
   "pitch": "Review any app's privacy policy and list the data it collects.",
   "category": "privacy",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -44,16 +44,9 @@
       "body": "1. Search the web for the app name followed by \"privacy policy\". 2. Open the first official policy link with browser_navigate. 3. Read the page with browser_snapshot. 4. Scroll down to find the data collection section using browser_scroll. 5. Identify each data type listed (for example, name, email, location, usage data). 6. Note the purpose given for each data type. 7. If a data type has no clear purpose, record that the policy did not state a purpose. 8. Stop when all listed data types have been recorded."
     }
   ],
-  "rules": [
-    {
-      "name": "ask before sharing",
-      "effect": "ask",
-      "when": "tool.kind == \"send\"",
-      "description": "Ask the person before showing any summary page that includes their data."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Privacy policy reviewer\nReview any app's privacy policy and list the data it collects.\n\nWhat it needs: web search and browser tools to find and read privacy policies online.\nWhat it will not do: It will not change any account settings, delete data, or sign up for services. It only reads publicly available policy text.",
-  "hash": "f0d4f71a1a2a5afbc75962002645d3a1c19bfaebef9b82614ce8349328dd3f39"
+  "hash": "a11f1b54018a2c5f7624556ea1ea07140f3ed881876b9bc743b17181ce9e48d6"
 }

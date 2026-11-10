@@ -2,7 +2,7 @@ id: privacy-scout
 name: Smart home privacy check
 pitch: Review smart home devices for privacy risks and default passwords.
 category: privacy
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -28,8 +28,3 @@ examples:
     does: Search for Ring default password and Xiaomi smart plug privacy, then report findings.
 skills:
   - check-device-privacy
-rules:
-  - name: ask before suggesting changes
-    effect: ask
-    when: tool.kind == 'write' && tool.surface == 'browser'
-    description: Do not type or click on a web page to change settings until the person says yes.

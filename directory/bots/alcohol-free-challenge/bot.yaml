@@ -2,7 +2,7 @@ id: alcohol-free-challenge
 name: Alcohol-free challenge
 pitch: A 30-day alcohol-free challenge with daily tips, mocktail recipes, and coping strategies for social events.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -29,10 +29,6 @@ examples:
 skills:
   - set-up-challenge-page
 rules:
-  - name: ask before sending
-    effect: ask
-    when: tool.kind == "send"
-    description: Ask the person before the bot sends any message or email.
   - name: ask before creating routine
     effect: ask
     when: tool.name == "routine_create"

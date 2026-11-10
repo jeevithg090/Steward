@@ -3,7 +3,7 @@
   "name": "Skill maker",
   "pitch": "Turns repeated requests into reusable slash-callable skills with memory and documentation.",
   "category": "bot-helpers",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -43,12 +43,6 @@
   ],
   "rules": [
     {
-      "name": "write-skill-file",
-      "effect": "ask",
-      "when": "tool.name == \"file_write\"",
-      "description": "Ask before writing the skill file to the workspace."
-    },
-    {
       "name": "remember-skill",
       "effect": "ask",
       "when": "tool.name == \"memory_remember\"",
@@ -58,5 +52,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## Skill maker\n\nCreates reusable slash-callable skills from repeated requests. You describe the task, choose a slash name, and the bot writes a Markdown skill file and indexes it in memory.\n\n### Needs\n\n- Workspace access to write skill files.\n- Memory to index skills for later listing.\n\n### Will not do\n\n- Execute the skill itself (you invoke the skill separately).\n- Modify existing skills without your confirmation.\n- Access mail, calendar, or external services unless the skill you create calls for them.",
-  "hash": "d1ca4830d43bcc92ca40270a3ac60018148565d079f0c91c80fbf59e5dd1db27"
+  "hash": "44153537d464147e9fd3fe707a7beb2cae3a49d34b08a4271f9c08d6e02176ed"
 }

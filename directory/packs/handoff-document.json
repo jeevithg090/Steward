@@ -3,7 +3,7 @@
   "name": "Handoff document",
   "pitch": "Create a vacation handoff document covering active projects, contacts, and deadlines.",
   "category": "productivity",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -42,16 +42,9 @@
       "body": "1. Use calendar_list to get all events during the vacation dates. 2. Use mail_read to look for messages with subjects about projects, contacts, or deadlines. 3. For each event or message, note the project name, the person responsible, and the due date. 4. If calendar_list or mail_read returns no results, note that nothing was found for that step and continue. 5. Repeat until all relevant items are collected."
     }
   ],
-  "rules": [
-    {
-      "name": "ask before sending",
-      "effect": "ask",
-      "when": "tool.kind == \"send\"",
-      "description": "The agent must ask the person before sending the document to anyone."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Handoff document\n\nCreate a vacation handoff document covering active projects, contacts, and deadlines.\n\n**What it needs:** calendar_list, mail_read, file_write, make_page connectors mail and calendar.\n\n**What it will not do:** It will not send the document to anyone without asking.",
-  "hash": "d167d3beb49fe0a2865424d74676cdb83580dc1f9204d9993f0f731ff827f0b3"
+  "hash": "ca03c6b6b73d473fd9241e3c30ca6135d648e2aac488bf5ea6bebab73eb5049a"
 }

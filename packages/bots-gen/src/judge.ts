@@ -1,22 +1,22 @@
 import type { BotPack, TextModel } from "@steward/shared";
 import { parseJsonObject } from "./json.ts";
-import { buildJudgePrompt, JUDGE_SYSTEM } from "./prompt.ts";
+import { buildJudgePrompt, JUDGE_SYSTEM, SAFETY_CATEGORIES } from "./prompt.ts";
 import { overlap, tokens } from "./text.ts";
 
 /**
  * The quality gate a generated pack passes before it is written: a second model call scores
- * usefulness, honesty and clarity, and near-duplicates are dropped. The batch runner drops a pack
- * whose average is below `JUDGE_BAR`.
+ * usefulness, honesty and clarity (and safety, for health, money and investing bots), and
+ * near-duplicates are dropped. The batch runner drops a pack whose average is below `JUDGE_BAR`.
  */
 
 export const JUDGE_BAR = 3.5;
 
 export interface Judgement {
-  /** The mean of the three scores, 1 to 5. */
+  /** The mean of the scores, 1 to 5. */
   score: number;
   /** One line per aspect: "Usefulness 4/5: …". */
   notes: string[];
-  scores: { usefulness: number; honesty: number; clarity: number };
+  scores: { usefulness: number; honesty: number; clarity: number; safety?: number };
 }
 
 const ASPECTS = ["usefulness", "honesty", "clarity"] as const;
@@ -34,19 +34,24 @@ function readNote(value: unknown): string {
   return typeof entry?.note === "string" ? entry.note.trim() : "";
 }
 
-/** Turns the judge's JSON into a judgement. Throws when a score is missing or out of range. */
-export function parseJudgement(text: string): Judgement {
+/**
+ * Turns the judge's JSON into a judgement. Throws when a score is missing or out of range;
+ * `safety` is required when asked for, so a health bot cannot pass without it.
+ */
+export function parseJudgement(text: string, opts: { safety?: boolean } = {}): Judgement {
   const raw = parseJsonObject(text);
   const scores = {} as Judgement["scores"];
   const notes: string[] = [];
-  for (const aspect of ASPECTS) {
+  const aspects: readonly (keyof Judgement["scores"])[] = opts.safety ? [...ASPECTS, "safety"] : ASPECTS;
+  for (const aspect of aspects) {
     const score = readScore(raw[aspect]);
     if (score === undefined) throw new Error(`The judge gave no score for ${aspect}.`);
     scores[aspect] = score;
     const note = readNote(raw[aspect]);
     notes.push(`${aspect[0]!.toUpperCase()}${aspect.slice(1)} ${score}/5${note ? `: ${note}` : ""}`);
   }
-  const score = Math.round(((scores.usefulness + scores.honesty + scores.clarity) / 3) * 100) / 100;
+  const values = aspects.map((a) => scores[a] ?? 0);
+  const score = Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 100) / 100;
   return { score, notes, scores };
 }
 
@@ -59,9 +64,9 @@ export async function judgeBot(
   const answer = await model.complete({
     system: JUDGE_SYSTEM,
     prompt: buildJudgePrompt(pack, opts.tools),
-    maxTokens: 600,
+    maxTokens: 800,
   });
-  return parseJudgement(answer);
+  return parseJudgement(answer, { safety: SAFETY_CATEGORIES.has(pack.category) });
 }
 
 export const DUPLICATE_OVERLAP = 0.8;

@@ -2,7 +2,7 @@ id: weekly-review
 name: Weekly review
 pitch: Write a weekly review every Friday of what the person finished and what slipped.
 category: productivity
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -30,8 +30,3 @@ examples:
     does: list this week's finished tasks and what slipped, then save a page.
 skills:
   - gather-work-items
-rules:
-  - name: ask before sending
-    effect: ask
-    when: tool.name == "mail_send"
-    description: ask the person before sending the review page

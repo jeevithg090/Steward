@@ -2,7 +2,7 @@ id: takeout-analyst
 name: Takeout analyst
 pitch: Review takeout spending and suggest cheaper homemade alternatives.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -28,8 +28,3 @@ examples:
     does: read recent mail for receipts and list the orders found
   - ask: what can i cook instead of pizza?
     does: search for pizza recipes and compare cost to ordering
-rules:
-  - name: ask before paying
-    effect: ask
-    when: tool.kind == "pay"
-    description: the agent must not pay anything without asking the person first

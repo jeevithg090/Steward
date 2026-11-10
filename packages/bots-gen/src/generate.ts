@@ -7,7 +7,9 @@ import {
   buildRetryPrompt,
   type GenerateHints,
   isPackTool,
+  menuRuleFits,
   plainWords,
+  ruleMenuEntry,
 } from "./prompt.ts";
 import { displayName, nameFromJob, sentence, slugify, truncateAtWord } from "./text.ts";
 
@@ -181,6 +183,16 @@ export function guessCategory(job: string): BotCategory {
   return "misc";
 }
 
+/** The line a health or money bot's instructions carry, so the person is sent to someone qualified. */
+export const REFERRAL: Partial<Record<BotCategory, string>> = {
+  health:
+    "You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before changing a medicine, a diet or how they exercise.",
+  money:
+    "You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
+  investing:
+    "You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
+};
+
 /** A pack from the job text alone. The same input always gives the same pack. */
 export function templatePack(input: GenerateInput, ctx: GenerateContext): BotPack {
   const job = input.job
@@ -194,6 +206,8 @@ export function templatePack(input: GenerateInput, ctx: GenerateContext): BotPac
   const connectors = ctx.hints?.connectors ?? picked.connectors;
   const pitch = truncateAtWord(sentence(job), MAX_PITCH);
   const toolWords = tools.map((t) => plainWords(t).replace(/ \(asks first\)$/, "")).join(", ");
+  const category = input.category ?? guessCategory(job);
+  const referral = REFERRAL[category] ? `\n- ${REFERRAL[category]}` : "";
   const instructions = `You help one person with this job: ${job}.
 
 ## How to work
@@ -204,7 +218,7 @@ export function templatePack(input: GenerateInput, ctx: GenerateContext): BotPac
 - Say what you could not check. Never invent a fact, a price, a date or a name.
 - Never call the person by a name they did not give.
 - When a step finds nothing, say so and suggest one next step.
-- If a tool is not connected or answers with an error, say so and do what you can without it.
+- If a tool is not connected or answers with an error, say so and do what you can without it.${referral}
 
 ## Before you finish
 
@@ -232,7 +246,7 @@ AI-made from a template, not yet used by anyone. Licence: MIT.`;
     id: slugify(name),
     name,
     pitch,
-    category: input.category ?? guessCategory(job),
+    category,
     version: 1,
     author: { kind: "ai", model: "template", generated: dateOf(ctx) },
     licence: "MIT",
@@ -292,15 +306,24 @@ export function assembleCandidate(
         }))
         .slice(0, 12)
     : [];
+  // Only rules from the menu, named by the menu: the model picks the condition and ask or deny,
+  // and the name says what the condition does. An "allow" is kept so the validator refuses it.
+  const held = new Set(strings(needs.tools, 80));
   const rules = Array.isArray(raw.rules)
     ? raw.rules
         .filter((r): r is Record<string, unknown> => typeof r === "object" && r !== null)
-        .map((r) => ({
-          name: str(r.name) ?? "rule",
-          effect: r.effect,
-          when: str(r.when) ?? "",
-          description: str(r.description) ?? "",
-        }))
+        .flatMap((r) => {
+          const when = str(r.when) ?? "";
+          const entry = ruleMenuEntry(when);
+          if (r.effect !== "ask" && r.effect !== "deny") {
+            return [
+              { name: str(r.name) ?? "rule", effect: r.effect, when, description: str(r.description) ?? "" },
+            ];
+          }
+          if (!entry || !menuRuleFits(entry, r.effect, held)) return [];
+          return [{ ...entry[r.effect], effect: r.effect, when: entry.when }];
+        })
+        .filter((r, i, all) => all.findIndex((o) => o.when === r.when && o.effect === r.effect) === i)
         .slice(0, 12)
     : [];
   return {
