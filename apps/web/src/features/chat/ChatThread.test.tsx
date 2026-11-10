@@ -332,6 +332,21 @@ describe("ChatThread", () => {
       expect((document.activeElement as HTMLElement | null)?.dataset.approvalId).toBe("apr_2");
     });
 
+    it("passes over a request already answered, which goes with the rest when the run carries on", async () => {
+      wide();
+      kit.state.interrupts = ["apr_1", "apr_2"].map((id) => ({
+        id: `call_${id}`,
+        toolCallId: `call_${id}`,
+        reason: "steward_approval",
+        metadata: { approvalId: id },
+      }));
+      draw();
+      fireEvent.click(await screen.findByRole("button", { name: "Allow once apr_1" }));
+      // The first card is still drawn, answered, until the last answer resumes the run.
+      fireEvent.click(screen.getByRole("button", { name: "Allow once apr_2" }));
+      expect(document.activeElement).toBe(textbox());
+    });
+
     it("does not draw a listed approval while its run is still streaming", async () => {
       listed.approvals = [{ id: "apr_9", threadId: "thr_1", toolCallId: "call_9", status: "pending" }];
       kit.state.isRunning = true;

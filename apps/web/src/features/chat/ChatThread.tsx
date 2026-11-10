@@ -485,9 +485,13 @@ function Conversation({
   // An answered card goes at once, so before it does the keyboard moves somewhere that stays: the
   // next request if one is left, else the composer on wide screens, else where the requests were
   // (so a phone's keyboard does not open uninvited). The answer itself is announced by the card.
+  // A request already answered is not "left": with several, each answered card stays until the last
+  // answer carries the run on, and then they all go together.
+  const answered = useRef(new Set<string>());
   const onAnswered = useCallback((approvalId: string) => {
+    answered.current.add(approvalId);
     const next = [...(approvalsRef.current?.querySelectorAll<HTMLElement>("[data-approval-id]") ?? [])].find(
-      (element) => element.dataset.approvalId !== approvalId,
+      (element) => !answered.current.has(element.dataset.approvalId ?? ""),
     );
     const target =
       next ?? (globalThis.matchMedia?.(WIDE).matches ? composerRef.current : approvalsRef.current);
