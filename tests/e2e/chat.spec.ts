@@ -7,8 +7,9 @@ test.describe("Chat", () => {
 
     const log = conversation(page);
     await expect(log.getByText(/scripted demo model/i).first()).toBeVisible({ timeout: 30_000 });
-    // A greeting never uses a name the person did not give.
-    await expect(log.getByText(/^Hi\b/).first()).toBeVisible();
+    // A greeting never uses a name the person did not give: "Hi." and then Steward's own name, so
+    // any word between "Hi" and the full stop (as in "Hi Sam.") fails (PLAN §2, rule 4).
+    await expect(log.getByText(/^Hi\. I['’]m Steward\b/).first()).toBeVisible();
   });
 
   test("a starter on Today opens the chat and sends it", async ({ page }) => {
