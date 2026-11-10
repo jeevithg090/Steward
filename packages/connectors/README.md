@@ -201,7 +201,8 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
   `McpCallError`, so the record shows it as failed.
 - **Errors** reach the model as the call's error, so they are written by Steward: its own sentence
   first (`steward`), then anything the server wrote (its error text, its JSON-RPC message, the end
-  of its stderr) quoted as one JSON string, cut at 500 characters (`serverSaid`), and labelled as
+  of its stderr, or an SDK error that repeats what it sent, such as an unsupported protocol
+  version) quoted as one JSON string, cut at 500 characters (`serverSaid`), and labelled as
   the server's words that must not be followed. A quote in the server's text can't close Steward's.
 
 ## The web

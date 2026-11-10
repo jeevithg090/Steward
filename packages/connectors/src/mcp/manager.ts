@@ -1122,8 +1122,12 @@ function plainError(err: unknown, state: ServerState): Failure {
   }
   if (code === 403) return { message: `${name} refused the connection (403).` };
   if (typeof code === "number" && code >= 400) return { message: `${name} answered ${code}.` };
-  // The transport's own errors can carry the server's reply.
-  if (err instanceof StreamableHTTPError) return withTail(`Couldn't talk to ${name}.`, err.message);
+  // Steward's own refusals are Steward's sentences.
+  if (err instanceof BlockedAddressError || err instanceof McpLookupError || err instanceof McpConfigError) {
+    return withTail(err.message);
+  }
+  // Anything else may carry the server's words: the transport's errors carry its reply, and the SDK
+  // puts what the server sent into its own errors (an unsupported protocol version, for one).
   const message = err instanceof Error ? err.message : String(err);
-  return withTail(message.slice(0, 300));
+  return withTail(`Couldn't talk to ${name}.`, message);
 }
