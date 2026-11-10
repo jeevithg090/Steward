@@ -77,6 +77,8 @@ export const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
 export const MAX_DOWNLOADS_PER_MINUTE = 10;
 /** How often the size of running downloads is checked. */
 const DOWNLOAD_CHECK_MS = 250;
+/** A browser nothing has used for this long is closed; the next use starts it again. */
+export const IDLE_CLOSE_MS = 15 * 60_000;
 const BLOCK_NOTICE_MS = 60_000;
 
 type Listener = (msg: ComputerServerMessage) => void;
@@ -103,6 +105,8 @@ export interface AgentComputerOptions {
   actorId: string;
   /** The largest file a page may download. 100 MB unless set lower. */
   maxDownloadBytes?: number;
+  /** Close the browser after this long unused (15 minutes by default). 0 keeps it open. */
+  idleCloseMs?: number;
 }
 
 interface PendingSecret {
@@ -218,6 +222,10 @@ export class AgentComputer implements Computer {
   /** Running downloads Steward stopped for size, by Chromium's id, and how many have not ended yet. */
   private readonly stoppedForSize = new Set<string>();
   private sizeStops = 0;
+  /** When the agent or the person last used the computer, for closing it when idle. */
+  private lastUsed = Date.now();
+  private idleTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly idleCloseMs: number;
 
   constructor(opts: AgentComputerOptions) {
     this.opts = opts;
@@ -227,6 +235,7 @@ export class AgentComputer implements Computer {
     this.tmpDir = join(opts.dir, "tmp");
     this.downloadsDir = join(opts.dir, "downloading");
     this.maxDownloadBytes = Math.min(MAX_DOWNLOAD_BYTES, opts.maxDownloadBytes ?? MAX_DOWNLOAD_BYTES);
+    this.idleCloseMs = Math.max(0, opts.idleCloseMs ?? IDLE_CLOSE_MS);
     this.log = new ActivityLog(opts.agentId, (item) => this.broadcast({ type: "activity", item }));
   }
 
@@ -283,6 +292,8 @@ export class AgentComputer implements Computer {
     this.adopt(page);
     this.emitStatus();
     this.reconcileCast();
+    this.touch();
+    this.scheduleIdleCheck(this.idleCloseMs);
   }
 
   /** Closes the browser and everything waiting on it. The workspace and the profile stay. */
@@ -331,6 +342,78 @@ export class AgentComputer implements Computer {
     this.documentChanged();
     this.reconcileCast();
     this.emitStatus();
+  }
+
+  /** Something used the computer: the idle clock starts again. */
+  private touch(): void {
+    this.lastUsed = Date.now();
+  }
+
+  /** When the computer was last used, in ms since the epoch. */
+  get lastUsedAt(): number {
+    return this.lastUsed;
+  }
+
+  /**
+   * True while closing the browser would cut something short: someone watches the screen, the
+   * person holds the wheel or is asked for help or a secret, or an action, command or download runs.
+   */
+  isBusy(): boolean {
+    return (
+      this.listeners.size > 0 ||
+      this.control.controller === "person" ||
+      this.control.help !== undefined ||
+      this.control.pending() > 0 ||
+      this.secret !== undefined ||
+      this.shells.size > 0 ||
+      this.downloadsRunning > 0 ||
+      this.starting !== undefined
+    );
+  }
+
+  /**
+   * Closes a running browser that nothing is using, telling the model with its next look. Unlike
+   * `close`, the next use starts the browser again by itself. False when it was busy or not running.
+   */
+  async closeIdle(why: string): Promise<boolean> {
+    if (!this.context || this.stopping || this.isBusy()) return false;
+    const lookAgain = this.control.snapshotRequired;
+    this.log.add({
+      kind: "control",
+      text: `Closed the browser ${why}; it starts again when needed`,
+      ok: true,
+    });
+    this.note(MESSAGES.idleRestarted);
+    const stopping = this.close();
+    // Not a close on purpose: an action that comes during or after it starts the browser again.
+    this.closed = false;
+    await stopping;
+    // Nobody used the screen, so only the look the agent already owed is owed.
+    this.control.snapshotRequired = lookAgain;
+    return true;
+  }
+
+  private scheduleIdleCheck(ms: number): void {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.idleTimer = undefined;
+    if (this.idleCloseMs === 0 || !this.context) return;
+    this.idleTimer = setTimeout(() => void this.checkIdle(), Math.max(50, ms));
+    this.idleTimer.unref();
+  }
+
+  private async checkIdle(): Promise<void> {
+    this.idleTimer = undefined;
+    if (!this.context || this.stopping) return;
+    const left = this.lastUsed + this.idleCloseMs - Date.now();
+    if (left > 0) {
+      this.scheduleIdleCheck(left);
+      return;
+    }
+    if (this.isBusy()) {
+      this.scheduleIdleCheck(this.idleCloseMs);
+      return;
+    }
+    await this.closeIdle(`after ${durationLabel(this.idleCloseMs)} with nothing to do`);
   }
 
   // ── Pages ────────────────────────────────────────────────────────────────────────────────────
@@ -453,6 +536,7 @@ export class AgentComputer implements Computer {
    * under it.
    */
   private async ensurePage(opts: { restart?: boolean } = {}): Promise<Page> {
+    this.touch();
     if (!this.context && (this.closed || opts.restart === false)) {
       throw new ComputerError("closed", MESSAGES.computerStopped);
     }
@@ -475,6 +559,7 @@ export class AgentComputer implements Computer {
       return await fn(await this.ensurePage());
     } finally {
       release();
+      this.touch();
     }
   }
 
@@ -1156,10 +1241,12 @@ export class AgentComputer implements Computer {
   // ── Workspace and shell ──────────────────────────────────────────────────────────────────────
 
   async listFiles(dir?: string): Promise<WorkspaceFile[]> {
+    this.touch();
     return this.workspace.list(dir);
   }
 
   async readFile(path: string, opts: { maxBytes?: number } = {}): Promise<string> {
+    this.touch();
     const limit = opts.maxBytes ?? DEFAULT_READ_BYTES;
     try {
       const file = await this.workspace.read(path, limit);
@@ -1175,6 +1262,7 @@ export class AgentComputer implements Computer {
 
   async writeFile(path: string, content: string): Promise<WorkspaceFile> {
     this.control.admit(false);
+    this.touch();
     try {
       const file = await this.workspace.write(path, content);
       this.log.add({ kind: "file", text: `Saved ${file.path} (${formatBytes(file.size)})`, ok: true });
@@ -1204,6 +1292,7 @@ export class AgentComputer implements Computer {
         return () => this.shells.delete(stop);
       },
     });
+    this.touch();
     const label = `Ran \`${commandLabel(command)}\``;
     const note = result.timedOut
       ? ` (stopped after ${durationLabel(result.durationMs)})`
@@ -1230,16 +1319,21 @@ export class AgentComputer implements Computer {
 
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
+    this.touch();
     this.sendTo(listener, { type: "status", status: this.status() });
     if (this.lastFrame && this.context) this.sendTo(listener, this.lastFrame);
     this.reconcileCast();
     return () => {
-      if (this.listeners.delete(listener)) this.reconcileCast();
+      if (!this.listeners.delete(listener)) return;
+      // The idle clock starts when the last watcher leaves.
+      this.touch();
+      this.reconcileCast();
     };
   }
 
   /** Input from the person's screen. Never throws: problems go back to the screen as an error message. */
   async handle(raw: ComputerClientMessage): Promise<void> {
+    this.touch();
     try {
       await this.dispatch(raw);
     } catch (error) {

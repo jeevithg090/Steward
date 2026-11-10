@@ -54,6 +54,8 @@ export const MESSAGES = {
     "The page you were on crashed. Steward opened a fresh tab; open the page again if you still need it.",
   browserRestarted:
     "The browser stopped by itself, so Steward started it again. Open the page again if you still need it.",
+  idleRestarted:
+    "Steward closed the browser while nothing was using it, and started it again. Open the page again if you still need it.",
   focusUnchecked: "Steward has not checked what has focus on this page. Take a new snapshot, then try again.",
   focusChanged: "What has focus changed since Steward checked it. Take a new snapshot, then try again.",
   submitterUnchecked:

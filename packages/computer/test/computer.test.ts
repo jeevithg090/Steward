@@ -71,6 +71,8 @@ let dataDir: string;
 let audit: ReturnType<typeof fakeAudit>;
 let manager: ComputerManager;
 let strict: ComputerManager;
+/** Closes a browser after a second unused, and runs one at a time. */
+let napping: ComputerManager;
 
 beforeAll(async () => {
   site = await startSite();
@@ -86,11 +88,18 @@ beforeAll(async () => {
     maxDownloadBytes: 1024 * 1024,
   });
   strict = createComputerManager({ dataDir: join(dataDir, "strict") });
+  napping = createComputerManager({
+    dataDir: join(dataDir, "napping"),
+    allowPrivateHosts: true,
+    idleCloseMs: 1_000,
+    maxRunning: 1,
+  });
 });
 
 afterAll(async () => {
   await manager?.closeAll();
   await strict?.closeAll();
+  await napping?.closeAll();
   await site?.close();
   await own?.close();
   if (dataDir) await rm(dataDir, { recursive: true, force: true });
@@ -745,6 +754,35 @@ describe("the computer, in real Chromium", { timeout: 90_000 }, () => {
     expect(late.map((m) => m.type)).toEqual(["status", "frame"]);
     unsubscribeLate();
     unsubscribe();
+  });
+
+  it("closes a browser nothing uses, and starts it again on the next use", async () => {
+    const c = await napping.get("napper");
+    await c.navigate(`${site.base}/next`);
+    // Someone watching the screen keeps it open.
+    const unsubscribe = napping.subscribe("napper", () => {});
+    await delay(2_500);
+    expect(napping.status("napper").running).toBe(true);
+    unsubscribe();
+    await waitFor(() => !napping.status("napper").running, 10_000);
+    expect(c.activity().at(-1)?.text).toBe(
+      "Closed the browser after 1 s with nothing to do; it starts again when needed",
+    );
+    // Not a close on purpose: the next action starts it again, and the model hears why the page went.
+    const look = await c.navigate(`${site.base}/form`);
+    expect(look.snapshot.split("\n")[0]).toBe(`[${MESSAGES.idleRestarted}]`);
+    expect(napping.status("napper")).toMatchObject({ running: true, url: `${site.base}/form` });
+  });
+
+  it("closes the least recently used idle browser to stay under the limit", async () => {
+    const first = await napping.get("napper");
+    expect(first.status().running).toBe(true);
+    await napping.get("second");
+    expect(napping.status("second").running).toBe(true);
+    expect(napping.status("napper").running).toBe(false);
+    expect(first.activity().at(-1)?.text).toBe(
+      "Closed the browser to make room: at most 1 run at once; it starts again when needed",
+    );
   });
 
   it("resets by closing and starting again", async () => {

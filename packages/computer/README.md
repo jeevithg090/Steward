@@ -126,6 +126,13 @@ and start again; the profile and workspace stay) and `closeAll`. After an explic
 computer stays closed until `get` or `reset`; an action already in flight fails with code `closed`
 rather than bringing the browser back.
 
+A browser nothing has used for 15 minutes (`idleCloseMs`; 0 keeps it open) is closed to free its
+memory, unless someone watches the screen, the person holds the wheel or is asked for help or a
+secret, or an action, command or download is running. That is not a close on purpose: the next use
+starts it again, and the next observation tells the model the page it had is gone. `maxRunning`
+caps how many browsers run at once: starting one more first closes the least recently used one
+that nothing is using (if all are busy, it starts anyway).
+
 ## The live screen
 
 `subscribe(agentId, listener)` sends the current status at once, then:
@@ -275,12 +282,11 @@ takes a minute or two, depending on the machine. It covers snapshots, clicking a
 masking, stale refs (after a navigation and after a rename), metadata and private-host refusals
 including redirects, take and release with the barrier, the secret box without leaks, files and
 symlink escapes, shell timeouts and the environment, the screencast, popups, downloads and their
-limits, dialogs and tab crashes. If Chromium is missing:
+limits, dialogs, tab crashes and closing idle browsers. If Chromium is missing:
 `pnpm exec playwright install chromium`.
 
 ## Not yet
 
-- No idle shutdown or cap on how many browsers run at once.
 - No file uploads (`<input type="file">`) and no automatic CAPTCHA handoff.
 - `context.route` turns off the browser's HTTP cache, so pages load a little slower.
 - `navigator.userAgent` still says `HeadlessChrome`; some sites treat that differently.
