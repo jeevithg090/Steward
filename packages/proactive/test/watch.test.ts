@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TriageEmail } from "../src/triage.ts";
 import { WATCH_MAIL_LIMIT, WATCH_NOTES, WATCH_QUERY } from "../src/watch.ts";
-import { email, fakeMail, setup, subjectModel } from "./helpers.ts";
+import { email, fakeMail, fakeModel, setup, subjectModel } from "./helpers.ts";
 
 const TODAY = "2026-10-22";
 
@@ -123,6 +123,41 @@ describe("the inbox watch", () => {
     expect(tasks.list({ state: ["suggested"] })).toHaveLength(before + 2);
     expect(notifications.list()).toHaveLength(notesBefore + 1);
     expect(notifications.list()[0]?.body).toBe("From the demo inbox: Ana Pereira: One! and 1 more");
+    // The third is not lost to the cap: the next look comes back to it.
+    expect((await watch.check()).note).toBe("Read 1 new email; suggested 1 task.");
+    expect(tasks.list({ state: ["suggested"] })).toHaveLength(before + 3);
+    expect(notifications.list()[0]?.body).toBe("From the demo inbox: Cy Lim: Three!");
+  });
+
+  it("tries mail the model could not sort again on the next look, and says so", async () => {
+    let flaky = true;
+    const inbox: TriageEmail[] = [];
+    const model = fakeModel(({ prompt }) => {
+      const subject = /Subject: (.*)/.exec(prompt)?.[1] ?? "";
+      if (subject === "Flaky!" && flaky) throw new Error("model is down, key=sk-123");
+      return subject.includes("!")
+        ? '{"verdict":"needs_you","reason":"Asks you to answer today."}'
+        : '{"verdict":"can_wait","reason":"Nothing to do here."}';
+    });
+    const mail = fakeMail({ emails: inbox });
+    const { watch, brief, tasks } = setup({
+      at: "2026-10-22T11:00:00Z",
+      mail: () => mail,
+      model: () => model,
+    });
+    await brief.generate({ date: TODAY });
+    watch.setEnabled(true);
+    inbox.unshift(email({ subject: "Flaky!" }), email({ subject: "Fine" }));
+    const first = await watch.check();
+    expect(first.note).toBe(
+      "Read 2 new emails; nothing new needs you, and 1 couldn't be sorted. It will try them again.",
+    );
+    expect(first.note).not.toMatch(/sk-123/);
+    flaky = false;
+    expect((await watch.check()).note).toBe("Read 1 new email; suggested 1 task.");
+    expect(tasks.list({ state: ["suggested"] }).map((t) => t.title)).toContain(
+      "Reply to Ana Pereira about Flaky!",
+    );
   });
 
   it("keeps the last real look when the inbox can't be read, and stores no provider text", async () => {

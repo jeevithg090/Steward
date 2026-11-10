@@ -105,6 +105,7 @@ export const migrations: Migration[] = [
         checked_at TEXT,
         note       TEXT,
         note_at    TEXT,
+        seen       TEXT NOT NULL DEFAULT '{}',
         updated_at TEXT NOT NULL
       );
     `,

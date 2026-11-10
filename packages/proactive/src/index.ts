@@ -84,12 +84,11 @@ export function createProactive(opts: ProactiveOptions): Proactive {
     ...(opts.tenantSkills ? { tenantSkills: opts.tenantSkills } : {}),
   });
   const routines = createRoutineStore({ db, now, notifications, ...(bus ? { bus } : {}) });
-  const cache = createTriageCache(db, now);
   const triage = createTriageService({
     model: opts.model,
     mail: opts.mail,
     memory,
-    cache,
+    cache: createTriageCache(db, now),
     now,
   });
   const brief = createBriefService({
@@ -109,7 +108,6 @@ export function createProactive(opts: ProactiveOptions): Proactive {
     mail: opts.mail,
     model: opts.model,
     triage,
-    cache,
     brief,
     tasks,
     notifications,
