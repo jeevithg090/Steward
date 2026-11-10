@@ -44,6 +44,8 @@ export {
   notInstalled,
   parseHarnesses,
   profileKey,
+  usualBinDirs,
+  withProgramDir,
 } from "./profiles.ts";
 export {
   HarnessThread,

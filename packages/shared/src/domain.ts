@@ -235,6 +235,8 @@ export interface HarnessProfile {
   signIn: "vendor-tool" | "api-key";
   /** Models the tool offers, when it says. Informational. */
   models?: string[];
+  /** How to install it, said when it is missing: "npm install -g …". */
+  install?: string;
 }
 
 export interface Brand {

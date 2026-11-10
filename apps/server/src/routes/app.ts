@@ -29,7 +29,11 @@ export function registerAppRoutes(app: Hono, s: StewardServices): void {
   app.get(ROUTES.info, (c) => c.json(appInfo(s)));
 
   // Every agent with the model it runs on and whether it can answer now; the picker reads this.
-  app.get(ROUTES.agents, (c) => c.json({ agents: s.models.agentInfos() } satisfies AgentsResponse));
+  // A coding agent installed (or removed) since the last look is picked up here, with no restart.
+  app.get(ROUTES.agents, async (c) => {
+    await s.models.refreshHarnesses();
+    return c.json({ agents: s.models.agentInfos() } satisfies AgentsResponse);
+  });
 
   // The external coding agents the tenant offers, and whether each one's program is installed.
   app.get(ROUTES.harnesses, (c) => c.json(s.models.harnessInfos()));

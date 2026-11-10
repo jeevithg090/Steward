@@ -1,4 +1,6 @@
+import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type AbstractAgent, EventType } from "@ag-ui/client";
 import { StewardAgent } from "@steward/agent";
@@ -261,10 +263,10 @@ describe("AgentHost with external coding agents", () => {
     signIn: "vendor-tool",
   });
 
-  async function harnessHost(profiles: HarnessProfile[]): Promise<AgentHost> {
+  async function harnessHost(profiles: HarnessProfile[], path = process.env.PATH ?? ""): Promise<AgentHost> {
     const h = new AgentHost({
       tenant: { ...TENANT, agents: [profile("steward", "Steward")] },
-      env: { STEWARD_MODEL_PROVIDER: "scripted", PATH: process.env.PATH ?? "" },
+      env: { STEWARD_MODEL_PROVIDER: "scripted", PATH: path },
       serverRunToken: "tok",
       shared: SHARED,
       harnesses: { profiles, dataDir: tmpdir() },
@@ -287,7 +289,28 @@ describe("AgentHost with external coding agents", () => {
       skills: [],
       tools: [],
     });
-    expect(h.harnessInfos()).toMatchObject([{ id: "claude-code", available: true, path: process.execPath }]);
+    // The list says it was found, never where: local paths and settings stay on the server.
+    const [info] = h.harnessInfos();
+    expect(info).toMatchObject({ id: "claude-code", available: true });
+    expect(info).not.toHaveProperty("path");
+    expect(info).not.toHaveProperty("env");
+  });
+
+  it("picks up a coding agent installed after Steward started, with no restart", async () => {
+    const bin = mkdtempSync(join(tmpdir(), "steward-late-bin-"));
+    mkdirSync(bin, { recursive: true });
+    const h = await harnessHost([harness("steward-late-tool")], bin);
+    expect(h.agentInfos().find((a) => a.id === "claude-code")?.available).toBe(false);
+    const tool = join(bin, "steward-late-tool");
+    writeFileSync(tool, "#!/bin/sh\n");
+    chmodSync(tool, 0o755);
+    await h.refreshHarnesses();
+    expect(h.agentInfos().find((a) => a.id === "claude-code")?.available).toBe(true);
+    expect(h.agent("claude-code")).toBeInstanceOf(HarnessAgent);
+    // Nothing changed since: no rebuild.
+    const version = h.version;
+    await h.refreshHarnesses();
+    expect(h.version).toBe(version);
   });
 
   it("greys out one whose program is not installed, and its chat says what to install", async () => {
@@ -295,7 +318,7 @@ describe("AgentHost with external coding agents", () => {
     expect(h.agent("claude-code")).toBeInstanceOf(UnconfiguredAgent);
     expect(h.agentInfos().find((a) => a.id === "claude-code")).toMatchObject({
       available: false,
-      reason: expect.stringMatching(/^Claude Code is not installed on this computer/),
+      reason: expect.stringMatching(/^Claude Code is not installed here/),
     });
   });
 
