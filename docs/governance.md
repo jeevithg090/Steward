@@ -443,8 +443,9 @@ not reach it.
 
 When in doubt, Steward refuses. In particular:
 
-- A tool Steward does not know is treated as a `write`. A tool from a connected app is a `write`
-  unless you marked it as a read when you added the app.
+- A tool Steward does not know is treated as a `write` on the `system` surface, so it asks first:
+  it cannot pass for work on Steward's own browser or files. A tool from a connected app is a
+  `write` unless you marked it as a read when you added the app.
 - A deny rule that cannot be evaluated refuses the call. So does an ask or allow rule: a broken
   rule never silently stops applying.
 - A tenant rule that does not compile stops the server at start-up, naming the file and the rule.

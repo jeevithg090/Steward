@@ -76,7 +76,8 @@ function normaliseSurface(surface: unknown, fallback: ToolSurface): ToolSurface 
 /**
  * The tool as the gateway judges it. Built-ins take their kind and surface from the catalogue (a
  * stricter kind from the caller is kept); MCP tools keep the read/write the person marked; anything
- * else is at least a write.
+ * else is at least a write on the `system` surface, whatever surface the caller named, so an unknown
+ * tool can never pass for work on Steward's own browser or files, which runs without asking.
  */
 export function toolInfo(name: string, given?: Partial<GateCall["tool"]>): GateCall["tool"] {
   const givenKind = given?.kind === undefined ? undefined : normaliseKind(given.kind);
@@ -106,7 +107,7 @@ export function toolInfo(name: string, given?: Partial<GateCall["tool"]>): GateC
   return {
     name,
     kind: stricterKind("write", givenKind ?? "write"),
-    surface: normaliseSurface(given?.surface, "system"),
+    surface: "system",
     source: given?.source || "unknown",
   };
 }

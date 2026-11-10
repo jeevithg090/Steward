@@ -14,9 +14,9 @@ call ─► prepare (catalogue kind, escalation, target) ─► decide (CEL rule
 
 - **Nothing acts unrecorded.** `tool.decided` is written before any action. A failure to write it
   refuses the call.
-- **Fail closed.** An unknown tool is a write. A rule that cannot be evaluated refuses the call and
-  names itself. Any internal error refuses. A tenant rule that does not compile stops the server at
-  start.
+- **Fail closed.** An unknown tool is a write on the `system` surface, whatever surface its caller
+  named, so it asks. A rule that cannot be evaluated refuses the call and names itself. Any
+  internal error refuses. A tenant rule that does not compile stops the server at start.
 - **Payments and secrets always ask.** Kind `pay`, `request_secret` and typing into a password, PIN,
   card or code field ask every time. A field counts when the computer marks it secret
   (`target.element.sensitive`, from its type or autocomplete, so "Passwort" or an unlabelled password

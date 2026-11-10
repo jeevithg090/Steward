@@ -51,6 +51,21 @@ describe("defaults by kind", () => {
     expect(d.rule?.id).toBe("default:write-asks");
   });
 
+  it("does not let an unknown tool choose a surface that runs freely", () => {
+    for (const surface of ["browser", "file", "memory", "task"] as const) {
+      for (const tainted of [false, true]) {
+        const call = gateCall(
+          "wire_money",
+          { amount: 500 },
+          { tainted, tool: { name: "wire_money", kind: "write", surface, source: "x" } },
+        );
+        expect(call.tool.surface).toBe(surface);
+        const d = decide(gw, call);
+        expect(d.effect, `${surface} tainted=${tainted}`).toBe("ask");
+      }
+    }
+  });
+
   it("takes a built-in tool's kind from the catalogue, not the caller", () => {
     const call = gateCall(
       "mail_send",
