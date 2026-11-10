@@ -56,9 +56,17 @@ export function routineFiring(prompt: string): string {
   return `${ROUTINE_FRAME}\n\n${prompt.trim()}`;
 }
 
-/** Quoted words can never close or open the fence they sit in. */
+const FENCE_RUN = /<{3,}|>{3,}/g;
+
+/**
+ * Quoted words can never close or open the fence they sit in. Look-alike brackets (full-width,
+ * small) are folded to plain ones first, and runs of three or more are removed until none is left:
+ * one pass is not enough, since removing `<<<` from `>><<<>` leaves `>>>`.
+ */
 function quoted(text: string): string {
-  return text.replace(/<{3,}|>{3,}/g, "").trim();
+  let out = text.normalize("NFKC");
+  for (let next = out.replace(FENCE_RUN, ""); next !== out; next = out.replace(FENCE_RUN, "")) out = next;
+  return out.trim();
 }
 
 /**
