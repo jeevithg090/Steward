@@ -210,6 +210,18 @@ describe("BotListingPage", () => {
     expect(screen.getByText("/find-rentals")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Add to Steward" })).toBeTruthy();
   });
+
+  it("says there is no bot by that name when the directory has no pack for it", async () => {
+    serve({ previewStatus: 404 });
+    renderWithProviders(
+      <Routes>
+        <Route path="/bots/:id" element={<BotListingPage />} />
+      </Routes>,
+      { route: "/bots/does-not-exist" },
+    );
+    expect(await screen.findByRole("heading", { name: "No bot by that name" })).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
 });
 
 describe("BotAddPage", () => {

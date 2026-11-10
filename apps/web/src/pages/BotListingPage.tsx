@@ -44,7 +44,9 @@ export function BotListingPage() {
   }
 
   if (!pack) {
-    const problem = list.error ?? preview.error;
+    // The directory has no pack by that id: that is "no bot by that name", not a failure.
+    const missing = preview.error?.status === 404;
+    const problem = list.error ?? (missing ? undefined : preview.error);
     return (
       <Page title={name} documentTitle={name} description={BACK}>
         {mine ? (

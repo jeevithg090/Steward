@@ -17,7 +17,7 @@ import {
   type Skill,
 } from "@steward/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { countsEndpoint } from "../src/bots/service.ts";
+import { countsEndpoint, directoryError } from "../src/bots/service.ts";
 import { missingPackages, tempDir } from "./helpers.ts";
 import { startTestServer, type TestServer } from "./server.ts";
 
@@ -159,6 +159,26 @@ const haveGenerator = typeof generateBot === "function";
 const missing = await missingPackages();
 if (missing.length > 0) it.todo(`bots (waiting for ${missing.join(", ")})`);
 
+describe("directoryError", () => {
+  it("keeps a path on this machine out of what the page is told", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const denied = Object.assign(
+      new Error("EACCES: permission denied, open '/home/sam/directory/packs/a.json'"),
+      {
+        code: "EACCES",
+      },
+    );
+    const error = directoryError(denied);
+    expect(error.status).toBe(502);
+    expect(error.message).toBe("Couldn't read that bot from the directory.");
+    expect(directoryError(new Error("The directory answered 404 for the pack at packs/a.json")).status).toBe(
+      404,
+    );
+    expect(directoryError(new Error("pack changed since it was listed")).message).toMatch(/changed since/);
+    vi.restoreAllMocks();
+  });
+});
+
 describe("countsEndpoint", () => {
   it("is nowhere for a directory read from a file", () => {
     expect(countsEndpoint("/srv/steward/directory/index.json", "rent-scout")).toBeUndefined();
@@ -247,6 +267,16 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
       expect.arrayContaining(["browse the web on its own computer", "read web pages", "search the web"]),
     );
     expect(rent.body.asksBefore).not.toContain("Never pay a deposit");
+  });
+
+  it("says a bot the directory doesn't have isn't there, without naming a path on this machine", async () => {
+    const res = await t.api<{ error: string }>("/api/bots/preview", {
+      method: "POST",
+      json: { packUrl: "packs/does-not-exist.json" },
+    });
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe("That bot isn't in the directory.");
+    expect(JSON.stringify(res.body)).not.toContain(directory.indexPath.split("/").slice(0, -1).join("/"));
   });
 
   it("names what is missing here: a connector not connected, a tool Steward does not have", async () => {
