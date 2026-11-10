@@ -5,6 +5,8 @@
  * thread id), replays the thread's history with `connectAgent`, and draws the transcript, the
  * approvals Steward is waiting on, what it is doing right now, and the composer. Beside it sits
  * Steward's computer: a panel on wide screens (open or closed, remembered), a sheet on small ones.
+ * Everything that names the agent names the one this conversation is with: a bot, a coding agent or
+ * another Steward, as the person knows it.
  *
  * Patterns follow OpenBot's app/src/components/channels/channel-chat.tsx (MIT, CopilotKit): a
  * thread-scoped agent, failures read from the agent's own events (a run that fails still resolves),
@@ -97,14 +99,26 @@ function firstTimeInTab(key: string): boolean {
 }
 
 export function ChatThread(props: ChatThreadProps) {
+  const info = useInfo();
+  const agentName =
+    info.data?.agents.find((agent) => agent.id === props.runtimeAgentId)?.name ??
+    info.data?.brand.name ??
+    "Steward";
   return (
-    <ComputerSession agentId={props.runtimeAgentId}>
-      <Conversation {...props} />
+    <ComputerSession agentId={props.runtimeAgentId} name={agentName}>
+      <Conversation {...props} agentName={agentName} />
     </ComputerSession>
   );
 }
 
-function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPromptConsumed }: ChatThreadProps) {
+function Conversation({
+  threadId,
+  runtimeAgentId,
+  agentName,
+  title,
+  initialPrompt,
+  onPromptConsumed,
+}: ChatThreadProps & { agentName: string }) {
   const localAgentId = `thread:${threadId}`;
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: localAgentId, runtimeAgentId, threadId, throttleMs: 40 });
@@ -333,6 +347,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
     return {
       threadId,
       agentId: runtimeAgentId,
+      agentName,
       send: (text) => {
         if (!busyRef.current) sendRef.current(text);
       },
@@ -341,7 +356,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
       isAwaitingApproval: (id) => awaitingSet.has(id),
       showComputer,
     };
-  }, [threadId, runtimeAgentId, busy, latestKey, awaitingKey, showComputer]);
+  }, [threadId, runtimeAgentId, agentName, busy, latestKey, awaitingKey, showComputer]);
 
   // The page itself scrolls (the shell's layout grows with its content). While the person is at the
   // end of the conversation, new messages keep it in view; once they scroll up, it stays put.
@@ -382,13 +397,19 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
         <div className="flex w-full min-w-0 flex-1 items-start">
           <div className="flex min-h-[calc(100dvh-8rem)] min-w-0 flex-1 flex-col lg:min-h-dvh">
             <header className="flex items-center justify-between gap-2 border-hair-2 border-b px-4 py-2 sm:px-6">
-              <h1
-                ref={headingRef}
-                tabIndex={-1}
-                className="m-0 min-w-0 truncate font-semibold text-ink text-sub"
-              >
-                {title || "Conversation"}
-              </h1>
+              <div className="min-w-0">
+                <h1
+                  ref={headingRef}
+                  tabIndex={-1}
+                  className="m-0 min-w-0 truncate font-semibold text-ink text-sub"
+                >
+                  {title || "Conversation"}
+                </h1>
+                {/* Who answers, once there is more than one agent to talk to. */}
+                {(info.data?.agents.length ?? 0) > 1 ? (
+                  <p className="m-0 truncate text-caption text-ink-2">With {agentName}</p>
+                ) : null}
+              </div>
               {wide && panelOpen ? null : (
                 <Button variant="ghost" size="sm" icon={<Monitor />} onClick={showComputer}>
                   Show computer
@@ -409,7 +430,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                       </Button>
                     }
                   >
-                    You can still write to Steward; the conversation carries on from here.
+                    You can still write to {agentName}; the conversation carries on from here.
                   </Notice>
                 ) : null}
 
@@ -421,7 +442,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                   </p>
                 ) : null}
 
-                <Transcript messages={messages} running={running} />
+                <Transcript messages={messages} running={running} speaker={agentName} />
 
                 <div ref={approvalsRef} tabIndex={-1} className="flex flex-col gap-3 outline-none">
                   {isReady ? <ApprovalInterrupts agentId={localAgentId} onPending={setPending} /> : null}
@@ -441,7 +462,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                   <Notice
                     tone="needs"
                     role="alert"
-                    title="Steward needs you on its computer"
+                    title={`${agentName} needs you on its computer`}
                     action={
                       <Button size="sm" variant="primary" onClick={showComputer}>
                         Show the computer
@@ -456,7 +477,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                   <Notice
                     tone="problem"
                     role="alert"
-                    title="Couldn't load Steward's newest messages"
+                    title={`Couldn't load ${agentName}'s newest messages`}
                     action={
                       <Button size="sm" variant="secondary" icon={<RotateCw />} onClick={reconnect}>
                         Try again
@@ -469,7 +490,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                   <Notice
                     tone="problem"
                     role="alert"
-                    title={runError.earlier ? "Steward's last reply didn't finish" : runError.message}
+                    title={runError.earlier ? `${agentName}'s last reply didn't finish` : runError.message}
                     action={
                       <Button size="sm" variant="secondary" icon={<RotateCw />} onClick={retry}>
                         Try again
@@ -481,6 +502,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                 ) : null}
 
                 <RunStatus
+                  agentName={agentName}
                   running={running}
                   step={currentStep(messages)}
                   waitingForAnswer={waitingForAnswer && !running}
@@ -509,6 +531,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                 </div>
               ) : null}
               <Composer
+                agentName={agentName}
                 className="mx-auto w-full max-w-3xl"
                 onSend={send}
                 onStop={stop}
@@ -525,7 +548,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
             <aside
               ref={panelRef}
               tabIndex={-1}
-              aria-label="Steward's computer"
+              aria-label={`${agentName}'s computer`}
               className="sticky top-0 flex h-dvh w-[min(40rem,42%)] min-w-[22rem] shrink-0 flex-col overflow-y-auto border-hair border-l bg-surface p-4"
             >
               <ComputerPanel
@@ -544,7 +567,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
           <Dialog
             open={sheetOpen}
             onOpenChange={setSheetOpen}
-            title="Steward's computer"
+            title={`${agentName}'s computer`}
             size="lg"
             placement="sheet"
           >

@@ -91,9 +91,12 @@ vi.mock("@copilotkit/react-core/v2", async () => {
   };
 });
 
+/** What /api/info says; most tests run before it has answered. */
+const info = vi.hoisted(() => ({ data: undefined as unknown }));
+
 vi.mock("@/lib/api.ts", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api.ts")>()),
-  useInfo: () => ({ data: undefined }),
+  useInfo: () => ({ data: info.data }),
   useApprovals: () => ({ data: [] }),
   useApproval: () => ({ data: undefined }),
   useSkills: () => ({ data: [] }),
@@ -147,6 +150,7 @@ beforeEach(() => {
   kit.state.subscribers.clear();
   kit.coreSubscribers.clear();
   kit.state.interrupts = [];
+  info.data = undefined;
   kit.copilotkit.connectAgent.mockReset();
   kit.copilotkit.connectAgent.mockImplementation(async () => ({ newMessages: [] }));
   kit.copilotkit.runAgent.mockClear();
@@ -341,6 +345,33 @@ describe("ChatThread", () => {
       expect(await screen.findByText("The model provider is busy. Try again in a minute.")).toBeTruthy();
       expect(screen.queryByText("Steward's last reply didn't finish")).toBeNull();
     });
+  });
+
+  it("says who answers: a bot's conversation names the bot, not Steward", async () => {
+    info.data = {
+      brand: { name: "Steward" },
+      agents: [
+        { id: "steward", name: "Steward", title: "" },
+        { id: "bot1", name: "Focus time guard", title: "Guards your focus time", source: "bot:focus" },
+      ],
+      starters: [],
+      model: { scripted: true },
+      mail: { isDemo: true },
+    };
+    kit.state.messages = [
+      { id: "u1", role: "user", content: "hello" },
+      { id: "a1", role: "assistant", content: "Hi." },
+    ];
+    draw({ runtimeAgentId: "bot1", title: "hello" });
+    await screen.findByText("Hi.");
+    expect(screen.getByText("With Focus time guard")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Message Focus time guard" })).toBeTruthy();
+    expect(screen.getByPlaceholderText("Ask Focus time guard, or type / for a skill")).toBeTruthy();
+    expect(screen.getByText("Focus time guard said:", { exact: false })).toBeTruthy();
+    expect(screen.queryByText("Steward said:", { exact: false })).toBeNull();
+    // Its computer is its own, and is named so.
+    expect(screen.getAllByText("Focus time guard's computer").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Steward's computer")).toBeNull();
   });
 
   it("names the current step while Steward works, and Stop ends the run", async () => {

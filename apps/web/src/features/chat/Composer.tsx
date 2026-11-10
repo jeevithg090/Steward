@@ -13,6 +13,8 @@ import { useDictation } from "../voice/useDictation.ts";
 import { matchSkills, slashQuery } from "./skill-match.ts";
 
 export interface ComposerProps {
+  /** Who the message goes to, as the person knows the agent. Defaults to "Steward". */
+  agentName?: string;
   onSend: (text: string) => void;
   onStop: () => void;
   running: boolean;
@@ -30,6 +32,7 @@ export interface ComposerProps {
 const MAX_ROWS_PX = 240;
 
 export function Composer({
+  agentName = "Steward",
   onSend,
   onStop,
   running,
@@ -162,7 +165,7 @@ export function Composer({
         )}
       >
         <label htmlFor={ids.input} className="sr-only">
-          Message Steward
+          Message {agentName}
         </label>
         <textarea
           ref={textRef}
@@ -175,7 +178,7 @@ export function Composer({
             if (!event.target.value.startsWith("/")) setPickerClosed(false);
           }}
           onKeyDown={onKeyDown}
-          placeholder={running ? "Steward is working…" : "Ask Steward, or type / for a skill"}
+          placeholder={running ? `${agentName} is working…` : `Ask ${agentName}, or type / for a skill`}
           aria-describedby={describedBy || undefined}
           aria-autocomplete="list"
           aria-controls={pickerOpen ? ids.list : undefined}
@@ -194,7 +197,7 @@ export function Composer({
           {dictation.listening ? <MicOff aria-hidden /> : <Mic aria-hidden />}
         </Button>
         {running ? (
-          <Button variant="secondary" size="icon" aria-label="Stop Steward" onClick={onStop}>
+          <Button variant="secondary" size="icon" aria-label={`Stop ${agentName}`} onClick={onStop}>
             <Square aria-hidden className="fill-current" />
           </Button>
         ) : (
