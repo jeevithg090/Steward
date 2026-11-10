@@ -13,7 +13,7 @@ and never underneath the person.
 import { createComputerManager, withToolCall } from "@steward/computer";
 
 const computers = createComputerManager({
-  dataDir: ".steward-data", // computers/<agentId>/{profile,workspace,tmp}
+  dataDir: ".steward-data", // computers/<agentId>/{profile,workspace,tmp,downloading}
   allowPrivateHosts: process.env.STEWARD_ALLOW_PRIVATE_HOSTS === "1",
   audit, // from @steward/gateway
 });
@@ -232,7 +232,12 @@ more than one hard link is never changed, because it may be the same file as one
 workspace. Reads stop at 256 KiB by default (8 MiB at most) and refuse binary files; writes stop at
 5 MiB. Listings are recursive (or one level, with `recursive: false`), at most 500 entries, and do
 not walk into `node_modules` or `.git`; `listing()` also says whether the cap cut it short.
-Downloads land in `downloads/`.
+Files a page downloads land in `downloads/`, under a new name when one is taken (`report (2).csv`),
+never over an existing file. Chromium writes them to the computer's `downloading` folder first,
+outside the workspace. A page can start downloads with nobody asking, so each file may be at most
+100 MB, checked while it downloads (a larger one is stopped and removed), and at most 10 downloads
+may start in a minute; Steward stops the rest. The next observation tells the model what was saved
+or stopped.
 
 The shell runs `bash --noprofile --norc -c <command>` with the workspace as the working folder and
 `TMPDIR` set to the computer's own `tmp`. `HOME` is a new empty folder in `tmp` for every command,

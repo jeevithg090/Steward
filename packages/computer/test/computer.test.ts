@@ -2,7 +2,8 @@
  * The computer against real Chromium (Playwright 1.64's cached build) and a local test site.
  * Only 127.0.0.1 is visited; the managers that visit it opt in to private hosts.
  */
-import { mkdtemp, realpath, rm, stat } from "node:fs/promises";
+import { readdirSync } from "node:fs";
+import { mkdtemp, readdir, realpath, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type {
@@ -76,7 +77,14 @@ beforeAll(async () => {
   own = await startSite();
   dataDir = await mkdtemp(join(tmpdir(), "steward-computer-"));
   audit = fakeAudit();
-  manager = createComputerManager({ dataDir, allowPrivateHosts: true, protectedPorts: [own.port], audit });
+  manager = createComputerManager({
+    dataDir,
+    allowPrivateHosts: true,
+    protectedPorts: [own.port],
+    audit,
+    // Small, so the size check is tested without writing 100 MB.
+    maxDownloadBytes: 1024 * 1024,
+  });
   strict = createComputerManager({ dataDir: join(dataDir, "strict") });
 });
 
@@ -325,15 +333,67 @@ describe("the computer, in real Chromium", () => {
   it("saves downloads into the workspace and answers dialogs safely", async () => {
     const c = await manager.get("alpha");
     const page = await c.navigate(`${site.base}/files`);
-    await c.click(refOf(page.snapshot, 'link "Download the report"'));
+    const clicked = await c.click(refOf(page.snapshot, 'link "Download the report"'));
     await waitFor(() => c.activity().some((a) => a.text === "Downloaded downloads/report.csv (19 bytes)"));
     expect(await c.readFile("downloads/report.csv")).toBe("month,total\naug,42\n");
+    // The model hears about it once, with the click or the next look, and Chromium's copy is gone.
+    const look = await c.snapshot();
+    const told = [clicked.snapshot, look.snapshot].filter((text) =>
+      text.startsWith("[Saved a download to downloads/report.csv (19 bytes).]\n"),
+    );
+    expect(told).toHaveLength(1);
+    expect(await readdir(join(dataDir, "computers/alpha/downloading"))).toEqual([]);
 
-    const after = await c.click(refOf((await c.snapshot()).snapshot, 'button "Delete everything"'));
+    const after = await c.click(refOf(look.snapshot, 'button "Delete everything"'));
     expect(after.snapshot.split("\n")[0]).toBe(
       '[The page showed a confirm box: "Delete everything?". Steward dismissed it.]',
     );
     expect(after.snapshot).toContain("- paragraph: kept");
+  });
+
+  it("stops a download that passes the size limit while it runs", async () => {
+    const c = await manager.get("alpha");
+    const page = await c.navigate(`${site.base}/huge`);
+    await c.click(refOf(page.snapshot, 'link "Download the big file"'));
+    await waitFor(
+      () => c.activity().some((a) => a.text === "Stopped the download endless.bin: over 1 MB"),
+      10_000,
+    );
+    // The download never ends by itself, so it stopped only because Steward stopped it.
+    await waitFor(() => site.endless === 0);
+    expect((await c.listFiles("downloads")).map((f) => f.path)).not.toContain("downloads/endless.bin");
+    await waitFor(() => readdirSync(join(dataDir, "computers/alpha/downloading")).length === 0);
+    expect((await c.snapshot()).snapshot.split("\n")[0]).toBe(
+      "[Steward stopped the download of endless.bin: it was over 1 MB, the most a page may download.]",
+    );
+  });
+
+  it("saves at most ten downloads a minute from a page that starts them on its own", async () => {
+    const c = await manager.get("flood");
+    const opened = await c.navigate(`${site.base}/flood`);
+    await waitFor(
+      () => c.activity().filter((a) => a.text.startsWith("Downloaded downloads/report")).length === 10,
+      15_000,
+    );
+    await delay(500);
+    const lines = c.activity().map((a) => a.text);
+    expect(lines.filter((t) => t.startsWith("Downloaded downloads/report"))).toHaveLength(10);
+    expect(
+      lines.filter((t) => t === "Stopped more downloads from the page: at most 10 a minute"),
+    ).toHaveLength(1);
+    expect(await c.listFiles("downloads")).toHaveLength(10);
+    // The model is told, in the observation that was next when each thing happened.
+    const told = `${opened.snapshot}\n${(await c.snapshot()).snapshot}`;
+    expect(
+      told
+        .split("\n")
+        .filter(
+          (l) => l === "[The page started more than 10 downloads in a minute, so Steward stopped the rest.]",
+        ),
+    ).toHaveLength(1);
+    const saved = told.split("\n").filter((l) => l.startsWith("[Saved "));
+    expect(saved.join(" ")).toContain("report (10).csv (19 bytes)");
+    expect(saved.join(" ").match(/report[^,]*\.csv \(19 bytes\)/g)).toHaveLength(10);
   });
 
   it("carries on in a fresh tab when the page crashes, and says so", async () => {

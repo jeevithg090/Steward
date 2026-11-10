@@ -19,6 +19,8 @@ export interface ComputerManagerOptions {
   actorId?: string;
   /** DNS resolver for the host checks. Tests inject one; production uses the system resolver. */
   lookup?: LookupFn;
+  /** The largest file a page may download, in bytes: 100 MB, or less if set. */
+  maxDownloadBytes?: number;
 }
 
 /** Agent ids become folder names, so they are held to a safe alphabet. */
@@ -53,6 +55,7 @@ export function createComputerManager(opts: ComputerManagerOptions): ComputerMan
         policy,
         ...(opts.audit ? { audit: opts.audit } : {}),
         actorId: opts.actorId ?? "local",
+        ...(opts.maxDownloadBytes !== undefined ? { maxDownloadBytes: opts.maxDownloadBytes } : {}),
       });
       computers.set(agentId, found);
     }

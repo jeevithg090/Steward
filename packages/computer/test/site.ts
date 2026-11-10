@@ -65,6 +65,13 @@ const PAGES: Record<string, string> = {
     <a href="/report.csv" download>Download the report</a>
     <button onclick="document.getElementById('answer').textContent = confirm('Delete everything?') ? 'deleted' : 'kept'">Delete everything</button>
     <p id="answer"></p>`,
+  "/huge": `<!doctype html><title>Huge</title><a href="/endless.bin" download>Download the big file</a>`,
+  // Starts a dozen downloads as soon as it loads, with nobody asking. Frames get past Chromium's own
+  // limit of ten downloads a page.
+  "/flood": `<!doctype html><title>Flood</title><p>Hello</p>${Array.from(
+    { length: 12 },
+    (_, i) => `<iframe src="/report.csv?n=${i}" title="Frame ${i}"></iframe>`,
+  ).join("")}`,
   "/typing": `<!doctype html><title>Typing</title><style>body{margin:0}input{position:absolute;left:0;top:0;width:400px;height:40px}</style>
     <input id="box" aria-label="Box">`,
   "/animate": `<!doctype html><title>Animate</title><body><div id="d" style="width:200px;height:200px;background:#f00"></div>
@@ -81,11 +88,14 @@ export interface TestSite {
   port: number;
   /** How many requests reached the site. */
   readonly hits: number;
+  /** Responses to /endless.bin still being sent. */
+  readonly endless: number;
   close(): Promise<void>;
 }
 
 export async function startSite(): Promise<TestSite> {
   let hits = 0;
+  let endless = 0;
   let port = 0;
   const server: Server = createServer((req, res) => {
     hits++;
@@ -103,6 +113,21 @@ export async function startSite(): Promise<TestSite> {
         "content-disposition": 'attachment; filename="report.csv"',
       });
       res.end("month,total\naug,42\n");
+      return;
+    }
+    if (path === "/endless.bin") {
+      // A download that never ends, sent in 64 KB pieces until the browser stops it.
+      endless++;
+      res.writeHead(200, {
+        "content-type": "application/octet-stream",
+        "content-disposition": 'attachment; filename="endless.bin"',
+      });
+      const piece = Buffer.alloc(64 * 1024, 7);
+      const timer = setInterval(() => res.write(piece), 5);
+      res.on("close", () => {
+        clearInterval(timer);
+        endless--;
+      });
       return;
     }
     if (path === "/cross-frame") {
@@ -132,6 +157,9 @@ export async function startSite(): Promise<TestSite> {
     port,
     get hits() {
       return hits;
+    },
+    get endless() {
+      return endless;
     },
     close: () =>
       new Promise<void>((resolve) => {

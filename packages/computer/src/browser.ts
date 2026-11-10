@@ -71,6 +71,8 @@ export async function writeProfilePreferences(profileDir: string): Promise<void>
 
 export interface LaunchOptions {
   profileDir: string;
+  /** Where Chromium writes downloads while they run, so their size can be watched. */
+  downloadsDir: string;
   headful: boolean;
   proxyUrl: string;
 }
@@ -110,6 +112,7 @@ export async function launchBrowser(opts: LaunchOptions): Promise<BrowserContext
     // Service workers fetch outside `context.route`; the agent's browser does not need them.
     serviceWorkers: "block",
     acceptDownloads: true,
+    downloadsPath: opts.downloadsDir,
     proxy: { server: opts.proxyUrl },
     // Steward owns shutdown, so the profile is closed cleanly and cookies are flushed.
     handleSIGINT: false,

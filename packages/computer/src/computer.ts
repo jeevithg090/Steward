@@ -6,7 +6,8 @@
  * Every acting method passes the wheel's single gate (`WheelControl.admit`) before it touches
  * anything, so nothing the agent does can run underneath the person.
  */
-import { lstat, mkdir, rm, stat } from "node:fs/promises";
+import { constants } from "node:fs";
+import { copyFile, link, lstat, mkdir, readdir, rm, stat, unlink } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import type {
   ActivityItem,
@@ -71,7 +72,11 @@ const SCROLL_SETTLE_MAX_MS = 1_500;
 const DEFAULT_SCROLL_PX = 600;
 const MAX_TYPED_CHARS = 20_000;
 const MAX_SECRET_CHARS = 4_096;
-const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
+export const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
+/** Downloads a page may start in any minute. More are stopped, so a page cannot fill the disk. */
+export const MAX_DOWNLOADS_PER_MINUTE = 10;
+/** How often the size of running downloads is checked. */
+const DOWNLOAD_CHECK_MS = 250;
 const BLOCK_NOTICE_MS = 60_000;
 
 type Listener = (msg: ComputerServerMessage) => void;
@@ -90,12 +95,14 @@ const ACTIVATED_ROLES = new Set(["button", "link", "menuitem", "menuitemcheckbox
 
 export interface AgentComputerOptions {
   agentId: string;
-  /** `<dataDir>/computers/<agentId>`: holds `profile`, `workspace` and `tmp`. */
+  /** `<dataDir>/computers/<agentId>`: holds `profile`, `workspace`, `tmp` and `downloading`. */
   dir: string;
   headful: boolean;
   policy: HostPolicy;
   audit?: AuditLog;
   actorId: string;
+  /** The largest file a page may download. 100 MB unless set lower. */
+  maxDownloadBytes?: number;
 }
 
 interface PendingSecret {
@@ -153,6 +160,9 @@ export class AgentComputer implements Computer {
   private readonly workspace: Workspace;
   private readonly profileDir: string;
   private readonly tmpDir: string;
+  /** Where Chromium writes running downloads, outside the workspace, until they are checked. */
+  private readonly downloadsDir: string;
+  private readonly maxDownloadBytes: number;
   private readonly control = new WheelControl(() => this.emitStatus());
   private readonly log: ActivityLog;
   private readonly listeners = new Set<Listener>();
@@ -184,6 +194,8 @@ export class AgentComputer implements Computer {
    * that had to start again, a download), told to the model with the next one.
    */
   private pageNotes: string[] = [];
+  /** Downloads saved since the last observation, told to the model in one line with the next one. */
+  private savedDownloads: string[] = [];
   private judgedFocus: JudgedFocus | undefined;
   private judgedSubmit: JudgedSubmit | undefined;
   /** Set by an explicit close: only `start` (the manager's get or reset) brings the browser back. */
@@ -197,6 +209,15 @@ export class AgentComputer implements Computer {
   private blockNotices = new Map<string, number>();
   /** Clears HOME folders an earlier process left in `tmp`, once, before the first command. */
   private homesSwept: Promise<void> | undefined;
+  /** When recent downloads started, for the per-minute limit. */
+  private downloadStarts: number[] = [];
+  private downloadRefusedAt = 0;
+  private downloadsRunning = 0;
+  private downloadWatch: ReturnType<typeof setInterval> | undefined;
+  private checkingDownloads = false;
+  /** Running downloads Steward stopped for size, by Chromium's id, and how many have not ended yet. */
+  private readonly stoppedForSize = new Set<string>();
+  private sizeStops = 0;
 
   constructor(opts: AgentComputerOptions) {
     this.opts = opts;
@@ -204,6 +225,8 @@ export class AgentComputer implements Computer {
     this.workspace = new Workspace(join(opts.dir, "workspace"));
     this.profileDir = join(opts.dir, "profile");
     this.tmpDir = join(opts.dir, "tmp");
+    this.downloadsDir = join(opts.dir, "downloading");
+    this.maxDownloadBytes = Math.min(MAX_DOWNLOAD_BYTES, opts.maxDownloadBytes ?? MAX_DOWNLOAD_BYTES);
     this.log = new ActivityLog(opts.agentId, (item) => this.broadcast({ type: "activity", item }));
   }
 
@@ -223,6 +246,9 @@ export class AgentComputer implements Computer {
   private async launch(): Promise<void> {
     await this.workspace.init();
     await mkdir(this.tmpDir, { recursive: true });
+    // Parts of downloads an earlier browser left behind.
+    await rm(this.downloadsDir, { recursive: true, force: true });
+    await mkdir(this.downloadsDir, { recursive: true });
     const proxy = await startEgressProxy({
       policy: this.opts.policy,
       onBlocked: (b) => this.noteBlocked({ at: Date.now(), host: b.host, message: b.message }),
@@ -231,6 +257,7 @@ export class AgentComputer implements Computer {
     try {
       context = await launchBrowser({
         profileDir: this.profileDir,
+        downloadsDir: this.downloadsDir,
         headful: this.opts.headful,
         proxyUrl: proxy.url,
       });
@@ -282,6 +309,7 @@ export class AgentComputer implements Computer {
     await this.input.reset();
     if (context) await context.close().catch(() => {});
     if (proxy) await proxy.close().catch(() => {});
+    this.stopDownloadWatch();
     this.secrets.clear();
     this.documentChanged();
     this.emitStatus();
@@ -297,6 +325,7 @@ export class AgentComputer implements Computer {
     void proxy?.close().catch(() => {});
     this.control.interrupt();
     this.finishSecret({ filled: false, length: 0 });
+    this.stopDownloadWatch();
     this.note(MESSAGES.browserRestarted);
     this.log.add({ kind: "navigate", text: "The browser stopped by itself", ok: false });
     this.documentChanged();
@@ -514,8 +543,11 @@ export class AgentComputer implements Computer {
       this.title = title;
       this.emitStatus();
     }
-    const notes = this.pageNotes.map((note) => `[${note}]\n`).join("");
+    const notes = [...this.pageNotes, ...savedNote(this.savedDownloads)]
+      .map((note) => `[${note}]\n`)
+      .join("");
     this.pageNotes = [];
+    this.savedDownloads = [];
     return {
       url: this.safeUrl(page.url()),
       title,
@@ -1368,27 +1400,124 @@ export class AgentComputer implements Computer {
     return byRoute ? new ComputerError("blocked", "Steward blocked that address.") : undefined;
   }
 
+  /**
+   * Saves a file the page downloaded into `downloads/`. A page can start downloads on its own, so
+   * each is held to a size while it runs (checked every 250 ms, stopped soon after it passes) and
+   * to a number a minute, and the model hears about each in its next observation.
+   */
   private async saveDownload(download: Download): Promise<void> {
     const name = safeFileName(download.suggestedFilename());
+    const context = download.page().context();
+    const now = Date.now();
+    this.downloadStarts = this.downloadStarts.filter((at) => now - at < 60_000);
+    if (this.downloadStarts.length >= MAX_DOWNLOADS_PER_MINUTE) {
+      await download.cancel().catch(() => {});
+      await download.delete().catch(() => {});
+      // One line a minute, so a page starting hundreds does not flood the log.
+      if (now - this.downloadRefusedAt >= 60_000) {
+        this.downloadRefusedAt = now;
+        this.log.add({
+          kind: "file",
+          text: `Stopped more downloads from the page: at most ${MAX_DOWNLOADS_PER_MINUTE} a minute`,
+          ok: false,
+        });
+        this.note(
+          `The page started more than ${MAX_DOWNLOADS_PER_MINUTE} downloads in a minute, so Steward stopped the rest.`,
+        );
+      }
+      return;
+    }
+    this.downloadStarts.push(now);
+    this.downloadsRunning++;
+    if (!this.downloadWatch) {
+      this.downloadWatch = setInterval(() => void this.checkDownloads(), DOWNLOAD_CHECK_MS);
+      this.downloadWatch.unref();
+    }
     try {
-      const root = await this.workspace.root();
-      const dir = await this.workspace.realParent(root, ["downloads"]);
-      const target = await freeName(dir, name);
-      await download.saveAs(target);
-      const size = (await stat(target)).size;
-      if (size > MAX_DOWNLOAD_BYTES) {
-        await rm(target, { force: true });
-        this.log.add({ kind: "file", text: `Deleted the download ${name}: over 100 MB`, ok: false });
+      const failure = await download.failure().catch(() => "failed");
+      // The browser closed or restarted under it: nothing to save and nobody to tell.
+      if (context !== this.context) return;
+      if (failure !== null) {
+        if (failure === "canceled" && this.sizeStops > 0) {
+          this.sizeStops--;
+          this.tooBig(name);
+        } else {
+          this.log.add({ kind: "file", text: `Could not save the download ${name}`, ok: false });
+          this.note(`The download of ${name} did not finish.`);
+        }
         return;
       }
+      const source = await download.path();
+      if (this.stoppedForSize.delete(basename(source))) this.sizeStops--; // finished as it was stopped
+      const size = (await stat(source)).size;
+      if (size > this.maxDownloadBytes) {
+        this.tooBig(name);
+        return;
+      }
+      const root = await this.workspace.root();
+      const dir = await this.workspace.realParent(root, ["downloads"]);
+      const saved = basename(await placeFile(source, dir, name));
       this.log.add({
         kind: "file",
-        text: `Downloaded downloads/${basename(target)} (${formatBytes(size)})`,
+        text: `Downloaded downloads/${saved} (${formatBytes(size)})`,
         ok: true,
       });
+      this.savedDownloads.push(`${saved} (${formatBytes(size)})`);
     } catch {
       this.log.add({ kind: "file", text: `Could not save the download ${name}`, ok: false });
+      this.note(`The download of ${name} could not be saved.`);
+    } finally {
+      // Chromium's copy, in the downloading folder, is never kept.
       await download.delete().catch(() => {});
+      this.downloadsRunning--;
+      if (this.downloadsRunning <= 0) this.stopDownloadWatch();
+    }
+  }
+
+  private tooBig(name: string): void {
+    const limit = sizeLimit(this.maxDownloadBytes);
+    this.log.add({ kind: "file", text: `Stopped the download ${name}: over ${limit}`, ok: false });
+    this.note(`Steward stopped the download of ${name}: it was over ${limit}, the most a page may download.`);
+  }
+
+  /** Stops any running download that has passed the size limit. Chromium names them `<id>.crdownload`. */
+  private async checkDownloads(): Promise<void> {
+    const context = this.context;
+    if (!context || this.checkingDownloads) return;
+    this.checkingDownloads = true;
+    try {
+      for (const entry of await readdir(this.downloadsDir).catch(() => [])) {
+        if (!entry.endsWith(".crdownload")) continue;
+        const id = entry.slice(0, -".crdownload".length);
+        if (this.stoppedForSize.has(id)) continue;
+        const size = (await lstat(join(this.downloadsDir, entry)).catch(() => undefined))?.size ?? 0;
+        if (size <= this.maxDownloadBytes) continue;
+        this.stoppedForSize.add(id);
+        this.sizeStops++;
+        await this.cancelDownload(context, id);
+      }
+    } finally {
+      this.checkingDownloads = false;
+    }
+  }
+
+  /** Cancels a running download by Chromium's id. Any tab's DevTools session can do it. */
+  private async cancelDownload(context: BrowserContext, id: string): Promise<void> {
+    const page =
+      context.pages().find((p) => !p.isClosed() && !this.crashed.has(p)) ?? (await this.freshTab(context));
+    if (!page) return;
+    const session = await context.newCDPSession(page).catch(() => undefined);
+    if (!session) return;
+    await session.send("Browser.cancelDownload", { guid: id }).catch(() => {});
+    await session.detach().catch(() => {});
+  }
+
+  private stopDownloadWatch(): void {
+    if (this.downloadWatch) clearInterval(this.downloadWatch);
+    this.downloadWatch = undefined;
+    if (this.downloadsRunning <= 0) {
+      this.stoppedForSize.clear();
+      this.sizeStops = 0;
     }
   }
 }
@@ -1496,18 +1625,48 @@ function safeFileName(name: string): string {
   return cleaned || "download";
 }
 
-async function freeName(dir: string, name: string): Promise<string> {
+/**
+ * Puts the finished download into `dir` under `name`, or `name (2)` and so on when that is taken.
+ * Each try is atomic (a hard link, or an exclusive copy across disks), so two downloads with one
+ * name can never overwrite each other or an existing file. The source is removed after.
+ */
+async function placeFile(source: string, dir: string, name: string): Promise<string> {
   const ext = extname(name);
   const stem = name.slice(0, name.length - ext.length);
-  for (let n = 1; n < 1000; n++) {
-    const candidate = join(dir, n === 1 ? name : `${stem} (${n})${ext}`);
-    const taken = await lstat(candidate).then(
-      () => true,
-      () => false,
-    );
-    if (!taken) return candidate;
+  const names = Array.from({ length: 999 }, (_, i) => (i === 0 ? name : `${stem} (${i + 1})${ext}`));
+  for (const candidate of [...names, `${stem}-${Date.now()}${ext}`]) {
+    const target = join(dir, candidate);
+    try {
+      await link(source, target).catch(async (error: unknown) => {
+        if (!["EXDEV", "EPERM", "ENOTSUP"].includes(errorCode(error))) throw error;
+        await copyFile(source, target, constants.COPYFILE_EXCL);
+      });
+    } catch (error) {
+      if (errorCode(error) === "EEXIST") continue;
+      throw error;
+    }
+    await unlink(source).catch(() => {});
+    return target;
   }
-  return join(dir, `${stem}-${Date.now()}${ext}`);
+  throw new Error("no free name");
+}
+
+function errorCode(error: unknown): string {
+  return (error as NodeJS.ErrnoException | undefined)?.code ?? "";
+}
+
+/** One line for the downloads saved since the model last looked. */
+function savedNote(saved: readonly string[]): string[] {
+  if (saved.length === 0) return [];
+  if (saved.length === 1) return [`Saved a download to downloads/${saved[0]}.`];
+  const shown = saved.slice(0, 10).join(", ");
+  const more = saved.length > 10 ? ` and ${saved.length - 10} more` : "";
+  return [`Saved ${saved.length} downloads to downloads/: ${shown}${more}.`];
+}
+
+/** "100 MB" for a whole number of megabytes. */
+function sizeLimit(bytes: number): string {
+  return bytes % (1024 * 1024) === 0 ? `${bytes / 1024 / 1024} MB` : formatBytes(bytes);
 }
 
 function navigationError(error: unknown, target: URL): ComputerError {
@@ -1534,7 +1693,7 @@ function navigationError(error: unknown, target: URL): ComputerError {
   if (/Download is starting/i.test(text)) {
     return new ComputerError(
       "failed",
-      "That address started a download instead of opening a page. It is saved in downloads/.",
+      "That address started a download instead of opening a page. Steward saves it in downloads/ when it finishes.",
     );
   }
   return new ComputerError("failed", `Could not open ${where}: ${briefCause(error)}`);
