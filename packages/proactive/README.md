@@ -138,8 +138,10 @@ notification "Your brief is ready"; "Check again" does not add another.
 
 Up to five `suggested` tasks per brief from the mail the model said needs you: "Reply to Ana
 Pereira about Friday ship date", or "Look into “Payment failed” from Stripe" for senders that take
-no replies. Never a duplicate: an email or title that already has a task is skipped, whatever its
-state, except a task hidden more than 14 days ago. Unsorted mail is never suggested.
+no replies. Never a duplicate: an email that has had a task, in any state, is never suggested
+again, so Hide means that email is not offered again. A title is skipped while a task with it is
+open, or for 14 days after it was hidden, resolved or failed; after that, next month's "Invoice"
+from the same sender is offered again. Unsorted mail is never suggested.
 
 ### Skills, memory, notifications
 

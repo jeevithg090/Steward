@@ -137,8 +137,24 @@ function TodaysBrief() {
   const brief = useBrief(date);
   const generate = useGenerateBrief();
   const settings = useSettings();
+  const suggested = useTasks("suggested");
+  const start = useStartTask();
 
   function startEmail(item: TriageItem) {
+    // The email may already be a suggestion below: start that one, so it doesn't stay on offer.
+    const suggestion = suggested.data?.tasks.find(
+      (t) => t.state === "suggested" && t.emailId === item.emailId,
+    );
+    if (suggestion) {
+      start.mutate(
+        { id: suggestion.id },
+        {
+          onSuccess: ({ threadId }) => navigate(`/chat/${encodeURIComponent(threadId)}`),
+          onError: (error) => toast.error("Couldn't start it", { description: error.message }),
+        },
+      );
+      return;
+    }
     const sender = item.from.name || item.from.email;
     const prompt = item.subject
       ? `Take care of ${sender}'s email: ${item.subject}`
@@ -241,7 +257,7 @@ function NewestSuggestion() {
         actions={
           answered ? (
             <p role="status" className="font-medium text-ink-2 text-sub">
-              {answered === "started" ? "Started." : "Hidden. It won't come back."}
+              {answered === "started" ? "Started." : "Hidden. Steward won't suggest this email again."}
             </p>
           ) : (
             <>
