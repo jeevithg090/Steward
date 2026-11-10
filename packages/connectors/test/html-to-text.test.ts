@@ -235,6 +235,24 @@ describe("htmlToText with dropHidden", () => {
     expect(result).not.toHaveProperty("hidden");
   });
 
+  it("leaves out text squeezed to no width or pushed off the page, but not a small nudge", () => {
+    const html = `<p>Hello</p>
+<div style="max-width:0;max-height:0;overflow:hidden">one</div>
+<div style="width:0px;overflow:hidden !important">two</div>
+<div style="position:absolute; left:-9999px">three</div>
+<span style="position: fixed; top: -2000px">four</span>
+<p style="text-indent:-10000px">five</p>
+<p style="position:relative;left:-4px">Nudged, still shown</p>
+<p style="left:-9999px">Not positioned, still shown</p>
+<div style="width:0">No overflow rule, still shown</div>`;
+    const { text, hidden } = htmlToText(html, { dropHidden: true });
+    expect(text).not.toMatch(/\b(one|two|three|four|five)\b/);
+    expect(text).toContain("Nudged, still shown");
+    expect(text).toContain("Not positioned, still shown");
+    expect(text).toContain("No overflow rule, still shown");
+    expect(hidden).toBe(5);
+  });
+
   it("counts a hidden element left open at the end", () => {
     expect(htmlToText("<p>Hi</p><div style='display: none'>unclosed", { dropHidden: true })).toMatchObject({
       text: "Hi",

@@ -23,9 +23,10 @@ export interface HtmlToTextOptions {
   maxChars?: number;
   /**
    * Leave out what the markup hides from view: elements with the `hidden` attribute or an inline
-   * style of `display:none`, `visibility:hidden`, `opacity:0`, `font-size:0`, `mso-hide:all`, or a
-   * zero height with `overflow:hidden`. For mail, where hidden text is where an instruction to a
-   * model hides. (`aria-hidden` is not hidden from view, so its text stays.)
+   * style of `display:none`, `visibility:hidden`, `opacity:0`, `font-size:0`, `mso-hide:all`, a
+   * zero height or width with `overflow:hidden`, or a position or indent 1,000px or more off the
+   * page. For mail, where hidden text is where an instruction to a model hides. (`aria-hidden` is
+   * not hidden from view, so its text stays. Rules in a `<style>` block are not read.)
    */
   dropHidden?: boolean;
 }
@@ -815,6 +816,13 @@ function hiddenFromView(attrs: string): boolean {
   }
   const zero = (value: string | undefined) =>
     value !== undefined && /^[+-]?(0*\.)?0+([a-z]+|%)?$/.test(value);
+  // Pushed a long way off the page: `left:-9999px` and the like. A small nudge is not hiding.
+  const offPage = (value: string | undefined) => {
+    const px = value === undefined ? undefined : /^-(\d+(?:\.\d+)?)px$/.exec(value)?.[1];
+    return px !== undefined && Number(px) >= 1000;
+  };
+  const clipped = rules.get("overflow") === "hidden";
+  const positioned = rules.get("position") === "absolute" || rules.get("position") === "fixed";
   return (
     rules.get("display") === "none" ||
     rules.get("visibility") === "hidden" ||
@@ -822,7 +830,10 @@ function hiddenFromView(attrs: string): boolean {
     rules.get("mso-hide") === "all" ||
     zero(rules.get("opacity")) ||
     zero(rules.get("font-size")) ||
-    ((zero(rules.get("max-height")) || zero(rules.get("height"))) && rules.get("overflow") === "hidden")
+    ((zero(rules.get("max-height")) || zero(rules.get("height"))) && clipped) ||
+    ((zero(rules.get("max-width")) || zero(rules.get("width"))) && clipped) ||
+    (positioned && (offPage(rules.get("left")) || offPage(rules.get("top")))) ||
+    offPage(rules.get("text-indent"))
   );
 }
 
