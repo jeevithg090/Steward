@@ -91,14 +91,20 @@ function offsetMs(at: Date, timeZone: string): number {
 }
 
 /**
- * The instant local midnight begins `date` in `timeZone`. Two passes, so a date whose offset
+ * The first instant of `date` in `timeZone`: local midnight. Two passes, so a date whose offset
  * differs from the offset at UTC midnight (a DST change that day) still lands on the right hour.
+ * Where the clocks skip midnight (Santiago in September, Havana in March: 00:00 becomes 01:00), the
+ * day begins at the change itself, not an hour early on the day before.
  */
 export function startOfLocalDay(date: string, timeZone: string): Date {
   const [y, m, d] = date.split("-").map(Number) as [number, number, number];
   const wall = Date.UTC(y, m - 1, d);
   const first = wall - offsetMs(new Date(wall), timeZone);
-  return new Date(wall - offsetMs(new Date(first), timeZone));
+  const start = new Date(wall - offsetMs(new Date(first), timeZone));
+  if (localDate(start, timeZone) >= date) return start;
+  // Midnight was skipped: step forward by how far the clocks jumped, to where the day begins.
+  const changed = new Date(start.getTime() + offsetMs(new Date(first), timeZone) - offsetMs(start, timeZone));
+  return localDate(changed, timeZone) === date ? changed : new Date(first);
 }
 
 /** The day after `date`, as `YYYY-MM-DD`. */

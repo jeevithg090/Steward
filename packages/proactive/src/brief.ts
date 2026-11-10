@@ -264,18 +264,74 @@ async function modelSummary(
 
 // ── The service ────────────────────────────────────────────────────────────────────────────────
 
+/** A build in progress, shared by every caller asking for the same date. */
+interface SharedBuild {
+  promise: Promise<Brief>;
+  controller: AbortController;
+  /** Callers still waiting who could give up. */
+  waiting: number;
+  /** True once a caller with no signal has joined: it never gives up, so the build never stops. */
+  patient: boolean;
+  /** Forgets this build, so the next caller starts a fresh one. */
+  drop: () => void;
+}
+
+/**
+ * Waits on a shared build with this caller's own signal. Giving up rejects only this caller; the
+ * build is stopped when the last caller who could give up does, and no patient caller is waiting.
+ */
+function join(shared: SharedBuild, signal: AbortSignal | undefined): Promise<Brief> {
+  if (!signal) {
+    shared.patient = true;
+    return shared.promise;
+  }
+  shared.waiting += 1;
+  return new Promise<Brief>((resolve, reject) => {
+    const onAbort = () => {
+      reject(signal.reason);
+      shared.waiting -= 1;
+      if (shared.waiting === 0 && !shared.patient) {
+        shared.drop();
+        shared.controller.abort(signal.reason);
+      }
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    shared.promise.then(
+      (brief) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(brief);
+      },
+      (error: unknown) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(error);
+      },
+    );
+  });
+}
+
 /**
  * The morning brief: what needs you, what can wait, today's calendar, the work in hand, and what
  * could not be checked and why. Honesty is in the code, not the prompt: mail that could not be
  * sorted is listed under needs you, a capped window says so, and a missing connection is named.
  *
- * One brief per local date. `generate` returns the stored one unless `force`; two callers asking at
- * once share one build. A new brief announces itself (`brief.ready` and a notification) and turns
- * up to five needs-you items into suggested tasks.
+ * One brief per local date, today or earlier. `generate` returns the stored one unless `force`;
+ * callers asking for the same date at once share one build, which stops only when every one of them
+ * has given up. The first brief for a date announces itself with a notification; every build emits
+ * `brief.ready` and turns up to five needs-you items into suggested tasks.
  */
 export function createBriefService(deps: BriefDeps): BriefService {
   const { db, bus, now } = deps;
-  const building = new Map<string, Promise<Brief>>();
+  const building = new Map<string, SharedBuild>();
+
+  /** The person's zone, or UTC with a note when Steward does not know it. */
+  function zone(): { timeZone: string; zoneNote?: string } {
+    const configured = deps.timezone();
+    if (isKnownTimeZone(configured)) return { timeZone: configured };
+    return {
+      timeZone: "UTC",
+      zoneNote: `Timezone: “${configured}” isn't one Steward knows, so times are in UTC`,
+    };
+  }
 
   function stored(date: string): Brief | undefined {
     const row = db.get<{ body: string }>("SELECT body FROM proactive_briefs WHERE date = ?", [date]);
@@ -388,18 +444,22 @@ export function createBriefService(deps: BriefDeps): BriefService {
   }
 
   function save(brief: Brief): void {
+    const first = stored(brief.date) === undefined;
     db.run(
       `INSERT INTO proactive_briefs (date, id, body, created_at) VALUES (?, ?, ?, ?)
        ON CONFLICT (date) DO UPDATE SET id = excluded.id, body = excluded.body, created_at = excluded.created_at`,
       [brief.date, brief.id, toJson(brief), brief.createdAt],
     );
     bus?.emit({ type: "brief.ready", briefId: brief.id });
-    deps.notifications.add({
-      title: "Your brief is ready",
-      body: brief.summary.length > 200 ? `${brief.summary.slice(0, 199).trimEnd()}…` : brief.summary,
-      href: "/",
-      level: "info",
-    });
+    // "Check again" is asked for by someone already looking; only the day's first brief notifies.
+    if (first) {
+      deps.notifications.add({
+        title: "Your brief is ready",
+        body: brief.summary.length > 200 ? `${brief.summary.slice(0, 199).trimEnd()}…` : brief.summary,
+        href: "/",
+        level: "info",
+      });
+    }
     try {
       suggestFromBrief(brief, { tasks: deps.tasks, now });
     } catch {
@@ -412,36 +472,54 @@ export function createBriefService(deps: BriefDeps): BriefService {
       return stored(date);
     },
 
+    /** The newest brief up to today in the person's zone: a brief for a later date never shows as today's. */
     latest() {
-      const row = db.get<{ body: string }>("SELECT body FROM proactive_briefs ORDER BY date DESC LIMIT 1");
+      const today = localDate(now(), zone().timeZone);
+      const row = db.get<{ body: string }>(
+        "SELECT body FROM proactive_briefs WHERE date <= ? ORDER BY date DESC LIMIT 1",
+        [today],
+      );
       return row ? fromJson<Brief | undefined>(row.body, undefined) : undefined;
     },
 
     generate(opts = {}) {
-      const configured = deps.timezone();
-      const known = isKnownTimeZone(configured);
-      const timeZone = known ? configured : "UTC";
-      const zoneNote = known
-        ? undefined
-        : `Timezone: “${configured}” isn't one Steward knows, so times are in UTC`;
-      const date = opts.date ?? localDate(now(), timeZone);
+      const { timeZone, zoneNote } = zone();
+      const today = localDate(now(), timeZone);
+      const date = opts.date ?? today;
       if (!isIsoDate(date)) {
         return Promise.reject(new ProactiveError("invalid", "A date must be YYYY-MM-DD."));
+      }
+      if (date > today) {
+        return Promise.reject(
+          new ProactiveError("invalid", "A brief can be made for today or an earlier day."),
+        );
       }
       if (!opts.force) {
         const existing = stored(date);
         if (existing) return Promise.resolve(existing);
       }
-      const inFlight = building.get(date);
-      if (inFlight) return inFlight;
-      const promise = build(date, timeZone, zoneNote, opts.signal)
-        .then((brief) => {
-          save(brief);
-          return brief;
-        })
-        .finally(() => building.delete(date));
-      building.set(date, promise);
-      return promise;
+      if (opts.signal?.aborted) return Promise.reject(opts.signal.reason);
+      let shared = building.get(date);
+      if (!shared) {
+        const controller = new AbortController();
+        const entry: SharedBuild = {
+          controller,
+          waiting: 0,
+          patient: false,
+          drop: () => {
+            if (building.get(date) === entry) building.delete(date);
+          },
+          promise: build(date, timeZone, zoneNote, controller.signal).then((brief) => {
+            save(brief);
+            return brief;
+          }),
+        };
+        // Every caller handles the outcome through `join`; this only tidies up.
+        entry.promise.then(entry.drop, entry.drop);
+        building.set(date, entry);
+        shared = entry;
+      }
+      return join(shared, opts.signal);
     },
   };
 }

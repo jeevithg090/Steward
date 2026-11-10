@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BRIEF_MAIL_CAP, cleanSummary, plainSummary, SUMMARY_SYSTEM, summaryPrompt } from "../src/brief.ts";
+import { localDayBounds } from "../src/time.ts";
 import { UNSORTED_REASON } from "../src/triage.ts";
 import { email, event, fakeMail, fakeModel, setup, subjectModel } from "./helpers.ts";
 
@@ -66,6 +67,96 @@ describe("the morning brief", () => {
     expect(forced.id).not.toBe(a.id);
     expect(p.brief.get(a.date)?.id).toBe(forced.id);
     expect(p.bus.of("brief.ready")).toHaveLength(2);
+  });
+
+  it("notifies once per date, however often it is made again", async () => {
+    const mail = fakeMail({
+      emails: [email({ subject: "Confirm today!", receivedAt: "2026-10-22T07:00:00Z" })],
+    });
+    const p = setup({ mail: () => mail, model: () => subjectModel() });
+    await p.brief.generate();
+    await p.brief.generate({ force: true });
+    await p.brief.generate({ force: true });
+    expect(p.notifications.list().filter((n) => n.title === "Your brief is ready")).toHaveLength(1);
+    expect(p.bus.of("brief.ready")).toHaveLength(3);
+  });
+
+  it("goes on for a caller still waiting when another caller gives up", async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const model = fakeModel(async ({ prompt }) => {
+      await gate;
+      return /Subject: (.*)/.exec(prompt)?.[1]?.includes("!")
+        ? '{"verdict":"needs_you","reason":"Asks you to confirm today."}'
+        : '{"verdict":"can_wait","reason":"Nothing to do."}';
+    });
+    const mail = fakeMail({
+      emails: [email({ subject: "Confirm today!", receivedAt: "2026-10-22T07:00:00Z" })],
+    });
+    const p = setup({ mail: () => mail, model: () => model });
+
+    // A browser asks, then the worker (no signal) joins, then the browser goes away.
+    const browser = new AbortController();
+    const fromBrowser = p.brief.generate({ signal: browser.signal });
+    const fromWorker = p.brief.generate();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    browser.abort();
+    await expect(fromBrowser).rejects.toMatchObject({ name: "AbortError" });
+    release();
+    const brief = await fromWorker;
+    expect(brief.needsYou.map((i) => i.subject)).toEqual(["Confirm today!"]);
+    expect(p.brief.get(brief.date)?.id).toBe(brief.id);
+  });
+
+  it("stops a shared build only when every caller has given up", async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const model = fakeModel(async () => {
+      await gate;
+      return '{"verdict":"can_wait","reason":"Nothing to do."}';
+    });
+    const mail = fakeMail({ emails: [email({ subject: "Quote?", receivedAt: "2026-10-22T07:00:00Z" })] });
+    const p = setup({ mail: () => mail, model: () => model });
+
+    const one = new AbortController();
+    const two = new AbortController();
+    const first = p.brief.generate({ signal: one.signal });
+    const second = p.brief.generate({ signal: two.signal });
+    one.abort();
+    await expect(first).rejects.toMatchObject({ name: "AbortError" });
+    release();
+    expect((await second).canWait).toHaveLength(1);
+
+    const three = new AbortController();
+    const four = new AbortController();
+    const third = p.brief.generate({ force: true, signal: three.signal });
+    const fourth = p.brief.generate({ force: true, signal: four.signal });
+    const before = p.brief.latest()?.id;
+    three.abort();
+    four.abort();
+    await expect(third).rejects.toMatchObject({ name: "AbortError" });
+    await expect(fourth).rejects.toMatchObject({ name: "AbortError" });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(p.brief.latest()?.id).toBe(before);
+    // The next caller starts afresh rather than joining the stopped build.
+    expect((await p.brief.generate({ force: true })).id).not.toBe(before);
+  });
+
+  it("makes a brief for today or an earlier day, and never shows a later one as the latest", async () => {
+    const p = setup({ at: "2026-10-22T08:00:00Z" });
+    await expect(p.brief.generate({ date: "2026-10-23" })).rejects.toMatchObject({
+      status: 400,
+      message: "A brief can be made for today or an earlier day.",
+    });
+    const today = await p.brief.generate();
+    // A brief stored for a later date (as an older Steward allowed) is not "the latest".
+    p.db.run("INSERT INTO proactive_briefs (date, id, body, created_at) VALUES (?, ?, ?, ?)", [
+      "2030-01-01",
+      "brf_future",
+      JSON.stringify({ ...today, id: "brf_future", date: "2030-01-01" }),
+      "2026-10-22T08:00:00Z",
+    ]);
+    expect(p.brief.latest()?.id).toBe(today.id);
   });
 
   it("says mail and calendar are not connected, and says how to connect them", async () => {
@@ -333,6 +424,25 @@ describe("the morning brief", () => {
     await expect(p.brief.generate({ signal: controller.signal })).rejects.toThrow();
     expect(p.brief.latest()).toBeUndefined();
     expect(p.bus.of("brief.ready")).toEqual([]);
+  });
+});
+
+describe("the brief's day", () => {
+  it("begins at the clocks' change where midnight is skipped, not an hour early the day before", () => {
+    expect(localDayBounds("2026-09-06", "America/Santiago")).toEqual({
+      from: new Date("2026-09-06T04:00:00Z"),
+      to: new Date("2026-09-07T03:00:00Z"),
+    });
+    expect(localDayBounds("2026-03-08", "America/Havana").from).toEqual(new Date("2026-03-08T05:00:00Z"));
+    expect(localDayBounds("2026-09-05", "America/Santiago")).toEqual({
+      from: new Date("2026-09-05T04:00:00Z"),
+      to: new Date("2026-09-06T04:00:00Z"),
+    });
+    expect(localDayBounds("2026-03-08", LA)).toEqual({
+      from: new Date("2026-03-08T08:00:00Z"),
+      to: new Date("2026-03-09T07:00:00Z"),
+    });
+    expect(localDayBounds("2026-11-01", LA).to).toEqual(new Date("2026-11-02T08:00:00Z"));
   });
 });
 

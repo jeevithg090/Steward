@@ -107,12 +107,17 @@ up, a recent verdict from any model is still shown.
 
 ### The morning brief
 
-`brief.generate({ date?, force? })` builds one brief per local date and stores it; asking again
-returns the stored one unless `force`, and two callers at once share one build.
+`brief.generate({ date?, force?, signal? })` builds one brief per local date and stores it; asking
+again returns the stored one unless `force`. The date is today or earlier in your timezone; a later
+one is refused with "A brief can be made for today or an earlier day.", and `latest()` never returns
+a brief for a later date. Callers asking at once share one build, and each `signal` lets only its own
+caller give up: the build stops only when every caller has, so a browser closing its tab never
+cancels the brief the morning worker is waiting for.
 
 - Mail from the last 24 hours, newest first, at most 50. When there were more, it says so.
 - Triage as above; unsorted mail last under needs you.
 - Today's calendar from local midnight to midnight in your timezone (late-evening events included).
+  Where the clocks skip midnight (Santiago in September, Havana in March), the day starts at 01:00.
 - Tasks working, ready for review, needing input, or waiting on an approval.
 - `couldNotCheck`, in plain words: "Mail: not connected", "Calendar: couldn't be read just now",
   "Sorting: 2 of 9 emails couldn't be sorted (the model didn't answer), so they are under needs you",
@@ -124,7 +129,8 @@ returns the stored one unless `force`, and two callers at once share one build.
   couldn't be read, the summary is the plain one and says so ("Your mail couldn't be read just now,
   so this brief may be missing what needs you."), never "Nothing new needs you".
 
-A new brief emits `brief.ready`, adds the notification "Your brief is ready", and then suggests.
+Every build emits `brief.ready` and then suggests. Only the first brief for a date adds the
+notification "Your brief is ready"; "Check again" does not add another.
 
 ### Suggestions
 
