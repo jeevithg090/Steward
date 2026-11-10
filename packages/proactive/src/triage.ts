@@ -377,13 +377,15 @@ function jsonCandidates(text: string): { start: number; end: number }[] {
  * Reads the model's answer. Its thinking (`<think>…</think>`) is dropped first. Then every balanced
  * `{…}` is tried, the last one first, so a fenced block, a sentence around it, a draft in the
  * thinking or a note after it does no harm. Anything without a verdict and a reason is refused,
- * never guessed.
+ * never guessed, and so is an answer holding two different verdicts: picking one would be a guess,
+ * and a message that quotes a ready-made "can wait" answer must not be able to hide itself.
  */
 export function parseTriageAnswer(text: string): { verdict: TriageVerdict; reason: string } {
   const answer = stripReasoning(text);
   const candidates = jsonCandidates(answer).sort((a, b) => b.end - a.end || a.start - b.start);
   if (candidates.length === 0) throw new TriageAnswerError("The model's answer had no JSON object.");
   let readable = false;
+  let chosen: { verdict: TriageVerdict; reason: string } | undefined;
   for (const { start, end } of candidates) {
     let value: unknown;
     try {
@@ -393,9 +395,13 @@ export function parseTriageAnswer(text: string): { verdict: TriageVerdict; reaso
     }
     readable = true;
     const parsed = answerSchema.safeParse(value);
-    if (parsed.success)
-      return { verdict: parsed.data.verdict, reason: parsed.data.reason.replace(/\s+/g, " ") };
+    if (!parsed.success) continue;
+    if (chosen && chosen.verdict !== parsed.data.verdict) {
+      throw new TriageAnswerError("The model's answer gave two different verdicts.");
+    }
+    chosen ??= { verdict: parsed.data.verdict, reason: parsed.data.reason.replace(/\s+/g, " ") };
   }
+  if (chosen) return chosen;
   throw new TriageAnswerError(
     readable
       ? "The model's answer did not have a verdict and a reason."
