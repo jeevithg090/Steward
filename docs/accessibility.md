@@ -28,7 +28,8 @@ as feature requests.
 ### Keyboard
 
 - Everything can be reached and used with the keyboard, in a sensible order.
-- **Focus is always visible:** a solid outline in the accent colour, thicker in high contrast.
+- **Focus is always visible:** a solid outline in the accent colour, thicker in high contrast, and
+  in the system's highlight colour when Windows High Contrast is on.
 - **Shortcuts,** in the style of Gmail and GitHub: press `g`, let go, then a letter. They never fire
   while you are typing, and never use keys a screen reader or the browser needs. Voice control and
   switch access type letters too, so Settings → Accessibility → **Keyboard shortcuts** turns them
@@ -54,13 +55,19 @@ as feature requests.
 Settings → Accessibility, saved in this browser and applied before the page first paints, so a
 setting never flashes the default first:
 
-| Setting   | Choices                           | What it does                                                              |
-| --------- | --------------------------------- | ------------------------------------------------------------------------- |
-| Text size | Standard (100%), 115%, 130%, 150% | Scales all text and the layout with it. Browser zoom works too.           |
-| Contrast  | Standard, More                    | Stronger text, borders and focus rings, and no translucent surfaces.      |
-| Theme     | System, Light, Dark               | Follows the system by default, and changes with it.                       |
-| Font      | Default, Readable                 | A high-legibility face with wider letter spacing.                         |
-| Motion    | System, Reduce                    | No animation. The system's reduced-motion setting is honoured either way. |
+| Setting   | Choices                           | What it does                                                                                                       |
+| --------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Text size | Standard (100%), 115%, 130%, 150% | Scales all text and the layout with it. Browser zoom works too.                                                    |
+| Contrast  | Match this device, More contrast  | Stronger text, borders and focus rings, no translucent surfaces. The system's "Increase contrast" turns it on too. |
+| Colours   | Match this device, Light, Dark    | Follows the system by default, and changes with it.                                                                |
+| Lettering | Standard, Easier to read          | A high-legibility face with wider letter spacing.                                                                  |
+| Motion    | Match this device, Reduce motion  | No animation. The system's reduced-motion setting is honoured either way.                                          |
+
+**Windows High Contrast** (forced colours) repaints the page in the system's own colours and drops
+shadows and tints. Steward draws its edges and states so they survive that: switches keep an
+outlined track that fills when on, text fields and cards keep a line round them, the chosen option
+has an edge in the system's highlight colour, and the selected tab and the current page are filled
+with it.
 
 Touch and click targets are at least 44 by 44 CSS pixels. Colour is never the only signal: every
 status has a word and an icon beside its colour.
@@ -137,14 +144,25 @@ The live view of the agent's browser is a picture, and pictures are hard to use 
 - At a width of 320 CSS pixels (or 400% zoom on a 1280 pixel screen), the layout becomes the phone
   layout with a bottom bar, and nothing needs scrolling sideways except tables, which scroll on
   their own.
-- With Text size at 150%, the same holds.
+- With Text size at 150%, the same holds. The phone layout starts at a wider screen, since the
+  words take more room, and on a narrow phone the bottom bar's labels shrink just enough to fit.
 
 ### Automated checks
 
-`pnpm e2e` runs `tests/e2e/a11y.spec.ts` against the real app: the skip link, the landmarks, one
-`h1` on every page, a visible focus indicator on every Tab stop, and the text size setting. With
-`@axe-core/playwright` installed it also runs axe on the main pages and fails on any serious or
-critical violation. Biome's accessibility lint rules run on every `pnpm check`.
+`pnpm e2e` runs two specs against the real app:
+
+- `tests/e2e/a11y.spec.ts`: the skip link, the landmarks, one `h1` on every page, a visible focus
+  indicator on every Tab stop, the text size setting, and focus landing on the new page's heading
+  after a link, a shortcut or the phone's More sheet. It runs axe on every page, on a bot's
+  listing, on the main pages at phone width, and in a conversation with an approval waiting.
+- `tests/e2e/a11y-display.spec.ts`: axe on the main pages in dark, in More contrast (light and
+  dark) and at 150% text; the system's "Increase contrast"; Windows High Contrast, emulated, for
+  switches, fields, tabs, the current page and focus; and no sideways scrolling at 320 pixels.
+
+axe fails the run on any serious or critical violation. `@axe-core/playwright` is a pinned dev
+dependency, so a broken install fails too, instead of skipping. A problem another change is still
+fixing is waived by name, with where its fix lives, in the spec's `KNOWN` list. Biome's
+accessibility lint rules run on every `pnpm check`.
 
 Automated checks find perhaps a third of real problems. The manual passes above are the ones that
 matter.
@@ -155,6 +173,9 @@ matter.
   and the conversation are the accessible way to follow what the agent does.
 - Voice in depends on the browser's speech recognition, which not every browser has, and which may
   send audio to the browser maker.
+- At 130% or 150% text on a laptop narrower than the phone layout's scaled breakpoint (a 1280
+  pixel screen, say), the shell uses the phone layout but the chat still uses its desktop one, so
+  the bottom bar can cover the message box. A fix is on its way.
 - No right-to-left layout, and the interface is in English only.
 - No automated contrast check in CI for tenant accent colours; a tenant package must pick an accent
   with enough contrast itself (see [make-it-your-own.md](make-it-your-own.md#brandyaml)).
