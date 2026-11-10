@@ -287,6 +287,10 @@ describe("arguments that do not fit a tool's parameters", () => {
       body: "Hello",
     });
     // A wrong kind and a required null are not guessed at.
+    // One text with commas is split the way readStringList splits it, never kept as one item.
+    expect(
+      forgive("mail_send", { to: "sam@example.com, kim@example.com,", subject: "Hi", body: "Hello" }),
+    ).toEqual({ to: ["sam@example.com", "kim@example.com"], subject: "Hi", body: "Hello" });
     expect(forgive("mail_list", { unreadOnly: "yes" })).toEqual({ unreadOnly: "yes" });
     expect(forgive("web_fetch", { url: null })).toEqual({ url: null });
     expect(explain("web_fetch", forgive("web_fetch", { url: null }))).toBeDefined();

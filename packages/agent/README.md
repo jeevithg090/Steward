@@ -118,8 +118,9 @@ text: arguments that do not fit the tool's parameters say what to change (`"to" 
 such as ["sam@example.com"].`), a tool that does not exist is named, arguments cut off at the reply
 limit say so, and the AG-UI state tools BuiltInAgent adds are "not available here". A built-in
 tool's call whose only slips are ones its argument readers accept (an optional field sent as
-null, a number sent as text or outside its range, one text where a list of text belongs) is put
-right and goes to the gateway as the corrected call, which is what the record keeps. MCP tools are
+null, a number sent as text or outside its range, one text where a list of text belongs, split at
+commas as the readers split it) is put right and goes to the gateway as the corrected call, which
+is what the record keeps. MCP tools are
 never corrected, because their server reads its own arguments, and nor are display tools, because
 the web app draws them from the call as the model wrote it.
 

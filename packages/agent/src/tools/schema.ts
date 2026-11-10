@@ -303,7 +303,14 @@ function forgiveValue(schema: JsonSchema, value: unknown): unknown {
       return typeof schema.maximum === "number" ? Math.min(schema.maximum, low) : low;
     }
     case "array":
-      return typeof value === "string" && asSchema(schema.items)?.type === "string" ? [value] : value;
+      // Split at commas, as `readStringList` reads one text: kept whole, "a@x.com, b@y.com" would
+      // become one address and the second person would be dropped.
+      return typeof value === "string" && asSchema(schema.items)?.type === "string"
+        ? value
+            .split(",")
+            .map((item) => item.trim())
+            .filter((item) => item !== "")
+        : value;
     case "object":
       return isPlainObject(value) ? forgiveArgs(schema, value) : value;
     default:
@@ -315,7 +322,8 @@ function forgiveValue(schema: JsonSchema, value: unknown): unknown {
  * The arguments with the slips Steward's own readers already accept put right, so the call can
  * run: an optional field sent as null is left out, a number sent as text becomes the number, a
  * number outside its range is brought inside it, and one text where a list of text belongs becomes
- * a list of one. Nothing else changes; the caller checks the result with `explainArgs`.
+ * a list, split at commas as the readers split it. Nothing else changes; the caller checks the
+ * result with `explainArgs`.
  */
 export function forgiveArgs(schema: JsonSchema, args: Record<string, unknown>): Record<string, unknown> {
   const properties = isPlainObject(schema.properties) ? schema.properties : {};

@@ -1031,6 +1031,21 @@ describe("history and errors", () => {
     expect(text(turn.events)).toBe("Done.");
   });
 
+  it("reads addresses written as one text with commas the way the readers do, so nobody is dropped", async () => {
+    script((req) =>
+      lastIsTool(req)
+        ? { content: "Sent." }
+        : toolCall("mail_send", { to: "sam@example.com, kim@example.com", subject: "Hi", body: "Hello" }),
+    );
+    await runTurn(agent(), [user("email sam and kim")]);
+    const [call] = fakes.governance.callsFor("mail_send");
+    expect(call?.args.to).toEqual(["sam@example.com", "kim@example.com"]);
+    expect(call?.target.recipients).toEqual(["sam@example.com", "kim@example.com"]);
+    expect(fakes.mail.sent.map((m) => m.to)).toEqual([
+      [{ email: "sam@example.com" }, { email: "kim@example.com" }],
+    ]);
+  });
+
   it("tells the model exactly what to change when arguments do not fit, in Steward's envelope", async () => {
     fakes.mcp.tools = [
       {
