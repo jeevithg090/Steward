@@ -321,6 +321,37 @@ describe("BotListingPage", () => {
   });
 });
 
+describe("BotListingPage for a bot that is not there", () => {
+  const draw = (route: string) =>
+    renderWithProviders(
+      <Routes>
+        <Route path="/bots/:id" element={<BotListingPage />} />
+      </Routes>,
+      { route },
+    );
+
+  it("says there is no bot by that name when the directory has no pack for it", async () => {
+    serve({ previewStatus: 404 });
+    draw("/bots/does-not-exist");
+    expect(await screen.findByRole("heading", { name: "No bot by that name" })).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("asks for nothing when the address is not a bot's name at all", async () => {
+    const { calls } = serve();
+    draw(`/bots/${encodeURIComponent("../../secrets")}`);
+    expect(await screen.findByRole("heading", { name: "No bot by that name" })).toBeTruthy();
+    expect(calls.some((c) => c.path === "/api/bots" || c.path === "/api/bots/preview")).toBe(false);
+  });
+
+  it("still names a real failure as one", async () => {
+    serve({ previewStatus: 502 });
+    draw("/bots/rent-scout");
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(screen.getByText("Couldn't load this bot")).toBeTruthy();
+  });
+});
+
 describe("BotAddPage", () => {
   function draw(address: string) {
     return renderWithProviders(

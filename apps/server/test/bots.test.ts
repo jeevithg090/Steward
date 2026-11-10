@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { generateBot } from "@steward/bots-gen";
 import { memoryDb } from "@steward/db";
 import { createGateway, gateCallFor } from "@steward/gateway";
@@ -339,6 +339,26 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
     expect(res.body.error).toMatch(/Let it pay/);
     expect(res.body.problems.some((p) => p.path === "rules[0].effect")).toBe(true);
     expect((await t.api<InstalledBot[]>("/api/bots/installed")).body).toEqual([]);
+  });
+
+  it("answers 404 for a bot the directory does not have, and never shows a path on this machine", async () => {
+    for (const packUrl of ["packs/does-not-exist.json", "packs/does-not-exist.json/inner"]) {
+      const res = await t.api<{ error: string }>("/api/bots/preview", { method: "POST", json: { packUrl } });
+      expect(res.status, packUrl).toBe(404);
+      expect(res.body.error).toBe(
+        "There is no bot at that address. It may have been removed, or the link is wrong.",
+      );
+    }
+    // A pack path that is a folder: read, refused, and still no path.
+    const folder = await t.api<{ error: string }>("/api/bots/preview", {
+      method: "POST",
+      json: { packUrl: "packs" },
+    });
+    expect(folder.status).toBe(502);
+    expect(folder.body.error).toBe(
+      "Couldn't get that bot from the directory: The pack at packs could not be read (EISDIR)",
+    );
+    expect(folder.body.error).not.toContain(dirname(directory.indexPath));
   });
 
   it("refuses a bot that takes one of Steward's own agent ids, or whose hash does not match", async () => {

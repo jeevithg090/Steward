@@ -3,6 +3,7 @@ import {
   describeMayDo,
   diffPacks,
   hashPack,
+  PackNotFoundError,
   type PackProblem,
   scopeToBot,
   validatePack,
@@ -220,6 +221,12 @@ export class BotService {
       try {
         pack = await this.deps.directory.pack(body.packUrl);
       } catch (err) {
+        if (err instanceof PackNotFoundError) {
+          throw new HttpError(
+            404,
+            "There is no bot at that address. It may have been removed, or the link is wrong.",
+          );
+        }
         throw new HttpError(
           502,
           `Couldn't get that bot from the directory: ${err instanceof Error ? clip(err.message, 200) : "it did not answer."}`,

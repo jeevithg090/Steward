@@ -219,6 +219,24 @@ function comparator(sort: BotsQueryValue["sort"]): (a: Scored, b: Scored) => num
   };
 }
 
+/**
+ * The directory has no pack at that address: no such file in its folder, or the web answered 404
+ * or 410. Its message names the address as it was given, never a path on this machine.
+ */
+export class PackNotFoundError extends Error {
+  constructor(packUrl: string) {
+    super(`There is no bot at ${packUrl}`);
+    this.name = "PackNotFoundError";
+  }
+}
+
+/** A failed file read, without the absolute path Node puts in its message. */
+function fileProblem(err: unknown): string | undefined {
+  const code = (err as NodeJS.ErrnoException | undefined)?.code;
+  if (typeof code !== "string" || !/^E[A-Z]+$/.test(code)) return undefined;
+  return code;
+}
+
 function parseJson(text: string, where: string): unknown {
   try {
     return JSON.parse(text);
@@ -279,7 +297,9 @@ export class DirectoryClient {
       }
       if (!response.ok) {
         await response.body?.cancel().catch(() => {});
-        throw new Error(`The directory answered ${response.status} for ${what}`);
+        throw Object.assign(new Error(`The directory answered ${response.status} for ${what}`), {
+          status: response.status,
+        });
       }
       try {
         return await readCapped(response, maxBytes, `${what.charAt(0).toUpperCase()}${what.slice(1)}`);
@@ -393,7 +413,19 @@ export class DirectoryClient {
     const packUrl = typeof listingOrPackUrl === "string" ? listingOrPackUrl : listingOrPackUrl.packUrl;
     const location = this.resolvePackUrl(packUrl);
     const listing = typeof listingOrPackUrl === "string" ? await this.listingAt(location) : listingOrPackUrl;
-    const raw = parseJson(await this.read(location, `the pack at ${packUrl}`, MAX_PACK_BYTES), "The pack");
+    let text: string;
+    try {
+      text = await this.read(location, `the pack at ${packUrl}`, MAX_PACK_BYTES);
+    } catch (err) {
+      const status = (err as { status?: unknown }).status;
+      const code = fileProblem(err);
+      if (status === 404 || status === 410 || code === "ENOENT" || code === "ENOTDIR") {
+        throw new PackNotFoundError(packUrl);
+      }
+      if (code) throw new Error(`The pack at ${packUrl} could not be read (${code})`);
+      throw err;
+    }
+    const raw = parseJson(text, "The pack");
     const checked = BotPackSchema.safeParse(raw);
     if (!checked.success) {
       const issue = checked.error.issues[0];

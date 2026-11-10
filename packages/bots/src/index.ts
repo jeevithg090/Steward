@@ -18,6 +18,7 @@ export {
   DirectoryIndexSchema,
   MAX_INDEX_BYTES,
   MAX_PACK_BYTES,
+  PackNotFoundError,
 } from "./directory.ts";
 export {
   BotPackError,

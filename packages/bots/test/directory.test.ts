@@ -14,7 +14,7 @@ import { BOT_CATEGORIES, type BotListing, type BotPack } from "@steward/shared";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { stringify as stringifyYaml } from "yaml";
 import { hashPack } from "../src/canonical.ts";
-import { buildIndex, DirectoryClient, MAX_PACK_BYTES } from "../src/directory.ts";
+import { buildIndex, DirectoryClient, MAX_PACK_BYTES, PackNotFoundError } from "../src/directory.ts";
 import { parseBotFolder, writeBotFolder } from "../src/pack.ts";
 
 const NEEDS = { tools: ["web_search", "web_fetch"], connectors: [], model: "any" };
@@ -242,6 +242,15 @@ describe("DirectoryClient on a folder", () => {
   const ids = async (q: Parameters<DirectoryClient["list"]>[0]) =>
     (await client.list(q)).bots.map((b) => b.id);
 
+  it("says a pack is not there without naming the folder it looked in", async () => {
+    const missing = client.pack("packs/nope.json");
+    await expect(missing).rejects.toBeInstanceOf(PackNotFoundError);
+    await expect(missing).rejects.toThrow("There is no bot at packs/nope.json");
+    const folder = await client.pack("packs").catch((err: Error) => err);
+    expect((folder as Error).message).toBe("The pack at packs could not be read (EISDIR)");
+    expect((folder as Error).message).not.toContain(root);
+  });
+
   it("ranks by installs when there is nothing to match", async () => {
     const found = await client.list({ sort: "match", limit: 50, offset: 0 });
     expect(found.total).toBe(3);
@@ -356,7 +365,7 @@ describe("DirectoryClient on the web", () => {
     expect((await client.pack("https://cdn.example.com/inbox-zero.json")).id).toBe("inbox-zero");
     const meal = await client.get("meal-planner");
     await expect(client.pack(meal as BotListing)).rejects.toThrow(/must be web addresses too/);
-    await expect(client.pack("packs/nope.json")).rejects.toThrow(/answered 404/);
+    await expect(client.pack("packs/nope.json")).rejects.toThrow("There is no bot at packs/nope.json");
     expect(fetched.some((u) => u.startsWith("file:"))).toBe(false);
   });
 
@@ -463,6 +472,16 @@ describe("DirectoryClient on the web", () => {
     );
     // A pack the index does not list is held to its own hash only.
     expect((await client.pack("https://cdn.example.com/inbox-zero.json")).id).toBe("inbox-zero");
+  });
+
+  it("says a pack the web does not have is not there, and any other answer is a failure", async () => {
+    const client = new DirectoryClient({ source: INDEX_URL, fetch: fakeFetch });
+    await expect(client.pack("https://cdn.example.com/gone.json")).rejects.toBeInstanceOf(PackNotFoundError);
+    const broken = (async () => new Response("", { status: 500 })) as typeof fetch;
+    const failing = new DirectoryClient({ source: INDEX_URL, fetch: broken });
+    const err = await failing.pack("https://cdn.example.com/x.json").catch((e: Error) => e);
+    expect(err).not.toBeInstanceOf(PackNotFoundError);
+    expect((err as Error).message).toMatch(/answered 500/);
   });
 
   it("says when the index is missing or not an index", async () => {
