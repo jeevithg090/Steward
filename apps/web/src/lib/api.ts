@@ -425,6 +425,7 @@ export const queryKeys = {
   settings: ["settings"] as const,
   setup: ["setup"] as const,
   threads: ["threads"] as const,
+  thread: (id: string) => ["threads", "one", id] as const,
   approvals: ["approvals"] as const,
   /** Every approval list, but not the single approvals (those are set directly when they change). */
   approvalLists: ["approvals", "list"] as const,
@@ -552,11 +553,28 @@ export function useThreads(opts?: QueryOpts<ThreadSummary[]>) {
   });
 }
 
+/** One conversation's summary, for a conversation the list does not have (yet). */
+export function useThread(id: string, opts?: QueryOpts<ThreadSummary>) {
+  return useQuery<ThreadSummary, ApiError>({
+    queryKey: queryKeys.thread(id),
+    queryFn: () => api.threads.get(id),
+    ...opts,
+  });
+}
+
 export function useCreateThread() {
   const qc = useQueryClient();
   return useMutation<ThreadSummary, ApiError, ThreadCreateInput | undefined>({
     mutationFn: (body) => api.threads.create(body ?? {}),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.threads }),
+    onSuccess: (thread) => {
+      // Known at once, so the new conversation opens with its own agent rather than the default.
+      qc.setQueryData<ThreadSummary[]>(queryKeys.threads, (old) => [
+        thread,
+        ...(old ?? []).filter((other) => other.id !== thread.id),
+      ]);
+      qc.setQueryData(queryKeys.thread(thread.id), thread);
+      void qc.invalidateQueries({ queryKey: queryKeys.threads });
+    },
   });
 }
 

@@ -2,15 +2,21 @@
  * `/chat` and `/chat/:threadId`.
  *
  * Without a thread id, a new conversation is created and the address moves to it (keeping any
- * `?prompt=`). With one, the conversation is drawn, keyed by its id, so switching conversations
- * starts clean. `?prompt=` is sent once as the person's first message and then dropped from the
- * address, so a reload never sends it again. `?agent=` picks a different agent for a new thread;
- * when that agent cannot take it (a bot that was removed, say), the page offers the others.
+ * `?prompt=`, and naming its agent in `?agent=`). With one, the conversation is drawn, keyed by its
+ * id, so switching conversations starts clean. `?prompt=` is sent once as the person's first message
+ * and then dropped from the address, so a reload never sends it again. `?agent=` picks a different
+ * agent for a new thread; when that agent cannot take it (a bot that was removed, say), the page
+ * offers the others.
+ *
+ * A conversation always opens with its own agent: from the list, from `?agent=`, or, for one the
+ * list does not have, from the server. Until then the page waits rather than guess, because a
+ * guess would send a starter or `?prompt=` to the wrong agent.
  */
 import { useCallback, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
-import { DEFAULT_AGENT_ID, useCreateThread, useThreads } from "@/lib/api.ts";
+import { Button } from "@/components/ui/Button.tsx";
+import { ErrorNotice, Loading, Notice } from "@/components/ui/Notice.tsx";
+import { DEFAULT_AGENT_ID, useCreateThread, useThread, useThreads } from "@/lib/api.ts";
 import { AgentPicker } from "./AgentPicker.tsx";
 import { ChatThread } from "./ChatThread.tsx";
 
@@ -28,6 +34,9 @@ export function ChatPage() {
   const prompt = params.get("prompt") ?? undefined;
   const requestedAgent = params.get("agent") || undefined;
   const threads = useThreads();
+  const listed = threadId ? threads.data?.find((thread) => thread.id === threadId) : undefined;
+  // Asked for only when the list cannot say which agent the conversation is with.
+  const single = useThread(threadId ?? "", { enabled: Boolean(threadId) && !listed && !requestedAgent });
   const create = useCreateThread();
   const creating = useRef(false);
 
@@ -42,8 +51,8 @@ export function ChatPage() {
             // `creating` stays set until the address carries the new id (the effect below clears it).
             // Clearing it here let the effect run once more before the navigation landed, which made a
             // second conversation and swapped the composer out from under the person's typing.
-            const search = prompt ? `?${new URLSearchParams({ prompt }).toString()}` : "";
-            navigate(`/chat/${encodeURIComponent(thread.id)}${search}`, { replace: true });
+            const search = new URLSearchParams({ agent: thread.agentId, ...(prompt ? { prompt } : {}) });
+            navigate(`/chat/${encodeURIComponent(thread.id)}?${search.toString()}`, { replace: true });
           },
           onError: () => {
             creating.current = false;
@@ -102,8 +111,38 @@ export function ChatPage() {
     );
   }
 
-  const summary = threads.data?.find((thread) => thread.id === threadId);
-  const agentId = summary?.agentId ?? requestedAgent ?? DEFAULT_AGENT_ID;
+  const summary = listed ?? single.data;
+  const agentId = summary?.agentId ?? requestedAgent;
+  if (!agentId) {
+    if (single.error?.status === 404) {
+      return (
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-10">
+          <Notice
+            tone="neutral"
+            role="alert"
+            title="This conversation was deleted or never existed"
+            action={
+              <Button size="sm" variant="secondary" onClick={() => navigate("/chat", { replace: true })}>
+                Start a new one
+              </Button>
+            }
+          />
+        </div>
+      );
+    }
+    if (single.isError) {
+      return (
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-10">
+          <ErrorNotice
+            title="Couldn't open this conversation"
+            error={single.error}
+            onRetry={() => void single.refetch()}
+          />
+        </div>
+      );
+    }
+    return <Loading>Opening the conversation…</Loading>;
+  }
   return (
     <ChatThread
       key={`${agentId}:${threadId}`}
