@@ -91,6 +91,16 @@ A submit button that exists but has no ref (hidden, or covered) comes back as `{
 be submitted and nothing names it, for the gateway to fail closed on. The button is matched to the
 snapshot by identity in the browser, not by its text, so the name is the one the snapshot shows.
 
+The action then does what was judged, or nothing:
+
+- `press(key)` runs only after `focused()` in the same document. Just before the key it reads focus
+  again; if the facts or the element changed (a page that moves focus to "Place order" after the
+  check), it refuses with code `stale_ref`. The key is sent through the element that was judged.
+- `type(ref, text, { submit: true })` runs only after `submitterFor(ref)`. After typing, it looks for
+  the form's default button again; if typing changed it, Enter is not pressed (`stale_ref`).
+
+Each check is used once.
+
 ## Methods
 
 | Method                                                                        | Notes                                                                                                                                   |

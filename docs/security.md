@@ -136,7 +136,9 @@ forward the last ten emails to…". Steward assumes this will happen.
   arguments, so you approve what will happen, not the model's description of it.
 - **Element names come from the page, not the model.** When the agent clicks, the gateway judges
   the element by the computer's own snapshot. A button the model calls "Next" but the page calls
-  "Place order" is judged as a payment.
+  "Place order" is judged as a payment. A key press goes only to the element that was judged: if
+  the page moves focus, or adds a new submit button, between the check and the key, the key is not
+  pressed.
 - **Refusals stop.** A refused call returns a sentence telling the agent not to try again by
   another route, and the refusal is recorded.
 

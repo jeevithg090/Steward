@@ -102,6 +102,22 @@ interface PendingSecret {
   finish: (result: { filled: boolean; length: number }) => void;
 }
 
+/** What `focused()` reported, so the key press that follows goes where the gateway was told it would. */
+interface JudgedFocus {
+  page: Page;
+  generation: number;
+  key: string;
+  /** The element that had focus (through shadow roots), or the body when nothing had. */
+  handle: ElementHandle | undefined;
+}
+
+/** What `submitterFor(ref)` reported, so Enter after typing presses the button the gateway judged. */
+interface JudgedSubmit {
+  ref: string;
+  generation: number;
+  key: string;
+}
+
 interface BlockedNote {
   at: number;
   host: string;
@@ -158,6 +174,8 @@ export class AgentComputer implements Computer {
   private blocks: BlockedNote[] = [];
   /** Dialogs the page raised since the last observation, told to the model with the next one. */
   private dialogNotes: string[] = [];
+  private judgedFocus: JudgedFocus | undefined;
+  private judgedSubmit: JudgedSubmit | undefined;
   /** Set by an explicit close: only `start` (the manager's get or reset) brings the browser back. */
   private closed = false;
   /**
@@ -331,6 +349,8 @@ export class AgentComputer implements Computer {
   /** The live document changed: refs from earlier snapshots no longer apply. */
   private documentChanged(): void {
     this.generation++;
+    this.forgetFocus();
+    this.judgedSubmit = undefined;
     this.refs.newDocument();
     this.title = "";
     this.emitStatus();
@@ -559,8 +579,10 @@ export class AgentComputer implements Computer {
     if (text.length > MAX_TYPED_CHARS)
       throw new ComputerError("bad_input", "That is too much text to type at once.");
     return this.screenAction(async (page) => {
-      const { locator, entry } = await this.resolveRef(page, ref);
+      const { locator, entry, ref: id } = await this.resolveRef(page, ref);
       const label = elementLabel(entry.role, entry.name);
+      // Enter submits the field's form: only after Steward told the gateway which button that is.
+      const judged = opts.submit ? this.takeJudgedSubmit(id) : undefined;
       let chose = false;
       try {
         const isSelect = await locator
@@ -591,9 +613,23 @@ export class AgentComputer implements Computer {
         } else {
           await locator.fill(text, { timeout: ACTION_TIMEOUT_MS });
         }
-        if (opts.submit) await locator.press("Enter", { timeout: ACTION_TIMEOUT_MS });
+        if (judged !== undefined) {
+          // Typing can change the form (a page that adds a button as you type): look again first.
+          const now = submitterKey(
+            await this.submitterOf(page, await this.capture(page, false), entry.pwRef),
+          );
+          if (now !== judged) throw new ComputerError("stale_ref", MESSAGES.submitterChanged);
+          await locator.press("Enter", { timeout: ACTION_TIMEOUT_MS });
+        }
       } catch (error) {
-        this.log.add({ kind: "type", text: `Could not type into ${label}`, ok: false });
+        const typed = isComputerError(error) && error.message === MESSAGES.submitterChanged;
+        this.log.add({
+          kind: "type",
+          text: typed
+            ? `Typed into ${label} but did not press Enter: the form changed`
+            : `Could not type into ${label}`,
+          ok: false,
+        });
         if (isComputerError(error)) throw error;
         throw typingError(error, label);
       }
@@ -616,9 +652,26 @@ export class AgentComputer implements Computer {
     const name = key.trim();
     return this.screenAction(async (page) => {
       this.requireFreshLook();
+      const judged = this.judgedFocus;
+      this.judgedFocus = undefined;
       try {
-        await page.keyboard.press(name);
+        // The key goes to what the gateway was told has focus, or nowhere.
+        if (!judged || judged.page !== page || judged.generation !== this.generation) {
+          throw new ComputerError("stale_ref", MESSAGES.focusUnchecked);
+        }
+        const now = await this.readFocus(page);
+        const same =
+          now.key === judged.key &&
+          (await sameElement(now.handle, judged.handle)) &&
+          judged.generation === this.generation;
+        await now.handle?.dispose().catch(() => {});
+        if (!same) throw new ComputerError("stale_ref", MESSAGES.focusChanged);
+        // Through the judged element: Playwright puts focus back on it right before the key.
+        if (judged.handle && now.key !== "none")
+          await judged.handle.press(name, { timeout: ACTION_TIMEOUT_MS });
+        else await page.keyboard.press(name);
       } catch (error) {
+        if (isComputerError(error)) throw error;
         if (/Unknown key/i.test(String(error))) {
           throw new ComputerError(
             "bad_input",
@@ -626,6 +679,8 @@ export class AgentComputer implements Computer {
           );
         }
         throw actionError(error, `Could not press ${name}`);
+      } finally {
+        await judged?.handle?.dispose().catch(() => {});
       }
       this.log.add({ kind: "key", text: `Pressed ${name}`, ok: true });
       return this.observe(await this.settle());
@@ -683,7 +738,30 @@ export class AgentComputer implements Computer {
    */
   async focused(): Promise<Focused | undefined> {
     const page = this.livePage;
+    this.forgetFocus();
     if (!this.context || !page || page.isClosed()) return undefined;
+    const generation = this.generation;
+    const read = await this.readFocus(page);
+    // `press` sends the key only if focus is still here, on this element, in this document.
+    this.judgedFocus = { page, generation, key: read.key, handle: read.handle };
+    return read.facts;
+  }
+
+  /** What has focus now: the facts the gateway judges, a key to compare them by, and the element. */
+  private async readFocus(
+    page: Page,
+  ): Promise<{ facts: Focused | undefined; key: string; handle: ElementHandle | undefined }> {
+    const handle = await page
+      .evaluateHandle(deepActiveElement)
+      .then((h) => h.asElement() ?? undefined)
+      .catch(() => undefined);
+    const facts = await this.focusFacts(page);
+    // Focus moved while it was read: the facts may not be this element's. Fail closed.
+    const settled = facts && !(await stillActive(handle)) ? unknownFocus() : facts;
+    return { facts: settled, key: focusKey(settled), handle };
+  }
+
+  private async focusFacts(page: Page): Promise<Focused | undefined> {
     let items: AriaItem[];
     try {
       items = await this.capture(page, false);
@@ -704,23 +782,51 @@ export class AgentComputer implements Computer {
     return submitter ? { role, name, sensitive, submitter } : { role, name, sensitive };
   }
 
+  private forgetFocus(): void {
+    void this.judgedFocus?.handle?.dispose().catch(() => {});
+    this.judgedFocus = undefined;
+  }
+
   /** The default submit button of the form that holds `ref`: what Enter after typing would press. */
   async submitterFor(ref: string): Promise<Submitter | undefined> {
+    this.judgedSubmit = undefined;
     const snap = this.snap;
-    const entry = typeof ref === "string" ? snap?.entries.get(ref.trim()) : undefined;
+    const id = typeof ref === "string" ? ref.trim() : "";
+    const entry = snap?.entries.get(id);
     const page = this.livePage;
     // A ref that no longer names the same element is refused as stale when the action runs.
     if (!entry || snap?.generation !== this.generation) return undefined;
     if (!this.context || !page || page.isClosed()) return undefined;
+    const generation = this.generation;
+    const answer = await this.submitterNow(page, entry);
+    if (answer.known) this.judgedSubmit = { ref: id, generation, key: submitterKey(answer.submitter) };
+    return answer.submitter;
+  }
+
+  private async submitterNow(
+    page: Page,
+    entry: RefEntry,
+  ): Promise<{ known: boolean; submitter: Submitter | undefined }> {
     let items: AriaItem[];
     try {
       items = await this.capture(page, false);
     } catch {
-      return unnamedSubmitter();
+      return { known: true, submitter: unnamedSubmitter() };
     }
     const now = indexRefs(items).get(entry.pwRef);
-    if (!now || now.role !== entry.role || now.name !== entry.name) return undefined;
-    return this.submitterOf(page, items, entry.pwRef);
+    if (!now || now.role !== entry.role || now.name !== entry.name)
+      return { known: false, submitter: undefined };
+    return { known: true, submitter: await this.submitterOf(page, items, entry.pwRef) };
+  }
+
+  /** The submitter `submitterFor` reported for `ref` in this document, used once. Refuses when there is none. */
+  private takeJudgedSubmit(ref: string): string {
+    const judged = this.judgedSubmit;
+    this.judgedSubmit = undefined;
+    if (!judged || judged.ref !== ref || judged.generation !== this.generation) {
+      throw new ComputerError("stale_ref", MESSAGES.submitterUnchecked);
+    }
+    return judged.key;
   }
 
   /**
@@ -1247,6 +1353,47 @@ async function isSensitive(page: Page, pwRef: string): Promise<boolean> {
     .getByRef(pwRef)
     .evaluate((el, selector) => el.matches(selector), SENSITIVE_FIELD_SELECTOR, { timeout: 1_000 })
     .catch(() => true);
+}
+
+/** A stable comparison key for focus facts. */
+function focusKey(facts: Focused | undefined): string {
+  if (!facts) return "none";
+  return JSON.stringify([
+    facts.role ?? null,
+    facts.name ?? null,
+    facts.sensitive,
+    submitterKey(facts.submitter),
+  ]);
+}
+
+function submitterKey(submitter: Submitter | undefined): string {
+  return submitter ? JSON.stringify([submitter.role ?? null, submitter.name ?? null]) : "none";
+}
+
+/** Whether two handles are one element. Missing handles match only each other. */
+async function sameElement(a: ElementHandle | undefined, b: ElementHandle | undefined): Promise<boolean> {
+  if (!a || !b) return a === b;
+  return a.evaluate((el, other) => el === other, b).catch(() => false);
+}
+
+/** Whether the element still has focus. */
+async function stillActive(handle: ElementHandle | undefined): Promise<boolean> {
+  if (!handle) return false;
+  return handle.evaluate(isDeepActive).catch(() => false);
+}
+
+/** Runs in the page: the focused element, through open shadow roots (frames are their own documents). */
+function deepActiveElement(): Element | null {
+  let el = document.activeElement;
+  while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
+  return el;
+}
+
+/** Runs in the page: whether `el` is what `deepActiveElement` finds. Repeated, because each runs alone. */
+function isDeepActive(el: Element): boolean {
+  let active = document.activeElement;
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+  return active === el;
 }
 
 /**

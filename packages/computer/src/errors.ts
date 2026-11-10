@@ -50,6 +50,12 @@ export const MESSAGES = {
   noSnapshot: "There is no snapshot of this page yet. Take a snapshot first and use the refs it returns.",
   stillFinishing: "Steward is still finishing an action. Try taking the wheel again in a moment.",
   computerStopped: "The computer stopped. Start it again to carry on.",
+  focusUnchecked: "Steward has not checked what has focus on this page. Take a new snapshot, then try again.",
+  focusChanged: "What has focus changed since Steward checked it. Take a new snapshot, then try again.",
+  submitterUnchecked:
+    "Steward has not checked which button Enter would press in that form. Take a new snapshot, then try again.",
+  submitterChanged:
+    "The button Enter would press in that form changed since Steward checked it, so Enter was not pressed. Take a new snapshot, then try again.",
 } as const;
 
 export function staleRef(ref: string, why?: string): ComputerError {

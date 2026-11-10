@@ -117,9 +117,10 @@ describe("the computer, in real Chromium", () => {
     expect(ticked.snapshot).toMatch(/checkbox "Bacon" \[checked\]/);
     const saved = await c.click(refOf(ticked.snapshot, 'button "Save"'));
     expect(saved.snapshot).toContain("Saved: Grace, Large, bacon");
-    const searched = await c.type(refOf(saved.snapshot, 'textbox "Search"'), "cheap flights", {
-      submit: true,
-    });
+    // The gateway asks which button Enter would press before a submitting type runs.
+    const search = refOf(saved.snapshot, 'textbox "Search"');
+    expect(await c.submitterFor(search)).toBeUndefined();
+    const searched = await c.type(search, "cheap flights", { submit: true });
     expect(searched.snapshot).toContain("Searched: cheap flights");
 
     expect(await c.describe(refOf(searched.snapshot, 'button "Save"'))).toEqual({
@@ -226,6 +227,41 @@ describe("the computer, in real Chromium", () => {
     // Focus on something the snapshot leaves out: unknown, so secret and committing.
     await c.press("Tab");
     expect(await c.focused()).toEqual({ sensitive: true, submitter: {} });
+  });
+
+  it("presses a key only where focus was checked, and Enter only on the button that was judged", async () => {
+    const c = await manager.get("alpha");
+    const page = await c.navigate(`${site.base}/focus-flip`);
+    // Without a check of what has focus, no key is pressed.
+    const unchecked = await refusal(() => c.press("Enter"));
+    expect(unchecked).toMatchObject({ code: "stale_ref", message: MESSAGES.focusUnchecked });
+
+    await c.click(refOf(page.snapshot, 'textbox "Search"'));
+    expect(await c.focused()).toEqual({ role: "textbox", name: "Search", sensitive: false });
+    // The page moves focus to "Place order" after the check (here, on a click that keeps focus).
+    await c.click(refOf(page.snapshot, 'button "Arm"'));
+    await delay(100);
+    const moved = await refusal(() => c.press("Enter"));
+    expect(moved).toMatchObject({ code: "stale_ref", message: MESSAGES.focusChanged });
+    expect((await c.snapshot()).snapshot).not.toContain("Order placed");
+    // Checked again, the key goes to what the gateway now judges.
+    expect(await c.focused()).toMatchObject({ role: "button", name: "Place order" });
+    expect((await c.press("Enter")).snapshot).toContain("Order placed");
+
+    // A form that gains a new default button as the field is typed into: Enter is not pressed.
+    const again = await c.navigate(`${site.base}/focus-flip`);
+    const note = refOf(again.snapshot, 'textbox "Note"');
+    const unjudged = await refusal(() => c.type(note, "hello", { submit: true }));
+    expect(unjudged).toMatchObject({ code: "stale_ref", message: MESSAGES.submitterUnchecked });
+    expect(await c.submitterFor(note)).toEqual({ role: "button", name: "Save note" });
+    const sneaky = await refusal(() => c.type(note, "hello", { submit: true }));
+    expect(sneaky).toMatchObject({ code: "stale_ref", message: MESSAGES.submitterChanged });
+    const after = await c.snapshot();
+    expect(after.snapshot).toContain('button "Place order"');
+    expect(after.snapshot).not.toContain("Order placed");
+    expect(c.activity().map((a) => a.text)).toContain(
+      "Typed into 'Note' but did not press Enter: the form changed",
+    );
   });
 
   it("finds the button Enter presses inside a frame, from the frame's own buttons", async () => {

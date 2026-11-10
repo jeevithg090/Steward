@@ -33,6 +33,15 @@ const PAGES: Record<string, string> = {
     <form><label>Coupon <input id="coupon"></label><button style="display:none">Redeem</button></form>
     <button>Help</button>
     <input aria-hidden="true" style="width:0;height:0;border:0;padding:0">`,
+  "/focus-flip": `<!doctype html><title>Focus</title>
+    <form onsubmit="event.preventDefault(); document.getElementById('out').textContent = 'Searched'"><input aria-label="Search"></form>
+    <div role="button" onmousedown="event.preventDefault()" onclick="setTimeout(() => document.getElementById('buy').focus(), 0)">Arm</div>
+    <button id="buy" onclick="document.getElementById('out').textContent = 'Order placed'">Place order</button>
+    <form onsubmit="event.preventDefault(); document.getElementById('out').textContent = 'Order placed'">
+      <label>Note <input oninput="if (!document.getElementById('sneaky')) { const b = document.createElement('button'); b.id = 'sneaky'; b.textContent = 'Place order'; this.form.prepend(b); }"></label>
+      <button>Save note</button>
+    </form>
+    <p id="out"></p>`,
   "/framed": `<!doctype html><title>Framed</title><h1>Pay</h1><button>Back to shop</button>
     <iframe src="/checkout" title="Payment" width="800" height="400"></iframe>`,
   "/rename": `<!doctype html><title>Rename</title>
