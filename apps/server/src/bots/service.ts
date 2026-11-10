@@ -67,6 +67,8 @@ function dedupe(words: string[]): string[] {
 /**
  * Where an install is counted, for a directory read over the network: `<site>/api/bots/<id>/installed`,
  * or beside the index when the index names no site. A directory read from a file has no such place.
+ * A site on another origin from the index must be https; the post goes through the same guarded
+ * fetch as the directory, so a site on a private address is never reached.
  */
 export function countsEndpoint(
   source: string,
@@ -75,11 +77,20 @@ export function countsEndpoint(
 ): string | undefined {
   if (!isRemoteDirectory(source)) return undefined;
   const site = index?.site?.trim();
-  const base = site && isRemoteDirectory(site) ? (site.endsWith("/") ? site : `${site}/`) : source;
+  const usable = site && isRemoteDirectory(site) && (sameOrigin(site, source) || /^https:/i.test(site));
+  const base = usable ? (site.endsWith("/") ? site : `${site}/`) : source;
   try {
     return new URL(`api/bots/${encodeURIComponent(id)}/installed`, base).toString();
   } catch {
     return undefined;
+  }
+}
+
+function sameOrigin(a: string, b: string): boolean {
+  try {
+    return new URL(a).origin === new URL(b).origin;
+  } catch {
+    return false;
   }
 }
 

@@ -1,4 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import { join } from "node:path";
 import { generateBot } from "@steward/bots-gen";
 import { memoryDb } from "@steward/db";
@@ -17,6 +19,7 @@ import {
   type Skill,
 } from "@steward/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { directoryFetch } from "../src/bots/fetch.ts";
 import { countsEndpoint } from "../src/bots/service.ts";
 import { missingPackages, tempDir } from "./helpers.ts";
 import { startTestServer, type TestServer } from "./server.ts";
@@ -167,6 +170,15 @@ describe("countsEndpoint", () => {
     ).toBeUndefined();
   });
 
+  it("refuses a site on another origin unless it is https", () => {
+    expect(
+      countsEndpoint("https://bots.example/index.json", "rent-scout", { site: "http://192.168.1.1" }),
+    ).toBe("https://bots.example/api/bots/rent-scout/installed");
+    expect(
+      countsEndpoint("http://127.0.0.1:8790/index.json", "rent-scout", { site: "http://127.0.0.1:8790" }),
+    ).toBe("http://127.0.0.1:8790/api/bots/rent-scout/installed");
+  });
+
   it("is the directory's site, or beside the index when the index names none", () => {
     expect(
       countsEndpoint("https://bots.example/index.json", "rent-scout", { site: "https://bots.example" }),
@@ -177,6 +189,36 @@ describe("countsEndpoint", () => {
     expect(
       countsEndpoint("https://cdn.example/steward/index.json", "a/b", { site: "https://bots.example/" }),
     ).toBe("https://bots.example/api/bots/a%2Fb/installed");
+  });
+});
+
+describe("directoryFetch", () => {
+  it("reaches the configured directory on this machine, and nothing else there", async () => {
+    const seen: string[] = [];
+    const local = createServer((req, res) => {
+      seen.push(req.url ?? "");
+      res.end("{}");
+    });
+    await new Promise<void>((done) => local.listen(0, "127.0.0.1", done));
+    const { port } = local.address() as AddressInfo;
+    try {
+      const read = directoryFetch({
+        directoryUrl: `http://127.0.0.1:${port}/index.json`,
+        allowPrivateHosts: false,
+      });
+      expect((await read(`http://127.0.0.1:${port}/packs/a.json`)).status).toBe(200);
+      await expect(read(`http://localhost:${port}/packs/a.json`)).rejects.toThrow(/private network/);
+      const fromFile = directoryFetch({
+        directoryUrl: "/srv/directory/index.json",
+        allowPrivateHosts: false,
+      });
+      await expect(fromFile(`http://127.0.0.1:${port}/packs/a.json`)).rejects.toThrow(/private network/);
+      const allowed = directoryFetch({ directoryUrl: "/srv/directory/index.json", allowPrivateHosts: true });
+      expect((await allowed(`http://127.0.0.1:${port}/packs/b.json`)).status).toBe(200);
+      expect(seen).toEqual(["/packs/a.json", "/packs/b.json"]);
+    } finally {
+      await new Promise<void>((done) => local.close(() => done()));
+    }
   });
 });
 
@@ -405,6 +447,37 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
     const left = (await t.api<Skill[]>("/api/skills")).body;
     expect(left.find((s) => s.id === mine.body.id)).toBeDefined();
     expect(left.some((s) => s.name === "daily-note-note-taker")).toBe(false);
+  });
+
+  it("never fetches a pack from this machine, a private network or cloud metadata from a link", async () => {
+    let hits = 0;
+    const local = createServer((_req, res) => {
+      hits++;
+      res.end(JSON.stringify(NOTE_TAKER));
+    });
+    await new Promise<void>((done) => local.listen(0, "127.0.0.1", done));
+    const { port } = local.address() as AddressInfo;
+    try {
+      const cases: [string, RegExp][] = [
+        [`http://127.0.0.1:${port}/pack.json`, /on this computer or its private network/],
+        [`http://localhost:${port}/pack.json`, /on this computer or its private network/],
+        ["https://10.0.0.5/pack.json", /on this computer or its private network/],
+        ["https://169.254.169.254/latest/meta-data", /cloud metadata/],
+        ["http://169.254.169.254/latest/meta-data", /only reads bots from https addresses/],
+        ["http://bots.example/pack.json", /only reads bots from https addresses/],
+      ];
+      for (const [packUrl, why] of cases) {
+        const res = await t.api<{ error: string }>("/api/bots/preview", {
+          method: "POST",
+          json: { packUrl },
+        });
+        expect(res.status, packUrl).toBe(502);
+        expect(res.body.error, packUrl).toMatch(why);
+      }
+      expect(hits).toBe(0);
+    } finally {
+      await new Promise<void>((done) => local.close(() => done()));
+    }
   });
 
   it("never posts an install count for a directory read from a file", async () => {

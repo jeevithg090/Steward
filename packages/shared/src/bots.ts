@@ -155,6 +155,8 @@ export interface BotListing {
   /** Where the full pack is: an https URL or a path relative to the index. */
   packUrl: string;
   pageUrl?: string;
+  /** The pack's content hash when the index was built. A fetched pack must match it. */
+  hash?: string;
 }
 
 export interface DirectoryIndex {

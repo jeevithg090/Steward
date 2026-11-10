@@ -12,9 +12,12 @@ export {
   type BuildIndexOptions,
   buildIndex,
   DEFAULT_CACHE_MS,
+  DEFAULT_TIMEOUT_MS,
   DirectoryClient,
   type DirectoryClientOptions,
   DirectoryIndexSchema,
+  MAX_INDEX_BYTES,
+  MAX_PACK_BYTES,
 } from "./directory.ts";
 export {
   BotPackError,

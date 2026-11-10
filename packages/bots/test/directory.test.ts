@@ -14,7 +14,7 @@ import { BOT_CATEGORIES, type BotListing, type BotPack } from "@steward/shared";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { stringify as stringifyYaml } from "yaml";
 import { hashPack } from "../src/canonical.ts";
-import { buildIndex, DirectoryClient } from "../src/directory.ts";
+import { buildIndex, DirectoryClient, MAX_PACK_BYTES } from "../src/directory.ts";
 import { parseBotFolder, writeBotFolder } from "../src/pack.ts";
 
 const NEEDS = { tools: ["web_search", "web_fetch"], connectors: [], model: "any" };
@@ -164,9 +164,11 @@ describe("buildIndex", () => {
       updatedAt: "2026-01-05T00:00:00.000Z",
       packUrl: "packs/rent-scout.json",
       pageUrl: "https://bots.example.com/bots/rent-scout",
+      hash: expect.stringMatching(/^[0-9a-f]{64}$/),
     });
     const written = JSON.parse(readFileSync(join(root, "packs", "rent-scout.json"), "utf8")) as BotPack;
     expect(written.hash).toBe(hashPack(written));
+    expect(rent.hash).toBe(written.hash);
     expect(written.skills[0]?.name).toBe("find-rentals");
     expect(written.readme).toBe("# Rent Scout\n\nFinds rentals.");
     expect(existsSync(join(root, "packs", "bad-bot.json"))).toBe(false);
@@ -371,6 +373,96 @@ describe("DirectoryClient on the web", () => {
     await fresh.index();
     await fresh.index();
     expect(fetched.filter((u) => u === INDEX_URL)).toHaveLength(4);
+  });
+
+  it("gives up on a directory that does not answer, and refuses a body that is too large", async () => {
+    const hang = (async (_input: string | URL | Request, init?: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+      })) as typeof fetch;
+    await expect(
+      new DirectoryClient({ source: INDEX_URL, fetch: hang, timeoutMs: 50 }).index(),
+    ).rejects.toThrow("The directory took longer than 0.05 seconds for the index");
+
+    const declared = (async (input: string | URL | Request, init?: RequestInit) =>
+      String(input) === INDEX_URL
+        ? fakeFetch(input, init)
+        : new Response("{}", { headers: { "content-length": String(MAX_PACK_BYTES + 1) } })) as typeof fetch;
+    await expect(
+      new DirectoryClient({ source: INDEX_URL, fetch: declared }).pack("https://cdn.example.com/x.json"),
+    ).rejects.toThrow("The pack at https://cdn.example.com/x.json is larger than 2 MB");
+
+    // A server that says nothing of its length, or lies about it, is cut off as it streams.
+    let sent = 0;
+    const endless = (async (input: string | URL | Request, init?: RequestInit) =>
+      String(input) === INDEX_URL
+        ? fakeFetch(input, init)
+        : new Response(
+            new ReadableStream<Uint8Array>({
+              pull(controller) {
+                sent += 64 * 1024;
+                controller.enqueue(new Uint8Array(64 * 1024).fill(32));
+              },
+            }),
+          )) as typeof fetch;
+    await expect(
+      new DirectoryClient({ source: INDEX_URL, fetch: endless }).pack("https://cdn.example.com/x.json"),
+    ).rejects.toThrow(/larger than 2 MB/);
+    expect(sent).toBeLessThan(MAX_PACK_BYTES + 256 * 1024);
+  });
+
+  it("reads packs only from https, or http on this machine, and checks every redirect", async () => {
+    const client = new DirectoryClient({ source: INDEX_URL, fetch: fakeFetch });
+    expect(() => client.resolvePackUrl("http://169.254.169.254/latest/meta-data")).toThrow(
+      /only reads bots from https addresses/,
+    );
+    expect(() => client.resolvePackUrl("http://bots.example.com/packs/a.json")).toThrow(/https/);
+    expect(client.resolvePackUrl("http://127.0.0.1:8790/packs/a.json")).toBe(
+      "http://127.0.0.1:8790/packs/a.json",
+    );
+    // A folder index takes web packs on the same terms.
+    const folder = new DirectoryClient({ source: join(root, "index.json") });
+    expect(() => folder.resolvePackUrl("http://10.0.0.5/pack.json")).toThrow(/https/);
+    expect(folder.resolvePackUrl("https://cdn.example.com/a.json")).toBe("https://cdn.example.com/a.json");
+
+    const hops: string[] = [];
+    const redirecting = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      hops.push(url);
+      expect(init?.redirect).toBe("manual");
+      if (url === "https://cdn.example.com/moved.json")
+        return new Response(null, { status: 302, headers: { location: "/inbox-zero.json" } });
+      if (url === "https://cdn.example.com/downgrade.json")
+        return new Response(null, { status: 301, headers: { location: "http://cdn.example.com/x.json" } });
+      return fakeFetch(input, init);
+    }) as typeof fetch;
+    const follows = new DirectoryClient({ source: INDEX_URL, fetch: redirecting });
+    expect((await follows.pack("https://cdn.example.com/moved.json")).id).toBe("inbox-zero");
+    await expect(follows.pack("https://cdn.example.com/downgrade.json")).rejects.toThrow(/https/);
+    expect(hops).not.toContain("http://cdn.example.com/x.json");
+  });
+
+  it("pins a pack to the hash its listing was built with", async () => {
+    const index = JSON.parse(files[INDEX_URL] as string) as { bots: BotListing[] };
+    const rent = index.bots.find((b) => b.id === "rent-scout") as BotListing;
+    expect(rent.hash).toMatch(/^[0-9a-f]{64}$/);
+    // The pack was swapped, hash and all, after the index was built: it matches itself, not the listing.
+    const swapped = JSON.parse(files["https://bots.example.com/packs/rent-scout.json"] as string) as BotPack;
+    swapped.instructions = "Something else entirely.";
+    const { hash: _old, ...rest } = swapped;
+    const resealed = { ...rest, hash: hashPack(rest as BotPack) };
+    const swappedFetch = (async (input: string | URL | Request, init?: RequestInit) =>
+      String(input) === "https://bots.example.com/packs/rent-scout.json"
+        ? new Response(JSON.stringify(resealed))
+        : fakeFetch(input, init)) as typeof fetch;
+    const client = new DirectoryClient({ source: INDEX_URL, fetch: swappedFetch });
+    await expect(client.pack(rent)).rejects.toThrow("pack changed since it was listed");
+    await expect(client.pack("packs/rent-scout.json")).rejects.toThrow("pack changed since it was listed");
+    await expect(client.pack("https://bots.example.com/packs/rent-scout.json")).rejects.toThrow(
+      "pack changed since it was listed",
+    );
+    // A pack the index does not list is held to its own hash only.
+    expect((await client.pack("https://cdn.example.com/inbox-zero.json")).id).toBe("inbox-zero");
   });
 
   it("says when the index is missing or not an index", async () => {
