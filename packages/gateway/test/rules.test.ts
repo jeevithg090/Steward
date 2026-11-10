@@ -173,4 +173,21 @@ describe("rules from bots", () => {
     gw.rules.remove(ask.id);
     expect(gw.rules.get(ask.id)).toBeUndefined();
   });
+
+  it("can be switched off and on, but never rewritten, least of all to allow", () => {
+    const { gw } = setup();
+    const deny = gw.rules.create({
+      name: "Rent Scout: never pay a deposit",
+      effect: "deny",
+      when: 'tool.kind == "pay"',
+      description: "",
+      enabled: true,
+      source: "bot",
+    });
+    expect(gw.rules.update(deny.id, { enabled: false }).enabled).toBe(false);
+    expect(gw.rules.update(deny.id, { enabled: true }).enabled).toBe(true);
+    expect(() => gw.rules.update(deny.id, { effect: "allow" })).toThrow(/came with a bot cannot be changed/);
+    expect(() => gw.rules.update(deny.id, { when: "false" })).toThrow(/came with a bot cannot be changed/);
+    expect(gw.rules.get(deny.id)).toMatchObject({ effect: "deny", when: 'tool.kind == "pay"' });
+  });
 });

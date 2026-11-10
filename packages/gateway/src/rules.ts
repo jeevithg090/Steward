@@ -160,7 +160,9 @@ export class SqliteRuleStore implements RuleStore {
     return this.withAudit(() => {
       const current = this.get(id);
       if (!current) throw new GatewayError("not_found", "There is no rule with that id.");
-      const fixed = current.source === "preset" || current.source === "tenant";
+      // A bot's rule is fixed too: it may only ask or refuse, and rewriting it here could make it
+      // allow something while the record still says it came from the bot.
+      const fixed = current.source === "preset" || current.source === "tenant" || current.source === "bot";
       if (fixed) {
         const changesMore = (["name", "effect", "when", "description"] as const).some(
           (k) => patch[k] !== undefined && patch[k] !== current[k],
@@ -170,7 +172,9 @@ export class SqliteRuleStore implements RuleStore {
             "invalid",
             current.source === "preset"
               ? "Shipped rules cannot be changed. Switch this one off and write your own instead."
-              : "Rules from the tenant package cannot be changed here. Switch this one off, or change the package.",
+              : current.source === "bot"
+                ? "Rules that came with a bot cannot be changed. Switch this one off, or remove the bot."
+                : "Rules from the tenant package cannot be changed here. Switch this one off, or change the package.",
           );
         }
       }
