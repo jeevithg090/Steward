@@ -1,3 +1,6 @@
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { BaseEvent } from "@ag-ui/client";
 import type { ChatCompletionRequest, ChatMessage, FixtureResponse } from "@copilotkit/aimock";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -11,6 +14,7 @@ import {
   SCRIPTED_NOTE,
   scriptedReply,
 } from "../src/scripted.ts";
+import { loadTenant } from "../src/tenant.ts";
 import { BUILTIN_TOOLS } from "../src/tools/catalogue.ts";
 import { depsFrom, type Fakes, makeFakes, runTurn, user } from "./fakes.ts";
 
@@ -163,6 +167,164 @@ describe("the scripted responder", () => {
   });
 });
 
+describe("the app's own prompts", () => {
+  const TENANTS = fileURLToPath(new URL("../../../tenants/", import.meta.url));
+  const tenants = readdirSync(TENANTS, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => loadTenant(join(TENANTS, entry.name)));
+  /** What each shipped starter should do on the scripted model. A new starter needs a line here. */
+  const EXPECTED: Record<string, string> = {
+    "What needs me today?": "brief_today",
+    "Open news.ycombinator.com and tell me the top story.": "browser_navigate",
+    "Draft a reply to my landlord about the repair visit.": "mail_list",
+    "Every weekday at 8, send me my brief.": "routine_create",
+    "Compare three ways to back up my photos in a table.": "show_table",
+    'Is the "mailbox 98% full" email a scam?': "mail_list",
+    "Which bills and subscriptions came in recently, and what do they cost me a year?": "mail_list",
+    "Do any of my train tickets qualify for Delay Repay?": "mail_list",
+    "Every Monday at 9, check my mail for renewals and price rises.": "routine_create",
+  };
+
+  it("finds the tenants", () => {
+    expect(tenants.map((tenant) => tenant.id).sort()).toEqual(expect.arrayContaining(["steward", "tempo"]));
+  });
+
+  for (const starter of [...new Set(tenants.flatMap((tenant) => tenant.starters))]) {
+    it(`does what the starter “${starter}” asks`, () => {
+      const reply = ask(starter);
+      expect(contentOf(reply)).not.toContain("Who should I send it to?");
+      expect(toolOf(reply)?.name).toBe(EXPECTED[starter]);
+    });
+  }
+
+  it("makes a routine of the brief, not today's brief", () => {
+    expect(toolOf(ask("Every weekday at 8, send me my brief."))?.args).toMatchObject({
+      schedule: "0 8 * * 1-5",
+      prompt: "Send me my brief.",
+    });
+  });
+
+  it("looks up the email a Start button names, whatever its subject says", () => {
+    expect(
+      toolOf(ask("Take care of Helen Marsh's email: Re: Boiler not heating water: Flat 3, 27 Kestrel Road")),
+    ).toEqual({
+      name: "mail_list",
+      args: { query: 'subject:"Re: Boiler not heating water: Flat 3, 27 Kestrel Road"', limit: 10 },
+    });
+    // Subjects are someone else's words: these would otherwise read as a routine, the brief, a send.
+    for (const subject of ["30% off every day this week", "Your brief for my day", "Please send the forms"]) {
+      expect(toolOf(ask(`Take care of Pulse Fitness's email: ${subject}`))?.args.query).toBe(
+        `subject:"${subject}"`,
+      );
+    }
+    expect(toolOf(ask("Take care of sam@example.com's email."))?.args.query).toBe('from:"sam@example.com"');
+  });
+
+  it("searches the mail for a quoted email, and for the things a question names", () => {
+    expect(toolOf(ask('Is the "mailbox 98% full" email a scam?'))?.args.query).toBe("mailbox 98% full");
+    expect(toolOf(ask("Which bills and subscriptions came in recently?"))?.args.query).toBe(
+      "bill OR subscription",
+    );
+    expect(toolOf(ask("Check my mail"))?.args).toEqual({ limit: 10 });
+    expect(toolOf(ask("Draft a reply to my landlord"))?.args).toEqual({ limit: 10, unreadOnly: true });
+  });
+
+  it("says after the search what it can't do with the mail", () => {
+    const after = (asked: string, emails: unknown[]) =>
+      contentOf(
+        scriptedReply(
+          req([
+            { role: "user", content: asked },
+            {
+              role: "assistant",
+              content: null,
+              tool_calls: [{ id: "c1", type: "function", function: { name: "mail_list", arguments: "{}" } }],
+            },
+            {
+              role: "tool",
+              tool_call_id: "c1",
+              content: JSON.stringify({ ok: true, data: { untrusted: true, notice: "n", data: emails } }),
+            },
+          ]),
+        ),
+      );
+    const phishing = {
+      id: "m1",
+      from: { name: "Mail Administrator", email: "admin@mailbox-verify-secure.test" },
+      subject: "Action required: your mailbox is 98% full",
+    };
+    const scam = after('Is the "mailbox 98% full" email a scam?', [phishing]);
+    expect(scam).toContain(
+      "I found 1 email. The first: “Action required: your mailbox is 98% full” from Mail Administrator.",
+    );
+    expect(scam).toContain("I can't tell whether an email is a scam");
+    expect(after("Take care of Mail Administrator's email.", [phishing])).toContain(
+      "I can't write the reply",
+    );
+    expect(after("Do any of my train tickets qualify for Delay Repay?", [])).toContain(
+      "I found no email that matches.",
+    );
+    expect(after("Check my mail", [phishing, phishing])).toMatch(/^There are 2 recent emails\./);
+  });
+
+  it("calls a fixed table an example, not an answer", () => {
+    const reply = contentOf(
+      scriptedReply(
+        req([
+          { role: "user", content: "Compare three ways to back up my photos in a table." },
+          {
+            role: "assistant",
+            content: null,
+            tool_calls: [{ id: "c1", type: "function", function: { name: "show_table", arguments: "{}" } }],
+          },
+          { role: "tool", tool_call_id: "c1", content: JSON.stringify({ ok: true, data: { shown: true } }) },
+        ]),
+      ),
+    );
+    expect(reply).toContain("It's a fixed example");
+  });
+
+  it("reads a routine's firing for what the routine asks, not its frame", () => {
+    const fired = `${"One of your routines is firing right now, on its schedule, and this is that firing. Carry out the instruction below in this turn: do the work now, then say what happened. Do not create, list or change any routine unless the instruction itself asks you to."}\n\nSend me my brief`;
+    expect(toolOf(ask(fired))?.name).toBe("brief_today");
+  });
+
+  it("calls itself by its whole name, and ends the brief's first line once", () => {
+    const named = scriptedReply({
+      model: "steward-scripted",
+      messages: [
+        { role: "system", content: "You are Focus time guard, a bot that keeps your mornings clear." },
+        { role: "user", content: "hello" },
+      ],
+      tools: ALL_TOOLS,
+    });
+    expect(contentOf(named)).toMatch(/^Hi\. I'm Focus time guard, running on the scripted demo model/);
+    const brief = contentOf(
+      scriptedReply(
+        req([
+          { role: "user", content: "What needs me today?" },
+          {
+            role: "assistant",
+            content: null,
+            tool_calls: [{ id: "c1", type: "function", function: { name: "brief_today", arguments: "{}" } }],
+          },
+          {
+            role: "tool",
+            tool_call_id: "c1",
+            content: JSON.stringify({
+              ok: true,
+              data: {
+                needsYou: [{ subject: "Q4 north figures before Tuesday's review?", reason: "Dana asks." }],
+              },
+            }),
+          },
+        ]),
+      ),
+    );
+    expect(brief).toContain("The first: Q4 north figures before Tuesday's review. Dana asks.");
+  });
+});
+
 describe("parsers", () => {
   it("reads schedules", () => {
     expect(parseRoutine("Every day at 6pm, summarise the news")?.schedule).toBe("0 18 * * *");
@@ -237,6 +399,19 @@ describe("the scripted model behind the real agent", () => {
     ]);
     expect(fakes.computers.computer("steward").actions).toEqual(["navigate https://news.ycombinator.com/"]);
     expect(say(turn.events)).toContain("“A tiny SQLite trick that saves an hour a day”");
+  });
+
+  it("takes Start on an email from Today to that email, and never asks who to send it to", async () => {
+    const turn = await runTurn(createStewardAgent(depsFrom(fakes, created.model)), [
+      user("Take care of ops@example.com's email: Confirm Thursday delivery"),
+    ]);
+    expect(turn.error).toBeUndefined();
+    expect(fakes.governance.callsFor("mail_list")).toHaveLength(1);
+    expect(fakes.governance.callsFor("mail_send")).toHaveLength(0);
+    const reply = say(turn.events);
+    expect(reply).toContain("The first: “Confirm Thursday delivery” from ops@example.com.");
+    expect(reply).toContain("I can't write the reply");
+    expect(reply).not.toContain("Who should I send it to?");
   });
 
   it("parks an email for approval, then sends it on resume", async () => {
