@@ -95,7 +95,8 @@ it: a due routine records that firing as skipped (`refused`). Resume runs always
 
 Routines that are due together take turns: one agent's routines run one after another, since they
 share its browser page, and at most three run at once (`ROUTINE_QUEUE` in `workers/workers.ts`). A
-run holds its agent's turn until it ends, or for 15 minutes at most.
+run holds its agent's turn until it ends, or for 15 minutes at most. A routine switched off or removed
+while it waits does not run, and one edited runs as it is when its turn comes.
 
 A browser that missed one of these runs sends a stale history with its next message. The runner puts
 the stored turns back first, so the model sees them and the stored snapshot never loses them.

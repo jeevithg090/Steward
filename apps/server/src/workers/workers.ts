@@ -140,7 +140,11 @@ export class Workers {
   }
 
   /** Fires a routine and holds its agent's turn until the run ends or the turn limit passes. */
-  private async takeTurn(routine: Routine): Promise<void> {
+  private async takeTurn(queued: Routine): Promise<void> {
+    // It may have waited a while: one switched off or removed since does not run, and one edited
+    // runs as it is now.
+    const routine = this.deps.routines.get(queued.id);
+    if (!routine?.enabled) return;
     const run = await this.fire(routine);
     if (!run) return;
     let timer: NodeJS.Timeout | undefined;

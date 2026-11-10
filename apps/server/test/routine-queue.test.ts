@@ -26,13 +26,16 @@ function routine(id: string, agentId: string): Routine {
  */
 function harness(due: Routine[], queue?: { concurrent: number; turnMs: number }) {
   let pending = [...due];
+  const store = new Map(due.map((r) => [r.id, r]));
   const started: string[] = [];
+  const asked: string[] = [];
   const finish = new Map<string, () => void>();
   const recorded: string[] = [];
   const runs = {
-    start(opts: { threadId: string; initiator: { id: string } }): ServerRun {
+    start(opts: { threadId: string; userText: string; initiator: { id: string } }): ServerRun {
       const id = opts.initiator.id;
       started.push(id);
+      asked.push(opts.userText);
       const done = new Promise<RunResult>((resolve) => {
         finish.set(id, () =>
           resolve({
@@ -51,6 +54,7 @@ function harness(due: Routine[], queue?: { concurrent: number; turnMs: number })
   };
   const deps = {
     routines: {
+      get: (id: string) => store.get(id),
       due: () => {
         const out = pending;
         pending = [];
@@ -69,8 +73,18 @@ function harness(due: Routine[], queue?: { concurrent: number; turnMs: number })
   return {
     workers,
     started,
+    asked,
     recorded,
-    add: (more: Routine[]) => pending.push(...more),
+    add: (more: Routine[]) => {
+      for (const r of more) store.set(r.id, r);
+      pending.push(...more);
+    },
+    /** The person changes a routine (or removes it, with `undefined`) after it was claimed. */
+    change: (id: string, patch: Partial<Routine> | undefined) => {
+      const current = store.get(id);
+      if (!patch) store.delete(id);
+      else if (current) store.set(id, { ...current, ...patch });
+    },
     finish: (id: string) => {
       const f = finish.get(id);
       if (!f) throw new Error(`${id} has not started`);
@@ -148,6 +162,29 @@ describe("routines that are due at the same time", () => {
     h.finish("again");
     await settle();
     expect(h.started).toEqual(["busy", "again"]);
+  });
+
+  it("skips one switched off or removed while it waited, and runs one edited as it is now", async () => {
+    const h = harness([
+      routine("busy", "steward"),
+      routine("off", "steward"),
+      routine("gone", "steward"),
+      routine("edited", "steward"),
+    ]);
+    await h.workers.tickRoutines();
+    await settle();
+    expect(h.started).toEqual(["busy"]);
+
+    h.change("off", { enabled: false });
+    h.change("gone", undefined);
+    h.change("edited", { prompt: "Do the new thing." });
+    h.finish("busy");
+    await waitFor(() => h.started.length === 2);
+    h.finish("edited");
+    await waitFor(() => h.recorded.length === 2);
+    expect(h.started).toEqual(["busy", "edited"]);
+    expect(h.asked[1]).toContain("Do the new thing.");
+    expect(h.recorded).toEqual(["busy:ok", "edited:ok"]);
   });
 
   it("starts nothing more once stopped", async () => {
