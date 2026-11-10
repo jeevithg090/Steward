@@ -191,6 +191,9 @@ export function summarize(input: SummaryInput): string {
     case "show_choices":
       sentence = "Show some choices";
       break;
+    case "show_skill":
+      sentence = `Show a skill to save${text(args.name) ? `: /${text(args.name)}` : ""}`;
+      break;
     default: {
       const mcp = target.mcp ?? parseMcpToolName(tool.name);
       sentence = mcp ? `Use ${mcp.tool} on ${mcp.server}` : `Use ${tool.name}`;

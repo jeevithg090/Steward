@@ -48,6 +48,8 @@ export const TOOLS = {
   show_chart: { kind: "ui", surface: "ui", taints: false },
   show_comparison: { kind: "ui", surface: "ui", taints: false },
   show_choices: { kind: "ui", surface: "ui", taints: false },
+  // A skill drafted in the conversation: the card saves it only when the person presses Save skill
+  show_skill: { kind: "ui", surface: "ui", taints: false },
   make_page: { kind: "write", surface: "file", taints: false },
   // The bot directory: listing text is third-party, so it taints
   directory_find: { kind: "read", surface: "web", taints: true },

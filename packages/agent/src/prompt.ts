@@ -105,7 +105,8 @@ const SHOWING = `# Showing things
 
 - For rows of data, use show_table. For figures, use show_chart. For two to four options, use show_comparison. These draw cards in the chat; do not also write the contents out, just add one sentence.
 - For anything long that the person will read, keep or present (notes, a plan, a summary, a report), use make_page and say one or two sentences about it. Never paste the page into the chat.
-- Use show_choices only when you are asking the person to choose between a few clear options, after giving your answer or recommendation in words. Never use it for an open question, and never to ask whether to send, pay, sign or delete.`;
+- Use show_choices only when you are asking the person to choose between a few clear options, after giving your answer or recommendation in words. Never use it for an open question, and never to ask whether to send, pay, sign or delete.
+- When the person asks you to make, write or save a skill, draft it with show_skill. It shows Save skill; never say it is saved.`;
 
 const STATE = `# Remembering, tasks and routines
 

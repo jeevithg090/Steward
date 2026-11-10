@@ -9,6 +9,7 @@ import type { BuiltinToolName } from "@steward/shared";
 import { Component, type ComponentType, type ErrorInfo, type ReactNode } from "react";
 import { ToolLine } from "@/gallery/kit.tsx";
 import { DelegationCard } from "./DelegationCard.tsx";
+import { SkillToolCard } from "./SkillToolCard.tsx";
 import {
   BriefToolCard,
   BrowserLine,
@@ -72,6 +73,7 @@ export const RENDERERS: Record<BuiltinToolName, ComponentType<ToolProps>> = {
   show_chart: ChartToolCard,
   show_comparison: ComparisonToolCard,
   show_choices: ChoicesToolCard,
+  show_skill: SkillToolCard,
   make_page: PageToolCard,
   directory_find: DirectoryFindCard,
   delegate_task: DelegationCard,

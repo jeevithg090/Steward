@@ -80,12 +80,22 @@ from the catalogue, not from the caller.
 
 Display only: these draw a card in the chat and change nothing.
 
-| Tool              | Kind | Surface | Taints | By default | What it does                                                      |
-| ----------------- | ---- | ------- | ------ | ---------- | ----------------------------------------------------------------- |
-| `show_table`      | ui   | ui      | no     | runs       | A table of rows.                                                  |
-| `show_chart`      | ui   | ui      | no     | runs       | A bar, line, area or pie chart, with where the figures come from. |
-| `show_comparison` | ui   | ui      | no     | runs       | Two to four options side by side, with pros and cons.             |
-| `show_choices`    | ui   | ui      | no     | runs       | A few clear choices the person can tap.                           |
+| Tool              | Kind | Surface | Taints | By default | What it does                                                              |
+| ----------------- | ---- | ------- | ------ | ---------- | ------------------------------------------------------------------------- |
+| `show_table`      | ui   | ui      | no     | runs       | A table of rows.                                                          |
+| `show_chart`      | ui   | ui      | no     | runs       | A bar, line, area or pie chart, with where the figures come from.         |
+| `show_comparison` | ui   | ui      | no     | runs       | Two to four options side by side, with pros and cons.                     |
+| `show_choices`    | ui   | ui      | no     | runs       | A few clear choices the person can tap.                                   |
+| `show_skill`      | ui   | ui      | no     | runs       | A skill Steward wrote, with **Save skill** and **Edit first**. See below. |
+
+### Saving a skill from a conversation
+
+Ask "make me a skill for my weekly review" and Steward drafts one with `show_skill`. The card
+shows the whole text. Nothing is saved until you press **Save skill**, or change it with **Edit
+first** and save it there; then it is on `/skills` like one you wrote. A saved skill grants no
+tools: it is followed only when you type `/name`, and every action it leads to still follows your
+rules. When the conversation has read a web page, an email or a file, the card says so above the
+button, since that content could have shaped what the skill says.
 
 ## Opening what Steward made
 

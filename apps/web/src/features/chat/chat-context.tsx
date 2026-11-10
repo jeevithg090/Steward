@@ -23,6 +23,8 @@ export interface ChatActions {
   isAwaitingApproval: (toolCallId: string) => boolean;
   /** Brings Steward's computer into view: the side panel on wide screens, a sheet on small ones. */
   showComputer: () => void;
+  /** Whether the conversation has read outside content (a page, an email, a file), so a card can warn. */
+  readOutside?: boolean;
 }
 
 export const ChatActionsContext = createContext<ChatActions | null>(null);

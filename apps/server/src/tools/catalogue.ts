@@ -47,6 +47,7 @@ export const TOOL_DESCRIPTIONS = {
   show_chart: "Shows a chart.",
   show_comparison: "Shows a side-by-side comparison.",
   show_choices: "Shows choices for you to pick from.",
+  show_skill: "Shows a skill it wrote, for you to save.",
   make_page: "Makes a page you can read or keep.",
   directory_find: "Looks up ready-made bots in the directory.",
   delegate_task: "Hands a task to another agent and waits for its answer.",

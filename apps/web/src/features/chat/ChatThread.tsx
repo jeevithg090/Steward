@@ -41,6 +41,7 @@ import { Composer } from "./Composer.tsx";
 import { ConversationAllows } from "./ConversationAllows.tsx";
 import { type ChatActions, ChatActionsContext } from "./chat-context.tsx";
 import { currentStep, latestTurnToolCalls, plainRunError, replayedId, shownIds, textOf } from "./messages.ts";
+import { readOutsideContent } from "./outside.ts";
 import { claimInlineRunErrors } from "./provider.tsx";
 import { RunStatus } from "./RunStatus.tsx";
 import { Starters } from "./Starters.tsx";
@@ -267,6 +268,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
     ...pending.map((entry) => entry.toolCallId),
     ...orphans.map((approval) => approval.toolCallId),
   ].join(",");
+  const readOutside = readOutsideContent(messages);
   const actions = useMemo<ChatActions>(() => {
     const latestSet = new Set(latestKey ? latestKey.split(",") : []);
     const awaitingSet = new Set(awaitingKey ? awaitingKey.split(",") : []);
@@ -280,8 +282,9 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
       isLatestTurn: (id) => latestSet.has(id),
       isAwaitingApproval: (id) => awaitingSet.has(id),
       showComputer,
+      readOutside,
     };
-  }, [threadId, runtimeAgentId, busy, latestKey, awaitingKey, showComputer]);
+  }, [threadId, runtimeAgentId, busy, latestKey, awaitingKey, showComputer, readOutside]);
 
   // The page itself scrolls (the shell's layout grows with its content). While the person is at the
   // end of the conversation, new messages keep it in view; once they scroll up, it stays put.

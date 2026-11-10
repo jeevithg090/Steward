@@ -604,7 +604,8 @@ export function TriageToolCard(tool: ToolProps) {
 // ── Generative UI ───────────────────────────────────────────────────────────────────────────────
 
 /** Display tools draw from their arguments as they stream; a refusal or failure still shows as a line. */
-function DisplayTool({ tool, children }: { tool: ToolProps; children: ReactElement }) {
+/** A display card: drawn from its arguments, or the refused or failed line. */
+export function DisplayTool({ tool, children }: { tool: ToolProps; children: ReactElement }) {
   const state = useToolState(tool);
   if (state.outcome.status === "refused" || state.outcome.status === "error") return Gate({ tool, state });
   return children;

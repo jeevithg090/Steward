@@ -214,6 +214,8 @@ function describeResult(tool: string, data: unknown, req: ChatCompletionRequest)
     case "show_comparison":
     case "show_choices":
       return ["It's on screen above."];
+    case "show_skill":
+      return ["It's on screen above. Press Save skill to keep it, or Edit first to change it."];
     default:
       return ["Done."];
   }
@@ -251,6 +253,31 @@ const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", 
 
 function capitalise(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** "Make me a skill for my weekly review" → a draft skill for show_skill. */
+export function parseSkillRequest(
+  text: string,
+): { name: string; description: string; instructions: string } | undefined {
+  const match =
+    /\b(?:make|create|write|save|draft)\s+(?:me\s+)?(?:a|an|the)\s+(?:new\s+)?skill\b(?:\s+(?:for|called|named|to)\s+(.+?))?[\s.!?]*$/i.exec(
+      text.trim(),
+    );
+  if (!match) return undefined;
+  const asked = (match[1] ?? "my weekly review").trim().replace(/[.!?]+$/, "");
+  const about = asked.replace(/^(?:my|a|an|the)\s+/i, "");
+  const name =
+    about
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 41)
+      .replace(/-+$/g, "") || "my-skill";
+  return {
+    name,
+    description: capitalise(about),
+    instructions: `Help me with ${asked}. Start with what needs me, and keep it short and plain.`,
+  };
 }
 
 /** "Every weekday at 8, check my mail" → a cron schedule and the work of one run. */
@@ -382,6 +409,8 @@ function respondToPerson(req: ChatCompletionRequest): FixtureResponse {
       ? call("memory_remember", { text: capitalise(remember.replace(/[.!]+$/, "")), source: "you" })
       : unavailable();
   }
+  const skill = parseSkillRequest(text);
+  if (skill) return offered(req, "show_skill") ? call("show_skill", skill) : unavailable();
   if (/\b(my|list|show|which|what)\b.*\broutines\b/.test(lower)) {
     return offered(req, "routine_list") ? call("routine_list", {}) : unavailable();
   }

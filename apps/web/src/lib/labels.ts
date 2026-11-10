@@ -42,6 +42,7 @@ const TOOL_LABELS: Record<string, string> = {
   show_chart: "Show a chart",
   show_comparison: "Show a comparison",
   show_choices: "Offer choices",
+  show_skill: "Write a skill for you to save",
   make_page: "Make a page",
   directory_find: "Look up bots in the directory",
 };

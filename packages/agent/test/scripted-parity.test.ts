@@ -1,6 +1,6 @@
 import type { ChatCompletionRequest, ChatMessage, FixtureResponse } from "@copilotkit/aimock";
 import { describe, expect, it } from "vitest";
-import { loadScript, SCRIPTED_NOTE, scriptedReply } from "../src/scripted.ts";
+import { loadScript, parseSkillRequest, SCRIPTED_NOTE, scriptedReply } from "../src/scripted.ts";
 import { BUILTIN_TOOLS } from "../src/tools/catalogue.ts";
 
 /** The scripted demo model's answers for attached files, routines and skills. */
@@ -80,5 +80,32 @@ describe("routines", () => {
         { title: "Morning brief", schedule: "0 8 * * 1-5", scheduleText: "Weekdays at 08:00" },
       ]),
     ).toContain("You have 1 routine: “Morning brief” (Weekdays at 08:00).");
+  });
+});
+
+describe("a skill", () => {
+  it("is drafted with show_skill when the person asks for one", () => {
+    expect(toolOf(ask("Make me a skill for my weekly review."))).toEqual({
+      name: "show_skill",
+      args: {
+        name: "weekly-review",
+        description: "Weekly review",
+        instructions: "Help me with my weekly review. Start with what needs me, and keep it short and plain.",
+      },
+    });
+    expect(parseSkillRequest("save a skill called invoice chasing")?.name).toBe("invoice-chasing");
+    expect(parseSkillRequest("What skills do I have?")).toBeUndefined();
+    expect(
+      toolOf(
+        ask(
+          "write a skill",
+          ALL_TOOLS.filter((t) => t.function.name !== "show_skill"),
+        ),
+      ),
+    ).toBeUndefined();
+  });
+
+  it("says nothing is saved yet", () => {
+    expect(after("show_skill", { shown: true })).toContain("Press Save skill to keep it");
   });
 });

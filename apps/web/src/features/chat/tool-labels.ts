@@ -137,6 +137,12 @@ const OWN: Record<string, (args: Args) => [string, string, string?]> = {
   show_chart: () => ["Drawing a chart", "Drew a chart"],
   show_comparison: () => ["Comparing the options", "Compared the options"],
   show_choices: () => ["Offering some choices", "Offered some choices"],
+  show_skill: (a) => {
+    const name = str(a.name, 41);
+    return name
+      ? [`Writing the skill /${name}`, `Wrote the skill /${name}`]
+      : ["Writing a skill", "Wrote a skill"];
+  },
   make_page: () => ["Putting it together", "Made a page"],
   directory_find: (a) => {
     const query = str(a.query, 60) ?? str(a.q, 60);
