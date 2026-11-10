@@ -276,8 +276,11 @@ export const api = {
 
   threads: {
     list: (signal?: AbortSignal) => get<ThreadSummary[]>(ROUTES.threads, undefined, signal),
-    get: (id: string) => get<ThreadSummary>(route(ROUTES.thread, { id })),
+    get: (id: string, signal?: AbortSignal) =>
+      get<ThreadSummary>(route(ROUTES.thread, { id }), undefined, signal),
     create: (body: ThreadCreateInput = {}) => send<ThreadSummary>("POST", ROUTES.threads, body),
+    rename: (id: string, title: string) =>
+      send<ThreadSummary>("PATCH", route(ROUTES.thread, { id }), { title }),
     remove: (id: string) => send<void>("DELETE", route(ROUTES.thread, { id })),
   },
 
@@ -427,6 +430,7 @@ export const queryKeys = {
   settings: ["settings"] as const,
   setup: ["setup"] as const,
   threads: ["threads"] as const,
+  thread: (id: string) => ["threads", "one", id] as const,
   approvals: ["approvals"] as const,
   /** Every approval list, but not the single approvals (those are set directly when they change). */
   approvalLists: ["approvals", "list"] as const,
@@ -559,7 +563,10 @@ export function useCreateThread() {
   const qc = useQueryClient();
   return useMutation<ThreadSummary, ApiError, ThreadCreateInput | undefined>({
     mutationFn: (body) => api.threads.create(body ?? {}),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.threads }),
+    onSuccess: (thread) => {
+      qc.setQueryData(queryKeys.thread(thread.id), thread);
+      void qc.invalidateQueries({ queryKey: queryKeys.threads });
+    },
   });
 }
 
@@ -567,7 +574,33 @@ export function useDeleteThread() {
   const qc = useQueryClient();
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => api.threads.remove(id),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.threads }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.threads });
+      // Its allows for this conversation went with it.
+      void qc.invalidateQueries({ queryKey: queryKeys.rules });
+    },
+  });
+}
+
+/** One conversation. A 404 means it was deleted, or never existed. */
+export function useThread(id: string | undefined, opts?: QueryOpts<ThreadSummary>) {
+  return useQuery<ThreadSummary, ApiError>({
+    queryKey: queryKeys.thread(id ?? ""),
+    queryFn: ({ signal }) => api.threads.get(id ?? "", signal),
+    enabled: Boolean(id),
+    retry: (count, error) => error.status !== 404 && count < 2,
+    ...opts,
+  });
+}
+
+export function useRenameThread() {
+  const qc = useQueryClient();
+  return useMutation<ThreadSummary, ApiError, { id: string; title: string }>({
+    mutationFn: ({ id, title }) => api.threads.rename(id, title),
+    onSuccess: (thread) => {
+      qc.setQueryData(queryKeys.thread(thread.id), thread);
+      void qc.invalidateQueries({ queryKey: queryKeys.threads });
+    },
   });
 }
 
