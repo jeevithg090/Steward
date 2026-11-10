@@ -1,5 +1,5 @@
 import { Ellipsis, Keyboard, MessageSquarePlus } from "lucide-react";
-import { type ReactNode, Suspense, useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, Suspense, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate, useNavigationType } from "react-router";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge.tsx";
@@ -32,7 +32,14 @@ export function AppShell() {
   const navigate = useNavigate();
   const mainRef = useRef<HTMLElement>(null);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  // The More sheet belongs to the place it was opened on, so going somewhere closes it in the same
+  // render as the new page arrives, before that page's heading asks for focus. A sheet closed a
+  // render later would still hold the page inert then, and hand focus back to the More button.
+  const [moreOpenAt, setMoreOpenAt] = useState<string | null>(null);
+  // Forgotten once left, so going Back to that place does not open it again.
+  if (moreOpenAt !== null && moreOpenAt !== location.key) setMoreOpenAt(null);
+  const moreOpen = moreOpenAt === location.key;
+  const setMoreOpen = (open: boolean) => setMoreOpenAt(open ? location.key : null);
   const wide = useWideLayout();
 
   useShortcuts({ onHelp: () => setHelpOpen(true) });
@@ -59,19 +66,29 @@ export function AppShell() {
   // Compared with the last path rather than a first-render flag: React runs effects twice in
   // development, and a flag would treat the second run as a navigation and steal focus on load.
   const shownPath = useRef(location.pathname);
+  const fallback = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // A layout effect, because React runs a page's own effects before its parent's: marked in a
+  // plain effect, the change would come after the new page's heading had already asked for it.
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs on path changes only.
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (shownPath.current === location.pathname) return;
     shownPath.current = location.pathname;
+    // A redirect leaves an earlier change, and its fallback, as they were.
     if (navigationType === "REPLACE") return;
-    setMoreOpen(false);
     window.scrollTo?.({ top: 0 });
     markRouteChange();
-    const timer = setTimeout(() => {
+    clearTimeout(fallback.current);
+    fallback.current = setTimeout(() => {
       if (claimRouteFocus()) mainRef.current?.focus({ preventScroll: true });
     }, FOCUS_FALLBACK_MS);
-    return () => clearTimeout(timer);
   }, [location.pathname]);
+  useEffect(
+    () => () => {
+      clearTimeout(fallback.current);
+      claimRouteFocus();
+    },
+    [],
+  );
 
   return (
     <div className={cn("min-h-dvh bg-surface text-ink", wide && "flex")}>
@@ -201,7 +218,7 @@ function Rail({ onHelp, liveStatus }: { onHelp: () => void; liveStatus: ReactNod
 }
 
 /** The newest conversations, and a way to start one. */
-function RecentConversations({ onNavigate }: { onNavigate?: () => void }) {
+function RecentConversations() {
   const threads = useThreads();
   const create = useCreateThread();
   const navigate = useNavigate();
@@ -210,14 +227,8 @@ function RecentConversations({ onNavigate }: { onNavigate?: () => void }) {
 
   function startNew() {
     create.mutate(undefined, {
-      onSuccess: (thread) => {
-        onNavigate?.();
-        navigate(`/chat/${encodeURIComponent(thread.id)}`);
-      },
-      onError: () => {
-        onNavigate?.();
-        navigate("/chat");
-      },
+      onSuccess: (thread) => navigate(`/chat/${encodeURIComponent(thread.id)}`),
+      onError: () => navigate("/chat"),
     });
   }
 
@@ -246,7 +257,6 @@ function RecentConversations({ onNavigate }: { onNavigate?: () => void }) {
             <li key={thread.id}>
               <NavLink
                 to={`/chat/${encodeURIComponent(thread.id)}`}
-                onClick={onNavigate}
                 className={({ isActive }) =>
                   cn(
                     "flex min-h-target flex-col justify-center rounded-field px-3 py-1.5 no-underline",
@@ -363,7 +373,7 @@ function MoreDialog({
           ))}
         </ul>
       </nav>
-      <RecentConversations onNavigate={() => onOpenChange(false)} />
+      <RecentConversations />
       <Button
         variant="ghost"
         size="sm"

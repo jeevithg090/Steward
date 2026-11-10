@@ -6,8 +6,10 @@ import {
   type RefObject,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
 } from "react";
+import { routeFocusPending } from "@/lib/focus.ts";
 import { cn } from "@/lib/utils.ts";
 import { Button } from "./Button.tsx";
 
@@ -38,6 +40,21 @@ function focusables(root: HTMLElement): HTMLElement[] {
 }
 
 /**
+ * Gives focus back to what opened a dialog once the close has settled, unless something else has
+ * taken it (another dialog, a control the page focused) or a new page is about to (focus after
+ * navigation, `lib/focus.ts`).
+ */
+function giveFocusBack(opener: HTMLElement | null, dialog: HTMLDialogElement | null): void {
+  if (!opener) return;
+  queueMicrotask(() => {
+    if (routeFocusPending() || !opener.isConnected) return;
+    const active = document.activeElement;
+    const lost = !active || active === document.body || Boolean(dialog?.contains(active));
+    if (lost) opener.focus();
+  });
+}
+
+/**
  * A modal built on the native `<dialog>`: the page behind it is inert, Escape closes it, Tab stays
  * inside it, it is named by its title, and focus returns to whatever opened it.
  */
@@ -58,7 +75,9 @@ export function Dialog({
   const titleId = useId();
   const descriptionId = useId();
 
-  useEffect(() => {
+  // In the layout phase, so a dialog closed in the same render as a route change has let go of the
+  // page before the new page's heading asks for focus.
+  useLayoutEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) {
@@ -70,7 +89,7 @@ export function Dialog({
     } else if (!open && dialog.open) {
       if (typeof dialog.close === "function") dialog.close();
       else dialog.removeAttribute("open");
-      returnTo.current?.focus();
+      giveFocusBack(returnTo.current, dialog);
       returnTo.current = null;
     }
   }, [open, initialFocus]);
@@ -80,7 +99,7 @@ export function Dialog({
     () => () => {
       const dialog = ref.current;
       if (dialog?.open && typeof dialog.close === "function") dialog.close();
-      returnTo.current?.focus();
+      giveFocusBack(returnTo.current, dialog);
     },
     [],
   );

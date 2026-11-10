@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useRef } from "react";
-import { claimRouteFocus } from "@/lib/focus.ts";
+import { focusForRoute } from "@/lib/focus.ts";
 import { cn } from "@/lib/utils.ts";
 
 /** Sets the tab title: "Tasks · Steward". */
@@ -26,7 +26,7 @@ export function PageHeader({ title, documentTitle, description, actions, classNa
   useDocumentTitle(documentTitle ?? (typeof title === "string" ? title : undefined));
 
   useEffect(() => {
-    if (claimRouteFocus()) ref.current?.focus({ preventScroll: false });
+    focusForRoute(ref.current, { preventScroll: false });
   }, []);
 
   return (
