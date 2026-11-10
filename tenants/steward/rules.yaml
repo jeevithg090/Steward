@@ -4,11 +4,13 @@
 #   deny   refuse, whatever any other rule says. Checked first.
 #   ask    show the person the exact call and wait for Refuse or Allow once. "Always allow" is not
 #          offered for a call an ask rule caught, because no standing rule could lift it.
-#   allow  go ahead without asking. Never lifts the safety floor (payments and passwords) or taint.
+#   allow  go ahead without asking. Only for reads and writes: an allow rule in a package never lets
+#          anything send, pay, sign, delete or run a command unasked, and one that plainly would
+#          stops start-up. Never lifts the safety floor (payments and passwords) or taint either.
 #
 # These rules are stored with source `tenant`, matched by name, and refreshed on every start. A rule
-# that does not compile stops the server at start-up with the file and the reason, rather than
-# refusing every call later. The person can switch each one off on the Rules page.
+# that does not compile stops the server at start-up with the file, the line and the reason, rather
+# than refusing every call later. The person can switch each one off on the Rules page.
 
 rules:
   - name: Calendar changes always ask
