@@ -30,6 +30,7 @@ runtime's events and the live `/api/events` stream arrive as they are sent.
 
 ```sh
 pnpm --filter @steward/web build      # → apps/web/dist, served by the Steward server in production
+pnpm budget                           # builds, then fails if the first load passes 1,000 kB of JavaScript
 pnpm --filter @steward/web typecheck
 pnpm vitest run --project web         # from the repository root
 ```
@@ -40,7 +41,8 @@ pnpm vitest run --project web         # from the repository root
 src/
   main.tsx            entry: mounts <App/> and the stylesheet
   app/                the shell
-    App.tsx           QueryClient → accessibility → error boundary → router → CopilotKit → routes; toasts
+    App.tsx           QueryClient → accessibility → error boundary → router → default agent → routes; toasts
+    default-agent.tsx waits for /api/info and makes the tenant's first agent the default
     routes.tsx        every route; each page is its own lazily loaded chunk
     Layout.tsx        skip link, left rail or phone tab bar, banners, focus after navigation
     accessibility.tsx AccessibilityProvider and useAccessibility()
@@ -48,7 +50,7 @@ src/
     shortcuts.tsx     g t / g c / g k … and the ? help dialog
     banners.tsx       demo ribbon, "waiting on you" banner, live-connection note
     notifications.tsx the bell and its list
-    features.ts       the only imports from src/features (the chat track's code)
+    features.ts       the only imports from src/features (the chat track's code); CopilotKit loads with the chat
   components/
     ui/               Button, Card, Badge, Pill, Dialog, Tabs, Field/Input/Textarea/Select/Switch,
                       ChoiceGroup, Checkbox, Notice, Loading, EmptyState, PageHeader/Page, Kbd, Spinner
@@ -81,9 +83,12 @@ backoff and refreshes everything after a reconnect, because events may have been
 
 ### Contracts with the chat track
 
-The shell imports `StewardCopilotProvider`, `ChatPage` and `ComputerPage` from `src/features`
-(PLAN.md §5.1) in one file, `src/app/features.ts`. The chat track imports from the shell: `api` and
-the hooks, `useLiveEvents`, `cn`, the UI kit, the cards and `useAccessibility()`.
+The shell imports `ChatPage` and `ComputerPage` from `src/features` (PLAN.md §5.1) in one file,
+`src/app/features.ts`, and only lazily. `ChatPage` there is the chat inside `StewardCopilotProvider`:
+CopilotKit and the markdown, maths and charts that replies draw with stay out of the first load, and
+are fetched in the background a few seconds after it (`prefetchChat()`). A test fails if the shell
+imports CopilotKit or Streamdown statically. The chat track imports from the shell: `api` and the
+hooks, `useLiveEvents`, `cn`, the UI kit, the cards and `useAccessibility()`.
 
 A page hands a message to the chat with `/chat?prompt=…` (`chatPromptHref()` in
 `lib/onboarding.ts`); the chat sends it once.
