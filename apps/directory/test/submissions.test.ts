@@ -91,15 +91,58 @@ describe("GitHub sign-in", () => {
     expect(f.server.store.session(session)).toBeUndefined();
   });
 
-  it("never redirects off the site after sign-in", async () => {
+  /** Starts sign-in with `next` (already encoded for the address) and says where the callback goes. */
+  async function landsOn(next: string): Promise<string | null> {
     f.github.users.set("code-ben", { id: 102, login: "ben" });
-    const start = await f.request("/auth/github?next=%2F%2Fevil.example%2Fx");
+    const start = await f.request(`/auth/github?next=${next}`);
     const state = new URL(start.headers.get("location")!).searchParams.get("state")!;
     const cookie = (start.headers.get("set-cookie") ?? "").split(";")[0]!;
     const back = await f.request(`/auth/github/callback?code=code-ben&state=${state}`, {
       headers: { cookie },
     });
-    expect(back.headers.get("location")).toBe("/submit");
+    expect(back.status).toBe(303);
+    return back.headers.get("location");
+  }
+
+  it("never redirects off the site after sign-in", async () => {
+    // Browsers drop tabs and newlines and read a backslash as a slash in a Location header, so
+    // each of these would become "//evil.example" and leave the site.
+    for (const next of [
+      "%2F%2Fevil.example%2Fx",
+      "%2F%09%2Fevil.example%2Fx",
+      "%2F%0A%2Fevil.example%2Fx",
+      "%2F%0D%2F3232235777",
+      "%2F%5Cevil.example",
+      "%5C%5Cevil.example",
+      "https%3A%2F%2Fevil.example",
+    ]) {
+      expect(await landsOn(next), next).toBe("/submit");
+    }
+  });
+
+  it("keeps a `next` with dots and a query whole", async () => {
+    expect(await landsOn(encodeURIComponent("/bots?q=meal.plan&sort=new"))).toBe(
+      "/bots?q=meal.plan&sort=new",
+    );
+    expect(await landsOn(encodeURIComponent("/bots/chore-chart"))).toBe("/bots/chore-chart");
+  });
+
+  it("refuses a state with a multibyte character, or a broken cookie, without failing", async () => {
+    f.github.users.set("code-ana", { id: 101, login: "ana" });
+    const start = await f.request("/auth/github?next=%2Fsubmit");
+    const state = new URL(start.headers.get("location")!).searchParams.get("state")!;
+    const cookie = (start.headers.get("set-cookie") ?? "").split(";")[0]!;
+    // Same number of characters as the real state, more bytes.
+    const wide = `${state.slice(0, -1)}é`;
+    const odd = await f.request(`/auth/github/callback?code=code-ana&state=${encodeURIComponent(wide)}`, {
+      headers: { cookie },
+    });
+    expect(odd.status).toBe(400);
+    const broken = await f.request(`/auth/github/callback?code=code-ana&state=${state}`, {
+      headers: { cookie: `${cookie.split(".")[0]}.%E0%A4%A` },
+    });
+    expect(broken.status).toBe(303);
+    expect(broken.headers.get("location")).toBe("/submit");
   });
 });
 

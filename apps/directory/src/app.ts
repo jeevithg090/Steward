@@ -552,8 +552,33 @@ export async function createDirectoryApp(
 
   // ── GitHub sign-in ────────────────────────────────────────────────────────────────────────────
 
-  const safeNext = (next: string | undefined) =>
-    next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next.slice(0, 300) : "/submit";
+  /**
+   * Where to go after sign-in: a path on this site, or `/submit`. Control characters and
+   * backslashes are refused outright, because browsers drop tabs and newlines and read `\` as `/`
+   * when they follow a Location header, so "/\t/evil.example" would leave the site. What is left is
+   * resolved against this site and kept only when it stays here.
+   */
+  const safeNext = (next: string | undefined): string => {
+    if (!next?.startsWith("/") || next.startsWith("//") || next.length > 300) return "/submit";
+    for (const ch of next) {
+      const n = ch.charCodeAt(0);
+      if (n < 0x20 || n === 0x7f || ch === "\\") return "/submit";
+    }
+    try {
+      const url = new URL(next, siteOrigin);
+      return url.origin === siteOrigin ? `${url.pathname}${url.search}${url.hash}` : "/submit";
+    } catch {
+      return "/submit";
+    }
+  };
+
+  const decodeNext = (raw: string): string | undefined => {
+    try {
+      return raw ? decodeURIComponent(raw) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
 
   app.get("/auth/github", (c) => {
     if (!github.signInEnabled) {
@@ -578,13 +603,16 @@ export async function createDirectoryApp(
   app.get("/auth/github/callback", async (c) => {
     const saved = getCookie(c, STATE_COOKIE) ?? "";
     deleteCookie(c, STATE_COOKIE, { path: "/auth/github" });
-    const [state, nextRaw] = saved.split(".");
-    const given = c.req.query("state") ?? "";
+    // The state is base64url, so the first dot ends it; the address after it may have dots of its own.
+    const dot = saved.indexOf(".");
+    const state = dot < 0 ? saved : saved.slice(0, dot);
+    const nextRaw = dot < 0 ? "" : saved.slice(dot + 1);
+    const given = Buffer.from(c.req.query("state") ?? "");
+    const expected = Buffer.from(state);
     const code = c.req.query("code") ?? "";
+    // Bytes, not characters: a state with a multibyte character is a different length in bytes.
     const matches =
-      Boolean(state) &&
-      given.length === state!.length &&
-      timingSafeEqual(Buffer.from(given), Buffer.from(state!));
+      expected.length > 0 && given.length === expected.length && timingSafeEqual(given, expected);
     if (!matches || !code) {
       return htmlPage(
         c,
@@ -609,7 +637,7 @@ export async function createDirectoryApp(
         path: "/",
         maxAge: Math.floor((Date.parse(session.expiresAt) - now().getTime()) / 1000),
       });
-      return c.redirect(safeNext(nextRaw ? decodeURIComponent(nextRaw) : undefined), 303);
+      return c.redirect(safeNext(decodeNext(nextRaw)), 303);
     } catch (error) {
       const message =
         error instanceof GitHubError ? error.message : "GitHub could not be reached. Try again.";
