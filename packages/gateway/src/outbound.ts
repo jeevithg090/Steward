@@ -213,17 +213,57 @@ function detectSecrets(text: string, out: OutboundHit[]): void {
   }
 }
 
-/** How cards are written with separators: 4-4-4(-4), with up to 3 more digits, or 4-6-4/5 (Amex, Diners). */
-const CARD_GROUPING = /^\d{4}(?:[ -]\d{4}){2,3}(?:[ -]\d{1,3})?$|^\d{4}[ -]\d{6}[ -]\d{4,5}$/;
+/**
+ * How cards are written with separators, by the digits in each group: 4-4-4(-4), with up to 3 more
+ * digits, or 4-6-4/5 (Amex, Diners). `len` holds the group sizes; the window is groups `i` to `j`.
+ */
+function cardGrouping(len: Int32Array, i: number, j: number): boolean {
+  const n = j - i + 1;
+  if (n < 3 || n > 5 || len[i] !== 4) return false;
+  const second = len[i + 1] ?? 0;
+  const third = len[i + 2] ?? 0;
+  if (n === 3 && second === 6) return third === 4 || third === 5;
+  if (second !== 4 || third !== 4) return false;
+  if (n === 3) return true;
+  const fourth = len[i + 3] ?? 0;
+  if (n === 4) return fourth >= 1 && fourth <= 4;
+  const fifth = len[i + 4] ?? 0;
+  return fourth === 4 && fifth >= 1 && fifth <= 3;
+}
 
-/** The digits of `raw` when it reads as a card number: one way of grouping, a network prefix, Luhn. */
-function cardDigits(raw: string): string | undefined {
-  const compact = raw.replace(/[ -]/g, "");
-  const separators = new Set(raw.replace(/\d/g, ""));
-  if (separators.size > 1) return undefined;
-  if (separators.size === 1 && !CARD_GROUPING.test(raw)) return undefined;
-  if (!/^[2-6]/.test(compact) || /^(\d)\1+$/.test(compact) || !luhnValid(compact)) return undefined;
-  return compact;
+/**
+ * Whether the digits of `s` from `from` to `to` (separators skipped) read as a card number: a
+ * network prefix (2 to 6, checked by the caller), not one digit over and over, and Luhn. Read in
+ * place, so trying every window of a long run of digits makes no new strings.
+ */
+function cardChecks(s: string, from: number, to: number): boolean {
+  let sum = 0;
+  let double = false;
+  let same = true;
+  const firstDigit = s.charCodeAt(from);
+  for (let k = to - 1; k >= from; k--) {
+    const code = s.charCodeAt(k);
+    if (code < 48 || code > 57) continue;
+    if (code !== firstDigit) same = false;
+    let d = code - 48;
+    if (double) {
+      d *= 2;
+      if (d > 9) d -= 9;
+    }
+    sum += d;
+    double = !double;
+  }
+  return !same && sum % 10 === 0;
+}
+
+/** The last four digits before `to` in `s`, separators skipped, for a card's hint. */
+function lastFourDigits(s: string, to: number): string {
+  let digits = "";
+  for (let k = to - 1; k >= 0 && digits.length < 4; k--) {
+    const ch = s.charAt(k);
+    if (ch >= "0" && ch <= "9") digits = ch + digits;
+  }
+  return digits;
 }
 
 /**
@@ -236,35 +276,40 @@ function cardDigits(raw: string): string | undefined {
 function detectCards(text: string, out: OutboundHit[]): void {
   for (const run of text.matchAll(/(?<!\d)\d+(?:[ -]\d+)*/g)) {
     const s = run[0];
-    // The run is digit groups with one separator between each.
-    const groups: { at: number; digits: number }[] = [];
+    // The run is digit groups with one separator between each: where each starts, and its size.
+    const count = (s.length + 1) >> 1;
+    const at = new Int32Array(count);
+    const len = new Int32Array(count);
+    let groups = 0;
     for (let k = 0; k < s.length; k++) {
-      const at = k;
+      const begin = k;
       while (k < s.length && s.charCodeAt(k) >= 48 && s.charCodeAt(k) <= 57) k++;
-      groups.push({ at, digits: k - at });
+      at[groups] = begin;
+      len[groups] = k - begin;
+      groups++;
     }
     let i = 0;
-    while (i < groups.length) {
-      const first = groups[i];
+    while (i < groups) {
       let next = i + 1;
-      const lead = first ? s.charCodeAt(first.at) : 0;
+      const lead = s.charCodeAt(at[i] ?? 0);
+      const size = len[i] ?? 0;
       // Cards start with 2 to 6. A grouped one starts with four digits; an ungrouped one is a
       // single group of 13 to 19.
-      if (first && lead >= 50 && lead <= 54 && (first.digits === 4 || first.digits >= 13)) {
+      if (lead >= 50 && lead <= 54 && (size === 4 || (size >= 13 && size <= 19))) {
+        const sep = i + 1 < groups ? s.charCodeAt((at[i + 1] ?? 0) - 1) : 0;
         let digits = 0;
-        for (let j = i; j < groups.length; j++) {
-          const last = groups[j];
-          if (!last) break;
+        for (let j = i; j < groups; j++) {
           // Mixed separators never make a card, and a longer window only adds more.
-          if (j > i + 1 && s[last.at - 1] !== s[(groups[i + 1]?.at ?? 0) - 1]) break;
-          digits += last.digits;
+          if (j > i + 1 && s.charCodeAt((at[j] ?? 0) - 1) !== sep) break;
+          digits += len[j] ?? 0;
           if (digits > 19) break;
           if (digits < 13) continue;
-          const raw = s.slice(first.at, last.at + last.digits);
-          const compact = cardDigits(raw);
-          if (!compact) continue;
-          const start = run.index + first.at;
-          out.push(hit("card_number", start, start + raw.length, `${MASK} ${compact.slice(-4)}`));
+          if (j > i && !cardGrouping(len, i, j)) continue;
+          const from = at[i] ?? 0;
+          const to = (at[j] ?? 0) + (len[j] ?? 0);
+          if (!cardChecks(s, from, to)) continue;
+          const start = run.index + from;
+          out.push(hit("card_number", start, start + to - from, `${MASK} ${lastFourDigits(s, to)}`));
           next = j + 1;
           break;
         }
