@@ -82,6 +82,24 @@ describe("RecordPage", () => {
     expect(await screen.findByText("That seal doesn't look right.")).toBeTruthy();
   });
 
+  it("names where the record is broken when a saved seal still matches", async () => {
+    serve({ ok: false, count: 2, brokenAt: 3, scope: "full" }, (req) =>
+      req.query.get("anchor")
+        ? { ok: false, count: 2, brokenAt: 3, scope: "full", anchor: { seq: 8, hash: HASH, ok: true } }
+        : undefined,
+    );
+    renderWithProviders(<RecordPage />);
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByText("Keep a copy elsewhere"));
+    fireEvent.change(screen.getByRole("textbox", { name: "Check a seal you saved" }), {
+      target: { value: `8:${HASH}` },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Check it" }));
+    expect(
+      await screen.findByText("That seal still matches entry #8, but entry #3 is missing or has changed."),
+    ).toBeTruthy();
+  });
+
   it("downloads the whole record, and filters to calls that failed", async () => {
     const server = serve({ ok: true, count: 1, scope: "full", head: { ...head, seq: 1 } });
     renderWithProviders(<RecordPage />);

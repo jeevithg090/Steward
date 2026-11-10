@@ -298,7 +298,9 @@ function SavedSealResult({
       {anchor.ok
         ? check.ok
           ? `That seal still matches entry #${anchor.seq}. The record up to it has not changed.`
-          : `That seal still matches entry #${anchor.seq}, but the record is broken further on.`
+          : check.brokenAt !== undefined
+            ? `That seal still matches entry #${anchor.seq}, but entry #${check.brokenAt} is missing or has changed.`
+            : `That seal still matches entry #${anchor.seq}, but the record has been changed.`
         : `That seal doesn't match entry #${anchor.seq}. The record was cut short or rewritten since you saved it.`}
     </p>
   );
