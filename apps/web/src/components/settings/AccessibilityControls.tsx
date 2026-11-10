@@ -44,7 +44,7 @@ export function AccessibilityControls({
         value={a11y.contrast}
         onValueChange={a11y.setContrast}
         choices={[
-          { value: "normal", label: "Standard" },
+          { value: "normal", label: "Match this device" },
           { value: "more", label: "More contrast", description: "Darker words, stronger edges" },
         ]}
       />

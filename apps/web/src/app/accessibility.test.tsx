@@ -92,6 +92,24 @@ describe("AccessibilityProvider", () => {
     expect(html().hasAttribute("data-contrast")).toBe(false);
   });
 
+  it("follows the system's increase-contrast setting, which can only add", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(prefers-contrast: more)",
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+    render(
+      <AccessibilityProvider savePlainLanguage={async () => {}}>
+        <Probe />
+      </AccessibilityProvider>,
+    );
+    expect(current?.contrast).toBe("normal");
+    expect(current?.moreContrast).toBe(true);
+    expect(html().dataset.contrast).toBe("more");
+    vi.unstubAllGlobals();
+  });
+
   it("starts from what this browser remembered", () => {
     localStorage.setItem(
       ACCESSIBILITY_STORAGE_KEY,

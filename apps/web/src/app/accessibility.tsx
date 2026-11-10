@@ -53,6 +53,8 @@ export interface AccessibilityContextValue extends AccessibilitySettings {
   resolvedTheme: "light" | "dark";
   /** True when motion should be avoided, from Settings or from the system. */
   reducedMotion: boolean;
+  /** True when the stronger colours apply, from Settings or from the system. */
+  moreContrast: boolean;
   set: (patch: Partial<AccessibilitySettings>) => void;
   setTextSize: (value: TextSize) => void;
   setContrast: (value: Contrast) => void;
@@ -122,10 +124,13 @@ function mediaQuery(query: string) {
 
 const darkQuery = "(prefers-color-scheme: dark)";
 const motionQuery = "(prefers-reduced-motion: reduce)";
+const contrastQuery = "(prefers-contrast: more)";
 const subscribeDark = mediaQuery(darkQuery);
 const subscribeMotion = mediaQuery(motionQuery);
+const subscribeContrast = mediaQuery(contrastQuery);
 const prefersDark = () => globalThis.matchMedia?.(darkQuery).matches ?? false;
 const prefersLessMotion = () => globalThis.matchMedia?.(motionQuery).matches ?? false;
+const prefersMoreContrast = () => globalThis.matchMedia?.(contrastQuery).matches ?? false;
 
 /** Writes the settings to <html>. Attributes are removed at their defaults, so the CSS defaults apply. */
 export function applyAccessibilityAttributes(
@@ -192,12 +197,15 @@ export function AccessibilityProvider({
 
   const systemDark = useSyncExternalStore(subscribeDark, prefersDark, () => false);
   const systemLessMotion = useSyncExternalStore(subscribeMotion, prefersLessMotion, () => false);
+  const systemMoreContrast = useSyncExternalStore(subscribeContrast, prefersMoreContrast, () => false);
   const resolvedTheme: "light" | "dark" =
     settings.theme === "system" ? (systemDark ? "dark" : "light") : settings.theme;
+  // Like motion, the system can only add: its "increase contrast" applies whatever is chosen here.
+  const moreContrast = settings.contrast === "more" || systemMoreContrast;
 
   useEffect(() => {
-    applyAccessibilityAttributes(settings, resolvedTheme);
-  }, [settings, resolvedTheme]);
+    applyAccessibilityAttributes({ ...settings, contrast: moreContrast ? "more" : "normal" }, resolvedTheme);
+  }, [settings, moreContrast, resolvedTheme]);
 
   // Once a choice is saved, the server's next value is the truth again: ours, or a later one.
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs when the server's value changes.
@@ -244,6 +252,7 @@ export function AccessibilityProvider({
       plainLanguage,
       resolvedTheme,
       reducedMotion: settings.motion === "reduce" || systemLessMotion,
+      moreContrast,
       set,
       setTextSize: (textSize) => set({ textSize }),
       setContrast: (contrast) => set({ contrast }),
@@ -255,7 +264,7 @@ export function AccessibilityProvider({
       setShortcuts: (shortcuts) => set({ shortcuts }),
       reset: () => set({ ...DEFAULT_ACCESSIBILITY }),
     }),
-    [settings, plainLanguage, resolvedTheme, systemLessMotion, set],
+    [settings, plainLanguage, resolvedTheme, systemLessMotion, moreContrast, set],
   );
 
   return <AccessibilityContext.Provider value={value}>{children}</AccessibilityContext.Provider>;
