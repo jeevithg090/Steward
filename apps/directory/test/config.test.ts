@@ -30,6 +30,8 @@ describe("config", () => {
     const full = loadConfig(ENV, { repoRoot: "/srv/steward" });
     expect(full.siteUrl).toBe("https://bots.example.org");
     expect(full.adminLogins).toEqual(["quill-reviewer", "second-quill"]);
+    expect(loadConfig({ ADMIN_GITHUB_IDS: "583231, 9919" }).adminIds).toEqual([583231, 9919]);
+    expect(() => loadConfig({ ADMIN_GITHUB_IDS: "octocat" })).toThrow(ConfigError);
     expect(full.github).toEqual({ clientId: "Iv1.abcdef", clientSecret: SECRET, token: TOKEN });
   });
 

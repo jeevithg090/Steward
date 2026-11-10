@@ -94,6 +94,12 @@ export const migrations: Migration[] = [
         problem TEXT
       );`,
   },
+  {
+    // The listing's version when each submission was made (0: there was none), so an approval can
+    // tell that the listing moved on since. Older rows have none and are checked by owner only.
+    id: "directory.007_submission_base",
+    sql: `ALTER TABLE submissions ADD COLUMN base_version INTEGER;`,
+  },
 ];
 
 export interface RetirementRunRecord {
@@ -141,6 +147,11 @@ export interface Submission {
   submitter: Submitter;
   /** The repository or gist belongs to the submitter's GitHub account. */
   ownerMatches: boolean;
+  /**
+   * The listing's version when this was submitted, 0 when there was no listing. Missing on
+   * submissions made before it was kept.
+   */
+  baseVersion?: number;
   warnings: BotProblem[];
   status: SubmissionStatus;
   note: string;
@@ -184,6 +195,7 @@ interface SubmissionRow {
   login: string;
   verified: number;
   owner_matches: number;
+  base_version: number | null;
   warnings_json: string;
   status: SubmissionStatus;
   note: string;
@@ -227,6 +239,7 @@ const toSubmission = (row: SubmissionRow): Submission => ({
     verified: row.verified === 1,
   },
   ownerMatches: row.owner_matches === 1,
+  ...(row.base_version === null ? {} : { baseVersion: row.base_version }),
   warnings: fromJson<BotProblem[]>(row.warnings_json, []),
   status: row.status,
   note: row.note,
@@ -400,8 +413,8 @@ export class DirectoryStore {
     this.db.run(
       `INSERT INTO submissions
          (id, bot_id, kind, pack_json, source_url, github_id, login, verified, owner_matches, warnings_json,
-          status, note, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', '', ?)`,
+          status, note, created_at, base_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', '', ?, ?)`,
       [
         submission.id,
         submission.botId,
@@ -414,6 +427,7 @@ export class DirectoryStore {
         submission.ownerMatches ? 1 : 0,
         toJson(submission.warnings),
         submission.createdAt,
+        submission.baseVersion ?? null,
       ],
     );
     return submission;

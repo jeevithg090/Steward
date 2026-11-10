@@ -1,7 +1,7 @@
 import { describeMayDo } from "@steward/bots";
 import type { BotListing, BotPack } from "@steward/shared";
 import type { Catalogue, SortKey } from "./catalogue.ts";
-import type { DirectoryConfig } from "./config.ts";
+import { type DirectoryConfig, isReviewer, reviewerCount } from "./config.ts";
 import {
   authorHtml,
   authorText,
@@ -35,7 +35,7 @@ const SORTS: { key: SortKey; label: string }[] = [
 ];
 
 function isAdmin(ctx: SiteContext): boolean {
-  return ctx.user !== undefined && ctx.config.adminLogins.includes(ctx.user.login.toLowerCase());
+  return isReviewer(ctx.config, ctx.user);
 }
 
 function navUser(ctx: SiteContext): NavUser | undefined {
@@ -315,7 +315,7 @@ function submissionRow(s: Submission): string {
 export function submitPage(ctx: SiteContext, state: SubmitState = {}): string {
   const { config, user } = ctx;
   const signIn = Boolean(config.github);
-  const canReview = config.adminLogins.length > 0;
+  const canReview = reviewerCount(config) > 0;
   let form: string;
   if (!signIn) {
     form = `<p class="notice">This directory has no GitHub sign-in set up, so it does not take submissions. Its host can turn it on with <code>GITHUB_CLIENT_ID</code> and <code>GITHUB_CLIENT_SECRET</code>.</p>`;
@@ -391,7 +391,8 @@ export function privacyPage(ctx: SiteContext): string {
 }
 
 export interface AdminData {
-  pending: Submission[];
+  /** `stale` says why one can no longer be approved: the listing moved on to someone else. */
+  pending: (Submission & { stale?: string })[];
   reports: Report[];
   message?: string;
   retirement?: {
@@ -443,7 +444,7 @@ ${
 <h3 id="s-${esc(s.id)}">${esc(s.pack.name)} <span class="meta">${esc(s.botId)} · v${s.pack.version} · ${esc(s.kind)} · ${formatDate(s.createdAt)}</span></h3>
 <p>${esc(s.pack.pitch)}</p>
 ${packSummary(s)}
-<form class="stack" method="post" action="/admin/submissions/${esc(s.id)}/approve"><button class="primary" type="submit">Approve and list</button></form>
+${s.stale ? `<p class="notice" role="note">${esc(s.stale)}</p>` : `<form class="stack" method="post" action="/admin/submissions/${esc(s.id)}/approve"><button class="primary" type="submit">Approve and list</button></form>`}
 <form class="stack" method="post" action="/admin/submissions/${esc(s.id)}/reject"><label>Reason for the submitter<input name="note" maxlength="500"></label><button class="quiet" type="submit">Reject</button></form>
 </section>`,
         )

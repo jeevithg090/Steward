@@ -11,7 +11,7 @@ import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
 import { Catalogue, MAX_LIMIT, type SortKey } from "./catalogue.ts";
-import { type DirectoryConfig, publicInfo } from "./config.ts";
+import { type DirectoryConfig, isReviewer, publicInfo } from "./config.ts";
 import { GitHub, GitHubError } from "./github.ts";
 import { mcpRequestHandler, UNTRUSTED, VIA } from "./mcp.ts";
 import { clientAddress, RateLimiter, rateLimit } from "./rate-limit.ts";
@@ -206,8 +206,7 @@ export async function createDirectoryApp(
   const address = (c: Context) => clientAddress(c, config.trustProxy);
   const userOf = (c: Context): Session | undefined =>
     store.session(getCookie(c, SESSION_COOKIE) ?? "", now());
-  const isAdmin = (user: Session | undefined) =>
-    user !== undefined && config.adminLogins.includes(user.login.toLowerCase());
+  const isAdmin = (user: Session | undefined) => isReviewer(config, user);
   const site = (c: Context): SiteContext => {
     const user = userOf(c);
     return { config, catalogue, ...(user ? { user } : {}) };

@@ -34,6 +34,11 @@ export interface DirectoryConfig {
   /** GitHub logins (lower case) who may review submissions at `/admin`. */
   adminLogins: string[];
   /**
+   * GitHub account ids who may review (`ADMIN_GITHUB_IDS`). An id never changes hands; a handle can
+   * be renamed and then taken by someone else, so ids are the safer list.
+   */
+  adminIds: number[];
+  /**
    * How many proxies you run in front (`DIRECTORY_TRUST_PROXY`), 0 for none. The client address is
    * that many entries from the right of `X-Forwarded-For`: a proxy appends the address it saw, so
    * whatever a visitor wrote there themselves sits further left and is never read.
@@ -166,6 +171,19 @@ export function loadConfig(
       .map((s) => s.trim().toLowerCase().replace(/^@/, ""))
       .filter(Boolean);
 
+  const adminIds =
+    overrides.adminIds ??
+    (env.ADMIN_GITHUB_IDS ?? "")
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean)
+      .map((v) => {
+        if (!/^\d{1,12}$/.test(v)) {
+          throw new ConfigError(`ADMIN_GITHUB_IDS takes GitHub account ids (numbers), not "${v}".`);
+        }
+        return Number(v);
+      });
+
   const siteUrl =
     overrides.siteUrl ??
     parseSiteUrl(env.DIRECTORY_SITE_URL, "DIRECTORY_SITE_URL", `http://127.0.0.1:${port}`, production);
@@ -205,11 +223,26 @@ export function loadConfig(
     name: overrides.name ?? (env.DIRECTORY_NAME?.trim() || "Steward bots"),
     ...(github ? { github } : {}),
     adminLogins,
+    adminIds,
     trustProxy: overrides.trustProxy ?? parseProxyHops(env.DIRECTORY_TRUST_PROXY),
     production,
     ...(sourceUrl ? { sourceUrl } : {}),
     ...(seedDir ? { seedDir } : {}),
   };
+}
+
+/** How many reviewers are named, by id or by handle. */
+export function reviewerCount(config: Pick<DirectoryConfig, "adminLogins" | "adminIds">): number {
+  return config.adminLogins.length + config.adminIds.length;
+}
+
+/** Whether a signed-in person may review: their GitHub id is listed, or their handle is. */
+export function isReviewer(
+  config: Pick<DirectoryConfig, "adminLogins" | "adminIds">,
+  user: { githubId: number; login: string } | undefined,
+): boolean {
+  if (!user) return false;
+  return config.adminIds.includes(user.githubId) || config.adminLogins.includes(user.login.toLowerCase());
 }
 
 /**
@@ -222,7 +255,7 @@ export function describeConfig(config: DirectoryConfig): string[] {
     `bots      ${config.directoryDir}`,
     `data      ${config.dataDir}`,
     `sign-in   ${config.github ? "GitHub (on)" : "off: set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET to take submissions"}`,
-    `review    ${config.adminLogins.length} reviewer${config.adminLogins.length === 1 ? "" : "s"} (ADMIN_GITHUB_LOGINS)`,
+    `review    ${reviewerCount(config)} reviewer${reviewerCount(config) === 1 ? "" : "s"} (ADMIN_GITHUB_IDS, ADMIN_GITHUB_LOGINS)`,
     `mcp       ${config.siteUrl}/mcp`,
     `retire    ${
       config.retirement.days > 0
@@ -249,6 +282,6 @@ export function publicInfo(config: DirectoryConfig): {
     mcp: `${config.siteUrl}/mcp`,
     feed: `${config.siteUrl}/feed.xml`,
     signIn: Boolean(config.github),
-    submissions: Boolean(config.github) && config.adminLogins.length > 0,
+    submissions: Boolean(config.github) && reviewerCount(config) > 0,
   };
 }

@@ -368,6 +368,99 @@ describe("review", () => {
   });
 });
 
+describe("approval checks ownership again", () => {
+  const approve = (id: string) =>
+    f.request(`/api/admin/submissions/${id}/approve`, {
+      method: "POST",
+      session: f.signIn("rev", 900),
+      json: {},
+    });
+
+  it("refuses the second of two people's new bots with the same id, and keeps the first one's", async () => {
+    f.github.addRepo("ana", "bots", GOOD);
+    f.github.addRepo("mal", "bots", { ...GOOD, author: { kind: "person", handle: "mal" } });
+    const first = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    const second = await submit(f.signIn("mal", 666), "https://github.com/mal/bots");
+    expect([first.body.submission.kind, second.body.submission.kind]).toEqual(["new", "new"]);
+
+    expect((await approve(first.body.submission.id)).status).toBe(200);
+    const taken = await approve(second.body.submission.id);
+    expect(taken.status).toBe(409);
+    expect(taken.body.error).toBe(
+      'The id "chore-chart" now belongs to @ana. Ask the submitter to pick another id.',
+    );
+    expect((await f.request("/api/bots/chore-chart")).body.pack.author.handle).toBe("ana");
+    expect(f.server.store.approvedFor("chore-chart")?.submitter.githubId).toBe(101);
+    expect(f.server.store.submission(second.body.submission.id)?.status).toBe("pending");
+
+    // The review page says why, and offers no Approve for it.
+    const page = await f.request("/admin", { session: f.signIn("rev", 900) });
+    expect(page.text).toContain("now belongs to @ana");
+    expect(page.text).not.toContain(`/admin/submissions/${second.body.submission.id}/approve`);
+    expect(page.text).toContain(`/admin/submissions/${second.body.submission.id}/reject`);
+  });
+
+  it("refuses the second of two claims of the same AI-made bot", async () => {
+    const claim = (session: string) =>
+      f.request("/api/bots/meal-planner/claim", { method: "POST", session, json: { confirmItsMine: true } });
+    const ana = await claim(f.signIn("ana", 101));
+    const mal = await claim(f.signIn("mal", 666));
+    expect((await approve(ana.body.submission.id)).status).toBe(200);
+    const second = await approve(mal.body.submission.id);
+    expect(second.status).toBe(409);
+    expect(second.body.error).toContain("now belongs to @ana");
+    expect((await f.request("/api/bots/meal-planner")).body.pack.author.handle).toBe("ana");
+  });
+
+  it("still lets the owner's own older update through after a newer one", async () => {
+    f.github.addRepo("ana", "bots", GOOD);
+    const made = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(made.body.submission.id)).status).toBe(200);
+    f.github.addRepo("ana", "bots", { ...GOOD, version: 2, pitch: "Second pitch." });
+    const v2 = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    f.github.addRepo("ana", "bots", { ...GOOD, version: 3, pitch: "Third pitch." });
+    const v3 = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(v3.body.submission.id)).status).toBe(200);
+    expect((await approve(v2.body.submission.id)).status).toBe(200);
+    expect((await f.request("/api/bots/chore-chart")).body.pack.version).toBe(4);
+  });
+
+  it("decides by GitHub id once a listing has an owner, so a renamed handle cannot take it", async () => {
+    f.github.addRepo("ana", "bots", GOOD);
+    const made = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(made.body.submission.id)).status).toBe(200);
+    // Ana renamed her account; someone else registered "ana" and sends an update.
+    f.github.addRepo("ana", "bots", { ...GOOD, version: 2, pitch: "Not Ana's." });
+    const impostor = await submit(f.signIn("ana", 777), "https://github.com/ana/bots");
+    expect(impostor.status).toBe(409);
+    expect(impostor.body.error).toContain("taken by a bot made by @ana");
+  });
+
+  it("matches a seed listing by handle only, and tells the reviewer", async () => {
+    f.github.addRepo("sam", "rent", {
+      ...GOOD,
+      id: "rent-scout",
+      version: 2,
+      author: { kind: "person", handle: "sam" },
+    });
+    const update = await submit(f.signIn("sam", 303), "https://github.com/sam/rent");
+    expect(update.status).toBe(201);
+    expect(update.body.submission.kind).toBe("update");
+    const [pending] = f.server.submissions.pending();
+    expect(pending!.warnings.some((w) => w.message.includes("by GitHub handle only"))).toBe(true);
+  });
+
+  it("takes reviewers by GitHub id, which a renamed handle cannot take over", async () => {
+    const g = await makeFixture({ config: { adminLogins: [], adminIds: [900] } });
+    try {
+      expect((await g.request("/admin", { session: g.signIn("whoever-900-is-now", 900) })).status).toBe(200);
+      expect((await g.request("/admin", { session: g.signIn("rev", 901) })).status).toBe(403);
+    } finally {
+      await g.close();
+    }
+  });
+});
+
 describe("claims", () => {
   it("claims an AI-made bot: approved, it becomes the person's, based on an AI-made draft", async () => {
     const ana = f.signIn("ana", 101);
