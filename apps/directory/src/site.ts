@@ -175,7 +175,7 @@ ${searchForm(ctx, q, category, sort)}
     )
     .join("")}</ul>
 <p class="meta" role="status">${plural(found.total, "bot")}${q ? ` match "${esc(q)}"` : ""}${query.needs?.length ? ` that need ${query.needs.map(escape).join(", ")}` : ""}.</p>
-${found.bots.length ? `<ul class="grid">${found.bots.map((b) => cardHtml(b, catalogue)).join("")}</ul>` : '<p>Nothing matched. Try other words, or <a href="/submit">make and submit the bot</a>.</p>'}
+${found.bots.length ? `<ul class="grid">${found.bots.map((b) => cardHtml(b, catalogue)).join("")}</ul>` : `<p>Nothing matched. ${found.hint ? esc(found.hint) : "Try other words."} Or <a href="/submit">make and submit the bot</a>.</p>`}
 ${
   pages > 1
     ? `<nav class="pager" aria-label="Pages">${pageNo > 1 ? `<a href="${link(pageNo - 1)}">Previous</a>` : ""}<span class="meta">Page ${pageNo} of ${pages}</span>${pageNo < pages ? `<a href="${link(pageNo + 1)}">Next</a>` : ""}</nav>`

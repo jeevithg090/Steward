@@ -139,6 +139,7 @@ export function createMcpServer(
           ]
         : [
             `No bot in the directory matches "${query}"${category ? ` in ${category}` : ""}. Say so; do not invent one.`,
+            ...(found.hint ? [found.hint] : []),
           ];
       return { ...text([...lines, "", VIA].join("\n")), structuredContent };
     },

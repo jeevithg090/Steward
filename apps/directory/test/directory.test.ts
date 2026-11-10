@@ -179,10 +179,25 @@ describe("search", () => {
   });
 
   it("ignores FTS syntax in a query instead of failing", async () => {
-    for (const q of ['"', "rent AND", "NEAR(", "*", "col:rent", "-rent"]) {
+    for (const q of ['"', "rent AND", "NEAR(", "*", "col:rent", "-rent", 'rent" OR "x', 'café"*']) {
       const res = await f.request(`/api/bots?q=${encodeURIComponent(q)}`);
       expect(res.status, q).toBe(200);
     }
+    expect(ids((await f.request("/api/bots?q=col%3Arent")).body.bots)).toContain("rent-scout");
+  });
+
+  it("matches nothing, and says so, when a query has no words to search for", async () => {
+    for (const q of ["日本語の献立", "help me please", "?!", "a"]) {
+      const res = await f.request(`/api/bots?q=${encodeURIComponent(q)}`);
+      expect(res.body.total, q).toBe(0);
+      expect(res.body.bots, q).toEqual([]);
+    }
+    expect((await f.request("/api/bots?q=help+me+please")).body.hint).toContain("plain words");
+    const page = await f.request("/bots?q=help+me+please");
+    expect(page.text).toContain("0 bots match");
+    expect(page.text).toContain("plain words");
+    // Words in any script are searched, not dropped.
+    expect((await f.request(`/api/bots?q=${encodeURIComponent("Ménage")}`)).body.hint).toBeUndefined();
   });
 
   it("returns one bot with its pack, and the categories with counts", async () => {
@@ -385,6 +400,14 @@ describe("MCP", () => {
     const result = await client.callTool({ name: "find_bots", arguments: { query: "zzqx" } });
     expect((result.structuredContent as { bots: unknown[] }).bots).toEqual([]);
     expect((result.content as { text: string }[])[0]?.text).toContain("do not invent one");
+    // A query with no searchable words is a miss too, never "5 bots match".
+    for (const query of ["日本語の献立", "help me please"]) {
+      const none = await client.callTool({ name: "find_bots", arguments: { query } });
+      expect((none.structuredContent as { total: number }).total, query).toBe(0);
+      expect((none.content as { text: string }[])[0]?.text, query).toContain(
+        "No bot in the directory matches",
+      );
+    }
   });
 
   it("get_bot returns the pack's details, and an error for an unknown id", async () => {
