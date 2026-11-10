@@ -180,18 +180,23 @@ the name of the element a click touches (from the computer's own snapshot, never
 and raises the call's kind to match. The same applies to pressing Enter or Space and to typing with
 `submit: true`: there the gateway judges the control the key would activate, which the computer
 reports (the focused button, or the form's default submit button), so tabbing to "Place order" and
-pressing Enter pays just as a click does. When the computer cannot name that control, a committing
-key press counts as at least `send`, so it asks rather than slipping through.
+pressing Enter pays just as a click does.
 
-| Raised to | When the element is named like                                                                                               |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `pay`     | pay, pay now, buy, purchase, checkout, place order, complete order, confirm payment, subscribe, donate, transfer, send money |
-| `sign`    | sign, agree and sign, e-sign (not sign in, sign up or sign out)                                                              |
-| `delete`  | delete, remove, trash, erase, deactivate, unsubscribe, cancel subscription, close account                                    |
-| `send`    | send, submit, post, reply, publish                                                                                           |
+What nobody can name may commit anything, so it counts as at least `send`: it asks by default and
+always after untrusted content. That covers a click on a button with no name (only an icon, or
+only "→"), a key press when the computer can name neither the control nor the focused element,
+and a form whose submit button the computer found but could not name.
 
-The first match wins, so "Submit payment" pays rather than sends. A kind is only ever raised, never
-lowered. The list lives in `packages/gateway/src/escalate.ts`, with tests.
+| Raised to | When the element is named like                                                                                                                                               |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pay`     | pay, buy, purchase, checkout, place order, order now, book, reserve, subscribe, start trial, upgrade, renew, top up, donate, transfer, withdraw, send money, place bid, sell |
+| `sign`    | sign, agree and sign, e-sign, I agree, I accept, agree to the terms, accept terms, accept and continue (not sign in, sign up, sign out or accept cookies)                    |
+| `delete`  | delete, remove, trash, erase, deactivate, unsubscribe, cancel subscription, close account                                                                                    |
+| `send`    | send, submit, post, reply, publish, share (not share screen), invite, forward, comment                                                                                       |
+
+The first match wins, so "Submit payment" pays rather than sends. "Book", "Reserve" and "Sell" pay
+as the first word or before what is booked, so "Address book" and "Reservations" stay clicks. A kind
+is only ever raised, never lowered. The list lives in `packages/gateway/src/escalate.ts`, with tests.
 
 When a person answers a parked browser action, the gateway checks the page again before it acts:
 if the address, the element or the control it would activate changed in the meantime, the action

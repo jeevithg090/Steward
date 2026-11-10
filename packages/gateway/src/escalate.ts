@@ -20,15 +20,20 @@ export interface EscalationPattern {
 export const ESCALATIONS: readonly EscalationPattern[] = [
   {
     kind: "pay",
+    // "Book" and "Reserve" pay only as the first word or before what is booked, so "Address book"
+    // and "Reservations" do not; "Sell" only as the first word, so "Sellers" does not.
     pattern:
-      /\b(pay|pay now|payment|make payment|buy|buy now|purchase|checkout|proceed to checkout|place (?:my |your |the )?order|complete (?:my |your |the )?(?:order|purchase)|confirm (?:and pay|payment|purchase|order)|subscribe|donate|transfer|send money)\b/i,
-    words: "pay, buy, purchase, checkout, place order, subscribe, donate, transfer, send money",
+      /\b(pay|pay now|payment|make payment|buy|buy now|purchase|checkout|proceed to checkout|place (?:my |your |the )?order|complete (?:my |your |the )?(?:order|purchase|booking)|confirm (?:and pay|and book|payment|purchase|order|booking|reservation)|order now|pre-?order|subscribe|donate|transfer|send money|upgrade|renew|top[- ]?up|withdraw|(?:place|submit|confirm) (?:a |my |your |the )?bid|bid now|start (?:a |my |your |the )?(?:free )?trial|sell now)\b|^(?:book|reserve|bid|sell)\b|\b(?:book|reserve) (?:now|it|this|online|today|a|an|my|your|the|tickets?|rooms?|tables?|seats?|stays?|flights?|trips?|appointments?)\b/i,
+    words:
+      "pay, buy, purchase, checkout, place order, order now, book, reserve, subscribe, start trial, upgrade, renew, top up, donate, transfer, withdraw, send money, place bid, sell",
   },
   {
     kind: "sign",
-    // "Sign in", "Sign up", "Sign out" are not signatures.
-    pattern: /\b(e-?sign|agree and sign|adopt and sign|sign(?![\s-]*(?:in|up|out|on|off)\b))\b/i,
-    words: "sign, agree and sign, e-sign (not sign in, sign up or sign out)",
+    // "Sign in", "Sign up", "Sign out" are not signatures. Agreeing to terms is; accepting cookies is not.
+    pattern:
+      /\b(e-?sign|agree and sign|adopt and sign|sign(?![\s-]*(?:in|up|out|on|off)\b)|i agree|i accept|(?:agree|accept) and continue|(?:agree to|accept) (?:the |all |these |our )?(?:terms|conditions|agreement|contract)s?)\b/i,
+    words:
+      "sign, agree and sign, e-sign, I agree, I accept, agree to the terms, accept terms, accept and continue (not sign in, sign up, sign out or accept cookies)",
   },
   {
     kind: "delete",
@@ -38,8 +43,10 @@ export const ESCALATIONS: readonly EscalationPattern[] = [
   },
   {
     kind: "send",
-    pattern: /\b(send|submit|post|reply|reply all|publish)\b/i,
-    words: "send, submit, post, reply, publish",
+    // "Share screen" shows the screen; "Fast forward" plays a video.
+    pattern:
+      /\b(send|submit|post|reply|reply all|publish|share(?! (?:your |my |the )?screen\b)|invite|(?<!(?:fast|skip)[- ])forward|comment)\b/i,
+    words: "send, submit, post, reply, publish, share (not share screen), invite, forward, comment",
   },
 ];
 
@@ -76,12 +83,14 @@ export function kindForElementName(name: string): EscalationPattern["kind"] | un
 
 /** What escalation reads of the element: its name, and for a key press the control it activates. */
 export interface EscalationElement {
+  role?: string;
   name?: string;
   submitter?: { name?: string };
 }
 
+/** A name that says something: at least one letter or number ("→" and "»" say nothing). */
 function usable(name: unknown): name is string {
-  return typeof name === "string" && name.trim() !== "";
+  return typeof name === "string" && /[\p{L}\p{N}]/u.test(name);
 }
 
 function kindOf(name: unknown): EscalationPattern["kind"] | undefined {
@@ -90,14 +99,17 @@ function kindOf(name: unknown): EscalationPattern["kind"] | undefined {
 
 /**
  * The kind a browser action really has, given the element it touches. Returns undefined when the
- * action does not commit anything or the element's name says nothing more.
+ * action does not commit anything or nothing about the element says more.
  *
  * - `browser_click` on an element named like Send / Pay / Delete / Sign.
  * - `browser_press` of Enter or Space (alone or with modifiers), and `browser_type` with
  *   `submit: true`: judged by the control the key activates (`element.submitter`, which the
- *   computer reports) and by the focused or typed-into element itself; the stricter wins. When the
- *   computer named neither, nobody knows what the key will do, so it is at least a send: it asks by
- *   default and always after untrusted content.
+ *   computer reports) and by the focused or typed-into element itself; the stricter wins.
+ *
+ * What nobody can name may commit anything, so it is at least a send: it asks by default and
+ * always after untrusted content. That is a click on a button with no name, a submitter the
+ * computer found but could not name, and a committing key when neither the control nor the
+ * element is named.
  */
 export function escalateKind(
   toolName: string,
@@ -105,11 +117,18 @@ export function escalateKind(
   element: EscalationElement | undefined,
 ): EscalationPattern["kind"] | undefined {
   if (!commits(toolName, args)) return undefined;
-  if (toolName === "browser_click") return kindOf(element?.name);
-  const submitterName = element?.submitter?.name;
-  if (!usable(submitterName) && !usable(element?.name)) return "send";
-  const bySubmitter = kindOf(submitterName);
+  const submitter = element?.submitter;
+  const kinds: EscalationPattern["kind"][] = [];
+  const bySubmitter = kindOf(submitter?.name);
   const byElement = kindOf(element?.name);
-  if (!bySubmitter || !byElement) return bySubmitter ?? byElement;
-  return stricterKind(bySubmitter, byElement) as EscalationPattern["kind"];
+  if (bySubmitter) kinds.push(bySubmitter);
+  if (byElement) kinds.push(byElement);
+  const unknown =
+    (submitter !== undefined && !usable(submitter.name)) ||
+    (toolName === "browser_click"
+      ? element?.role === "button" && !usable(element.name)
+      : !usable(submitter?.name) && !usable(element?.name));
+  if (unknown) kinds.push("send");
+  if (kinds.length === 0) return undefined;
+  return kinds.reduce((a, b) => stricterKind(a, b) as EscalationPattern["kind"]);
 }

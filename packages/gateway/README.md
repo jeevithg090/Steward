@@ -116,15 +116,17 @@ own snapshot, never the model's words): `browser_click`, `browser_press` of Ente
 with modifiers, so `Control+Enter` counts), and `browser_type` with `submit: true`. A key press and
 a submitting type are judged by the control the key activates (`target.element.submitter`, the
 focused button or the form's default submit button) and by the focused or typed-into element; the
-stricter wins. When the computer named neither, the key is at least a `send`, so it asks by default
-and always after untrusted content. The first match wins:
+stricter wins. What nobody can name is at least a `send`, so it asks by default and always after
+untrusted content: a click on a button with no name, a committing key when the computer named
+neither the control nor the element, and a submitter the computer found but could not name. A name
+needs a letter or a number to count. The first match wins:
 
-| Kind   | Element names like                                                                                                           |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| pay    | pay, payment, buy, purchase, checkout, place order, complete order, confirm payment, subscribe, donate, transfer, send money |
-| sign   | sign, sign here, agree and sign, e-sign (not sign in, sign up, sign out)                                                     |
-| delete | delete, remove, trash, erase, deactivate, unsubscribe, cancel subscription, close account                                    |
-| send   | send, submit, post, reply, reply all, publish                                                                                |
+| Kind   | Element names like                                                                                                                                                                                                |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| pay    | pay, payment, buy, purchase, checkout, place order, order now, pre-order, book, reserve, confirm booking, subscribe, start trial, upgrade, renew, top up, donate, transfer, withdraw, send money, place bid, sell |
+| sign   | sign, sign here, agree and sign, e-sign, I agree, I accept, agree to the terms, accept terms, accept and continue (not sign in, sign up, sign out, accept cookies)                                                |
+| delete | delete, remove, trash, erase, deactivate, unsubscribe, cancel subscription, close account                                                                                                                         |
+| send   | send, submit, post, reply, reply all, publish, share (not share screen), invite, forward (not fast forward), comment                                                                                              |
 
 The list lives in `ESCALATIONS` (`src/escalate.ts`).
 
