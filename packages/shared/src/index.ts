@@ -7,5 +7,6 @@ export * from "./frames.ts";
 export * from "./governance.ts";
 export * from "./ids.ts";
 export * from "./phone.ts";
+export * from "./schedule.ts";
 export * from "./services.ts";
 export * from "./tools.ts";

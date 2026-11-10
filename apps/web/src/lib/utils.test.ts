@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkCron } from "./cron.ts";
+import { CHECKED_ON_SAVE, checkCron } from "./cron.ts";
 import { humanise, targetSummary, toolLabel } from "./labels.ts";
 import { formatBytes, greeting, listNames, localDate, plural, relativeTime } from "./utils.ts";
 
@@ -74,8 +74,58 @@ describe("checkCron", () => {
     expect(checkCron("0 8 * * 1-5")).toEqual({ ok: true, text: "Weekdays at 08:00" });
     expect(checkCron("30 7 * * *").text).toBe("Every day at 07:30");
     expect(checkCron("0 9 * * 1").text).toBe("Mondays at 09:00");
-    expect(checkCron("0 * * * *").text).toBe("Every hour, on the hour");
+    expect(checkCron("0 * * * *").text).toBe("Every hour");
     expect(checkCron("*/30 * * * *").text).toBe("Every 30 minutes");
+  });
+  // The same table as the server's describer tests (packages/proactive/test/routines.test.ts):
+  // the form and the routine card must never word one schedule two ways.
+  it.each([
+    ["0 8 * * *", "Every day at 08:00"],
+    ["0 8 * * 1-5", "Weekdays at 08:00"],
+    ["0 8 * * MON-FRI", "Weekdays at 08:00"],
+    ["30 9 * * 1", "Mondays at 09:30"],
+    ["30 9 * * 1,4", "Mondays and Thursdays at 09:30"],
+    ["0 10 * * 6,0", "Weekends at 10:00"],
+    ["0 9 * * 7", "Sundays at 09:00"],
+    ["0 9 * * 5-7", "Fridays, Saturdays and Sundays at 09:00"],
+    ["0 9 * * 0-6", "Every day at 09:00"],
+    ["0 * * * *", "Every hour"],
+    ["30 * * * *", "Every hour at 30 minutes past"],
+    ["*/15 * * * *", "Every 15 minutes"],
+    ["*/45 * * * *", "Custom schedule (*/45 * * * *)"],
+    ["0 */2 * * *", "Every 2 hours"],
+    ["0 8,17 * * *", "Every day at 08:00 and 17:00"],
+    ["0,30 9 * * *", "Every day at 09:00 and 09:30"],
+    ["0 9 1 * *", "On the 1st of every month at 09:00"],
+    ["0 9 22 * *", "On the 22nd of every month at 09:00"],
+    ["0 9 1 1 *", "Every year on 1 January at 09:00"],
+    ["0 8-17 * * *", "Custom schedule (0 8-17 * * *)"],
+  ])("%s reads as %s", (cron, words) => {
+    expect(checkCron(cron)).toEqual({ ok: true, text: words });
+  });
+  it("only says every N minutes when N divides the hour", () => {
+    // */40 runs at :00 and :40, so the gaps are 40 and 20 minutes, not every 40.
+    expect(checkCron("*/40 * * * *").text).toBe("Custom schedule (*/40 * * * *)");
+    expect(checkCron("*/20 * * * *").text).toBe("Every 20 minutes");
+  });
+  it("reads day and month names, in any case, like the server", () => {
+    expect(checkCron("0 9 * * mon")).toEqual({ ok: true, text: "Mondays at 09:00" });
+    expect(checkCron("0 9 * * Fri-Sun")).toEqual({
+      ok: true,
+      text: "Fridays, Saturdays and Sundays at 09:00",
+    });
+    expect(checkCron("0 9 1 JAN *")).toEqual({ ok: true, text: "Every year on 1 January at 09:00" });
+    expect(checkCron("0 9 * jan-mar *").ok).toBe(true);
+    expect(checkCron("0 9 * * funday").ok).toBe(false);
+  });
+  it("leaves L, W, # and ? to the server instead of blocking them", () => {
+    for (const cron of ["0 9 L * *", "0 9 ? * *", "0 9 15W * *", "0 9 * * 5#2", "0 9 * * FRIL"]) {
+      // No words to show beside a bot's routine, only a note for the form.
+      expect(checkCron(cron)).toEqual({ ok: true, text: "", note: CHECKED_ON_SAVE });
+    }
+    // The times still keep to the floor.
+    expect(checkCron("*/5 9 L * *").ok).toBe(false);
+    expect(checkCron("61 9 L * *").ok).toBe(false);
   });
   it("refuses anything more often than every 15 minutes", () => {
     expect(checkCron("*/15 * * * *").ok).toBe(true);

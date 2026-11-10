@@ -320,10 +320,10 @@ function NewRoutine() {
               autoComplete="off"
             />
           </Field>
-          {cron.text ? (
+          {cron.text || cron.note ? (
             <p aria-live="polite" className="flex items-center gap-2 text-ink text-sub">
               <CalendarClock aria-hidden="true" className="size-4 text-ink-2" />
-              {cron.text}
+              {cron.text || cron.note}
             </p>
           ) : null}
         </fieldset>
