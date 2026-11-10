@@ -9,6 +9,7 @@ import {
   CANCELLED_BY_PERSON,
   GATE_UNAVAILABLE,
   INITIATOR_UNKNOWN,
+  KEPT_GETTING_IT_WRONG,
   NO_LONGER_GRANTED,
   normaliseUsage,
   STATE_TOOL_UNAVAILABLE,
@@ -843,6 +844,70 @@ describe("history and errors", () => {
     expect(fakes.governance.callsFor("file_list")).toHaveLength(2);
     expect(text(turn.events)).toBe(TOO_MANY_STEPS);
     expect(turn.types.at(-1)).toBe("RUN_FINISHED");
+  });
+
+  it("says it stopped at the step limit when the last step was a call it answered itself", async () => {
+    script(() => toolCall("web_fetch", {}));
+    const turn = await runTurn(agent({ maxSegments: 2 }), [user("fetch")]);
+    expect(requests()).toHaveLength(2);
+    expect(fakes.governance.calls).toHaveLength(0);
+    expect(text(turn.events)).toBe(TOO_MANY_STEPS);
+    expect(turn.types.at(-1)).toBe("RUN_FINISHED");
+  });
+
+  it("stops after the same call fails three times, instead of using every step", async () => {
+    script(() => toolCall("web_fetch", {}));
+    const turn = await runTurn(agent(), [user("fetch")]);
+    expect(requests()).toHaveLength(3);
+    expect(text(turn.events)).toBe(KEPT_GETTING_IT_WRONG);
+    expect(turn.types.at(-1)).toBe("RUN_FINISHED");
+  });
+
+  it("stops after three model turns in a row that only made calls it answered itself", async () => {
+    let n = 0;
+    script(() => toolCall("web_fetch", { attempt: n++ }));
+    const turn = await runTurn(agent(), [user("fetch")]);
+    expect(requests()).toHaveLength(3);
+    expect(text(turn.events)).toBe(KEPT_GETTING_IT_WRONG);
+  });
+
+  it("answers every call of the turn when stopped during the first, so none spins forever", async () => {
+    const computer = fakes.computers.computer("steward");
+    let started!: () => void;
+    const waiting = new Promise<void>((r) => (started = r));
+    computer.requestHelp = (_reason: string, opts?: { signal?: AbortSignal }) =>
+      new Promise<{ released: boolean }>((_resolve, reject) => {
+        started();
+        opts?.signal?.addEventListener("abort", () => reject(new Error("Stopped.")));
+      });
+    script(() => ({
+      toolCalls: [
+        { name: "request_help", arguments: JSON.stringify({ reason: "Sign in, please." }) },
+        { name: "file_list", arguments: "{}" },
+      ],
+    }));
+    const clone = agent().clone();
+    clone.setMessages([user("log me in, then list my files")]);
+    clone.threadId = "thr_stop_two";
+    const events: BaseEvent[] = [];
+    const run = clone.runAgent(
+      { runId: "run_stop_two" },
+      { onEvent: ({ event }) => void events.push(event) },
+    );
+    await waiting;
+    clone.abortRun();
+    await run;
+    const starts = events
+      .filter((e) => e.type === "TOOL_CALL_START")
+      .map((e) => (e as unknown as { toolCallId: string }).toolCallId);
+    expect(starts).toHaveLength(2);
+    expect(results(events).map((r) => r.toolCallId)).toEqual(starts);
+    expect(results(events).map((r) => r.content)).toEqual([
+      { ok: false, error: "Stopped." },
+      { ok: false, error: STOPPED },
+    ]);
+    expect(fakes.governance.callsFor("file_list")).toHaveLength(0);
+    expect(events.at(-1)?.type).toBe("RUN_FINISHED");
   });
 
   it("stops a tool that is waiting when the run is aborted", async () => {

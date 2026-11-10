@@ -63,6 +63,13 @@ export const STOPPED = "Stopped.";
 export const TOO_MANY_STEPS =
   "I stopped here: this took more steps than I take in one go. Ask me to carry on if you want me to continue.";
 
+/** The assistant's last words when the model keeps making calls that cannot run. */
+export const KEPT_GETTING_IT_WRONG =
+  "I kept getting that step wrong, so I stopped. Tell me a bit more and I'll try again.";
+
+/** How many times the same call may fail before it runs, or model turns in a row may do nothing else. */
+const MAX_MISTAKES = 3;
+
 const BAD_JSON = "The arguments were not a JSON object. Call the tool again with valid arguments.";
 
 /**
@@ -379,6 +386,7 @@ export class GovernedToolsMiddleware extends Middleware {
     const parkedAgain: Extract<GateResult, { parked: unknown }>["parked"][] = [];
     const delegatedAgain: { callId: string; run: DelegationRun }[] = [];
     for (const entry of resume) {
+      // After a stop, the answers not yet used stay unclaimed: the resume sweep continues them.
       if (answered.has(entry.interruptId) || signal.aborted) continue;
       const call = findCall(messages, entry.interruptId);
       if (!call) continue;
@@ -413,6 +421,10 @@ export class GovernedToolsMiddleware extends Middleware {
     const offered = [...input.tools.filter((t) => !owned.has(t.name)), ...tools.map(toAgUiTool)];
     const forwardedProps = withoutStewardProps(input.forwardedProps);
     let lastFinish = this.finished(input);
+    // How often each exact call came back answered by the model run itself, and how many model
+    // turns in a row did nothing else.
+    const mistakes = new Map<string, number>();
+    let insideStreak = 0;
 
     for (let segment = 0; segment < this.maxSegments; segment++) {
       if (signal.aborted) {
@@ -438,28 +450,46 @@ export class GovernedToolsMiddleware extends Middleware {
         return;
       }
       if (seg.terminal?.usage) usage.push(...seg.terminal.usage);
+      const done = answeredIds(messages);
+      const fresh = callsIn(seg.messages).filter((c) => !before.has(c.id));
+      const pending = fresh.filter((c) => !done.has(c.id));
+
       if (!seg.terminal || seg.terminal.outcome?.type === "cancelled" || signal.aborted) {
-        // A stop while the model was still writing a call's arguments leaves that call open, and
-        // AG-UI refuses to finish a run with open calls. Close each one as stopped: it never ran.
-        for (const id of seg.openCalls) {
-          emit({ type: EventType.TOOL_CALL_END, toolCallId: id } as BaseEvent);
-          this.answer(messages, id, serialise({ ok: false, error: STOPPED }), emit);
+        // Every call of this model turn that has no result is answered as stopped: it never ran.
+        // One the model was still writing is open, and AG-UI refuses to finish a run with open
+        // calls, so it is closed first.
+        const unanswered = new Set([...pending.map((c) => c.id), ...seg.openCalls]);
+        for (const id of unanswered) {
+          if (seg.openCalls.has(id)) emit({ type: EventType.TOOL_CALL_END, toolCallId: id } as BaseEvent);
+          messages = this.answer(messages, id, serialise({ ok: false, error: STOPPED }), emit);
         }
         finish(seg.terminal ?? this.cancelled(input));
         return;
       }
       lastFinish = seg.terminal;
 
-      const done = answeredIds(messages);
-      const fresh = callsIn(seg.messages).filter((c) => !before.has(c.id));
-      const pending = fresh.filter((c) => !done.has(c.id));
+      // Calls the model run answered itself (arguments that did not fit, a tool that does not
+      // exist) get another model turn, so the model can read why and recover instead of going
+      // quiet. The same mistake made again and again stops the run instead of using every step.
+      const inside = new Set(seg.inside.map((e) => e.toolCallId));
+      for (const call of fresh) {
+        if (!inside.has(call.id)) continue;
+        const key = `${call.function.name}\u0000${call.function.arguments}`;
+        mistakes.set(key, (mistakes.get(key) ?? 0) + 1);
+      }
+      const answeredInside = fresh.length > 0 && pending.length === 0;
+      insideStreak = answeredInside ? insideStreak + 1 : 0;
+      if (answeredInside) {
+        if (insideStreak >= MAX_MISTAKES || [...mistakes.values()].some((n) => n >= MAX_MISTAKES)) {
+          this.say(KEPT_GETTING_IT_WRONG, emit);
+          finish(seg.terminal);
+          return;
+        }
+        // On the last step this ends the loop, and the run says it stopped at the step limit.
+        continue;
+      }
       const mine = pending.filter((c) => owned.has(c.function.name));
-
       if (mine.length === 0) {
-        // Calls the model run answered itself (bad arguments, an unknown tool name) get another
-        // model turn, so the model can see the error and recover instead of going quiet.
-        const answeredInside = fresh.length > 0 && pending.length === 0;
-        if (answeredInside && segment + 1 < this.maxSegments) continue;
         finish(seg.terminal);
         return;
       }
@@ -481,6 +511,16 @@ export class GovernedToolsMiddleware extends Middleware {
         if ("interrupts" in followed) asked.push(...followed.interrupts);
         else if (followed.callId) messages = this.answer(messages, followed.callId, followed.content, emit);
       }
+      if (signal.aborted) {
+        // Stopped between calls: the ones that never ran are answered as stopped, so no card
+        // waits forever. Parked calls keep their approvals; handed-on tasks answered themselves.
+        const settled = answeredIds(messages);
+        const waiting = new Set([...parked.map((p) => p.call.id), ...delegated.map((d) => d.callId)]);
+        for (const call of pending) {
+          if (settled.has(call.id) || waiting.has(call.id)) continue;
+          messages = this.answer(messages, call.id, serialise({ ok: false, error: STOPPED }), emit);
+        }
+      }
       if (parked.length > 0 || asked.length > 0) {
         this.interrupt(parked, seg.terminal, { emit, finish }, asked);
         return;
@@ -496,11 +536,16 @@ export class GovernedToolsMiddleware extends Middleware {
       }
     }
 
+    this.say(TOO_MANY_STEPS, emit);
+    finish(lastFinish);
+  }
+
+  /** Steward's own words at the end of a run, as one assistant message. */
+  private say(text: string, emit: Emit): void {
     const messageId = randomUUID();
     emit({ type: EventType.TEXT_MESSAGE_START, messageId, role: "assistant" } as BaseEvent);
-    emit({ type: EventType.TEXT_MESSAGE_CONTENT, messageId, delta: TOO_MANY_STEPS } as BaseEvent);
+    emit({ type: EventType.TEXT_MESSAGE_CONTENT, messageId, delta: text } as BaseEvent);
     emit({ type: EventType.TEXT_MESSAGE_END, messageId } as BaseEvent);
-    finish(lastFinish);
   }
 
   /**
