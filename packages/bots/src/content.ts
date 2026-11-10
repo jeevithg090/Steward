@@ -2,8 +2,9 @@ import { type BotPack, type BotProblem, TOOLS } from "@steward/shared";
 
 /**
  * Content checks that need a reader's eye but can be found by rule: a tool the text names that the
- * bot does not hold, a tool used for what it cannot do, starters a person could not type as they
- * are, and a health or money bot that never sends the person to someone qualified. All warnings: an
+ * bot does not hold, a tool used for what it cannot do, a password asked for in the chat, starters
+ * a person could not type as they are, and a health or money bot that never sends the person to
+ * someone qualified. All warnings: an
  * author sees them and a reviewer decides. None replaces a person reading the bot.
  */
 
@@ -59,6 +60,13 @@ const AS_LOOKUP = (tool: string) => {
 };
 const LOOKUPS = Object.fromEntries(Object.keys(WRITE_ONLY).map((tool) => [tool, AS_LOOKUP(tool)]));
 
+/**
+ * Asking for a password in the chat puts it in the conversation and the record, which Steward never
+ * does. A bot hands a sign-in to the person with request_help, and they type it themselves.
+ */
+const ASKS_SECRET =
+  /(?<!(?:\bnot|\bnever|n't)\s+)\b(?:ask|asking)\s+(?:the person\s+|them\s+|the user\s+)?(?:for|to\s+(?:give|share|tell|paste|provide|send))\s+(?:you\s+)?(?:the|their|your|its|a|any)?\s*(?:\w+\s+){0,2}?(?:passwords?|passcodes?|PINs?|login details|log-in details|credentials)\b/i;
+
 const QUOTED = /^\s*["“”'‘’«].*["“”'’»]\s*$/s;
 /** `[topic]`, `{ … }` or `<topic>`; an address in angle brackets is not one. */
 const PLACEHOLDER = /\[[^\]\n]{1,40}\]|\{[^}\n]{1,40}\}|<[A-Za-z][A-Za-z _-]{0,38}>/;
@@ -93,6 +101,12 @@ export function checkContent(pack: BotPack, ctx: { tools: readonly string[] }): 
       warn(
         path,
         `names ${list(missing)}, which ${missing.length === 1 ? "is" : "are"} not in needs.tools, so the bot cannot use ${missing.length === 1 ? "it" : "them"}; add the tool or change the text`,
+      );
+    }
+    if (ASKS_SECRET.test(text)) {
+      warn(
+        path,
+        "asks the person for a password or sign-in details in the chat, where it would stay; use request_help so they sign in themselves",
       );
     }
     for (const [tool, why] of Object.entries(WRITE_ONLY)) {

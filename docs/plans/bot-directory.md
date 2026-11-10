@@ -250,7 +250,8 @@ it is a suggestion.
      of "ignore previous instructions"-style patterns);
    - plain-language check (sentence length, no jargon list), no personal data, no brand claims;
    - **content warnings** (built 10 Nov 2026, `packages/bots/src/content.ts`): a tool the text
-     names but the bot does not hold, `memory_remember` used to look something up, starters in
+     names but the bot does not hold, `memory_remember` used to look something up, a password
+     asked for in the chat (a bot hands sign-ins to the person with `request_help`), starters in
      quote marks or with `[placeholders]`, and a health, money or investing bot that never tells
      the agent to send the person to a doctor or a qualified adviser;
    - **not built yet:** `skills-ref validate` on each skill, and the **example dry run** (each

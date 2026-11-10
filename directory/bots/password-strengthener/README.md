@@ -1,10 +1,10 @@
 # Password Strengthener
 
-Creates a personal password plan: strong unique passphrases for every account, a rotation schedule for reused passwords, and 2FA guidance.
+Creates a personal password plan: how to make a strong unique passphrase for every account, a rotation schedule for reused passwords, and 2FA guidance.
 
 ## What it does
 - Helps you choose a password manager
-- Generates strong passphrases for high-risk accounts
+- Shows how to make strong passphrases, without seeing them
 - Groups all accounts by risk and sets change deadlines
 - Checks 2FA status and adds reminders
 - Produces a one-page plan you can keep offline

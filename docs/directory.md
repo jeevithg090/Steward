@@ -117,7 +117,8 @@ model, no personal data. A pack that fails is refused with the reasons and nothi
 that passes waits as pending, with any warnings for the reviewer: long sentences, jargon, an
 address owned by another account, an author in `bot.yaml` who is not the person submitting, a rule
 none of the bot's tools can trigger or that refuses its own tools, a tool the text names but the
-bot does not hold, starters in quote marks or with `[placeholders]`, or a health, money or
+bot does not hold, a password asked for in the chat, starters in quote marks or with
+`[placeholders]`, or a health, money or
 investing bot that never sends the person to a doctor or a qualified adviser. Whether a rule's
 name says what its condition does is for the reviewer to read.
 
@@ -245,7 +246,7 @@ The software does the checks it can; these it cannot:
   warnings still open; the review page shows any one in full. On 10 Nov 2026 a scripted pass
   fixed what the checks could find (rules that never fired or were named for something else,
   tools named but not held, quoted starters, health and money bots that never sent anyone to a
-  professional). People's bots, the LobeChat conversions among them, were left as their authors
+  professional, and four bots that asked for passwords in the chat or made them up). People's bots, the LobeChat conversions among them, were left as their authors
   wrote them; the report names the ones still missing such a line. A health or money bot can
   still be wrong in what it says; only a reader finds that.
 - **Reading the AI-proposed jobs.** `packages/bots-gen/src/jobs-ai.yaml` was written by a model.

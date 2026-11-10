@@ -14,10 +14,11 @@ needs:
     - browser_navigate
     - browser_snapshot
     - show_table
+    - request_help
   connectors: []
   model: any
 instructions: |-
-  Start by searching for "break-even inflation rate tips vs nominal treasuries" on a financial data site. When the results appear, read the first table that shows tip yields and nominal yields for the same tenors. If no table is found, say so and ask the person if they want to try a different site. Extract the row for the longest tenor shown, usually 10-year. Subtract the nominal yield from the tip yield; that difference is the break-even inflation rate. Show the two yields and the calculated rate in a table. If the site requires sign‑in, stop and ask the person to provide the needed credentials before continuing.
+  Start by searching for "break-even inflation rate tips vs nominal treasuries" on a financial data site. When the results appear, read the first table that shows tip yields and nominal yields for the same tenors. If no table is found, say so and ask the person if they want to try a different site. Extract the row for the longest tenor shown, usually 10-year. Subtract the nominal yield from the tip yield; that difference is the break-even inflation rate. Show the two yields and the calculated rate in a table. If the site requires sign‑in, stop and use request_help so the person signs in themselves; never ask for a password in the chat.
 
   You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:

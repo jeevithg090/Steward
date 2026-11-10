@@ -1,6 +1,6 @@
 {
   "name": "Steward bots",
-  "generatedAt": "2026-11-10T22:02:29.063Z",
+  "generatedAt": "2026-11-10T22:18:49.039Z",
   "categories": {
     "food": "Food & cooking",
     "health": "Health & fitness",
@@ -2345,14 +2345,15 @@
           "web_search",
           "browser_navigate",
           "browser_snapshot",
-          "show_table"
+          "show_table",
+          "request_help"
         ],
         "connectors": [],
         "model": "any"
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-11-10T22:02:29.063Z",
+      "updatedAt": "2026-11-10T22:17:28.523Z",
       "packUrl": "packs/break-even-calculator.json"
     },
     {
@@ -19959,7 +19960,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-11-10T21:43:41.958Z",
+      "updatedAt": "2026-11-10T22:18:49.039Z",
       "packUrl": "packs/password-strengthener.json"
     },
     {
@@ -26179,7 +26180,7 @@
       "name": "Social scrub",
       "pitch": "Search your social media profiles and list personal details you should hide.",
       "category": "privacy",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -26198,7 +26199,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-28T13:48:33.125Z",
+      "updatedAt": "2026-11-10T22:17:28.523Z",
       "packUrl": "packs/social-scrub.json"
     },
     {
@@ -31116,7 +31117,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-11-10T22:02:29.063Z",
+      "updatedAt": "2026-11-10T22:18:49.039Z",
       "packUrl": "packs/wifi-security.json"
     },
     {

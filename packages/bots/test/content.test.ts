@@ -91,6 +91,26 @@ describe("content checks", () => {
     }
   });
 
+  it("warns when the bot asks for a password in the chat, not when the person signs in themselves", () => {
+    const browser = { tools: ["browser_navigate", "request_help"], connectors: [], model: "any" };
+    for (const text of [
+      "When the router login page appears, ask the person for the username and password.",
+      "If the site requires sign-in, stop and ask the person to provide the needed credentials.",
+      "Ask them for their PIN.",
+    ]) {
+      expect(messages(pack({ needs: browser, instructions: text })), text).toEqual([
+        "instructions: asks the person for a password or sign-in details in the chat, where it would stay; use request_help so they sign in themselves",
+      ]);
+    }
+    for (const text of [
+      "If a sign-in page appears, use request_help so the person signs in themselves.",
+      "Ask how they store passwords now. Do not ask for the actual passwords.",
+      "Signs of a scam: urgent threats, requests for passwords, PINs or card numbers.",
+    ]) {
+      expect(messages(pack({ needs: browser, instructions: text })), text).toEqual([]);
+    }
+  });
+
   it("warns about starters in quote marks or with a placeholder", () => {
     expect(
       messages(
