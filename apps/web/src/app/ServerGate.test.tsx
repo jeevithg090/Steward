@@ -97,6 +97,8 @@ describe("ServerGate", () => {
       </ServerGate>,
     );
     const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("Couldn't open Steward");
+    expect(alert.textContent).not.toContain("isn't answering");
     expect(alert.textContent).toContain("Steward couldn't open its database.");
     expect(alert.textContent).not.toContain("pnpm dev");
   });

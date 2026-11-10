@@ -38,7 +38,8 @@ export function ServerGate({ children }: { children: ReactNode }) {
           <Notice
             tone="problem"
             role="alert"
-            title="Steward isn't answering"
+            // When the server did answer, with its own sentence, it isn't "not answering".
+            title={isUnreachable(failure) ? "Steward isn't answering" : "Couldn't open Steward"}
             action={
               <Button size="sm" onClick={() => void info.refetch()}>
                 Try again
