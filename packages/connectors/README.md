@@ -145,7 +145,7 @@ mcp.grantedTools("steward");
 //  { name: "mcp__github__create_issue", kind: "send", ... }]
 
 await mcp.call("github", "search_issues", { q: "is:open label:bug" });
-// { text: "...", truncated: false, structured?: {...} }
+// { text: "...", truncated: false }
 ```
 
 - **Persistence.** Configs live in `connectors_mcp_servers`, with the last tool listing, so granted
@@ -167,12 +167,17 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
   caller says. Grants are per server and apply to every agent for now.
 - **Names.** Tools are offered as `mcp__<server>__<tool>`. A tool whose full name a model cannot call
   (more than 64 characters, or characters other than letters, digits, `_` and `-`) is listed but not
-  offered.
+  offered, with `offerable: false` and a `why` the Connections page shows.
+- **Listings are bounded**, because every offered description and schema is read on every turn: at
+  most 200 tools (`notice` says when there were more), one entry per name (a repeated name keeps its
+  strictest entry, so a destructive one wins), descriptions cut at 1,000 characters with a visible
+  `…`, and a tool whose input schema is over 16 KB listed but not offered. Each offered description
+  ends by saying it was written by the server, not by Steward.
 - **Calls** time out after 60 seconds. Results become text: text parts joined, embedded resources as
   their text, resource links as their address, other parts named (`[image]`), structured content as
-  JSON when that is all there is, and an empty result said in words. Long results are cut at 20,000
-  characters, visibly. A tool's own error (`isError`) throws `McpCallError`, so the record shows it
-  as failed.
+  JSON when that is all there is (never both, so nothing is read twice), and an empty result said in
+  words. Long results are cut at 20,000 characters, visibly. A tool's own error (`isError`) throws
+  `McpCallError`, so the record shows it as failed.
 
 ## The web
 

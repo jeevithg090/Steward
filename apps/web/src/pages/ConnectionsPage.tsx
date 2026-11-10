@@ -210,6 +210,7 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
           {server.error}
         </Notice>
       ) : null}
+      {server.notice ? <p className="text-ink-2 text-sub">{server.notice}</p> : null}
       {server.tools.length === 0 ? (
         <p className="text-ink-2 text-sub">
           {server.status === "connected"
@@ -273,6 +274,8 @@ function McpToolRow({
 }) {
   const noteId = useId();
   const choices = tool.destructive ? DESTRUCTIVE_CHOICES : KIND_CHOICES;
+  // A tool no model could be offered can't be switched on; one already on can still be switched off.
+  const blocked = !tool.offerable && !tool.granted;
   return (
     <li className="grid gap-x-4 gap-y-1 border-hair-2 border-t py-3 first:border-t-0 sm:grid-cols-[1fr_auto_auto] sm:items-center">
       <div className="min-w-0">
@@ -282,6 +285,9 @@ function McpToolRow({
           <p id={noteId} className="mt-1 text-caption text-ink-2">
             Its server says it can delete or overwrite things, so Steward treats it as deleting.
           </p>
+        ) : null}
+        {tool.why ? (
+          <p className="mt-1 text-caption text-problem">Steward can't offer it: {tool.why}</p>
         ) : null}
       </div>
       <div>
@@ -302,7 +308,7 @@ function McpToolRow({
       </div>
       <Switch
         checked={tool.granted}
-        disabled={busy}
+        disabled={busy || blocked}
         label={
           <>
             Steward may use it<span className="sr-only">: {tool.name}</span>

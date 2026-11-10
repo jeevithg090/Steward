@@ -218,13 +218,20 @@ export interface McpServerInfo {
   command?: string;
   args?: string[];
   url?: string;
+  /** Something the person should know about the listing, e.g. that it was cut at 200 tools. */
+  notice?: string;
   tools: {
     name: string;
+    /** The server's own description, cut at 1,000 characters. */
     description: string;
     granted: boolean;
     kind: McpToolKind;
     /** The server says the tool can destroy or overwrite things, so it can't be marked a read or a write. */
     destructive?: boolean;
+    /** False when no model could be offered it, even granted: its name or its inputs are out of bounds. */
+    offerable: boolean;
+    /** Why it can't be offered, in words for the person. */
+    why?: string;
   }[];
 }
 

@@ -5,13 +5,22 @@ import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { Server as LowLevelServer } from "@modelcontextprotocol/sdk/server/index.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import {
+  CallToolRequestSchema,
+  type CallToolResult,
+  ListToolsRequestSchema,
+  type Tool,
+} from "@modelcontextprotocol/sdk/types.js";
 import { type Db, fromJson, memoryDb } from "@steward/db";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
   createMcpManager,
+  MAX_DESCRIPTION_CHARS,
+  MAX_TOOLS,
   McpCallError,
   type McpManagerOptions,
   objectSchema,
@@ -81,6 +90,37 @@ const NOTES = {
   ],
   reads: ["search_notes", "delete_note", "count_notes"],
 };
+
+/**
+ * A server that lists exactly what `tools()` returns, repeats and all, which the high-level
+ * `McpServer` would refuse to. `call` answers every call.
+ */
+function rawServer(
+  tools: () => Tool[],
+  call: (name: string, args: Record<string, unknown>) => CallToolResult = () => ({
+    content: [{ type: "text", text: "ok" }],
+  }),
+) {
+  const servers: LowLevelServer[] = [];
+  const createTransport = async (): Promise<InMemoryTransport> => {
+    const [client, serverEnd] = InMemoryTransport.createLinkedPair();
+    const server = new LowLevelServer(
+      { name: "raw", version: "1.0.0" },
+      { capabilities: { tools: { listChanged: true } } },
+    );
+    server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: tools() }));
+    server.setRequestHandler(CallToolRequestSchema, async (req) =>
+      call(req.params.name, (req.params.arguments ?? {}) as Record<string, unknown>),
+    );
+    await server.connect(serverEnd);
+    servers.push(server);
+    return client;
+  };
+  return { createTransport, servers };
+}
+
+const objectInput = { type: "object" as const, properties: {} };
+const RAW = { id: "raw", name: "Raw", transport: "stdio" as const, command: "raw", args: [], reads: [] };
 
 /** Hands the manager one end of an in-memory pair per connection, and keeps the server ends. */
 function inMemory() {
@@ -178,8 +218,8 @@ describe("MCP manager with an in-process server", () => {
     expect(tools.map((t) => t.name)).toEqual(["mcp__notes__search_notes"]);
     const [search] = tools;
     expect(search).toMatchObject({ server: "notes", tool: "search_notes", kind: "read" });
-    expect(search?.description).toMatch(
-      /^Finds notes that mention the words\.\n\nFrom the MCP server "Notes"\.$/,
+    expect(search?.description).toBe(
+      'Finds notes that mention the words.\n\nWritten by the MCP server "Notes", not by Steward.',
     );
     expect(search?.parameters).toMatchObject({
       type: "object",
@@ -203,7 +243,17 @@ describe("MCP manager with an in-process server", () => {
     await mcp.upsert(NOTES);
     const out = await mcp.call("notes", "count_notes", {});
     expect(JSON.parse(out.text)).toEqual({ count: 42 });
-    expect(out.structured).toEqual({ count: 42 });
+    expect(out).toEqual({ text: out.text, truncated: false });
+  });
+
+  it("reads a result once when the tool sends both text and structured content", async () => {
+    const raw = rawServer(
+      () => [{ name: "weather", inputSchema: objectInput }],
+      () => ({ content: [{ type: "text", text: "Sunny, 21°C." }], structuredContent: { temp: 21 } }),
+    );
+    const mcp = manager({ createTransport: raw.createTransport });
+    await mcp.upsert({ ...RAW, granted: ["weather"] });
+    await expect(mcp.call("raw", "weather", {})).resolves.toEqual({ text: "Sunny, 21°C.", truncated: false });
   });
 
   it("refuses tools that are not granted, unknown tools and unknown servers", async () => {
@@ -316,6 +366,77 @@ describe("MCP manager with an in-process server", () => {
     await mcp.upsert(NOTES);
     await mcp.closeAll();
     await expect(mcp.call("notes", "search_notes", {})).rejects.toThrow("MCP connections are closed.");
+  });
+
+  it("cuts long descriptions, keeps one entry per name, and lists at most 200 tools", async () => {
+    let listing: Tool[] = [
+      { name: "lookup", description: "Looks up a word.", inputSchema: objectInput },
+      {
+        name: "lookup",
+        description: "Erases a word.",
+        inputSchema: objectInput,
+        annotations: { destructiveHint: true },
+      },
+      { name: "lookup", description: "Looks up a word, again.", inputSchema: objectInput },
+      { name: "essay", description: "x".repeat(200_035), inputSchema: objectInput },
+    ];
+    const raw = rawServer(() => listing);
+    const mcp = manager({ createTransport: raw.createTransport });
+    const info = await mcp.upsert({ ...RAW, granted: ["lookup", "essay"] });
+    // The strictest entry for a repeated name wins.
+    expect(info.tools.map((t) => t.name)).toEqual(["lookup", "essay"]);
+    expect(info.tools[0]).toMatchObject({ description: "Erases a word.", kind: "delete" });
+    const essay = info.tools[1]?.description ?? "";
+    expect(essay).toHaveLength(MAX_DESCRIPTION_CHARS);
+    expect(essay.endsWith("…")).toBe(true);
+    const offered = mcp.grantedTools("steward");
+    expect(offered.map((t) => t.name)).toEqual(["mcp__raw__lookup", "mcp__raw__essay"]);
+    expect(offered[1]?.description.length).toBeLessThan(MAX_DESCRIPTION_CHARS + 100);
+    expect(info.notice).toBeUndefined();
+
+    listing = Array.from({ length: MAX_TOOLS + 5 }, (_, i) => ({ name: `t${i}`, inputSchema: objectInput }));
+    const many = await mcp.upsert({ ...RAW, command: "raw-many", granted: ["t0"] });
+    expect(many.tools).toHaveLength(MAX_TOOLS);
+    expect(many.notice).toMatch(/more than 200 tools/);
+  });
+
+  it("lists a tool no model could be offered, says why, and never offers it", async () => {
+    const huge = {
+      type: "object" as const,
+      properties: Object.fromEntries(
+        Array.from({ length: 400 }, (_, i) => [`field${i}`, { type: "string", description: "y".repeat(40) }]),
+      ),
+    };
+    const raw = rawServer(() => [
+      { name: "fine", inputSchema: objectInput },
+      { name: "a_tool_name_that_is_much_too_long_to_offer_anywhere", inputSchema: objectInput },
+      { name: "export.all", inputSchema: objectInput },
+      { name: "everything", inputSchema: huge },
+    ]);
+    const mcp = manager({ createTransport: raw.createTransport });
+    const info = await mcp.upsert({
+      ...RAW,
+      id: "a-rather-long-server-id",
+      granted: ["fine", "a_tool_name_that_is_much_too_long_to_offer_anywhere", "export.all", "everything"],
+    });
+    const byName = Object.fromEntries(info.tools.map((t) => [t.name, t]));
+    expect(byName.fine).toMatchObject({ offerable: true });
+    expect(byName.fine).not.toHaveProperty("why");
+    expect(byName.a_tool_name_that_is_much_too_long_to_offer_anywhere).toMatchObject({
+      offerable: false,
+      why: expect.stringMatching(/longer than the 64 characters/),
+    });
+    expect(byName["export.all"]).toMatchObject({
+      offerable: false,
+      why: expect.stringMatching(/characters/),
+    });
+    expect(byName.everything).toMatchObject({ offerable: false, why: expect.stringMatching(/16 KB/) });
+    expect(mcp.grantedTools("steward").map((t) => t.tool)).toEqual(["fine"]);
+    // Kept small in the database too.
+    const row = db.get<{ tools_json: string }>("SELECT tools_json FROM connectors_mcp_servers WHERE id = ?", [
+      "a-rather-long-server-id",
+    ]);
+    expect(row?.tools_json.length).toBeLessThan(2_000);
   });
 
   it("validates configs with plain messages", async () => {

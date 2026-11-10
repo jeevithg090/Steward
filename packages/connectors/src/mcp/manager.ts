@@ -62,15 +62,28 @@ export class McpCallError extends Error {
 
 interface ListedTool {
   name: string;
+  /** At most `MAX_DESCRIPTION_CHARS`, cut visibly. */
   description: string;
+  /** An empty object schema when the server's was over `MAX_SCHEMA_CHARS` (see `schemaTooBig`). */
   inputSchema: Record<string, unknown>;
   /** The server marked it destructive. Only this hint is believed: it can only make a tool stricter. */
   destructive?: boolean;
+  /** Its input schema was too big to offer, so the tool is listed but never offered. */
+  schemaTooBig?: boolean;
+}
+
+/** A server's listing, bounded: what Steward keeps, and whether it had to leave tools out. */
+interface Listing {
+  tools: ListedTool[];
+  /** The server listed more than `MAX_TOOLS` tools. */
+  more: boolean;
 }
 
 interface ServerState {
   config: SavedConfig;
   tools: ListedTool[];
+  /** The last listing had more tools than Steward keeps. */
+  more?: boolean;
   status: "connected" | "error";
   error?: string;
   client?: Client;
@@ -103,6 +116,15 @@ const MODEL_TOOL_NAME = /^[A-Za-z0-9_-]{1,64}$/;
 /** The only parts of Steward's environment a stdio server sees. No keys, no tokens. */
 const PASSED_ENV = ["PATH", "HOME", "LANG", "TERM"] as const;
 const MAX_TOOL_PAGES = 20;
+/**
+ * Bounds on what one server can put in front of the model on every turn: its tools' descriptions
+ * and input schemas are read with each conversation, so a server could otherwise raise the cost of
+ * every run or fill the context. Over the bounds, a description is cut visibly and a tool with an
+ * oversized schema is listed but not offered.
+ */
+export const MAX_TOOLS = 200;
+export const MAX_DESCRIPTION_CHARS = 1_000;
+export const MAX_SCHEMA_CHARS = 16_384;
 /** Socket failures that mean the server is gone, not that it refused this one call. */
 const NETWORK_CODES = new Set([
   "ECONNREFUSED",
@@ -157,7 +179,8 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         sends: fromJson<string[]>(row.sends_json, []),
         deletes: fromJson<string[]>(row.deletes_json, []),
       },
-      tools: fromJson<ListedTool[]>(row.tools_json, []),
+      // Bounded again, in case it was saved before the bounds existed.
+      tools: bounded(fromJson<ListedTool[]>(row.tools_json, [])).tools,
       status: "error",
       error: opts.connectOnStart === false ? "Not connected yet. It connects on first use." : "Connecting…",
       generation: 0,
@@ -223,9 +246,9 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
                 onChanged: () => {
                   if (state.client !== c) return;
                   listAllTools(c, connectTimeoutMs)
-                    .then((tools) => {
+                    .then((listing) => {
                       if (state.client !== c) return;
-                      state.tools = tools;
+                      setListing(state, listing);
                       persistListing(state);
                     })
                     .catch(() => {
@@ -244,13 +267,13 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
           state.error = closedMessage(state);
         };
         await c.connect(transport, { timeout: connectTimeoutMs });
-        const tools = await listAllTools(c, connectTimeoutMs);
+        const listing = await listAllTools(c, connectTimeoutMs);
         if (generation !== state.generation || closed) {
           await c.close().catch(() => {});
           return;
         }
         state.client = c;
-        state.tools = tools;
+        setListing(state, listing);
         state.status = "connected";
         state.error = undefined;
         persistListing(state);
@@ -288,6 +311,11 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
     return new McpCallError(message);
   }
 
+  function setListing(state: ServerState, listing: Listing): void {
+    state.tools = listing.tools;
+    state.more = listing.more;
+  }
+
   function persistListing(state: ServerState): void {
     const now = new Date().toISOString();
     db.run(
@@ -316,13 +344,21 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       ...(config.command ? { command: config.command } : {}),
       ...(config.transport === "stdio" ? { args: config.args } : {}),
       ...(config.url ? { url: config.url } : {}),
-      tools: state.tools.map((t) => ({
-        name: t.name,
-        description: t.description,
-        granted: config.granted.includes(t.name),
-        kind: kindOf(config, t),
-        ...(t.destructive ? { destructive: true } : {}),
-      })),
+      ...(state.more
+        ? { notice: `It lists more than ${MAX_TOOLS} tools. Steward shows the first ${MAX_TOOLS}.` }
+        : {}),
+      tools: state.tools.map((t) => {
+        const why = unofferable(config.id, t);
+        return {
+          name: t.name,
+          description: t.description,
+          granted: config.granted.includes(t.name),
+          kind: kindOf(config, t),
+          ...(t.destructive ? { destructive: true } : {}),
+          offerable: why === undefined,
+          ...(why ? { why } : {}),
+        };
+      }),
     };
   }
 
@@ -337,13 +373,13 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       for (const state of [...servers.values()].sort((a, b) => a.config.id.localeCompare(b.config.id))) {
         for (const tool of state.tools) {
           if (!state.config.granted.includes(tool.name)) continue;
-          const name = mcpToolName(state.config.id, tool.name);
-          if (!MODEL_TOOL_NAME.test(name)) continue;
+          if (unofferable(state.config.id, tool)) continue;
           out.push({
-            name,
+            name: mcpToolName(state.config.id, tool.name),
             server: state.config.id,
             tool: tool.name,
-            description: `${tool.description || tool.name}\n\nFrom the MCP server "${state.config.name}".`,
+            // The person named the server; the rest is the server's own words, and the model is told so.
+            description: `${tool.description || tool.name}\n\nWritten by the MCP server "${state.config.name}", not by Steward.`,
             parameters: objectSchema(tool.inputSchema),
             kind: kindOf(state.config, tool),
           });
@@ -516,17 +552,18 @@ function codeOf(err: unknown): unknown {
   return typeof err === "object" && err !== null ? (err as { code?: unknown }).code : undefined;
 }
 
-/** Lists every tool, following pagination. */
-async function listAllTools(client: Client, timeout: number): Promise<ListedTool[]> {
+/** Lists every tool, following pagination, and bounds the result. */
+async function listAllTools(client: Client, timeout: number): Promise<Listing> {
   const tools: ListedTool[] = [];
   let cursor: string | undefined;
   for (let page = 0; page < MAX_TOOL_PAGES; page++) {
     const res = await client.listTools(cursor ? { cursor } : undefined, { timeout });
     tools.push(...res.tools.map(listedTool));
     cursor = res.nextCursor;
-    if (!cursor) break;
+    if (!cursor || new Set(tools.map((t) => t.name)).size > MAX_TOOLS) break;
   }
-  return tools;
+  const listing = bounded(tools);
+  return cursor ? { ...listing, more: true } : listing;
 }
 
 function listedTool(tool: Tool): ListedTool {
@@ -536,6 +573,62 @@ function listedTool(tool: Tool): ListedTool {
     inputSchema: (tool.inputSchema ?? { type: "object" }) as Record<string, unknown>,
     ...(tool.annotations?.destructiveHint === true ? { destructive: true } : {}),
   };
+}
+
+/**
+ * A listing within the bounds: one entry per name (a repeated name keeps its strictest entry, so a
+ * destructive one wins), at most `MAX_TOOLS`, descriptions cut visibly and oversized schemas
+ * replaced. A server that repeats a name gets one tool, never two the model could confuse.
+ */
+function bounded(listed: readonly ListedTool[]): Listing {
+  const byName = new Map<string, ListedTool>();
+  for (const tool of listed) {
+    if (typeof tool?.name !== "string" || tool.name === "") continue;
+    const kept = byName.get(tool.name);
+    if (kept && (kept.destructive || !tool.destructive)) continue;
+    byName.set(tool.name, tool);
+  }
+  const unique = [...byName.values()];
+  const tools = unique.slice(0, MAX_TOOLS).map((tool): ListedTool => {
+    const description = cut(
+      typeof tool.description === "string" ? tool.description : "",
+      MAX_DESCRIPTION_CHARS,
+    );
+    const schema = tool.inputSchema && typeof tool.inputSchema === "object" ? tool.inputSchema : {};
+    const tooBig = tool.schemaTooBig === true || (JSON.stringify(schema)?.length ?? 0) > MAX_SCHEMA_CHARS;
+    return {
+      name: tool.name,
+      description,
+      inputSchema: tooBig ? { type: "object", properties: {} } : schema,
+      ...(tool.destructive ? { destructive: true } : {}),
+      ...(tooBig ? { schemaTooBig: true } : {}),
+    };
+  });
+  return { tools, more: unique.length > MAX_TOOLS };
+}
+
+/** `text` cut to `max` characters with a visible "…", never splitting a surrogate pair. */
+function cut(text: string, max: number): string {
+  if (text.length <= max) return text;
+  let end = max - 1;
+  const code = text.charCodeAt(end - 1);
+  if (code >= 0xd800 && code <= 0xdbff) end--;
+  return `${text.slice(0, end)}…`;
+}
+
+/** Why a model can't be offered this tool, in words for the person, or undefined when it can. */
+function unofferable(serverId: string, tool: ListedTool): string | undefined {
+  const full = mcpToolName(serverId, tool.name);
+  if (!/^[A-Za-z0-9_-]+$/.test(tool.name)) {
+    return "Its name has characters models don't accept. Only letters, digits, _ and - work.";
+  }
+  if (!MODEL_TOOL_NAME.test(full)) {
+    return `Its full name, ${full}, is longer than the 64 characters models accept.`;
+  }
+  if (tool.schemaTooBig) {
+    return "It describes its inputs at more length than Steward sends to a model (16 KB).";
+  }
+  return undefined;
 }
 
 /**
