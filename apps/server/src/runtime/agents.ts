@@ -635,9 +635,17 @@ export class AgentHost {
     if (flipped) await this.rebuild();
   }
 
-  /** A conversation was deleted: its harness process stops and its resume handle is forgotten. */
+  /**
+   * A conversation was deleted, or a handed-on task ended: its harness process stops and its resume
+   * handle is forgotten.
+   */
   async closeThread(threadId: string): Promise<void> {
     await Promise.all([...this.harnessThreads.values()].map(({ threads }) => threads.close(threadId, true)));
+  }
+
+  /** Every coding agent process running now, those still starting included. For tests and the leak check. */
+  harnessPids(): number[] {
+    return [...this.harnessThreads.values()].flatMap(({ threads }) => threads.pids());
   }
 
   /** Starts the model a config names, or reuses the one already started for it. Undefined when it fails. */

@@ -227,6 +227,8 @@ describe.runIf(missing.length === 0)("handing a task to another agent, end to en
       .map((e) => e.delta)
       .join("");
     expect(parentText).toBe("Codex says all tests pass.");
+    // The task ended, so Codex's process stops: its conversation is never used again.
+    await waitFor(() => t.server.services.models.harnessPids().length === 0 || undefined, 10_000);
     // The parent's model saw its own call and its result, never the child's messages.
     const req = seen.find((s) => s.who === "parent")!.req;
     expect(req.messages.map((m) => m.role)).toEqual(["system", "user", "assistant", "tool"]);

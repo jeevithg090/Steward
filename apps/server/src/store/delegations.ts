@@ -111,6 +111,31 @@ export class DelegationStore {
     });
   }
 
+  /** How many tasks handed to this agent are running now, whoever handed them. */
+  runningForAgent(childAgentId: string): number {
+    return (
+      this.db.get<{ n: number }>(
+        "SELECT COUNT(*) AS n FROM delegations WHERE child_agent_id = ? AND status = 'running'",
+        [childAgentId],
+      )?.n ?? 0
+    );
+  }
+
+  /**
+   * At boot: nothing runs yet, so a task still marked running was cut off when Steward stopped.
+   * Marks each one stopped and returns them, so the record can say so. Waiting tasks stay waiting:
+   * their question is still open.
+   */
+  reconcile(): DelegationRecord[] {
+    return this.db.tx(() => {
+      const cut = this.db
+        .all<Row>("SELECT * FROM delegations WHERE status = 'running' ORDER BY created_at")
+        .map(toRecord);
+      for (const record of cut) this.setStatus(record.subagentRunId, "stopped");
+      return cut.map((r) => this.get(r.subagentRunId) ?? r);
+    });
+  }
+
   /** How many of a parent run's children are running now. */
   runningFor(parentRunId: string): number {
     return (
