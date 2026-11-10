@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { isComputerError, Workspace } from "@steward/computer";
 import {
   ROUTES,
+  UPLOAD_EXTENSIONS,
   UPLOAD_MAX_BYTES,
   UploadBody,
   type WorkspaceFile,
@@ -15,23 +16,6 @@ import { HttpError, notFound, readBody } from "../http/errors.ts";
 
 /** The most of one file the person's viewer is sent. A longer file says it was cut. */
 export const VIEW_MAX_BYTES = 1024 * 1024;
-
-/** Text files the person can attach. Anything else is refused before it reaches the workspace. */
-export const UPLOAD_EXTENSIONS = [
-  "txt",
-  "md",
-  "markdown",
-  "csv",
-  "tsv",
-  "json",
-  "ics",
-  "html",
-  "htm",
-  "xml",
-  "yaml",
-  "yml",
-  "log",
-] as const;
 
 /** How the viewer shows a file, from its name. Anything it does not know is plain text. */
 export function fileFormat(path: string): WorkspaceFileText["format"] {

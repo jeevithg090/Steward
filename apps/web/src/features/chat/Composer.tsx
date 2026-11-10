@@ -2,7 +2,8 @@
  * Where the person writes to Steward. Enter sends, Shift+Enter adds a line. Typing `/` lists the
  * skills; the arrow keys choose and Enter or Tab picks one. The microphone dictates into the box
  * (nothing is sent until the person sends it). While a reply runs, Stop ends it; while an approval
- * waits, sending waits too, and the composer says why and offers a way to the request.
+ * waits, sending waits too, and the composer says why and offers a way to the request. Text files
+ * can be attached with the paperclip, by dropping or by pasting; they go with the message.
  */
 import { ArrowUp, Mic, MicOff, Square } from "lucide-react";
 import { type KeyboardEvent, type RefObject, useEffect, useId, useRef, useState } from "react";
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/Button.tsx";
 import { useSkills } from "@/lib/api.ts";
 import { cn } from "@/lib/utils.ts";
 import { useDictation } from "../voice/useDictation.ts";
+import { AttachButton, AttachmentChips, useAttachments } from "./attachments.tsx";
 import { matchSkills, slashQuery } from "./skill-match.ts";
 
 export interface ComposerProps {
@@ -24,6 +26,8 @@ export interface ComposerProps {
   footnote?: string;
   /** The text box, for a caller that moves focus to it. */
   inputRef?: RefObject<HTMLTextAreaElement | null>;
+  /** The agent whose workspace attached files go to. Without it there is nothing to attach. */
+  attachTo?: string;
   className?: string;
 }
 
@@ -37,6 +41,7 @@ export function Composer({
   onShowBlocker,
   footnote,
   inputRef,
+  attachTo,
   className,
 }: ComposerProps) {
   const [draft, setDraft] = useState("");
@@ -47,6 +52,7 @@ export function Composer({
   const textRef = inputRef ?? ownRef;
   const ids = { input: useId(), list: useId(), note: useId(), status: useId() };
   const skills = useSkills();
+  const attachments = useAttachments(attachTo);
 
   const dictation = useDictation({
     onFinal: (words) =>
@@ -57,7 +63,8 @@ export function Composer({
   const matches = query !== undefined && !pickerClosed ? matchSkills(skills.data ?? [], query) : [];
   const pickerOpen = matches.length > 0;
   const blocked = Boolean(blockedReason);
-  const canSend = !running && !blocked && draft.trim() !== "";
+  const attached = attachments.items.length > 0;
+  const canSend = !running && !blocked && !attachments.sending && (draft.trim() !== "" || attached);
 
   // Grow with the text, up to a limit, then scroll.
   // biome-ignore lint/correctness/useExhaustiveDependencies: the height follows the draft.
@@ -68,10 +75,19 @@ export function Composer({
     box.style.height = `${Math.min(box.scrollHeight, MAX_ROWS_PX)}px`;
   }, [draft]);
 
-  function send() {
+  async function send() {
     if (!canSend) return;
     if (dictation.listening) dictation.stop();
-    onSend(draft.trim());
+    let text = draft.trim();
+    if (attached) {
+      try {
+        const sentence = await attachments.send();
+        text = text ? `${text}\n\n${sentence}` : sentence;
+      } catch {
+        return; // The files stay, with the reason under the box.
+      }
+    }
+    onSend(text);
     setDraft("");
     setPickerClosed(false);
   }
@@ -108,7 +124,7 @@ export function Composer({
     }
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      send();
+      void send();
     }
   }
 
@@ -154,7 +170,25 @@ export function Composer({
         </div>
       ) : null}
 
+      {attachTo ? (
+        <AttachmentChips
+          items={attachments.items}
+          onRemove={attachments.remove}
+          disabled={attachments.sending}
+        />
+      ) : null}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: dropping a file is a shortcut; the paperclip is the keyboard's way in. */}
       <div
+        onDragOver={attachTo ? (event) => event.preventDefault() : undefined}
+        onDrop={
+          attachTo
+            ? (event) => {
+                if (event.dataTransfer.files.length === 0) return;
+                event.preventDefault();
+                void attachments.add([...event.dataTransfer.files]);
+              }
+            : undefined
+        }
         className={cn(
           "flex items-end gap-2 rounded-card border bg-card p-2 shadow-card",
           "focus-within:border-focus focus-within:shadow-[0_0_0_1px_var(--st-focus)]",
@@ -175,6 +209,15 @@ export function Composer({
             if (!event.target.value.startsWith("/")) setPickerClosed(false);
           }}
           onKeyDown={onKeyDown}
+          onPaste={
+            attachTo
+              ? (event) => {
+                  if (event.clipboardData.files.length === 0) return;
+                  event.preventDefault();
+                  void attachments.add([...event.clipboardData.files]);
+                }
+              : undefined
+          }
           placeholder={running ? "Steward is working…" : "Ask Steward, or type / for a skill"}
           aria-describedby={describedBy || undefined}
           aria-autocomplete="list"
@@ -182,6 +225,7 @@ export function Composer({
           aria-activedescendant={activeId}
           className="max-h-60 min-h-target min-w-0 flex-1 resize-none bg-transparent px-2 py-2.5 text-body text-ink outline-none placeholder:text-ink-3"
         />
+        {attachTo ? <AttachButton onFiles={(files) => void attachments.add(files)} /> : null}
         <Button
           variant="ghost"
           size="icon"
@@ -198,9 +242,15 @@ export function Composer({
             <Square aria-hidden className="fill-current" />
           </Button>
         ) : (
-          <Button variant="primary" size="icon" aria-label="Send" disabled={!canSend} onClick={send}>
-            <ArrowUp aria-hidden />
-          </Button>
+          <Button
+            variant="primary"
+            size="icon"
+            aria-label="Send"
+            disabled={!canSend}
+            loading={attachments.sending}
+            icon={<ArrowUp />}
+            onClick={() => void send()}
+          />
         )}
       </div>
 
@@ -212,10 +262,16 @@ export function Composer({
       ) : null}
       <p id={ids.status} role="status" className="sr-only">
         {dictation.listening ? "Listening." : ""}
+        {attachments.notice ? ` ${attachments.notice}` : ""}
         {pickerOpen
           ? ` ${matches.length} ${matches.length === 1 ? "skill matches" : "skills match"}. Use the up and down arrows to choose.`
           : ""}
       </p>
+      {attachments.problem ? (
+        <p role="alert" className="m-0 mt-1.5 px-2 text-caption text-problem">
+          {attachments.problem}
+        </p>
+      ) : null}
       {voiceMessage ? (
         <p role="alert" className="m-0 mt-1.5 px-2 text-caption text-needs">
           {voiceMessage}

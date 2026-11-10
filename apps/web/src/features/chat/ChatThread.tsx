@@ -447,6 +447,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                 onShowBlocker={focusApprovals}
                 footnote={footnote}
                 inputRef={composerRef}
+                attachTo={runtimeAgentId}
               />
             </div>
           </div>

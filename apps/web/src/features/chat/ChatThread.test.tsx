@@ -88,6 +88,7 @@ vi.mock("@/lib/api.ts", async (importOriginal) => ({
   useSkills: () => ({ data: [] }),
   useComputerStatus: () => ({ data: undefined }),
   useComputerActivity: () => ({ data: [] }),
+  useConversationAllows: () => ({ data: [] }),
 }));
 
 vi.mock("@/components/cards/ApprovalCard.tsx", () => ({

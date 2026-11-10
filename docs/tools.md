@@ -99,6 +99,18 @@ its own address: the file comes to the web app as text, and is drawn the safe wa
   act or send anything.
 - Anything else is shown as plain text. Only text files open, and only their first 1 MB.
 
+## Attaching a file
+
+The paperclip in Chat attaches text files (`.txt`, `.md`, `.csv`, `.json`, `.ics`, `.html`, `.xml`,
+`.yaml` or `.log`, up to 2 MB each, five to a message); dropping or pasting a file works too. They
+wait above the box, each with **Remove**, and nothing is added until you send. Then each one goes
+into the agent's workspace under `uploads/` with a safe name (a number is added when the name is
+taken), and the message ends with where: "I attached uploads/plan.md (2.1 KB) to your workspace."
+
+Steward reads it with `file_read`, so what the file says is outside content: it taints the
+conversation, and instructions hidden in it cannot send, pay, sign, delete, run a command, or save
+a memory or a routine without asking you first. Pictures, PDFs and other files that are not text are refused.
+
 ## Tools from connected apps (MCP)
 
 Tools from MCP servers added on `/connections` are named `mcp__<server>__<tool>`, have surface

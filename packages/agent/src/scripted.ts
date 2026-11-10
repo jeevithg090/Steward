@@ -198,6 +198,13 @@ function describeResult(tool: string, data: unknown, req: ChatCompletionRequest)
       ];
     case "routine_delete":
       return [`Deleted “${String(v.title ?? "the routine")}”. Its past conversation stays.`];
+    case "file_read": {
+      const text = typeof v.text === "string" ? v.text : "";
+      const lines = text.split("\n").filter((line) => line.trim() !== "").length;
+      return [
+        `I've read ${String(v.path ?? "the file")}: ${count(lines, "line", "lines")} of text. Tell me what you'd like done with it.`,
+      ];
+    }
     case "task_create":
       return ["It's on your Tasks page."];
     case "make_page":
@@ -363,6 +370,9 @@ function respondToPerson(req: ChatCompletionRequest): FixtureResponse {
       "Try “What needs me today?” or “Open news.ycombinator.com and tell me the top story.”",
     );
   }
+  // The composer ends a message with this when the person attached a file.
+  const attached = /\bI attached (uploads\/\S+?) \(/.exec(text)?.[1];
+  if (attached) return offered(req, "file_read") ? call("file_read", { path: attached }) : unavailable();
   if (/\b(what needs me|my brief|morning brief|today'?s brief|brief me|my day)\b/.test(lower)) {
     return offered(req, "brief_today") ? call("brief_today", {}) : unavailable();
   }

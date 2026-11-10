@@ -142,6 +142,23 @@ export const SettingsBody = z.object({
 /** The largest text file the person can attach. */
 export const UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
 
+/** The kinds of text file the person can attach. Anything else is refused before it reaches the workspace. */
+export const UPLOAD_EXTENSIONS = [
+  "txt",
+  "md",
+  "markdown",
+  "csv",
+  "tsv",
+  "json",
+  "ics",
+  "html",
+  "htm",
+  "xml",
+  "yaml",
+  "yml",
+  "log",
+] as const;
+
 /** A text file the person attaches to a message. It lands in the agent's workspace under `uploads/`. */
 export const UploadBody = z.object({
   /** The file's own name; the server makes it safe and adds a number when the name is taken. */
