@@ -533,7 +533,7 @@ describe("DirectoryClient on the web", () => {
     });
     const client = new DirectoryClient({ source: "https://other.example/index.json", fetch: fakeFetch });
     const needs = async (n: "mail" | "calendar" | "browser" | "none") =>
-      (await client.list({ needs: n })).bots.map((b) => b.id);
+      (await client.list({ needs: n, sort: "match", limit: 50, offset: 0 })).bots.map((b) => b.id);
     expect(await needs("none")).toEqual(["chatty"]);
     expect(await needs("browser")).toEqual(["surfer"]);
     expect(await needs("calendar")).toEqual(["diary"]);
