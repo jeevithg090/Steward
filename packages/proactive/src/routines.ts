@@ -2,12 +2,21 @@ import type { Db } from "@steward/db";
 import type { EventBus, NotificationStore, Routine, RoutineStore } from "@steward/shared";
 import { newId, ROUTINE_LIMITS } from "@steward/shared";
 import { ProactiveError, requireText } from "./errors.ts";
-import { checkSchedule, describeSchedule, nextRun } from "./schedule.ts";
+import { checkSchedule, describeSchedule, latestRun, nextRun } from "./schedule.ts";
+import { localDate } from "./time.ts";
 
-const RUN_STATUSES: readonly NonNullable<Routine["lastStatus"]>[] = ["ok", "failed", "refused", "skipped"];
+type RunStatus = Parameters<RoutineStore["recordRun"]>[1];
+
+const RUN_STATUSES: readonly RunStatus[] = ["ok", "failed", "refused", "skipped"];
 const ERROR_MAX = 400;
 /** A claimed run that has not reported back after this long is taken to have died with the server. */
 const RUN_STALE_MS = 60 * 60_000;
+/**
+ * The longest a firing may start after its time. A slot later than this, or than half the gap to
+ * the slot after it, is missed rather than run late: a morning inbox check at half past seven in
+ * the evening is not the routine the person set up.
+ */
+export const MISSED_GRACE_MS = 2 * 60 * 60_000;
 
 export const ROUTINE_MESSAGES = {
   noTitle: "A routine needs a short title.",
@@ -15,6 +24,7 @@ export const ROUTINE_MESSAGES = {
   noAgent: "Choose which agent runs this routine.",
   tooMany: `You already have ${ROUTINE_LIMITS.maxEnabled} routines switched on. Switch one off before adding another.`,
   notFound: "Couldn't find that routine.",
+  stopped: "Steward stopped while this was running.",
 } as const;
 
 interface RoutineRow {
@@ -60,6 +70,28 @@ function cleanTimezone(value: unknown): string {
   return typeof value === "string" && value.trim() ? value.trim() : "UTC";
 }
 
+/** "at 08:00" today in the routine's zone, or "on Monday 26 October at 08:00" for an earlier day. */
+function slotWords(slot: Date, at: Date, timeZone: string): string {
+  try {
+    const clock = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).format(slot);
+    if (localDate(slot, timeZone) === localDate(at, timeZone)) return `at ${clock}`;
+    const day = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }).format(slot);
+    return `on ${day} at ${clock}`;
+  } catch {
+    return `at ${slot.toISOString().slice(11, 16)} UTC`;
+  }
+}
+
 /**
  * Routines: standing instructions on a five-field cron, each with its own conversation.
  *
@@ -69,7 +101,9 @@ function cleanTimezone(value: unknown): string {
  *
  * `due(now)` claims what is due: each firing is handed out once, and the routine's next run moves
  * on in the same transaction, so a slow run is never started twice and a server that was asleep
- * fires each routine once rather than once per missed slot.
+ * fires each routine once rather than once per missed slot. A slot missed by more than its grace is
+ * not run late at all: it is marked missed and the person is told. `recover()` at start records
+ * the runs the last server was in the middle of as failed.
  */
 export function createRoutineStore(opts: {
   db: Db;
@@ -99,6 +133,60 @@ export function createRoutineStore(opts: {
 
   function nextRunIso(schedule: string, timezone: string, after: Date, previous?: Date): string | null {
     return nextRun(schedule, timezone, after, previous)?.toISOString() ?? null;
+  }
+
+  /**
+   * Records one run. `failed` and `refused` both count towards the ten in a row: either way the
+   * routine did not do its job, and one refused every time will not start working by itself.
+   * Only the first failure after a success notifies; the tenth switches it off and says so.
+   * `skipped` (the last run still waits for the person's answer) is neither a success nor a
+   * failure: the count stays where it was, so an unanswered approval never switches a routine off.
+   */
+  function recordRun(id: string, status: RunStatus, error?: string): Routine {
+    if (!RUN_STATUSES.includes(status)) {
+      throw new ProactiveError("invalid", "A run is ok, failed, refused or skipped.");
+    }
+    const current = row(id);
+    const at = now();
+    const ok = status === "ok";
+    const skipped = status === "skipped";
+    const failures = ok ? 0 : skipped ? current.consecutive_failures : current.consecutive_failures + 1;
+    const given = error?.trim().replace(/\s+/g, " ").slice(0, ERROR_MAX);
+    const fallback = status === "refused" ? "Steward's rules refused part of it." : "It didn't finish.";
+    const reason = ok
+      ? null
+      : given || (skipped ? "Its last run is still waiting for your answer." : fallback);
+    const switchOff =
+      !ok && !skipped && current.enabled === 1 && failures >= ROUTINE_LIMITS.maxConsecutiveFailures;
+    const enabled = switchOff ? 0 : current.enabled;
+    const previousFiring =
+      current.next_run_at && current.next_run_at <= at.toISOString()
+        ? new Date(current.next_run_at)
+        : undefined;
+    const nextRunAt =
+      enabled === 1 ? nextRunIso(current.schedule, current.timezone, at, previousFiring) : null;
+    db.run(
+      `UPDATE proactive_routines SET last_run_at = ?, last_status = ?, last_error = ?, consecutive_failures = ?,
+         enabled = ?, next_run_at = ?, running_since = NULL, updated_at = ? WHERE id = ?`,
+      [at.toISOString(), status, reason, failures, enabled, nextRunAt, at.toISOString(), id],
+    );
+    if (switchOff) {
+      notifications.add({
+        title: "A routine was switched off",
+        body: `“${current.title}” failed ${ROUTINE_LIMITS.maxConsecutiveFailures} times in a row, so it is switched off. Turn it back on when whatever it needs is working.`,
+        href: "/routines",
+        level: "problem",
+      });
+    } else if (!ok && !skipped && failures === 1) {
+      notifications.add({
+        title: "A routine didn't finish",
+        body: `“${current.title}”: ${reason}`,
+        href: `/chat/${current.thread_id}`,
+        level: "problem",
+      });
+    }
+    emit(id);
+    return toRoutine(row(id));
   }
 
   return {
@@ -220,68 +308,22 @@ export function createRoutineStore(opts: {
       emit(id);
     },
 
-    /**
-     * Records one run. `failed` and `refused` both count towards the ten in a row: either way the
-     * routine did not do its job, and one refused every time will not start working by itself.
-     * Only the first failure after a success notifies; the tenth switches it off and says so.
-     * `skipped` (the last run still waits for the person's answer) is neither a success nor a
-     * failure: the count stays where it was, so an unanswered approval never switches a routine off.
-     */
-    recordRun(id, status, error) {
-      if (!RUN_STATUSES.includes(status)) {
-        throw new ProactiveError("invalid", "A run is ok, failed, refused or skipped.");
-      }
-      const current = row(id);
-      const at = now();
-      const ok = status === "ok";
-      const skipped = status === "skipped";
-      const failures = ok ? 0 : skipped ? current.consecutive_failures : current.consecutive_failures + 1;
-      const given = error?.trim().replace(/\s+/g, " ").slice(0, ERROR_MAX);
-      const fallback = status === "refused" ? "Steward's rules refused part of it." : "It didn't finish.";
-      const reason = ok
-        ? null
-        : given || (skipped ? "Its last run is still waiting for your answer." : fallback);
-      const switchOff =
-        !ok && !skipped && current.enabled === 1 && failures >= ROUTINE_LIMITS.maxConsecutiveFailures;
-      const enabled = switchOff ? 0 : current.enabled;
-      const previousFiring =
-        current.next_run_at && current.next_run_at <= at.toISOString()
-          ? new Date(current.next_run_at)
-          : undefined;
-      const nextRunAt =
-        enabled === 1 ? nextRunIso(current.schedule, current.timezone, at, previousFiring) : null;
-      db.run(
-        `UPDATE proactive_routines SET last_run_at = ?, last_status = ?, last_error = ?, consecutive_failures = ?,
-           enabled = ?, next_run_at = ?, running_since = NULL, updated_at = ? WHERE id = ?`,
-        [at.toISOString(), status, reason, failures, enabled, nextRunAt, at.toISOString(), id],
-      );
-      if (switchOff) {
-        notifications.add({
-          title: "A routine was switched off",
-          body: `“${current.title}” failed ${ROUTINE_LIMITS.maxConsecutiveFailures} times in a row, so it is switched off. Turn it back on when whatever it needs is working.`,
-          href: "/routines",
-          level: "problem",
-        });
-      } else if (!ok && !skipped && failures === 1) {
-        notifications.add({
-          title: "A routine didn't finish",
-          body: `“${current.title}”: ${reason}`,
-          href: `/chat/${current.thread_id}`,
-          level: "problem",
-        });
-      }
-      emit(id);
-      return toRoutine(row(id));
-    },
+    recordRun,
 
     /**
      * Claims the routines due at `at`. A routine still running from its last claim is skipped (its
-     * missed slot is not made up), unless that run started over an hour ago and never reported back,
-     * which means the server stopped mid-run.
+     * missed slot is not made up), unless that run started over an hour ago and never reported back.
+     *
+     * Lateness is measured from the newest slot that has passed, so a server that slept through
+     * five hourly slots is late only for the last. Within the grace (the smaller of two hours and
+     * half the gap to the following slot) the routine is claimed with `dueAt` set; past it, the slot
+     * is marked missed, the next run moves on, and one notification names what was missed.
      */
     due(at = now()) {
       const iso = at.toISOString();
       const stale = new Date(at.getTime() - RUN_STALE_MS).toISOString();
+      const missed: { title: string; when: string }[] = [];
+      const touched: string[] = [];
       const claimed = db.tx(() => {
         const rows = db.all<RoutineRow>(
           `SELECT * FROM proactive_routines
@@ -290,19 +332,59 @@ export function createRoutineStore(opts: {
            ORDER BY next_run_at`,
           [iso, stale],
         );
+        const out: Routine[] = [];
         for (const r of rows) {
-          r.next_run_at = nextRunIso(r.schedule, r.timezone, at, new Date(r.next_run_at!));
+          touched.push(r.id);
+          const slot = latestRun(r.schedule, r.timezone, new Date(r.next_run_at!), at);
+          const following = nextRun(r.schedule, r.timezone, slot);
+          const grace = Math.min(
+            MISSED_GRACE_MS,
+            following ? (following.getTime() - slot.getTime()) / 2 : MISSED_GRACE_MS,
+          );
+          const nextRunAt = nextRunIso(r.schedule, r.timezone, at, slot);
+          if (at.getTime() - slot.getTime() > grace) {
+            const when = slotWords(slot, at, r.timezone);
+            db.run(
+              `UPDATE proactive_routines SET next_run_at = ?, last_run_at = ?, last_status = 'missed',
+                 last_error = ?, updated_at = ? WHERE id = ?`,
+              [nextRunAt, iso, `Missed the run due ${when} while Steward wasn't running.`, iso, r.id],
+            );
+            missed.push({ title: r.title, when });
+            continue;
+          }
+          r.next_run_at = nextRunAt;
           r.running_since = iso;
           db.run("UPDATE proactive_routines SET next_run_at = ?, running_since = ? WHERE id = ?", [
             r.next_run_at,
             iso,
             r.id,
           ]);
+          out.push({ ...toRoutine(r), dueAt: slot.toISOString() });
         }
-        return rows;
+        return out;
       });
-      for (const r of claimed) emit(r.id);
-      return claimed.map(toRoutine);
+      const [first] = missed;
+      if (first) {
+        const more = missed.length - 1;
+        notifications.add({
+          title: more ? `${missed.length} routines missed their time` : "A routine missed its time",
+          body: more
+            ? `“${first.title}” and ${more} more were due while Steward wasn't running. Press Run now on Routines for any you still need.`
+            : `“${first.title}” was due ${first.when} while Steward wasn't running. Press Run now on Routines if you still need it.`,
+          href: "/routines",
+          level: "problem",
+        });
+      }
+      for (const id of touched) emit(id);
+      return claimed;
+    },
+
+    recover() {
+      const running = db.all<{ id: string }>(
+        "SELECT id FROM proactive_routines WHERE running_since IS NOT NULL ORDER BY rowid",
+      );
+      for (const r of running) recordRun(r.id, "failed", ROUTINE_MESSAGES.stopped);
+      return running.length;
     },
   };
 }

@@ -150,10 +150,15 @@ export interface Routine {
   threadId: string;
   consecutiveFailures: number;
   lastRunAt?: string;
-  /** `skipped`: the firing did not start because the last run still waits for an answer. Not a failure. */
-  lastStatus?: "ok" | "failed" | "refused" | "skipped";
+  /**
+   * `skipped`: the firing did not start because the last run still waits for an answer. `missed`: its
+   * time came and went while Steward wasn't running, too long ago to run it late. Neither is a failure.
+   */
+  lastStatus?: "ok" | "failed" | "refused" | "skipped" | "missed";
   lastError?: string;
   nextRunAt?: string;
+  /** Only on a routine `due()` just claimed: the slot it is firing for, which may be a little in the past. */
+  dueAt?: string;
   createdAt: string;
 }
 

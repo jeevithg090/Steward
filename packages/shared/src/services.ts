@@ -238,7 +238,16 @@ export interface RoutineStore {
   remove(id: string): void;
   /** Records one run. Ten failures in a row switch the routine off. */
   recordRun(id: string, status: "ok" | "failed" | "refused" | "skipped", error?: string): Routine;
+  /**
+   * Claims what is due. A slot missed by more than its grace (while Steward wasn't running) is not
+   * run late: it is marked `missed` and the person is told once.
+   */
   due(now?: Date): Routine[];
+  /**
+   * Called once at start: any run still marked as running died with the last server, so it is
+   * recorded as failed and the routine is scheduled again from now. Returns how many there were.
+   */
+  recover(): number;
 }
 
 /**

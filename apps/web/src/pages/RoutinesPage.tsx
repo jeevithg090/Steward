@@ -1,5 +1,5 @@
 import { ROUTINE_LIMITS, type Routine } from "@steward/shared";
-import { CalendarClock, MessageSquare, Play, Plus, Repeat, Trash } from "lucide-react";
+import { CalendarClock, Clock, MessageSquare, Play, Plus, Repeat, Trash } from "lucide-react";
 import { type FormEvent, useId, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -83,6 +83,10 @@ function LastResult({ routine }: { routine: Routine }) {
       <Pill tone="needs">Refused</Pill>
     ) : routine.lastStatus === "skipped" ? (
       <Pill tone="needs">Waiting for you</Pill>
+    ) : routine.lastStatus === "missed" ? (
+      <Pill tone="neutral" icon={Clock}>
+        Missed
+      </Pill>
     ) : (
       <Pill tone="problem">Failed</Pill>
     );

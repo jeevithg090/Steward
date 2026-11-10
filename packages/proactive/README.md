@@ -72,6 +72,16 @@ Standing instructions on a five-field cron, each with its own conversation (`thr
   same transaction. A routine still running is skipped (its slot is not made up), unless its run
   started over an hour ago and never reported back. A server that slept fires each routine once, not
   once per missed slot. Call `recordRun` when the run ends.
+- **Late or missed.** Lateness is counted from the newest slot that has passed, so a routine every
+  15 minutes just runs at the next one. A slot up to two hours late (or half the gap to the slot after
+  it, if that is shorter) is claimed with `dueAt`, and the server adds "(Due at 08:00; starting at
+  08:40.)" to a firing more than 5 minutes late. Later than that, the slot is not run at all: the
+  routine reads `missed` ("Missed the run due at 08:00 while Steward wasn't running."), its next run
+  moves on, and one notification names what was missed, so the person can press **Run now**. A
+  missed slot is not a failure.
+- **`recover()`** is called once when the server starts. A run still marked as running died with the
+  last server: it is recorded as failed ("Steward stopped while this was running."), which notifies
+  like any first failure, and the routine is scheduled again from now.
 - `scheduleText` is plain words: "Every day at 08:00", "Weekdays at 08:00", "Mondays at 09:30",
   "Every hour", "Every 15 minutes", "On the 1st of every month at 09:00", or the cron itself when
   the shape is stranger than words.

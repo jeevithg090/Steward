@@ -107,6 +107,21 @@ export function nextRun(schedule: string, timezone: string, after: Date, previou
   }
 }
 
+/**
+ * The newest firing at or before `at`, and never before `from` (a firing already known to be due).
+ * A server that slept through five hourly slots is late only for the last one, not the first.
+ */
+export function latestRun(schedule: string, timezone: string, from: Date, at: Date): Date {
+  try {
+    // croner looks strictly before its reference, to the second.
+    const [latest] = cronFor(normalise(schedule), timezone).previousRuns(1, new Date(at.getTime() + 1000));
+    if (latest && latest.getTime() <= at.getTime() && latest.getTime() > from.getTime()) return latest;
+  } catch {
+    // An unreadable schedule never got this far; `from` is the honest answer if it did.
+  }
+  return from;
+}
+
 // ── Plain words for a schedule ────────────────────────────────────────────────────────────────
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
