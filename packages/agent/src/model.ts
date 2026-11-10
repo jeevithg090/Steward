@@ -264,20 +264,43 @@ async function startScripted(label: string): Promise<CreatedModel> {
   return { model: provider.chat(SCRIPTED_MODEL_ID), label, scripted: true, close: server.close };
 }
 
-/** A short, structured completion from the configured model, for triage and the brief. */
-export function createTextModel(model: LanguageModel, label: string): TextModel {
+/** How long triage and the brief wait for one answer, retry included, before giving up on the model. */
+export const TEXT_MODEL_TIMEOUT_MS = 45_000;
+
+/**
+ * A short, structured completion from the configured model, for triage and the brief. Each answer
+ * has a time limit of its own, so a provider that takes the request and never answers cannot hold
+ * up the morning brief: past it the call fails with a `TimeoutError`, and callers fall back to rules.
+ */
+export function createTextModel(
+  model: LanguageModel,
+  label: string,
+  opts: { timeoutMs?: number } = {},
+): TextModel {
+  const timeoutMs = opts.timeoutMs ?? TEXT_MODEL_TIMEOUT_MS;
   return {
     label,
     async complete({ system, prompt, maxTokens, signal }) {
-      const result = await generateText({
-        model,
-        system,
-        prompt,
-        ...(maxTokens !== undefined ? { maxOutputTokens: maxTokens } : {}),
-        ...(signal ? { abortSignal: signal } : {}),
-        maxRetries: 1,
-      });
-      return result.text;
+      const timer = AbortSignal.timeout(timeoutMs);
+      try {
+        const result = await generateText({
+          model,
+          system,
+          prompt,
+          ...(maxTokens !== undefined ? { maxOutputTokens: maxTokens } : {}),
+          abortSignal: signal ? AbortSignal.any([signal, timer]) : timer,
+          maxRetries: 1,
+        });
+        return result.text;
+      } catch (error) {
+        if (!timer.aborted || signal?.aborted) throw error;
+        const seconds = Math.ceil(timeoutMs / 1000);
+        const timeout = new Error(
+          `The model did not answer within ${seconds} second${seconds === 1 ? "" : "s"}.`,
+        );
+        timeout.name = "TimeoutError";
+        throw timeout;
+      }
     },
   };
 }

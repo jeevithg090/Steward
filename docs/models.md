@@ -150,7 +150,9 @@ the demo ribbon on every page. When there was a key problem, the model's label s
 "Scripted demo model (no key for openrouter)".
 
 Triage and the brief summary ask the model for a short structured answer. The scripted model has
-none to give, so they fall back to rules and say so; nothing is guessed.
+none to give, so they fall back to rules and say so; nothing is guessed. A real model gets 45
+seconds for each of those answers; one that takes longer counts as not answering, so a provider
+that hangs cannot hold up the morning brief.
 
 The script is `packages/agent/fixtures/scripted.json`, in aimock's fixture format, plus the request
 matching in `packages/agent/src/scripted.ts`. The end-to-end tests run against it.

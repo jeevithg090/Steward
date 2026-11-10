@@ -1,5 +1,8 @@
+import { createServer, type Server } from "node:http";
+import type { AddressInfo } from "node:net";
+import { createOpenAI } from "@ai-sdk/openai";
 import type { TenantPackage } from "@steward/shared";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   createModel,
   createTextModel,
@@ -322,6 +325,52 @@ describe("createModel", () => {
     expect(await text.complete({ system: "Sort this email.", prompt: "Hi" })).toMatch(/Scripted demo model/);
     await created.close();
     await created.close();
+  });
+});
+
+describe("createTextModel", () => {
+  let server: Server | undefined;
+  afterEach(() => {
+    server?.closeAllConnections();
+    server?.close();
+    server = undefined;
+  });
+
+  /** A provider that takes the request and never answers. */
+  async function silentProvider() {
+    server = createServer(() => {});
+    await new Promise<void>((resolve) => server?.listen(0, "127.0.0.1", resolve));
+    const { port } = server.address() as AddressInfo;
+    const model = createOpenAI({ name: "silent", baseURL: `http://127.0.0.1:${port}/v1`, apiKey: "k" }).chat(
+      "m",
+    );
+    return { model };
+  }
+
+  it("gives up on a model that never answers, with a TimeoutError the callers know", async () => {
+    const { model } = await silentProvider();
+    const text = createTextModel(model, "Silent", { timeoutMs: 300 });
+    const started = Date.now();
+    const error = await text.complete({ system: "Sort this email.", prompt: "Hi" }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(Error);
+    // Not refused, which would fail at once: it waited, then gave up at the limit.
+    expect(error).toMatchObject({
+      name: "TimeoutError",
+      message: "The model did not answer within 1 second.",
+    });
+    expect(Date.now() - started).toBeGreaterThanOrEqual(250);
+    expect(Date.now() - started).toBeLessThan(5_000);
+  });
+
+  it("still stops when the caller stops it, as the caller's own stop", async () => {
+    const { model } = await silentProvider();
+    const text = createTextModel(model, "Silent", { timeoutMs: 30_000 });
+    const stop = new AbortController();
+    const pending = text.complete({ system: "s", prompt: "p", signal: stop.signal }).catch((e: unknown) => e);
+    setTimeout(() => stop.abort(), 100);
+    const error = await pending;
+    expect((error as Error).name).not.toBe("TimeoutError");
+    expect(stop.signal.aborted).toBe(true);
   });
 });
 
