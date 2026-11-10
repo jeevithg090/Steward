@@ -212,6 +212,10 @@ file, run a script.
   never written, since it may be a file outside the workspace, and only regular files are read or
   written, so a named pipe cannot make a read wait forever. A preset keeps them away from `.env`, SSH
   keys, `.pem` files and cloud credentials.
+- **Pages cannot fill the disk with downloads.** A page can start a download with nobody asking.
+  Each file may be at most 100 MB, checked while it downloads, and at most 10 downloads may start in
+  a minute; Steward stops the rest. Files land in `downloads/` in the workspace, never over an
+  existing file, and the agent is told what was saved or stopped.
 - **Commands run with `bash -c` in the workspace,** never a login shell, with an environment
   limited to `PATH`, the locale and terminal variables, and `TZ`. Each command gets a new, empty
   `HOME` outside the workspace, removed when it ends, so a file the agent saved without asking (a
