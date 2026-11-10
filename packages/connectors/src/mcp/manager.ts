@@ -9,13 +9,21 @@ import {
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { ErrorCode, McpError, type Tool } from "@modelcontextprotocol/sdk/types.js";
 import { type Db, fromJson, toJson } from "@steward/db";
-import { type McpManager, type McpServerInfo, type McpToolDefinition, mcpToolName } from "@steward/shared";
+import {
+  type McpManager,
+  type McpServerInfo,
+  type McpToolDefinition,
+  type McpToolKind,
+  mcpToolName,
+} from "@steward/shared";
 import { migrations } from "../migrations.ts";
 import { assertPublicHost, checkWebAddress, type LookupFn } from "../net/address.ts";
 import { createGuardedFetch } from "../net/guarded-fetch.ts";
 import { type McpCallOutput, resultText } from "./result.ts";
 
 export type McpServerConfig = Parameters<McpManager["upsert"]>[0];
+/** A config as the manager keeps it: every list present. */
+type SavedConfig = McpServerConfig & { sends: string[]; deletes: string[] };
 
 export interface McpManagerOptions {
   db: Db;
@@ -61,7 +69,7 @@ interface ListedTool {
 }
 
 interface ServerState {
-  config: McpServerConfig;
+  config: SavedConfig;
   tools: ListedTool[];
   status: "connected" | "error";
   error?: string;
@@ -83,6 +91,8 @@ interface Row {
   url: string | null;
   granted_json: string;
   reads_json: string;
+  sends_json: string;
+  deletes_json: string;
   tools_json: string;
   last_error: string | null;
 }
@@ -119,8 +129,9 @@ const TERMINAL_COLOURS = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"
  *   from Steward's environment (the SDK adds its own safe list: USER, LOGNAME, SHELL).
  * - http servers pass the same private-address checks as `web_fetch`, at save time and on every
  *   request, unless private hosts are allowed. Metadata addresses are refused always.
- * - A tool is a read only when the person listed it in `reads` and the server did not mark it
- *   destructive. Everything else is a write. A server's own `readOnlyHint` is never believed.
+ * - A tool's kind is what the person marked: `send` or `delete` follow the rules for sends and
+ *   deletes, `read` runs. A tool the server marks destructive is a delete unless marked a send.
+ *   Anything unmarked is a write. A server's own `readOnlyHint` is never believed.
  * - Only granted tools are offered to the model, and `call` refuses anything not granted.
  */
 export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
@@ -143,6 +154,8 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         ...(row.url ? { url: row.url } : {}),
         granted: fromJson<string[]>(row.granted_json, []),
         reads: fromJson<string[]>(row.reads_json, []),
+        sends: fromJson<string[]>(row.sends_json, []),
+        deletes: fromJson<string[]>(row.deletes_json, []),
       },
       tools: fromJson<ListedTool[]>(row.tools_json, []),
       status: "error",
@@ -308,6 +321,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         description: t.description,
         granted: config.granted.includes(t.name),
         kind: kindOf(config, t),
+        ...(t.destructive ? { destructive: true } : {}),
       })),
     };
   }
@@ -397,12 +411,14 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       const now = new Date().toISOString();
       db.run(
         `INSERT INTO connectors_mcp_servers
-           (id, name, transport, command, args_json, url, granted_json, reads_json, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           (id, name, transport, command, args_json, url, granted_json, reads_json, sends_json,
+            deletes_json, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT (id) DO UPDATE SET
            name = excluded.name, transport = excluded.transport, command = excluded.command,
            args_json = excluded.args_json, url = excluded.url, granted_json = excluded.granted_json,
-           reads_json = excluded.reads_json, updated_at = excluded.updated_at`,
+           reads_json = excluded.reads_json, sends_json = excluded.sends_json,
+           deletes_json = excluded.deletes_json, updated_at = excluded.updated_at`,
         [
           config.id,
           config.name,
@@ -412,6 +428,8 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
           config.url ?? null,
           toJson(config.granted),
           toJson(config.reads),
+          toJson(config.sends),
+          toJson(config.deletes),
           now,
           now,
         ],
@@ -520,9 +538,16 @@ function listedTool(tool: Tool): ListedTool {
   };
 }
 
-/** Read only when the person said so and the server did not say otherwise. Fail closed. */
-function kindOf(config: McpServerConfig, tool: ListedTool): "read" | "write" {
-  return config.reads.includes(tool.name) && !tool.destructive ? "read" : "write";
+/**
+ * What the person marked, made stricter by the server's destructive hint and never looser: a send
+ * stays a send, a destructive tool is a delete, a read is a read only when the server did not say it
+ * destroys, and anything unmarked is a write. Fail closed.
+ */
+function kindOf(config: SavedConfig, tool: ListedTool): McpToolKind {
+  if (config.sends.includes(tool.name)) return "send";
+  if (config.deletes.includes(tool.name) || tool.destructive) return "delete";
+  if (config.reads.includes(tool.name)) return "read";
+  return "write";
 }
 
 /** A JSON Schema whose root is an object, as every model provider requires for tool parameters. */
@@ -555,7 +580,7 @@ function sameConnection(a: McpServerConfig, b: McpServerConfig): boolean {
   );
 }
 
-function validate(input: McpServerConfig): McpServerConfig {
+function validate(input: McpServerConfig): SavedConfig {
   if (!ID_PATTERN.test(input.id)) {
     throw new Error(
       "A server id is 1 to 41 lower-case letters, digits or dashes, starting with a letter or digit.",
@@ -575,6 +600,8 @@ function validate(input: McpServerConfig): McpServerConfig {
     name,
     granted: [...new Set(strings(input.granted ?? [], "Granted tools"))],
     reads: [...new Set(strings(input.reads ?? [], "Read tools"))],
+    sends: [...new Set(strings(input.sends ?? [], "Tools that send"))],
+    deletes: [...new Set(strings(input.deletes ?? [], "Tools that delete"))],
   };
 
   if (input.transport === "stdio") {

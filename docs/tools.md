@@ -87,9 +87,20 @@ Display only: these draw a card in the chat and change nothing.
 ## Tools from connected apps (MCP)
 
 Tools from MCP servers added on `/connections` are named `mcp__<server>__<tool>`, have surface
-`mcp`, and are treated as untrusted (they taint). Their kind is `write` unless you marked the tool
-as a read when you added the server; Steward does not trust a server's own claim that a tool only
-reads. So by default an MCP tool **asks**, and one you marked as a read runs.
+`mcp`, and are treated as untrusted (they taint). Their kind is what you said the tool does on
+`/connections`:
+
+| You marked it  | Kind     | By default | After reading something untrusted | From a routine                  |
+| -------------- | -------- | ---------- | --------------------------------- | ------------------------------- |
+| Only reads     | `read`   | runs       | runs                              | runs                            |
+| Changes things | `write`  | asks       | asks                              | asks                            |
+| Sends or posts | `send`   | asks       | **asks, without Always allow**    | refused ("Routines never send") |
+| Deletes things | `delete` | asks       | **asks, without Always allow**    | asks                            |
+
+Anything you have not marked is a `write`. Steward never believes a server that says its tool only
+reads (`readOnlyHint`), but it does believe one that says its tool can destroy things
+(`destructiveHint`), because that only makes it stricter: such a tool is a `delete`, and can be
+marked only as deleting or as sending. Every kind but a read gets the check on what leaves.
 
 A tool is offered to the agent only once you grant it, on `/connections` or by name in the
 tenant's `agents.yaml`. Granting a tool never skips the gateway.

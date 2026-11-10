@@ -2,7 +2,7 @@
  * Service interfaces between packages. Each package implements its own and depends only on these,
  * so tracks can be built in parallel and wired together in `apps/server`.
  */
-import type { McpServerInfo } from "./api.ts";
+import type { McpServerInfo, McpToolKind } from "./api.ts";
 import type {
   ActivityItem,
   Computer,
@@ -134,7 +134,7 @@ export interface McpToolDefinition {
   description: string;
   /** JSON Schema, always `{ type: "object", ... }`. */
   parameters: Record<string, unknown>;
-  kind: "read" | "write";
+  kind: McpToolKind;
 }
 
 export interface McpManager {
@@ -156,6 +156,10 @@ export interface McpManager {
     url?: string;
     granted: string[];
     reads: string[];
+    /** Tools that send or post. Default none. */
+    sends?: string[];
+    /** Tools that delete. Default none; a tool the server calls destructive is one anyway. */
+    deletes?: string[];
   }): Promise<McpServerInfo>;
   remove(id: string): Promise<void>;
   closeAll(): Promise<void>;

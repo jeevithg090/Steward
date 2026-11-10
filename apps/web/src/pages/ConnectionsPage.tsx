@@ -1,4 +1,4 @@
-import type { ToolKind, ToolSurface } from "@steward/shared";
+import type { McpToolKind, ToolKind, ToolSurface } from "@steward/shared";
 import { Mail, Plug, Plus, Server, Trash, TriangleAlert } from "lucide-react";
 import { type FormEvent, useId, useState } from "react";
 import { toast } from "sonner";
@@ -89,8 +89,9 @@ function McpSection({ servers }: { servers: McpServerDetail[] }) {
           Connected apps (MCP)
         </h2>
         <p className="mt-1 text-ink-2 text-sub">
-          New tools start switched off. Switch on the ones Steward may use, and mark the ones that only read:
-          anything not marked is treated as a change and follows the rules for changes.
+          New tools start switched off. Switch on the ones Steward may use, and say what each one does.
+          Anything you haven't marked is treated as a change. Tools that send or delete always ask after
+          Steward has read something it doesn't trust, and routines never send.
         </p>
       </div>
       {servers.length === 0 ? (
@@ -110,13 +111,58 @@ function McpSection({ servers }: { servers: McpServerDetail[] }) {
   );
 }
 
+/** What the person said about a server's tools: which Steward may use, and what each one does. */
+interface Marks {
+  granted: string[];
+  reads: string[];
+  sends: string[];
+  deletes: string[];
+}
+
+const KIND_CHOICES: { value: McpToolKind; label: string }[] = [
+  { value: "read", label: "Only reads" },
+  { value: "write", label: "Changes things" },
+  { value: "send", label: "Sends or posts" },
+  { value: "delete", label: "Deletes things" },
+];
+
+/** A tool the server calls destructive is a delete unless marked as sending: nothing looser. */
+const DESTRUCTIVE_CHOICES = KIND_CHOICES.filter((c) => c.value === "delete" || c.value === "send");
+
+function marksOf(server: McpServerDetail): Marks {
+  const named = (keep: (t: McpServerDetail["tools"][number]) => boolean) =>
+    server.tools.filter(keep).map((t) => t.name);
+  return {
+    granted: named((t) => t.granted),
+    reads: named((t) => t.kind === "read"),
+    sends: named((t) => t.kind === "send"),
+    // A destructive tool is a delete without being marked.
+    deletes: named((t) => t.kind === "delete" && !t.destructive),
+  };
+}
+
+function withKind(marks: Marks, name: string, kind: McpToolKind): Marks {
+  const without = (list: string[]) => list.filter((n) => n !== name);
+  return {
+    granted: marks.granted,
+    reads: kind === "read" ? [...without(marks.reads), name] : without(marks.reads),
+    sends: kind === "send" ? [...without(marks.sends), name] : without(marks.sends),
+    deletes: kind === "delete" ? [...without(marks.deletes), name] : without(marks.deletes),
+  };
+}
+
+function withGrant(marks: Marks, name: string, on: boolean): Marks {
+  const granted = marks.granted.filter((n) => n !== name);
+  return { ...marks, granted: on ? [...granted, name] : granted };
+}
+
 function McpServerCard({ server }: { server: McpServerDetail }) {
   const upsert = useUpsertMcp();
   const remove = useRemoveMcp();
   const [confirming, setConfirming] = useState(false);
   const headingId = useId();
 
-  function save(granted: string[], reads: string[]) {
+  function save(next: Marks) {
     upsert.mutate(
       {
         existing: true,
@@ -126,15 +172,13 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
         command: server.command,
         args: server.args ?? [],
         url: server.url,
-        granted,
-        reads,
+        ...next,
       },
       { onError: (error) => toast.error("Couldn't save that change", { description: error.message }) },
     );
   }
 
-  const granted = server.tools.filter((t) => t.granted).map((t) => t.name);
-  const reads = server.tools.filter((t) => t.kind === "read").map((t) => t.name);
+  const marks = marksOf(server);
 
   return (
     <Card as="article" aria-labelledby={headingId} className="flex flex-col gap-3">
@@ -175,49 +219,13 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
       ) : (
         <ul className="flex flex-col">
           {server.tools.map((tool) => (
-            <li
+            <McpToolRow
               key={tool.name}
-              className="grid gap-x-4 gap-y-1 border-hair-2 border-t py-3 first:border-t-0 sm:grid-cols-[1fr_auto_auto] sm:items-center"
-            >
-              <div className="min-w-0">
-                <p className="font-medium text-ink text-sub">{toolLabel(tool.name)}</p>
-                <p className="text-caption text-ink-2">{tool.description}</p>
-              </div>
-              <div>
-                <Select
-                  aria-label={`What ${tool.name} does`}
-                  value={tool.kind}
-                  className="min-w-40"
-                  disabled={upsert.isPending}
-                  onChange={(e) =>
-                    save(
-                      granted,
-                      e.target.value === "read"
-                        ? [...new Set([...reads, tool.name])]
-                        : reads.filter((r) => r !== tool.name),
-                    )
-                  }
-                >
-                  <option value="read">Only reads</option>
-                  <option value="write">Changes things</option>
-                </Select>
-              </div>
-              <Switch
-                checked={tool.granted}
-                disabled={upsert.isPending}
-                label={
-                  <>
-                    Steward may use it<span className="sr-only">: {tool.name}</span>
-                  </>
-                }
-                onCheckedChange={(on) =>
-                  save(
-                    on ? [...new Set([...granted, tool.name])] : granted.filter((g) => g !== tool.name),
-                    reads,
-                  )
-                }
-              />
-            </li>
+              tool={tool}
+              busy={upsert.isPending}
+              onKind={(kind) => save(withKind(marks, tool.name, kind))}
+              onGrant={(on) => save(withGrant(marks, tool.name, on))}
+            />
           ))}
         </ul>
       )}
@@ -249,6 +257,60 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
         }
       />
     </Card>
+  );
+}
+
+function McpToolRow({
+  tool,
+  busy,
+  onKind,
+  onGrant,
+}: {
+  tool: McpServerDetail["tools"][number];
+  busy: boolean;
+  onKind: (kind: McpToolKind) => void;
+  onGrant: (on: boolean) => void;
+}) {
+  const noteId = useId();
+  const choices = tool.destructive ? DESTRUCTIVE_CHOICES : KIND_CHOICES;
+  return (
+    <li className="grid gap-x-4 gap-y-1 border-hair-2 border-t py-3 first:border-t-0 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+      <div className="min-w-0">
+        <p className="font-medium text-ink text-sub">{toolLabel(tool.name)}</p>
+        <p className="text-caption text-ink-2">{tool.description}</p>
+        {tool.destructive ? (
+          <p id={noteId} className="mt-1 text-caption text-ink-2">
+            Its server says it can delete or overwrite things, so Steward treats it as deleting.
+          </p>
+        ) : null}
+      </div>
+      <div>
+        <Select
+          aria-label={`What ${tool.name} does`}
+          aria-describedby={tool.destructive ? noteId : undefined}
+          value={tool.kind}
+          className="min-w-40"
+          disabled={busy}
+          onChange={(e) => onKind(e.target.value as McpToolKind)}
+        >
+          {choices.map((choice) => (
+            <option key={choice.value} value={choice.value}>
+              {choice.label}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <Switch
+        checked={tool.granted}
+        disabled={busy}
+        label={
+          <>
+            Steward may use it<span className="sr-only">: {tool.name}</span>
+          </>
+        }
+        onCheckedChange={onGrant}
+      />
+    </li>
   );
 }
 
@@ -297,6 +359,8 @@ function AddServer() {
         url: transport === "http" ? url.trim() : undefined,
         granted: [],
         reads: [],
+        sends: [],
+        deletes: [],
       },
       {
         onSuccess: (server) => {

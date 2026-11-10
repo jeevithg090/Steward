@@ -127,9 +127,36 @@ describe("MCP manager with an in-process server", () => {
       description: "Finds notes that mention the words.",
     });
     expect(tools.create_note).toMatchObject({ granted: false, kind: "write" });
-    // Listed as a read by the person, but the server says it destroys: a write. readOnlyHint is ignored.
-    expect(tools.delete_note).toMatchObject({ granted: true, kind: "write" });
+    // Listed as a read by the person, but the server says it destroys: a delete. readOnlyHint is ignored.
+    expect(tools.delete_note).toMatchObject({ granted: true, kind: "delete", destructive: true });
     expect(mcp.list()).toEqual([info]);
+  });
+
+  it("keeps the sends and deletes the person marked, and never lets a mark loosen the server's hint", async () => {
+    const mcp = manager({ createTransport: inMemory().createTransport });
+    await mcp.upsert({
+      ...NOTES,
+      granted: ["create_note", "search_notes", "delete_note", "count_notes"],
+      reads: ["count_notes", "delete_note"],
+      sends: ["create_note", "count_notes"],
+      deletes: ["search_notes"],
+    });
+    const kinds = Object.fromEntries(mcp.grantedTools("steward").map((t) => [t.tool, t.kind]));
+    // A send outranks every other mark; a delete outranks a read; destructive is a delete.
+    expect(kinds).toEqual({
+      create_note: "send",
+      search_notes: "delete",
+      delete_note: "delete",
+      count_notes: "send",
+    });
+    const sendsDestructive = await mcp.upsert({ ...NOTES, sends: ["delete_note"] });
+    expect(sendsDestructive.tools.find((t) => t.name === "delete_note")?.kind).toBe("send");
+
+    // Saved, and read back after a restart.
+    await mcp.upsert({ ...NOTES, sends: ["create_note"], deletes: ["search_notes"] });
+    const restarted = manager({ createTransport: inMemory().createTransport, connectOnStart: false });
+    const after = Object.fromEntries(restarted.list()[0]?.tools.map((t) => [t.name, t.kind]) ?? []);
+    expect(after).toMatchObject({ create_note: "send", search_notes: "delete", missing_note: "write" });
   });
 
   it("keeps the config and the last listing in its own table", async () => {

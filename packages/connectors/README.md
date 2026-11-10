@@ -137,11 +137,12 @@ await mcp.upsert({
   args: ["-y", "@modelcontextprotocol/server-github"],
   granted: ["search_issues", "create_issue"],
   reads: ["search_issues"],
+  sends: ["create_issue"], // it posts where other people read it
 });
 
 mcp.grantedTools("steward");
 // [{ name: "mcp__github__search_issues", kind: "read", parameters: { type: "object", ... } },
-//  { name: "mcp__github__create_issue", kind: "write", ... }]
+//  { name: "mcp__github__create_issue", kind: "send", ... }]
 
 await mcp.call("github", "search_issues", { q: "is:open label:bug" });
 // { text: "...", truncated: false, structured?: {...} }
@@ -158,9 +159,10 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
 - **http servers** (Streamable HTTP) pass the same address checks as `web_fetch`, when saved and on
   every request: loopback and private networks are refused unless `allowPrivateHosts`, and metadata
   addresses always. Requests connect to the exact addresses that were checked.
-- **Read or write.** A tool is a read only when the person listed it in `reads` and the server did not
-  mark it `destructiveHint: true`. Everything else is a write. A server's own `readOnlyHint` is never
-  believed: it would let a server declare its own tools harmless.
+- **Kinds.** A tool's kind is what the person marked: `sends` make it a `send`, `deletes` a
+  `delete`, `reads` a `read`; anything unmarked is a `write`. A tool the server marks
+  `destructiveHint: true` is a `delete` whatever it was marked, unless it was marked a send. A
+  server's own `readOnlyHint` is never believed: it would let a server declare its own tools harmless.
 - **Grants.** Only granted tools are offered, and `call` refuses anything not granted, whatever the
   caller says. Grants are per server and apply to every agent for now.
 - **Names.** Tools are offered as `mcp__<server>__<tool>`. A tool whose full name a model cannot call
@@ -214,6 +216,7 @@ first, and the root dot is dropped (`metadata.google.internal.`), so no spelling
 | Migration                    | Table                                                                                                                     |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `connectors.001_mcp_servers` | `connectors_mcp_servers`: id, name, transport, command, args, url, granted, reads, the last tool listing, the last error. |
+| `connectors.002_mcp_kinds`   | Adds the tools the person marked as sending (`sends_json`) and deleting (`deletes_json`).                                 |
 
 ## Tests
 

@@ -24,4 +24,13 @@ export const migrations: Migration[] = [
       );
     `,
   },
+  {
+    // Kinds beyond read and write, so a tool that posts or deletes follows the rules for sends and
+    // deletes (taint, "Routines never send") instead of passing as a write.
+    id: "connectors.002_mcp_kinds",
+    sql: `
+      ALTER TABLE connectors_mcp_servers ADD COLUMN sends_json TEXT NOT NULL DEFAULT '[]';
+      ALTER TABLE connectors_mcp_servers ADD COLUMN deletes_json TEXT NOT NULL DEFAULT '[]';
+    `,
+  },
 ];

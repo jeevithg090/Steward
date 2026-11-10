@@ -29,6 +29,8 @@ export function registerConnectionRoutes(app: Hono, s: StewardServices): void {
         ...(body.url ? { url: body.url } : {}),
         granted: body.granted,
         reads: body.reads,
+        sends: body.sends,
+        deletes: body.deletes,
       });
     } catch (err) {
       console.error("[steward] tool server failed:", err instanceof Error ? err.message : err);

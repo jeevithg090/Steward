@@ -109,6 +109,10 @@ export const McpServerBody = z.object({
   granted: z.array(z.string()).default([]),
   /** Tools the person marked as reads. Everything else is treated as a write. */
   reads: z.array(z.string()).default([]),
+  /** Tools the person marked as sending or posting: they follow the rules for sends. */
+  sends: z.array(z.string()).default([]),
+  /** Tools the person marked as deleting. One the server calls destructive is a delete anyway. */
+  deletes: z.array(z.string()).default([]),
 });
 
 export const SettingsBody = z.object({
@@ -198,6 +202,12 @@ export interface Settings {
   approvalExpiryHours: number;
 }
 
+/**
+ * What an MCP tool does, as the person marked it: `read`, `write` (the default), `send` or `delete`.
+ * A tool the server calls destructive is a `delete` whatever it was marked, unless marked `send`.
+ */
+export type McpToolKind = "read" | "write" | "send" | "delete";
+
 export interface McpServerInfo {
   id: string;
   name: string;
@@ -208,7 +218,14 @@ export interface McpServerInfo {
   command?: string;
   args?: string[];
   url?: string;
-  tools: { name: string; description: string; granted: boolean; kind: "read" | "write" }[];
+  tools: {
+    name: string;
+    description: string;
+    granted: boolean;
+    kind: McpToolKind;
+    /** The server says the tool can destroy or overwrite things, so it can't be marked a read or a write. */
+    destructive?: boolean;
+  }[];
 }
 
 export interface ConnectionsInfo {

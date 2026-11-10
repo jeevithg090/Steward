@@ -3,6 +3,7 @@ import {
   type GateCall,
   type Initiator,
   isBuiltinTool,
+  type McpToolKind,
   newId,
   parseMcpToolName,
   type Target,
@@ -60,11 +61,11 @@ export function builtinToolList(): { name: string; description: string; kind: st
 
 /**
  * The gateway's view of a tool by name. Unknown tools are treated as writes (fail closed); MCP
- * tools are writes unless the person marked them as reads.
+ * tools have the kind the person marked (read, send or delete), and are writes otherwise.
  */
 export function describeTool(
   name: string,
-  mcpKind?: (server: string, tool: string) => "read" | "write" | undefined,
+  mcpKind?: (server: string, tool: string) => McpToolKind | undefined,
 ): GateCall["tool"] {
   if (isBuiltinTool(name))
     return { name, kind: TOOLS[name].kind, surface: TOOLS[name].surface, source: "builtin" };
@@ -152,7 +153,7 @@ export function buildDryRunCall(
   ctx: {
     agentId: string;
     actorId: string;
-    mcpKind?: (server: string, tool: string) => "read" | "write" | undefined;
+    mcpKind?: (server: string, tool: string) => McpToolKind | undefined;
   },
 ): GateCall {
   const outbound = outboundOf(input.tool, input.args);
