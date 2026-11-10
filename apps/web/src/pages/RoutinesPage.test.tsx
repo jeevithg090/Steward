@@ -139,6 +139,30 @@ describe("RoutinesPage", () => {
     expect(screen.getByText("This routine is paused. Turn it on to run it.")).toBeTruthy();
   });
 
+  it("links to what a routine did only once it has run", async () => {
+    // A routine Steward set up by asking has no conversation until its first run.
+    serve([
+      BRIEF,
+      {
+        ...BRIEF,
+        id: "rtn_2",
+        title: "Evening wrap",
+        threadId: "thr_r2",
+        lastRunAt: "2026-11-09T18:00:00.000Z",
+        lastStatus: "ok",
+      },
+    ]);
+    renderWithProviders(<RoutinesPage />);
+    const fresh = await card("Morning brief");
+    expect(within(fresh).queryByRole("link", { name: /See what it did/ })).toBeNull();
+    const ran = await card("Evening wrap");
+    expect(
+      within(ran)
+        .getByRole("link", { name: /See what it did/ })
+        .getAttribute("href"),
+    ).toBe("/chat/thr_r2");
+  });
+
   it("starts a new routine in the time zone Settings names", async () => {
     serve([]);
     renderWithProviders(<RoutinesPage />);

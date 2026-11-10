@@ -191,7 +191,9 @@ function RoutineCard({ routine }: { routine: Routine }) {
         <Button variant="ghost" icon={<Trash />} onClick={() => setConfirming(true)}>
           Delete
         </Button>
-        {routine.threadId ? (
+        {/* Only once it has run: a routine Steward set up has no conversation before then, and the
+            chat says a missing one "isn't here any more". */}
+        {routine.threadId && routine.lastRunAt ? (
           <Link
             to={`/chat/${encodeURIComponent(routine.threadId)}`}
             className="inline-flex min-h-target items-center gap-1.5 px-1 text-accent text-sub underline underline-offset-4"
