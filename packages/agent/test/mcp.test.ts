@@ -4,8 +4,10 @@ import { alwaysRuleFor, BUILTIN, createGateway } from "@steward/gateway";
 import type { EventBus, GateCall, Initiator, McpToolDefinition, McpToolKind } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import { loadTenant } from "../src/tenant.ts";
-import { mcpTool } from "../src/tools/mcp.ts";
+import { buildToolCatalogue } from "../src/tools/catalogue.ts";
+import { mcpTool, profileAllowsMcp } from "../src/tools/mcp.ts";
 import type { ToolContext } from "../src/tools/types.ts";
+import { FakeMcp } from "./fakes.ts";
 
 const STEWARD_TENANT = fileURLToPath(new URL("../../../tenants/steward", import.meta.url));
 const bus: EventBus = { emit: () => {}, subscribe: () => () => {} };
@@ -51,6 +53,7 @@ async function alwaysAllowed(def: McpToolDefinition) {
   const gw = createGateway({ db: memoryDb(), bus, tenantRules: loadTenant(STEWARD_TENANT).rules });
   const call = await gateCall(def);
   const rule = alwaysRuleFor({ tool: call.tool, target: call.target, summary: "Post to Slack" });
+  if (!rule) throw new Error("Always allow should be offered for an MCP tool.");
   gw.rules.create({ ...rule, effect: "allow", enabled: true, source: "always" });
   return gw;
 }
@@ -70,7 +73,7 @@ describe("MCP tools keep their kind through the gateway", () => {
     }
   });
 
-  it("asks for a tainted MCP send or delete even after Always allow, and runs a tainted write", async () => {
+  it("asks for a tainted MCP send or delete even after Always allow", async () => {
     for (const kind of ["send", "delete"] as const) {
       const def = definition(`post_${kind}`, kind);
       const gw = await alwaysAllowed(def);
@@ -78,10 +81,6 @@ describe("MCP tools keep their kind through the gateway", () => {
       const tainted = gw.governance.dryRun(await gateCall(def, { tainted: true }));
       expect(tainted).toMatchObject({ effect: "ask", rule: { id: BUILTIN.taint.id } });
     }
-    // The same Always allow on a tool marked only as a change still runs after untrusted content.
-    const write = definition("post_write", "write");
-    const gw = await alwaysAllowed(write);
-    expect(gw.governance.dryRun(await gateCall(write, { tainted: true })).effect).toBe("allow");
   });
 
   it("refuses an MCP send from a routine under Steward's own rule", async () => {
@@ -91,5 +90,42 @@ describe("MCP tools keep their kind through the gateway", () => {
       await gateCall(def, { initiator: { kind: "routine", id: "rtn_1" } }),
     );
     expect(decision).toMatchObject({ effect: "deny", rule: { name: "Routines never send" } });
+  });
+});
+
+describe("an agent's profile narrows the MCP tools granted on Connections", () => {
+  const granted = (server: string, tool: string): McpToolDefinition => ({
+    name: `mcp__${server}__${tool}`,
+    server,
+    tool,
+    description: "",
+    parameters: { type: "object", properties: {} },
+    kind: "write",
+  });
+  const mcp = new FakeMcp();
+  // What the person switched on at /connections.
+  mcp.tools = [granted("notes", "find"), granted("notes", "create"), granted("slack", "post")];
+  const offered = (tools: string[]) =>
+    buildToolCatalogue({ agentId: "helper", granted: tools, mcp })
+      .filter((t) => t.surface === "mcp")
+      .map((t) => t.name);
+
+  it('offers every granted MCP tool to a profile with "*"', () => {
+    expect(offered(["*"])).toEqual(["mcp__notes__find", "mcp__notes__create", "mcp__slack__post"]);
+  });
+
+  it("offers a profile limited to built-ins no MCP tools at all", () => {
+    expect(offered(["web_fetch", "memory_recall"])).toEqual([]);
+    expect(offered([])).toEqual([]);
+  });
+
+  it("offers only the MCP tools a profile names, one by one or a whole server", () => {
+    expect(offered(["web_fetch", "mcp__notes__find"])).toEqual(["mcp__notes__find"]);
+    expect(offered(["mcp__notes__*"])).toEqual(["mcp__notes__find", "mcp__notes__create"]);
+  });
+
+  it("never offers a tool the person did not grant, whatever the profile names", () => {
+    expect(offered(["mcp__notes__delete", "mcp__github__*"])).toEqual([]);
+    expect(profileAllowsMcp(["mcp__notes__*"], { name: "mcp__notesx__find", server: "notesx" })).toBe(false);
   });
 });

@@ -177,7 +177,9 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
   `destructiveHint: true` is a `delete` whatever it was marked, unless it was marked a send. A
   server's own `readOnlyHint` is never believed: it would let a server declare its own tools harmless.
 - **Grants.** Only granted tools are offered, and `call` refuses anything not granted, whatever the
-  caller says. Grants are per server and apply to every agent for now.
+  caller says. Grants are per server; the agent package offers them to an agent whose profile has
+  `"*"`, and to any other only the tools its profile names (`mcp__<server>__<tool>` or
+  `mcp__<server>__*`).
 - **Pins.** A granted tool is pinned to what its server said it did when the person allowed it: a
   sha256 of its description, input schema and destructive hint. If the server changes any of them
   later (it can, with a `tools/list_changed` notification), the tool is marked `changed`, withheld

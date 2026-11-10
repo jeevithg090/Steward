@@ -102,11 +102,14 @@ reads (`readOnlyHint`), but it does believe one that says its tool can destroy t
 (`destructiveHint`), because that only makes it stricter: such a tool is a `delete`, and can be
 marked only as deleting or as sending. Every kind but a read gets the check on what leaves.
 
-A tool is offered to the agent only once you grant it, on `/connections` or by name in the
-tenant's `agents.yaml`. Granting a tool never skips the gateway. Steward remembers what the tool
-said it did when you allowed it; if its server changes that later (its description, its inputs, or
-whether it can destroy things), Steward stops using it and `/connections` shows **Changed since you
-allowed it** until you allow it again.
+A tool is offered only once you grant it on `/connections`. An agent whose `tools` in the tenant's
+`agents.yaml` is `["*"]` gets every tool you granted; an agent with a list gets only the ones it
+names, one by one (`mcp__<server>__<tool>`) or a whole server (`mcp__<server>__*`). So a profile can
+narrow what you granted, never add to it. Granting a tool never skips the gateway.
+
+Steward remembers what the tool said it did when you allowed it; if its server changes that later
+(its description, its inputs, or whether it can destroy things), Steward stops using it and
+`/connections` shows **Changed since you allowed it** until you allow it again.
 
 A server that needs a token gets it from `/connections`: **Secret settings** for a program on this
 computer (environment variables such as `GITHUB_PERSONAL_ACCESS_TOKEN`), or an **Access token** for

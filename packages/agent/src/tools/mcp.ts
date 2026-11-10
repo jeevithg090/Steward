@@ -1,4 +1,4 @@
-import type { McpToolDefinition, ToolKind } from "@steward/shared";
+import { type McpToolDefinition, mcpToolName, type ToolKind } from "@steward/shared";
 import type { ObjectSchema, StewardTool, ToolArgs } from "./types.ts";
 
 /** A server's schema, forced to the object root every provider and the AI SDK require. */
@@ -20,6 +20,20 @@ export function textIn(value: unknown, depth = 0): string[] {
   if (typeof value === "object" && value !== null)
     return Object.values(value).flatMap((v) => textIn(v, depth + 1));
   return [];
+}
+
+/**
+ * Whether an agent's profile lets it use an MCP tool the person granted on Connections. The person
+ * grants; a profile can only narrow that. `"*"` keeps every granted tool. Any other list keeps only
+ * the MCP tools it names, one by one (`mcp__<server>__<tool>`) or a whole server (`mcp__<server>__*`),
+ * so an agent limited to a few built-ins never picks up every connected app.
+ */
+export function profileAllowsMcp(
+  profileTools: readonly string[],
+  def: Pick<McpToolDefinition, "name" | "server">,
+): boolean {
+  if (profileTools.includes("*")) return true;
+  return profileTools.includes(def.name) || profileTools.includes(mcpToolName(def.server, "*"));
 }
 
 /** The kinds an MCP tool can have. Anything else from the manager is a write: fail closed. */

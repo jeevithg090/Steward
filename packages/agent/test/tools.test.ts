@@ -87,7 +87,7 @@ describe("the catalogue", () => {
         kind: "read",
       },
     ];
-    const tools = buildToolCatalogue({ agentId: "steward", granted: [], mcp: fakes.mcp });
+    const tools = buildToolCatalogue({ agentId: "steward", granted: ["mcp__cal__find"], mcp: fakes.mcp });
     expect(tools).toHaveLength(1);
     expect(tools[0]).toMatchObject({
       name: "mcp__cal__find",
