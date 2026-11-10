@@ -41,6 +41,7 @@ export {
   startScriptedModel,
 } from "./scripted.ts";
 export {
+  contrastWithWhite,
   DEFAULT_BRAND,
   DEFAULT_MODEL,
   DEFAULT_STARTERS,
@@ -48,6 +49,7 @@ export {
   MODEL_PROVIDERS,
   TenantError,
 } from "./tenant.ts";
+export { checkTenantRules, TENANT_ALLOW_GUARD } from "./tenant-rules.ts";
 export { BUILTIN_TOOLS, buildToolCatalogue, grantedBuiltins, toAgUiTool } from "./tools/catalogue.ts";
 export {
   DELEGATE_TOOL,

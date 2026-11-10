@@ -58,6 +58,20 @@ describe("harnesses.yaml", () => {
     expect(() => parseHarnesses({ harnesses: [CLAUDE, CLAUDE] })).toThrow(/used twice/);
     expect(() => parseHarnesses({ harnesses: [{ ...CLAUDE, id: "Claude Code" }] })).toThrow(/lower case/);
   });
+
+  it("says what is wrong in plain words, with the line, as the other tenant files do", () => {
+    writeFileSync(
+      join(dir, "harnesses.yaml"),
+      "harnesses:\n  - id: gemini-cli\n    name: Gemini CLI\n    kind: acp\n    command: gemini\n    signIn: maybe\n",
+    );
+    expect(() => loadHarnesses(dir)).toThrow(
+      "harnesses.yaml line 6: harnesses[0].signIn: must be one of vendor-tool, api-key",
+    );
+    writeFileSync(join(dir, "harnesses.yaml"), "harnesses:\n  - id: gemini-cli\n    kind: acp\n");
+    expect(() => loadHarnesses(dir)).toThrow(
+      "harnesses.yaml line 2: harnesses[0].name: is missing; line 2: harnesses[0].command: is missing; line 2: harnesses[0].signIn: is missing",
+    );
+  });
 });
 
 describe("availability", () => {

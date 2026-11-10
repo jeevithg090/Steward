@@ -166,7 +166,49 @@ describe("tenant shortcuts.yaml", () => {
         join(dir, "shortcuts.yaml"),
         "shortcuts:\n  - {id: a, title: x, description: y, prompt: z}\n  - {id: a, title: x, description: y, prompt: z}\n",
       );
-      expect(() => loadTenantShortcuts(dir)).toThrow(/twice/);
+      expect(() => loadTenantShortcuts(dir)).toThrow(
+        'shortcuts.yaml line 3: shortcuts[1].id: "a" is used twice',
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses a misspelled field, naming the file but not where it lives, and lists every problem", () => {
+    const dir = mkdtempSync(join(tmpdir(), "steward-tenant-"));
+    try {
+      writeFileSync(
+        join(dir, "shortcuts.yaml"),
+        "shortcuts:\n  - id: a\n    title: x\n    description: y\n    prompt: z\n    skil: scam-check\n    shar: true\n  - id: b\n    title: ''\n    description: y\n    prompt: z\n",
+      );
+      const message = (() => {
+        try {
+          loadTenantShortcuts(dir);
+        } catch (err) {
+          return (err as Error).message;
+        }
+        return "";
+      })();
+      expect(message).toBe(
+        'shortcuts.yaml line 6: shortcuts[0]: unknown fields "skil", "shar"; line 9: shortcuts[1].title: needs some text',
+      );
+      expect(message).not.toContain(dir);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses a shortcut that names a skill the package does not have", () => {
+    const dir = mkdtempSync(join(tmpdir(), "steward-tenant-"));
+    try {
+      writeFileSync(
+        join(dir, "shortcuts.yaml"),
+        "shortcuts:\n  - id: a\n    title: x\n    description: y\n    prompt: '{input}'\n    skill: no-such-skill\n",
+      );
+      expect(loadTenantShortcuts(dir)).toHaveLength(1);
+      expect(() => loadTenantShortcuts(dir, { skills: ["scam-check", "delay-repay-claim"] })).toThrow(
+        'shortcuts.yaml line 6: shortcuts[0].skill: no skill named "no-such-skill" (skills.yaml has: scam-check, delay-repay-claim)',
+      );
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
