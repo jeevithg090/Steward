@@ -55,18 +55,34 @@ function isCategory(value: string | null): value is BotCategory {
   return Boolean(value) && Object.hasOwn(BOT_CATEGORIES, value as string);
 }
 
+type Need = NonNullable<BotsQueryInput["needs"]>;
+
+/** What a bot reaches, for the filter: the words on the choice and in the results line. */
+const NEEDS: { value: Need; label: string; caption: string }[] = [
+  { value: "mail", label: "Your mail", caption: "using your mail" },
+  { value: "calendar", label: "Your calendar", caption: "using your calendar" },
+  { value: "browser", label: "Its browser", caption: "using a browser" },
+  { value: "none", label: "Chat only", caption: "for chat only" },
+];
+
+function isNeed(value: string | null): value is Need {
+  return NEEDS.some((need) => need.value === value);
+}
+
 export function BotsPage() {
   const [params, setParams] = useSearchParams();
   const q = params.get("q") ?? "";
   const category = isCategory(params.get("category")) ? (params.get("category") as BotCategory) : undefined;
   const sort: Sort = isSort(params.get("sort")) ? (params.get("sort") as Sort) : "match";
-  const filtering = q !== "" || category !== undefined;
+  const needs = isNeed(params.get("needs")) ? (params.get("needs") as Need) : undefined;
+  const filtering = q !== "" || category !== undefined || needs !== undefined;
 
   const info = useInfo();
   const installed = useInstalledBots();
   const query: Omit<BotsQueryInput, "offset"> = {
     ...(q ? { q } : {}),
     ...(category ? { category } : {}),
+    ...(needs ? { needs } : {}),
     sort,
     limit: PAGE_SIZE,
   };
@@ -83,7 +99,7 @@ export function BotsPage() {
   const installedById = new Map((installed.data ?? []).map((bot) => [bot.id, bot]));
 
   const set = useCallback(
-    (next: Partial<{ q: string; category: string; sort: Sort }>) => {
+    (next: Partial<{ q: string; category: string; sort: Sort; needs: string }>) => {
       setParams(
         (current) => {
           const out = new URLSearchParams(current);
@@ -137,7 +153,7 @@ export function BotsPage() {
         </Button>
       }
     >
-      <Filters q={q} category={category} sort={sort} categories={categories} onChange={set} />
+      <Filters q={q} category={category} sort={sort} needs={needs} categories={categories} onChange={set} />
 
       {!filtering && installed.data && installed.data.length > 0 ? (
         <InstalledSection bots={installed.data} />
@@ -167,6 +183,7 @@ export function BotsPage() {
           browse.data
             ? resultsCaption(results.length, total, {
                 category: category ? categoryLabel(category, categories) : undefined,
+                needs: NEEDS.find((need) => need.value === needs)?.caption,
                 q,
               })
             : undefined
@@ -205,7 +222,7 @@ export function BotsPage() {
             }
           >
             {filtering
-              ? "Try other words, or make a bot for this job yourself."
+              ? "Try a few plain words about the job, or fewer choices. Or make a bot for this job yourself."
               : "Make the first one: say what it should do and Steward writes it."}
           </EmptyState>
         ) : (
@@ -265,9 +282,13 @@ export function BotsPage() {
 function resultsCaption(
   shown: number,
   total: number,
-  filter: { category?: string; q?: string } = {},
+  filter: { category?: string; needs?: string; q?: string } = {},
 ): string {
-  const scope = `${filter.category ? ` in ${filter.category}` : ""}${filter.q ? ` for “${filter.q}”` : ""}`;
+  const scope = [
+    filter.category ? ` in ${filter.category}` : "",
+    filter.needs ? ` ${filter.needs}` : "",
+    filter.q ? ` for “${filter.q}”` : "",
+  ].join("");
   const all = `${total.toLocaleString()} ${total === 1 ? "bot" : "bots"}`;
   return shown < total ? `Showing ${shown.toLocaleString()} of ${all}${scope}` : `${all}${scope}`;
 }
@@ -321,14 +342,16 @@ function Filters({
   q,
   category,
   sort,
+  needs,
   categories,
   onChange,
 }: {
   q: string;
   category: BotCategory | undefined;
   sort: Sort;
+  needs: Need | undefined;
   categories: Record<string, string>;
-  onChange: (next: Partial<{ q: string; category: string; sort: Sort }>) => void;
+  onChange: (next: Partial<{ q: string; category: string; sort: Sort; needs: string }>) => void;
 }) {
   const [text, setText] = useState(q);
   // Typing settles before the address (and the directory) hear about it.
@@ -374,6 +397,12 @@ function Filters({
         value={category ?? ""}
         onValueChange={(value) => onChange({ category: value })}
         choices={choices}
+      />
+      <ChoiceGroup
+        legend="What it uses"
+        value={needs ?? ""}
+        onValueChange={(value) => onChange({ needs: value })}
+        choices={[{ value: "", label: "Anything" }, ...NEEDS.map(({ value, label }) => ({ value, label }))]}
       />
     </search>
   );

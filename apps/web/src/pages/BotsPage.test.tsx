@@ -69,10 +69,12 @@ function serve(
     if (req.path === "/api/bots" && req.method === "GET") {
       const q = req.query.get("q")?.toLowerCase();
       const category = req.query.get("category");
+      const needs = req.query.get("needs");
       const matches = listings.filter(
         (bot) =>
           (!q || `${bot.id} ${bot.name}`.toLowerCase().includes(q)) &&
-          (!category || bot.category === category),
+          (!category || bot.category === category) &&
+          (!needs || bot.needs.connectors.includes(needs)),
       );
       const offset = Number(req.query.get("offset") ?? 0);
       const limit = Number(req.query.get("limit") ?? 50);
@@ -184,6 +186,30 @@ describe("BotsPage", () => {
     await waitFor(() => expect(screen.getByTestId("where").textContent).toBe("/bots?q=rent&category=money"));
     expect(await within(results).findByRole("heading", { name: "No bots match" })).toBeTruthy();
     expect(within(results).getByRole("status").textContent).toBe("0 bots in Money & finance for “rent”");
+    expect(within(results).getByText(/Try a few plain words about the job/)).toBeTruthy();
+  });
+
+  it("filters by what a bot uses, and keeps the choice in the address", async () => {
+    const { calls } = serve();
+    renderWithProviders(
+      <>
+        <BotsPage />
+        <Where />
+      </>,
+      { route: "/bots" },
+    );
+    await screen.findByRole("article", { name: "Invoice Chaser" });
+    const uses = screen.getByRole("group", { name: "What it uses" });
+    fireEvent.click(within(uses).getByRole("radio", { name: "Your mail" }));
+    await waitFor(() => expect(screen.getByTestId("where").textContent).toBe("/bots?needs=mail"));
+    const results = await screen.findByRole("region", { name: "Results" });
+    await waitFor(() =>
+      expect(within(results).getByRole("status").textContent).toBe("2 bots using your mail"),
+    );
+    expect(calls.some((c) => c.path === "/api/bots" && c.query.get("needs") === "mail")).toBe(true);
+    fireEvent.click(within(uses).getByRole("radio", { name: "Chat only" }));
+    await waitFor(() => expect(screen.getByTestId("where").textContent).toBe("/bots?needs=none"));
+    await waitFor(() => expect(within(results).getByRole("status").textContent).toBe("0 bots for chat only"));
   });
 
   it("says when the directory has not been built, and how to build it, instead of 'empty'", async () => {

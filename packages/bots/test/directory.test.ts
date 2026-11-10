@@ -165,7 +165,10 @@ describe("buildIndex", () => {
       packUrl: "packs/rent-scout.json",
       pageUrl: "https://bots.example.com/bots/rent-scout",
       hash: expect.stringMatching(/^[0-9a-f]{64}$/),
+      keywords: "Find two-bed flats near Oxford. · find rentals · Finds rentals.",
     });
+    // A bot with no starters or skills carries no keywords at all.
+    expect(index.bots.find((b: BotListing) => b.id === "meal-planner")).not.toHaveProperty("keywords");
     const written = JSON.parse(readFileSync(join(root, "packs", "rent-scout.json"), "utf8")) as BotPack;
     expect(written.hash).toBe(hashPack(written));
     expect(rent.hash).toBe(written.hash);
@@ -269,6 +272,27 @@ describe("DirectoryClient on a folder", () => {
     expect(await ids({ q: "dinner", sort: "match", limit: 50, offset: 0 })).toEqual(["meal-planner"]);
     expect(await ids({ q: "food", sort: "match", limit: 50, offset: 0 })).toEqual(["meal-planner"]);
     expect(await ids({ q: "unicorns", sort: "match", limit: 50, offset: 0 })).toEqual([]);
+  });
+
+  it("finds a bot by its starters and skills, and none for words that say nothing about a job", async () => {
+    // "Oxford" and "two-bed" are only in Rent Scout's starter.
+    expect(await ids({ q: "oxford", sort: "match", limit: 50, offset: 0 })).toEqual(["rent-scout"]);
+    expect(await ids({ q: "two bed", sort: "match", limit: 50, offset: 0 })).toEqual(["rent-scout"]);
+    const empty = await client.list({ q: "help me please", sort: "match", limit: 50, offset: 0 });
+    expect(empty).toEqual({ bots: [], total: 0 });
+    // Words in another script are words, not nothing: no bot here has them.
+    expect(await ids({ q: "日本語の献立", sort: "match", limit: 50, offset: 0 })).toEqual([]);
+    expect(await ids({ q: "  ", sort: "match", limit: 50, offset: 0 })).toHaveLength(3);
+  });
+
+  it("filters by what a bot reaches: mail, calendar, its browser, or nothing", async () => {
+    expect(await ids({ needs: "mail", sort: "match", limit: 50, offset: 0 })).toEqual(["inbox-zero"]);
+    expect(await ids({ needs: "browser", sort: "match", limit: 50, offset: 0 })).toEqual([]);
+    // Every bot here searches the web, so none is chat only.
+    expect(await ids({ needs: "none", sort: "match", limit: 50, offset: 0 })).toEqual([]);
+    expect(await ids({ needs: "mail", q: "rent", sort: "match", limit: 50, offset: 0 })).toEqual([
+      "inbox-zero",
+    ]);
   });
 
   it("filters by category and pages with limit and offset", async () => {
@@ -482,6 +506,38 @@ describe("DirectoryClient on the web", () => {
     const err = await failing.pack("https://cdn.example.com/x.json").catch((e: Error) => e);
     expect(err).not.toBeInstanceOf(PackNotFoundError);
     expect((err as Error).message).toMatch(/answered 500/);
+  });
+
+  it("tells a chat-only bot from one with a browser or a connected app, and reads odd keywords as none", async () => {
+    const listing = (id: string, tools: string[], connectors: string[] = []) => ({
+      id,
+      name: id,
+      pitch: "A bot.",
+      category: "misc",
+      version: 1,
+      author: { kind: "person", handle: "sam" },
+      needs: { tools, connectors, model: "any" },
+      updatedAt: "2026-01-01T00:00:00Z",
+      packUrl: `packs/${id}.json`,
+    });
+    files["https://other.example/index.json"] = JSON.stringify({
+      name: "Other",
+      generatedAt: "2026-01-01T00:00:00Z",
+      categories: {},
+      bots: [
+        { ...listing("chatty", ["show_table"]), keywords: "x".repeat(5000) },
+        listing("surfer", ["browser_navigate"]),
+        listing("planner", ["mcp__notion__search"]),
+        listing("diary", [], ["calendar"]),
+      ],
+    });
+    const client = new DirectoryClient({ source: "https://other.example/index.json", fetch: fakeFetch });
+    const needs = async (n: "mail" | "calendar" | "browser" | "none") =>
+      (await client.list({ needs: n })).bots.map((b) => b.id);
+    expect(await needs("none")).toEqual(["chatty"]);
+    expect(await needs("browser")).toEqual(["surfer"]);
+    expect(await needs("calendar")).toEqual(["diary"]);
+    expect((await client.get("chatty"))?.keywords).toBeUndefined();
   });
 
   it("says when the index is missing or not an index", async () => {

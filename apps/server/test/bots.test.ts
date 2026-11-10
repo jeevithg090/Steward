@@ -251,6 +251,11 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
     expect(dev.body.bots.map((b) => b.id)).toEqual(["shell-helper"]);
     const search = await t.api<{ bots: BotListing[]; total: number }>("/api/bots?q=rent");
     expect(search.body.bots.map((b) => b.id)).toEqual(["rent-scout"]);
+    const browsing = await t.api<{ bots: BotListing[]; total: number }>("/api/bots?needs=browser");
+    expect(browsing.body.bots.map((b) => b.id)).toEqual(["rent-scout"]);
+    const words = await t.api<{ bots: BotListing[]; total: number }>("/api/bots?q=help+me+please");
+    expect(words.body).toMatchObject({ bots: [], total: 0 });
+    expect((await t.api("/api/bots?needs=everything")).status).toBe(400);
     expect((await t.api("/api/bots?category=nope")).status).toBe(400);
     expect((await t.api("/api/bots?limit=0")).status).toBe(400);
     expect((await t.api<InstalledBot[]>("/api/bots/installed")).body).toEqual([]);

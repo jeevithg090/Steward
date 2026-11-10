@@ -157,6 +157,8 @@ export interface BotListing {
   pageUrl?: string;
   /** The pack's content hash when the index was built. A fetched pack must match it. */
   hash?: string;
+  /** Words from its starters and skills, for search: at most 400 characters. */
+  keywords?: string;
 }
 
 export interface DirectoryIndex {
@@ -243,6 +245,8 @@ export const BotsQuery = z.object({
   q: z.string().max(200).optional(),
   category: z.enum(Object.keys(BOT_CATEGORIES) as [BotCategory, ...BotCategory[]]).optional(),
   sort: z.enum(["new", "used", "installs", "match"]).default("match"),
+  /** What the bot reaches: the person's mail or calendar, its own browser, or nothing (chat only). */
+  needs: z.enum(["mail", "calendar", "browser", "none"]).optional(),
   limit: z.coerce.number<number>().int().min(1).max(100).default(50),
   offset: z.coerce.number<number>().int().min(0).default(0),
 });

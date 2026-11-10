@@ -28,6 +28,8 @@ import { validatePack } from "./validate.ts";
  */
 
 const CATEGORY_KEYS = Object.keys(BOT_CATEGORIES) as [BotCategory, ...BotCategory[]];
+/** The most of a listing's `keywords`: enough for its starters and skills, small for the index. */
+const KEYWORDS_MAX = 400;
 
 export const BotListingSchema = z.object({
   id: z.string().min(1).max(64),
@@ -47,6 +49,11 @@ export const BotListingSchema = z.object({
     .string()
     .regex(/^[0-9a-f]{64}$/)
     .optional(),
+  /**
+   * Words from the starters and skills, so a search finds more than the name and pitch say. Only a
+   * help: a listing whose words are too long is read without them, never refused.
+   */
+  keywords: z.string().max(KEYWORDS_MAX).optional().catch(undefined),
 });
 
 export const DirectoryIndexSchema = z.object({
@@ -154,15 +161,27 @@ const STOPWORDS = new Set([
   "one",
 ]);
 
+/** The words of a text that can match a job, in any script. */
 function tokensOf(text: string): string[] {
   return [
     ...new Set(
       text
         .toLowerCase()
-        .split(/[^a-z0-9]+/)
+        .split(/[^\p{L}\p{N}]+/u)
         .filter((t) => t && !STOPWORDS.has(t)),
     ),
   ];
+}
+
+/** Whether a listing reaches what a `needs` filter names. `none` is chat only: it reaches nothing. */
+function reaches(needs: BotListing["needs"], wanted: NonNullable<BotsQueryValue["needs"]>): boolean {
+  const surfaces = new Set<string>(needs.connectors);
+  for (const tool of needs.tools) {
+    if (Object.hasOwn(TOOLS, tool)) surfaces.add(TOOLS[tool as keyof typeof TOOLS].surface);
+    else surfaces.add("mcp");
+  }
+  surfaces.delete("ui");
+  return wanted === "none" ? surfaces.size === 0 : surfaces.has(wanted);
 }
 
 /** Exact words count fully; "rental" for "rentals" or "plan" for "planner" count less. */
@@ -179,16 +198,34 @@ function best(query: string, words: readonly string[]): number {
   return top;
 }
 
-/** Name matches count most, then the category, then the pitch. */
+/** Name matches count most, then the category, then the pitch and the starters and skills. */
 function scoreOf(listing: BotListing, tokens: readonly string[], categories: Record<string, string>): number {
   const name = tokensOf(listing.name);
   const pitch = tokensOf(listing.pitch);
   const category = tokensOf(`${listing.category} ${categories[listing.category] ?? ""}`);
+  const keywords = tokensOf(listing.keywords ?? "");
   let score = 0;
   for (const token of tokens) {
-    score += 3 * best(token, name) + 2 * best(token, category) + best(token, pitch);
+    score +=
+      3 * best(token, name) + 2 * best(token, category) + Math.max(best(token, pitch), best(token, keywords));
   }
   return score;
+}
+
+/** A listing's search words: its starters, then its skills' names and descriptions, cut at a word. */
+export function keywordsOf(pack: Pick<BotPack, "starters" | "skills">): string {
+  const parts = [
+    ...pack.starters,
+    ...pack.skills.flatMap((skill) => [skill.name.replace(/-/g, " "), skill.description]),
+  ];
+  const text = parts
+    .map((part) => part.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join(" · ");
+  if (text.length <= KEYWORDS_MAX) return text;
+  const cut = text.slice(0, KEYWORDS_MAX);
+  const space = cut.lastIndexOf(" ");
+  return space > KEYWORDS_MAX / 2 ? cut.slice(0, space) : cut;
 }
 
 type Scored = { listing: BotListing; score: number };
@@ -355,8 +392,11 @@ export class DirectoryClient {
     const query = BotsQuery.parse(input);
     const index = await this.index();
     const tokens = tokensOf(query.q ?? "");
+    // Words that say nothing about a job ("help me please") match no bot, rather than every bot.
+    if (query.q?.trim() && tokens.length === 0) return { bots: [], total: 0 };
     let scored: Scored[] = index.bots
       .filter((listing) => !query.category || listing.category === query.category)
+      .filter((listing) => !query.needs || reaches(listing.needs, query.needs))
       .map((listing) => ({
         listing,
         score: tokens.length > 0 ? scoreOf(listing, tokens, index.categories) : 0,
@@ -568,6 +608,7 @@ export async function buildIndex(dir: string, opts: BuildIndexOptions = {}): Pro
     const pack: BotPack = { ...result.pack, hash: hashPack(result.pack) };
     await writeFile(join(root, "packs", `${pack.id}.json`), `${JSON.stringify(pack, null, 2)}\n`, "utf8");
     const count = counts[pack.id];
+    const keywords = keywordsOf(pack);
     bots.push({
       id: pack.id,
       name: pack.name,
@@ -582,6 +623,7 @@ export async function buildIndex(dir: string, opts: BuildIndexOptions = {}): Pro
       packUrl: `packs/${pack.id}.json`,
       ...(site ? { pageUrl: `${site}/bots/${pack.id}` } : {}),
       hash: pack.hash,
+      ...(keywords ? { keywords } : {}),
     });
   }
 
