@@ -28,40 +28,59 @@ export const METADATA_HOSTS = [
 
 /**
  * Each pattern below is written so that matching takes time in proportion to the command, however
- * it is padded: no `.*` between two words, no repeated group that can match the same text two ways.
- * A pattern that backtracks would let a long command freeze the server while it is checked.
+ * it is padded. A pattern that backtracks would let a long command freeze the server while it is
+ * checked, so:
+ * - nothing scans to the end of the command from every word: a scan that has no bound starts only
+ *   where a simple command starts (after `;`, `&`, `|`, a newline or a backtick), and stops where it
+ *   ends, so each part of the command is read once;
+ * - a scan that starts at a word reads at most a few words (`{0,8}`);
+ * - no two parts of a pattern can match the same text two ways (`[a-qs-z]*r`, not `[a-z]*r`).
+ * The tests time each preset on long, hostile commands.
  */
 
-/** Where a token ends: whitespace, or the end of a simple command. */
-const TOKEN = String.raw`[^\s;&|]+`;
-/** Up to 30 more words of the same command, as few as needed. */
-const WORDS = String.raw`(\s+${TOKEN}){0,30}?`;
-/** A download command. */
-const DOWNLOAD = String.raw`(\S*/)?(curl|wget|fetch)\b`;
+/** Where a simple command starts: the beginning, or just after `;`, `&`, `|`, a newline or a backtick. */
+const START = String.raw`(?:^|[;&|\n\r\x60])`;
+/** Any text up to the end of the simple command, as little as needed. */
+const REST = String.raw`[^;&|\n\r\x60]*?`;
+/** A command-line flag and the space after it, up to eight of them. */
+const FLAGS = String.raw`(?:-[^\s;&|]+\s+){0,8}`;
+/** A path in front of a program's name, such as /usr/bin/. */
+const DIRS = String.raw`(?:[^\s;&|/]*/)*`;
+/** A download command, by name or by path. */
+const DOWNLOAD = String.raw`${DIRS}(?:curl|wget|fetch)\b`;
 /** A shell, by name or by path: sh, bash, zsh, dash, ksh, fish, /bin/sh. */
-const SHELL = String.raw`(\S*/)?(ba|z|da|k|fi)?sh\b`;
+const SHELL = String.raw`${DIRS}(?:ba|z|da|k|fi)?sh\b`;
+
+/**
+ * Text up to the first `word` in the simple command, read once: `(?=(…))\k<…>` keeps what the
+ * look-ahead found, so a failed match never tries a later `word` all over again.
+ */
+function firstInCommand(group: string, word: string): string {
+  return String.raw`${START}(?=(?<${group}>${REST}\b${word}(?=\s)))\k<${group}>`;
+}
 
 const DESTRUCTIVE_SHELL = [
   // rm with a recursive flag aimed at /, ~ or $HOME (relative paths inside the workspace are fine).
-  // The flag and the path may come in any order within the same command.
-  String.raw`\brm(?=${WORDS}\s+-([a-z]*r[a-z]*|-recursive)(?![^\s;&|]))(?=${WORDS}\s+['"]?(/|~|\$\{?HOME\b))`,
+  // The flag and the path may come in any order after rm, within the same simple command.
+  String.raw`${firstInCommand("rm", "rm")}(?=${REST}\s-(?:[a-qs-z]*r[a-z]*|-recursive)(?![^\s;&|]))(?=${REST}\s['"]?(?:/|~|\$\{?HOME\b))`,
   String.raw`--no-preserve-root\b`,
-  String.raw`\bmkfs(\.[a-z0-9]+)?\b`,
-  String.raw`\bdd\s+([a-z]+=\S*\s+)*if=`,
+  String.raw`\bmkfs(?:\.[a-z0-9]+)?\b`,
+  // dd reading from anything (if=), within the same simple command.
+  String.raw`${firstInCommand("dd", "dd")}(?=${REST}\sif=)`,
   String.raw`:\(\)\s*\{`,
-  String.raw`\b(shutdown|reboot|halt|poweroff)\b`,
-  String.raw`\b(sudo|doas)\b`,
-  String.raw`>\s*/dev/(sd|nvme|disk|hd)`,
+  String.raw`\b(?:shutdown|reboot|halt|poweroff)\b`,
+  String.raw`\b(?:sudo|doas)\b`,
+  String.raw`>\s*/dev/(?:sd|nvme|disk|hd)`,
 ].join("|");
 
 const PIPE_TO_SHELL = [
   // A download anywhere in the command, and a pipe into a shell anywhere in it (through tee or
   // anything else). Anchored at the start and written as two look-aheads, so it reads the command once.
-  String.raw`^(?=[\s\S]*\b(curl|wget|fetch)\b)(?=[\s\S]*\|\s*((sudo|doas)\s+(-\S+\s+)*|env\s+|exec\s+)?${SHELL})`,
+  String.raw`^(?=[\s\S]*\b(?:curl|wget|fetch)\b)(?=[\s\S]*\|\s*(?:(?:sudo|doas)\s+${FLAGS}|env\s+|exec\s+)?${SHELL})`,
   // A shell or eval running a download's output: bash -c "$(curl …)", eval "$(curl …)", bash <(curl …).
-  String.raw`\b((ba|z|da|k|fi)?sh|eval|source)\s+(-\S+\s+)*(["']?\$\(|<\()\s*${DOWNLOAD}`,
+  String.raw`\b(?:(?:ba|z|da|k|fi)?sh|eval|source)\s+${FLAGS}(?:["']?\$\(|<\()\s*${DOWNLOAD}`,
   // Sourcing a download: . <(curl …)
-  String.raw`(^|[\s;&|(])\.\s+<\(\s*${DOWNLOAD}`,
+  String.raw`(?:^|[\s;&|(])\.\s+<\(\s*${DOWNLOAD}`,
 ].join("|");
 
 /** CEL text for a regex: backslashes stay single (see `cel.ts`), double quotes are escaped. */
