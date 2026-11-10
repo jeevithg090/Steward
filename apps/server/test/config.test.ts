@@ -1,7 +1,15 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ConfigError, DEV_ORIGINS, isLoopbackHost, loadConfig, parseFlag, REPO_ROOT } from "../src/config.ts";
+import {
+  ConfigError,
+  DEV_ORIGINS,
+  isLoopbackHost,
+  loadConfig,
+  parseFlag,
+  REPO_ROOT,
+  startupWarnings,
+} from "../src/config.ts";
 import { loadEnvFiles, normaliseEnv } from "../src/env.ts";
 import { tempDir } from "./helpers.ts";
 
@@ -15,7 +23,7 @@ describe("loadConfig", () => {
     expect(config.tenantDir).toBe(join(REPO_ROOT, "tenants", "steward"));
     expect(config.demoGoogle).toBe(true);
     expect(config.allowPrivateHosts).toBe(false);
-    expect(config.devOrigins).toEqual(DEV_ORIGINS);
+    expect(config.devOrigins).toEqual([]);
     expect(config.workers).toBe(true);
   });
 
@@ -49,8 +57,11 @@ describe("loadConfig", () => {
     expect(loadConfig({ NODE_ENV: "production" }).devOrigins).toEqual([]);
   });
 
-  it("answers the Vite dev server and `vite preview` in development", () => {
-    expect(loadConfig({}).devOrigins).toEqual(
+  it("trusts the Vite ports' origins only with STEWARD_DEV_ORIGINS, and never in production", () => {
+    expect(loadConfig({}).devOrigins).toEqual([]);
+    const on = loadConfig({ STEWARD_DEV_ORIGINS: "1" });
+    expect(on.devOrigins).toEqual(DEV_ORIGINS);
+    expect(on.devOrigins).toEqual(
       expect.arrayContaining([
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -58,6 +69,9 @@ describe("loadConfig", () => {
         "http://127.0.0.1:4173",
       ]),
     );
+    expect(startupWarnings(on).join(" ")).toMatch(/STEWARD_DEV_ORIGINS is on/);
+    expect(startupWarnings(loadConfig({})).join(" ")).not.toMatch(/STEWARD_DEV_ORIGINS/);
+    expect(() => loadConfig({ STEWARD_DEV_ORIGINS: "1", NODE_ENV: "production" })).toThrow(/refused/);
   });
 
   it("points at the bundled bot directory by default, and never posts counts unless asked", () => {

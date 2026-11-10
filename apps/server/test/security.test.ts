@@ -17,9 +17,12 @@ import {
 import { resolveStatic, serveWebApp } from "../src/http/static.ts";
 import { tempDir } from "./helpers.ts";
 
-const opts: SecurityOptions = { bindHost: "127.0.0.1", allowedHosts: [], devOrigins: DEV_ORIGINS };
+/** What the server runs with: no other origin trusted. */
+const opts: SecurityOptions = { bindHost: "127.0.0.1", allowedHosts: [], devOrigins: [] };
+/** With STEWARD_DEV_ORIGINS=1, for a web app that calls the server directly. */
+const devOpts: SecurityOptions = { ...opts, devOrigins: DEV_ORIGINS };
 
-function guarded() {
+function guarded(opts: SecurityOptions = devOpts) {
   const app = new Hono();
   app.onError(onError);
   app.use("*", securityHeaders());
@@ -39,8 +42,8 @@ function guarded() {
   return app;
 }
 
-const post = (headers: Record<string, string>, body = '{"name":"x"}') =>
-  guarded().request("http://127.0.0.1:8787/api/thing", {
+const post = (headers: Record<string, string>, body = '{"name":"x"}', options = devOpts) =>
+  guarded(options).request("http://127.0.0.1:8787/api/thing", {
     method: "POST",
     headers: {
       host: "127.0.0.1:8787",
@@ -70,29 +73,64 @@ describe("host guard", () => {
 });
 
 describe("origin guard", () => {
-  it("allows same-origin, the Vite dev server and programs without an Origin", async () => {
-    expect((await post({ origin: "http://127.0.0.1:8787" })).status).toBe(200);
-    expect((await post({ origin: "http://localhost:5173" })).status).toBe(200);
-    expect((await post({})).status).toBe(200);
+  it("allows same-origin and programs without an Origin", async () => {
+    expect((await post({ origin: "http://127.0.0.1:8787" }, undefined, opts)).status).toBe(200);
+    expect((await post({}, undefined, opts)).status).toBe(200);
   });
 
-  it("allows `vite preview`, whose proxy keeps the browser's Origin", async () => {
-    expect((await post({ origin: "http://127.0.0.1:4173" })).status).toBe(200);
+  it("trusts no page on another port unless STEWARD_DEV_ORIGINS is on", async () => {
+    // Any page on these ports, another project's dev server included, would get the whole API.
+    for (const origin of ["http://localhost:5173", "http://127.0.0.1:4173"]) {
+      expect((await post({ origin }, undefined, opts)).status).toBe(403);
+      const read = await guarded(opts).request("http://127.0.0.1:8787/api/thing", {
+        headers: { host: "127.0.0.1:8787", origin },
+      });
+      expect(read.status).toBe(403);
+      expect(read.headers.get("access-control-allow-origin")).toBeNull();
+    }
+    expect((await post({ origin: "http://localhost:5173" })).status).toBe(200);
     expect((await post({ origin: "http://localhost:4173" })).status).toBe(200);
     expect((await post({ origin: "http://127.0.0.1:4174" })).status).toBe(403);
   });
 
-  it("refuses other sites, by Origin or Sec-Fetch-Site", async () => {
+  it("answers a page served through Vite's proxy, which passes the browser's Host through", async () => {
+    const res = await guarded(opts).request("http://127.0.0.1:5173/api/thing", {
+      method: "POST",
+      headers: {
+        host: "127.0.0.1:5173",
+        origin: "http://127.0.0.1:5173",
+        "content-type": "application/json",
+        "content-length": "12",
+      },
+      body: '{"name":"x"}',
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it("refuses other sites, by Origin or Sec-Fetch-Site, reads included", async () => {
     const res = await post({ origin: "https://evil.example" });
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({ error: "Requests from other sites are refused." });
     expect((await post({ "sec-fetch-site": "cross-site" })).status).toBe(403);
     expect((await post({ origin: "null" })).status).toBe(403);
+    const read = (headers: Record<string, string>) =>
+      guarded(opts).request("http://127.0.0.1:8787/api/thing", {
+        headers: { host: "127.0.0.1:8787", ...headers },
+      });
+    expect((await read({ origin: "https://evil.example" })).status).toBe(403);
+    expect((await read({ "sec-fetch-site": "cross-site" })).status).toBe(403);
+    expect((await read({ origin: "null" })).status).toBe(403);
+    expect((await read({ "sec-fetch-site": "same-origin" })).status).toBe(200);
+    expect((await read({ "sec-fetch-site": "none" })).status).toBe(200);
   });
 
   it("only takes JSON bodies, and lets bodyless requests through", async () => {
     const res = await post({ "content-type": "text/plain" });
     expect(res.status).toBe(415);
+    // The media type itself, not a mention of JSON somewhere in the header.
+    expect((await post({ "content-type": "text/plain; application/json" })).status).toBe(415);
+    expect((await post({ "content-type": "application/json-patch" })).status).toBe(415);
+    expect((await post({ "content-type": "Application/JSON; charset=utf-8" })).status).toBe(200);
     const bodyless = await guarded().request("http://127.0.0.1:8787/api/ping", {
       method: "POST",
       headers: { host: "127.0.0.1:8787" },

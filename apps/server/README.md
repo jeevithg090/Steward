@@ -115,9 +115,10 @@ Steward is one person's assistant on one machine. The server:
 
 - listens on loopback by default and answers only requests addressed to a loopback name, the bound
   address or `STEWARD_ALLOWED_HOSTS` (no DNS rebinding);
-- refuses state-changing requests from other sites (`Origin` / `Sec-Fetch-Site`) and takes only JSON
-  bodies, on the API and on the demo inbox; allows CORS only for the Vite dev and preview servers
-  (`:5173`, `:4173`);
+- refuses requests from any other origin's page (`Origin` / `Sec-Fetch-Site`), reads included, and
+  takes only JSON bodies, on the API and on the demo inbox. Vite's proxy passes the browser's Host
+  through, so `pnpm dev` needs no exception; `STEWARD_DEV_ORIGINS=1` trusts the Vite ports (`:5173`,
+  `:4173`) and allows CORS for them, only for a web app that calls the server directly;
 - checks the `Origin` of WebSocket upgrades (browsers do not apply CORS to them);
 - limits body sizes (256 KiB for the API, 10 MiB for agent runs) and computer input frames (64 KiB);
 - answers every error as `{ "error": "<a sentence>" }`, never with a stack trace;

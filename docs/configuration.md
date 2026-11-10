@@ -59,7 +59,7 @@ With no key for the chosen provider, Steward runs the scripted demo model and la
 | `STEWARD_TENANT`        | `steward`       | `apps/server/src/config.ts`                 | Which folder under `tenants/` to load.                                                                                                                                      |
 | `STEWARD_WORKERS`       | on              | `apps/server/src/config.ts`                 | Background work: routines, the morning brief, approval expiry. Set to `0` to switch it off (the tests do).                                                                  |
 | `STEWARD_ENV_FILE`      | none            | `scripts/dev.mjs`, `apps/server/src/env.ts` | A `.env` file to read before the repository's own.                                                                                                                          |
-| `NODE_ENV`              | none            | `apps/server/src/config.ts`                 | `production` drops the development origins (the Vite dev server can no longer call the API) and refuses `STEWARD_ALLOW_PRIVATE_HOSTS`.                                      |
+| `NODE_ENV`              | none            | `apps/server/src/config.ts`                 | `production` refuses `STEWARD_DEV_ORIGINS` and `STEWARD_ALLOW_PRIVATE_HOSTS`.                                                                                               |
 
 ### Mail and calendar
 
@@ -79,9 +79,11 @@ Google account (OAuth) is not wired up in v0.1. See the [roadmap](../README.md#r
 
 ### The web app (development)
 
-| Variable             | Default                 | Read by                   | What it does                                                                                      |
-| -------------------- | ----------------------- | ------------------------- | ------------------------------------------------------------------------------------------------- |
-| `STEWARD_SERVER_URL` | `http://127.0.0.1:8787` | `apps/web/vite.config.ts` | Where the Vite dev server sends `/api` and `/ws`. Change it when the server runs on another port. |
+| Variable               | Default                 | Read by                     | What it does                                                                                                                                                                                                                   |
+| ---------------------- | ----------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `STEWARD_SERVER_URL`   | `http://127.0.0.1:8787` | `apps/web/vite.config.ts`   | Where the Vite dev server sends `/api` and `/ws`. Change it when the server runs on another port.                                                                                                                              |
+| `VITE_STEWARD_API_URL` | none                    | `apps/web/src/lib/api.ts`   | Makes the web app call a server at this address directly instead of through Vite's proxy. The server must then trust the Vite ports with `STEWARD_DEV_ORIGINS`.                                                                |
+| `STEWARD_DEV_ORIGINS`  | off                     | `apps/server/src/config.ts` | `1` lets pages on `localhost` or `127.0.0.1` ports 5173 and 4173 call the API from their own origin. Only for `VITE_STEWARD_API_URL`: any page on those ports could then use Steward. Says so at start. Refused in production. |
 
 ### Voice
 
@@ -134,10 +136,14 @@ of your browser profile.
 | ------ | ------------------------------------------------------------------------------------------------------- | ---------------------------- |
 | `5173` | The web app in development (Vite).                                                                      | `127.0.0.1`                  |
 | `8787` | The server: `/api`, the CopilotKit runtime at `/api/copilotkit`, `/ws/computer/:agent`, `/demo-google`. | `127.0.0.1` (`STEWARD_HOST`) |
-| `4173` | `vite preview` of a built web app, if you use it. Its origin is allowed like the dev server's.          | `127.0.0.1`                  |
+| `4173` | `vite preview` of a built web app, if you use it. It proxies `/api` and `/ws` like the dev server.      | `127.0.0.1`                  |
 
 Once `pnpm build` has made `apps/web/dist`, the server also serves the web app itself at `/` on
 port 8787, so one process is all you need.
+
+The server answers pages from its own origin only. Vite's proxy passes the browser's address
+through, so a page from `pnpm dev` counts as the server's own; a page on any other port or site is
+refused, reads included.
 
 The scripted demo model and the agent's browser proxy also take a free loopback port each, chosen
 at start-up.

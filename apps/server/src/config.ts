@@ -9,8 +9,10 @@ export const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 export const DEV_PORTS = [5173, 4173] as const;
 
 /**
- * Origins of the Vite dev and preview servers, the only cross-origin callers the API answers. Their
- * proxy keeps the browser's Origin, so without them every POST through it would be refused.
+ * Origins of the Vite dev and preview servers. Their proxy passes the browser's Host through, so a
+ * page they serve reaches the API as its own origin and needs none of these. They are trusted only
+ * with `STEWARD_DEV_ORIGINS=1`, for a web app that calls the server directly (`VITE_STEWARD_API_URL`):
+ * nothing checks that Steward owns those ports, and any page on them could then use the whole API.
  */
 export const DEV_ORIGINS = DEV_PORTS.flatMap((port) => [
   `http://localhost:${port}`,
@@ -57,7 +59,7 @@ export interface ServerConfig {
    * (`STEWARD_RELAY_TOKEN`). Steward dials out; nothing listens beyond this machine.
    */
   relay?: { url: string; token: string };
-  /** Origins allowed to call the API from another origin. Empty in production. */
+  /** Origins allowed to call the API from another origin. Empty unless `STEWARD_DEV_ORIGINS` is on. */
   devOrigins: string[];
   /** Background workers: routines, the daily brief, approval expiry. Tests switch them off. */
   workers: boolean;
@@ -183,6 +185,13 @@ export function loadConfig(
     );
   }
 
+  const devOrigins = parseFlag(env.STEWARD_DEV_ORIGINS, false);
+  if (devOrigins && production) {
+    throw new ConfigError(
+      "STEWARD_DEV_ORIGINS lets any page on the Vite ports (5173 and 4173) use Steward. It is refused when NODE_ENV=production.",
+    );
+  }
+
   const port = parsePort(env.STEWARD_PORT);
   const relayUrl = env.STEWARD_RELAY_URL?.trim();
   const relayToken = env.STEWARD_RELAY_TOKEN?.trim();
@@ -227,7 +236,7 @@ export function loadConfig(
           },
         }
       : {}),
-    devOrigins: production ? [] : [...DEV_ORIGINS],
+    devOrigins: devOrigins ? [...DEV_ORIGINS] : [],
     workers: parseFlag(env.STEWARD_WORKERS, true),
     resumeDelayMs: 3000,
     directoryUrl: resolveDirectory(env.STEWARD_DIRECTORY_URL, repoRoot),
@@ -252,6 +261,11 @@ export function startupWarnings(config: ServerConfig): string[] {
   if (config.allowedHosts.length > 0) {
     warnings.push(
       `STEWARD_ALLOWED_HOSTS lets ${config.allowedHosts.join(", ")} reach Steward's main port (${config.port}), which has no sign-in. Never point a tunnel at it. For a phone, point the tunnel at the device port (${config.devicePort ?? DEFAULT_DEVICE_PORT}) instead: see docs/security.md.`,
+    );
+  }
+  if (config.devOrigins.length > 0) {
+    warnings.push(
+      `STEWARD_DEV_ORIGINS is on: any page on ${DEV_PORTS.join(" or ")} of this machine can use Steward, even another project's dev server. Turn it off unless the web app calls the server directly (VITE_STEWARD_API_URL).`,
     );
   }
   if (config.devicePort !== null && !isLoopbackHost(config.deviceHost)) {
