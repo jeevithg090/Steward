@@ -499,6 +499,28 @@ describe("ChatThread", () => {
     expect(screen.queryByText("Steward's computer")).toBeNull();
   });
 
+  it("names a conversation whose agent is gone by that agent, never as Steward", async () => {
+    info.data = {
+      brand: { name: "Steward" },
+      agents: [
+        { id: "steward", name: "Steward", title: "" },
+        { id: "bot1", name: "Focus time guard", title: "" },
+      ],
+      starters: [],
+      model: {},
+      mail: {},
+    };
+    kit.state.messages = [
+      { id: "u1", role: "user", content: "flats near me" },
+      { id: "a1", role: "assistant", content: "Hi." },
+    ];
+    draw({ runtimeAgentId: "rent-scout", title: "flats near me" });
+    await screen.findByText("Hi.");
+    expect(screen.getByText("With rent-scout")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Message rent-scout" })).toBeTruthy();
+    expect(screen.queryByText("With Steward")).toBeNull();
+  });
+
   it("opens a saved file in the computer beside the conversation, on Files", async () => {
     vi.stubGlobal("matchMedia", (query: string) => ({
       matches: query === "(min-width: 64rem)",

@@ -37,7 +37,7 @@ import { Button } from "@/components/ui/Button.tsx";
 import { Dialog } from "@/components/ui/Dialog.tsx";
 import { Notice } from "@/components/ui/Notice.tsx";
 import { useDocumentTitle } from "@/components/ui/PageHeader.tsx";
-import { useApprovals, useInfo } from "@/lib/api.ts";
+import { DEFAULT_AGENT_ID, useApprovals, useInfo } from "@/lib/api.ts";
 import { claimRouteFocus } from "@/lib/focus.ts";
 import { useLiveEvents } from "@/lib/live.ts";
 import { storage } from "@/lib/utils.ts";
@@ -128,10 +128,14 @@ function firstTimeInTab(key: string): boolean {
 
 export function ChatThread(props: ChatThreadProps) {
   const info = useInfo();
+  const known = info.data?.agents.find((agent) => agent.id === props.runtimeAgentId)?.name;
+  // An agent the server no longer lists (a bot that was removed) keeps its own id: the brand's name
+  // would say Steward answers when it does not.
   const agentName =
-    info.data?.agents.find((agent) => agent.id === props.runtimeAgentId)?.name ??
-    info.data?.brand.name ??
-    "Steward";
+    known ??
+    (info.data && props.runtimeAgentId !== DEFAULT_AGENT_ID
+      ? props.runtimeAgentId
+      : (info.data?.brand.name ?? "Steward"));
   return (
     <ComputerSession agentId={props.runtimeAgentId} name={agentName}>
       <Conversation {...props} agentName={agentName} />
