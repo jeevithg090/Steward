@@ -14,6 +14,7 @@ import {
   type RunFinishedEvent,
   type TokenUsage,
   type ToolCall,
+  type ToolCallResultEvent,
 } from "@ag-ui/client";
 import {
   APPROVAL_INTERRUPT_REASON,
@@ -63,6 +64,16 @@ export const TOO_MANY_STEPS =
   "I stopped here: this took more steps than I take in one go. Ask me to carry on if you want me to continue.";
 
 const BAD_JSON = "The arguments were not a JSON object. Call the tool again with valid arguments.";
+
+/**
+ * What the model reads when it calls one of the AG-UI state tools BuiltInAgent always adds. They
+ * would save text outside the gateway and paste it into every later system prompt, so Steward
+ * never runs them.
+ */
+export const STATE_TOOL_UNAVAILABLE = "That tool is not available here. Nothing was saved.";
+
+/** The tools BuiltInAgent adds to every model call and runs itself. Steward answers them as unavailable. */
+const STATE_TOOLS: ReadonlySet<string> = new Set(["AGUISendStateSnapshot", "AGUISendStateDelta"]);
 
 /** Results longer than this are cut before the model sees them. */
 const MAX_RESULT_CHARS = 120_000;
@@ -126,6 +137,22 @@ interface RunScope {
   io: Io;
   /** How many hand-offs deep this run is: 0 unless another agent handed it the task. */
   depth: number;
+}
+
+/** What one model call gave back. Nothing that needs a decision has been emitted yet. */
+interface Segment {
+  /** The history the model call ended with, including the results it gave its own calls. */
+  messages: Message[];
+  terminal?: RunFinishedEvent;
+  /** Set when the model call failed: what was thrown, and the model run's own words for it. */
+  failure?: { error?: unknown; message?: string };
+  /** Calls the model started but never ended (a stop mid-arguments). */
+  openCalls: Set<string>;
+  /**
+   * Results the model run gave its own calls (arguments that did not fit, a tool that does not
+   * exist, the state tools), held back so the run can rewrite them before anyone sees them.
+   */
+  inside: ToolCallResultEvent[];
 }
 
 type GateResult =
@@ -385,7 +412,6 @@ export class GovernedToolsMiddleware extends Middleware {
     const context = [...input.context, ...this.contextFor(messages, initiator)];
     const offered = [...input.tools.filter((t) => !owned.has(t.name)), ...tools.map(toAgUiTool)];
     const forwardedProps = withoutStewardProps(input.forwardedProps);
-    let state = input.state;
     let lastFinish = this.finished(input);
 
     for (let segment = 0; segment < this.maxSegments; segment++) {
@@ -396,7 +422,9 @@ export class GovernedToolsMiddleware extends Middleware {
       const request: RunAgentInput = {
         ...input,
         messages: sanitizeHistory(ownMessages(messages)),
-        state,
+        // Always empty, so BuiltInAgent puts no "Application State" in the system prompt: nothing
+        // the browser or a state tool wrote reaches the model's instructions.
+        state: {},
         context,
         tools: offered,
         forwardedProps,
@@ -404,9 +432,11 @@ export class GovernedToolsMiddleware extends Middleware {
       };
       const before = new Set(callsIn(request.messages).map((c) => c.id));
       const seg = await this.runSegment(request, next, io);
-      if (seg.failed) return;
-      messages = mergeHistory(messages, request.messages, seg.messages);
-      state = seg.state;
+      messages = this.releaseInside(seg, mergeHistory(messages, request.messages, seg.messages), emit);
+      if (seg.failure) {
+        emit(this.modelError(seg));
+        return;
+      }
       if (seg.terminal?.usage) usage.push(...seg.terminal.usage);
       if (!seg.terminal || seg.terminal.outcome?.type === "cancelled" || signal.aborted) {
         // A stop while the model was still writing a call's arguments leaves that call open, and
@@ -474,32 +504,25 @@ export class GovernedToolsMiddleware extends Middleware {
   }
 
   /**
-   * One model call. Forwards its events, holds back its RUN_STARTED and RUN_FINISHED, and notes the
-   * tool calls it started but never ended (a stop mid-arguments), so the run can close them.
+   * One model call. Forwards its words and calls, and holds back what needs a decision first: its
+   * RUN_STARTED and RUN_FINISHED, its error, and the results it gave its own calls. It notes the
+   * calls it started but never ended (a stop mid-arguments), so the run can close them.
+   *
+   * State events are never forwarded or kept: BuiltInAgent runs its state tools itself, outside the
+   * gateway, and whatever they saved would come back in every later system prompt.
    */
-  private runSegment(
-    request: RunAgentInput,
-    next: AbstractAgent,
-    io: Io,
-  ): Promise<{
-    messages: Message[];
-    state: unknown;
-    terminal?: RunFinishedEvent;
-    failed: boolean;
-    openCalls: Set<string>;
-  }> {
+  private runSegment(request: RunAgentInput, next: AbstractAgent, io: Io): Promise<Segment> {
     return new Promise((resolve) => {
       let messages = request.messages;
-      let state: unknown = request.state;
       let terminal: RunFinishedEvent | undefined;
-      let failed = false;
+      let failure: Segment["failure"];
       const openCalls = new Set<string>();
-      const settle = () => resolve({ messages, state, terminal, failed, openCalls });
+      const inside: ToolCallResultEvent[] = [];
+      const settle = () => resolve({ messages, terminal, failure, openCalls, inside });
       try {
         const sub = this.runNextWithState(request, new Seed(next, request)).subscribe({
-          next: ({ event, messages: updated, state: updatedState }) => {
+          next: ({ event, messages: updated }) => {
             messages = updated;
-            state = updatedState;
             if (event.type === EventType.TOOL_CALL_START || event.type === EventType.TOOL_CALL_END) {
               const id = (event as { toolCallId?: unknown }).toolCallId;
               if (typeof id === "string") {
@@ -507,48 +530,82 @@ export class GovernedToolsMiddleware extends Middleware {
                 else openCalls.delete(id);
               }
             }
-            if (event.type === EventType.RUN_STARTED) return;
-            if (event.type === EventType.RUN_FINISHED) {
-              terminal = event as RunFinishedEvent;
-              return;
+            switch (event.type) {
+              case EventType.RUN_STARTED:
+              case EventType.STATE_SNAPSHOT:
+              case EventType.STATE_DELTA:
+                return;
+              case EventType.RUN_FINISHED:
+                terminal = event as RunFinishedEvent;
+                return;
+              case EventType.RUN_ERROR: {
+                const raw = (event as { message?: unknown }).message;
+                failure = { ...failure, message: typeof raw === "string" ? raw : "" };
+                return;
+              }
+              case EventType.TOOL_CALL_RESULT:
+                inside.push(event as ToolCallResultEvent);
+                return;
+              default:
+                io.emit(event);
             }
-            if (event.type === EventType.RUN_ERROR) {
-              failed = true;
-              const raw = (event as { message?: unknown }).message;
-              io.emit({
-                ...event,
-                message: modelErrorMessage(typeof raw === "string" ? raw : ""),
-              } as BaseEvent);
-              return;
-            }
-            io.emit(event);
           },
           error: (error: unknown) => {
-            if (!failed) {
-              failed = true;
-              this.report(error, "model");
-              io.emit({
-                type: EventType.RUN_ERROR,
-                code: "STEWARD_MODEL_ERROR",
-                message: modelErrorMessage(errorMessage(error)),
-              } as BaseEvent);
-            }
+            failure = { ...failure, error };
             settle();
           },
           complete: settle,
         });
         io.track(sub);
       } catch (error) {
-        failed = true;
-        this.report(error, "model");
-        io.emit({
-          type: EventType.RUN_ERROR,
-          code: "STEWARD_MODEL_ERROR",
-          message: modelErrorMessage(errorMessage(error)),
-        } as BaseEvent);
+        failure = { error };
         settle();
       }
     });
+  }
+
+  /**
+   * Emits the results the model run gave its own calls, rewritten where Steward has something
+   * better to say, and keeps the history in step with what was emitted.
+   */
+  private releaseInside(seg: Segment, messages: Message[], emit: Emit): Message[] {
+    let out = messages;
+    for (const event of seg.inside) {
+      const call = findCall(seg.messages, event.toolCallId);
+      const content = this.insideAnswer(call, event.content);
+      if (content !== event.content) {
+        out = out.map((m) =>
+          m.role === "tool" && m.toolCallId === event.toolCallId && m.id === event.messageId
+            ? ({ ...m, content } as Message)
+            : m,
+        );
+      }
+      emit({ ...event, content } as BaseEvent);
+    }
+    return out;
+  }
+
+  /** What the model reads for a call its own run answered. */
+  private insideAnswer(
+    call: ToolCall | undefined,
+    content: ToolCallResultEvent["content"],
+  ): ToolCallResultEvent["content"] {
+    if (call && STATE_TOOLS.has(call.function.name)) {
+      return serialise({ ok: false, error: STATE_TOOL_UNAVAILABLE });
+    }
+    return content;
+  }
+
+  /** The run's error, from a failed model call, in plain words. */
+  private modelError(seg: Segment): BaseEvent {
+    const { error, message } = seg.failure ?? {};
+    if (error !== undefined) this.report(error, "model");
+    const text = message || (error !== undefined ? errorMessage(error) : "");
+    return {
+      type: EventType.RUN_ERROR,
+      code: "STEWARD_MODEL_ERROR",
+      message: modelErrorMessage(text),
+    } as BaseEvent;
   }
 
   /** Builds the call as the gateway sees it, lets the gateway decide and act, and returns what the model reads. */
