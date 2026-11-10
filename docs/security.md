@@ -202,8 +202,11 @@ file, run a script.
   path really lands so a symlink cannot lead outside, and files opened with `O_NOFOLLOW` so a link
   swapped in afterwards fails rather than being followed. A preset keeps them away from `.env`, SSH
   keys, `.pem` files and cloud credentials.
-- **Commands run with `bash -c` in the workspace,** never a login shell, with `HOME` set to the
-  workspace and an environment limited to `PATH`, the locale and terminal variables, and `TZ`.
+- **Commands run with `bash -c` in the workspace,** never a login shell, with an environment
+  limited to `PATH`, the locale and terminal variables, and `TZ`. Each command gets a new, empty
+  `HOME` outside the workspace, removed when it ends, so a file the agent saved without asking (a
+  `.gitconfig`, an `.npmrc`, a Python `.pth` file) cannot change what a later command runs. If the
+  server stops, even by crashing, running commands are stopped with it.
 - **A time limit** (120 seconds by default, at most 600) kills the whole process group, and output
   is capped at 64 KiB per stream.
 - **Commands ask, every time,** unless you write a rule or press Always allow for that exact
@@ -213,8 +216,10 @@ file, run a script.
 
 **But the shell is not a sandbox.** It runs as your user, on your machine, with your permissions.
 Containment applies to the file tools, not to commands: a command you allow can read and write
-anything your user account can, and reach the network. That is why commands ask by default, and why
-the approval card shows the exact command. Read it before you allow it.
+anything your user account can, and reach the network. A command also runs what is in the
+workspace: a script, a Makefile, `package.json` scripts, `.git` hooks, or a Python module in the
+folder. That is why commands ask by default, and why the approval card shows the exact command.
+Read it, and what it uses from the workspace, before you allow it.
 
 ## Approvals and routines
 

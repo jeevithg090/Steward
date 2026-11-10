@@ -4,14 +4,23 @@
  * Runs one command with `bash -c` in the agent's workspace. Nothing here decides whether a command
  * may run: that is the gateway's job, and the shell asks by default. What this module guarantees:
  *
- * - `bash -c`, never a login shell: HOME is the agent-writable workspace, and a login shell would
- *   source files the agent can write, so what ran would differ from what was approved.
+ * - `bash -c`, never a login shell, and a fresh empty HOME for every command, outside the
+ *   workspace and removed when it ends. The file tools write to the workspace without asking, so
+ *   a HOME there would let a saved `.gitconfig`, `.npmrc` or Python `.pth` file change what a later
+ *   approved command runs. The XDG folders live in that HOME too, and Python's user site is off.
  * - An allow-listed environment. Steward's own keys (model API keys, tokens) never reach commands.
  * - A time limit (120 s by default, at most 600 s), after which the whole process group is killed,
- *   because pipes keep children alive. Background jobs end with the command.
+ *   because pipes keep children alive. Background jobs end with the command, and every running
+ *   command's group is killed when the server process exits, even after a crash.
  * - At most 64 KiB of each stream, keeping the end, because a failing command says why last.
+ *
+ * The working folder is still the workspace, so a command can run what is in it: a script, a
+ * Makefile, `package.json` scripts, a project `.npmrc`, `.git/config` and hooks, or a module that
+ * `python -c` imports from the current folder. The approval card is where that is read.
  */
 import { spawn } from "node:child_process";
+import { mkdir, mkdtemp, readdir, rm } from "node:fs/promises";
+import { join } from "node:path";
 import type { ShellResult } from "@steward/shared";
 import { ComputerError } from "./errors.ts";
 import { decodeUtf8Tail } from "./workspace.ts";
@@ -46,11 +55,16 @@ const NEVER_PASSED = new Set([
   "NODE_OPTIONS",
 ]);
 const FALLBACK_PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+/** Each command's HOME is `<tmpDir>/home-XXXXXX`. */
+const HOME_PREFIX = "home-";
 
-/** The environment a command sees: an allow-list of the server's, plus HOME and TMPDIR. */
+/**
+ * The environment a command sees: an allow-list of the server's, plus HOME (the command's own
+ * empty folder), the XDG folders inside it, and TMPDIR.
+ */
 export function shellEnvironment(
   base: NodeJS.ProcessEnv,
-  workspace: string,
+  home: string,
   tmpDir: string,
 ): Record<string, string> {
   const env: Record<string, string> = {};
@@ -60,9 +74,48 @@ export function shellEnvironment(
   }
   env.PATH ??= FALLBACK_PATH;
   env.LANG ??= "en_US.UTF-8";
-  env.HOME = workspace;
+  env.HOME = home;
+  env.XDG_CONFIG_HOME = join(home, ".config");
+  env.XDG_DATA_HOME = join(home, ".local", "share");
+  env.XDG_STATE_HOME = join(home, ".local", "state");
+  env.XDG_CACHE_HOME = join(home, ".cache");
+  env.PYTHONNOUSERSITE = "1";
   env.TMPDIR = tmpDir;
   return env;
+}
+
+/**
+ * Process groups of commands still running. Killed when the server process exits for any reason:
+ * `exit` handlers also run after an uncaught exception and `process.exit`, and a detached group
+ * would otherwise outlive the server.
+ */
+const liveGroups = new Set<number>();
+let exitHookInstalled = false;
+
+function trackGroup(pid: number): void {
+  liveGroups.add(pid);
+  if (exitHookInstalled) return;
+  exitHookInstalled = true;
+  process.once("exit", () => {
+    for (const group of liveGroups) {
+      try {
+        process.kill(-group, "SIGKILL");
+      } catch {
+        // Already gone.
+      }
+    }
+    liveGroups.clear();
+  });
+}
+
+/** Removes the HOME folders that commands left behind when an earlier server process died. */
+export async function removeStaleHomes(tmpDir: string): Promise<void> {
+  const names = await readdir(tmpDir).catch(() => [] as string[]);
+  await Promise.all(
+    names
+      .filter((name) => name.startsWith(HOME_PREFIX))
+      .map((name) => rm(join(tmpDir, name), { recursive: true, force: true }).catch(() => {})),
+  );
 }
 
 /** Keeps the last `limit` bytes of a stream without holding more than twice that. */
@@ -99,6 +152,7 @@ class TailBuffer {
 
 export interface RunShellOptions {
   cwd: string;
+  /** TMPDIR for the command. Each command's own HOME is made inside it and removed afterwards. */
   tmpDir: string;
   timeoutMs?: number;
   signal?: AbortSignal;
@@ -123,8 +177,30 @@ export function runShell(command: string, opts: RunShellOptions): Promise<ShellR
   if (command.includes("\0")) {
     return Promise.reject(new ComputerError("bad_input", "That command has a null character in it."));
   }
+  return spawnShell(command, opts);
+}
+
+async function makeHome(tmpDir: string): Promise<string> {
+  await mkdir(tmpDir, { recursive: true });
+  return mkdtemp(join(tmpDir, HOME_PREFIX));
+}
+
+async function spawnShell(command: string, opts: RunShellOptions): Promise<ShellResult> {
   const timeoutMs = clampTimeout(opts.timeoutMs);
   const started = Date.now();
+  let home: string;
+  try {
+    home = await makeHome(opts.tmpDir);
+  } catch (error) {
+    return {
+      command,
+      exitCode: null,
+      stdout: "",
+      stderr: `The command could not start: its home folder could not be made (${(error as NodeJS.ErrnoException).code ?? "error"}).`,
+      timedOut: false,
+      durationMs: Date.now() - started,
+    };
+  }
 
   return new Promise((resolve) => {
     const stdout = new TailBuffer(SHELL_OUTPUT_LIMIT);
@@ -135,11 +211,12 @@ export function runShell(command: string, opts: RunShellOptions): Promise<ShellR
 
     const child = spawn("/bin/bash", ["--noprofile", "--norc", "-c", command], {
       cwd: opts.cwd,
-      env: shellEnvironment(opts.baseEnv ?? process.env, opts.cwd, opts.tmpDir),
+      env: shellEnvironment(opts.baseEnv ?? process.env, home, opts.tmpDir),
       detached: true,
       stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
     });
+    if (child.pid !== undefined) trackGroup(child.pid);
 
     const killGroup = () => {
       if (child.pid === undefined) return;
@@ -159,19 +236,24 @@ export function runShell(command: string, opts: RunShellOptions): Promise<ShellR
       opts.signal?.removeEventListener("abort", onAbort);
       unregister();
       killGroup();
+      if (child.pid !== undefined) liveGroups.delete(child.pid);
       child.stdout?.destroy();
       child.stderr?.destroy();
       let errText = stderr.text();
       if (spawnError)
         errText = `${errText}${errText ? "\n" : ""}The command could not start: ${spawnError.message}`;
-      resolve({
+      const result: ShellResult = {
         command,
         exitCode: spawnError ? null : exitCode,
         stdout: stdout.text(),
         stderr: errText,
         timedOut,
         durationMs: Date.now() - started,
-      });
+      };
+      // Nothing a command leaves in its HOME carries over to the next one.
+      void rm(home, { recursive: true, force: true })
+        .catch(() => {})
+        .finally(() => resolve(result));
     };
 
     const timer = setTimeout(() => {

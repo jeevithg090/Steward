@@ -205,12 +205,21 @@ with `O_NOFOLLOW` at the checked path. Reads stop at 256 KiB by default (8 MiB a
 binary files; writes stop at 5 MiB. Listings are recursive, at most 500 entries, and do not walk
 into `node_modules` or `.git`. Downloads land in `downloads/`.
 
-The shell runs `bash --noprofile --norc -c <command>` with the workspace as both the working folder
-and `HOME`, and `TMPDIR` set to the computer's own `tmp`. Its environment is an allow-list (`PATH`,
-`LANG`, `LANGUAGE`, `LC_*`, `TERM`, `TERMINFO`, `COLORTERM`, `TZ`), so model keys and tokens never
-reach commands. The time limit is 120 s by default (1 s to 600 s); on timeout or abort the whole
-process group is killed, and background jobs end with the command. Each stream keeps its last
-64 KiB, because a failing command says why at the end.
+The shell runs `bash --noprofile --norc -c <command>` with the workspace as the working folder and
+`TMPDIR` set to the computer's own `tmp`. `HOME` is a new empty folder in `tmp` for every command,
+removed when it ends, with the XDG folders inside it and Python's user site turned off. The file
+tools write to the workspace without asking, so a `HOME` there would let a saved `.gitconfig`,
+`.npmrc`, `.curlrc` or Python `.pth` file change what a later approved command runs. Its
+environment is an allow-list (`PATH`, `LANG`, `LANGUAGE`, `LC_*`, `TERM`, `TERMINFO`, `COLORTERM`,
+`TZ`), so model keys and tokens never reach commands. The time limit is 120 s by default (1 s to
+600 s); on timeout or abort the whole process group is killed, and background jobs end with the
+command. If the server process dies, even from a crash, the groups of running commands are killed
+as it exits. Each stream keeps its last 64 KiB, because a failing command says why at the end.
+
+Commands still run in the workspace, so they can run what is in it: a script, a Makefile,
+`package.json` scripts, a project `.npmrc`, `.git/config` and its hooks, or a module that
+`python -c` imports from the current folder. Read the workspace before allowing a command that
+uses it.
 
 The shell is not network-filtered and can read anything the server's user can. That is why the
 gateway asks before every command by default.

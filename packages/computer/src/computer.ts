@@ -40,7 +40,7 @@ import {
 import { parseClientMessage } from "./messages.ts";
 import { displayUrl, type HostPolicy, parseWebUrl } from "./network.ts";
 import { type FrameMessage, PersonInput, Screencast } from "./screen.ts";
-import { runShell } from "./shell.ts";
+import { removeStaleHomes, runShell } from "./shell.ts";
 import {
   type AriaItem,
   buttonRefs,
@@ -167,6 +167,8 @@ export class AgentComputer implements Computer {
   private readonly secretKey = randomBytes(32);
   private readonly secretDigests = new Set<string>();
   private blockNotices = new Map<string, number>();
+  /** Clears HOME folders an earlier process left in `tmp`, once, before the first command. */
+  private homesSwept: Promise<void> | undefined;
 
   constructor(opts: AgentComputerOptions) {
     this.opts = opts;
@@ -974,6 +976,8 @@ export class AgentComputer implements Computer {
     this.control.admit(false);
     const cwd = await this.workspace.root();
     await mkdir(this.tmpDir, { recursive: true });
+    this.homesSwept ??= removeStaleHomes(this.tmpDir);
+    await this.homesSwept;
     const result = await runShell(command, {
       cwd,
       tmpDir: this.tmpDir,

@@ -373,11 +373,11 @@ describe("the computer, in real Chromium", () => {
 
     const workspace = await realpath(join(dataDir, "computers/alpha/workspace"));
     const ran = await c.runShell("pwd && cat notes/today.md && echo $HOME");
-    expect(ran).toMatchObject({
-      exitCode: 0,
-      timedOut: false,
-      stdout: `${workspace}\n# Today\n${workspace}\n`,
-    });
+    expect(ran).toMatchObject({ exitCode: 0, timedOut: false });
+    const [cwd, heading, home] = ran.stdout.trimEnd().split("\n");
+    expect([cwd, heading]).toEqual([workspace, "# Today"]);
+    // HOME is the command's own, in the computer's tmp folder, out of the file tools' reach.
+    expect(home?.startsWith(join(dataDir, "computers/alpha/tmp/home-"))).toBe(true);
     const lines = c.activity().map((a) => a.text);
     expect(lines).toContain("Saved notes/today.md (8 bytes)");
     expect(lines).toContain("Ran `pwd && cat notes/today.md && echo $HOME`");
