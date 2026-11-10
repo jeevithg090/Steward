@@ -140,6 +140,13 @@ describe("Tabs", () => {
     fireEvent.keyDown(third, { key: "Home" });
     expect(first.getAttribute("aria-selected")).toBe("true");
   });
+
+  it("wraps its tabs onto another row instead of hiding them in a scroll with no scrollbar", () => {
+    render(<TabsHarness />);
+    const list = screen.getByRole("tablist", { name: "Views" });
+    expect(list.className).toContain("flex-wrap");
+    expect(list.className).not.toMatch(/overflow-x-auto|scrollbar-width:none/);
+  });
 });
 
 describe("Dialog", () => {

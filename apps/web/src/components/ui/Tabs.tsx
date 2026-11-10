@@ -57,7 +57,8 @@ export function Tabs<T extends string>({
       <div
         role="tablist"
         aria-label={label}
-        className="-mx-1 flex snap-x gap-1 overflow-x-auto rounded-field bg-tile p-1 [scrollbar-width:none]"
+        // Wraps onto another row rather than scrolling: a hidden scroll gave no sign more tabs existed.
+        className="-mx-1 flex flex-wrap gap-1 rounded-field bg-tile p-1"
       >
         {items.map((item, index) => {
           const selected = item.value === value;
@@ -78,7 +79,7 @@ export function Tabs<T extends string>({
               onClick={() => onValueChange(item.value)}
               onKeyDown={(event) => onKeyDown(event, index)}
               className={cn(
-                "inline-flex min-h-target shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-[calc(var(--st-radius-field)-0.25rem)] px-3 font-medium text-sub",
+                "inline-flex min-h-target shrink-0 items-center gap-2 whitespace-nowrap rounded-[calc(var(--st-radius-field)-0.25rem)] px-3 font-medium text-sub",
                 "transition-[background-color,color,box-shadow] duration-(--st-dur-swap) ease-out-soft",
                 selected ? "bg-card text-ink shadow-card" : "text-ink-2 hover:text-ink",
               )}
