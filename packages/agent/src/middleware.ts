@@ -301,6 +301,8 @@ const TOO_LONG_TEXT =
  */
 export function modelErrorMessage(raw: string, status?: number): string {
   const text = raw.trim();
+  // A 402 is about credit even when it names max_tokens ("requires more credits, or fewer max_tokens").
+  if (status === 402) return MODEL_CREDIT;
   // Asking for longer replies than the model writes reads like a key error ("Invalid 'max_tokens'").
   if (/\bmax_(completion_|output_)?tokens\b/i.test(text) && !TOO_LONG_TEXT.test(text)) {
     return MODEL_REPLY_LIMIT;
@@ -309,8 +311,6 @@ export function modelErrorMessage(raw: string, status?: number): string {
   switch (status) {
     case 401:
       return MODEL_KEY;
-    case 402:
-      return MODEL_CREDIT;
     case 404:
       return MODEL_UNKNOWN;
     case 408:

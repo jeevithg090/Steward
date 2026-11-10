@@ -684,6 +684,12 @@ describe("model errors in plain words", () => {
       ["Provider returned error", 401, key],
       ["Invalid authentication credentials", 403, key],
       ["Insufficient credits. Add more using https://openrouter.ai/settings/credits", 402, MODEL_CREDIT],
+      // OpenRouter's usual refusal for a small balance names max_tokens, but the status says credit.
+      [
+        "This request requires more credits, or fewer max_tokens. You requested up to 4096 tokens, but can only afford 1200.",
+        402,
+        MODEL_CREDIT,
+      ],
       ["You exceeded your current quota, please check your plan and billing details.", 429, MODEL_CREDIT],
       ["Too Many Requests", 429, "The model provider is busy right now. Wait a moment, then try again."],
       ["Not Found", 404, "The model provider does not know that model. Check the model name in Settings."],
