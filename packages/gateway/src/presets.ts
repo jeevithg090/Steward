@@ -26,17 +26,48 @@ export const METADATA_HOSTS = [
   "[fd00:ec2::254]",
 ] as const;
 
+/**
+ * Each pattern below is written so that matching takes time in proportion to the command, however
+ * it is padded: no `.*` between two words, no repeated group that can match the same text two ways.
+ * A pattern that backtracks would let a long command freeze the server while it is checked.
+ */
+
+/** Where a token ends: whitespace, or the end of a simple command. */
+const TOKEN = String.raw`[^\s;&|]+`;
+/** Up to 30 more words of the same command, as few as needed. */
+const WORDS = String.raw`(\s+${TOKEN}){0,30}?`;
+/** A download command. */
+const DOWNLOAD = String.raw`(\S*/)?(curl|wget|fetch)\b`;
+/** A shell, by name or by path: sh, bash, zsh, dash, ksh, fish, /bin/sh. */
+const SHELL = String.raw`(\S*/)?(ba|z|da|k|fi)?sh\b`;
+
 const DESTRUCTIVE_SHELL = [
-  // rm with a recursive flag aimed at /, ~ or $HOME (relative paths inside the workspace are fine)
-  String.raw`\brm\s+(-[a-z-]+\s+)*(-[a-z]*r[a-z]*|--recursive)\s+(-[a-z-]+\s+)*['"]?(/|~|\$HOME)`,
-  String.raw`\brm\s+.*--no-preserve-root`,
+  // rm with a recursive flag aimed at /, ~ or $HOME (relative paths inside the workspace are fine).
+  // The flag and the path may come in any order within the same command.
+  String.raw`\brm(?=${WORDS}\s+-([a-z]*r[a-z]*|-recursive)(?![^\s;&|]))(?=${WORDS}\s+['"]?(/|~|\$\{?HOME\b))`,
+  String.raw`--no-preserve-root\b`,
   String.raw`\bmkfs(\.[a-z0-9]+)?\b`,
-  String.raw`\bdd\s+(\S+\s+)*if=`,
+  String.raw`\bdd\s+([a-z]+=\S*\s+)*if=`,
   String.raw`:\(\)\s*\{`,
   String.raw`\b(shutdown|reboot|halt|poweroff)\b`,
   String.raw`\b(sudo|doas)\b`,
   String.raw`>\s*/dev/(sd|nvme|disk|hd)`,
 ].join("|");
+
+const PIPE_TO_SHELL = [
+  // A download anywhere in the command, and a pipe into a shell anywhere in it (through tee or
+  // anything else). Anchored at the start and written as two look-aheads, so it reads the command once.
+  String.raw`^(?=[\s\S]*\b(curl|wget|fetch)\b)(?=[\s\S]*\|\s*((sudo|doas)\s+(-\S+\s+)*|env\s+|exec\s+)?${SHELL})`,
+  // A shell or eval running a download's output: bash -c "$(curl …)", eval "$(curl …)", bash <(curl …).
+  String.raw`\b((ba|z|da|k|fi)?sh|eval|source)\s+(-\S+\s+)*(["']?\$\(|<\()\s*${DOWNLOAD}`,
+  // Sourcing a download: . <(curl …)
+  String.raw`(^|[\s;&|(])\.\s+<\(\s*${DOWNLOAD}`,
+].join("|");
+
+/** CEL text for a regex: backslashes stay single (see `cel.ts`), double quotes are escaped. */
+function celRegex(pattern: string): string {
+  return `"${pattern.replace(/"/g, '\\"')}"`;
+}
 
 export const PRESET_RULES: readonly PresetRule[] = [
   {
@@ -51,7 +82,7 @@ export const PRESET_RULES: readonly PresetRule[] = [
     id: "preset_destructive_shell",
     name: "Never run destructive shell commands",
     effect: "deny",
-    when: `tool.kind == "shell" && matches(target.command, "${DESTRUCTIVE_SHELL.replace(/"/g, '\\"')}")`,
+    when: `tool.kind == "shell" && matches(target.command, ${celRegex(DESTRUCTIVE_SHELL)})`,
     description:
       "Wiping the disk, formatting drives, sudo, shutdown and fork bombs are refused outright, even if you would allow them.",
   },
@@ -59,7 +90,7 @@ export const PRESET_RULES: readonly PresetRule[] = [
     id: "preset_pipe_to_shell",
     name: "Never pipe a download into a shell",
     effect: "deny",
-    when: String.raw`tool.kind == "shell" && matches(target.command, "\b(curl|wget|fetch)\b[^|]*\|\s*(sudo\s+)?(ba|z|da|k)?sh\b")`,
+    when: `tool.kind == "shell" && matches(target.command, ${celRegex(PIPE_TO_SHELL)})`,
     description:
       "Running a script straight from the internet skips every check. Download it, read it, then decide.",
   },

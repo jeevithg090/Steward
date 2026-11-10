@@ -135,7 +135,7 @@ recorded in the record as a policy change, but you cannot edit or delete them.
 | ------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Never touch cloud metadata           | deny   | Refuses any call to `169.254.169.254`, `metadata.google.internal` and the other addresses that hand out a cloud machine's credentials.                                                                      |
 | Never run destructive shell commands | deny   | Refuses `rm -r` aimed at `/`, `~` or `$HOME`, `--no-preserve-root`, `mkfs`, `dd if=`, fork bombs, `shutdown` and `reboot`, `sudo` and `doas`, and writing to raw disks. Applies even if you would allow it. |
-| Never pipe a download into a shell   | deny   | Refuses `curl … \| sh` and the like. Download it, read it, then decide.                                                                                                                                     |
+| Never pipe a download into a shell   | deny   | Refuses `curl … \| sh` (also through `tee` or `/bin/sh`), `bash -c "$(curl …)"`, `eval "$(curl …)"` and `bash <(curl …)`. Download it, read it, then decide.                                                |
 | Never touch key and password files   | deny   | Keeps the file tools away from `.env` (but not `.env.example`), SSH keys, `.pem` files, `credentials.json`, and `.ssh`, `.aws` and `.gnupg` folders.                                                        |
 | Routines ask before they send        | ask    | Anything a routine would send, sign or delete waits for you, even if you said Always allow.                                                                                                                 |
 | Routines ask before running commands | ask    | Commands a routine wants to run wait for you.                                                                                                                                                               |
@@ -445,7 +445,7 @@ When in doubt, Steward refuses. In particular:
 - A tenant rule that does not compile stops the server at start-up, naming the file and the rule.
 - If the decision cannot be written to the record, the call does not run.
 - If what a call would send cannot be scanned, the call is refused. So is a call whose arguments are
-  nested too deeply for a rule to read.
+  nested too deeply for a rule to read, and a shell command over 16,000 characters.
 - A resumed call that differs from what was approved, or whose answer was already used, does not
   run.
 - A tool whose results Steward cannot classify counts as tainting.
