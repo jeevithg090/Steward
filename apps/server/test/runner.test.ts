@@ -2,7 +2,14 @@ import { type BaseEvent, EventType, type Message, type RunStartedEvent } from "@
 import { ThreadAlreadyRunningError } from "@copilotkit/runtime/v2";
 import { Observable } from "rxjs";
 import { describe, expect, it } from "vitest";
-import { mergeHistory, previewOf, type RunFinished, SERVER_PROPS_KEY } from "../src/runtime/runner.ts";
+import {
+  mergeHistory,
+  previewOf,
+  ROUTINE_TURNS,
+  type RunFinished,
+  recentTurns,
+  SERVER_PROPS_KEY,
+} from "../src/runtime/runner.ts";
 import { collect, EchoAgent, runInput, runnerOnMemoryDb, startRun, waitFor } from "./helpers.ts";
 
 describe("NodeSqliteAgentRunner", () => {
@@ -110,6 +117,40 @@ describe("NodeSqliteAgentRunner", () => {
     const stored = db.all<{ events: string }>("SELECT events FROM runner_runs");
     expect(stored.map((r) => r.events).join("")).not.toContain("secret-token");
     expect(stored.map((r) => r.events).join("")).toContain('"keep":1');
+  });
+
+  it("shows a routine's firing its last few turns, and keeps every firing", async () => {
+    const { runner } = runnerOnMemoryDb();
+    const agent = new EchoAgent({ agentId: "steward" });
+    const routine = { [SERVER_PROPS_KEY]: { token: "t", initiator: { kind: "routine", id: "rtn_1" } } };
+    for (let n = 1; n <= 50; n++) {
+      // As ServerRuns starts a firing: the stored conversation, then the new turn.
+      const messages = [
+        ...runner.getThreadMessages("t1"),
+        { id: `u-${n}`, role: "user" as const, content: `firing ${n}` },
+      ];
+      await collect(
+        startRun(runner, agent, runInput("t1", `r${n}`, "", { messages, forwardedProps: routine })),
+      );
+    }
+    const shown = agent.seen.at(-1)!.messages;
+    expect(shown.filter((m) => m.role === "user").map((m) => m.id)).toEqual(
+      Array.from({ length: ROUTINE_TURNS }, (_, i) => `u-${50 - ROUTINE_TURNS + 1 + i}`),
+    );
+    const stored = runner.getThreadMessages("t1");
+    expect(stored.filter((m) => m.role === "user")).toHaveLength(50);
+    expect(stored.map((m) => m.id).slice(0, 4)).toEqual(["u-1", "msg-r1", "u-2", "msg-r2"]);
+    expect(stored.at(-1)).toMatchObject({ role: "assistant", content: "echo: firing 50" });
+
+    // The person's own turn on the routine's conversation still shows everything, and so does a
+    // resume, which carries on from the call it waited on rather than starting a turn.
+    await collect(
+      startRun(runner, agent, {
+        ...runInput("t1", "r51", ""),
+        messages: [...stored, { id: "u-p", role: "user", content: "why?" }],
+      }),
+    );
+    expect(agent.seen.at(-1)!.messages.filter((m) => m.role === "user")).toHaveLength(51);
   });
 
   it("tells listeners how each run ended, before its stream completes", async () => {
@@ -290,6 +331,23 @@ describe("mergeHistory", () => {
 });
 
 describe("previewOf", () => {
+  it("keeps the last user turns and what followed them, after any leading system message", () => {
+    const m = (id: string, role: Message["role"]) => ({ id, role, content: id }) as Message;
+    const all = [
+      m("s", "system"),
+      m("u1", "user"),
+      m("a1", "assistant"),
+      m("u2", "user"),
+      m("t2", "tool"),
+      m("u3", "user"),
+    ];
+    expect(recentTurns(all, 2).map((x) => x.id)).toEqual(["s", "u2", "t2", "u3"]);
+    expect(recentTurns(all, 3)).toBe(all);
+    expect(recentTurns(all, 10)).toBe(all);
+    expect(recentTurns(all.slice(1), 1).map((x) => x.id)).toEqual(["u3"]);
+    expect(recentTurns([], 2)).toEqual([]);
+  });
+
   it("takes the last words said, cut short", () => {
     expect(previewOf([{ id: "1", role: "user", content: "hi" }])).toBe("hi");
     expect(previewOf([{ id: "1", role: "user", content: "x".repeat(300) }])?.length).toBe(140);

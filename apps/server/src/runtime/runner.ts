@@ -84,6 +84,33 @@ function messageIdOf(event: BaseEvent): string | undefined {
   return typeof id === "string" ? id : undefined;
 }
 
+/** How many user turns of a routine's conversation the model sees on a firing, the new one included. */
+export const ROUTINE_TURNS = 6;
+
+/**
+ * The last `turns` user turns and everything after them, after any system messages that lead. A
+ * routine fires on one conversation for ever, and each firing is a user turn: without a window every
+ * firing sends all the earlier ones to the model, until the prompt is too long and every firing
+ * fails. Cutting at a user turn keeps each tool call with its result.
+ */
+export function recentTurns(messages: Message[], turns: number): Message[] {
+  const lead = messages.findIndex((m) => m.role !== "system");
+  if (lead < 0) return messages;
+  let users = 0;
+  for (let i = messages.length - 1; i >= lead; i--) {
+    if (messages[i]!.role !== "user" || ++users < turns) continue;
+    return i === lead ? messages : [...messages.slice(0, lead), ...messages.slice(i)];
+  }
+  return messages;
+}
+
+/** True for a new firing of a routine: a run the server started for one, ending on its user turn. */
+function isRoutineFiring(input: RunAgentInput, messages: readonly Message[]): boolean {
+  const props = input.forwardedProps as Record<string, unknown> | undefined;
+  const server = props?.[SERVER_PROPS_KEY] as { initiator?: { kind?: unknown } } | undefined;
+  return server?.initiator?.kind === "routine" && messages.at(-1)?.role === "user";
+}
+
 /**
  * The stored conversation with what `incoming` adds to it. A browser that missed a run the server
  * started (a routine, a resume) sends a stale history; when it lacks stored messages, the stored
@@ -157,22 +184,21 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
 
     // Turns only the server saw (a routine's parked call, a sweep's resume) must reach the model,
     // or it answers without them and the snapshot the sweep reads loses them.
+    const stored = this.getThreadMessages(threadId);
     const given = Array.isArray(request.agent.messages) ? request.agent.messages : [];
-    const merged = mergeHistory(this.getThreadMessages(threadId), given);
-    if (merged !== given) request.agent.setMessages(merged);
+    const merged = mergeHistory(stored, given);
+    // A routine's firing shows the model its last few turns; the stored conversation keeps all of
+    // them, since finishing merges what the agent ends with back into what is stored.
+    const shown = isRoutineFiring(request.input, merged) ? recentTurns(merged, ROUTINE_TURNS) : merged;
+    if (shown !== given) request.agent.setMessages(shown);
 
     const input = withoutServerProps(request.input);
     const runId = input.runId;
     const agentId = request.agent.agentId ?? "default";
-    const historic = this.history(threadId);
-    const seen = new Set<string>();
-    for (const event of historic) {
-      const id = messageIdOf(event);
-      if (id) seen.add(id);
-      if (event.type === EventType.RUN_STARTED) {
-        for (const m of (event as RunStartedEvent).input?.messages ?? []) seen.add(m.id);
-      }
-    }
+    // Every message a stored run said or was given is in the stored conversation, so its ids are the
+    // ones not to store again in this run's RUN_STARTED; reading every stored run's events for them
+    // would grow with the conversation, on every run.
+    const seen = new Set(stored.map((m) => m.id));
     const parentRunId = this.latestRunId(threadId);
     const newInput = (): RunAgentInput => ({
       ...input,
