@@ -13,6 +13,8 @@ export interface ChatActions {
   threadId: string;
   /** The runtime agent this conversation talks to, e.g. `steward`. */
   agentId: string;
+  /** That agent as the person knows it: "Steward", a bot's name. Inside a handed-on task, that agent's. */
+  agentName?: string;
   /** Sends words as the person's next message. Ignored while a reply is running or an answer is owed. */
   send: (text: string) => void;
   /** True while a reply is running or an approval is waiting. */

@@ -157,14 +157,15 @@ export function BrowserLine(tool: ToolProps) {
 export function HelpRequestCard(tool: ToolProps) {
   const state = useToolState(tool);
   const computer = useOptionalComputer();
-  const reason = text(tool.args.reason) ?? "Steward needs you to do something on its screen.";
+  const who = state.chat?.agentName ?? "Steward";
+  const reason = text(tool.args.reason) ?? `${who} needs you to do something on its screen.`;
   if (state.outcome.status === "refused" || state.outcome.status === "error") return Gate({ tool, state });
   if (state.outcome.status === "ok") {
     const data = recordFrom(state.outcome.data);
     return (
       <ToolLine
         label={
-          data?.released === false ? "Steward stopped waiting for help" : "You helped. Steward carried on."
+          data?.released === false ? `${who} stopped waiting for help` : `You helped. ${who} carried on.`
         }
         detail={reason}
       />
@@ -176,11 +177,11 @@ export function HelpRequestCard(tool: ToolProps) {
   }
   return (
     <section
-      aria-label="Steward needs your help"
+      aria-label={`${who} needs your help`}
       className="my-2 flex max-w-2xl flex-wrap items-center gap-3 rounded-field bg-needs-soft px-4 py-3 text-sub"
     >
       <p className="m-0 min-w-0 flex-1 text-ink">
-        <strong className="font-semibold">Steward needs you: </strong>
+        <strong className="font-semibold">{who} needs you: </strong>
         {reason}
       </p>
       <Button
@@ -222,7 +223,7 @@ export function SecretRequestLine(tool: ToolProps) {
       <ToolLine
         state="waiting"
         label={`Waiting for you to type ${what}`}
-        note="Type it in the secret box. It goes straight to the page and Steward never sees it."
+        note={`Type it in the secret box. It goes straight to the page and ${state.chat?.agentName ?? "Steward"} never sees it.`}
         action={<ScreenLink chat={state.chat} />}
       />
     );

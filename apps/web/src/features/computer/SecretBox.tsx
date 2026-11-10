@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/Button.tsx";
 import { Dialog } from "@/components/ui/Dialog.tsx";
 
 export interface SecretBoxProps {
+  /** The agent asking, as the person knows it. Defaults to "Steward". */
+  name?: string;
   /** The open request, from the computer's status. Nothing shows without one. */
   request: SecretRequest | undefined;
   /** Whether the screen's socket is open, so the value can actually be sent. */
@@ -22,7 +24,7 @@ export interface SecretBoxProps {
   onCancel: (requestId: string) => void;
 }
 
-export function SecretBox({ request, connected, onSend, onCancel }: SecretBoxProps) {
+export function SecretBox({ name = "Steward", request, connected, onSend, onCancel }: SecretBoxProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [sentFor, setSentFor] = useState<string | null>(null);
   const [dismissedFor, setDismissedFor] = useState<string | null>(null);
@@ -75,7 +77,7 @@ export function SecretBox({ request, connected, onSend, onCancel }: SecretBoxPro
       title={
         <span className="inline-flex items-center gap-2">
           <KeyRound aria-hidden className="size-5 text-accent" />
-          Steward needs something only you should type
+          {name} needs something only you should type
         </span>
       }
       description={request ? `${request.label}, for ${request.host}.` : undefined}
@@ -110,7 +112,7 @@ export function SecretBox({ request, connected, onSend, onCancel }: SecretBoxPro
           />
           <p id={helpId} className="m-0 flex items-start gap-1.5 text-caption text-ink-2">
             <ShieldCheck aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-            It goes straight into the page. It isn't shown in the conversation, and Steward never sees it.
+            It goes straight into the page. It isn't shown in the conversation, and {name} never sees it.
           </p>
           {shownProblem ? (
             <p role="alert" className="m-0 text-problem text-sub">

@@ -33,7 +33,7 @@ export function HelpBanner({ onTake }: { onTake?: () => void }) {
     >
       <LifeBuoy aria-hidden className="size-5 shrink-0 text-needs" />
       <p className="m-0 min-w-0 flex-1 text-ink">
-        <strong className="font-semibold">Steward needs you: </strong>
+        <strong className="font-semibold">{computer.name} needs you: </strong>
         {help.reason}
       </p>
       <Button

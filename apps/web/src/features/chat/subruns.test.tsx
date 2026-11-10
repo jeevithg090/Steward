@@ -1,9 +1,13 @@
 import type { Message } from "@copilotkit/react-core/v2";
-import { cleanup, screen, within } from "@testing-library/react";
+import type { ComputerStatus } from "@steward/shared";
+import { act, cleanup, fireEvent, screen, within } from "@testing-library/react";
 import { createElement } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mockFetch, renderWithProviders } from "@/lib/testing.tsx";
+import { FakeSocket } from "../computer/fake-socket.ts";
+import { ComputerSession } from "../computer/session.tsx";
 import { askedByOf } from "./ApprovalInterrupts.tsx";
+import { type ChatActions, ChatActionsContext } from "./chat-context.tsx";
 import { callOfSubRun, groupSubRuns, subRunOf } from "./subruns.tsx";
 import { Transcript } from "./Transcript.tsx";
 import { RENDERERS } from "./tool-registry.tsx";
@@ -146,6 +150,155 @@ describe("handed-on tasks in the conversation", () => {
     mockFetch(() => undefined);
     renderWithProviders(<Transcript messages={MESSAGES.slice(0, 4)} running />);
     expect(await screen.findByText("codex is working on: run the tests")).toBeTruthy();
+  });
+
+  describe("the other agent's computer", () => {
+    /** Every socket the page opens, by the computer it reaches. */
+    let opened: FakeSocket[];
+    const socketFor = (agentId: string) =>
+      opened.find((socket) => socket.url.endsWith(`/ws/computer/${agentId}`));
+    const status = (socket: FakeSocket, patch: Partial<ComputerStatus>) =>
+      act(() =>
+        socket.receive({
+          type: "status",
+          status: {
+            agentId: "codex",
+            running: true,
+            controller: "agent",
+            viewport: { width: 1280, height: 800 },
+            ...patch,
+          },
+        }),
+      );
+
+    beforeEach(() => {
+      opened = [];
+      vi.stubGlobal(
+        "WebSocket",
+        class extends FakeSocket {
+          constructor(url: string) {
+            super(url);
+            opened.push(this);
+          }
+        },
+      );
+      HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
+        this.setAttribute("open", "");
+      };
+      HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) {
+        this.removeAttribute("open");
+      };
+      mockFetch((req) =>
+        req.path === "/api/info"
+          ? {
+              body: {
+                brand: { name: "Steward" },
+                agents: [
+                  { id: "steward", name: "Steward", title: "" },
+                  { id: "codex", name: "Codex", title: "" },
+                ],
+                starters: [],
+                model: {},
+                mail: {},
+                version: "0",
+                singleUser: true,
+              },
+            }
+          : undefined,
+      );
+    });
+
+    const parent: ChatActions = {
+      threadId: "thr_1",
+      agentId: "steward",
+      agentName: "Steward",
+      send: vi.fn(),
+      busy: false,
+      isLatestTurn: () => true,
+      isAwaitingApproval: () => false,
+      showComputer: vi.fn(),
+    };
+
+    /** A task still running, whose agent is asking for help and for a password on its own computer. */
+    const RUNNING = [
+      ...MESSAGES.slice(0, 2),
+      {
+        id: "c5",
+        role: "assistant",
+        content: "",
+        subagentRunId: SUB,
+        toolCalls: [
+          {
+            id: "codex-x:help",
+            type: "function",
+            function: {
+              name: "request_help",
+              arguments: JSON.stringify({ reason: "A sign-in page needs you." }),
+            },
+          },
+        ],
+      },
+    ] as unknown as Message[];
+
+    function draw(messages: Message[]) {
+      return renderWithProviders(
+        <ChatActionsContext.Provider value={parent}>
+          <ComputerSession agentId="steward">
+            <Transcript messages={messages} running />
+          </ComputerSession>
+        </ChatActionsContext.Provider>,
+      );
+    }
+
+    it("sends a running task's secret on that agent's own computer, never this conversation's", async () => {
+      draw(RUNNING);
+      await screen.findByText("Codex is working on: run the tests");
+      const codex = socketFor("codex");
+      const steward = socketFor("steward");
+      expect(codex).toBeTruthy();
+      act(() => codex?.open());
+      act(() => steward?.open());
+      status(codex!, {
+        secret: {
+          id: "sec_1",
+          ref: "e7",
+          label: "Password",
+          host: "example.com",
+          requestedAt: "2026-11-10T09:00:00Z",
+        },
+      });
+      const dialog = await screen.findByRole("dialog", {
+        name: /Codex needs something only you should type/,
+      });
+      const field = within(dialog).getByLabelText("Password") as HTMLInputElement;
+      field.value = "hunter2";
+      fireEvent.click(within(dialog).getByRole("button", { name: "Send to the page" }));
+      expect(codex?.sent).toContainEqual({ type: "secret", requestId: "sec_1", value: "hunter2" });
+      expect(steward?.sent.some((message) => message.type === "secret")).toBe(false);
+    });
+
+    it("says when that agent needs the person on its computer, and Take the wheel reaches it", async () => {
+      draw(RUNNING);
+      await screen.findByText("Codex is working on: run the tests");
+      const codex = socketFor("codex")!;
+      act(() => codex.open());
+      act(() => socketFor("steward")?.open());
+      status(codex, { help: { reason: "A sign-in page needs you.", requestedAt: "2026-11-10T09:00:00Z" } });
+      expect(screen.getByText("Codex needs you on its computer")).toBeTruthy();
+
+      fireEvent.click(screen.getByRole("button", { name: "Take the wheel" }));
+      expect(codex.sent).toContainEqual({ type: "take" });
+      expect(socketFor("steward")?.sent.some((message) => message.type === "take")).toBe(false);
+      // Its screen opens over the conversation, not this conversation's own computer.
+      expect(await screen.findByRole("dialog", { name: "Codex's computer" })).toBeTruthy();
+      expect(parent.showComputer).not.toHaveBeenCalled();
+    });
+
+    it("opens no connection for a task that was already finished", async () => {
+      draw(MESSAGES);
+      await screen.findByText("Codex worked on: run the tests");
+      expect(socketFor("codex")).toBeUndefined();
+    });
   });
 
   it("reads which agent asks from an interrupt", () => {

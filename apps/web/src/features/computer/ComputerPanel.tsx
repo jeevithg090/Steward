@@ -18,6 +18,8 @@ export type ComputerTab = "screen" | "activity" | "files";
 
 export interface ComputerPanelProps {
   agentId?: string;
+  /** Whose computer, for a panel that opens its own connection. A shared one already knows. */
+  name?: string;
   /** Controls drawn in the panel's header, such as the chat's "Hide". */
   actions?: ReactNode;
   /** The tab shown first. */
@@ -33,11 +35,16 @@ export interface ComputerPanelProps {
   openSocket?: ComputerSessionProps["openSocket"];
 }
 
-export function ComputerPanel({ agentId = DEFAULT_AGENT_ID, openSocket, ...props }: ComputerPanelProps) {
+export function ComputerPanel({
+  agentId = DEFAULT_AGENT_ID,
+  name,
+  openSocket,
+  ...props
+}: ComputerPanelProps) {
   const shared = useOptionalComputer();
   if (shared && shared.agentId === agentId) return <PanelBody {...props} />;
   return (
-    <ComputerSession agentId={agentId} openSocket={openSocket}>
+    <ComputerSession agentId={agentId} {...(name ? { name } : {})} openSocket={openSocket}>
       <PanelBody {...props} />
     </ComputerSession>
   );
@@ -50,7 +57,7 @@ function PanelBody({
   headingLevel = 2,
   showTitle = true,
   className,
-}: Omit<ComputerPanelProps, "agentId" | "openSocket">) {
+}: Omit<ComputerPanelProps, "agentId" | "name" | "openSocket">) {
   const computer = useComputer();
   const [tab, setTab] = useState<ComputerTab>(initialTab);
   const wheelRef = useRef<HTMLButtonElement>(null);
@@ -70,12 +77,12 @@ function PanelBody({
           id={titleId}
           className={cn("m-0 font-semibold text-ink text-title", !showTitle && "sr-only")}
         >
-          Steward's computer
+          {computer.name}'s computer
         </Heading>
         {actions ? <div className="flex items-center gap-1">{actions}</div> : null}
       </header>
       <Tabs
-        label="Steward's computer"
+        label={`${computer.name}'s computer`}
         value={tab}
         onValueChange={setTab}
         items={[

@@ -29,6 +29,8 @@ const ACTIVITY_LIMIT = 200;
 
 export interface Computer {
   agentId: string;
+  /** Whose computer it is, in words: "Steward", or a bot's or another agent's name. */
+  name: string;
   connection: ConnectionState;
   /** Why the screen is not live, once retries are spent. */
   problem: string | null;
@@ -79,12 +81,19 @@ function mergeActivity(current: ActivityItem[], incoming: ActivityItem[]): Activ
 
 export interface ComputerSessionProps {
   agentId?: string;
+  /** Whose computer it is, as the person knows the agent. Defaults to "Steward". */
+  name?: string;
   children: ReactNode;
   /** Opens the socket. For tests; defaults to the browser's `WebSocket`. */
   openSocket?: (url: string) => SocketLike;
 }
 
-export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSocket }: ComputerSessionProps) {
+export function ComputerSession({
+  agentId = DEFAULT_AGENT_ID,
+  name = "Steward",
+  children,
+  openSocket,
+}: ComputerSessionProps) {
   const [connection, setConnection] = useState<ConnectionState>("connecting");
   const [problem, setProblem] = useState<string | null>(null);
   const [liveStatus, setLiveStatus] = useState<ComputerStatus | null>(null);
@@ -160,6 +169,7 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
   const value = useMemo<Computer>(
     () => ({
       agentId,
+      name,
       connection,
       problem,
       status,
@@ -180,6 +190,7 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
     }),
     [
       agentId,
+      name,
       connection,
       problem,
       status,
@@ -198,6 +209,7 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
     <ComputerContext.Provider value={value}>
       {children}
       <SecretBox
+        name={name}
         request={status?.secret}
         connected={connection === "open"}
         onSend={value.sendSecret}
