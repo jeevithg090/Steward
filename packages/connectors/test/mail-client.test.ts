@@ -4,6 +4,8 @@ import {
   type GmailEmail,
   type GmailEmailSummary,
   GoogleApiError,
+  NO_OFFSET_MESSAGE,
+  toRfc3339,
 } from "../src/google/client.ts";
 import { createDemoGoogleApp } from "../src/google/demo-app.ts";
 import { base64UrlEncode } from "../src/google/mime.ts";
@@ -12,7 +14,7 @@ import type { FetchLike } from "../src/net/guarded-fetch.ts";
 const TUESDAY = new Date("2026-10-27T08:30:00Z");
 
 /** The client wired to the demo app in-process: the same requests, no sockets. */
-function setup(opts: { accessToken?: string } = {}) {
+function setup(opts: { accessToken?: string; timeZone?: () => string } = {}) {
   const app = createDemoGoogleApp({ now: () => TUESDAY });
   const fetch = vi.fn<FetchLike>((input, init) => Promise.resolve(app.fetch(new Request(input, init))));
   const mail = createGoogleMailCalendar({
@@ -133,6 +135,50 @@ describe("MailCalendar over the demo server: mail", () => {
     expect(await read("<p>Short</p>")).toBe("Short");
   });
 
+  it("leaves out a message deleted between the list and the read, and lists the rest", async () => {
+    const app = createDemoGoogleApp({ now: () => TUESDAY });
+    const all = (await (
+      await app.request("/gmail/v1/users/me/messages?q=in%3Ainbox&maxResults=5")
+    ).json()) as { messages: { id: string }[] };
+    const gone = all.messages[2]!.id;
+    const fetch: FetchLike = async (input, init) => {
+      const url = String(input);
+      if (url.includes(`/messages/${gone}?`)) {
+        return Response.json(
+          { error: { code: 404, message: "Requested entity was not found." } },
+          { status: 404 },
+        );
+      }
+      return app.fetch(new Request(input, init));
+    };
+    const mail = createGoogleMailCalendar({
+      baseUrl: "http://demo.test/",
+      label: "Demo inbox",
+      isDemo: true,
+      fetch,
+    });
+    const list = await mail.listEmails({ limit: 5 });
+    expect(list.map((e) => e.id)).toEqual(all.messages.map((m) => m.id).filter((id) => id !== gone));
+  });
+
+  it("still fails the listing when Gmail refuses a read for another reason", async () => {
+    const app = createDemoGoogleApp({ now: () => TUESDAY });
+    let reads = 0;
+    const fetch: FetchLike = async (input, init) => {
+      if (String(input).includes("/messages/") && ++reads === 2) {
+        return Response.json({ error: { message: "Quota exceeded." } }, { status: 429 });
+      }
+      return app.fetch(new Request(input, init));
+    };
+    const mail = createGoogleMailCalendar({
+      baseUrl: "http://demo.test/",
+      label: "Demo inbox",
+      isDemo: true,
+      fetch,
+    });
+    await expect(mail.listEmails({ limit: 5 })).rejects.toThrow(/limiting requests right now \(429\)/);
+  });
+
   it("returns undefined for an email that does not exist", async () => {
     const { mail } = setup();
     expect(await mail.getEmail("ffffffffffffffff")).toBeUndefined();
@@ -233,6 +279,69 @@ describe("MailCalendar over the demo server: calendar", () => {
     expect(url).toContain("sendUpdates=none");
     const listed = await mail.listEvents({ from: "2026-10-29T00:00:00Z", to: "2026-10-30T00:00:00Z" });
     expect(listed.map((e) => e.id)).toContain(created.id);
+  });
+
+  it("reads a time with no offset as the person's wall clock, whatever the server's zone", async () => {
+    let zone = "Europe/London";
+    const { mail, fetch } = setup({ timeZone: () => zone });
+    const summer = await mail.createEvent({
+      title: "Dentist",
+      start: "2026-07-10T14:00:00",
+      end: "2026-07-10T14:30",
+      allDay: false,
+      attendees: [],
+    });
+    // 14:00 in London in July is 13:00 UTC, on a server in any zone.
+    expect(summer).toMatchObject({ start: "2026-07-10T13:00:00.000Z", end: "2026-07-10T13:30:00.000Z" });
+    const sent = JSON.parse(String(fetch.mock.calls.at(-1)?.[1]?.body)) as { start: { dateTime: string } };
+    expect(sent.start.dateTime).toBe("2026-07-10T13:00:00.000Z");
+    // Read on every use: a new zone in Settings applies at once.
+    zone = "America/New_York";
+    const ny = await mail.createEvent({
+      title: "Call",
+      start: "2026-07-10T14:00:00",
+      end: "2026-07-10T15:00:00",
+      allDay: false,
+      attendees: [],
+    });
+    expect(ny.start).toBe("2026-07-10T18:00:00.000Z");
+    // A time with an offset means what it says.
+    const fixed = await mail.createEvent({
+      title: "Fixed",
+      start: "2026-07-10T14:00:00+02:00",
+      end: "2026-07-10T15:00:00Z",
+      allDay: false,
+      attendees: [],
+    });
+    expect(fixed.start).toBe("2026-07-10T12:00:00.000Z");
+  });
+
+  it("refuses a time with no offset when it has no zone to read it in, before anything is made", async () => {
+    const { mail, fetch } = setup();
+    await expect(
+      mail.createEvent({
+        title: "Dentist",
+        start: "2026-07-10T14:00:00",
+        end: "2026-07-10T15:00:00",
+        allDay: false,
+        attendees: [],
+      }),
+    ).rejects.toThrow(NO_OFFSET_MESSAGE);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("turns times into RFC 3339 in the person's zone, across a clock change", () => {
+    // London leaves summer time on 25 October 2026.
+    expect(toRfc3339("2026-10-24T09:00", "Europe/London")).toBe("2026-10-24T08:00:00.000Z");
+    expect(toRfc3339("2026-10-26T09:00", "Europe/London")).toBe("2026-10-26T09:00:00.000Z");
+    expect(toRfc3339("2026-10-26 09:00:30.250", "Europe/London")).toBe("2026-10-26T09:00:30.000Z");
+    // A bare date is midnight in the zone, or midnight UTC with none.
+    expect(toRfc3339("2026-07-10", "Europe/London")).toBe("2026-07-09T23:00:00.000Z");
+    expect(toRfc3339("2026-07-10")).toBe("2026-07-10T00:00:00.000Z");
+    expect(toRfc3339("2026-07-10T14:00:00Z")).toBe("2026-07-10T14:00:00.000Z");
+    for (const bad of ["2026-02-30T10:00", "2026-07-10T25:00", "tomorrow at 3"]) {
+      expect(() => toRfc3339(bad, "Europe/London")).toThrow("isn't a date or time");
+    }
   });
 
   it("creates all-day events with an exclusive end date", async () => {

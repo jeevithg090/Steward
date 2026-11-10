@@ -100,6 +100,7 @@ const mail = createGoogleMailCalendar({
   accessToken: process.env.GOOGLE_ACCESS_TOKEN,
   label: "you@gmail.com",
   isDemo: false,
+  timeZone: () => settings.timezone(), // a time with no offset means the person's wall clock
 });
 ```
 
@@ -122,6 +123,11 @@ What the client does:
 - `createEvent` adds events with `sendUpdates=none`, so adding an event never emails anyone. Inviting
   people is a send, and sends go through their own approval.
 - Timed events come back as UTC ISO strings; all-day events as `YYYY-MM-DD` with an exclusive end.
+- Times sent to Calendar must be ISO 8601. A time with no offset (`2026-07-10T14:00`) is read as that
+  wall-clock time in `timeZone()`, the person's zone from Settings, never the server's. Without
+  `timeZone` such a time is refused: "Give the time with its offset, such as
+  2026-10-28T15:00:00+01:00." Looser text ("tomorrow at 3") is refused too, because `Date.parse`
+  would read it as a date in 2001.
 
 ## MCP servers
 
