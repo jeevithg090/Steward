@@ -390,6 +390,39 @@ describe("Codex as a Steward agent, against the app-server transcript", () => {
   });
 });
 
+describe("Codex that does not start", () => {
+  const events = { update: () => {}, permission: async () => "reject" as const, exited: () => {} };
+  const backend = (args: string[], extra: { command?: string; startTimeoutMs?: number } = {}) =>
+    new CodexBackend({
+      profile: { ...profile(), args, ...(extra.command ? { command: extra.command } : {}) },
+      cwd: root,
+      env: process.env,
+      events,
+      ...(extra.startTimeoutMs ? { startTimeoutMs: extra.startTimeoutMs } : {}),
+    });
+
+  it("says why it stopped, in its own last words", async () => {
+    const crashing = backend([
+      "-e",
+      "process.stderr.write('Error: not logged in. Run `codex login`.\\n'); process.exit(2)",
+    ]);
+    await expect(crashing.start({})).rejects.toThrow(
+      "Codex stopped before it was ready (exit code 2): Error: not logged in. Run `codex login`.",
+    );
+    await expect(backend([], { command: join(root, "no-codex-here") }).start({})).rejects.toThrow(
+      /^Codex is not installed here/,
+    );
+  });
+
+  it("gives up on one that never answers, and stops it", async () => {
+    const silent = backend(["-e", "setInterval(() => {}, 1e9)"], { startTimeoutMs: 300 });
+    await expect(silent.start({})).rejects.toThrow(
+      "Codex did not answer within 1 second. Check that 'node -e setInterval(() => {}, 1e9)' starts the Codex app-server.",
+    );
+    expect(silent.pid).toBeUndefined();
+  });
+});
+
 // A live check against the real `codex`, only when it is installed AND the person asks for it:
 // starting it uses their own Codex sign-in, which no test should do by default.
 const live = Boolean(findProgram("codex", process.env)) && process.env.STEWARD_LIVE_CODEX === "1";

@@ -11,7 +11,16 @@ import type { Readable, Writable } from "node:stream";
 import type { TokenUsage } from "@ag-ui/client";
 import type { HarnessProfile } from "@steward/shared";
 import { filterStdoutLine } from "../acp/mapping.ts";
-import { harnessEnvironment } from "../profiles.ts";
+import {
+  plainExit,
+  running,
+  START_TIMEOUT_MS,
+  spawnFailed,
+  startTimedOut,
+  stderrSettled,
+  stopProcessGroup,
+} from "../process.ts";
+import { harnessEnvironment, notInstalled } from "../profiles.ts";
 import type { BackendEvents, HarnessBackend, HarnessPermission, TurnEnd } from "../types.ts";
 import {
   commandPermission,
@@ -36,7 +45,6 @@ import type {
 const REQUEST_TIMEOUT_MS = 30_000;
 /** How long an interrupt may take before the app-server is restarted (Happy's ABORT_GRACE_MS). */
 export const INTERRUPT_GRACE_MS = 3_000;
-const KILL_GRACE_MS = 3_000;
 const STDERR_TAIL = 4096;
 
 interface Pending {
@@ -84,11 +92,13 @@ export class CodexBackend implements HarnessBackend {
       events: BackendEvents;
       version?: string;
       interruptGraceMs?: number;
+      /** How long `initialize` and opening the thread may take, together. 30 seconds by default. */
+      startTimeoutMs?: number;
     },
   ) {}
 
   get pid(): number | undefined {
-    return this.child?.exitCode === null ? this.child.pid : undefined;
+    return running(this.child) ? this.child.pid : undefined;
   }
 
   async start({ resumeHandle }: { resumeHandle?: string }): Promise<{ handle: string; resumed: boolean }> {
@@ -98,40 +108,45 @@ export class CodexBackend implements HarnessBackend {
     env.RUST_LOG = env.RUST_LOG
       ? `${env.RUST_LOG},codex_core::rollout::list=off`
       : "codex_core::rollout::list=off";
+    // A group of its own, so stopping it also stops whatever it started.
     const child = spawn(profile.command, profile.args, {
       cwd,
       env,
       stdio: ["pipe", "pipe", "pipe"],
       shell: false,
+      detached: true,
     });
     this.child = child;
     let ready = false;
     this.exited = new Promise((resolveExit) => {
       child.once("exit", (code, signal) => {
         resolveExit();
-        for (const [id, request] of this.pending) {
-          request.reject(new Error(`${profile.name} stopped while waiting for ${request.method}`));
-          this.pending.delete(id);
-        }
-        this.turn?.done({
-          stopReason: this.closing ? "cancelled" : "error",
-          error: `${profile.name} stopped.`,
+        void stderrSettled(child).then(() => {
+          // Codex's own last words say why ("not signed in"); keys in them are masked.
+          const reason = plainExit(profile.name, code, signal, this.stderr);
+          for (const [id, request] of this.pending) {
+            request.reject(new Error(reason));
+            this.pending.delete(id);
+          }
+          this.turn?.done({ stopReason: this.closing ? "cancelled" : "error", error: reason });
+          this.turn = undefined;
+          if (!this.closing && ready) this.opts.events.exited(reason);
         });
-        this.turn = undefined;
-        if (!this.closing && ready) {
-          this.opts.events.exited(
-            `${profile.name} stopped${signal ? ` (${signal})` : code !== null ? ` (exit code ${code})` : ""}.`,
-          );
-        }
       });
     });
+    let timer: NodeJS.Timeout | undefined;
     const failed = new Promise<never>((_, reject) => {
       child.on("error", (err) => {
-        if (!ready) reject(new Error(`${profile.name} could not be started: ${err.message}`));
+        if (!ready) reject(spawnFailed(profile, err, notInstalled(profile)));
       });
-      void this.exited?.then(() => {
-        if (!ready) reject(this.diedError());
+      void this.exited?.then(async () => {
+        if (ready) return;
+        await stderrSettled(child);
+        reject(this.diedError());
       });
+      const timeoutMs = this.opts.startTimeoutMs ?? START_TIMEOUT_MS;
+      timer = setTimeout(() => reject(startTimedOut(profile, timeoutMs)), timeoutMs);
+      timer.unref();
     });
     failed.catch(() => {});
     child.stderr.on("data", (chunk: Buffer) => {
@@ -185,12 +200,16 @@ export class CodexBackend implements HarnessBackend {
       ready = true;
       await this.close();
       throw error instanceof Error ? error : new Error(String(error));
+    } finally {
+      clearTimeout(timer);
     }
   }
 
   private diedError(): Error {
-    const tail = this.stderr.trim().split("\n").slice(-3).join(" ").slice(0, 300);
-    return new Error(`${this.opts.profile.name} stopped before it was ready${tail ? `: ${tail}` : "."}`);
+    const child = this.child;
+    const { name } = this.opts.profile;
+    const said = plainExit(name, child?.exitCode ?? null, child?.signalCode ?? null, this.stderr);
+    return new Error(said.replace(`${name} stopped`, `${name} stopped before it was ready`));
   }
 
   async prompt(text: string): Promise<TurnEnd> {
@@ -254,12 +273,8 @@ export class CodexBackend implements HarnessBackend {
   async close(): Promise<void> {
     this.closing = true;
     const child = this.child;
-    if (!child || child.exitCode !== null || child.signalCode !== null) return;
-    child.kill("SIGTERM");
-    const timer = setTimeout(() => child.kill("SIGKILL"), KILL_GRACE_MS);
-    timer.unref();
-    await this.exited;
-    clearTimeout(timer);
+    if (!child) return;
+    await stopProcessGroup(child, this.exited);
   }
 
   // ── JSON-RPC ────────────────────────────────────────────────────────────────────────────────
