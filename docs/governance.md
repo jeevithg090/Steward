@@ -368,6 +368,7 @@ first, with filters, and each refusal names its rule.
 | `computer.help_requested`, `computer.control_taken`, `computer.control_released` | The agent asked for help, or you took or handed back the wheel.                          |
 | `policy.changed`                                                                 | A rule was added, changed, switched, revoked, or synced from a preset or tenant package. |
 | `routine.ran`, `routine.disabled`                                                | A routine ran, or was switched off after ten failures in a row.                          |
+| `routine.changed`                                                                | You added, changed or deleted a routine on `/routines` (the agent's changes are calls).  |
 | `run.started`, `run.finished`                                                    | A run began or ended.                                                                    |
 
 What goes in: the tool, its target, the decision and the rule, and arguments with anything that

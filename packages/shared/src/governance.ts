@@ -223,6 +223,8 @@ export type AuditType =
   | "policy.changed"
   | "routine.ran"
   | "routine.disabled"
+  /** The person added, changed or deleted a routine in the app (the agent's changes are tool calls). */
+  | "routine.changed"
   | "bot.installed"
   | "bot.updated"
   | "bot.removed"

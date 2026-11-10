@@ -137,6 +137,7 @@ export const AUDIT_TYPE_LABELS: Record<AuditType, string> = {
   "policy.changed": "Rules changed",
   "routine.ran": "Routine ran",
   "routine.disabled": "Routine switched off",
+  "routine.changed": "Routine changed",
   "run.started": "Started work",
   "run.finished": "Finished work",
   "harness.started": "Coding agent started",
