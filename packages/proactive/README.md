@@ -30,6 +30,7 @@ proactive.routines;
 proactive.triage;
 proactive.brief;
 proactive.notifications;
+proactive.watch; // the inbox watch, off until the person switches it on
 ```
 
 `migrations` is exported too (ids start with `proactive.`), for a server that migrates every
@@ -130,6 +131,26 @@ Up to five `suggested` tasks per brief from the mail the model said needs you: "
 Pereira about Friday ship date", or "Look into “Payment failed” from Stripe" for senders that take
 no replies. Never a duplicate: an email or title that already has a task is skipped, whatever its
 state, except a task hidden more than 14 days ago. Unsorted mail is never suggested.
+
+### The inbox watch
+
+A small, safe first step towards working through the day, not only in the morning brief. It is
+**off** until the person switches it on (Routines → Watch my inbox), and it **only reads**: it calls
+no tools, never replies, sends or changes mail, and writes only suggestions, one notification and
+its own status (migration `proactive.002_inbox_watch`).
+
+- `watch.check()` looks once. It runs only when mail is connected, a real model is set (the scripted
+  one cannot sort mail) and today's brief exists. Otherwise it says why ("Couldn't look: no mailbox
+  is connected.") and leaves `checkedAt` at the last time it really looked.
+- It reads `in:inbox newer_than:1d` (at most 25) and leaves out mail the brief or an earlier look
+  already sorted (the triage cache, which also bounds the model's cost). The rest is triaged as
+  usual, and model-sorted needs-you mail becomes at most **two** suggestions per look, through the
+  brief's own de-duplication. Unsorted mail is never suggested; the next look tries it again.
+- At most one notification per look: "New mail needs you", "Ana Pereira: Friday ship date and 1
+  more", prefixed "From the demo inbox:" for demo mail, opening Suggested on Tasks.
+- `watch.status()` is `{ enabled, checkedAt?, note?, noteAt? }`: when it last read the inbox, and
+  what its last try found or why it could not look. Provider error text is never stored.
+- The server looks every 30 minutes from the person's brief time until 21:00 local time.
 
 ### Skills, memory, notifications
 

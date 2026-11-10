@@ -1,4 +1,11 @@
-import type { ApprovalStore, BriefService, NotificationStore, Routine, RoutineStore } from "@steward/shared";
+import type {
+  ApprovalStore,
+  BriefService,
+  InboxWatchService,
+  NotificationStore,
+  Routine,
+  RoutineStore,
+} from "@steward/shared";
 import { routineFiring } from "../runtime/frames.ts";
 import { clip, interruptSummary } from "../runtime/run-summary.ts";
 import {
@@ -16,7 +23,11 @@ export const INTERVALS = {
   routines: 30_000,
   brief: 60_000,
   approvals: 60_000,
+  watch: 30 * 60_000,
 } as const;
+
+/** The inbox watch looks from the person's brief time until this local time. */
+export const WATCH_UNTIL = "21:00";
 
 /** How long a due routine waits for its busy conversation before the firing is skipped. */
 const ROUTINE_BUSY_WAIT_MS = 5 * 60_000;
@@ -35,6 +46,8 @@ export interface WorkerDeps {
   runs: ServerRuns;
   settings: SettingsStore;
   threads: ThreadStore;
+  /** The inbox watch. It looks only when the person has switched it on. */
+  watch?: InboxWatchService;
   now?: () => Date;
 }
 
@@ -65,6 +78,7 @@ export class Workers {
     this.every("routines", INTERVALS.routines, () => this.tickRoutines());
     this.every("brief", INTERVALS.brief, () => this.tickBrief());
     this.every("approvals", INTERVALS.approvals, () => this.tickApprovals());
+    this.every("watch", INTERVALS.watch, () => this.tickWatch());
     // First look shortly after boot, not a full interval later.
     const first = setTimeout(() => {
       void this.guard("brief", () => this.tickBrief());
@@ -265,6 +279,24 @@ export class Workers {
         });
       }
     }
+  }
+
+  // ── The inbox watch ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * One look at new mail, if the person switched the watch on and it is between their brief time
+   * and 21:00 where they are. The watch itself checks the rest (mail, a model, today's brief).
+   */
+  async tickWatch(): Promise<void> {
+    const { watch, settings } = this.deps;
+    if (!watch?.status().enabled) return;
+    const now = this.now();
+    const tz = settings.timezone();
+    const from = parseClock(settings.briefTime());
+    const until = parseClock(WATCH_UNTIL) ?? 24 * 60;
+    const minutes = localMinutes(now, tz);
+    if (from === undefined || minutes < from || minutes >= until) return;
+    await watch.check();
   }
 
   // ── Approvals ───────────────────────────────────────────────────────────────────────────────

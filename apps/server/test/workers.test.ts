@@ -1,4 +1,4 @@
-import type { Approval } from "@steward/shared";
+import type { Approval, InboxWatch, InboxWatchService } from "@steward/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { localDate } from "../src/util/time.ts";
 import { Workers } from "../src/workers/workers.ts";
@@ -18,9 +18,10 @@ describe.runIf(missing.length === 0)("background workers", () => {
   });
 
   /** A Workers instance on the live services, with its own clock. */
-  function workersAt(now: Date) {
+  function workersAt(now: Date, watch?: InboxWatchService) {
     const s = t.server.services;
     return new Workers({
+      ...(watch ? { watch } : {}),
       routines: s.proactive.routines,
       brief: s.proactive.brief,
       notifications: s.proactive.notifications,
@@ -139,6 +140,46 @@ describe.runIf(missing.length === 0)("background workers", () => {
       lastStatus: "failed",
       lastError: "Steward stopped while this was running.",
     });
+  });
+
+  it("looks at the inbox only when it is on, from the brief time until 21:00", async () => {
+    t.server.services.settings.update({ briefTime: "08:00", timezone: "UTC" });
+    let enabled = false;
+    const looks: string[] = [];
+    let clock = "";
+    const watch: InboxWatchService = {
+      status: () => ({ enabled }),
+      setEnabled: (on) => ({ enabled: on }),
+      check: async () => {
+        looks.push(clock);
+        return { enabled } satisfies InboxWatch;
+      },
+    };
+    const tick = (iso: string) => {
+      clock = iso;
+      return workersAt(new Date(iso), watch).tickWatch();
+    };
+    await tick("2026-10-22T12:00:00Z"); // off
+    enabled = true;
+    await tick("2026-10-22T07:59:00Z"); // before the brief time
+    await tick("2026-10-22T21:00:00Z"); // from 21:00 it rests
+    expect(looks).toEqual([]);
+    await tick("2026-10-22T08:00:00Z");
+    await tick("2026-10-22T20:59:00Z");
+    expect(looks).toEqual(["2026-10-22T08:00:00Z", "2026-10-22T20:59:00Z"]);
+  });
+
+  it("switches the inbox watch on and off over the API, and is honest that it cannot sort", async () => {
+    expect((await t.api<InboxWatch>("/api/inbox-watch")).body).toMatchObject({ enabled: false });
+    const on = await t.api<InboxWatch>("/api/inbox-watch", { method: "PATCH", json: { enabled: true } });
+    expect(on.body).toMatchObject({ enabled: true });
+    expect((await t.api("/api/inbox-watch", { method: "PATCH", json: { enabled: "yes" } })).status).toBe(400);
+    // The test server runs the scripted model, which does not sort mail: the watch says so.
+    const looked = await t.server.services.proactive.watch.check();
+    expect(looked.note).toBe("Couldn't look: no model is set up to sort mail.");
+    expect(looked.checkedAt).toBeUndefined();
+    const off = await t.api<InboxWatch>("/api/inbox-watch", { method: "PATCH", json: { enabled: false } });
+    expect(off.body).toMatchObject({ enabled: false, note: looked.note });
   });
 
   it("makes today's brief once the brief time has passed, once a day", async () => {

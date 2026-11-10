@@ -162,6 +162,20 @@ export interface Routine {
   createdAt: string;
 }
 
+/**
+ * The inbox watch: off unless the person switches it on. Through the day it reads new mail, sorts
+ * it, and turns what needs the person into suggestions. It never replies, sends or changes anything.
+ */
+export interface InboxWatch {
+  enabled: boolean;
+  /** When it last read the inbox. Absent until it has. */
+  checkedAt?: string;
+  /** What its last try found, or why it could not look, in plain words. */
+  note?: string;
+  /** When that last try was, whether or not it could look. */
+  noteAt?: string;
+}
+
 export const ROUTINE_LIMITS = {
   /** No routine may run more often than this. */
   minIntervalMinutes: 15,

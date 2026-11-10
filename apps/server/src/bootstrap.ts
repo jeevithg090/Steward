@@ -360,6 +360,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       runs,
       settings,
       threads,
+      watch: proactive.watch,
     });
     const setup = new SetupService({
       model: () => ({ info: host.info, text: host.textModel(), version: host.version }),

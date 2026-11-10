@@ -13,6 +13,7 @@ import type {
 import type {
   Brief,
   EmailSummary,
+  InboxWatch,
   MemoryFact,
   Routine,
   Skill,
@@ -248,6 +249,21 @@ export interface RoutineStore {
    * recorded as failed and the routine is scheduled again from now. Returns how many there were.
    */
   recover(): number;
+}
+
+/**
+ * The inbox watch (`InboxWatch` in domain.ts). Off until the person switches it on; it only reads
+ * mail and adds suggestions, and never acts.
+ */
+export interface InboxWatchService {
+  /** Whether it is on, and when it last looked. */
+  status(): InboxWatch;
+  setEnabled(enabled: boolean): InboxWatch;
+  /**
+   * Looks once, if it is on: reads new mail, sorts it, and suggests what needs the person. It calls
+   * no tools: the only things it writes are suggestions, one notification and its own status.
+   */
+  check(opts?: { signal?: AbortSignal }): Promise<InboxWatch>;
 }
 
 /**

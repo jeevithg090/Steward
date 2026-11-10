@@ -127,6 +127,14 @@ describe("api: every route in ROUTES", () => {
     ],
     ["routine (DELETE)", () => api.routines.remove("rtn_1"), "DELETE", "/api/routines/rtn_1"],
     ["routine run", () => api.routines.run("rtn_1"), "POST", "/api/routines/rtn_1/run"],
+    ["inbox watch", () => api.routines.watch(), "GET", "/api/inbox-watch"],
+    [
+      "inbox watch (PATCH)",
+      () => api.routines.setWatch(true),
+      "PATCH",
+      "/api/inbox-watch",
+      { enabled: true },
+    ],
     ["memory", () => api.memory.list(), "GET", "/api/memory"],
     [
       "memory (POST)",

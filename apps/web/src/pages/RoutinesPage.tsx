@@ -15,8 +15,10 @@ import { Pill } from "@/components/ui/Pill.tsx";
 import {
   useCreateRoutine,
   useDeleteRoutine,
+  useInboxWatch,
   useRoutines,
   useRunRoutine,
+  useSetInboxWatch,
   useUpdateRoutine,
 } from "@/lib/api.ts";
 import { CRON_PRESETS, checkCron } from "@/lib/cron.ts";
@@ -69,8 +71,78 @@ export function RoutinesPage() {
         )}
       </section>
 
+      <InboxWatchCard />
+
       <NewRoutine />
     </Page>
+  );
+}
+
+/**
+ * The inbox watch: off until switched on. Honest about when it last looked, and about why it
+ * could not when it could not.
+ */
+function InboxWatchCard() {
+  const watch = useInboxWatch();
+  const set = useSetInboxWatch();
+  const data = watch.data;
+
+  return (
+    <Card as="section" aria-labelledby="inbox-watch" className="flex flex-col gap-3">
+      <CardHeader
+        id="inbox-watch"
+        title="Watch my inbox"
+        description="Every half hour from your brief time until 21:00, Steward reads new mail and suggests what needs you on Tasks. It only reads: it never replies, sends or changes anything."
+      />
+      {watch.isPending ? (
+        <Loading>Loading…</Loading>
+      ) : watch.isError ? (
+        <ErrorNotice
+          title="Couldn't load the inbox watch"
+          error={watch.error}
+          onRetry={() => void watch.refetch()}
+        />
+      ) : (
+        <>
+          <Switch
+            checked={data?.enabled ?? false}
+            disabled={set.isPending}
+            label="Watch my inbox through the day"
+            onCheckedChange={(on) =>
+              set.mutate(on, {
+                onSuccess: () =>
+                  toast.success(on ? "Watching your inbox" : "Stopped watching your inbox", {
+                    description: on ? "It starts at the next half hour after today's brief." : undefined,
+                  }),
+                onError: (error) => toast.error("That didn't work", { description: error.message }),
+              })
+            }
+          />
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-2 text-sub sm:grid-cols-[8rem_1fr]">
+            <dt className="text-ink-2">Last looked</dt>
+            <dd className="text-ink">
+              {data?.checkedAt ? (
+                <>
+                  {formatDateTime(data.checkedAt)}{" "}
+                  <span className="text-ink-2">({relativeTime(data.checkedAt)})</span>
+                </>
+              ) : (
+                <span className="text-ink-2">Hasn't looked yet</span>
+              )}
+            </dd>
+            {data?.note ? (
+              <>
+                <dt className="text-ink-2">Last try</dt>
+                <dd className="text-ink">
+                  {data.note}
+                  {data.noteAt ? <span className="text-ink-2"> ({relativeTime(data.noteAt)})</span> : null}
+                </dd>
+              </>
+            ) : null}
+          </dl>
+        </>
+      )}
+    </Card>
   );
 }
 

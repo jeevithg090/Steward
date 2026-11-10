@@ -95,4 +95,18 @@ export const migrations: Migration[] = [
       );
     `,
   },
+  {
+    // The inbox watch: one row, off until the person switches it on.
+    id: "proactive.002_inbox_watch",
+    sql: `
+      CREATE TABLE proactive_inbox_watch (
+        id         INTEGER PRIMARY KEY CHECK (id = 1),
+        enabled    INTEGER NOT NULL DEFAULT 0,
+        checked_at TEXT,
+        note       TEXT,
+        note_at    TEXT,
+        updated_at TEXT NOT NULL
+      );
+    `,
+  },
 ];
