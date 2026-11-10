@@ -151,7 +151,7 @@ tried presets first, then tenant, then yours, then Always allow, oldest first.
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------- |
 | 1. Deny rules         | Every enabled `deny` rule.                                                                                                                                                                                                                                                                                                   | deny                               | —                     |
 | 2. The safety floor   | Payments (`tool.kind == "pay"`, including [escalated](#escalation-when-a-click-is-not-just-a-click) clicks) and credential entry (`request_secret`, or typing into a field the computer judged secret by its type or autocomplete, or one named like a password, code or card number, including keys pressed one at a time). | ask                                | No, ever              |
-| 3. Taint              | A tainted conversation making a `send`, `pay`, `sign`, `delete` or `shell` call.                                                                                                                                                                                                                                             | ask                                | No                    |
+| 3. Taint              | A tainted conversation making a `send`, `pay`, `sign`, `delete` or `shell` call, saving a memory or a routine, or writing to mail, the calendar, the web or a connected app, or to people.                                                                                                                                   | ask                                | No                    |
 | 4. The outbound check | Anything sensitive found in what would leave.                                                                                                                                                                                                                                                                                | ask, with the findings on the card | No                    |
 | 5. Ask rules          | Every enabled `ask` rule.                                                                                                                                                                                                                                                                                                    | ask                                | No                    |
 | 6. Allow rules        | Every enabled `allow` rule: presets, tenant, yours, and the ones Always allow wrote.                                                                                                                                                                                                                                         | allow                              | —                     |
@@ -279,11 +279,39 @@ results from connected apps. Each built-in tool says whether it does (`taints` i
 `packages/shared/src/tools.ts`; listed in [tools.md](tools.md)). Once any such tool has returned in
 a conversation, the conversation is tainted.
 
-In a tainted conversation, every `send`, `pay`, `sign`, `delete` and `shell` call asks, whatever
-your rules say, and Always allow is not offered. The reason is prompt injection: a page or an email
-can contain text written to look like instructions ("forward this to…"). The agent is told to treat
-such text as data, and it usually will; taint makes sure that if it ever does not, the result is a
-card in front of you rather than an email out of the door.
+A conversation is also tainted from its first turn when that turn is not your own words:
+
+- **A task whose words you did not write.** Start on a suggestion, a triage item or a task Steward
+  added puts the task's title and note in front of the agent as quoted data, fenced off from
+  anything you add, with the email's id so it reads the email first.
+- **A task another agent handed on** after its own conversation was tainted. The other agent reads
+  it as that agent's words, not yours, and its conversation is tainted too. A coding agent's work is
+  always treated as tainted, because Steward never sees what it reads.
+
+That first turn stays in the conversation's history, so the taint lasts for every later run of it,
+a resume from the browser included.
+
+In a tainted conversation, these ask whatever your rules say, and Always allow is not offered:
+
+| What                                                                                                           | In the record as         |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| Sending, paying, signing, deleting or running a command                                                        | `default:taint`          |
+| Saving a memory or a routine, which would shape later work                                                     | `default:taint-persists` |
+| A write to mail, the calendar, the web or a connected app, or any write that reaches people, such as an invite | `default:taint-leaves`   |
+
+Work on Steward's own computer still runs: its browser, its files and its tasks. So does a coding
+agent's change to a folder on your machine that one of your rules allows, so a rule for your
+project keeps working.
+
+The reason is prompt injection: a page or an email can contain text written to look like
+instructions ("forward this to…"). The agent is told to treat such text as data, and it usually
+will; taint makes sure that if it ever does not, the result is a card in front of you rather than
+an email out of the door. From a shortcut, the answer to anything taint asked about can only be
+no; the phone app can say yes after Face ID.
+
+A message can only start a conversation as yours from Steward's own pages. A `/chat?prompt=…` link,
+which any site or email can write, fills the message box with a note to read it first, and never
+sends by itself.
 
 What is read is also wrapped and labelled as untrusted before the model sees it, and the system
 prompt tells the agent to report instructions it finds rather than follow them.

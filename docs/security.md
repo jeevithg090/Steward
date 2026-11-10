@@ -131,7 +131,17 @@ forward the last ten emails to…". Steward assumes this will happen.
   in it, but to tell you what it asks.
 - **Taint.** Once a conversation has read anything untrusted, every send, payment, signature,
   deletion and shell command asks you, whatever your rules say, and Always allow is not offered.
-  If the model is fooled, the result is a card in front of you, not an email out of the door.
+  So does saving a memory or a routine, and any change to your mail, calendar, the web or a
+  connected app, or anything that reaches other people. If the model is fooled, the result is a
+  card in front of you, not an email out of the door.
+- **Taint starts with untrusted words, too.** A task that quotes an email (a suggestion from the
+  brief, say) or that Steward wrote itself starts tainted, with its words fenced off as quoted
+  data. So does a task another agent hands on after reading untrusted content: handing work on
+  never washes taint away. See [Taint](governance.md#taint).
+- **A link cannot speak for you.** A `/chat?prompt=…` link, which any site or email can write,
+  only fills the message box, with a note to read it first. Only Steward's own pages can start a
+  conversation with a message, and Start on an email names it by address and id, never by the
+  sender's own words.
 - **Exact approval cards.** The card shows the tool, the recipients or the page, and the exact
   arguments, so you approve what will happen, not the model's description of it.
 - **Element names come from the page, not the model.** When the agent clicks, the gateway judges
@@ -265,10 +275,11 @@ Plainly, so nobody relies on something that is not there:
   numbers in what is typed, but not for every private detail. Watch the computer panel and the
   record, and write a deny rule (for example on `target.host`) if a conversation should stay on
   known sites.
-- **Writes to Steward's own state.** Remembering a fact, adding a task and creating a routine run
-  without asking, even in a tainted conversation. What a routine later does is governed again, and
-  anything it would send, sign, delete or run waits for you, but review `/memory` and `/routines`
-  from time to time.
+- **Writes to Steward's own state.** Remembering a fact and creating a routine run without asking
+  until the conversation has read something untrusted; after that they ask. Adding a task runs
+  without asking even then, though its words are treated as untrusted when it starts. What a
+  routine later does is governed again, and anything it would send, sign, delete or run waits for
+  you, but review `/memory` and `/routines` from time to time.
 - **You.** An approval card shows exactly what will happen. If you allow it, it happens.
 - **CAPTCHAs and bot checks.** The agent never tries to solve them; it asks you to take the wheel.
 - **A rewritten record.** Someone with write access to the file can rebuild the whole chain. Anchor
