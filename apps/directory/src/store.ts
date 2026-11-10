@@ -94,6 +94,11 @@ export const migrations: Migration[] = [
         problem TEXT
       );`,
   },
+  {
+    // How many bots were due but held back by the share a run may take or the category floor.
+    id: "directory.006_retirement_held",
+    sql: "ALTER TABLE retirement_runs ADD COLUMN held INTEGER NOT NULL DEFAULT 0;",
+  },
 ];
 
 export interface RetirementRunRecord {
@@ -104,6 +109,8 @@ export interface RetirementRunRecord {
   regenerated: { id: string; category: string }[];
   /** AI-made bots still inside their 90 days. */
   young: number;
+  /** AI-made bots due to retire but kept this run: by the share a run may take, or the floor. */
+  held: number;
   problem?: string;
 }
 
@@ -470,11 +477,11 @@ export class DirectoryStore {
 
   recordRetirement(run: RetirementRunRecord): void {
     this.db.run(
-      `INSERT INTO retirement_runs (day, at, retired_json, thinned_json, regenerated_json, young, problem)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO retirement_runs (day, at, retired_json, thinned_json, regenerated_json, young, held, problem)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(day) DO UPDATE SET at = excluded.at, retired_json = excluded.retired_json,
          thinned_json = excluded.thinned_json, regenerated_json = excluded.regenerated_json,
-         young = excluded.young, problem = excluded.problem`,
+         young = excluded.young, held = excluded.held, problem = excluded.problem`,
       [
         run.day,
         run.at,
@@ -482,6 +489,7 @@ export class DirectoryStore {
         toJson(run.thinned),
         toJson(run.regenerated),
         run.young,
+        run.held,
         run.problem ?? null,
       ],
     );
@@ -495,6 +503,7 @@ export class DirectoryStore {
       thinned_json: string;
       regenerated_json: string;
       young: number;
+      held: number;
       problem: string | null;
     }>("SELECT * FROM retirement_runs ORDER BY day DESC LIMIT 1");
     if (!row) return undefined;
@@ -505,6 +514,7 @@ export class DirectoryStore {
       thinned: fromJson(row.thinned_json, []),
       regenerated: fromJson(row.regenerated_json, []),
       young: row.young,
+      held: row.held ?? 0,
       ...(row.problem ? { problem: row.problem } : {}),
     };
   }

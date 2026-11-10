@@ -113,6 +113,7 @@ export class RetirementTask {
       thinned: [],
       regenerated: [],
       young: 0,
+      held: 0,
     };
     try {
       const regenerate = this.regenerateOptions();
@@ -133,6 +134,7 @@ export class RetirementTask {
       record.thinned = run.thinned;
       record.regenerated = run.regenerated.flatMap((r) => (r.id ? [{ id: r.id, category: r.category }] : []));
       record.young = run.young.length;
+      record.held = run.held.length;
       if (settings.regenerate && !regenerate && run.thinned.length > 0) {
         record.problem = "Regeneration is on, but no model key is set (NVIDIA_API_KEY or STEWARD_SEED_*).";
       } else if (run.outOfJobs.length > 0) {

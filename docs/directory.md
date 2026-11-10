@@ -156,7 +156,7 @@ It goes slowly, because most of the shipped bots were made on the same two days:
 - it never takes a category under `DIRECTORY_CATEGORY_FLOOR`. A category held there is shown on
   `/admin`, or, with `DIRECTORY_REGENERATE` on and a model key set, given new bots from the
   taxonomy, and one held bot goes for each new bot written;
-- the rest wait for the next night, and the log says how many were held back and why.
+- the rest wait for the next night; `/admin` says how many were held back, and the log says why.
 
 So a category of 100 unused bots loses 10 the first night, 9 the next, and reaches 20 on the
 17th night. Then:

@@ -403,10 +403,11 @@ export interface AdminData {
 function retirementHtml(data: NonNullable<AdminData["retirement"]>): string {
   const { settings, last } = data;
   if (settings.days === 0) return "<p>Retirement is off (<code>DIRECTORY_RETIRE_DAYS=0</code>).</p>";
-  const rule = `<p class="meta">AI-made bots nobody installed or said they use within ${settings.days} days are retired once a day after ${String(settings.hour).padStart(2, "0")}:00 UTC. A category that drops under ${settings.floor} ${settings.regenerate ? "is topped up with new bots" : "is listed here; top-up is off (<code>DIRECTORY_REGENERATE</code>)"}.</p>`;
+  const rule = `<p class="meta">AI-made bots nobody installed or said they use within ${settings.days} days are retired once a day after ${String(settings.hour).padStart(2, "0")}:00 UTC. One run takes at most a tenth of a category, lowest judge score first, and never takes a category under ${settings.floor}. A category held at its floor ${settings.regenerate ? "is given new bots, and as many unused ones go" : "is listed here; top-up is off (<code>DIRECTORY_REGENERATE</code>)"}.</p>`;
   if (!last) return `${rule}<p>It has not run yet.</p>`;
+  const held = last.held > 0 ? ` ${plural(last.held, "more bot")} due but held back for a later run.` : "";
   return `${rule}
-<p>Last run ${formatDate(last.at)}: ${plural(last.retired.length, "bot")} retired, ${plural(last.regenerated.length, "new bot")} made, ${last.young} AI-made bots still inside their ${settings.days} days.</p>
+<p>Last run ${formatDate(last.at)}: ${plural(last.retired.length, "bot")} retired, ${plural(last.regenerated.length, "new bot")} made, ${last.young} AI-made bots still inside their ${settings.days} days.${held}</p>
 ${last.problem ? `<p class="notice">${esc(last.problem)}</p>` : ""}
 ${last.retired.length ? `<details><summary>Retired</summary><ul>${last.retired.map((r) => `<li>${esc(r.name)} <span class="meta">${esc(r.id)} · ${esc(r.category)}</span></li>`).join("")}</ul></details>` : ""}
 ${last.thinned.length ? `<p>Thinned: ${last.thinned.map((t) => `${esc(t.category)} (${t.live} of ${t.floor})`).join(", ")}.</p>` : ""}`;
