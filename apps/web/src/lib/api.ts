@@ -277,7 +277,12 @@ export const api = {
     list: (signal?: AbortSignal) => get<ThreadSummary[]>(ROUTES.threads, undefined, signal),
     get: (id: string) => get<ThreadSummary>(route(ROUTES.thread, { id })),
     create: (body: ThreadCreateInput = {}) => send<ThreadSummary>("POST", ROUTES.threads, body),
-    remove: (id: string) => send<void>("DELETE", route(ROUTES.thread, { id })),
+    /** `ifEmpty` keeps a conversation that has any history: the server answers 409 instead. */
+    remove: (id: string, opts: { ifEmpty?: boolean } = {}) =>
+      send<void>(
+        "DELETE",
+        withQuery(route(ROUTES.thread, { id }), opts.ifEmpty ? { ifEmpty: "1" } : undefined),
+      ),
   },
 
   approvals: {
@@ -557,8 +562,9 @@ export function useCreateThread() {
 
 export function useDeleteThread() {
   const qc = useQueryClient();
-  return useMutation<void, ApiError, string>({
-    mutationFn: (id) => api.threads.remove(id),
+  return useMutation<void, ApiError, string | { id: string; ifEmpty?: boolean }>({
+    mutationFn: (target) =>
+      typeof target === "string" ? api.threads.remove(target) : api.threads.remove(target.id, target),
     onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.threads }),
   });
 }

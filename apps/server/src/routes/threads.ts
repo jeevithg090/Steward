@@ -2,7 +2,7 @@ import { newId, ROUTES, ThreadCreateBody } from "@steward/shared";
 import type { Hono } from "hono";
 import type { StewardServices } from "../context.ts";
 import { HttpError, notFound, readBody } from "../http/errors.ts";
-import { enumQuery, intQuery, textQuery } from "./query.ts";
+import { enumQuery, flagQuery, intQuery, textQuery } from "./query.ts";
 
 const KINDS = ["chat", "routine", "task"] as const;
 
@@ -39,6 +39,10 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
   app.delete(ROUTES.thread, async (c) => {
     const id = c.req.param("id");
     if (!s.threads.exists(id)) throw notFound("that conversation");
+    // `?ifEmpty=1` tidies away a conversation nobody wrote in, and never one with a history: the
+    // chat sends it when the person switches agent in what looked like an empty conversation.
+    if (flagQuery(c, "ifEmpty") && (s.runner.isThreadBusy(id) || s.runner.getThreadMessages(id).length > 0))
+      throw new HttpError(409, "That conversation has messages, so it was kept.");
     if (s.runner.isThreadBusy(id)) {
       await s.runner.stop({ threadId: id });
       await Promise.race([s.runner.whenIdle(id), new Promise((r) => setTimeout(r, 5_000))]);

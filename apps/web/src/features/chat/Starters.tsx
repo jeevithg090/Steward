@@ -5,7 +5,7 @@
  *
  * Picking another agent starts a fresh conversation with it (`/chat?agent=`): an agent is fixed
  * once a thread exists. The empty one left behind is removed, so the list of conversations does not
- * fill with blanks.
+ * fill with blanks; the server keeps it instead if it turns out to have a history after all.
  */
 import { Sparkles } from "lucide-react";
 import { useId } from "react";
@@ -43,8 +43,9 @@ export function Starters({ onPick, disabled }: { onPick: (text: string) => void;
     if (!chat || agentId === chat.agentId) return;
     const empty = chat.threadId;
     navigate(`/chat?agent=${encodeURIComponent(agentId)}`, { replace: true });
-    // Best effort: a blank left behind is noise, not data. A failure here changes nothing.
-    remove.mutate(empty, { onError: () => {} });
+    // Best effort: a blank left behind is noise, not data. A failure here changes nothing, and
+    // `ifEmpty` makes the server keep a conversation that has messages.
+    remove.mutate({ id: empty, ifEmpty: true }, { onError: () => {} });
   }
 
   return (
