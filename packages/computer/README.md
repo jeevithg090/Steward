@@ -270,12 +270,13 @@ Every refusal is a `ComputerError` with a `code` and one plain sentence for the 
 pnpm vitest run packages/computer/test
 ```
 
-The suite drives real Chromium (Playwright's cached build) against a local site on 127.0.0.1 and
-finishes in about 10 seconds. It covers snapshots, clicking and typing by ref, masking, stale refs
-(after a navigation and after a rename), metadata and private-host refusals including redirects,
-take and release with the barrier, the secret box without leaks, files and symlink escapes, shell
-timeouts and the environment, the screencast, popups, downloads and dialogs. If Chromium is
-missing: `pnpm exec playwright install chromium`.
+The suite drives real Chromium (Playwright's cached build) against a local site on 127.0.0.1, so it
+takes a minute or two, depending on the machine. It covers snapshots, clicking and typing by ref,
+masking, stale refs (after a navigation and after a rename), metadata and private-host refusals
+including redirects, take and release with the barrier, the secret box without leaks, files and
+symlink escapes, shell timeouts and the environment, the screencast, popups, downloads and their
+limits, dialogs and tab crashes. If Chromium is missing:
+`pnpm exec playwright install chromium`.
 
 ## Not yet
 

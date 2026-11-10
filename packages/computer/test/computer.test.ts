@@ -96,7 +96,8 @@ afterAll(async () => {
   if (dataDir) await rm(dataDir, { recursive: true, force: true });
 });
 
-describe("the computer, in real Chromium", () => {
+// Several tests start a browser of their own, and on a busy machine one start can take 15 s.
+describe("the computer, in real Chromium", { timeout: 90_000 }, () => {
   it("starts on first use, with its profile and workspace in place", async () => {
     expect(manager.status("alpha")).toMatchObject({
       agentId: "alpha",
@@ -746,12 +747,15 @@ describe("the computer, in real Chromium", () => {
     unsubscribe();
   });
 
-  it("resets by closing and starting again, and stays closed until asked", async () => {
+  it("resets by closing and starting again", async () => {
     const status = await manager.reset("screen");
     expect(status).toMatchObject({ agentId: "screen", running: true, controller: "agent" });
     const c = await manager.get("screen");
     expect((await c.snapshot()).url).toBe("about:blank");
+  });
 
+  it("stays closed after a close until it is asked to start", async () => {
+    const c = await manager.get("screen");
     await c.close();
     expect(c.status().running).toBe(false);
     expect((await refusal(() => c.snapshot())).code).toBe("closed");
