@@ -192,6 +192,39 @@ describe.runIf(missing.length === 0)("the server, end to end over HTTP", () => {
     expect((await t.api<ChainCheck>("/api/audit/verify")).body.ok).toBe(true);
     expect((await t.api("/api/audit?limit=zero")).status).toBe(400);
     expect((await t.api("/api/audit?effect=maybe")).status).toBe(400);
+    const failed = await t.api<AuditPage>("/api/audit?effect=failed");
+    expect(failed.status).toBe(200);
+    expect(failed.body.events.every((e) => e.type === "tool.failed")).toBe(true);
+  });
+
+  it("checks the whole record on request, against a seal written down, and exports it", async () => {
+    const full = await t.api<ChainCheck>("/api/audit/verify?full=1");
+    expect(full.body).toMatchObject({ ok: true, scope: "full" });
+    const head = full.body.head;
+    if (!head) throw new Error("no newest entry");
+    expect(head.hash).toMatch(/^[0-9a-f]{64}$/);
+    expect((await t.api<ChainCheck>("/api/audit/verify")).body).toMatchObject({ ok: true, scope: "recent" });
+
+    const anchored = await t.api<ChainCheck>(
+      `/api/audit/verify?anchor=${head.seq}:${head.hash.toUpperCase()}`,
+    );
+    expect(anchored.body).toMatchObject({ ok: true, anchor: { seq: head.seq, ok: true } });
+    const wrong = await t.api<ChainCheck>(`/api/audit/verify?anchor=${head.seq}:${"a".repeat(64)}`);
+    expect(wrong.body).toMatchObject({ ok: false, anchor: { ok: false } });
+    expect((await t.api("/api/audit/verify?anchor=12:nothex")).status).toBe(400);
+    expect((await t.api(`/api/audit/verify?anchor=0:${head.hash}`)).status).toBe(400);
+
+    const res = await fetch(`${t.base}/api/audit/export`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toMatch(/^application\/x-ndjson/);
+    expect(res.headers.get("content-disposition")).toMatch(
+      /^attachment; filename="steward-record-.+\.jsonl"$/,
+    );
+    const lines = (await res.text()).trim().split("\n");
+    const rows = lines.map((line) => JSON.parse(line) as AuditPage["events"][number]);
+    expect(rows[0]).toMatchObject({ seq: 1, prevHash: "0".repeat(64) });
+    for (let i = 1; i < rows.length; i++) expect(rows[i]?.prevHash).toBe(rows[i - 1]?.hash);
+    expect(rows.some((r) => r.seq === head.seq && r.hash === head.hash)).toBe(true);
   });
 
   it("lists, patches and starts tasks in a conversation of their own", async () => {
