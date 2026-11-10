@@ -85,6 +85,12 @@ describe("api: every route in ROUTES", () => {
       "/api/audit?before=40&limit=20&effect=deny",
     ],
     ["audit verify", () => api.audit.verify(), "GET", "/api/audit/verify"],
+    [
+      "audit verify, every entry and a seal",
+      () => api.audit.verify({ full: true, anchor: "12:ab" }),
+      "GET",
+      "/api/audit/verify?full=1&anchor=12%3Aab",
+    ],
     ["tasks", () => api.tasks.list("suggested"), "GET", "/api/tasks?state=suggested"],
     [
       "task (PATCH)",
@@ -296,7 +302,9 @@ describe("api: every route in ROUTES", () => {
 
   it("covers every HTTP route in ROUTES", () => {
     const covered = new Set(cases.map(([, , , url]) => url.split("?")[0]));
-    const templates = Object.entries(ROUTES).filter(([key]) => key !== "events" && key !== "computerWs");
+    // Not fetched: the event stream and the computer's socket, and the record's download (a link).
+    const links = new Set(["events", "computerWs", "auditExport"]);
+    const templates = Object.entries(ROUTES).filter(([key]) => !links.has(key));
     for (const [key, template] of templates) {
       const pattern = new RegExp(`^${template.replace(/:[a-zA-Z]+/g, "[^/]+")}$`);
       expect(
@@ -310,6 +318,10 @@ describe("api: every route in ROUTES", () => {
     const { calls } = mockFetch(() => ({ status: 204 }));
     await api.threads.remove("thr a/b");
     expect(calls[0]!.url).toBe("/api/threads/thr%20a%2Fb");
+  });
+
+  it("links the record's download, which the browser fetches itself", () => {
+    expect(api.audit.exportUrl).toBe(ROUTES.auditExport);
   });
 
   it("builds the computer's WebSocket address on this host", () => {
