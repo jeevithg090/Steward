@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import { DatabaseSync, type SQLInputValue, type StatementSync } from "node:sqlite";
 
 /**
  * One SQLite file holds everything Steward keeps: policy, approvals, the audit chain, tasks,
@@ -24,18 +24,28 @@ export interface RunResult {
   lastInsertRowid: number | bigint;
 }
 
+/**
+ * How many prepared statements `Db` keeps. Preparing costs far more than running a small query
+ * (20 to 200 µs against about 3 µs), and Steward runs the same few hundred queries over and over.
+ */
+export const STATEMENT_CACHE_SIZE = 256;
+
 export class Db {
   readonly path: string;
   private readonly db: DatabaseSync;
   private depth = 0;
+  /** Prepared statements by their SQL, least recently used first. */
+  private readonly statements = new Map<string, StatementSync>();
 
   constructor(path: string) {
     this.path = path;
     if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
     this.db = new DatabaseSync(path);
+    // First, so that switching to WAL waits for another process (the bots CLI, say) instead of
+    // failing at once with SQLITE_BUSY.
+    this.db.exec("PRAGMA busy_timeout = 5000;");
     this.db.exec("PRAGMA journal_mode = WAL;");
     this.db.exec("PRAGMA foreign_keys = ON;");
-    this.db.exec("PRAGMA busy_timeout = 5000;");
     this.db.exec("CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)");
   }
 
@@ -56,20 +66,43 @@ export class Db {
   }
 
   run(sql: string, params: Params = []): RunResult {
-    const stmt = this.db.prepare(sql);
+    const stmt = this.prepare(sql);
     const r = Array.isArray(params) ? stmt.run(...params) : stmt.run(params);
     return { changes: Number(r.changes), lastInsertRowid: r.lastInsertRowid };
   }
 
   get<T>(sql: string, params: Params = []): T | undefined {
-    const stmt = this.db.prepare(sql);
+    const stmt = this.prepare(sql);
     const row = Array.isArray(params) ? stmt.get(...params) : stmt.get(params);
     return (row ?? undefined) as T | undefined;
   }
 
   all<T>(sql: string, params: Params = []): T[] {
-    const stmt = this.db.prepare(sql);
+    const stmt = this.prepare(sql);
     return (Array.isArray(params) ? stmt.all(...params) : stmt.all(params)) as T[];
+  }
+
+  /**
+   * The statement for `sql`, prepared once and kept. SQLite prepares it again by itself when a
+   * migration changes the schema, and every call binds its own parameters afresh, so a kept
+   * statement behaves as a new one. `run`, `get` and `all` finish with a statement before they
+   * return, so one is never in use twice at once.
+   */
+  private prepare(sql: string): StatementSync {
+    const kept = this.statements.get(sql);
+    if (kept) {
+      // Most recently used goes last.
+      this.statements.delete(sql);
+      this.statements.set(sql, kept);
+      return kept;
+    }
+    const stmt = this.db.prepare(sql);
+    this.statements.set(sql, stmt);
+    if (this.statements.size > STATEMENT_CACHE_SIZE) {
+      const oldest = this.statements.keys().next().value;
+      if (oldest !== undefined) this.statements.delete(oldest);
+    }
+    return stmt;
   }
 
   /** Runs `fn` in a transaction. Nested calls join the outer transaction. */
@@ -97,6 +130,7 @@ export class Db {
   }
 
   close(): void {
+    this.statements.clear();
     this.db.close();
   }
 }
