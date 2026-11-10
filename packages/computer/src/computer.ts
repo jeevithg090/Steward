@@ -38,7 +38,7 @@ import {
   staleRef,
 } from "./errors.ts";
 import { parseClientMessage } from "./messages.ts";
-import { displayUrl, type HostPolicy, parseWebUrl } from "./network.ts";
+import { displayUrl, type HostPolicy, parseWebUrl, portOf } from "./network.ts";
 import { type FrameMessage, PersonInput, Screencast } from "./screen.ts";
 import { removeStaleHomes, runShell } from "./shell.ts";
 import {
@@ -506,7 +506,8 @@ export class AgentComputer implements Computer {
 
   /** Checks and opens a URL for either driver. Throws a readable refusal when it is blocked. */
   private async openUrl(page: Page, target: URL, who: "agent" | "person"): Promise<void> {
-    const verdict = await this.opts.policy.checkUrl(target);
+    const policy = this.opts.policy;
+    const verdict = policy.checkPort(await policy.checkUrl(target), portOf(target));
     if (!verdict.ok) {
       if (verdict.reason === "unresolved") throw new ComputerError("not_found", verdict.message);
       this.log.add({ kind: "navigate", text: `Refused to open ${displayUrl(target)}`, ok: false });

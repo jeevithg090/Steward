@@ -17,7 +17,7 @@ import {
 } from "node:http";
 import { connect, type Socket } from "node:net";
 import type { Duplex } from "node:stream";
-import type { HostPolicy, HostVerdict, ResolvedAddress } from "./network.ts";
+import { type HostPolicy, type HostVerdict, portOf, type ResolvedAddress } from "./network.ts";
 
 export interface EgressProxy {
   /** `http://127.0.0.1:<port>`, for Playwright's `proxy.server`. */
@@ -126,7 +126,7 @@ export async function startEgressProxy(opts: {
       res.writeHead(400, { "content-type": "text/plain" }).end("This proxy only forwards http:// requests.");
       return;
     }
-    const verdict = policy.checkPort(await policy.checkUrl(target), target.port ? Number(target.port) : 80);
+    const verdict = policy.checkPort(await policy.checkUrl(target), portOf(target));
     if (!verdict.ok) {
       refuse(target.href, verdict);
       const status = verdict.reason === "unresolved" ? 502 : 403;
@@ -148,7 +148,7 @@ export async function startEgressProxy(opts: {
       {
         host: address.address,
         family: address.family,
-        port: target.port ? Number(target.port) : 80,
+        port: portOf(target),
         method: req.method,
         path: `${target.pathname}${target.search}`,
         headers: endToEnd(req.rawHeaders),

@@ -185,6 +185,11 @@ The policy (`HostPolicy`) resolves names and checks every address:
 - **Refused unless `allowPrivateHosts`:** loopback, RFC 1918, link-local, carrier-grade NAT,
   unique-local IPv6, multicast and reserved ranges, `localhost` and `*.localhost`, including IPv4
   hidden inside IPv6 (`::ffff:127.0.0.1`, NAT64, 6to4).
+- **Refused always, on a protected port:** this machine, however the address is written
+  (`127.0.0.1`, `localhost`, `0.0.0.0`, `[::]`, `[::ffff:127.0.0.1]`, NAT64, or one of the
+  machine's own network addresses). The server passes Steward's own port, the phone port and the
+  Vite ports, so the browser can never call Steward's API, whatever `allowPrivateHosts` says. The
+  check runs before navigating, in the route guard and in the proxy.
 - DNS answers are cached for 30 seconds (5 for failures).
 
 A refused navigation is a `ComputerError` with code `blocked` and a sentence such as

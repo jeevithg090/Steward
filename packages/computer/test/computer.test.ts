@@ -63,6 +63,8 @@ async function refusal(fn: () => Promise<unknown>): Promise<ComputerError> {
 }
 
 let site: TestSite;
+/** Stands in for Steward's own server: a protected port the browser must never reach. */
+let own: TestSite;
 let dataDir: string;
 let audit: ReturnType<typeof fakeAudit>;
 let manager: ComputerManager;
@@ -70,9 +72,10 @@ let strict: ComputerManager;
 
 beforeAll(async () => {
   site = await startSite();
+  own = await startSite();
   dataDir = await mkdtemp(join(tmpdir(), "steward-computer-"));
   audit = fakeAudit();
-  manager = createComputerManager({ dataDir, allowPrivateHosts: true, audit });
+  manager = createComputerManager({ dataDir, allowPrivateHosts: true, protectedPorts: [own.port], audit });
   strict = createComputerManager({ dataDir: join(dataDir, "strict") });
 });
 
@@ -80,6 +83,7 @@ afterAll(async () => {
   await manager?.closeAll();
   await strict?.closeAll();
   await site?.close();
+  await own?.close();
   if (dataDir) await rm(dataDir, { recursive: true, force: true });
 });
 
@@ -329,6 +333,19 @@ describe("the computer, in real Chromium", () => {
     const redirected = await refusal(() => c.navigate(`${site.base}/redirect-meta`));
     expect(redirected.code).toBe("blocked");
     expect(redirected.message).toMatch(/blocked address\. 169\.254\.169\.254 is a cloud metadata address/);
+  });
+
+  it("never opens Steward's own port, whichever address for this machine is used", async () => {
+    const c = await manager.get("alpha");
+    for (const host of ["127.0.0.1", "localhost", "0.0.0.0", "[::ffff:127.0.0.1]", "[::]"]) {
+      const url = `http://${host}:${own.port}/form`;
+      const refused = await refusal(() => c.navigate(url));
+      expect(refused.code, url).toBe("blocked");
+      expect(refused.message, url).toMatch(/Steward's own server/);
+    }
+    expect(own.hits).toBe(0);
+    // The same machine on another port is still open, because private hosts are allowed here.
+    expect((await c.navigate(`http://0.0.0.0:${site.port}/next`)).title).toBe("Next");
   });
 
   it("refuses loopback and private hosts by default, and non-web schemes always", async () => {

@@ -10,7 +10,7 @@ import { hostname } from "node:os";
 import { join } from "node:path";
 import { type BrowserContext, chromium, type Route } from "playwright";
 import { ComputerError } from "./errors.ts";
-import type { HostPolicy } from "./network.ts";
+import { type HostPolicy, portOf } from "./network.ts";
 
 export const VIEWPORT = { width: 1280, height: 800 } as const;
 
@@ -152,7 +152,7 @@ export async function installRouteGuard(
         await route.fallback().catch(() => {});
         return;
       }
-      const verdict = await policy.checkUrl(url);
+      const verdict = policy.checkPort(await policy.checkUrl(url), portOf(url));
       if (verdict.ok) {
         await route.fallback().catch(() => {});
         return;

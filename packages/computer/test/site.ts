@@ -64,11 +64,15 @@ const PAGES: Record<string, string> = {
 export interface TestSite {
   base: string;
   port: number;
+  /** How many requests reached the site. */
+  readonly hits: number;
   close(): Promise<void>;
 }
 
 export async function startSite(): Promise<TestSite> {
+  let hits = 0;
   const server: Server = createServer((req, res) => {
+    hits++;
     const path = new URL(req.url ?? "/", "http://x").pathname;
     if (path === "/slow") {
       setTimeout(() => {
@@ -103,6 +107,9 @@ export async function startSite(): Promise<TestSite> {
   return {
     base: `http://127.0.0.1:${port}`,
     port,
+    get hits() {
+      return hits;
+    },
     close: () =>
       new Promise<void>((resolve) => {
         server.closeAllConnections();

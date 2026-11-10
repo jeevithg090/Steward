@@ -5,9 +5,11 @@ import {
   classifyAddress,
   displayUrl,
   HostPolicy,
+  isThisMachine,
   type LookupFn,
   parseIpv6,
   parseWebUrl,
+  portOf,
 } from "../src/network.ts";
 
 function fakeLookup(table: Record<string, string[]>): LookupFn & { calls: string[] } {
@@ -212,5 +214,53 @@ describe("protected ports", () => {
     // Other loopback ports, and the protected port on another machine, are still allowed.
     expect(policy.checkPort(await policy.checkHost("127.0.0.1"), 3000).ok).toBe(true);
     expect(policy.checkPort(await policy.checkHost("nas.test"), 8787).ok).toBe(true);
+  });
+
+  it("refuses this machine on a protected port however the address is written", async () => {
+    const policy = new HostPolicy({
+      allowPrivateHosts: true,
+      protectedPorts: [8787],
+      lookup: fakeLookup({ "zero.test": ["0.0.0.0"], "mapped.test": ["::ffff:127.0.0.1"] }),
+      ownAddresses: () => ["127.0.0.1", "192.168.1.5", "fe80::1c2b:3aff:fe4d:5e6f%en0"],
+    });
+    for (const host of [
+      "0.0.0.0",
+      "0.1.2.3",
+      "127.8.9.10",
+      "[::]",
+      "[::1]",
+      "[::ffff:127.0.0.1]",
+      "[::ffff:7f00:1]",
+      "[::ffff:0.0.0.0]",
+      "[::127.0.0.1]",
+      "[64:ff9b::7f00:1]",
+      // The machine's own LAN address reaches a server listening on 0.0.0.0.
+      "192.168.1.5",
+      "[::ffff:192.168.1.5]",
+      "[fe80::1c2b:3aff:fe4d:5e6f]",
+      "zero.test",
+      "mapped.test",
+    ]) {
+      const verdict = policy.checkPort(await policy.checkHost(host), 8787);
+      expect(verdict.ok, host).toBe(false);
+      if (!verdict.ok) expect(verdict.message, host).toMatch(/Steward's own server/);
+      expect(policy.checkPort(await policy.checkHost(host), 3000).ok, host).toBe(true);
+    }
+    // Another machine on the same network keeps its ports.
+    expect(policy.checkPort(await policy.checkHost("192.168.1.6"), 8787).ok).toBe(true);
+    expect(policy.checkPort(await policy.checkHost("[::ffff:192.168.1.6]"), 8787).ok).toBe(true);
+  });
+
+  it("knows which addresses are this machine, and the port a URL connects to", () => {
+    expect(isThisMachine("127.0.0.1", [])).toBe(true);
+    expect(isThisMachine("::", [])).toBe(true);
+    expect(isThisMachine("2001:db8::1", [])).toBe(false);
+    expect(isThisMachine("10.0.0.1", [])).toBe(false);
+    expect(isThisMachine("10.0.0.1", ["10.0.0.1"])).toBe(true);
+    expect(isThisMachine("not an address", ["127.0.0.1"])).toBe(false);
+    expect(portOf(new URL("http://a.test/"))).toBe(80);
+    expect(portOf(new URL("https://a.test/"))).toBe(443);
+    expect(portOf(new URL("wss://a.test/"))).toBe(443);
+    expect(portOf(new URL("http://a.test:8787/"))).toBe(8787);
   });
 });
