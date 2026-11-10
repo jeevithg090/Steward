@@ -77,6 +77,11 @@ export interface ApprovalStore {
   decide(id: string, answer: ApprovalAnswer, actorId: string, note?: string, by?: ApprovalDecider): Approval;
   /** Marks pending approvals past their expiry as expired. Returns how many. */
   expireDue(now?: Date): number;
+  /**
+   * Withdraws a pending approval nobody answered (its conversation was deleted) and claims it, so
+   * no later answer can act on it. Returns undefined when it was not pending any more.
+   */
+  cancel(id: string, actorId: string, reason: string): Approval | undefined;
 }
 
 export interface AuditLog {
