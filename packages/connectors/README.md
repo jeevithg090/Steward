@@ -117,6 +117,15 @@ What the client does:
   (`INBOX`, `CATEGORY_PROMOTIONS`) stay as they are.
 - `getEmail` prefers the `text/plain` part and falls back to the HTML part as readable text. Bodies
   are cut at 20,000 characters, visibly.
+- **Only what a person can see.** Invisible text is the classic hiding place for an instruction to a
+  model, so subjects, names, snippets and bodies go through `visibleText` first: Unicode tag
+  characters, bidi overrides and isolates, zero-width spaces and stray joiners are taken out (the
+  joiners real scripts and emoji need stay). HTML bodies also leave out elements hidden from view
+  (`hidden`, or an inline `display:none`, `visibility:hidden`, `opacity:0`, `font-size:0`,
+  `mso-hide:all`). The body then says so: "[Steward removed 31 hidden characters from this email.]",
+  "[Steward left out 2 passages hidden from view.]". Taint still applies to whatever is left.
+- `listEmails` leaves out a message that was archived, trashed or deleted between the list and the
+  read (Gmail answers 404); any other failure still fails the listing.
 - `sendEmail` builds RFC 2822 itself: RFC 2047 encoded words for non-ASCII, base64 bodies, and no line
   breaks allowed in any header (that is how header injection starts). A reply (`inReplyTo` as a
   message id) joins the original thread with `In-Reply-To` and `References`.

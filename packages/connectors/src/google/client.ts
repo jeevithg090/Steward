@@ -18,6 +18,7 @@ import {
   headerValue,
   parseAddress,
   parseAddressList,
+  visibleText,
 } from "./mime.ts";
 import { zonedTime } from "./time.ts";
 
@@ -133,7 +134,12 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
     return call<GmailMessage>("Gmail", `${gmailBase}/messages/${encodeURIComponent(id)}?${params}`);
   }
 
-  async function toSummary(m: GmailMessage): Promise<GmailEmailSummary> {
+  /**
+   * A summary with only what a person would see: characters that are never drawn are taken out of
+   * the subject, the names and the snippet (`seen` counts them, the snippet aside, since it repeats
+   * the body).
+   */
+  async function toSummary(m: GmailMessage, seen = new Seen()): Promise<GmailEmailSummary> {
     const headers = m.payload?.headers ?? [];
     const names = await labels();
     const triage: GmailEmailSummary["headers"] = {};
@@ -146,10 +152,10 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
     return {
       id: m.id,
       threadId: m.threadId,
-      from: parseAddress(headerValue(headers, "From")) ?? { email: "" },
-      to: parseAddressList(headerValue(headers, "To")),
-      subject: decodeWords(headerValue(headers, "Subject") ?? "").trim() || "(no subject)",
-      snippet: decodeEntities(m.snippet ?? ""),
+      from: seen.address(parseAddress(headerValue(headers, "From")) ?? { email: "" }),
+      to: parseAddressList(headerValue(headers, "To")).map((a) => seen.address(a)),
+      subject: seen.text(decodeWords(headerValue(headers, "Subject") ?? "")).trim() || "(no subject)",
+      snippet: visibleText(decodeEntities(m.snippet ?? "")).text,
       receivedAt: new Date(
         Number.isFinite(received) && received > 0 ? received : Date.parse(dateHeader ?? "") || 0,
       ).toISOString(),
@@ -182,7 +188,7 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
           throw err;
         }),
       );
-      return Promise.all(messages.filter((m): m is GmailMessage => m !== undefined).map(toSummary));
+      return Promise.all(messages.filter((m): m is GmailMessage => m !== undefined).map((m) => toSummary(m)));
     },
 
     async getEmail(id) {
@@ -193,12 +199,21 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
         if (isGone(err)) return undefined;
         throw err;
       }
-      const summary = await toSummary(m);
+      const seen = new Seen();
+      const summary = await toSummary(m, seen);
       const headers = m.payload?.headers ?? [];
+      const cc = parseAddressList(headerValue(headers, "Cc")).map((a) => seen.address(a));
+      const body = bodyOf(m.payload);
+      // Said in the body, so the model knows the sender hid something, without reading what.
+      const chars = seen.removed + body.removed;
+      const notes = [
+        chars > 0 ? `[Steward removed ${plural(chars, "hidden character")} from this email.]` : "",
+        body.passages > 0 ? `[Steward left out ${plural(body.passages, "passage")} hidden from view.]` : "",
+      ];
       const email: GmailEmail = {
         ...summary,
-        cc: parseAddressList(headerValue(headers, "Cc")),
-        body: bodyOf(m.payload),
+        cc,
+        body: [body.text, ...notes].filter(Boolean).join("\n\n"),
         headers: summary.headers,
         messageId: headerValue(headers, "Message-ID"),
       };
@@ -313,21 +328,35 @@ interface GmailMessage {
   payload?: GmailPart;
 }
 
-/** The readable body: the first text/plain part, else the first text/html part as text. */
-function bodyOf(payload: GmailPart | undefined): string {
-  if (!payload) return "";
+/**
+ * The readable body: the first text/plain part, else the first text/html part as text, with what
+ * a person cannot see taken out. `removed` counts characters that are never drawn (taken out
+ * before the cut, so they cannot push the visible text past it, and again after HTML, whose
+ * entities can spell them); `passages` counts HTML elements hidden from view that held words.
+ */
+function bodyOf(payload: GmailPart | undefined): { text: string; removed: number; passages: number } {
+  const none = { text: "", removed: 0, passages: 0 };
+  if (!payload) return none;
   const plain = findPart(payload, "text/plain");
   const html = plain ? undefined : findPart(payload, "text/html");
   const part = plain ?? html;
-  if (!part?.body?.data) return "";
+  if (!part?.body?.data) return none;
   const charset =
     /charset="?([^";\s]+)"?/i.exec(headerValue(part.headers ?? [], "Content-Type") ?? "")?.[1] ?? "utf-8";
-  const decoded = base64UrlDecode(part.body.data, charset).replace(/\r\n/g, "\n");
+  const raw = visibleText(base64UrlDecode(part.body.data, charset).replace(/\r\n/g, "\n"));
+  const decoded = raw.text;
   // Anyone can send HTML, so it is read only as far as the body that is kept.
-  const page = html ? htmlToText(decoded.slice(0, MAX_HTML_CHARS), { maxChars: MAX_BODY_CHARS }) : undefined;
-  const text = page ? page.text : decoded.trim();
+  const page = html
+    ? htmlToText(decoded.slice(0, MAX_HTML_CHARS), { maxChars: MAX_BODY_CHARS, dropHidden: true })
+    : undefined;
+  const shown = visibleText(page ? page.text : decoded.trim());
+  const text = shown.text;
   const cut = page ? page.truncated || decoded.length > MAX_HTML_CHARS : text.length > MAX_BODY_CHARS;
-  return cut ? `${text.slice(0, MAX_BODY_CHARS)}\n\n[truncated: the message is longer than this]` : text;
+  return {
+    text: cut ? `${text.slice(0, MAX_BODY_CHARS)}\n\n[truncated: the message is longer than this]` : text,
+    removed: raw.removed + shown.removed,
+    passages: page?.hidden ?? 0,
+  };
 }
 
 function findPart(part: GmailPart, mimeType: string): GmailPart | undefined {
@@ -434,6 +463,27 @@ function allDayEnd(start: string, end: string): string {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────────────────────
+
+/** Takes what is never drawn out of the parts of an email a person reads, and counts it. */
+class Seen {
+  removed = 0;
+
+  text(value: string): string {
+    const visible = visibleText(value);
+    this.removed += visible.removed;
+    return visible.text;
+  }
+
+  address(a: EmailAddress): EmailAddress {
+    if (!a.name) return a;
+    const name = this.text(a.name).trim();
+    return name ? { name, email: a.email } : { email: a.email };
+  }
+}
+
+function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
 
 /** Gmail's answer for a message id that no longer exists (404), or one it no longer accepts (400). */
 function isGone(err: unknown): boolean {
