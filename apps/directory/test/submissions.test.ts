@@ -585,4 +585,89 @@ describe("submit_bot over MCP", () => {
       await client.close();
     }
   });
+
+  async function viaMcp(packUrl: string, creator: string): Promise<string> {
+    const client = new Client({ name: "scripted-agent", version: "1.0.0" });
+    await client.connect(
+      new StreamableHTTPClientTransport(new URL(`${SITE}/mcp`), {
+        fetch: async (input, init) =>
+          f.server.app.request(typeof input === "string" ? input : input.toString(), init),
+      }),
+    );
+    try {
+      const sent = await client.callTool({
+        name: "submit_bot",
+        arguments: { confirm_its_mine: true, pack_url: packUrl, creator_handle: creator },
+      });
+      expect(sent.isError).toBeFalsy();
+      return (sent.structuredContent as { id: string }).id;
+    } finally {
+      await client.close();
+    }
+  }
+
+  const form = (session: string, path: string) =>
+    f.request(path, {
+      method: "POST",
+      session,
+      headers: { origin: SITE, "content-type": "application/x-www-form-urlencoded" },
+      body: "",
+    });
+
+  it("waits for the named creator to sign in and say it is theirs before a claim can be approved", async () => {
+    f.github.addRepo(
+      "ana",
+      "meals",
+      pack("meal-planner", { name: "Meal Planner", pitch: "Plans dinners.", category: "food", version: 2 }),
+    );
+    const id = await viaMcp("https://github.com/ana/meals", "ana");
+    expect(f.server.store.submission(id)).toMatchObject({ kind: "claim", submitter: { verified: false } });
+    const rev = f.signIn("rev", 900);
+    const early = await f.request(`/api/admin/submissions/${id}/approve`, {
+      method: "POST",
+      session: rev,
+      json: {},
+    });
+    expect(early.status).toBe(409);
+    expect(early.body.error).toContain("has not confirmed this is theirs");
+    expect((await f.request("/admin", { session: rev })).text).toContain("has not confirmed this is theirs");
+
+    // Ana signs in: /submit lists it under "Sent in your name" with the two answers.
+    const ana = f.signIn("Ana", 101);
+    const page = await f.request("/submit", { session: ana });
+    expect(page.text).toContain("Sent in your name");
+    expect(page.text).toContain(`/submit/${id}/confirm`);
+    expect((await f.request("/api/submissions/mine", { session: ana })).body.unconfirmed).toHaveLength(1);
+
+    // Someone else cannot answer for her.
+    expect((await form(f.signIn("mal", 666), `/submit/${id}/confirm`)).status).toBe(403);
+
+    const yes = await form(ana, `/submit/${id}/confirm`);
+    expect(yes.status).toBe(303);
+    expect(yes.headers.get("location")).toBe("/submit?m=confirmed");
+    expect(f.server.store.submission(id)?.submitter).toEqual({ githubId: 101, login: "ana", verified: true });
+    expect(f.server.submissions.mine(101).map((s) => s.id)).toContain(id);
+    expect((await form(ana, `/submit/${id}/confirm`)).status).toBe(404);
+
+    const approved = await f.request(`/api/admin/submissions/${id}/approve`, {
+      method: "POST",
+      session: rev,
+      json: {},
+    });
+    expect(approved.status).toBe(200);
+    expect(f.server.store.approvedFor("meal-planner")?.submitter.githubId).toBe(101);
+  });
+
+  it("turns a submission down when the person it names says it is not theirs", async () => {
+    f.github.addRepo("mal", "bots", { ...GOOD, author: { kind: "person", handle: "ana" } });
+    const id = await viaMcp("https://github.com/mal/bots", "ana");
+    const ana = f.signIn("ana", 101);
+    const no = await f.request(`/api/submissions/${id}/disown`, { method: "POST", session: ana, json: {} });
+    expect(no.status).toBe(200);
+    expect(f.server.store.submission(id)).toMatchObject({
+      status: "rejected",
+      note: "@ana said this was not theirs.",
+    });
+    expect(f.server.submissions.unconfirmed({ login: "ana" })).toEqual([]);
+  });
 });

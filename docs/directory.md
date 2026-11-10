@@ -215,7 +215,15 @@ other:
 | `submit_bot(confirm_its_mine, pack_url, creator_handle)` | A pending submission, marked unverified until the creator signs in. |
 
 Every result carries `pageUrl`, `packUrl`, `author` and the line "via the Steward directory", and
-says listing text is third-party. Add it to Claude Code with:
+says listing text is third-party. A query with no words to search for ("help me please", or only
+punctuation) matches no bots.
+
+Anyone can name any handle in `submit_bot`, so its submission waits for that person. When they
+sign in, `/submit` lists it under **Sent in your name** with **This is mine** and **Not mine**.
+"Not mine" turns it down. A claim of an existing listing cannot be approved until they say it is
+theirs; a new bot can, and the reviewer sees that it is unverified.
+
+Add it to Claude Code with:
 
 ```sh
 claude mcp add --transport http steward-bots https://<your site>/mcp

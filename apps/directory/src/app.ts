@@ -504,7 +504,21 @@ export async function createDirectoryApp(
 
   app.get("/api/submissions/mine", (c) => {
     const user = requireUser(c);
-    return c.json({ submissions: submissions.mine(user.githubId).map(publicSubmission) });
+    return c.json({
+      submissions: submissions.mine(user.githubId).map(publicSubmission),
+      // Sent through MCP under this handle: say "mine" or "not mine".
+      unconfirmed: submissions.unconfirmed(user).map(publicSubmission),
+    });
+  });
+
+  app.post("/api/submissions/:sid/confirm", sameSite, writeLimit, limitBody(1024), (c) => {
+    const user = requireUser(c);
+    return c.json({ submission: publicSubmission(submissions.confirm(c.req.param("sid"), user)) });
+  });
+
+  app.post("/api/submissions/:sid/disown", sameSite, writeLimit, limitBody(1024), (c) => {
+    const user = requireUser(c);
+    return c.json({ submission: publicSubmission(submissions.disown(c.req.param("sid"), user)) });
   });
 
   app.post("/api/bots/:id/claim", sameSite, writeLimit, limitBody(BODY_LIMIT), async (c) => {
@@ -785,9 +799,38 @@ export async function createDirectoryApp(
     [writeLimit],
   );
 
+  const yours = (user: Session) => ({
+    mine: submissions.mine(user.githubId),
+    unconfirmed: submissions.unconfirmed(user),
+  });
+
   app.get("/submit", (c) => {
     const ctx = site(c);
-    return htmlPage(c, submitPage(ctx, ctx.user ? { mine: submissions.mine(ctx.user.githubId) } : {}));
+    const m = c.req.query("m");
+    const message =
+      m === "confirmed"
+        ? "Thanks. It is marked as yours, and a reviewer will look at it."
+        : m === "disowned"
+          ? "Thanks. It was turned down, so nothing will be listed."
+          : undefined;
+    return htmlPage(
+      c,
+      submitPage(ctx, ctx.user ? { ...yours(ctx.user), ...(message ? { message } : {}) } : {}),
+    );
+  });
+
+  app.post("/submit/:sid/confirm", sameSite, writeLimit, limitBody(1024), (c) => {
+    const ctx = site(c);
+    if (!ctx.user) return c.redirect("/auth/github?next=%2Fsubmit", 303);
+    submissions.confirm(c.req.param("sid"), ctx.user);
+    return c.redirect("/submit?m=confirmed", 303);
+  });
+
+  app.post("/submit/:sid/disown", sameSite, writeLimit, limitBody(1024), (c) => {
+    const ctx = site(c);
+    if (!ctx.user) return c.redirect("/auth/github?next=%2Fsubmit", 303);
+    submissions.disown(c.req.param("sid"), ctx.user);
+    return c.redirect("/submit?m=disowned", 303);
   });
 
   app.post("/submit", sameSite, writeLimit, limitBody(BODY_LIMIT), async (c) => {
@@ -805,7 +848,7 @@ export async function createDirectoryApp(
         c,
         submitPage(ctx, {
           message: `Thanks. "${submission.pack.name}" is waiting for a reviewer.`,
-          mine: submissions.mine(ctx.user.githubId),
+          ...yours(ctx.user),
         }),
         201,
       );
@@ -821,7 +864,7 @@ export async function createDirectoryApp(
           error: true,
           problems: problem.problems.map((p) => `${p.path}: ${p.message}`),
           url,
-          mine: submissions.mine(ctx.user.githubId),
+          ...yours(ctx.user),
         }),
         problem.status as ContentfulStatusCode,
       );

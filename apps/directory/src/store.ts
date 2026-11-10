@@ -457,6 +457,27 @@ export class DirectoryStore {
     return this.db.all<SubmissionRow>(sql, params).map(toSubmission);
   }
 
+  /** Pending submissions sent through MCP under this handle that its owner has not confirmed yet. */
+  unconfirmedFor(login: string): Submission[] {
+    return this.db
+      .all<SubmissionRow>(
+        `SELECT * FROM submissions WHERE status = 'pending' AND verified = 0 AND lower(login) = lower(?)
+         ORDER BY created_at, rowid`,
+        [login],
+      )
+      .map(toSubmission);
+  }
+
+  /** The person the submission names signed in and said it is theirs. */
+  confirmSubmission(id: string, githubId: number, warnings: BotProblem[]): Submission | undefined {
+    this.db.run(
+      `UPDATE submissions SET verified = 1, github_id = ?, warnings_json = ?
+       WHERE id = ? AND status = 'pending' AND verified = 0`,
+      [githubId, toJson(warnings), id],
+    );
+    return this.submission(id);
+  }
+
   /** The newest approved submission for a bot: who owns the listing now. */
   approvedFor(botId: string): Submission | undefined {
     const row = this.db.get<SubmissionRow>(

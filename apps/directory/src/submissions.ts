@@ -55,7 +55,7 @@ export interface CheckedPack {
   fetched: FetchedPack;
 }
 
-export type PendingSubmission = Submission & { stale?: string };
+export type PendingSubmission = Submission & { blocked?: string };
 
 export const CONFIRM_FIRST =
   "Confirm the pack is yours, or that you may share it under MIT, before submitting it.";
@@ -298,12 +298,64 @@ export class Submissions {
     });
   }
 
-  /** What waits for a reviewer, each with the reason it can no longer be approved, if there is one. */
+  /** What waits for a reviewer, each with the reason it cannot be approved now, if there is one. */
   pending(): PendingSubmission[] {
     return this.opts.store.submissions({ status: "pending" }).map((s) => {
-      const stale = this.stale(s);
-      return stale ? { ...s, stale } : s;
+      const blocked = this.blocked(s);
+      return blocked ? { ...s, blocked } : s;
     });
+  }
+
+  /**
+   * Why a reviewer cannot approve a pending submission now, or undefined. A claim sent through MCP
+   * under someone's handle waits until that person signs in and confirms it, and one whose listing
+   * has moved on to another owner since is refused (see `stale`).
+   */
+  blocked(submission: Submission): string | undefined {
+    if (submission.kind !== "new" && !submission.submitter.verified) {
+      return `@${submission.submitter.login} has not confirmed this is theirs yet. They sign in on /submit to confirm it.`;
+    }
+    return this.stale(submission);
+  }
+
+  /** Submissions sent through MCP under this person's handle, waiting for them to say yes or no. */
+  unconfirmed(user: { login: string }): Submission[] {
+    return this.opts.store.unconfirmedFor(user.login);
+  }
+
+  private unconfirmedOne(id: string, user: { login: string }): Submission {
+    const submission = this.opts.store.submission(id);
+    if (submission?.status !== "pending" || submission.submitter.verified) {
+      throw new SubmissionError("That submission is not waiting for you to confirm it.", 404);
+    }
+    if (submission.submitter.login.toLowerCase() !== user.login.toLowerCase()) {
+      throw new SubmissionError("That submission names someone else.", 403);
+    }
+    return submission;
+  }
+
+  /** "This is mine": the signed-in person the submission names takes it as theirs. */
+  confirm(id: string, user: { githubId: number; login: string }): Submission {
+    const submission = this.unconfirmedOne(id, user);
+    const warnings = [
+      ...submission.warnings.filter((w) => w.path !== "submitter"),
+      {
+        path: "submitter",
+        message: `Sent through MCP; @${user.login} signed in and confirmed it is theirs.`,
+        severity: "warn" as const,
+      },
+    ];
+    return this.opts.store.confirmSubmission(id, user.githubId, warnings) ?? submission;
+  }
+
+  /** "Not mine": the person it names says they did not send it, so it is rejected. */
+  disown(id: string, user: { githubId: number; login: string }): Submission {
+    const submission = this.unconfirmedOne(id, user);
+    const note = `@${user.login} said this was not theirs.`;
+    return (
+      this.opts.store.decideSubmission(id, "rejected", user.login, note, this.now().toISOString()) ??
+      submission
+    );
   }
 
   mine(githubId: number): Submission[] {
@@ -323,8 +375,8 @@ export class Submissions {
     if (!submission) throw new SubmissionError("That submission no longer exists.", 404);
     if (submission.status !== "pending")
       throw new SubmissionError(`That submission was already ${submission.status}.`, 409);
-    const stale = this.stale(submission);
-    if (stale) throw new SubmissionError(stale, 409);
+    const blocked = this.blocked(submission);
+    if (blocked) throw new SubmissionError(blocked, 409);
     const catalogue = this.opts.catalogue;
     const previous = catalogue.pack(submission.botId);
     let pack = submission.pack;
