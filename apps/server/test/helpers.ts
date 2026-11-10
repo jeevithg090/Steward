@@ -25,7 +25,14 @@ export class EchoAgent extends AbstractAgent {
   abortable = true;
   /** Token usage to report on RUN_FINISHED, as a real agent would. */
   usage?: TokenUsage[];
+  /** True sends RUN_STARTED at once and the rest after `delayMs`, so a run can be stopped halfway. */
+  startAtOnce = false;
   private stopCurrent?: () => void;
+  /**
+   * A stop that came before `run()` was called. `AbstractAgent.runAgent` awaits `onInitialize`
+   * first, so a stop sent straight after starting lands here, as it can with a real agent.
+   */
+  private abortRequested = false;
 
   override clone(): EchoAgent {
     const copy = super.clone() as EchoAgent;
@@ -33,21 +40,29 @@ export class EchoAgent extends AbstractAgent {
     copy.reply = this.reply;
     copy.delayMs = this.delayMs;
     copy.abortable = this.abortable;
+    copy.startAtOnce = this.startAtOnce;
     if (this.interrupt) copy.interrupt = this.interrupt;
     if (this.usage) copy.usage = this.usage;
     return copy;
   }
 
   override abortRun(): void {
-    if (this.abortable) this.stopCurrent?.();
+    if (!this.abortable) return;
+    this.abortRequested = true;
+    this.stopCurrent?.();
   }
 
   run(input: RunAgentInput): Observable<BaseEvent> {
     this.seen.push(input);
     return new Observable<BaseEvent>((sub) => {
+      const { threadId, runId } = input;
+      if (this.abortRequested) {
+        sub.complete();
+        return;
+      }
+      if (this.startAtOnce) sub.next({ type: EventType.RUN_STARTED, threadId, runId } as BaseEvent);
       const timer = setTimeout(() => {
-        const { threadId, runId } = input;
-        sub.next({ type: EventType.RUN_STARTED, threadId, runId } as BaseEvent);
+        if (!this.startAtOnce) sub.next({ type: EventType.RUN_STARTED, threadId, runId } as BaseEvent);
         if (this.interrupt) {
           sub.next({
             type: EventType.RUN_FINISHED,

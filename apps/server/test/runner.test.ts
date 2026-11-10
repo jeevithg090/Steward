@@ -135,16 +135,51 @@ describe("NodeSqliteAgentRunner", () => {
     expect(finished[1]?.interrupts[0]?.metadata).toMatchObject({ approvalId: "apr_1" });
   });
 
-  it("stops a run on request", async () => {
+  it("stops a run on request, halfway through", async () => {
     const { runner } = runnerOnMemoryDb();
     const agent = new EchoAgent({ agentId: "steward" });
     agent.delayMs = 5_000;
-    const run = collect(startRun(runner, agent, runInput("t1", "r1", "slow")));
+    agent.startAtOnce = true;
+    const started = Date.now();
+    const events: BaseEvent[] = [];
+    let underWay!: () => void;
+    const begun = new Promise<void>((resolve) => {
+      underWay = resolve;
+    });
+    const run = new Promise<void>((resolve, reject) => {
+      startRun(runner, agent, runInput("t1", "r1", "slow")).subscribe({
+        next: (event) => {
+          events.push(event);
+          if (event.type === EventType.RUN_STARTED) underWay();
+        },
+        complete: resolve,
+        error: reject,
+      });
+    });
+    await begun;
     expect(await runner.stop({ threadId: "t1", runId: "other" })).toBe(false);
     expect(await runner.stop({ threadId: "t1" })).toBe(true);
-    const events = await run;
-    expect(events.at(-1)?.type).toBe(EventType.RUN_FINISHED);
+    await run;
+    expect(Date.now() - started).toBeLessThan(1_000);
+    expect(events.map((e) => e.type)).toEqual([EventType.RUN_STARTED, EventType.RUN_FINISHED]);
     expect(runner.isThreadBusy("t1")).toBe(false);
+  });
+
+  it("stops a run asked to stop before the agent sent anything", async () => {
+    const { runner } = runnerOnMemoryDb();
+    const agent = new EchoAgent({ agentId: "steward" });
+    agent.delayMs = 5_000;
+    const started = Date.now();
+    const run = collect(startRun(runner, agent, runInput("t1", "r1", "slow")));
+    expect(await runner.stop({ threadId: "t1" })).toBe(true);
+    const events = await run;
+    expect(Date.now() - started).toBeLessThan(1_000);
+    // The runner supplies the RUN_STARTED the agent never sent, so the stream is still well formed.
+    expect(events.map((e) => e.type)).toEqual([EventType.RUN_STARTED, EventType.RUN_FINISHED]);
+    expect((events[0] as RunStartedEvent).input?.messages.map((m) => m.id)).toEqual(["u-r1"]);
+    expect(runner.isThreadBusy("t1")).toBe(false);
+    // The stopped run is stored, so the conversation keeps the person's message.
+    expect(runner.getThreadMessages("t1").map((m) => m.id)).toEqual(["u-r1"]);
   });
 
   it("lets go of the live run when a browser that connected goes away", async () => {
