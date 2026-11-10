@@ -274,6 +274,7 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
         "sending anything",
         "paying",
         "signing",
+        "deleting",
       ]),
     );
     expect(shell.body.toolsMissing).toEqual([]);

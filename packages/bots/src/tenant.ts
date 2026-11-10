@@ -3,6 +3,7 @@ import {
   type BotCategory,
   type BotPack,
   BotPackSchema,
+  parseMcpToolName,
   type SkillPack,
   type TenantPackage,
   TOOL_PLAIN_WORDS,
@@ -118,13 +119,15 @@ export function profileFromPack(pack: BotPack): AgentProfile {
 
 /**
  * "What it may do without asking", in plain words, from a list of tools: one line per distinct
- * meaning, with the tools that always ask (sending, running commands) left out. Tools with no
- * plain words, such as MCP tools, are left out too.
+ * meaning, with the tools that always ask (sending, running commands) left out. A connected app's
+ * tool is "use <tool> on <app>". Only the display-only `show_*` tools, which reach nothing, have no
+ * line.
  */
 export function describeMayDo(tools: readonly string[]): string[] {
   const out: string[] = [];
   for (const tool of tools) {
-    const words = TOOL_PLAIN_WORDS[tool];
+    const mcp = parseMcpToolName(tool);
+    const words = TOOL_PLAIN_WORDS[tool] ?? (mcp ? `use ${mcp.tool} on ${mcp.server}` : undefined);
     if (!words || words.includes("(asks first)") || out.includes(words)) continue;
     out.push(words);
   }

@@ -49,8 +49,11 @@ const SKILL_NAME_MAX = 41;
 const SKILL_DESCRIPTION_MAX = 300;
 const RULE_NAME_MAX = 120;
 
-/** What every bot asks before, whatever its tools: the gateway's defaults for send, pay and sign. */
-const ALWAYS_ASKS = ["sending anything", "paying", "signing"];
+/**
+ * What every bot asks before, whatever its tools: the gateway's defaults for send, pay, sign and
+ * delete. The listing shows the same four when it has no preview.
+ */
+const ALWAYS_ASKS = ["sending anything", "paying", "signing", "deleting"];
 
 /** Plain words for a tool the gateway would ask about, without the "(asks first)" note. */
 function askWords(tool: string): string {

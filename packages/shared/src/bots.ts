@@ -247,12 +247,21 @@ export const BotsQuery = z.object({
   offset: z.coerce.number<number>().int().min(0).default(0),
 });
 
-/** Plain words for a tool, for "what it may do" lines. */
+/**
+ * Plain words for a tool, for "what it may do" lines. Every built-in tool has some, so a listing
+ * never leaves out something a bot may do. The `show_*` tools are left out on purpose: they only
+ * draw a table, a chart or choices in the conversation and reach nothing.
+ */
 export const TOOL_PLAIN_WORDS: Record<string, string> = {
   browser_navigate: "browse the web on its own computer",
   browser_snapshot: "read web pages",
   browser_click: "click on web pages",
   browser_type: "type into web pages",
+  browser_press: "press keys on web pages",
+  browser_scroll: "scroll web pages",
+  browser_back: "go back a page in its browser",
+  request_help: "stop and ask you for help",
+  request_secret: "ask you to type a password or code into a web page",
   web_search: "search the web",
   web_fetch: "read web pages",
   mail_list: "read your mail",
@@ -260,12 +269,17 @@ export const TOOL_PLAIN_WORDS: Record<string, string> = {
   mail_send: "send email (asks first)",
   calendar_list: "read your calendar",
   calendar_create: "add calendar events (asks first)",
+  file_list: "list files in its workspace",
   file_read: "read files in its workspace",
   file_write: "write files in its workspace",
   shell_run: "run commands (asks first)",
   memory_remember: "remember facts about you",
   task_create: "add tasks",
+  task_update: "change tasks",
   routine_create: "add routines",
+  delegate_task: "hand work to another agent",
+  brief_today: "read your mail and calendar for the morning brief",
+  triage_inbox: "read your mail and sort what needs you",
   make_page: "make pages and documents",
   directory_find: "look up bots in the directory",
 };

@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CelEngine, CONTEXT_SCHEMA, neutralContext } from "@steward/gateway";
-import { type TenantPackage, TOOLS } from "@steward/shared";
+import { type TenantPackage, TOOL_PLAIN_WORDS, TOOLS } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 // Relative, as tenants/tenants.test.ts does: @steward/agent depends on this package, so this
 // package cannot depend on it without a cycle.
@@ -171,7 +171,21 @@ describe("describeMayDo", () => {
         "mcp__x__y",
         "directory_find",
       ]),
-    ).toEqual(["read your mail", "search the web", "look up bots in the directory"]);
+    ).toEqual(["read your mail", "search the web", "use y on x", "look up bots in the directory"]);
     expect(describeMayDo([])).toEqual([]);
+  });
+
+  it("leaves out no tool that reaches something: mail read for a brief, keys pressed, tasks changed", () => {
+    const reaching = Object.keys(TOOLS).filter((tool) => !tool.startsWith("show_"));
+    expect(reaching.filter((tool) => !TOOL_PLAIN_WORDS[tool])).toEqual([]);
+    expect(describeMayDo(["triage_inbox"])).toEqual(["read your mail and sort what needs you"]);
+    expect(describeMayDo(["brief_today"])[0]).toMatch(/read your mail/);
+    expect(describeMayDo(["browser_press", "task_update", "file_list"])).toEqual([
+      "press keys on web pages",
+      "change tasks",
+      "list files in its workspace",
+    ]);
+    // Drawing a table reaches nothing, so it is not something to warn about.
+    expect(describeMayDo(["show_table", "show_chart"])).toEqual([]);
   });
 });
