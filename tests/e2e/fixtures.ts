@@ -3,7 +3,14 @@
  * label and visible text, never by class names or test ids. If a spec cannot find a control that
  * way, the control is not accessible, and that is the bug.
  */
-import { type APIRequestContext, test as base, expect, type Locator, type Page } from "@playwright/test";
+import {
+  type APIRequestContext,
+  test as base,
+  expect,
+  type Locator,
+  type Page,
+  type TestInfo,
+} from "@playwright/test";
 import { SERVER_URL, WELCOME_STORAGE_KEY } from "./env.ts";
 
 export { expect };
@@ -117,14 +124,62 @@ export async function sendMessage(page: Page, text: string): Promise<void> {
 interface RuleSummary {
   id: string;
   name: string;
+  when: string;
+  source: string;
 }
 
-/** Deletes rules a spec added, by name prefix, so a failed run leaves nothing behind for the next spec. */
-export async function deleteRulesNamed(api: APIRequestContext, prefix: string): Promise<void> {
+/** Deletes the rules that `match` picks, so a failed run leaves nothing behind for the next spec. */
+export async function deleteRules(
+  api: APIRequestContext,
+  match: (rule: RuleSummary) => boolean,
+): Promise<void> {
   const res = await api.get("/api/rules");
   if (!res.ok()) return;
   const rules = (await res.json()) as RuleSummary[];
   for (const rule of rules) {
-    if (rule.name.startsWith(prefix)) await api.delete(`/api/rules/${encodeURIComponent(rule.id)}`);
+    if (match(rule)) await api.delete(`/api/rules/${encodeURIComponent(rule.id)}`);
   }
+}
+
+/** Deletes rules a spec added, by name prefix. */
+export async function deleteRulesNamed(api: APIRequestContext, prefix: string): Promise<void> {
+  await deleteRules(api, (rule) => rule.name.startsWith(prefix));
+}
+
+/**
+ * An address no other test and no earlier attempt of this one has used, so a retry never passes
+ * on what the first attempt left in the record or the Sent folder.
+ */
+export function uniqueAddress(testInfo: TestInfo, label: string): string {
+  return `${label}-${testInfo.retry}-${Date.now().toString(36)}@example.com`;
+}
+
+/**
+ * The approval card whose summary names `text` (an address, say). The card is a region named by
+ * its summary, and says why it asks; the tool's own card in the transcript does neither.
+ */
+export function approvalCard(page: Page, text: string): Locator {
+  return page.getByRole("main").getByRole("region", { name: text }).filter({ hasText: "Why it asks" });
+}
+
+interface SentMail {
+  to: string[];
+  subject: string;
+  body: string;
+}
+
+/** What the demo inbox's Sent folder holds. */
+export async function sentMail(api: APIRequestContext): Promise<SentMail[]> {
+  const res = await api.get("/demo-google/__demo/sent");
+  expect(res.ok(), "the demo inbox's Sent folder could not be read").toBe(true);
+  return (await res.json()) as SentMail[];
+}
+
+/** How many entries the record has, from the server's own check of the chain. */
+export async function recordLength(api: APIRequestContext): Promise<number> {
+  const res = await api.get("/api/audit/verify");
+  expect(res.ok(), "the record could not be checked").toBe(true);
+  const check = (await res.json()) as { ok: boolean; count: number };
+  expect(check.ok, "the record's chain was already broken").toBe(true);
+  return check.count;
 }
