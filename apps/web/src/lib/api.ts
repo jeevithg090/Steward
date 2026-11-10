@@ -117,6 +117,8 @@ export interface AuditFilters {
   effect?: string;
   q?: string;
   limit?: number;
+  /** Start below this entry number instead of at the newest: `before: 8` starts at entry #7. */
+  before?: number;
 }
 
 // ── The fetch layer ────────────────────────────────────────────────────────────────────────────
@@ -444,7 +446,11 @@ export const queryKeys = {
   presets: ["rules", "presets"] as const,
   audit: ["audit"] as const,
   auditPages: (filters: AuditFilters) => ["audit", "pages", filters] as const,
-  auditVerify: ["audit", "verify"] as const,
+  /**
+   * Outside `audit` on purpose: a new entry, or a rule change, refreshes the list but must not make
+   * the server check the whole chain again. The check runs on its own timer and after a reconnect.
+   */
+  auditVerify: ["auditVerify"] as const,
   tasks: ["tasks"] as const,
   taskList: (state?: TaskState) => ["tasks", state ?? "all"] as const,
   brief: ["brief"] as const,
@@ -657,7 +663,7 @@ export function useAudit(filters: AuditFilters = {}) {
   return useInfiniteQuery({
     queryKey: queryKeys.auditPages(filters),
     queryFn: ({ pageParam, signal }) => api.audit.page({ ...filters, before: pageParam }, signal),
-    initialPageParam: undefined as number | undefined,
+    initialPageParam: filters.before as number | undefined,
     getNextPageParam: (last: AuditPage) => last.nextBefore,
   });
 }

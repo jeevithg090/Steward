@@ -112,6 +112,19 @@ describe("applyLiveEvent", () => {
     expect(keys).toContainEqual(queryKeys.rules);
   });
 
+  it("refreshes the record's list on a new entry, but doesn't check the chain again", () => {
+    const qc = new QueryClient();
+    const pages = queryKeys.auditPages({ limit: 50 });
+    qc.setQueryData(pages, { pages: [], pageParams: [] });
+    qc.setQueryData(queryKeys.auditVerify, { ok: true, count: 12 });
+    applyLiveEvent(qc, { type: "audit.appended", event: {} } as LiveEvent);
+    expect(qc.getQueryState(pages)?.isInvalidated).toBe(true);
+    expect(qc.getQueryState(queryKeys.auditVerify)?.isInvalidated).toBe(false);
+    // Rule and approval changes refresh the record by the same prefix.
+    void qc.invalidateQueries({ queryKey: queryKeys.audit });
+    expect(qc.getQueryState(queryKeys.auditVerify)?.isInvalidated).toBe(false);
+  });
+
   it.each([
     [{ type: "audit.appended", event: {} } as LiveEvent, queryKeys.audit],
     [{ type: "brief.ready", briefId: "b" } as LiveEvent, queryKeys.brief],
