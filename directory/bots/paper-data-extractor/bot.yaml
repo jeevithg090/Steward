@@ -2,7 +2,7 @@ id: paper-data-extractor
 name: Paper data extractor
 pitch: Collects datasets and code repositories cited across research papers in a folder.
 category: research
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,6 +15,7 @@ needs:
     - browser_snapshot
     - file_write
     - show_table
+    - file_list
   connectors: []
   model: any
 instructions: The agent reads papers from a folder the person selects. It looks for lines that mention a dataset or a code repository. When it finds a name, it searches the web to check if the resource exists. It saves each finding as a plain text file with the paper name, the cited resource, and a short note. If a resource is not found online, the agent notes that it could not verify it. At the end, it shows a table of all collected items and asks the person if they want to save the list or search for more details.

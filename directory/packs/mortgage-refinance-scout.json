@@ -3,7 +3,7 @@
   "name": "Mortgage refinance scout",
   "pitch": "Compare up to three mortgage refinance offers and show the total cost difference over five years.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -16,12 +16,13 @@
       "browser_snapshot",
       "web_fetch",
       "show_comparison",
-      "file_write"
+      "file_write",
+      "web_search"
     ],
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for the three lender names or web links to the offer pages. If they give links, open each one with browser_navigate and use browser_snapshot to read the key terms: interest rate, monthly payment, fees, and any fixed costs. If they give names, use web_search to find the current offer pages, then follow the same steps. When a page has no clear rate or fee, note that it could not be found and move to the next lender. After reading all three, calculate the five-year total cost for each: multiply the monthly payment by 60 and add any listed fees or closing costs. If a lender does not list a fee, assume zero for that item. Use show_comparison to display a side-by-side table of the three totals and the difference between the highest and lowest. If any lender's page cannot be read, tell the person which lender was skipped and what was missing. At the end, write a short summary file with file_write that lists each lender, its five-year total, and the overall savings possible. Show that file to the person.",
+  "instructions": "Start by asking the person for the three lender names or web links to the offer pages. If they give links, open each one with browser_navigate and use browser_snapshot to read the key terms: interest rate, monthly payment, fees, and any fixed costs. If they give names, use web_search to find the current offer pages, then follow the same steps. When a page has no clear rate or fee, note that it could not be found and move to the next lender. After reading all three, calculate the five-year total cost for each: multiply the monthly payment by 60 and add any listed fees or closing costs. If a lender does not list a fee, assume zero for that item. Use show_comparison to display a side-by-side table of the three totals and the difference between the highest and lowest. If any lender's page cannot be read, tell the person which lender was skipped and what was missing. At the end, write a short summary file with file_write that lists each lender, its five-year total, and the overall savings possible. Show that file to the person.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "Compare offers from three lenders",
     "Show me the cost difference over five years",
@@ -39,5 +40,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Mortgage refinance scout\n\nCompare up to three mortgage refinance offers and show the total cost difference over five years.\n\n**What it does:** Reads offer pages, pulls rates and fees, computes five-year totals, and presents a comparison.\n\n**Needs:** browser_navigate, browser_snapshot, web_fetch, show_comparison, file_write.\n\n**Will not:** Access bank accounts, sign documents, or pay any fees.",
-  "hash": "d95e55d01888a9073b7e85e975b44ccd5ed874af1c4a71bd57eb05c19760cebf"
+  "hash": "60132bbd6c387edbb48dbdbc5315c84a209b7fbfe7bdf5e9726d60f03d1884e3"
 }

@@ -111,10 +111,15 @@ address for 30 days or until sign-out.
 and the skills (a gist names each skill file `<skill-name>.SKILL.md`), and confirms it is theirs.
 The server reads the files, then checks the pack exactly as `seed build` does: the schema, every
 tool against Steward's catalogue, every rule through the gateway's own rule engine (and only `ask`
-or `deny`: an `allow` is refused), no text that reads as orders for the model, no personal data.
-A pack that fails is refused with the reasons and nothing is kept. One that passes waits as
-pending, with any warnings for the reviewer: long sentences, jargon, an address owned by another
-account, or an author in `bot.yaml` who is not the person submitting.
+or `deny`: an `allow` is refused), no rule that could never fire (`tool.kind == "calendar_create"`
+names a tool, not a kind) or that ignores the call (`true`), no text that reads as orders for the
+model, no personal data. A pack that fails is refused with the reasons and nothing is kept. One
+that passes waits as pending, with any warnings for the reviewer: long sentences, jargon, an
+address owned by another account, an author in `bot.yaml` who is not the person submitting, a rule
+none of the bot's tools can trigger or that refuses its own tools, a tool the text names but the
+bot does not hold, starters in quote marks or with `[placeholders]`, or a health, money or
+investing bot that never sends the person to a doctor or a qualified adviser. Whether a rule's
+name says what its condition does is for the reviewer to read.
 
 An id another person's bot already has is refused. To update your own bot, raise `version` in
 `bot.yaml` and submit again.
@@ -236,8 +241,13 @@ The software does the checks it can; these it cannot:
 - **Reading the launch bots.** The plan asks that a person read the first 200 bots before launch.
   On 29 Oct 2026 the shelf has 1,064 AI-made bots of the 2,000 planned (1,251 bots in all).
   Every AI-made bot has passed the validators, the judge (3.5 of 5 or better) and the duplicate
-  check, but nobody has read them. `directory/REPORT.md` lists them by category; the review page
-  shows any one in full.
+  check, but nobody has read them. `directory/REPORT.md` lists them by category and lists the
+  warnings still open; the review page shows any one in full. On 10 Nov 2026 a scripted pass
+  fixed what the checks could find (rules that never fired or were named for something else,
+  tools named but not held, quoted starters, health and money bots that never sent anyone to a
+  professional). People's bots, the LobeChat conversions among them, were left as their authors
+  wrote them; the report names the ones still missing such a line. A health or money bot can
+  still be wrong in what it says; only a reader finds that.
 - **Reading the AI-proposed jobs.** `packages/bots-gen/src/jobs-ai.yaml` was written by a model.
   Move a job to `jobs.yaml` once someone has read it.
 - **Vendor terms for generated output.** The seed bots were written by NVIDIA's hosted Nemotron 3

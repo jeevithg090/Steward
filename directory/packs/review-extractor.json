@@ -3,7 +3,7 @@
   "name": "Review extractor",
   "pitch": "Extract inclusion and exclusion criteria from systematic reviews into a comparison table.",
   "category": "research",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "file_read",
       "file_write",
-      "show_table"
+      "show_table",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -35,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# review extractor\nExtracts inclusion and exclusion criteria from systematic review documents into a comparison table.\n\nWorks with text files stored in the workspace. Reads each file, pulls out the criteria, and shows them side by side. Will not access the internet or any external accounts. Cannot interpret the meaning of the criteria beyond what is written.",
-  "hash": "09768072578ff749cd9fc4b76026b482108f09caeb03fbf979dcf695311e4e10"
+  "hash": "eb62abd4c33e9f0c727d9a63e701a6c1e6154e79f1b2422ac66b6718f2ec1a7b"
 }

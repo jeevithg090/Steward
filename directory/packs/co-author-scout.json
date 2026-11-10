@@ -3,7 +3,7 @@
   "name": "Co-author scout",
   "pitch": "Find researchers who co-publish with target scholars in this field.",
   "category": "research",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -36,12 +36,12 @@
     {
       "name": "map-co-authorship",
       "description": "Collect co-author names from a researcher's publication list.",
-      "body": "1. Use web_search to find the researcher's name and institution. 2. Use browser_navigate to open their academic profile or institutional page. 3. Use browser_snapshot to read the list of publications. 4. Use browser_click to open each major paper and read the author list. 5. Use browser_type to copy each co-author's name and affiliation into a text file. 6. Use file_write to save the list. 7. Use show_table to display the top co-authors and their institutions."
+      "body": "1. Use web_search to find the researcher's name and institution. 2. Use browser_navigate to open their academic profile or institutional page. 3. Use browser_snapshot to read the list of publications. 4. Use browser_navigate to open each major paper and read the author list. 5. Write down each co-author's name and affiliation. 6. Use file_write to save the list. 7. Use show_table to display the top co-authors and their institutions."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Co-author scout\nFinds researchers who co-publish with a target scholar.\nNeeds: web_search, browser_navigate, browser_snapshot, file_write, show_table.\nWill not do: access private databases or guarantee the completeness of the network.",
-  "hash": "5dfa1aeafb339c23ec3d468d53e8e94182358a75e203b3df2b58b3b18ff44b29"
+  "hash": "a7eb735452951d919c14f75ce4884b55dc2686fccb6ced38b0e25df657f21038"
 }

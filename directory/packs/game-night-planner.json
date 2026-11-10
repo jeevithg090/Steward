@@ -14,7 +14,8 @@
     "tools": [
       "web_search",
       "make_page",
-      "calendar_create"
+      "calendar_create",
+      "web_fetch"
     ],
     "connectors": [
       "calendar"
@@ -37,7 +38,7 @@
     {
       "name": "find-snack-ideas",
       "description": "Search the web for game genres and matching snacks. When a result is found, copy the genre and snack name. If a snack cannot be found for a genre, skip it and try the next genre. Stop after 4 or 5 good matches.",
-      "body": "1. Use web_search to look for \"game genre snacks\". 2. Read the results with browser_snapshot. 3. For each genre found, search for a matching snack recipe. 4. If a recipe is found, note the snack name and a one-sentence description. 5. If no recipe is found, say so and move to the next genre. 6. Stop when 4 snack ideas are collected."
+      "body": "1. Use web_search to look for \"game genre snacks\". 2. Read the results with web_fetch. 3. For each genre found, search for a matching snack recipe. 4. If a recipe is found, note the snack name and a one-sentence description. 5. If no recipe is found, say so and move to the next genre. 6. Stop when 4 snack ideas are collected."
     },
     {
       "name": "make-the-plan-page",
@@ -56,5 +57,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "**Game night planner** – Plans a themed game night with snacks that match the game genre. Uses web search to find snack ideas, makes a page with the plan, and can add the event to the person's calendar after they say yes. Will not invent recipes or add calendar events without asking.",
-  "hash": "40b5e44678c791513eced52c346aad6342da67f593f7d4b6f28f450642d4e994"
+  "hash": "837386183769073d56f1a80acba5a53d4bbf590b1e5c36cf7b2d2bf5b6897071"
 }

@@ -2,7 +2,7 @@ id: protein-tracker
 name: Protein tracker
 pitch: Track daily protein intake for a week and suggest easy additions to meet the target.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -16,7 +16,10 @@ needs:
     - web_search
   connectors: []
   model: any
-instructions: Start by asking the person for their protein target in grams per day and the dates they want to track. Create a task to record their daily intake. Each day, ask the person what they ate and estimate the protein grams for each item. Use web_search to look up protein content if the person is unsure. At the end of the week, show a table of the recorded intake. If any day has too little protein, search for easy high-protein additions like Greek yogurt, eggs, or nuts. Suggest one or two simple swaps or extras to help reach the target. If the person does not complete a day, say so and move on to the next day. At the end, show a summary of total protein versus target and list the suggested additions.
+instructions: |-
+  Start by asking the person for their protein target in grams per day and the dates they want to track. Create a task to record their daily intake. Each day, ask the person what they ate and estimate the protein grams for each item. Use web_search to look up protein content if the person is unsure. At the end of the week, show a table of the recorded intake. If any day has too little protein, search for easy high-protein additions like Greek yogurt, eggs, or nuts. Suggest one or two simple swaps or extras to help reach the target. If the person does not complete a day, say so and move on to the next day. At the end, show a summary of total protein versus target and list the suggested additions.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - track protein for a week
   - help me hit my protein target

@@ -2,7 +2,7 @@ id: dog-walking-business-planner
 name: Dog-walking business planner
 pitch: Creates a one-page plan for starting a dog-walking business in your town, covering services, pricing, marketing and legal basics.
 category: business
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -69,7 +69,6 @@ instructions: |-
   ## What to show at the end
   A clean one-page plan with tables and bullet points, labelled with the town name and today's date.
 starters:
-  - Write a one-page plan for a dog-walking business in [your town].
   - Create a dog-walking business plan for my area.
   - I want to start dog walking locally, give me a one-page plan.
 examples:

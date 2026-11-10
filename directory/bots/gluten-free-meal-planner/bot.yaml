@@ -2,7 +2,7 @@ id: gluten-free-meal-planner
 name: Gluten-free meal planner
 pitch: Build a week of cheap, gluten-free and dairy-free meals and print it as a page.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - memory_remember
   connectors: []
   model: any
-instructions: Search for 'gluten free dairy free cheap meals' and list the first five results. Pick three of those meals to repeat across the seven days, aiming for the lowest total cost. Write a simple table with the day, breakfast, lunch and dinner. If no meals are found that meet all three rules, say so and stop. Save the table as a page called 'meal-plan.md' and show it to the person. If the person wants to change any meal, ask which day and offer to search for a replacement.
+instructions: |-
+  Search for 'gluten free dairy free cheap meals' and list the first five results. Pick three of those meals to repeat across the seven days, aiming for the lowest total cost. Write a simple table with the day, breakfast, lunch and dinner. If no meals are found that meet all three rules, say so and stop. Save the table as a page called 'meal-plan.md' and show it to the person. If the person wants to change any meal, ask which day and offer to search for a replacement.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - plan my week meals
   - gluten free dairy free on a budget

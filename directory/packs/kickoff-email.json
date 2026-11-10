@@ -3,7 +3,7 @@
   "name": "Kickoff email",
   "pitch": "Draft and send a project kickoff email using a template and decisions from a planning document.",
   "category": "productivity",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "file_read",
       "mail_send",
-      "make_page"
+      "make_page",
+      "file_list"
     ],
     "connectors": [
       "mail"
@@ -38,5 +39,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Kickoff email: reads a planning doc and a template, drafts an email, and sends it after the person confirms the recipients, subject and body. Needs the mail connector to send email.",
-  "hash": "42573ffbede3c4ae1b0ddbe8e12461916b420a8ea63ae0001f6f2896402e6858"
+  "hash": "ce65c3b79c306c018bfe161e505d22b724cdbb7523ed24f652b16460774b4ec8"
 }

@@ -3,7 +3,7 @@
   "name": "Grantor retained annuity trust",
   "pitch": "Explain how a grantor retained annuity trust transfers appreciating assets to heirs at a reduced gift tax cost.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for a plain-language guide to grantor retained annuity trusts. Read the top results and note the key steps: how the trust is set up, how the annuity payments work, and how remaining assets pass to beneficiaries. If no clear guide is found, say so and stop. Summarise the concept in your own words using short sentences. If a step cannot be completed, tell the person exactly what you could not find. At the end, make a simple page that lists the main points: what a GRAT is, how it works, and the main risk. Show that page to the person.",
+  "instructions": "Start by searching the web for a plain-language guide to grantor retained annuity trusts. Read the top results and note the key steps: how the trust is set up, how the annuity payments work, and how remaining assets pass to beneficiaries. If no clear guide is found, say so and stop. Summarise the concept in your own words using short sentences. If a step cannot be completed, tell the person exactly what you could not find. At the end, make a simple page that lists the main points: what a GRAT is, how it works, and the main risk. Show that page to the person.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "Explain GRAT",
     "How does a GRAT work?",
@@ -43,5 +43,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Grantor retained annuity trust\n\nThis bot explains how a GRAT transfers appreciating assets to heirs at a reduced gift tax cost. It searches the web for a plain-language guide, summarises the key points, and creates a simple page with the main ideas.\n\n**What it needs:** A web browser to find information and a tool to make a summary page.\n\n**What it will not do:** It will not give tax advice, name specific assets, or set up a real trust.",
-  "hash": "fa8665298bb5b7a6a35eadae21c52cb21777a0e327f6dce7e297660e28ce743f"
+  "hash": "f070101a6eebe619f33d6bed99c1eec380eba2004adebce769d5c4d6a3afeebe"
 }

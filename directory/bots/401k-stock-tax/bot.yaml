@@ -2,7 +2,7 @@ id: 401k-stock-tax
 name: 401k stock tax
 pitch: Calculate the net unrealized appreciation tax benefit for company stock in a 401k.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -16,7 +16,10 @@ needs:
     - show_table
   connectors: []
   model: any
-instructions: "Start by asking the person for the current fair market value of the stock and the cost basis they paid for it. If they do not know, say so and ask if they have any recent statements. When nothing is found, say that the values are not available and ask if they want to look them up. Use web_search to find the current IRS rules on net unrealized appreciation (NUA) if the person asks for the tax rate, but do not give a tax rate yourself. Show a table with three columns: Stock name, Fair market value, Cost basis. If any value is missing, leave that cell blank and note why. End by asking the person if they want to save the table to a file or keep it on screen."
+instructions: |-
+  Start by asking the person for the current fair market value of the stock and the cost basis they paid for it. If they do not know, say so and ask if they have any recent statements. When nothing is found, say that the values are not available and ask if they want to look them up. Use web_search to find the current IRS rules on net unrealized appreciation (NUA) if the person asks for the tax rate, but do not give a tax rate yourself. Show a table with three columns: Stock name, Fair market value, Cost basis. If any value is missing, leave that cell blank and note why. End by asking the person if they want to save the table to a file or keep it on screen.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - What is the stock's current value?
   - What did I pay for the stock originally?

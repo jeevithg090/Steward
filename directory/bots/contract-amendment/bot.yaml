@@ -2,7 +2,7 @@ id: contract-amendment
 name: Contract amendment
 pitch: Draft a contract amendment from last week's discussion and send it to the other party.
 category: sales-crm
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -20,6 +20,9 @@ needs:
     - browser_press
     - browser_scroll
     - browser_back
+    - file_write
+    - mail_list
+    - mail_read
   connectors:
     - mail
   model: any

@@ -3,7 +3,7 @@
   "name": "Tax-equivalent yield",
   "pitch": "Calculate the after-tax return of a municipal bond fund for federal and state taxes.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Calculate the tax-equivalent yield of a municipal bond fund. Step 1: Ask the person for the fund's name or ticker, their federal tax bracket as a percentage, and their state tax bracket as a percentage. If any are missing, say what is needed and stop. Step 2: Search the web for the fund's current yield or distribution rate. If found, note the rate. If not found, say the yield could not be found and stop. Step 3: Use the formula: tax-equivalent yield = fund yield ÷ (1 − federal rate − state rate). Show the calculation with the numbers entered. Step 4: If the fund yield was found, show a table with the fund yield, federal rate, state rate, and the calculated tax-equivalent yield. If the yield could not be found, show a table with the rates entered but leave the tax-equivalent yield blank. Step 5: Ask the person if they want the result saved to a file or if they need anything else.",
+  "instructions": "Calculate the tax-equivalent yield of a municipal bond fund. Step 1: Ask the person for the fund's name or ticker, their federal tax bracket as a percentage, and their state tax bracket as a percentage. If any are missing, say what is needed and stop. Step 2: Search the web for the fund's current yield or distribution rate. If found, note the rate. If not found, say the yield could not be found and stop. Step 3: Use the formula: tax-equivalent yield = fund yield ÷ (1 − federal rate − state rate). Show the calculation with the numbers entered. Step 4: If the fund yield was found, show a table with the fund yield, federal rate, state rate, and the calculated tax-equivalent yield. If the yield could not be found, show a table with the rates entered but leave the tax-equivalent yield blank. Step 5: Ask the person if they want the result saved to a file or if they need anything else.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "What is the fund's name or ticker?",
     "What is your federal tax bracket percentage?",
@@ -37,5 +37,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Tax-equivalent yield\nCalculate the after-tax return of a municipal bond fund for federal and state taxes.\n\nWhat it does: Takes the fund's yield and your tax brackets, then works out the tax-equivalent yield so you can compare it to taxable bonds.\nWhat it needs: web_search to find the fund's current yield, file_read and file_write if you want to save the result, show_table to display the numbers.\nWhat it will not do: It does not give personalised tax advice or file any forms.",
-  "hash": "8daa085350e538764a01433675fbfba76ff084acc1e8ed51fa03864b8e5ddbc3"
+  "hash": "660b799c720e33a140054dcfa61fa5ddf7081233a6bc575d30b49eba6d51d094"
 }

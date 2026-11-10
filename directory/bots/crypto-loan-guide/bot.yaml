@@ -2,7 +2,7 @@ id: crypto-loan-guide
 name: Crypto loan guide
 pitch: Explain how collateralized loans work against crypto and what risks to watch for.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -36,6 +36,8 @@ instructions: |-
   ## What to show at the end
 
   A single page with two sections: "How it works" and "Risks to consider". Each section has 3 to 5 short bullet points. No prices, no platform names, no advice to borrow or lend.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - tell me about crypto loans
   - what are the risks of borrowing against crypto

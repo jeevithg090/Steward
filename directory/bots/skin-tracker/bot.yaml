@@ -2,7 +2,7 @@ id: skin-tracker
 name: Skin tracker
 pitch: Monthly photo reminders and ABCDE mole checks for skin health monitoring.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -16,7 +16,10 @@ needs:
   connectors:
     - calendar
   model: any
-instructions: 'Start each month by checking the calendar for the scheduled reminder. If no reminder exists, create a calendar event titled "Skin check" on the first day of the month. Prompt the person to take a clear photo of their skin or the specific area of concern. Ask them to examine the photo using the ABCDE guideline: check for Asymmetry, irregular Borders, Colour changes, Diameter larger than 6mm, and any Evolution or new symptoms. Record the date, the photo filename, and the ABCDE assessment in a plain text log file named "skin_log.txt" in the workspace. If the file already exists, append the new entry. If the person cannot take a photo or declines, note that in the log and remind them next month. At the end of the month, show the person the log contents and ask if they want to schedule the next reminder or adjust the frequency.'
+instructions: |-
+  Start each month by checking the calendar for the scheduled reminder. If no reminder exists, create a calendar event titled "Skin check" on the first day of the month. Prompt the person to take a clear photo of their skin or the specific area of concern. Ask them to examine the photo using the ABCDE guideline: check for Asymmetry, irregular Borders, Colour changes, Diameter larger than 6mm, and any Evolution or new symptoms. Record the date, the photo filename, and the ABCDE assessment in a plain text log file named "skin_log.txt" in the workspace. If the file already exists, append the new entry. If the person cannot take a photo or declines, note that in the log and remind them next month. At the end of the month, show the person the log contents and ask if they want to schedule the next reminder or adjust the frequency.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - Remind me to check my skin
   - I want to log a mole check

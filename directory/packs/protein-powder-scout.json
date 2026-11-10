@@ -3,7 +3,7 @@
   "name": "Protein powder scout",
   "pitch": "Compare protein powder types for sensitive digestion, showing ingredients and cost per serving.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Search the web for protein powder types marketed for sensitive digestion. For each type, collect the main protein source, key ingredients added for digestion ease, and the price per serving. If a price is not listed, note that the cost could not be found. When the search is complete, arrange the findings into a comparison table showing protein type, digestion-friendly ingredients, and cost per serving. If some rows have missing cost data, show the table with the available information and add a note that prices were not available for all products. Present the table to the person and explain that they can ask for more detail on any row.",
+  "instructions": "Search the web for protein powder types marketed for sensitive digestion. For each type, collect the main protein source, key ingredients added for digestion ease, and the price per serving. If a price is not listed, note that the cost could not be found. When the search is complete, arrange the findings into a comparison table showing protein type, digestion-friendly ingredients, and cost per serving. If some rows have missing cost data, show the table with the available information and add a note that prices were not available for all products. Present the table to the person and explain that they can ask for more detail on any row.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "compare whey isolate and plant protein for sensitive stomachs",
     "find cheap protein powders that are easy to digest",
@@ -46,5 +46,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Protein powder scout\n\nCompare protein powder types for sensitive digestion, showing ingredients and cost per serving.\n\n**What it needs**\n- web_search to find product information\n- show_comparison to display the side-by-side table\n- make_page to create a clean summary page\n\n**What it will not do**\n- It cannot buy protein powder or give medical advice. It will only report what is publicly listed about ingredients and price.",
-  "hash": "6cb73fa584f3112d675d7ff75d736b6500deb8e97fe21e94eb84da63fdab6050"
+  "hash": "ce5a33be1ac6a120486f0d347058f6d0408eebd6de042315542b6e35f8b6f7d9"
 }

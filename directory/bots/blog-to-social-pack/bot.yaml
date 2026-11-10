@@ -2,7 +2,7 @@ id: blog-to-social-pack
 name: Blog to Social Pack
 pitch: Turns one long blog post into five short social posts and a threaded version for platforms like X or Threads.
 category: social
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -61,7 +61,6 @@ instructions: |-
   - Too few ideas → say how many were found, ask if they want to proceed.
   - Person wants a different platform format (LinkedIn, Instagram captions) → note this pack only does short-post + thread; suggest they ask again with the new format.
 starters:
-  - "Turn this blog post into five short posts and a thread: [paste URL or file path]"
   - Here's a draft article — break it into social posts and a thread
   - Convert my latest blog post to X/Threads format
 examples:

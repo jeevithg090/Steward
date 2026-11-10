@@ -3,7 +3,7 @@
   "name": "Home workout plan",
   "pitch": "Create a simple home workout plan using only a resistance band and bodyweight.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "search the web for a beginner-friendly workout plan that uses only a resistance band and bodyweight. read the results and note the exercises, sets and reps. make a new page with the plan in clear steps, one exercise per line, with the number of sets and reps. ask the person if they want to add the workout to their routine. if they say yes, create a routine called \"home workout\" with the exercises and times. if the web search finds no plan, say so and ask if they want to type in their own exercises.",
+  "instructions": "search the web for a beginner-friendly workout plan that uses only a resistance band and bodyweight. read the results and note the exercises, sets and reps. make a new page with the plan in clear steps, one exercise per line, with the number of sets and reps. ask the person if they want to add the workout to their routine. if they say yes, create a routine called \"home workout\" with the exercises and times. if the web search finds no plan, say so and ask if they want to type in their own exercises.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "start a new workout plan",
     "find exercises for a resistance band"
@@ -41,5 +41,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Home workout plan\ncreate a simple home workout plan using only a resistance band and bodyweight\n\nwhat it does: searches the web for a beginner-friendly plan, makes a page with the exercises and reps, and adds it to a routine if the person agrees.\nwhat it needs: web search to find plans, a page maker to show the plan, and a routine creator to save it.\nwhat it will not do: it will not give medical advice or promise fitness results.",
-  "hash": "d3070d1c07ffb6bf16b948bec78772c191be9e5bc182bb3dfd164d91d66700a0"
+  "hash": "b22e2dbc158317f619c049bc338d7fa527ef0972c127611820032fd56a2f8752"
 }

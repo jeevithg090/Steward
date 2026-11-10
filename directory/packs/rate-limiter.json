@@ -3,7 +3,7 @@
   "name": "Rate limiter",
   "pitch": "Add rate limiting and circuit breaker patterns to a service client to prevent overload and handle failures gracefully.",
   "category": "dev",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,9 +21,9 @@
   },
   "instructions": "Implement rate limiting and circuit breaker patterns for the service client code in this workspace.\n\nStart by listing the files in the current directory to understand the codebase structure.\nRead the main service client file to understand its current implementation and how requests are made.\nIdentify suitable locations to add rate limiting logic, typically using a token bucket or fixed window algorithm.\nImplement a rate limiter that tracks request counts and enforces delays between requests based on the service's limits.\nAdd a circuit breaker that monitors request failures and temporarily blocks requests when a threshold is reached, then allows a test request to see if the service recovered.\nWrite the updated code to the service client file, preserving existing functionality.\nIf the codebase uses existing libraries for these patterns, check for them before writing custom implementations.\nWhen the implementation is complete, show the added code sections and explain how they protect the service client from overload and repeated failures.",
   "starters": [
-    "\"add rate limiting\"",
-    "\"implement circuit breaker\"",
-    "\"limit requests per minute\""
+    "add rate limiting",
+    "implement circuit breaker",
+    "limit requests per minute"
   ],
   "examples": [
     {
@@ -47,5 +47,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Rate limiter\nAdds rate limiting and circuit breaker patterns to a service client.\n\nProtects the service from overload and handles temporary failures gracefully.\n\nNeeds access to the service client source files.\n\nWill not make external requests or modify production configurations.",
-  "hash": "88ff033a764a52ebd5cfd4da20db60f25e9a399f4dd38ba3c8a30f660e77fa95"
+  "hash": "d544f2385b2bc30afc4d6043c40139cae55ec0925027d3f3897e1eb07196031c"
 }

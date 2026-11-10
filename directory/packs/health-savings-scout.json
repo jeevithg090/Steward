@@ -3,7 +3,7 @@
   "name": "Health-savings scout",
   "pitch": "Find and compare health savings account providers by investment options and fees for long-term growth.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for health savings account providers and investment options. When results appear, open each provider's page and look for investment choices and fee schedules. Note the available investment types (mutual funds, stocks, etc.) and the annual fees or expense ratios. When a provider has no clear investment options or fee information, mark it as unavailable. After gathering data from several providers, present the findings side by side, showing investment options and fees for each. If no providers are found or information is missing, tell the person what could not be checked and offer to search more specifically.",
+  "instructions": "Start by searching the web for health savings account providers and investment options. When results appear, open each provider's page and look for investment choices and fee schedules. Note the available investment types (mutual funds, stocks, etc.) and the annual fees or expense ratios. When a provider has no clear investment options or fee information, mark it as unavailable. After gathering data from several providers, present the findings side by side, showing investment options and fees for each. If no providers are found or information is missing, tell the person what could not be checked and offer to search more specifically.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "compare health savings account providers",
     "find HSAs with investment options",
@@ -43,5 +43,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# health-savings scout\n\nCompare health savings account providers by their investment options and fees for long-term growth. Search the web, collect investment menus and fee schedules, and show a side-by-side comparison. Will not make any payments, sign any forms, or access personal accounts.",
-  "hash": "83665f589a84919aa69b213704421ee7bf9c23d3c7918818c397accde02573af"
+  "hash": "8fa21a52d4695e914dfea2bcebc2f58b12ab530349f146fdca25f8867f5d7d6a"
 }

@@ -3,7 +3,7 @@
   "name": "Literature review draft",
   "pitch": "Turns your research notes into a structured draft you can edit.",
   "category": "research",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,9 +21,9 @@
   },
   "instructions": "Read the person's research notes file. Identify the main topic and section headings. Group related notes under each heading. Write a paragraph for each group that summarises the key points and links them to the main topic. Save the draft as a new file. Offer the draft to the person to review.",
   "starters": [
-    "\"review my notes\"",
-    "\"start a literature review\"",
-    "\"organise my research\""
+    "review my notes",
+    "start a literature review",
+    "organise my research"
   ],
   "examples": [
     {
@@ -42,5 +42,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## Literature review draft\nTurns your research notes into a structured draft you can edit.\n\n**What it does:** Reads your notes, groups them by theme, writes summaries and saves a draft you can review and expand.\n\n**What it needs:** Access to read and write files in your workspace.\n\n**What it will not do:** Write original analysis or cite sources it has not seen.",
-  "hash": "64de8ec5cfc669c85a568e759e2e035c2f4f3732dd43f4d45eb49bd69d918cbd"
+  "hash": "be595c1906fb08405812469e577c07b1752045869d42259b0df130dc1fd0bbec"
 }

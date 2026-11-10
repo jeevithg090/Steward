@@ -3,7 +3,7 @@
   "name": "Remote work brief",
   "pitch": "Research the latest remote-work trends and create a one-page briefing document for the team.",
   "category": "business",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -13,7 +13,9 @@
   "needs": {
     "tools": [
       "web_search",
-      "make_page"
+      "make_page",
+      "browser_navigate",
+      "browser_snapshot"
     ],
     "connectors": [],
     "model": "any"
@@ -41,5 +43,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Remote work brief\nResearch recent remote-work trends and produce a one-page briefing document for the team.\n\nWhat it needs: web_search to find articles, make_page to create the document.\nWhat it will not do: invent statistics or dates; if sources are thin, it will tell the person and stop.",
-  "hash": "b45e675331eadfd28042b40cc7cd234d51adc925349641650f4a327989ca6f55"
+  "hash": "63b7d1f22c2cff3a0d6ba66d5aae5b7ca886796e96ed6b493939c008e6d59c45"
 }

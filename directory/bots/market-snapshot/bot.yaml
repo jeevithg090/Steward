@@ -2,7 +2,7 @@ id: market-snapshot
 name: Market snapshot
 pitch: Summarise today's market moves in five sentences.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -14,7 +14,10 @@ needs:
     - web_fetch
   connectors: []
   model: any
-instructions: Search for news about today's market activity. Read the top three results. Pick the five most important facts from those pages. Write them as five short sentences. Do not invent facts or give opinions. If the search returns no results, say so and stop. If a page does not load, try the next result. If fewer than five facts can be found, list the ones found and note how many more are missing. End by showing the list of sentences and the URLs read.
+instructions: |-
+  Search for news about today's market activity. Read the top three results. Pick the five most important facts from those pages. Write them as five short sentences. Do not invent facts or give opinions. If the search returns no results, say so and stop. If a page does not load, try the next result. If fewer than five facts can be found, list the ones found and note how many more are missing. End by showing the list of sentences and the URLs read.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - what happened in the markets today
   - give me a market update

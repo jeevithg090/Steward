@@ -2,7 +2,7 @@ id: make-ahead-appetizers
 name: Make-ahead appetizers
 pitch: Plan a cocktail party menu with a timeline for preparing make-ahead appetizers.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,6 +15,7 @@ needs:
     - task_create
     - make_page
     - file_write
+    - web_fetch
   connectors:
     - calendar
   model: any

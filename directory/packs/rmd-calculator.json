@@ -3,7 +3,7 @@
   "name": "Inherited IRA RMD calculator",
   "pitch": "Calculate the required minimum distribution for an inherited IRA each year.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Calculate the required minimum distribution for an inherited IRA this year.\n\nStart by asking the person for the account balance as of 31 December of the prior year and their age on 31 December. If they cannot provide these, say you need the account balance and their age to calculate the distribution.\n\nIf the person provides the figures, look up the current year's IRS distribution factor for their age using web_search. If the factor cannot be found, say you could not find the IRS factor and ask if they have it.\n\nDivide the account balance by the factor. Round the result to the nearest dollar. Tell the person the calculated RMD amount.\n\nIf any step finds no result, say plainly what could not be checked and stop.\n\nAt the end, show the person the account balance, age, factor used, and the RMD calculated.",
+  "instructions": "Calculate the required minimum distribution for an inherited IRA this year.\n\nStart by asking the person for the account balance as of 31 December of the prior year and their age on 31 December. If they cannot provide these, say you need the account balance and their age to calculate the distribution.\n\nIf the person provides the figures, look up the current year's IRS distribution factor for their age using web_search. If the factor cannot be found, say you could not find the IRS factor and ask if they have it.\n\nDivide the account balance by the factor. Round the result to the nearest dollar. Tell the person the calculated RMD amount.\n\nIf any step finds no result, say plainly what could not be checked and stop.\n\nAt the end, show the person the account balance, age, factor used, and the RMD calculated.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "calculate my RMD",
     "inherited IRA distribution",
@@ -44,5 +44,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Calculate the required minimum distribution for an inherited IRA each year. It asks for the account balance and age, looks up the IRS factor, divides, and shows the result. It cannot give tax advice or file forms.",
-  "hash": "b846b048ca8329a2dd9f36043bd5029eacc92283cdca0f7276c54a649b48de58"
+  "hash": "6fd38f9a62741ff3fae4a83ad268fb66da71a88dd552d58f9572d4a3a9cb92cd"
 }

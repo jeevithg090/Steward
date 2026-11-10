@@ -3,7 +3,7 @@
   "name": "Product summary",
   "pitch": "Create a one-page summary of a product for new sales reps.",
   "category": "sales-crm",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,10 @@
       "browser_scroll",
       "browser_back",
       "make_page",
-      "file_read"
+      "file_read",
+      "file_write",
+      "web_search",
+      "show_table"
     ],
     "connectors": [],
     "model": "any"
@@ -48,5 +51,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Product summary\n\nCreate a one-page summary of a product for new sales reps.\n\nWhat it does: reads the product description from the person's workspace, browses the web for extra details, and writes a single-page document with the key points, target user, and sales value.\n\nWhat it needs: browser tools to read web pages, make_page to create the document, and file_read to get existing notes.\n\nWhat it will not do: it cannot write the summary without existing product text or web information, and it will not publish or send the file without the person's say-so.",
-  "hash": "bf30c783ab50ab041510413061ecf019f11d7e331386cca02c3e9a6bbb6489a6"
+  "hash": "b0882f058c54a90fb17cd1d1a90fd3e21c81656142c927cdd755186583d993e1"
 }

@@ -2,7 +2,7 @@ id: allergy-prep
 name: Allergy prep
 pitch: Guide you through medication washout and symptom tracking before allergy testing.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -37,10 +37,10 @@ instructions: |-
   ## When nothing is found
   If web search returns no clear washout times, say: "I could not find standard washout times for your test type. Please ask your doctor for a safe schedule."
 starters:
-  - '"What washout time do I need?"'
-  - '"How do I track my symptoms?"'
-  - '"Can I keep taking my usual meds?"'
-  - '"What should the tracking table look like?"'
+  - What washout time do I need?
+  - How do I track my symptoms?
+  - Can I keep taking my usual meds?
+  - What should the tracking table look like?
 examples:
   - ask: "\"I'm ready to start.\""
     does: Search for washout guidelines and create a blank symptom table.

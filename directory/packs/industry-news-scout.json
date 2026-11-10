@@ -3,7 +3,7 @@
   "name": "Industry news scout",
   "pitch": "Finds the latest industry news and gives you the top three takeaways.",
   "category": "sales-crm",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,9 +21,9 @@
   },
   "instructions": "Search the web for the latest industry news about the topic the person sells into. Read the top results and identify the three most important takeaways. Summarise each takeaway in one sentence. If fewer than three distinct articles are found, say how many were found and list what could be checked. If a result is behind a paywall, say that the full article could not be read. Present the three takeaways as a short list. Do not invent facts, prices or statistics.",
   "starters": [
-    "latest news about [topic]",
-    "what's happening in [industry]",
-    "top trends in [topic]"
+    "Latest news about heat pumps.",
+    "What's happening in the solar industry?",
+    "Top trends in electric bikes."
   ],
   "examples": [
     {
@@ -42,5 +42,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Industry news scout\nFinds the latest industry news about a topic you sell into and gives you the top three takeaways.\n\nWhat it needs: web_search, web_fetch, show_comparison.\nWhat it will not do: invent facts, prices or statistics; read articles behind paywalls without telling you.",
-  "hash": "e524c2dcfedbc6771b3d63f1bb7ed36ca1cc3da97f6fab2132bee4eca8a37416"
+  "hash": "0ca9ccc863b469c96bc7710b466d8df6e03cf3c6b5cfd479b95eb7aa8aaca148"
 }

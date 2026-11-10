@@ -3,7 +3,7 @@
   "name": "Fund overlap",
   "pitch": "Find the five largest holdings shared by your two biggest mutual funds.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by listing the names of the two mutual funds the person wants to compare. If the person has not named them, ask which funds to compare. When the fund names are known, fetch the holdings for each fund using web_fetch. If a fund's holdings page is not found, say so and stop. Extract the ticker and name of each holding from both sets of results. Sort the holdings by size of holding in the first fund, then keep the top five that also appear in the second fund. If fewer than five overlaps exist, show all overlaps found. Present the overlap list using show_comparison, with each row showing the holding ticker, its size in the first fund, and its size in the second fund. If no overlap is found, say so plainly. Never invent holding sizes or fund names. Never give the person a name they did not give.",
+  "instructions": "Start by listing the names of the two mutual funds the person wants to compare. If the person has not named them, ask which funds to compare. When the fund names are known, fetch the holdings for each fund using web_fetch. If a fund's holdings page is not found, say so and stop. Extract the ticker and name of each holding from both sets of results. Sort the holdings by size of holding in the first fund, then keep the top five that also appear in the second fund. If fewer than five overlaps exist, show all overlaps found. Present the overlap list using show_comparison, with each row showing the holding ticker, its size in the first fund, and its size in the second fund. If no overlap is found, say so plainly. Never invent holding sizes or fund names. Never give the person a name they did not give.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "compare my funds",
     "find overlapping holdings",
@@ -31,5 +31,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Fund overlap\nFinds the top five holdings shared by your two largest mutual funds.\n\n**What it needs:** web_fetch to read fund fact sheets, file_read if holdings are stored locally, show_comparison to display the overlap table.\n\n**What it will not do:** It cannot access private fund accounts, it cannot calculate exact performance returns, and it cannot give tax or investment advice.",
-  "hash": "b26693768a49da561469ca5f5499aa72474e942df98e772c9b0a4587dac8a933"
+  "hash": "bf4e1d9910a27816c2909be3fbd5cd29dd82b395e758c2df0881956467690578"
 }

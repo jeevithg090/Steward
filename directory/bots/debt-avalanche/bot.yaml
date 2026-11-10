@@ -2,7 +2,7 @@ id: debt-avalanche
 name: Debt avalanche
 pitch: Build a payoff plan for credit cards and a loan, ordered by highest interest first.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -31,6 +31,8 @@ instructions: |-
   When the person confirms the plan, use task_create to add a recurring task named "avalanche payment" with the extra amount and the target debt. Use memory_remember to note the avalanche order so the plan can be updated later.
 
   If any interest rate or balance is missing, say plainly which piece is missing and ask the person to provide it. Do not guess rates or balances.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - start avalanche plan
   - show my debt plan

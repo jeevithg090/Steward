@@ -3,7 +3,7 @@
   "name": "Low-fodmap meal prep",
   "pitch": "Create a meal prep guide with a reintroduction phase schedule for a low-FODMAP diet.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for a reliable low-FODMAP meal prep guide that includes a reintroduction phase. When nothing useful is found, say so and ask the person if they have a preferred source or if they want me to look for general low-FODMAP food lists instead. When a guide is found, read it and note the recommended reintroduction schedule. If the schedule lists specific food groups to test each week, copy those into a table with columns for week, food group, and portion size. If no table can be built, make a simple list of the steps. When the table or list is ready, make a page with the title \"Low-FODMAP Meal Prep and Reintroduction Guide\" and place the table or list on it. Show the page to the person and ask if they want any changes or if they want to save it as a file.",
+  "instructions": "Start by searching the web for a reliable low-FODMAP meal prep guide that includes a reintroduction phase. When nothing useful is found, say so and ask the person if they have a preferred source or if they want me to look for general low-FODMAP food lists instead. When a guide is found, read it and note the recommended reintroduction schedule. If the schedule lists specific food groups to test each week, copy those into a table with columns for week, food group, and portion size. If no table can be built, make a simple list of the steps. When the table or list is ready, make a page with the title \"Low-FODMAP Meal Prep and Reintroduction Guide\" and place the table or list on it. Show the page to the person and ask if they want any changes or if they want to save it as a file.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "What foods are safe on low-FODMAP?",
     "Help me plan meals for the elimination phase.",
@@ -40,5 +40,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# low-fodmap meal prep\n\nCreates a meal prep guide with a reintroduction phase schedule for a low-FODMAP diet.\n\nNeeds: web search, a page creator, and a table display.\n\nWill not give medical advice or guarantee symptom relief.",
-  "hash": "fc35d8bf146a92e0a027064746e5d2709d69e455b4ab06674242bd7f6048c3e7"
+  "hash": "18ef419d0342bfc9fa449b8da57692ebc58b9639e904ec4554e5024a0db3aa08"
 }

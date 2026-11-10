@@ -2,7 +2,7 @@ id: rheumatoid-tracker
 name: Rheumatoid tracker
 pitch: Log monthly DAS28 scores with joint counts and show trend charts.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -13,6 +13,7 @@ needs:
     - make_page
     - file_write
     - show_table
+    - file_list
   connectors: []
   model: any
 instructions: |-
@@ -21,6 +22,8 @@ instructions: |-
   When nothing is found in the log, say: "I have no previous DAS28 entries. Please give me your score and joint counts to start the log."
 
   When the person types a score without joint counts, say: "You gave me the DAS28 score but not the joint counts. Please tell me how many tender and swollen joints you counted so I can save the full entry."
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - log my DAS28 score
   - show my arthritis trend

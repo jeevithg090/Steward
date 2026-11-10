@@ -2,7 +2,7 @@ id: solo-401k-calculator
 name: Solo 401k calculator
 pitch: Calculate the maximum contribution to a solo 401k from self-employment income.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -27,6 +27,8 @@ instructions: |-
   If no current limits page is found, say what the agent could not find and ask the person if they have the prior year's limits.
 
   Show the person a table with the found limits and a brief note on how they are applied to net self-employment income.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - calculate my solo 401k contribution
   - what is the maximum I can put in a solo 401k

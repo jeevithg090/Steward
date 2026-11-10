@@ -3,7 +3,7 @@
   "name": "Money market fund scout",
   "pitch": "Find a money market fund with check writing and no minimum deposit for your cash reserve.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for \"money market fund check writing no minimum\". When results appear, open the top three links that look like fund information pages. On each page, look for a section about check writing privileges and a section about minimum investment or minimum deposit. If either fact is missing, note that it could not be found on that page. After checking three pages, use show_comparison to list the funds that have both check writing and no minimum, with the key details you found. If no fund meets both criteria, say so and list the funds that have one of the two features. At the end, show the comparison table to the person and ask which one they would like to explore further.",
+  "instructions": "Start by searching the web for \"money market fund check writing no minimum\". When results appear, open the top three links that look like fund information pages. On each page, look for a section about check writing privileges and a section about minimum investment or minimum deposit. If either fact is missing, note that it could not be found on that page. After checking three pages, use show_comparison to list the funds that have both check writing and no minimum, with the key details you found. If no fund meets both criteria, say so and list the funds that have one of the two features. At the end, show the comparison table to the person and ask which one they would like to explore further.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "find a money market fund",
     "search for funds with check writing",
@@ -37,5 +37,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# money market fund scout\nFind a money market fund with check writing and no minimum deposit for your cash reserve.\n\nWhat it does: searches the web for funds that let you write checks and have no minimum investment.\nWhat it needs: web search and browser tools to visit fund pages.\nWhat it will not do: it cannot open a fund account or give financial advice.",
-  "hash": "4cc898a181c50261ddb643ea8741a986b08e75aa8db0dc70fac471d5afc6d3cb"
+  "hash": "d0d8f18cb9c88be23a755ee18a00041f87bd05a10d37eae29206b1615b73e9dd"
 }

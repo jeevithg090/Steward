@@ -2,7 +2,7 @@ id: trade-log
 name: Trade log
 pitch: Record every trade with your thoughts and the reasoning behind it.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - show_table
   connectors: []
   model: any
-instructions: "Start by asking the person for the first trade: what they bought or sold, the price, the date, and what they were thinking at the time. When they give you those details, use memory_remember to save the trade and the thought as a fact. Then use file_write to append a line to a plain‑text log file named trade_log.txt in the assistant's workspace. The line should read: YYYY‑MM‑DD | [buy/sell] | price | thought. If the person says they have no new trade, say so and offer to show the existing log. When nothing is found in the log, say 'No trades recorded yet.' and ask if they want to start one. After writing, show the person the table of all recorded trades using show_table so they can review everything at a glance."
+instructions: |-
+  Start by asking the person for the first trade: what they bought or sold, the price, the date, and what they were thinking at the time. When they give you those details, use memory_remember to save the trade and the thought as a fact. Then use file_write to append a line to a plain‑text log file named trade_log.txt in the assistant's workspace. The line should read: YYYY‑MM‑DD | [buy/sell] | price | thought. If the person says they have no new trade, say so and offer to show the existing log. When nothing is found in the log, say 'No trades recorded yet.' and ask if they want to start one. After writing, show the person the table of all recorded trades using show_table so they can review everything at a glance.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - log a new trade
   - show me my trades

@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person which habits they want to track alongside sleep. Create a 14-day morning routine that prompts them each day to rate their sleep quality from 1 to 5 and note one habit such as caffeine intake, exercise, or screen time before bed. When the routine runs, record each answer in memory using the date and the habit name. After 14 days, or if the person stops early, make a simple table showing sleep rating next to each habit entry. If any day has no entry, say so plainly and offer to continue or finish early. At the end, show the table on a page and ask if they want to keep tracking or see patterns.",
+  "instructions": "Start by asking the person which habits they want to track alongside sleep. Create a 14-day morning routine that prompts them each day to rate their sleep quality from 1 to 5 and note one habit such as caffeine intake, exercise, or screen time before bed. When the routine runs, record each answer in memory using the date and the habit name. After 14 days, or if the person stops early, make a simple table showing sleep rating next to each habit entry. If any day has no entry, say so plainly and offer to continue or finish early. At the end, show the table on a page and ask if they want to keep tracking or see patterns.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "Start the sleep questionnaire",
     "Show me my sleep table",
@@ -45,7 +45,7 @@
     {
       "name": "build-correlation-table",
       "description": "After at least two entries, make a table of sleep ratings versus habits. List each date, the sleep score, and the habit noted. If fewer than two entries exist, say how many days have been recorded and ask if they want to continue.",
-      "body": "1. Use memory_remember to list all past sleep entries. 2. If there are fewer than two entries, say how many days are recorded and ask if they want to keep going. 3. If there are two or more, make a table with three columns: Date, Sleep (1-5), Habit. 4. Show the table using make_page. 5. If a date has no habit, write 'no habit noted' in the Habit column."
+      "body": "1. List all past sleep entries from what you remember about the person. 2. If there are fewer than two entries, say how many days are recorded and ask if they want to keep going. 3. If there are two or more, make a table with three columns: Date, Sleep (1-5), Habit. 4. Show the table using make_page. 5. If a date has no habit, write 'no habit noted' in the Habit column."
     }
   ],
   "rules": [
@@ -59,5 +59,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Sleep tracker\nA 14-day morning questionnaire to rate sleep quality and note daily habits. Records each answer and, after enough data, shows a table linking sleep to the habits you choose. Will not share data outside this assistant, and will ask before storing each new entry.",
-  "hash": "c778a76d7fd4e6f95f90dacd0cb0e23328f0c9d29e9c2c704c7f3137721940d5"
+  "hash": "0761985d43a3a1d96ae72b9bd3aac6010eaa6ae6d4e479d659d4f4125e3ceb7b"
 }

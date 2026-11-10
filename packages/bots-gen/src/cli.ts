@@ -582,11 +582,9 @@ async function report(write: boolean): Promise<void> {
     "",
     "## Problems",
     "",
-    `${errors.length} errors, ${warnings.length} warnings across ${new Set(problems.map((p) => p.id)).size} packs.`,
+    `${errors.length} errors, ${warnings.length} warnings across ${new Set(problems.map((p) => p.id)).size} packs. Warnings do not stop a pack; a reviewer reads them.`,
     "",
-    ...Object.entries(
-      tally(warnings, (w) => w.problem.message.replace(/\(.*?\)|".*?"/g, "…").slice(0, 80)),
-    ).map(([msg, n]) => `- ${n} × ${msg}`),
+    ...warningLines(warnings),
     ...errors.map((e) => `- ERROR ${e.id}: ${e.problem.path}: ${e.problem.message}`),
     "",
     "## Generation log",
@@ -605,6 +603,42 @@ async function report(write: boolean): Promise<void> {
     await writeFile(join(DIRECTORY, "REPORT.md"), text, "utf8");
     log("Written to directory/REPORT.md.");
   }
+}
+
+/** Warnings by kind, most first. Style ones are counted; the others name their packs. */
+const WARNING_KINDS: readonly [RegExp, string, "style" | "content"][] = [
+  [/^a sentence has \d+ words/, "a sentence is over 35 words", "style"],
+  [/^uses jargon/, "uses jargon", "style"],
+  [/^names .* not in needs\.tools/, "the text names a tool the bot does not hold", "content"],
+  [/^uses \w+ to look something up/, "a tool is used to look up what it cannot", "content"],
+  [/^is wrapped in quote marks/, "a starter is in quote marks", "content"],
+  [/^has a placeholder/, "a starter has a placeholder", "content"],
+  [/^never tells the agent/, "a health or money bot never sends the person to a professional", "content"],
+  [/^never applies/, "a rule none of the bot's tools can trigger", "content"],
+  [/^only asks before reading/, "a rule asks before reading or showing only", "content"],
+  [/^refuses .* which this bot needs/, "a rule refuses the bot's own tools", "content"],
+  [/^is the same rule as/, "the same rule twice", "content"],
+];
+
+function warningLines(warnings: readonly { id: string; problem: Problem }[]): string[] {
+  const groups = new Map<string, { kind: "style" | "content"; ids: string[] }>();
+  for (const { id, problem } of warnings) {
+    const known = WARNING_KINDS.find(([re]) => re.test(problem.message));
+    const label = known?.[1] ?? problem.message.replace(/\(.*?\)|".*?"/g, "…").slice(0, 80);
+    const group = groups.get(label) ?? { kind: known?.[2] ?? "content", ids: [] };
+    group.ids.push(id);
+    groups.set(label, group);
+  }
+  return [...groups.entries()]
+    .sort((a, b) => b[1].ids.length - a[1].ids.length)
+    .map(([label, { kind, ids }]) => {
+      const packs = [...new Set(ids)];
+      const named =
+        kind === "content"
+          ? `: ${packs.slice(0, 12).join(", ")}${packs.length > 12 ? `, and ${packs.length - 12} more` : ""}`
+          : "";
+      return `- ${ids.length} × ${label}${named}`;
+    });
 }
 
 /** The launch target (plan §4): AI-made bots across the 19 categories. */

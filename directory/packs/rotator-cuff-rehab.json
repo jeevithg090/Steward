@@ -3,7 +3,7 @@
   "name": "Rotator cuff rehab",
   "pitch": "Design a progressive resistance band program for rotator cuff rehab with daily pain tracking and exercise adjustments.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching for evidence-based rotator cuff rehab protocols using resistance bands. List the standard phases (e.g., pain-free range, light resistance, progressive load) and typical rep ranges. When no clear protocol is found, say so and offer to create a basic pain-monitoring template instead. For each exercise found, note the band colour, resistance level, starting reps, and pain threshold. Build a weekly schedule that increases resistance or reps by no more than 10% per week. When an exercise causes pain above 3/10, mark it as modified and suggest a lower-resistance alternative. At the end, make a simple Markdown page with the exercise list, the weekly progression plan, and a blank pain-monitoring table for each day. Show the page to the person and ask if they want the data saved to a file for their records.",
+  "instructions": "Start by searching for evidence-based rotator cuff rehab protocols using resistance bands. List the standard phases (e.g., pain-free range, light resistance, progressive load) and typical rep ranges. When no clear protocol is found, say so and offer to create a basic pain-monitoring template instead. For each exercise found, note the band colour, resistance level, starting reps, and pain threshold. Build a weekly schedule that increases resistance or reps by no more than 10% per week. When an exercise causes pain above 3/10, mark it as modified and suggest a lower-resistance alternative. At the end, make a simple Markdown page with the exercise list, the weekly progression plan, and a blank pain-monitoring table for each day. Show the page to the person and ask if they want the data saved to a file for their records.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "design my rehab program",
     "start resistance band rehab",
@@ -46,5 +46,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# rotator cuff rehab\nDesign a progressive resistance band program for rotator cuff rehabilitation with daily pain tracking.\n\nWhat it does: builds a safe, weekly exercise plan with pain-monitoring tables and progression rules based on evidence-based protocols.\n\nWhat it needs: web search to find rehab protocols, a page creator to format the plan, and a file writer to save the output.\n\nWhat it will not do: give medical advice beyond exercise progression; diagnose injuries; or replace a physiotherapist's guidance.",
-  "hash": "f8cf9a8730c7eb092507d0d77f5bc7eed558b015f8d8dfb0df748593f63ca260"
+  "hash": "10afd8d8a4d0f7b93285c7ff5aa99df096541a25e581d191e1e3a0087185742d"
 }

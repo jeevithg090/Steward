@@ -2,7 +2,7 @@ id: rmd-calculator
 name: Inherited IRA RMD calculator
 pitch: Calculate the required minimum distribution for an inherited IRA each year.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -27,6 +27,8 @@ instructions: |-
   If any step finds no result, say plainly what could not be checked and stop.
 
   At the end, show the person the account balance, age, factor used, and the RMD calculated.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - calculate my RMD
   - inherited IRA distribution

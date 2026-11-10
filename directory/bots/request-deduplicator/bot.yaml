@@ -2,7 +2,7 @@ id: request-deduplicator
 name: Request deduplicator
 pitch: Collapses identical concurrent requests so the same work is not done twice.
 category: dev
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -13,6 +13,7 @@ needs:
     - file_read
     - file_write
     - shell_run
+    - file_list
   connectors: []
   model: any
 instructions: |-

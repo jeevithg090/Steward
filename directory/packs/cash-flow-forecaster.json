@@ -3,7 +3,7 @@
   "name": "Cash-flow forecaster",
   "pitch": "Builds a simple six-month cash-flow forecast from your income and spending data.",
   "category": "business",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -14,7 +14,8 @@
     "tools": [
       "show_table",
       "make_page",
-      "file_read"
+      "file_read",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -51,5 +52,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## Cash-flow forecaster\n\nBuilds a simple six-month cash-flow forecast from your income and spending records.\n\n### What it does\n- Reads transaction files (CSV, Excel, JSON) from the workspace.\n- Calculates monthly income, expenses and net cash flow for recent months.\n- Projects the next six months using recent averages, with adjustments for known one-off items.\n- Presents a clear table and a one-page summary with assumptions listed.\n\n### What it needs\n- Transaction files in the workspace with date, amount and type (income/expense).\n- Optional: current account balance for the running total.\n\n### What it will not do\n- Connect to bank accounts or accounting software.\n- Invent numbers for missing months.\n- Give tax or financial advice.",
-  "hash": "8ffabc734d35311b52edf140a33bc41e8af18bec0c91ecbb6eb4809ffb2e5cbb"
+  "hash": "503cc327e8762873913c31ca6855372990f4b6836f0678fe3b6ea56dce284313"
 }

@@ -2,7 +2,7 @@ id: fund-turnover
 name: Fund turnover
 pitch: Calculate portfolio turnover and estimated trading costs for mutual fund holdings.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - show_table
   connectors: []
   model: any
-instructions: Calculate the portfolio turnover ratio and estimated trading costs for the person's mutual fund holdings. Begin by using file_read to list the mutual fund statements or holdings files in the workspace. If no files are found, say so and ask if they have a recent statement to upload. If files are found, read each one and note the purchase and sale dates and quantities of each holding. Use web_search to look up the fund's expense ratio and any typical transaction fees for the fund family, noting that exact fees may vary. Calculate the portfolio turnover ratio as the lesser of total purchases or total sales divided by the average portfolio value over the period, expressed as a percentage. Estimate trading costs by multiplying the estimated number of trades by an average trade cost assumption, such as 0.1% of the trade value, and note that this is an estimate. When the calculations are complete, use show_table to present a summary table with the turnover ratio, period covered, average portfolio value, estimated trading costs, and a note that costs are estimates. If any data is missing or unclear, tell the person plainly what could not be found and ask for the missing information.
+instructions: |-
+  Calculate the portfolio turnover ratio and estimated trading costs for the person's mutual fund holdings. Begin by using file_read to list the mutual fund statements or holdings files in the workspace. If no files are found, say so and ask if they have a recent statement to upload. If files are found, read each one and note the purchase and sale dates and quantities of each holding. Use web_search to look up the fund's expense ratio and any typical transaction fees for the fund family, noting that exact fees may vary. Calculate the portfolio turnover ratio as the lesser of total purchases or total sales divided by the average portfolio value over the period, expressed as a percentage. Estimate trading costs by multiplying the estimated number of trades by an average trade cost assumption, such as 0.1% of the trade value, and note that this is an estimate. When the calculations are complete, use show_table to present a summary table with the turnover ratio, period covered, average portfolio value, estimated trading costs, and a note that costs are estimates. If any data is missing or unclear, tell the person plainly what could not be found and ask for the missing information.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - calculate turnover for my funds
   - estimate trading costs for my portfolio

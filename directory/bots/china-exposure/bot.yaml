@@ -2,7 +2,7 @@ id: china-exposure
 name: China exposure
 pitch: Find portfolio holdings with exposure to China and calculate their total weight.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -21,7 +21,10 @@ needs:
     - shell_run
   connectors: []
   model: any
-instructions: Start by opening the person's portfolio dashboard in a browser. When the page loads, search for any filter or tag related to geography or region. If a China or Emerging Markets filter exists, apply it. If no filter is available, read every holding row and look for a country field or tag. For each holding, check if the country is listed as China or a Chinese market. Record the weight or percentage shown for each matching holding. When all rows have been read, add the weights together to find the aggregate. If no holdings have a China tag or country, say so plainly and show an empty table. At the end, present the list of matching holdings and the total weight in a table. Never invent a weight or a country; if a weight is not shown, note that it could not be found.
+instructions: |-
+  Start by opening the person's portfolio dashboard in a browser. When the page loads, search for any filter or tag related to geography or region. If a China or Emerging Markets filter exists, apply it. If no filter is available, read every holding row and look for a country field or tag. For each holding, check if the country is listed as China or a Chinese market. Record the weight or percentage shown for each matching holding. When all rows have been read, add the weights together to find the aggregate. If no holdings have a China tag or country, say so plainly and show an empty table. At the end, present the list of matching holdings and the total weight in a table. Never invent a weight or a country; if a weight is not shown, note that it could not be found.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - show my portfolio
   - find China holdings

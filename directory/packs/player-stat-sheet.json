@@ -3,7 +3,7 @@
   "name": "Player stat sheet",
   "pitch": "Shows the latest season stats for two players side by side on one page.",
   "category": "sports",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -13,7 +13,10 @@
   "needs": {
     "tools": [
       "web_search",
-      "web_fetch"
+      "web_fetch",
+      "browser_navigate",
+      "browser_snapshot",
+      "make_page"
     ],
     "connectors": [],
     "model": "any"
@@ -38,5 +41,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Player stat sheet\nCompares the latest season stats for two players on one page.\n\n- Needs: web_search, web_fetch\n- Will not: visit paywalled sites without free data, guess player names",
-  "hash": "c8d23f0ceab3ac9cf72a3746a5e6fe2e3911cfaec74d99a1e87cab8aad661e26"
+  "hash": "307c316ea214262dd713871d474c42fa6fe82c51c62f0b01d4a6338248070c0e"
 }

@@ -3,7 +3,7 @@
   "name": "Hypermobility exercise design",
   "pitch": "Design a safe home exercise program for hypermobility spectrum disorder, using joint protection principles.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,12 +14,13 @@
     "tools": [
       "web_search",
       "make_page",
-      "file_write"
+      "file_write",
+      "web_fetch"
     ],
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for reliable sources on hypermobility spectrum disorder and joint protection exercises. Look for guidance from health charities or physiotherapy sites. When nothing useful is found, say so and stop. Read the search results and note down three to five exercises that are commonly recommended, focusing on low-impact movements and joint safety. If the search results are too general or medical in a way that cannot be adapted safely, say so and ask the person whether they want a more general fitness programme instead. When the exercises are chosen, open a new page and list each exercise with its purpose, how to do it, and a joint-protection tip. Save that page as a simple text document in the workspace. At the end, show the person the document and ask whether they want any changes or if they would like to look for more exercises.",
+  "instructions": "Start by searching the web for reliable sources on hypermobility spectrum disorder and joint protection exercises. Look for guidance from health charities or physiotherapy sites. When nothing useful is found, say so and stop. Read the search results and note down three to five exercises that are commonly recommended, focusing on low-impact movements and joint safety. If the search results are too general or medical in a way that cannot be adapted safely, say so and ask the person whether they want a more general fitness programme instead. When the exercises are chosen, open a new page and list each exercise with its purpose, how to do it, and a joint-protection tip. Save that page as a simple text document in the workspace. At the end, show the person the document and ask whether they want any changes or if they would like to look for more exercises.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "design my exercise program",
     "help me plan workouts for hypermobility",
@@ -39,12 +40,12 @@
     {
       "name": "search-and-collect-exercises",
       "description": "Find and record safe, low-impact exercises for hypermobility.",
-      "body": "1. Use web_search to look for \"hypermobility spectrum disorder safe exercises\" and \"joint protection exercises hypermobility\". 2. Read the results with browser_snapshot or web_fetch. 3. Note down one to three exercises that are described as low-impact and joint-friendly. 4. If no results are found or the content seems too advanced, say so and stop. 5. Record the exercise name, a one-sentence description, and one joint-protection tip for each."
+      "body": "1. Use web_search to look for \"hypermobility spectrum disorder safe exercises\" and \"joint protection exercises hypermobility\". 2. Read the results with web_fetch. 3. Note down one to three exercises that are described as low-impact and joint-friendly. 4. If no results are found or the content seems too advanced, say so and stop. 5. Record the exercise name, a one-sentence description, and one joint-protection tip for each."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# hypermobility exercise design\n\nDesigns a home exercise program for hypermobility spectrum disorder, using joint protection principles. Searches the web for suitable exercises, writes them into a page, and saves the plan as a text file.\n\n**Needs**: web_search, make_page, file_write.\n\n**Will not**: give medical advice, prescribe specific routines, or replace a physiotherapist.",
-  "hash": "23d38cfcf3b5e3bf230d99328535936265fcfd24b96a3f1515e42ad52ed1eaca"
+  "hash": "88d9ceda824b6f87adf03b12609db682e555d7f09e34c1cef7b2f81fdde67852"
 }

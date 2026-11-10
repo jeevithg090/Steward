@@ -3,7 +3,7 @@
   "name": "Video naming convention",
   "pitch": "Create a document with clear naming rules and examples for series, episodes, and versions.",
   "category": "video-audio",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -13,7 +13,8 @@
   "needs": {
     "tools": [
       "file_write",
-      "make_page"
+      "make_page",
+      "file_read"
     ],
     "connectors": [],
     "model": "any"
@@ -35,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Video naming convention\n\nCreates a document with naming rules and examples for series, episodes, and versions.\n\nNeeds: file_write, make_page.\n\nWill not: invent prices, dates or laws.",
-  "hash": "a26bba4c81ea8e85b23d86e5147cccc44b9618a8de9de0e6b28cb16553bb51d3"
+  "hash": "cb0cbd4be6b6adbf284df276aaa496ec11fa6570934c01e61c8a2c1b23fa7e5e"
 }

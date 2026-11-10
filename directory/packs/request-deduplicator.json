@@ -3,7 +3,7 @@
   "name": "Request deduplicator",
   "pitch": "Collapses identical concurrent requests so the same work is not done twice.",
   "category": "dev",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "file_read",
       "file_write",
-      "shell_run"
+      "shell_run",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -50,5 +51,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "",
-  "hash": "6f2c84e2de768596ee437d684f1119eecf37590c74fdb786c2f9ca57541df880"
+  "hash": "28a88760da851cd38e0656185d52c351b5c968086882a0095b167c02106f2fa7"
 }

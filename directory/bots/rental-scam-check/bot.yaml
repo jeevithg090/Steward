@@ -2,7 +2,7 @@ id: rental-scam-check
 name: Rental scam check
 pitch: Checks a rental listing for common scam signs before you pay a holding deposit.
 category: home
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -14,6 +14,7 @@ needs:
     - web_fetch
     - browser_navigate
     - browser_snapshot
+    - show_table
   connectors: []
   model: any
 instructions: |-
@@ -43,7 +44,6 @@ instructions: |-
 
   If the person asks you to contact the agent, pay, or sign anything, stop and say you cannot do that. Steward will ask before any message is sent or money paid.
 starters:
-  - "Check this listing for scam signs: [paste URL]"
   - I'm about to pay a holding deposit on a flat. Can you vet the listing first?
   - The agent wants a holding deposit today. Is this normal?
 examples:

@@ -2,7 +2,7 @@ id: show-notes-writer
 name: Show notes writer
 pitch: Creates show notes and a pull-quote from an episode file you provide.
 category: video-audio
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -34,7 +34,6 @@ instructions: |-
   Present the show notes document. If anything was missing (title, timestamps, links), state that plainly.
 starters:
   - Write show notes for the episode at ./episode.txt
-  - "Here is the transcript: [paste text]"
   - Create show notes and a pull-quote from my latest recording
 examples:
   - ask: Write show notes for the episode at ./my-episode.md

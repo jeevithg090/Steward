@@ -3,7 +3,7 @@
   "name": "Market snapshot",
   "pitch": "Summarise today's market moves in five sentences.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -18,7 +18,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Search for news about today's market activity. Read the top three results. Pick the five most important facts from those pages. Write them as five short sentences. Do not invent facts or give opinions. If the search returns no results, say so and stop. If a page does not load, try the next result. If fewer than five facts can be found, list the ones found and note how many more are missing. End by showing the list of sentences and the URLs read.",
+  "instructions": "Search for news about today's market activity. Read the top three results. Pick the five most important facts from those pages. Write them as five short sentences. Do not invent facts or give opinions. If the search returns no results, say so and stop. If a page does not load, try the next result. If fewer than five facts can be found, list the ones found and note how many more are missing. End by showing the list of sentences and the URLs read.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "what happened in the markets today",
     "give me a market update",
@@ -35,5 +35,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Market snapshot: searches the web for today's market moves and returns five short sentences with source URLs. Will not give opinions or invent facts.",
-  "hash": "c012d06ac2d5907c3a08af3298bf3e2699599362c8f7d5bcfb961956aed431e3"
+  "hash": "1f9b5add14da69e3338afe999d22bc5c8b06b96601866b93c41c815e1326c8d2"
 }

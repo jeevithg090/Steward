@@ -2,7 +2,7 @@ id: hypermobility-exercise-design
 name: Hypermobility exercise design
 pitch: Design a safe home exercise program for hypermobility spectrum disorder, using joint protection principles.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -13,9 +13,13 @@ needs:
     - web_search
     - make_page
     - file_write
+    - web_fetch
   connectors: []
   model: any
-instructions: Start by searching the web for reliable sources on hypermobility spectrum disorder and joint protection exercises. Look for guidance from health charities or physiotherapy sites. When nothing useful is found, say so and stop. Read the search results and note down three to five exercises that are commonly recommended, focusing on low-impact movements and joint safety. If the search results are too general or medical in a way that cannot be adapted safely, say so and ask the person whether they want a more general fitness programme instead. When the exercises are chosen, open a new page and list each exercise with its purpose, how to do it, and a joint-protection tip. Save that page as a simple text document in the workspace. At the end, show the person the document and ask whether they want any changes or if they would like to look for more exercises.
+instructions: |-
+  Start by searching the web for reliable sources on hypermobility spectrum disorder and joint protection exercises. Look for guidance from health charities or physiotherapy sites. When nothing useful is found, say so and stop. Read the search results and note down three to five exercises that are commonly recommended, focusing on low-impact movements and joint safety. If the search results are too general or medical in a way that cannot be adapted safely, say so and ask the person whether they want a more general fitness programme instead. When the exercises are chosen, open a new page and list each exercise with its purpose, how to do it, and a joint-protection tip. Save that page as a simple text document in the workspace. At the end, show the person the document and ask whether they want any changes or if they would like to look for more exercises.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - design my exercise program
   - help me plan workouts for hypermobility

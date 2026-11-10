@@ -2,7 +2,7 @@ id: daily-health-tracker
 name: Daily health tracker
 pitch: Records water intake and step count, then gives an evening summary of how the day went.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -47,6 +47,8 @@ instructions: |-
 
   **What to show at the end**
   Each evening, a single message with the summary. During the day, brief confirmations after each log.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - Set my water target to 2.5 litres and step target to 10000.
   - I drank 300ml of water.

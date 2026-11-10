@@ -3,7 +3,7 @@
   "name": "Contract amendment",
   "pitch": "Draft a contract amendment from last week's discussion and send it to the other party.",
   "category": "sales-crm",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,10 @@
       "browser_type",
       "browser_press",
       "browser_scroll",
-      "browser_back"
+      "browser_back",
+      "file_write",
+      "mail_list",
+      "mail_read"
     ],
     "connectors": [
       "mail"
@@ -48,12 +51,12 @@
     {
       "name": "draft-amendment",
       "description": "Write a contract amendment from email discussion.",
-      "body": "1. Read the most recent email thread about the contract discussion using mail_list or web_fetch. 2. If no email exists, tell the person and ask if they have notes or a draft. 3. Open a new page with make_page. 4. Write the amendment text that restates only the points the person agreed last week. 5. Do not add new terms or change obligations. 6. Show the draft to the person and ask if they want to send it. 7. If yes, use mail_send to send it to the other party's email address, which the person must provide. 8. After sending, save a copy of the draft using file_write."
+      "body": "1. Read the most recent email thread about the contract discussion using mail_list and mail_read. 2. If no email exists, tell the person and ask if they have notes or a draft. 3. Open a new page with make_page. 4. Write the amendment text that restates only the points the person agreed last week. 5. Do not add new terms or change obligations. 6. Show the draft to the person and ask if they want to send it. 7. If yes, use mail_send to send it to the other party's email address, which the person must provide. 8. After sending, save a copy of the draft using file_write."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "A bot pack that drafts a contract amendment from a recent email discussion and sends it to the other party. It needs mail to read the thread and mail_send to send the draft. It will not add new terms or sign anything without the person's say-so.",
-  "hash": "67a4fe5ba710bec9c5a5c64db579bb50d9a44fd005ba734024c0a3d6b3335203"
+  "hash": "587400f6965382cfd3fdf7b3fcf016d7826e839c6a7f6bd40d7fa8497134dbf4"
 }

@@ -3,7 +3,7 @@
   "name": "S&P 500 weight compare",
   "pitch": "Compare equal-weight and market-cap S&P 500 strategies over ten years.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Search the web for performance data of equal-weight and market-cap S&P 500 strategies over a ten-year period. Extract key figures such as annualised return, volatility and maximum drawdown for each approach. If the search results do not contain comparable figures, say what could not be found and stop. When figures are found, create a side-by-side comparison showing the two sets of numbers. Present the comparison in a clear table format. If only partial data is available, list what was found and note the gaps.",
+  "instructions": "Search the web for performance data of equal-weight and market-cap S&P 500 strategies over a ten-year period. Extract key figures such as annualised return, volatility and maximum drawdown for each approach. If the search results do not contain comparable figures, say what could not be found and stop. When figures are found, create a side-by-side comparison showing the two sets of numbers. Present the comparison in a clear table format. If only partial data is available, list what was found and note the gaps.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "compare S&P 500 weightings over ten years",
     "equal-weight versus market-cap performance"
@@ -35,5 +35,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# S&P 500 weight compare\nCompares equal-weight and market-cap S&P 500 strategies over ten years.\nNeeds web search to find performance data.\nWill not give financial advice or predict future returns.",
-  "hash": "5256805cb8373024e72345ed78aa3e3aad979cbfdd5d80a13adf87daa2727956"
+  "hash": "0cd2484128920bbba0d93be1af5840ea4823d88aeaa9bef29030b6505c2fe473"
 }

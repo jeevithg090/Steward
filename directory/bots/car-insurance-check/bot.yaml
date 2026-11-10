@@ -2,7 +2,7 @@ id: car-insurance-check
 name: Breakdown cover check
 pitch: Check if your policy covers breakdown recovery in another European country.
 category: travel
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -30,6 +30,6 @@ instructions: |-
 
   At the end, show the person the exact text found, or a summary of what the policy says about European recovery. If no relevant text was found, state that clearly.
 starters:
-  - '"Does my insurance cover breakdown in Europe?"'
-  - '"Check my policy for European recovery"'
-  - '"Is breakdown recovery included abroad?"'
+  - Does my insurance cover breakdown in Europe?
+  - Check my policy for European recovery
+  - Is breakdown recovery included abroad?

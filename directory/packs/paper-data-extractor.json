@@ -3,7 +3,7 @@
   "name": "Paper data extractor",
   "pitch": "Collects datasets and code repositories cited across research papers in a folder.",
   "category": "research",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -16,7 +16,8 @@
       "web_search",
       "browser_snapshot",
       "file_write",
-      "show_table"
+      "show_table",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -58,5 +59,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Paper data extractor\nCollects datasets and code repositories cited across research papers in a folder.\n\n**What it needs:** The person selects a folder of paper files. The agent uses file_read, web_search, browser_snapshot and file_write.\n\n**What it will not do:** It cannot read paywalled papers without the person providing the text. It cannot create new repositories or download datasets.",
-  "hash": "2c1113eaad2173566aef87b1a09b494bdcf50650f9b76ce5ea305a3a3495b100"
+  "hash": "b70d045fc6af6481e4b230c3b339472c4986dd959ca8b52e532971449afc6e45"
 }

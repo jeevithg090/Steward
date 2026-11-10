@@ -3,7 +3,7 @@
   "name": "Vestibular trainer",
   "pitch": "Design a daily home-based balance training program for vestibular rehabilitation with progressive challenges.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "web_search",
       "make_page",
-      "file_write"
+      "file_write",
+      "web_fetch"
     ],
     "connectors": [],
     "model": "any"
@@ -39,7 +40,7 @@
     {
       "name": "search-and-collect-exercises",
       "description": "Find and record vestibular balance exercises from reliable online sources.",
-      "body": "1. Use web_search to look for 'vestibular rehabilitation balance exercises home'. 2. Read search results with browser_snapshot if needed. 3. Note down exercise types, standard repetitions, and any progression guidance from the sources. 4. If sources are unclear or unavailable, say what could not be found and stop. 5. Do not make up exercise descriptions or medical facts."
+      "body": "1. Use web_search to look for 'vestibular rehabilitation balance exercises home'. 2. Read search results with web_fetch if needed. 3. Note down exercise types, standard repetitions, and any progression guidance from the sources. 4. If sources are unclear or unavailable, say what could not be found and stop. 5. Do not make up exercise descriptions or medical facts."
     },
     {
       "name": "build-the-daily-schedule",
@@ -51,5 +52,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# vestibular trainer\nDesigns a daily home-based balance training program for vestibular rehabilitation with progressive challenges.\n\nWhat it does: searches for evidence-based balance exercises, organises them into a 4-week weekly-progression schedule, and saves the plan as a text file.\n\nWhat it needs: web_search to find exercises, make_page to create the schedule, file_write to save the output.\n\nWhat it will not do: it cannot give medical advice, prescribe specific treatments, or guarantee improvement in symptoms.",
-  "hash": "aebed831a7aa56de4f6e235b47d7221d565479b1eee4b32b58d95bf230c64401"
+  "hash": "466ae0bb505f419bad8f07f4cfd9fc0a453ed5260131034c267cf04c5d67fb57"
 }

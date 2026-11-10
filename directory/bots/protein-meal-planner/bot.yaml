@@ -2,7 +2,7 @@ id: protein-meal-planner
 name: Protein Meal Planner
 pitch: Creates a varied weekly meal plan that meets your daily protein target without repeating the same dishes.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -70,6 +70,8 @@ instructions: |-
   - A detailed recipe document.
   - A categorised shopping list.
   - A brief note on prep tips (batch cooking, storage, reheating).
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - Plan a week of meals hitting 120g protein per day, vegetarian, 30 min max cook time.
   - I need 100g protein daily, no dairy, budget-friendly, 3 meals a day.

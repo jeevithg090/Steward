@@ -3,7 +3,7 @@
   "name": "Golf warm-up builder",
   "pitch": "Creates a personalized warm-up routine that prevents low back pain and improves rotation for golf.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "web_search",
       "make_page",
-      "routine_create"
+      "routine_create",
+      "web_fetch"
     ],
     "connectors": [],
     "model": "any"
@@ -39,7 +40,7 @@
     {
       "name": "find-safe-exercises",
       "description": "Search for golf warm-up exercises that are gentle on the lower back. Read the results and pick 3 to 5 that focus on rotation and back safety. Do not make up new exercises; only use what the search results show.",
-      "body": "1. Use web_search with terms like 'golf warm-up lower back pain rotation'. 2. Read the top results with browser_snapshot. 3. Choose 3 to 5 exercises that are described as safe for the lower back. 4. Make a note of the exercise name, a one-line description, and the suggested repetitions. 5. Stop when you have a small list; if no results fit, say so and ask the person if they want to change the search terms."
+      "body": "1. Use web_search with terms like 'golf warm-up lower back pain rotation'. 2. Read the top results with web_fetch. 3. Choose 3 to 5 exercises that are described as safe for the lower back. 4. Make a note of the exercise name, a one-line description, and the suggested repetitions. 5. Stop when you have a small list; if no results fit, say so and ask the person if they want to change the search terms."
     },
     {
       "name": "build-the-page",
@@ -51,5 +52,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Golf warm-up builder\nCreates a personalized warm-up routine to prevent low back pain and improve rotation.\n\nWhat it does: searches the web for safe exercises, makes a simple page, and offers to save it as a routine.\nWhat it needs: web_search to find exercises, make_page to layout them, routine_create to save it (optional).\nWhat it will not do: it will not give medical advice, invent new exercises, or claim any guaranteed results.",
-  "hash": "2dafadd83769a24016178ef10ba0ae26ec49bf6f2048cff5868e81ce67f000cb"
+  "hash": "7eef4766777fee08ce5e7fc04c63b8a39040b07dc8f23e36e83709958f7e6607"
 }

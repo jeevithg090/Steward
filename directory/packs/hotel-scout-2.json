@@ -3,7 +3,7 @@
   "name": "Bike-friendly hotel scout",
   "pitch": "Find a hotel near a train station with secure bike storage and a charging point.",
   "category": "travel",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -23,7 +23,7 @@
   },
   "instructions": "Search for hotels near the named train station. Look for listings that mention bike storage and a charging point. If the search results do not show these features, open several listings and scan their descriptions or amenities lists. When no hotel meets both criteria, say what was found and ask if the person wants to broaden the search.",
   "starters": [
-    "find a hotel near [station name]",
+    "Find a hotel near the main railway station.",
     "hotel with bike storage near the station"
   ],
   "examples": [
@@ -43,5 +43,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Bike-friendly hotel scout\nFinds a hotel near a train station with secure bike storage and a charging point.\n\nWhat it does: searches the web for hotels, checks their listings for bike storage and charging points, and presents the closest matches.\n\nWhat it needs: a web browser and search tools. It does not book or pay.\n\nWhat it will not do: it will not make a reservation, charge a card, or sign any agreement.",
-  "hash": "f2ae4c4d0868b70a2edae48dfe97cf8ebe85cc6567b9e1fdcba6f19f4f0cbd39"
+  "hash": "2da2a439c6f69abeaf7b82412ea55df8d15c4a2a07e9c0a03338bae1248f8ed9"
 }

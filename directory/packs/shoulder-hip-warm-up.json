@@ -3,7 +3,7 @@
   "name": "Shoulder-hip warm-up",
   "pitch": "A personalized warm-up routine to loosen tight shoulders and hips before strength training.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -35,12 +35,12 @@
     {
       "name": "build-routine",
       "description": "Create a short mobility routine for shoulders and hips.",
-      "body": "1. Check memory_remember for any past injuries or tightness level. 2. If injuries are recorded, note them and exclude any exercise that matches. 3. Web-search for 'shoulder mobility exercises' and 'hip mobility exercises'. 4. Pick 5 to 8 exercises that are commonly safe and effective. 5. For each exercise, write the body part targeted and one short tip on form or breathing. 6. If fewer than 5 good exercises are found, say so and list what was searched for. 7. Use make_page to turn the list into a table titled 'Warm-up routine'. 8. Show the table to the person and ask if they want any changes. 9. If changes are requested, update memory_remember with the new preferences and return to step 2. 10. When the person is happy, mark the task as complete."
+      "body": "1. Check what you remember about the person for any past injuries or tightness level. 2. If injuries are recorded, note them and exclude any exercise that matches. 3. Web-search for 'shoulder mobility exercises' and 'hip mobility exercises'. 4. Pick 5 to 8 exercises that are commonly safe and effective. 5. For each exercise, write the body part targeted and one short tip on form or breathing. 6. If fewer than 5 good exercises are found, say so and list what was searched for. 7. Use make_page to turn the list into a table titled 'Warm-up routine'. 8. Show the table to the person and ask if they want any changes. 9. If changes are requested, update memory_remember with the new preferences and return to step 2. 10. When the person is happy, mark the task as complete."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Shoulder-hip warm-up\nA personalized warm-up routine to loosen tight shoulders and hips before strength training.\n\nWhat it does: searches for mobility exercises, stores the person's tightness level, and builds a simple table they can follow.\n\nWhat it needs: memory_remember to save the person's preferences, make_page to create the routine document, show_table to display the exercises.\n\nWhat it will not do: give medical advice or claim the routine prevents injury. Stop if the person feels pain and ask them to consult a professional.",
-  "hash": "9004c848e3049a38739a88839a224844777c414e861712f18da69192bed4ff77"
+  "hash": "7f63eea9b9a893154913cdb4189ed7eb750f02d74370447262c50806ba9d432c"
 }

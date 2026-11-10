@@ -3,7 +3,7 @@
   "name": "72t calculator",
   "pitch": "Explain how 72t substantially equal periodic payment plans work and their tax treatment.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "This job explains 72t SEPP plans. The agent first searches for the IRS rules on substantially equal periodic payments and the 10% early withdrawal exception. It reads the minimum payment calculation methods: required minimum distribution, amortization, and annuitisation. The agent checks that the payments are taken from an IRA or qualified plan and are calculated using a valid mortality table. The agent notes that the plan must last at least five years or until the person reaches age 59½, whichever is longer. If no clear IRS guidance is found, the agent says it could not find the official rules. At the end, the agent shows a short summary of the three methods and the tax treatment: the payments are treated as ordinary income, and failing the rules triggers the 10% penalty on all past payments. The agent does not give personal tax advice or calculate a specific payment amount.",
+  "instructions": "This job explains 72t SEPP plans. The agent first searches for the IRS rules on substantially equal periodic payments and the 10% early withdrawal exception. It reads the minimum payment calculation methods: required minimum distribution, amortization, and annuitisation. The agent checks that the payments are taken from an IRA or qualified plan and are calculated using a valid mortality table. The agent notes that the plan must last at least five years or until the person reaches age 59½, whichever is longer. If no clear IRS guidance is found, the agent says it could not find the official rules. At the end, the agent shows a short summary of the three methods and the tax treatment: the payments are treated as ordinary income, and failing the rules triggers the 10% penalty on all past payments. The agent does not give personal tax advice or calculate a specific payment amount.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "what is a 72t plan",
     "SEPP payment rules",
@@ -43,5 +43,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# 72t calculator\n\nExplain how 72t substantially equal periodic payment plans work and their tax treatment.\n\n**What it needs**: a web browser to search IRS guidance; no personal data or accounts are required.\n\n**What it will not do**: it will not calculate a payment amount for you, it will not give personal tax advice, and it will not set up a plan in any account.",
-  "hash": "5734058690b713bc0ff9c50a9ae87c3e3c54eef0b670b2ddb68a4a5ffd957fe9"
+  "hash": "f477e72a61d2469dc87fa0ce7121f7c7cf249ddebc1dfc5a05b91653c7c56838"
 }

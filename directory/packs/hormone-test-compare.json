@@ -3,7 +3,7 @@
   "name": "Hormone test compare",
   "pitch": "Compare at-home hormone test kits for perimenopause tracking, with accuracy and cost analysis.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,9 @@
     "tools": [
       "web_search",
       "show_comparison",
-      "make_page"
+      "make_page",
+      "browser_navigate",
+      "browser_snapshot"
     ],
     "connectors": [],
     "model": "any"
@@ -52,5 +54,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "**hormone test compare**\nCompares at-home hormone test kits for perimenopause tracking with accuracy and cost analysis.\nNeeds: web_search, show_comparison, make_page.\nWill not: give medical advice, state a price or accuracy figure that is not on the product page, or access any personal health data.",
-  "hash": "fcb250c66f7568c94701d0deb594e18dd9fa7e64696c336e789a9640e980139c"
+  "hash": "0e74660a99f4a82e5b00db20b7e0f04f855dcf3b0bf2bc9977d8f29bfc67487e"
 }

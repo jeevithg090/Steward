@@ -2,7 +2,7 @@ id: amt-calculator
 name: AMT calculator
 pitch: Calculate the alternative minimum tax impact of exercising incentive stock options.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -30,6 +30,8 @@ instructions: |-
   If any required number is missing, say so plainly and ask the person to provide it. Do not invent prices, tax rates, or exemption amounts.
 
   When the table is ready, offer to save the calculation to a file with file_write, or to recalculate with different numbers.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - How much AMT will I pay on my ISO exercise?
   - Calculate AMT for my stock options

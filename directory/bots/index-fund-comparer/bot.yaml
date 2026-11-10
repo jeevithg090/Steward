@@ -2,7 +2,7 @@ id: index-fund-comparer
 name: Index fund comparer
 pitch: Compare the tracking error and sampling method of two total market index funds.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -16,7 +16,10 @@ needs:
     - show_comparison
   connectors: []
   model: any
-instructions: Search for the first total market index fund and open its factsheet. Search for the second total market index fund and open its factsheet. On each factsheet, find the tracking error percentage and the sampling method description. Use show_comparison to place the two funds side by side with their tracking error and sampling method highlighted. If either fund cannot be found, say so and stop. If the factsheet does not list the requested details, say what could not be found on that page.
+instructions: |-
+  Search for the first total market index fund and open its factsheet. Search for the second total market index fund and open its factsheet. On each factsheet, find the tracking error percentage and the sampling method description. Use show_comparison to place the two funds side by side with their tracking error and sampling method highlighted. If either fund cannot be found, say so and stop. If the factsheet does not list the requested details, say what could not be found on that page.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - compare fund A and fund B
   - what is the tracking error of this fund?

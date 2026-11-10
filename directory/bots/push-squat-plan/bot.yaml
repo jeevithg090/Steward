@@ -2,7 +2,7 @@ id: push-squat-plan
 name: Push-squat plan
 pitch: Design a 4-week progressive overload plan for push-ups and squats based on your current max reps.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -16,7 +16,10 @@ needs:
     - task_create
   connectors: []
   model: any
-instructions: "Start by asking the person for their current max reps for push-ups and squats. If they do not know, ask them to do a test set and note the number. Record the numbers in memory so they can be used later. Use the numbers to calculate a starting weight or rep range for week one, increasing the reps or sets each week in a steady progression. When the calculations are done, make a page that shows the week-by-week plan in a table with four columns: week, push-up reps, squat reps, and notes. If any tool fails or the person has not provided numbers, say what could not be checked and ask if they want to enter their max reps now. At the end, show the table to the person and ask if they want to save it as a task or a reminder."
+instructions: |-
+  Start by asking the person for their current max reps for push-ups and squats. If they do not know, ask them to do a test set and note the number. Record the numbers in memory so they can be used later. Use the numbers to calculate a starting weight or rep range for week one, increasing the reps or sets each week in a steady progression. When the calculations are done, make a page that shows the week-by-week plan in a table with four columns: week, push-up reps, squat reps, and notes. If any tool fails or the person has not provided numbers, say what could not be checked and ask if they want to enter their max reps now. At the end, show the table to the person and ask if they want to save it as a task or a reminder.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - start my plan
   - design my workout

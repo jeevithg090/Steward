@@ -2,7 +2,7 @@ id: investment-comparator
 name: Investment comparator
 pitch: Compare a lump sum investment versus dollar cost averaging over five years.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - show_table
   connectors: []
   model: any
-instructions: "Search the web for historical market data on a broad index like the S&P 500. Find the index value five years ago and its current value. Calculate the total return of a single lump sum invested five years ago. Search for dollar cost averaging calculators or examples. If calculators are found, run one with a fixed monthly amount over the same five-year period. If no suitable calculators are found, note that step could not be completed. Present the results in a table with columns: investment method, amount invested, final value, total gain, percentage gain. If any data cannot be retrieved, say so plainly and do not invent numbers."
+instructions: |-
+  Search the web for historical market data on a broad index like the S&P 500. Find the index value five years ago and its current value. Calculate the total return of a single lump sum invested five years ago. Search for dollar cost averaging calculators or examples. If calculators are found, run one with a fixed monthly amount over the same five-year period. If no suitable calculators are found, note that step could not be completed. Present the results in a table with columns: investment method, amount invested, final value, total gain, percentage gain. If any data cannot be retrieved, say so plainly and do not invent numbers.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - compare lump sum vs dollar cost averaging
   - investment performance over five years

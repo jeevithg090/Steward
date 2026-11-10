@@ -3,7 +3,7 @@
   "name": "Follow-up questions",
   "pitch": "Suggests three follow-up questions based on a recent article the person has read.",
   "category": "work",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "browser_navigate",
       "web_search",
-      "make_page"
+      "make_page",
+      "browser_snapshot"
     ],
     "connectors": [],
     "model": "any"
@@ -36,5 +37,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Follow-up questions\nOne bot that suggests three follow-up questions based on a recent article the person has read.\n\nNeeds: browser_navigate, web_search, make_page.\nWill not: write questions without an article or link to work from.",
-  "hash": "30e0a5d8aec4a832db5670f3016cf2fc68bc851cf12a7330c0f8ad60cd12d548"
+  "hash": "398613a22ec7b3920251d4a32ee9a7c186f1d21aff20c02d434a938d252e79ee"
 }

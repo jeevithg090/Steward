@@ -3,7 +3,7 @@
   "name": "Pitch deck prep",
   "pitch": "Create a checklist to prepare a pitch deck before an investor meeting.",
   "category": "business",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,8 +19,8 @@
   },
   "instructions": "Start by asking the person what the pitch is for and who the investors are. When they tell you, make a new plain text file called pitch_checklist.txt. Write the heading \"Pitch deck preparation checklist\". Add the items: \"Check the deck structure: introduction, problem, solution, market, business model, traction, team, ask\". Add: \"Verify all numbers are up to date and match the financial model\". Add: \"Check that slides have no more than five bullet points each\". Add: \"Confirm visuals are consistent in style and colour\". Add: \"Proofread for typos and clear language\". When the file is written, show the person the full list and ask if they want to add or remove anything.",
   "starters": [
-    "\"I need a checklist for my investor pitch\"",
-    "\"Can you make a prep list for my deck?\""
+    "I need a checklist for my investor pitch",
+    "Can you make a prep list for my deck?"
   ],
   "examples": [
     {
@@ -33,5 +33,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Pitch deck prep\nCreates a checklist to prepare a pitch deck before an investor meeting.\n\nWorks with: make_page only.\n\nWill not: design slides, check financial models, or contact investors.",
-  "hash": "b2198631a596e14076d0e674a1afcce2caea0457a2d24b5244f077ad3b9280a2"
+  "hash": "713c4c10a719119e428ff36212a6735402d3880cfc0a39737c4f244cea35f2e5"
 }

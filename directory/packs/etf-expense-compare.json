@@ -3,7 +3,7 @@
   "name": "ETF expense compare",
   "pitch": "Compare zero-commission ETFs' expense ratios and bid-ask spreads across three brokers.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Search for zero-commission ETFs from three chosen brokers. For each broker, collect the expense ratio and the bid-ask spread for the same ETF ticker. If a broker does not list the ticker, note that it is not available. Present the data in a table with columns: Broker, Ticker, Expense Ratio, Bid-Ask Spread. If any data cannot be found, say so plainly and do not invent numbers. At the end, show the table and list any missing information.",
+  "instructions": "Search for zero-commission ETFs from three chosen brokers. For each broker, collect the expense ratio and the bid-ask spread for the same ETF ticker. If a broker does not list the ticker, note that it is not available. Present the data in a table with columns: Broker, Ticker, Expense Ratio, Bid-Ask Spread. If any data cannot be found, say so plainly and do not invent numbers. At the end, show the table and list any missing information.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "compare ETF costs across brokers",
     "show me zero-commission ETFs",
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# ETF expense compare\nCompare zero-commission ETFs' expense ratios and bid-ask spreads across three brokers.\n\nWhat it does: searches the web for cost data from up to three brokers and presents it side by side.\nWhat it needs: web search, a comparison table tool, and the ability to write a short text file.\nWhat it will not do: it cannot give financial advice, it cannot check real-time prices after the search, and it cannot open accounts or make trades.",
-  "hash": "49aba959b10e6e4bf6727224515b28b50b7c3e29a7e9590cd8fc4d68d2ea00f6"
+  "hash": "359edad86fb8586aaa0076a84ccfc5ae912dc19185e19eae00669e79e9293669"
 }

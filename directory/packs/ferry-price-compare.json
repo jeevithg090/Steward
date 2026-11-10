@@ -3,7 +3,7 @@
   "name": "Ferry price compare",
   "pitch": "Compare ferry ticket prices for a car and passengers on a specific route.",
   "category": "travel",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,6 @@
   "instructions": "Start by asking the person for the route details: departure location, destination, date and time, and whether the ticket is for a car only or for passengers too. When you have those details, use web_search to look for ferry operators that run that route. Open the search results and look for ticket prices for a car and for a foot passenger. If you find prices, copy them into a comparison. If you find more than one option, use show_comparison to list them side by side. If no results are found, or if the search does not return clear prices, say so and ask the person if they want to try a different route or date. At the end, show the comparison table or the plain text prices you found, and ask the person if they want to book or look at another option.",
   "starters": [
     "compare ferry tickets for a route",
-    "what are the ferry prices for [route]?",
     "find me the cheapest ferry with a car"
   ],
   "examples": [
@@ -43,5 +42,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Ferry price compare\nCompares ferry ticket prices for a car and passengers on a specific route.\n- Needs: web_search, show_comparison\n- Will not book or pay without asking first.",
-  "hash": "4a0fc5479cedf0da7d1aaacb23b384b524f3bf7c8f517e4cb6d66218b58befa8"
+  "hash": "1102f438a8635006c0439c9b2dacd26efdb6d59ed2f143c8a1490d7e9f39c3f0"
 }

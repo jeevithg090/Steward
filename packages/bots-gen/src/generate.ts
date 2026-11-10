@@ -186,7 +186,7 @@ export function guessCategory(job: string): BotCategory {
 /** The line a health or money bot's instructions carry, so the person is sent to someone qualified. */
 export const REFERRAL: Partial<Record<BotCategory, string>> = {
   health:
-    "You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before changing a medicine, a diet or how they exercise.",
+    "You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   money:
     "You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   investing:

@@ -3,7 +3,7 @@
   "name": "Concept mapper",
   "pitch": "Build a visual concept map showing how ideas connect across uploaded papers.",
   "category": "research",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -15,7 +15,8 @@
       "file_read",
       "file_write",
       "make_page",
-      "show_table"
+      "show_table",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -47,5 +48,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Concept mapper\n\nBuild a visual concept map showing how ideas connect across uploaded papers.\n\n**What it needs:** The agent reads files from your workspace, writes a markdown diagram and a table, and nothing is sent or paid.\n\n**What it will not do:** It will not guess citations, invent connections, or open external sites. If no shared terms are found it will offer a table of all headings instead.",
-  "hash": "04cbad8e5bd470f9bbc210814f46bb1918ed6d416e4e00c1d1e470f404e31b0a"
+  "hash": "995f5e88f1b19f81dc9471ac354de95c44bc04ac18ec3a2c5f72046823d52e4c"
 }

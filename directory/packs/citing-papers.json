@@ -3,7 +3,7 @@
   "name": "Citing papers",
   "pitch": "Find the most cited papers that cite a seminal work from the last three years.",
   "category": "research",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -22,9 +22,9 @@
   },
   "instructions": "Start by asking the person for the title or link of the seminal work. When they give it, search the web for papers that cite that work. Filter results to only include papers published in the last three years. Sort the remaining papers by citation count, highest first. If no papers from the last three years are found, say so and ask if they want a wider date range. When the list is ready, show a table with the paper title, year, and citation count. Offer to save the table to a file or copy it to the clipboard.",
   "starters": [
-    "find papers citing [seminal work] from last three years",
-    "most cited papers that reference [work]",
-    "cite [work] recent citations"
+    "Find papers from the last three years that cite the first CRISPR gene-editing paper.",
+    "Most cited papers that reference the original transformer paper.",
+    "Recent citations of the first paper on graphene."
   ],
   "examples": [
     {
@@ -41,5 +41,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# citing papers\nFind the most cited papers that cite a seminal work from the last three years.\n\nNeeds: web search and a browser to read results.\nWill not: access paywalled databases or give legal advice on paper validity.",
-  "hash": "87d308c22ce275ae6783d84906d51469a748e6e444a0566c797b6eaff8839685"
+  "hash": "f35191768fb7372178edcc5ff7a4979cabe04e2cac9c11ac4109047edc3118cc"
 }

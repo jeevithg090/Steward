@@ -2,7 +2,7 @@ id: reverse-mortgage-scout
 name: Reverse mortgage scout
 pitch: Compare the total cost of a reverse mortgage versus a home equity line of credit for retirement income.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,9 +15,13 @@ needs:
     - browser_snapshot
     - show_comparison
     - make_page
+    - request_help
   connectors: []
   model: any
-instructions: Start by asking the person for the value of their home and their current mortgage balance, so the search can be specific. When you have those figures, open a web search for 'reverse mortgage costs' and another for 'home equity line of credit fees'. Read the results and note the typical closing costs, origination fees, and interest rates for each option. If the search returns no useful figures, say so and ask the person if they have a specific lender in mind. When you have cost details for both, use show_comparison to place them side by side, listing total estimated cost, monthly impact, and any risks. If a lender's page asks for a sign‑in or personal details, stop and request_help from the person. At the end, make_page a short document that summarises the comparison in plain language, and show it to the person.
+instructions: |-
+  Start by asking the person for the value of their home and their current mortgage balance, so the search can be specific. When you have those figures, open a web search for 'reverse mortgage costs' and another for 'home equity line of credit fees'. Read the results and note the typical closing costs, origination fees, and interest rates for each option. If the search returns no useful figures, say so and ask the person if they have a specific lender in mind. When you have cost details for both, use show_comparison to place them side by side, listing total estimated cost, monthly impact, and any risks. If a lender's page asks for a sign‑in or personal details, stop and request_help from the person. At the end, make_page a short document that summarises the comparison in plain language, and show it to the person.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - How much is your home worth?
   - Do you still have a mortgage balance?

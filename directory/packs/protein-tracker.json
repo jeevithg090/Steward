@@ -3,7 +3,7 @@
   "name": "Protein tracker",
   "pitch": "Track daily protein intake for a week and suggest easy additions to meet the target.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for their protein target in grams per day and the dates they want to track. Create a task to record their daily intake. Each day, ask the person what they ate and estimate the protein grams for each item. Use web_search to look up protein content if the person is unsure. At the end of the week, show a table of the recorded intake. If any day has too little protein, search for easy high-protein additions like Greek yogurt, eggs, or nuts. Suggest one or two simple swaps or extras to help reach the target. If the person does not complete a day, say so and move on to the next day. At the end, show a summary of total protein versus target and list the suggested additions.",
+  "instructions": "Start by asking the person for their protein target in grams per day and the dates they want to track. Create a task to record their daily intake. Each day, ask the person what they ate and estimate the protein grams for each item. Use web_search to look up protein content if the person is unsure. At the end of the week, show a table of the recorded intake. If any day has too little protein, search for easy high-protein additions like Greek yogurt, eggs, or nuts. Suggest one or two simple swaps or extras to help reach the target. If the person does not complete a day, say so and move on to the next day. At the end, show a summary of total protein versus target and list the suggested additions.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "track protein for a week",
     "help me hit my protein target"
@@ -47,5 +47,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# protein tracker\nTrack daily protein intake for a week and suggest easy additions to meet the target.\n\nWhat it needs: task_create, task_update, show_table, web_search.\nWhat it will not do: give medical advice or plan meals beyond simple protein suggestions.",
-  "hash": "d2940ee5b7616fa6d3696e67eb51f2d6ab63431a811018239a6c848d7bea42f6"
+  "hash": "9099a79da3619b1de99b8bfcbc0e1a2ad15edbb1c2b30d0d712df054b932788b"
 }

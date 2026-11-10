@@ -13,6 +13,7 @@ needs:
     - web_search
     - make_page
     - calendar_create
+    - web_fetch
   connectors:
     - calendar
   model: any

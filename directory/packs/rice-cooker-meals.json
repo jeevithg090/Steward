@@ -3,7 +3,7 @@
   "name": "Rice cooker meals",
   "pitch": "Plan a week of dinners using only a rice cooker and microwave.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,9 @@
     "tools": [
       "web_search",
       "file_write",
-      "show_table"
+      "show_table",
+      "web_fetch",
+      "file_read"
     ],
     "connectors": [],
     "model": "any"
@@ -35,7 +37,7 @@
     {
       "name": "collect-recipes",
       "description": "Find and save seven rice cooker microwave dinner recipes.",
-      "body": "1. Use web_search to look up 'rice cooker microwave dinner recipes'. 2. Read the results with browser_snapshot. 3. Pick a recipe that needs only a rice cooker and microwave. 4. Copy the recipe name, ingredients and steps into dinners.txt. 5. Repeat until seven recipes are saved or no more are found. 6. If a recipe is too long, pick a shorter one. 7. If nothing is found, tell the person and ask if they want to change the search."
+      "body": "1. Use web_search to look up 'rice cooker microwave dinner recipes'. 2. Read the results with web_fetch. 3. Pick a recipe that needs only a rice cooker and microwave. 4. Copy the recipe name, ingredients and steps into dinners.txt. 5. Repeat until seven recipes are saved or no more are found. 6. If a recipe is too long, pick a shorter one. 7. If nothing is found, tell the person and ask if they want to change the search."
     },
     {
       "name": "show-menu",
@@ -47,5 +49,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# rice cooker meals\nPlan a week of dinners using only a rice cooker and microwave.\n\nWhat it does: searches the web for simple recipes, saves them to a file, and shows a table of the seven dinners and their main ingredients.\n\nWhat it needs: web_search to find recipes, file_write to save them, show_table to display the menu.\n\nWhat it will not do: it will not invent recipe details, give cooking times it cannot check, or pay for anything.",
-  "hash": "abdc0dcc5d28677d5e5f29bf26f9796f738ea99ecaa10fb42287ab2964e2a3bf"
+  "hash": "9a097fa792c75649f370a5d3392c81c7998496122c4f2b56079fb9d08217f054"
 }

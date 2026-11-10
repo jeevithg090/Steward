@@ -2,7 +2,7 @@ id: medication-reminder
 name: Medication Reminder
 pitch: Sets daily reminders for medication times and keeps a simple log of doses taken.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -34,7 +34,7 @@ instructions: |-
   ## Logging
   - To show the log, read all tasks tagged "medication" from the last 30 days. Group by medication and date. Show planned time, actual time taken, and any missed doses (planned tasks not marked done).
   - If no tasks are found, say "No medication log entries found."
-  - If memory_remember has no schedule, say "No medication schedule stored. Please run setup first."
+  - If you remember no schedule, say "No medication schedule stored. Please run setup first."
 
   ## What to show at the end
   - A summary table of the last 7 days: medication, date, planned time, taken time, status (taken or missed).
@@ -45,6 +45,8 @@ instructions: |-
   - If routine_create is not available, fall back to creating daily tasks manually each morning and tell the person.
   - If task_create or task_update is not available, say "Task tools not connected. I cannot create or update reminders."
   - If memory_remember is not available, keep the schedule only in the current conversation and warn the person it will be lost on restart.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - Set up my medication reminders for metformin 500 mg at 08:00 and 20:00.
   - Show me my medication log for the last week.

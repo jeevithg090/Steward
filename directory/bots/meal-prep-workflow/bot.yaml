@@ -2,7 +2,7 @@ id: meal-prep-workflow
 name: Meal prep workflow
 pitch: Design a weekly meal prep plan for two people with different dietary goals, fitting around their schedules.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,6 +15,7 @@ needs:
     - task_create
     - calendar_create
     - file_write
+    - show_table
   connectors:
     - calendar
   model: any

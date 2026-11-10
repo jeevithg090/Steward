@@ -3,7 +3,7 @@
   "name": "Tax transcript finder",
   "pitch": "Find the cheapest way to get a tax return transcript for a mortgage application.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,11 +19,11 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching for \"tax return transcript\" and \"mortgage\" to find official sources and common fees. When results list official government sites and commercial services, use show_comparison to list the cost and processing time for each. If only one option appears, make_page a summary of that option with its price and how to request it. When no results are found, say so and suggest the person contact their bank or tax office for the exact form they need. Never invent a price or a phone number. Always end by showing the person a short list of what was found, or a note that no clear cheapest path was found.",
+  "instructions": "Start by searching for \"tax return transcript\" and \"mortgage\" to find official sources and common fees. When results list official government sites and commercial services, use show_comparison to list the cost and processing time for each. If only one option appears, make_page a summary of that option with its price and how to request it. When no results are found, say so and suggest the person contact their bank or tax office for the exact form they need. Never invent a price or a phone number. Always end by showing the person a short list of what was found, or a note that no clear cheapest path was found.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
-    "\"get tax transcript for mortgage\"",
-    "\"cheapest tax transcript service\"",
-    "\"IRS transcript fee\""
+    "get tax transcript for mortgage",
+    "cheapest tax transcript service",
+    "IRS transcript fee"
   ],
   "examples": [
     {
@@ -42,5 +42,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Tax transcript finder\nFinds the cheapest way to get a tax return transcript for a mortgage application.\n\n**What it does**\nSearches for official and commercial options, compares their fees and speeds, and presents the lowest-cost path.\n\n**What it needs**\nweb_search, show_comparison, make_page.\n\n**It will not do**\nIt will not pay for any service, sign any form, or share personal data without your say-so.",
-  "hash": "35020df887ed213da335d7733ed958ac069a5dbff486e9703e6cd159b427239b"
+  "hash": "51a76a07404628a62a8a18f0bccf2fbc17e23e44621e89b84c324425ce424795"
 }

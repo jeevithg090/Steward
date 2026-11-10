@@ -3,7 +3,7 @@
   "name": "Restaurant scout",
   "pitch": "Find healthy takeout options near the person's workplace.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -15,7 +15,8 @@
       "web_search",
       "web_fetch",
       "browser_navigate",
-      "show_comparison"
+      "show_comparison",
+      "browser_snapshot"
     ],
     "connectors": [],
     "model": "any"
@@ -50,5 +51,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Restaurant scout\nFinds healthy takeout options near your workplace.\n\nIt searches the web, checks menus, and compares the best three spots with their healthiest dish and price. It will not order anything or sign you up for anything.\n\nYou need web search and a browser to look at pages.",
-  "hash": "aa8407874068b70a6dc978b00b0544f9a33dcc07dfd9dc8004b909a3948bc7a3"
+  "hash": "5aecad6ee6e8c5f050285187bbf22f8a7b9ad477858e293ae3a3d0ef4ae62ccc"
 }

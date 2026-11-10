@@ -3,7 +3,7 @@
   "name": "Sleep study helper",
   "pitch": "Explain sleep apnea results and build a CPAP mask fitting guide.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Read the person's sleep study report if it is saved in their workspace. If no report is found, search the web for 'sleep apnea hypopnea index' and 'sleep apnea oxygen saturation' to give plain, general explanations of the common terms. When the report is available, read each line and put the numbers into plain language: e.g. 'Your AHI was 23, which means about 23 breathing pauses per hour.' If numbers are missing or unclear, say so and do not invent values. After the explanation, ask the person if they have a CPAP machine and mask. If they do, search for 'CPAP mask fitting tips' and 'CPAP mask size guide'. Read the top results and pull out three practical tips, such as 'Adjust the headgear snugly but not tight' or 'Try the mask on while lying down'. Write a short page that lists the explained results on the left and the mask tips on the right. Save this page as 'sleep-apnea-summary.txt' in their workspace. If the person cannot find their report, offer to search for general sleep apnea information instead.",
+  "instructions": "Read the person's sleep study report if it is saved in their workspace. If no report is found, search the web for 'sleep apnea hypopnea index' and 'sleep apnea oxygen saturation' to give plain, general explanations of the common terms. When the report is available, read each line and put the numbers into plain language: e.g. 'Your AHI was 23, which means about 23 breathing pauses per hour.' If numbers are missing or unclear, say so and do not invent values. After the explanation, ask the person if they have a CPAP machine and mask. If they do, search for 'CPAP mask fitting tips' and 'CPAP mask size guide'. Read the top results and pull out three practical tips, such as 'Adjust the headgear snugly but not tight' or 'Try the mask on while lying down'. Write a short page that lists the explained results on the left and the mask tips on the right. Save this page as 'sleep-apnea-summary.txt' in their workspace. If the person cannot find their report, offer to search for general sleep apnea information instead.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "What do my sleep numbers mean?",
     "Help me fit my CPAP mask"
@@ -50,5 +50,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Sleep study helper\n\nReads a sleep apnea report and turns the numbers into plain language. Then searches for CPAP mask fitting tips and saves a summary page. Will not give medical advice or diagnosis.\n\nNeeds: web_search to look up terms, make_page to build the summary, file_write to save the file.\n\nWill not: give a medical diagnosis, change any settings on a CPAP machine, or pay for equipment.",
-  "hash": "dbb13affd16b611a974eb999af4851ec370a0a753d26247278bdd70cec061312"
+  "hash": "af19ffe63323b18bb9e477d4804185cce651073e6de46e6813adcf2e3fb137bb"
 }

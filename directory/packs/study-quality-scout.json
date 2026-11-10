@@ -3,7 +3,7 @@
   "name": "Study quality scout",
   "pitch": "Compare reporting quality of studies using the appropriate checklist for their design.",
   "category": "research",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -16,7 +16,8 @@
       "web_search",
       "browser_snapshot",
       "file_write",
-      "show_table"
+      "show_table",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -49,5 +50,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Study quality scout\nCompares reporting quality of research studies using the appropriate checklist for each design.\n\n**What it does**\n- Reads study files from the person's workspace.\n- Identifies the study design for each paper.\n- Finds the standard quality checklist for that design.\n- Presents a table summarising the checklists and their key criteria.\n\n**What it needs**\n- Study files in the workspace (PDFs, Word docs, or plain text).\n- Internet access for web_search.\n\n**What it will not do**\n- Assess the actual quality of the studies; it only reports which checklists apply.\n- Provide medical or legal advice based on the study content.",
-  "hash": "4252448a02fea8ed9f1dd50bb49669907678d46601fd81b02860ba5103e1e197"
+  "hash": "9fa556ee82e02d13d953c04dbd4574a9a82bc939aa679db2b91ed0ee76737858"
 }

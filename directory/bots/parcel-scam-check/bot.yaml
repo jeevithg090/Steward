@@ -2,7 +2,7 @@ id: parcel-scam-check
 name: Parcel scam check
 pitch: Checks if a parcel delivery text is a scam by looking for known patterns and official advice.
 category: privacy
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -35,7 +35,6 @@ instructions: |-
   At the end, give a short summary: likely scam, likely genuine, or uncertain, with the reasons. Remind the person not to click the link, not to reply, and not to call the number in the message.
 starters:
   - I got a text about a parcel, can you check if it's a scam?
-  - "Here is the text message: [paste message]"
   - The message says it's from Royal Mail and asks for a fee.
 examples:
   - ask: I got a text saying my parcel has a £1.99 fee. Link is royalmail-delivery-fee.com. Is this a scam?

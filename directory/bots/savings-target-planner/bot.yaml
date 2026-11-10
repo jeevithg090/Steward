@@ -2,7 +2,7 @@ id: savings-target-planner
 name: Savings Target Planner
 pitch: Calculates the monthly amount you need to save to hit a financial target by a specific date, showing the effect of interest and time.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -54,6 +54,8 @@ instructions: |-
   - Do not calculate tax implications.
   - Do not assume salary or income.
   - Do not call the person by a name they did not give.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - I want to save 20000 for a deposit by June 2027, I have 3000 already and expect 3% return.
   - How much per month to reach 50000 by December 2026 starting from zero?

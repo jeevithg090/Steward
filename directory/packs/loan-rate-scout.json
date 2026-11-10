@@ -3,7 +3,7 @@
   "name": "Loan rate scout",
   "pitch": "Find local credit unions with better personal loan rates than the person's current bank.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person which bank they currently use. Then search the web for credit unions in the person's local area. Open the results and look for personal loan rate tables. If a credit union page shows rates, copy the rate and the credit union name. If no local results are found, say so and ask if the person wants to broaden the search. When at least three rates are collected, use show_comparison to present them side by side. If fewer than three rates are found, tell the person how many were found and ask if they want to keep looking. At the end, write a short text file with the best rate and the credit union name, then tell the person the file is ready for them to read.",
+  "instructions": "Start by asking the person which bank they currently use. Then search the web for credit unions in the person's local area. Open the results and look for personal loan rate tables. If a credit union page shows rates, copy the rate and the credit union name. If no local results are found, say so and ask if the person wants to broaden the search. When at least three rates are collected, use show_comparison to present them side by side. If fewer than three rates are found, tell the person how many were found and ask if they want to keep looking. At the end, write a short text file with the best rate and the credit union name, then tell the person the file is ready for them to read.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "find better loan rates",
     "compare credit unions",
@@ -38,5 +38,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Loan rate scout helps you find credit unions with better personal loan rates than your current bank. It searches the web, collects rates, and presents them in a comparison. It will not pay any fees, sign any agreements, or share your data.",
-  "hash": "4a6bf93980f3e9e2b617a1e7446aade5cffdffc6fb6471e244f7b519029abd63"
+  "hash": "64eea099da9bb70070ecec936c350909c151af1eb0448def35de410ad26aba48"
 }

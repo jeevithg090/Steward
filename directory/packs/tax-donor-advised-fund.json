@@ -3,7 +3,7 @@
   "name": "Tax donor-advised fund",
   "pitch": "Calculate tax savings from bunching charitable donations into a donor-advised fund.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Calculate the tax savings from bunching charitable donations into a donor-advised fund. Start by searching for current-year and next-year income tax brackets and charitable deduction limits. When nothing is found, say you could not find the tax rates and ask if the person wants to enter their own figures. Ask the person for their filing status, total planned donations, and estimated income. When the person gives those figures, look up the applicable tax bracket and calculate the deduction’s value at their marginal rate. If the total exceeds the adjusted gross income limit for cash gifts, note the cap and calculate savings only on the allowable portion. When the calculation is done, show a table with the donation amount, the tax-deducted amount, the marginal tax rate used, and the estimated tax saving. If any figure could not be checked, list it plainly and say what you could not verify.",
+  "instructions": "Calculate the tax savings from bunching charitable donations into a donor-advised fund. Start by searching for current-year and next-year income tax brackets and charitable deduction limits. When nothing is found, say you could not find the tax rates and ask if the person wants to enter their own figures. Ask the person for their filing status, total planned donations, and estimated income. When the person gives those figures, look up the applicable tax bracket and calculate the deduction’s value at their marginal rate. If the total exceeds the adjusted gross income limit for cash gifts, note the cap and calculate savings only on the allowable portion. When the calculation is done, show a table with the donation amount, the tax-deducted amount, the marginal tax rate used, and the estimated tax saving. If any figure could not be checked, list it plainly and say what you could not verify.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "How much should I donate?",
     "What is my tax bracket?",
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Tax donor-advised fund\nCalculate tax savings from bunching charitable donations into a donor-advised fund.\n\nWhat it does: Works out how much income tax a person could save by concentrating gifts into a donor-advised fund instead of giving small amounts each year.\nWhat it needs: Web search for tax brackets and deduction limits; a table to show the numbers; a page to present the result.\nWhat it will not do: It does not give personalised tax advice, nor does it file any forms or submit donations.",
-  "hash": "ff6d2326d894c5b54aa0e38c65c12dbff9925e4e9c87303e7d8a75e785d9235e"
+  "hash": "ce272f73e506bfefb0b43923b3fd9c675855f7b561dd2a9de20b23157f345dfd"
 }

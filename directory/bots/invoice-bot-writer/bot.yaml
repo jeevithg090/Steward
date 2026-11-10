@@ -32,7 +32,7 @@ instructions: |-
   ## Steps
   1. Start by asking the person for the seven items above. If they cannot answer one, note the gap and continue.
   2. Draft the pack in memory using the shape Steward expects: name, pitch, category, needs, instructions, starters, examples, skills, rules, readme.
-  3. For needs.tools, include only what the chase bot will use: mail_send, calendar_list, web_fetch, browser_navigate, file_read, shell_run — pick the subset that matches the person's answers.
+  3. For needs.tools, include only what the chase bot will use: "mail_send", "calendar_list", "web_fetch", "browser_navigate", "file_read", "shell_run" — pick the subset that matches the person's answers.
   4. For needs.connectors, add "mail" if the bot sends or reads email, "calendar" if it reads or writes calendar events.
   5. Write instructions for the chase bot in plain words, short sentences, British spelling. Cover:
      - How to fetch the list of unpaid invoices.

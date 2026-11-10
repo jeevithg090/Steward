@@ -3,7 +3,7 @@ name: evening-summary
 description: Generates and delivers the daily water and step summary at the scheduled time.
 ---
 
-1. Read `water_today_ml`, `steps_today`, `water_target_litres`, and `step_target` from memory using memory_remember (recall).
+1. Read `water_today_ml`, `steps_today`, `water_target_litres`, and `step_target` from what you remember about the person.
 2. If any value is missing, treat as 0 (for totals) or use defaults (2.0 litres, 8000 steps) for targets.
 3. Convert water target to millilitres: target_ml = water_target_litres * 1000.
 4. Calculate water_pct = round((water_today_ml / target_ml) * 100) and step_pct = round((steps_today / step_target) * 100).

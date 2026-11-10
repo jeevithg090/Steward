@@ -3,7 +3,7 @@
   "name": "Core-satellite builder",
   "pitch": "Build a low-cost core-satellite portfolio from three ETFs and two active funds.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Core-satellite portfolios split money between a large, low-cost core and smaller, active bets. This bot builds one using three ETFs for the core and two active funds for the satellite part. Start by searching for three low-cost ETFs that track a broad market index, such as the S&P 500 or a total world index. Record each ETF's name, provider, and total expense ratio. Then search for two actively managed funds with a clear mandate, such as sector or thematic, and record their name, provider, and ongoing charge figure. When a search returns no results, say so and ask the person if they have a preferred provider or index. When results are found, show a table with the five investments and their cost figures. At the end, make a simple page that lists the chosen ETFs and funds, with a note that the person should check the latest factsheet before investing.",
+  "instructions": "Core-satellite portfolios split money between a large, low-cost core and smaller, active bets. This bot builds one using three ETFs for the core and two active funds for the satellite part. Start by searching for three low-cost ETFs that track a broad market index, such as the S&P 500 or a total world index. Record each ETF's name, provider, and total expense ratio. Then search for two actively managed funds with a clear mandate, such as sector or thematic, and record their name, provider, and ongoing charge figure. When a search returns no results, say so and ask the person if they have a preferred provider or index. When results are found, show a table with the five investments and their cost figures. At the end, make a simple page that lists the chosen ETFs and funds, with a note that the person should check the latest factsheet before investing.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "build me a core-satellite model",
     "help me pick three ETFs and two active funds",
@@ -47,5 +47,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Core-satellite builder\n\nBuild a low-cost core-satellite portfolio from three ETFs and two active funds.\n\n## What it does\nSearches for three low-cost ETFs that track a broad market index and two actively managed funds with a clear mandate. Shows a table of the five investments and their cost figures. Creates a simple page listing the choices.\n\n## What it needs\nweb_search, show_table, make_page.\n\n## What it will not do\nIt does not give financial advice or recommend buying anything. It does not check performance, tax status or suitability. The person must read the latest factsheet before investing.",
-  "hash": "4abc6d4a25f79400df9fea725cfe9f2ccef2ee64f670b0249db832e3e1835e03"
+  "hash": "4b5c06f12f1e82c6578bf7893e00d66219731c145269de60ac17ec0cd77825bf"
 }

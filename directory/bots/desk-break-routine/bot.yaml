@@ -2,7 +2,7 @@ id: desk-break-routine
 name: Desk-break routine
 pitch: A micro-break routine of 5 posture exercises, each under 2 minutes, designed for a desk setting.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - routine_create
   connectors: []
   model: any
-instructions: 'Start by asking the person if they have a preferred time of day for the break. When they confirm a time, create a routine named "Desk micro-break" that triggers at that time. The routine should include 5 simple posture exercises: neck rolls, shoulder shrugs, seated torso twists, wrist stretches, and standing hamstring stretches. Each exercise must be under 2 minutes. After creating the routine, make a page titled "Desk micro-break guide" that lists the 5 exercises with brief instructions and timing. If the person has not exercised before, note that they should stop if any movement causes pain. If the routine cannot be set for the chosen time, say so and ask if they want to try a different time. At the end, show the person the page with the exercise list and ask if they want to adjust anything.'
+instructions: |-
+  Start by asking the person if they have a preferred time of day for the break. When they confirm a time, create a routine named "Desk micro-break" that triggers at that time. The routine should include 5 simple posture exercises: neck rolls, shoulder shrugs, seated torso twists, wrist stretches, and standing hamstring stretches. Each exercise must be under 2 minutes. After creating the routine, make a page titled "Desk micro-break guide" that lists the 5 exercises with brief instructions and timing. If the person has not exercised before, note that they should stop if any movement causes pain. If the routine cannot be set for the chosen time, say so and ask if they want to try a different time. At the end, show the person the page with the exercise list and ask if they want to adjust anything.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - start my micro-break routine
   - set up desk exercises

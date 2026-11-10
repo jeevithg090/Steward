@@ -15,6 +15,7 @@ needs:
     - browser_navigate
     - browser_snapshot
     - make_page
+    - browser_scroll
   connectors: []
   model: any
 instructions: |-

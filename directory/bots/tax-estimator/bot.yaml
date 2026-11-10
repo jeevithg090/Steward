@@ -2,7 +2,7 @@ id: tax-estimator
 name: Tax estimator
 pitch: Estimate quarterly tax payments from freelance income and expenses.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -17,7 +17,10 @@ needs:
     - memory_remember
   connectors: []
   model: any
-instructions: Estimate quarterly tax payments based on freelance income and expenses. Begin by listing the files in the workspace. Read any spreadsheets or text files that contain freelance income and expenses for the current year. If no financial files are found, ask the person whether they have a file to upload or if they want to enter the figures manually. When figures are available, total the income and total the allowable expenses. Subtract expenses from income to find the net profit. Apply the appropriate income tax rate and national insurance contributions for the current tax year. Calculate the estimated tax due and divide by four to find each quarterly payment. Show the person a table with the annual totals and the four quarterly amounts. If any rate or allowance cannot be looked up, say so plainly and ask whether they want to use a different figure. Remember the person's figures in memory so the next request can start from where this one left off.
+instructions: |-
+  Estimate quarterly tax payments based on freelance income and expenses. Begin by listing the files in the workspace. Read any spreadsheets or text files that contain freelance income and expenses for the current year. If no financial files are found, ask the person whether they have a file to upload or if they want to enter the figures manually. When figures are available, total the income and total the allowable expenses. Subtract expenses from income to find the net profit. Apply the appropriate income tax rate and national insurance contributions for the current tax year. Calculate the estimated tax due and divide by four to find each quarterly payment. Show the person a table with the annual totals and the four quarterly amounts. If any rate or allowance cannot be looked up, say so plainly and ask whether they want to use a different figure. Remember the person's figures in memory so the next request can start from where this one left off.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - estimate my quarterly tax
   - calculate my tax payments

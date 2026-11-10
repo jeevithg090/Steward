@@ -3,7 +3,7 @@
   "name": "Spice blend kit",
   "pitch": "Create a custom spice blend with recipes, ready for gifting or personal use.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -15,7 +15,8 @@
       "web_search",
       "make_page",
       "file_write",
-      "show_table"
+      "show_table",
+      "web_fetch"
     ],
     "connectors": [],
     "model": "any"
@@ -40,12 +41,12 @@
     {
       "name": "find-recipes",
       "description": "Search the web for spice blend recipes that match the person's choice. Read each page and note the spice amounts. If a page does not list amounts, skip it and search for another. Keep searching until three recipes with clear amounts are found or say what could not be checked.",
-      "body": "1. Use web_search with the person's chosen cuisine or spices. 2. Open the top results with browser_snapshot. 3. Look for a list of spices and their amounts. 4. If amounts are missing, close the page and search again. 5. Repeat until three recipes with amounts are saved or the search is exhausted. 6. If fewer than three are found, tell the person what could not be found and ask if they want to try a different cuisine."
+      "body": "1. Use web_search with the person's chosen cuisine or spices. 2. Open the top results with web_fetch. 3. Look for a list of spices and their amounts. 4. If amounts are missing, close the page and search again. 5. Repeat until three recipes with amounts are saved or the search is exhausted. 6. If fewer than three are found, tell the person what could not be found and ask if they want to try a different cuisine."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Spice blend kit\n\nCreate a custom spice blend with recipes for gifting or personal use.\n\nWhat it does: searches the web for recipes, lists ingredients and amounts, and makes a page the person can print or save.\n\nWhat it needs: web_search to find recipes, make_page to build the output, file_write to save it if asked.\n\nWhat it will not do: invent spice names, amounts, or cooking times. It cannot buy spices or ship a physical kit.",
-  "hash": "5965377527042be5ed233d1b5a53ea04662f7721a01ddf0c314474275f373e0c"
+  "hash": "70662f37a7dd7df4456157a53c3d1c7e88db2b322f4f2043959ca4124083923d"
 }

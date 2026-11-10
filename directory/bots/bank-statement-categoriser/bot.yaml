@@ -2,7 +2,7 @@ id: bank-statement-categoriser
 name: Bank statement categoriser
 pitch: Reads a bank statement file and sorts every transaction into spending categories with a summary table.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -30,6 +30,8 @@ instructions: |-
 
   If the file cannot be read or parsed, say so plainly and ask for a different format or a sample of the data.
   Do not store or remember any transaction data. Do not connect to any bank. Do not modify the original file.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - Categorise my bank statement file called statement.csv
   - Sort the spending in my uploaded Excel statement into categories

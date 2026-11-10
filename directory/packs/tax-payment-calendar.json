@@ -3,7 +3,7 @@
   "name": "Tax payment calendar",
   "pitch": "Show quarterly tax due dates and set reminders for payment amounts.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,7 @@
     ],
     "model": "any"
   },
-  "instructions": "Start by asking the person for the tax year and their estimated payment amounts for each quarter. When you have the dates and amounts, create four calendar events, one for each quarterly due date, using the calendar connector. After each event is created, add a task reminder with the payment amount. If any payment amount is unknown, say so and ask the person to provide it. When all four reminders are set, show a table with the four due dates and their amounts so the person can review them. If the calendar connector is not connected, say that you cannot access the calendar and ask the person to confirm the dates manually.",
+  "instructions": "Start by asking the person for the tax year and their estimated payment amounts for each quarter. When you have the dates and amounts, create four calendar events, one for each quarterly due date, using the calendar connector. After each event is created, add a task reminder with the payment amount. If any payment amount is unknown, say so and ask the person to provide it. When all four reminders are set, show a table with the four due dates and their amounts so the person can review them. If the calendar connector is not connected, say that you cannot access the calendar and ask the person to confirm the dates manually.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "set up tax calendar",
     "add quarterly payments",
@@ -52,5 +52,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Tax payment calendar\n\nCreates a quarterly estimated tax payment calendar with due dates and amount reminders. Needs the calendar connector to add events to your calendar. Will not add events or tasks without your confirmation of the dates and amounts.\n\n## What it does\n- Asks for the tax year and quarterly payment amounts\n- Creates four calendar events for the due dates\n- Adds task reminders with the payment amounts\n- Shows a table of dates and amounts for review\n\n## What it will not do\n- Will not create calendar events or tasks without your confirmation\n- Will not guess or invent payment amounts",
-  "hash": "d54fe13a3f027f405358da210a777bb67237def34aa7be584e9e227b4026dbe1"
+  "hash": "cb4629d5d0d97ebb6cfebb3f3374fbff581e6011709d2add275ed007bb0ff71c"
 }

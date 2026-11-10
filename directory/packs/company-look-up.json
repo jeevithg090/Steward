@@ -3,7 +3,7 @@
   "name": "Company look-up",
   "pitch": "Find a prospect's company website from their business card details.",
   "category": "sales-crm",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,9 +19,9 @@
   },
   "instructions": "Search for the company name on the web. Open the first result that looks like the official company site. Check the page title or header for the company name. If the page does not match, use the browser back button and open the next result. If no result matches after three tries, tell the person you could not find a matching website.",
   "starters": [
-    "\"Find the website for Acme Corp\"",
-    "\"What company is on this card?\"",
-    "\"Look up the prospect's company\""
+    "Find the website for Acme Corp",
+    "What company is on this card?",
+    "Look up the prospect's company"
   ],
   "examples": [
     {
@@ -38,5 +38,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Company look-up finds a prospect's company website from business card details. It uses a web search and checks the result matches the company name. It will not create accounts, fill forms, or pay for anything.",
-  "hash": "b155cf8925f52ed5be91aa9daf969518c33a426c614229f90e8d31778c5b2a40"
+  "hash": "29240ec700ea362aff8361eae5ab0d043e189d069054f0d4dd734f0b455f0db7"
 }

@@ -16,7 +16,8 @@
       "web_fetch",
       "browser_navigate",
       "browser_snapshot",
-      "make_page"
+      "make_page",
+      "browser_scroll"
     ],
     "connectors": [],
     "model": "any"
@@ -48,5 +49,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Privacy policy reviewer\nReview any app's privacy policy and list the data it collects.\n\nWhat it needs: web search and browser tools to find and read privacy policies online.\nWhat it will not do: It will not change any account settings, delete data, or sign up for services. It only reads publicly available policy text.",
-  "hash": "a11f1b54018a2c5f7624556ea1ea07140f3ed881876b9bc743b17181ce9e48d6"
+  "hash": "5d5b4129cfb14abfc3bd648ee3c3669e4014d4a2e9a86d146d64eb448a840cdd"
 }

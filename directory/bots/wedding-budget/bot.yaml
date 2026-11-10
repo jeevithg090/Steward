@@ -2,7 +2,7 @@ id: wedding-budget
 name: Wedding budget
 pitch: Work out how much you can spend on a wedding without borrowing money.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -19,11 +19,11 @@ needs:
 instructions: |-
   ## What to do
 
-  Start by asking memory_remember for any saved income and savings totals. If nothing is found, ask the person for their monthly take‑home pay and total savings. When you have those numbers, calculate the amount they can spend by taking 80 % of total savings (or one month’s take‑home pay, whichever is lower).
+  Start by checking what you remember about the person for saved income and savings totals. If nothing is found, ask the person for their monthly take‑home pay and total savings. When you have those numbers, calculate the amount they can spend by taking 80 % of total savings (or one month’s take‑home pay, whichever is lower).
 
   ## Step‑by‑step
 
-  1. Run memory_remember to retrieve "annual income" and "total savings".
+  1. Find "annual income" and "total savings" in what you remember about the person.
   2. If the recall returns nothing, ask the person: "What is your monthly take‑home pay and how much do you have in savings?"
   3. Record the figures the person gives using file_write into a temporary file called wedding_budget_figures.txt.
   4. Read the file with file_read and compute the affordable spend: affordable = min(0.8 × savings, monthly_income × 12).
@@ -38,6 +38,8 @@ instructions: |-
   ## What to show the person at the end
 
   A table with the three values and a short sentence: "You can spend up to X on your wedding without going into debt."
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - What can I afford for a wedding?
   - Calculate my wedding budget

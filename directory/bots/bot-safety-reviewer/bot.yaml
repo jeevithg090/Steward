@@ -2,7 +2,7 @@ id: bot-safety-reviewer
 name: Bot safety reviewer
 pitch: Reviews a bot pack and proposes guard-rail rules that keep the bot useful while limiting risky actions.
 category: bot-helpers
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -71,7 +71,6 @@ instructions: |-
   Show the generated page. Tell the person the updated JSON is saved in the workspace and displayed on the page.
 starters:
   - "Here is the path to my bot pack: workspace/my-bot.json"
-  - "Review this bot pack JSON for safety rules: { … }"
   - Suggest guard-rail rules for the bot pack I just shared
 examples:
   - ask: 'Review this bot pack JSON for safety rules: { "name": "Invoice chaser", "needs": { "tools": ["mail_send", "mail_read"], "connectors": ["mail"] }, "rules": [] }'

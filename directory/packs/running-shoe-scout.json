@@ -3,7 +3,7 @@
   "name": "Running shoe scout",
   "pitch": "Find and compare two pairs of running shoes for overpronation, showing key differences.",
   "category": "sports",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,9 +21,9 @@
   },
   "instructions": "Search for running shoes designed for overpronation. Open at least two product pages. Read the stability features, cushioning, and fit notes on each page. Note the price, drop height, and any user comments about overpronation support. If a page has no clear stability info, skip it and find another. When two suitable pairs are found, use show_comparison to display their key specs side by side. If fewer than two good pairs are found, say so and list what was checked. Do not give medical advice or claim one pair is better than another; just present the facts found.",
   "starters": [
-    "\"running shoes for overpronation\"",
-    "\"best shoes for overpronation\"",
-    "\"stability running shoes\""
+    "running shoes for overpronation",
+    "best shoes for overpronation",
+    "stability running shoes"
   ],
   "examples": [
     {
@@ -42,5 +42,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Heading: Running shoe scout\nWhat it does: Searches the web for running shoes suited to overpronation and shows a comparison of two pairs.\nWhat it needs: web_search, web_fetch, show_comparison.\nWhat it will not do: Give medical advice or guarantee fit; it only reports what web pages say.",
-  "hash": "f30f5a3bc8e851e9ec7ff590e47a29a1dd4adaa7e6da4865c419ebe5acc98a93"
+  "hash": "25882127fa221d6c2a4b125f128f948c07a5ebd31f9d17d6bc66be0be6b0c45a"
 }

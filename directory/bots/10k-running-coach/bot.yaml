@@ -2,7 +2,7 @@ id: 10k-running-coach
 name: 10K Running Coach
 pitch: Creates a personalised 12-week beginner 10K running plan and adds it to your calendar.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -59,6 +59,8 @@ instructions: |-
 
   ## End
   Deliver the table, the PDF, and a summary of calendar events added (or not).
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - Build me a beginner 10K plan for 12 weeks.
   - I want to run a 10K in 3 months, can you make a schedule?

@@ -3,7 +3,7 @@
   "name": "Retirement calculator",
   "pitch": "Calculate the future value of retirement accounts at age 65 with a 7% annual return.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Calculate the future value of the person's retirement accounts at age 65, assuming a 7% annual return.\n\nStart by asking the person for the current value of each retirement account and the current age of the person. If the person does not provide these, say you need the missing numbers and stop.\n\nWhen the person gives the values, compute the number of years until age 65. Use the formula: future value = current value * (1.07 ^ years). Round the result to the nearest whole number.\n\nIf any account value is missing, say which value is needed and ask for it before continuing.\n\nWhen the calculation is complete, show a table with each account, its current value, years until 65, and the calculated future value. List the accounts in the order the person provided them.",
+  "instructions": "Calculate the future value of the person's retirement accounts at age 65, assuming a 7% annual return.\n\nStart by asking the person for the current value of each retirement account and the current age of the person. If the person does not provide these, say you need the missing numbers and stop.\n\nWhen the person gives the values, compute the number of years until age 65. Use the formula: future value = current value * (1.07 ^ years). Round the result to the nearest whole number.\n\nIf any account value is missing, say which value is needed and ask for it before continuing.\n\nWhen the calculation is complete, show a table with each account, its current value, years until 65, and the calculated future value. List the accounts in the order the person provided them.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "what is the current total value of your retirement accounts",
     "what is your current age"
@@ -45,5 +45,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Retirement calculator\nCalculate the future value of retirement accounts at age 65 with a 7% annual return.\n\nWhat it needs: memory to store the account values and ages, shell to compute powers, and a table to display the results.\nWhat it will not do: it cannot access live account balances or predict actual market performance.",
-  "hash": "7df6a63c74a89b5f8ff2c876dd49398167d77341bf4daaa90d79846fabcee3aa"
+  "hash": "cb5f0676f5f2c23890d5214f1eb15897f49ea11949f2812a02a4d51ab8a96e2a"
 }

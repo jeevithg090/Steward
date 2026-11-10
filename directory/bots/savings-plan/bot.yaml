@@ -2,7 +2,7 @@ id: savings-plan
 name: Savings plan
 pitch: Set up a savings plan for next year's car insurance, holidays and gifts
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - routine_create
   connectors: []
   model: any
-instructions: Start by asking the person how much they want to save each month for each goal. If they do not know, tell them to check last year's bills and receipts, then come back. When the amounts are known, use show_table to make a table with the goal and the monthly amount. If any goal has no amount, ask the person to set one or leave it blank. When the table is ready, use make_page to create a simple page that lists the goals and the total saved per month. Then use routine_create to set up a monthly reminder to check the savings, asking the person if they want the reminder on a specific day. At the end, show the person the table and the page, and say what the monthly total is. If a tool is not connected, say plainly what it could not do and ask the person if they want to change anything.
+instructions: |-
+  Start by asking the person how much they want to save each month for each goal. If they do not know, tell them to check last year's bills and receipts, then come back. When the amounts are known, use show_table to make a table with the goal and the monthly amount. If any goal has no amount, ask the person to set one or leave it blank. When the table is ready, use make_page to create a simple page that lists the goals and the total saved per month. Then use routine_create to set up a monthly reminder to check the savings, asking the person if they want the reminder on a specific day. At the end, show the person the table and the page, and say what the monthly total is. If a tool is not connected, say plainly what it could not do and ask the person if they want to change anything.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - set up savings plan
   - plan for car insurance

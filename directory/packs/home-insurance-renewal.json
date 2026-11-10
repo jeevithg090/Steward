@@ -3,7 +3,7 @@
   "name": "Home insurance renewal",
   "pitch": "Compare building and contents quotes at policy renewal to find a cheaper deal.",
   "category": "home",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -23,9 +23,9 @@
   },
   "instructions": "Start by asking the person which insurer they currently use and when their policy renews. If they do not know, tell them to check their renewal notice. When the dates are clear, search the web for \"buildings and contents home insurance renewal quotes\" and list the first five results. Open each result in a new tab, read the quote details, and copy the price, excess and key cover limits into a comparison table. When no useful quotes appear, say so and offer to search again with a different phrase. When all tabs are read, show the comparison table to the person and ask if they want to switch or keep the current policy. If the person wants to switch, ask them to confirm before any changes are made. Save the final table as a text file in the workspace for their records.",
   "starters": [
-    "\"compare my home insurance quotes\"",
-    "\"what's a good deal for buildings and contents\"",
-    "\"renew my home insurance\""
+    "compare my home insurance quotes",
+    "what's a good deal for buildings and contents",
+    "renew my home insurance"
   ],
   "examples": [
     {
@@ -44,5 +44,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Home insurance renewal\nCompare building and contents quotes at policy renewal to find a cheaper deal.\n\nWhat it does: searches the web for renewal quotes, reads the cover details and presents a comparison table.\nWhat it needs: web search and browser tools. It does not contact insurers or switch policies without the person's say-so.\nWhat it will not do: it will not book a policy, take payment or sign any documents.",
-  "hash": "8ab8d791665e3768eec6971250150a4a1e7daef12f00dbb379f101ca0df4431d"
+  "hash": "8d8784b962223c6215e42e2859e257cbc972c967d2b89bbb67057bd79a3ae99b"
 }

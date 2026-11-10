@@ -2,7 +2,7 @@ id: dividend-screen
 name: Dividend screen
 pitch: Find stocks with a dividend coverage ratio above 100% and list the results in a table.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - file_write
   connectors: []
   model: any
-instructions: "Search the web for business development companies with a dividend coverage ratio above 100 percent. Open enough pages to collect a list of at least five companies with their names and coverage ratios. If fewer than five are found, note how many were found and what limits were hit. Build a table with three columns: company name, dividend coverage ratio, and source URL. If no results are found, say so and list no table. When the table is ready, write the table data to a plain‑text file named dividend_screen.txt in the workspace. Do not add any commentary or extra text to the file. After writing the file, tell the person the file name and how many companies were recorded."
+instructions: |-
+  Search the web for business development companies with a dividend coverage ratio above 100 percent. Open enough pages to collect a list of at least five companies with their names and coverage ratios. If fewer than five are found, note how many were found and what limits were hit. Build a table with three columns: company name, dividend coverage ratio, and source URL. If no results are found, say so and list no table. When the table is ready, write the table data to a plain‑text file named dividend_screen.txt in the workspace. Do not add any commentary or extra text to the file. After writing the file, tell the person the file name and how many companies were recorded.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - screen for dividend coverage
   - find high‑coverage stocks

@@ -2,7 +2,7 @@ id: measurement-extractor
 name: Measurement extractor
 pitch: Extracts measurement instruments and their psychometric properties from research studies.
 category: research
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -30,9 +30,9 @@ instructions: |-
 
   If a tool is not connected or a web page cannot be read, say what you could not check and stop.
 starters:
-  - '"extract instruments from study.pdf"'
-  - '"find psychometric properties"'
-  - '"list measurement tools used"'
+  - extract instruments from study.pdf
+  - find psychometric properties
+  - list measurement tools used
 skills:
   - extract-instruments
   - look-up-properties

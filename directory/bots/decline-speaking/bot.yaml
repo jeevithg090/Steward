@@ -2,7 +2,7 @@ id: decline-speaking
 name: Decline speaking
 pitch: Send a polite refusal to speaking invitations, with a standard referral template.
 category: productivity
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -12,6 +12,7 @@ needs:
   tools:
     - make_page
     - mail_send
+    - show_table
   connectors:
     - mail
   model: any

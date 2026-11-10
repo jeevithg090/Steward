@@ -3,7 +3,7 @@
   "name": "Hearing aid compare",
   "pitch": "Find and compare hearing aid features and prices for mild high-frequency hearing loss.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for hearing aids suitable for mild high-frequency hearing loss. Look for listings that mention both feature sets and price ranges. When you have several options, use show_comparison to arrange them side by side, highlighting key features like amplification range, battery life, and price. If the search returns no results or only one option, say so and ask the person if they want to broaden the search or try a different term. After comparing, make_page a short summary page that lists the top three choices with their main features and prices. Show that page to the person so they can decide which to look into further.",
+  "instructions": "Start by searching the web for hearing aids suitable for mild high-frequency hearing loss. Look for listings that mention both feature sets and price ranges. When you have several options, use show_comparison to arrange them side by side, highlighting key features like amplification range, battery life, and price. If the search returns no results or only one option, say so and ask the person if they want to broaden the search or try a different term. After comparing, make_page a short summary page that lists the top three choices with their main features and prices. Show that page to the person so they can decide which to look into further.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "compare hearing aids for mild high-frequency loss",
     "find hearing aids under £500 with telecoil",
@@ -40,5 +40,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# hearing aid compare\nFinds and compares hearing aid features and prices for mild high-frequency hearing loss.\nUses web search to locate options, show_comparison to arrange them side by side, and make_page to present a summary.\nWill not make a purchase, book an appointment, or give medical advice.",
-  "hash": "beda1e9bc0d33113e069dcbaba99b6836a86c0624bd530ad2fdd2bee2316fc85"
+  "hash": "a5a45bed6ef97e91350efefad3701515ee13d66ae48c5278199cccebd56649a8"
 }

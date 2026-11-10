@@ -3,7 +3,7 @@
   "name": "Fasting window meal planner",
   "pitch": "Plan weekly meals that fit a two-meal eating window for intermittent fasting.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -15,7 +15,9 @@
       "web_search",
       "make_page",
       "file_write",
-      "calendar_create"
+      "calendar_create",
+      "browser_navigate",
+      "browser_snapshot"
     ],
     "connectors": [
       "calendar"
@@ -50,5 +52,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Fasting window meal planner\nPlan weekly meals that fit a two-meal eating window for intermittent fasting.\n\nWhat it does: Searches for recipes that fit a two-meal window, writes a plan for each day, and offers to add eating windows to the person's calendar.\n\nWhat it needs: web_search to find recipes, make_page to write the plan, file_write to save it, and calendar_create to add eating-window events.\n\nWhat it will not do: It will not give nutrition advice, promise weight loss, or invent recipes. If it cannot find a recipe, it will tell the person and ask how to proceed.",
-  "hash": "86434e21ddba7a09bd9b65235531ade527cf2046a23b476eb071842b3eaf44e3"
+  "hash": "c84e67640eb6c12247351917105df7031280bba4dbba1010f5b2f3e0a724fd8c"
 }

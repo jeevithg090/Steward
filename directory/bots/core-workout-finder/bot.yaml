@@ -2,7 +2,7 @@ id: core-workout-finder
 name: Core workout finder
 pitch: Find short, free core-strength videos under twenty minutes each.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - make_page
   connectors: []
   model: any
-instructions: Search for free core-strength workout videos under 20 minutes. Open each result and check the video length and that it is free. Skip any video that requires a sign-in or payment. Record the title, URL, and length of each video that meets the criteria. When no more videos are found, present the list to the person. If no videos match, say so and offer to search for longer workouts or a different muscle group.
+instructions: |-
+  Search for free core-strength workout videos under 20 minutes. Open each result and check the video length and that it is free. Skip any video that requires a sign-in or payment. Record the title, URL, and length of each video that meets the criteria. When no more videos are found, present the list to the person. If no videos match, say so and offer to search for longer workouts or a different muscle group.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - find free core workouts under 20 minutes
   - short core strength videos

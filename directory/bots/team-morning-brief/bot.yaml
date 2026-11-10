@@ -2,7 +2,7 @@ id: team-morning-brief
 name: Team Morning Brief
 pitch: Every morning, fetch your team's latest result and next fixture so you start the day informed.
 category: sports
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -13,6 +13,7 @@ needs:
     - web_search
     - web_fetch
     - routine_create
+    - memory_remember
   connectors: []
   model: any
 instructions: |-

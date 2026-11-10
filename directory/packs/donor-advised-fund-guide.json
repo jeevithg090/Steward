@@ -3,7 +3,7 @@
   "name": "Donor-advised fund guide",
   "pitch": "Explain how a donor-advised fund works for appreciated securities and model the tax benefit.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "web_search",
       "make_page",
-      "show_table"
+      "show_table",
+      "web_fetch"
     ],
     "connectors": [],
     "model": "any"
@@ -39,12 +40,12 @@
     {
       "name": "research-and-summarise",
       "description": "Find and summarise how a donor-advised fund works for appreciated securities.",
-      "body": "1. Use web_search with the query 'donor-advised fund appreciated securities tax benefit'. 2. Read the top results with browser_snapshot. 3. Write 3 to 5 plain sentences explaining the process: donation of securities, avoidance of capital gains, and income tax deduction. 4. If the search returns no useful result, say 'I could not find a clear explanation of how a donor-advised fund works for appreciated securities.' and stop."
+      "body": "1. Use web_search with the query 'donor-advised fund appreciated securities tax benefit'. 2. Read the top results with web_fetch. 3. Write 3 to 5 plain sentences explaining the process: donation of securities, avoidance of capital gains, and income tax deduction. 4. If the search returns no useful result, say 'I could not find a clear explanation of how a donor-advised fund works for appreciated securities.' and stop."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Donor-advised fund guide\n\nSummarises how a donor-advised fund works for appreciated securities and models the tax benefit with a simple table. \n\n**What it needs**: web_search, make_page, show_table.\n\n**What it will not do**: It will not give personal tax advice or look up real people's data.",
-  "hash": "853938a346b33a1b6d6fafed2a1e2f9697a529e19b6bc3262ca745386688bb7f"
+  "hash": "29dbdbb2442dc94fd082d1a6cc8f32087fb6f3065f46fdc3cf16a46b1ff3a750"
 }
