@@ -1,5 +1,6 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AccessibilityControls } from "@/components/settings/AccessibilityControls.tsx";
 import {
   ACCESSIBILITY_STORAGE_KEY,
   type AccessibilityContextValue,
@@ -205,6 +206,24 @@ describe("AccessibilityProvider", () => {
     );
     act(() => current!.reset());
     expect(save).not.toHaveBeenCalled();
+  });
+
+  it("turns the single-key shortcuts off from Settings, and remembers it here", () => {
+    render(
+      <AccessibilityProvider savePlainLanguage={async () => {}}>
+        <AccessibilityControls />
+        <Probe />
+      </AccessibilityProvider>,
+    );
+    expect(current?.shortcuts).toBe(true);
+    const toggle = screen.getByRole("switch", { name: "Keyboard shortcuts" });
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(toggle);
+    expect(current?.shortcuts).toBe(false);
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(JSON.parse(localStorage.getItem(ACCESSIBILITY_STORAGE_KEY) ?? "{}")).toMatchObject({
+      shortcuts: false,
+    });
   });
 
   it("refuses to work outside the provider", () => {

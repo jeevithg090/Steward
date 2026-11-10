@@ -41,6 +41,11 @@ export interface AccessibilitySettings {
   readAloud: boolean;
   /** Ask Steward for short sentences and everyday words. */
   plainLanguage: boolean;
+  /**
+   * Single-key shortcuts (`g` then a letter, `?`). They can be turned off (WCAG 2.1.4), because
+   * voice control and switch access type letters that would set them off.
+   */
+  shortcuts: boolean;
 }
 
 export interface AccessibilityContextValue extends AccessibilitySettings {
@@ -56,6 +61,7 @@ export interface AccessibilityContextValue extends AccessibilitySettings {
   setFont: (value: FontPreference) => void;
   setReadAloud: (value: boolean) => void;
   setPlainLanguage: (value: boolean) => void;
+  setShortcuts: (value: boolean) => void;
   reset: () => void;
 }
 
@@ -79,6 +85,7 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   font: "default",
   readAloud: false,
   plainLanguage: false,
+  shortcuts: true,
 };
 
 /** Reads stored settings, keeping only values that make sense. Plain language is never read from here. */
@@ -100,6 +107,7 @@ export function readStoredAccessibility(): Partial<LocalSettings> {
     out.theme = parsed.theme;
   if (parsed.font === "default" || parsed.font === "readable") out.font = parsed.font;
   if (typeof parsed.readAloud === "boolean") out.readAloud = parsed.readAloud;
+  if (typeof parsed.shortcuts === "boolean") out.shortcuts = parsed.shortcuts;
   return out;
 }
 
@@ -244,6 +252,7 @@ export function AccessibilityProvider({
       setFont: (font) => set({ font }),
       setReadAloud: (readAloud) => set({ readAloud }),
       setPlainLanguage: (plainLanguage) => set({ plainLanguage }),
+      setShortcuts: (shortcuts) => set({ shortcuts }),
       reset: () => set({ ...DEFAULT_ACCESSIBILITY }),
     }),
     [settings, plainLanguage, resolvedTheme, systemLessMotion, set],

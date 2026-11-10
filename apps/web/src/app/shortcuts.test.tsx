@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { WELCOME_STORAGE_KEY } from "@/lib/onboarding.ts";
 import { mockFetch, renderWithProviders } from "@/lib/testing.tsx";
 import { TodayPage } from "@/pages/TodayPage.tsx";
+import { ACCESSIBILITY_STORAGE_KEY, AccessibilityProvider } from "./accessibility.tsx";
 import { ShortcutsDialog, useShortcuts } from "./shortcuts.tsx";
 
 afterEach(() => {
@@ -17,7 +18,7 @@ function Where() {
   return <p data-testid="where">{useLocation().pathname}</p>;
 }
 
-function Harness() {
+function Shell() {
   const [help, setHelp] = useState(false);
   useShortcuts({ onHelp: () => setHelp(true) });
   return (
@@ -29,6 +30,14 @@ function Harness() {
       <Where />
       <ShortcutsDialog open={help} onOpenChange={setHelp} />
     </>
+  );
+}
+
+function Harness() {
+  return (
+    <AccessibilityProvider savePlainLanguage={async () => {}}>
+      <Shell />
+    </AccessibilityProvider>
   );
 }
 
@@ -68,6 +77,42 @@ describe("keyboard shortcuts", () => {
     press("g", window, { ctrlKey: true });
     press("k");
     expect(screen.getByTestId("where").textContent).toBe("/");
+  });
+
+  it("can be turned off, for voice control and switch access", () => {
+    localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify({ shortcuts: false }));
+    render(
+      <MemoryRouter>
+        <Harness />
+      </MemoryRouter>,
+    );
+    press("g");
+    press("k");
+    expect(screen.getByTestId("where").textContent).toBe("/");
+    press("?");
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("the list says where to turn them off, and that they are off", () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <AccessibilityProvider savePlainLanguage={async () => {}}>
+          <ShortcutsDialog open onOpenChange={() => {}} />
+        </AccessibilityProvider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText(/turn them off in Settings, under Accessibility/)).toBeTruthy();
+    unmount();
+    localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify({ shortcuts: false }));
+    render(
+      <MemoryRouter>
+        <AccessibilityProvider savePlainLanguage={async () => {}}>
+          <ShortcutsDialog open onOpenChange={() => {}} />
+        </AccessibilityProvider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("dialog", { description: /Shortcuts are off on this device/ })).toBeTruthy();
+    expect(screen.getByText("Go to Bots")).toBeTruthy();
   });
 
   it("? opens the list of shortcuts", () => {

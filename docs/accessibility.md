@@ -30,12 +30,15 @@ as feature requests.
 - Everything can be reached and used with the keyboard, in a sensible order.
 - **Focus is always visible:** a solid outline in the accent colour, thicker in high contrast.
 - **Shortcuts,** in the style of Gmail and GitHub: press `g`, let go, then a letter. They never fire
-  while you are typing, and never use keys a screen reader or the browser needs.
+  while you are typing, and never use keys a screen reader or the browser needs. Voice control and
+  switch access type letters too, so Settings → Accessibility → **Keyboard shortcuts** turns them
+  all off on that device, `?` included (WCAG 2.1.4).
 
 | Keys    | Goes to               |
 | ------- | --------------------- |
 | `g` `t` | Today                 |
 | `g` `c` | Chat                  |
+| `g` `b` | Bots                  |
 | `g` `k` | Tasks                 |
 | `g` `o` | Computer              |
 | `g` `u` | Routines              |

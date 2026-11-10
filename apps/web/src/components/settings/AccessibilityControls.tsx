@@ -98,6 +98,12 @@ export function AccessibilityControls({
             label="Plain language"
             description="Steward answers in short sentences and everyday words, on every device."
           />
+          <Switch
+            checked={a11y.shortcuts}
+            onCheckedChange={a11y.setShortcuts}
+            label="Keyboard shortcuts"
+            description="Single keys, like g then t, move between pages. Turn them off if you use voice control."
+          />
         </>
       )}
       {showReset ? (
