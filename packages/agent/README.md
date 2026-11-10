@@ -88,8 +88,12 @@ browser / routine ──RunAgentInput──► runtime ──clone()──► St
 - **History.** Dangling tool calls (an interrupted turn, an approval nobody answered before the
   person wrote again) are dropped before every model call, so one never breaks the conversation.
 - **Stop.** `StewardAgent.abortRun()` also aborts the tool that is running, not only the model stream.
-- **Never throws.** Model errors become one `RUN_ERROR` in plain words; gateway errors become a
-  refusal (fail closed); anything else becomes `RUN_ERROR` with code `STEWARD_AGENT_ERROR`.
+- **Never throws.** A model error becomes one `RUN_ERROR` with code `STEWARD_MODEL_ERROR`, in plain
+  words read from the HTTP status first and then the provider's own words (OpenRouter's upstream
+  detail included). It carries the tokens the run used before it failed (`usage`), and says so when
+  the run had already changed something, so a retry does not do it twice. Gateway errors become a
+  refusal (fail closed). Anything else becomes `RUN_ERROR` with code `STEWARD_AGENT_ERROR` and a
+  plain sentence; the detail goes to `onError`, never into the conversation.
 
 ## Tool results
 

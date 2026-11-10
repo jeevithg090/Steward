@@ -6,12 +6,15 @@ import type { LanguageModel } from "ai";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createStewardAgent, StewardAgent } from "../src/agent.ts";
 import {
+  AGENT_PROBLEM,
   CANCELLED_BY_PERSON,
+  CONVERSATION_TOO_LONG,
   GATE_UNAVAILABLE,
   INITIATOR_UNKNOWN,
   KEPT_GETTING_IT_WRONG,
   NO_LONGER_GRANTED,
   normaliseUsage,
+  PARTLY_DONE,
   STATE_TOOL_UNAVAILABLE,
   STOPPED,
   TOO_MANY_STEPS,
@@ -819,6 +822,76 @@ describe("history and errors", () => {
     expect(errors).toHaveLength(1);
     expect(errors[0]?.message).toBe("The model could not answer: model is down");
     expect(turn.types).not.toContain("RUN_FINISHED");
+  });
+
+  it("ends a run that fails after a step with that step's tokens, and says work was done", async () => {
+    script((req) =>
+      lastIsTool(req)
+        ? {
+            error: {
+              message: "This model's maximum context length is 128000 tokens",
+              type: "invalid_request_error",
+            },
+            status: 400,
+          }
+        : {
+            ...toolCall("file_write", { path: "notes.md", content: "Plan" }),
+            usage: { prompt_tokens: 10, completion_tokens: 5 },
+          },
+    );
+    const turn = await runTurn(agent(), [user("save a note")]);
+    const errors = turn.events.filter((e) => e.type === "RUN_ERROR") as unknown as {
+      message: string;
+      code: string;
+      usage?: unknown;
+    }[];
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatchObject({
+      code: "STEWARD_MODEL_ERROR",
+      message: `${CONVERSATION_TOO_LONG} ${PARTLY_DONE}`,
+      usage: [{ provider: "test", model: "test-model", inputTokens: 10, outputTokens: 5, totalTokens: 15 }],
+    });
+    expect(fakes.computers.computer("steward").files.get("notes.md")).toBe("Plan");
+  });
+
+  it("reads the status before the words, and adds nothing when only reads ran", async () => {
+    script((req) =>
+      lastIsTool(req)
+        ? { error: { message: "Provider returned error", type: "authentication_error" }, status: 401 }
+        : toolCall("file_list", {}),
+    );
+    const turn = await runTurn(agent(), [user("list")]);
+    const errors = turn.events.filter((e) => e.type === "RUN_ERROR") as unknown as { message: string }[];
+    expect(errors.map((e) => e.message)).toEqual([
+      "The model provider did not accept the key. Check it in Settings, then try again.",
+    ]);
+  });
+
+  it("says a problem of Steward's own in plain words and keeps the detail for the log", async () => {
+    const reported: string[] = [];
+    const delegation = {
+      maxDepth: 1,
+      targets: () => [],
+      start: () => Promise.reject(new Error("unused")),
+      ownerOf: () => "sub_1",
+      resume: () => Promise.reject(new Error("unused")),
+      parentCallOf: () => {
+        throw new Error("SQLITE_IOERR at /Users/someone/.steward-data/steward.db");
+      },
+    };
+    const turn = await runTurn(
+      agent({ delegation, onError: (error) => void reported.push(String(error)) }),
+      [user("carry on")],
+      { resume: [{ interruptId: "int_child", status: "resolved" }] },
+    );
+    const errors = turn.events.filter((e) => e.type === "RUN_ERROR") as unknown as {
+      message: string;
+      code: string;
+    }[];
+    expect(errors).toEqual([
+      expect.objectContaining({ code: "STEWARD_AGENT_ERROR", message: AGENT_PROBLEM }),
+    ]);
+    expect(reported.join("\n")).toContain("SQLITE_IOERR");
   });
 
   it("tells the model about malformed arguments without asking the person or the gateway", async () => {

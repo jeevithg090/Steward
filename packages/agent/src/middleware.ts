@@ -11,6 +11,7 @@ import {
   Middleware,
   type ResumeEntry,
   type RunAgentInput,
+  type RunErrorEvent,
   type RunFinishedEvent,
   type TokenUsage,
   type ToolCall,
@@ -135,6 +136,15 @@ interface Io {
   emit: Emit;
   signal: AbortSignal;
   track: (sub: Subscription) => void;
+  tally: Tally;
+}
+
+/** What one run has used and done so far, for however it ends. */
+interface Tally {
+  /** Every model call's token usage, so the run ends with the whole run's count (per provider and model). */
+  usage: TokenUsage[];
+  /** Whether a call that changes something has run, so an error can say a retry would repeat it. */
+  acted: boolean;
 }
 
 interface RunScope {
@@ -223,39 +233,133 @@ function errorMessage(error: unknown): string {
 /** Anything shaped like a key or token: provider prefixes, and long unbroken runs of key characters. */
 const KEY_SHAPED = /\b(?:sk|rk|pk|nvapi|gsk|xai|hf|AIza)[-_][\w\-.*]{6,}|\b[\w-]{32,}\b/g;
 
+const MODEL_KEY = "The model provider did not accept the key. Check it in Settings, then try again.";
+const MODEL_CREDIT =
+  "The model provider says the account is out of credit. Check your account with them, then try again.";
+const MODEL_BUSY = "The model provider is busy right now. Wait a moment, then try again.";
+const MODEL_UNKNOWN = "The model provider does not know that model. Check the model name in Settings.";
+const MODEL_UNREACHABLE =
+  "Steward could not reach the model. Check that it is running and that its address is right.";
+const MODEL_STOPPED_ANSWERING = "The model stopped answering before it finished. Try again in a moment.";
+const MODEL_TROUBLE = "The model provider is having trouble right now. Try again in a moment.";
+const MODEL_REPLY_LIMIT =
+  "The model will not write replies as long as Steward asks for. Lower STEWARD_MODEL_MAX_TOKENS, then restart Steward.";
+
+/** What the person reads when the conversation no longer fits in the model's window. */
+export const CONVERSATION_TOO_LONG =
+  "This conversation has grown too long for the model. Start a new conversation; what Steward remembers carries over.";
+
+/** Added to a model error when the run had already done something, so a retry does not do it twice. */
+export const PARTLY_DONE =
+  "Steward had already done part of this, shown above. Ask it to carry on rather than starting again.";
+
+/** What the person reads when Steward itself failed. The detail goes to the error log, not the chat. */
+export const AGENT_PROBLEM = "Steward hit a problem of its own and stopped. The record shows what it did.";
+
+const TOO_LONG_TEXT =
+  /maximum context length|context[ _-]?(length|window|size)|prompt is too long|input is too long|exceeds the maximum number of tokens|too many (input |prompt )?tokens|request too large|reduce the length/i;
+
 /**
- * What the person reads when the model fails, in plain words. The provider's own words are kept for
- * the cases the patterns do not cover, with anything shaped like a key hidden: some providers echo
- * part of the key back, and this message is kept in the conversation.
+ * What the person reads when the model fails, in plain words. The HTTP status decides first when
+ * there is one; then the words. The provider's own words are kept for the cases the patterns do not
+ * cover, with anything shaped like a key hidden: some providers echo part of the key back, and this
+ * message is kept in the conversation.
  */
-export function modelErrorMessage(raw: string): string {
+export function modelErrorMessage(raw: string, status?: number): string {
   const text = raw.trim();
+  // Asking for longer replies than the model writes reads like a key error ("Invalid 'max_tokens'").
+  if (/\bmax_(completion_|output_)?tokens\b/i.test(text) && !TOO_LONG_TEXT.test(text)) {
+    return MODEL_REPLY_LIMIT;
+  }
+  // A 403 can be a key, a region or a moderation refusal, so the words decide that one.
+  switch (status) {
+    case 401:
+      return MODEL_KEY;
+    case 402:
+      return MODEL_CREDIT;
+    case 404:
+      return MODEL_UNKNOWN;
+    case 408:
+    case 504:
+      return MODEL_STOPPED_ANSWERING;
+    case 413:
+      return CONVERSATION_TOO_LONG;
+    case 429:
+      return /insufficient|quota|billing|credit/i.test(text) ? MODEL_CREDIT : MODEL_BUSY;
+  }
+  if (TOO_LONG_TEXT.test(text)) return CONVERSATION_TOO_LONG;
   if (
-    /\b401\b|unauthori[sz]ed|invalid.{0,20}(api[ _-]?key|token)|incorrect api key|no auth|authentication/i.test(
+    /\b401\b|unauthori[sz]ed|invalid.{0,20}(api[ _-]?key|auth|bearer)|incorrect api key|no auth|authenticat/i.test(
       text,
     )
   ) {
-    return "The model provider did not accept the key. Check it in Settings, then try again.";
+    return MODEL_KEY;
   }
-  if (/\b402\b|insufficient (credit|funds|balance)|out of credits?|quota|billing/i.test(text)) {
-    return "The model provider says the account is out of credit. Check your account with them, then try again.";
+  if (/\b402\b|insufficient (credit|funds|balance|quota)|out of credits?|quota|billing/i.test(text)) {
+    return MODEL_CREDIT;
   }
-  if (/\b429\b|rate.?limit|too many requests/i.test(text)) {
-    return "The model provider is busy right now. Wait a moment, then try again.";
-  }
+  if (/\b429\b|rate.?limit|too many requests/i.test(text)) return MODEL_BUSY;
   if (
     /model.{0,80}(not found|does not exist|is not a valid|unknown)|no such model|\bunknown model\b/i.test(
       text,
     )
   ) {
-    return "The model provider does not know that model. Check the model name in Settings.";
+    return MODEL_UNKNOWN;
   }
   if (/ECONNREFUSED|ENOTFOUND|EAI_AGAIN|fetch failed|cannot connect|connect timeout/i.test(text)) {
-    return "Steward could not reach the model. Check that it is running and that its address is right.";
+    return MODEL_UNREACHABLE;
   }
+  if (/\bterminated\b|timed? ?out|timeout|ETIMEDOUT|ECONNRESET|socket hang up/i.test(text)) {
+    return MODEL_STOPPED_ANSWERING;
+  }
+  if (status !== undefined && status >= 500) return MODEL_TROUBLE;
   const safe = text.replace(KEY_SHAPED, "[hidden]").slice(0, 300);
   return safe ? `The model could not answer: ${safe}` : "The model could not answer.";
 }
+
+/** The provider's own words inside an error body: OpenRouter keeps the upstream error in `metadata.raw`. */
+function providerDetail(body: unknown): string | undefined {
+  let parsed: unknown = body;
+  if (typeof body === "string") {
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      return undefined;
+    }
+  }
+  const error = isRecord(parsed) && isRecord(parsed.error) ? parsed.error : undefined;
+  const raw = error && isRecord(error.metadata) ? error.metadata.raw : undefined;
+  if (raw === undefined || raw === null) return undefined;
+  if (typeof raw !== "string") return JSON.stringify(raw);
+  try {
+    const inner: unknown = JSON.parse(raw);
+    const message = isRecord(inner)
+      ? isRecord(inner.error) && typeof inner.error.message === "string"
+        ? inner.error.message
+        : inner.message
+      : undefined;
+    return typeof message === "string" ? message : raw;
+  } catch {
+    return raw;
+  }
+}
+
+/**
+ * What a failed model call says about itself: its HTTP status, and its words with the provider's
+ * own detail added. The AI SDK gives up after its retries with the last error inside.
+ */
+export function describeModelFailure(error: unknown): { status?: number; text: string } {
+  let e: unknown = error;
+  for (let depth = 0; depth < 3 && isRecord(e) && e.lastError !== undefined; depth++) e = e.lastError;
+  const status = isRecord(e) && typeof e.statusCode === "number" ? e.statusCode : undefined;
+  const message = e === undefined ? "" : errorMessage(e);
+  const detail = isRecord(e) ? (providerDetail(e.responseBody) ?? providerDetail(e.data)) : undefined;
+  const text = detail && !message.includes(detail) ? `${message}: ${detail}` : message;
+  return { ...(status !== undefined ? { status } : {}), text };
+}
+
+/** Thrown with words meant for the person: the run's error says exactly this. */
+class StopWithMessage extends Error {}
 
 function sameToken(given: string, expected: string): boolean {
   if (!expected) return false;
@@ -297,16 +401,22 @@ export class GovernedToolsMiddleware extends Middleware {
         if (event.type === EventType.RUN_FINISHED || event.type === EventType.RUN_ERROR) ended = true;
         out.next(event);
       };
-      const io: Io = { emit, signal: controller.signal, track: (sub) => (inner = sub) };
+      const tally: Tally = { usage: [], acted: false };
+      const io: Io = { emit, signal: controller.signal, track: (sub) => (inner = sub), tally };
 
       this.work(input, next, io)
         .catch((error: unknown) => {
           this.report(error, "run");
-          emit({
-            type: EventType.RUN_ERROR,
-            code: "STEWARD_AGENT_ERROR",
-            message: errorMessage(error),
-          } as BaseEvent);
+          emit(
+            withUsage(
+              {
+                type: EventType.RUN_ERROR,
+                code: "STEWARD_AGENT_ERROR",
+                message: error instanceof StopWithMessage ? error.message : AGENT_PROBLEM,
+              } as RunErrorEvent,
+              tally.usage,
+            ),
+          );
         })
         .finally(() => {
           if (!ended) emit(this.finished(input));
@@ -325,8 +435,7 @@ export class GovernedToolsMiddleware extends Middleware {
     const { emit, signal } = io;
     emit({ type: EventType.RUN_STARTED, threadId: input.threadId, runId: input.runId } as BaseEvent);
 
-    // Every model call's token usage, so the run ends with the whole run's count (per provider and model).
-    const usage: TokenUsage[] = [];
+    const { usage } = io.tally;
     const finish = (event: RunFinishedEvent) => emit(withUsage(event, usage));
 
     let messages: Message[] = [...input.messages];
@@ -446,7 +555,7 @@ export class GovernedToolsMiddleware extends Middleware {
       const seg = await this.runSegment(request, next, io);
       messages = this.releaseInside(seg, mergeHistory(messages, request.messages, seg.messages), emit);
       if (seg.failure) {
-        emit(this.modelError(seg));
+        emit(withUsage(this.modelError(seg, io.tally.acted), usage));
         return;
       }
       if (seg.terminal?.usage) usage.push(...seg.terminal.usage);
@@ -641,16 +750,22 @@ export class GovernedToolsMiddleware extends Middleware {
     return content;
   }
 
-  /** The run's error, from a failed model call, in plain words. */
-  private modelError(seg: Segment): BaseEvent {
-    const { error, message } = seg.failure ?? {};
+  /**
+   * The run's one error, from a failed model call, in plain words. The status and the provider's
+   * detail come from what was thrown; the model run's own words for it can say more (a stream error
+   * that was not an Error), so the longer of the two is read.
+   */
+  private modelError(seg: Segment, acted: boolean): RunErrorEvent {
+    const { error, message = "" } = seg.failure ?? {};
     if (error !== undefined) this.report(error, "model");
-    const text = message || (error !== undefined ? errorMessage(error) : "");
+    const thrown = error !== undefined ? describeModelFailure(error) : { text: "" };
+    const text = message.length > thrown.text.length ? message : thrown.text;
+    const plain = modelErrorMessage(text, thrown.status);
     return {
       type: EventType.RUN_ERROR,
       code: "STEWARD_MODEL_ERROR",
-      message: modelErrorMessage(text),
-    } as BaseEvent;
+      message: acted ? `${plain} ${PARTLY_DONE}` : plain,
+    } as RunErrorEvent;
   }
 
   /** Builds the call as the gateway sees it, lets the gateway decide and act, and returns what the model reads. */
@@ -737,6 +852,9 @@ export class GovernedToolsMiddleware extends Middleware {
       };
     }
 
+    if (outcome.status === "done" && !mode.cancelled && tool.kind !== "read" && tool.kind !== "ui") {
+      io.tally.acted = true;
+    }
     if (outcome.status === "parked" && !mode.cancelled) return { parked: { call, outcome } };
     if (outcome.status === "done" && isDelegationRun(outcome.result)) {
       return { delegated: { call, run: outcome.result } };
@@ -936,7 +1054,7 @@ export class GovernedToolsMiddleware extends Middleware {
         stored = this.opts.governance.initiatorFor(entry.interruptId, threadId);
       } catch (error) {
         this.report(error, "initiator");
-        throw new Error(INITIATOR_UNKNOWN);
+        throw new StopWithMessage(INITIATOR_UNKNOWN);
       }
       const rank = stored ? RESUMED_RANK.indexOf(stored.kind) : -1;
       if (!stored || rank < 0 || typeof stored.id !== "string") continue;
@@ -1108,12 +1226,15 @@ export function normaliseUsage(entries: readonly TokenUsage[]): TokenUsage[] {
     });
 }
 
-/** The run's whole usage on its last event, one entry per provider and model. Untouched when nothing was reported. */
-function withUsage(event: RunFinishedEvent, usage: readonly TokenUsage[]): RunFinishedEvent {
+/**
+ * The run's whole usage on its last event, finished or failed, one entry per provider and model.
+ * Untouched when nothing was reported.
+ */
+function withUsage<E extends RunFinishedEvent | RunErrorEvent>(event: E, usage: readonly TokenUsage[]): E {
   const total = aggregateTokenUsage(normaliseUsage(usage));
   if (total.length === 0) return event;
   const { usage: _own, ...rest } = event;
-  return { ...rest, usage: total } as RunFinishedEvent;
+  return { ...rest, usage: total } as E;
 }
 
 /**

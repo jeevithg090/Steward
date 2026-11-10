@@ -1,12 +1,20 @@
 import { TOOLS } from "@steward/shared";
 import { beforeEach, describe, expect, it } from "vitest";
-import { envelopeFor, modelErrorMessage } from "../src/middleware.ts";
+import {
+  CONVERSATION_TOO_LONG,
+  describeModelFailure,
+  envelopeFor,
+  modelErrorMessage,
+} from "../src/middleware.ts";
 import { BUILTIN_TOOLS, buildToolCatalogue, grantedBuiltins, toAgUiTool } from "../src/tools/catalogue.ts";
 import { pageSlug, stripActiveContent } from "../src/tools/display.ts";
 import { objectRoot } from "../src/tools/mcp.ts";
 import { parseAddress, urlTarget } from "../src/tools/target.ts";
 import type { StewardTool, ToolArgs, ToolContext } from "../src/tools/types.ts";
 import { type Fakes, makeFakes, servicesFrom } from "./fakes.ts";
+
+const MODEL_CREDIT =
+  "The model provider says the account is out of credit. Check your account with them, then try again.";
 
 let fakes: Fakes;
 let ctx: ToolContext;
@@ -486,5 +494,63 @@ describe("model errors in plain words", () => {
     expect(modelErrorMessage("Bad request for key sk-or-v1-0123456789abcdef0123456789abcdef")).toBe(
       "The model could not answer: Bad request for key [hidden]",
     );
+  });
+
+  it("reads the words providers really send, without mistaking a token limit for a key", () => {
+    const key = "The model provider did not accept the key. Check it in Settings, then try again.";
+    const limit =
+      "The model will not write replies as long as Steward asks for. Lower STEWARD_MODEL_MAX_TOKENS, then restart Steward.";
+    const stopped = "The model stopped answering before it finished. Try again in a moment.";
+    const table: [string, number | undefined, string][] = [
+      ["Invalid 'max_tokens': integer above maximum value. Expected a value <= 16384.", 400, limit],
+      ["max_tokens: 100000 > 64000, which is the maximum allowed number of output tokens", 400, limit],
+      ["max_tokens is too large: 200000. This model supports at most 16384 completion tokens", 400, limit],
+      ["This model's maximum context length is 128000 tokens.", 400, CONVERSATION_TOO_LONG],
+      ["prompt is too long: 210000 tokens > 200000 maximum", 400, CONVERSATION_TOO_LONG],
+      [
+        "The input token count exceeds the maximum number of tokens allowed (1048576).",
+        400,
+        CONVERSATION_TOO_LONG,
+      ],
+      ["the request exceeds the available context size, try increasing it", 500, CONVERSATION_TOO_LONG],
+      ["Request Entity Too Large", 413, CONVERSATION_TOO_LONG],
+      ["terminated", undefined, stopped],
+      ["Request timed out.", undefined, stopped],
+      ["Gateway Timeout", 504, stopped],
+      ["Provider returned error", 401, key],
+      ["Invalid authentication credentials", 403, key],
+      ["Insufficient credits. Add more using https://openrouter.ai/settings/credits", 402, MODEL_CREDIT],
+      ["You exceeded your current quota, please check your plan and billing details.", 429, MODEL_CREDIT],
+      ["Too Many Requests", 429, "The model provider is busy right now. Wait a moment, then try again."],
+      ["Not Found", 404, "The model provider does not know that model. Check the model name in Settings."],
+      ["Service Unavailable", 503, "The model provider is having trouble right now. Try again in a moment."],
+    ];
+    for (const [raw, status, expected] of table) {
+      expect(modelErrorMessage(raw, status), `${status ?? "-"} ${raw}`).toBe(expected);
+    }
+    expect(modelErrorMessage("Invalid token count")).not.toBe(key);
+    // A refusal with its own reason keeps it: a 403 is not always the key.
+    expect(modelErrorMessage("Your input was flagged by moderation", 403)).toBe(
+      "The model could not answer: Your input was flagged by moderation",
+    );
+  });
+
+  it("finds the status and the provider's own words inside the error", () => {
+    const upstream = JSON.stringify({ error: { message: "Invalid schema for function 'mcp__x__y'" } });
+    const apiError = Object.assign(new Error("Provider returned error"), {
+      statusCode: 400,
+      responseBody: JSON.stringify({
+        error: { message: "Provider returned error", metadata: { raw: upstream } },
+      }),
+    });
+    expect(describeModelFailure(apiError)).toEqual({
+      status: 400,
+      text: "Provider returned error: Invalid schema for function 'mcp__x__y'",
+    });
+    const retried = Object.assign(new Error("Failed after 3 attempts. Last error: Too Many Requests"), {
+      lastError: Object.assign(new Error("Too Many Requests"), { statusCode: 429 }),
+    });
+    expect(describeModelFailure(retried)).toEqual({ status: 429, text: "Too Many Requests" });
+    expect(describeModelFailure("socket hang up")).toEqual({ text: "socket hang up" });
   });
 });
