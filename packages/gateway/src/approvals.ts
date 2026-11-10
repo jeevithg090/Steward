@@ -182,6 +182,31 @@ export function alwaysRuleFor(
   };
 }
 
+/**
+ * Always allow rules written before "nobody" was pinned let a call that had no recipients run
+ * later with any. Narrows each such rule once, in the shape `alwaysRuleFor` wrote it (a rule
+ * someone rewrote by hand is left alone), so an event allowed with no guests still invites nobody.
+ * Each change is recorded as a policy change. Returns how many were narrowed.
+ */
+export function narrowAlwaysRules(rules: SqliteRuleStore): number {
+  let narrowed = 0;
+  for (const rule of rules.list()) {
+    const written =
+      rule.source === "always" && rule.when.startsWith("tool.name == ") && !rule.when.includes("||");
+    if (!written || rule.when.includes("target.recipients")) continue;
+    try {
+      rules.update(rule.id, { when: `${rule.when} && size(target.recipients) == 0` });
+      narrowed++;
+    } catch (err) {
+      // Never stop Steward from starting over this; the rule stays as it was.
+      console.error(
+        JSON.stringify({ type: "gateway.always_rule_not_narrowed", ruleId: rule.id, error: String(err) }),
+      );
+    }
+  }
+  return narrowed;
+}
+
 export interface OpenInput {
   call: GateCall & { credentialEntry?: boolean };
   summary: string;

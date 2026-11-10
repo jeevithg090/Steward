@@ -1,6 +1,7 @@
 import type { Approval, GateOutcome } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import { GatewayError } from "../src/errors.ts";
+import { createGateway } from "../src/gateway.ts";
 import { gateCall, HOUR, setup, spyAction } from "./helpers.ts";
 
 function parked<T>(outcome: GateOutcome<T>): Approval {
@@ -614,6 +615,52 @@ describe("always allow", () => {
     );
     expect(gw.governance.dryRun(event()).effect).toBe("allow");
     expect(gw.governance.dryRun(event(["stranger@evil.example"])).effect).toBe("ask");
+  });
+
+  it("narrows an Always allow written before 'nobody' was pinned, once, when Steward starts", () => {
+    const { db, gw } = setup();
+    const old = gw.rules.create({
+      name: "Always allow calendar_create",
+      effect: "allow",
+      when: 'tool.name == "calendar_create"',
+      description: "You chose Always allow for: Add 'Focus time' to your calendar",
+      enabled: true,
+      source: "always",
+    });
+    const handWritten = gw.rules.create({
+      name: "Calendar or mail",
+      effect: "allow",
+      when: 'tool.name == "calendar_create" || tool.name == "calendar_update"',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const sam = gw.rules.create({
+      name: "Always allow mail_send to sam@example.com",
+      effect: "allow",
+      when: 'tool.name == "mail_send" && size(target.recipients) > 0 && target.recipients.all(r, r in ["sam@example.com"])',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const restarted = createGateway({ db, now: () => new Date("2026-10-28T09:00:00.000Z") });
+    expect(restarted.rules.get(old.id)?.when).toBe(
+      'tool.name == "calendar_create" && size(target.recipients) == 0',
+    );
+    expect(restarted.rules.get(handWritten.id)?.when).toBe(handWritten.when);
+    expect(restarted.rules.get(sam.id)?.when).toBe(sam.when);
+    const invite = gateCall("calendar_create", { title: "Sync", attendees: ["stranger@evil.example"] });
+    restarted.rules.update(handWritten.id, { enabled: false });
+    expect(restarted.governance.dryRun(invite).effect).toBe("ask");
+    const changes = restarted.audit.page({ type: "policy.changed", q: "Always allow calendar_create" });
+    expect(changes.events[0]?.detail).toMatchObject({
+      change: "updated",
+      when: expect.stringContaining("== 0"),
+    });
+    // Once only.
+    const before = restarted.audit.page({}).total;
+    createGateway({ db });
+    expect(restarted.audit.page({}).total).toBe(before);
   });
 
   it("is not offered for a browser action the rule could not name", async () => {

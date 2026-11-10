@@ -212,7 +212,8 @@ The rule pins the tool, and also the host for browser and web calls, the element
 click, the exact command for the shell, the server for a connected app, and the exact recipients
 for a message. A message to Sam and someone new still asks. A call with no recipients pins that
 too (`size(target.recipients) == 0`), so always allowing an event with no guests never lets a
-later one invite anyone.
+later one invite anyone. Rules an older Steward wrote without it are narrowed the same way when
+Steward starts, and each change is in the record.
 
 Some things a rule cannot name, so it does not pin them:
 
