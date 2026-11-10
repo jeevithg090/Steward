@@ -1,24 +1,31 @@
 import { createMcpManager, type McpManagerOptions } from "@steward/connectors";
 import { memoryDb } from "@steward/db";
-import type { McpManager } from "@steward/shared";
+import type { AuditLog, McpManager, McpServerInfo, McpToolKind } from "@steward/shared";
 import { Hono } from "hono";
 import { afterEach, describe, expect, it } from "vitest";
 import type { StewardServices } from "../src/context.ts";
 import { onError } from "../src/http/errors.ts";
-import { registerConnectionRoutes } from "../src/routes/connections.ts";
+import { connectionChange, registerConnectionRoutes } from "../src/routes/connections.ts";
 
 const closers: (() => Promise<void>)[] = [];
 afterEach(async () => {
   await Promise.all(closers.splice(0).map((close) => close()));
 });
 
-/** Just the connection routes, over a real MCP manager (or the one given). */
+/** Just the connection routes, over a real MCP manager (or the one given). `recorded` is the record. */
 function app(opts: Partial<McpManagerOptions> = {}, given?: McpManager) {
   const mcp = given ?? createMcpManager({ db: memoryDb(), ...opts });
   closers.push(() => mcp.closeAll());
   const hono = new Hono();
   hono.onError(onError);
-  registerConnectionRoutes(hono, { mcp, mail: () => undefined } as unknown as StewardServices);
+  const recorded: Parameters<AuditLog["append"]>[0][] = [];
+  const gateway = { audit: { append: (event: Parameters<AuditLog["append"]>[0]) => recorded.push(event) } };
+  registerConnectionRoutes(hono, {
+    mcp,
+    mail: () => undefined,
+    gateway,
+    actorId: "local",
+  } as unknown as StewardServices);
   const send = async (method: string, path: string, body?: unknown) => {
     const res = await hono.request(path, {
       method,
@@ -27,7 +34,7 @@ function app(opts: Partial<McpManagerOptions> = {}, given?: McpManager) {
     });
     return { status: res.status, body: (await res.json()) as Record<string, unknown> };
   };
-  return { mcp, send };
+  return { mcp, send, recorded };
 }
 
 const STDIO = { id: "github", name: "GitHub", transport: "stdio", command: "npx", args: ["-y", "x"] };
@@ -135,6 +142,108 @@ describe("the MCP connection routes", () => {
       sends: ["post"],
       deletes: ["erase"],
       allowAgain: ["find"],
+    });
+  });
+
+  describe("the record of what the person allowed", () => {
+    type Tool = McpServerInfo["tools"][number];
+    const tool = (name: string, granted: boolean, kind: McpToolKind = "write"): Tool => ({
+      name,
+      description: "",
+      granted,
+      kind,
+      offerable: true,
+    });
+    const notes = (tools: Tool[]): McpServerInfo => ({
+      id: "notes",
+      name: "Notes",
+      transport: "stdio",
+      status: "connected",
+      tools,
+    });
+
+    /** A manager that holds one server: `list` shows `current`, a save turns it into `next`. */
+    function holding(current: McpServerInfo | undefined, next: McpServerInfo): McpManager {
+      let shown = current;
+      return {
+        list: () => (shown ? [shown] : []),
+        upsert: async () => {
+          shown = next;
+          return next;
+        },
+        remove: async () => {
+          shown = undefined;
+        },
+        closeAll: async () => {},
+      } as unknown as McpManager;
+    }
+    const BODY = { id: "notes", name: "Notes", transport: "stdio", command: "notes-server" };
+
+    it("records a new server and the tools allowed on it, with their kinds", async () => {
+      const after = notes([tool("find", true, "read"), tool("post", true, "send"), tool("erase", false)]);
+      const { send, recorded } = app({}, holding(undefined, after));
+      expect((await send("POST", "/api/connections/mcp", BODY)).status).toBe(201);
+      expect(recorded).toEqual([
+        {
+          type: "policy.changed",
+          actorId: "local",
+          detail: {
+            change: "connection",
+            summary:
+              'Added the tool server Notes; Allowed find ("Only reads") and post ("Sends or posts") on Notes',
+            server: "notes",
+            allowed: ["find", "post"],
+            kinds: { find: "read", post: "send" },
+          },
+        },
+      ]);
+    });
+
+    it("records tools switched off, marked again or allowed again, and secrets by name only", async () => {
+      const before = notes([tool("find", true, "write"), tool("post", true, "send"), tool("look", true)]);
+      const after = notes([tool("find", true, "read"), tool("post", false, "send"), tool("look", true)]);
+      const { send, recorded } = app({}, holding(before, after));
+      const res = await send("PUT", "/api/connections/mcp/notes", {
+        ...BODY,
+        allowAgain: ["look"],
+        env: { NOTES_TOKEN: "sk-live-very-secret" },
+      });
+      expect(res.status).toBe(200);
+      expect(recorded).toHaveLength(1);
+      expect(recorded[0]?.detail).toEqual({
+        change: "connection",
+        summary:
+          'Marked find as "Only reads"; Stopped allowing post; Allowed look again after its server changed what it does; Changed the secret setting NOTES_TOKEN on Notes',
+        server: "notes",
+        kinds: { find: "read" },
+        stopped: ["post"],
+        allowedAgain: ["look"],
+        secretSettings: ["NOTES_TOKEN"],
+      });
+      expect(JSON.stringify(recorded)).not.toContain("sk-live");
+    });
+
+    it("records nothing for a save that changes none of it, and records a removal", async () => {
+      const same = notes([tool("find", true, "read")]);
+      const { send, recorded } = app({}, holding(same, same));
+      await send("PUT", "/api/connections/mcp/notes", { ...BODY, name: "Notes" });
+      expect(recorded).toEqual([]);
+      expect(connectionChange(same, same, { allowAgain: [] })).toBeUndefined();
+      const token = connectionChange(same, same, { allowAgain: [], bearerToken: "tok-very-secret" });
+      expect(token).toEqual({
+        change: "connection",
+        summary: "Changed the access token on Notes",
+        server: "notes",
+        accessToken: "saved",
+      });
+      expect(connectionChange(same, same, { allowAgain: [], bearerToken: null })).toMatchObject({
+        accessToken: "removed",
+      });
+
+      expect((await send("DELETE", "/api/connections/mcp/notes")).status).toBe(200);
+      expect(recorded.map((r) => r.detail)).toEqual([
+        { change: "connection", summary: "Removed the tool server Notes", server: "notes" },
+      ]);
     });
   });
 });

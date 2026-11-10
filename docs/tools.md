@@ -105,7 +105,9 @@ marked only as deleting or as sending. Every kind but a read gets the check on w
 A tool is offered only once you grant it on `/connections`. An agent whose `tools` in the tenant's
 `agents.yaml` is `["*"]` gets every tool you granted; an agent with a list gets only the ones it
 names, one by one (`mcp__<server>__<tool>`) or a whole server (`mcp__<server>__*`). So a profile can
-narrow what you granted, never add to it. Granting a tool never skips the gateway.
+narrow what you granted, never add to it. Granting a tool never skips the gateway, and what you
+allow goes in the record as **Rules changed**: the tools allowed or stopped, how you marked them,
+and which secret settings changed (never their values).
 
 Steward remembers what the tool said it did when you allowed it; if its server changes that later
 (its description, its inputs, or whether it can destroy things), Steward stops using it and
