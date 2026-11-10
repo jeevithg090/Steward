@@ -120,8 +120,13 @@ Steward is one person's assistant on one machine. The server:
   through, so `pnpm dev` needs no exception; `STEWARD_DEV_ORIGINS=1` trusts the Vite ports (`:5173`,
   `:4173`) and allows CORS for them, only for a web app that calls the server directly;
 - checks the `Origin` of WebSocket upgrades (browsers do not apply CORS to them);
-- limits body sizes (256 KiB for the API, 10 MiB for agent runs) and computer input frames (64 KiB);
-- answers every error as `{ "error": "<a sentence>" }`, never with a stack trace;
+- limits body sizes (256 KiB for the API, 10 MiB for agent runs) and computer input frames (64 KiB),
+  and closes the connection after a body too large;
+- answers every error on its own routes as `{ "error": "<a sentence>" }`, never with a stack trace,
+  and words a refused body as what to change (`name: write something.`). The CopilotKit runtime at
+  `/api/copilotkit` answers its own errors in its own shape;
+- writes each change of model to the record (`settings.model_changed`, with only the host of an
+  address), since the model is where every conversation goes;
 - never logs what was typed into the computer, and never echoes a secret in an error;
 - sends `X-Frame-Options: DENY` so approval cards cannot be clickjacked, and a CSP that loads images
   only from itself, `data:` and `blob:`, so an image in a reply cannot carry data to another host.
@@ -131,9 +136,19 @@ above matter: only this machine's own pages may add one.
 
 ## Data
 
-All in `<STEWARD_DATA_DIR>/steward.db`. The server's own tables: `server_settings` (key-value),
-`thread_meta` (title, agent, kind of each conversation), `runner_threads` and `runner_runs` (the
-runner's record of every run, compacted AG-UI events). The packages own the rest.
+All in `<STEWARD_DATA_DIR>/steward.db`, readable by this user only (the folder `0700`, the file
+`0600`). The server's own tables:
+
+- `server_settings` (key-value) and `thread_meta` (title, agent and kind of each conversation);
+- `runner_threads` and `runner_runs`: the runner's record of every run, compacted AG-UI events;
+- `installed_bots`: each bot added from the directory, and what it added;
+- `devices`, `pairing_codes` and `remote_nonces`: paired phones, codes waiting to pair, and the
+  relay's replay guard;
+- `delegations` and `delegation_interrupts`: tasks handed on to another agent, and the answers they
+  wait on.
+
+The packages own the rest. Migration ids are `<package>.<three digits>_<name>`, each used once:
+`Db.migrate` refuses a list that breaks either rule before applying any of it.
 
 ## Tests
 

@@ -1,5 +1,6 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { DEFAULT_SERVER_PORT } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import {
   ConfigError,
@@ -10,7 +11,7 @@ import {
   REPO_ROOT,
   startupWarnings,
 } from "../src/config.ts";
-import { loadEnvFiles, normaliseEnv } from "../src/env.ts";
+import { devServerTarget, loadEnvFiles, normaliseEnv } from "../src/env.ts";
 import { tempDir } from "./helpers.ts";
 
 describe("loadConfig", () => {
@@ -185,6 +186,53 @@ describe("environment", () => {
     } finally {
       remove();
     }
+  });
+
+  it("points the web app's dev proxy where the server will listen, from the shell or .env", () => {
+    const { dir, remove } = tempDir();
+    try {
+      expect(devServerTarget(dir, {})).toBe(`http://127.0.0.1:${DEFAULT_SERVER_PORT}`);
+      writeFileSync(join(dir, ".env"), "STEWARD_PORT=9123\nSTEWARD_HOST=\n");
+      expect(devServerTarget(dir, {})).toBe("http://127.0.0.1:9123");
+      expect(devServerTarget(dir, { STEWARD_PORT: "9200" })).toBe("http://127.0.0.1:9200");
+      expect(devServerTarget(dir, { STEWARD_PORT: " " })).toBe("http://127.0.0.1:9123");
+      writeFileSync(join(dir, "keys.env"), "STEWARD_PORT=9300\n");
+      expect(devServerTarget(dir, { STEWARD_ENV_FILE: "keys.env" })).toBe("http://127.0.0.1:9300");
+      expect(devServerTarget(dir, { STEWARD_HOST: "::1" })).toBe("http://[::1]:9123");
+      expect(devServerTarget(dir, { STEWARD_HOST: "0.0.0.0" })).toBe("http://127.0.0.1:9123");
+      expect(devServerTarget(dir, { STEWARD_HOST: "localhost" })).toBe("http://localhost:9123");
+      const env = { STEWARD_SERVER_URL: "http://127.0.0.1:8931" };
+      expect(devServerTarget(dir, env)).toBe("http://127.0.0.1:8931");
+      expect(env).toEqual({ STEWARD_SERVER_URL: "http://127.0.0.1:8931" });
+    } finally {
+      remove();
+    }
+  });
+
+  it("documents every variable the server and its packages read", () => {
+    const docs = readFileSync(join(REPO_ROOT, "docs/configuration.md"), "utf8");
+    // Passed through to the shell and coding agents, not settings of Steward's.
+    const passedThrough = new Set(["HOME", "LANG", "PATH", "RUST_LOG", "TMPDIR"]);
+    const reads =
+      /\benv\.([A-Z][A-Z0-9_]+)|\benv\["([A-Z][A-Z0-9_]+)"\]|keyEnv: "([A-Z0-9_]+)"|KEY_ENV = "([A-Z0-9_]+)"/g;
+    const roots = [
+      "apps/server/src",
+      ...["agent", "computer", "connectors", "gateway", "harnesses", "proactive"].map(
+        (p) => `packages/${p}/src`,
+      ),
+    ];
+    const names = new Set<string>();
+    for (const root of roots) {
+      for (const file of readdirSync(join(REPO_ROOT, root), { recursive: true, encoding: "utf8" })) {
+        if (!file.endsWith(".ts") || file.endsWith(".test.ts")) continue;
+        for (const m of readFileSync(join(REPO_ROOT, root, file), "utf8").matchAll(reads)) {
+          const name = m.slice(1).find(Boolean)!;
+          if (!passedThrough.has(name)) names.add(name);
+        }
+      }
+    }
+    expect(names.size).toBeGreaterThan(25);
+    expect([...names].filter((name) => !docs.includes(`\`${name}`)).sort()).toEqual([]);
   });
 
   it("leaves reading .env to the server in every script, not to Node's --env-file", () => {

@@ -2,9 +2,14 @@ import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type ProxyOptions } from "vite";
+// Only node: built-ins; bundled into this config by Vite.
+import { devServerTarget } from "../server/src/env.ts";
 
-/** Where `pnpm dev` finds the Steward server. Override with STEWARD_SERVER_URL when it runs elsewhere. */
-const server = process.env.STEWARD_SERVER_URL ?? "http://127.0.0.1:8787";
+/**
+ * Where `pnpm dev` finds the Steward server: STEWARD_SERVER_URL, or else STEWARD_PORT and
+ * STEWARD_HOST, read from the shell and the repository's `.env` as the server reads them.
+ */
+const server = devServerTarget(fileURLToPath(new URL("../../", import.meta.url)));
 
 /**
  * The REST API, the CopilotKit runtime and the live event stream all sit under `/api`. Two of them
