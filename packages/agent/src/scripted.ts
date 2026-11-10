@@ -182,6 +182,22 @@ function describeResult(tool: string, data: unknown, req: ChatCompletionRequest)
       return [
         `Done. “${String(v.title ?? "The routine")}” will run ${String(v.scheduleText ?? v.schedule ?? "on its schedule").toLowerCase()}.`,
       ];
+    case "routine_list": {
+      const routines = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
+      return routines.length === 0
+        ? ["You have no routines yet."]
+        : [
+            `You have ${count(routines.length, "routine", "routines")}: ${routines
+              .map((r) => `“${String(r.title ?? "")}” (${String(r.scheduleText ?? r.schedule ?? "")})`)
+              .join(", ")}.`,
+          ];
+    }
+    case "routine_update":
+      return [
+        `Done. “${String(v.title ?? "The routine")}” now runs ${String(v.scheduleText ?? v.schedule ?? "on its schedule").toLowerCase()}${v.enabled === false ? ", but it is paused" : ""}.`,
+      ];
+    case "routine_delete":
+      return [`Deleted “${String(v.title ?? "the routine")}”. Its past conversation stays.`];
     case "task_create":
       return ["It's on your Tasks page."];
     case "make_page":
@@ -355,6 +371,9 @@ function respondToPerson(req: ChatCompletionRequest): FixtureResponse {
     return offered(req, "memory_remember")
       ? call("memory_remember", { text: capitalise(remember.replace(/[.!]+$/, "")), source: "you" })
       : unavailable();
+  }
+  if (/\b(my|list|show|which|what)\b.*\broutines\b/.test(lower)) {
+    return offered(req, "routine_list") ? call("routine_list", {}) : unavailable();
   }
   const routine = parseRoutine(text);
   if (routine) {

@@ -64,14 +64,17 @@ from the catalogue, not from the caller.
 
 ## Steward's own state
 
-| Tool              | Kind  | Surface | Taints | By default | What it does                                                                                                                                                                            |
-| ----------------- | ----- | ------- | ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `memory_remember` | write | memory  | no     | runs       | Remembers a fact about the person, shown and removable on `/memory`.                                                                                                                    |
-| `task_create`     | write | task    | no     | runs       | Adds a task to `/tasks`.                                                                                                                                                                |
-| `task_update`     | write | task    | no     | runs       | Changes a task's state or next step.                                                                                                                                                    |
-| `routine_create`  | write | task    | no     | runs       | Sets up a routine on a five-field cron schedule, no more often than every 15 minutes. What the routine later does is governed again, as a routine.                                      |
-| `delegate_task`   | write | task    | yes    | runs       | Hands a task to another agent (another Steward, a bot, or a coding agent) and returns its answer, wrapped as untrusted. See [delegation](harnesses.md#handing-a-task-to-another-agent). |
-| `make_page`       | write | file    | no     | runs       | Makes something to read, keep or present (notes, a plan, a report) and saves it in the workspace under `made/`. The chat shows a card that opens it.                                    |
+| Tool              | Kind   | Surface | Taints | By default | What it does                                                                                                                                                                            |
+| ----------------- | ------ | ------- | ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `memory_remember` | write  | memory  | no     | runs       | Remembers a fact about the person, shown and removable on `/memory`.                                                                                                                    |
+| `task_create`     | write  | task    | no     | runs       | Adds a task to `/tasks`.                                                                                                                                                                |
+| `task_update`     | write  | task    | no     | runs       | Changes a task's state or next step.                                                                                                                                                    |
+| `routine_create`  | write  | task    | no     | runs       | Sets up a routine on a five-field cron schedule, no more often than every 15 minutes. What the routine later does is governed again, as a routine.                                      |
+| `routine_list`    | read   | task    | no     | runs       | Lists the agent's own routines: name, work, schedule in words, on or off, next run.                                                                                                     |
+| `routine_update`  | write  | task    | no     | runs       | Changes one of its routines (name, work, schedule, time zone, on or off), named by id and current name. After untrusted content it asks, like `routine_create`.                         |
+| `routine_delete`  | delete | task    | no     | asks       | Deletes one of its routines. Its conversation stays.                                                                                                                                    |
+| `delegate_task`   | write  | task    | yes    | runs       | Hands a task to another agent (another Steward, a bot, or a coding agent) and returns its answer, wrapped as untrusted. See [delegation](harnesses.md#handing-a-task-to-another-agent). |
+| `make_page`       | write  | file    | no     | runs       | Makes something to read, keep or present (notes, a plan, a report) and saves it in the workspace under `made/`. The chat shows a card that opens it.                                    |
 
 ## Showing things
 

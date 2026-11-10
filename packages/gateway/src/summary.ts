@@ -156,6 +156,23 @@ export function summarize(input: SummaryInput): string {
     case "routine_create":
       sentence = `Set up a routine${quoted(shown("title")) ? `: ${quoted(shown("title"))}` : ""}${text(args.schedule) ? ` (${text(args.schedule)})` : ""}`;
       break;
+    case "routine_list":
+      sentence = "Look at your routines";
+      break;
+    case "routine_update": {
+      const changes = [
+        text(args.newTitle) ? `rename it ${quoted(shown("newTitle"))}` : "",
+        text(args.schedule) ? `run it at ${text(args.schedule)}` : "",
+        text(args.timezone) ? `in ${text(args.timezone)}` : "",
+        text(args.prompt) ? `give it new instructions: ${quoted(shown("prompt"), 120)}` : "",
+        args.enabled === false ? "pause it" : args.enabled === true ? "switch it on" : "",
+      ].filter(Boolean);
+      sentence = `Change the routine${quoted(shown("title")) ? ` ${quoted(shown("title"))}` : ""}${changes.length ? `: ${changes.join(", ")}` : ""}`;
+      break;
+    }
+    case "routine_delete":
+      sentence = `Delete the routine${quoted(shown("title")) ? ` ${quoted(shown("title"))}` : ""}`;
+      break;
     case "brief_today":
       sentence = "Prepare today's brief";
       break;

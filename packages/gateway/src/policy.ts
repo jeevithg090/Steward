@@ -165,7 +165,7 @@ const TAINT_KINDS = new Set<ToolKind>(["send", "pay", "sign", "delete", "shell"]
  * Tools whose effect outlives the conversation: injected text saved as a memory or a routine would
  * reach every later run. After untrusted content they ask too.
  */
-const TAINT_PERSISTS = new Set(["memory_remember", "routine_create"]);
+const TAINT_PERSISTS = new Set(["memory_remember", "routine_create", "routine_update"]);
 
 /** The outcome of deciding: the decision itself, plus what the approval layer needs. */
 export interface Verdict {
