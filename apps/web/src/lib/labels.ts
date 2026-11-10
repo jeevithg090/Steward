@@ -99,6 +99,7 @@ export const RULE_SOURCE_LABELS: Record<Rule["source"], string> = {
   person: "Yours",
   always: "Always allowed",
   bot: "From a bot",
+  conversation: "Allowed in this conversation",
 };
 
 /** Model providers as people read them. The id itself for one the app does not know. */

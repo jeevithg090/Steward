@@ -38,6 +38,7 @@ import { ComputerSession, useOptionalComputer } from "../computer/session.tsx";
 import { useSpeak } from "../voice/useSpeak.ts";
 import { ApprovalInterrupts, type PendingApproval } from "./ApprovalInterrupts.tsx";
 import { Composer } from "./Composer.tsx";
+import { ConversationAllows } from "./ConversationAllows.tsx";
 import { type ChatActions, ChatActionsContext } from "./chat-context.tsx";
 import { currentStep, latestTurnToolCalls, plainRunError, replayedId, shownIds, textOf } from "./messages.ts";
 import { claimInlineRunErrors } from "./provider.tsx";
@@ -436,6 +437,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                   </Button>
                 </div>
               ) : null}
+              <ConversationAllows threadId={threadId} className="mx-auto w-full max-w-3xl" />
               <Composer
                 className="mx-auto w-full max-w-3xl"
                 onSend={send}

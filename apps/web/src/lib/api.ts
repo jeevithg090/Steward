@@ -18,6 +18,7 @@ import {
   type ChainCheck,
   type ComputerStatus,
   type ConnectionsInfo,
+  type ConversationAllow,
   type Decision,
   type Device,
   type DeviceKind,
@@ -281,6 +282,11 @@ export const api = {
     create: (body: ThreadCreateInput = {}) => send<ThreadSummary>("POST", ROUTES.threads, body),
     rename: (id: string, title: string) =>
       send<ThreadSummary>("PATCH", route(ROUTES.thread, { id }), { title }),
+    /** What was allowed for this conversation only. */
+    allows: (id: string, signal?: AbortSignal) =>
+      get<ConversationAllow[]>(route(ROUTES.threadAllows, { id }), undefined, signal),
+    turnOffAllow: (id: string, allowId: string) =>
+      send<{ ok: true }>("DELETE", route(ROUTES.threadAllow, { id, allowId })),
     remove: (id: string) => send<void>("DELETE", route(ROUTES.thread, { id })),
   },
 
@@ -431,6 +437,8 @@ export const queryKeys = {
   setup: ["setup"] as const,
   threads: ["threads"] as const,
   thread: (id: string) => ["threads", "one", id] as const,
+  /** Under `rules`, so every change to what may run refreshes them too. */
+  threadAllows: (id: string) => ["rules", "conversation", id] as const,
   approvals: ["approvals"] as const,
   /** Every approval list, but not the single approvals (those are set directly when they change). */
   approvalLists: ["approvals", "list"] as const,
@@ -582,6 +590,27 @@ export function useDeleteThread() {
   });
 }
 
+/** What the person allowed for this conversation only, newest first. */
+export function useConversationAllows(threadId: string, opts?: QueryOpts<ConversationAllow[]>) {
+  return useQuery<ConversationAllow[], ApiError>({
+    queryKey: queryKeys.threadAllows(threadId),
+    queryFn: ({ signal }) => api.threads.allows(threadId, signal),
+    retry: false,
+    ...opts,
+  });
+}
+
+export function useTurnOffAllow() {
+  const qc = useQueryClient();
+  return useMutation<{ ok: true }, ApiError, { threadId: string; allowId: string }>({
+    mutationFn: ({ threadId, allowId }) => api.threads.turnOffAllow(threadId, allowId),
+    onSuccess: (_, { threadId }) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.threadAllows(threadId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.audit });
+    },
+  });
+}
+
 /** One conversation. A 404 means it was deleted, or never existed. */
 export function useThread(id: string | undefined, opts?: QueryOpts<ThreadSummary>) {
   return useQuery<ThreadSummary, ApiError>({
@@ -633,7 +662,8 @@ export function useDecideApproval() {
       void qc.invalidateQueries({ queryKey: queryKeys.approvalLists });
       void qc.invalidateQueries({ queryKey: queryKeys.tasks });
       void qc.invalidateQueries({ queryKey: queryKeys.audit });
-      if (approval.answer === "always") void qc.invalidateQueries({ queryKey: queryKeys.rules });
+      if (approval.answer === "always" || approval.answer === "conversation")
+        void qc.invalidateQueries({ queryKey: queryKeys.rules });
     },
   });
 }
