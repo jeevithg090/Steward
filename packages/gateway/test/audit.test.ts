@@ -1,5 +1,8 @@
+import { memoryDb } from "@steward/db";
+import type { AuditEvent } from "@steward/shared";
 import { describe, expect, it } from "vitest";
-import { GENESIS_HASH, hashEvent } from "../src/audit.ts";
+import { FULL_CHECK_EVERY_MS, GENESIS_HASH, hashEvent, SqliteAuditLog } from "../src/audit.ts";
+import { migrations } from "../src/migrations.ts";
 import { isSecretKey } from "../src/redact.ts";
 import { gateCall, setup } from "./helpers.ts";
 
@@ -22,7 +25,14 @@ describe("the chain", () => {
       const { hash, ...body } = e;
       expect(hashEvent(body)).toBe(hash);
     }
-    expect(gw.audit.verify()).toEqual({ ok: true, count: ordered.length });
+    const newest = ordered[ordered.length - 1];
+    expect(gw.audit.verify()).toEqual({
+      ok: true,
+      count: ordered.length,
+      scope: "full",
+      fullCheckAt: "2026-10-27T09:00:00.000Z",
+      head: { seq: newest?.seq, hash: newest?.hash, at: newest?.at },
+    });
   });
 
   it("numbers rows from 1 without gaps", () => {
@@ -81,6 +91,28 @@ describe("the chain", () => {
     expect(gw.audit.verify()).toMatchObject({ ok: false, brokenAt: 3 });
   });
 
+  it("finds a row numbered below the first, which the walk from 1 would never reach", () => {
+    const { gw, db } = seed(1);
+    const first = gw.audit.page({ limit: 1 }).events[0] as AuditEvent;
+    // Nothing stops an INSERT: a forged entry slipped in before the first one.
+    const forged = { ...first, seq: 0, id: "aud_forged", detail: { summary: "Sent the invoices" } };
+    const { hash: _h, ...body } = forged;
+    db.run(
+      `INSERT INTO gateway_audit (seq, id, at, type, actor_id, detail_json, prev_hash, hash)
+       VALUES (0, 'aud_forged', ?, 'tool.completed', 'local', ?, ?, ?)`,
+      [first.at, JSON.stringify(forged.detail), GENESIS_HASH, hashEvent({ ...body, type: "tool.completed" })],
+    );
+    expect(gw.audit.verify()).toMatchObject({ ok: false, brokenAt: 0, count: 0 });
+  });
+
+  it("stores ids with a lone surrogate so they still match their hash", () => {
+    const { gw } = setup();
+    const e = gw.audit.append({ type: "run.started", actorId: "local\uDFFF", threadId: "thr_\uD800x" });
+    expect(e.threadId).toBe("thr_\uFFFDx");
+    expect(gw.audit.page({ limit: 1 }).events[0]).toEqual(e);
+    expect(gw.audit.verify()).toMatchObject({ ok: true, count: e.seq });
+  });
+
   it("announces every row on the bus", () => {
     const { gw, events } = setup();
     const before = events.length;
@@ -91,6 +123,171 @@ describe("the chain", () => {
       detail: {},
     });
     expect(events.slice(before)).toEqual([{ type: "audit.appended", event: e }]);
+  });
+});
+
+describe("checking without holding up the server", () => {
+  const dropTriggers = (db: ReturnType<typeof setup>["db"]) => {
+    db.exec("DROP TRIGGER gateway_audit_no_update");
+    db.exec("DROP TRIGGER gateway_audit_no_delete");
+  };
+  const append = (gw: ReturnType<typeof setup>["gw"], n: number) => {
+    for (let i = 0; i < n; i++) gw.audit.append({ type: "run.started", actorId: "local", detail: { i } });
+  };
+
+  it("walks everything first, then hashes only what was added since", async () => {
+    const { gw } = seed(600);
+    const n = gw.audit.page({}).total;
+    expect(await gw.audit.check()).toMatchObject({ ok: true, count: n, scope: "full" });
+    append(gw, 3);
+    const recent = await gw.audit.check();
+    expect(recent).toMatchObject({ ok: true, count: n + 3, scope: "recent", head: { seq: n + 3 } });
+    expect(recent.fullCheckAt).toBe("2026-10-27T09:00:00.000Z");
+    expect(await gw.audit.check({ full: true })).toMatchObject({ ok: true, count: n + 3, scope: "full" });
+  });
+
+  it("gives way to other work between pages", async () => {
+    const { gw } = seed(1000);
+    let ticks = 0;
+    const timer = setInterval(() => ticks++, 0);
+    const check = await gw.audit.check({ full: true });
+    clearInterval(timer);
+    expect(check.ok).toBe(true);
+    expect(ticks).toBeGreaterThan(0);
+  });
+
+  it("the recent check catches a forged new row", async () => {
+    const { gw, db } = seed(5);
+    await gw.audit.check();
+    const newest = gw.audit.page({ limit: 1 }).events[0] as AuditEvent;
+    db.run(
+      `INSERT INTO gateway_audit (seq, id, at, type, actor_id, detail_json, prev_hash, hash)
+       VALUES (?, 'aud_forged', ?, 'tool.completed', 'local', '{"summary":"Paid"}', ?, ?)`,
+      [newest.seq + 1, newest.at, newest.hash, "f".repeat(64)],
+    );
+    expect(await gw.audit.check()).toMatchObject({ ok: false, brokenAt: newest.seq + 1, scope: "recent" });
+    // It keeps saying so.
+    expect(await gw.audit.check()).toMatchObject({ ok: false, brokenAt: newest.seq + 1 });
+  });
+
+  it("the full walk catches an edit to an old row, on request and at least hourly", async () => {
+    const { gw, db } = seed(5);
+    await gw.audit.check();
+    dropTriggers(db);
+    db.run("UPDATE gateway_audit SET detail_json = '{\"i\":99}' WHERE seq = 2");
+    // Below the checkpoint, unchanged numbering: the recent check does not hash row 2 again.
+    expect(await gw.audit.check()).toMatchObject({ ok: true, scope: "recent" });
+    expect(await gw.audit.check({ full: true })).toMatchObject({
+      ok: false,
+      brokenAt: 2,
+      count: 1,
+      scope: "full",
+    });
+
+    const other = seed(5);
+    await other.gw.audit.check();
+    dropTriggers(other.db);
+    other.db.run("UPDATE gateway_audit SET detail_json = '{\"i\":99}' WHERE seq = 2");
+    other.advance(FULL_CHECK_EVERY_MS);
+    expect(await other.gw.audit.check()).toMatchObject({ ok: false, brokenAt: 2, scope: "full" });
+  });
+
+  it("walks everything again when an old row goes missing", async () => {
+    const { gw, db } = seed(6);
+    await gw.audit.check();
+    dropTriggers(db);
+    db.run("DELETE FROM gateway_audit WHERE seq = 3");
+    expect(await gw.audit.check()).toMatchObject({ ok: false, brokenAt: 4, count: 2, scope: "full" });
+  });
+
+  it("says the record was rewritten when a row it checked changes, even if the new chain is whole", async () => {
+    const { gw, db } = seed(4);
+    expect((await gw.audit.check()).ok).toBe(true);
+    dropTriggers(db);
+    // Cut the last two entries: what is left still chains from the first.
+    db.run("DELETE FROM gateway_audit WHERE seq > 2");
+    expect(await gw.audit.check()).toMatchObject({ ok: false, brokenAt: 3, count: 2 });
+    // New entries chain on from what is left, but the cut is not forgotten.
+    append(gw, 3);
+    expect(await gw.audit.check()).toMatchObject({ ok: false, brokenAt: 3 });
+    expect(await gw.audit.check({ full: true })).toMatchObject({ ok: false, brokenAt: 3 });
+  });
+});
+
+describe("a seal written down elsewhere", () => {
+  it("matches while the record is whole, and the newest one is given to write down", async () => {
+    const { gw } = seed(3);
+    const { head } = await gw.audit.check();
+    if (!head) throw new Error("no head");
+    gw.audit.append({ type: "run.started", actorId: "local" });
+    const check = await gw.audit.check({ anchor: { seq: head.seq, hash: head.hash.toUpperCase() } });
+    expect(check).toMatchObject({
+      ok: true,
+      scope: "full",
+      anchor: { seq: head.seq, hash: head.hash, ok: true },
+    });
+    expect(check.head?.seq).toBe(head.seq + 1);
+  });
+
+  it("does not match once the record was cut or rewritten, even in a fresh Steward", async () => {
+    const { gw, db } = seed(4);
+    const { head } = gw.audit.verify();
+    if (!head) throw new Error("no head");
+    db.exec("DROP TRIGGER gateway_audit_no_delete");
+    db.run("DELETE FROM gateway_audit WHERE seq = ?", [head.seq]);
+    // A Steward that never saw the old chain: it is whole, but the seal no longer is in it.
+    const db2 = memoryDb();
+    db2.migrate(migrations);
+    const fresh = new SqliteAuditLog(db2);
+    for (const e of [...gw.audit.page({ limit: 200 }).events].reverse()) {
+      db2.run(
+        `INSERT INTO gateway_audit (seq, id, at, type, actor_id, agent_id, thread_id, run_id, tool_call_id,
+           tool_json, target_json, effect, rule_json, detail_json, prev_hash, hash)
+         VALUES (?, ?, ?, ?, ?, NULL, ?, NULL, NULL, NULL, NULL, NULL, NULL, ?, ?, ?)`,
+        [
+          e.seq,
+          e.id,
+          e.at,
+          e.type,
+          e.actorId,
+          e.threadId ?? null,
+          JSON.stringify(e.detail),
+          e.prevHash,
+          e.hash,
+        ],
+      );
+    }
+    expect(fresh.verify()).toMatchObject({ ok: true, count: head.seq - 1 });
+    expect(fresh.verify({ anchor: head })).toMatchObject({ ok: false, anchor: { ok: false } });
+    const older = gw.audit.page({ limit: 200 }).events.find((e) => e.seq === 2) as AuditEvent;
+    expect(await fresh.check({ anchor: { seq: 2, hash: older.hash } })).toMatchObject({
+      ok: true,
+      anchor: { ok: true },
+    });
+    expect(await fresh.check({ anchor: { seq: 2, hash: "0".repeat(64) } })).toMatchObject({
+      ok: false,
+      anchor: { ok: false },
+    });
+  });
+});
+
+describe("export", () => {
+  it("gives every row as stored, oldest first, in pages that hash as they did", () => {
+    const { gw } = seed(6);
+    const pages = [...gw.audit.exportPages(3)];
+    expect(pages.map((p) => p.length)).toEqual([3, 3, 1]);
+    const rows = pages.flat();
+    expect(rows.map((e) => e.seq)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    let prev = GENESIS_HASH;
+    for (const e of rows) {
+      const { hash, ...body } = JSON.parse(JSON.stringify(e)) as AuditEvent;
+      expect(body.prevHash).toBe(prev);
+      expect(hashEvent(body)).toBe(hash);
+      prev = hash;
+    }
+    const empty = memoryDb();
+    empty.migrate(migrations);
+    expect([...new SqliteAuditLog(empty).exportPages()]).toEqual([]);
   });
 });
 

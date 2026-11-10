@@ -232,11 +232,38 @@ export interface AuditEvent {
   hash: string;
 }
 
+/** A seal written down earlier: an entry's number and its hash. */
+export interface ChainAnchor {
+  seq: number;
+  hash: string;
+}
+
+export interface ChainCheckOptions {
+  /** Hash every entry again, not only the ones added since the last full check. */
+  full?: boolean;
+  /** A seal written down earlier. The check fails when that entry is gone or no longer matches. */
+  anchor?: ChainAnchor;
+}
+
 export interface ChainCheck {
+  /** False when the chain is broken, or an anchor was given and does not match. */
   ok: boolean;
+  /** Entries found intact, from the first one up to the break. */
   count: number;
-  /** The first row whose hash does not match, when the chain is broken. */
+  /** The first entry that is missing, out of place, or no longer matches the one before it. */
   brokenAt?: number;
+  /**
+   * `full`: every entry was hashed again. `recent`: only the entries added since the last full
+   * check were, after checking that the newest entry it reached is unchanged and that the
+   * numbering has no gaps.
+   */
+  scope?: "full" | "recent";
+  /** When every entry was last hashed again (since the server started). */
+  fullCheckAt?: string;
+  /** The newest entry. Its hash, kept somewhere else, shows later whether the record was cut or rewritten. */
+  head?: { seq: number; hash: string; at: string };
+  /** The anchor that was checked, and whether that entry is still in the record unchanged. */
+  anchor?: ChainAnchor & { ok: boolean };
 }
 
 /** What `Governance.execute` and `Governance.resume` return. The agent turns it into the tool result the model sees. */
