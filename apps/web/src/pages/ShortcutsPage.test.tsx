@@ -144,4 +144,35 @@ describe("Shortcuts page", () => {
       screen.getByRole("img", { name: "QR code to download your one-tap Steward shortcut" }),
     ).toBeTruthy();
   });
+  it("waits for the phone's address before offering Add to iPhone", async () => {
+    const server = mockFetch((req) => {
+      if (req.path === "/api/phone/catalogue")
+        return { body: { ...catalogue, steward: { ...catalogue.steward, downloadUrl: undefined } } };
+      if (req.path === "/api/devices") return { body: [] };
+      return undefined;
+    });
+    renderWithProviders(<ShortcutsPage />);
+    const suggested = await screen.findByRole("region", { name: "Suggested for you" });
+    const brief = within(suggested).getByRole("listitem", { name: "What needs me?" });
+    const add = within(brief).getByRole("button", { name: "Add to iPhone" }) as HTMLButtonElement;
+    expect(add.disabled).toBe(true);
+    const why = document.getElementById(add.getAttribute("aria-describedby") ?? "");
+    expect(why?.textContent).toMatch(/First set the address your phone uses/);
+    expect(within(why!).getByRole("link", { name: "Settings → Phone" }).getAttribute("href")).toBe(
+      "/settings#settings-phone",
+    );
+    fireEvent.click(add);
+    expect(server.calls.some((c) => c.method === "POST")).toBe(false);
+  });
+
+  it("keeps Steward's capital in what a shortcut needs", async () => {
+    mockFetch((req) => {
+      if (req.path === "/api/phone/catalogue") return { body: catalogue };
+      if (req.path === "/api/devices") return { body: [] };
+      return undefined;
+    });
+    renderWithProviders(<ShortcutsPage />);
+    expect((await screen.findAllByText("Needs: talk to Steward")).length).toBeGreaterThan(0);
+    expect(screen.getByText("Needs: read the brief")).toBeTruthy();
+  });
 });

@@ -63,7 +63,12 @@ function Shortcuts({ catalogue, devices }: { catalogue: PhoneCatalogue; devices:
         />
         <ul className="mt-4 grid gap-3 md:grid-cols-2">
           {suggested.map((e) => (
-            <EntryCard key={e.id} entry={e} canSign={catalogue.signing.available} />
+            <EntryCard
+              key={e.id}
+              entry={e}
+              canSign={catalogue.signing.available}
+              hasAddress={Boolean(catalogue.steward.downloadUrl)}
+            />
           ))}
         </ul>
         {!catalogue.signing.available ? (
@@ -80,7 +85,12 @@ function Shortcuts({ catalogue, devices }: { catalogue: PhoneCatalogue; devices:
           />
           <ul className="mt-4 grid gap-3 md:grid-cols-2">
             {fromSetup.map((e) => (
-              <EntryCard key={e.id} entry={e} canSign={catalogue.signing.available} />
+              <EntryCard
+                key={e.id}
+                entry={e}
+                canSign={catalogue.signing.available}
+                hasAddress={Boolean(catalogue.steward.downloadUrl)}
+              />
             ))}
           </ul>
         </Card>
@@ -305,10 +315,23 @@ function StewardCard({ catalogue, builtIn }: { catalogue: PhoneCatalogue; builtI
   );
 }
 
-function EntryCard({ entry, canSign }: { entry: Entry; canSign: boolean }) {
+/** "Read the brief" → "read the brief": lower-cases the first letter only, so Steward keeps its capital. */
+const midSentence = (label: string) => label.charAt(0).toLowerCase() + label.slice(1);
+
+function EntryCard({
+  entry,
+  canSign,
+  hasAddress,
+}: {
+  entry: Entry;
+  canSign: boolean;
+  /** The phone's address is set; without it a link for the phone can't be made. */
+  hasAddress: boolean;
+}) {
   const install = useShortcutInstall();
   const [ready, setReady] = useState<ShortcutInstall | undefined>();
   const headingId = useId();
+  const noAddressId = useId();
   return (
     <li
       aria-labelledby={headingId}
@@ -325,7 +348,7 @@ function EntryCard({ entry, canSign }: { entry: Entry; canSign: boolean }) {
         <p className="text-caption text-ink-2">Siri: “Hey Siri, {entry.siriPhrase.replace(/[:?]/g, "")}”</p>
       ) : null}
       <p className="text-caption text-ink-2">
-        Needs: {entry.scopes.map((s) => DEVICE_SCOPE_LABELS[s].label.toLowerCase()).join(", ") || "nothing"}
+        Needs: {entry.scopes.map((s) => midSentence(DEVICE_SCOPE_LABELS[s].label)).join(", ") || "nothing"}
       </p>
       <ul className="list-disc pl-5 text-caption text-ink-2">
         {entry.steps.map((step) => (
@@ -344,11 +367,21 @@ function EntryCard({ entry, canSign }: { entry: Entry; canSign: boolean }) {
           size="sm"
           variant={ready ? "secondary" : "primary"}
           loading={install.isPending}
-          disabled={!canSign && entry.source !== "core"}
+          disabled={!hasAddress || (!canSign && entry.source !== "core")}
+          aria-describedby={hasAddress ? undefined : noAddressId}
           onClick={() => install.mutate(entry.id, { onSuccess: setReady })}
         >
           {ready ? "Make a new link" : "Add to iPhone"}
         </Button>
+        {hasAddress ? null : (
+          <p id={noAddressId} className="mt-2 text-caption text-ink-2">
+            First set the address your phone uses, in{" "}
+            <Link to="/settings#settings-phone" className="text-accent underline underline-offset-4">
+              Settings → Phone
+            </Link>
+            .
+          </p>
+        )}
       </div>
     </li>
   );
