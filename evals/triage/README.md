@@ -58,6 +58,7 @@ Each row: `id` (`n01`–`n28`, `c01`–`c35`), `label`, `why`, `from`, `to`, `cc
 pnpm eval:triage                 # rules only, then the model when one is configured
 pnpm eval:triage --rules-only    # rules only, no model calls
 pnpm eval:triage --summaries     # also the model on summaries only
+pnpm eval:triage --write         # rewrite results.md even when only the rules ran
 ```
 
 "Rules, then the model" is what Steward does: before the model sorts a message, triage reads it
@@ -65,15 +66,17 @@ whole (body, Cc and headers), as each row here gives it. `--summaries` adds a ru
 list's summary carries (a 200-character snippet, no body, no Cc), which is what triage falls back to
 when the whole message can't be read.
 
-The model comes from the environment, first match wins:
+The model comes from the environment, then the file `STEWARD_ENV_FILE` names, then the repository's
+`.env`, as the server reads them; first match wins:
 
 | Variables                                                                      | Endpoint and model                                                            |
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
 | `STEWARD_EVAL_BASE_URL`, `STEWARD_EVAL_MODEL`, optional `STEWARD_EVAL_API_KEY` | Any OpenAI-compatible endpoint, such as Ollama at `http://localhost:11434/v1` |
 | `OPENROUTER_API_KEY`, optional `STEWARD_EVAL_MODEL`                            | OpenRouter, default `anthropic/claude-haiku-5.5`                              |
 
-It prints a table and writes `results.md` beside this file, with every verdict and a Disagreements
-section. Requests use temperature 0 and six at a time. Errors from the endpoint are reported by status
+It prints a table. When a model ran, it also writes `results.md` beside this file, with every
+verdict and a Disagreements section; a rules-only run leaves the committed file alone unless you pass
+`--write`. Requests use temperature 0 and six at a time. Errors from the endpoint are reported by status
 only, never by body, because results files get committed.
 
 ## Rules-only baseline

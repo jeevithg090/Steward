@@ -1,4 +1,6 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
@@ -13,6 +15,7 @@ import {
   summaryTable,
   toTriageEmail,
 } from "../src/eval/dataset.ts";
+import { loadEvalEnv } from "../src/eval/env.ts";
 import {
   createOpenAICompatibleModel,
   DEFAULT_OPENROUTER_EVAL_MODEL,
@@ -204,5 +207,34 @@ describe("the eval's model client", () => {
         OPENROUTER_API_KEY: "or",
       }),
     ).toEqual({ baseUrl: "http://localhost:11434/v1", model: "llama", via: "STEWARD_EVAL_BASE_URL" });
+  });
+});
+
+describe("the eval's settings files", () => {
+  it("reads STEWARD_ENV_FILE, then .env, as the server does; what is set already wins, and blanks count as unset", () => {
+    const root = mkdtempSync(join(tmpdir(), "steward-eval-env-"));
+    try {
+      mkdirSync(join(root, "conf"));
+      writeFileSync(join(root, "conf", "eval.env"), "STEWARD_EVAL_MODEL=from-extra\nOPENROUTER_API_KEY=\n");
+      writeFileSync(
+        join(root, ".env"),
+        "OPENROUTER_API_KEY=test-key-from-dotenv\nSTEWARD_EVAL_MODEL=from-dotenv\n",
+      );
+      const env: Record<string, string | undefined> = {
+        STEWARD_ENV_FILE: "conf/eval.env",
+        STEWARD_EVAL_BASE_URL: " ",
+      };
+      expect(loadEvalEnv(root, env)).toEqual([join(root, "conf", "eval.env"), join(root, ".env")]);
+      expect(env.STEWARD_EVAL_MODEL).toBe("from-extra");
+      expect(env.OPENROUTER_API_KEY).toBe("test-key-from-dotenv");
+      expect(evalModelConfig(env)).toMatchObject({ via: "OPENROUTER_API_KEY", model: "from-extra" });
+
+      const set: Record<string, string | undefined> = { OPENROUTER_API_KEY: "already-set" };
+      loadEvalEnv(root, set);
+      expect(set.OPENROUTER_API_KEY).toBe("already-set");
+      expect(loadEvalEnv(join(root, "conf"), {})).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
