@@ -57,8 +57,13 @@ export interface ChatThreadProps {
   /** The runtime agent the thread talks to, e.g. `steward`. */
   runtimeAgentId: string;
   title?: string;
-  /** Sent once as the person's first message, from `?prompt=`. */
+  /** Sent once as the person's first message: what one of Steward's own pages handed over. */
   initialPrompt?: string;
+  /**
+   * From `?prompt=` in the address, which any site or email can write: it only fills the composer,
+   * with a note to read it first, and is never sent unless the person sends it.
+   */
+  linkedPrompt?: string;
   /** Called once the prompt has been taken, so the page can drop it from the address. */
   onPromptConsumed?: () => void;
 }
@@ -82,7 +87,14 @@ export function ChatThread(props: ChatThreadProps) {
   );
 }
 
-function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPromptConsumed }: ChatThreadProps) {
+function Conversation({
+  threadId,
+  runtimeAgentId,
+  title,
+  initialPrompt,
+  linkedPrompt,
+  onPromptConsumed,
+}: ChatThreadProps) {
   const localAgentId = `thread:${threadId}`;
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: localAgentId, runtimeAgentId, threadId, throttleMs: 40 });
@@ -101,6 +113,8 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
   const [panelOpen, setPanelOpen] = useState(() => storage.get(PANEL_KEY) !== "closed");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pinned, setPinned] = useState(true);
+  // A message from a link waits in the composer, noted, until the person sends something.
+  const [fromLink, setFromLink] = useState(() => linkedPrompt?.trim() || undefined);
   const approvalsRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -217,6 +231,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
       if (!content || !isReady || agent.isRunning) return;
       setRunError(null);
       setPinned(true);
+      setFromLink(undefined);
       agent.addMessage({ id: newId("msg"), role: "user", content });
       void copilotkit.runAgent({ agent });
     },
@@ -234,14 +249,17 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
     void copilotkit.runAgent({ agent });
   }, [agent, copilotkit]);
 
-  // `?prompt=`: sent once, after the history has loaded.
+  // A message a Steward page handed over: sent once, after the history has loaded. A message from
+  // a link is already in the composer; it only leaves the address.
   const promptTaken = useRef(false);
   useEffect(() => {
-    if (!initialPrompt || promptTaken.current || !isReady || load === "loading") return;
+    if (!(initialPrompt || linkedPrompt) || promptTaken.current || !isReady || load === "loading") return;
     promptTaken.current = true;
-    if (firstTimeInTab(`steward.chat.prompt:${threadId}:${initialPrompt}`)) send(initialPrompt);
+    if (initialPrompt && firstTimeInTab(`steward.chat.prompt:${threadId}:${initialPrompt}`)) {
+      send(initialPrompt);
+    }
     onPromptConsumed?.();
-  }, [initialPrompt, isReady, load, threadId, send, onPromptConsumed]);
+  }, [initialPrompt, linkedPrompt, isReady, load, threadId, send, onPromptConsumed]);
 
   const showComputer = useCallback(() => {
     if (globalThis.matchMedia?.(WIDE).matches) {
@@ -436,8 +454,14 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                   </Button>
                 </div>
               ) : null}
+              {fromLink ? (
+                <Notice tone="needs" className="mx-auto mb-2 w-full max-w-3xl">
+                  This message came from a link. Read it before you send it.
+                </Notice>
+              ) : null}
               <Composer
                 className="mx-auto w-full max-w-3xl"
+                initialDraft={fromLink}
                 onSend={send}
                 onStop={stop}
                 running={running}

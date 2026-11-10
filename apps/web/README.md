@@ -85,8 +85,9 @@ The shell imports `StewardCopilotProvider`, `ChatPage` and `ComputerPage` from `
 (PLAN.md §5.1) in one file, `src/app/features.ts`. The chat track imports from the shell: `api` and
 the hooks, `useLiveEvents`, `cn`, the UI kit, the cards and `useAccessibility()`.
 
-A page hands a message to the chat with `/chat?prompt=…` (`chatPromptHref()` in
-`lib/onboarding.ts`); the chat sends it once.
+A page hands a message to the chat with `startChat(navigate, prompt)` (`lib/onboarding.ts`), which
+puts it in router state; the chat sends it once. Another site or an email cannot set router state.
+A `/chat?prompt=…` link only fills the composer, with a note to read it first, and never sends.
 
 ## Design system
 

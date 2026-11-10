@@ -24,6 +24,8 @@ export interface ComposerProps {
   footnote?: string;
   /** The text box, for a caller that moves focus to it. */
   inputRef?: RefObject<HTMLTextAreaElement | null>;
+  /** Text already in the box when it first appears (a message from a link). It is never sent by itself. */
+  initialDraft?: string;
   className?: string;
 }
 
@@ -37,9 +39,10 @@ export function Composer({
   onShowBlocker,
   footnote,
   inputRef,
+  initialDraft,
   className,
 }: ComposerProps) {
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(initialDraft ?? "");
   const [active, setActive] = useState(0);
   const [pickerClosed, setPickerClosed] = useState(false);
   const [voiceNote, setVoiceNote] = useState<string | null>(null);
