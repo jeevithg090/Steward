@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { chmodSync, closeSync, existsSync, mkdirSync, openSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 
@@ -9,7 +9,26 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
  *
  * Every package owns its tables and hands its migrations to `Db.migrate`. Migration ids are global,
  * so prefix them with the package name (`gateway.001_policy`).
+ *
+ * The file holds mail, memory, every conversation and each phone's data key, so it is readable by
+ * this user only: its folder is created `0700` and the file and its `-wal`/`-shm` siblings `0600`.
  */
+
+/** `<package>.<three digits>_<name>`, for example `gateway.001_policy`. */
+export const MIGRATION_ID = /^[a-z][a-z0-9-]*\.\d{3}_[a-z0-9_]+$/;
+
+/**
+ * Takes group and other access off a file or folder that has any, keeping the owner's. A no-op where
+ * modes mean nothing (Windows) or the file is not ours to change.
+ */
+export function keepPrivate(path: string): void {
+  try {
+    const mode = statSync(path).mode & 0o777;
+    if (mode & 0o077) chmodSync(path, mode & 0o700);
+  } catch {
+    // Missing, or not ours: nothing to tighten.
+  }
+}
 
 export interface Migration {
   /** Globally unique and never renamed, e.g. `gateway.001_policy`. */
@@ -31,16 +50,36 @@ export class Db {
 
   constructor(path: string) {
     this.path = path;
-    if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
+    const onDisk = path !== ":memory:" && !path.startsWith("file:");
+    if (onDisk) {
+      mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
+      // Made here, private, before SQLite makes it with the umask's mode; its -wal and -shm files
+      // take the database file's mode.
+      if (!existsSync(path)) closeSync(openSync(path, "a", 0o600));
+    }
     this.db = new DatabaseSync(path);
     this.db.exec("PRAGMA journal_mode = WAL;");
     this.db.exec("PRAGMA foreign_keys = ON;");
     this.db.exec("PRAGMA busy_timeout = 5000;");
     this.db.exec("CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)");
+    // Files an older Steward made readable by everyone.
+    if (onDisk) for (const file of [path, `${path}-wal`, `${path}-shm`]) keepPrivate(file);
   }
 
-  /** Applies each migration once, in the order given, each in its own transaction. */
+  /**
+   * Applies each migration once, in the order given, each in its own transaction. Refuses the whole
+   * list, before applying any, when an id is malformed or appears twice: a second migration under a
+   * used id would otherwise be skipped without a word.
+   */
   migrate(migrations: readonly Migration[]): void {
+    const ids = new Set<string>();
+    for (const m of migrations) {
+      if (!MIGRATION_ID.test(m.id)) {
+        throw new Error(`Migration id "${m.id}" must look like "package.001_name".`);
+      }
+      if (ids.has(m.id)) throw new Error(`Two migrations share the id "${m.id}". Give one the next number.`);
+      ids.add(m.id);
+    }
     for (const m of migrations) {
       const done = this.get<{ id: string }>("SELECT id FROM _migrations WHERE id = ?", [m.id]);
       if (done) continue;
@@ -72,12 +111,27 @@ export class Db {
     return (Array.isArray(params) ? stmt.all(...params) : stmt.all(params)) as T[];
   }
 
-  /** Runs `fn` in a transaction. Nested calls join the outer transaction. */
+  /**
+   * Runs `fn` in a transaction: all of its writes, or none. A nested call runs in a savepoint inside
+   * the outer transaction, so when it throws only its own writes are undone, whether or not the
+   * caller catches the error. `fn` must finish before it returns: an async function would commit at
+   * its first `await`, so one is refused (and its writes so far undone).
+   */
   tx<T>(fn: () => T): T {
     if (this.depth > 0) {
+      const savepoint = `steward_tx_${this.depth}`;
+      this.db.exec(`SAVEPOINT ${savepoint}`);
       this.depth++;
       try {
-        return fn();
+        const out = settled(fn());
+        this.db.exec(`RELEASE ${savepoint}`);
+        return out;
+      } catch (err) {
+        quietly(() => {
+          this.db.exec(`ROLLBACK TO ${savepoint}`);
+          this.db.exec(`RELEASE ${savepoint}`);
+        });
+        throw err;
       } finally {
         this.depth--;
       }
@@ -85,11 +139,12 @@ export class Db {
     this.db.exec("BEGIN IMMEDIATE");
     this.depth = 1;
     try {
-      const out = fn();
+      const out = settled(fn());
       this.db.exec("COMMIT");
       return out;
     } catch (err) {
-      this.db.exec("ROLLBACK");
+      // When SQLite has already rolled back (a full disk, say), the first error is the one to see.
+      quietly(() => this.db.exec("ROLLBACK"));
       throw err;
     } finally {
       this.depth = 0;
@@ -98,6 +153,24 @@ export class Db {
 
   close(): void {
     this.db.close();
+  }
+}
+
+/** Refuses a promise from a transaction's function: its writes after an `await` would escape it. */
+function settled<T>(out: T): T {
+  if (out !== null && typeof out === "object" && typeof (out as { then?: unknown }).then === "function") {
+    // Nobody will wait for it now; its failure must not become an unhandled rejection.
+    (out as unknown as PromiseLike<unknown>).then(undefined, () => {});
+    throw new TypeError("Db.tx takes a function that finishes before it returns, not an async one.");
+  }
+  return out;
+}
+
+function quietly(fn: () => void): void {
+  try {
+    fn();
+  } catch {
+    // Already undone.
   }
 }
 
