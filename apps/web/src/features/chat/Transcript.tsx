@@ -1,9 +1,14 @@
 /**
  * The conversation, as a log a screen reader can follow.
  *
- * The list is a polite live region that announces additions only. A reply still streaming is
- * hidden from assistive technology (a short "Steward is writing" stands in), and when it finishes
- * its text is mounted afresh, so the finished reply is announced once rather than token by token.
+ * A polite live region that announces additions only wraps the list of messages (the region is not
+ * the list itself, so each message stays a list item). It is quiet while the history loads, so
+ * opening a conversation does not read it all out. A reply still streaming is hidden from assistive
+ * technology (a short "Steward is writing" stands in), and when it finishes its text is mounted
+ * afresh, so the finished reply is announced once rather than token by token.
+ *
+ * A hidden "Messages" heading sits over the list, so the cards in it fit the page's outline, and a
+ * reply's own `#` headings start below it rather than adding a second `h1`.
  *
  * Tool calls draw through the renderers registered in `tools.tsx`; when none matches (the registry
  * is still loading), the generic line stands in.
@@ -25,6 +30,7 @@ export function Transcript({
   nested = false,
   label = "Conversation",
   speaker = "Steward",
+  live = true,
 }: {
   messages: readonly Message[];
   /** True while a reply is in progress, so the newest reply is treated as still streaming. */
@@ -38,6 +44,8 @@ export function Transcript({
   label?: string;
   /** Who a screen reader hears speaking the replies: "Codex said: …" inside a handed-on task. */
   speaker?: string;
+  /** False while the history loads: what arrives then is not news, so the log stays quiet. */
+  live?: boolean;
 }) {
   // A handed-on task's own messages are drawn under the call that started it, not in the flow.
   const subRuns = groupSubRuns(messages);
@@ -48,12 +56,11 @@ export function Transcript({
     return undefined;
   })();
 
+  // A reply's `#` sits under the conversation's hidden heading, or under a handed-on task's.
+  const headingsFrom = nested ? 4 : 3;
   const list = (
     <ol
-      {...(nested
-        ? {}
-        : { role: "log", "aria-live": "polite" as const, "aria-relevant": "additions" as const })}
-      aria-label={label}
+      aria-label={nested ? label : undefined}
       className={cn("m-0 flex list-none flex-col gap-4 p-0", nested && "gap-2", className)}
     >
       {own.map((message) => {
@@ -86,7 +93,12 @@ export function Transcript({
           return (
             <li key={message.id} className="flex min-w-0 flex-col gap-1">
               {content.trim() ? (
-                <AssistantText content={content} streaming={streaming} speaker={speaker} />
+                <AssistantText
+                  content={content}
+                  streaming={streaming}
+                  speaker={speaker}
+                  headingsFrom={headingsFrom}
+                />
               ) : null}
               {calls.map((call) => (
                 <ToolCallView key={call.id} call={call} result={results.get(call.id)} />
@@ -98,7 +110,21 @@ export function Transcript({
       })}
     </ol>
   );
-  return nested ? list : <SubRunsContext.Provider value={subRuns}>{list}</SubRunsContext.Provider>;
+  if (nested) return list;
+  return (
+    <SubRunsContext.Provider value={subRuns}>
+      {own.length > 0 ? <h2 className="sr-only">Messages</h2> : null}
+      <div
+        role="log"
+        aria-live={live ? "polite" : "off"}
+        aria-relevant="additions"
+        aria-busy={live ? undefined : true}
+        aria-label={label}
+      >
+        {list}
+      </div>
+    </SubRunsContext.Provider>
+  );
 }
 
 /**
@@ -109,10 +135,12 @@ function AssistantText({
   content,
   streaming,
   speaker,
+  headingsFrom,
 }: {
   content: string;
   streaming: boolean;
   speaker: string;
+  headingsFrom: 3 | 4;
 }) {
   return (
     <div className="max-w-[44rem]">
@@ -121,12 +149,14 @@ function AssistantText({
         <>
           <span className="sr-only">{speaker} is writing…</span>
           <div key="streaming" aria-hidden="true">
-            <Markdown streaming>{content}</Markdown>
+            <Markdown streaming headingsFrom={headingsFrom}>
+              {content}
+            </Markdown>
           </div>
         </>
       ) : (
         <div key="done">
-          <Markdown>{content}</Markdown>
+          <Markdown headingsFrom={headingsFrom}>{content}</Markdown>
         </div>
       )}
     </div>

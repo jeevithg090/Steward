@@ -595,7 +595,12 @@ export function BriefToolCard(tool: ToolProps) {
 
   return (
     <div className="my-2 max-w-2xl">
-      <BriefCard brief={brief} headingLevel={3} onStart={state.chat ? onStart : undefined} />
+      <BriefCard
+        brief={brief}
+        headingLevel={3}
+        landmarks={false}
+        onStart={state.chat ? onStart : undefined}
+      />
       {problem ? (
         <p role="alert" className="m-0 mt-2 text-problem text-sub">
           Couldn't start that task. {problem}

@@ -193,6 +193,19 @@ describe("ChatThread", () => {
     expect(screen.getByRole("log", { name: "Conversation" })).toBeTruthy();
   });
 
+  it("keeps the log quiet while the history replays, and live once it has", async () => {
+    let finish = () => {};
+    kit.copilotkit.connectAgent.mockImplementation(
+      () => new Promise((resolve) => (finish = () => resolve({ newMessages: [] }))),
+    );
+    kit.state.messages = [{ id: "old", role: "assistant", content: "An old reply." }];
+    draw();
+    const log = screen.getByRole("log", { name: "Conversation" });
+    expect(log.getAttribute("aria-live")).toBe("off");
+    await act(async () => finish());
+    expect(log.getAttribute("aria-live")).toBe("polite");
+  });
+
   it("never greets the person by a name", async () => {
     draw();
     const heading = await screen.findByRole("heading", { name: /What can Steward do for you\?/ });

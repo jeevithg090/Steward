@@ -15,6 +15,11 @@ export interface BriefCardProps {
   onStart?: (item: TriageItem) => void;
   /** Level of the brief's own heading; its sections sit one below. */
   headingLevel?: 2 | 3;
+  /**
+   * False where the brief is one item among many, such as a reply in a conversation: its parts keep
+   * their headings but are not page regions, so two briefs never give two "Needs you" regions.
+   */
+  landmarks?: boolean;
   timeZone?: string;
   className?: string;
 }
@@ -34,7 +39,14 @@ function briefDay(date: string): string {
  * The morning brief: what needs you (each with Start), what can wait (folded into one row), today's
  * calendar, and what Steward could not check. Honest by construction: if a source failed, it says so.
  */
-export function BriefCard({ brief, onStart, headingLevel = 2, timeZone, className }: BriefCardProps) {
+export function BriefCard({
+  brief,
+  onStart,
+  headingLevel = 2,
+  landmarks = true,
+  timeZone,
+  className,
+}: BriefCardProps) {
   const titleId = useId();
   const Heading = `h${headingLevel}` as const;
   const nothing =
@@ -44,7 +56,11 @@ export function BriefCard({ brief, onStart, headingLevel = 2, timeZone, classNam
     brief.couldNotCheck.length === 0;
 
   return (
-    <Card as="section" aria-labelledby={titleId} className={cn("flex flex-col gap-5", className)}>
+    <Card
+      as={landmarks ? "section" : "div"}
+      aria-labelledby={landmarks ? titleId : undefined}
+      className={cn("flex flex-col gap-5", className)}
+    >
       <header>
         <p className="text-caption text-ink-2">{briefDay(brief.date)}</p>
         <Heading id={titleId} className="mt-0.5 font-semibold text-title text-ink">
@@ -57,7 +73,13 @@ export function BriefCard({ brief, onStart, headingLevel = 2, timeZone, classNam
         <p className="text-ink-2 text-sub">Nothing new needs you, and nothing is on your calendar today.</p>
       ) : (
         <>
-          <Section title="Needs you" icon={<Hand />} count={brief.needsYou.length} level={headingLevel + 1}>
+          <Section
+            title="Needs you"
+            icon={<Hand />}
+            count={brief.needsYou.length}
+            level={headingLevel + 1}
+            landmark={landmarks}
+          >
             {brief.needsYou.length === 0 ? (
               <p className="text-ink-2 text-sub">Nothing in your mail needs you right now.</p>
             ) : (
@@ -68,14 +90,21 @@ export function BriefCard({ brief, onStart, headingLevel = 2, timeZone, classNam
             )}
           </Section>
 
-          {brief.canWait.length > 0 ? <CanWait items={brief.canWait} level={headingLevel + 1} /> : null}
+          {brief.canWait.length > 0 ? (
+            <CanWait items={brief.canWait} level={headingLevel + 1} landmark={landmarks} />
+          ) : null}
 
-          <Section title="Today" icon={<Calendar />} level={headingLevel + 1}>
+          <Section title="Today" icon={<Calendar />} level={headingLevel + 1} landmark={landmarks}>
             <CalendarDay events={brief.calendar} timeZone={timeZone} />
           </Section>
 
           {brief.couldNotCheck.length > 0 ? (
-            <Section title="Couldn't check" icon={<TriangleAlert />} level={headingLevel + 1}>
+            <Section
+              title="Couldn't check"
+              icon={<TriangleAlert />}
+              level={headingLevel + 1}
+              landmark={landmarks}
+            >
               <ul className="flex flex-col gap-2">
                 {brief.couldNotCheck.map((line) => {
                   const i = line.indexOf(":");
@@ -102,18 +131,22 @@ function Section({
   icon,
   count,
   level,
+  landmark,
   children,
 }: {
   title: string;
   icon: ReactNode;
   count?: number;
   level: number;
+  /** A labelled region of the page, or only a heading over its rows. */
+  landmark: boolean;
   children: ReactNode;
 }) {
   const id = useId();
   const Heading = `h${Math.min(level, 6)}` as "h3" | "h4";
+  const Wrapper = landmark ? "section" : "div";
   return (
-    <section aria-labelledby={id} className="flex flex-col gap-2">
+    <Wrapper aria-labelledby={landmark ? id : undefined} className="flex flex-col gap-2">
       <Heading id={id} className="flex items-center gap-2 font-semibold text-ink text-sub">
         <span aria-hidden="true" className="text-ink-2 [&_svg]:size-4">
           {icon}
@@ -127,7 +160,7 @@ function Section({
         ) : null}
       </Heading>
       {children}
-    </section>
+    </Wrapper>
   );
 }
 
@@ -189,12 +222,12 @@ function NeedsYouRow({ item, onStart }: { item: TriageItem; onStart?: (item: Tri
   );
 }
 
-function CanWait({ items, level }: { items: TriageItem[]; level: number }) {
+function CanWait({ items, level, landmark }: { items: TriageItem[]; level: number; landmark: boolean }) {
   const [open, setOpen] = useState(false);
   const listId = useId();
   const senders = listNames(items.map(senderOf));
   return (
-    <Section title="Can wait" icon={<Clock />} count={items.length} level={level}>
+    <Section title="Can wait" icon={<Clock />} count={items.length} level={level} landmark={landmark}>
       <button
         type="button"
         aria-expanded={open}

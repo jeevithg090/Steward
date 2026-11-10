@@ -490,7 +490,12 @@ function Conversation({
                   </p>
                 ) : null}
 
-                <Transcript messages={messages} running={running} speaker={agentName} />
+                <Transcript
+                  messages={messages}
+                  running={running}
+                  speaker={agentName}
+                  live={load !== "loading"}
+                />
 
                 <div ref={approvalsRef} tabIndex={-1} className="flex flex-col gap-3 outline-none">
                   {isReady ? (
