@@ -298,6 +298,16 @@ describe("executing", () => {
     ).rejects.toThrow(/ends before it starts/);
   });
 
+  it("says that the people on a new event were not emailed", async () => {
+    const made = await run("calendar_create", {
+      title: "Sync",
+      start: "2026-10-28T10:00:00Z",
+      end: "2026-10-28T10:30:00Z",
+      attendees: ["kim@example.com"],
+    });
+    expect(made).toMatchObject({ title: "Sync", attendees: [{ email: "kim@example.com" }], notified: false });
+  });
+
   it("keeps memory, tasks and routines", async () => {
     expect(await run("memory_remember", { text: "Likes tea" })).toMatchObject({
       text: "Likes tea",

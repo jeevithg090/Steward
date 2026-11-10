@@ -129,8 +129,9 @@ What the client does:
 - `sendEmail` builds RFC 2822 itself: RFC 2047 encoded words for non-ASCII, base64 bodies, and no line
   breaks allowed in any header (that is how header injection starts). A reply (`inReplyTo` as a
   message id) joins the original thread with `In-Reply-To` and `References`.
-- `createEvent` adds events with `sendUpdates=none`, so adding an event never emails anyone. Inviting
-  people is a send, and sends go through their own approval.
+- `createEvent` adds events with `sendUpdates=none`, so adding an event never emails anyone, not even
+  the people on it. Steward has no tool that sends invitations; `calendar_create` tells the model
+  `notified: false` so it does not claim it invited anyone.
 - Timed events come back as UTC ISO strings; all-day events as `YYYY-MM-DD` with an exclusive end.
 - Times sent to Calendar must be ISO 8601. A time with no offset (`2026-07-10T14:00`) is read as that
   wall-clock time in `timeZone()`, the person's zone from Settings, never the server's. Without
