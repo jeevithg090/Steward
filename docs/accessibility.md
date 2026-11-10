@@ -64,10 +64,12 @@ status has a word and an icon beside its colour.
 
 ### Hearing and speaking
 
+Settings → Accessibility, and the welcome, choose the voice that reads aloud, from this device's own
+voices, and its speed: slower, normal or faster. **Hear a sample** plays one. Both are saved in this
+browser.
+
 - **Read aloud.** Steward can read its replies aloud with the browser's own speech synthesis.
-  Nothing leaves your device for this. A Stop button silences it. Settings and the welcome let you
-  choose the voice, from the ones this device has, and the speed (slower, normal or faster), and
-  play a sample. Both are kept in this browser.
+  Nothing leaves your device for this. A Stop button silences it.
 - **Dictation.** The microphone button in the composer takes your message by voice, with the
   browser's speech recognition. Some browsers, Chrome among them, send the audio to their own
   speech service to recognise it; the composer says so beside the button. Where a browser has no
