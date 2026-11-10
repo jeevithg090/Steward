@@ -13,15 +13,15 @@ export function hasFinishedWelcome(): boolean {
   return finishedThisVisit || storage.get(WELCOME_STORAGE_KEY) === "done";
 }
 
-export function finishWelcome(): void {
-  finishedThisVisit = true;
-  storage.set(WELCOME_STORAGE_KEY, "done");
-}
-
 /** Forgets the welcome was seen, so the next visit to Today starts it again. */
 export function forgetWelcome(): void {
   finishedThisVisit = false;
   storage.remove(WELCOME_STORAGE_KEY);
+}
+
+export function finishWelcome(): void {
+  finishedThisVisit = true;
+  storage.set(WELCOME_STORAGE_KEY, "done");
 }
 
 /** Where a starter or "Start" hands a message to the chat. The chat sends it once and clears it. */
