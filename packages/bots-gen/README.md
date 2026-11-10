@@ -66,8 +66,11 @@ pnpm --filter @steward/bots-gen seed dedupe [--confirm]                # near-tw
 pnpm --filter @steward/bots-gen seed retire [--now 2027-02-01] [--apply] [--regenerate]
 pnpm --filter @steward/bots-gen seed build [--site https://…]   # directory/index.json and directory/packs/<id>.json
 pnpm --filter @steward/bots-gen seed report [--write]           # counts by category and author; problems; what was dropped and why
-pnpm biome check --write directory                             # biome formats the written Markdown and JSON; content and hashes are unchanged
 ```
+
+`build` keeps each unchanged bot's `updatedAt` from the last build (its content hash decides, not
+file times), removes packs whose folder is gone or now fails, and writes nothing when nothing
+changed. Biome leaves `directory/bots`, `directory/packs` and `directory/index.json` alone.
 
 `STEWARD_SEED_JUDGE_MODEL` puts the judge (and the duplicate check's one-word question) on another
 model at the same endpoint. On NVIDIA's hosted API on 28 Oct 2026, Nemotron 3 Ultra writing took

@@ -1,5 +1,5 @@
 import { existsSync, statSync } from "node:fs";
-import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CelEngine, CONTEXT_SCHEMA, neutralContext } from "@steward/gateway";
@@ -315,6 +315,8 @@ export interface BuildIndexOptions {
   name?: string;
   /** The directory's web site, for `pageUrl` links: `<site>/bots/<id>`. */
   site?: string;
+  /** The clock, for `updatedAt` on bots that changed. Tests pass a fixed one. */
+  now?: () => Date;
 }
 
 async function readCategories(root: string): Promise<Record<string, string>> {
@@ -355,8 +357,8 @@ async function readCounts(root: string): Promise<z.infer<typeof CountsSchema>> {
   return checked.data;
 }
 
-/** The newest change in a folder, for `updatedAt`. */
-async function latestMtime(dir: string): Promise<string> {
+/** The newest change in a folder, in milliseconds; 0 when it has no files. */
+async function latestMtime(dir: string): Promise<number> {
   let latest = 0;
   const walk = async (path: string): Promise<void> => {
     const entries = await readdir(path, { withFileTypes: true });
@@ -367,14 +369,59 @@ async function latestMtime(dir: string): Promise<string> {
     }
   };
   await walk(dir);
-  return new Date(latest || Date.now()).toISOString();
+  return latest;
+}
+
+async function readText(path: string): Promise<string | undefined> {
+  try {
+    return await readFile(path, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+/** The last build's index, for each bot's `updatedAt`; undefined when there is none or it is broken. */
+function previousIndex(text: string | undefined): DirectoryIndex | undefined {
+  if (!text) return undefined;
+  try {
+    const checked = DirectoryIndexSchema.safeParse(JSON.parse(text));
+    return checked.success ? (checked.data as DirectoryIndex) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** The hash the built pack carried, read from its JSON text. */
+function hashIn(text: string | undefined): string | undefined {
+  if (!text) return undefined;
+  try {
+    const hash = (JSON.parse(text) as { hash?: unknown }).hash;
+    return typeof hash === "string" ? hash : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Midnight UTC of an AI-made bot's `generated` date, or undefined when it cannot be read. */
+function generatedAt(pack: BotPack): number | undefined {
+  if (pack.author.kind !== "ai") return undefined;
+  const value = pack.author.generated.trim();
+  const t = Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value);
+  return Number.isFinite(t) ? t : undefined;
 }
 
 /**
  * Reads every `<dir>/bots/<id>/` folder, validates it against the built-in tool catalogue and the
  * gateway's rule check, and writes `<dir>/packs/<id>.json` (with its hash) and `<dir>/index.json`.
  * A folder that fails is skipped with a warning naming the problem, so one bad pack never takes
- * the directory down. Install and use counts come from `<dir>/counts.json` when there is one.
+ * the directory down, and its old `packs/<id>.json` is removed, as is any pack whose folder is
+ * gone. Install and use counts come from `<dir>/counts.json` when there is one.
+ *
+ * `updatedAt` is when the bot's content last changed, not when its files were touched: a bot whose
+ * hash matches the last build keeps that build's date, so a fresh clone or a reformat changes
+ * nothing. A bot that changed gets the time of this build. A bot the last build did not list gets
+ * its `generated` date when it is AI-made, otherwise its files' modified time. Nothing changed
+ * means nothing is written, so a rebuild with no changes leaves the folder as it was.
  */
 export async function buildIndex(dir: string, opts: BuildIndexOptions = {}): Promise<DirectoryIndex> {
   const root = resolve(dir);
@@ -391,6 +438,11 @@ export async function buildIndex(dir: string, opts: BuildIndexOptions = {}): Pro
       : [];
   await mkdir(join(root, "packs"), { recursive: true });
   const site = opts.site?.replace(/\/+$/, "");
+  const now = (opts.now ?? (() => new Date()))();
+  const indexPath = join(root, "index.json");
+  const oldIndex = await readText(indexPath);
+  const previous = previousIndex(oldIndex);
+  const before = new Map((previous?.bots ?? []).map((listing) => [listing.id, listing.updatedAt]));
 
   const bots: BotListing[] = [];
   for (const folder of folders) {
@@ -416,7 +468,18 @@ export async function buildIndex(dir: string, opts: BuildIndexOptions = {}): Pro
       continue;
     }
     const pack: BotPack = { ...result.pack, hash: hashPack(result.pack) };
-    await writeFile(join(root, "packs", `${pack.id}.json`), `${JSON.stringify(pack, null, 2)}\n`, "utf8");
+    const packPath = join(root, "packs", `${pack.id}.json`);
+    const text = `${JSON.stringify(pack, null, 2)}\n`;
+    const old = await readText(packPath);
+    if (old !== text) await writeFile(packPath, text, "utf8");
+    const listed = before.get(pack.id);
+    let updatedAt: string;
+    if (listed !== undefined && hashIn(old) === pack.hash) updatedAt = listed;
+    else if (listed !== undefined) updatedAt = now.toISOString();
+    else {
+      const first = generatedAt(pack) ?? (await latestMtime(join(botsDir, folder)));
+      updatedAt = new Date(first > 0 && first < now.getTime() ? first : now.getTime()).toISOString();
+    }
     const count = counts[pack.id];
     bots.push({
       id: pack.id,
@@ -428,19 +491,33 @@ export async function buildIndex(dir: string, opts: BuildIndexOptions = {}): Pro
       needs: pack.needs,
       installs: count?.installs ?? 0,
       usedBy: count?.usedBy ?? 0,
-      updatedAt: await latestMtime(join(botsDir, folder)),
+      updatedAt,
       packUrl: `packs/${pack.id}.json`,
       ...(site ? { pageUrl: `${site}/bots/${pack.id}` } : {}),
     });
   }
 
+  // A pack whose folder is gone, or no longer passes, must not stay installable by its URL.
+  const listedIds = new Set(bots.map((b) => b.id));
+  for (const file of await readdir(join(root, "packs"))) {
+    if (!file.endsWith(".json") || listedIds.has(file.slice(0, -".json".length))) continue;
+    await rm(join(root, "packs", file), { force: true });
+    console.warn(`packs/${file}: removed: no bot folder passes for it`);
+  }
+
   const index: DirectoryIndex = {
     name: opts.name ?? "Steward bots",
     ...(site ? { site } : {}),
-    generatedAt: new Date().toISOString(),
+    generatedAt: now.toISOString(),
     categories,
     bots,
   };
-  await writeFile(join(root, "index.json"), `${JSON.stringify(index, null, 2)}\n`, "utf8");
+  const render = (value: DirectoryIndex) => `${JSON.stringify(value, null, 2)}\n`;
+  // The same listings as last time keep the last build's date, so the file does not change.
+  if (previous && render({ ...index, generatedAt: previous.generatedAt }) === oldIndex) {
+    index.generatedAt = previous.generatedAt;
+  }
+  const indexText = render(index);
+  if (indexText !== oldIndex) await writeFile(indexPath, indexText, "utf8");
   return index;
 }

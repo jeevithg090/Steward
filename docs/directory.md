@@ -48,7 +48,8 @@ STEWARD_DIRECTORY_URL=http://127.0.0.1:8790/index.json
 ```
 
 `directory/index.json` must exist. The repository ships it built; after changing `directory/bots`,
-run `pnpm --filter @steward/bots-gen seed build`.
+run `pnpm --filter @steward/bots-gen seed build`. A bot's date (the "newest" order and the feed) is
+when its content last changed, so a rebuild of an unchanged folder changes nothing.
 
 ### With Docker
 
