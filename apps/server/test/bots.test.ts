@@ -682,10 +682,24 @@ describe.runIf(missing.length === 0 && botRulesSupported)(
       const v1: BotPack = {
         ...RENT_SCOUT,
         version: 1,
+        needs: { ...RENT_SCOUT.needs, tools: ["browser_snapshot", "web_search", "show_table"] },
         skills: [{ ...RENT_SCOUT.skills[0]!, body: "The old way: search one site only." }],
       };
       const first = await t.api<InstalledBot>("/api/bots/install", { method: "POST", json: { pack: v1 } });
       expect(first.status).toBe(201);
+
+      // Before it is applied, the update says what it changes.
+      const preview = await t.api<BotPreview>("/api/bots/preview", {
+        method: "POST",
+        json: { packUrl: "packs/rent-scout.json" },
+      });
+      expect(preview.body.alreadyInstalled?.version).toBe(1);
+      expect(preview.body.changes).toEqual([
+        "New: it may browse the web on its own computer without asking.",
+        "Changes what /find-rentals does.",
+      ]);
+      const same = await t.api<BotPreview>("/api/bots/preview", { method: "POST", json: { pack: v1 } });
+      expect(same.body.changes).toBeUndefined();
       const listed = (await t.api<InstalledBot[]>("/api/bots/installed")).body.find(
         (b) => b.id === "rent-scout",
       );

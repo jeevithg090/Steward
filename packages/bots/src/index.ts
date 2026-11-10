@@ -5,6 +5,7 @@
  */
 export { type ZipEntry, zipEntries, zipPack } from "./archive.ts";
 export { canonicalPack, hashPack } from "./canonical.ts";
+export { type DiffOptions, diffPacks } from "./diff.ts";
 export {
   BotListingSchema,
   type BotsQueryValue,

@@ -1,4 +1,4 @@
-import type { AppInfo } from "@steward/shared";
+import type { AppInfo, BotPreview } from "@steward/shared";
 import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { Route, Routes, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -41,6 +41,8 @@ function serve(
     installed?: ReturnType<typeof installedOf>[];
     previewStatus?: number;
     mailConnected?: boolean;
+    /** The preview to answer with, in place of the fixture's. */
+    preview?: BotPreview;
   } = {},
 ) {
   return mockFetch((req: FakeRequest) => {
@@ -64,6 +66,7 @@ function serve(
         return { status: opts.previewStatus, body: { error: "Couldn't fetch that pack." } };
       const body = req.body as { packUrl?: string; pack?: { id: string } };
       const id = body.pack?.id ?? body.packUrl?.match(/([a-z-]+)\.json$/)?.[1];
+      if (opts.preview) return { body: opts.preview };
       const pack = id === INVOICE_CHASER.id ? INVOICE_CHASER : RENT_SCOUT;
       return { body: previewOf(pack, { needsMissing: ["mail"] }) };
     }
@@ -149,6 +152,38 @@ describe("BotsPage", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
     await waitFor(() => expect(calls.some((c) => c.method === "DELETE")).toBe(true));
     expect(calls.find((c) => c.method === "DELETE")?.path).toBe("/api/bots/installed/rent-scout");
+  });
+
+  it("reads an update before applying it: what changes, then Update installs the pack shown", async () => {
+    const v4 = { ...RENT_SCOUT, version: 4, hash: "c".repeat(64) };
+    const mine = installedOf(RENT_SCOUT, {
+      updateAvailable: { version: 4, packUrl: "packs/rent-scout.json" },
+    });
+    const { calls } = serve({
+      installed: [mine],
+      preview: previewOf(v4, {
+        alreadyInstalled: mine,
+        changes: [
+          "New: it may read your mail without asking.",
+          "Adds the rule “Ask before booking” (it asks first).",
+        ],
+      }),
+    });
+    renderWithProviders(<BotsPage />, { route: "/bots" });
+    const region = await screen.findByRole("region", { name: "Installed" });
+    fireEvent.click(within(region).getByRole("button", { name: "Update Rent Scout" }));
+    const dialog = await screen.findByRole("dialog", { name: "Update Rent Scout" });
+    const changes = await within(dialog).findByRole("region", { name: "What changes in version 4" });
+    expect(within(changes).getByText("New: it may read your mail without asking.")).toBeTruthy();
+    expect(within(changes).getByText(/Compared with version 3, which you have now/)).toBeTruthy();
+    // Nothing was applied by opening it.
+    expect(calls.some((c) => c.path === "/api/bots/install" || c.path.endsWith("/update"))).toBe(false);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Update to version 4" }));
+    await waitFor(() => expect(calls.some((c) => c.path === "/api/bots/install")).toBe(true));
+    expect(calls.find((c) => c.path === "/api/bots/install")?.body).toEqual({
+      packUrl: "packs/rent-scout.json",
+    });
+    expect(calls.some((c) => c.path.endsWith("/update"))).toBe(false);
   });
 
   it("names where an installed bot came from without showing a path on this machine", async () => {
@@ -253,6 +288,22 @@ describe("BotAddPage", () => {
     expect(screen.getByText("This bot comes from a file on this computer.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Add to Steward" }));
     await waitFor(() => expect(screen.getByTestId("where").textContent).toBe("/chat?agent=rent-scout"));
+  });
+
+  it("never offers Update for a pack older than the one the directory has", async () => {
+    const v2 = { ...RENT_SCOUT, version: 2, hash: "d".repeat(64) };
+    const mine = installedOf(RENT_SCOUT, {
+      updateAvailable: { version: 4, packUrl: "packs/rent-scout.json" },
+    });
+    serve({ installed: [mine], preview: previewOf(v2, { alreadyInstalled: mine }) });
+    draw("https://elsewhere.example/rent-scout.json");
+    expect(await screen.findByRole("heading", { level: 1, name: "Rent Scout" })).toBeTruthy();
+    expect(await screen.findByText("Installed")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^Update/ })).toBeNull();
+    expect(screen.getByText(/Version 4 is in the directory/)).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Read what changes" }).getAttribute("href")).toBe(
+      "/bots/rent-scout",
+    );
   });
 
   it("names the host of an https pack", async () => {

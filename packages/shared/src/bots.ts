@@ -196,6 +196,12 @@ export interface BotPreview {
   /** Tools the pack names that this Steward does not have. */
   toolsMissing: string[];
   alreadyInstalled?: InstalledBot;
+  /**
+   * When this pack would update the installed bot: what changes, in plain words, widening changes
+   * first. Empty when only the version moves. Absent when the bot is not installed, or this pack
+   * would not replace it.
+   */
+  changes?: string[];
   /** What validation noticed. An `error` here means Add is refused; a `warn` is shown. */
   problems?: BotProblem[];
 }

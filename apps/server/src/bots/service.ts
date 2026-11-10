@@ -1,6 +1,7 @@
 import {
   type DirectoryClient,
   describeMayDo,
+  diffPacks,
   hashPack,
   type PackProblem,
   scopeToBot,
@@ -241,6 +242,9 @@ export class BotService {
       else if (decision?.effect === "ask") asks.push(tool);
     }
     const installed = this.deps.store.get(pack.id);
+    // An update is read before it is applied: what this pack changes from the installed one.
+    const replaces =
+      installed !== undefined && pack.version >= installed.version && hashPack(pack) !== installed.hash;
     return {
       pack,
       mayDoWithoutAsking: describeMayDo(allowed),
@@ -252,6 +256,9 @@ export class BotService {
       needsMissing: dedupe(pack.needs.connectors).filter((c) => !present.has(c)),
       toolsMissing: dedupe(pack.needs.tools).filter((t) => !known.has(t)),
       ...(installed ? { alreadyInstalled: toInstalledBot(installed) } : {}),
+      ...(installed && replaces
+        ? { changes: diffPacks(installed.pack, pack, { runsWithoutAsking: new Set(allowed) }) }
+        : {}),
     };
   }
 

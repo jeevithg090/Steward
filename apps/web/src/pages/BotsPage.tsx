@@ -16,14 +16,7 @@ import { ChoiceGroup, Field, Input, Select } from "@/components/ui/Field.tsx";
 import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
 import { Page } from "@/components/ui/PageHeader.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
-import {
-  type BotsQueryInput,
-  useBots,
-  useInfo,
-  useInstalledBots,
-  useRemoveBot,
-  useUpdateBot,
-} from "@/lib/api.ts";
+import { type BotsQueryInput, useBots, useInfo, useInstalledBots, useRemoveBot } from "@/lib/api.ts";
 import { plural } from "@/lib/utils.ts";
 
 /**
@@ -209,7 +202,13 @@ export function BotsPage() {
         size="lg"
       >
         {opened ? (
-          <ListingDialogBody key={opened.id} listing={opened} onDone={() => setOpened(undefined)} />
+          <ListingDialogBody
+            key={opened.id}
+            packUrl={opened.packUrl}
+            name={opened.name}
+            listing={opened}
+            onDone={() => setOpened(undefined)}
+          />
         ) : null}
       </Dialog>
 
@@ -319,8 +318,8 @@ function InstalledSection({ bots }: { bots: InstalledBot[] }) {
 
 function InstalledRow({ bot }: { bot: InstalledBot }) {
   const remove = useRemoveBot();
-  const update = useUpdateBot();
   const [confirming, setConfirming] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const newer = bot.updateAvailable;
   return (
     <Card
@@ -355,15 +354,8 @@ function InstalledRow({ bot }: { bot: InstalledBot }) {
             variant="primary"
             size="sm"
             icon={<RefreshCw />}
-            loading={update.isPending}
             aria-label={`Update ${bot.name}`}
-            onClick={() =>
-              update.mutate(bot.id, {
-                onSuccess: (row) =>
-                  toast.success("Bot updated", { description: `${row.name} is now version ${row.version}.` }),
-                onError: (error) => toast.error("Couldn't update it", { description: error.message }),
-              })
-            }
+            onClick={() => setUpdating(true)}
           >
             Update
           </Button>
@@ -378,6 +370,19 @@ function InstalledRow({ bot }: { bot: InstalledBot }) {
           Remove
         </Button>
       </div>
+      {newer ? (
+        <Dialog
+          open={updating}
+          onOpenChange={setUpdating}
+          title={`Update ${bot.name}`}
+          description={`Version ${newer.version}. Read what changes before you update.`}
+          size="lg"
+        >
+          {updating ? (
+            <ListingDialogBody packUrl={newer.packUrl} name={bot.name} onDone={() => setUpdating(false)} />
+          ) : null}
+        </Dialog>
+      ) : null}
       <Dialog
         open={confirming}
         onOpenChange={setConfirming}
@@ -421,19 +426,32 @@ function sourceHost(source: string): string {
   return "the directory on this computer";
 }
 
-/** The listing inside the Add dialog: preview fetched on open, Add at the bottom. */
-function ListingDialogBody({ listing, onDone }: { listing: BotListing; onDone: () => void }) {
-  const preview = useListingPreview({ packUrl: listing.packUrl });
+/**
+ * A listing inside a dialog: the preview is fetched on open, the actions sit at the bottom. The
+ * same body serves Add and Update, so an update is read (with what changes) before it applies.
+ */
+function ListingDialogBody({
+  packUrl,
+  name,
+  listing,
+  onDone,
+}: {
+  packUrl: string;
+  name: string;
+  listing?: BotListing;
+  onDone: () => void;
+}) {
+  const preview = useListingPreview({ packUrl });
   const pack = preview.data?.pack;
   if (!pack) {
     return preview.isError ? (
       <ErrorNotice
         title="Couldn't load this bot"
         error={preview.error}
-        onRetry={() => preview.mutate({ packUrl: listing.packUrl })}
+        onRetry={() => preview.mutate({ packUrl })}
       />
     ) : (
-      <Loading>Loading {listing.name}…</Loading>
+      <Loading>Loading {name}…</Loading>
     );
   }
   return (
@@ -442,8 +460,9 @@ function ListingDialogBody({ listing, onDone }: { listing: BotListing; onDone: (
       <div className="border-hair border-t pt-4">
         <BotActions
           pack={pack}
-          source={{ packUrl: listing.packUrl }}
+          source={{ packUrl }}
           installed={preview.data?.alreadyInstalled}
+          onUpdated={onDone}
           onCancel={onDone}
         />
       </div>
