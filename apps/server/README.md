@@ -93,6 +93,10 @@ flight is refused (409); a due routine waits for its thread to be free. A new tu
 (409) while the thread's last run still waits for an answer, since the answer would then land after
 it: a due routine records that firing as skipped (`refused`). Resume runs always go through.
 
+Routines that are due together take turns: one agent's routines run one after another, since they
+share its browser page, and at most three run at once (`ROUTINE_QUEUE` in `workers/workers.ts`). A
+run holds its agent's turn until it ends, or for 15 minutes at most.
+
 A browser that missed one of these runs sends a stale history with its next message. The runner puts
 the stored turns back first, so the model sees them and the stored snapshot never loses them.
 

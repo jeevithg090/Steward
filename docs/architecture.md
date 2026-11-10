@@ -89,6 +89,9 @@ Background workers in the server:
 | Approvals    | 60 s      | Expires approvals past their deadline.                  |
 | Resume sweep | on answer | Resumes answered approvals no browser has resumed.      |
 
+One agent's routines run one at a time, since they share its browser, and at most three routines
+run at once.
+
 ## Live updates
 
 - **`GET /api/events`** is a Server-Sent Events stream of `LiveEvent`s: approvals created and
