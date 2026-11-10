@@ -31,8 +31,32 @@ function briefDay(date: string): string {
 }
 
 /**
+ * Whether the brief read this source at all. The brief writes "Mail: not connected" or "Mail:
+ * couldn't be read just now" when it did not; then an empty list proves nothing.
+ */
+function unread(brief: Brief, source: "Mail" | "Calendar"): "not connected" | "failed" | undefined {
+  for (const line of brief.couldNotCheck) {
+    if (line.startsWith(`${source}: not connected`)) return "not connected";
+    if (line.startsWith(`${source}: couldn't be read`)) return "failed";
+  }
+  return undefined;
+}
+
+const EMPTY_TEXT = {
+  Mail: {
+    "not connected": "Mail isn't connected, so nothing was sorted.",
+    failed: "Your mail couldn't be read, so this may be missing something.",
+  },
+  Calendar: {
+    "not connected": "Your calendar isn't connected.",
+    failed: "Your calendar couldn't be read, so this may be missing something.",
+  },
+} as const;
+
+/**
  * The morning brief: what needs you (each with Start), what can wait (folded into one row), today's
- * calendar, and what Steward could not check. Honest by construction: if a source failed, it says so.
+ * calendar, and what Steward could not check. Honest by construction: if a source failed, it says so,
+ * and an empty section never claims "nothing" for a source that was not read.
  */
 export function BriefCard({ brief, onStart, headingLevel = 2, timeZone, className }: BriefCardProps) {
   const titleId = useId();
@@ -42,6 +66,8 @@ export function BriefCard({ brief, onStart, headingLevel = 2, timeZone, classNam
     brief.canWait.length === 0 &&
     brief.calendar.length === 0 &&
     brief.couldNotCheck.length === 0;
+  const mailUnread = unread(brief, "Mail");
+  const calendarUnread = unread(brief, "Calendar");
 
   return (
     <Card as="section" aria-labelledby={titleId} className={cn("flex flex-col gap-5", className)}>
@@ -59,7 +85,9 @@ export function BriefCard({ brief, onStart, headingLevel = 2, timeZone, classNam
         <>
           <Section title="Needs you" icon={<Hand />} count={brief.needsYou.length} level={headingLevel + 1}>
             {brief.needsYou.length === 0 ? (
-              <p className="text-ink-2 text-sub">Nothing in your mail needs you right now.</p>
+              <p className="text-ink-2 text-sub">
+                {mailUnread ? EMPTY_TEXT.Mail[mailUnread] : "Nothing in your mail needs you right now."}
+              </p>
             ) : (
               <Rows
                 items={brief.needsYou}
@@ -71,7 +99,11 @@ export function BriefCard({ brief, onStart, headingLevel = 2, timeZone, classNam
           {brief.canWait.length > 0 ? <CanWait items={brief.canWait} level={headingLevel + 1} /> : null}
 
           <Section title="Today" icon={<Calendar />} level={headingLevel + 1}>
-            <CalendarDay events={brief.calendar} timeZone={timeZone} />
+            <CalendarDay
+              events={brief.calendar}
+              timeZone={timeZone}
+              emptyText={calendarUnread ? EMPTY_TEXT.Calendar[calendarUnread] : undefined}
+            />
           </Section>
 
           {brief.couldNotCheck.length > 0 ? (

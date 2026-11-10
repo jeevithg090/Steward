@@ -85,12 +85,78 @@ describe("the morning brief", () => {
     const brief = await setup({ mail: () => mail }).brief.generate();
     expect(brief.couldNotCheck).toEqual(["Calendar: couldn't be read just now"]);
     expect(JSON.stringify(brief)).not.toContain("Bearer");
+    expect(brief.summary).toBe("No new mail in the last day. Your calendar couldn't be read just now.");
   });
 
-  it("names mail it could not read", async () => {
-    const brief = await setup({ mail: () => fakeMail({ failEmails: true }) }).brief.generate();
+  it("names mail it could not read, and never calls that an all-clear", async () => {
+    const mail = fakeMail({
+      failEmails: true,
+      events: [event({ title: "Kiln check", start: "2026-10-22T09:00:00Z", end: "2026-10-22T09:30:00Z" })],
+    });
+    const brief = await setup({ mail: () => mail }).brief.generate();
     expect(brief.couldNotCheck).toEqual(["Mail: couldn't be read just now"]);
     expect(JSON.stringify(brief)).not.toContain("token=");
+    expect(brief.summary).toBe(
+      "Your mail couldn't be read just now, so this brief may be missing what needs you. You have 1 thing on your calendar today, starting with “Kiln check” at 09:00.",
+    );
+    const empty = await setup({ mail: () => fakeMail({ failEmails: true }) }).brief.generate();
+    expect(empty.summary).toBe(
+      "Your mail couldn't be read just now, so this brief may be missing what needs you. Nothing is on your calendar today.",
+    );
+  });
+
+  it("says so when neither mail nor calendar could be read", async () => {
+    const mail = fakeMail({ failEmails: true, failEvents: true });
+    const brief = await setup({ mail: () => mail }).brief.generate();
+    expect(brief.couldNotCheck).toEqual([
+      "Mail: couldn't be read just now",
+      "Calendar: couldn't be read just now",
+    ]);
+    expect(brief.summary).toBe(
+      "Your mail and calendar couldn't be read just now, so this brief may be missing what needs you.",
+    );
+    expect(brief.summary).not.toMatch(/nothing/i);
+  });
+
+  it("writes the summary itself, not with the model, when a source could not be read", async () => {
+    const model = fakeModel(() => "Nothing needs you today and your day is clear.");
+    for (const fail of [{ failEmails: true }, { failEvents: true }]) {
+      model.calls.length = 0;
+      const mail = fakeMail({
+        ...fail,
+        emails: [email({ subject: "Sale", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-22T07:00:00Z" })],
+      });
+      const brief = await setup({ mail: () => mail, model: () => model }).brief.generate();
+      expect(brief.summary).toContain("couldn't be read just now");
+      expect(model.calls.filter((call) => call.system === SUMMARY_SYSTEM)).toEqual([]);
+    }
+  });
+
+  it("keeps a failed calendar read in a full summary", () => {
+    const item = {
+      emailId: "m1",
+      subject: "Quote",
+      from: { email: "ana@example.com" },
+      verdict: "needs_you" as const,
+      reason: "Asks for a quote.",
+      confidence: 0.75,
+      by: "model" as const,
+    };
+    const summary = plainSummary({
+      date: "2026-10-22",
+      timeZone: "UTC",
+      mailConnected: true,
+      mailRead: true,
+      calendarRead: false,
+      needsYou: [item, { ...item, emailId: "m2", by: "rules", confidence: 0 }],
+      canWait: [{ ...item, emailId: "m3", verdict: "can_wait" }],
+      calendar: [],
+      tasks: [],
+      couldNotCheck: ["Calendar: couldn't be read just now"],
+    });
+    expect(summary).toBe(
+      "One email needs you, starting with ana@example.com about “Quote”. 1 email couldn't be sorted, so it is under needs you. Your calendar couldn't be read just now.",
+    );
   });
 
   it("without a model, lists unsorted mail under needs you and says why", async () => {
@@ -255,6 +321,8 @@ describe("the brief's summary", () => {
       date: "2026-10-22",
       timeZone: "UTC",
       mailConnected: true,
+      mailRead: true,
+      calendarRead: true,
       needsYou: [],
       canWait: [],
       calendar: [],
@@ -263,6 +331,25 @@ describe("the brief's summary", () => {
     });
     expect(prompt).toContain('"weekday": "Thursday"');
     expect(prompt).toContain("Calendar: not connected");
+    expect(prompt).toContain('"mail": "connected"');
+    expect(prompt).toContain('"calendar": []');
+  });
+
+  it("never hands the model an empty list for a source it could not read", () => {
+    const prompt = summaryPrompt({
+      date: "2026-10-22",
+      timeZone: "UTC",
+      mailConnected: true,
+      mailRead: false,
+      calendarRead: false,
+      needsYou: [],
+      canWait: [],
+      calendar: [],
+      tasks: [],
+      couldNotCheck: [],
+    });
+    expect(prompt).toContain('"mail": "connected, but could not be read just now"');
+    expect(prompt).toContain('"calendar": "could not be read"');
   });
 
   it("cleans a model's summary: no greeting, no markdown, three sentences at most", () => {
@@ -278,7 +365,15 @@ describe("the brief's summary", () => {
   });
 
   it("writes a plain summary that is always true", () => {
-    const base = { date: "2026-10-22", timeZone: "UTC", mailConnected: true, tasks: [], couldNotCheck: [] };
+    const base = {
+      date: "2026-10-22",
+      timeZone: "UTC",
+      mailConnected: true,
+      mailRead: true,
+      calendarRead: true,
+      tasks: [],
+      couldNotCheck: [],
+    };
     expect(plainSummary({ ...base, needsYou: [], canWait: [], calendar: [] })).toBe(
       "Nothing new needs you, and nothing is on your calendar today.",
     );

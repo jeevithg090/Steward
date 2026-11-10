@@ -96,6 +96,10 @@ export interface SummaryInput {
   date: string;
   timeZone: string;
   mailConnected: boolean;
+  /** False when mail is connected but could not be read: an empty list then proves nothing. */
+  mailRead: boolean;
+  /** False when the calendar could not be read (or is not connected). */
+  calendarRead: boolean;
   needsYou: TriageItem[];
   canWait: TriageItem[];
   calendar: CalendarEvent[];
@@ -113,7 +117,11 @@ export function summaryPrompt(input: SummaryInput): string {
   const facts = {
     date: input.date,
     weekday: weekdayOf(input.date),
-    mail: input.mailConnected ? "connected" : "not connected",
+    mail: !input.mailConnected
+      ? "not connected"
+      : input.mailRead
+        ? "connected"
+        : "connected, but could not be read just now",
     needsYou: sorted.slice(0, 8).map((item) => ({
       from: item.from.name || item.from.email,
       subject: item.subject,
@@ -121,9 +129,11 @@ export function summaryPrompt(input: SummaryInput): string {
     })),
     couldNotSortCount: input.needsYou.length - sorted.length,
     canWaitCount: input.canWait.length,
-    calendar: input.calendar
-      .slice(0, 8)
-      .map((event) => ({ title: event.title, time: eventTime(event, input.timeZone) })),
+    calendar: input.calendarRead
+      ? input.calendar
+          .slice(0, 8)
+          .map((event) => ({ title: event.title, time: eventTime(event, input.timeZone) }))
+      : "could not be read",
     tasks: input.tasks
       .slice(0, 5)
       .map((task) => ({ title: task.title, state: task.state.replace(/_/g, " ") })),
@@ -163,7 +173,10 @@ export function cleanSummary(text: string): string | undefined {
   return out.charAt(0).toUpperCase() + out.slice(1);
 }
 
-/** The summary written without a model: always true, never clever. */
+/**
+ * The summary written without a model: always true, never clever. An empty list only means
+ * "nothing" when the source was read; a source that could not be read is said to be unread.
+ */
 export function plainSummary(input: SummaryInput): string {
   if (!input.mailConnected) {
     return "Mail and calendar aren't connected yet, so there's nothing to sort. You can connect them on the Connections page.";
@@ -173,9 +186,19 @@ export function plainSummary(input: SummaryInput): string {
   const unsorted = input.needsYou.length - sorted.length;
   const waiting = input.canWait.length;
   const first = sorted[0];
+  const quiet = input.needsYou.length === 0 && waiting === 0;
 
-  if (input.needsYou.length === 0 && waiting === 0 && input.calendar.length === 0) {
+  let calendarSaid = false;
+  if (!input.mailRead) {
+    sentences.push(
+      input.calendarRead
+        ? "Your mail couldn't be read just now, so this brief may be missing what needs you."
+        : "Your mail and calendar couldn't be read just now, so this brief may be missing what needs you.",
+    );
+    calendarSaid = !input.calendarRead;
+  } else if (quiet && input.calendarRead && input.calendar.length === 0) {
     sentences.push("Nothing new needs you, and nothing is on your calendar today.");
+    calendarSaid = true;
   } else {
     if (first) {
       const sender = first.from.name || first.from.email;
@@ -193,15 +216,22 @@ export function plainSummary(input: SummaryInput): string {
       );
     }
     if (waiting > 0) sentences.push(`${plural(waiting, "email", "emails")} can wait.`);
+  }
+
+  if (!calendarSaid) {
     const event = input.calendar[0];
-    if (event) {
+    if (!input.calendarRead) {
+      // A failed read is never the sentence that gets cut.
+      sentences.splice(2);
+      sentences.push("Your calendar couldn't be read just now.");
+    } else if (event) {
       const when = event.allDay
         ? "all day"
         : `at ${localTime(event.start, input.timeZone) ?? "a time to check"}`;
       sentences.push(
         `You have ${plural(input.calendar.length, "thing", "things")} on your calendar today, starting with “${event.title}” ${when}.`,
       );
-    } else if (input.needsYou.length > 0 || waiting > 0) {
+    } else {
       sentences.push("Nothing is on your calendar today.");
     }
   }
@@ -263,6 +293,8 @@ export function createBriefService(deps: BriefDeps): BriefService {
     let needsYou: TriageItem[] = [];
     let canWait: TriageItem[] = [];
     let calendar: CalendarEvent[] = [];
+    let mailRead = false;
+    let calendarRead = false;
 
     if (!mail) {
       couldNotCheck.push("Mail: not connected", "Calendar: not connected");
@@ -271,6 +303,7 @@ export function createBriefService(deps: BriefDeps): BriefService {
       try {
         const read = await readMail(mail, at);
         emails = read.emails;
+        mailRead = true;
         if (read.capped) {
           couldNotCheck.push(
             `Mail: only the newest ${BRIEF_MAIL_CAP} messages from the last day were sorted; older ones weren't checked`,
@@ -301,6 +334,7 @@ export function createBriefService(deps: BriefDeps): BriefService {
       try {
         const events = await mail.listEvents({ from: from.toISOString(), to: to.toISOString() });
         calendar = eventsOn(events, date, from, to);
+        calendarRead = true;
       } catch {
         signal?.throwIfAborted();
         couldNotCheck.push("Calendar: couldn't be read just now");
@@ -318,14 +352,18 @@ export function createBriefService(deps: BriefDeps): BriefService {
       date,
       timeZone,
       mailConnected: mail !== undefined,
+      mailRead,
+      calendarRead,
       needsYou,
       canWait,
       calendar,
       tasks,
       couldNotCheck,
     };
-    // With no mail there is nothing to summarise; the plain summary says how to connect it.
-    const model = mail ? deps.model() : undefined;
+    // With no mail there is nothing to summarise; the plain summary says how to connect it. When a
+    // source could not be read, the plain summary says so in words the code chose: a model handed
+    // an empty list is too ready to call it an all-clear.
+    const model = mail && mailRead && calendarRead ? deps.model() : undefined;
     let summary = model ? await modelSummary(model, input, signal) : undefined;
     signal?.throwIfAborted();
     summary ??= plainSummary(input);

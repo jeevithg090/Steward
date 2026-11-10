@@ -111,6 +111,9 @@ returns the stored one unless `force`, and two callers at once share one build.
 - A two- or three-sentence summary from the model (no greeting, no name, facts fenced as data), or
   a plain one written from the counts when there is no model or it fails. Demo mail is labelled
   "From the demo inbox:".
+- An empty list is never an all-clear for a source that wasn't read. When mail or the calendar
+  couldn't be read, the summary is the plain one and says so ("Your mail couldn't be read just now,
+  so this brief may be missing what needs you."), never "Nothing new needs you".
 
 A new brief emits `brief.ready`, adds the notification "Your brief is ready", and then suggests.
 
