@@ -175,6 +175,11 @@ function escapeLike(text: string): string {
 export class SqliteAuditLog implements RecordLog {
   /** The newest row known to chain intact from the first. Kept in memory only. */
   private verified: Checkpoint | undefined;
+  /**
+   * The newest row any check has found intact. The checkpoint moves back to just before a break;
+   * this never moves back, so cutting the record after a break is still seen.
+   */
+  private newest: Checkpoint | undefined;
   /** When the whole chain was last walked. */
   private fullAt: Date | undefined;
   /**
@@ -386,16 +391,10 @@ export class SqliteAuditLog implements RecordLog {
   }
 
   private *fullWalk(anchor?: ChainAnchor): Generator<void, ChainCheck> {
-    const before = this.verified;
     const shape = this.shape();
     // The chain starts at 1. A row numbered below it was put there by hand.
     const walked: Walked = shape.n > 0 && shape.lo < 1 ? { brokenAt: shape.lo } : yield* this.walk(undefined);
     this.fullAt = this.now();
-    if (before && walked.brokenAt === undefined) {
-      const missing = (walked.last?.seq ?? 0) < before.seq;
-      if (missing || !this.matches(before))
-        this.rewrittenAt ??= missing ? (walked.last?.seq ?? 0) + 1 : before.seq;
-    }
     const check = this.result(walked, "full");
     if (!anchor) return check;
     const seal = { seq: anchor.seq, hash: anchor.hash.trim().toLowerCase() };
@@ -441,8 +440,20 @@ export class SqliteAuditLog implements RecordLog {
     return { n: row?.n ?? 0, lo: row?.lo ?? 0, hi: row?.hi ?? 0 };
   }
 
+  /**
+   * The newest row any check found intact must still be there with the same hash. If it changed or
+   * went, the record was rewritten or cut while Steward ran, and that is kept until restart, even
+   * when the chain that is left holds together.
+   */
+  private noteRewrite(walked: Walked): void {
+    const top = this.newest;
+    if (top && !this.matches(top)) this.rewrittenAt ??= Math.min(top.seq, (walked.last?.seq ?? 0) + 1);
+    if (walked.last && (!top || walked.last.seq > top.seq)) this.newest = walked.last;
+  }
+
   /** Moves the checkpoint to where the walk stopped, and says what it found. */
   private result(walked: Walked, scope: "full" | "recent"): ChainCheck {
+    this.noteRewrite(walked);
     this.verified = walked.last;
     const breaks = [walked.brokenAt, this.rewrittenAt].filter((n): n is number => n !== undefined);
     const brokenAt = breaks.length > 0 ? Math.min(...breaks) : undefined;

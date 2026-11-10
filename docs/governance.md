@@ -403,9 +403,9 @@ press **Check the whole record** (`GET /api/audit/verify?full=1`). The badge say
 with when everything was last checked. When the chain is broken it names the first entry that is
 missing or has changed.
 
-While it runs, Steward also remembers the newest entry it found intact. If that entry later changes
-or disappears, the record was rewritten underneath it, and the badge says so until Steward restarts,
-even when the rewritten chain holds together.
+While it runs, Steward also remembers the newest entry it has ever found intact. If that entry later
+changes or disappears, the record was rewritten or cut short underneath it, and the badge says so
+until Steward restarts, even when the chain that is left holds together.
 
 ### Keeping a seal elsewhere
 

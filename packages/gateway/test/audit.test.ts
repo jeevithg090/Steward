@@ -221,6 +221,35 @@ describe("checking without holding up the server", () => {
     db.run("UPDATE gateway_audit SET detail_json = '{}' WHERE seq = 4");
     expect(await gw.audit.check({ full: true })).toMatchObject({ ok: false, brokenAt: 3 });
   });
+
+  it("still sees a cut made after a break, though the checkpoint moved back to the break", async () => {
+    const { gw, db } = seed(10);
+    expect(await gw.audit.check()).toMatchObject({ ok: true, count: 11 });
+    dropTriggers(db);
+    // First a gap, which a check reports, so the checkpoint moves back to entry 4.
+    db.run("DELETE FROM gateway_audit WHERE seq = 5");
+    expect(await gw.audit.check()).toMatchObject({ ok: false, brokenAt: 6, count: 4 });
+    // Then everything after it goes: what is left chains from the first, but entry 11 was seen.
+    db.run("DELETE FROM gateway_audit WHERE seq > 4");
+    expect(await gw.audit.check()).toMatchObject({ ok: false, brokenAt: 5, count: 4 });
+    expect(await gw.audit.check({ full: true })).toMatchObject({ ok: false, brokenAt: 5 });
+    // Steward writing on from what is left does not hide it either.
+    append(gw, 8);
+    const later = await gw.audit.check({ full: true });
+    expect(later).toMatchObject({ ok: false, brokenAt: 5 });
+    expect(later.head).toBeUndefined();
+  });
+
+  it("a break that is put right again is not a rewrite", async () => {
+    const { gw, db } = seed(4);
+    await gw.audit.check();
+    dropTriggers(db);
+    const row = db.get<{ detail_json: string }>("SELECT detail_json FROM gateway_audit WHERE seq = 3");
+    db.run("UPDATE gateway_audit SET detail_json = '{\"i\":99}' WHERE seq = 3");
+    expect(await gw.audit.check({ full: true })).toMatchObject({ ok: false, brokenAt: 3 });
+    db.run("UPDATE gateway_audit SET detail_json = ? WHERE seq = 3", [row?.detail_json ?? ""]);
+    expect(await gw.audit.check({ full: true })).toMatchObject({ ok: true, count: 5 });
+  });
 });
 
 describe("a seal written down elsewhere", () => {
