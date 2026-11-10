@@ -1,5 +1,6 @@
 import type { Settings } from "@steward/shared";
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
+import { Toaster, toast } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccessibilityProvider } from "@/app/accessibility.tsx";
 import { mockFetch, renderWithProviders } from "@/lib/testing.tsx";
@@ -9,6 +10,8 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   localStorage.clear();
+  // Toasts are kept outside React; without this one test's toasts show in the next test's Toaster.
+  toast.dismiss();
 });
 
 /** The server reports the running model with its resolved address, the provider's default included. */
@@ -129,6 +132,62 @@ describe("Settings: saved and running", () => {
     expect(screen.getByText("Reads OPENROUTER_API_KEY from .env.")).toBeTruthy();
     fireEvent.change(provider(), { target: { value: "scripted" } });
     expect(modelField().value).toBe("steward-scripted");
+  });
+});
+
+describe("Settings: saving a model", () => {
+  /** Keeps what is saved; Steward runs scripted unless `running` says otherwise. */
+  function serveSaving(running: (saved: Settings["model"]) => { provider: string; scripted: boolean }) {
+    const settings: Settings = {
+      model: { provider: "scripted", model: "steward-scripted" },
+      plainLanguage: false,
+      briefTime: "08:00",
+      timezone: "Europe/London",
+      approvalExpiryHours: 24,
+    };
+    return mockFetch((req) => {
+      if (req.path === "/api/settings" && req.method === "PUT") {
+        settings.model = (req.body as { model: Settings["model"] }).model;
+        return { body: settings };
+      }
+      if (req.path === "/api/settings") return { body: settings };
+      if (req.path === "/api/info") return { body: { model: { model: "-", ...running(settings.model) } } };
+      if (req.path === "/api/setup") return { body: [] };
+      return undefined;
+    });
+  }
+
+  function drawWithToasts() {
+    renderWithProviders(
+      <>
+        <SettingsPage />
+        <Toaster />
+      </>,
+      {
+        wrap: (children) => (
+          <AccessibilityProvider savePlainLanguage={async () => {}}>{children}</AccessibilityProvider>
+        ),
+      },
+    );
+  }
+
+  it("doesn't say Model saved when the chosen provider can't run", async () => {
+    const server = serveSaving(() => ({ provider: "scripted", scripted: true }));
+    drawWithToasts();
+    await screen.findByText("steward-scripted");
+    await choose(server, "openrouter", "anthropic/claude-sonnet-5.5");
+    expect(await screen.findByText("Saved, but Steward is still on the scripted model")).toBeTruthy();
+    expect(screen.getAllByText(/there's no OPENROUTER_API_KEY in \.env/).length).toBeGreaterThan(0);
+    expect(screen.queryByText("Model saved")).toBeNull();
+  });
+
+  it("says Model saved, with the provider's name, when it runs", async () => {
+    const server = serveSaving((saved) => ({ provider: saved.provider, scripted: false }));
+    drawWithToasts();
+    await screen.findByText("steward-scripted");
+    await choose(server, "nvidia", "nvidia/nemotron-3-ultra-550b-a55b");
+    expect(await screen.findByText("Model saved")).toBeTruthy();
+    expect(screen.getByText("NVIDIA · nvidia/nemotron-3-ultra-550b-a55b")).toBeTruthy();
   });
 });
 
