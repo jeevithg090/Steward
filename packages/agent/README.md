@@ -152,6 +152,8 @@ Display tools (`show_*`) return `{ shown: true }`; the web app draws them from t
 | `brief_today`, `triage_inbox`                                         | read             | mail     | yes       | none                                                                    |
 | `show_table`, `show_chart`, `show_comparison`, `show_choices`         | ui               | ui       | no        | none                                                                    |
 | `make_page`                                                           | write            | file     | no        | `path` = `made/<slug>.md` or `.html`                                    |
+| `directory_find`                                                      | read             | web      | yes       | none                                                                    |
+| `delegate_task`                                                       | write            | task     | yes       | none; offered only when there is an agent to hand to                    |
 | `mcp__<server>__<tool>`                                               | from the manager | mcp      | yes       | `mcp { server, tool }`; `outbound` for writes                           |
 
 Kinds, surfaces and taint come from `TOOLS` in `@steward/shared`; this package never restates them.
@@ -187,6 +189,7 @@ schema still refers elsewhere after that is left out, and `onError` names it.
 | `anthropic`         | `https://api.anthropic.com/v1` (OpenAI-compatible)        | `ANTHROPIC_API_KEY`               |
 | `nvidia`            | `https://integrate.api.nvidia.com/v1`                     | `NVIDIA_API_KEY`                  |
 | `gemini`            | `https://generativelanguage.googleapis.com/v1beta/openai` | `GEMINI_API_KEY`                  |
+| `xai`               | `https://api.x.ai/v1`                                     | `XAI_API_KEY`                     |
 | `ollama`            | `http://127.0.0.1:11434/v1`                               | none                              |
 | `openai-compatible` | `STEWARD_MODEL_BASE_URL`                                  | `STEWARD_MODEL_API_KEY`, optional |
 | `scripted`          | in-process aimock on a free loopback port                 | none                              |
