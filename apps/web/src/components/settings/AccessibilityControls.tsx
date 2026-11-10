@@ -8,6 +8,7 @@ import {
 } from "@/app/accessibility.tsx";
 import { Button } from "@/components/ui/Button.tsx";
 import { ChoiceGroup, Switch } from "@/components/ui/Field.tsx";
+import { VoiceControls } from "./VoiceControls.tsx";
 
 /**
  * Every display and reading setting in one place. Changes apply at once and are remembered in this
@@ -17,7 +18,7 @@ export function AccessibilityControls({
   compact = false,
   showReset = true,
 }: {
-  /** Only text size, contrast and reading aloud: the onboarding step. */
+  /** Only text size, contrast, reading aloud and its voice: the onboarding step. */
   compact?: boolean;
   showReset?: boolean;
 }) {
@@ -54,6 +55,7 @@ export function AccessibilityControls({
         label="Read replies aloud"
         description="Steward speaks its answers in Chat, using this device's voices."
       />
+      <VoiceControls />
       {compact ? null : (
         <>
           <ChoiceGroup<ThemePreference>
