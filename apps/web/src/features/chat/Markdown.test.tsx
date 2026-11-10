@@ -48,6 +48,25 @@ describe("Markdown", () => {
     expect(plain.container.querySelector("h1")?.textContent).toBe("Title");
   });
 
+  it("keeps each level apart when several are used on one page", () => {
+    const { container } = render(
+      <>
+        <div data-testid="three">
+          <Markdown headingsFrom={3}>{"# Reply"}</Markdown>
+        </div>
+        <div data-testid="four">
+          <Markdown headingsFrom={4}>{"# Task"}</Markdown>
+        </div>
+        <div data-testid="two">
+          <Markdown headingsFrom={2}>{"# Readme"}</Markdown>
+        </div>
+      </>,
+    );
+    expect(container.querySelector('[data-testid="three"] h3')?.textContent).toBe("Reply");
+    expect(container.querySelector('[data-testid="four"] h4')?.textContent).toBe("Task");
+    expect(container.querySelector('[data-testid="two"] h2')?.textContent).toBe("Readme");
+  });
+
   it("still renders ordinary markdown and links", () => {
     const { container } = render(
       <Markdown>{"Two things need you. See [the page](https://example.com/a)."}</Markdown>,

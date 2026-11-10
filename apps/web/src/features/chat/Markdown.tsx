@@ -86,9 +86,12 @@ function shiftHeadings(node: HastNode, from: HeadingLevel): void {
 /**
  * Moves every heading down so the text's `#` sits at `from`: third-party Markdown inside a page
  * section must not add a second `h1` or skip the outline. Runs before sanitising.
+ *
+ * Passed as `[plugin, { from }]`: Streamdown caches its processors by each plugin's name and
+ * options, so a level held in a closure would make every level share whichever was built first.
  */
-function headingsFrom(from: HeadingLevel) {
-  return () => (tree: HastNode) => shiftHeadings(tree, from);
+function shiftHeadingsFrom(options: { from: HeadingLevel }) {
+  return (tree: HastNode) => shiftHeadings(tree, options.from);
 }
 
 export const Markdown = memo(function Markdown({
@@ -104,7 +107,10 @@ export const Markdown = memo(function Markdown({
   /** The level a `#` heading becomes, for Markdown shown inside a section of a page. */
   headingsFrom?: HeadingLevel;
 }) {
-  const rehype = useMemo(() => (from ? [headingsFrom(from), ...REHYPE] : REHYPE), [from]);
+  const rehype = useMemo(
+    () => (from ? [[shiftHeadingsFrom, { from }] as Pluggable, ...REHYPE] : REHYPE),
+    [from],
+  );
   return (
     <Streamdown
       mode={streaming ? "streaming" : "static"}
