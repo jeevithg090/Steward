@@ -86,7 +86,12 @@ describe("validatePack", () => {
         },
       },
     );
-    expect(seen).toEqual(['tool.kind == "pay"', "tool.kind =="]);
+    // Each rule as written and then limited to the bot; a broken one is not checked twice.
+    expect(seen).toEqual([
+      'tool.kind == "pay"',
+      'agent.id == "rent-scout" && (tool.kind == "pay"\n)',
+      "tool.kind ==",
+    ]);
     expect(result.ok).toBe(false);
     expect(errors(result.problems)).toEqual([
       { path: "rules[1].when", message: "This rule cannot be used: it ends too early.", severity: "error" },

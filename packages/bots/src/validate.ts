@@ -1,6 +1,7 @@
 import { type BotPack, BotPackSchema, type BotProblem } from "@steward/shared";
 import { issueMessage, issuePath, ONLY_TIGHTEN } from "./pack.ts";
 import { scanForInjection } from "./scan.ts";
+import { RULE_WHEN_MAX, scopeToBot } from "./scope.ts";
 
 export { ONLY_TIGHTEN };
 
@@ -175,11 +176,33 @@ export function validatePack(input: unknown, ctx: ValidateContext): ValidationRe
     });
   }
 
+  // Each rule is checked as written, then as it is installed: limited to the bot's own agent.
   pack.rules.forEach((rule, i) => {
     try {
       ctx.validateRule(rule.when);
     } catch (err) {
       problems.push(error(`rules[${i}].when`, err instanceof Error ? err.message : String(err)));
+      return;
+    }
+    const scoped = scopeToBot(pack.id, rule.when);
+    if (scoped.length > RULE_WHEN_MAX) {
+      problems.push(
+        error(
+          `rules[${i}].when`,
+          `is too long: limited to this bot it would be over ${RULE_WHEN_MAX.toLocaleString("en")} characters`,
+        ),
+      );
+      return;
+    }
+    try {
+      ctx.validateRule(scoped);
+    } catch (err) {
+      problems.push(
+        error(
+          `rules[${i}].when`,
+          `cannot be limited to this bot: ${err instanceof Error ? err.message : String(err)}`,
+        ),
+      );
     }
   });
 

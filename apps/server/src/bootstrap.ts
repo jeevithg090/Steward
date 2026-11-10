@@ -316,6 +316,8 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       actorId: LOCAL_ACTOR,
       tenantAgentIds: tenant.agents.map((a) => a.id),
     });
+    // Bots installed before their rules were limited to their own agent.
+    bots.scopeInstalledRules();
 
     // Tasks one agent hands another (`delegate_task`), run through the same runner as routines.
     const delegations: Delegations = new Delegations({

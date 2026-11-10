@@ -1,4 +1,11 @@
-import { type DirectoryClient, describeMayDo, hashPack, type PackProblem, validatePack } from "@steward/bots";
+import {
+  type DirectoryClient,
+  describeMayDo,
+  hashPack,
+  type PackProblem,
+  scopeToBot,
+  validatePack,
+} from "@steward/bots";
 import type { Db } from "@steward/db";
 import { gateCallFor, type StewardGateway } from "@steward/gateway";
 import {
@@ -343,10 +350,13 @@ export class BotService {
         });
         const ruleIds = pack.rules.map((rule) => {
           try {
+            // The condition must parse on its own before it is wrapped (see scopeToBot).
+            gateway.rules.validate(rule.when);
             return gateway.rules.create({
               name: clip(`${pack.name}: ${rule.name}`, RULE_NAME_MAX),
               effect: rule.effect,
-              when: rule.when,
+              // The pack's condition, limited to this bot's agent: never Steward's or another bot's.
+              when: scopeToBot(pack.id, rule.when),
               description: rule.description,
               enabled: true,
               source: "bot",
@@ -437,6 +447,34 @@ export class BotService {
       );
     }
     return this.install(checked.pack, source, { fromDirectory: true });
+  }
+
+  /**
+   * Limits the rules of bots installed before rules were scoped to their own agent. A rule is
+   * rewritten only while its condition is still exactly one the pack brought: one the person has
+   * edited on Rules is theirs and is left alone. Returns how many rules changed. Safe to run at
+   * every start; a rule that cannot be rewritten stays as it is, which only ever asks more.
+   */
+  scopeInstalledRules(): number {
+    const { store, gateway } = this.deps;
+    let changed = 0;
+    for (const record of store.list()) {
+      const written = new Set((record.pack.rules ?? []).map((r) => r.when));
+      for (const ruleId of record.ruleIds) {
+        const rule = gateway.rules.get(ruleId);
+        if (rule?.source !== "bot" || !written.has(rule.when)) continue;
+        try {
+          gateway.rules.update(ruleId, { when: scopeToBot(record.agentId, rule.when) });
+          changed++;
+        } catch (err) {
+          console.error(
+            `[steward] the rule "${rule.name}" could not be limited to ${record.name}:`,
+            err instanceof Error ? err.message : err,
+          );
+        }
+      }
+    }
+    return changed;
   }
 
   /** Removes a bot and exactly what it brought. Its conversations keep their history. */

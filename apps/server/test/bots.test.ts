@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { generateBot } from "@steward/bots-gen";
 import { memoryDb } from "@steward/db";
-import { createGateway } from "@steward/gateway";
+import { createGateway, gateCallFor } from "@steward/gateway";
 import {
   type AppInfo,
   type AuditPage,
@@ -539,6 +539,82 @@ describe.runIf(missing.length === 0 && botRulesSupported)(
         updateAvailable: false,
       });
       expect(listed.body.bots.find((b) => b.id === "shell-helper")?.installed).toBeUndefined();
+    });
+
+    it("binds a bot's rules to its own agent: Steward and other bots are untouched", async () => {
+      const drafts: BotPack = {
+        ...NOTE_TAKER,
+        id: "drafts-only",
+        name: "Drafts Only",
+        needs: { tools: ["mail_send", "file_write"], connectors: [], model: "any" },
+        skills: [],
+        rules: [
+          { name: "Drafts only", effect: "deny", when: 'tool.kind == "send"', description: "Drafts only." },
+          { name: "Ask before writing", effect: "ask", when: 'tool.kind == "write"', description: "" },
+        ],
+      };
+      const res = await t.api<InstalledBot>("/api/bots/install", { method: "POST", json: { pack: drafts } });
+      expect(res.status).toBe(201);
+      const rules = (await t.api<Rule[]>("/api/rules")).body.filter((r) => res.body.ruleIds.includes(r.id));
+      expect(rules.map((r) => r.when).sort()).toEqual([
+        'agent.id == "drafts-only" && (tool.kind == "send"\n)',
+        'agent.id == "drafts-only" && (tool.kind == "write"\n)',
+      ]);
+      const { governance } = t.server.services.gateway;
+      const decide = (tool: string, agentId: string) =>
+        governance.dryRun(gateCallFor({ tool, args: {}, agentId, actorId: "local" })).effect;
+      expect(decide("mail_send", "drafts-only")).toBe("deny");
+      expect(decide("file_write", "drafts-only")).toBe("ask");
+      // Steward's own agent keeps the gateway's defaults: a send asks, a file write runs.
+      expect(decide("mail_send", "steward")).toBe("ask");
+      expect(decide("file_write", "steward")).toBe("allow");
+      expect(decide("file_write", "rent-scout")).toBe("allow");
+      expect((await t.api("/api/bots/installed/drafts-only", { method: "DELETE" })).status).toBe(200);
+    });
+
+    it("limits the rules of a bot installed before rules were scoped, leaving edited ones alone", async () => {
+      const { gateway, installedBots, bots } = t.server.services;
+      const pack: BotPack = {
+        ...NOTE_TAKER,
+        id: "old-bot",
+        name: "Old Bot",
+        skills: [],
+        rules: [
+          { name: "No sending", effect: "deny", when: 'tool.kind == "send"', description: "" },
+          { name: "Ask on writes", effect: "ask", when: 'tool.kind == "write"', description: "" },
+        ],
+      };
+      const make = (name: string, effect: "ask" | "deny", when: string) =>
+        gateway.rules.create({ name, effect, when, description: "", enabled: true, source: "bot" });
+      const unscoped = make("Old Bot: No sending", "deny", 'tool.kind == "send"');
+      // The person changed this one on Rules: it is theirs now.
+      const edited = make("Old Bot: Ask on writes", "ask", 'tool.kind == "write" && tool.surface == "file"');
+      installedBots.upsert({
+        id: pack.id,
+        name: pack.name,
+        version: pack.version,
+        hash: "0".repeat(64),
+        source: "local",
+        agentId: pack.id,
+        pack,
+        skillIds: [],
+        ruleIds: [unscoped.id, edited.id],
+        routineIds: [],
+      });
+      const decide = (tool: string, agentId: string) =>
+        gateway.governance.dryRun(gateCallFor({ tool, args: {}, agentId, actorId: "local" })).effect;
+      expect(decide("mail_send", "steward")).toBe("deny");
+
+      expect(bots.scopeInstalledRules()).toBe(1);
+      expect(gateway.rules.get(unscoped.id)?.when).toBe('agent.id == "old-bot" && (tool.kind == "send"\n)');
+      expect(gateway.rules.get(edited.id)?.when).toBe('tool.kind == "write" && tool.surface == "file"');
+      expect(decide("mail_send", "steward")).toBe("ask");
+      expect(decide("mail_send", "old-bot")).toBe("deny");
+      // Running it again changes nothing.
+      expect(bots.scopeInstalledRules()).toBe(0);
+      await bots.remove(pack.id);
+      expect(gateway.rules.get(unscoped.id)).toBeUndefined();
+      expect(gateway.rules.get(edited.id)).toBeUndefined();
     });
 
     it("removes exactly what a bot brought: another bot's and the person's own things survive", async () => {

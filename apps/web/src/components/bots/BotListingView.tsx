@@ -325,7 +325,7 @@ export function BotListingView({
           </ul>
         )}
         <p className="m-0 text-caption text-ink-2">
-          A bot's rules can only ask or refuse more than yours do, never less.
+          These apply only when you talk to {pack.name}. A bot's rules can only ask or refuse, never allow.
         </p>
       </Section>
 
