@@ -217,6 +217,9 @@ describe("checking without holding up the server", () => {
     append(gw, 3);
     expect(await gw.audit.check()).toMatchObject({ ok: false, brokenAt: 3 });
     expect(await gw.audit.check({ full: true })).toMatchObject({ ok: false, brokenAt: 3 });
+    // A later break does not hide the earlier one.
+    db.run("UPDATE gateway_audit SET detail_json = '{}' WHERE seq = 4");
+    expect(await gw.audit.check({ full: true })).toMatchObject({ ok: false, brokenAt: 3 });
   });
 });
 

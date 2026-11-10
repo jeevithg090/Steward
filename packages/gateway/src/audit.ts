@@ -444,7 +444,8 @@ export class SqliteAuditLog implements RecordLog {
   /** Moves the checkpoint to where the walk stopped, and says what it found. */
   private result(walked: Walked, scope: "full" | "recent"): ChainCheck {
     this.verified = walked.last;
-    const brokenAt = walked.brokenAt ?? this.rewrittenAt;
+    const breaks = [walked.brokenAt, this.rewrittenAt].filter((n): n is number => n !== undefined);
+    const brokenAt = breaks.length > 0 ? Math.min(...breaks) : undefined;
     const count = Math.min(
       walked.last?.seq ?? 0,
       brokenAt === undefined ? Number.POSITIVE_INFINITY : brokenAt - 1,
