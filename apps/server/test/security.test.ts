@@ -1,6 +1,9 @@
 import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import type { AddressInfo } from "node:net";
 import { join } from "node:path";
+import { type ServerType, serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { DEV_ORIGINS } from "../src/config.ts";
@@ -38,6 +41,9 @@ function guarded(opts: SecurityOptions = devOpts) {
   });
   app.get("/api/teapot", () => {
     throw new HttpError(409, "That was already answered.");
+  });
+  app.get("/api/huge", () => {
+    throw new HTTPException(413);
   });
   return app;
 }
@@ -146,6 +152,29 @@ describe("origin guard", () => {
     expect((await post({}, JSON.stringify({ name: "x".repeat(5000) }))).status).toBe(413);
   });
 
+  it("closes the connection after a body too large, so the next request is not reset", async () => {
+    const app = guarded(opts);
+    const server = await new Promise<ServerType>((resolve) => {
+      const s = serve({ fetch: app.fetch, port: 0, hostname: "127.0.0.1" }, () => resolve(s));
+    });
+    const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    try {
+      for (let round = 0; round < 3; round++) {
+        const big = await fetch(`${base}/api/thing`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ name: "x".repeat(300 * 1024) }),
+        });
+        expect(big.status).toBe(413);
+        expect(big.headers.get("connection")).toBe("close");
+        expect(await big.json()).toEqual({ error: "That request is too large." });
+        for (let i = 0; i < 3; i++) expect((await fetch(`${base}/api/thing`)).status).toBe(200);
+      }
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
   it("answers CORS preflights for the dev origin only", async () => {
     const app = guarded();
     const ok = await app.request("http://x/api/thing", {
@@ -180,6 +209,10 @@ describe("errors and headers", () => {
     const teapot = await app.request("http://x/api/teapot", { headers: { host: "localhost" } });
     expect(teapot.status).toBe(409);
     expect(await teapot.json()).toEqual({ error: "That was already answered." });
+    const huge = await app.request("http://x/api/huge", { headers: { host: "localhost" } });
+    expect(huge.status).toBe(413);
+    expect(huge.headers.get("connection")).toBe("close");
+    expect(await huge.json()).toEqual({ error: "That request is too large." });
   });
 
   it("sets protective headers on every response", async () => {

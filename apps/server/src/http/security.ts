@@ -187,9 +187,17 @@ export const BODY_LIMITS = {
   demo: 1024 * 1024,
 } as const;
 
+/**
+ * Refuses a body over `maxSize` before reading it. The answer closes the connection: the unread
+ * rest of the body is still on the socket, and Node resets a kept-alive one, so the browser's next
+ * request on it would fail as a network error instead of getting an answer.
+ */
 export function limitBody(maxSize: number): MiddlewareHandler {
   return bodyLimit({
     maxSize,
-    onError: (c) => c.json({ error: "That request is too large." }, 413),
+    onError: (c) => {
+      c.header("Connection", "close");
+      return c.json({ error: "That request is too large." }, 413);
+    },
   });
 }

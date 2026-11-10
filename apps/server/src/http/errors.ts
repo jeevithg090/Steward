@@ -26,6 +26,8 @@ export const onError: ErrorHandler = (err, c) => {
   if (err instanceof HttpError) return c.json({ error: err.message }, err.status);
   if (err instanceof HTTPException) {
     const status = err.status;
+    // The rest of a body too large is unread; a kept-alive socket would be reset under the next request.
+    if (status === 413) c.header("Connection", "close");
     const message =
       status === 413
         ? "That request is too large."
