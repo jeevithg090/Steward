@@ -151,12 +151,26 @@ export function withQuery(path: string, query?: Query): string {
   return qs ? `${path}?${qs}` : path;
 }
 
+/** What every failed call says when Steward's server can't be reached at all. */
+export const UNREACHABLE_MESSAGE =
+  "Couldn't reach Steward. Check that the server is running, then try again.";
+
+/**
+ * True when the server never answered: the network failed, or a proxy in front of it (Vite's, in
+ * development) said 502, 503 or 504 because the server is down or still starting.
+ */
+export function isUnreachable(error: unknown): boolean {
+  return error instanceof ApiError && (error.status === 0 || error.message === UNREACHABLE_MESSAGE);
+}
+
 function errorMessage(body: unknown, status: number): string {
   if (body && typeof body === "object") {
     const record = body as Record<string, unknown>;
     if (typeof record.error === "string" && record.error) return record.error;
     if (typeof record.message === "string" && record.message) return record.message;
   }
+  // Steward's own errors are JSON. Anything else at these codes came from a proxy, not Steward.
+  if (status === 502 || status === 503 || status === 504) return UNREACHABLE_MESSAGE;
   if (typeof body === "string" && body.length > 0 && body.length < 300 && !body.startsWith("<")) return body;
   if (status === 404) return "Couldn't find that. It may have been removed.";
   if (status === 409) return "That changed while you were looking. Reload and try again.";
@@ -185,7 +199,7 @@ export async function request<T>(
     });
   } catch (err) {
     if (opts.signal?.aborted) throw err;
-    throw new ApiError("Couldn't reach Steward. Check that the server is running, then try again.", 0);
+    throw new ApiError(UNREACHABLE_MESSAGE, 0);
   }
   const text = await res.text();
   let data: unknown;
@@ -211,7 +225,7 @@ export async function requestFile(path: string, body: unknown): Promise<Blob> {
       credentials: "same-origin",
     });
   } catch {
-    throw new ApiError("Couldn't reach Steward. Check that the server is running, then try again.", 0);
+    throw new ApiError(UNREACHABLE_MESSAGE, 0);
   }
   if (!res.ok) {
     const text = await res.text();

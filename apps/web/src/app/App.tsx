@@ -9,11 +9,12 @@ import { ErrorBoundary } from "./ErrorBoundary.tsx";
 import { StewardCopilotProvider } from "./features.ts";
 import { useWideLayout } from "./layout-mode.ts";
 import { AppRoutes } from "./routes.tsx";
+import { ServerGate } from "./ServerGate.tsx";
 
 /**
  * The root: data (react-query), the person's accessibility settings, toasts, CopilotKit and the
- * router. Order matters: settings sit above everything that draws, and CopilotKit sits inside the
- * router so its tools can navigate.
+ * router. Order matters: settings sit above everything that draws, nothing else draws until the
+ * server has answered once, and CopilotKit sits inside the router so its tools can navigate.
  */
 export function App() {
   const [queryClient] = useState(createQueryClient);
@@ -21,11 +22,13 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <AccessibilityRoot>
         <ErrorBoundary>
-          <BrowserRouter>
-            <StewardCopilotProvider>
-              <AppRoutes />
-            </StewardCopilotProvider>
-          </BrowserRouter>
+          <ServerGate>
+            <BrowserRouter>
+              <StewardCopilotProvider>
+                <AppRoutes />
+              </StewardCopilotProvider>
+            </BrowserRouter>
+          </ServerGate>
         </ErrorBoundary>
         <ThemedToaster />
       </AccessibilityRoot>
