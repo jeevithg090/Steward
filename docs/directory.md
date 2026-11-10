@@ -186,7 +186,8 @@ What a Steward does with a directory's bots, whichever directory it reads:
   <app>". Sending, paying, signing and deleting always ask.
 - **Updates.** Update opens the newer version's listing with **What changes**: tools added or
   removed (new ones that run without asking first), rules, skills, routines, and changed
-  instructions. Nothing changes until you press Update, which installs exactly the pack shown.
+  instructions. Nothing changes until you press Update. Add and Update install exactly the pack
+  shown: the install names its hash, and a pack that changed after you read it is refused.
 - **Unknown bots.** A link to a bot the directory does not have says "No bot by that name". Errors
   never show a path on this machine.
 
