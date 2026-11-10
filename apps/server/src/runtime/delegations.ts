@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { BaseEvent, ResumeEntry } from "@ag-ui/client";
 import type { DelegateTarget, DelegationResult, DelegationRun, DelegationService } from "@steward/agent";
-import type { AgentInfo, AuditLog, Initiator } from "@steward/shared";
+import { type AgentInfo, type AuditLog, handOn, type Initiator } from "@steward/shared";
 import type { Observable } from "rxjs";
 import type { DelegationRecord, DelegationStore } from "../store/delegations.ts";
 import { clip } from "./run-summary.ts";
@@ -90,8 +90,15 @@ export class Delegations implements DelegationService {
       .map((a) => ({ id: a.id, name: a.name, title: a.title }));
   }
 
+  /**
+   * Starts a child. When the parent had read untrusted content, the child's first turn carries the
+   * handoff frame, which taints the child's conversation for good: its sends, writes elsewhere,
+   * memories and routines ask exactly as the parent's would, resumes included. Fails closed: a
+   * request that does not say counts as tainted.
+   */
   async start(request: Parameters<DelegationService["start"]>[0]): Promise<DelegationRun> {
     const { parent, agentId, task, depth, initiator } = request;
+    const tainted = request.tainted !== false;
     if (depth > this.maxDepth)
       throw new Error("This task was handed on already, so it cannot be handed on again.");
     if (!task) throw new Error("The task was empty. Say what the other agent should do.");
@@ -116,8 +123,12 @@ export class Delegations implements DelegationService {
       task,
       depth,
     });
-    this.record("delegation.started", record, { agent: target.id, task: clip(task, 200) });
-    return this.launch(record, target.name, { userText: task, initiator });
+    this.record("delegation.started", record, {
+      agent: target.id,
+      task: clip(task, 200),
+      ...(tainted ? { tainted: true } : {}),
+    });
+    return this.launch(record, target.name, { userText: handOn(task, tainted), initiator });
   }
 
   async resume(subagentRunId: string, entries: ResumeEntry[], initiator: Initiator): Promise<DelegationRun> {

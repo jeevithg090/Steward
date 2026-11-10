@@ -573,6 +573,8 @@ export class GovernedToolsMiddleware extends Middleware {
       problem = new Error(BAD_JSON);
     }
 
+    // One answer for the gateway and the tool: a task handed on from here carries it to the child.
+    const tainted = isTainted(messages, (name) => this.taints(name, scope.owned));
     const ctx: ToolContext = {
       agentId: this.opts.agentId,
       threadId: input.threadId,
@@ -582,6 +584,7 @@ export class GovernedToolsMiddleware extends Middleware {
       services: this.opts.services,
       initiator,
       delegationDepth: scope.depth,
+      tainted,
     };
 
     let facts: GateFacts = { target: {} };
@@ -608,7 +611,7 @@ export class GovernedToolsMiddleware extends Middleware {
       tool: { name: tool.name, kind: tool.kind, surface: tool.surface, source: tool.source },
       args,
       target: facts.target,
-      tainted: isTainted(messages, (name) => this.taints(name, scope.owned)),
+      tainted,
       ...(intent ? { intent } : {}),
       ...(facts.outbound ? { outbound: facts.outbound } : {}),
     };

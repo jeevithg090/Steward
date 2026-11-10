@@ -66,6 +66,8 @@ export const delegateTask = builtin(DELEGATE_TOOL, {
       task: readString(args, "task", { max: 8000 }).trim(),
       depth: (ctx.delegationDepth ?? 0) + 1,
       initiator: ctx.initiator ?? { kind: "person", id: "local" },
+      // Fail closed: a context that does not say counts as tainted.
+      tainted: ctx.tainted !== false,
     });
   },
 });
