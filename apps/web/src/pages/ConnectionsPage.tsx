@@ -12,6 +12,7 @@ import { ErrorNotice, Loading, Notice } from "@/components/ui/Notice.tsx";
 import { Page } from "@/components/ui/PageHeader.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
 import { type McpServerDetail, useConnections, useRemoveMcp, useUpsertMcp } from "@/lib/api.ts";
+import { joinArgs, splitArgs } from "@/lib/args.ts";
 import { KIND_LABELS, SURFACE_LABELS, toolLabel } from "@/lib/labels.ts";
 
 export function ConnectionsPage() {
@@ -66,10 +67,10 @@ function MailCard({ mail }: { mail: { connected: boolean; label: string; isDemo:
       <p className="mt-3 text-ink text-sub">{mail.label}</p>
       <p className="mt-1 text-ink-2 text-sub">
         {mail.isDemo
-          ? "This is a made-up inbox and calendar, so you can try Steward safely. Nothing here is real, and nothing is sent anywhere. To use your own Google account, set STEWARD_DEMO_GOOGLE=0 and add your Google credentials in .env, then restart."
+          ? "This is a made-up inbox and calendar, so you can try Steward safely. Nothing here is real, and nothing is sent anywhere. Connecting your own Google account isn't available yet; it's on the roadmap."
           : mail.connected
             ? "Steward can read your mail and calendar. It asks before it sends an email or changes your calendar."
-            : "Steward can't read your mail or calendar yet. The brief will say so until it can."}
+            : "No mail or calendar is connected, so the brief will say it couldn't check them. Connecting your own Google account isn't available yet. To try the demo inbox, set STEWARD_DEMO_GOOGLE=1 in .env and restart Steward."}
       </p>
     </Card>
   );
@@ -149,7 +150,7 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
             <code>{server.id}</code> ·{" "}
             {server.transport === "stdio" ? "A program on this computer" : "A web address"}
             {server.url ? ` · ${server.url}` : ""}
-            {server.command ? ` · ${server.command} ${(server.args ?? []).join(" ")}` : ""}
+            {server.command ? ` · ${server.command} ${joinArgs(server.args ?? [])}` : ""}
           </p>
         </div>
         <Button
@@ -252,15 +253,6 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
   );
 }
 
-/** Splits "-y @modelcontextprotocol/server-everything" or one-per-line into arguments. */
-function splitArgs(text: string): string[] {
-  return text
-    .split(/\n/)
-    .flatMap((line) => (line.includes(" ") && !line.includes('"') ? line.split(/\s+/) : [line]))
-    .map((a) => a.trim())
-    .filter(Boolean);
-}
-
 function AddServer() {
   const upsert = useUpsertMcp();
   const [id, setId] = useState("");
@@ -270,6 +262,8 @@ function AddServer() {
   const [args, setArgs] = useState("");
   const [url, setUrl] = useState("");
   const [touched, setTouched] = useState(false);
+  const parsed = splitArgs(args);
+  const argsId = useId();
 
   const idError = !/^[a-z0-9][a-z0-9-]{0,40}$/.test(id)
     ? "Lowercase letters, numbers and dashes, starting with a letter or number."
@@ -286,14 +280,14 @@ function AddServer() {
   function submit(event: FormEvent) {
     event.preventDefault();
     setTouched(true);
-    if (idError || endpointError || !name.trim()) return;
+    if (idError || endpointError || !name.trim() || (transport === "stdio" && parsed.error)) return;
     upsert.mutate(
       {
         id,
         name: name.trim(),
         transport,
         command: transport === "stdio" ? command.trim() : undefined,
-        args: transport === "stdio" ? splitArgs(args) : [],
+        args: transport === "stdio" ? parsed.args : [],
         url: transport === "http" ? url.trim() : undefined,
         granted: [],
         reads: [],
@@ -369,7 +363,11 @@ function AddServer() {
                   autoComplete="off"
                 />
               </Field>
-              <Field label="Arguments" description="Separated by spaces, or one per line.">
+              <Field
+                label="Arguments"
+                description="Separated by spaces, or one per line. Put one with a space in it in quotes."
+                error={parsed.error}
+              >
                 <Textarea
                   value={args}
                   onChange={(e) => setArgs(e.target.value)}
@@ -377,9 +375,26 @@ function AddServer() {
                   className="font-mono text-sub"
                   spellCheck={false}
                   placeholder="-y @modelcontextprotocol/server-everything"
+                  aria-describedby={parsed.args.length > 0 && !parsed.error ? argsId : undefined}
                 />
               </Field>
             </div>
+            {parsed.args.length > 0 && !parsed.error ? (
+              <div id={argsId} className="text-sub">
+                <p className="text-ink-2">Steward will start it with these arguments, one by one:</p>
+                <ol className="mt-1 flex flex-wrap gap-1.5">
+                  {parsed.args.map((arg, i) => (
+                    <li
+                      // biome-ignore lint/suspicious/noArrayIndexKey: the same argument can appear twice.
+                      key={i}
+                      className="rounded-md bg-tile px-1.5 py-0.5 font-mono text-ink"
+                    >
+                      {arg === "" ? <span className="text-ink-2">(empty)</span> : arg}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
           </>
         ) : (
           <Field label="Address" required error={touched ? endpointError : undefined}>
