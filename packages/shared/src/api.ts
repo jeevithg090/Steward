@@ -37,6 +37,23 @@ export const COPILOTKIT_PATH = "/api/copilotkit";
 
 // ── Request bodies ─────────────────────────────────────────────────────────────────────────────
 
+/** A short name used in commands and addresses: `/name`, `mcp__name__tool`. */
+const SLUG = z
+  .string()
+  .regex(
+    /^[a-z0-9][a-z0-9-]{0,40}$/,
+    "use up to 41 lower-case letters, digits and dashes, starting with a letter or digit",
+  );
+
+/**
+ * A web address. Only http and https: `javascript:`, `file:` and the like are not places a model or
+ * a tool server lives, and a stored one would be echoed back to the page.
+ */
+const WEB_ADDRESS = z.url({
+  protocol: /^https?$/,
+  error: "use a web address that starts with http:// or https://",
+});
+
 export const ApprovalDecisionBody = z.object({
   answer: z.enum(["once", "always", "refuse"]),
   /** Optional words from the person, passed to the agent with a refusal. */
@@ -90,21 +107,21 @@ export const RoutineBody = z.object({
 export const MemoryBody = z.object({ text: z.string().min(1).max(1000) });
 
 export const SkillBody = z.object({
-  name: z.string().regex(/^[a-z0-9][a-z0-9-]{0,40}$/),
+  name: SLUG,
   description: z.string().min(1).max(300),
   instructions: z.string().min(1).max(8000),
   tools: z.array(z.string()).default([]),
 });
 
 export const McpServerBody = z.object({
-  id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,40}$/),
+  id: SLUG,
   name: z.string().min(1).max(120),
   transport: z.enum(["stdio", "http"]),
   /** For stdio: the command and args. */
   command: z.string().optional(),
   args: z.array(z.string()).default([]),
   /** For http: the endpoint. */
-  url: z.string().url().optional(),
+  url: WEB_ADDRESS.optional(),
   /** Tools to grant to the default agent. Empty grants none. */
   granted: z.array(z.string()).default([]),
   /** Tools the person marked as reads. Everything else is treated as a write. */
@@ -126,13 +143,13 @@ export const SettingsBody = z.object({
         "scripted",
       ]),
       model: z.string().min(1),
-      baseUrl: z.string().url().optional(),
+      baseUrl: WEB_ADDRESS.optional(),
     })
     .optional(),
   plainLanguage: z.boolean().optional(),
   briefTime: z
     .string()
-    .regex(/^\d{2}:\d{2}$/)
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "use a time like 07:30")
     .optional(),
   timezone: z.string().optional(),
   approvalExpiryHours: z.number().int().min(1).max(168).optional(),
@@ -292,7 +309,7 @@ export const ROUTES = {
   computerWs: "/ws/computer/:agentId", // WebSocket, see computer.ts
 
   notifications: "/api/notifications", // AppNotification[]
-  notificationsReadAll: "/api/notifications/read-all", // POST → 204
+  notificationsReadAll: "/api/notifications/read-all", // POST → { ok: true }
 
   bots: "/api/bots", // ?q=&category=&sort=&limit=&offset= → { bots: BotListing[]; total: number; categories }
   botsInstalled: "/api/bots/installed", // InstalledBot[]
@@ -314,8 +331,14 @@ export const ROUTES = {
   botsExport: "/api/bots/export", // POST { pack, handle? } → application/zip: the pack folder to submit
 } as const;
 
+/**
+ * Fills a route's `:name` segments, each encoded so it stays one segment. A segment with no value is
+ * left as `:name`, so the mistake shows in the address (and the server answers 404).
+ */
 export function route(path: string, params: Record<string, string> = {}): string {
-  return path.replace(/:([a-zA-Z]+)/g, (_, k: string) => encodeURIComponent(params[k] ?? `:${k}`));
+  return path.replace(/:([a-zA-Z]+)/g, (segment, k: string) =>
+    params[k] === undefined ? segment : encodeURIComponent(params[k]),
+  );
 }
 
 /** Re-exported so callers can type responses without importing three modules. */
