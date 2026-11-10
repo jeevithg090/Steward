@@ -5,7 +5,7 @@
  */
 import type { GateCall, OutboundFinding, Target } from "@steward/shared";
 import { type FieldSchema, safeMap } from "./cel.ts";
-import { redactForApproval } from "./redact.ts";
+import { redactForRules } from "./redact.ts";
 
 /** The shape a rule sees, for docs and static checks. `true` is a value; `"any"` is an open map. */
 export const CONTEXT_SCHEMA: Record<string, FieldSchema> = {
@@ -76,7 +76,8 @@ function neutralTarget(target: Target | undefined): PolicyContext["target"] {
 
 /**
  * The context for one call. `call` is the call as the gateway judges it (kind escalated, target
- * completed). `args` are redacted first, so no rule can read a password.
+ * completed). `args` are redacted first, so no rule can read a password, but never shortened: a
+ * rule sees every argument whole. Arguments nested too deeply to read throw, and the call is refused.
  */
 export function buildContext(
   call: Pick<
@@ -94,7 +95,7 @@ export function buildContext(
       source: str(call.tool.source),
     },
     target: neutralTarget(call.target),
-    args: safeMap(redactForApproval(call.args ?? {}, extra)),
+    args: safeMap(redactForRules(call.args ?? {}, extra)),
     intent: str(call.intent),
     tainted: call.tainted === true,
     initiator: { kind: str(call.initiator?.kind) || "person", id: str(call.initiator?.id) },

@@ -108,6 +108,10 @@ export interface RedactOptions {
   /** Most items kept from an array, and keys from an object. */
   maxItems: number;
   maxDepth: number;
+  /** Past `maxDepth`: write "…" (for showing), or throw (for rules, which must see everything). */
+  tooDeep?: "cut" | "throw";
+  /** Say how much of a cut string is not shown, so a person never takes a part for the whole. */
+  countCut?: boolean;
   /** Dotted paths that look secret but are not for this call, e.g. `key` for `browser_press`. */
   keep?: ReadonlySet<string>;
   /** Dotted paths that are secret for this call, e.g. `text` typed into a password field. */
@@ -117,6 +121,10 @@ export interface RedactOptions {
 function redactValue(value: unknown, opts: RedactOptions, depth: number, path: string): unknown {
   if (typeof value === "string") {
     const masked = opts.mask ? maskSensitive(value) : value;
+    if (opts.countCut && masked.length > opts.maxString) {
+      const more = (masked.length - opts.maxString).toLocaleString("en-GB");
+      return `${masked.slice(0, opts.maxString)}… [${more} more characters not shown]`;
+    }
     return truncate(masked, opts.maxString);
   }
   if (value === null || typeof value !== "object") {
@@ -124,7 +132,10 @@ function redactValue(value: unknown, opts: RedactOptions, depth: number, path: s
     if (typeof value === "function" || typeof value === "symbol") return undefined;
     return value;
   }
-  if (depth >= opts.maxDepth) return "…";
+  if (depth >= opts.maxDepth) {
+    if (opts.tooDeep === "throw") throw new Error("the arguments are nested too deeply to check");
+    return "…";
+  }
   if (Array.isArray(value)) {
     const items = value.slice(0, opts.maxItems).map((v) => redactValue(v, opts, depth + 1, path));
     if (value.length > opts.maxItems) items.push(`… ${value.length - opts.maxItems} more`);
@@ -168,17 +179,41 @@ export function redactForAudit(
 }
 
 /**
+ * For rules: secrets by key only, and nothing cut. A rule must read the whole call: a deny rule on a
+ * message body that saw a shortened copy could be passed by padding the body, or by putting a few
+ * hundred other arguments first. Arguments nested too deeply to read throw, so the call is refused.
+ */
+export function redactForRules(
+  value: Record<string, unknown>,
+  extra?: Pick<RedactOptions, "keep" | "hide">,
+): Record<string, unknown> {
+  return redact(value, {
+    maxString: Number.POSITIVE_INFINITY,
+    mask: false,
+    maxItems: Number.POSITIVE_INFINITY,
+    maxDepth: 20,
+    tooDeep: "throw",
+    ...extra,
+  }) as Record<string, unknown>;
+}
+
+/**
  * For an approval card: secrets by key only. Message bodies are shown whole (up to 20,000
- * characters) because the person approves what they can see.
+ * characters) because the person approves what they can see; past that, the text says how much
+ * more there is, as lists and maps already do. Rules never read this copy (`redactForRules`).
  */
 export function redactForApproval(
   value: Record<string, unknown>,
   extra?: Pick<RedactOptions, "keep" | "hide">,
 ): Record<string, unknown> {
-  return redact(value, { maxString: 20_000, mask: false, maxItems: 200, maxDepth: 12, ...extra }) as Record<
-    string,
-    unknown
-  >;
+  return redact(value, {
+    maxString: 20_000,
+    mask: false,
+    maxItems: 200,
+    maxDepth: 12,
+    countCut: true,
+    ...extra,
+  }) as Record<string, unknown>;
 }
 
 /** A short, masked preview of a tool result for the record. */

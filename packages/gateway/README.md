@@ -156,7 +156,10 @@ Every variable is always present. A field that does not apply is empty (`""`, `[
 | `findings` (finding kinds)                                                         | `"health" in findings`                                   |
 
 A missing `args` key is absent, not an error: `args.to == "x"` is false and `has(args.to)` is false
-when there is no `to`. Secret-named arguments read as `"[redacted]"`.
+when there is no `to`. Secret-named arguments read as `"[redacted]"`. Nothing else is cut: a rule
+reads every string, item and key whole (`redactForRules`), and arguments nested more than 20 deep
+refuse the call. The approval card's copy is cut at 20,000 characters and says how much is left
+out.
 
 ### Functions
 
@@ -164,7 +167,8 @@ when there is no `to`. Secret-named arguments read as `"[redacted]"`.
 and `lower(text)`. All ignore case; given a list they test each item (`contains` on a list checks
 membership). Plus CEL's `size(x)`, `has(x.y)`, `in`, and the list macros `all`, `exists`,
 `exists_one`, `filter`, `map`. String methods (`x.startsWith(...)`) are not supported; use the
-functions.
+functions. `matches` on text over 100,000 characters makes the rule fail (so the call is refused)
+rather than test only the start.
 
 Strings take the usual escapes (`\"`, `\\`, `\n`, `\t`, `\uXXXX`); any other backslash is kept, so
 a regex reads the same written as `"\bsudo\b"` or `"\\bsudo\\b"`.

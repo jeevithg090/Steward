@@ -93,7 +93,7 @@ refuses everything.
 | `target.element.name`    | string          | `"Place order"`                        | Its accessible name, read from the computer's own page snapshot, never from what the model said.                                                                                                                 |
 | `target.mcp.server`      | string          | `"notion"`                             | For tools from connected apps: the server id.                                                                                                                                                                    |
 | `target.mcp.tool`        | string          | `"create_page"`                        | And the tool's own name on that server.                                                                                                                                                                          |
-| `args`                   | map             | `args.subject`, `args.to`              | The call's arguments, with anything that looks like a secret removed first. A key the call does not have reads as empty, and `has(args.cc)` is false for it.                                                     |
+| `args`                   | map             | `args.subject`, `args.to`              | The call's arguments, never shortened, with anything that looks like a secret removed first. A key the call does not have reads as empty, and `has(args.cc)` is false for it.                                    |
 | `intent`                 | string          | `"Reply to Helen about Friday"`        | The model's one-line reason for the call. Written by the model, so never base an `allow` on it.                                                                                                                  |
 | `tainted`                | bool            | `true`                                 | Whether this conversation has already read content Steward does not trust. See [Taint](#taint).                                                                                                                  |
 | `initiator.kind`         | string          | `"routine"`                            | What started the run: `person`, `routine`, `task`, `resume` or `system`. Only the server can start a run as anything but `person`.                                                                               |
@@ -122,6 +122,9 @@ Text tests ignore case, and on a list they ask whether any item passes.
 
 In a regular expression, `\b`, `\s` and `\d` can be written with one backslash or two; both mean
 the same. In YAML, put the rule in single quotes so the backslashes reach the rule unchanged.
+
+Rules read every argument whole, however long. `matches` refuses text over 100,000 characters
+rather than test only its start, so a long message cannot slip past a deny rule.
 
 ## Rules that ship with Steward
 
@@ -441,7 +444,8 @@ When in doubt, Steward refuses. In particular:
   rule never silently stops applying.
 - A tenant rule that does not compile stops the server at start-up, naming the file and the rule.
 - If the decision cannot be written to the record, the call does not run.
-- If what a call would send cannot be scanned, the call is refused.
+- If what a call would send cannot be scanned, the call is refused. So is a call whose arguments are
+  nested too deeply for a rule to read.
 - A resumed call that differs from what was approved, or whose answer was already used, does not
   run.
 - A tool whose results Steward cannot classify counts as tainting.

@@ -93,10 +93,21 @@ export const RULE_FUNCTIONS: Record<string, CallableFunction> = {
     if (Array.isArray(haystack)) return haystack.some((h) => asText(h).toLowerCase() === n);
     return asText(haystack).toLowerCase().includes(n);
   },
-  /** `matches(text, regex)`; on a list, whether any item matches. A bad pattern makes the rule fail. */
+  /**
+   * `matches(text, regex)`; on a list, whether any item matches. A bad pattern makes the rule fail,
+   * and so does text too long to match safely: matching only its start would let a long message
+   * slip past a deny rule.
+   */
   matches: (value: unknown, pattern: unknown) => {
     const re = regexFor(asText(pattern));
-    return anyOf(value, (s) => re.test(s.slice(0, MAX_MATCH_INPUT)));
+    return anyOf(value, (s) => {
+      if (s.length > MAX_MATCH_INPUT) {
+        throw new RuleFunctionError(
+          `the text is too long to match: over ${MAX_MATCH_INPUT.toLocaleString("en-GB")} characters`,
+        );
+      }
+      return re.test(s);
+    });
   },
   startsWith: (value: unknown, prefix: unknown) => {
     const p = asText(prefix).toLowerCase();

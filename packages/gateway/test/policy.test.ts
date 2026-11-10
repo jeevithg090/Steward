@@ -277,6 +277,63 @@ describe("precedence", () => {
   });
 });
 
+describe("rules read the whole call", () => {
+  const confidential = (gw: ReturnType<typeof gateway>) =>
+    addRule(
+      gw,
+      "deny",
+      'tool.name == "mail_send" && contains(args.body, "CONFIDENTIAL")',
+      "Confidential mail stays in",
+    );
+  const send = (args: Record<string, unknown>) => gateCall("mail_send", { to: "sam@example.com", ...args });
+
+  it("a deny rule on a message body holds however long the body is", () => {
+    const gw = gateway();
+    confidential(gw);
+    expect(decide(gw, send({ body: "CONFIDENTIAL plan" })).rule?.name).toBe("Confidential mail stays in");
+    const padded = decide(gw, send({ body: `${"x".repeat(20_000)} CONFIDENTIAL plan` }));
+    expect(padded.effect).toBe("deny");
+    expect(padded.rule?.name).toBe("Confidential mail stays in");
+  });
+
+  it("a deny rule holds however many other arguments come first", () => {
+    const gw = gateway();
+    confidential(gw);
+    const filler = Object.fromEntries(Array.from({ length: 205 }, (_, i) => [`k${i}`, "x"]));
+    expect(decide(gw, send({ ...filler, body: "CONFIDENTIAL plan" })).rule?.name).toBe(
+      "Confidential mail stays in",
+    );
+    const items = [...Array.from({ length: 250 }, () => "x"), "CONFIDENTIAL"];
+    addRule(gw, "deny", 'tool.name == "mail_send" && contains(args.tags, "CONFIDENTIAL")', "No tag");
+    expect(decide(gw, send({ tags: items })).rule?.name).toBe("No tag");
+  });
+
+  it("matches() refuses text too long to match rather than reading only its start", () => {
+    const gw = gateway();
+    addRule(gw, "deny", 'tool.name == "mail_send" && matches(args.body, "CONFIDENTIAL")', "Regex rule");
+    const d = decide(gw, send({ body: `${"x".repeat(100_000)} CONFIDENTIAL` }));
+    expect(d.effect).toBe("deny");
+    expect(d.rule?.name).toBe("Regex rule");
+    expect(d.reason).toMatch(/too long/);
+  });
+
+  it("arguments nested too deeply to read are refused, not cut", () => {
+    const gw = gateway();
+    let deep: Record<string, unknown> = { body: "CONFIDENTIAL" };
+    for (let i = 0; i < 30; i++) deep = { inner: deep };
+    const d = decide(gw, gateCall("file_write", { path: "notes.md", content: "x", meta: deep }));
+    expect(d.effect).toBe("deny");
+    expect(d.rule?.id).toBe("default:error");
+    expect(d.reason).toMatch(/nested too deeply/);
+  });
+
+  it("still never shows a rule a secret-named argument", () => {
+    const gw = gateway();
+    addRule(gw, "deny", 'tool.name == "mail_send" && contains(args.password, "hunter2")', "Sees secrets");
+    expect(decide(gw, send({ password: "hunter2", body: "hi" })).rule?.name).not.toBe("Sees secrets");
+  });
+});
+
 describe("fail closed", () => {
   it("a rule that throws refuses the call and names itself", () => {
     const gw = gateway();
