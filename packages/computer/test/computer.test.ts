@@ -544,6 +544,29 @@ describe("the computer, in real Chromium", () => {
     unsubscribe();
   });
 
+  it("puts a secret only into a field of the site the person is shown", async () => {
+    const c = await manager.get("vault");
+    // A frame from another site on the page: the person would see the page's host, not the frame's.
+    const cross = await c.navigate(`${site.base}/cross-frame`);
+    const refused = await refusal(() =>
+      c.requestSecret(refOf(cross.snapshot, 'textbox "One-time code"'), "The code"),
+    );
+    expect(refused.code).toBe("blocked");
+    expect(refused.message).toBe(
+      `That field belongs to localhost:${site.port}, not 127.0.0.1:${site.port}. Steward does not put secrets into fields from another site. Ask the person to take the wheel instead.`,
+    );
+    expect(manager.status("vault").secret).toBeUndefined();
+
+    // A frame from the page's own site is fine.
+    const framed = await c.navigate(`${site.base}/framed`);
+    const asked = c.requestSecret(refOf(framed.snapshot, 'textbox "Passwort"'), "The password");
+    await waitFor(() => manager.status("vault").secret !== undefined);
+    const request = manager.status("vault").secret as NonNullable<ComputerStatus["secret"]>;
+    expect(request.host).toBe(`127.0.0.1:${site.port}`);
+    await manager.handle("vault", { type: "secret.cancel", requestId: request.id });
+    await expect(asked).resolves.toEqual({ filled: false, length: 0 });
+  });
+
   it("streams the screen while someone watches", async () => {
     const c = await manager.get("screen");
     const frames: Frame[] = [];

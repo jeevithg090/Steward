@@ -152,9 +152,12 @@ Individual keystrokes are not recorded.
 1. The agent calls `requestSecret(ref, "Password for example.com")` with a text field from its
    latest snapshot. `status.secret` carries `{ id, ref, label, host, requestedAt }`; the host is
    shown so the person can check where the value is going. The record gets `secret.requested`.
+   The field must belong to that host: a field in a frame from another site (an ad, a widget, a
+   payment form on another domain) is refused with code `blocked`, and the agent is told to ask the
+   person to take the wheel instead. The frame's address comes from the browser, not from the page.
 2. The web app sends `{ type: "secret", requestId, value }`. The field is first marked
-   (`data-steward-secret`, drawn as dots on the live screen), then filled. If the page has moved to
-   another host, nothing is typed.
+   (`data-steward-secret`, drawn as dots on the live screen), then filled. If the page or the
+   field's frame has moved to another host, nothing is typed.
 3. The agent's call resolves with `{ filled: true, length }`. The record gets `secret.filled` with
    only `{ length, host }`. `secret.cancel` resolves `{ filled: false, length: 0 }`.
 

@@ -71,6 +71,7 @@ export interface TestSite {
 
 export async function startSite(): Promise<TestSite> {
   let hits = 0;
+  let port = 0;
   const server: Server = createServer((req, res) => {
     hits++;
     const path = new URL(req.url ?? "/", "http://x").pathname;
@@ -89,6 +90,13 @@ export async function startSite(): Promise<TestSite> {
       res.end("month,total\naug,42\n");
       return;
     }
+    if (path === "/cross-frame") {
+      // The same server under another name is another site: a frame from localhost on a 127.0.0.1 page.
+      res.setHeader("content-type", "text/html; charset=utf-8");
+      res.end(`<!doctype html><title>Cross frame</title><h1>Shop</h1>
+        <iframe src="http://localhost:${port}/secret" title="Widget" width="800" height="300"></iframe>`);
+      return;
+    }
     if (path === "/redirect-meta") {
       res.writeHead(302, { location: "http://169.254.169.254/latest/meta-data/" }).end();
       return;
@@ -103,7 +111,7 @@ export async function startSite(): Promise<TestSite> {
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
-  const port = typeof address === "object" && address ? address.port : 0;
+  port = typeof address === "object" && address ? address.port : 0;
   return {
     base: `http://127.0.0.1:${port}`,
     port,

@@ -803,6 +803,17 @@ export class AgentComputer implements Computer {
     }
     const host = hostOf(page.url());
     if (!host) throw new ComputerError("bad_input", "Open the page that needs the value first.");
+    // The person is shown the page's host, so the field must belong to that host too: a frame from
+    // another site (an ad, a widget) would get the value under the page's name.
+    const fieldSite = await frameHostOf(resolved.locator);
+    if (fieldSite !== host) {
+      throw new ComputerError(
+        "blocked",
+        fieldSite
+          ? `That field belongs to ${fieldSite}, not ${host}. Steward does not put secrets into fields from another site. Ask the person to take the wheel instead.`
+          : "Steward cannot tell which site that field belongs to, so it will not put a secret into it. Ask the person to take the wheel instead.",
+      );
+    }
     if (this.secret) throw new ComputerError("busy", "Steward is already waiting for another value.");
 
     const request: SecretRequest = {
@@ -870,6 +881,8 @@ export class AgentComputer implements Computer {
     try {
       const field = page.getByRef(pending.pwRef);
       if ((await field.count()) === 0) throw new Error("gone");
+      // The frame holding the field may have moved to another site since the person was asked.
+      if ((await frameHostOf(field)) !== request.host) throw new Error("moved");
       // Mark first, so no snapshot can catch the value in clear text between the fill and the mark.
       await field.evaluate(
         (el, attr) => {
@@ -1207,6 +1220,24 @@ export class AgentComputer implements Computer {
       this.log.add({ kind: "file", text: `Could not save the download ${name}`, ok: false });
       await download.delete().catch(() => {});
     }
+  }
+}
+
+/**
+ * The host of the frame that holds the element, read from the browser (never from page script, which
+ * can say anything). Empty when the frame is not a web page of its own (`about:`, `data:`, `blob:`)
+ * or cannot be read, so a caller comparing hosts fails closed.
+ */
+async function frameHostOf(locator: Locator): Promise<string> {
+  const handle = await locator.elementHandle({ timeout: 2_000 }).catch(() => null);
+  if (!handle) return "";
+  try {
+    const frame = await handle.ownerFrame();
+    return frame ? hostOf(frame.url()) : "";
+  } catch {
+    return "";
+  } finally {
+    await handle.dispose().catch(() => {});
   }
 }
 
