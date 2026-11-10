@@ -295,6 +295,13 @@ function MobileTopBar() {
   );
 }
 
+/**
+ * A tab's label: the caption size, capped by the width of its fifth of the bar (19% of it, room for
+ * "Computer" in the widest lettering). It only bites on a narrow phone at a large text size, where
+ * the words would otherwise run into each other.
+ */
+const TAB_LABEL = "text-[length:min(var(--text-caption),19cqw)] leading-(--text-caption--line-height)";
+
 /** The phone's bottom bar: four places and More. Each target is at least 44px, current marked for screen readers. */
 function TabBar({ onMore }: { onMore: () => void }) {
   const badge = useTasksBadge();
@@ -309,13 +316,14 @@ function TabBar({ onMore }: { onMore: () => void }) {
           const Icon = item.icon;
           const count = item.to === "/tasks" ? badge : 0;
           return (
-            <li key={item.to}>
+            <li key={item.to} className="@container">
               <NavLink
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 font-medium text-caption no-underline",
+                    "relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 font-medium no-underline",
+                    TAB_LABEL,
                     isActive ? "text-accent" : "text-ink-2",
                   )
                 }
@@ -337,11 +345,14 @@ function TabBar({ onMore }: { onMore: () => void }) {
             </li>
           );
         })}
-        <li>
+        <li className="@container">
           <button
             type="button"
             onClick={onMore}
-            className="flex min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1 font-medium text-caption text-ink-2"
+            className={cn(
+              "flex min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1 font-medium text-ink-2",
+              TAB_LABEL,
+            )}
           >
             <Ellipsis aria-hidden="true" className="size-6" />
             More
