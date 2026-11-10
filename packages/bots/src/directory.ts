@@ -477,7 +477,12 @@ export class DirectoryClient {
     const actual = hashPack(pack);
     if (pack.hash && actual !== pack.hash) throw new Error("pack changed since it was listed");
     // The listing pins the pack: one swapped since the index was built, hash and all, is refused.
-    if (listing?.hash && actual !== listing.hash) throw new Error("pack changed since it was listed");
+    // The index may only be older than the pack (rebuilt since it was cached): read it once more.
+    if (listing?.hash && actual !== listing.hash) {
+      this.invalidate();
+      const fresh = await this.listingAt(location);
+      if (fresh?.hash !== actual) throw new Error("pack changed since it was listed");
+    }
     return pack;
   }
 

@@ -498,6 +498,41 @@ describe("DirectoryClient on the web", () => {
     expect((await client.pack("https://cdn.example.com/inbox-zero.json")).id).toBe("inbox-zero");
   });
 
+  it("reads the index again before refusing a pack that is newer than the cached listing", async () => {
+    const index = JSON.parse(files[INDEX_URL] as string) as { bots: BotListing[] };
+    const packUrl = "https://bots.example.com/packs/rent-scout.json";
+    const original = files[packUrl] as string;
+    const client = new DirectoryClient({ source: INDEX_URL, fetch: fakeFetch });
+    const stale = (await client.get("rent-scout")) as BotListing;
+    const reads = () => fetched.filter((u) => u === INDEX_URL).length;
+    const before = reads();
+    // The directory is rebuilt: a new pack, and an index listing its new hash.
+    const next = JSON.parse(original) as BotPack;
+    next.version = 2;
+    next.pitch = "Finds rentals, now with more care.";
+    const { hash: _old, ...rest } = next;
+    const sealed = { ...rest, hash: hashPack(rest as BotPack) };
+    try {
+      files[packUrl] = JSON.stringify(sealed);
+      files[INDEX_URL] = JSON.stringify({
+        ...index,
+        bots: index.bots.map((b) => (b.id === "rent-scout" ? { ...b, version: 2, hash: sealed.hash } : b)),
+      });
+      expect((await client.pack(stale)).version).toBe(2);
+      expect(reads() - before).toBe(1);
+      // A pack that matches neither the cached listing nor a fresh one is still refused.
+      files[packUrl] = JSON.stringify({
+        ...sealed,
+        pitch: "Swapped again.",
+        hash: hashPack({ ...rest, pitch: "Swapped again." } as BotPack),
+      });
+      await expect(client.pack(stale)).rejects.toThrow("pack changed since it was listed");
+    } finally {
+      files[packUrl] = original;
+      files[INDEX_URL] = JSON.stringify(index);
+    }
+  });
+
   it("says a pack the web does not have is not there, and any other answer is a failure", async () => {
     const client = new DirectoryClient({ source: INDEX_URL, fetch: fakeFetch });
     await expect(client.pack("https://cdn.example.com/gone.json")).rejects.toBeInstanceOf(PackNotFoundError);
