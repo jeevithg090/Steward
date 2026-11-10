@@ -3,7 +3,13 @@ import http from "node:http";
 import https from "node:https";
 import { pipeline, Readable } from "node:stream";
 import zlib from "node:zlib";
-import { assertPublicHost, BlockedAddressError, checkWebAddress, type HostPolicy } from "./address.ts";
+import {
+  assertPublicHost,
+  BlockedAddressError,
+  checkWebAddress,
+  type HostPolicy,
+  portOf,
+} from "./address.ts";
 
 /** The `fetch` shape Steward passes around: WHATWG in, WHATWG out. */
 export type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
@@ -44,7 +50,7 @@ export function createGuardedFetch(policy: HostPolicy = {}): FetchLike {
           headers: Object.fromEntries(headers),
           // A fresh agent per request: no pooled socket opened by someone else's lookup is ever reused.
           agent: false,
-          lookup: guardedLookup(policy),
+          lookup: guardedLookup(policy, portOf(url)),
           signal,
         },
         (res) => resolve(toResponse(res, method)),
@@ -56,14 +62,14 @@ export function createGuardedFetch(policy: HostPolicy = {}): FetchLike {
   };
 }
 
-/** `net`'s lookup hook, judging every address before the socket connects to it. */
-function guardedLookup(policy: HostPolicy) {
+/** `net`'s lookup hook, judging every address, on the port it will dial, before the socket connects. */
+function guardedLookup(policy: HostPolicy, port: number) {
   return (
     hostname: string,
     options: LookupOptions,
     callback: (err: NodeJS.ErrnoException | null, address: string | LookupAddress[], family?: number) => void,
   ): void => {
-    assertPublicHost(hostname, policy).then(
+    assertPublicHost(hostname, policy, port).then(
       (addresses) => {
         const wanted = options.family === 4 || options.family === 6 ? options.family : undefined;
         const usable = wanted ? addresses.filter((a) => a.family === wanted) : addresses;

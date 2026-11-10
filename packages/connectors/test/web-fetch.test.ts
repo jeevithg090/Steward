@@ -285,6 +285,41 @@ describe("guarded fetch against a real local server", () => {
     expect(await res.text()).toContain("Unzipped text");
   });
 
+  it("never reaches Steward's own port, however this machine is written, even with private hosts allowed", async () => {
+    const port = (server.address() as AddressInfo).port;
+    const policy = { allowPrivateHosts: true, protectedPorts: [port], lookup: dns } as const;
+    const web = createWebTools(policy);
+    for (const host of [
+      "127.0.0.1",
+      "localhost",
+      "0.0.0.0",
+      "[::]",
+      "[::1]",
+      "[::ffff:127.0.0.1]",
+      "rebind.example",
+    ]) {
+      const err = await web.fetch(`http://${host}:${port}/gzip`).catch((e: unknown) => e);
+      expect(err, host).toBeInstanceOf(BlockedAddressError);
+      expect((err as Error).message, host).toMatch(/Steward's own server/);
+    }
+    // The socket's own lookup refuses it too, for a caller that skips the up-front check.
+    await expect(createGuardedFetch(policy)(`http://rebind.example:${port}/gzip`)).rejects.toThrow(
+      /Steward's own server/,
+    );
+    // The same machine on another port, and a protected port elsewhere, are not Steward.
+    const other = createWebTools({ allowPrivateHosts: true, protectedPorts: [port + 1] });
+    expect((await other.fetch(`${base}/gzip`)).title).toBe("Zipped");
+  });
+
+  it("refuses a redirect to Steward's own port", async () => {
+    const { fetch, seen } = routes({
+      "https://evil.example/": () => redirect("http://0.0.0.0:8787/api/memory"),
+    });
+    const web = createWebTools({ fetch, lookup: dns, allowPrivateHosts: true, protectedPorts: [8787] });
+    await expect(web.fetch("https://evil.example/")).rejects.toThrow(/Steward's own server/);
+    expect(seen).toEqual(["https://evil.example/"]);
+  });
+
   it("sends request bodies and leaves redirects to the caller", async () => {
     const guarded = createGuardedFetch({ allowPrivateHosts: true });
     const res = await guarded(`${base}/echo`, {

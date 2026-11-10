@@ -7,6 +7,8 @@ import { searchWeb } from "./search.ts";
 export interface WebToolsOptions {
   /** Allow loopback and private-network addresses (local development only). Metadata stays refused. */
   allowPrivateHosts?: boolean;
+  /** Ports on this machine never fetched, even then: Steward's own server, phone port and dev servers. */
+  protectedPorts?: readonly number[];
   /** Replaces the guarded fetch. Tests pass a mock; production leaves it unset. */
   fetch?: FetchLike;
   /** Replaces DNS resolution for the per-hop host check. */
@@ -28,7 +30,11 @@ export const STEWARD_USER_AGENT =
  * read at most 2 MB. They do no policy of their own: the gateway decides whether they run.
  */
 export function createWebTools(opts: WebToolsOptions = {}): WebTools {
-  const policy = { allowPrivateHosts: opts.allowPrivateHosts ?? false, lookup: opts.lookup };
+  const policy = {
+    allowPrivateHosts: opts.allowPrivateHosts ?? false,
+    lookup: opts.lookup,
+    protectedPorts: opts.protectedPorts ?? [],
+  };
   const config: PageFetchConfig = {
     ...policy,
     fetch: opts.fetch ?? createGuardedFetch(policy),

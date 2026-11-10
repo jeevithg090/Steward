@@ -1,6 +1,7 @@
 // Adapted from openbot/server/src/computer/target.ts (MIT, CopilotKit)
 import { lookup as dnsLookup } from "node:dns/promises";
 import { isIP } from "node:net";
+import { networkInterfaces } from "node:os";
 
 /**
  * Where an address leads, as far as Steward is concerned.
@@ -27,6 +28,13 @@ export type LookupFn = (hostname: string) => Promise<ResolvedAddress[]>;
 export interface HostPolicy {
   allowPrivateHosts?: boolean;
   lookup?: LookupFn;
+  /**
+   * Ports on this machine that are never reached, whatever `allowPrivateHosts` says: Steward's own
+   * server, its phone port and the Vite dev servers, which proxy its API.
+   */
+  protectedPorts?: readonly number[];
+  /** This machine's own addresses, for the protected-port check. Injectable for tests. */
+  ownAddresses?: () => readonly string[];
 }
 
 /** A refusal, with a sentence the person can act on. Never retried. */
@@ -43,6 +51,7 @@ export class BlockedAddressError extends Error {
 const PRIVATE_REASON =
   "That address is on this computer or its private network, so Steward won't open it. " +
   "To allow local addresses while developing, start Steward with STEWARD_ALLOW_PRIVATE_HOSTS=1.";
+const OWN_SERVER_REASON = "That address is Steward's own server, so Steward never opens it.";
 const FORBIDDEN_REASON =
   "That address belongs to a cloud metadata service or a link-local network, which can hold this " +
   "machine's credentials, so Steward never opens it.";
@@ -93,6 +102,53 @@ export function classifyHostname(hostname: string): AddressClass {
   return "public";
 }
 
+/** The port a web URL connects to, with the scheme's default when none is written. */
+export function portOf(url: URL): number {
+  if (url.port) return Number(url.port);
+  return url.protocol === "https:" ? 443 : 80;
+}
+
+/** Every address this machine's network interfaces have, read now: they change as networks do. */
+export function ownAddresses(): string[] {
+  try {
+    return Object.values(networkInterfaces()).flatMap((list) => (list ?? []).map((i) => i.address));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Whether dialling `address` reaches this machine: loopback, "this host" (0.0.0.0/8 and `::`),
+ * the same hidden in IPv6 (mapped, compatible, NAT64), and the machine's own interface addresses,
+ * where a server listening on 0.0.0.0 answers.
+ */
+export function isThisMachine(address: string, own: readonly string[] = ownAddresses()): boolean {
+  const host = canonicalHost(address);
+  const same = (other: string) => {
+    const mine = canonicalHost(other);
+    if (isIP(host) === 6 && isIP(mine) === 6) {
+      const a = expandIpv6(host);
+      const b = expandIpv6(mine);
+      return a !== undefined && b !== undefined && a.every((g, i) => g === b[i]);
+    }
+    return mine === host;
+  };
+  if (isIP(host) === 4) {
+    const first = ipv4Octets(host)?.[0];
+    return first === 127 || first === 0 || own.some(same);
+  }
+  if (isIP(host) === 6) {
+    const groups = expandIpv6(host);
+    if (groups?.slice(0, 7).every((g) => g === 0) && (groups[7] ?? 0) <= 1) return true; // :: and ::1
+    return own.some(same);
+  }
+  return false;
+}
+
+function isProtected(port: number | undefined, policy: HostPolicy): boolean {
+  return port !== undefined && (policy.protectedPorts?.includes(port) ?? false);
+}
+
 export type AddressVerdict =
   | { ok: true; url: URL }
   | { ok: false; reason: string; error: BlockedAddressError };
@@ -128,6 +184,12 @@ export function checkWebAddress(raw: string | URL, policy: HostPolicy = {}): Add
   const cls = classifyHostname(url.hostname);
   if (cls === "forbidden") return refuse(FORBIDDEN_REASON, "forbidden");
   if (cls === "private" && !policy.allowPrivateHosts) return refuse(PRIVATE_REASON, "private");
+  if (isProtected(portOf(url), policy)) {
+    const host = canonicalHost(url.hostname);
+    const local = host === "localhost" || host.endsWith(".localhost");
+    if (local || (isIP(host) && isThisMachine(host, (policy.ownAddresses ?? ownAddresses)())))
+      return refuse(OWN_SERVER_REASON, "private");
+  }
   return { ok: true, url };
 }
 
@@ -140,13 +202,25 @@ export const defaultLookup: LookupFn = async (hostname) =>
 /**
  * Resolves a hostname and refuses it when any of its addresses is private (unless allowed) or
  * forbidden. Any, not all: a name with one public and one private address is a name that can be
- * steered at the private one. Returns the checked addresses, so a caller can connect to exactly
- * those and nothing a second lookup might say.
+ * steered at the private one. With the `port` it will connect to, it also refuses this machine on a
+ * protected port. Returns the checked addresses, so a caller can connect to exactly those and
+ * nothing a second lookup might say.
  */
 export async function assertPublicHost(
   hostname: string,
   policy: HostPolicy = {},
+  port?: number,
 ): Promise<ResolvedAddress[]> {
+  const addresses = await resolveChecked(hostname, policy);
+  if (isProtected(port, policy)) {
+    const own = (policy.ownAddresses ?? ownAddresses)();
+    if (addresses.some((a) => isThisMachine(a.address, own)))
+      throw new BlockedAddressError(OWN_SERVER_REASON, "private");
+  }
+  return addresses;
+}
+
+async function resolveChecked(hostname: string, policy: HostPolicy): Promise<ResolvedAddress[]> {
   const host = canonicalHost(hostname);
   const literal = isIP(host);
   const first = classifyHostname(host);

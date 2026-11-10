@@ -158,6 +158,10 @@ The agent's browser, `web_fetch` and MCP servers reached over HTTP all refuse:
   A preset deny rule says the same thing a second time.
 - **Loopback, private, link-local and other non-public ranges,** including IPv6 forms and
   IPv4-mapped addresses, unless you set `STEWARD_ALLOW_PRIVATE_HOSTS=1` (refused in production).
+- **Steward's own ports on this machine,** even with that setting: its server, its phone port and
+  the Vite dev servers, which pass requests on to its API. Every way of writing this machine counts:
+  `127.0.0.1`, `localhost`, `0.0.0.0`, `[::]`, `[::ffff:127.0.0.1]` and the machine's own network
+  addresses. The agent's browser and `web_fetch` check this.
 
 Names are resolved and every address is checked, so `evil.example` pointing at `127.0.0.1` is
 refused like `127.0.0.1` itself. The checked address is the one that is dialled, so a second DNS
