@@ -87,13 +87,15 @@ status has a word and an icon beside its colour.
 
 The live view of the agent's browser is a picture, and pictures are hard to use without sight. So:
 
-- The screen has a name that says who is driving: "Steward's computer, live. Steward is driving."
+- The screen has a name that says whose it is and who is driving: "Steward's screen, live. Steward
+  is driving." A bot's or another agent's computer says that agent's name instead.
 - The **Activity** list beside it says in words what the agent did: "Opened news.ycombinator.com",
   "Clicked 'More'", "Saved report.md".
 - Every action the agent takes also appears as a card in the conversation.
 - **Take the wheel** gives you the keyboard and mouse on that screen. While you hold it, the screen
   is an application region that passes your keys straight through, with instructions read out on
-  focus; Escape is never trapped.
+  focus; Escape is never trapped. The first Escape only leaves the screen: on a phone, it does not
+  also close the sheet the screen is in.
 
 ## How to test
 

@@ -56,6 +56,8 @@ export interface Computer {
   sendSecret: (requestId: string, value: string) => boolean;
   cancelSecret: (requestId: string) => boolean;
   retry: () => void;
+  /** Tells the person something about the screen, where its notices show. */
+  notify: (message: string) => void;
   clearNotice: () => void;
 }
 
@@ -186,6 +188,7 @@ export function ComputerSession({
       sendSecret: (requestId, secret) => send({ type: "secret", requestId, value: secret }),
       cancelSecret: (requestId) => send({ type: "secret.cancel", requestId }),
       retry: () => socketRef.current?.retry(),
+      notify: (message) => setNotice(message),
       clearNotice: () => setNotice(null),
     }),
     [

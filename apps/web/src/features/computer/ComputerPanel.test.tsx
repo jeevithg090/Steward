@@ -157,6 +157,77 @@ describe("ComputerPanel", () => {
     expect(socket.sent).toContainEqual({ type: "release" });
   });
 
+  describe("pasting, scrolling and leaving the screen", () => {
+    function driving() {
+      const { socket, status } = setup();
+      status({ controller: "person" });
+      const canvas = screen.getByRole("application", { name: /You have control/ }) as HTMLCanvasElement;
+      canvas.getBoundingClientRect = () =>
+        ({ left: 0, top: 0, width: 640, height: 400, right: 640, bottom: 400, x: 0, y: 0 }) as DOMRect;
+      const texts = () => socket.sent.filter((message) => message.type === "text");
+      return { socket, canvas, texts };
+    }
+    const paste = (canvas: HTMLElement, text: string) =>
+      fireEvent.paste(canvas, { clipboardData: { getData: () => text } });
+
+    it("types a long paste as several messages the server accepts", () => {
+      const { canvas, texts } = driving();
+      const text = "x".repeat(20_000);
+      paste(canvas, text);
+      const sent = texts().map((message) => (message.type === "text" ? message.text : ""));
+      expect(sent.map((part) => part.length)).toEqual([8000, 8000, 4000]);
+      expect(sent.join("")).toBe(text);
+    });
+
+    it("says so, and types nothing, when a paste is far too long", () => {
+      const { canvas, texts } = driving();
+      paste(canvas, "x".repeat(70_000));
+      expect(texts()).toEqual([]);
+      expect(screen.getByText(/That's too much to paste at once/)).toBeTruthy();
+    });
+
+    it("sends one wheel message a frame, with the movement added up", () => {
+      const frames: FrameRequestCallback[] = [];
+      vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => frames.push(callback));
+      try {
+        const { socket, canvas } = driving();
+        for (const deltaY of [10, 20, 30]) {
+          // happy-dom's WheelEvent drops the pointer position, so the fields are set by hand.
+          const wheel = Object.assign(new Event("wheel", { bubbles: true, cancelable: true }), {
+            clientX: 320,
+            clientY: 200,
+            deltaX: 0,
+            deltaY,
+          });
+          canvas.dispatchEvent(wheel);
+        }
+        const wheels = () => socket.sent.filter((message) => message.type === "wheel");
+        expect(wheels()).toEqual([]);
+        act(() => {
+          for (const frame of frames.splice(0)) frame(0);
+        });
+        expect(wheels()).toEqual([{ type: "wheel", x: 640, y: 400, deltaX: 0, deltaY: 60 }]);
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+
+    it("leaves the screen on Escape without the key reaching what holds it, such as a sheet", () => {
+      const { canvas } = driving();
+      const outer = vi.fn();
+      document.body.addEventListener("keydown", outer);
+      try {
+        const event = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+        canvas.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(true);
+        expect(outer).not.toHaveBeenCalled();
+        expect(document.activeElement).toBe(screen.getByRole("button", { name: "Hand back" }));
+      } finally {
+        document.body.removeEventListener("keydown", outer);
+      }
+    });
+  });
+
   describe("what is held down on Steward's browser", () => {
     function driving() {
       const { socket, status } = setup();

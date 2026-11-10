@@ -79,3 +79,25 @@ export function keyMessage(
     ? { type: "key", action, key: event.key, text: event.key }
     : { type: "key", action, key: event.key };
 }
+
+/** The most characters of typed text the server takes in one message. */
+export const TEXT_MESSAGE_LIMIT = 8000;
+/** A paste longer than this is refused, rather than typed out over many messages. */
+export const PASTE_LIMIT = 64_000;
+
+/**
+ * Splits pasted text into pieces the server accepts, never between the two halves of a character
+ * such as an emoji.
+ */
+export function textParts(text: string, max = TEXT_MESSAGE_LIMIT): string[] {
+  const parts: string[] = [];
+  let start = 0;
+  while (start < text.length) {
+    let end = Math.min(start + max, text.length);
+    const last = text.charCodeAt(end - 1);
+    if (end < text.length && end - start > 1 && last >= 0xd800 && last <= 0xdbff) end--;
+    parts.push(text.slice(start, end));
+    start = end;
+  }
+  return parts;
+}

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_VIEWPORT, keyMessage, mouseButton, toViewport } from "./input.ts";
+import {
+  DEFAULT_VIEWPORT,
+  keyMessage,
+  mouseButton,
+  TEXT_MESSAGE_LIMIT,
+  textParts,
+  toViewport,
+} from "./input.ts";
 
 const box = { left: 100, top: 50, width: 640, height: 400 };
 const plain = { ctrlKey: false, metaKey: false, altKey: false };
@@ -81,5 +88,23 @@ describe("keyMessage", () => {
 
   it("names mouse buttons", () => {
     expect([0, 1, 2].map(mouseButton)).toEqual(["left", "middle", "right"]);
+  });
+});
+
+describe("textParts", () => {
+  it("splits a long paste into pieces the server takes", () => {
+    const text = "a".repeat(TEXT_MESSAGE_LIMIT * 2 + 5);
+    const parts = textParts(text);
+    expect(parts.map((part) => part.length)).toEqual([TEXT_MESSAGE_LIMIT, TEXT_MESSAGE_LIMIT, 5]);
+    expect(parts.join("")).toBe(text);
+    expect(textParts("hello")).toEqual(["hello"]);
+    expect(textParts("")).toEqual([]);
+  });
+
+  it("never splits an emoji in two", () => {
+    const text = `abc😀def`;
+    const parts = textParts(text, 4);
+    expect(parts).toEqual(["abc", "😀de", "f"]);
+    expect(parts.join("")).toBe(text);
   });
 });
