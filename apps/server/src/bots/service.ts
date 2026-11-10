@@ -267,7 +267,8 @@ export class BotService {
     const replaces =
       installed !== undefined && pack.version >= installed.version && hashPack(pack) !== installed.hash;
     return {
-      pack,
+      // With its hash, so installing by address can ask for exactly this pack.
+      pack: { ...pack, hash: hashPack(pack) },
       mayDoWithoutAsking: describeMayDo(allowed),
       asksBefore: dedupe([
         ...asks.map(askWords),

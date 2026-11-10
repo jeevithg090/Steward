@@ -229,6 +229,14 @@ export const BotPreviewBody = z
   .object({
     packUrl: z.string().min(1).max(2048).optional(),
     pack: BotPackSchema.optional(),
+    /**
+     * Installing by address: the hash of the pack the person read (the preview's `pack.hash`). A
+     * pack that changed since is refused, so what is added is exactly what was shown.
+     */
+    hash: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .optional(),
   })
   .refine((b) => b.packUrl || b.pack, "Give a pack or its URL");
 

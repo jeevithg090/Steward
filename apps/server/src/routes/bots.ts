@@ -1,4 +1,4 @@
-import { zipPack } from "@steward/bots";
+import { hashPack, zipPack } from "@steward/bots";
 import { generateBot } from "@steward/bots-gen";
 import { BOT_CATEGORIES, BotMakeBody, BotsQuery, ROUTES } from "@steward/shared";
 import type { Hono } from "hono";
@@ -21,6 +21,11 @@ const PackBody = z
   .object({
     packUrl: z.string().min(1).max(2048).optional(),
     pack: z.unknown().optional(),
+    /** The hash of the pack the person read. Installing refuses a pack that changed since. */
+    hash: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/, "hash: the pack's sha256, as the preview gave it")
+      .optional(),
   })
   .refine((b) => b.packUrl || b.pack !== undefined, "Give a pack or its URL");
 
@@ -99,6 +104,10 @@ export function registerBotRoutes(app: Hono, s: StewardServices): void {
     if (!checked.ok) {
       const refusal = BotService.refusal(checked.problems);
       return c.json({ error: refusal.message, problems: refusal.problems }, 400);
+    }
+    // Added by address: it must still be the pack the person read, not one swapped in since.
+    if (body.hash && hashPack(checked.pack) !== body.hash) {
+      throw new HttpError(409, "This bot changed after you read it. Read it again before you add it.");
     }
     return c.json(await bots.install(checked.pack, source, { fromDirectory }), 201);
   });

@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { dirname, join } from "node:path";
+import { hashPack } from "@steward/bots";
 import { generateBot } from "@steward/bots-gen";
 import { memoryDb } from "@steward/db";
 import { createGateway, gateCallFor } from "@steward/gateway";
@@ -345,6 +346,27 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
     expect(res.body.error).toMatch(/Let it pay/);
     expect(res.body.problems.some((p) => p.path === "rules[0].effect")).toBe(true);
     expect((await t.api<InstalledBot[]>("/api/bots/installed")).body).toEqual([]);
+  });
+
+  it("adds by address only the pack the person read: one that changed since is refused", async () => {
+    const preview = await t.api<BotPreview>("/api/bots/preview", {
+      method: "POST",
+      json: { packUrl: "packs/shell-helper.json" },
+    });
+    expect(preview.body.pack.hash).toBe(hashPack(SHELL_HELPER));
+    const stale = await t.api<{ error: string }>("/api/bots/install", {
+      method: "POST",
+      json: { packUrl: "packs/shell-helper.json", hash: "0".repeat(64) },
+    });
+    expect(stale.status).toBe(409);
+    expect(stale.body.error).toMatch(/changed after you read it/);
+    expect((await t.api<InstalledBot[]>("/api/bots/installed")).body).toEqual([]);
+    const added = await t.api<InstalledBot>("/api/bots/install", {
+      method: "POST",
+      json: { packUrl: "packs/shell-helper.json", hash: preview.body.pack.hash },
+    });
+    expect(added.status).toBe(201);
+    expect((await t.api(`/api/bots/installed/${added.body.id}`, { method: "DELETE" })).status).toBe(200);
   });
 
   it("answers 404 for a bot the directory does not have, and never shows a path on this machine", async () => {

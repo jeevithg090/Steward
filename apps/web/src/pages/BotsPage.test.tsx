@@ -317,8 +317,10 @@ describe("BotsPage", () => {
     expect(calls.some((c) => c.path === "/api/bots/install" || c.path.endsWith("/update"))).toBe(false);
     fireEvent.click(within(dialog).getByRole("button", { name: "Update to version 4" }));
     await waitFor(() => expect(calls.some((c) => c.path === "/api/bots/install")).toBe(true));
+    // The pack is fetched again by address, so the install names the one that was read.
     expect(calls.find((c) => c.path === "/api/bots/install")?.body).toEqual({
       packUrl: "packs/rent-scout.json",
+      hash: "c".repeat(64),
     });
     expect(calls.some((c) => c.path.endsWith("/update"))).toBe(false);
   });
@@ -352,6 +354,7 @@ describe("BotsPage", () => {
     await waitFor(() => expect(calls.some((c) => c.path === "/api/bots/install")).toBe(true));
     expect(calls.find((c) => c.path === "/api/bots/install")?.body).toEqual({
       packUrl: "packs/rent-scout.json",
+      hash: RENT_SCOUT.hash,
     });
   });
 });

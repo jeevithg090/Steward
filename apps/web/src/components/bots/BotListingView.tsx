@@ -488,8 +488,11 @@ export function BotActions({
   const error = install.error;
   const waitId = useId();
 
+  // By address, the pack is fetched again: name the one on screen, so nothing else is added.
+  const exactly = "packUrl" in source && pack.hash ? { ...source, hash: pack.hash } : source;
+
   function add() {
-    install.mutate(source, {
+    install.mutate(exactly, {
       onSuccess: (row) => {
         toast.success("Bot added", { description: `${row.name} is ready to pick in a new conversation.` });
         onInstalled?.(row);
@@ -499,7 +502,7 @@ export function BotActions({
 
   function apply() {
     if (!mine) return;
-    install.mutate(source, {
+    install.mutate(exactly, {
       onSuccess: (row) => {
         toast.success("Bot updated", { description: `${row.name} is now version ${row.version}.` });
         onUpdated?.(row);
