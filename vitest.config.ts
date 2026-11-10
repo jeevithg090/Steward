@@ -14,6 +14,7 @@ export default defineConfig({
             "apps/directory/test/**/*.test.ts",
             "tenants/*.test.ts",
             "scripts/*.test.ts",
+            "docs/*.test.ts",
           ],
           testTimeout: 30_000,
           hookTimeout: 60_000,
