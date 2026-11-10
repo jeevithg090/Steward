@@ -193,8 +193,16 @@ export function bare(reason: string): string {
 }
 
 // A bot's rules sit after the tenant's and before the person's: they may only ask or deny, so the
-// order only decides which rule is named when several would refuse the same call.
-const SOURCE_ORDER: Record<Rule["source"], number> = { preset: 0, tenant: 1, bot: 2, person: 3, always: 4 };
+// order only decides which rule is named when several would refuse the same call. What was allowed
+// for one conversation comes last (conversation.ts): it only ever allows.
+const SOURCE_ORDER: Record<Rule["source"], number> = {
+  preset: 0,
+  tenant: 1,
+  bot: 2,
+  person: 3,
+  always: 4,
+  conversation: 5,
+};
 
 /** Rules in the order they are tried within a step: presets, tenant, bot, person, always, oldest first. */
 export function orderRules(rules: readonly Rule[]): Rule[] {

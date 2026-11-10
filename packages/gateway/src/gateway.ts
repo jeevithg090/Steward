@@ -4,6 +4,7 @@ import { SqliteApprovalStore } from "./approvals.ts";
 import { SqliteAuditLog } from "./audit.ts";
 import { CelEngine } from "./cel.ts";
 import { CONTEXT_SCHEMA, neutralContext } from "./context.ts";
+import type { SqliteConversationAllows } from "./conversation.ts";
 import { GatewayGovernance } from "./governance.ts";
 import { migrations } from "./migrations.ts";
 import { PRESET_RULES } from "./presets.ts";
@@ -25,6 +26,7 @@ export interface StewardGateway extends GatewayServices {
   governance: GatewayGovernance;
   rules: SqliteRuleStore;
   approvals: SqliteApprovalStore;
+  conversationAllows: SqliteConversationAllows;
   audit: SqliteAuditLog;
 }
 
@@ -61,5 +63,5 @@ export function createGateway(opts: GatewayOptions): StewardGateway {
     expiryHours: hoursFrom(opts.expiryHours),
     now,
   });
-  return { governance, rules, approvals, audit };
+  return { governance, rules, approvals, conversationAllows: approvals.conversations, audit };
 }

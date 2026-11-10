@@ -2,6 +2,7 @@ import { newId, ROUTES, ThreadCreateBody, ThreadPatchBody } from "@steward/share
 import type { Hono } from "hono";
 import type { StewardServices } from "../context.ts";
 import { HttpError, notFound, readBody } from "../http/errors.ts";
+import { registerConversationAllowRoutes } from "./conversation-allows.ts";
 import { enumQuery, intQuery, textQuery } from "./query.ts";
 
 const KINDS = ["chat", "routine", "task"] as const;
@@ -57,6 +58,8 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
     }
     s.runner.deleteThread(id);
     s.threads.deleteMeta(id);
+    // What was allowed for this conversation only goes with it.
+    s.gateway.conversationAllows.removeForThread(id, s.actorId);
     // A coding agent's process for this conversation stops, and its session is forgotten.
     await s.models.closeThread(id).catch(() => {});
     // So do the conversations of tasks it handed to other agents.
@@ -64,9 +67,12 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
       if (s.runner.isThreadBusy(child.childThreadId)) await s.runner.stop({ threadId: child.childThreadId });
       s.runner.deleteThread(child.childThreadId);
       s.threads.deleteMeta(child.childThreadId);
+      s.gateway.conversationAllows.removeForThread(child.childThreadId, s.actorId);
       await s.models.closeThread(child.childThreadId).catch(() => {});
     }
     s.delegations.deleteForParent(id);
     return c.json({ ok: true });
   });
+
+  registerConversationAllowRoutes(app, s);
 }

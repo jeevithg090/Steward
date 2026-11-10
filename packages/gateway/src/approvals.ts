@@ -6,7 +6,8 @@
  * simplified for one SQLite file: an approval is opened once per tool call, answered once, and
  * claimed once by the resume that acts on it. "Always allow" writes its standing rule in the same
  * transaction as the answer, and is refused when the ask came from the safety floor, taint, the
- * outbound check or an ask rule.
+ * outbound check or an ask rule. "Allow in this conversation" writes its conversation allow the same
+ * way, offered where Always allow is and only for a person's own run (conversation.ts).
  */
 import type { Db } from "@steward/db";
 import { fromJson, toJson } from "@steward/db";
@@ -17,6 +18,7 @@ import type {
   ApprovalStatus,
   ApprovalStore,
   AuditEvent,
+  ConversationAllow,
   Decision,
   EventBus,
   GateCall,
@@ -26,6 +28,7 @@ import type {
 import { newId } from "@steward/shared";
 import type { SqliteAuditLog } from "./audit.ts";
 import { celString } from "./cel.ts";
+import { canAllowInConversation, SqliteConversationAllows } from "./conversation.ts";
 import { deviceRefusal } from "./device-presets.ts";
 import { GatewayError } from "./errors.ts";
 import { truncate } from "./redact.ts";
@@ -58,6 +61,7 @@ interface ApprovalRow {
   expires_at: string;
   tainted?: number;
   credential_entry?: number;
+  answer_scope?: string | null;
 }
 
 /** Rows from before the facts were stored still tell by the step that asked. Fails towards stricter. */
@@ -100,11 +104,14 @@ function rowToApproval(row: ApprovalRow): Approval {
     row.credential_entry === 1 ||
     step === "default:floor-credential" ||
     approval.tool.name === "request_secret";
-  if (row.answer) approval.answer = row.answer as ApprovalAnswer;
+  // A conversation allow is stored as `once` with its scope beside it.
+  if (row.answer)
+    approval.answer = row.answer_scope === "conversation" ? "conversation" : (row.answer as ApprovalAnswer);
   if (row.claimed_at) approval.claimedAt = row.claimed_at;
   if (row.created_rule_id) approval.createdRuleId = row.created_rule_id;
   if (row.decided_at) approval.decidedAt = row.decided_at;
   approval.initiator = fromJson<Initiator>(row.initiator_json, { kind: "person", id: row.actor_id });
+  approval.canConversation = canAllowInConversation(approval);
   return approval;
 }
 
@@ -169,7 +176,7 @@ export interface OpenInput {
   expiresAt: string;
 }
 
-const ANSWERS: readonly ApprovalAnswer[] = ["once", "always", "refuse"];
+const ANSWERS: readonly ApprovalAnswer[] = ["once", "always", "conversation", "refuse"];
 
 /** How the record names a device's answer: "Answered from iPhone (Shortcuts)". */
 function viaDetail(by: ApprovalDecider): Record<string, unknown> {
@@ -183,6 +190,8 @@ function viaDetail(by: ApprovalDecider): Record<string, unknown> {
 
 export class SqliteApprovalStore implements ApprovalStore {
   private readonly waiters = new Map<string, Set<(approval: Approval) => void>>();
+  /** What was allowed for one conversation only. Written here, as an answer; read by the decision. */
+  readonly conversations: SqliteConversationAllows;
 
   constructor(
     private readonly db: Db,
@@ -190,7 +199,9 @@ export class SqliteApprovalStore implements ApprovalStore {
     private readonly rules: SqliteRuleStore,
     private readonly bus?: EventBus,
     private readonly now: () => Date = () => new Date(),
-  ) {}
+  ) {
+    this.conversations = new SqliteConversationAllows(db, audit, now);
+  }
 
   private row(id: string): ApprovalRow | undefined {
     return this.db.get<ApprovalRow>("SELECT * FROM gateway_approvals WHERE id = ?", [id]);
@@ -312,7 +323,7 @@ export class SqliteApprovalStore implements ApprovalStore {
    */
   decide(id: string, answer: ApprovalAnswer, actorId: string, note?: string, by?: ApprovalDecider): Approval {
     if (!ANSWERS.includes(answer))
-      throw new GatewayError("invalid", "The answer must be once, always or refuse.");
+      throw new GatewayError("invalid", "The answer must be once, always, conversation or refuse.");
     if (by) this.checkDevice(id, answer, actorId, by);
     const at = this.now().toISOString();
     const events: AuditEvent[] = [];
@@ -349,11 +360,32 @@ export class SqliteApprovalStore implements ApprovalStore {
           const rule = alwaysRuleFor(current);
           created = this.rules.insert({ ...rule, effect: "allow", source: "always", enabled: true });
         }
+        let scoped: ConversationAllow | undefined;
+        if (answer === "conversation") {
+          const made = current.canConversation ? this.conversations.insert(current, actorId) : undefined;
+          if (!made) {
+            throw new GatewayError(
+              "invalid",
+              "Allow in this conversation is not offered for this one. Allow it once, or refuse it.",
+            );
+          }
+          scoped = made.allow;
+          events.push(made.event);
+        }
         const status: ApprovalStatus = answer === "refuse" ? "refused" : "allowed";
         const changed = this.db.run(
           `UPDATE gateway_approvals SET status = ?, answer = ?, note = ?, decided_by = ?, decided_at = ?,
-             created_rule_id = ? WHERE id = ? AND status = 'pending'`,
-          [status, answer, note ? truncate(note, 500) : null, actorId, at, created?.id ?? null, id],
+             created_rule_id = ?, answer_scope = ? WHERE id = ? AND status = 'pending'`,
+          [
+            status,
+            answer === "conversation" ? "once" : answer,
+            note ? truncate(note, 500) : null,
+            actorId,
+            at,
+            created?.id ?? scoped?.id ?? null,
+            scoped ? "conversation" : null,
+            id,
+          ],
         );
         if (changed.changes !== 1)
           throw new GatewayError("conflict", "This was answered at the same moment elsewhere.");
@@ -370,12 +402,16 @@ export class SqliteApprovalStore implements ApprovalStore {
             tool: decided.tool,
             target: decided.target,
             ...(created ? { rule: { id: created.id, name: created.name, source: created.source } } : {}),
+            ...(scoped
+              ? { rule: { id: scoped.id, name: scoped.name, source: "conversation" as const } }
+              : {}),
             detail: {
               approvalId: id,
               summary: decided.summary,
               answer,
               ...(note ? { note } : {}),
               ...(created ? { createdRuleId: created.id } : {}),
+              ...(scoped ? { conversationAllowId: scoped.id } : {}),
               ...(by ? viaDetail(by) : {}),
             },
           }),
@@ -417,7 +453,13 @@ export class SqliteApprovalStore implements ApprovalStore {
             name: "Always allow is chosen on your Mac",
             phoneMessage: "Always allow writes a standing rule. Choose it on your Mac.",
           }
-        : deviceRefusal(current, answer, by);
+        : answer === "conversation"
+          ? {
+              id: "default:device-conversation",
+              name: "Allow in this conversation is chosen on your Mac",
+              phoneMessage: "Allowing something for a whole conversation is chosen on your Mac.",
+            }
+          : deviceRefusal(current, answer, by);
     if (!preset) return;
     this.audit.append({
       type: "device.refused",

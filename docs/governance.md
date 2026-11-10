@@ -16,6 +16,7 @@ outbound check do, and how to check the record yourself.
 - [Precedence](#precedence)
 - [Escalation: when a click is not just a click](#escalation-when-a-click-is-not-just-a-click)
 - [Always allow](#always-allow)
+- [Allow in this conversation](#allow-in-this-conversation)
 - [Approvals](#approvals)
 - [Taint](#taint)
 - [The outbound check](#the-outbound-check)
@@ -213,6 +214,27 @@ click, the exact command for the shell, the server for a connected app, and the 
 for a message. A message to Sam and someone new still asks.
 
 These rules are listed on `/rules` under your own, with **Revoke**. Revoking one is recorded.
+
+## Allow in this conversation
+
+**Allow in this conversation** sits between Allow once and Always allow. It lets the same call
+run again without asking, but only in the conversation where you chose it. It is scoped exactly
+like an Always allow (the same tool, host, element, command, server and people), and on top of
+that:
+
+- It is offered only where Always allow is, and only when you started the run yourself. Routines
+  and tasks keep reusing their conversations, so there it would act like a standing rule, and it
+  is never offered for them.
+- It holds only in that conversation, with that agent, for runs you started or your answer
+  resumed. A routine or task run in the same conversation, or a run started from a phone, still
+  asks. It is chosen at Steward's own screen: a phone can't give this answer.
+- It joins the allow rules at step 6, so deny rules, the safety floor, taint, the outbound check
+  and ask rules still come first. A send after reading a web page still asks.
+
+Each one is named above the message box with **Turn off**, and it ends when you turn it off or
+delete the conversation. It is not stored with your rules and never appears on `/rules`. The record
+shows it being added and turned off as `policy.changed`, and each call it lets through as allowed
+by a rule with source `conversation`.
 
 ## Approvals
 

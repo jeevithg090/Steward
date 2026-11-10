@@ -55,6 +55,12 @@ export function decideApproval(
   if (answer === "always" && !existing.canAlways) {
     throw new HttpError(400, "Always allow isn't offered for this. Choose Allow once or Refuse.");
   }
+  if (answer === "conversation" && !existing.canConversation) {
+    throw new HttpError(
+      400,
+      "Allow in this conversation isn't offered for this. Choose Allow once or Refuse.",
+    );
+  }
   let decided: Approval;
   try {
     decided = approvals.decide(id, answer, s.actorId, note, by);

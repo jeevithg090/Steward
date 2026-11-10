@@ -22,6 +22,7 @@ import type {
   ApprovalAnswer,
   AuditEvent,
   ChainCheck,
+  ConversationAllow,
   Decision,
   Rule,
 } from "./governance.ts";
@@ -38,7 +39,7 @@ export const COPILOTKIT_PATH = "/api/copilotkit";
 // ── Request bodies ─────────────────────────────────────────────────────────────────────────────
 
 export const ApprovalDecisionBody = z.object({
-  answer: z.enum(["once", "always", "refuse"]),
+  answer: z.enum(["once", "always", "conversation", "refuse"]),
   /** Optional words from the person, passed to the agent with a refusal. */
   note: z.string().max(500).optional(),
 });
@@ -263,6 +264,8 @@ export const ROUTES = {
 
   threads: "/api/threads", // ThreadSummary[] · POST ThreadCreateBody → ThreadSummary
   thread: "/api/threads/:id", // ThreadSummary · PATCH ThreadPatchBody → ThreadSummary · DELETE
+  threadAllows: "/api/threads/:id/allows", // ConversationAllow[]: what was allowed for this conversation only
+  threadAllow: "/api/threads/:id/allows/:allowId", // DELETE: turn one off
 
   approvals: "/api/approvals", // ?status=pending → Approval[]
   approval: "/api/approvals/:id", // Approval
@@ -346,6 +349,7 @@ export type {
   CalendarEvent,
   ChainCheck,
   ComputerStatus,
+  ConversationAllow,
   Decision,
   EmailSummary,
   MemoryFact,

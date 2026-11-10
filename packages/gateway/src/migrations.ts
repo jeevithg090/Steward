@@ -118,4 +118,23 @@ export const migrations: Migration[] = [
       ALTER TABLE gateway_approvals ADD COLUMN credential_entry INTEGER NOT NULL DEFAULT 0 CHECK (credential_entry IN (0, 1));
     `,
   },
+  {
+    // "Allow in this conversation". Kept apart from the rules: each holds in one conversation only.
+    // The answer is stored as `once` with its scope beside it, so the answer column keeps its CHECK.
+    id: "gateway.006_conversation_allows",
+    sql: `
+      CREATE TABLE gateway_conversation_allows (
+        id          TEXT PRIMARY KEY,
+        thread_id   TEXT NOT NULL CHECK (thread_id <> ''),
+        agent_id    TEXT NOT NULL,
+        name        TEXT NOT NULL,
+        cel         TEXT NOT NULL,
+        summary     TEXT NOT NULL DEFAULT '',
+        approval_id TEXT NOT NULL,
+        created_at  TEXT NOT NULL
+      );
+      CREATE INDEX gateway_conversation_allows_thread ON gateway_conversation_allows(thread_id, created_at);
+      ALTER TABLE gateway_approvals ADD COLUMN answer_scope TEXT CHECK (answer_scope IS NULL OR answer_scope = 'conversation');
+    `,
+  },
 ];
