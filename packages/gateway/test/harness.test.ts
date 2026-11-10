@@ -75,7 +75,81 @@ describe("permissions from external coding agents", () => {
       "Fetch https://example.com",
     );
     expect(summarize({ tool: tool("write", "system"), args: { title: "rm -rf /" }, target: {} })).toBe(
-      "Use harness_x",
+      "Use a tool it did not name",
     );
+  });
+
+  it("says when a change is outside its folder, lists the files, and names a wider sandbox", () => {
+    const codex = (kind: string, surface: string) => ({
+      name: "apply_patch",
+      kind,
+      surface,
+      source: "harness:codex",
+    });
+    expect(
+      summarize({
+        tool: codex("write", "system"),
+        args: { files: ["/Users/me/.ssh/config"] },
+        target: { path: "/Users/me/.ssh/config" },
+      }),
+    ).toBe("Change /Users/me/.ssh/config, outside its own folder");
+    expect(
+      summarize({
+        tool: codex("write", "file"),
+        args: { files: ["src/a.ts", "src/b.ts", "README.md"] },
+        target: { path: "src/a.ts" },
+      }),
+    ).toBe("Change 3 files: src/a.ts, src/b.ts and 1 other");
+    expect(
+      summarize({
+        tool: codex("delete", "file"),
+        args: { files: ["src/a.ts", "README.md"] },
+        target: { path: "src/a.ts" },
+      }),
+    ).toBe("Change 2 files: src/a.ts and README.md, deleting or moving some");
+    expect(
+      summarize({
+        tool: codex("write", "system"),
+        args: { files: ["src/a.ts"], grantRoot: "/Users/me" },
+        target: { path: "src/a.ts" },
+      }),
+    ).toBe("Change src/a.ts. It also asks to change anything in /Users/me for the rest of this session");
+    // A tool on one of Codex's own MCP servers, and edits the agent did not describe.
+    expect(
+      summarize({
+        tool: { name: "mcp__github__create_issue", kind: "write", surface: "mcp", source: "harness:codex" },
+        args: {},
+        target: { mcp: { server: "github", tool: "create_issue" } },
+      }),
+    ).toBe("Use create_issue on github");
+    expect(
+      summarize({
+        tool: { name: "harness_edit", kind: "write", surface: "system", source: "harness:gemini-cli" },
+        args: {},
+        target: {},
+      }),
+    ).toBe("Change files it did not name");
+    // Several paths without a list: the folder that holds them all.
+    expect(
+      summarize({
+        tool: { name: "Edit", kind: "write", surface: "system", source: "harness:claude-code" },
+        args: { paths: ["/srv/project/a.ts", "/etc/hosts"] },
+        target: { path: "/" },
+      }),
+    ).toBe("Change files in /, outside its own folder");
+    expect(
+      summarize({
+        tool: { name: "Delete", kind: "delete", surface: "file", source: "harness:claude-code" },
+        args: {},
+        target: { path: "src/" },
+      }),
+    ).toBe("Delete files in src/");
+    expect(
+      summarize({
+        tool: { name: "harness_switch_mode", kind: "write", surface: "system", source: "harness:gemini-cli" },
+        args: {},
+        target: {},
+      }),
+    ).toBe("Change how it works");
   });
 });
