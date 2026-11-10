@@ -28,13 +28,16 @@ const Today = () => <Page title="Today">Your day.</Page>;
 const Tasks = () => <Page title="Tasks">Your tasks.</Page>;
 const Rules = () => <Page title="Rules">Your rules.</Page>;
 
+/** A place with no heading of its own, so only the shell's fallback can give it focus. */
+const NoHeading = () => <p>Nothing to focus here.</p>;
+
 /** A page that sends itself somewhere else with `replace`, as /chat does once it has a conversation. */
-function Redirects() {
+function Redirects({ to = "/rules" }: { to?: string }) {
   const navigate = useNavigate();
   useEffect(() => {
-    const timer = setTimeout(() => navigate("/rules", { replace: true }), 0);
+    const timer = setTimeout(() => navigate(to, { replace: true }), 0);
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, to]);
   return <p>Moving on…</p>;
 }
 
@@ -54,6 +57,9 @@ function draw(path = "/") {
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/rules" element={<Rules />} />
               <Route path="/moving" element={<Redirects />} />
+              {/* Like Chat: a link that lands on a page which moves on with `replace`. */}
+              <Route path="/routines" element={<Redirects to="/no-heading" />} />
+              <Route path="/no-heading" element={<NoHeading />} />
             </Route>
           </Routes>
         </MemoryRouter>
@@ -112,6 +118,22 @@ describe("AppShell: focus after navigation", () => {
       vi.advanceTimersByTime(1000);
     });
     expect(document.activeElement).toBe(skip);
+  });
+
+  it("keeps the fallback when a page the person went to redirects on to one with no heading", async () => {
+    stubWidth(1440);
+    vi.useFakeTimers();
+    draw();
+    const rail = screen.getByRole("navigation", { name: "Main" });
+    await click(within(rail).getByRole("link", { name: "Routines" }));
+    await act(async () => {
+      vi.advanceTimersByTime(10);
+    });
+    expect(screen.getByText("Nothing to focus here.")).toBeTruthy();
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(document.activeElement).toBe(screen.getByRole("main"));
   });
 
   it("on a phone, a place picked from More gets focus, not the More button", async () => {
