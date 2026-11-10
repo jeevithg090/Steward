@@ -74,7 +74,9 @@ status has a word and an icon beside its colour.
 ### Understanding
 
 - **Plain language** (Settings) asks Steward to use short sentences and everyday words. It applies
-  to the agent's replies, and the app's own copy is written that way already.
+  to the agent's replies, and the app's own copy is written that way already. It is saved with
+  Steward rather than in the browser, so every device shows the same setting; if saving fails, the
+  switch goes back and a message says Steward will keep answering as before.
 - **Every approval says exactly what will happen,** in one sentence, before the details: "Send an
   email to sam@example.com: 'Friday'". The details are one tap away.
 - **Errors say what happened and what to do,** in words, never as a code alone.

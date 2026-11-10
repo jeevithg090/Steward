@@ -3,7 +3,7 @@ import { MotionConfig } from "motion/react";
 import { type ReactNode, useState } from "react";
 import { BrowserRouter } from "react-router";
 import { Toaster } from "sonner";
-import { createQueryClient, useSettings } from "@/lib/api.ts";
+import { createQueryClient, useSettings, useUpdateSettings } from "@/lib/api.ts";
 import { AccessibilityProvider, useAccessibility } from "./accessibility.tsx";
 import { ErrorBoundary } from "./ErrorBoundary.tsx";
 import { StewardCopilotProvider } from "./features.ts";
@@ -33,11 +33,18 @@ export function App() {
   );
 }
 
-/** Feeds the server's plain-language setting in, and makes motion follow the person's choice. */
+/**
+ * Feeds the server's plain-language setting in and saves it back through the settings cache, and
+ * makes motion follow the person's choice.
+ */
 function AccessibilityRoot({ children }: { children: ReactNode }) {
   const settings = useSettings({ retry: false });
+  const update = useUpdateSettings();
   return (
-    <AccessibilityProvider serverPlainLanguage={settings.data?.plainLanguage}>
+    <AccessibilityProvider
+      serverPlainLanguage={settings.data?.plainLanguage}
+      savePlainLanguage={(plainLanguage) => update.mutateAsync({ plainLanguage })}
+    >
       <ReducedMotion>{children}</ReducedMotion>
     </AccessibilityProvider>
   );

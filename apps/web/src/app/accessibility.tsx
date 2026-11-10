@@ -5,17 +5,22 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
+import { toast } from "sonner";
 import { api } from "@/lib/api.ts";
 import { storage } from "@/lib/utils.ts";
 
 /**
  * The person's display and reading settings. They live in this browser (localStorage) and are
  * written to <html> as data attributes that `styles/app.css` reads, so the whole app, CopilotKit's
- * chat included, follows them. Plain language is also the agent's business, so it is saved on the
- * server too (`PUT /api/settings`).
+ * chat included, follows them.
+ *
+ * Plain language is the exception: it changes only how the agent answers, so it lives on the server
+ * (`PUT /api/settings`) and this browser never keeps its own copy. The switch shows the server's
+ * value, or the person's new choice while it is being saved; a save that fails puts it back.
  *
  * `index.html` applies the stored values before the first paint with the same key and attributes.
  */
@@ -63,6 +68,9 @@ export const TEXT_SIZES: { value: TextSize; label: string }[] = [
   { value: 150, label: "Largest" },
 ];
 
+/** The settings kept in this browser: all but plain language, which the server keeps. */
+type LocalSettings = Omit<AccessibilitySettings, "plainLanguage">;
+
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   textSize: 100,
   contrast: "normal",
@@ -73,8 +81,8 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   plainLanguage: false,
 };
 
-/** Reads stored settings, keeping only values that make sense. */
-export function readStoredAccessibility(): Partial<AccessibilitySettings> {
+/** Reads stored settings, keeping only values that make sense. Plain language is never read from here. */
+export function readStoredAccessibility(): Partial<LocalSettings> {
   const raw = storage.get(ACCESSIBILITY_STORAGE_KEY);
   if (!raw) return {};
   let parsed: Record<string, unknown>;
@@ -84,7 +92,7 @@ export function readStoredAccessibility(): Partial<AccessibilitySettings> {
     return {};
   }
   if (!parsed || typeof parsed !== "object") return {};
-  const out: Partial<AccessibilitySettings> = {};
+  const out: Partial<LocalSettings> = {};
   if ([100, 115, 130, 150].includes(parsed.textSize as number)) out.textSize = parsed.textSize as TextSize;
   if (parsed.contrast === "normal" || parsed.contrast === "more") out.contrast = parsed.contrast;
   if (parsed.motion === "system" || parsed.motion === "reduce") out.motion = parsed.motion;
@@ -92,7 +100,6 @@ export function readStoredAccessibility(): Partial<AccessibilitySettings> {
     out.theme = parsed.theme;
   if (parsed.font === "default" || parsed.font === "readable") out.font = parsed.font;
   if (typeof parsed.readAloud === "boolean") out.readAloud = parsed.readAloud;
-  if (typeof parsed.plainLanguage === "boolean") out.plainLanguage = parsed.plainLanguage;
   return out;
 }
 
@@ -114,7 +121,7 @@ const prefersLessMotion = () => globalThis.matchMedia?.(motionQuery).matches ?? 
 
 /** Writes the settings to <html>. Attributes are removed at their defaults, so the CSS defaults apply. */
 export function applyAccessibilityAttributes(
-  settings: AccessibilitySettings,
+  settings: LocalSettings,
   resolvedTheme: "light" | "dark",
   root: HTMLElement = document.documentElement,
 ): void {
@@ -137,16 +144,26 @@ export interface AccessibilityProviderProps {
   /** Starting values; stored values win over these. For tests and embedding. */
   initial?: Partial<AccessibilitySettings>;
   /**
-   * Saves plain language on the server. Defaults to `PUT /api/settings`; failures are ignored
-   * because the local setting still applies to the screen.
+   * Saves plain language on the server. Defaults to `PUT /api/settings`; the app passes one that
+   * also updates its cached settings. When it fails, the switch goes back and a toast says so.
    */
   savePlainLanguage?: (value: boolean) => Promise<unknown>;
   /**
-   * The server's plain-language setting, once known. Adopted while this browser has never chosen,
-   * so a setting made on another device or by the agent shows here too.
+   * The server's plain-language setting, once known. It is what the switch shows, so a setting
+   * made on another device or by the agent shows here too.
    */
   serverPlainLanguage?: boolean;
 }
+
+/** The person's plain-language choice while the server has not yet taken it in. */
+interface PlainLanguageChoice {
+  value: boolean;
+  /** Saved: kept only until the server's value next changes, which then wins. */
+  saved: boolean;
+}
+
+export const PLAIN_LANGUAGE_SAVE_FAILED =
+  "Couldn't save plain language. Steward will keep answering as before.";
 
 export function AccessibilityProvider({
   children,
@@ -154,11 +171,16 @@ export function AccessibilityProvider({
   savePlainLanguage,
   serverPlainLanguage,
 }: AccessibilityProviderProps) {
-  const [settings, setSettings] = useState<AccessibilitySettings>(() => ({
-    ...DEFAULT_ACCESSIBILITY,
-    ...initial,
-    ...readStoredAccessibility(),
-  }));
+  const [settings, setSettings] = useState<LocalSettings>(() => {
+    const { plainLanguage: _server, ...local } = { ...DEFAULT_ACCESSIBILITY, ...initial };
+    return { ...local, ...readStoredAccessibility() };
+  });
+  const [choice, setChoice] = useState<PlainLanguageChoice | undefined>();
+  const plainLanguage = choice?.value ?? serverPlainLanguage ?? initial?.plainLanguage ?? false;
+  // Read by `set`, which keeps one identity across renders.
+  const latest = useRef({ plainLanguage, savePlainLanguage, attempt: 0 });
+  latest.current.plainLanguage = plainLanguage;
+  latest.current.savePlainLanguage = savePlainLanguage;
 
   const systemDark = useSyncExternalStore(subscribeDark, prefersDark, () => false);
   const systemLessMotion = useSyncExternalStore(subscribeMotion, prefersLessMotion, () => false);
@@ -169,36 +191,49 @@ export function AccessibilityProvider({
     applyAccessibilityAttributes(settings, resolvedTheme);
   }, [settings, resolvedTheme]);
 
+  // Once a choice is saved, the server's next value is the truth again: ours, or a later one.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs when the server's value changes.
   useEffect(() => {
-    if (serverPlainLanguage === undefined) return;
-    if (readStoredAccessibility().plainLanguage !== undefined) return;
-    setSettings((current) =>
-      current.plainLanguage === serverPlainLanguage
-        ? current
-        : { ...current, plainLanguage: serverPlainLanguage },
-    );
+    setChoice((current) => (current?.saved ? undefined : current));
   }, [serverPlainLanguage]);
+
+  const choosePlainLanguage = useCallback((value: boolean) => {
+    if (value === latest.current.plainLanguage) return;
+    const attempt = ++latest.current.attempt;
+    setChoice({ value, saved: false });
+    const save =
+      latest.current.savePlainLanguage ?? ((next: boolean) => api.settings.update({ plainLanguage: next }));
+    save(value).then(
+      () => {
+        if (attempt === latest.current.attempt) setChoice({ value, saved: true });
+      },
+      () => {
+        if (attempt !== latest.current.attempt) return;
+        setChoice(undefined);
+        toast.error(PLAIN_LANGUAGE_SAVE_FAILED);
+      },
+    );
+  }, []);
 
   const set = useCallback(
     (patch: Partial<AccessibilitySettings>) => {
-      setSettings((current) => {
-        const next = { ...current, ...patch };
-        storage.set(ACCESSIBILITY_STORAGE_KEY, JSON.stringify(next));
-        return next;
-      });
-      if (patch.plainLanguage !== undefined) {
-        const save = savePlainLanguage ?? ((value: boolean) => api.settings.update({ plainLanguage: value }));
-        save(patch.plainLanguage).catch(() => {
-          // The screen already follows the setting; the agent picks it up on the next save.
+      const { plainLanguage: plain, ...local } = patch;
+      if (Object.keys(local).length > 0) {
+        setSettings((current) => {
+          const next = { ...current, ...local };
+          storage.set(ACCESSIBILITY_STORAGE_KEY, JSON.stringify(next));
+          return next;
         });
       }
+      if (plain !== undefined) choosePlainLanguage(plain);
     },
-    [savePlainLanguage],
+    [choosePlainLanguage],
   );
 
   const value = useMemo<AccessibilityContextValue>(
     () => ({
       ...settings,
+      plainLanguage,
       resolvedTheme,
       reducedMotion: settings.motion === "reduce" || systemLessMotion,
       set,
@@ -211,7 +246,7 @@ export function AccessibilityProvider({
       setPlainLanguage: (plainLanguage) => set({ plainLanguage }),
       reset: () => set({ ...DEFAULT_ACCESSIBILITY }),
     }),
-    [settings, resolvedTheme, systemLessMotion, set],
+    [settings, plainLanguage, resolvedTheme, systemLessMotion, set],
   );
 
   return <AccessibilityContext.Provider value={value}>{children}</AccessibilityContext.Provider>;

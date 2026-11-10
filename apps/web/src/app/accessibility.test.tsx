@@ -4,8 +4,12 @@ import {
   ACCESSIBILITY_STORAGE_KEY,
   type AccessibilityContextValue,
   AccessibilityProvider,
+  PLAIN_LANGUAGE_SAVE_FAILED,
   useAccessibility,
 } from "./accessibility.tsx";
+
+const toastError = vi.hoisted(() => vi.fn());
+vi.mock("sonner", () => ({ toast: { error: toastError } }));
 
 let current: AccessibilityContextValue | undefined;
 
@@ -27,6 +31,7 @@ beforeEach(() => {
   localStorage.clear();
   resetHtml();
   current = undefined;
+  toastError.mockClear();
 });
 
 afterEach(() => {
@@ -116,18 +121,90 @@ describe("AccessibilityProvider", () => {
     expect(save).toHaveBeenCalledTimes(1);
   });
 
-  it("adopts the server's plain language until this browser chooses", () => {
+  it("shows the server's plain language, even after other settings changed here", () => {
     const { rerender } = render(
-      <AccessibilityProvider savePlainLanguage={async () => {}}>
+      <AccessibilityProvider savePlainLanguage={async () => {}} serverPlainLanguage={false}>
         <Probe />
       </AccessibilityProvider>,
     );
+    act(() => current!.setTextSize(130));
     rerender(
       <AccessibilityProvider savePlainLanguage={async () => {}} serverPlainLanguage={true}>
         <Probe />
       </AccessibilityProvider>,
     );
     expect(current?.plainLanguage).toBe(true);
+    // This browser keeps no copy of its own that could outvote the server later.
+    expect(JSON.parse(localStorage.getItem(ACCESSIBILITY_STORAGE_KEY) ?? "{}")).not.toHaveProperty(
+      "plainLanguage",
+    );
+  });
+
+  it("ignores a plain-language value an older version stored in this browser", () => {
+    localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify({ plainLanguage: true }));
+    render(
+      <AccessibilityProvider savePlainLanguage={async () => {}} serverPlainLanguage={false}>
+        <Probe />
+      </AccessibilityProvider>,
+    );
+    expect(current?.plainLanguage).toBe(false);
+  });
+
+  it("puts the switch back and says so when the save fails", async () => {
+    let fail: (reason: unknown) => void = () => {};
+    const save = vi.fn(
+      () =>
+        new Promise((_resolve, reject) => {
+          fail = reject;
+        }),
+    );
+    render(
+      <AccessibilityProvider savePlainLanguage={save} serverPlainLanguage={false}>
+        <Probe />
+      </AccessibilityProvider>,
+    );
+    act(() => current!.setPlainLanguage(true));
+    // While the save is on its way, the switch shows the choice.
+    expect(current?.plainLanguage).toBe(true);
+    await act(async () => fail(new Error("offline")));
+    expect(current?.plainLanguage).toBe(false);
+    expect(toastError).toHaveBeenCalledWith(PLAIN_LANGUAGE_SAVE_FAILED);
+  });
+
+  it("keeps a saved choice until the server's value catches up, then follows the server", async () => {
+    const save = vi.fn(async () => {});
+    const { rerender } = render(
+      <AccessibilityProvider savePlainLanguage={save} serverPlainLanguage={false}>
+        <Probe />
+      </AccessibilityProvider>,
+    );
+    await act(async () => current!.setPlainLanguage(true));
+    expect(current?.plainLanguage).toBe(true);
+    rerender(
+      <AccessibilityProvider savePlainLanguage={save} serverPlainLanguage={true}>
+        <Probe />
+      </AccessibilityProvider>,
+    );
+    expect(current?.plainLanguage).toBe(true);
+    // Changed later on another device: this one follows.
+    rerender(
+      <AccessibilityProvider savePlainLanguage={save} serverPlainLanguage={false}>
+        <Probe />
+      </AccessibilityProvider>,
+    );
+    expect(current?.plainLanguage).toBe(false);
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  it("does not save plain language when it is not changing", () => {
+    const save = vi.fn(async () => {});
+    render(
+      <AccessibilityProvider savePlainLanguage={save} serverPlainLanguage={false}>
+        <Probe />
+      </AccessibilityProvider>,
+    );
+    act(() => current!.reset());
+    expect(save).not.toHaveBeenCalled();
   });
 
   it("refuses to work outside the provider", () => {
