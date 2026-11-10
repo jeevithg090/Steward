@@ -541,6 +541,23 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
   );
 
   it.runIf(haveGenerator)(
+    "makes a template bot when the person's model answers with something unusable, and says so in the pack",
+    async () => {
+      const complete = vi.fn(async () => "Sorry, I can't write JSON today.");
+      vi.spyOn(t.server.services.models, "textModel").mockReturnValue({ complete } as never);
+      const made = await t.api<BotPack & { error?: string }>("/api/bots/make", {
+        method: "POST",
+        json: { job: "find me a flat to rent near Oxford", name: "Flat Finder" },
+      });
+      expect(complete).toHaveBeenCalled();
+      expect(made.body.error).toBeUndefined();
+      expect(made.status).toBe(200);
+      expect(made.body.author).toMatchObject({ kind: "ai", model: "template" });
+      expect(BotPackSchema.safeParse(made.body).success).toBe(true);
+    },
+  );
+
+  it.runIf(haveGenerator)(
     "exports a made bot as a zip of its folder, credited to a handle when given, ready to submit",
     async () => {
       const made = await t.api<BotPack>("/api/bots/make", {

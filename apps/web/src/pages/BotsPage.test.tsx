@@ -1,4 +1,4 @@
-import type { AppInfo, BotListing, BotPreview } from "@steward/shared";
+import type { AppInfo, BotListing, BotPack, BotPreview } from "@steward/shared";
 import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { Route, Routes, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -47,12 +47,25 @@ function serve(
     listings?: BotListing[];
     /** What the server says when it has no directory to read. */
     problem?: string;
+    /** A real model, not the scripted one. */
+    realModel?: boolean;
+    /** What Make a bot answers with. */
+    made?: BotPack;
   } = {},
 ) {
   const listings = opts.listings ?? LISTINGS;
   return mockFetch((req: FakeRequest) => {
     if (req.path === "/api/info")
-      return { body: { ...INFO, mail: { ...INFO.mail, connected: opts.mailConnected ?? false } } };
+      return {
+        body: {
+          ...INFO,
+          mail: { ...INFO.mail, connected: opts.mailConnected ?? false },
+          ...(opts.realModel
+            ? { model: { provider: "openrouter", model: "some-model", scripted: false } }
+            : {}),
+        },
+      };
+    if (req.path === "/api/bots/make" && req.method === "POST" && opts.made) return { body: opts.made };
     if (req.path === "/api/bots" && req.method === "GET") {
       const q = req.query.get("q")?.toLowerCase();
       const category = req.query.get("category");
@@ -180,6 +193,30 @@ describe("BotsPage", () => {
     expect(await within(browse).findByText("The bot directory has not been built yet.")).toBeTruthy();
     expect(within(browse).getByText("pnpm --filter @steward/bots-gen seed build")).toBeTruthy();
     expect(within(browse).queryByText("The directory is empty")).toBeNull();
+  });
+
+  it("says a made bot is a template when the model's answer could not be used", {
+    timeout: 20_000,
+  }, async () => {
+    const template: BotPack = {
+      ...RENT_SCOUT,
+      id: "flat-finder",
+      name: "Flat Finder",
+      author: { kind: "ai", model: "template", generated: "2026-11-10" },
+    };
+    serve({ realModel: true, made: template });
+    renderWithProviders(<BotsPage />, { route: "/bots" });
+    await screen.findByRole("article", { name: "Rent Scout" });
+    fireEvent.click(screen.getAllByRole("button", { name: "Make a bot" })[0]!);
+    const dialog = await screen.findByRole("dialog", { name: "Make a bot" });
+    fireEvent.change(within(dialog).getByRole("textbox", { name: /What should it do/ }), {
+      target: { value: "find me a flat to rent near Oxford" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Write the bot" }));
+    const made = await screen.findByRole("dialog", { name: "Flat Finder" });
+    expect(
+      await within(made).findByText(/Made from a template because the model's answer could not be used/),
+    ).toBeTruthy();
   });
 
   it("suggests inbox bots when mail is connected, everyday ones otherwise", async () => {

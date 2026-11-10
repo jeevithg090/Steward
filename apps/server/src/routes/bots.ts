@@ -176,10 +176,17 @@ export function registerBotRoutes(app: Hono, s: StewardServices): void {
         "The bot couldn't be made. The model did not answer in a way Steward could use.",
       );
     }
-    const errors = made.problems.filter((p: { severity: string }) => p.severity === "error");
-    if (errors.length > 0) {
+    // The pack handed back is what has to pass, checked as an install checks it. When the model's
+    // answer could not be used and the generator made a template instead, the model's problems are
+    // about an answer that was thrown away, so they never refuse the template.
+    const checked = bots.check(made.pack);
+    if (!checked.ok) {
+      const first = checked.problems.find((p) => p.severity === "error");
       return c.json(
-        { error: `The bot couldn't be made: ${clip(errors[0]!.message, 300)}`, problems: made.problems },
+        {
+          error: `The bot couldn't be made: ${clip(first?.message ?? "it did not pass Steward's checks.", 300)}`,
+          problems: checked.problems,
+        },
         422,
       );
     }
