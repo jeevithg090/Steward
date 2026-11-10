@@ -25,6 +25,8 @@ export const BRIEF_MAIL_CAP = 50;
 /** The brief reads mail since the last brief, but never less than a day and never more than this. */
 export const BRIEF_MAIL_MAX_DAYS = 3;
 const DAY_MS = 24 * 3600_000;
+/** What a brief that couldn't read the mail lists under could not check. */
+const MAIL_UNREAD = "Mail: couldn't be read just now";
 const BRIEF_TASKS_MAX = 10;
 const SUMMARY_MAX = 500;
 
@@ -380,6 +382,24 @@ export function createBriefService(deps: BriefDeps): BriefService {
     return row ? fromJson<Brief | undefined>(row.body, undefined) : undefined;
   }
 
+  /**
+   * When an earlier brief last read the mail. A brief that couldn't read it is passed over, so the
+   * mail it missed is read by the next one; past a few such briefs the 3-day reach takes over.
+   */
+  function lastMailRead(date: string): string | undefined {
+    const earlier = db.all<{ created_at: string; body: string }>(
+      "SELECT created_at, body FROM proactive_briefs WHERE date < ? ORDER BY date DESC LIMIT ?",
+      [date, BRIEF_MAIL_MAX_DAYS + 1],
+    );
+    let at: string | undefined;
+    for (const row of earlier) {
+      at = row.created_at;
+      const body = fromJson<Brief | undefined>(row.body, undefined);
+      if (!body?.couldNotCheck?.includes(MAIL_UNREAD)) break;
+    }
+    return at;
+  }
+
   async function build(
     date: string,
     timeZone: string,
@@ -395,11 +415,7 @@ export function createBriefService(deps: BriefDeps): BriefService {
     let mailRead = false;
     let calendarRead = false;
     let ownerNames: string[] = [];
-    const previous = db.get<{ created_at: string }>(
-      "SELECT created_at FROM proactive_briefs WHERE date < ? ORDER BY date DESC LIMIT 1",
-      [date],
-    );
-    const window = mailWindow(at, previous?.created_at);
+    const window = mailWindow(at, lastMailRead(date));
 
     if (!mail) {
       couldNotCheck.push("Mail: not connected", "Calendar: not connected");
@@ -421,7 +437,7 @@ export function createBriefService(deps: BriefDeps): BriefService {
         }
       } catch {
         signal?.throwIfAborted();
-        couldNotCheck.push("Mail: couldn't be read just now");
+        couldNotCheck.push(MAIL_UNREAD);
       }
       signal?.throwIfAborted();
 

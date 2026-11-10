@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BRIEF_MAIL_CAP, cleanSummary, plainSummary, SUMMARY_SYSTEM, summaryPrompt } from "../src/brief.ts";
 import { localDayBounds } from "../src/time.ts";
-import { UNSORTED_REASON } from "../src/triage.ts";
+import { type TriageEmail, UNSORTED_REASON } from "../src/triage.ts";
 import { email, event, fakeMail, fakeModel, setup, subjectModel } from "./helpers.ts";
 
 const LA = "America/Los_Angeles";
@@ -344,6 +344,30 @@ describe("the morning brief", () => {
     expect(brief.couldNotCheck).toEqual([]);
     // A second brief the same day still reads at least the last day.
     expect((await p.brief.generate({ force: true })).canWait).toHaveLength(2);
+  });
+
+  it("reads back past a brief that couldn't read the mail, so that day's mail is not lost", async () => {
+    const inbox: TriageEmail[] = [];
+    const working = fakeMail({ emails: inbox });
+    const failing = fakeMail({ failEmails: true });
+    let current = working;
+    const p = setup({ at: "2026-10-20T08:00:00Z", mail: () => current });
+    await p.brief.generate();
+    inbox.push(
+      email({ subject: "Tuesday evening", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-20T20:00:00Z" }),
+    );
+    current = failing;
+    p.clock.set("2026-10-21T08:00:00Z");
+    expect((await p.brief.generate()).couldNotCheck).toEqual(["Mail: couldn't be read just now"]);
+    current = working;
+    p.clock.set("2026-10-22T08:00:00Z");
+    const brief = await p.brief.generate();
+    expect(working.emailQueries.at(-1)).toEqual({
+      query: "in:inbox newer_than:2d",
+      limit: BRIEF_MAIL_CAP + 1,
+    });
+    expect(brief.canWait.map((i) => i.subject)).toEqual(["Tuesday evening"]);
+    expect(brief.couldNotCheck).toEqual([]);
   });
 
   it("covers a weekend away, and says so when the last brief was more than three days ago", async () => {

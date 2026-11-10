@@ -120,7 +120,8 @@ cancels the brief the morning worker is waiting for.
 
 - Mail since the last brief, so a late morning or a weekend away leaves no gap: at least the last
   day, at most the last 3 days ("Mail: only the last 3 days were checked" when the last brief was
-  longer ago). Newest first, at most 50; when there were more, it says so.
+  longer ago). A brief that couldn't read the mail doesn't count, so the next one reads back past
+  it. Newest first, at most 50; when there were more, it says so.
 - Triage as above; unsorted mail last under needs you.
 - Today's calendar from local midnight to midnight in your timezone (late-evening events included).
   Where the clocks skip midnight (Santiago in September, Havana in March), the day starts at 01:00.
