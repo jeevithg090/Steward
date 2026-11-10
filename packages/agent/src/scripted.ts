@@ -207,7 +207,8 @@ function describeResult(tool: string, data: unknown, req: ChatCompletionRequest)
 type MailAsk = "reply" | "scam" | "question" | "list";
 
 function mailAsk(text: string): MailAsk {
-  if (TAKE_CARE.test(text) || REPLY.test(text)) return "reply";
+  // "Did Sam reply?" asks about a reply; "Reply to Sam" asks for one.
+  if (TAKE_CARE.test(text) || (REPLY.test(text) && !ASKS_ABOUT.test(text.trim()))) return "reply";
   if (/\b(scam|phish(?:ing)?|fraud|fake|genuine|legit(?:imate)?|safe)\b/i.test(text)) return "scam";
   if (/\?\s*$|\b(which|what|how much|how many|do any|does any|is there|are there|qualify)\b/i.test(text))
     return "question";
@@ -270,6 +271,19 @@ const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const TAKE_CARE = /^take care of (.+?)['’]s email(?::\s*(.+?))?\.?\s*$/is;
 /** A reply to write. "Draft" alone could be a memo; a reply is mail. */
 const REPLY = /\b(reply|replies|respond|write back)\b/i;
+/** Words that ask to look at mail, not to write any. */
+const LOOKS = /\b(list|check|read|find|search|show)\b/i;
+/** A question about something ("Is…", "Did…", "What…"), unlike a request ("Can you…"). */
+const ASKS_ABOUT = /^(?:is|are|was|were|did|does|do|has|have|had|what|which|who|whose|when|where|why|how)\b/i;
+
+/**
+ * Whether the person asks Steward to write, judged on the request alone: the message it dictates,
+ * after a colon or "saying", may say anything ("Email sam@example.com: read the report").
+ */
+function asksToWrite(text: string, verbs: RegExp): boolean {
+  const request = (text.split(/:|\b(?:saying|to say|that says)\b/i)[0] ?? text).trim();
+  return verbs.test(request) && !LOOKS.test(request) && !ASKS_ABOUT.test(request);
+}
 /** Things that come by email, and the word to search the mail for. */
 const MAIL_TOPICS: [RegExp, string][] = [
   [/\bbills?\b/i, "bill"],
@@ -298,6 +312,9 @@ function mailQuery(text: string): string | undefined {
   // A quoted phrase: its words, anywhere in the email ("mailbox 98% full").
   const phrase = /["“]([^"“”]{2,80})["”]/.exec(text)?.[1];
   if (phrase) return phrase.replace(/\s+/g, " ").trim();
+  // An address: the mail from it ("Did sam@example.com reply?").
+  const address = text.match(EMAIL)?.[0];
+  if (address) return `from:"${address}"`;
   const topics = MAIL_TOPICS.filter(([pattern]) => pattern.test(text)).map(([, word]) => word);
   return topics.length > 0 ? topics.join(" OR ") : undefined;
 }
@@ -453,18 +470,20 @@ function respondToPerson(req: ChatCompletionRequest): FixtureResponse {
   if (/\b(what needs me|my brief|morning brief|today'?s brief|brief me|my day)\b/.test(lower)) {
     return offered(req, "brief_today") ? call("brief_today", {}) : unavailable();
   }
-  // Sending needs an address. Without one, only a plain request to send asks for it: "email",
-  // like "reply", is also just a word for a message ("is this email a scam?").
+  // Sending needs an address and a request to write. "Email", like "reply", is also just a word
+  // for a message ("is this email a scam?", "did sam@example.com reply?"), and an address can be
+  // what the person asks about ("read the email from sam@example.com").
   const email = parseEmail(text);
-  if (email && /\b(send|e-?mail|mail|reply|write|draft|message|tell|note)\b/.test(lower)) {
+  if (email && asksToWrite(text, /\b(send|e-?mail|mail|reply|write|draft|message|tell|note)\b/i)) {
     return offered(req, "mail_send")
       ? call("mail_send", { ...email, intent: "Send the email you asked for" })
       : unavailable();
   }
+  // Without an address, only a plain request to send asks for one.
   if (
     !email &&
     (/^(?:please\s+)?(?:send|e-?mail)\b/.test(lower) ||
-      /\bsend\b.*\b(?:e-?mail|mail|message|note)\b/.test(lower))
+      asksToWrite(text, /\bsend\b.*\b(?:e-?mail|mail|message|note)\b/i))
   ) {
     return say("Who should I send it to? Give me their email address.", SCRIPTED_NOTE);
   }
@@ -477,7 +496,7 @@ function respondToPerson(req: ChatCompletionRequest): FixtureResponse {
   }
   // A reply to draft, or a question about the mail: find the mail, and say after it what the
   // scripted model cannot do with it.
-  if (mentionsMail(text) || REPLY.test(text)) {
+  if (mentionsMail(text) || REPLY.test(text) || email) {
     const query = mailQuery(text);
     const unread = !query && mailAsk(text) === "reply";
     return offered(req, "mail_list")

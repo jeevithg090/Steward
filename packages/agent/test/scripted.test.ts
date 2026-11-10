@@ -220,6 +220,32 @@ describe("the app's own prompts", () => {
     expect(toolOf(ask("Take care of sam@example.com's email."))?.args.query).toBe('from:"sam@example.com"');
   });
 
+  it("writes to an address only when asked to write, not when asked about its mail", () => {
+    for (const asked of [
+      "Is the email from sam@example.com a scam?",
+      "Did sam@example.com reply?",
+      "What did sam@example.com send me?",
+      "Check my mail from sam@example.com",
+      "Read the email from sam@example.com",
+      "Find the email sam@example.com sent about the lease",
+    ]) {
+      const reply = ask(asked);
+      expect(toolOf(reply), asked).toEqual({
+        name: "mail_list",
+        args: { query: 'from:"sam@example.com"', limit: 10 },
+      });
+    }
+    // Asked to write, as a question or not, and whatever the message itself says.
+    for (const asked of [
+      "Can you email sam@example.com about Friday?",
+      "Reply to sam@example.com: thanks, see you then",
+      "Email sam@example.com: read the report and check the figures",
+      "Tell sam@example.com I'm running late",
+    ]) {
+      expect(toolOf(ask(asked))?.name, asked).toBe("mail_send");
+    }
+  });
+
   it("searches the mail for a quoted email, and for the things a question names", () => {
     expect(toolOf(ask('Is the "mailbox 98% full" email a scam?'))?.args.query).toBe("mailbox 98% full");
     expect(toolOf(ask("Which bills and subscriptions came in recently?"))?.args.query).toBe(
@@ -261,6 +287,10 @@ describe("the app's own prompts", () => {
     expect(after("Take care of Mail Administrator's email.", [phishing])).toContain(
       "I can't write the reply",
     );
+    // Asked whether someone replied, not for a reply.
+    const replied = after("Did admin@mailbox-verify-secure.test reply?", [phishing]);
+    expect(replied).not.toContain("I can't write the reply");
+    expect(replied).toContain("I can't read them and work that out");
     expect(after("Do any of my train tickets qualify for Delay Repay?", [])).toContain(
       "I found no email that matches.",
     );
