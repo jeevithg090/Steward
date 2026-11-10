@@ -39,7 +39,12 @@ Before you push:
 pnpm check                # typecheck, Biome, Vitest
 pnpm e2e                  # Playwright, if you changed anything a person sees or anything in the server
 pnpm eval:triage          # if you changed triage
+gitleaks git .            # no real key in what you commit
 ```
+
+If you change `.gitleaks.toml`, run `node scripts/check-secret-rules.mjs`: it writes made-up keys
+in every shape Steward knows (NVIDIA, OpenRouter, xAI, Groq, phone tokens and more) into a
+temporary folder and fails if gitleaks misses any of them.
 
 `pnpm format` fixes formatting. The first `pnpm e2e` may need `pnpm exec playwright install chromium`.
 
