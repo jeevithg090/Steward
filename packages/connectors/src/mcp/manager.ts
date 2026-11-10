@@ -34,8 +34,15 @@ export interface McpManagerOptions {
   createTransport?: (config: McpServerConfig) => Transport | Promise<Transport>;
   /** Replaces DNS for the http host check. */
   lookup?: LookupFn;
-  /** Default 15 s, for the handshake and each tool listing. */
+  /** Default 15 s, for an http handshake and each tool listing. */
   connectTimeoutMs?: number;
+  /** Default 60 s, for a stdio server to start and answer: a first `npx -y` downloads the package. */
+  startTimeoutMs?: number;
+  /**
+   * Default 15 s: how long a save or a reconnect waits for the connection before answering. A slow
+   * start carries on in the background, and the server shows as connecting until it is done.
+   */
+  saveWaitMs?: number;
   /** Default 60 s per tool call. */
   callTimeoutMs?: number;
   /** Connect saved servers straight away. Default true; otherwise each connects on first call. */
@@ -162,6 +169,8 @@ interface Row {
 }
 
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,40}$/;
+/** The error a server shows while its first connection is under way. */
+const CONNECTING = "Connecting…";
 /** What OpenAI-compatible providers accept as a tool name. */
 const MODEL_TOOL_NAME = /^[A-Za-z0-9_-]{1,64}$/;
 /** The only parts of Steward's environment a stdio server sees. No keys, no tokens. */
@@ -215,6 +224,8 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
   // Idempotent: the server migrates every package at boot, and this keeps the manager safe if not.
   db.migrate(migrations);
   const connectTimeoutMs = opts.connectTimeoutMs ?? 15_000;
+  const startTimeoutMs = opts.startTimeoutMs ?? 60_000;
+  const saveWaitMs = opts.saveWaitMs ?? 15_000;
   const callTimeoutMs = opts.callTimeoutMs ?? 60_000;
   const servers = new Map<string, ServerState>();
   let closed = false;
@@ -237,7 +248,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       tools: bounded(fromJson<ListedTool[]>(row.tools_json, [])).tools,
       pins: fromJson<Record<string, string>>(row.pins_json, {}),
       status: "error",
-      error: opts.connectOnStart === false ? "Not connected yet. It connects on first use." : "Connecting…",
+      error: opts.connectOnStart === false ? "Not connected yet. It connects on first use." : CONNECTING,
       generation: 0,
       stderr: "",
     };
@@ -328,7 +339,9 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
           state.status = "error";
           setFailure(state, closedFailure(state));
         };
-        await c.connect(transport, { timeout: connectTimeoutMs });
+        await c.connect(transport, {
+          timeout: state.config.transport === "stdio" ? startTimeoutMs : connectTimeoutMs,
+        });
         const listing = await listAllTools(c, connectTimeoutMs);
         if (generation !== state.generation || closed) {
           await c.close().catch(() => {});
@@ -400,6 +413,27 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
     );
   }
 
+  /** Waits for a connect, but no longer than `saveWaitMs`. */
+  async function settle(attempt: Promise<void> | undefined): Promise<void> {
+    let timer: NodeJS.Timeout | undefined;
+    await Promise.race([
+      attempt,
+      new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, saveWaitMs);
+        timer.unref?.();
+      }),
+    ]);
+    clearTimeout(timer);
+  }
+
+  /** Starts the connection again from nothing. Shown as connecting until it is done. */
+  async function restart(state: ServerState): Promise<void> {
+    await disconnect(state);
+    state.status = "error";
+    setFailure(state, { message: CONNECTING });
+    await settle(connect(state));
+  }
+
   async function disconnect(state: ServerState): Promise<void> {
     state.generation++;
     const client = state.client;
@@ -410,7 +444,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
   function info(state: ServerState): McpServerInfo {
     const { config } = state;
     const connecting =
-      state.status === "error" && (state.connecting !== undefined || state.error === "Connecting…");
+      state.status === "error" && (state.connecting !== undefined || state.error === CONNECTING);
     return {
       id: config.id,
       name: config.name,
@@ -563,16 +597,15 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         existing.config = config;
         existing.pins = pins;
         if (fillPins(existing)) persistPins(existing);
-        await existing.connecting;
+        await settle(existing.connecting);
         return info(existing);
       }
       if (existing) {
-        await disconnect(existing);
         if (!sameConnection(existing.config, config)) existing.tools = [];
         existing.config = config;
         existing.pins = pins;
         if (fillPins(existing)) persistPins(existing);
-        await connect(existing);
+        await restart(existing);
         return info(existing);
       }
       const state: ServerState = {
@@ -580,12 +613,20 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         tools: [],
         pins,
         status: "error",
-        error: "Connecting…",
+        error: CONNECTING,
         generation: 0,
         stderr: "",
       };
       servers.set(config.id, state);
-      await connect(state);
+      await settle(connect(state));
+      return info(state);
+    },
+
+    async reconnect(id) {
+      if (closed) throw new McpCallError("MCP connections are closed.");
+      const state = servers.get(id);
+      if (!state) throw new McpConfigError(`There is no MCP server called "${id}".`);
+      await restart(state);
       return info(state);
     },
 

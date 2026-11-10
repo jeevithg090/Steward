@@ -76,6 +76,12 @@ export function registerConnectionRoutes(app: Hono, s: StewardServices): void {
     return c.json(await upsert(body));
   });
 
+  app.post(ROUTES.mcpServerReconnect, async (c) => {
+    const id = c.req.param("id");
+    if (!s.mcp.list().some((x) => x.id === id)) throw notFound("that tool server");
+    return c.json(await s.mcp.reconnect(id));
+  });
+
   app.delete(ROUTES.mcpServer, async (c) => {
     const id = c.req.param("id");
     if (!s.mcp.list().some((x) => x.id === id)) throw notFound("that tool server");

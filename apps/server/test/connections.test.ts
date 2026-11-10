@@ -82,6 +82,27 @@ describe("the MCP connection routes", () => {
     });
   });
 
+  it("tries a server again on request, and refuses one it doesn't know", async () => {
+    const reconnected: string[] = [];
+    const server = { id: "github", name: "GitHub", transport: "stdio", status: "connected", tools: [] };
+    const mcp = {
+      list: () => [server],
+      reconnect: async (id: string) => {
+        reconnected.push(id);
+        return server;
+      },
+      closeAll: async () => {},
+    } as unknown as McpManager;
+    const { send } = app({}, mcp);
+    expect(await send("POST", "/api/connections/mcp/github/reconnect")).toEqual({
+      status: 200,
+      body: server,
+    });
+    expect(reconnected).toEqual(["github"]);
+    const missing = await send("POST", "/api/connections/mcp/nowhere/reconnect");
+    expect(missing.status).toBe(404);
+  });
+
   it("hands the manager every mark the person made", async () => {
     const saved: Parameters<McpManager["upsert"]>[0][] = [];
     const mcp = {

@@ -166,6 +166,11 @@ export interface McpManager {
      */
     allowAgain?: string[];
   }): Promise<McpServerInfo>;
+  /**
+   * Starts a server's connection again without changing its config: for one that failed to start or
+   * dropped. Answers once it connects, or with status `connecting` if it is still starting.
+   */
+  reconnect(id: string): Promise<McpServerInfo>;
   remove(id: string): Promise<void>;
   closeAll(): Promise<void>;
 }

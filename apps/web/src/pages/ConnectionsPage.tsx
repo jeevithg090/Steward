@@ -1,5 +1,5 @@
 import type { McpToolKind, ToolKind, ToolSurface } from "@steward/shared";
-import { Mail, Plug, Plus, Server, Trash, TriangleAlert } from "lucide-react";
+import { Mail, Plug, Plus, RotateCw, Server, Trash, TriangleAlert } from "lucide-react";
 import { type FormEvent, useId, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge.tsx";
@@ -11,11 +11,24 @@ import { ChoiceGroup, Field, Input, Select, Switch, Textarea } from "@/component
 import { ErrorNotice, Loading, Notice } from "@/components/ui/Notice.tsx";
 import { Page } from "@/components/ui/PageHeader.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
-import { type McpServerDetail, useConnections, useRemoveMcp, useUpsertMcp } from "@/lib/api.ts";
+import { Spinner } from "@/components/ui/Spinner.tsx";
+import {
+  type McpServerDetail,
+  useConnections,
+  useReconnectMcp,
+  useRemoveMcp,
+  useUpsertMcp,
+} from "@/lib/api.ts";
 import { KIND_LABELS, SURFACE_LABELS, toolLabel } from "@/lib/labels.ts";
 
+/** How often the page looks again while a server is still starting. */
+const CONNECTING_POLL_MS = 2_000;
+
 export function ConnectionsPage() {
-  const connections = useConnections();
+  const connections = useConnections({
+    refetchInterval: (query) =>
+      query.state.data?.mcp.some((server) => server.status === "connecting") ? CONNECTING_POLL_MS : false,
+  });
   return (
     <Page
       title="Connections"
@@ -78,6 +91,14 @@ function MailCard({ mail }: { mail: { connected: boolean; label: string; isDemo:
 function statusPill(server: McpServerDetail) {
   if (server.status === "connected") return <Pill tone="done">Connected</Pill>;
   if (server.status === "error") return <Pill tone="problem">Problem</Pill>;
+  if (server.status === "connecting") {
+    return (
+      <Pill tone="neutral" icon={null}>
+        <Spinner />
+        Connecting…
+      </Pill>
+    );
+  }
   return <Pill tone="neutral">Off</Pill>;
 }
 
@@ -161,8 +182,18 @@ function withGrant(marks: Marks, name: string, on: boolean): Marks {
 function McpServerCard({ server }: { server: McpServerDetail }) {
   const upsert = useUpsertMcp();
   const remove = useRemoveMcp();
+  const reconnect = useReconnectMcp();
   const [confirming, setConfirming] = useState(false);
   const headingId = useId();
+
+  function tryAgain() {
+    reconnect.mutate(server.id, {
+      onSuccess: (info) => {
+        if (info.status === "connected") toast.success(`${server.name} is connected`);
+      },
+      onError: (error) => toast.error("Couldn't try again", { description: error.message }),
+    });
+  }
 
   function save(next: Marks) {
     upsert.mutate(
@@ -189,7 +220,9 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
           <h3 id={headingId} className="flex flex-wrap items-center gap-2 font-semibold text-body text-ink">
             <Server aria-hidden="true" className="size-5 text-ink-2" />
             {server.name}
-            {statusPill(server)}
+            <span aria-live="polite" className="contents">
+              {statusPill(server)}
+            </span>
           </h3>
           <p className="mt-1 text-caption text-ink-2">
             <code>{server.id}</code> ·{" "}
@@ -208,7 +241,15 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
         </Button>
       </div>
       {server.status === "error" && server.error ? (
-        <Notice tone="problem" title="It didn't connect">
+        <Notice
+          tone="problem"
+          title="It didn't connect"
+          action={
+            <Button size="sm" icon={<RotateCw />} loading={reconnect.isPending} onClick={tryAgain}>
+              Try again
+            </Button>
+          }
+        >
           {server.error}
         </Notice>
       ) : null}
@@ -217,7 +258,9 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
         <p className="text-ink-2 text-sub">
           {server.status === "connected"
             ? "This server offers no tools."
-            : "Its tools show up here once it connects."}
+            : server.status === "connecting"
+              ? "Starting it. A program fetched with npx can take a minute the first time."
+              : "Its tools show up here once it connects."}
         </p>
       ) : (
         <ul className="flex flex-col">
@@ -393,6 +436,10 @@ function AddServer() {
           if (server.status === "error") {
             toast.warning(`Saved ${server.name}, but it didn't connect`, {
               description: server.error ?? "Its card below says what went wrong.",
+            });
+          } else if (server.status === "connecting") {
+            toast.success(`Added ${server.name}`, {
+              description: "It's still starting. Its tools show up once it connects.",
             });
           } else {
             toast.success(`Added ${server.name}`, { description: "Switch on the tools Steward may use." });

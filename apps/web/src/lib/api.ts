@@ -350,6 +350,7 @@ export const api = {
     updateMcp: (id: string, body: McpServerInput) =>
       send<McpServerInfo>("PUT", route(ROUTES.mcpServer, { id }), body),
     removeMcp: (id: string) => send<void>("DELETE", route(ROUTES.mcpServer, { id })),
+    reconnectMcp: (id: string) => send<McpServerInfo>("POST", route(ROUTES.mcpServerReconnect, { id })),
   },
 
   computer: {
@@ -837,6 +838,15 @@ export function useUpsertMcp() {
       void qc.invalidateQueries({ queryKey: queryKeys.connections });
       void qc.invalidateQueries({ queryKey: queryKeys.setup });
     },
+  });
+}
+
+/** Starts a server's connection again, for one that failed to start or dropped. */
+export function useReconnectMcp() {
+  const qc = useQueryClient();
+  return useMutation<McpServerInfo, ApiError, string>({
+    mutationFn: (id) => api.connections.reconnectMcp(id),
+    onSettled: () => void qc.invalidateQueries({ queryKey: queryKeys.connections }),
   });
 }
 

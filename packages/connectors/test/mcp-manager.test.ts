@@ -375,6 +375,46 @@ describe("MCP manager with an in-process server", () => {
     expect(mcp.list()[0]?.status).toBe("connected");
   });
 
+  it("tries again on request after a failed start, without touching the config", async () => {
+    const mem = inMemory();
+    let attempts = 0;
+    const mcp = manager({
+      createTransport: async () => {
+        attempts++;
+        if (attempts === 1) throw Object.assign(new Error("spawn notes-server ENOENT"), { code: "ENOENT" });
+        return mem.createTransport();
+      },
+    });
+    const failed = await mcp.upsert(NOTES);
+    expect(failed).toMatchObject({ status: "error", error: expect.stringMatching(/wasn't found/) });
+    const again = await mcp.reconnect("notes");
+    expect(again.status).toBe("connected");
+    expect(again.tools.map((t) => t.name)).toContain("search_notes");
+    expect(again.tools.find((t) => t.name === "search_notes")).toMatchObject({ granted: true, kind: "read" });
+    await expect(mcp.reconnect("nowhere")).rejects.toThrow(/no MCP server called "nowhere"/);
+  });
+
+  it("answers a save while a slow server is still starting, and shows it as connecting", async () => {
+    const mem = inMemory();
+    let release: () => void = () => {};
+    const started = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const mcp = manager({
+      saveWaitMs: 20,
+      createTransport: async () => {
+        await started;
+        return mem.createTransport();
+      },
+    });
+    const saved = await mcp.upsert(NOTES);
+    expect(saved).toMatchObject({ status: "connecting", tools: [] });
+    expect(saved).not.toHaveProperty("error");
+    release();
+    await mcp.ready();
+    expect(mcp.list()[0]?.status).toBe("connected");
+  });
+
   it("connects saved servers at start, and can offer cached tools before connecting", async () => {
     await manager({ createTransport: inMemory().createTransport }).upsert(NOTES);
 

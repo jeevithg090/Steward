@@ -151,7 +151,10 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
 - **Persistence.** Configs live in `connectors_mcp_servers`, with the last tool listing, so granted
   tools can be offered before a server has reconnected after a restart.
 - **Connections.** Saved servers connect at start. One that drops is marked and reconnects on its next
-  call. Changing only the name, grants or reads does not restart the server.
+  call, or when the person asks (`reconnect(id)`, **Try again** on the Connections page). Changing
+  only the name, grants or kinds does not restart the server. A stdio server has 60 seconds to start
+  (a first `npx -y` downloads the package); a save or a reconnect answers after at most 15 seconds,
+  and a server still starting then shows as `connecting` until it is done.
 - **stdio servers** start without a shell (arguments are passed as they are, so `;` or `$(...)` mean
   nothing), in the home folder, with only `PATH`, `HOME`, `LANG` and `TERM` from Steward's environment.
   The MCP SDK adds its own safe list (`USER`, `LOGNAME`, `SHELL`). No API key in Steward's environment

@@ -315,6 +315,7 @@ export const ROUTES = {
   connections: "/api/connections", // ConnectionsInfo
   mcpServers: "/api/connections/mcp", // POST McpServerBody → McpServerInfo
   mcpServer: "/api/connections/mcp/:id", // PUT McpServerBody · DELETE
+  mcpServerReconnect: "/api/connections/mcp/:id/reconnect", // POST → McpServerInfo
 
   computer: "/api/computer/:agentId", // ComputerStatus
   computerActivity: "/api/computer/:agentId/activity", // ActivityItem[]
