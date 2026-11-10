@@ -64,7 +64,6 @@ function build(opts: { idleMs?: number } = {}) {
     harness: profile(),
     threads,
     governance: gateway.governance,
-    approvals: gateway.approvals,
     actorId: "local",
     serverRunToken: "tok",
   });
@@ -311,20 +310,30 @@ describe("a harness agent over ACP", () => {
     });
   });
 
-  it("answers Always allow with allow_always, only where Steward offers it", async () => {
+  it("answers Always allow with allow once, so the harness keeps asking and every call is recorded", async () => {
     const first = await run([user("edit")]);
     const interrupt = interruptOf(first);
     const meta = interrupt.metadata as unknown as ApprovalInterruptMetadata;
     // A change outside the workspace asks, even though writes in it run.
     expect(meta.tool).toMatchObject({ kind: "write", surface: "system" });
-    expect(meta.summary).toBe("Use harness_edit on /etc/hosts");
     expect(meta.canAlways).toBe(true);
     gateway.approvals.decide(meta.approvalId, "always", "local");
     await run(first.messages, { resume: [{ interruptId: interrupt.id, status: "resolved" }] });
+    // Never the harness's own "always": that would stop it asking, and Steward from seeing.
     expect(permissions().at(-1)).toMatchObject({
       toolCallId: "call_edit",
-      outcome: { outcome: "selected", optionId: "always" },
+      outcome: { outcome: "selected", optionId: "yes" },
     });
+    // The next time it asks, Steward's rule answers at once, and the record has it.
+    const again = await run([...first.messages, user("edit")]);
+    expect(again.finished?.outcome).toBeUndefined();
+    expect(permissions().filter((e) => e.toolCallId === "call_edit")).toHaveLength(2);
+    expect(permissions().some((e) => JSON.stringify(e.outcome).includes("always"))).toBe(false);
+    const allowed = gateway.audit
+      .page({ type: "tool.decided" })
+      .events.filter((e) => e.target?.path === "/etc/hosts" && e.effect === "allow");
+    // Once for the answer itself, once for the call the rule then let through.
+    expect(allowed.map((e) => e.rule?.source)).toEqual(["always", "always"]);
   });
 
   it("stop cancels the turn, and the conversation can go on", async () => {

@@ -4,7 +4,7 @@
 import { resolve } from "node:path";
 import type { TokenUsage } from "@ag-ui/client";
 import type { Target } from "@steward/shared";
-import { insideWorkspace } from "../acp/mapping.ts";
+import { insideWorkspace, isVendorSettings } from "../acp/mapping.ts";
 import type { HarnessPermission, HarnessUpdate, PermissionAnswer } from "../types.ts";
 import type { CodexDecision, CodexFileChange, CodexThreadItem, CodexTokenCounts } from "./types.ts";
 
@@ -45,21 +45,27 @@ export function commandPermission(params: Record<string, unknown>, callId: strin
       ...(text(params.reason) ? { reason: text(params.reason) } : {}),
     },
     target: command ? { command } : {},
-    offersAlways: true,
   };
 }
 
-/** The files a change touches, from the request's `fileChanges` or the item's own `changes`. */
+/**
+ * The files a change touches, from the request's `fileChanges` or the item's own `changes`. A
+ * moved file is two entries: its old path, as a `move` (it is gone from there), and its new one,
+ * as an `add`.
+ */
 export function changedFiles(fileChanges: unknown, itemChanges?: unknown): { path: string; kind: string }[] {
   const out: { path: string; kind: string }[] = [];
+  const add = (path: string, kind: string, moved: string | undefined) => {
+    out.push({ path, kind: moved ? "move" : kind });
+    if (moved) out.push({ path: moved, kind: "add" });
+  };
   if (isRecord(fileChanges)) {
     for (const [path, change] of Object.entries(fileChanges)) {
       const kind = isRecord(change) && typeof change.type === "string" ? change.type : "update";
-      out.push({ path, kind });
       const moved = isRecord(change)
         ? text((change as CodexFileChange & { move_path?: unknown }).move_path)
         : undefined;
-      if (moved) out.push({ path: moved, kind: "add" });
+      add(path, kind, moved);
     }
   } else if (Array.isArray(itemChanges)) {
     for (const change of itemChanges) {
@@ -70,7 +76,8 @@ export function changedFiles(fileChanges: unknown, itemChanges?: unknown): { pat
         isRecord(change.kind) && typeof change.kind.type === "string"
           ? change.kind.type
           : String(change.kind ?? "update");
-      out.push({ path, kind });
+      const moved = isRecord(change.kind) ? text(change.kind.move_path) : text(change.move_path);
+      add(path, kind, moved);
     }
   }
   return out;
@@ -78,8 +85,9 @@ export function changedFiles(fileChanges: unknown, itemChanges?: unknown): { pat
 
 /**
  * `item/fileChange/requestApproval`: one approval per request, listing every file (plan §3). A
- * change that only deletes is a `delete`; one outside the workspace, or one that asks to widen the
- * sandbox (`grantRoot`), is on the `system` surface, so it asks.
+ * change that deletes or moves any file is a `delete`, so a tainted one always asks. One outside
+ * the workspace, one to a vendor tool's own settings, one that lists no file, and one that asks
+ * to widen the sandbox (`grantRoot`) are on the `system` surface, so they ask.
  */
 export function fileChangePermission(
   params: Record<string, unknown>,
@@ -88,24 +96,23 @@ export function fileChangePermission(
   itemChanges?: unknown,
 ): HarnessPermission {
   const files = changedFiles(params.fileChanges, itemChanges);
-  const outside = files.some((f) => insideWorkspace(f.path, cwd) === undefined);
+  const outside = files.some((f) => insideWorkspace(f.path, cwd) === undefined || isVendorSettings(f.path));
   const grantRoot = text(params.grantRoot);
-  const onlyDeletes = files.length > 0 && files.every((f) => f.kind === "delete");
+  const removes = files.some((f) => f.kind === "delete" || f.kind === "move");
   const first = files[0];
   const target: Target = {};
   if (first) target.path = insideWorkspace(first.path, cwd) ?? resolve(cwd, first.path);
   return {
     callId,
     toolName: "apply_patch",
-    kind: onlyDeletes ? "delete" : "write",
-    surface: outside || grantRoot ? "system" : "file",
+    kind: removes ? "delete" : "write",
+    surface: outside || grantRoot || files.length === 0 ? "system" : "file",
     args: {
       files: files.map((f) => insideWorkspace(f.path, cwd) ?? resolve(cwd, f.path)),
       ...(text(params.reason) ? { reason: text(params.reason) } : {}),
       ...(grantRoot ? { grantRoot } : {}),
     },
     target,
-    offersAlways: true,
   };
 }
 
@@ -124,17 +131,17 @@ export function elicitationPermission(params: Record<string, unknown>, callId: s
     surface: "mcp",
     args: input,
     target: { mcp: { server, tool } },
-    offersAlways: false,
   };
 }
 
-/** Steward's answer in Codex's words (plan §3). Always-for-session only when Steward offered Always. */
+/**
+ * Steward's answer in Codex's words (plan §3). Never `acceptForSession`: Always allow is a Steward
+ * rule, so Codex keeps asking and every request keeps reaching the gateway and the record.
+ */
 export function decisionFor(answer: PermissionAnswer): CodexDecision {
   switch (answer) {
     case "allow_once":
       return "accept";
-    case "allow_always":
-      return "acceptForSession";
     case "reject":
       return "decline";
     case "cancelled":
@@ -148,12 +155,7 @@ export function elicitationResponse(answer: PermissionAnswer): {
   content: null;
   _meta: null;
 } {
-  const action =
-    answer === "allow_once" || answer === "allow_always"
-      ? "accept"
-      : answer === "reject"
-        ? "decline"
-        : "cancel";
+  const action = answer === "allow_once" ? "accept" : answer === "reject" ? "decline" : "cancel";
   return { action, content: null, _meta: null };
 }
 

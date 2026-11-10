@@ -14,7 +14,6 @@ import {
 import {
   APPROVAL_INTERRUPT_REASON,
   type ApprovalInterruptMetadata,
-  type ApprovalStore,
   CUSTOM_EVENTS,
   type GateCall,
   type GateOutcome,
@@ -33,8 +32,6 @@ export interface HarnessAgentDeps {
   harness: HarnessProfile;
   threads: HarnessThreads;
   governance: Governance;
-  /** To tell an Always allow from an Allow once when a parked call is resumed. */
-  approvals?: Pick<ApprovalStore, "byToolCall">;
   /** `local` in single-user mode. */
   actorId: string;
   /** Random per boot. A run whose forwarded props carry it may name its initiator (routine, task, resume). */
@@ -315,14 +312,17 @@ export class HarnessAgent extends AbstractAgent {
     return undefined;
   }
 
-  /** The resume run: answers the parked request with what the person chose, through the gateway. */
+  /**
+   * The resume run: answers the parked request with what the person chose, through the gateway.
+   * An allow is always `allow_once`, Always allow included: that is a Steward rule, which answers
+   * the next request at once, so every call still reaches the gateway and the record. The harness
+   * is never told to stop asking.
+   */
   private async answerParked(thread: HarnessThread, entry: ResumeEntry): Promise<void> {
     const parked = thread.parked.get(entry.interruptId);
     if (!parked) return;
     thread.parked.delete(entry.interruptId);
-    const approval = this.deps.approvals?.byToolCall(parked.call.toolCallId);
-    const always = approval?.answer === "always" && approval.canAlways && parked.request.offersAlways;
-    const allow: PermissionAnswer = always ? "allow_always" : "allow_once";
+    const allow: PermissionAnswer = "allow_once";
     let answered = false;
     try {
       const outcome = await this.deps.governance.resume(parked.call, async () => {

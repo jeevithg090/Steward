@@ -33,7 +33,6 @@ import {
 import type {
   AgentInfo,
   AgentProfile,
-  ApprovalStore,
   AuditLog,
   BotPack,
   HarnessInfo,
@@ -78,7 +77,6 @@ export interface HarnessDeps {
   dataDir: string;
   store?: HarnessSessionStore;
   audit?: AuditLog;
-  approvals?: Pick<ApprovalStore, "byToolCall">;
   /** How a harness process is started. Tests pass a fake; by default, by the profile's kind. */
   backend?: (
     profile: HarnessProfile,
@@ -544,7 +542,6 @@ export class AgentHost {
     }
     const threads = this.threadsFor(harness, info.path);
     inUse.add(harness.id);
-    const deps = this.deps.harnesses;
     return {
       agent: new HarnessAgent({
         agentId: profile.id,
@@ -552,7 +549,6 @@ export class AgentHost {
         harness,
         threads,
         governance: this.deps.shared.governance,
-        ...(deps?.approvals ? { approvals: deps.approvals } : {}),
         actorId: this.deps.shared.actorId,
         serverRunToken: this.deps.serverRunToken,
       }),

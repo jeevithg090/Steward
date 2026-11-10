@@ -1,3 +1,6 @@
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { PermissionOption, ToolKind } from "@agentclientprotocol/sdk";
 import { describe, expect, it } from "vitest";
 import { lineFilter, updateFrom } from "../src/acp/backend.ts";
@@ -5,6 +8,7 @@ import {
   commandOf,
   filterStdoutLine,
   insideWorkspace,
+  isVendorSettings,
   outcomeFor,
   outputOf,
   permissionFrom,
@@ -37,7 +41,7 @@ describe("the ACP tool kind map (plan §3)", () => {
       ["switch_mode", "write", "system"],
     ];
     for (const [acp, kind, surface] of cases) {
-      expect(permission(acp, {}), acp).toMatchObject({ kind, surface });
+      expect(permission(acp, { path: "a.md" }), acp).toMatchObject({ kind, surface });
     }
     expect(permission(undefined, {})).toMatchObject({ kind: "write", surface: "system" });
   });
@@ -73,6 +77,67 @@ describe("the ACP tool kind map (plan §3)", () => {
     });
   });
 
+  it("reads both ends of a move and every path in a list, so a change outside asks", () => {
+    expect(
+      permission("move", { source: "/Users/me/important", destination: "trash/important" }),
+    ).toMatchObject({ kind: "write", surface: "system", target: { path: "/Users/me/important" } });
+    expect(permission("move", { from: "a.md", to: "/tmp/a.md" }).surface).toBe("system");
+    expect(permission("edit", { old_path: "/etc/hosts", new_path: "hosts" }).surface).toBe("system");
+    expect(permission("edit", { paths: ["a.md", "/etc/hosts"] }).surface).toBe("system");
+    expect(permission("edit", { files: [{ path: "a.md" }, { path: "/etc/hosts" }] }).surface).toBe("system");
+    expect(permission("edit", { paths: ["a.md", "b/c.md"] })).toMatchObject({
+      surface: "file",
+      target: { path: "a.md" },
+    });
+  });
+
+  it("asks when a change names no path at all (fail closed)", () => {
+    for (const kind of ["edit", "move", "delete"] as const) {
+      expect(permission(kind, { content: "x" }).surface, kind).toBe("system");
+    }
+    // Reading names no path either, but reading runs: it changes nothing.
+    expect(permission("read", {})).toMatchObject({ kind: "read", surface: "file" });
+  });
+
+  it("asks before a change to a vendor tool's own settings, even inside the workspace", () => {
+    for (const path of [
+      ".claude/settings.json",
+      ".gemini/settings.json",
+      ".codex/config.toml",
+      ".mcp.json",
+    ]) {
+      expect(permission("edit", { file_path: path }).surface, path).toBe("system");
+      expect(isVendorSettings(`${CWD}/${path}`)).toBe(true);
+    }
+    expect(permission("read", { file_path: ".claude/settings.json" }).surface).toBe("file");
+    expect(isVendorSettings("notes/claude.md")).toBe(false);
+  });
+
+  it("counts a link inside the workspace that leads out of it as outside", () => {
+    const root = mkdtempSync(join(tmpdir(), "steward-ws-"));
+    try {
+      const ws = join(root, "workspace");
+      const outside = join(root, "outside");
+      mkdirSync(ws);
+      mkdirSync(outside);
+      symlinkSync(outside, join(ws, "link"));
+      expect(insideWorkspace("link/secret.txt", ws)).toBeUndefined();
+      expect(insideWorkspace(join(ws, "link"), ws)).toBeUndefined();
+      // A file not written yet is judged by the folder it would be in.
+      expect(insideWorkspace("new/notes.md", ws)).toBe(join("new", "notes.md"));
+      const p = permissionFrom(
+        {
+          toolCall: { toolCallId: "t", kind: "edit", rawInput: { file_path: "link/secret.txt" } },
+          options: [],
+        },
+        ws,
+      );
+      expect(p.surface).toBe("system");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("never reads the title: neither the name, the arguments nor the target come from it", () => {
     const p = permissionFrom(
       {
@@ -100,21 +165,17 @@ describe("the ACP tool kind map (plan §3)", () => {
   it("keeps the structured input as the arguments", () => {
     expect(permission("execute", { command: "ls", timeout: 5 }).args).toEqual({ command: "ls", timeout: 5 });
     expect(permission("execute", "ls").args).toEqual({ input: "ls" });
-    expect(permission("execute", { command: "ls" }).offersAlways).toBe(true);
   });
 });
 
 describe("answering a permission (plan §3)", () => {
-  it("chooses the option by its kind", () => {
+  it("chooses the option by its kind, and never the harness's own Always", () => {
     expect(outcomeFor("allow_once", OPTIONS)).toEqual({ outcome: "selected", optionId: "a" });
-    expect(outcomeFor("allow_always", OPTIONS)).toEqual({ outcome: "selected", optionId: "b" });
     expect(outcomeFor("reject", OPTIONS)).toEqual({ outcome: "selected", optionId: "c" });
     expect(outcomeFor("cancelled", OPTIONS)).toEqual({ outcome: "cancelled" });
   });
 
-  it("falls back to allow once when always is not offered, and never widens a grant", () => {
-    const noAlways = OPTIONS.filter((o) => o.kind !== "allow_always");
-    expect(outcomeFor("allow_always", noAlways)).toEqual({ outcome: "selected", optionId: "a" });
+  it("never widens a grant", () => {
     const onlyAlways: PermissionOption[] = [{ optionId: "b", name: "Always", kind: "allow_always" }];
     expect(outcomeFor("allow_once", onlyAlways)).toEqual({ outcome: "cancelled" });
     expect(outcomeFor("reject", [{ optionId: "r", name: "Never", kind: "reject_always" }])).toEqual({

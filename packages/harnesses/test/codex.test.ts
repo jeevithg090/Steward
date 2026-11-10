@@ -35,7 +35,6 @@ describe("Codex approvals in Steward's terms (plan §3)", () => {
       surface: "shell",
       args: { command: "npm test", cwd: "/w", reason: "Run it" },
       target: { command: "npm test" },
-      offersAlways: true,
     });
   });
 
@@ -64,12 +63,42 @@ describe("Codex approvals in Steward's terms (plan §3)", () => {
     expect(fileChangePermission({ fileChanges: { "old.md": { type: "delete" } } }, "t:5", CWD).kind).toBe(
       "delete",
     );
+    // Deleting any file makes the whole change a delete, so a tainted one always asks.
+    expect(
+      fileChangePermission(
+        {
+          fileChanges: {
+            "src/a.ts": { type: "delete" },
+            "src/b.ts": { type: "delete" },
+            "README.md": { type: "update" },
+          },
+        },
+        "t:5b",
+        CWD,
+      ),
+    ).toMatchObject({ kind: "delete", surface: "file" });
+    // So does moving one: it is gone from where it was.
+    expect(
+      fileChangePermission({ fileChanges: { "a.md": { type: "update", move_path: "b.md" } } }, "t:5c", CWD)
+        .kind,
+    ).toBe("delete");
+    expect(
+      fileChangePermission({}, "t:5d", CWD, [
+        { path: "a.md", kind: { type: "update", move_path: "/tmp/a.md" } },
+      ]),
+    ).toMatchObject({ kind: "delete", surface: "system", args: { files: ["a.md", "/tmp/a.md"] } });
+    // A change that lists no file, or one to a vendor tool's own settings, asks.
+    expect(fileChangePermission({}, "t:5e", CWD).surface).toBe("system");
+    expect(
+      fileChangePermission({ fileChanges: { ".codex/config.toml": { type: "update" } } }, "t:5f", CWD)
+        .surface,
+    ).toBe("system");
     // A request that does not list its files uses the ones its item started with.
     expect(fileChangePermission({}, "t:6", CWD, [{ path: "c.md", kind: { type: "update" } }]).target).toEqual(
       { path: "c.md" },
     );
     expect(changedFiles({ "a.md": { type: "update", move_path: "b.md" } })).toEqual([
-      { path: "a.md", kind: "update" },
+      { path: "a.md", kind: "move" },
       { path: "b.md", kind: "add" },
     ]);
   });
@@ -88,9 +117,8 @@ describe("Codex approvals in Steward's terms (plan §3)", () => {
     });
   });
 
-  it("answers accept, acceptForSession, decline or cancel", () => {
+  it("answers accept, decline or cancel, never acceptForSession", () => {
     expect(decisionFor("allow_once")).toBe("accept");
-    expect(decisionFor("allow_always")).toBe("acceptForSession");
     expect(decisionFor("reject")).toBe("decline");
     expect(decisionFor("cancelled")).toBe("cancel");
     expect(elicitationResponse("allow_once")).toEqual({ action: "accept", content: null, _meta: null });
@@ -165,7 +193,6 @@ beforeEach(() => {
     harness: profile(),
     threads,
     governance: gateway.governance,
-    approvals: gateway.approvals,
     actorId: "local",
     serverRunToken: "tok",
   });
@@ -299,7 +326,7 @@ describe("Codex as a Steward agent, against the app-server transcript", () => {
     expect(answers().at(-1)?.result).toEqual({ decision: "decline" });
   });
 
-  it("lets a change inside the workspace run, and answers Always allow outside it with acceptForSession", async () => {
+  it("lets a change inside the workspace run, and answers Always allow outside it with accept, never for the session", async () => {
     const inside = await run([user("edit the readme")]);
     expect(inside.text).toBe("Updated the README.");
     expect(answers().at(-1)?.result).toEqual({ decision: "accept" });
@@ -312,8 +339,11 @@ describe("Codex as a Steward agent, against the app-server transcript", () => {
     const resumed = await run(outside.messages, {
       resume: [{ interruptId: interrupt.id, status: "resolved" }],
     });
-    expect(resumed.text).toBe("Changed it, and may again.");
-    expect(answers().at(-1)?.result).toEqual({ decision: "acceptForSession" });
+    expect(resumed.text).toBe("Changed it once.");
+    // Always allow is Steward's rule: Codex is told yes this once, so it asks again next time,
+    // and that ask reaches the gateway and the record.
+    expect(answers().at(-1)?.result).toEqual({ decision: "accept" });
+    expect(answers().some((a) => JSON.stringify(a.result).includes("acceptForSession"))).toBe(false);
   });
 
   it("asks before a tool on one of Codex's MCP servers, and refuses grants Steward does not make", async () => {

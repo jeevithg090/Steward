@@ -38,12 +38,14 @@ export interface HarnessPermission {
   args: Record<string, unknown>;
   /** From structured fields only (paths, commands, URLs), never from a title. */
   target: Target;
-  /** The harness offers to remember an Allow for this kind of call. */
-  offersAlways: boolean;
 }
 
-/** How a permission was answered, in Steward's terms; each backend maps it onto its own. */
-export type PermissionAnswer = "allow_once" | "allow_always" | "reject" | "cancelled";
+/**
+ * How a permission was answered, in Steward's terms; each backend maps it onto its own. There is
+ * no "always": Always allow is a Steward rule, never a harness mode, so the harness keeps asking
+ * and every call keeps reaching the gateway.
+ */
+export type PermissionAnswer = "allow_once" | "reject" | "cancelled";
 
 /** How a turn ended. */
 export interface TurnEnd {

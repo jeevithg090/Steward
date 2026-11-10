@@ -261,7 +261,6 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
         dataDir: config.dataDir,
         store: new HarnessSessionStore(db),
         audit: gateway.audit,
-        approvals: gateway.approvals,
         version: VERSION,
       },
       shared: {

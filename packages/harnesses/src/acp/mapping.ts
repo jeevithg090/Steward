@@ -2,7 +2,8 @@
 // requests follows Happy's happy-cli/src/agent/acp/AcpBackend.ts (MIT, Happy Coder Contributors),
 // with two fixes: the call is identified by `toolCallId` and described by `rawInput` and
 // `locations` (never by its title), and the answer is chosen by the option's `kind`.
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import type {
   ToolKind as AcpToolKind,
   PermissionOption,
@@ -48,6 +49,25 @@ export function commandOf(input: unknown): string | undefined {
   return undefined;
 }
 
+/** The input fields that name one path: what to read or change, and both ends of a move (from first). */
+const PATH_FIELDS = [
+  "file_path",
+  "filePath",
+  "path",
+  "notebook_path",
+  "target_file",
+  "source",
+  "old_path",
+  "oldPath",
+  "from",
+  "destination",
+  "new_path",
+  "newPath",
+  "to",
+];
+/** The input fields that name several. */
+const PATH_LISTS = ["paths", "files", "file_paths", "filePaths"];
+
 /** File paths from the structured fields: ACP `locations` first, then the input's path fields. */
 export function pathsOf(locations: readonly ToolCallLocation[] | null | undefined, input: unknown): string[] {
   const paths: string[] = [];
@@ -56,22 +76,61 @@ export function pathsOf(locations: readonly ToolCallLocation[] | null | undefine
     if (path) paths.push(path);
   }
   if (isRecord(input)) {
-    for (const key of ["file_path", "filePath", "path", "notebook_path", "target_file", "destination"]) {
+    for (const key of PATH_FIELDS) {
       const path = text(input[key]);
       if (path) paths.push(path);
+    }
+    for (const key of PATH_LISTS) {
+      const list = input[key];
+      if (!Array.isArray(list)) continue;
+      for (const item of list) {
+        const path = text(item) ?? (isRecord(item) ? (text(item.path) ?? text(item.file_path)) : undefined);
+        if (path) paths.push(path);
+      }
     }
   }
   return [...new Set(paths)];
 }
 
-/** A path inside the workspace, relative to it; `undefined` when it points outside. */
+/** The real path of the deepest part of `path` that exists, with the rest as written. */
+function realish(path: string): string {
+  const rest: string[] = [];
+  let current = path;
+  for (;;) {
+    try {
+      return join(realpathSync(current), ...rest.reverse());
+    } catch {
+      const parent = dirname(current);
+      if (parent === current) return path;
+      rest.push(basename(current));
+      current = parent;
+    }
+  }
+}
+
+/**
+ * A path inside the workspace, relative to it; `undefined` when it points outside. Compared by
+ * real path, so a link inside the workspace that leads out of it counts as outside (as the
+ * computer's own workspace check does).
+ */
 export function insideWorkspace(path: string, cwd: string): string | undefined {
   const full = isAbsolute(path) ? resolve(path) : resolve(cwd, path);
-  const rel = relative(resolve(cwd), full);
+  const rel = relative(realish(resolve(cwd)), realish(full));
   if (rel === "") return ".";
   if (rel.startsWith(`..${sep}`) || rel === ".." || isAbsolute(rel)) return undefined;
   return rel;
 }
+
+/**
+ * The vendor tools' own settings (`.claude/`, `.gemini/`, `.codex/`, `.mcp.json`): a change there
+ * could let the tool stop asking, so it asks even inside the workspace.
+ */
+export function isVendorSettings(path: string): boolean {
+  return /(^|[\\/])\.(claude|gemini|codex)([\\/]|$)|(^|[\\/])\.mcp\.json$/i.test(path);
+}
+
+/** ACP kinds that change files: with no path to check, they ask. */
+const CHANGES = new Set<AcpToolKind>(["edit", "move", "delete"]);
 
 /** The harness's own name for a tool: ACP `name`, or a `toolName` in its `_meta`; else one from its kind. */
 export function toolNameOf(call: {
@@ -92,8 +151,9 @@ export function toolNameOf(call: {
 
 /**
  * A permission request in Steward's terms. The kind comes from ACP's tool kind, except that a call
- * that carries a command is a `shell` whatever kind it claims, and a change to a file outside the
- * agent's workspace is on the `system` surface, so it asks.
+ * that carries a command is a `shell` whatever kind it claims. A change is on the `system`
+ * surface, so it asks, when any path it names is outside the agent's workspace or is a vendor
+ * tool's own settings, and when it names no path at all (fail closed).
  */
 export function permissionFrom(
   request: {
@@ -125,8 +185,15 @@ export function permissionFrom(
   if (first) {
     const rel = insideWorkspace(first, cwd);
     target.path = rel ?? resolve(cwd, first);
-    if (rel === undefined && surface === "file") surface = "system";
-    if (paths.some((p) => insideWorkspace(p, cwd) === undefined) && surface === "file") surface = "system";
+    const changes = kind !== "read";
+    if (
+      surface === "file" &&
+      paths.some((p) => insideWorkspace(p, cwd) === undefined || (changes && isVendorSettings(p)))
+    ) {
+      surface = "system";
+    }
+  } else if (surface === "file" && CHANGES.has(acpKind)) {
+    surface = "system";
   }
   if (isRecord(call.rawInput)) {
     const url = text(call.rawInput.url);
@@ -144,14 +211,14 @@ export function permissionFrom(
         ? {}
         : { input: call.rawInput },
     target,
-    offersAlways: request.options.some((o) => o.kind === "allow_always"),
   };
 }
 
 /**
- * The ACP outcome for an answer, chosen by the option's kind (plan §3): once → `allow_once`;
- * always → `allow_always` when offered, else `allow_once`; refuse → `reject_once`; a stopped run →
- * `cancelled`. An allow the harness did not offer becomes a cancel rather than a wider grant.
+ * The ACP outcome for an answer, chosen by the option's kind (plan §3): allow → `allow_once`;
+ * refuse → `reject_once`; a stopped run → `cancelled`. `allow_always` is never chosen: Always
+ * allow is a Steward rule, so the harness keeps asking and the gateway keeps deciding. An allow
+ * the harness did not offer becomes a cancel rather than a wider grant.
  */
 export function outcomeFor(
   answer: PermissionAnswer,
@@ -167,11 +234,9 @@ export function outcomeFor(
   const optionId =
     answer === "allow_once"
       ? pick("allow_once")
-      : answer === "allow_always"
-        ? pick("allow_always", "allow_once")
-        : answer === "reject"
-          ? pick("reject_once", "reject_always")
-          : undefined;
+      : answer === "reject"
+        ? pick("reject_once", "reject_always")
+        : undefined;
   return optionId === undefined ? { outcome: "cancelled" } : { outcome: "selected", optionId };
 }
 
