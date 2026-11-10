@@ -51,6 +51,7 @@ import {
   type PendingApproval,
 } from "./ApprovalInterrupts.tsx";
 import { Composer } from "./Composer.tsx";
+import { ComputerNotice } from "./ComputerNotice.tsx";
 import { type ChatActions, ChatActionsContext, type ComputerView } from "./chat-context.tsx";
 import { currentStep, latestTurnToolCalls, plainRunError, replayedId, shownIds, textOf } from "./messages.ts";
 import { claimInlineRunErrors } from "./provider.tsx";
@@ -605,6 +606,8 @@ function Conversation({
                     {computer?.status?.help?.reason}
                   </Notice>
                 ) : null}
+
+                <ComputerNotice computer={computer} hidden={!(wide && panelOpen) && !sheetOpen} />
 
                 {followFailed && !running ? (
                   <Notice

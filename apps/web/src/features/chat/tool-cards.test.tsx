@@ -198,18 +198,36 @@ describe("tool cards", () => {
     });
   });
 
-  it("never shows a secret, only that it was filled", () => {
-    draw(
-      <SecretRequestLine
-        {...tool(
-          "request_secret",
-          { label: "Password", ref: "e3" },
-          { ok: true, data: { filled: true, length: 12 } },
-        )}
-      />,
-    );
-    expect(screen.getByText("You filled in password")).toBeTruthy();
-    expect(screen.getByText("12 characters, never shown to Steward")).toBeTruthy();
+  describe("a secret", () => {
+    const asked = (data: Record<string, unknown>) =>
+      tool("request_secret", { label: "Password", ref: "e3" }, { ok: true, data });
+
+    it("never shows the value, only that it was filled and how long it was", () => {
+      // What request_secret returns: `characters`, never the value.
+      draw(<SecretRequestLine {...asked({ filled: true, characters: 12, next: "…" })} />);
+      expect(screen.getByText("You filled in password")).toBeTruthy();
+      expect(screen.getByText("12 characters, never shown to Steward")).toBeTruthy();
+    });
+
+    it("names the conversation's agent", () => {
+      draw(
+        <SecretRequestLine {...asked({ filled: true, characters: 8 })} />,
+        chat({ agentId: "bot1", agentName: "Focus time guard" }),
+      );
+      expect(screen.getByText("8 characters, never shown to Focus time guard")).toBeTruthy();
+    });
+
+    it("does not claim the box was closed when it may not have been", () => {
+      draw(<SecretRequestLine {...asked({ filled: false })} />);
+      expect(screen.getByText("Didn't fill in password")).toBeTruthy();
+      expect(screen.queryByText(/closed without sending/)).toBeNull();
+      expect(screen.getByText(/the box was closed, the time ran out, or the page changed/)).toBeTruthy();
+    });
+
+    it("says why when the tool says", () => {
+      draw(<SecretRequestLine {...asked({ filled: false, reason: "page_changed" })} />);
+      expect(screen.getByText("The page changed before it could be typed in.")).toBeTruthy();
+    });
   });
 
   it("draws an MCP tool as a humanised line, with its result behind a disclosure", () => {

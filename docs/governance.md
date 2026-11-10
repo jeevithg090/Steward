@@ -331,6 +331,9 @@ over the computer's WebSocket and nowhere else:
   takes afterwards (`[hidden: sensitive field]`), as are password, one-time code and card fields
   in general.
 
+If the value could not be typed in (the page changed, or the field went away), the conversation
+says so, even when the computer panel is closed.
+
 ## The record
 
 Every decision, answer, outcome, rule change, secret request and handover is appended to the

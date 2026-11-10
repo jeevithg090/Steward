@@ -18,6 +18,7 @@ import { Notice } from "@/components/ui/Notice.tsx";
 import { useInfo } from "@/lib/api.ts";
 import { ComputerPanel } from "../computer/ComputerPanel.tsx";
 import { ComputerSession, useOptionalComputer } from "../computer/session.tsx";
+import { ComputerNotice } from "./ComputerNotice.tsx";
 import { type ChatActions, ChatActionsContext, type ComputerView, useChatActions } from "./chat-context.tsx";
 import { SubRunsContext, useSubRun } from "./subruns.tsx";
 import { Transcript } from "./Transcript.tsx";
@@ -180,6 +181,8 @@ function DelegationBody({
           {help.reason}
         </Notice>
       ) : null}
+
+      <ComputerNotice computer={childComputer} hidden={!showing} />
 
       {ownComputer && childId ? (
         <Dialog

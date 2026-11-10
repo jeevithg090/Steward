@@ -148,15 +148,30 @@ class QuietEventSource {
   close() {}
 }
 
-// The conversation's computer connection; nothing answers it here.
+// The conversation's computer connection; nothing answers it unless a test speaks for the server.
+const computerSockets: QuietSocket[] = [];
 class QuietSocket {
   readyState = 0;
-  onopen = null;
+  onopen: (() => void) | null = null;
   onclose = null;
   onerror = null;
-  onmessage = null;
+  onmessage: ((event: { data: string }) => void) | null = null;
+  constructor(readonly url: string) {
+    computerSockets.push(this);
+  }
   send() {}
   close() {}
+}
+
+/** The conversation's computer says something, as the server does when a secret was not typed. */
+function computerSays(message: string) {
+  const socket = computerSockets.findLast((s) => s.url.includes("/ws/computer/"));
+  if (!socket) throw new Error("No computer socket was opened.");
+  act(() => {
+    socket.readyState = 1;
+    socket.onopen?.();
+    socket.onmessage?.({ data: JSON.stringify({ type: "error", message }) });
+  });
 }
 
 function draw(props: Partial<Parameters<typeof ChatThread>[0]> = {}) {
@@ -188,6 +203,7 @@ beforeEach(() => {
   kit.copilotkit.connectAgent.mockImplementation(async () => ({ newMessages: [] }));
   kit.copilotkit.runAgent.mockClear();
   kit.copilotkit.stopAgent.mockClear();
+  computerSockets.length = 0;
   vi.stubGlobal("WebSocket", QuietSocket);
   vi.stubGlobal("EventSource", QuietEventSource);
   localStorage.clear();
@@ -595,6 +611,35 @@ describe("ChatThread", () => {
       scrollTo.mockClear();
       fireEvent.click(screen.getByRole("button", { name: "Jump to the latest" }));
       expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
+    });
+  });
+
+  describe("what the computer says while its panel is out of sight", () => {
+    const CHANGED = "The page changed, so the value was not typed. Steward will need to ask again.";
+
+    it("shows in the conversation, where the person is, and can be dismissed", async () => {
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      computerSays(CHANGED);
+      expect(screen.getByText(CHANGED)).toBeTruthy();
+      expect(screen.getByText("Steward's computer")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+      expect(screen.queryByText(CHANGED)).toBeNull();
+    });
+
+    it("stays in the panel when the panel is open beside it", async () => {
+      vi.stubGlobal("matchMedia", (query: string) => ({
+        matches: query === "(min-width: 64rem)",
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+      }));
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      computerSays(CHANGED);
+      const panel = screen.getByRole("complementary", { name: "Steward's computer" });
+      expect(screen.getAllByText(CHANGED)).toHaveLength(1);
+      expect(within(panel).getByText(CHANGED)).toBeTruthy();
     });
   });
 

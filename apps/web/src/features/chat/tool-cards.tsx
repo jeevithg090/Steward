@@ -216,23 +216,36 @@ export function HelpRequestCard(tool: ToolProps) {
   );
 }
 
+/** Why a secret was not typed in, when the tool says. */
+const SECRET_UNFILLED: Record<string, string> = {
+  cancelled: "You closed the secret box without sending.",
+  timeout: "Nobody typed it in time.",
+  page_changed: "The page changed before it could be typed in.",
+  fill_failed: "It could not be typed into the field.",
+};
+
 /** `request_secret`: the value itself never appears here, only that it was asked for and filled. */
 export function SecretRequestLine(tool: ToolProps) {
   const state = useToolState(tool);
+  const who = state.chat?.agentName ?? "Steward";
   const what = lowerFirst(text(tool.args.label) ?? "a password");
   if (state.outcome.status === "ok") {
     const data = recordFrom(state.outcome.data);
-    const length = typeof data?.length === "number" ? data.length : undefined;
+    // The tool reports `characters`; `length` is what older results carried.
+    const count = [data?.characters, data?.length].find(
+      (value): value is number => typeof value === "number" && value > 0,
+    );
+    const reason = SECRET_UNFILLED[text(data?.reason) ?? ""];
     return data?.filled === false ? (
       <ToolLine
         state="failed"
         label={`Didn't fill in ${what}`}
-        note="The secret box was closed without sending."
+        note={reason ?? "Nothing was typed in: the box was closed, the time ran out, or the page changed."}
       />
     ) : (
       <ToolLine
         label={`You filled in ${what}`}
-        detail={length ? `${length} characters, never shown to Steward` : undefined}
+        detail={count ? `${count} characters, never shown to ${who}` : undefined}
       />
     );
   }
