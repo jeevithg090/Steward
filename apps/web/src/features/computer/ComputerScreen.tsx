@@ -46,7 +46,7 @@ async function decode(frame: Frame): Promise<CanvasImageSource & { close?: () =>
 
 export function ComputerScreen({
   className,
-  label = "Steward's screen",
+  label,
   onLeave,
 }: {
   className?: string;
@@ -55,6 +55,8 @@ export function ComputerScreen({
   onLeave?: () => void;
 }) {
   const computer = useComputer();
+  const who = computer.name;
+  const screenLabel = label ?? `${who}'s screen`;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const helpId = useId();
   const driving = computer.driving && computer.connection === "open";
@@ -250,7 +252,9 @@ export function ComputerScreen({
         style={{ aspectRatio: `${width} / ${height}` }}
         role={driving ? "application" : "img"}
         aria-roledescription={driving ? "remote screen" : undefined}
-        aria-label={driving ? `${label}. You have control.` : `${label}, live. Steward is driving.`}
+        aria-label={
+          driving ? `${screenLabel}. You have control.` : `${screenLabel}, live. ${who} is driving.`
+        }
         aria-describedby={driving ? helpId : undefined}
         tabIndex={driving ? 0 : -1}
         onPointerDown={onPointerDown}
@@ -275,8 +279,8 @@ export function ComputerScreen({
       />
       {driving ? (
         <p id={helpId} className="sr-only">
-          Keys you press here go to Steward's computer, and so do clicks. Press Escape to leave the screen;
-          you keep control until you hand it back.
+          Keys you press here go to {who}'s computer, and so do clicks. Press Escape to leave the screen; you
+          keep control until you hand it back.
         </p>
       ) : null}
       {resting ? (
@@ -287,8 +291,8 @@ export function ComputerScreen({
           <MonitorPause aria-hidden className="size-8 text-ink-3" />
           <p className="m-0 max-w-xs text-ink-2 text-sub">
             {computer.status?.running
-              ? "Waiting for the first picture from Steward's screen…"
-              : "Steward's computer is resting. It wakes when Steward needs it."}
+              ? `Waiting for the first picture from ${who}'s screen…`
+              : `${who}'s computer is resting. It wakes when ${who} needs it.`}
           </p>
         </div>
       ) : null}

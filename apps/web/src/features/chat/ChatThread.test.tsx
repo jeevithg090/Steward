@@ -1,11 +1,12 @@
 import type { Message } from "@copilotkit/react-core/v2";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACCESSIBILITY_STORAGE_KEY, AccessibilityProvider } from "@/app/accessibility.tsx";
 import { live } from "@/lib/live.ts";
 import { ChatThread } from "./ChatThread.tsx";
+import { FileLine } from "./tool-cards.tsx";
 
 /**
  * A stand-in for CopilotKit: one agent whose messages, run state and subscribers the test controls,
@@ -18,6 +19,8 @@ const kit = vi.hoisted(() => {
     isRunning: false,
     subscribers: new Set<Subscriber>(),
     rerender: () => {},
+    /** How a tool call is drawn; null draws the transcript's own fallback line. */
+    renderToolCall: (() => null) as (params: { toolCall: unknown; toolMessage?: unknown }) => unknown,
     interrupts: [] as {
       id: string;
       reason: string;
@@ -73,7 +76,8 @@ vi.mock("@copilotkit/react-core/v2", async () => {
       return { agent: kit.agent, isReady: true };
     },
     useCopilotKit: () => ({ copilotkit: kit.copilotkit }),
-    useRenderToolCall: () => () => null,
+    useRenderToolCall: () => (params: { toolCall: unknown; toolMessage?: unknown }) =>
+      kit.state.renderToolCall(params),
     useRenderTool: () => {},
     useInterrupt: (config: { render: (props: unknown) => unknown }) =>
       kit.state.interrupts.length > 0
@@ -104,6 +108,15 @@ vi.mock("@/lib/api.ts", async (importOriginal) => ({
   useSkills: () => ({ data: [] }),
   useComputerStatus: () => ({ data: undefined }),
   useComputerActivity: () => ({ data: [] }),
+  useComputerFiles: (agentId: string) => ({
+    data: [
+      { path: "notes/plan.md", isDirectory: false, size: 120, modifiedAt: "2026-11-10T09:00:00Z", agentId },
+    ],
+    isFetching: false,
+    isLoading: false,
+    isError: false,
+    refetch: async () => {},
+  }),
 }));
 
 vi.mock("@/components/cards/ApprovalCard.tsx", () => ({
@@ -168,6 +181,7 @@ beforeEach(() => {
   kit.state.subscribers.clear();
   kit.coreSubscribers.clear();
   kit.state.interrupts = [];
+  kit.state.renderToolCall = () => null;
   info.data = undefined;
   listed.approvals = [];
   kit.copilotkit.connectAgent.mockReset();
@@ -452,6 +466,56 @@ describe("ChatThread", () => {
     // Its computer is its own, and is named so.
     expect(screen.getAllByText("Focus time guard's computer").length).toBeGreaterThan(0);
     expect(screen.queryByText("Steward's computer")).toBeNull();
+  });
+
+  it("opens a saved file in the computer beside the conversation, on Files", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(min-width: 64rem)",
+      media: query,
+      addEventListener() {},
+      removeEventListener() {},
+    }));
+    kit.state.messages = [
+      { id: "u1", role: "user", content: "Save my plan" },
+      {
+        id: "a1",
+        role: "assistant",
+        content: "",
+        toolCalls: [
+          {
+            id: "c1",
+            type: "function",
+            function: { name: "file_write", arguments: JSON.stringify({ path: "notes/plan.md" }) },
+          },
+        ],
+      },
+      {
+        id: "t1",
+        role: "tool",
+        toolCallId: "c1",
+        content: JSON.stringify({ ok: true, data: { path: "notes/plan.md", size: 120 } }),
+      },
+    ];
+    kit.state.renderToolCall = ({ toolCall, toolMessage }) => {
+      const call = toolCall as { id: string; function: { name: string; arguments: string } };
+      const result = toolMessage as { content: string } | undefined;
+      return (
+        <FileLine
+          name={call.function.name}
+          toolCallId={call.id}
+          args={JSON.parse(call.function.arguments)}
+          status={result ? "complete" : "inProgress"}
+          result={result?.content}
+        />
+      );
+    };
+    draw();
+    const computer = await screen.findByRole("complementary", { name: "Steward's computer" });
+    expect(within(computer).getByRole("tab", { name: "Screen" }).getAttribute("aria-selected")).toBe("true");
+    fireEvent.click(await screen.findByRole("button", { name: "Open in files" }));
+    const panel = screen.getByRole("complementary", { name: "Steward's computer" });
+    expect(within(panel).getByRole("tab", { name: "Files" }).getAttribute("aria-selected")).toBe("true");
+    expect(within(panel).getByText("plan.md").closest("li")?.getAttribute("aria-current")).toBe("true");
   });
 
   it("names the current step while Steward works, and Stop ends the run", async () => {

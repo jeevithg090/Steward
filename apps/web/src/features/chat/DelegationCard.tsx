@@ -18,7 +18,7 @@ import { Notice } from "@/components/ui/Notice.tsx";
 import { useInfo } from "@/lib/api.ts";
 import { ComputerPanel } from "../computer/ComputerPanel.tsx";
 import { ComputerSession, useOptionalComputer } from "../computer/session.tsx";
-import { type ChatActions, ChatActionsContext, useChatActions } from "./chat-context.tsx";
+import { type ChatActions, ChatActionsContext, type ComputerView, useChatActions } from "./chat-context.tsx";
 import { SubRunsContext, useSubRun } from "./subruns.tsx";
 import { Transcript } from "./Transcript.tsx";
 import type { ToolProps } from "./tool-cards.tsx";
@@ -84,6 +84,7 @@ function DelegationBody({
   const computer = useOptionalComputer();
   const messages = useSubRun(tool.toolCallId);
   const [showing, setShowing] = useState(false);
+  const [view, setView] = useState<ComputerView>({});
   const task = text(tool.args.task) ?? "a task";
   const outcome = done ? readToolResult(tool.result) : undefined;
   // A task that ended without an answer says so in its result: "… stopped without answering."
@@ -111,7 +112,12 @@ function DelegationBody({
             send: () => {},
             busy: true,
             isLatestTurn: (callId) => working && parent.isLatestTurn(callId),
-            showComputer: ownComputer ? () => setShowing(true) : parent.showComputer,
+            showComputer: ownComputer
+              ? (asked?: ComputerView) => {
+                  setView(asked ?? {});
+                  setShowing(true);
+                }
+              : parent.showComputer,
           }
         : null,
     [parent, childId, name, working, ownComputer],
@@ -158,7 +164,15 @@ function DelegationBody({
           role="alert"
           title={`${name} needs you on its computer`}
           action={
-            <Button size="sm" variant="primary" icon={<Monitor />} onClick={() => setShowing(true)}>
+            <Button
+              size="sm"
+              variant="primary"
+              icon={<Monitor />}
+              onClick={() => {
+                setView({ tab: "screen" });
+                setShowing(true);
+              }}
+            >
               Show its computer
             </Button>
           }
@@ -176,7 +190,14 @@ function DelegationBody({
           placement="sheet"
         >
           {showing ? (
-            <ComputerPanel agentId={childId} name={name} headingLevel={3} showTitle={false} />
+            <ComputerPanel
+              agentId={childId}
+              name={name}
+              initialTab={view.tab}
+              highlightFile={view.file}
+              headingLevel={3}
+              showTitle={false}
+            />
           ) : null}
         </Dialog>
       ) : null}

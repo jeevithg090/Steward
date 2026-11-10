@@ -163,7 +163,7 @@ export function AddressBar() {
   return (
     <form onSubmit={submit} className="flex items-center gap-2">
       <label htmlFor={id} className="sr-only">
-        Go to an address on Steward's screen
+        Go to an address on {computer.name}'s screen
       </label>
       <input
         id={id}

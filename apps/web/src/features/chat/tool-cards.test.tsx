@@ -9,6 +9,7 @@ import {
   BrowserLine,
   ChoicesToolCard,
   DirectoryFindCard,
+  FileLine,
   GenericToolLine,
   HelpRequestCard,
   MailSendCard,
@@ -78,7 +79,30 @@ describe("tool cards", () => {
     expect(screen.getByText("Opened news.ycombinator.com")).toBeTruthy();
     expect(screen.getByText("Hacker News")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "See screen" }));
-    expect(actions.showComputer).toHaveBeenCalled();
+    expect(actions.showComputer).toHaveBeenCalledWith({ tab: "screen" });
+  });
+
+  describe("a saved file", () => {
+    const saved = tool(
+      "file_write",
+      { path: "notes/plan.md" },
+      { ok: true, data: { path: "notes/plan.md", size: 120 } },
+    );
+
+    it("opens in this conversation's computer, on Files, without leaving the chat", () => {
+      const actions = chat({ agentId: "bot1", agentName: "Focus time guard" });
+      draw(<FileLine {...saved} />, actions);
+      expect(screen.queryByRole("link", { name: "Open in files" })).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Open in files" }));
+      expect(actions.showComputer).toHaveBeenCalledWith({ tab: "files", file: "notes/plan.md" });
+    });
+
+    it("links to the computer page outside a chat", () => {
+      draw(<FileLine {...saved} />, null);
+      expect(screen.getByRole("link", { name: "Open in files" }).getAttribute("href")).toBe(
+        "/computer?file=notes%2Fplan.md",
+      );
+    });
   });
 
   it("shows a running browser step as it happens", () => {

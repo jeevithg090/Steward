@@ -51,7 +51,7 @@ import {
   type PendingApproval,
 } from "./ApprovalInterrupts.tsx";
 import { Composer } from "./Composer.tsx";
-import { type ChatActions, ChatActionsContext } from "./chat-context.tsx";
+import { type ChatActions, ChatActionsContext, type ComputerView } from "./chat-context.tsx";
 import { currentStep, latestTurnToolCalls, plainRunError, replayedId, shownIds, textOf } from "./messages.ts";
 import { claimInlineRunErrors } from "./provider.tsx";
 import { RunStatus } from "./RunStatus.tsx";
@@ -167,6 +167,8 @@ function Conversation({
   const [pending, setPending] = useState<PendingApproval[]>([]);
   const [panelOpen, setPanelOpen] = useState(() => storage.get(PANEL_KEY) !== "closed");
   const [sheetOpen, setSheetOpen] = useState(false);
+  /** The tab and file a card asked the computer to open on; `n` counts the asks, so each one lands. */
+  const [view, setView] = useState<ComputerView & { n: number }>({ n: 0 });
   const [pinned, setPinned] = useState(true);
   const approvalsRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -390,7 +392,8 @@ function Conversation({
     onPromptConsumed?.();
   }, [initialPrompt, isReady, load, threadId, send, onPromptConsumed]);
 
-  const showComputer = useCallback(() => {
+  const showComputer = useCallback((asked?: ComputerView) => {
+    if (asked) setView((current) => ({ ...asked, n: current.n + 1 }));
     if (globalThis.matchMedia?.(WIDE).matches) {
       setPanelOpen(true);
       storage.set(PANEL_KEY, "open");
@@ -497,7 +500,7 @@ function Conversation({
                 ) : null}
               </div>
               {wide && panelOpen ? null : (
-                <Button variant="ghost" size="sm" icon={<Monitor />} onClick={showComputer}>
+                <Button variant="ghost" size="sm" icon={<Monitor />} onClick={() => showComputer()}>
                   Show computer
                 </Button>
               )}
@@ -566,7 +569,7 @@ function Conversation({
                     role="alert"
                     title={`${agentName} needs you on its computer`}
                     action={
-                      <Button size="sm" variant="primary" onClick={showComputer}>
+                      <Button size="sm" variant="primary" onClick={() => showComputer({ tab: "screen" })}>
                         Show the computer
                       </Button>
                     }
@@ -654,7 +657,10 @@ function Conversation({
               className="sticky top-0 flex h-dvh w-[min(40rem,42%)] min-w-[22rem] shrink-0 flex-col overflow-y-auto border-hair border-l bg-surface p-4"
             >
               <ComputerPanel
+                key={view.n}
                 agentId={runtimeAgentId}
+                initialTab={view.tab}
+                highlightFile={view.file}
                 actions={
                   <Button variant="ghost" size="icon" aria-label="Hide the computer" onClick={hidePanel}>
                     <PanelRightClose aria-hidden />
@@ -673,7 +679,14 @@ function Conversation({
             size="lg"
             placement="sheet"
           >
-            <ComputerPanel agentId={runtimeAgentId} headingLevel={3} showTitle={false} />
+            <ComputerPanel
+              key={view.n}
+              agentId={runtimeAgentId}
+              initialTab={view.tab}
+              highlightFile={view.file}
+              headingLevel={3}
+              showTitle={false}
+            />
           </Dialog>
         ) : null}
       </ChatActionsContext.Provider>

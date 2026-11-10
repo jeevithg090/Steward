@@ -8,6 +8,13 @@
  * Outside a conversation (a preview gallery) there is no context, and cards render without actions.
  */
 import { createContext, useContext } from "react";
+import type { ComputerTab } from "../computer/ComputerPanel.tsx";
+
+/** Where the computer should open: a tab, and in Files a workspace file to point at. */
+export interface ComputerView {
+  tab?: ComputerTab;
+  file?: string;
+}
 
 export interface ChatActions {
   threadId: string;
@@ -28,8 +35,11 @@ export interface ChatActions {
    * failed. A call still open then will never return, so cards stop showing it as running.
    */
   runEnded?: "stopped" | "failed" | null;
-  /** Brings Steward's computer into view: the side panel on wide screens, a sheet on small ones. */
-  showComputer: () => void;
+  /**
+   * Brings this conversation's agent's computer into view: the side panel on wide screens, a sheet on
+   * small ones. With a view, it opens on that tab (and file), so "Open in files" stays in the chat.
+   */
+  showComputer: (view?: ComputerView) => void;
 }
 
 export const ChatActionsContext = createContext<ChatActions | null>(null);

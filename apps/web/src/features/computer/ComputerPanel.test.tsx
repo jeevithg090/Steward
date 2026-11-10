@@ -64,6 +64,37 @@ describe("ComputerPanel", () => {
     expect(screen.getByText("Connecting…")).toBeTruthy();
   });
 
+  it("names whose computer it is everywhere, not always Steward", () => {
+    sockets = fakeSockets();
+    render(<ComputerPanel agentId="bot1" name="Focus time guard" openSocket={sockets.open} />);
+    expect(sockets.latest.url).toMatch(/\/ws\/computer\/bot1$/);
+    expect(screen.getByRole("heading", { name: "Focus time guard's computer" })).toBeTruthy();
+    expect(
+      screen.getByText("Focus time guard's computer is resting. It wakes when Focus time guard needs it."),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("img", { name: /^Focus time guard's screen, live\. Focus time guard is driving/ }),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: "Activity" }));
+    expect(
+      screen.getByText("Nothing yet. What Focus time guard does on its computer shows up here."),
+    ).toBeTruthy();
+  });
+
+  it("opens on the tab and file it is asked to", () => {
+    sockets = fakeSockets();
+    render(
+      <ComputerPanel
+        agentId="steward"
+        initialTab="files"
+        highlightFile="report.md"
+        openSocket={sockets.open}
+      />,
+    );
+    expect(screen.getByRole("tab", { name: "Files" }).getAttribute("aria-selected")).toBe("true");
+    expect(screen.getByText("report.md").closest("li")?.getAttribute("aria-current")).toBe("true");
+  });
+
   it("shows where the screen is and that it is live", () => {
     const { status } = setup();
     status({});

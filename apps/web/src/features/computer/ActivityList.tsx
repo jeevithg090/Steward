@@ -18,6 +18,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { relativeTime } from "@/lib/utils.ts";
+import { useOptionalComputer } from "./session.tsx";
 
 const ICONS: Record<ActivityItem["kind"], LucideIcon> = {
   navigate: Globe,
@@ -33,16 +34,16 @@ const ICONS: Record<ActivityItem["kind"], LucideIcon> = {
   control: Hand,
 };
 
-export function ActivityList({
-  items,
-  emptyText = "Nothing yet. What Steward does on its computer shows up here.",
-}: {
-  items: ActivityItem[];
-  emptyText?: string;
-}) {
-  if (items.length === 0) return <p className="m-0 py-6 text-center text-ink-2 text-sub">{emptyText}</p>;
+export function ActivityList({ items, emptyText }: { items: ActivityItem[]; emptyText?: string }) {
+  const who = useOptionalComputer()?.name ?? "Steward";
+  if (items.length === 0)
+    return (
+      <p className="m-0 py-6 text-center text-ink-2 text-sub">
+        {emptyText ?? `Nothing yet. What ${who} does on its computer shows up here.`}
+      </p>
+    );
   return (
-    <ol aria-label="Activity on Steward's computer" className="m-0 list-none divide-y divide-hair-2 p-0">
+    <ol aria-label={`Activity on ${who}'s computer`} className="m-0 list-none divide-y divide-hair-2 p-0">
       {items.map((item) => {
         const Icon = item.ok ? (ICONS[item.kind] ?? ScrollText) : CircleAlert;
         return (

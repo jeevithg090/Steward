@@ -119,7 +119,10 @@ function Gate({ tool, state }: { tool: ToolProps; state: ToolState }): ReactElem
   return null;
 }
 
-/** Brings the computer into view: the chat's panel, or the computer page outside a chat. */
+/**
+ * Brings the computer into view on its screen: the chat's panel, which shows this conversation's
+ * agent, or the computer page outside a chat.
+ */
 function ScreenLink({ chat }: { chat: ChatActions | null }) {
   if (chat) {
     return (
@@ -128,7 +131,7 @@ function ScreenLink({ chat }: { chat: ChatActions | null }) {
         size="sm"
         icon={<Monitor />}
         className="px-2 text-caption"
-        onClick={() => chat.showComputer()}
+        onClick={() => chat.showComputer({ tab: "screen" })}
       >
         See screen
       </Button>
@@ -204,7 +207,7 @@ export function HelpRequestCard(tool: ToolProps) {
         size="sm"
         onClick={() => {
           computer?.take();
-          state.chat?.showComputer();
+          state.chat?.showComputer({ tab: "screen" });
         }}
       >
         Take the wheel
@@ -287,20 +290,34 @@ export function FileLine(tool: ToolProps) {
   const file = recordFrom(data);
   const path = text(file?.path) ?? text(tool.args.path);
   const size = typeof file?.size === "number" ? formatBytes(file.size) : undefined;
+  const chat = state.chat;
+  // In a chat, the file opens in the computer beside it: this conversation's agent's, where it was
+  // saved, and without leaving. Outside one there is only the computer page.
   return (
     <ToolLine
       label={label}
       detail={size}
       action={
         path ? (
-          <LinkButton
-            to={`/computer?file=${encodeURIComponent(path)}`}
-            variant="ghost"
-            size="sm"
-            className="px-2 text-caption"
-          >
-            Open in files
-          </LinkButton>
+          chat ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="px-2 text-caption"
+              onClick={() => chat.showComputer({ tab: "files", file: path })}
+            >
+              Open in files
+            </Button>
+          ) : (
+            <LinkButton
+              to={`/computer?file=${encodeURIComponent(path)}`}
+              variant="ghost"
+              size="sm"
+              className="px-2 text-caption"
+            >
+              Open in files
+            </LinkButton>
+          )
         ) : undefined
       }
     />
