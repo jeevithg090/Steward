@@ -190,6 +190,67 @@ describe("precedence", () => {
     }
   });
 
+  it("after untrusted content, writes that leave Steward ask, and no allow rule lifts them", () => {
+    const gw = gateway();
+    // An Always allow for the server, and a person's own allow for the calendar.
+    gw.rules.create({
+      name: "Always allow mcp__slack__post_message on slack",
+      effect: "allow",
+      when: 'tool.name == "mcp__slack__post_message" && target.mcp.server == "slack"',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    addRule(gw, "allow", 'tool.surface == "calendar"', "Calendar freely");
+    const post = gateCall("mcp__slack__post_message", { channel: "#general", text: "Hi" });
+    const invite = gateCall("calendar_create", { title: "Lunch", attendees: ["kim@example.com"] });
+    const block = gateCall("calendar_create", { title: "Focus" });
+    for (const call of [post, invite, block]) {
+      expect(decide(gw, call).effect, call.tool.name).toBe("allow");
+      const d = decide(gw, { ...call, tainted: true });
+      expect(d.effect, call.tool.name).toBe("ask");
+      expect(d.rule?.id, call.tool.name).toBe("default:taint-leaves");
+    }
+    // Without a rule, it asks as before, but now without Always allow.
+    const plain = gateway();
+    expect(decide(plain, gateCall("mcp__notion__create_page", {})).rule?.id).toBe("default:write-asks");
+    expect(decide(plain, gateCall("mcp__notion__create_page", {}, { tainted: true })).rule?.id).toBe(
+      "default:taint-leaves",
+    );
+  });
+
+  it("after untrusted content, a write on Steward's own surfaces that reaches people asks too", () => {
+    const gw = gateway();
+    const call = gateCall("task_create", { title: "x", detail: "y", to: "eve@example.com" });
+    expect(decide(gw, call).effect).toBe("allow");
+    expect(decide(gw, { ...call, tainted: true }).rule?.id).toBe("default:taint-leaves");
+    // Writes that stay on Steward's own computer still run.
+    for (const [name, args] of [
+      ["file_write", { path: "a.md", content: "x" }],
+      ["browser_click", { ref: "e1" }],
+      ["task_create", { title: "x", detail: "y" }],
+    ] as const) {
+      expect(decide(gw, gateCall(name, args, { tainted: true })).effect, name).toBe("allow");
+    }
+  });
+
+  it("a coding agent's change to a project folder the person allowed still runs, though always tainted", () => {
+    const gw = gateway();
+    addRule(gw, "allow", 'tool.source == "harness:codex" && startsWith(target.path, "/srv/project/")');
+    const edit = (path: string) =>
+      gateCall(
+        "harness_edit",
+        { path },
+        {
+          tool: { name: "harness_edit", kind: "write", surface: "system", source: "harness:codex" },
+          target: { path },
+          tainted: true,
+        },
+      );
+    expect(decide(gw, edit("/srv/project/README.md")).effect).toBe("allow");
+    expect(decide(gw, edit("/etc/hosts")).rule?.id).toBe("default:write-asks");
+  });
+
   it("after untrusted content, a link carrying a card number asks before it is opened", () => {
     const gw = gateway();
     const url = "https://collect.example/?c=4242424242424242";

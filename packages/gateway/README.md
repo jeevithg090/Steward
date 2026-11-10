@@ -22,7 +22,9 @@ call ─► prepare (catalogue kind, escalation, target) ─► decide (CEL rule
   (`target.element.sensitive`, from its type or autocomplete, so "Passwort" or an unlabelled password
   box counts) or when its name says so. No rule can lift that, and "Always allow" is never offered.
 - **Taint.** Once a conversation has read the web, mail or MCP output, anything that sends, pays,
-  signs, deletes or runs a command asks, whatever the rules say, without "Always allow".
+  signs, deletes or runs a command asks, whatever the rules say, without "Always allow". So does
+  saving a memory or a routine, any write to mail, the calendar, the web or a connected app, and
+  any write that reaches people (`target.recipients`).
 - **What leaves is checked.** Card numbers, IBANs, national ids, keys, passwords, bank details and
   health words in outgoing text make the call ask, with masked findings on the card.
 - **An answer acts once.** A resume claims the approval atomically; a second resume, a resume from a
@@ -89,7 +91,7 @@ The first step that matches decides.
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------- |
 | 1   | Deny rules                                                                                                                                                  | deny               | no                                                                                  |
 | 2   | Safety floor: kind `pay`; `request_secret`; `browser_type` into a field marked `sensitive` or named like a password, PIN, code, card, IBAN or account field | ask                | no                                                                                  |
-| 3   | Taint: `tainted` and kind is `send`, `pay`, `sign`, `delete` or `shell`                                                                                     | ask                | no                                                                                  |
+| 3   | Taint, when `tainted`: kind `send`, `pay`, `sign`, `delete`, `shell`; a memory or routine; a `write` on mail, calendar, web, MCP or to people               | ask                | no                                                                                  |
 | 4   | Outbound check: any finding                                                                                                                                 | ask, with findings | no                                                                                  |
 | 5   | Ask rules                                                                                                                                                   | ask                | no (an ask rule outranks every allow rule, so a standing allow could never lift it) |
 | 6   | Allow rules: presets, tenant, person, always (in that order, oldest first)                                                                                  | allow              | —                                                                                   |
@@ -101,7 +103,8 @@ An unknown kind is a `write`.
 
 Every `Decision` has a plain-language `reason` and a `rule`. Built-in steps name themselves with
 ids starting `default:` (`default:floor-pay`, `default:floor-credential`, `default:taint`,
-`default:outbound-check`, `default:read-runs`, `default:ui-runs`, `default:write-runs`,
+`default:taint-persists`, `default:taint-leaves`, `default:outbound-check`, `default:read-runs`,
+`default:ui-runs`, `default:write-runs`,
 `default:write-asks`, `default:send-asks`, `default:sign-asks`, `default:delete-asks`,
 `default:shell-asks`, `default:error`, `default:answer-check`) and carry `source: "preset"`. A
 resumed call is decided by the person's answer: `default:answer-once` or `default:answer-refused`
