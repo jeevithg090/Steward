@@ -5,6 +5,7 @@
  * list are Steward's own. Runs in Node and in the browser.
  */
 export * from "./bytes.ts";
+export * from "./calls.ts";
 export * from "./keys.ts";
 export * from "./nacl.ts";
 export * from "./payload.ts";

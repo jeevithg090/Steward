@@ -2,17 +2,18 @@ import {
   answerMessage,
   challengeFor,
   confirmationCode,
-  decryptPayload,
   type Envelope,
-  encryptPayload,
   exportPublicKey,
   fromBase64,
   generateSigningKey,
   importDataKey,
+  openEvent,
+  openResult,
   type PairHello,
   type PairReply,
   type RemoteMethod,
   randomBytes,
+  sealCall,
   sealJson,
   signText,
   type ToDevice,
@@ -164,7 +165,10 @@ export type Status = "connecting" | "online" | "offline" | "revoked";
 /** One live connection to the relay: sealed calls out, sealed events in. */
 export class RemoteClient {
   private ws: WebSocket | undefined;
-  private readonly pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
+  private readonly pending = new Map<
+    string,
+    { callId: string; resolve: (v: unknown) => void; reject: (e: Error) => void }
+  >();
   private retry = 1000;
   private closed = false;
 
@@ -219,11 +223,9 @@ export class RemoteClient {
         if (!p) return;
         this.pending.delete(frame.id);
         if (frame.error) return p.reject(new Error(frame.error));
-        const result = await decryptPayload<{ ok: true; value: unknown } | { ok: false; error: string }>(
-          this.device.dataKey,
-          fromBase64(frame.c ?? ""),
-        );
-        if (!result) return p.reject(new Error("Steward's answer could not be opened."));
+        // Only an answer sealed for this very call counts; the relay could hand over another one.
+        const result = await openResult(this.device.dataKey, frame.c ?? "", p.callId);
+        if (!result) return p.reject(new Error("Steward's answer could not be opened. Try again."));
         if (result.ok) p.resolve(result.value);
         else p.reject(new Error(result.error));
         return;
@@ -244,7 +246,8 @@ export class RemoteClient {
   }
 
   private async onEnvelope(envelope: Envelope): Promise<void> {
-    const value = await decryptPayload(this.device.dataKey, fromBase64(envelope.c));
+    // Undefined unless it opens and was sealed under the topic the relay filed it under.
+    const value = await openEvent(this.device.dataKey, envelope);
     if (envelope.seq > this.device.lastSeq) {
       this.device = { ...this.device, lastSeq: envelope.seq };
       void saveDevice(this.device);
@@ -252,14 +255,17 @@ export class RemoteClient {
     if (value !== undefined) this.on.envelope(envelope.topic, value);
   }
 
-  /** One call from the closed list. The method is sealed inside too, so the relay cannot swap it. */
+  /**
+   * One call from the closed list. The method, a one-time id and the time are sealed inside, so the
+   * relay cannot swap the method, send the call again, or answer it with another call's result.
+   */
   async call<T>(method: RemoteMethod, params: unknown = {}): Promise<T> {
     const ws = this.ws;
     if (!ws || ws.readyState !== WebSocket.OPEN) throw new Error("Not connected to Steward yet.");
     const id = toBase64Url(randomBytes(8));
-    const c = toBase64(await encryptPayload(this.device.dataKey, { method, params }));
+    const { c, callId } = await sealCall(this.device.dataKey, method, params);
     return new Promise<T>((resolve, reject) => {
-      this.pending.set(id, { resolve: resolve as (v: unknown) => void, reject });
+      this.pending.set(id, { callId, resolve: resolve as (v: unknown) => void, reject });
       ws.send(JSON.stringify({ type: "rpc", id, method, c }));
     });
   }

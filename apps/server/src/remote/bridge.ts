@@ -2,16 +2,19 @@ import { randomBytes } from "node:crypto";
 import type { BaseEvent } from "@ag-ui/client";
 import {
   boxKeyPairFromSecretKey,
+  callIsFresh,
   confirmationCode,
-  decryptPayload,
-  encryptPayload,
   type FromMachine,
   fromBase64,
+  openCall,
   openJson,
   PAIRING_TTL_MS,
   type PairHello,
   pairingUrl,
-  type SealedCall,
+  type RemoteMethod,
+  type SealedResult,
+  sealEvent,
+  sealResult,
   type ToMachine,
   toBase64,
   toBase64Url,
@@ -20,6 +23,7 @@ import {
 import type { Device, LiveEvent } from "@steward/shared";
 import WebSocket from "ws";
 import type { StewardServices } from "../context.ts";
+import { RateLimiter } from "../device/rate-limit.ts";
 import { HttpError } from "../http/errors.ts";
 import { handleRpc, keysOf } from "./rpc.ts";
 
@@ -59,7 +63,13 @@ export interface RemoteStatus {
   url?: string;
 }
 
+/** Calls that start work, limited per phone like the device port's runs: 20 a minute. */
+const RUNS: ReadonlySet<RemoteMethod> = new Set(["chat.send", "task.start", "routine.run"]);
+
 export class RemoteBridge {
+  private readonly runs = new RateLimiter(20, 60_000);
+  /** A relay can resend one blob endlessly: each is refused, and the record notes ten a minute. */
+  private readonly refusals = new RateLimiter(10, 60_000);
   private ws: WebSocket | undefined;
   private ready = false;
   private stopped = false;
@@ -289,18 +299,36 @@ export class RemoteBridge {
     return key ? fromBase64(key) : undefined;
   }
 
-  private async onRpc(id: string, deviceId: string, method: SealedCall["method"], c: string): Promise<void> {
+  private async onRpc(id: string, deviceId: string, method: RemoteMethod, c: string): Promise<void> {
     const reply = (frame: { c?: string; error?: string }) => this.send({ type: "rpc.result", id, ...frame });
     const key = this.dataKey(deviceId);
     const device = key ? this.s.devices.get(deviceId) : undefined;
     const keys = keysOf(device ? this.s.devices.publicKey(deviceId) : undefined);
     if (!key || !device || device.revokedAt || !keys)
       return reply({ error: "This phone isn't paired any more." });
-    const call = await decryptPayload<SealedCall>(key, fromBase64(c));
     // The method is repeated inside the seal, so a relay that swapped the outer name is caught.
-    if (!call || call.method !== method) return reply({ error: "That request could not be read." });
+    const call = await openCall(key, c, method);
+    if (!call) return reply({ error: "That request could not be read." });
+    if (call === "old")
+      return reply({ error: "This copy of the app is out of date. Close it and open it again." });
+    const answer = async (result: SealedResult) => reply({ c: await sealResult(key, result) });
+    const refuse = (reason: string | undefined, error: string, status = 403) => {
+      if (reason && this.refusals.take(device.id)) {
+        this.s.devices.record("device.refused", device, { reason, method });
+      }
+      return answer({ callId: call.callId, ok: false, error, status });
+    };
+    // The relay is not trusted to pass each call on once and on time: a call carries its own id and
+    // time inside the seal, and is refused when it comes back or comes late.
+    if (!callIsFresh(call)) return refuse("call outside its time", "That request is too old. Try again.");
+    if (!this.s.devices.useNonce(device.id, `rpc:${call.callId}`)) {
+      return refuse("call replayed", "That request was already used.");
+    }
+    if (RUNS.has(method) && !this.runs.take(device.id)) {
+      return refuse(undefined, "Steward is busy with your last few requests. Wait a minute.", 429);
+    }
     this.s.devices.touch(device);
-    let result: { ok: true; value: unknown } | { ok: false; error: string; status: number };
+    let result: SealedResult;
     try {
       const value = await handleRpc(
         {
@@ -313,16 +341,16 @@ export class RemoteBridge {
         method,
         call.params,
       );
-      result = { ok: true, value };
+      result = { callId: call.callId, ok: true, value };
     } catch (err) {
       const status = err instanceof HttpError ? err.status : 500;
       const error =
         err instanceof HttpError ? err.message : "Something went wrong on Steward's side. Try again.";
       if (!(err instanceof HttpError))
         console.error("[steward] a phone call failed:", err instanceof Error ? err.message : err);
-      result = { ok: false, error, status };
+      result = { callId: call.callId, ok: false, error, status };
     }
-    reply({ c: toBase64(await encryptPayload(key, result)) });
+    await answer(result);
   }
 
   // ── Live events ─────────────────────────────────────────────────────────────────────────
@@ -339,7 +367,8 @@ export class RemoteBridge {
   private async seal(deviceId: string, topic: string, value: unknown, notify?: string): Promise<void> {
     const key = this.dataKey(deviceId);
     if (!key) return;
-    const c = toBase64(await encryptPayload(key, value));
+    // The topic goes inside too: the relay files the envelope, but cannot file it under another one.
+    const c = await sealEvent(key, notify ? "notifications" : topic, value);
     const localId = randomBytes(12).toString("hex");
     if (notify) this.send({ type: "notify", deviceId, localId, level: notify, c });
     else this.send({ type: "events", deviceId, envelopes: [{ localId, topic, c }] });

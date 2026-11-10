@@ -1,7 +1,8 @@
 /**
  * Steward's relay protocol (docs/plans/phone-and-shortcuts.md §5). Three parties: the phone app,
- * the relay (which sees ids, timing, sizes and these method names, and nothing else), and the
- * bridge inside Steward, which dials out to the relay.
+ * the relay (which sees ids, timing, sizes, these method names and each envelope's topic, and
+ * nothing else), and the bridge inside Steward, which dials out to the relay. What is sealed inside
+ * each call, answer and event is in calls.ts.
  */
 
 /** The closed list of what a phone may ask Steward to do. Nothing else is ever routed. */
@@ -28,7 +29,7 @@ export const RPC_RECONNECT_GRACE_MS = 15_000;
 export const RPC_TIMEOUT_MS = 30_000;
 /** Pairing requests live two minutes and are used once. */
 export const PAIRING_TTL_MS = 2 * 60_000;
-/** A signed answer older or newer than this is refused. */
+/** A signed answer, or a sealed call, older or newer than this is refused. */
 export const SIGNED_ANSWER_WINDOW_MS = 2 * 60_000;
 
 /** One sealed entry in a device's log. `c` is base64 ciphertext under that device's data key. */
@@ -89,12 +90,6 @@ export interface PairReply {
   token: string;
   /** The device's data key, wrapped to its box key. */
   sealed: string;
-}
-
-/** The parameters of every RPC, sealed: the method is repeated inside so the relay cannot swap it. */
-export interface SealedCall<P = unknown> {
-  method: RemoteMethod;
-  params: P;
 }
 
 /** A signed answer to an approval. */

@@ -242,6 +242,13 @@ What the app may ask is a closed list: `approval.decide`, `chat.send`, `task.sta
 `routine.run`, `run.stop` and `brief.get`. Rules, settings, connections, secrets, the shell and the
 computer are never reachable from it.
 
+The relay is not trusted to pass each request on once, on time, and to the right place. So every
+request is sealed with its name, a one-time id and the time it was made. Steward refuses a request
+it has seen before, or one more than two minutes old, and records the refusal. Its answer is sealed
+with the same id, so the app never takes one request's answer for another's. Each update is sealed
+with its kind (a request, a notification, a conversation), so the relay cannot pass one off as
+another. A phone can start at most 20 chats, tasks or routines a minute.
+
 ## For maintainers: signing a release
 
 iOS imports only signed shortcuts, and only a Mac signed into iCloud can sign one for anyone.

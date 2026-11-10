@@ -1,8 +1,9 @@
 /*
  * Steward's service worker. A push carries only `{ level, c, localId }`: `c` is the notification
  * sealed with this phone's own data key, so the relay, Apple and Google never saw the words. It is
- * opened here with the key kept (non-extractable) in IndexedDB, and shown. Tapping opens the app
- * at what it is about.
+ * opened here with the key kept (non-extractable) in IndexedDB, and shown only when it was sealed
+ * as a notification (`{ topic: "notifications", value }`, packages/remote/src/calls.ts), so the
+ * relay cannot push some other sealed message as one. Tapping opens the app at what it is about.
  */
 const DB = "steward-phone";
 
@@ -50,7 +51,8 @@ self.addEventListener("push", (event) => {
       try {
         data = event.data ? event.data.json() : {};
       } catch {}
-      const note = (await open(data.c)) || {};
+      const sealed = await open(data.c);
+      const note = sealed && sealed.topic === "notifications" && sealed.value ? sealed.value : {};
       await self.registration.showNotification(note.title || "Steward", {
         body: note.body || "Open Steward to see what's new.",
         tag: data.localId,

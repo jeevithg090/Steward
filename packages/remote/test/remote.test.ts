@@ -6,6 +6,7 @@ import {
   boxKeyPairFromSecretKey,
   boxOpen,
   boxSeal,
+  callIsFresh,
   challengeFor,
   concat,
   confirmationCode,
@@ -21,14 +22,21 @@ import {
   isRemoteMethod,
   NEVER_REMOTE,
   openBox,
+  openCall,
+  openEvent,
   openJson,
+  openResult,
   pairingUrl,
   parsePairingFragment,
   parseRecoveryKey,
   REMOTE_METHODS,
   randomBytes,
+  SIGNED_ANSWER_WINDOW_MS,
   sealBox,
+  sealCall,
+  sealEvent,
   sealJson,
+  sealResult,
   secretBoxOpen,
   secretBoxSeal,
   sha256,
@@ -211,6 +219,51 @@ describe("the closed RPC list", () => {
       expect(isRemoteMethod(m)).toBe(false);
     }
     for (const word of NEVER_REMOTE) expect(REMOTE_METHODS.some((m) => m.includes(word))).toBe(false);
+  });
+});
+
+describe("what is sealed inside a call, an answer and an event", () => {
+  const key = randomBytes(32);
+
+  it("seals a call with its method, a one-time id and the time, and opens it only as that method", async () => {
+    const a = await sealCall(key, "chat.send", { text: "hi" }, 1_000_000);
+    const b = await sealCall(key, "chat.send", { text: "hi" }, 1_000_000);
+    expect(a.callId).not.toBe(b.callId);
+    expect(a.callId).toMatch(/^[A-Za-z0-9_-]{22}$/);
+    expect(await openCall(key, a.c, "chat.send")).toEqual({
+      method: "chat.send",
+      params: { text: "hi" },
+      callId: a.callId,
+      ts: 1_000_000,
+    });
+    expect(await openCall(key, a.c, "task.start")).toBeUndefined();
+    expect(await openCall(randomBytes(32), a.c, "chat.send")).toBeUndefined();
+    expect(await openCall(key, "not base64 !!", "chat.send")).toBeUndefined();
+    const bare = toBase64(await encryptPayload(key, { method: "brief.get", params: {} }));
+    expect(await openCall(key, bare, "brief.get")).toBe("old");
+  });
+
+  it("calls a call fresh only within the window", () => {
+    expect(callIsFresh({ ts: 1_000_000 }, 1_000_000 + SIGNED_ANSWER_WINDOW_MS)).toBe(true);
+    expect(callIsFresh({ ts: 1_000_000 }, 1_000_001 + SIGNED_ANSWER_WINDOW_MS)).toBe(false);
+    expect(callIsFresh({ ts: 1_000_000 + SIGNED_ANSWER_WINDOW_MS + 1 }, 1_000_000)).toBe(false);
+    expect(callIsFresh({ ts: Number.NaN }, 1_000_000)).toBe(false);
+  });
+
+  it("opens an answer only for the call it names", async () => {
+    const c = await sealResult(key, { callId: "call-aaaaaaaaaaaaaaaa", ok: true, value: 1 });
+    expect(await openResult(key, c, "call-aaaaaaaaaaaaaaaa")).toEqual({
+      callId: "call-aaaaaaaaaaaaaaaa",
+      ok: true,
+      value: 1,
+    });
+    expect(await openResult(key, c, "call-bbbbbbbbbbbbbbbb")).toBeUndefined();
+  });
+
+  it("opens an event only under the topic it was sealed with", async () => {
+    const c = await sealEvent(key, "approvals", { type: "approval.created" });
+    expect(await openEvent(key, { topic: "approvals", c })).toEqual({ type: "approval.created" });
+    expect(await openEvent(key, { topic: "thread:thr_1", c })).toBeUndefined();
   });
 });
 

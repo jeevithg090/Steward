@@ -6,16 +6,19 @@ import { createRelay, decryptPush, type Relay } from "@steward/relay";
 import {
   answerMessage,
   confirmationCode,
-  decryptPayload,
   type Envelope,
   encryptPayload,
   exportPublicKey,
   fromBase64,
   generateSigningKey,
   importDataKey,
+  openEvent,
+  openResult,
   type PairReply,
   parsePairingFragment,
   type RemoteMethod,
+  SIGNED_ANSWER_WINDOW_MS,
+  sealCall,
   sealJson,
   signText,
   type ToDevice,
@@ -79,20 +82,30 @@ class Phone {
 
   /** Sends one sealed call; `outer` lets a test lie about the method name, as a bad relay could. */
   async call<T = unknown>(method: RemoteMethod, params: unknown, outer: string = method) {
-    const id = randomBytes(6).toString("hex");
-    const c = toBase64(await encryptPayload(this.dataKey!, { method, params }));
-    const frame = await new Promise<Extract<ToDevice, { type: "rpc.result" }>>((resolve) => {
-      this.pending.set(id, resolve);
-      this.ws!.send(JSON.stringify({ type: "rpc", id, method: outer, c }));
-    });
-    if (frame.error) return { ok: false as const, error: frame.error };
-    return (await decryptPayload(this.dataKey!, fromBase64(frame.c!))) as
-      | { ok: true; value: T }
-      | { ok: false; error: string };
+    const { c, callId } = await sealCall(this.dataKey!, method, params);
+    return this.send<T>(outer, c, callId);
   }
 
+  /** Sends sealed text as it is, the way a relay replaying a captured call would. */
+  async send<T = unknown>(method: string, c: string, callId: string) {
+    const id = randomBytes(6).toString("hex");
+    const frame = await new Promise<Extract<ToDevice, { type: "rpc.result" }>>((resolve) => {
+      this.pending.set(id, resolve);
+      this.ws!.send(JSON.stringify({ type: "rpc", id, method, c }));
+    });
+    this.last = frame;
+    if (frame.error) return { ok: false as const, error: frame.error };
+    const result = await openResult<T>(this.dataKey!, frame.c!, callId);
+    if (!result) return { ok: false as const, error: "not this call's answer" };
+    const { callId: _id, ...rest } = result;
+    return rest as { ok: true; value: T } | { ok: false; error: string; status: number };
+  }
+
+  /** The last answer frame, as the relay passed it on. */
+  last?: Extract<ToDevice, { type: "rpc.result" }>;
+
   async open<T>(envelope: Envelope): Promise<T | undefined> {
-    return decryptPayload<T>(this.dataKey!, fromBase64(envelope.c));
+    return openEvent<T>(this.dataKey!, envelope);
   }
 
   async signed(approvalId: string, answer: "once" | "refuse") {
@@ -262,6 +275,54 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
     expect(refused.some((e) => e.detail.reason === "answer replayed")).toBe(true);
   });
 
+  it("refuses a call the relay sends again, holds back, or relabels, and records it", async () => {
+    const threads = () => t.server.services.threads.list({ limit: 1000 }).length;
+    const sealed = await sealCall(one.dataKey!, "chat.send", { text: "Remind me to call the plumber" });
+    const first = await one.send<{ threadId: string }>("chat.send", sealed.c, sealed.callId);
+    expect(first.ok).toBe(true);
+    const runs = t.server.services.gateway.audit.page({ type: "device.refused" }).events.length;
+    const before = threads();
+
+    // The same sealed call again, as a relay replaying what it captured.
+    const again = await one.send("chat.send", sealed.c, sealed.callId);
+    expect(again).toEqual({ ok: false, error: "That request was already used.", status: 403 });
+    expect(threads()).toBe(before);
+    const refused = t.server.services.gateway.audit.page({ type: "device.refused" }).events;
+    expect(refused.length).toBeGreaterThan(runs);
+    expect(refused.some((e) => e.detail.reason === "call replayed" && e.detail.method === "chat.send")).toBe(
+      true,
+    );
+
+    // A call made long ago, held back by the relay until now.
+    const late = await sealCall(one.dataKey!, "brief.get", {}, Date.now() - SIGNED_ANSWER_WINDOW_MS - 1000);
+    expect(await one.send("brief.get", late.c, late.callId)).toEqual({
+      ok: false,
+      error: "That request is too old. Try again.",
+      status: 403,
+    });
+
+    // A call from an app that seals no id or time is refused before anything runs.
+    const bare = toBase64(await encryptPayload(one.dataKey!, { method: "brief.get", params: {} }));
+    expect(await one.send("brief.get", bare, "")).toEqual({
+      ok: false,
+      error: "This copy of the app is out of date. Close it and open it again.",
+    });
+  });
+
+  it("seals the call's id into its answer, so one call's answer cannot pass for another's", async () => {
+    const a = await sealCall(one.dataKey!, "brief.get", {});
+    expect((await one.send("brief.get", a.c, a.callId)).ok).toBe(true);
+    const answerToA = one.last!.c!;
+    // The relay hands call B the answer it captured for call A: the phone does not accept it.
+    const b = await sealCall(one.dataKey!, "brief.get", {});
+    expect(await openResult(one.dataKey!, answerToA, b.callId)).toBeUndefined();
+    expect(await openResult(one.dataKey!, answerToA, a.callId)).toMatchObject({ ok: true });
+    // An envelope filed under another topic does not open as that topic.
+    const envelope = one.envelopes.find((e) => e.topic === "approvals")!;
+    expect(await one.open({ ...envelope, topic: "notifications" })).toBeUndefined();
+    expect(await one.open(envelope)).toBeDefined();
+  });
+
   it("refuses an answer signed by another key, or for another approval", async () => {
     const answer = await one.signed("apr_whatever", "refuse");
     const forged = { ...answer, approvalId: "apr_other" };
@@ -302,8 +363,10 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
       c: string;
     };
     expect(inner.level).toBe("info");
-    // What the push service carried is sealed again with the phone's own key.
-    expect(await decryptPayload(one.dataKey!, fromBase64(inner.c))).toMatchObject({ title: "Brief ready" });
+    // What the push service carried is sealed again with the phone's own key, as a notification.
+    expect(await openEvent(one.dataKey!, { topic: "notifications", c: inner.c })).toMatchObject({
+      title: "Brief ready",
+    });
 
     one.ws!.send(JSON.stringify({ type: "presence", visible: true }));
     await new Promise((r) => setTimeout(r, 100));
