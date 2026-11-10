@@ -17,6 +17,7 @@ import {
   EVAL_ABOUT,
   EVAL_NOW,
   EVAL_OWNER,
+  evalOwnerNames,
   pairResults,
   parseDataset,
   renderResults,
@@ -35,11 +36,17 @@ const rulesOnly = process.argv.includes("--rules-only");
 const set = parseDataset(await readFile(DATASET, "utf8"));
 const emails = set.map(toTriageEmail);
 const context = { now: EVAL_NOW, ownerEmail: EVAL_OWNER, about: EVAL_ABOUT };
+const names = evalOwnerNames(set);
 const sections: Section[] = [];
 
 const rulesRun = await triageEmails(emails, context);
 const rulesRows = pairResults(set, rulesRun);
-sections.push({ title: "Rules only, no model", model: "none", rows: rulesRows, metrics: score(rulesRows) });
+sections.push({
+  title: "Rules only, no model",
+  model: "none",
+  rows: rulesRows,
+  metrics: score(rulesRows, names),
+});
 
 const config = rulesOnly ? undefined : evalModelConfig(process.env);
 let note: string | undefined;
@@ -57,7 +64,7 @@ if (config) {
     title: "Rules, then the model",
     model: config.model,
     rows,
-    metrics: score(rows),
+    metrics: score(rows, names),
     ...(run.failure ? { failure: run.failure } : {}),
   });
 } else {
@@ -78,6 +85,13 @@ const ruleWrong = sections.reduce((sum, s) => sum + s.metrics.ruleWrong, 0);
 if (ruleWrong > 0) {
   process.stderr.write(
     `${ruleWrong} rule verdict(s) disagree with the labels. Rules must only settle what can wait.\n`,
+  );
+  process.exitCode = 1;
+}
+const namedOwner = sections.reduce((sum, s) => sum + s.metrics.namedOwner, 0);
+if (namedOwner > 0) {
+  process.stderr.write(
+    `${namedOwner} reason(s) call the person by a name their mail gives them. Steward never uses one.\n`,
   );
   process.exitCode = 1;
 }

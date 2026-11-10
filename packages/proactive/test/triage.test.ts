@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   CONFIDENCE,
   inboxOwner,
+  ownerNames,
   parseTriageAnswer,
   ruleVerdict,
   TriageAnswerError,
   triageEmails,
   triagePrompt,
   UNSORTED_REASON,
+  withoutOwnerNames,
 } from "../src/triage.ts";
 import { email, fakeMail, fakeModel, setup, subjectModel } from "./helpers.ts";
 
@@ -93,6 +95,30 @@ describe("the model's prompt and answer", () => {
     expect(triagePrompt(viaList, { ownerEmail: "owner@studio.example", now: NOW }).prompt).toContain(
       "(The person gets this through the group or list <team.studio.example>, as one of its members.)",
     );
+  });
+
+  it("never shows the model the display name the mail gives the owner", () => {
+    const owner = "owner@studio.example";
+    const named = email({
+      subject: "Proof for Friday",
+      from: { name: "Ana Pereira", email: "ana@hearthandco.example" },
+      to: [
+        { name: "Sam Taylor", email: "Owner@Studio.example" },
+        { name: "Lee Park", email: "lee@studio.example" },
+      ],
+      cc: [{ name: "Sam Taylor", email: owner }],
+    });
+    const { system, prompt } = triagePrompt(named, { ownerEmail: owner, now: NOW });
+    expect(system + prompt).not.toContain("Sam");
+    expect(prompt).toContain("From: Ana Pereira <ana@hearthandco.example>");
+    expect(prompt).toContain("To: Owner@Studio.example, Lee Park <lee@studio.example>");
+    expect(prompt).toContain(`Cc: ${owner}`);
+    const toSelf = email({
+      subject: "Note",
+      from: { name: "Sam Taylor", email: owner },
+      to: [{ email: owner }],
+    });
+    expect(triagePrompt(toSelf, { ownerEmail: owner, now: NOW }).prompt).toContain(`From: ${owner}\n`);
   });
 
   it("reads the snippet when there is no body, and caps a long body", () => {
@@ -209,6 +235,61 @@ describe("sorting a batch", () => {
     await expect(
       triageEmails([email({ subject: "A" })], { model, now: NOW, signal: controller.signal }),
     ).rejects.toThrow();
+  });
+});
+
+describe("the owner's name", () => {
+  it("is found on the owner's own address only, with the given name, never a word like The", () => {
+    const owner = "owner@studio.example";
+    const emails = [
+      email({ subject: "a", to: [{ name: "Sam Taylor", email: "OWNER@studio.example" }] }),
+      email({ subject: "b", to: [{ name: "Taylor, Sam", email: owner }] }),
+      email({
+        subject: "c",
+        to: [
+          { name: "The Studio", email: owner },
+          { name: "Lee Park", email: "lee@x.example" },
+        ],
+      }),
+      email({ subject: "d", to: [{ name: "Studio", email: owner }] }),
+      email({ subject: "e", to: [{ name: "owner@studio.example", email: owner }] }),
+    ];
+    expect(ownerNames(emails, owner)).toEqual(["Taylor, Sam", "Sam Taylor", "The Studio", "Sam"]);
+    expect(ownerNames(emails, undefined)).toEqual([]);
+  });
+
+  it("is taken out of a model's words, in plain English", () => {
+    const names = ["Sam Taylor", "Sam"];
+    expect(withoutOwnerNames("Sam must sign the proof by Friday.", names)).toBe(
+      "You must sign the proof by Friday.",
+    );
+    expect(withoutOwnerNames("Ana asks Sam Taylor to confirm today.", names)).toBe(
+      "Ana asks you to confirm today.",
+    );
+    expect(withoutOwnerNames("Sam's invoice is due. Sam is copied.", names)).toBe(
+      "Your invoice is due. You are copied.",
+    );
+    expect(withoutOwnerNames("Sam, three emails need you today.", names)).toBe(
+      "Three emails need you today.",
+    );
+    expect(withoutOwnerNames("Samantha asks for a quote.", names)).toBe("Samantha asks for a quote.");
+    expect(withoutOwnerNames("Asks whether you will sign.", ["Will"])).toBe("Asks whether you will sign.");
+  });
+
+  it("never reaches a stored reason, even when the body greets the owner by name", async () => {
+    const model = fakeModel(() => '{"verdict":"needs_you","reason":"Sam must sign the proof by Friday."}');
+    const proactive = setup({ model: () => model, mail: () => fakeMail({ label: "owner@studio.example" }) });
+    const mail = email({
+      subject: "Proof",
+      to: [{ name: "Sam Taylor", email: "owner@studio.example" }],
+      body: "Hi Sam, please sign the proof by Friday.",
+    });
+    const run = await proactive.triage.run([mail]);
+    expect(run.items[0]?.reason).toBe("You must sign the proof by Friday.");
+    expect(run.ownerNames).toEqual(["Sam Taylor", "Sam"]);
+    const again = await proactive.triage.triage([mail]);
+    expect(again[0]?.reason).toBe("You must sign the proof by Friday.");
+    expect(model.calls).toHaveLength(1);
   });
 });
 

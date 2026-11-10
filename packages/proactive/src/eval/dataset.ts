@@ -1,6 +1,6 @@
 import type { TriageItem, TriageVerdict } from "@steward/shared";
 import { z } from "zod";
-import type { TriageEmail, TriageRun } from "../triage.ts";
+import { ownerNames, type TriageEmail, type TriageRun } from "../triage.ts";
 
 /**
  * The labelled triage set (`evals/triage/dataset.jsonl`) and how a run is scored. Kept apart from
@@ -87,6 +87,8 @@ export interface Metrics {
   ruleWrong: number;
   byModel: number;
   unsorted: number;
+  /** Reasons that use a name the mail gives the owner. Must be zero: Steward never uses one. */
+  namedOwner: number;
 }
 
 export interface Scored {
@@ -98,7 +100,24 @@ function ratio(numerator: number, denominator: number): number {
   return denominator === 0 ? 0 : numerator / denominator;
 }
 
-export function score(rows: readonly Scored[]): Metrics {
+/**
+ * The display names the set's mail gives the owner (n28 has one on its To line and greets them by
+ * it), so a run can count any reason that calls the person by name.
+ */
+export function evalOwnerNames(set: readonly LabelledEmail[]): string[] {
+  return ownerNames(set.map(toTriageEmail), EVAL_OWNER);
+}
+
+function usesName(text: string, names: readonly string[]): boolean {
+  return names.some((name) =>
+    new RegExp(
+      `(?<![\\p{L}\\p{N}])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`,
+      "iu",
+    ).test(text),
+  );
+}
+
+export function score(rows: readonly Scored[], names: readonly string[] = []): Metrics {
   let tp = 0;
   let fp = 0;
   let fn = 0;
@@ -107,7 +126,9 @@ export function score(rows: readonly Scored[]): Metrics {
   let ruleWrong = 0;
   let byModel = 0;
   let unsorted = 0;
+  let namedOwner = 0;
   for (const { item, result } of rows) {
+    if (usesName(result.reason, names)) namedOwner++;
     const flagged = result.verdict === "needs_you";
     const needed = item.label === "needs_you";
     if (flagged && needed) tp++;
@@ -140,6 +161,7 @@ export function score(rows: readonly Scored[]): Metrics {
     ruleWrong,
     byModel,
     unsorted,
+    namedOwner,
   };
 }
 
@@ -192,6 +214,7 @@ export function summaryTable(sections: readonly Section[]): string {
     "By rules (wrong)",
     "By model",
     "Unsorted",
+    "Named you",
   ];
   const lines = sections.map((s) => [
     s.title,
@@ -202,6 +225,7 @@ export function summaryTable(sections: readonly Section[]): string {
     `${s.metrics.byRules} (${s.metrics.ruleWrong})`,
     String(s.metrics.byModel),
     String(s.metrics.unsorted),
+    String(s.metrics.namedOwner),
   ]);
   const widths = header.map((h, i) => Math.max(h.length, ...lines.map((line) => line[i]!.length)));
   const format = (cells: string[]) => cells.map((c, i) => c.padEnd(widths[i]!)).join("  ");
@@ -237,6 +261,7 @@ export function renderResults(
         "Decided by rules (wrong)",
         "By model",
         "Unsorted",
+        "Named you",
       ],
       sections.map((s) => [
         s.title,
@@ -248,6 +273,7 @@ export function renderResults(
         `${s.metrics.byRules} (${s.metrics.ruleWrong})`,
         String(s.metrics.byModel),
         String(s.metrics.unsorted),
+        String(s.metrics.namedOwner),
       ]),
     ),
     "",

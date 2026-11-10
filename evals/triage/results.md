@@ -1,13 +1,13 @@
 # Triage eval results
 
-Run 2026-10-27T20:30:05.826Z on 62 labelled messages (27 need you, 35 can wait).
+Run 2026-11-10T20:00:28.602Z on 63 labelled messages (28 need you, 35 can wait).
 Written by `pnpm eval:triage`; see `README.md` beside this file for what the numbers mean.
 
 Rules only, as asked (`--rules-only`).
 
-| Mode                 | Model | Precision (needs you) | Recall (needs you) | F2    | Accuracy | Decided by rules (wrong) | By model | Unsorted |
-| -------------------- | ----- | --------------------- | ------------------ | ----- | -------- | ------------------------ | -------- | -------- |
-| Rules only, no model | none  | 54.0% (27 of 50)      | 100.0% (27 of 27)  | 85.4% | 62.9%    | 12 (0)                   | 0        | 50       |
+| Mode                 | Model | Precision (needs you) | Recall (needs you) | F2    | Accuracy | Decided by rules (wrong) | By model | Unsorted | Named you |
+| -------------------- | ----- | --------------------- | ------------------ | ----- | -------- | ------------------------ | -------- | -------- | --------- |
+| Rules only, no model | none  | 54.9% (28 of 51)      | 100.0% (28 of 28)  | 85.9% | 63.5%    | 12 (0)                   | 0        | 51       | 0         |
 
 ## Rules only, no model
 
@@ -68,6 +68,7 @@ Rules only, as asked (`--rules-only`).
 | n25 | needs you | needs you | unsorted | Couldn't sort this one; showing it to be safe. |
 | n26 | needs you | needs you | unsorted | Couldn't sort this one; showing it to be safe. |
 | n27 | needs you | needs you | unsorted | Couldn't sort this one; showing it to be safe. |
+| n28 | needs you | needs you | unsorted | Couldn't sort this one; showing it to be safe. |
 | c01 | can wait  | can wait  | rules    | Bulk mail: a newsletter, promotion or digest.  |
 | c02 | can wait  | needs you | unsorted | Couldn't sort this one; showing it to be safe. |
 | c03 | can wait  | needs you | unsorted | Couldn't sort this one; showing it to be safe. |

@@ -277,6 +277,29 @@ describe("the morning brief", () => {
     expect(brief.couldNotCheck[0]).toBe("Timezone: “Moon/Base” isn't one Steward knows, so times are in UTC");
   });
 
+  it("never calls the person by the name their mail gives them", async () => {
+    const model = fakeModel(({ system }) =>
+      system === SUMMARY_SYSTEM
+        ? "Sam, one email needs you today: Ana's proof."
+        : '{"verdict":"needs_you","reason":"Sam must sign the proof by Friday."}',
+    );
+    const mail = fakeMail({
+      label: "owner@studio.example",
+      emails: [
+        email({
+          subject: "Proof",
+          to: [{ name: "Sam Taylor", email: "owner@studio.example" }],
+          body: "Hi Sam, please sign the proof.",
+          receivedAt: "2026-10-22T07:00:00Z",
+        }),
+      ],
+    });
+    const brief = await setup({ mail: () => mail, model: () => model }).brief.generate();
+    expect(brief.summary).toBe("One email needs you today: Ana's proof.");
+    expect(brief.needsYou[0]?.reason).toBe("You must sign the proof by Friday.");
+    expect(JSON.stringify(brief)).not.toContain("Sam");
+  });
+
   it("labels demo mail in the summary", async () => {
     const mail = fakeMail({
       isDemo: true,

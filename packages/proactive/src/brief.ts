@@ -16,7 +16,7 @@ import { newId } from "@steward/shared";
 import { ProactiveError } from "./errors.ts";
 import { suggestFromBrief } from "./suggestions.ts";
 import { isIsoDate, isKnownTimeZone, localDate, localDayBounds, localTime, weekdayOf } from "./time.ts";
-import type { TriageEmail } from "./triage.ts";
+import { type TriageEmail, withoutOwnerNames } from "./triage.ts";
 import type { TriageService } from "./triage-service.ts";
 
 /** The brief sorts at most this many messages; it says so when there were more. */
@@ -295,6 +295,7 @@ export function createBriefService(deps: BriefDeps): BriefService {
     let calendar: CalendarEvent[] = [];
     let mailRead = false;
     let calendarRead = false;
+    let ownerNames: string[] = [];
 
     if (!mail) {
       couldNotCheck.push("Mail: not connected", "Calendar: not connected");
@@ -317,6 +318,7 @@ export function createBriefService(deps: BriefDeps): BriefService {
 
       if (emails.length > 0) {
         const run = await deps.triage.run(emails, signal ? { signal } : {});
+        ownerNames = run.ownerNames;
         needsYou = orderNeedsYou(run.items.filter((item) => item.verdict === "needs_you"));
         canWait = run.items.filter((item) => item.verdict === "can_wait");
         if (run.unsorted > 0 && run.modelMissing) {
@@ -367,6 +369,8 @@ export function createBriefService(deps: BriefDeps): BriefService {
     let summary = model ? await modelSummary(model, input, signal) : undefined;
     signal?.throwIfAborted();
     summary ??= plainSummary(input);
+    // The mail may name its owner ("Hi Sam,"); the summary never does.
+    summary = withoutOwnerNames(summary, ownerNames);
     if (mail?.isDemo && !/\bdemo\b/i.test(summary)) summary = `From the demo inbox: ${summary}`;
 
     return {

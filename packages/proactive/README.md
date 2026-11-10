@@ -88,7 +88,9 @@ Needs you or can wait, with a one-line reason, for each email. Adapted from Open
    and failed payments are auto-generated.
 2. **Then the model**, eight at a time, with the prompt in `TRIAGE_SYSTEM` + `triagePrompt`. It never
    names you: it knows your address (from the connector or the most-addressed recipient) and what you
-   told Steward about yourself in Memory. The message is fenced as data.
+   told Steward about yourself in Memory. The message is fenced as data. Your own address is shown
+   bare, without the display name your mail account puts on it, and if the model still uses that
+   name (from a "Hi Sam," in the body), the reason and the brief's summary say "you" instead.
 3. **Never a silent guess.** When the model fails or is missing, the email goes under needs you with
    "Couldn't sort this one; showing it to be safe.", `by: "rules"`, confidence 0, and the brief says
    how many and why. Provider error text is never stored: it can echo parts of a key.
@@ -139,7 +141,7 @@ state, except a task hidden more than 14 days ago. Unsorted mail is never sugges
 
 ## The triage eval
 
-`pnpm eval:triage` measures triage against 62 labelled emails. See
+`pnpm eval:triage` measures triage against 63 labelled emails. See
 [`evals/triage/README.md`](../../evals/triage/README.md).
 
 ## Credits

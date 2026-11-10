@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   EVAL_NOW,
   EVAL_OWNER,
+  evalOwnerNames,
   pairResults,
   parseDataset,
   renderResults,
@@ -23,19 +24,38 @@ const DATASET = fileURLToPath(new URL("../../../evals/triage/dataset.jsonl", imp
 const set = parseDataset(readFileSync(DATASET, "utf8"));
 
 describe("the triage eval set", () => {
-  it("has 62 labelled messages, 27 that need the person and 35 that can wait", () => {
-    expect(set).toHaveLength(62);
-    expect(set.filter((row) => row.label === "needs_you")).toHaveLength(27);
+  it("has 63 labelled messages, 28 that need the person and 35 that can wait", () => {
+    expect(set).toHaveLength(63);
+    expect(set.filter((row) => row.label === "needs_you")).toHaveLength(28);
     expect(set.filter((row) => row.label === "can_wait")).toHaveLength(35);
   });
 
-  it("never names the inbox owner, and its reasons speak to the person as you", () => {
+  it("names the owner only where real mail does (n28), and its reasons speak to the person as you", () => {
     const text = readFileSync(DATASET, "utf8");
     expect(text.toLowerCase()).not.toContain("maya");
     for (const row of set) expect(row.why).not.toMatch(/\b(she|her|hers)\b/i);
     expect(
       set.every((row) => [...row.to, ...row.cc].some((a) => a.email === EVAL_OWNER) || row.id === "n26"),
     ).toBe(true);
+    // Only n28 arrives as real mail does, with a display name on the owner's address.
+    expect(evalOwnerNames(set)).toEqual(["Robin Hale", "Robin"]);
+    expect(set.filter((row) => /robin/i.test(JSON.stringify(row))).map((row) => row.id)).toEqual(["n28"]);
+    for (const row of set) expect(row.why).not.toMatch(/robin/i);
+  });
+
+  it("counts any reason that calls the person by that name, and the model never sees it", async () => {
+    const names = evalOwnerNames(set);
+    const model = fakeModel(({ system, prompt }) => {
+      expect(system).not.toContain("Robin Hale");
+      expect(prompt).not.toContain("Robin Hale");
+      return '{"verdict":"needs_you","reason":"Robin must sign off the glaze sample today."}';
+    });
+    const n28 = set.filter((row) => row.id === "n28");
+    const run = await triageEmails(n28.map(toTriageEmail), { now: EVAL_NOW, ownerEmail: EVAL_OWNER, model });
+    expect(run.items[0]?.reason).toBe("You must sign off the glaze sample today.");
+    expect(score(pairResults(n28, run), names).namedOwner).toBe(0);
+    const leaked = { ...run.items[0]!, reason: "Asks robin to sign off." };
+    expect(score([{ item: n28[0]!, result: leaked }], names).namedOwner).toBe(1);
   });
 
   it("refuses a malformed row with its line number", () => {
@@ -44,10 +64,11 @@ describe("the triage eval set", () => {
 
   it("rules alone settle 12 messages and get none wrong; the rest show as needs you", async () => {
     const run = await triageEmails(set.map(toTriageEmail), { now: EVAL_NOW, ownerEmail: EVAL_OWNER });
-    const metrics = score(pairResults(set, run));
+    const metrics = score(pairResults(set, run), evalOwnerNames(set));
     expect(metrics.byRules).toBe(12);
     expect(metrics.ruleWrong).toBe(0);
-    expect(metrics.unsorted).toBe(50);
+    expect(metrics.unsorted).toBe(51);
+    expect(metrics.namedOwner).toBe(0);
     expect(metrics.recall).toBe(1);
     // The two cases that list headers used to hide must reach the model.
     const n26 = run.items[set.findIndex((row) => row.id === "n26")];
@@ -64,7 +85,7 @@ describe("the triage eval set", () => {
     const run = await triageEmails(set.map(toTriageEmail), { now: EVAL_NOW, ownerEmail: EVAL_OWNER, model });
     const rows = pairResults(set, run);
     const metrics = score(rows);
-    expect(metrics).toMatchObject({ precision: 1, recall: 1, f2: 1, accuracy: 1, byModel: 50, byRules: 12 });
+    expect(metrics).toMatchObject({ precision: 1, recall: 1, f2: 1, accuracy: 1, byModel: 51, byRules: 12 });
     // The prompt never carries a person's name.
     expect(model.calls.every((call) => !/maya/i.test(call.system + call.prompt))).toBe(true);
 
@@ -74,7 +95,7 @@ describe("the triage eval set", () => {
       datasetSize: set.length,
     });
     expect(markdown).toMatch(
-      /\| Rules, then the model \| fake-model \| 100\.0% \(27 of 27\) +\| 100\.0% \(27 of 27\) +\|/,
+      /\| Rules, then the model \| fake-model \| 100\.0% \(28 of 28\) +\| 100\.0% \(28 of 28\) +\|/,
     );
     // Columns are padded like the repo's formatter pads them, so the file passes `biome check`.
     const lines = markdown.split("\n");
