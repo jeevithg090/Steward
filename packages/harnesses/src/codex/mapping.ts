@@ -4,7 +4,7 @@
 import { resolve } from "node:path";
 import type { TokenUsage } from "@ag-ui/client";
 import type { Target } from "@steward/shared";
-import { insideWorkspace, isVendorSettings } from "../acp/mapping.ts";
+import { insideWorkspace, isVendorSettings, targetPath } from "../acp/mapping.ts";
 import type { HarnessPermission, HarnessUpdate, PermissionAnswer } from "../types.ts";
 import type { CodexDecision, CodexFileChange, CodexThreadItem, CodexTokenCounts } from "./types.ts";
 
@@ -99,9 +99,12 @@ export function fileChangePermission(
   const outside = files.some((f) => insideWorkspace(f.path, cwd) === undefined || isVendorSettings(f.path));
   const grantRoot = text(params.grantRoot);
   const removes = files.some((f) => f.kind === "delete" || f.kind === "move");
-  const first = files[0];
   const target: Target = {};
-  if (first) target.path = insideWorkspace(first.path, cwd) ?? resolve(cwd, first.path);
+  const path = targetPath(
+    files.map((f) => f.path),
+    cwd,
+  );
+  if (path) target.path = path;
   return {
     callId,
     toolName: "apply_patch",

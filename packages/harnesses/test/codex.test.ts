@@ -44,12 +44,25 @@ describe("Codex approvals in Steward's terms (plan §3)", () => {
       "t:2",
       CWD,
     );
+    // Judged by the folder that holds every file, so a folder rule allows it only when all are in it.
     expect(inside).toMatchObject({
       kind: "write",
       surface: "file",
-      target: { path: "a.md" },
+      target: { path: "./" },
       args: { files: ["a.md", "b.md"] },
     });
+    expect(
+      fileChangePermission(
+        {
+          fileChanges: {
+            "/srv/project/a.ts": { type: "update" },
+            "/Users/me/.ssh/config": { type: "update" },
+          },
+        },
+        "t:2b",
+        CWD,
+      ),
+    ).toMatchObject({ surface: "system", target: { path: "/" } });
     expect(
       fileChangePermission({ fileChanges: { "/etc/hosts": { type: "update" } } }, "t:3", CWD),
     ).toMatchObject({

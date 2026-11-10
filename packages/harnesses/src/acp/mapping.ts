@@ -121,6 +121,32 @@ export function insideWorkspace(path: string, cwd: string): string | undefined {
   return rel;
 }
 
+/** A path as a call shows it: relative inside the workspace, absolute outside it. */
+function shownPath(path: string, cwd: string): string {
+  return insideWorkspace(path, cwd) ?? resolve(cwd, path);
+}
+
+/**
+ * The one path a change is judged by (`target.path`). For one path, that path. For several, the
+ * folder that holds them all, ending in a separator: a rule that lets the agent work in a folder
+ * then allows the change only when every path is in that folder, never because the first one is.
+ */
+export function targetPath(paths: readonly string[], cwd: string): string | undefined {
+  const shown = [...new Set(paths.map((p) => shownPath(p, cwd)))];
+  if (shown.length <= 1) return shown[0];
+  const split = shown.map((p) => resolve(cwd, p).split(sep));
+  const first = split[0] ?? [];
+  const common: string[] = [];
+  for (const [i, part] of first.entries()) {
+    if (split.some((parts) => parts[i] !== part)) break;
+    common.push(part);
+  }
+  const folder = common.join(sep) || sep;
+  const inside = insideWorkspace(folder, cwd);
+  if (inside !== undefined) return inside === "." ? `.${sep}` : `${inside}${sep}`;
+  return folder.endsWith(sep) ? folder : `${folder}${sep}`;
+}
+
 /**
  * The vendor tools' own settings (`.claude/`, `.gemini/`, `.codex/`, `.mcp.json`): a change there
  * could let the tool stop asking, so it asks even inside the workspace.
@@ -181,10 +207,9 @@ export function permissionFrom(
     target.command = command;
   }
   const paths = pathsOf(call.locations, call.rawInput);
-  const first = paths[0];
-  if (first) {
-    const rel = insideWorkspace(first, cwd);
-    target.path = rel ?? resolve(cwd, first);
+  const path = targetPath(paths, cwd);
+  if (path) {
+    target.path = path;
     const changes = kind !== "read";
     if (
       surface === "file" &&

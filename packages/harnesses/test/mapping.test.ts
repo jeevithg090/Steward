@@ -2,6 +2,8 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { PermissionOption, ToolKind } from "@agentclientprotocol/sdk";
+import { memoryDb } from "@steward/db";
+import { createGateway } from "@steward/gateway";
 import { describe, expect, it } from "vitest";
 import { lineFilter, updateFrom } from "../src/acp/backend.ts";
 import {
@@ -12,6 +14,7 @@ import {
   outcomeFor,
   outputOf,
   permissionFrom,
+  targetPath,
   toolNameOf,
 } from "../src/acp/mapping.ts";
 
@@ -78,17 +81,56 @@ describe("the ACP tool kind map (plan §3)", () => {
   });
 
   it("reads both ends of a move and every path in a list, so a change outside asks", () => {
+    // Judged by the folder that holds both ends: here the whole disk, so no folder rule allows it.
     expect(
       permission("move", { source: "/Users/me/important", destination: "trash/important" }),
-    ).toMatchObject({ kind: "write", surface: "system", target: { path: "/Users/me/important" } });
+    ).toMatchObject({ kind: "write", surface: "system", target: { path: "/" } });
     expect(permission("move", { from: "a.md", to: "/tmp/a.md" }).surface).toBe("system");
     expect(permission("edit", { old_path: "/etc/hosts", new_path: "hosts" }).surface).toBe("system");
     expect(permission("edit", { paths: ["a.md", "/etc/hosts"] }).surface).toBe("system");
     expect(permission("edit", { files: [{ path: "a.md" }, { path: "/etc/hosts" }] }).surface).toBe("system");
     expect(permission("edit", { paths: ["a.md", "b/c.md"] })).toMatchObject({
       surface: "file",
-      target: { path: "a.md" },
+      target: { path: "./" },
     });
+  });
+
+  it("judges a change to several paths by the folder that holds them all, never by the first", () => {
+    expect(targetPath(["src/a.ts"], CWD)).toBe("src/a.ts");
+    expect(targetPath(["src/a.ts", `${CWD}/src/a.ts`], CWD)).toBe("src/a.ts");
+    expect(targetPath(["src/a.ts", "src/lib/b.ts"], CWD)).toBe("src/");
+    expect(targetPath(["/srv/project/a.ts", "/srv/project/lib/b.ts"], CWD)).toBe("/srv/project/");
+    expect(targetPath(["/srv/project/a.ts", "/srv/projects-old/b.ts"], CWD)).toBe("/srv/");
+    expect(targetPath(["/srv/project/a.ts", "/etc/hosts"], CWD)).toBe("/");
+    expect(targetPath([], CWD)).toBeUndefined();
+
+    // A rule that lets the agent work on /srv/project/ does not reach /etc/hosts by listing it second.
+    const { governance, rules } = createGateway({ db: memoryDb() });
+    rules.create({
+      name: "Work on the project",
+      effect: "allow",
+      when: 'tool.source == "harness:claude-code" && startsWith(target.path, "/srv/project/")',
+      description: "",
+      source: "person",
+      enabled: true,
+    });
+    const decide = (rawInput: unknown) => {
+      const p = permission("edit", rawInput);
+      return governance.dryRun({
+        toolCallId: "t1",
+        runId: "r1",
+        threadId: "th1",
+        agentId: "claude-code",
+        actorId: "local",
+        initiator: { kind: "person", id: "local" },
+        tool: { name: p.toolName, kind: p.kind, surface: p.surface, source: "harness:claude-code" },
+        args: p.args,
+        target: p.target,
+        tainted: true,
+      }).effect;
+    };
+    expect(decide({ paths: ["/srv/project/a.ts", "/srv/project/lib/b.ts"] })).toBe("allow");
+    expect(decide({ paths: ["/srv/project/a.ts", "/etc/hosts"] })).toBe("ask");
   });
 
   it("asks when a change names no path at all (fail closed)", () => {
