@@ -4,10 +4,10 @@
 // leaves, and not notifying a phone that has the app open. Rewritten on `ws` for one person and one
 // machine, with an allow-list of methods.
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
 import type { IncomingMessage, Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { extname, join, normalize, resolve } from "node:path";
+import { extname, join, resolve, sep } from "node:path";
 import type { Duplex } from "node:stream";
 import { serve } from "@hono/node-server";
 import {
@@ -95,6 +95,25 @@ function sameToken(a: string, b: string): boolean {
   const x = Buffer.from(a);
   const y = Buffer.from(b);
   return x.length === y.length && timingSafeEqual(x, y);
+}
+
+/**
+ * A file inside `root` for a decoded URL path, or undefined when the path leaves `root` (a sibling
+ * folder whose name starts the same way included) or a link inside it points out. The same check as
+ * Steward's own static server (apps/server/src/http/static.ts).
+ */
+function staticFile(root: string, pathname: string): string | undefined {
+  if (pathname.includes("\0")) return undefined;
+  const inside = (base: string, path: string) => path === base || path.startsWith(base + sep);
+  const candidate = resolve(root, `.${pathname.startsWith("/") ? pathname : `/${pathname}`}`);
+  if (!inside(root, candidate)) return undefined;
+  try {
+    const real = realpathSync(candidate);
+    if (!inside(realpathSync(root), real)) return undefined;
+    return statSync(real).isFile() ? real : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function send(ws: WebSocket | undefined, frame: ToDevice | ToMachine): void {
@@ -350,9 +369,7 @@ export function createRelay(opts: RelayOptions): Relay {
     } catch {
       return c.text("Not found", 404);
     }
-    const path = normalize(join(root, pathname));
-    const file =
-      path.startsWith(root) && existsSync(path) && statSync(path).isFile() ? path : join(root, "index.html");
+    const file = staticFile(root, pathname) ?? join(root, "index.html");
     if (!existsSync(file)) return c.text("Not found", 404);
     const type = CONTENT_TYPES[extname(file)] ?? "application/octet-stream";
     const headers: Record<string, string> = { "Content-Type": type };
