@@ -1,7 +1,7 @@
 /**
  * What a card drawn inside a conversation can do: send words as the person's next message, tell
- * whether its call belongs to the latest turn, tell whether its call is waiting on an approval, and
- * bring the computer into view.
+ * whether its call belongs to the latest turn, tell whether its call is waiting on an approval, tell
+ * whether the newest run ended without finishing, and bring the computer into view.
  *
  * Tool renderers are registered once for the whole app, but each card is drawn inside the
  * conversation it belongs to, so it reads these from context rather than from its registration.
@@ -23,6 +23,11 @@ export interface ChatActions {
   isLatestTurn: (toolCallId: string) => boolean;
   /** Whether a tool call is parked until the person answers its approval. */
   isAwaitingApproval: (toolCallId: string) => boolean;
+  /**
+   * Set while nothing runs and the newest run ended without finishing: the person stopped it, or it
+   * failed. A call still open then will never return, so cards stop showing it as running.
+   */
+  runEnded?: "stopped" | "failed" | null;
   /** Brings Steward's computer into view: the side panel on wide screens, a sheet on small ones. */
   showComputer: () => void;
 }

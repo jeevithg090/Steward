@@ -36,14 +36,24 @@ export function DelegationCard(tool: ToolProps) {
   const agentId = childId ?? "another agent";
   const name = info.data?.agents.find((a) => a.id === agentId)?.name ?? agentId;
   const done = tool.status === "complete" && tool.result !== undefined;
+  // No answer came and none will: the run that handed it on was stopped or failed, or it is history.
+  const stopped =
+    !done && parent !== null && (Boolean(parent.runEnded) || !parent.isLatestTurn(tool.toolCallId));
   // Another agent's computer, unless the task went to the agent this conversation is with.
   const ownComputer = childId !== undefined && childId !== (shared?.agentId ?? parent?.agentId);
   // Connected while the task runs here, and kept until the page leaves so nothing remounts when it
-  // ends. A task that was already finished when the page opened stays unconnected.
-  const [live] = useState(() => !done);
+  // ends. A task that was already over when the page opened stays unconnected.
+  const [live] = useState(() => !done && !stopped);
 
   const card = (
-    <DelegationBody tool={tool} name={name} childId={childId} done={done} ownComputer={ownComputer} />
+    <DelegationBody
+      tool={tool}
+      name={name}
+      childId={childId}
+      done={done}
+      stopped={stopped}
+      ownComputer={ownComputer}
+    />
   );
   return ownComputer && live && childId ? (
     <ComputerSession agentId={childId} name={name}>
@@ -59,12 +69,14 @@ function DelegationBody({
   name,
   childId,
   done,
+  stopped,
   ownComputer,
 }: {
   tool: ToolProps;
   name: string;
   childId: string | undefined;
   done: boolean;
+  stopped: boolean;
   ownComputer: boolean;
 }) {
   const id = useId();
@@ -81,10 +93,13 @@ function DelegationBody({
     ? failed
       ? `${name} could not finish: ${task}`
       : `${name} worked on: ${task}`
-    : `${name} is working on: ${task}`;
+    : stopped
+      ? `${name} stopped before it finished: ${task}`
+      : `${name} is working on: ${task}`;
+  const working = !done && !stopped;
   // The child's own computer, when this card holds a connection to it.
   const childComputer = ownComputer && computer?.agentId === childId ? computer : null;
-  const help = done ? undefined : childComputer?.status?.help;
+  const help = working ? childComputer?.status?.help : undefined;
 
   const nested = useMemo<ChatActions | null>(
     () =>
@@ -95,11 +110,11 @@ function DelegationBody({
             agentName: name,
             send: () => {},
             busy: true,
-            isLatestTurn: (callId) => !done && parent.isLatestTurn(callId),
+            isLatestTurn: (callId) => working && parent.isLatestTurn(callId),
             showComputer: ownComputer ? () => setShowing(true) : parent.showComputer,
           }
         : null,
-    [parent, childId, name, done, ownComputer],
+    [parent, childId, name, working, ownComputer],
   );
 
   return (
@@ -115,7 +130,8 @@ function DelegationBody({
           <span className="min-w-0 flex-1 break-words font-medium">{heading}</span>
         </summary>
         <p id={`${id}-state`} className="sr-only">
-          {done ? "Finished." : "Still working."} {messages.length > 0 ? "Open to see what it did." : ""}
+          {working ? "Still working." : stopped ? "Stopped." : "Finished."}{" "}
+          {messages.length > 0 ? "Open to see what it did." : ""}
         </p>
         <div className="mt-2 border-hair-2 border-l-2 pl-3">
           {messages.length > 0 ? (
@@ -123,7 +139,7 @@ function DelegationBody({
               <ChatActionsContext.Provider value={nested}>
                 <Transcript
                   messages={messages}
-                  running={!done}
+                  running={working}
                   nested
                   label={`What ${name} did`}
                   speaker={name}
@@ -131,7 +147,7 @@ function DelegationBody({
               </ChatActionsContext.Provider>
             </SubRunsContext.Provider>
           ) : (
-            <p className="m-0 text-ink-2">{done ? "It said nothing on the way." : "Starting…"}</p>
+            <p className="m-0 text-ink-2">{working ? "Starting…" : "It said nothing on the way."}</p>
           )}
         </div>
       </details>

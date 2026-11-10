@@ -10,6 +10,7 @@ import {
   ChoicesToolCard,
   DirectoryFindCard,
   GenericToolLine,
+  HelpRequestCard,
   MailSendCard,
   SecretRequestLine,
   TaskToolCard,
@@ -83,6 +84,51 @@ describe("tool cards", () => {
   it("shows a running browser step as it happens", () => {
     draw(<BrowserLine {...tool("browser_navigate", { url: "https://example.com/a" })} />);
     expect(screen.getByText("Opening example.com")).toBeTruthy();
+  });
+
+  describe("a step that will never finish", () => {
+    it("says it stopped, not that it is running, once the run was stopped or failed", () => {
+      draw(
+        <BrowserLine {...tool("browser_navigate", { url: "https://example.com/a" })} />,
+        chat({ runEnded: "stopped" }),
+      );
+      expect(screen.getByText("Stopped before it finished: Open a web page")).toBeTruthy();
+      expect(screen.queryByText("Opening example.com")).toBeNull();
+      expect(document.querySelector('[data-tool-line="running"]')).toBeNull();
+    });
+
+    it("says it stopped when it is from an earlier turn", () => {
+      draw(<GenericToolLine {...tool("mail_list", {})} />, chat({ isLatestTurn: () => false }));
+      expect(screen.getByText("Stopped before it finished: Check your mail")).toBeTruthy();
+    });
+
+    it("still shows a step waiting on an approval as waiting", () => {
+      draw(
+        <MailSendCard {...tool("mail_send", draft)} />,
+        chat({ runEnded: "stopped", isAwaitingApproval: () => true }),
+      );
+      expect(screen.getByText("Waiting for your answer")).toBeTruthy();
+    });
+
+    it("says an unsent draft was stopped before it was sent", () => {
+      draw(<MailSendCard {...tool("mail_send", draft)} />, chat({ runEnded: "failed" }));
+      expect(screen.getByText("Didn't send")).toBeTruthy();
+      expect(screen.getByText("Stopped before it was sent.")).toBeTruthy();
+    });
+
+    it("no longer offers Take the wheel for a request for help nobody waits on", () => {
+      draw(
+        <HelpRequestCard {...tool("request_help", { reason: "A sign-in page needs you." })} />,
+        chat({ runEnded: "stopped" }),
+      );
+      expect(screen.getByText("Stopped before it finished: asked you for help")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Take the wheel" })).toBeNull();
+    });
+
+    it("keeps a running step running while its run goes on", () => {
+      draw(<BrowserLine {...tool("browser_navigate", { url: "https://example.com/a" })} />, chat());
+      expect(screen.getByText("Opening example.com")).toBeTruthy();
+    });
   });
 
   it("names the rule that refused a call", () => {

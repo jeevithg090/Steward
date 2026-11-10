@@ -1,9 +1,10 @@
 /**
  * How each Steward tool call looks in the conversation.
  *
- * Every call has the same four ways to stand besides done: running, waiting for the person's
- * answer, refused by a rule, or failed. `Gate` draws those the same way for every tool, so a card
- * only has to draw success. Results arrive as strings and are read with `readToolResult`, which
+ * Every call has the same five ways to stand besides done: running, waiting for the person's
+ * answer, refused by a rule, failed, or stopped before it returned (the run was stopped or failed,
+ * or a later turn began, so no answer will come). `Gate` draws those the same way for every tool,
+ * so a card only has to draw success. Results arrive as strings and are read with `readToolResult`, which
  * undoes double encoding, Steward's governed envelope and the untrusted-content wrapper.
  */
 import type { Brief, CalendarEvent, EmailSummary, Task, TriageItem } from "@steward/shared";
@@ -54,6 +55,8 @@ interface ToolState {
   outcome: ToolOutcome;
   /** Parked until the person answers the approval card. */
   waiting: boolean;
+  /** Never returned and never will: its run was stopped or failed, or the turn is over. */
+  stopped: boolean;
 }
 
 function useToolState(tool: ToolProps): ToolState {
@@ -62,12 +65,23 @@ function useToolState(tool: ToolProps): ToolState {
   const waiting =
     outcome.status === "parked" ||
     (outcome.status === "pending" && (chat?.isAwaitingApproval(tool.toolCallId) ?? false));
-  return { chat, outcome, waiting };
+  const stopped =
+    outcome.status === "pending" &&
+    !waiting &&
+    chat !== null &&
+    (Boolean(chat.runEnded) || !chat.isLatestTurn(tool.toolCallId));
+  return { chat, outcome, waiting, stopped };
 }
 
-/** The running, waiting, refused and failed lines. Null once the call succeeded. */
+/** The line for a call that will never return. */
+function StoppedLine({ tool }: { tool: ToolProps }) {
+  return <ToolLine state="failed" label={`Stopped before it finished: ${toolLabel(tool.name)}`} />;
+}
+
+/** The running, waiting, refused, failed and stopped lines. Null once the call succeeded. */
 function Gate({ tool, state }: { tool: ToolProps; state: ToolState }): ReactElement | null {
   const { outcome, waiting } = state;
+  if (state.stopped) return <StoppedLine tool={tool} />;
   if (waiting) {
     return (
       <ToolLine
@@ -142,7 +156,7 @@ export function BrowserLine(tool: ToolProps) {
   const gate = Gate({ tool, state });
   const page = recordFrom(state.outcome.status === "ok" ? state.outcome.data : undefined);
   const { label } = toolName(tool.name, tool.args, gate ? "running" : "done");
-  if (gate && (state.waiting || state.outcome.status !== "pending")) return gate;
+  if (gate && (state.waiting || state.stopped || state.outcome.status !== "pending")) return gate;
   return (
     <ToolLine
       state={gate ? "running" : "done"}
@@ -171,9 +185,10 @@ export function HelpRequestCard(tool: ToolProps) {
       />
     );
   }
-  // A request from an earlier turn that never finished (the run was stopped) is history, not a call to act.
-  if (state.chat && !state.chat.isLatestTurn(tool.toolCallId)) {
-    return <ToolLine label="Asked you for help" detail={reason} />;
+  // A request that will never be answered (the run was stopped or failed, or a later turn began) is
+  // history, not a call to act.
+  if (state.stopped) {
+    return <ToolLine state="failed" label="Stopped before it finished: asked you for help" detail={reason} />;
   }
   return (
     <section
@@ -218,7 +233,7 @@ export function SecretRequestLine(tool: ToolProps) {
       />
     );
   }
-  if (state.outcome.status === "pending" && !state.waiting) {
+  if (state.outcome.status === "pending" && !state.waiting && !state.stopped) {
     return (
       <ToolLine
         state="waiting"
@@ -339,7 +354,7 @@ export function MailListCard(tool: ToolProps) {
 export function MailReadCard(tool: ToolProps) {
   const state = useToolState(tool);
   const gate = Gate({ tool, state });
-  if (gate && (state.waiting || state.outcome.status !== "pending")) return gate;
+  if (gate && (state.waiting || state.stopped || state.outcome.status !== "pending")) return gate;
   const ok = state.outcome.status === "ok" ? state.outcome : undefined;
   return (
     <EmailCard
@@ -353,10 +368,10 @@ export function MailReadCard(tool: ToolProps) {
 /** `mail_send`: the whole draft, always, with where it stands. */
 export function MailSendCard(tool: ToolProps) {
   const state = useToolState(tool);
-  const { outcome, waiting } = state;
+  const { outcome, waiting, stopped } = state;
   const draftState: DraftState = waiting
     ? "waiting"
-    : outcome.status === "pending"
+    : outcome.status === "pending" && !stopped
       ? "writing"
       : outcome.status === "ok"
         ? "sent"
@@ -370,7 +385,9 @@ export function MailSendCard(tool: ToolProps) {
         ? outcome.message
         : waiting
           ? "Steward is waiting for your answer before this leaves."
-          : undefined;
+          : stopped
+            ? "Stopped before it was sent."
+            : undefined;
   return <DraftCard draft={tool.args} state={draftState} note={note} />;
 }
 
@@ -517,6 +534,7 @@ export function TaskToolCard(tool: ToolProps) {
 export function RoutineToolCard(tool: ToolProps) {
   const state = useToolState(tool);
   const { outcome, waiting } = state;
+  if (state.stopped) return <StoppedLine tool={tool} />;
   if (outcome.status === "pending" && !waiting)
     return <ToolLine state="running" label={toolName(tool.name, tool.args, "running").label} />;
   if (outcome.status === "error") return Gate({ tool, state });
@@ -651,7 +669,7 @@ export function ChoicesToolCard(tool: ToolProps) {
 export function PageToolCard(tool: ToolProps) {
   const state = useToolState(tool);
   const gate = Gate({ tool, state });
-  if (gate && (state.waiting || state.outcome.status !== "pending")) return gate;
+  if (gate && (state.waiting || state.stopped || state.outcome.status !== "pending")) return gate;
   const saved = state.outcome.status === "ok" ? recordFrom(state.outcome.data, ["page", "file"]) : undefined;
   return <PageCard page={{ ...tool.args, ...saved }} />;
 }

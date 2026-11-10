@@ -421,6 +421,49 @@ describe("ChatThread", () => {
     expect((utterance as { text: string } | undefined)?.text).toBe("Your brief is ready.");
   });
 
+  describe("a step its run left open", () => {
+    const OPEN = [
+      { id: "u1", role: "user", content: "Read my mail" },
+      {
+        id: "a1",
+        role: "assistant",
+        content: "",
+        toolCalls: [{ id: "c1", type: "function", function: { name: "mail_list", arguments: "{}" } }],
+      },
+    ];
+
+    it("shows as stopped once the person stops the run", async () => {
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      act(() => {
+        kit.state.isRunning = true;
+        kit.state.messages = OPEN;
+        kit.state.rerender();
+      });
+      expect(screen.queryByText(/Stopped before it finished/)).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Stop Steward" }));
+      act(() => {
+        kit.state.isRunning = false;
+        kit.emit("onRunFinalized");
+        kit.state.rerender();
+      });
+      expect(screen.getByText("Stopped before it finished: Check your mail")).toBeTruthy();
+    });
+
+    it("shows as stopped after a reload when the newest run was stopped", async () => {
+      kit.state.messages = OPEN;
+      kit.copilotkit.connectAgent.mockImplementation(async () => {
+        kit.emit("onRunInitialized", { input: { runId: "run_connect" } });
+        kit.emit("onRunStartedEvent", { event: { type: "RUN_STARTED", runId: "run_1" } });
+        kit.emit("onRunFinishedEvent", { event: { type: "RUN_FINISHED" }, outcome: "cancelled" });
+        kit.emit("onRunFinalized");
+        return { newMessages: [] };
+      });
+      draw();
+      expect(await screen.findByText("Stopped before it finished: Check your mail")).toBeTruthy();
+    });
+  });
+
   describe("runs the server starts in the conversation", () => {
     const run = (type: "run.started" | "run.finished", runId: string, threadId = "thr_1") =>
       act(() => live.dispatch({ type, threadId, runId, agentId: "steward" }));

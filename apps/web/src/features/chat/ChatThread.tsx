@@ -71,6 +71,9 @@ export interface ChatThreadProps {
   onPromptConsumed?: () => void;
 }
 
+/** How a run ended: it finished (or stopped to ask), the person stopped it, or it failed. */
+type RunEnd = "ok" | "stopped" | "failed";
+
 /** One connect: what was on screen before it (a replay skips that), whether to stay quiet, how it went. */
 interface Connecting {
   shown: Set<string>;
@@ -79,6 +82,8 @@ interface Connecting {
   failed: boolean;
   /** How the newest run read so far failed, in words. A run that starts after it clears it. */
   lastError: string | null;
+  /** How the newest run read so far ended, once it has. */
+  ended: RunEnd | null;
 }
 
 /** A failed reply shown under the conversation. `earlier` when it was read from the history. */
@@ -133,6 +138,8 @@ function Conversation({
   const [connectAttempt, setConnectAttempt] = useState(0);
   const [follow, setFollow] = useState(0);
   const [runError, setRunError] = useState<RunProblem | null>(null);
+  /** How the newest run ended, so a step it left open is not shown as running for ever. */
+  const [lastRun, setLastRun] = useState<RunEnd | null>(null);
   /** A connect to follow a run failed after the history had loaded. */
   const [followFailed, setFollowFailed] = useState(false);
   const [pending, setPending] = useState<PendingApproval[]>([]);
@@ -184,10 +191,19 @@ function Conversation({
       onRunInitialized: ({ input }) => {
         shownRuns.current.add(input.runId);
         setRunError(null);
+        if (!connecting.current) setLastRun(null);
       },
       onRunStartedEvent: ({ event }) => {
         shownRuns.current.add(event.runId);
-        if (connecting.current) connecting.current.lastError = null;
+        if (connecting.current) {
+          connecting.current.lastError = null;
+          connecting.current.ended = null;
+        } else setLastRun(null);
+      },
+      onRunFinishedEvent: ({ outcome }) => {
+        const ended: RunEnd = outcome === "cancelled" ? "stopped" : "ok";
+        if (connecting.current) connecting.current.ended = ended;
+        else setLastRun(ended);
       },
       onEvent: ({ event }) => {
         const id = connecting.current ? replayedId(event) : undefined;
@@ -195,11 +211,19 @@ function Conversation({
       },
       onRunFailed: ({ error }) => {
         if (connecting.current) connecting.current.failed = true;
-        else setRunError({ message: plainRunError(error), earlier: false });
+        else {
+          setRunError({ message: plainRunError(error), earlier: false });
+          setLastRun("failed");
+        }
       },
       onRunErrorEvent: ({ event }) => {
-        if (connecting.current) connecting.current.lastError = plainRunError(event.message);
-        else setRunError({ message: plainRunError(event.message), earlier: false });
+        if (connecting.current) {
+          connecting.current.lastError = plainRunError(event.message);
+          connecting.current.ended = "failed";
+        } else {
+          setRunError({ message: plainRunError(event.message), earlier: false });
+          setLastRun("failed");
+        }
       },
       onRunFinalized: ({ messages: finished }) => {
         // A connect ends here too. Loading the history is quiet; a run followed live is not.
@@ -245,6 +269,7 @@ function Conversation({
       quiet: first,
       failed: false,
       lastError: null,
+      ended: null,
     };
     connecting.current = attempt;
     const settle = (failed: boolean) => {
@@ -261,6 +286,7 @@ function Conversation({
       setFollowFailed(false);
       // Only the newest run's failure is worth saying; an older one was followed by a run that worked.
       if (attempt.lastError) setRunError({ message: attempt.lastError, earlier: first });
+      if (attempt.ended) setLastRun(attempt.ended);
     };
     copilotkit.connectAgent({ agent }).then(
       () => settle(attempt.failed),
@@ -296,7 +322,11 @@ function Conversation({
   const busyRef = useRef(busy);
   busyRef.current = busy;
 
-  const stop = useCallback(() => copilotkit.stopAgent({ agent }), [agent, copilotkit]);
+  const stop = useCallback(() => {
+    // The stream may end without a word once it is cut, so the page notes the stop itself.
+    setLastRun("stopped");
+    copilotkit.stopAgent({ agent });
+  }, [agent, copilotkit]);
 
   const retry = useCallback(() => {
     setRunError(null);
@@ -341,6 +371,7 @@ function Conversation({
     ...pending.map((entry) => entry.toolCallId),
     ...orphans.map((approval) => approval.toolCallId),
   ].join(",");
+  const runEnded = !running && (lastRun === "stopped" || lastRun === "failed") ? lastRun : null;
   const actions = useMemo<ChatActions>(() => {
     const latestSet = new Set(latestKey ? latestKey.split(",") : []);
     const awaitingSet = new Set(awaitingKey ? awaitingKey.split(",") : []);
@@ -354,9 +385,10 @@ function Conversation({
       busy,
       isLatestTurn: (id) => latestSet.has(id),
       isAwaitingApproval: (id) => awaitingSet.has(id),
+      runEnded,
       showComputer,
     };
-  }, [threadId, runtimeAgentId, agentName, busy, latestKey, awaitingKey, showComputer]);
+  }, [threadId, runtimeAgentId, agentName, busy, latestKey, awaitingKey, runEnded, showComputer]);
 
   // The page itself scrolls (the shell's layout grows with its content). While the person is at the
   // end of the conversation, new messages keep it in view; once they scroll up, it stays put.
