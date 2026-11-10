@@ -8,7 +8,7 @@ import {
 } from "../src/middleware.ts";
 import { BUILTIN_TOOLS, buildToolCatalogue, grantedBuiltins, toAgUiTool } from "../src/tools/catalogue.ts";
 import { pageSlug, stripActiveContent } from "../src/tools/display.ts";
-import { objectRoot } from "../src/tools/mcp.ts";
+import { objectRoot, portableSchema, UnportableSchemaError } from "../src/tools/mcp.ts";
 import { explainArgs, forgiveArgs } from "../src/tools/schema.ts";
 import { parseAddress, urlTarget } from "../src/tools/target.ts";
 import type { StewardTool, ToolArgs, ToolContext } from "../src/tools/types.ts";
@@ -131,6 +131,87 @@ describe("the catalogue", () => {
     });
     expect(objectRoot({ type: "object" })).toEqual({ type: "object", properties: {} });
     expect(objectRoot(undefined)).toEqual({ type: "object", properties: {} });
+  });
+
+  it("sends an MCP schema in the form providers take: notes dropped, local refs inlined, null types read", () => {
+    const schema = {
+      $schema: "http://json-schema.org/draft-07/schema#",
+      $id: "urn:notes",
+      $comment: "generated",
+      type: "object",
+      properties: {
+        to: { $ref: "#/$defs/address" },
+        cc: { type: "array", items: { $ref: "#/definitions/address" } },
+        due: { type: ["string", "null"], format: "date", examples: ["2026-11-10"] },
+        size: { type: ["integer", "string"] },
+        examples: { type: "string", description: "A property the server happens to call examples." },
+        tag: { enum: [{ $ref: "data, not a reference" }] },
+      },
+      required: ["to"],
+      $defs: { address: { type: "object", properties: { email: { type: "string" } }, required: ["email"] } },
+      definitions: { address: { $ref: "#/$defs/address" } },
+    };
+    const address = { type: "object", properties: { email: { type: "string" } }, required: ["email"] };
+    expect(portableSchema(schema)).toEqual({
+      type: "object",
+      properties: {
+        to: address,
+        cc: { type: "array", items: address },
+        due: { type: "string", format: "date" },
+        size: { anyOf: [{ type: "integer" }, { type: "string" }] },
+        examples: { type: "string", description: "A property the server happens to call examples." },
+        tag: { enum: [{ $ref: "data, not a reference" }] },
+      },
+      required: ["to"],
+    });
+    expect(portableSchema(undefined)).toEqual({ type: "object", properties: {} });
+  });
+
+  it("leaves out an MCP tool whose schema still refers elsewhere, says which, and keeps the rest", () => {
+    const tree = {
+      type: "object",
+      properties: { node: { $ref: "#/$defs/node" } },
+      $defs: {
+        node: {
+          type: "object",
+          properties: { children: { type: "array", items: { $ref: "#/$defs/node" } } },
+        },
+      },
+    };
+    expect(portableSchema(tree)).toBeUndefined();
+    expect(
+      portableSchema({ type: "object", properties: { a: { $ref: "https://example.com/a.json" } } }),
+    ).toBeUndefined();
+
+    fakes.mcp.tools = [
+      {
+        name: "mcp__docs__tree",
+        server: "docs",
+        tool: "tree",
+        description: "",
+        parameters: tree,
+        kind: "read",
+      },
+      {
+        name: "mcp__docs__find",
+        server: "docs",
+        tool: "find",
+        description: "",
+        parameters: { type: "object", properties: { q: { type: "string" } } },
+        kind: "read",
+      },
+    ];
+    const errors: unknown[] = [];
+    const tools = buildToolCatalogue({
+      agentId: "steward",
+      granted: [],
+      mcp: fakes.mcp,
+      onError: (e) => errors.push(e),
+    });
+    expect(tools.map((t) => t.name)).toEqual(["mcp__docs__find"]);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toBeInstanceOf(UnportableSchemaError);
+    expect(String((errors[0] as Error).message)).toContain("mcp__docs__tree");
   });
 });
 
