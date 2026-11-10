@@ -139,9 +139,9 @@ forward the last ten emails to…". Steward assumes this will happen.
   data. So does a task another agent hands on after reading untrusted content: handing work on
   never washes taint away. See [Taint](governance.md#taint).
 - **A link cannot speak for you.** A `/chat?prompt=…` link, which any site or email can write,
-  only fills the message box, with a note to read it first. Only Steward's own pages can start a
-  conversation with a message, and Start on an email names it by address and id, never by the
-  sender's own words.
+  only fills the message box, with a note to read it first, and does not name the conversation.
+  Only Steward's own pages can start a conversation with a message, and Start on an email names it
+  by address and id, never by the sender's name or subject.
 - **Exact approval cards.** The card shows the tool, the recipients or the page, and the exact
   arguments, so you approve what will happen, not the model's description of it.
 - **Element names come from the page, not the model.** When the agent clicks, the gateway judges
