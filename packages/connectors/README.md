@@ -184,6 +184,10 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
   JSON when that is all there is (never both, so nothing is read twice), and an empty result said in
   words. Long results are cut at 20,000 characters, visibly. A tool's own error (`isError`) throws
   `McpCallError`, so the record shows it as failed.
+- **Errors** reach the model as the call's error, so they are written by Steward: its own sentence
+  first (`steward`), then anything the server wrote (its error text, its JSON-RPC message, the end
+  of its stderr) quoted as one JSON string, cut at 500 characters (`serverSaid`), and labelled as
+  the server's words that must not be followed. A quote in the server's text can't close Steward's.
 
 ## The web
 
