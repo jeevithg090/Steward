@@ -103,7 +103,14 @@ reads (`readOnlyHint`), but it does believe one that says its tool can destroy t
 marked only as deleting or as sending. Every kind but a read gets the check on what leaves.
 
 A tool is offered to the agent only once you grant it, on `/connections` or by name in the
-tenant's `agents.yaml`. Granting a tool never skips the gateway.
+tenant's `agents.yaml`. Granting a tool never skips the gateway. Steward remembers what the tool
+said it did when you allowed it; if its server changes that later (its description, its inputs, or
+whether it can destroy things), Steward stops using it and `/connections` shows **Changed since you
+allowed it** until you allow it again.
+
+What a server writes reaches the model only as the server's words: each offered description ends by
+saying the server wrote it, descriptions are cut at 1,000 characters, a server's listing is kept to
+200 tools, and a tool whose inputs take more than 16 KB to describe is listed but not offered.
 
 ## What "runs" means in a tainted conversation
 

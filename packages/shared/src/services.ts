@@ -160,6 +160,11 @@ export interface McpManager {
     sends?: string[];
     /** Tools that delete. Default none; a tool the server calls destructive is one anyway. */
     deletes?: string[];
+    /**
+     * Granted tools to pin afresh to what their server says now. A granted tool whose server changed
+     * it since it was allowed is withheld until it is allowed again.
+     */
+    allowAgain?: string[];
   }): Promise<McpServerInfo>;
   remove(id: string): Promise<void>;
   closeAll(): Promise<void>;

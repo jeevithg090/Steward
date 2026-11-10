@@ -165,6 +165,12 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
   server's own `readOnlyHint` is never believed: it would let a server declare its own tools harmless.
 - **Grants.** Only granted tools are offered, and `call` refuses anything not granted, whatever the
   caller says. Grants are per server and apply to every agent for now.
+- **Pins.** A granted tool is pinned to what its server said it did when the person allowed it: a
+  sha256 of its description, input schema and destructive hint. If the server changes any of them
+  later (it can, with a `tools/list_changed` notification), the tool is marked `changed`, withheld
+  from the model and refused by `call`, until the person allows it again (`allowAgain`). Saving any
+  other change keeps the old pin, so it never re-approves a changed tool by accident. A tool granted
+  before its server listed it is pinned to the first listing that has it.
 - **Names.** Tools are offered as `mcp__<server>__<tool>`. A tool whose full name a model cannot call
   (more than 64 characters, or characters other than letters, digits, `_` and `-`) is listed but not
   offered, with `offerable: false` and a `why` the Connections page shows.
@@ -222,6 +228,7 @@ first, and the root dot is dropped (`metadata.google.internal.`), so no spelling
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `connectors.001_mcp_servers` | `connectors_mcp_servers`: id, name, transport, command, args, url, granted, reads, the last tool listing, the last error. |
 | `connectors.002_mcp_kinds`   | Adds the tools the person marked as sending (`sends_json`) and deleting (`deletes_json`).                                 |
+| `connectors.003_mcp_pins`    | Adds `pins_json`: each granted tool's fingerprint when the person allowed it.                                             |
 
 ## Tests
 

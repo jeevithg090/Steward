@@ -117,6 +117,8 @@ interface Marks {
   reads: string[];
   sends: string[];
   deletes: string[];
+  /** Tools the person looked at again after their server changed them. */
+  allowAgain?: string[];
 }
 
 const KIND_CHOICES: { value: McpToolKind; label: string }[] = [
@@ -226,6 +228,7 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
               busy={upsert.isPending}
               onKind={(kind) => save(withKind(marks, tool.name, kind))}
               onGrant={(on) => save(withGrant(marks, tool.name, on))}
+              onAllowAgain={() => save({ ...marks, allowAgain: [tool.name] })}
             />
           ))}
         </ul>
@@ -266,11 +269,13 @@ function McpToolRow({
   busy,
   onKind,
   onGrant,
+  onAllowAgain,
 }: {
   tool: McpServerDetail["tools"][number];
   busy: boolean;
   onKind: (kind: McpToolKind) => void;
   onGrant: (on: boolean) => void;
+  onAllowAgain: () => void;
 }) {
   const noteId = useId();
   const choices = tool.destructive ? DESTRUCTIVE_CHOICES : KIND_CHOICES;
@@ -316,6 +321,21 @@ function McpToolRow({
         }
         onCheckedChange={onGrant}
       />
+      {tool.changed ? (
+        <Notice
+          tone="needs"
+          title="Changed since you allowed it"
+          className="mt-2 sm:col-span-3"
+          action={
+            <Button size="sm" disabled={busy} onClick={onAllowAgain}>
+              Allow again<span className="sr-only">: {tool.name}</span>
+            </Button>
+          }
+        >
+          Its server changed what it says this tool does, so Steward has stopped using it. Read what it says
+          now, above, and allow it again only if that is still what you want.
+        </Notice>
+      ) : null}
     </li>
   );
 }

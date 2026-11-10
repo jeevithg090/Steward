@@ -33,4 +33,12 @@ export const migrations: Migration[] = [
       ALTER TABLE connectors_mcp_servers ADD COLUMN deletes_json TEXT NOT NULL DEFAULT '[]';
     `,
   },
+  {
+    // What each granted tool said it did when the person allowed it: { "<tool>": "<sha256>" }. A
+    // server that changes a granted tool afterwards loses it until the person allows it again.
+    id: "connectors.003_mcp_pins",
+    sql: `
+      ALTER TABLE connectors_mcp_servers ADD COLUMN pins_json TEXT NOT NULL DEFAULT '{}';
+    `,
+  },
 ];

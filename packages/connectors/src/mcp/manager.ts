@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -22,8 +23,8 @@ import { createGuardedFetch } from "../net/guarded-fetch.ts";
 import { type McpCallOutput, resultText } from "./result.ts";
 
 export type McpServerConfig = Parameters<McpManager["upsert"]>[0];
-/** A config as the manager keeps it: every list present. */
-type SavedConfig = McpServerConfig & { sends: string[]; deletes: string[] };
+/** A config as the manager keeps it: every list present, and nothing that only applies to one save. */
+type SavedConfig = Omit<McpServerConfig, "allowAgain"> & { sends: string[]; deletes: string[] };
 
 export interface McpManagerOptions {
   db: Db;
@@ -70,6 +71,8 @@ interface ListedTool {
   destructive?: boolean;
   /** Its input schema was too big to offer, so the tool is listed but never offered. */
   schemaTooBig?: boolean;
+  /** sha256 of what the server said the tool does: its description, input schema and destructive hint. */
+  fingerprint: string;
 }
 
 /** A server's listing, bounded: what Steward keeps, and whether it had to leave tools out. */
@@ -84,6 +87,8 @@ interface ServerState {
   tools: ListedTool[];
   /** The last listing had more tools than Steward keeps. */
   more?: boolean;
+  /** Each granted tool's fingerprint when the person allowed it. A tool that no longer matches is withheld. */
+  pins: Record<string, string>;
   status: "connected" | "error";
   error?: string;
   client?: Client;
@@ -106,6 +111,7 @@ interface Row {
   reads_json: string;
   sends_json: string;
   deletes_json: string;
+  pins_json: string;
   tools_json: string;
   last_error: string | null;
 }
@@ -155,6 +161,9 @@ const TERMINAL_COLOURS = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"
  *   deletes, `read` runs. A tool the server marks destructive is a delete unless marked a send.
  *   Anything unmarked is a write. A server's own `readOnlyHint` is never believed.
  * - Only granted tools are offered to the model, and `call` refuses anything not granted.
+ * - A granted tool is pinned to what its server said it did when the person allowed it (description,
+ *   input schema, destructive hint). If the server changes it later, it is withheld and refused until
+ *   the person looks at it again and allows it (`allowAgain`).
  */
 export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
   const { db } = opts;
@@ -181,12 +190,15 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       },
       // Bounded again, in case it was saved before the bounds existed.
       tools: bounded(fromJson<ListedTool[]>(row.tools_json, [])).tools,
+      pins: fromJson<Record<string, string>>(row.pins_json, {}),
       status: "error",
       error: opts.connectOnStart === false ? "Not connected yet. It connects on first use." : "Connecting…",
       generation: 0,
       stderr: "",
     };
     servers.set(row.id, state);
+    // Grants saved before tools were pinned are pinned to the listing the person last saw.
+    if (fillPins(state)) persistPins(state);
     if (opts.connectOnStart !== false) void connect(state);
   }
 
@@ -314,6 +326,14 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
   function setListing(state: ServerState, listing: Listing): void {
     state.tools = listing.tools;
     state.more = listing.more;
+    if (fillPins(state)) persistPins(state);
+  }
+
+  function persistPins(state: ServerState): void {
+    db.run("UPDATE connectors_mcp_servers SET pins_json = ? WHERE id = ?", [
+      toJson(state.pins),
+      state.config.id,
+    ]);
   }
 
   function persistListing(state: ServerState): void {
@@ -357,6 +377,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
           ...(t.destructive ? { destructive: true } : {}),
           offerable: why === undefined,
           ...(why ? { why } : {}),
+          ...(changedSinceAllowed(state, t) ? { changed: true } : {}),
         };
       }),
     };
@@ -374,6 +395,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         for (const tool of state.tools) {
           if (!state.config.granted.includes(tool.name)) continue;
           if (unofferable(state.config.id, tool)) continue;
+          if (changedSinceAllowed(state, tool)) continue;
           out.push({
             name: mcpToolName(state.config.id, tool.name),
             server: state.config.id,
@@ -400,8 +422,14 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       if (!state.client) await connect(state);
       const client = state.client;
       if (!client) throw new McpCallError(`Couldn't reach ${state.config.name}. ${state.error ?? ""}`.trim());
-      if (!state.tools.some((t) => t.name === tool)) {
+      const listed = state.tools.find((t) => t.name === tool);
+      if (!listed) {
         throw new McpCallError(`${state.config.name} doesn't offer a tool called "${tool}".`);
+      }
+      if (changedSinceAllowed(state, listed)) {
+        throw new McpCallError(
+          `${state.config.name} changed what ${tool} does since you allowed it. Look at it again on the Connections page.`,
+        );
       }
       const invoke = (c: Client) =>
         c.callTool({ name: tool, arguments: args }, undefined, {
@@ -444,17 +472,20 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       if (closed) throw new Error("MCP connections are closed.");
       const config = validate(input);
       if (config.transport === "http") await checkServerUrl(config.url as string);
+      const existing = servers.get(config.id);
+      const pins = keptPins(existing, config, input.allowAgain ?? []);
       const now = new Date().toISOString();
       db.run(
         `INSERT INTO connectors_mcp_servers
            (id, name, transport, command, args_json, url, granted_json, reads_json, sends_json,
-            deletes_json, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            deletes_json, pins_json, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT (id) DO UPDATE SET
            name = excluded.name, transport = excluded.transport, command = excluded.command,
            args_json = excluded.args_json, url = excluded.url, granted_json = excluded.granted_json,
            reads_json = excluded.reads_json, sends_json = excluded.sends_json,
-           deletes_json = excluded.deletes_json, updated_at = excluded.updated_at`,
+           deletes_json = excluded.deletes_json, pins_json = excluded.pins_json,
+           updated_at = excluded.updated_at`,
         [
           config.id,
           config.name,
@@ -466,15 +497,17 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
           toJson(config.reads),
           toJson(config.sends),
           toJson(config.deletes),
+          toJson(pins),
           now,
           now,
         ],
       );
 
-      const existing = servers.get(config.id);
       if (existing && sameConnection(existing.config, config) && (existing.client || existing.connecting)) {
         // Grants, reads or the name changed: no reason to restart the server.
         existing.config = config;
+        existing.pins = pins;
+        if (fillPins(existing)) persistPins(existing);
         await existing.connecting;
         return info(existing);
       }
@@ -482,12 +515,15 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         await disconnect(existing);
         if (!sameConnection(existing.config, config)) existing.tools = [];
         existing.config = config;
+        existing.pins = pins;
+        if (fillPins(existing)) persistPins(existing);
         await connect(existing);
         return info(existing);
       }
       const state: ServerState = {
         config,
         tools: [],
+        pins,
         status: "error",
         error: "Connecting…",
         generation: 0,
@@ -567,11 +603,16 @@ async function listAllTools(client: Client, timeout: number): Promise<Listing> {
 }
 
 function listedTool(tool: Tool): ListedTool {
+  const description = tool.description ?? tool.annotations?.title ?? "";
+  const inputSchema = (tool.inputSchema ?? { type: "object" }) as Record<string, unknown>;
+  const destructive = tool.annotations?.destructiveHint === true;
   return {
     name: tool.name,
-    description: tool.description ?? tool.annotations?.title ?? "",
-    inputSchema: (tool.inputSchema ?? { type: "object" }) as Record<string, unknown>,
-    ...(tool.annotations?.destructiveHint === true ? { destructive: true } : {}),
+    description,
+    inputSchema,
+    ...(destructive ? { destructive: true } : {}),
+    // Taken before the listing is bounded, so a change past the cut still counts.
+    fingerprint: fingerprintOf(description, inputSchema, destructive),
   };
 }
 
@@ -602,6 +643,11 @@ function bounded(listed: readonly ListedTool[]): Listing {
       inputSchema: tooBig ? { type: "object", properties: {} } : schema,
       ...(tool.destructive ? { destructive: true } : {}),
       ...(tooBig ? { schemaTooBig: true } : {}),
+      // A listing saved before fingerprints existed kept the server's words whole, so this matches.
+      fingerprint:
+        typeof tool.fingerprint === "string"
+          ? tool.fingerprint
+          : fingerprintOf(tool.description ?? "", tool.inputSchema, tool.destructive === true),
     };
   });
   return { tools, more: unique.length > MAX_TOOLS };
@@ -641,6 +687,63 @@ function kindOf(config: SavedConfig, tool: ListedTool): McpToolKind {
   if (config.deletes.includes(tool.name) || tool.destructive) return "delete";
   if (config.reads.includes(tool.name)) return "read";
   return "write";
+}
+
+/**
+ * The pins to keep for a save: a tool no longer granted loses its pin, and a newly granted tool or
+ * one the person allowed again is pinned afresh from the listing (see `fillPins`). Every other
+ * granted tool keeps the pin it had, so saving one switch never re-approves a tool that changed.
+ */
+function keptPins(
+  existing: ServerState | undefined,
+  config: SavedConfig,
+  allowAgain: readonly string[],
+): Record<string, string> {
+  const before = new Set(existing?.config.granted ?? []);
+  const pins: Record<string, string> = {};
+  for (const [name, pin] of Object.entries(existing?.pins ?? {})) {
+    if (config.granted.includes(name) && before.has(name) && !allowAgain.includes(name)) pins[name] = pin;
+  }
+  return pins;
+}
+
+/**
+ * Pins every granted tool that has no pin yet to what the server lists now: the listing the person
+ * was looking at when they granted it. Returns whether anything changed.
+ */
+function fillPins(state: ServerState): boolean {
+  let changed = false;
+  for (const tool of state.tools) {
+    if (!state.config.granted.includes(tool.name) || state.pins[tool.name] !== undefined) continue;
+    state.pins[tool.name] = tool.fingerprint;
+    changed = true;
+  }
+  return changed;
+}
+
+/** A granted tool whose server has changed what it says it does since the person allowed it. */
+function changedSinceAllowed(state: ServerState, tool: ListedTool): boolean {
+  const pin = state.pins[tool.name];
+  return state.config.granted.includes(tool.name) && pin !== undefined && pin !== tool.fingerprint;
+}
+
+/** What a tool says it does, as one hash: its description, its input schema and its destructive hint. */
+function fingerprintOf(description: string, inputSchema: unknown, destructive: boolean): string {
+  return createHash("sha256")
+    .update(canonical([description, inputSchema ?? null, destructive]))
+    .digest("hex");
+}
+
+/** JSON with object keys sorted, so the same schema always hashes the same. */
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, v]) => v !== undefined)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
 }
 
 /** A JSON Schema whose root is an object, as every model provider requires for tool parameters. */

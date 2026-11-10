@@ -113,6 +113,8 @@ export const McpServerBody = z.object({
   sends: z.array(z.string()).default([]),
   /** Tools the person marked as deleting. One the server calls destructive is a delete anyway. */
   deletes: z.array(z.string()).default([]),
+  /** Granted tools the person looked at again after their server changed them: allowed as they are now. */
+  allowAgain: z.array(z.string()).default([]),
 });
 
 export const SettingsBody = z.object({
@@ -232,6 +234,11 @@ export interface McpServerInfo {
     offerable: boolean;
     /** Why it can't be offered, in words for the person. */
     why?: string;
+    /**
+     * Granted, but its server has changed what it says it does since the person allowed it, so it
+     * is withheld until they allow it again.
+     */
+    changed?: boolean;
   }[];
 }
 
