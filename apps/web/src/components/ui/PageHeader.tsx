@@ -1,9 +1,12 @@
 import { type ReactNode, useEffect, useRef } from "react";
+import { useBrandName } from "@/app/brand.ts";
 import { claimRouteFocus } from "@/lib/focus.ts";
 import { cn } from "@/lib/utils.ts";
 
-/** Sets the tab title: "Tasks · Steward". */
-export function useDocumentTitle(title: string | undefined, product = "Steward"): void {
+/** Sets the tab title: "Tasks · Steward", or "Tasks · Tempo" under brand.yaml's own name. */
+export function useDocumentTitle(title: string | undefined, productName?: string): void {
+  const brand = useBrandName();
+  const product = productName ?? brand;
   useEffect(() => {
     if (!title) return;
     document.title = title === product ? product : `${title} · ${product}`;
