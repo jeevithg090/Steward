@@ -93,11 +93,13 @@ vi.mock("@copilotkit/react-core/v2", async () => {
 
 /** What /api/info says; most tests run before it has answered. */
 const info = vi.hoisted(() => ({ data: undefined as unknown }));
+/** The pending approvals the server lists. */
+const listed = vi.hoisted(() => ({ approvals: [] as unknown[] }));
 
 vi.mock("@/lib/api.ts", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api.ts")>()),
   useInfo: () => ({ data: info.data }),
-  useApprovals: () => ({ data: [] }),
+  useApprovals: () => ({ data: listed.approvals }),
   useApproval: () => ({ data: undefined }),
   useSkills: () => ({ data: [] }),
   useComputerStatus: () => ({ data: undefined }),
@@ -105,7 +107,23 @@ vi.mock("@/lib/api.ts", async (importOriginal) => ({
 }));
 
 vi.mock("@/components/cards/ApprovalCard.tsx", () => ({
-  ApprovalCard: ({ approvalId }: { approvalId: string }) => <p>Approval {approvalId}</p>,
+  ApprovalCard: ({
+    approvalId,
+    onDecided,
+  }: {
+    approvalId: string;
+    onDecided?: (approval: unknown) => void;
+  }) => (
+    <div>
+      <p>Approval {approvalId}</p>
+      <button
+        type="button"
+        onClick={() => onDecided?.({ id: approvalId, status: "allowed", answer: "once" })}
+      >
+        Allow once {approvalId}
+      </button>
+    </div>
+  ),
 }));
 
 // The live event stream; the tests deliver events with `live.dispatch`.
@@ -151,6 +169,7 @@ beforeEach(() => {
   kit.coreSubscribers.clear();
   kit.state.interrupts = [];
   info.data = undefined;
+  listed.approvals = [];
   kit.copilotkit.connectAgent.mockReset();
   kit.copilotkit.connectAgent.mockImplementation(async () => ({ newMessages: [] }));
   kit.copilotkit.runAgent.mockClear();
@@ -234,6 +253,54 @@ describe("ChatThread", () => {
     fireEvent.keyDown(textbox(), { key: "Enter" });
     expect(userMessages()).toHaveLength(0);
     expect(screen.getAllByText("Waiting for your answer").length).toBeGreaterThan(0);
+  });
+
+  describe("after an approval is answered", () => {
+    const wide = () =>
+      vi.stubGlobal("matchMedia", (query: string) => ({
+        matches: query === "(min-width: 64rem)",
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+      }));
+
+    it("moves the keyboard to the composer, not the page, before the card goes", async () => {
+      wide();
+      kit.state.interrupts = [
+        { id: "call_1", toolCallId: "call_1", reason: "steward_approval", metadata: { approvalId: "apr_1" } },
+      ];
+      draw();
+      const allow = await screen.findByRole("button", { name: "Allow once apr_1" });
+      allow.focus();
+      fireEvent.click(allow);
+      expect(document.activeElement).toBe(textbox());
+    });
+
+    it("moves it to the next request when another is waiting", async () => {
+      wide();
+      kit.state.interrupts = ["apr_1", "apr_2"].map((id) => ({
+        id: `call_${id}`,
+        toolCallId: `call_${id}`,
+        reason: "steward_approval",
+        metadata: { approvalId: id },
+      }));
+      draw();
+      fireEvent.click(await screen.findByRole("button", { name: "Allow once apr_1" }));
+      expect((document.activeElement as HTMLElement | null)?.dataset.approvalId).toBe("apr_2");
+    });
+
+    it("does not draw a listed approval while its run is still streaming", async () => {
+      listed.approvals = [{ id: "apr_9", threadId: "thr_1", toolCallId: "call_9", status: "pending" }];
+      kit.state.isRunning = true;
+      draw();
+      await act(async () => {});
+      expect(screen.queryByText("Approval apr_9")).toBeNull();
+      act(() => {
+        kit.state.isRunning = false;
+        kit.state.rerender();
+      });
+      expect(screen.getByText("Approval apr_9")).toBeTruthy();
+    });
   });
 
   it("shows a failed reply in place with Try again", async () => {

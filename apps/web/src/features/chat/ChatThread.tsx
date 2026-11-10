@@ -175,11 +175,15 @@ function Conversation({
   const running = agent.isRunning;
 
   // Approvals for this thread that no open interrupt stands for: the page was reloaded after the
-  // run parked, say. They are answered here all the same, and the server carries the run on.
+  // run parked, say. They are answered here all the same, and the server carries the run on. Not
+  // while a run streams: its approval is listed before the run ends with the interrupt that
+  // carries it, and drawing it twice would announce it twice and lose the keyboard between.
   const interruptApprovalIds = new Set(pending.map((entry) => entry.approvalId).filter(Boolean));
-  const orphans = (pendingList.data ?? []).filter(
-    (approval) => approval.threadId === threadId && !interruptApprovalIds.has(approval.id),
-  );
+  const orphans = running
+    ? []
+    : (pendingList.data ?? []).filter(
+        (approval) => approval.threadId === threadId && !interruptApprovalIds.has(approval.id),
+      );
   const waitingForAnswer = pending.length > 0 || orphans.length > 0;
   const busy = running || waitingForAnswer;
 
@@ -408,6 +412,18 @@ function Conversation({
     if (pinned) window.scrollTo?.({ top: document.documentElement.scrollHeight });
   }, [tail, pinned]);
 
+  // An answered card goes at once, so before it does the keyboard moves somewhere that stays: the
+  // next request if one is left, else the composer on wide screens, else where the requests were
+  // (so a phone's keyboard does not open uninvited). The answer itself is announced by the card.
+  const onAnswered = useCallback((approvalId: string) => {
+    const next = [...(approvalsRef.current?.querySelectorAll<HTMLElement>("[data-approval-id]") ?? [])].find(
+      (element) => element.dataset.approvalId !== approvalId,
+    );
+    const target =
+      next ?? (globalThis.matchMedia?.(WIDE).matches ? composerRef.current : approvalsRef.current);
+    target?.focus({ preventScroll: true });
+  }, []);
+
   const focusApprovals = () => {
     const target =
       approvalsRef.current?.querySelector<HTMLElement>("[data-approval-id]") ?? approvalsRef.current;
@@ -477,7 +493,13 @@ function Conversation({
                 <Transcript messages={messages} running={running} speaker={agentName} />
 
                 <div ref={approvalsRef} tabIndex={-1} className="flex flex-col gap-3 outline-none">
-                  {isReady ? <ApprovalInterrupts agentId={localAgentId} onPending={setPending} /> : null}
+                  {isReady ? (
+                    <ApprovalInterrupts
+                      agentId={localAgentId}
+                      onPending={setPending}
+                      onAnswered={onAnswered}
+                    />
+                  ) : null}
                   {orphans.map((approval) => (
                     <div
                       key={approval.id}
@@ -485,7 +507,12 @@ function Conversation({
                       tabIndex={-1}
                       className="outline-none"
                     >
-                      <ApprovalCard approvalId={approval.id} initial={approval} headingLevel={3} />
+                      <ApprovalCard
+                        approvalId={approval.id}
+                        initial={approval}
+                        headingLevel={3}
+                        onDecided={() => onAnswered(approval.id)}
+                      />
                     </div>
                   ))}
                 </div>

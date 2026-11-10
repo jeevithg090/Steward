@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button.tsx";
 import { Card } from "@/components/ui/Card.tsx";
 import { Input } from "@/components/ui/Field.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
+import { announce } from "@/lib/announce.ts";
 import { ApiError, useApproval, useDecideApproval } from "@/lib/api.ts";
 import { KIND_LABELS, targetSummary, toolLabel } from "@/lib/labels.ts";
 import { cn, prettyJson, relativeTime } from "@/lib/utils.ts";
@@ -21,7 +22,10 @@ export interface ApprovalCardProps {
   approvalId: string;
   /** The approval as the caller already has it (from a list or an interrupt), drawn at once. */
   initial?: Approval;
-  /** Called with the decided approval after the server accepts the answer. */
+  /**
+   * Called with the decided approval after the server accepts the answer, while the card is still
+   * on screen: the place to move the keyboard somewhere that stays, before the card goes.
+   */
   onDecided?: (approval: Approval) => void;
   /** Heading level of the summary in the page outline. */
   headingLevel?: 2 | 3 | 4;
@@ -34,6 +38,9 @@ export interface ApprovalCardProps {
  * Steward asking before it acts: what it wants to do, where, why it asks, anything sensitive in
  * it, and three answers. "Always allow" appears only when the gateway offers it; payments,
  * credentials, tainted sends and the person's own ask rules never offer it.
+ *
+ * The outcome is announced from the app's own live region, not the card's, because the card is
+ * usually removed as soon as the answer lands.
  */
 export function ApprovalCard({
   approvalId,
@@ -45,7 +52,6 @@ export function ApprovalCard({
 }: ApprovalCardProps) {
   const query = useApproval(approvalId, initial);
   const decide = useDecideApproval();
-  const [announcement, setAnnouncement] = useState("");
   const [chosen, setChosen] = useState<ApprovalAnswer | undefined>();
 
   const approval = query.data;
@@ -71,7 +77,7 @@ export function ApprovalCard({
       { id: approvalId, answer: value, note: note?.trim() || undefined },
       {
         onSuccess: (decided) => {
-          setAnnouncement(ANNOUNCE[value]);
+          announce(ANNOUNCE[value]);
           onDecided?.(decided);
         },
         onError: (error) => {
@@ -97,7 +103,6 @@ export function ApprovalCard({
       onAnswer={answer}
       busy={decide.isPending ? chosen : undefined}
       error={errorMessage}
-      announcement={announcement}
     />
   );
 }

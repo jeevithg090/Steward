@@ -57,10 +57,13 @@ export interface PendingApproval {
 export function ApprovalInterrupts({
   agentId,
   onPending,
+  onAnswered,
 }: {
   /** The local id of the conversation's agent (`thread:<id>`). */
   agentId: string;
   onPending: (pending: PendingApproval[]) => void;
+  /** Called once the person's answer is accepted, while its card is still on screen. */
+  onAnswered?: (approvalId: string) => void;
 }) {
   const element = useInterrupt({
     agentId,
@@ -73,6 +76,7 @@ export function ApprovalInterrupts({
           answer === "refuse" ? cancel(interrupt.id) : resolve({ answer }, interrupt.id)
         }
         onPending={onPending}
+        onAnswered={onAnswered}
       />
     ),
   });
@@ -90,10 +94,12 @@ function ApprovalStack({
   interrupts,
   onAnswer,
   onPending,
+  onAnswered,
 }: {
   interrupts: Interrupt[];
   onAnswer: (interrupt: Interrupt, answer: ApprovalAnswer) => Promise<unknown>;
   onPending: (pending: PendingApproval[]) => void;
+  onAnswered?: (approvalId: string) => void;
 }) {
   const key = interrupts.map((interrupt) => interrupt.id).join(",");
   // biome-ignore lint/correctness/useExhaustiveDependencies: the ids in `key` are what change.
@@ -110,7 +116,12 @@ function ApprovalStack({
   return (
     <section aria-label="Steward is asking before it acts" className="flex flex-col gap-3">
       {interrupts.map((interrupt) => (
-        <InterruptApproval key={interrupt.id} interrupt={interrupt} onAnswer={onAnswer} />
+        <InterruptApproval
+          key={interrupt.id}
+          interrupt={interrupt}
+          onAnswer={onAnswer}
+          onAnswered={onAnswered}
+        />
       ))}
     </section>
   );
@@ -119,9 +130,11 @@ function ApprovalStack({
 function InterruptApproval({
   interrupt,
   onAnswer,
+  onAnswered,
 }: {
   interrupt: Interrupt;
   onAnswer: (interrupt: Interrupt, answer: ApprovalAnswer) => Promise<unknown>;
+  onAnswered?: (approvalId: string) => void;
 }) {
   const approvalId = approvalIdOf(interrupt);
   const settled = useRef(false);
@@ -166,7 +179,10 @@ function InterruptApproval({
         approvalId={approvalId}
         headingLevel={3}
         {...(askedByOf(interrupt) ? { askedBy: askedByOf(interrupt) } : {})}
-        onDecided={(decided) => settle(answerOf(decided))}
+        onDecided={(decided) => {
+          onAnswered?.(decided.id);
+          settle(answerOf(decided));
+        }}
       />
     </div>
   );

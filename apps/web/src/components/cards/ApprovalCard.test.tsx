@@ -89,9 +89,16 @@ describe("ApprovalCard", () => {
     await waitFor(() => expect(onDecided).toHaveBeenCalledWith(decided));
     const post = calls.find((c) => c.method === "POST");
     expect(post?.body).toEqual({ answer: "once" });
-    expect(await screen.findByText("Allowed once. Steward will carry on.")).toBeTruthy();
     expect(screen.getByText("Allowed once")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Allow once" })).toBeNull();
+    // Said from a region that is not the card's, so it is still heard once the card is gone.
+    cleanup();
+    await waitFor(() =>
+      expect(document.querySelector("[data-announcer]")?.textContent).toBe(
+        "Allowed once. Steward will carry on.",
+      ),
+    );
+    expect(document.querySelector("[data-announcer]")?.getAttribute("aria-live")).toBe("polite");
   });
 
   it("sends a note with a refusal", async () => {
