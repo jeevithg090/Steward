@@ -520,6 +520,13 @@ export function RoutineToolCard(tool: ToolProps) {
     return <ToolLine state="running" label={toolName(tool.name, tool.args, "running").label} />;
   if (outcome.status === "error") return Gate({ tool, state });
   const saved = outcome.status === "ok" ? recordFrom(outcome.data, ["routine"]) : undefined;
+  // A change names only what changes, so the routine is drawn once it is saved; until then, the
+  // line says what is being changed (and the approval card below shows exactly how).
+  if (tool.name === "routine_update" && !(saved && typeof saved.id === "string")) {
+    return (
+      Gate({ tool, state }) ?? <ToolLine state="done" label={toolName(tool.name, tool.args, "done").label} />
+    );
+  }
   return (
     <RoutineCard
       routine={saved && typeof saved.id === "string" ? saved : tool.args}
