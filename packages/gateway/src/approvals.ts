@@ -186,35 +186,41 @@ export function alwaysRuleFor(
  * Always allow rules written before "nobody" was pinned let a call that had no recipients run
  * later with any. Narrows each such rule once, in the shape `alwaysRuleFor` wrote it (a rule
  * someone rewrote by hand is left alone), so an event allowed with no guests still invites nobody.
- * A rule that cannot take the extra condition (it would be too long) is switched off instead of
- * staying wide. Each change is recorded as a policy change. Returns how many were narrowed.
+ * A rule that cannot be narrowed is switched off instead of staying wide: one that would grow too
+ * long, and one for a click, typing or key press on an element that had no name, which allows that
+ * kind of action on every element of the site. Each change is recorded as a policy change. Never
+ * stops Steward from starting. Returns how many were narrowed.
  */
 export function narrowAlwaysRules(rules: SqliteRuleStore): number {
+  const log = (type: string, rule: Rule, err: unknown) =>
+    console.error(JSON.stringify({ type, ruleId: rule.id, error: String(err) }));
+  const switchOff = (rule: Rule) => {
+    if (!rule.enabled) return;
+    try {
+      rules.update(rule.id, { enabled: false });
+    } catch (err) {
+      log("gateway.always_rule_not_switched_off", rule, err);
+    }
+  };
   let narrowed = 0;
   for (const rule of rules.list()) {
     const written =
       rule.source === "always" && rule.when.startsWith("tool.name == ") && !rule.when.includes("||");
-    if (!written || rule.when.includes("target.recipients")) continue;
+    if (!written) continue;
+    if (
+      /^tool\.name == "browser_(click|type|press)"/.test(rule.when) &&
+      !rule.when.includes("target.element.name")
+    ) {
+      switchOff(rule);
+      continue;
+    }
+    if (rule.when.includes("target.recipients")) continue;
     try {
       rules.update(rule.id, { when: `${rule.when} && size(target.recipients) == 0` });
       narrowed++;
     } catch (err) {
-      // Never stop Steward from starting over this.
-      console.error(
-        JSON.stringify({ type: "gateway.always_rule_not_narrowed", ruleId: rule.id, error: String(err) }),
-      );
-      if (!rule.enabled) continue;
-      try {
-        rules.update(rule.id, { enabled: false });
-      } catch (offErr) {
-        console.error(
-          JSON.stringify({
-            type: "gateway.always_rule_not_switched_off",
-            ruleId: rule.id,
-            error: String(offErr),
-          }),
-        );
-      }
+      log("gateway.always_rule_not_narrowed", rule, err);
+      switchOff(rule);
     }
   }
   return narrowed;

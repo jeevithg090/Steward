@@ -225,7 +225,8 @@ Some things a rule cannot name, so it does not pin them:
 
 Always allow is not offered at all for a browser action on an element the computer could not
 name, or for a key press (or typing that submits) when it could not name the control the key
-would press. A rule for those would allow any unnamed element on that site.
+would press. A rule for those would allow any unnamed element on that site. One an older Steward
+wrote for a click, typing or key press with no element named is switched off when Steward starts.
 
 These rules are listed on `/rules` under your own, with **Revoke**. Revoking one is recorded.
 

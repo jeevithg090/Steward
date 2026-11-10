@@ -700,6 +700,50 @@ describe("always allow", () => {
     expect(restarted.audit.page({}).total).toBe(before);
   });
 
+  it("switches off an old Always allow for an element that had no name, and keeps a named one", () => {
+    const { db, gw } = setup();
+    // What an older Steward wrote for Enter in a field it could not name: every Enter that sends there.
+    const blind = gw.rules.create({
+      name: "Always allow browser_press on chat.example",
+      effect: "allow",
+      when: 'tool.name == "browser_press" && target.host == "chat.example" && tool.kind == "send"',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const named = gw.rules.create({
+      name: "Always allow browser_press 'Reply' on chat.example",
+      effect: "allow",
+      when: 'tool.name == "browser_press" && target.host == "chat.example" && target.element.name == "Reply" && tool.kind == "send"',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const press = (name: string) =>
+      gateCall(
+        "browser_press",
+        { key: "Enter" },
+        {
+          target: {
+            host: "chat.example",
+            element: { ref: "e9", role: "textbox", name, submitter: { role: "button", name: "Send" } },
+          },
+        },
+      );
+    expect(gw.governance.dryRun(press("Message the whole team")).effect).toBe("allow");
+    const restarted = createGateway({ db });
+    expect(restarted.rules.get(blind.id)).toMatchObject({ when: blind.when, enabled: false });
+    expect(restarted.rules.get(named.id)).toMatchObject({
+      when: `${named.when} && size(target.recipients) == 0`,
+      enabled: true,
+    });
+    expect(restarted.governance.dryRun(press("Reply")).effect).toBe("allow");
+    expect(restarted.governance.dryRun(press("Message the whole team")).effect).toBe("ask");
+    const before = restarted.audit.page({}).total;
+    createGateway({ db });
+    expect(restarted.audit.page({}).total).toBe(before);
+  });
+
   it("is not offered for a browser action the rule could not name", async () => {
     const { gw } = setup();
     const before = gw.rules.list().length;
