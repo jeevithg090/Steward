@@ -12,6 +12,7 @@ import type {
   ComputerServerMessage,
   ComputerStatus,
 } from "@steward/shared";
+import type { BrowserContext, Page } from "playwright";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ComputerError, createComputerManager, MASKED_VALUE, MESSAGES } from "../src/index.ts";
 import { refOf, startSite, type TestSite } from "./site.ts";
@@ -333,6 +334,24 @@ describe("the computer, in real Chromium", () => {
       '[The page showed a confirm box: "Delete everything?". Steward dismissed it.]',
     );
     expect(after.snapshot).toContain("- paragraph: kept");
+  });
+
+  it("carries on in a fresh tab when the page crashes, and says so", async () => {
+    const c = await manager.get("crashy");
+    await c.navigate(`${site.base}/next`);
+    // Kill the tab's renderer the way a crash would.
+    const inside = c as unknown as { context: BrowserContext; livePage: Page };
+    const cdp = await inside.context.newCDPSession(inside.livePage);
+    await cdp.send("Page.crash").catch(() => {});
+    await waitFor(() =>
+      c.activity().some((a) => a.text === "The page stopped working, so Steward opened a fresh tab"),
+    );
+    // The next action works at once, and the model hears what happened.
+    const look = await c.navigate(`${site.base}/form`);
+    expect(look.title).toBe("Form");
+    expect(look.snapshot.split("\n")[0]).toBe(`[${MESSAGES.pageCrashed}]`);
+    expect((await c.snapshot()).snapshot).not.toContain(MESSAGES.pageCrashed);
+    expect(c.status()).toMatchObject({ running: true, url: `${site.base}/form` });
   });
 
   it("follows a popup the agent opened", async () => {

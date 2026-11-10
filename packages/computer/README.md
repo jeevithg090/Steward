@@ -47,6 +47,9 @@ snapshot built from Playwright's AI snapshot (`page.ariaSnapshotJSON({ mode: "ai
 - Label text that only repeats the name of the field beside it, and empty elements, are left out.
 - Native dialogs (`alert`, `confirm`, `prompt`) cannot be shown in a headless browser, so they are
   dismissed (the safe answer to "Delete this?") and the next observation says so at the top.
+- If a tab crashes, Steward closes it and carries on in another tab (a fresh one if none is
+  left). If the whole browser stops, the next action starts it again. Either way the next
+  observation says so at the top, so the model knows the page it held is gone.
 
 ## Refs, and why an old ref fails instead of clicking the wrong thing
 

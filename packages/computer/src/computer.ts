@@ -32,6 +32,7 @@ import {
   briefCause,
   ComputerError,
   isComputerError,
+  isCrash,
   isNavigationRace,
   MESSAGES,
   staleRef,
@@ -159,6 +160,9 @@ export class AgentComputer implements Computer {
   private readonly input = new PersonInput();
   private readonly refs = new RefBook();
   private readonly wired = new WeakSet<Page>();
+  /** Tabs whose renderer died. They are closing; nothing acts on them again. */
+  private readonly crashed = new WeakSet<Page>();
+  private opening: Promise<Page | undefined> | undefined;
   private readonly shells = new Set<() => void>();
 
   private context: BrowserContext | undefined;
@@ -175,8 +179,11 @@ export class AgentComputer implements Computer {
   private lastFrame: FrameMessage | undefined;
   private lastStatusKey = "";
   private blocks: BlockedNote[] = [];
-  /** Dialogs the page raised since the last observation, told to the model with the next one. */
-  private dialogNotes: string[] = [];
+  /**
+   * What happened to the page since the last observation (a dialog it raised, a crash, a browser
+   * that had to start again, a download), told to the model with the next one.
+   */
+  private pageNotes: string[] = [];
   private judgedFocus: JudgedFocus | undefined;
   private judgedSubmit: JudgedSubmit | undefined;
   /** Set by an explicit close: only `start` (the manager's get or reset) brings the browser back. */
@@ -290,6 +297,8 @@ export class AgentComputer implements Computer {
     void proxy?.close().catch(() => {});
     this.control.interrupt();
     this.finishSecret({ filled: false, length: 0 });
+    this.note(MESSAGES.browserRestarted);
+    this.log.add({ kind: "navigate", text: "The browser stopped by itself", ok: false });
     this.documentChanged();
     this.reconcileCast();
     this.emitStatus();
@@ -309,6 +318,8 @@ export class AgentComputer implements Computer {
         if (page === this.livePage) this.retarget();
       });
       page.on("download", (download) => void this.saveDownload(download));
+      // A crashed tab is not closed and answers nothing; without this every action fails on it.
+      page.on("crash", () => this.onCrash(page));
       // Headless Chromium draws no dialogs, so nobody could answer one. Leaving a page is allowed;
       // anything else is dismissed, the safe answer to "Delete this?", and the model is told.
       page.on("dialog", (dialog) => {
@@ -324,13 +335,46 @@ export class AgentComputer implements Computer {
         }
         dialog.dismiss().catch(() => {});
         const note = `The page showed a ${kind} box${message ? `: "${message}"` : ""}. Steward dismissed it.`;
-        this.dialogNotes.push(note);
-        if (this.dialogNotes.length > 5) this.dialogNotes.shift();
+        this.note(note);
         this.log.add({ kind: "click", text: `Dismissed a ${kind} box from the page`, ok: true });
       });
     }
     // The newest page is the live one, so a popup the agent opened is what it sees next.
     if (!page.isClosed()) this.setLive(page);
+  }
+
+  /** Adds a line for the next observation. Keeps the newest few. */
+  private note(text: string): void {
+    this.pageNotes.push(text);
+    if (this.pageNotes.length > 5) this.pageNotes.shift();
+  }
+
+  /** The page's renderer died: carry on in another tab, close this one, and tell the model. */
+  private onCrash(page: Page): void {
+    const context = this.context;
+    if (!context?.pages().includes(page)) return;
+    this.crashed.add(page);
+    void page.close().catch(() => {});
+    if (page !== this.livePage) return;
+    this.log.add({
+      kind: "navigate",
+      text: "The page stopped working, so Steward opened a fresh tab",
+      ok: false,
+    });
+    this.note(MESSAGES.pageCrashed);
+    this.retarget();
+    if (!this.livePage) void this.freshTab(context);
+  }
+
+  /** Opens a blank tab, once, for a computer left with none; the context's page event adopts it. */
+  private freshTab(context: BrowserContext): Promise<Page | undefined> {
+    this.opening ??= context
+      .newPage()
+      .catch(() => undefined)
+      .finally(() => {
+        this.opening = undefined;
+      });
+    return this.opening;
   }
 
   private setLive(page: Page): void {
@@ -342,7 +386,7 @@ export class AgentComputer implements Computer {
   }
 
   private retarget(): void {
-    const open = this.context?.pages().filter((p) => !p.isClosed()) ?? [];
+    const open = this.context?.pages().filter((p) => !p.isClosed() && !this.crashed.has(p)) ?? [];
     const next = open.at(-1);
     if (next) {
       this.setLive(next);
@@ -386,9 +430,11 @@ export class AgentComputer implements Computer {
     await this.start();
     const context = this.context;
     if (!context) throw new ComputerError("closed", MESSAGES.computerStopped);
-    if (this.livePage && !this.livePage.isClosed()) return this.livePage;
-    const open = context.pages().filter((p) => !p.isClosed());
-    const page = open.at(-1) ?? (await context.newPage());
+    const live = this.livePage;
+    if (live && !live.isClosed() && !this.crashed.has(live)) return live;
+    const open = context.pages().filter((p) => !p.isClosed() && !this.crashed.has(p));
+    const page = open.at(-1) ?? (await this.freshTab(context));
+    if (!page) throw new ComputerError("failed", "The browser could not open a tab.");
     this.adopt(page);
     return page;
   }
@@ -426,6 +472,7 @@ export class AgentComputer implements Computer {
           ? items
           : mapItemText(items, (t) => this.secrets.scrub(t, MASKED_VALUE));
       } catch (error) {
+        if (isCrash(error)) throw new ComputerError("failed", MESSAGES.pageCrashed);
         if (attempt >= 2 || !isNavigationRace(error)) {
           throw new ComputerError("failed", `The page could not be read: ${briefCause(error)}`);
         }
@@ -467,8 +514,8 @@ export class AgentComputer implements Computer {
       this.title = title;
       this.emitStatus();
     }
-    const notes = this.dialogNotes.map((note) => `[${note}]\n`).join("");
-    this.dialogNotes = [];
+    const notes = this.pageNotes.map((note) => `[${note}]\n`).join("");
+    this.pageNotes = [];
     return {
       url: this.safeUrl(page.url()),
       title,
@@ -1466,6 +1513,7 @@ async function freeName(dir: string, name: string): Promise<string> {
 function navigationError(error: unknown, target: URL): ComputerError {
   const text = String(error);
   const where = displayUrl(target);
+  if (isCrash(error)) return new ComputerError("failed", MESSAGES.pageCrashed);
   if (/ERR_NAME_NOT_RESOLVED/.test(text))
     return new ComputerError("not_found", `Could not find ${target.hostname}.`);
   if (/Timeout \d+ms exceeded/i.test(text)) {
@@ -1494,6 +1542,7 @@ function navigationError(error: unknown, target: URL): ComputerError {
 
 function actionError(error: unknown, prefix: string): ComputerError {
   if (isComputerError(error)) return error;
+  if (isCrash(error)) return new ComputerError("failed", MESSAGES.pageCrashed);
   if (/Timeout \d+ms exceeded/i.test(String(error))) {
     return new ComputerError(
       "timeout",
