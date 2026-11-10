@@ -145,13 +145,18 @@ async function step(name: string, work: Promise<unknown> | (() => unknown), ms =
   }
 }
 
-/** The tenant's phone shortcuts. A broken file stops the start, like a broken rule does. */
-function loadTenantShortcutsOrExplain(config: ServerConfig): TenantShortcut[] {
+/**
+ * The tenant's phone shortcuts. A broken file stops the start, like a broken rule does, and so does
+ * a shortcut that names a skill the package does not have.
+ */
+function loadTenantShortcutsOrExplain(config: ServerConfig, tenant: TenantPackage): TenantShortcut[] {
   try {
-    return loadTenantShortcuts(config.tenantDir);
+    return loadTenantShortcuts(config.tenantDir, { skills: tenant.skills.map((skill) => skill.name) });
   } catch (err) {
     throw new ConfigError(
-      `Couldn't load tenants/${config.tenantId}/shortcuts.yaml: ${err instanceof Error ? err.message : String(err)}`,
+      `Couldn't load the tenant package "${config.tenantId}" from tenants/${config.tenantId}: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
     );
   }
 }
@@ -200,7 +205,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       ...serverMigrations,
     ]);
     const tenant = loadTenantOrExplain(config);
-    const tenantShortcuts = loadTenantShortcutsOrExplain(config);
+    const tenantShortcuts = loadTenantShortcutsOrExplain(config, tenant);
     const defaultAgentId = tenant.agents[0]!.id;
 
     const bus = createEventBus();

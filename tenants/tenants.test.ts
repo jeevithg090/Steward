@@ -1,7 +1,7 @@
 /**
  * Every tenant package loads, its rules compile in the real gateway, and its promises hold: the
  * decisions below are the ones its README and docs say it makes. Runs with the unit tests
- * (`tenants/*.test.ts` is in vitest.config.ts).
+ * (`tenants/*.test.ts` is in vitest.config.ts), and `pnpm typecheck` checks it (tenants/tsconfig.json).
  *
  * Imports the packages' public entry points by path, because the repository root does not depend on
  * the workspace packages by name.
