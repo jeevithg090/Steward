@@ -209,7 +209,7 @@ function TaskRow({ task, approval }: { task: Task; approval?: Approval }) {
     </Button>
   );
 
-  const setState = (state: TaskState, label: string, icon: ReactNode, done: string) => (
+  const setState = (state: TaskState, label: string, icon: ReactNode, done: string, undoable = false) => (
     <Button
       icon={icon}
       loading={patch.isPending && patch.variables?.state === state}
@@ -218,7 +218,24 @@ function TaskRow({ task, approval }: { task: Task; approval?: Approval }) {
         patch.mutate(
           { id: task.id, state },
           {
-            onSuccess: () => toast.success(done, { description: task.title }),
+            onSuccess: () =>
+              toast.success(done, {
+                description: task.title,
+                // The task leaves this list at once, so the way back is on the toast.
+                action: undoable
+                  ? {
+                      label: "Undo",
+                      onClick: () =>
+                        patch.mutate(
+                          { id: task.id, state: task.state },
+                          {
+                            onError: (error) =>
+                              toast.error("Couldn't bring it back", { description: error.message }),
+                          },
+                        ),
+                    }
+                  : undefined,
+              }),
             onError: (error) => toast.error("That didn't work", { description: error.message }),
           },
         )
@@ -228,7 +245,7 @@ function TaskRow({ task, approval }: { task: Task; approval?: Approval }) {
     </Button>
   );
 
-  const hide = setState("hidden", "Hide", <EyeOff />, "Hidden. It won't come back.");
+  const hide = setState("hidden", "Hide", <EyeOff />, "Hidden. Steward won't suggest it again.", true);
   const markDone = setState("resolved", "Mark done", <CheckCheck />, "Marked done");
   const reopen = setState(
     task.threadId ? "ready_for_review" : "suggested",

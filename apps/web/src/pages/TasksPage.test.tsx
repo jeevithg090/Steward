@@ -1,5 +1,6 @@
 import type { Approval, Task, TaskState, TasksResponse } from "@steward/shared";
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
+import { Toaster } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mockFetch, renderWithProviders } from "@/lib/testing.tsx";
 import { TasksPage } from "./TasksPage.tsx";
@@ -154,6 +155,26 @@ describe("TasksPage", () => {
     const patch = calls.find((c) => c.method === "PATCH")!;
     expect(patch.path).toMatch(/^\/api\/tasks\/tsk_\d+$/);
     expect(patch.body).toEqual({ state: "resolved" });
+  });
+
+  it("hides a suggestion, and Undo on the toast puts it back", async () => {
+    const { calls } = serve();
+    renderWithProviders(
+      <>
+        <TasksPage />
+        <Toaster />
+      </>,
+      { route: "/tasks?view=suggested" },
+    );
+    fireEvent.click((await screen.findAllByRole("button", { name: "Hide" }))[0]!);
+    const toast = await screen.findByText("Hidden. Steward won't suggest it again.");
+    expect(toast).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
+    await waitFor(() => expect(calls.filter((c) => c.method === "PATCH")).toHaveLength(2));
+    const [hidden, undone] = calls.filter((c) => c.method === "PATCH");
+    expect(hidden?.body).toEqual({ state: "hidden" });
+    expect(undone?.path).toBe(hidden?.path);
+    expect(undone?.body).toEqual({ state: "suggested" });
   });
 
   it("says when a segment is empty", async () => {
