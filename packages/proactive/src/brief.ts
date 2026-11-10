@@ -479,8 +479,13 @@ export function createBriefService(deps: BriefDeps): BriefService {
     let summary = model ? await modelSummary(model, input, signal) : undefined;
     signal?.throwIfAborted();
     summary ??= plainSummary(input);
-    // The mail may name its owner ("Hi Sam,"); the summary never does.
-    summary = withoutOwnerNames(summary, ownerNames);
+    // The mail may name its owner ("Hi Sam,"); the summary never does. A sender who shares the
+    // owner's given name ("Sam Patel") keeps their own name.
+    summary = withoutOwnerNames(
+      summary,
+      ownerNames,
+      [...needsYou, ...canWait].map((item) => item.from.name),
+    );
     if (mail?.isDemo && !/\bdemo\b/i.test(summary)) summary = `From the demo inbox: ${summary}`;
 
     return {

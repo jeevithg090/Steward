@@ -302,6 +302,68 @@ describe("the owner's name", () => {
     expect(withoutOwnerNames("Asks whether you will sign.", ["Will"])).toBe("Asks whether you will sign.");
   });
 
+  it("leaves someone else's name alone when it shares the owner's", () => {
+    const names = ["Sam Taylor", "Sam"];
+    // The sender, named on the mail.
+    expect(withoutOwnerNames("Sam Patel asks Sam to pay by Friday.", names, ["Sam Patel"])).toBe(
+      "Sam Patel asks you to pay by Friday.",
+    );
+    expect(withoutOwnerNames("Lebron James wants James to reply.", ["James"], ["Lebron James"])).toBe(
+      "Lebron James wants you to reply.",
+    );
+    expect(withoutOwnerNames("Sam-Lee Park asks for the proof.", names, ["Sam-Lee Park"])).toBe(
+      "Sam-Lee Park asks for the proof.",
+    );
+    // Met only in a body: a given name with a surname after it is someone else's.
+    expect(withoutOwnerNames("Sam Patel from accounts asks Sam to pay.", names)).toBe(
+      "Sam Patel from accounts asks you to pay.",
+    );
+    // An address is never rewritten.
+    expect(withoutOwnerNames("Write to Sam.Patel@vendor.example today.", names)).toBe(
+      "Write to Sam.Patel@vendor.example today.",
+    );
+    // The owner's own full name still goes, and so does a name the mail gives them on a sent message.
+    expect(withoutOwnerNames("Sam Taylor must sign.", names, ["Sam Taylor", undefined])).toBe(
+      "You must sign.",
+    );
+  });
+
+  it("keeps a sender's name in a reason when the sender shares the owner's given name", async () => {
+    const model = fakeModel(() => '{"verdict":"needs_you","reason":"Sam Patel asks Sam to pay by Friday."}');
+    const run = await triageEmails(
+      [
+        email({
+          subject: "Invoice",
+          from: { name: "Sam Patel", email: "sam@vendor.example" },
+          to: [{ name: "Sam Taylor", email: "owner@studio.example" }],
+        }),
+      ],
+      { model, now: NOW, ownerEmail: "owner@studio.example" },
+    );
+    expect(run.items[0]?.reason).toBe("Sam Patel asks you to pay by Friday.");
+  });
+
+  it("takes out a name learned later in the run from reasons written before it", async () => {
+    const owner = "owner@studio.example";
+    const first = email({ subject: "Proof", to: [{ email: owner }] });
+    const second = email({ subject: "Kiln", to: [{ email: "team@studio.example" }] });
+    const model = fakeModel(() => '{"verdict":"needs_you","reason":"Robin must reply today."}');
+    const run = await triageEmails([first, second], {
+      model,
+      now: NOW,
+      ownerEmail: owner,
+      concurrency: 1,
+      // Only the whole second message shows the owner, by name, on its Cc line.
+      complete: async (summary) =>
+        summary.id === second.id ? { ...summary, cc: [{ name: "Robin Hale", email: owner }] } : summary,
+    });
+    expect(run.ownerNames).toEqual(["Robin Hale", "Robin"]);
+    expect(run.items.map((sorted) => sorted.reason)).toEqual([
+      "You must reply today.",
+      "You must reply today.",
+    ]);
+  });
+
   it("never reaches a stored reason, even when the body greets the owner by name", async () => {
     const model = fakeModel(() => '{"verdict":"needs_you","reason":"Sam must sign the proof by Friday."}');
     const proactive = setup({ model: () => model, mail: () => fakeMail({ label: "owner@studio.example" }) });

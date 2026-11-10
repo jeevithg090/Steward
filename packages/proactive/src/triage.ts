@@ -198,26 +198,57 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/** Not inside a word or an address: "Sam" in "Samantha" or "sam.patel@" is not a name. */
+const NAME_BEFORE = "(?<![\\p{L}\\p{N}]|[\\p{L}\\p{N}][.@_+-])";
+const NAME_AFTER = "(?![\\p{L}\\p{N}]|[.@_+-][\\p{L}\\p{N}])";
+/** Stands in for someone else's name while the owner's are taken out. */
+const KEPT = /(\d+)/g;
+
 /**
  * Takes the owner's display names out of a model's words: a leading "Sam," goes, "Sam's" becomes
  * "your" and "Sam" becomes "you". Matching is case-sensitive, so a name like Will never eats the
  * word "will".
+ *
+ * Someone else can share the owner's given name. `others` are the other names on the mail (its
+ * sender, its other recipients), and each is kept whole: "Sam Patel" stays "Sam Patel" when the
+ * owner is Sam Taylor, and so does "Lebron James" when the owner is James. A given name followed by
+ * another capitalised word ("Sam Patel" met only in a body) is kept too, and an address is never
+ * touched.
  */
-export function withoutOwnerNames(text: string, names: readonly string[]): string {
+export function withoutOwnerNames(
+  text: string,
+  names: readonly string[],
+  others: readonly (string | undefined)[] = [],
+): string {
+  if (names.length === 0) return text;
+  const kept: string[] = [];
   let out = text;
+  const holdsOwnerName = (other: string) =>
+    !names.includes(other) &&
+    names.some((name) => new RegExp(`${NAME_BEFORE}${escapeRegExp(name)}${NAME_AFTER}`, "u").test(other));
+  const keep = [...new Set(others.map((other) => other?.replace(/\s+/g, " ").trim() ?? ""))]
+    .filter((other) => other.length > 0 && holdsOwnerName(other))
+    .sort((a, b) => b.length - a.length);
+  for (const other of keep) {
+    out = out.replace(new RegExp(`${NAME_BEFORE}${escapeRegExp(other)}${NAME_AFTER}`, "gu"), () => {
+      kept.push(other);
+      return `${kept.length - 1}`;
+    });
+  }
   for (const name of names) {
     const n = escapeRegExp(name);
-    const before = "(?<![\\p{L}\\p{N}])";
-    const after = "(?![\\p{L}\\p{N}])";
+    // A lone given name followed by a capitalised word is someone else's first name.
+    const surname = name.includes(" ") ? "" : "(?! \\p{Lu}\\p{Ll})";
     out = out
-      .replace(new RegExp(`^\\s*${n}\\s*[,:!—–-]\\s*`, "u"), "")
-      .replace(new RegExp(`${before}${n}['’]s${after}`, "gu"), "your")
+      .replace(new RegExp(`^\\s*${n}(?:\\s*[,:!—–]|\\s+-)\\s*`, "u"), "")
+      .replace(new RegExp(`${NAME_BEFORE}${n}['’]s${NAME_AFTER}`, "gu"), "your")
       .replace(
-        new RegExp(`${before}${n} (is|was|has|does|needs|wants|owes)${after}`, "gu"),
+        new RegExp(`${NAME_BEFORE}${n} (is|was|has|does|needs|wants|owes)${NAME_AFTER}`, "gu"),
         (_match, verb: string) => `you ${VERB_FOR_YOU[verb] ?? verb}`,
       )
-      .replace(new RegExp(`${before}${n}${after}`, "gu"), "you");
+      .replace(new RegExp(`${NAME_BEFORE}${n}${NAME_AFTER}${surname}`, "gu"), "you");
   }
+  out = out.replace(KEPT, (_match, index: string) => kept[Number(index)] ?? "");
   if (out === text) return text;
   out = out
     .trimStart()
@@ -226,6 +257,15 @@ export function withoutOwnerNames(text: string, names: readonly string[]): strin
       (_m, lead: string, word: string) => `${lead}Y${word.slice(1)}`,
     );
   return out.charAt(0).toUpperCase() + out.slice(1);
+}
+
+/** The names on an email that are not the owner's: its sender and its other recipients. */
+export function otherNames(email: TriageEmail, ownerEmail: string | undefined): string[] {
+  const owner = ownerEmail?.trim().toLowerCase();
+  return [email.from, ...email.to, ...(email.cc ?? [])]
+    .filter((address) => address.email.trim().toLowerCase() !== owner)
+    .map((address) => address.name ?? "")
+    .filter(Boolean);
 }
 
 export const TRIAGE_SYSTEM = [
@@ -488,7 +528,8 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
     modelMissing: !deps.model,
     ownerNames: ownerNames(emails, deps.ownerEmail),
   };
-  const named = (reason: string) => withoutOwnerNames(reason, run.ownerNames);
+  const named = (reason: string, email: TriageEmail) =>
+    withoutOwnerNames(reason, run.ownerNames, otherNames(email, deps.ownerEmail));
   /** A full message can name the owner where its summary did not (on the Cc line). */
   const learnNames = (email: TriageEmail) => {
     const fresh = ownerNames([email], deps.ownerEmail).filter((name) => !run.ownerNames.includes(name));
@@ -503,7 +544,9 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
     ...(deps.about ? { about: deps.about } : {}),
   };
 
-  run.items = await mapLimit(emails, deps.concurrency ?? TRIAGE_CONCURRENCY, async (email) => {
+  /** Each email as the model read it: whole, when `complete` could fetch it. */
+  const read = [...emails];
+  run.items = await mapLimit(emails, deps.concurrency ?? TRIAGE_CONCURRENCY, async (email, index) => {
     deps.signal?.throwIfAborted();
     const ruled = ruleVerdict(email);
     if (ruled) {
@@ -517,7 +560,7 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
     });
     if (cached) {
       run.byModel += 1;
-      return item(email, cached.verdict, named(cached.reason), CONFIDENCE.model, "model");
+      return item(email, cached.verdict, named(cached.reason, email), CONFIDENCE.model, "model");
     }
     if (!deps.model) {
       run.unsorted += 1;
@@ -526,6 +569,7 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
     let full = email;
     if (deps.complete) {
       full = await deps.complete(email);
+      read[index] = full;
       deps.signal?.throwIfAborted();
       learnNames(full);
       // The whole message can show what its summary hid, such as an auto-reply's headers.
@@ -545,7 +589,7 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
         ...(deps.signal ? { signal: deps.signal } : {}),
       });
       const parsed = parseTriageAnswer(text);
-      const answer = { verdict: parsed.verdict, reason: named(parsed.reason) };
+      const answer = { verdict: parsed.verdict, reason: named(parsed.reason, full) };
       deps.cache?.set(email.id, answer, { model: deps.model.label, context });
       run.byModel += 1;
       return item(email, answer.verdict, answer.reason, CONFIDENCE.model, "model");
@@ -556,6 +600,10 @@ export async function triageEmails(emails: readonly TriageEmail[], deps: TriageD
       return item(email, "needs_you", UNSORTED_REASON, CONFIDENCE.unsorted, "rules");
     }
   });
+  // A name learned from one message's Cc may be in a reason written before it was learned.
+  run.items = run.items.map((sorted, index) =>
+    sorted.by === "model" ? { ...sorted, reason: named(sorted.reason, read[index] as TriageEmail) } : sorted,
+  );
   return run;
 }
 

@@ -462,6 +462,30 @@ describe("the morning brief", () => {
     expect(JSON.stringify(brief)).not.toContain("Sam");
   });
 
+  it("keeps the name of a sender who shares the owner's given name", async () => {
+    const model = fakeModel(({ system }) => {
+      if (system === SUMMARY_SYSTEM) throw new Error("summary model is down");
+      return '{"verdict":"needs_you","reason":"Sam Patel asks Sam to pay by Friday."}';
+    });
+    const mail = fakeMail({
+      label: "owner@studio.example",
+      emails: [
+        email({
+          subject: "Invoice",
+          from: { name: "Sam Patel", email: "sam@vendor.example" },
+          to: [{ name: "Sam Taylor", email: "owner@studio.example" }],
+          receivedAt: "2026-10-22T07:00:00Z",
+        }),
+      ],
+    });
+    const brief = await setup({ mail: () => mail, model: () => model }).brief.generate();
+    expect(brief.summary).toBe(
+      "One email needs you, starting with Sam Patel about “Invoice”. Nothing is on your calendar today.",
+    );
+    expect(brief.needsYou[0]?.reason).toBe("Sam Patel asks you to pay by Friday.");
+    expect(JSON.stringify(brief)).not.toContain("Taylor");
+  });
+
   it("labels demo mail in the summary", async () => {
     const mail = fakeMail({
       isDemo: true,
