@@ -414,7 +414,7 @@ export function MailSendCard(tool: ToolProps) {
       : outcome.status === "error"
         ? outcome.message
         : waiting
-          ? "Steward is waiting for your answer before this leaves."
+          ? `${state.chat?.agentName ?? "Steward"} is waiting for your answer before this leaves.`
           : stopped
             ? "Stopped before it was sent."
             : undefined;

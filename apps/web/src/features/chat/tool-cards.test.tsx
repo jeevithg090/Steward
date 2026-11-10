@@ -132,6 +132,17 @@ describe("tool cards", () => {
         chat({ runEnded: "stopped", isAwaitingApproval: () => true }),
       );
       expect(screen.getByText("Waiting for your answer")).toBeTruthy();
+      expect(screen.getByText("Steward is waiting for your answer before this leaves.")).toBeTruthy();
+    });
+
+    it("says which agent waits on a draft, in a bot's conversation", () => {
+      draw(
+        <MailSendCard {...tool("mail_send", draft)} />,
+        chat({ agentId: "bot1", agentName: "Focus time guard", isAwaitingApproval: () => true }),
+      );
+      expect(
+        screen.getByText("Focus time guard is waiting for your answer before this leaves."),
+      ).toBeTruthy();
     });
 
     it("says an unsent draft was stopped before it was sent", () => {
