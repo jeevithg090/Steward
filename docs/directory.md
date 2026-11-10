@@ -66,6 +66,12 @@ Put it behind a proxy that ends TLS (Caddy, nginx, your platform's load balancer
 `DIRECTORY_SITE_URL` to the public https address, and set `DIRECTORY_TRUST_PROXY=1` so the rate
 limiter sees each visitor's address rather than the proxy's.
 
+The directory reads the address your proxy added: the last entry of `X-Forwarded-For`. Anything a
+visitor wrote into that header themselves comes before it and is never read. nginx
+(`$proxy_add_x_forwarded_for`), Fly and most load balancers add their entry at the end, and Caddy
+replaces the header, so one proxy needs `1`. With two in front (a CDN and then nginx, say), set
+`DIRECTORY_TRUST_PROXY=2`.
+
 ## Settings
 
 All from the environment, or `.env` at the repository root (`DIRECTORY_ENV_FILE` names another
@@ -85,7 +91,7 @@ file). A value already in the environment wins; a blank value counts as unset.
 | `GITHUB_CLIENT_SECRET`     |                           | Its secret. Never logged, never shown, never written to the database.                                                                                                    |
 | `DIRECTORY_GITHUB_TOKEN`   |                           | Optional. A token with no scopes, only to raise GitHub's rate limit when reading submitted packs.                                                                        |
 | `ADMIN_GITHUB_LOGINS`      |                           | GitHub handles who may review at `/admin`, comma separated.                                                                                                              |
-| `DIRECTORY_TRUST_PROXY`    | off                       | Read the client address from `X-Forwarded-For`. Only behind a proxy you run.                                                                                             |
+| `DIRECTORY_TRUST_PROXY`    | off                       | How many proxies you run in front: the client address is that many entries from the end of `X-Forwarded-For`. `1` (or `on`) for one. Only behind proxies you run.        |
 | `DIRECTORY_SOURCE_URL`     |                           | Where your copy of the code is, for the footer's Source link.                                                                                                            |
 | `DIRECTORY_RETIRE_DAYS`    | `90`                      | Retire AI-made bots nobody installed or said they use within this many days of being made. `0` turns retirement off.                                                     |
 | `DIRECTORY_RETIRE_HOUR`    | `3`                       | The UTC hour after which the day's retirement runs.                                                                                                                      |

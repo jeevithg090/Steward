@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import type { Context, Env, MiddlewareHandler } from "hono";
 
@@ -54,12 +55,27 @@ export class RateLimiter {
   }
 }
 
-/** The client's address: the socket's, or the first `X-Forwarded-For` entry behind a trusted proxy. */
-export function clientAddress<E extends Env>(c: Context<E>, trustProxy: boolean): string {
-  if (trustProxy) {
-    const forwarded = c.req.header("x-forwarded-for");
-    const first = forwarded?.split(",")[0]?.trim();
-    if (first) return first;
+/** An address as a proxy writes it, without a port or brackets, or undefined when it is not one. */
+function plainAddress(entry: string | undefined): string | undefined {
+  let a = entry?.trim() ?? "";
+  const bracketed = /^\[([^\]]+)\](?::\d+)?$/.exec(a);
+  if (bracketed) a = bracketed[1] ?? "";
+  else if (/^\d{1,3}(?:\.\d{1,3}){3}:\d+$/.test(a)) a = a.slice(0, a.lastIndexOf(":"));
+  return isIP(a) ? a : undefined;
+}
+
+/**
+ * The client's address. Behind `hops` proxies you run, it is that many entries from the right of
+ * `X-Forwarded-For`: nginx, Fly and most load balancers append the address they saw to whatever the
+ * visitor sent, so the left of the header is the visitor's own writing and never trusted. When the
+ * entry is not an address, the socket's address is used.
+ */
+export function clientAddress<E extends Env>(c: Context<E>, hops: number): string {
+  if (hops > 0) {
+    const entries = (c.req.header("x-forwarded-for") ?? "").split(",").filter((e) => e.trim());
+    // A visitor can only make the list longer, never shorter, so a short list is all from proxies.
+    const chosen = plainAddress(entries[Math.max(0, entries.length - hops)]);
+    if (chosen) return chosen;
   }
   try {
     return getConnInfo(c).remote.address ?? "unknown";
@@ -69,12 +85,9 @@ export function clientAddress<E extends Env>(c: Context<E>, trustProxy: boolean)
   }
 }
 
-export function rateLimit<E extends Env = Env>(
-  limiter: RateLimiter,
-  trustProxy: boolean,
-): MiddlewareHandler<E> {
+export function rateLimit<E extends Env = Env>(limiter: RateLimiter, hops: number): MiddlewareHandler<E> {
   return async (c, next) => {
-    const verdict = limiter.hit(clientAddress(c, trustProxy));
+    const verdict = limiter.hit(clientAddress(c, hops));
     if (!verdict.ok) {
       c.header("Retry-After", String(verdict.retryAfterSec));
       return c.json(

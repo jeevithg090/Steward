@@ -42,6 +42,15 @@ describe("config", () => {
     expect(() => loadConfig({ DIRECTORY_SITE_URL: "https://bots.example.org/?x=1" })).toThrow(ConfigError);
   });
 
+  it("reads DIRECTORY_TRUST_PROXY as off, on (one proxy) or a number of proxies", () => {
+    expect(loadConfig({}).trustProxy).toBe(0);
+    expect(loadConfig({ DIRECTORY_TRUST_PROXY: "1" }).trustProxy).toBe(1);
+    expect(loadConfig({ DIRECTORY_TRUST_PROXY: "on" }).trustProxy).toBe(1);
+    expect(loadConfig({ DIRECTORY_TRUST_PROXY: "off" }).trustProxy).toBe(0);
+    expect(loadConfig({ DIRECTORY_TRUST_PROXY: "2" }).trustProxy).toBe(2);
+    expect(() => loadConfig({ DIRECTORY_TRUST_PROXY: "lots" })).toThrow(ConfigError);
+  });
+
   it("parses .env lines: comments, quotes, export, and blank values", () => {
     expect(parseEnv('# c\nA=1\nexport B="two words"\nC=\nD=x # note\n=bad\n')).toEqual([
       ["A", "1"],

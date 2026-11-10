@@ -33,8 +33,12 @@ export interface DirectoryConfig {
   github?: { clientId: string; clientSecret: string; token?: string };
   /** GitHub logins (lower case) who may review submissions at `/admin`. */
   adminLogins: string[];
-  /** Read the client address from `X-Forwarded-For`, when a proxy in front sets it. */
-  trustProxy: boolean;
+  /**
+   * How many proxies you run in front (`DIRECTORY_TRUST_PROXY`), 0 for none. The client address is
+   * that many entries from the right of `X-Forwarded-For`: a proxy appends the address it saw, so
+   * whatever a visitor wrote there themselves sits further left and is never read.
+   */
+  trustProxy: number;
   production: boolean;
   /** Where this directory's code is, for the footer's Source link. Left out when unset. */
   sourceUrl?: string;
@@ -64,6 +68,21 @@ function parseCount(name: string, value: string | undefined, fallback: number, m
   const n = Number(value);
   if (!Number.isInteger(n) || n < 0 || n > max) {
     throw new ConfigError(`${name} must be a whole number from 0 to ${max}, not "${value}".`);
+  }
+  return n;
+}
+
+/** `DIRECTORY_TRUST_PROXY`: off, on (one proxy), or the number of proxies in front. */
+export function parseProxyHops(value: string | undefined): number {
+  const v = value?.trim().toLowerCase();
+  if (!v) return 0;
+  if (TRUE.has(v)) return 1;
+  if (FALSE.has(v)) return 0;
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < 0 || n > 10) {
+    throw new ConfigError(
+      `DIRECTORY_TRUST_PROXY must be off, on, or how many proxies are in front (1 to 10), not "${value}".`,
+    );
   }
   return n;
 }
@@ -186,7 +205,7 @@ export function loadConfig(
     name: overrides.name ?? (env.DIRECTORY_NAME?.trim() || "Steward bots"),
     ...(github ? { github } : {}),
     adminLogins,
-    trustProxy: overrides.trustProxy ?? parseFlag(env.DIRECTORY_TRUST_PROXY, false),
+    trustProxy: overrides.trustProxy ?? parseProxyHops(env.DIRECTORY_TRUST_PROXY),
     production,
     ...(sourceUrl ? { sourceUrl } : {}),
     ...(seedDir ? { seedDir } : {}),

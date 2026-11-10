@@ -231,7 +231,7 @@ export async function makeFixture(
       name: "Test bots",
       github: { clientId: "client-id-for-tests", clientSecret: "client-secret-for-tests" },
       adminLogins: ["rev"],
-      trustProxy: true,
+      trustProxy: 1,
       ...opts.config,
     },
   );

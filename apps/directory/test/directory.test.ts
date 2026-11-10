@@ -219,6 +219,39 @@ describe("counts", () => {
     expect((await f.request("/api/bots/nope/installed", { method: "POST" })).status).toBe(404);
   });
 
+  it("reads the address the proxy added, not what the visitor wrote before it", async () => {
+    // nginx and most load balancers append the address they saw; the left is the visitor's own.
+    for (let i = 1; i <= 5; i++) {
+      await f.request("/api/bots/meal-planner/installed", {
+        method: "POST",
+        ip: `198.51.100.${i}, 203.0.113.9`,
+      });
+    }
+    expect(f.server.store.installsPerDay("meal-planner")[0]?.n).toBe(1);
+    // An entry that is not an address falls back to the socket, never to the visitor's entry.
+    await f.request("/api/bots/meal-planner/installed", { method: "POST", ip: "198.51.100.7, not-an-ip" });
+    await f.request("/api/bots/meal-planner/installed", {
+      method: "POST",
+      ip: "198.51.100.8, [2001:db8::1]:443",
+    });
+    expect(f.server.store.installsPerDay("meal-planner")[0]?.n).toBe(3);
+  });
+
+  it("with two proxies in front, reads the second address from the right", async () => {
+    const two = await makeFixture({ config: { trustProxy: 2 } });
+    try {
+      for (let i = 1; i <= 3; i++) {
+        await two.request("/api/bots/rent-scout/installed", {
+          method: "POST",
+          ip: `198.51.100.${i}, 203.0.113.9, 10.0.0.2`,
+        });
+      }
+      expect(two.server.store.installsPerDay("rent-scout")[0]?.n).toBe(1);
+    } finally {
+      await two.close();
+    }
+  });
+
   it("matches the address Steward's server posts to", async () => {
     const { countsEndpoint } = await import("../../server/src/bots/service.ts");
     expect(countsEndpoint(`${SITE}/index.json`, "rent-scout", { site: SITE })).toBe(
