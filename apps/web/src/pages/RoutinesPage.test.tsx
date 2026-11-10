@@ -5,9 +5,17 @@ import { CHECKED_ON_SAVE } from "@/lib/cron.ts";
 import { type FakeRequest, mockFetch, renderWithProviders } from "@/lib/testing.tsx";
 import { RoutinesPage } from "./RoutinesPage.tsx";
 
+const toasts = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
+vi.mock("sonner", async (original) => ({
+  ...(await original<typeof import("sonner")>()),
+  toast: Object.assign(vi.fn(), toasts),
+}));
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  toasts.success.mockClear();
+  toasts.error.mockClear();
 });
 
 const MISSED: Routine = {
@@ -68,6 +76,10 @@ describe("RoutinesPage", () => {
     );
     expect(server.calls.find((c) => c.method === "PATCH")?.body).toEqual({ enabled: true });
     await waitFor(() => expect(toggle.getAttribute("aria-checked")).toBe("true"));
+    // It looks on a half-hour timer, not at the half hour, and only once today's brief exists.
+    expect(toasts.success).toHaveBeenCalledWith("Watching your inbox", {
+      description: "Its first look is within half an hour, once today's brief is ready.",
+    });
   });
 
   it("says when the watch could not look, without claiming it did", async () => {

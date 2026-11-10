@@ -112,7 +112,9 @@ function InboxWatchCard() {
               set.mutate(on, {
                 onSuccess: () =>
                   toast.success(on ? "Watching your inbox" : "Stopped watching your inbox", {
-                    description: on ? "It starts at the next half hour after today's brief." : undefined,
+                    description: on
+                      ? "Its first look is within half an hour, once today's brief is ready."
+                      : undefined,
                   }),
                 onError: (error) => toast.error("That didn't work", { description: error.message }),
               })
