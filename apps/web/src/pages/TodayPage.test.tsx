@@ -152,3 +152,44 @@ describe("Start on the brief", () => {
     expect(server.calls.some((c) => c.path.endsWith("/start"))).toBe(false);
   });
 });
+
+describe("Hide on the newest suggestion", () => {
+  function serveSuggestion(task: Task) {
+    return mockFetch((req) => {
+      if (req.path === "/api/settings") return { body: settings };
+      if (req.path === "/api/brief") return { body: brief(DAY) };
+      if (req.path === "/api/info") return { body: {} };
+      if (req.path === "/api/approvals") return { body: [] };
+      if (req.path === "/api/tasks") return { body: { tasks: [task], counts: {} } };
+      if (req.path === `/api/tasks/${task.id}` && req.method === "PATCH") {
+        return { body: { ...task, state: "hidden" } };
+      }
+      return undefined;
+    });
+  }
+  const task: Task = {
+    id: "tsk_2",
+    title: "Reply to Pat Example about the kiln",
+    detail: "Asks whether the kiln is free on Friday.",
+    state: "suggested",
+    source: "suggestion",
+    emailId: "msg_2",
+    createdAt: NOW.toISOString(),
+    updatedAt: NOW.toISOString(),
+  };
+
+  it("says the email won't be suggested again when the suggestion came from one", async () => {
+    serveSuggestion(task);
+    renderWithProviders(<TodayPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Hide" }));
+    expect(await screen.findByText("Hidden. Steward won't suggest this email again.")).toBeTruthy();
+  });
+
+  it("does not mention an email when the task came from no email", async () => {
+    const { emailId: _emailId, ...noEmail } = task;
+    serveSuggestion({ ...noEmail, source: "person", title: "Order more clay" });
+    renderWithProviders(<TodayPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Hide" }));
+    expect(await screen.findByText("Hidden. It won't come back.")).toBeTruthy();
+  });
+});

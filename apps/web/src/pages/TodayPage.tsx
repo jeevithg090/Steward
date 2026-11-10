@@ -257,7 +257,11 @@ function NewestSuggestion() {
         actions={
           answered ? (
             <p role="status" className="font-medium text-ink-2 text-sub">
-              {answered === "started" ? "Started." : "Hidden. Steward won't suggest this email again."}
+              {answered === "started"
+                ? "Started."
+                : newest.emailId
+                  ? "Hidden. Steward won't suggest this email again."
+                  : "Hidden. It won't come back."}
             </p>
           ) : (
             <>
