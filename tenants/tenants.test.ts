@@ -1,19 +1,21 @@
 /**
  * Every tenant package loads, its rules compile in the real gateway, and its promises hold: the
- * decisions below are the ones its README and docs say it makes. Runs with the unit tests once
- * `tenants/*.test.ts` is in vitest.config.ts.
+ * decisions below are the ones its README and docs say it makes. Runs with the unit tests
+ * (`tenants/*.test.ts` is in vitest.config.ts).
  *
  * Imports the packages' public entry points by path, because the repository root does not depend on
  * the workspace packages by name.
  */
-import { readdirSync, statSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
-import { loadTenant } from "../packages/agent/src/index.ts";
+import { afterAll, describe, expect, it } from "vitest";
+import { contrastWithWhite, loadTenant } from "../packages/agent/src/index.ts";
 import { memoryDb } from "../packages/db/src/index.ts";
 import { createGateway } from "../packages/gateway/src/index.ts";
 import { loadHarnesses } from "../packages/harnesses/src/index.ts";
+import { loadTenantShortcuts } from "../packages/phone/src/index.ts";
 import type { Decision, GateCall, TenantPackage } from "../packages/shared/src/index.ts";
 
 const TENANTS_DIR = fileURLToPath(new URL(".", import.meta.url));
@@ -24,13 +26,14 @@ const KINDS: Record<string, [GateCall["tool"]["kind"], GateCall["tool"]["surface
   calendar_create: ["write", "calendar"],
   browser_type: ["write", "browser"],
   browser_click: ["write", "browser"],
+  browser_press: ["write", "browser"],
   request_secret: ["write", "browser"],
   shell_run: ["shell", "shell"],
 };
 
 let seq = 0;
 function call(
-  tool: keyof typeof KINDS,
+  tool: keyof typeof KINDS | `mcp__${string}`,
   opts: {
     args?: Record<string, unknown>;
     target?: GateCall["target"];
@@ -38,7 +41,7 @@ function call(
     tainted?: boolean;
   } = {},
 ): GateCall {
-  const [kind, surface] = KINDS[tool] ?? ["write", "mcp"];
+  const [kind, surface] = KINDS[tool as keyof typeof KINDS] ?? ["write", "mcp"];
   seq += 1;
   return {
     toolCallId: `tc_${seq}`,
@@ -57,16 +60,6 @@ function call(
 function decider(tenant: TenantPackage): (c: GateCall) => Decision {
   const gateway = createGateway({ db: memoryDb(), tenantRules: tenant.rules });
   return (c) => gateway.governance.dryRun(c);
-}
-
-/** WCAG relative luminance contrast of a #rrggbb colour against white. */
-function contrastWithWhite(hex: string): number {
-  const channel = (i: number) => {
-    const v = Number.parseInt(hex.slice(i, i + 2), 16) / 255;
-    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-  };
-  const l = 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
-  return 1.05 / (l + 0.05);
 }
 
 /** "Hi Sam", "Dear Maya,", "Morning, Alex": a greeting that uses a name. */
@@ -107,6 +100,17 @@ describe.each(TENANT_IDS)("tenant package %s", (id) => {
     for (const harness of harnesses) {
       expect(agentIds.has(harness.id), harness.id).toBe(false);
       expect(harness.args.join(" ")).not.toMatch(/dangerously|bypass|yolo|full-auto/i);
+    }
+  });
+
+  it("offers only phone shortcuts that work: each names a skill the package has, and a shared one says where the words go", () => {
+    const shortcuts = loadTenantShortcuts(join(TENANTS_DIR, id), {
+      skills: tenant.skills.map((s) => s.name),
+    });
+    const skills = new Set(tenant.skills.map((s) => s.name));
+    for (const shortcut of shortcuts) {
+      if (shortcut.skill) expect(skills, shortcut.id).toContain(shortcut.skill);
+      if (shortcut.share) expect(shortcut.prompt, shortcut.id).toContain("{input}");
     }
   });
 
@@ -213,6 +217,32 @@ describe("the tempo package", () => {
     expect(decide(claimForm("Booking reference", "RH7-4KQ-2MZ")).effect).toBe("allow");
   });
 
+  // A key press acts on the focused field, so typing a sort code one digit at a time is typing it.
+  const press = (name: string, key: string, sensitive = false) =>
+    call("browser_press", {
+      args: { key },
+      target: {
+        host: "claims.example",
+        element: { ref: "", role: "textbox", name, ...(sensitive ? { sensitive: true } : {}) },
+      },
+    });
+
+  it("never types bank or card details one key at a time either", () => {
+    expect(decide(press("Sort code", "1")).rule?.name).toBe("Tempo never types bank or card details");
+    expect(decide(press("Account number", "7")).effect).toBe("deny");
+    expect(decide(press("Card number", "Backspace")).effect).toBe("deny");
+    expect(decide(press("Card number", "Control+V")).effect).toBe("deny");
+    // A field the page marks as secret hides the key from the rules; the press is still refused.
+    expect(decide(press("Card number", "4", true)).effect).toBe("deny");
+  });
+
+  it("still moves through a form, and types into the other fields key by key", () => {
+    expect(decide(press("Sort code", "Tab")).effect).not.toBe("deny");
+    expect(decide(press("Sort code", "Shift+Tab")).effect).not.toBe("deny");
+    expect(decide(press("Account number", "ArrowDown")).effect).not.toBe("deny");
+    expect(decide(press("Booking reference", "1")).effect).toBe("allow");
+  });
+
   it("never lets a card number or IBAN leave", () => {
     const iban = decide(
       call("mail_send", {
@@ -221,5 +251,66 @@ describe("the tempo package", () => {
     );
     expect(iban.effect).toBe("deny");
     expect(decide(claimForm("Search", "4242 4242 4242 4242")).effect).toBe("deny");
+  });
+});
+
+describe("a package that tries to be looser than Steward", () => {
+  const root = mkdtempSync(join(tmpdir(), "steward-loose-"));
+  afterAll(() => rmSync(root, { recursive: true, force: true }));
+  const loose = (rules: string): string => {
+    const dir = mkdtempSync(join(root, "pkg-"));
+    const tenant = join(dir, "loose");
+    mkdirSync(tenant);
+    writeFileSync(join(tenant, "rules.yaml"), rules);
+    return tenant;
+  };
+  const allow = (when: string) => `rules:\n  - name: Loose\n    effect: allow\n    when: '${when}'\n`;
+
+  it("does not start with an allow rule that lets everything run", () => {
+    expect(() => loadTenant(loose(allow("true")))).toThrow(
+      /^rules\.yaml line 3: rules\[0\] "Loose": an allow rule cannot let Steward send, pay, sign, delete or run a command without asking you/,
+    );
+    expect(() => loadTenant(loose(allow('tool.surface == "mcp"')))).toThrow(/would allow a connected app/);
+  });
+
+  it("still asks before a send, a delete or a command an allow rule names only by its arguments or target", () => {
+    const tenant = loadTenant(
+      loose(
+        allow(
+          'contains(args.to, "boss@acme.example") || target.host == "acme.example" || contains(args.command, "ls")',
+        ),
+      ),
+    );
+    const decide = decider(tenant);
+    const send = decide(
+      call("mail_send", { args: { to: ["boss@acme.example"], subject: "Hi", body: "See you" } }),
+    );
+    expect(send.effect).toBe("ask");
+    const del = decide(
+      call("browser_click", {
+        args: { ref: "e1" },
+        target: { host: "acme.example", element: { ref: "e1", role: "button", name: "Delete account" } },
+      }),
+    );
+    expect(del.effect).toBe("ask");
+    expect(decide(call("shell_run", { args: { command: "ls" }, target: { command: "ls" } })).effect).toBe(
+      "ask",
+    );
+  });
+
+  it("can still let a write on the calendar or a connected app run without asking", () => {
+    const tenant = loadTenant(
+      loose(
+        'rules:\n  - name: Calendar runs\n    effect: allow\n    when: \'tool.surface == "calendar"\'\n  - name: Notes app writes run\n    effect: allow\n    when: \'tool.surface == "mcp" && tool.kind == "write"\'\n',
+      ),
+    );
+    const decide = decider(tenant);
+    const event = decide(
+      call("calendar_create", {
+        args: { title: "Coffee", start: "2026-10-28T10:00:00Z", end: "2026-10-28T10:30:00Z" },
+      }),
+    );
+    expect(event).toMatchObject({ effect: "allow", rule: { name: "Calendar runs" } });
+    expect(decide(call("mcp__notes__add", { args: { text: "milk" } })).effect).toBe("allow");
   });
 });
