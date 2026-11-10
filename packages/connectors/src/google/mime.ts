@@ -44,11 +44,12 @@ export function headerValue(headers: readonly Header[], name: string): string | 
  * ASCII invisibly and which models read as plain words), bidi embeddings, overrides and isolates
  * (U+202A–202E, U+2066–2069: text that reads differently from how it runs), zero-width space, word
  * joiner and byte-order mark, the invisible maths operators, the Mongolian vowel separator, and the
- * variation selectors supplement. Kept: an England, Scotland or Wales flag, the one emoji sequence
- * that is made of tag characters (at most six lower-case letters, so nothing can be spelled in it).
+ * variation selectors supplement. Kept: the England, Scotland and Wales flags, the only emoji made
+ * of tag characters. Only those three spellings are kept: a black flag followed by any other short
+ * run of tags is not a flag, and a row of them would spell a message six letters at a time.
  */
 const INVISIBLE =
-  /\u{1F3F4}[\u{E0030}-\u{E0039}\u{E0061}-\u{E007A}]{2,6}\u{E007F}|[\u{E0000}-\u{E007F}\u202A-\u202E\u2066-\u2069\u200B\u2060\uFEFF\u2061-\u2064\u180E]|[\u{E0100}-\u{E01EF}]+/gu;
+  /\u{1F3F4}\u{E0067}\u{E0062}(?:\u{E0065}\u{E006E}\u{E0067}|\u{E0073}\u{E0063}\u{E0074}|\u{E0077}\u{E006C}\u{E0073})\u{E007F}|[\u{E0000}-\u{E007F}\u202A-\u202E\u2066-\u2069\u200B\u2060\uFEFF\u2061-\u2064\u180E]|[\u{E0100}-\u{E01EF}]+/gu;
 /** A variation selector is one mark on the character before it; a run of them is a hiding place. */
 const EXTRA_SELECTORS = /(?<=[\uFE00-\uFE0F])[\uFE00-\uFE0F]+/gu;
 /**

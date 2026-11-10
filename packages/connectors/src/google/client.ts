@@ -136,8 +136,8 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
 
   /**
    * A summary with only what a person would see: characters that are never drawn are taken out of
-   * the subject, the names and the snippet (`seen` counts them, the snippet aside, since it repeats
-   * the body).
+   * the subject, the names and addresses, and the snippet (`seen` counts them, the snippet aside,
+   * since it repeats the body).
    */
   async function toSummary(m: GmailMessage, seen = new Seen()): Promise<GmailEmailSummary> {
     const headers = m.payload?.headers ?? [];
@@ -153,7 +153,7 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
       id: m.id,
       threadId: m.threadId,
       from: seen.address(parseAddress(headerValue(headers, "From")) ?? { email: "" }),
-      to: parseAddressList(headerValue(headers, "To")).map((a) => seen.address(a)),
+      to: seen.addresses(headerValue(headers, "To")),
       subject: seen.text(decodeWords(headerValue(headers, "Subject") ?? "")).trim() || "(no subject)",
       snippet: visibleText(decodeEntities(m.snippet ?? "")).text,
       receivedAt: new Date(
@@ -202,7 +202,7 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
       const seen = new Seen();
       const summary = await toSummary(m, seen);
       const headers = m.payload?.headers ?? [];
-      const cc = parseAddressList(headerValue(headers, "Cc")).map((a) => seen.address(a));
+      const cc = seen.addresses(headerValue(headers, "Cc"));
       const body = bodyOf(m.payload);
       // Said in the body, so the model knows the sender hid something, without reading what.
       const chars = seen.removed + body.removed;
@@ -474,10 +474,22 @@ class Seen {
     return visible.text;
   }
 
+  /**
+   * The name and the address as they are drawn. An address is cleaned too: tag characters in it
+   * are invisible on screen but read by a model, and the address the person sees is the one a
+   * reply should go to.
+   */
   address(a: EmailAddress): EmailAddress {
-    if (!a.name) return a;
-    const name = this.text(a.name).trim();
-    return name ? { name, email: a.email } : { email: a.email };
+    const email = this.text(a.email).trim();
+    const name = a.name ? this.text(a.name).trim() : "";
+    return name ? { name, email } : { email };
+  }
+
+  /** A To or Cc header, cleaned; an address that was nothing but invisible characters is left out. */
+  addresses(header: string | undefined): EmailAddress[] {
+    return parseAddressList(header)
+      .map((a) => this.address(a))
+      .filter((a) => a.email !== "");
   }
 }
 

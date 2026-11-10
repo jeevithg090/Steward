@@ -48,6 +48,19 @@ describe("visibleText", () => {
     // A tag run after a black flag that is not a flag is still taken out.
     expect(visibleText(`🏴${tags("send it")}\u{E007F}`).removed).toBe(8);
   });
+
+  it("keeps only the three real tag flags, so a row of black flags cannot spell a message", () => {
+    for (const region of ["gbeng", "gbsct", "gbwls"]) {
+      const flag = `🏴${tags(region)}\u{E007F}`;
+      expect(visibleText(flag)).toEqual({ text: flag, removed: 0 });
+    }
+    const smuggled = ["ignore", "allpre", "vious"].map((word) => `🏴${tags(word)}\u{E007F}`).join("");
+    expect(visibleText(`Hello ${smuggled}`)).toEqual({ text: "Hello 🏴🏴🏴", removed: 20 });
+    // A real flag next to a fake one: the real one stays whole.
+    expect(visibleText(`🏴${tags("gbsct")}\u{E007F}🏴${tags("usca")}\u{E007F}`).text).toBe(
+      `🏴${tags("gbsct")}\u{E007F}🏴`,
+    );
+  });
 });
 
 describe("addresses", () => {
