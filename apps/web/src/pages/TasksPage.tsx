@@ -245,7 +245,14 @@ function TaskRow({ task, approval }: { task: Task; approval?: Approval }) {
     </Button>
   );
 
-  const hide = setState("hidden", "Hide", <EyeOff />, "Hidden. Steward won't suggest it again.", true);
+  // As on Today: only a suggestion from an email is something Steward could offer again.
+  const hide = setState(
+    "hidden",
+    "Hide",
+    <EyeOff />,
+    task.emailId ? "Hidden. Steward won't suggest this email again." : "Hidden.",
+    true,
+  );
   const markDone = setState("resolved", "Mark done", <CheckCheck />, "Marked done");
   const reopen = setState(
     task.threadId ? "ready_for_review" : "suggested",

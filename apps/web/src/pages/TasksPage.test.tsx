@@ -60,8 +60,8 @@ const looseApproval = {
 const TASKS = [
   task("needs_you", "Confirm Thursday's delivery"),
   task("failed", "Book the venue", { error: "the site didn't answer" }),
-  task("suggested", "Reply to the supplier"),
-  task("suggested", "Chase the unpaid invoice"),
+  task("suggested", "Reply to the supplier", { emailId: "msg_supplier" }),
+  task("suggested", "Chase the unpaid invoice", { emailId: "msg_invoice" }),
   task("working", "Compare three quotes", { threadId: "thr_9" }),
   task("ready_for_review", "Draft the newsletter", { threadId: "thr_8" }),
   task("resolved", "Renew the domain"),
@@ -167,7 +167,7 @@ describe("TasksPage", () => {
       { route: "/tasks?view=suggested" },
     );
     fireEvent.click((await screen.findAllByRole("button", { name: "Hide" }))[0]!);
-    const toast = await screen.findByText("Hidden. Steward won't suggest it again.");
+    const toast = await screen.findByText("Hidden. Steward won't suggest this email again.");
     expect(toast).toBeTruthy();
     fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
     await waitFor(() => expect(calls.filter((c) => c.method === "PATCH")).toHaveLength(2));
@@ -175,6 +175,21 @@ describe("TasksPage", () => {
     expect(hidden?.body).toEqual({ state: "hidden" });
     expect(undone?.path).toBe(hidden?.path);
     expect(undone?.body).toEqual({ state: "suggested" });
+  });
+
+  it("doesn't speak of suggesting again when hiding a task that came from no email", async () => {
+    serve();
+    renderWithProviders(
+      <>
+        <TasksPage />
+        <Toaster />
+      </>,
+      { route: "/tasks?view=needs_you" },
+    );
+    expect(await screen.findByText("Book the venue")).toBeTruthy();
+    // Neither task in Needs you came from an email.
+    fireEvent.click(screen.getAllByRole("button", { name: "Hide" })[0]!);
+    expect(await screen.findByText("Hidden.")).toBeTruthy();
   });
 
   it("says when a segment is empty", async () => {
