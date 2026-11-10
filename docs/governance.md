@@ -351,7 +351,8 @@ over the computer's WebSocket and nowhere else:
 
 Every decision, answer, outcome, rule change, secret request and handover is appended to the
 record, in the `gateway_audit` table of `.steward-data/steward.db`. `/record` shows it, newest
-first, with filters, and each refusal names its rule.
+first, with filters (what happened, and whether it was permitted, asked, refused or failed), and
+each refusal names its rule.
 
 | Type                                                                             | Written when                                                                             |
 | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -383,13 +384,93 @@ row chains from 64 zeros. Database triggers refuse any `UPDATE` or `DELETE` on t
 someone gets past them (by dropping the triggers or editing the file), the first row that no longer
 matches breaks the chain, and every row after it can no longer be trusted.
 
+The chain starts at 1 and has no gaps: a row numbered 0 or below, or a missing number, breaks it
+just as a changed row does. Text is stored exactly as it was hashed (a stray half of an emoji pair
+in an id is replaced first, so the database cannot quietly change it later).
+
 ### Checking it
 
-The badge at the top of `/record` asks the server to walk the whole chain
-(`GET /api/audit/verify`) and shows "Record intact · N entries verified", or names the first broken
-entry.
+The badge at the top of `/record` checks the chain every minute while the page is open
+(`GET /api/audit/verify`). Hashing every entry takes a while on a big record, so Steward does it a
+page at a time and lets everything else carry on in between. After the first walk through the
+whole chain, a check hashes only the entries added since. Before it trusts the rest, it makes sure
+the newest entry the last walk reached is unchanged and that no number is missing.
 
-You can also check the file yourself, without Steward running, with Node alone:
+The whole chain is walked again at least once an hour, whenever anything looks off, and when you
+press **Check the whole record** (`GET /api/audit/verify?full=1`). The badge says which check ran:
+"Record intact · N entries verified" after a walk through everything, or "New entries checked",
+with when everything was last checked. When the chain is broken it names the first entry that is
+missing or has changed.
+
+While it runs, Steward also remembers the newest entry it found intact. If that entry later changes
+or disappears, the record was rewritten underneath it, and the badge says so until Steward restarts,
+even when the rewritten chain holds together.
+
+### Keeping a seal elsewhere
+
+A hash chain shows that the record was changed. It cannot stop someone with access to the file from
+rewriting all of it, or cutting off its newest entries, and sealing the result again. To make the
+record evidence against that too, copy the newest seal somewhere off this computer from time to
+time (a note, a commit, an email to yourself). `/record` shows it under **Keep a copy elsewhere**
+as the entry number and its hash, `1234:3fa9…`, with a copy button. The same is in
+`GET /api/audit/verify` as `head`.
+
+Later, paste it into **Check a seal you saved** (or `GET /api/audit/verify?anchor=1234:3fa9…`).
+Steward walks the whole chain and checks that the entry is still there with the same hash. If the
+record was cut short or rewritten since you saved it, it is not, and the check fails.
+
+### Exporting it
+
+**Download the record** on `/record` (`GET /api/audit/export`) saves every entry, oldest first, as
+JSON Lines: one entry per line, with its `prevHash` and `hash`, exactly as it was sealed. It holds
+nothing the record does not, so no secrets. You can check a download on any computer with Node
+alone, and against a seal you saved:
+
+```js
+// verify-export.mjs: node verify-export.mjs steward-record-2026-11-10.jsonl [1234:3fa9…]
+import { createHash } from "node:crypto";
+import { createReadStream } from "node:fs";
+import { createInterface } from "node:readline";
+
+const sortKeys = (v) =>
+  Array.isArray(v)
+    ? v.map((x) => (x === undefined ? null : sortKeys(x)))
+    : v && typeof v === "object"
+      ? Object.fromEntries(
+          Object.keys(v)
+            .sort()
+            .filter((k) => v[k] !== undefined)
+            .map((k) => [k, sortKeys(v[k])]),
+        )
+      : v;
+
+const [file, seal] = process.argv.slice(2);
+const [sealSeq, sealHash] = seal ? seal.replace(/^#/, "").split(":") : [];
+let prev = "0".repeat(64);
+let seq = 1;
+let sealFound = false;
+for await (const line of createInterface({ input: createReadStream(file) })) {
+  if (!line.trim()) continue;
+  const { hash, ...event } = JSON.parse(line);
+  const expected = createHash("sha256")
+    .update(prev + JSON.stringify(sortKeys(event)))
+    .digest("hex");
+  if (event.seq !== seq || event.prevHash !== prev || hash !== expected) {
+    console.error(`Broken at entry ${event.seq}. Entries from here on cannot be trusted.`);
+    process.exit(1);
+  }
+  if (seal && event.seq === Number(sealSeq)) sealFound = hash === sealHash?.toLowerCase();
+  prev = hash;
+  seq++;
+}
+if (seal && !sealFound) {
+  console.error(`Entry ${sealSeq} does not have the seal you saved. The record was cut short or rewritten.`);
+  process.exit(1);
+}
+console.log(`Export intact: ${seq - 1} entries verified${seal ? ", and your seal matches" : ""}.`);
+```
+
+You can also check the database file itself, without Steward running, with Node alone:
 
 ```js
 // verify-record.mjs: node verify-record.mjs .steward-data/steward.db
@@ -441,11 +522,6 @@ for (const row of db.prepare("SELECT * FROM gateway_audit ORDER BY seq").iterate
 }
 console.log(`Record intact: ${seq - 1} entries verified.`);
 ```
-
-A hash chain shows that the record was changed; it cannot stop someone with access to the file
-from rewriting all of it. To make the record evidence against that too, copy the newest hash
-somewhere else from time to time (a note, a commit, an email to yourself): a rewritten chain will
-not reach it.
 
 ## Fail closed
 

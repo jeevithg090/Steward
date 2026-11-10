@@ -1,7 +1,13 @@
-import { memoryDb } from "@steward/db";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { Db, memoryDb } from "@steward/db";
 import type { AuditEvent } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import { FULL_CHECK_EVERY_MS, GENESIS_HASH, hashEvent, SqliteAuditLog } from "../src/audit.ts";
+import { createGateway } from "../src/gateway.ts";
 import { migrations } from "../src/migrations.ts";
 import { isSecretKey } from "../src/redact.ts";
 import { gateCall, setup } from "./helpers.ts";
@@ -446,5 +452,63 @@ describe("page", () => {
     expect(second.events[0]?.seq).toBe((first.events[2]?.seq ?? 0) - 1);
     const last = gw.audit.page({ limit: 200, before: 2 });
     expect(last.nextBefore).toBeUndefined();
+  });
+});
+
+describe("the checks docs/governance.md gives", () => {
+  const docs = readFileSync(fileURLToPath(new URL("../../../docs/governance.md", import.meta.url)), "utf8");
+  const script = (name: string) => {
+    const fence = "```";
+    const start = docs.indexOf(`${fence}js\n// ${name}:`);
+    const end = docs.indexOf(fence, start + fence.length);
+    if (start < 0 || end < 0) throw new Error(`${name} is not in docs/governance.md`);
+    return docs.slice(start + fence.length + "js\n".length, end);
+  };
+  const node = (dir: string, args: string[]) =>
+    spawnSync(process.execPath, args, { cwd: dir, encoding: "utf8", timeout: 20_000 });
+
+  it("verify a database file and a download, without Steward running", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "steward-record-"));
+    try {
+      const db = new Db(join(dir, "steward.db"));
+      const gw = createGateway({ db });
+      await gw.governance.execute(
+        gateCall("mail_send", { to: "sam@example.com", subject: "Hi" }),
+        async () => null,
+      );
+      await gw.governance.execute(gateCall("browser_snapshot"), async () => ({ title: "News" }));
+      gw.audit.append({
+        type: "run.started",
+        actorId: "local",
+        threadId: "thr_\uD800x",
+        detail: { n: [1, { b: 2, a: 1 }] },
+      });
+      const { head } = gw.audit.verify();
+      if (!head) throw new Error("no head");
+      const lines = [...gw.audit.exportPages(2)].flat().map((e) => JSON.stringify(e));
+      db.close();
+      writeFileSync(join(dir, "verify-record.mjs"), script("verify-record.mjs"));
+      writeFileSync(join(dir, "verify-export.mjs"), script("verify-export.mjs"));
+      writeFileSync(join(dir, "record.jsonl"), `${lines.join("\n")}\n`);
+
+      const fromDb = node(dir, ["verify-record.mjs", "steward.db"]);
+      expect(fromDb.stdout.trim()).toBe(`Record intact: ${head.seq} entries verified.`);
+      const exported = node(dir, ["verify-export.mjs", "record.jsonl", `${head.seq}:${head.hash}`]);
+      expect(exported.stdout.trim()).toBe(
+        `Export intact: ${head.seq} entries verified, and your seal matches.`,
+      );
+      expect(exported.status).toBe(0);
+
+      const wrongSeal = node(dir, ["verify-export.mjs", "record.jsonl", `${head.seq}:${"0".repeat(64)}`]);
+      expect(wrongSeal.status).toBe(1);
+      expect(wrongSeal.stderr).toMatch(/does not have the seal you saved/);
+      const edited = lines.map((l, i) => (i === 2 ? l.replace('"local"', '"someone"') : l));
+      writeFileSync(join(dir, "edited.jsonl"), `${edited.join("\n")}\n`);
+      const broken = node(dir, ["verify-export.mjs", "edited.jsonl"]);
+      expect(broken.status).toBe(1);
+      expect(broken.stderr).toMatch(/^Broken at entry 3\./);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
