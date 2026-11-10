@@ -1,7 +1,7 @@
 import type { Message } from "@copilotkit/react-core/v2";
 import type { ComputerStatus } from "@steward/shared";
 import { act, cleanup, fireEvent, screen, within } from "@testing-library/react";
-import { createElement } from "react";
+import { createElement, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mockFetch, renderWithProviders } from "@/lib/testing.tsx";
 import { FakeSocket } from "../computer/fake-socket.ts";
@@ -43,6 +43,14 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
 });
+
+/** A transcript whose messages a test swaps, as a run or a history replay changes them. */
+const swap = { set: (_messages: Message[]) => {} };
+function Swappable({ initial }: { initial: Message[] }) {
+  const [messages, setMessages] = useState(initial);
+  swap.set = setMessages;
+  return <Transcript messages={messages} running />;
+}
 
 const SUB = "sub-call_parent";
 const MESSAGES = [
@@ -298,6 +306,57 @@ describe("handed-on tasks in the conversation", () => {
       draw(MESSAGES);
       await screen.findByText("Codex worked on: run the tests");
       expect(socketFor("codex")).toBeUndefined();
+    });
+
+    it("lets go of that computer once the task is over, and connects again only to show it", async () => {
+      const opening = {
+        id: "c6",
+        role: "assistant",
+        content: "",
+        subagentRunId: SUB,
+        toolCalls: [
+          {
+            id: "codex-x:open",
+            type: "function",
+            function: { name: "browser_navigate", arguments: '{"url":"https://example.com"}' },
+          },
+        ],
+      };
+      const opened_ = {
+        id: "c7",
+        role: "tool",
+        toolCallId: "codex-x:open",
+        content: '{"ok":true,"data":{"title":"Example"}}',
+        subagentRunId: SUB,
+      };
+      const working = [...MESSAGES.slice(0, 2), opening] as unknown as Message[];
+      const finished = [...working, opened_, ...MESSAGES.slice(-2)] as unknown as Message[];
+      // The task ends while the page watches, as a history replay also draws it: call, then answer.
+      renderWithProviders(
+        <ChatActionsContext.Provider value={parent}>
+          <ComputerSession agentId="steward">
+            <Swappable initial={working} />
+          </ComputerSession>
+        </ChatActionsContext.Provider>,
+      );
+      await screen.findByText("Codex is working on: run the tests");
+      const details = document.querySelector("details") as HTMLDetailsElement;
+      details.open = true;
+      const first = socketFor("codex")!;
+      expect(first.closed).toBe(false);
+
+      act(() => swap.set(finished));
+      await screen.findByText("Codex worked on: run the tests");
+      expect(first.closed).toBe(true);
+      // Nothing was drawn afresh: the card the person opened is the same, and still open.
+      expect(document.querySelector("details")).toBe(details);
+      expect(details.open).toBe(true);
+
+      fireEvent.click(within(details).getByRole("button", { name: "See screen" }));
+      expect(await screen.findByRole("dialog", { name: "Codex's computer" })).toBeTruthy();
+      const codex = opened.filter((socket) => socket.url.endsWith("/ws/computer/codex"));
+      expect(codex).toHaveLength(2);
+      expect(codex[1]?.closed).toBe(false);
     });
   });
 

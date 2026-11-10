@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ComputerPanel } from "./ComputerPanel.tsx";
 import { fakeSockets } from "./fake-socket.ts";
+import { ComputerSession } from "./session.tsx";
 
 // The panel's REST reads (status and activity before the socket opens, the file list) are not what
 // is under test here; they answer with nothing.
@@ -79,6 +80,43 @@ describe("ComputerPanel", () => {
     expect(
       screen.getByText("Nothing yet. What Focus time guard does on its computer shows up here."),
     ).toBeTruthy();
+  });
+
+  it("watches nothing while it is not wanted, and forgets what it was asked once it lets go", () => {
+    sockets = fakeSockets();
+    const session = (connected: boolean) => (
+      <ComputerSession agentId="codex" name="Codex" openSocket={sockets.open} connected={connected}>
+        <p>The task</p>
+      </ComputerSession>
+    );
+    const { rerender } = render(session(false));
+    expect(sockets.sockets).toHaveLength(0);
+
+    rerender(session(true));
+    const socket = sockets.latest;
+    act(() => socket.open());
+    act(() =>
+      socket.receive({
+        type: "status",
+        status: {
+          ...base,
+          agentId: "codex",
+          secret: {
+            id: "sec_1",
+            ref: "e7",
+            label: "Password",
+            host: "example.com",
+            requestedAt: "2026-11-10T09:00:00Z",
+          },
+        },
+      }),
+    );
+    expect(screen.getByRole("dialog", { name: /Codex needs something only you should type/ })).toBeTruthy();
+
+    rerender(session(false));
+    expect(socket.closed).toBe(true);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByText("The task")).toBeTruthy();
   });
 
   it("opens on the tab and file it is asked to", () => {

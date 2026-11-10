@@ -5,8 +5,9 @@
  *
  * That agent works on a computer of its own. While the task runs here, the card holds a connection
  * to it, so "See screen", "Take the wheel" and the secret box inside the task reach that agent's
- * computer, not this conversation's, and the card says when that agent needs the person there. A
- * finished task in the history opens no connection; its "See screen" opens one only when asked.
+ * computer, not this conversation's, and the card says when that agent needs the person there. Once
+ * the task is over the connection closes (so that computer stops streaming its screen to nobody),
+ * and it opens again only while its screen is shown. A finished task in the history opens none.
  * Words sent from inside the task would go to this conversation's agent, so its quick replies are
  * shown but not offered.
  */
@@ -42,9 +43,9 @@ export function DelegationCard(tool: ToolProps) {
     !done && parent !== null && (Boolean(parent.runEnded) || !parent.isLatestTurn(tool.toolCallId));
   // Another agent's computer, unless the task went to the agent this conversation is with.
   const ownComputer = childId !== undefined && childId !== (shared?.agentId ?? parent?.agentId);
-  // Connected while the task runs here, and kept until the page leaves so nothing remounts when it
-  // ends. A task that was already over when the page opened stays unconnected.
-  const [live] = useState(() => !done && !stopped);
+  // Whether that agent's screen is open over the conversation, and on what. Held here, above the
+  // session, so connecting and letting go never draw the card afresh.
+  const [screen, setScreen] = useState<ComputerView | null>(null);
 
   const card = (
     <DelegationBody
@@ -54,10 +55,13 @@ export function DelegationCard(tool: ToolProps) {
       done={done}
       stopped={stopped}
       ownComputer={ownComputer}
+      screen={screen}
+      setScreen={setScreen}
     />
   );
-  return ownComputer && live && childId ? (
-    <ComputerSession agentId={childId} name={name}>
+  // Connected while the task runs here, or while its screen is shown; never for a task that is over.
+  return ownComputer && childId ? (
+    <ComputerSession agentId={childId} name={name} connected={(!done && !stopped) || screen !== null}>
       {card}
     </ComputerSession>
   ) : (
@@ -72,6 +76,8 @@ function DelegationBody({
   done,
   stopped,
   ownComputer,
+  screen,
+  setScreen,
 }: {
   tool: ToolProps;
   name: string;
@@ -79,13 +85,15 @@ function DelegationBody({
   done: boolean;
   stopped: boolean;
   ownComputer: boolean;
+  /** The view of that agent's computer shown over the conversation, or null when it is not. */
+  screen: ComputerView | null;
+  setScreen: (view: ComputerView | null) => void;
 }) {
   const id = useId();
   const parent = useChatActions();
   const computer = useOptionalComputer();
   const messages = useSubRun(tool.toolCallId);
-  const [showing, setShowing] = useState(false);
-  const [view, setView] = useState<ComputerView>({});
+  const showing = screen !== null;
   const task = text(tool.args.task) ?? "a task";
   const outcome = done ? readToolResult(tool.result) : undefined;
   // A task that ended without an answer says so in its result: "… stopped without answering."
@@ -114,14 +122,11 @@ function DelegationBody({
             busy: true,
             isLatestTurn: (callId) => working && parent.isLatestTurn(callId),
             showComputer: ownComputer
-              ? (asked?: ComputerView) => {
-                  setView(asked ?? {});
-                  setShowing(true);
-                }
+              ? (asked?: ComputerView) => setScreen(asked ?? {})
               : parent.showComputer,
           }
         : null,
-    [parent, childId, name, working, ownComputer],
+    [parent, childId, name, working, ownComputer, setScreen],
   );
 
   return (
@@ -169,10 +174,7 @@ function DelegationBody({
               size="sm"
               variant="primary"
               icon={<Monitor />}
-              onClick={() => {
-                setView({ tab: "screen" });
-                setShowing(true);
-              }}
+              onClick={() => setScreen({ tab: "screen" })}
             >
               Show its computer
             </Button>
@@ -187,17 +189,19 @@ function DelegationBody({
       {ownComputer && childId ? (
         <Dialog
           open={showing}
-          onOpenChange={setShowing}
+          onOpenChange={(open) => {
+            if (!open) setScreen(null);
+          }}
           title={`${name}'s computer`}
           size="lg"
           placement="sheet"
         >
-          {showing ? (
+          {screen ? (
             <ComputerPanel
               agentId={childId}
               name={name}
-              initialTab={view.tab}
-              highlightFile={view.file}
+              initialTab={screen.tab}
+              highlightFile={screen.file}
               headingLevel={3}
               showTitle={false}
             />

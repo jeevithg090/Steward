@@ -88,6 +88,11 @@ export interface ComputerSessionProps {
   children: ReactNode;
   /** Opens the socket. For tests; defaults to the browser's `WebSocket`. */
   openSocket?: (url: string) => SocketLike;
+  /**
+   * False leaves the computer unwatched: no socket, nothing fetched, so its screencast can stop.
+   * A handed-on task's card connects only while the task runs or that agent's screen is shown.
+   */
+  connected?: boolean;
 }
 
 export function ComputerSession({
@@ -95,6 +100,7 @@ export function ComputerSession({
   name = "Steward",
   children,
   openSocket,
+  connected = true,
 }: ComputerSessionProps) {
   const [connection, setConnection] = useState<ConnectionState>("connecting");
   const [problem, setProblem] = useState<string | null>(null);
@@ -109,8 +115,10 @@ export function ComputerSession({
 
   // The socket sends status as soon as it opens; until then, and while it is down, the last fetched
   // status and activity stand in.
-  const fetchedStatus = useComputerStatus(agentId, { enabled: connection !== "open" || liveStatus === null });
-  const fetchedActivity = useComputerActivity(agentId);
+  const fetchedStatus = useComputerStatus(agentId, {
+    enabled: connected && (connection !== "open" || liveStatus === null),
+  });
+  const fetchedActivity = useComputerActivity(agentId, { enabled: connected });
 
   const openRef = useRef(openSocket);
   openRef.current = openSocket;
@@ -120,6 +128,10 @@ export function ComputerSession({
     setLiveActivity([]);
     setHasFrame(false);
     latestFrame.current = undefined;
+    if (!connected) {
+      setConnection("closed");
+      return;
+    }
     const socket = new ComputerSocket({
       url: api.computer.wsUrl(agentId),
       open: openRef.current,
@@ -147,7 +159,7 @@ export function ComputerSession({
       socket.stop();
       if (socketRef.current === socket) socketRef.current = null;
     };
-  }, [agentId]);
+  }, [agentId, connected]);
 
   const send = useCallback((message: ComputerClientMessage) => socketRef.current?.send(message) ?? false, []);
   const subscribeFrames = useCallback((listener: (frame: Frame) => void) => {
@@ -162,7 +174,8 @@ export function ComputerSession({
     return false;
   }, []);
 
-  const status = liveStatus ?? fetchedStatus.data ?? null;
+  // Unwatched, nothing is known: an older status could still hold a secret request or a call for help.
+  const status = connected ? (liveStatus ?? fetchedStatus.data ?? null) : null;
   const activity = useMemo(
     () => mergeActivity(fetchedActivity.data ?? [], liveActivity),
     [fetchedActivity.data, liveActivity],
