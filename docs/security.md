@@ -208,7 +208,9 @@ file, run a script.
 
 - **File tools stay in the workspace.** No absolute paths, no `..`, a `realpath` check of where a
   path really lands so a symlink cannot lead outside, and files opened with `O_NOFOLLOW` so a link
-  swapped in afterwards fails rather than being followed. A preset keeps them away from `.env`, SSH
+  swapped in afterwards fails rather than being followed. A file with more than one hard link is
+  never written, since it may be a file outside the workspace, and only regular files are read or
+  written, so a named pipe cannot make a read wait forever. A preset keeps them away from `.env`, SSH
   keys, `.pem` files and cloud credentials.
 - **Commands run with `bash -c` in the workspace,** never a login shell, with an environment
   limited to `PATH`, the locale and terminal variables, and `TZ`. Each command gets a new, empty

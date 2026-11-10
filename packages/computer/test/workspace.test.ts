@@ -1,9 +1,11 @@
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { link, mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
+import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ComputerError } from "../src/errors.ts";
-import { decodeUtf8Head, formatBytes, Workspace, workspaceParts } from "../src/workspace.ts";
+import { decodeUtf8Head, formatBytes, LIST_LIMIT, Workspace, workspaceParts } from "../src/workspace.ts";
 
 let base: string;
 let outside: string;
@@ -118,6 +120,69 @@ describe("Workspace", () => {
 });
 
 describe("helpers", () => {
+  it("refuses pipes and sockets at once instead of waiting on them", async () => {
+    const pipe = join(root, "pipe");
+    expect(spawnSync("mkfifo", [pipe]).status).toBe(0);
+    const started = Date.now();
+    const read = await refusal(() => ws.read("pipe"));
+    expect(read).toMatchObject({
+      code: "bad_input",
+      message: "pipe is not a regular file, so the file tools cannot use it.",
+    });
+    const write = await refusal(() => ws.write("pipe", "x"));
+    expect(write.message).toBe("pipe is not a regular file, so the file tools cannot use it.");
+    expect(Date.now() - started).toBeLessThan(2_000);
+
+    const server = createServer();
+    await new Promise<void>((resolve) => server.listen(join(root, "sock"), resolve));
+    try {
+      expect((await refusal(() => ws.read("sock"))).message).toMatch(/not a regular file/);
+      expect((await refusal(() => ws.write("sock", "x"))).message).toMatch(/not a regular file/);
+      // Listings leave them out: nothing the file tools could open.
+      const paths = (await ws.list()).map((f) => f.path);
+      expect(paths).not.toContain("pipe");
+      expect(paths).not.toContain("sock");
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+      await rm(pipe, { force: true });
+    }
+  });
+
+  it("never writes through a hard link to a file outside", async () => {
+    const target = join(outside, "linked.txt");
+    await writeFile(target, "outside content");
+    await link(target, join(root, "linked.txt"));
+    const refused = await refusal(() => ws.write("linked.txt", "overwritten through the workspace"));
+    expect(refused.message).toBe(
+      "linked.txt is linked to another file, so Steward will not change it. Save it under a new name instead.",
+    );
+    expect(await readFile(target, "utf8")).toBe("outside content");
+    // Replacing an ordinary file still works, and leaves no stale tail behind.
+    await ws.write("plain.txt", "a longer first version");
+    await ws.write("plain.txt", "short");
+    expect(await readFile(join(root, "plain.txt"), "utf8")).toBe("short");
+    expect((await stat(join(root, "plain.txt"))).nlink).toBe(1);
+  });
+
+  it("lists one level when asked, and says when the cap cut a listing short", async () => {
+    await ws.write("tree/a/deep.txt", "x");
+    await ws.write("tree/top.txt", "x");
+    expect((await ws.list("tree", { recursive: false })).map((f) => f.path)).toEqual([
+      "tree/a",
+      "tree/top.txt",
+    ]);
+    expect((await ws.list("tree")).map((f) => f.path)).toEqual(["tree/a", "tree/a/deep.txt", "tree/top.txt"]);
+    expect((await ws.listing("tree")).truncated).toBe(false);
+
+    await mkdir(join(root, "many"));
+    await Promise.all(
+      Array.from({ length: LIST_LIMIT + 1 }, (_, i) => writeFile(join(root, "many", `f${i}.txt`), "")),
+    );
+    const many = await ws.listing("many");
+    expect(many.files).toHaveLength(LIST_LIMIT);
+    expect(many.truncated).toBe(true);
+  });
+
   it("formats sizes for people", () => {
     expect(formatBytes(1)).toBe("1 byte");
     expect(formatBytes(512)).toBe("512 bytes");

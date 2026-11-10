@@ -223,9 +223,13 @@ keychain prompt appears.
 Files live in `computers/<agentId>/workspace`. Paths must be relative; absolute paths, `~` and any
 `..` are refused before the disk is touched. The real path of the parent folder, and of the file
 when it exists, must stay inside the workspace, so a symlink cannot lead out; files are then opened
-with `O_NOFOLLOW` at the checked path. Reads stop at 256 KiB by default (8 MiB at most) and refuse
-binary files; writes stop at 5 MiB. Listings are recursive, at most 500 entries, and do not walk
-into `node_modules` or `.git`. Downloads land in `downloads/`.
+with `O_NOFOLLOW` at the checked path. Only regular files are read or written: a named pipe,
+socket or device is refused at once (a read of a pipe would otherwise wait forever), and a file with
+more than one hard link is never changed, because it may be the same file as one outside the
+workspace. Reads stop at 256 KiB by default (8 MiB at most) and refuse binary files; writes stop at
+5 MiB. Listings are recursive (or one level, with `recursive: false`), at most 500 entries, and do
+not walk into `node_modules` or `.git`; `listing()` also says whether the cap cut it short.
+Downloads land in `downloads/`.
 
 The shell runs `bash --noprofile --norc -c <command>` with the workspace as the working folder and
 `TMPDIR` set to the computer's own `tmp`. `HOME` is a new empty folder in `tmp` for every command,

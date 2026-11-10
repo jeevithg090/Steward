@@ -7,11 +7,16 @@
  * then opened with O_NOFOLLOW at the checked real path, so a link swapped in afterwards fails
  * instead of being followed.
  *
+ * Only regular files are read or written. A named pipe would block a read forever (and a few
+ * of them would stall all of Node's file system work), so files are opened non-blocking and checked
+ * after opening. A file with more than one hard link may be the same file as one outside the
+ * workspace, so it is never changed.
+ *
  * This guards the file tools only. The shell runs as the same user and is governed separately
  * (it asks before running by default).
  */
 import { constants } from "node:fs";
-import { lstat, mkdir, open, readdir, realpath, stat } from "node:fs/promises";
+import { type FileHandle, lstat, mkdir, open, readdir, realpath, stat } from "node:fs/promises";
 import { isAbsolute, join, relative, sep } from "node:path";
 import type { WorkspaceFile } from "@steward/shared";
 import { ComputerError } from "./errors.ts";
@@ -83,8 +88,21 @@ export class Workspace {
     return this.rootPath ?? (await this.init());
   }
 
-  /** Everything under `dir` (the whole workspace by default), folders first, at most 500 entries. */
-  async list(dir?: string): Promise<WorkspaceFile[]> {
+  /**
+   * What is under `dir` (the whole workspace by default), in name order with each folder followed
+   * by what is in it, at most 500 entries. `recursive: false` lists one level only. Pipes, sockets
+   * and devices are left out: the file tools cannot use them.
+   */
+  async list(dir?: string, opts: { recursive?: boolean } = {}): Promise<WorkspaceFile[]> {
+    return (await this.listing(dir, opts)).files;
+  }
+
+  /** The same, with whether the 500-entry cap cut the listing short. */
+  async listing(
+    dir?: string,
+    opts: { recursive?: boolean } = {},
+  ): Promise<{ files: WorkspaceFile[]; truncated: boolean }> {
+    const recursive = opts.recursive ?? true;
     const root = await this.root();
     const parts = workspaceParts(dir ?? "", { allowRoot: true });
     let base: string;
@@ -101,11 +119,15 @@ export class Workspace {
       throw new ComputerError("bad_input", `${parts.join("/")} is a file, not a folder.`);
 
     const out: WorkspaceFile[] = [];
+    let truncated = false;
     const walk = async (realDir: string, shown: string, depth: number): Promise<void> => {
       const entries = await readdir(realDir, { withFileTypes: true }).catch(() => []);
       entries.sort((a, b) => a.name.localeCompare(b.name));
       for (const entry of entries) {
-        if (out.length >= LIST_LIMIT) return;
+        if (out.length >= LIST_LIMIT) {
+          truncated = true;
+          return;
+        }
         const real = join(realDir, entry.name);
         const path = shown ? `${shown}/${entry.name}` : entry.name;
         let target = real;
@@ -116,20 +138,26 @@ export class Workspace {
           target = resolved;
         }
         const st = await stat(target).catch(() => undefined);
-        if (!st) continue;
+        if (!st || !(st.isFile() || st.isDirectory())) continue;
         out.push({
           path,
           size: st.isDirectory() ? 0 : st.size,
           modifiedAt: st.mtime.toISOString(),
           isDirectory: st.isDirectory(),
         });
-        if (st.isDirectory() && !entry.isSymbolicLink() && !NOT_WALKED.has(entry.name) && depth < MAX_DEPTH) {
+        if (
+          recursive &&
+          st.isDirectory() &&
+          !entry.isSymbolicLink() &&
+          !NOT_WALKED.has(entry.name) &&
+          depth < MAX_DEPTH
+        ) {
           await walk(real, path, depth + 1);
         }
       }
     };
     await walk(base, toPosix(parts.join("/")), 0);
-    return out;
+    return { files: out, truncated };
   }
 
   /** Reads up to `maxBytes` of a text file. Refuses binary files rather than returning noise. */
@@ -152,12 +180,19 @@ export class Workspace {
       1,
       Math.min(MAX_READ_BYTES, Math.floor(Number.isFinite(maxBytes) ? maxBytes : DEFAULT_READ_BYTES)),
     );
-    const handle = await open(real, constants.O_RDONLY | constants.O_NOFOLLOW).catch((error: unknown) => {
-      throw code(error) === "ELOOP" ? outside() : error;
+    // Pipes, sockets and devices are refused before opening; non-blocking covers one swapped in after.
+    const before = await stat(real).catch(() => undefined);
+    if (before && !before.isFile() && !before.isDirectory()) throw notRegular(shown);
+    const flags = constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK;
+    const handle = await open(real, flags).catch((error: unknown) => {
+      if (code(error) === "ELOOP") throw outside();
+      if (code(error) === "ENXIO" || code(error) === "EOPNOTSUPP") throw notRegular(shown);
+      throw error;
     });
     try {
       const info = await handle.stat();
       if (info.isDirectory()) throw new ComputerError("bad_input", `${shown} is a folder. List it instead.`);
+      if (!info.isFile()) throw notRegular(shown);
       const length = Math.min(info.size, limit);
       const buffer = Buffer.alloc(length);
       const { bytesRead } = await handle.read(buffer, 0, length, 0);
@@ -187,6 +222,7 @@ export class Workspace {
     const parent = await this.realParent(root, parts.slice(0, -1));
     let target = join(parent, name);
 
+    const shown = parts.join("/");
     const existing = await lstat(target).catch(() => undefined);
     if (existing?.isSymbolicLink()) {
       // Writing follows links, so check where this one really lands. A dangling link is refused.
@@ -194,27 +230,23 @@ export class Workspace {
       if (!resolved || !isInside(root, resolved)) throw outside();
       target = resolved;
     }
-    if (existing && (await stat(target)).isDirectory()) {
-      throw new ComputerError("bad_input", `${parts.join("/")} is a folder.`);
-    }
+    const info = existing ? await stat(target) : undefined;
+    if (info?.isDirectory()) throw new ComputerError("bad_input", `${shown} is a folder.`);
+    if (info && !info.isFile()) throw notRegular(shown);
 
-    const handle = await open(
-      target,
-      constants.O_WRONLY | constants.O_CREAT | constants.O_TRUNC | constants.O_NOFOLLOW,
-      0o644,
-    ).catch((error: unknown) => {
-      throw code(error) === "ELOOP" ? outside() : error;
-    });
+    const handle = await openForWrite(target, shown, existing !== undefined);
+    let saved: Awaited<ReturnType<FileHandle["stat"]>>;
     try {
+      await handle.truncate(0);
       await handle.writeFile(bytes);
+      saved = await handle.stat();
     } finally {
       await handle.close();
     }
-    const info = await stat(target);
     return {
-      path: parts.join("/"),
-      size: info.size,
-      modifiedAt: info.mtime.toISOString(),
+      path: shown,
+      size: saved.size,
+      modifiedAt: saved.mtime.toISOString(),
       isDirectory: false,
     };
   }
@@ -248,6 +280,50 @@ export class Workspace {
     const final = await realpath(created);
     if (!isInside(root, final)) throw outside();
     return final;
+  }
+}
+
+function notRegular(shown: string): ComputerError {
+  return new ComputerError("bad_input", `${shown} is not a regular file, so the file tools cannot use it.`);
+}
+
+/**
+ * Opens a file to replace its content, without truncating it yet: a new file is created exclusively,
+ * and an existing one must be a regular file with a single link, checked on the open handle, so
+ * neither a pipe nor a hard link to a file outside the workspace is written through.
+ */
+async function openForWrite(target: string, shown: string, exists: boolean): Promise<FileHandle> {
+  const fail = (error: unknown): never => {
+    if (code(error) === "ELOOP") throw outside();
+    if (code(error) === "ENXIO" || code(error) === "EOPNOTSUPP") throw notRegular(shown);
+    throw error;
+  };
+  const base = constants.O_WRONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK;
+  let handle: FileHandle | undefined;
+  if (!exists) {
+    handle = await open(target, base | constants.O_CREAT | constants.O_EXCL, 0o644).catch(
+      (error: unknown) => {
+        // Made by someone else since the check: treat it as existing.
+        if (code(error) === "EEXIST") return undefined;
+        return fail(error);
+      },
+    );
+    if (handle) return handle;
+  }
+  handle = await open(target, base).catch(fail);
+  try {
+    const info = await handle.stat();
+    if (!info.isFile()) throw notRegular(shown);
+    if (info.nlink > 1) {
+      throw new ComputerError(
+        "bad_input",
+        `${shown} is linked to another file, so Steward will not change it. Save it under a new name instead.`,
+      );
+    }
+    return handle;
+  } catch (error) {
+    await handle.close().catch(() => {});
+    throw error;
   }
 }
 
