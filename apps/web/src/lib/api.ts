@@ -455,6 +455,7 @@ export const queryKeys = {
   phoneCatalogue: ["phone", "catalogue"] as const,
   devices: ["devices"] as const,
   botList: (query: BotsQueryInput) => ["bots", "list", query] as const,
+  botPages: (query: Omit<BotsQueryInput, "offset">) => ["bots", "pages", query] as const,
   botsInstalled: ["bots", "installed"] as const,
 };
 
@@ -918,6 +919,23 @@ export function useBots(query: BotsQueryInput = {}, opts?: QueryOpts<BotsRespons
     queryFn: ({ signal }) => api.bots.list(query, signal),
     staleTime: 60_000,
     ...opts,
+  });
+}
+
+/**
+ * The directory a page at a time, for a list that grows with "Show more": each page asks from where
+ * the last one ended, until every match is loaded.
+ */
+export function useBotPages(query: Omit<BotsQueryInput, "offset">) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.botPages(query),
+    queryFn: ({ pageParam, signal }) => api.bots.list({ ...query, offset: pageParam }, signal),
+    initialPageParam: 0,
+    getNextPageParam: (last: BotsResponse, pages: BotsResponse[]) => {
+      const loaded = pages.reduce((sum, page) => sum + page.bots.length, 0);
+      return last.bots.length > 0 && loaded < last.total ? loaded : undefined;
+    },
+    staleTime: 60_000,
   });
 }
 

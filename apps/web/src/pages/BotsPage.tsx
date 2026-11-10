@@ -13,10 +13,17 @@ import { Card } from "@/components/ui/Card.tsx";
 import { Dialog } from "@/components/ui/Dialog.tsx";
 import { EmptyState } from "@/components/ui/EmptyState.tsx";
 import { ChoiceGroup, Field, Input, Select } from "@/components/ui/Field.tsx";
-import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
+import { ErrorNotice, Loading, Notice } from "@/components/ui/Notice.tsx";
 import { Page } from "@/components/ui/PageHeader.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
-import { type BotsQueryInput, useBots, useInfo, useInstalledBots, useRemoveBot } from "@/lib/api.ts";
+import {
+  type BotsQueryInput,
+  useBotPages,
+  useBots,
+  useInfo,
+  useInstalledBots,
+  useRemoveBot,
+} from "@/lib/api.ts";
 import { plural } from "@/lib/utils.ts";
 
 /**
@@ -35,7 +42,10 @@ const SORTS: { value: Sort; label: string }[] = [
 
 /** How long typing settles before the directory is asked. */
 const SEARCH_DELAY_MS = 250;
+/** Bots per page; "Show more" asks for the next page. */
 const PAGE_SIZE = 60;
+/** How to build the bundled directory, for a Steward run from its repository. */
+const BUILD_COMMAND = "pnpm --filter @steward/bots-gen seed build";
 
 function isSort(value: string | null): value is Sort {
   return value === "match" || value === "new" || value === "used";
@@ -54,13 +64,14 @@ export function BotsPage() {
 
   const info = useInfo();
   const installed = useInstalledBots();
-  const query: BotsQueryInput = {
+  const query: Omit<BotsQueryInput, "offset"> = {
     ...(q ? { q } : {}),
     ...(category ? { category } : {}),
     sort,
     limit: PAGE_SIZE,
   };
-  const browse = useBots(query);
+  const browse = useBotPages(query);
+  const first = browse.data?.pages[0];
   // Suggested for you: inbox bots when mail is connected, everyday ones otherwise.
   const suggestedCategory: BotCategory = info.data?.mail.connected ? "productivity" : "misc";
   const suggested = useBots({ category: suggestedCategory, sort: "used", limit: 4 }, { enabled: !filtering });
@@ -68,7 +79,7 @@ export function BotsPage() {
   const [opened, setOpened] = useState<BotListing | undefined>();
   const [making, setMaking] = useState(false);
 
-  const categories = browse.data?.categories ?? (BOT_CATEGORIES as Record<string, string>);
+  const categories = first?.categories ?? (BOT_CATEGORIES as Record<string, string>);
   const installedById = new Map((installed.data ?? []).map((bot) => [bot.id, bot]));
 
   const set = useCallback(
@@ -89,7 +100,9 @@ export function BotsPage() {
   );
 
   const suggestions = (suggested.data?.bots ?? []).filter((bot) => !installedById.has(bot.id)).slice(0, 4);
-  const results = browse.data?.bots ?? [];
+  const results = uniqueById((browse.data?.pages ?? []).flatMap((page) => page.bots));
+  const total = Math.max(first?.total ?? 0, results.length);
+  const problem = first?.directory?.problem;
   const makeCard = (
     <Card
       as="article"
@@ -149,20 +162,37 @@ export function BotsPage() {
 
       <Section
         title={filtering ? "Results" : "Browse"}
+        live
         caption={
           browse.data
-            ? `${plural(browse.data.total ?? results.length, "bot")}${category ? ` in ${categoryLabel(category, categories)}` : ""}${q ? ` for “${q}”` : ""}`
+            ? resultsCaption(results.length, total, {
+                category: category ? categoryLabel(category, categories) : undefined,
+                q,
+              })
             : undefined
         }
       >
         {browse.isPending ? (
           <Loading>Loading the directory…</Loading>
-        ) : browse.isError ? (
+        ) : browse.isError && results.length === 0 ? (
           <ErrorNotice
             title="Couldn't load the directory"
             error={browse.error}
             onRetry={() => void browse.refetch()}
           />
+        ) : results.length === 0 && problem ? (
+          <Notice tone="needs" title={problem}>
+            <p className="m-0">
+              If you run Steward from its repository, build the directory with{" "}
+              <code className="break-all">{BUILD_COMMAND}</code>, then reload this page. You can still make a
+              bot of your own.
+            </p>
+            <div className="mt-2">
+              <Button size="sm" icon={<WandSparkles />} onClick={() => setMaking(true)}>
+                Make a bot
+              </Button>
+            </div>
+          </Notice>
         ) : results.length === 0 ? (
           <EmptyState
             icon={Bot}
@@ -193,6 +223,20 @@ export function BotsPage() {
             <li>{makeCard}</li>
           </Grid>
         )}
+        {results.length > 0 && browse.isFetchNextPageError ? (
+          <ErrorNotice
+            title="Couldn't load more bots"
+            error={browse.error}
+            onRetry={() => void browse.fetchNextPage()}
+          />
+        ) : null}
+        {results.length > 0 && browse.hasNextPage && !browse.isFetchNextPageError ? (
+          <div className="flex justify-center">
+            <Button loading={browse.isFetchingNextPage} onClick={() => void browse.fetchNextPage()}>
+              Show more bots
+            </Button>
+          </div>
+        ) : null}
       </Section>
 
       <Dialog
@@ -217,7 +261,35 @@ export function BotsPage() {
   );
 }
 
-function Section({ title, caption, children }: { title: string; caption?: string; children: ReactNode }) {
+/** "Showing 60 of 1,251 bots", or "12 bots in Money & finance for “rent”" once all are shown. */
+function resultsCaption(
+  shown: number,
+  total: number,
+  filter: { category?: string; q?: string } = {},
+): string {
+  const scope = `${filter.category ? ` in ${filter.category}` : ""}${filter.q ? ` for “${filter.q}”` : ""}`;
+  const all = `${total.toLocaleString()} ${total === 1 ? "bot" : "bots"}`;
+  return shown < total ? `Showing ${shown.toLocaleString()} of ${all}${scope}` : `${all}${scope}`;
+}
+
+/** The listings once each: a page that shifted under a changing sort can repeat a bot. */
+function uniqueById(listings: BotListing[]): BotListing[] {
+  const seen = new Set<string>();
+  return listings.filter((listing) => !seen.has(listing.id) && Boolean(seen.add(listing.id)));
+}
+
+function Section({
+  title,
+  caption,
+  live = false,
+  children,
+}: {
+  title: string;
+  caption?: string;
+  /** The caption says how many results there are, so a screen reader hears it change. */
+  live?: boolean;
+  children: ReactNode;
+}) {
   const id = useId();
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
@@ -225,7 +297,14 @@ function Section({ title, caption, children }: { title: string; caption?: string
         <h2 id={id} className="m-0 font-semibold text-ink text-title">
           {title}
         </h2>
-        {caption ? <p className="m-0 mt-0.5 text-caption text-ink-2">{caption}</p> : null}
+        {live ? (
+          // Always in the page, so the change from loading to a count is announced.
+          <p role="status" className="m-0 mt-0.5 text-caption text-ink-2">
+            {caption ?? ""}
+          </p>
+        ) : caption ? (
+          <p className="m-0 mt-0.5 text-caption text-ink-2">{caption}</p>
+        ) : null}
       </div>
       {children}
     </section>

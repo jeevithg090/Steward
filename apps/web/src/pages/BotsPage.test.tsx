@@ -1,4 +1,4 @@
-import type { AppInfo, BotPreview } from "@steward/shared";
+import type { AppInfo, BotListing, BotPreview } from "@steward/shared";
 import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { Route, Routes, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -43,21 +43,33 @@ function serve(
     mailConnected?: boolean;
     /** The preview to answer with, in place of the fixture's. */
     preview?: BotPreview;
+    /** The directory's listings, in place of the two fixtures. */
+    listings?: BotListing[];
+    /** What the server says when it has no directory to read. */
+    problem?: string;
   } = {},
 ) {
+  const listings = opts.listings ?? LISTINGS;
   return mockFetch((req: FakeRequest) => {
     if (req.path === "/api/info")
       return { body: { ...INFO, mail: { ...INFO.mail, connected: opts.mailConnected ?? false } } };
     if (req.path === "/api/bots" && req.method === "GET") {
       const q = req.query.get("q")?.toLowerCase();
       const category = req.query.get("category");
-      const bots = LISTINGS.filter(
+      const matches = listings.filter(
         (bot) =>
           (!q || `${bot.id} ${bot.name}`.toLowerCase().includes(q)) &&
           (!category || bot.category === category),
       );
+      const offset = Number(req.query.get("offset") ?? 0);
+      const limit = Number(req.query.get("limit") ?? 50);
       return {
-        body: { bots, total: bots.length, categories: { home: "Home & family", money: "Money & finance" } },
+        body: {
+          bots: matches.slice(offset, offset + limit),
+          total: matches.length,
+          categories: { home: "Home & family", money: "Money & finance" },
+          ...(opts.problem ? { directory: { name: "", problem: opts.problem } } : {}),
+        },
       };
     }
     if (req.path === "/api/bots/installed") return { body: opts.installed ?? [] };
@@ -106,6 +118,68 @@ describe("BotsPage", () => {
     expect(screen.getByRole("radio", { name: "Home & family" })).toBeTruthy();
     expect(screen.getByRole("combobox", { name: "Sort by" })).toBeTruthy();
     expect(screen.getByRole("article", { name: "Make a bot" })).toBeTruthy();
+  });
+
+  it("shows a page of bots at a time, and Show more asks from where the last page ended", async () => {
+    const many = Array.from({ length: 75 }, (_, i) =>
+      listingOf(RENT_SCOUT, { id: `bot-${i + 1}`, name: `Bot ${i + 1}`, category: "home" }),
+    );
+    const { calls } = serve({ listings: many });
+    renderWithProviders(<BotsPage />, { route: "/bots" });
+    const browse = await screen.findByRole("region", { name: "Browse" });
+    const names = () => [...browse.querySelectorAll("article h3")].map((h) => h.textContent);
+    await within(browse).findByText("Bot 60");
+    expect(names()).toHaveLength(61); // 60 bots and Make a bot
+    expect(within(browse).queryByText("Bot 61")).toBeNull();
+    // The count is a live status, so a screen reader hears it change.
+    expect(within(browse).getByRole("status").textContent).toBe("Showing 60 of 75 bots");
+
+    fireEvent.click(within(browse).getByRole("button", { name: "Show more bots" }));
+    await within(browse).findByText("Bot 75");
+    expect(names()).toHaveLength(76);
+    expect(names()[0]).toBe("Bot 1");
+    expect(within(browse).getByRole("status").textContent).toBe("75 bots");
+    expect(within(browse).queryByRole("button", { name: "Show more bots" })).toBeNull();
+    const pages = calls.filter((c) => c.path === "/api/bots" && !c.query.has("category"));
+    expect(pages.map((c) => c.query.get("offset"))).toEqual(["0", "60"]);
+  }, 20_000);
+
+  it("searches as you type, after a pause, and filters by category", async () => {
+    const { calls } = serve();
+    renderWithProviders(
+      <>
+        <BotsPage />
+        <Where />
+      </>,
+      { route: "/bots" },
+    );
+    const browse = await screen.findByRole("region", { name: "Browse" });
+    await within(browse).findByRole("article", { name: "Invoice Chaser" });
+    fireEvent.change(screen.getByRole("searchbox", { name: "What do you need a bot for?" }), {
+      target: { value: "rent" },
+    });
+    // Nothing is asked while the words are still coming.
+    expect(screen.getByTestId("where").textContent).toBe("/bots");
+    await waitFor(() => expect(screen.getByTestId("where").textContent).toBe("/bots?q=rent"));
+    const results = await screen.findByRole("region", { name: "Results" });
+    await within(results).findByRole("article", { name: "Rent Scout" });
+    expect(within(results).queryByRole("article", { name: "Invoice Chaser" })).toBeNull();
+    expect(within(results).getByRole("status").textContent).toBe("1 bot for “rent”");
+    expect(calls.some((c) => c.path === "/api/bots" && c.query.get("q") === "rent")).toBe(true);
+
+    fireEvent.click(screen.getByRole("radio", { name: "Money & finance" }));
+    await waitFor(() => expect(screen.getByTestId("where").textContent).toBe("/bots?q=rent&category=money"));
+    expect(await within(results).findByRole("heading", { name: "No bots match" })).toBeTruthy();
+    expect(within(results).getByRole("status").textContent).toBe("0 bots in Money & finance for “rent”");
+  });
+
+  it("says when the directory has not been built, and how to build it, instead of 'empty'", async () => {
+    serve({ listings: [], problem: "The bot directory has not been built yet." });
+    renderWithProviders(<BotsPage />, { route: "/bots" });
+    const browse = await screen.findByRole("region", { name: "Browse" });
+    expect(await within(browse).findByText("The bot directory has not been built yet.")).toBeTruthy();
+    expect(within(browse).getByText("pnpm --filter @steward/bots-gen seed build")).toBeTruthy();
+    expect(within(browse).queryByText("The directory is empty")).toBeNull();
   });
 
   it("suggests inbox bots when mail is connected, everyday ones otherwise", async () => {
