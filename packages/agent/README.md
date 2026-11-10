@@ -120,7 +120,8 @@ limit say so, and the AG-UI state tools BuiltInAgent adds are "not available her
 tool's call whose only slips are ones its argument readers accept (an optional field sent as
 null, a number sent as text or outside its range, one text where a list of text belongs) is put
 right and goes to the gateway as the corrected call, which is what the record keeps. MCP tools are
-never corrected: their server reads its own arguments.
+never corrected, because their server reads its own arguments, and nor are display tools, because
+the web app draws them from the call as the model wrote it.
 
 The same call failing three times, three model turns in a row of calls that could not run, or a
 second call cut off at the reply limit, stop the run with a plain sentence instead of using every

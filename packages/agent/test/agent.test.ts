@@ -1055,6 +1055,7 @@ describe("history and errors", () => {
               { name: "mail_list", arguments: JSON.stringify({ unreadOnly: "yes" }) },
               { name: "mcp__notes__add", arguments: JSON.stringify({ text: "milk", pinned: null }) },
               { name: "send_email", arguments: JSON.stringify({ to: "sam@example.com" }) },
+              { name: "show_table", arguments: JSON.stringify({ title: "Ages", columns: "Name", rows: [] }) },
             ],
           },
     );
@@ -1066,6 +1067,8 @@ describe("history and errors", () => {
       // An MCP server's tool is never corrected: its server reads its own arguments.
       { ok: false, error: 'Leave out "pinned" instead of sending null.' },
       { ok: false, error: 'There is no tool called "send_email". Use only the tools you are offered.' },
+      // The web app draws a display tool from the call as written, so it is never corrected.
+      { ok: false, error: '"columns" must be a list, such as ["Name"].' },
     ]);
     // What the model reads next is what was emitted.
     const sent = requests()[1]?.messages.filter((m) => m.role === "tool") ?? [];

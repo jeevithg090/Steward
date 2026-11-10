@@ -844,7 +844,7 @@ export class GovernedToolsMiddleware extends Middleware {
         ? { content: serialise({ ok: false, error: cutOffAt(this.opts.maxOutputTokens) }), cutOff: true }
         : { content: serialise({ ok: false, error: BAD_JSON }) };
     }
-    if (tool.source === "builtin" && !explainArgs(tool.parameters, forgiveArgs(tool.parameters, args))) {
+    if (correctable(tool) && !explainArgs(tool.parameters, forgiveArgs(tool.parameters, args))) {
       return "rescue";
     }
     return {
@@ -893,7 +893,7 @@ export class GovernedToolsMiddleware extends Middleware {
       // field sent as null, a number sent as text) runs as the corrected call, which is what the
       // gateway decides on and the record keeps. The same correction on a resume keeps it the
       // exact call the person answered.
-      if (tool.source === "builtin" && explainArgs(tool.parameters, args)) {
+      if (correctable(tool) && explainArgs(tool.parameters, args)) {
         const forgiven = forgiveArgs(tool.parameters, args);
         if (!explainArgs(tool.parameters, forgiven)) args = forgiven;
       }
@@ -1295,6 +1295,15 @@ function withdrawnTool(name: string): StewardTool | undefined {
 /** What BuiltInAgent would have given the model for an interrupt that is not Steward's. */
 function foreignResumeValue(entry: ResumeEntry): unknown {
   return entry.status === "cancelled" ? { status: "cancelled" } : (entry.payload ?? { status: "resolved" });
+}
+
+/**
+ * Whether a call's small slips may be put right before it runs. Only Steward's own tools, whose
+ * readers accept those slips anyway; never an MCP server's, which reads its own arguments; and
+ * never a display tool, which the web app draws from the call's arguments as the model wrote them.
+ */
+function correctable(tool: StewardTool): boolean {
+  return tool.source === "builtin" && tool.kind !== "ui";
 }
 
 /** A call's arguments as an object, or `undefined` when they are not JSON or not an object. */
