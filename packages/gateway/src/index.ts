@@ -5,7 +5,7 @@
  * exactly once, and a hash-chained record. `createGateway` is the entry point; the rest is exported
  * for the server, the agent and tests.
  */
-export { type ApprovalRecord, alwaysRuleFor, SqliteApprovalStore } from "./approvals.ts";
+export { type AlwaysRule, type ApprovalRecord, alwaysRuleFor, SqliteApprovalStore } from "./approvals.ts";
 export { type AuditPageOptions, GENESIS_HASH, hashEvent, SqliteAuditLog } from "./audit.ts";
 export { CelEngine, celString, FUNCTION_NAMES, RuleSyntaxError, unescapeCelString } from "./cel.ts";
 export { buildContext, CONTEXT_SCHEMA, neutralContext, type PolicyContext } from "./context.ts";

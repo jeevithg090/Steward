@@ -593,10 +593,60 @@ describe("always allow", () => {
     expect(approval.summary).toBe("Press Enter in 'Message' on mail.example, which clicks 'Send'");
     const decided = gw.approvals.decide(approval.id, "always", "local");
     expect(gw.rules.get(decided.createdRuleId ?? "")?.when).toBe(
-      'tool.name == "browser_press" && target.host == "mail.example" && target.element.name == "Message" && tool.kind == "send"',
+      'tool.name == "browser_press" && target.host == "mail.example" && target.element.name == "Message" && tool.kind == "send" && size(target.recipients) == 0',
     );
     expect(gw.governance.dryRun(press("Post reply")).effect).toBe("allow");
     expect(gw.governance.dryRun(press("Delete conversation")).effect).toBe("ask");
+  });
+
+  it("pins 'nobody' when the approved call had no recipients, so a later invite still asks", async () => {
+    const { gw } = setup();
+    const event = (attendees?: string[]) =>
+      gateCall("calendar_create", {
+        title: "Focus time",
+        start: "2026-10-28T09:00:00Z",
+        ...(attendees ? { attendees } : {}),
+      });
+    const approval = parked(await gw.governance.execute(event(), async () => null));
+    const decided = gw.approvals.decide(approval.id, "always", "local");
+    expect(gw.rules.get(decided.createdRuleId ?? "")?.when).toBe(
+      'tool.name == "calendar_create" && size(target.recipients) == 0',
+    );
+    expect(gw.governance.dryRun(event()).effect).toBe("allow");
+    expect(gw.governance.dryRun(event(["stranger@evil.example"])).effect).toBe("ask");
+  });
+
+  it("is not offered for a browser action the rule could not name", async () => {
+    const { gw } = setup();
+    const before = gw.rules.list().length;
+    const press = (key: string, element: Record<string, unknown>) =>
+      gateCall(
+        "browser_press",
+        { key },
+        { target: { host: "mail.example", element: { ref: "", role: "textbox", ...element } } },
+      );
+    // Neither the field nor the control Enter would press has a name.
+    const blind = parked(await gw.governance.execute(press("Enter", { name: "" }), async () => null));
+    expect(blind.canAlways).toBe(false);
+    expect(() => gw.approvals.decide(blind.id, "always", "local")).toThrow(/Always allow is not offered/);
+    // A named field, but the computer could not name what Enter activates.
+    const unknownControl = parked(
+      await gw.governance.execute(press("Control+Enter", { name: "Reply to all" }), async () => null),
+    );
+    expect(unknownControl.canAlways).toBe(false);
+    // Typing with submit presses Enter afterwards: the same applies.
+    const submitted = parked(
+      await gw.governance.execute(
+        gateCall(
+          "browser_type",
+          { ref: "e4", text: "Thanks", submit: true },
+          { target: { host: "mail.example", element: { ref: "e4", role: "textbox", name: "Post a reply" } } },
+        ),
+        async () => null,
+      ),
+    );
+    expect(submitted.canAlways).toBe(false);
+    expect(gw.rules.list()).toHaveLength(before);
   });
 
   it("scopes MCP tools to the server", async () => {
@@ -605,7 +655,7 @@ describe("always allow", () => {
     const approval = parked(await gw.governance.execute(call, async () => null));
     const decided = gw.approvals.decide(approval.id, "always", "local");
     expect(gw.rules.get(decided.createdRuleId ?? "")?.when).toBe(
-      'tool.name == "mcp__github__create_issue" && target.mcp.server == "github"',
+      'tool.name == "mcp__github__create_issue" && target.mcp.server == "github" && size(target.recipients) == 0',
     );
   });
 

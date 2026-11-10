@@ -119,13 +119,33 @@ function rowToRecord(row: ApprovalRow): ApprovalRecord {
   return record;
 }
 
-/** What "Always allow" turns into. Scoped as narrowly as the call allows. */
-export function alwaysRuleFor(approval: Pick<Approval, "tool" | "target" | "summary">): {
+/** What "Always allow" writes: an `allow` rule with source `always`. */
+export interface AlwaysRule {
   name: string;
   when: string;
   description: string;
-} {
+}
+
+function named(name: unknown): boolean {
+  return typeof name === "string" && name.trim() !== "";
+}
+
+/**
+ * What "Always allow" turns into, scoped as narrowly as the call allows; undefined when a rule
+ * could not name what was approved, so Always allow must not be offered. A browser action on an
+ * element the computer could not name would allow any unnamed element on that host, and a key
+ * press whose control it could not name would allow whatever that key does next time.
+ */
+export function alwaysRuleFor(
+  approval: Pick<Approval, "tool" | "target" | "summary"> & { args?: Record<string, unknown> },
+): AlwaysRule | undefined {
   const { tool, target } = approval;
+  if (tool.surface === "browser") {
+    if (!named(target.element?.name)) return undefined;
+    const submits =
+      tool.name === "browser_press" || (tool.name === "browser_type" && approval.args?.submit === true);
+    if (submits && !named(target.element?.submitter?.name)) return undefined;
+  }
   const parts = [`tool.name == ${celString(tool.name)}`];
   const scope: string[] = [];
   if (target.host) {
@@ -144,12 +164,15 @@ export function alwaysRuleFor(approval: Pick<Approval, "tool" | "target" | "summ
     parts.push(`target.command == ${celString(target.command)}`);
     scope.push(`\`${truncate(target.command, 60)}\``);
   }
+  // The exact people, or nobody: an event approved with no guests never lets a later one invite anyone.
   const recipients = target.recipients ?? [];
   if (recipients.length > 0) {
     parts.push(
       `size(target.recipients) > 0 && target.recipients.all(r, r in [${recipients.map(celString).join(", ")}])`,
     );
     scope.push(`to ${listPeople(recipients)}`);
+  } else {
+    parts.push("size(target.recipients) == 0");
   }
   const label = target.mcp ? `${target.mcp.tool} on ${target.mcp.server}` : tool.name;
   return {
@@ -347,6 +370,12 @@ export class SqliteApprovalStore implements ApprovalStore {
         let created: Rule | undefined;
         if (answer === "always") {
           const rule = alwaysRuleFor(current);
+          if (!rule) {
+            throw new GatewayError(
+              "invalid",
+              "Always allow is not offered for this one. Allow it once, or refuse it.",
+            );
+          }
           created = this.rules.insert({ ...rule, effect: "allow", source: "always", enabled: true });
         }
         const status: ApprovalStatus = answer === "refuse" ? "refused" : "allowed";

@@ -210,7 +210,20 @@ tool.name == "mail_send" && size(target.recipients) > 0 && target.recipients.all
 
 The rule pins the tool, and also the host for browser and web calls, the element's name for a
 click, the exact command for the shell, the server for a connected app, and the exact recipients
-for a message. A message to Sam and someone new still asks.
+for a message. A message to Sam and someone new still asks. A call with no recipients pins that
+too (`size(target.recipients) == 0`), so always allowing an event with no guests never lets a
+later one invite anyone.
+
+Some things a rule cannot name, so it does not pin them:
+
+- **A key press.** The rule names the field and what kind of action the key turned out to be (a
+  send stays a send, so Enter that would delete still asks), but not the button the key presses.
+- **A connected app's arguments.** For a tool from a connected app, the rule names the tool and
+  the server, and the recipients when there are any, but not the tool's other arguments.
+
+Always allow is not offered at all for a browser action on an element the computer could not
+name, or for a key press (or typing that submits) when it could not name the control the key
+would press. A rule for those would allow any unnamed element on that site.
 
 These rules are listed on `/rules` under your own, with **Revoke**. Revoking one is recorded.
 

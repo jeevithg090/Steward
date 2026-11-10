@@ -389,9 +389,11 @@ export class GatewayGovernance implements Governance {
       const hours = this.deps.expiryHours();
       const expiresAt = new Date(this.deps.now().getTime() + hours * 3_600_000).toISOString();
       const digest = actionDigest(call);
-      // Only offer Always allow when the rule it would write can match this call exactly.
-      const offerAlways =
-        canAlways && alwaysRuleFor({ tool: call.tool, target: call.target, summary }).when.length <= 2000;
+      // Only offer Always allow when the rule it would write names this call and can match it exactly.
+      const always = canAlways
+        ? alwaysRuleFor({ tool: call.tool, target: call.target, summary, args: call.args })
+        : undefined;
+      const offerAlways = always !== undefined && always.when.length <= 2000;
       const { record, created } = this.deps.approvals.open({
         call,
         summary,
