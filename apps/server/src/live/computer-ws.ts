@@ -60,22 +60,77 @@ interface SocketLike {
   readonly readyState: number;
   send(data: string): void;
   close(code?: number, reason?: string): void;
+  /** Bytes sent but not yet written out, when the socket says. */
+  readonly bufferedAmount?: number;
+  /** The `ws` socket underneath Hono's context, which has `bufferedAmount`. */
+  readonly raw?: unknown;
+}
+
+/**
+ * While this much is still waiting to reach the browser, new frames are held back: a slow or
+ * stalled viewer would otherwise make the server queue JPEGs (50 to 150 KB each) without limit.
+ * Only the newest held frame is kept, and it goes out once the backlog drains.
+ */
+export const MAX_BUFFERED_FRAME_BYTES = 1024 * 1024;
+
+/** How often a held frame checks whether the backlog has drained. */
+export const FRAME_DRAIN_CHECK_MS = 100;
+
+function bufferedBytes(socket: SocketLike): number {
+  if (typeof socket.bufferedAmount === "number") return socket.bufferedAmount;
+  const raw = (socket.raw as { bufferedAmount?: unknown } | null | undefined)?.bufferedAmount;
+  return typeof raw === "number" ? raw : 0;
 }
 
 /**
  * One open screen: forwards the computer's frames, status and activity to the browser and passes
  * the person's input to `ComputerManager.handle`, which ignores it unless they hold control.
- * Error messages never repeat what was typed, so a secret cannot echo back.
+ * Error messages never repeat what was typed, so a secret cannot echo back. Frames wait while the
+ * browser is behind (`MAX_BUFFERED_FRAME_BYTES`); status, activity and errors always go out.
  */
 export function computerSocket(computers: ComputerManager, agentId: string, open: Set<SocketLike>) {
   let unsubscribe: (() => void) | undefined;
   let socket: SocketLike | undefined;
+  let heldFrame: ComputerServerMessage | undefined;
+  let drainTimer: ReturnType<typeof setInterval> | undefined;
+  const stopDraining = () => {
+    if (drainTimer) clearInterval(drainTimer);
+    drainTimer = undefined;
+  };
+  const sendHeldFrame = () => {
+    if (socket?.readyState !== 1) {
+      heldFrame = undefined;
+      stopDraining();
+      return;
+    }
+    if (!heldFrame || bufferedBytes(socket) > MAX_BUFFERED_FRAME_BYTES) return;
+    const frame = heldFrame;
+    heldFrame = undefined;
+    stopDraining();
+    socket.send(JSON.stringify(frame));
+  };
   const send = (msg: ComputerServerMessage) => {
-    if (socket && socket.readyState === 1) socket.send(JSON.stringify(msg));
+    if (socket?.readyState !== 1) return;
+    if (msg.type === "frame") {
+      if (bufferedBytes(socket) > MAX_BUFFERED_FRAME_BYTES) {
+        heldFrame = msg;
+        if (!drainTimer) {
+          drainTimer = setInterval(sendHeldFrame, FRAME_DRAIN_CHECK_MS);
+          drainTimer.unref?.();
+        }
+        return;
+      }
+      // A newer frame replaces one still held.
+      heldFrame = undefined;
+      stopDraining();
+    }
+    socket.send(JSON.stringify(msg));
   };
   const cleanup = () => {
     unsubscribe?.();
     unsubscribe = undefined;
+    heldFrame = undefined;
+    stopDraining();
     if (socket) open.delete(socket);
   };
   return {

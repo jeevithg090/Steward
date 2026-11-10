@@ -97,7 +97,8 @@ Background workers in the server:
 - **`WS /ws/computer/:agent`** carries the agent's screen: JPEG frames from Chromium's own
   screencast (quality 70, up to 1280 × 800), status and activity from the server; take, release,
   mouse, keyboard, navigation and secret-box messages from the person. Input is accepted only while
-  the person holds the wheel.
+  the person holds the wheel. A browser that falls behind (more than 1 MB still on its way to it)
+  gets no new frames until it catches up, and then only the newest; status and activity never wait.
 
 ## The computer
 
