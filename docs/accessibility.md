@@ -65,7 +65,9 @@ status has a word and an icon beside its colour.
 ### Hearing and speaking
 
 - **Read aloud.** Steward can read its replies aloud with the browser's own speech synthesis.
-  Nothing leaves your device for this. A Stop button silences it.
+  Nothing leaves your device for this. A Stop button silences it. When Steward stops to ask before
+  it acts, it says what it is asking. The words of an agent it handed a task to stay folded on
+  screen and are not read out as its own.
 - **Dictation.** The microphone button in the composer takes your message by voice, with the
   browser's speech recognition. Some browsers, Chrome among them, send the audio to their own
   speech service to recognise it; while it listens, the composer says so in words under the box.

@@ -544,6 +544,74 @@ describe("ChatThread", () => {
     });
   });
 
+  describe("reading aloud", () => {
+    let speak: ReturnType<typeof vi.fn>;
+    beforeEach(() => {
+      localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify({ readAloud: true }));
+      speak = vi.fn();
+      vi.stubGlobal("speechSynthesis", { speak, cancel: vi.fn(), getVoices: () => [] });
+      vi.stubGlobal(
+        "SpeechSynthesisUtterance",
+        class {
+          constructor(readonly text: string) {}
+        },
+      );
+    });
+    const said = () => speak.mock.calls.map(([utterance]) => (utterance as { text: string }).text).join(" ");
+
+    it("does not speak a handed-on agent's words as the conversation's own", async () => {
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      act(() => {
+        kit.state.messages = [
+          { id: "u1", role: "user", content: "Ask Codex to run the tests" },
+          { id: "c1", role: "assistant", content: "Running the tests now.", subagentRunId: "sub-call_1" },
+          { id: "a1", role: "assistant", content: "Codex says all tests pass." },
+        ];
+        kit.emit("onRunFinalized");
+      });
+      expect(said()).toBe("Codex says all tests pass.");
+    });
+
+    it("says when the run stopped to ask, and what it asks", async () => {
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      act(() => {
+        kit.state.messages = [{ id: "u1", role: "user", content: "Email Sam" }];
+        kit.emit("onRunFinishedEvent", {
+          event: { type: "RUN_FINISHED" },
+          outcome: "interrupt",
+          interrupts: [
+            {
+              id: "call_1",
+              reason: "steward_approval",
+              metadata: { approvalId: "apr_1", summary: "Send an email to sam@example.com: “Friday”." },
+            },
+          ],
+        });
+        kit.emit("onRunFinalized");
+      });
+      expect(said()).toBe(
+        "Steward is asking before it acts: Send an email to sam@example.com: “Friday”. The request is below.",
+      );
+    });
+
+    it("says nothing about an old request replayed with the history", async () => {
+      kit.copilotkit.connectAgent.mockImplementation(async () => {
+        kit.emit("onRunFinishedEvent", {
+          event: { type: "RUN_FINISHED" },
+          outcome: "interrupt",
+          interrupts: [{ id: "call_1", reason: "steward_approval", metadata: { summary: "Pay an invoice" } }],
+        });
+        kit.emit("onRunFinalized");
+        return { newMessages: [] };
+      });
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      expect(speak).not.toHaveBeenCalled();
+    });
+  });
+
   describe("runs the server starts in the conversation", () => {
     const run = (type: "run.started" | "run.finished", runId: string, threadId = "thr_1") =>
       act(() => live.dispatch({ type, threadId, runId, agentId: "steward" }));

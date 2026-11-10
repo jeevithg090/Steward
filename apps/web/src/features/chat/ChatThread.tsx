@@ -44,13 +44,19 @@ import { storage } from "@/lib/utils.ts";
 import { ComputerPanel } from "../computer/ComputerPanel.tsx";
 import { ComputerSession, useOptionalComputer } from "../computer/session.tsx";
 import { useSpeak } from "../voice/useSpeak.ts";
-import { ApprovalInterrupts, type PendingApproval } from "./ApprovalInterrupts.tsx";
+import {
+  ApprovalInterrupts,
+  askedByOf,
+  isStewardApproval,
+  type PendingApproval,
+} from "./ApprovalInterrupts.tsx";
 import { Composer } from "./Composer.tsx";
 import { type ChatActions, ChatActionsContext } from "./chat-context.tsx";
 import { currentStep, latestTurnToolCalls, plainRunError, replayedId, shownIds, textOf } from "./messages.ts";
 import { claimInlineRunErrors } from "./provider.tsx";
 import { RunStatus } from "./RunStatus.tsx";
 import { Starters } from "./Starters.tsx";
+import { subRunOf } from "./subruns.tsx";
 import { Transcript } from "./Transcript.tsx";
 import { useMediaQuery } from "./use-media-query.ts";
 
@@ -90,6 +96,22 @@ interface Connecting {
 interface RunProblem {
   message: string;
   earlier: boolean;
+}
+
+/**
+ * What read-aloud says when a run stops to ask: "Steward is asking before it acts: Send an email to
+ * sam@example.com. The request is below." Undefined when none of the interrupts is an approval.
+ */
+export function askingAloud(interrupts: readonly unknown[], agentName: string): string | undefined {
+  const asks = interrupts.filter(isStewardApproval);
+  if (asks.length === 0) return undefined;
+  const lines = asks.map((interrupt) => {
+    const summary = (interrupt.metadata as { summary?: unknown } | undefined)?.summary;
+    const what = typeof summary === "string" && summary.trim() ? summary : (interrupt.message ?? "");
+    const words = what.trim().replace(/[.!?]+$/, "") || "something it wants to do";
+    return `${askedByOf(interrupt) ?? agentName} is asking before it acts: ${words}.`;
+  });
+  return [...lines, asks.length === 1 ? "The request is below." : "The requests are below."].join(" ");
 }
 
 /** True the first time a prompt is seen for a thread in this tab, so a reload never sends it twice. */
@@ -158,6 +180,10 @@ function Conversation({
   const loaded = useRef(false);
   const readAloudRef = useRef(readAloud);
   readAloudRef.current = readAloud;
+  const agentNameRef = useRef(agentName);
+  agentNameRef.current = agentName;
+  /** What to say about approvals once the run that stopped to ask has ended. */
+  const askAloud = useRef<string | undefined>(undefined);
   const speak = speaker.speak;
 
   useDocumentTitle(title || "Chat");
@@ -199,13 +225,20 @@ function Conversation({
       },
       onRunStartedEvent: ({ event }) => {
         shownRuns.current.add(event.runId);
+        askAloud.current = undefined;
         if (connecting.current) {
           connecting.current.lastError = null;
           connecting.current.ended = null;
         } else setLastRun(null);
       },
-      onRunFinishedEvent: ({ outcome }) => {
+      onRunFinishedEvent: (params) => {
+        const { outcome } = params;
         const ended: RunEnd = outcome === "cancelled" ? "stopped" : "ok";
+        // The newest run, if it stopped to ask, says so aloud, unless it is history being loaded.
+        askAloud.current =
+          outcome === "interrupt" && !connecting.current?.quiet
+            ? askingAloud(params.interrupts, agentNameRef.current)
+            : undefined;
         if (connecting.current) connecting.current.ended = ended;
         else setLastRun(ended);
       },
@@ -232,16 +265,21 @@ function Conversation({
       onRunFinalized: ({ messages: finished }) => {
         // A connect ends here too. Loading the history is quiet; a run followed live is not.
         const quiet = connecting.current?.quiet ?? false;
+        // Only this conversation's agent: a handed-on task's words are folded away on screen, and
+        // read out in the same voice they would sound like the conversation's own.
         const fresh = finished.filter(
           (message) =>
             !quiet &&
             message.role === "assistant" &&
+            !subRunOf(message) &&
             !spoken.current.has(message.id) &&
             textOf(message.content).trim(),
         );
         for (const message of finished) spoken.current.add(message.id);
-        if (readAloudRef.current && fresh.length > 0)
-          speak(fresh.map((message) => textOf(message.content)).join("\n\n"));
+        const asking = quiet ? undefined : askAloud.current;
+        askAloud.current = undefined;
+        const words = [...fresh.map((message) => textOf(message.content)), ...(asking ? [asking] : [])];
+        if (readAloudRef.current && words.length > 0) speak(words.join("\n\n"));
       },
     });
     return () => subscription.unsubscribe();
