@@ -142,8 +142,9 @@ its own status (migration `proactive.002_inbox_watch`).
 - `watch.check()` looks once. It runs only when mail is connected, a real model is set (the scripted
   one cannot sort mail) and today's brief exists. Otherwise it says why ("Couldn't look: no mailbox
   is connected.") and leaves `checkedAt` at the last time it really looked.
-- It reads `in:inbox newer_than:1d` (at most 25) and leaves out mail the brief covered or an earlier
-  look dealt with. The rest is triaged as usual (the triage cache means the model is asked about
+- It reads `in:inbox newer_than:1d` (at most 25; like the brief, it asks again without the query
+  and keeps the last day when a connector finds nothing for it) and leaves out mail the brief
+  covered or an earlier look dealt with. The rest is triaged as usual (the triage cache means the model is asked about
   each email once), and model-sorted needs-you mail becomes at most **two** suggestions per look,
   through the brief's own de-duplication. Mail past those two, and mail the model could not sort,
   is left for the next look; unsorted mail is never suggested.

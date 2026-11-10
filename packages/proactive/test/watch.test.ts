@@ -160,6 +160,32 @@ describe("the inbox watch", () => {
     );
   });
 
+  it("reads a mailbox that does not understand the query, keeping only the last day", async () => {
+    const inbox: TriageEmail[] = [];
+    const mail = fakeMail({ emails: inbox, ignoresQuery: true });
+    const model = subjectModel();
+    const { watch, brief, tasks } = setup({
+      at: "2026-10-22T11:00:00Z",
+      mail: () => mail,
+      model: () => model,
+    });
+    await brief.generate({ date: TODAY });
+    watch.setEnabled(true);
+    inbox.unshift(
+      email({ subject: "Contract today!", from: { name: "Ana Pereira", email: "ana@hearthandco.example" } }),
+      email({ subject: "Old news!", receivedAt: "2026-10-19T09:00:00Z" }),
+    );
+    const looked = await watch.check();
+    expect(mail.emailQueries.slice(-2)).toEqual([
+      { query: WATCH_QUERY, limit: WATCH_MAIL_LIMIT },
+      { limit: WATCH_MAIL_LIMIT },
+    ]);
+    expect(looked.note).toBe("Read 1 new email; suggested 1 task.");
+    const titles = tasks.list({ state: ["suggested"] }).map((t) => t.title);
+    expect(titles).toContain("Reply to Ana Pereira about Contract today!");
+    expect(titles.some((t) => t.includes("Old news"))).toBe(false);
+  });
+
   it("keeps the last real look when the inbox can't be read, and stores no provider text", async () => {
     const { watch, brief } = watching({ failEmails: true });
     await brief.generate({ date: TODAY });

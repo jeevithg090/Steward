@@ -20,6 +20,8 @@ export const WATCH_QUERY = "in:inbox newer_than:1d";
 export const WATCH_MAIL_LIMIT = 25;
 /** At most this many suggestions from one look, so a busy morning does not flood Tasks. */
 export const WATCH_MAX_SUGGESTIONS = 2;
+/** The day `newer_than:1d` asks for, applied here too for a connector that does not read the query. */
+const MAIL_WINDOW_MS = 24 * 3600_000;
 /** How long an email the watch has dealt with is remembered: longer than the day it reads. */
 const SEEN_FOR_MS = 2 * 24 * 3600_000;
 
@@ -125,7 +127,15 @@ export function createInboxWatch(opts: {
 
       let emails: TriageEmail[];
       try {
-        emails = (await mail.listEmails({ query: WATCH_QUERY, limit: WATCH_MAIL_LIMIT })) as TriageEmail[];
+        let listed = await mail.listEmails({ query: WATCH_QUERY, limit: WATCH_MAIL_LIMIT });
+        // A connector that reads the query as plain text finds nothing; ask again and keep the last
+        // day here, as the brief does, rather than saying nothing is new without having looked.
+        if (listed.length === 0) listed = await mail.listEmails({ limit: WATCH_MAIL_LIMIT });
+        const since = now().getTime() - MAIL_WINDOW_MS;
+        emails = listed.filter((e) => {
+          const received = Date.parse(e.receivedAt);
+          return Number.isNaN(received) || received >= since;
+        }) as TriageEmail[];
       } catch {
         checkOpts.signal?.throwIfAborted();
         // Provider error text is never stored: it can echo parts of a key.
