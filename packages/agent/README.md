@@ -196,6 +196,10 @@ schema still refers elsewhere after that is left out, and `onError` names it.
 
 model.yaml may name a different key variable with `apiKeyEnv` (the name, never the key).
 
+NVIDIA's requests turn thinking off (`withExtraBody`). Gemini's go through
+`withThoughtSignatures`, which keeps the thought signature Gemini sends with each tool call and
+puts it back on that call in later requests, so Gemini 3 accepts the next step.
+
 **The scripted demo model** answers from `fixtures/scripted.json` (aimock's fixture shape, matched
 ignoring case and only before a tool has returned in the turn) and from `src/scripted.ts`:
 greetings, "What needs me today?", "Open <site>" and "top story", "Email <address> about …",

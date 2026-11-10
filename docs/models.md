@@ -191,6 +191,10 @@ model you run yourself.
   end with "I ran out of room in that reply. Ask me to carry on." A tool call cut off mid-way never
   runs: the model is told to make it shorter, and a second cut-off call stops the run. A long
   report through `make_page` is the usual cause.
-- **Gemini.** Gemini's OpenAI-compatible endpoint returns "thought signatures" with tool calls that
-  must be sent back on the next turn. Steward's OpenAI-shaped client does not keep them yet, so
-  long tool loops on Gemini may fail; prefer OpenRouter, NVIDIA or OpenAI for now.
+- **Gemini.** Gemini's OpenAI-compatible endpoint returns a "thought signature" with each tool
+  call (`extra_content.google.thought_signature`), and Gemini 3 refuses the next step of a turn
+  when the call comes back without it. Steward keeps each signature as the reply arrives and sends
+  it back with the call. A call it has no signature for, such as one from before a restart or from
+  another model, gets the placeholder Google documents for that case. This is tested against a
+  stand-in for Gemini's replies, not yet against Gemini itself: if tool calls fail with "missing a
+  thought_signature", reach Gemini through OpenRouter instead.

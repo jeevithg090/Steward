@@ -217,14 +217,19 @@ export async function createModel(cfg: ModelConfig, env: NodeJS.ProcessEnv): Pro
   const apiKey = envValue(env, keyEnv);
   if (info.keyEnv && !apiKey) return startScripted(scriptedLabel(`no key for ${cfg.provider}`));
 
-  const extraBody = cfg.provider === "nvidia" ? nvidiaExtras(env) : undefined;
+  const fetchFor =
+    cfg.provider === "nvidia"
+      ? withExtraBody(nvidiaExtras(env))
+      : cfg.provider === "gemini"
+        ? withThoughtSignatures()
+        : undefined;
   const provider = createOpenAI({
     name: cfg.provider,
     baseURL,
     // Keyless local servers still need a non-empty bearer for the client to send the request.
     apiKey: apiKey ?? "not-needed",
     ...(info.headers ? { headers: info.headers } : {}),
-    ...(extraBody ? { fetch: withExtraBody(extraBody) } : {}),
+    ...(fetchFor ? { fetch: fetchFor } : {}),
   });
   return {
     model: provider.chat(cfg.model),
@@ -255,6 +260,152 @@ export function withExtraBody(extra: Record<string, unknown>, base: typeof fetch
       }
     }
     return base(input, init);
+  }) as typeof fetch;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * What Google documents for a function call it gave no signature for here, such as one from before
+ * a restart or from another model: it tells Gemini to skip the check for that call.
+ */
+export const SKIP_THOUGHT_SIGNATURE = "skip_thought_signature_validator";
+
+/** How many tool calls' signatures one model keeps. The oldest go first. */
+const MAX_SIGNATURES = 500;
+
+type Keep = (toolCallId: string, extra: Record<string, unknown>) => void;
+
+/** Reads `tool_calls[].extra_content` out of one chunk or reply, by tool call id. */
+function readSignatures(data: unknown, keep: Keep, ids: Map<string, string>): void {
+  if (!isRecord(data) || !Array.isArray(data.choices)) return;
+  for (const [c, choice] of data.choices.entries()) {
+    if (!isRecord(choice)) continue;
+    const part = isRecord(choice.delta)
+      ? choice.delta
+      : isRecord(choice.message)
+        ? choice.message
+        : undefined;
+    if (!part || !Array.isArray(part.tool_calls)) continue;
+    for (const [position, call] of part.tool_calls.entries()) {
+      if (!isRecord(call)) continue;
+      // A streamed call names its id once, on its first delta; later deltas carry only its index.
+      const slot = `${typeof choice.index === "number" ? choice.index : c}:${typeof call.index === "number" ? call.index : position}`;
+      if (typeof call.id === "string" && call.id) ids.set(slot, call.id);
+      const id = ids.get(slot);
+      if (id && isRecord(call.extra_content)) keep(id, call.extra_content);
+    }
+  }
+}
+
+/** Passes a streamed reply through untouched, reading each `data:` line for signatures on the way. */
+function signatureScanner(keep: Keep): TransformStream<Uint8Array, Uint8Array> {
+  const decoder = new TextDecoder();
+  const ids = new Map<string, string>();
+  let buffer = "";
+  const scan = (line: string) => {
+    if (!line.startsWith("data:")) return;
+    const data = line.slice(5).trim();
+    if (!data || data === "[DONE]") return;
+    try {
+      readSignatures(JSON.parse(data), keep, ids);
+    } catch {
+      // Not JSON: nothing to keep.
+    }
+  };
+  return new TransformStream({
+    transform(chunk, controller) {
+      controller.enqueue(chunk);
+      buffer += decoder.decode(chunk, { stream: true });
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop() ?? "";
+      for (const line of lines) scan(line);
+      // A line this long is not a chunk worth reading; never let it grow without end.
+      if (buffer.length > 4_000_000) buffer = "";
+    },
+    flush() {
+      buffer += decoder.decode();
+      if (buffer) scan(buffer);
+    },
+  });
+}
+
+/** The request body with each assistant tool call's signature put back, or `undefined` when nothing changes. */
+function withSignatures(
+  body: unknown,
+  kept: ReadonlyMap<string, Record<string, unknown>>,
+): string | undefined {
+  if (typeof body !== "string") return undefined;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return undefined;
+  }
+  if (!isRecord(parsed) || !Array.isArray(parsed.messages)) return undefined;
+  let changed = false;
+  for (const message of parsed.messages) {
+    if (!isRecord(message) || message.role !== "assistant" || !Array.isArray(message.tool_calls)) continue;
+    const calls = message.tool_calls.filter(isRecord);
+    let known = 0;
+    for (const call of calls) {
+      const extra = typeof call.id === "string" ? kept.get(call.id) : undefined;
+      if (!extra) continue;
+      call.extra_content = extra;
+      known++;
+      changed = true;
+    }
+    // Gemini checks the first call of each step; parallel calls after it carry none.
+    const first = calls[0];
+    if (known === 0 && first && first.extra_content === undefined) {
+      first.extra_content = { google: { thought_signature: SKIP_THOUGHT_SIGNATURE } };
+      changed = true;
+    }
+  }
+  return changed ? JSON.stringify(parsed) : undefined;
+}
+
+/**
+ * A fetch for Gemini's OpenAI-compatible endpoint. Gemini sends a "thought signature" with each
+ * tool call (`tool_calls[].extra_content.google.thought_signature`) and Gemini 3 refuses the next
+ * request of the turn when that call comes back without it. The AI SDK drops the field, so this
+ * keeps each one by tool call id as the reply streams past, untouched, and puts it back on the
+ * assistant's tool calls in every later request. A call it never saw a signature for gets the
+ * placeholder Google documents (`SKIP_THOUGHT_SIGNATURE`).
+ */
+export function withThoughtSignatures(base: typeof fetch = fetch): typeof fetch {
+  const kept = new Map<string, Record<string, unknown>>();
+  const keep: Keep = (id, extra) => {
+    kept.delete(id);
+    kept.set(id, extra);
+    while (kept.size > MAX_SIGNATURES) {
+      const oldest = kept.keys().next().value;
+      if (oldest === undefined) break;
+      kept.delete(oldest);
+    }
+  };
+  return (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const body = withSignatures(init?.body, kept);
+    const response = await base(input, body === undefined ? init : { ...init, body });
+    if (!response.ok || !response.body) return response;
+    const type = response.headers.get("content-type") ?? "";
+    if (type.includes("text/event-stream")) {
+      return new Response(response.body.pipeThrough(signatureScanner(keep)), {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
+    }
+    if (type.includes("json")) {
+      const data: unknown = await response
+        .clone()
+        .json()
+        .catch(() => undefined);
+      readSignatures(data, keep, new Map());
+    }
+    return response;
   }) as typeof fetch;
 }
 
