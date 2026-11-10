@@ -153,6 +153,18 @@ describe("redaction", () => {
     expect(body.endsWith("…")).toBe(true);
   });
 
+  it("masks a card written with its expiry and CVC, so the chain never holds the number", async () => {
+    const { gw } = setup();
+    const call = gateCall("mail_send", {
+      to: "sam@example.com",
+      body: "Card 4111111111111111 12/28 cvc 123",
+    });
+    await gw.governance.execute(call, async () => null);
+    const [row] = gw.audit.forToolCall(call.toolCallId);
+    expect(row?.detail.args).toMatchObject({ body: "Card [•••• 1111] 12/28 [cvc: ••••]" });
+    expect(JSON.stringify(row)).not.toContain("4111111111111111");
+  });
+
   it("strips secrets from target URLs and commands", () => {
     const { gw } = setup();
     const e = gw.audit.append({

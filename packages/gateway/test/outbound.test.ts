@@ -62,6 +62,40 @@ describe("card numbers", () => {
   it("ignores digit runs with mixed separators", () => {
     expect(kinds("4242 4242-4242 4242")).toEqual([]);
   });
+
+  it.each([
+    "card 4111111111111111 123",
+    "card 4111 1111 1111 1111 12/28 cvc 123",
+    "4242 4242 4242 4242 12 28",
+    "4242-4242-4242-4242-1228",
+    "Ref 12 4242 4242 4242 4242",
+    "Booking 0042 4242 4242 4242 4242",
+    "amex 3782 822463 10005 1028",
+  ])("finds a card written next to other digits: %s", (text) => {
+    expect(kinds(text)).toContain("card_number");
+  });
+
+  it("masks only the card, not the digits next to it", () => {
+    expect(maskSensitive("Card 4111111111111111 12/28 cvc 123")).toBe("Card [•••• 1111] 12/28 [cvc: ••••]");
+    expect(maskSensitive("4242 4242 4242 4242 12 28")).toBe("[•••• 4242] 12 28");
+    expect(maskSensitive("Ref 12 4242 4242 4242 4242")).toBe("Ref 12 [•••• 4242]");
+  });
+
+  it("still ignores phone numbers, dates and short references in a long run of digits", () => {
+    expect(kinds("Call 0800 123 4567 or 0207 946 0958")).toEqual([]);
+    expect(kinds("2026-11-10 09 30 room 4 12")).toEqual([]);
+    expect(kinds("ids 1234 5678 9012")).toEqual([]);
+  });
+
+  it("stays fast on text full of digit groups", () => {
+    for (const unit of ["4242 ", "1 ", "1234-", "4111 1111 1111 1111 12 ", "4242 4242-", "cvc 1 "]) {
+      const text = unit.repeat(Math.ceil(2_000_000 / unit.length)).slice(0, 2_000_000);
+      const started = performance.now();
+      scanText(text);
+      maskSensitive(text);
+      expect(performance.now() - started, unit).toBeLessThan(5000);
+    }
+  });
 });
 
 describe("IBANs in text", () => {
@@ -112,7 +146,32 @@ describe("keys and passwords", () => {
     expect(kinds("api_key=a1b2c3d4e5f6")).toEqual(["api_key"]);
   });
 
+  // Fakes in each provider's shape, allow-listed by exact value in .gitleaks.toml and .gitguardian.yaml.
+  it.each([
+    ["nvapi-FAKEfake0123456789FAKEfake0123456789FAKEfake01", "nvapi-••••"],
+    ["xai-FAKEfake0123456789FAKEfake0123456789FAKEfake01", "xai-••••"],
+    ["gsk_FAKEfake0123456789FAKEfake0123456789FAKEfake01", "gsk_••••"],
+    ["hf_FAKEfakeFAKEfakeFAKEfakeFAKEfake", "hf_••••"],
+    ["glpat-FAKEfake0123456789ab", "glpat-••••"],
+    ["npm_FAKEfake0123456789FAKEfake0123456789", "npm_••••"],
+    ["stw_dev_FAKEfake0123456789FAKEfake0123456789fakeFAK", "stw_dev_••••"],
+    ["https://hooks.slack.com/services/TFAKE0000/BFAKE0000/FAKEfake0123456789", "hooks.slack.com/••••"],
+  ])("finds the keys of model providers and services: %s", (key, hint) => {
+    expect(scanText(`use ${key} for this`)).toEqual([
+      { kind: "api_key", hint, label: "An API key or access token" },
+    ]);
+    expect(maskSensitive(`key: "${key}"`)).toBe(`key: "[${hint}]"`);
+  });
+
+  it("finds a card's security code written next to its name", () => {
+    expect(kinds("CVC 123")).toEqual(["password"]);
+    expect(kinds("cvv: 4821")).toEqual(["password"]);
+    expect(kinds("your security code is 9921")).toEqual(["password"]);
+    expect(kinds("CVC means card verification code")).toEqual([]);
+  });
+
   it("does not mistake slugs and prose for keys", () => {
+    expect(kinds("see /nvapi-docs-getting-started-with-the-catalog-of-models")).toEqual([]);
     expect(kinds("see /sk-learn-tutorial-for-beginners-2024")).toEqual([]);
     expect(kinds("Bearer of good news")).toEqual([]);
     expect(kinds("the token: economy")).toEqual([]);

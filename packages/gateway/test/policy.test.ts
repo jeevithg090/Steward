@@ -199,6 +199,18 @@ describe("precedence", () => {
     expect(d.findings.map((f) => f.kind)).toContain("card_number");
   });
 
+  it("a card typed with its expiry and CVC asks, and a rule on card numbers sees it", () => {
+    const gw = gateway();
+    const text = "4111 1111 1111 1111 12/28 cvc 123";
+    const typed = decide(gw, gateCall("browser_type", { ref: "e3", text }));
+    expect(typed.effect).toBe("ask");
+    expect(typed.findings.map((f) => f.kind)).toEqual(["card_number", "password"]);
+    addRule(gw, "deny", 'contains(findings, "card_number")', "Card numbers never leave");
+    expect(decide(gw, gateCall("browser_type", { ref: "e3", text })).rule?.name).toBe(
+      "Card numbers never leave",
+    );
+  });
+
   it("outbound findings beat allow rules and carry the findings", () => {
     const gw = gateway();
     addRule(gw, "allow", 'tool.name == "mail_send"', "Mail freely");

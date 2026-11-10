@@ -26,6 +26,15 @@ regexes = [
   '''sk-or-v1-0123456789abcdef0123456789abcdef''',
   '''xoxb-1234567890-abcdefghij''',
   '''correct-horse-battery-9137''',
+  # One fake per key shape the outbound check knows (packages/gateway/test/outbound.test.ts).
+  '''nvapi-FAKEfake0123456789FAKEfake0123456789FAKEfake01''',
+  '''xai-FAKEfake0123456789FAKEfake0123456789FAKEfake01''',
+  '''gsk_FAKEfake0123456789FAKEfake0123456789FAKEfake01''',
+  '''hf_FAKEfakeFAKEfakeFAKEfakeFAKEfake''',
+  '''glpat-FAKEfake0123456789ab''',
+  '''npm_FAKEfake0123456789FAKEfake0123456789''',
+  '''stw_dev_FAKEfake0123456789FAKEfake0123456789fakeFAK''',
+  '''https://hooks.slack.com/services/TFAKE0000/BFAKE0000/FAKEfake0123456789''',
   # RFC 6455 §1.3's sample Sec-WebSocket-Key ("the sample nonce").
   '''dGhlIHNhbXBsZSBub25jZQ==''',
 ]

@@ -293,15 +293,15 @@ prompt tells the agent to report instructions it finds rather than follow them.
 Before a call that would send text out of Steward (an email, a message through a connected app, a
 form value typed into a page), the gateway scans that text.
 
-| Finding        | Detected by                                                                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `card_number`  | 13 to 19 digits that pass the Luhn checksum.                                                                                    |
-| `iban`         | An IBAN that passes mod-97 and has the right length for its country.                                                            |
-| `bank_account` | A UK sort code next to an account number.                                                                                       |
-| `national_id`  | A UK National Insurance number, a US Social Security number, or an NHS number next to the word "NHS".                           |
-| `api_key`      | Provider key and token formats (OpenAI, GitHub, AWS, Slack and others), private key blocks and `Authorization` headers.         |
-| `password`     | `password: …` style pairs, and arguments named like passwords.                                                                  |
-| `health`       | A short list of health words, in text that is sent (not in text typed into a page, where a search for a symptom is not a leak). |
+| Finding        | Detected by                                                                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `card_number`  | 13 to 19 digits that pass the Luhn checksum, also when an expiry, a CVC or a reference is written right next to them.                                                                                         |
+| `iban`         | An IBAN that passes mod-97 and has the right length for its country.                                                                                                                                          |
+| `bank_account` | A UK sort code next to an account number.                                                                                                                                                                     |
+| `national_id`  | A UK National Insurance number, a US Social Security number, or an NHS number next to the word "NHS".                                                                                                         |
+| `api_key`      | Provider key and token formats (OpenAI, OpenRouter, NVIDIA, xAI, Groq, Hugging Face, GitHub, GitLab, npm, AWS, Slack and others), Steward's own phone tokens, private key blocks and `Authorization` headers. |
+| `password`     | `password: …` style pairs, a card's security code next to its name (`CVC 123`), and arguments named like passwords.                                                                                           |
+| `health`       | A short list of health words, in text that is sent (not in text typed into a page, where a search for a symptom is not a leak).                                                                               |
 
 A finding never carries the value. It carries a masked hint such as `•••• 4242` and a label, so it
 is safe to show on the approval card and to keep in the record.

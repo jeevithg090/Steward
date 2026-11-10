@@ -28,5 +28,21 @@ secret:
       match: sk-or-v1-0123456789abcdef0123456789abcdef
     - name: Fake password in the secret-box tests
       match: correct-horse-battery-9137
+    - name: Fake NVIDIA key in the outbound-check tests
+      match: nvapi-FAKEfake0123456789FAKEfake0123456789FAKEfake01
+    - name: Fake xAI key in the outbound-check tests
+      match: xai-FAKEfake0123456789FAKEfake0123456789FAKEfake01
+    - name: Fake Groq key in the outbound-check tests
+      match: gsk_FAKEfake0123456789FAKEfake0123456789FAKEfake01
+    - name: Fake Hugging Face token in the outbound-check tests
+      match: hf_FAKEfakeFAKEfakeFAKEfakeFAKEfake
+    - name: Fake GitLab token in the outbound-check tests
+      match: glpat-FAKEfake0123456789ab
+    - name: Fake npm token in the outbound-check tests
+      match: npm_FAKEfake0123456789FAKEfake0123456789
+    - name: Fake Steward phone token in the outbound-check tests
+      match: stw_dev_FAKEfake0123456789FAKEfake0123456789fakeFAK
+    - name: Fake Slack webhook in the outbound-check tests
+      match: https://hooks.slack.com/services/TFAKE0000/BFAKE0000/FAKEfake0123456789
     - name: RFC 6455 sample Sec-WebSocket-Key
       match: dGhlIHNhbXBsZSBub25jZQ==
