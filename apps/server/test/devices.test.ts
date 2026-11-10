@@ -386,6 +386,25 @@ describe.runIf(missing.length === 0)("the device listener", () => {
     expect(deviceId).toBeTruthy();
   });
 
+  it("leaves what Steward asks out of the brief for a phone that may not see requests", async () => {
+    const asker = await pairPhone("Asking iPhone");
+    await device<DeviceSayReply>("/device/say", { token: asker.token, json: { text: EMAIL_ASK } });
+    expect(t.server.services.gateway.approvals.list({ status: "pending" }).length).toBeGreaterThan(0);
+
+    const { token, deviceId } = await pairPhone("Brief-only iPhone");
+    await t.api(`/api/devices/${deviceId}`, { method: "PATCH", json: { scopes: ["brief:read"] } });
+    const brief = await device<DeviceReply & { say: string; items: string[] }>("/device/brief", { token });
+    expect(brief.status).toBe(200);
+    const shown = JSON.stringify(brief.body);
+    expect(shown).not.toContain("Steward asks");
+    expect(shown).not.toContain("sam@example.com");
+    expect(brief.body.say).not.toMatch(/request/);
+
+    // With "See what Steward asks" on, the same brief lists them.
+    const full = await device<{ items: string[] }>("/device/brief", { token: asker.token });
+    expect(full.body.items.some((i) => i.startsWith("Steward asks:"))).toBe(true);
+  });
+
   it("records a phone's yes with via, and the run resumes exactly as from the web", async () => {
     const { token, deviceId } = await pairPhone("Kitchen iPhone");
     await t.api(`/api/devices/${deviceId}`, {

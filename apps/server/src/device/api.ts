@@ -137,7 +137,11 @@ export class DeviceApi {
     this.need(device, "brief:read");
     const { proactive, gateway } = this.s;
     const brief = proactive.brief.latest();
-    const pending = gateway.approvals.list({ status: "pending", limit: 50 });
+    // What Steward asks is its own scope: a phone that may not see requests is not told about them
+    // here either, not their words and not how many.
+    const pending = device.scopes.includes("approvals:read")
+      ? gateway.approvals.list({ status: "pending", limit: 50 })
+      : [];
     const waiting = proactive.tasks.list({ state: "needs_you", limit: 20 });
 
     const items: string[] = [
@@ -154,7 +158,7 @@ export class DeviceApi {
     const say = clip(parts.join(" "), BRIEF_MAX);
     const ui: DeviceUi[] = [{ say }];
     if (items.length > 0) ui.push({ show: { title: "What needs you", body: items.slice(0, 12).join("\n") } });
-    if (pending.length > 0 && device.scopes.includes("approvals:read")) {
+    if (pending.length > 0) {
       ui.push({
         choose: {
           title: "Answer them now?",
