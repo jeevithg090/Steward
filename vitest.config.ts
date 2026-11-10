@@ -13,6 +13,7 @@ export default defineConfig({
             "apps/relay/test/**/*.test.ts",
             "apps/directory/test/**/*.test.ts",
             "tenants/*.test.ts",
+            "scripts/*.test.ts",
           ],
           testTimeout: 30_000,
           hookTimeout: 60_000,
