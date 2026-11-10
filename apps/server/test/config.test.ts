@@ -93,6 +93,28 @@ describe("loadConfig", () => {
     expect(() => loadConfig({ STEWARD_DIRECTORY_URL: "ftp://bots.example/index.json" })).toThrow(ConfigError);
   });
 
+  it("names each flag or number it could not read, and keeps its default", () => {
+    const config = loadConfig({
+      STEWARD_DEMO_GOOGLE: "disabled",
+      STEWARD_WORKERS: "none",
+      STEWARD_HEADFUL: "yes",
+      STEWARD_MODEL_MAX_TOKENS: "lots",
+      STEWARD_DELEGATION_DEPTH: "3",
+      STEWARD_DELEGATION_CONCURRENCY: "50",
+    });
+    expect(config.demoGoogle).toBe(true);
+    expect(config.workers).toBe(true);
+    expect(config.unreadable).toEqual([
+      'STEWARD_DEMO_GOOGLE is "disabled", which is neither on nor off, so the default (on) is used.',
+      'STEWARD_WORKERS is "none", which is neither on nor off, so the default (on) is used.',
+      'STEWARD_MODEL_MAX_TOKENS is "lots", which is not a whole number from 256 to 65536, so the default is used.',
+      'STEWARD_DELEGATION_CONCURRENCY is "50", which is not a whole number from 1 to 10, so the default is used.',
+    ]);
+    expect(startupWarnings(config).slice(0, 4)).toEqual(config.unreadable);
+    expect(loadConfig({ STEWARD_DEMO_GOOGLE: "off", STEWARD_WORKERS: " " }).unreadable).toEqual([]);
+    expect(loadConfig({ STEWARD_HEADFUL: "x".repeat(60) }).unreadable[0]).toContain(`"${"x".repeat(40)}…"`);
+  });
+
   it("parses flags leniently", () => {
     expect(parseFlag("on", false)).toBe(true);
     expect(parseFlag("OFF", true)).toBe(false);
