@@ -40,6 +40,25 @@ describe("execute", () => {
     expect(gw.audit.forToolCall(call.toolCallId).map((r) => r.type)).toEqual(["tool.decided", "tool.failed"]);
   });
 
+  it("names who started the call on its outcome row too, not only on the decision", async () => {
+    const { gw } = setup();
+    const routine = { kind: "routine" as const, id: "rtn_1" };
+    const done = gateCall("browser_snapshot", {}, { initiator: routine });
+    await gw.governance.execute(done, spyAction(null).act);
+    const failed = gateCall("browser_snapshot", {}, { initiator: routine });
+    await gw.governance.execute(failed, async () => {
+      throw new Error("The page did not load");
+    });
+    // A record filtered to failures shows only this row, so it must say a routine started it.
+    for (const row of [
+      ...gw.audit.forToolCall(done.toolCallId),
+      ...gw.audit.forToolCall(failed.toolCallId),
+    ]) {
+      expect(row.detail.initiator).toEqual(routine);
+    }
+    expect(gw.audit.verify().ok).toBe(true);
+  });
+
   it("refuses with a sentence that names the rule, and never acts", async () => {
     const { gw } = setup();
     gw.rules.create({
