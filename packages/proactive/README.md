@@ -114,14 +114,16 @@ a brief for a later date. Callers asking at once share one build, and each `sign
 caller give up: the build stops only when every caller has, so a browser closing its tab never
 cancels the brief the morning worker is waiting for.
 
-- Mail from the last 24 hours, newest first, at most 50. When there were more, it says so.
+- Mail since the last brief, so a late morning or a weekend away leaves no gap: at least the last
+  day, at most the last 3 days ("Mail: only the last 3 days were checked" when the last brief was
+  longer ago). Newest first, at most 50; when there were more, it says so.
 - Triage as above; unsorted mail last under needs you.
 - Today's calendar from local midnight to midnight in your timezone (late-evening events included).
   Where the clocks skip midnight (Santiago in September, Havana in March), the day starts at 01:00.
 - Tasks working, ready for review, needing input, or waiting on an approval.
 - `couldNotCheck`, in plain words: "Mail: not connected", "Calendar: couldn't be read just now",
   "Sorting: 2 of 9 emails couldn't be sorted (the model didn't answer), so they are under needs you",
-  the 50-message cap, an unknown timezone.
+  the 50-message cap, the 3-day reach, an unknown timezone.
 - A two- or three-sentence summary from the model (no greeting, no name, facts fenced as data), or
   a plain one written from the counts when there is no model or it fails. Demo mail is labelled
   "From the demo inbox:".

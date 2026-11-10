@@ -22,7 +22,9 @@ import type { TriageService } from "./triage-service.ts";
 
 /** The brief sorts at most this many messages; it says so when there were more. */
 export const BRIEF_MAIL_CAP = 50;
-const MAIL_WINDOW_MS = 24 * 3600_000;
+/** The brief reads mail since the last brief, but never less than a day and never more than this. */
+export const BRIEF_MAIL_MAX_DAYS = 3;
+const DAY_MS = 24 * 3600_000;
 const BRIEF_TASKS_MAX = 10;
 const SUMMARY_MAX = 500;
 
@@ -42,17 +44,48 @@ function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
 }
 
+/** Which mail a brief reads: from `since` to now, with the words that say so. */
+export interface MailWindow {
+  since: Date;
+  /** "in the last day", "since the last brief" or "in the last 3 days". */
+  words: string;
+  /** True when the last brief was longer ago than the window reaches. */
+  cut: boolean;
+}
+
+/**
+ * Mail since the last brief, so a late morning or a weekend away leaves no gap between briefs. At
+ * least the last day (a first brief, or a second one the same day) and at most the last three days.
+ */
+export function mailWindow(at: Date, previousBriefAt: string | undefined): MailWindow {
+  const dayAgo = at.getTime() - DAY_MS;
+  const maxAgo = at.getTime() - BRIEF_MAIL_MAX_DAYS * DAY_MS;
+  const previous = previousBriefAt ? Date.parse(previousBriefAt) : Number.NaN;
+  if (Number.isNaN(previous) || previous >= dayAgo) {
+    return { since: new Date(dayAgo), words: "in the last day", cut: false };
+  }
+  if (previous < maxAgo) {
+    return { since: new Date(maxAgo), words: `in the last ${BRIEF_MAIL_MAX_DAYS} days`, cut: true };
+  }
+  return { since: new Date(previous), words: "since the last brief", cut: false };
+}
+
 /** Newest first; a message whose date cannot be read is kept rather than silently dropped. */
-async function readMail(mail: MailCalendar, now: Date): Promise<{ emails: TriageEmail[]; capped: boolean }> {
+async function readMail(
+  mail: MailCalendar,
+  at: Date,
+  window: MailWindow,
+): Promise<{ emails: TriageEmail[]; capped: boolean }> {
   const ask = BRIEF_MAIL_CAP + 1;
-  let listed = await mail.listEmails({ query: "in:inbox newer_than:1d", limit: ask });
+  const days = Math.max(1, Math.ceil((at.getTime() - window.since.getTime()) / DAY_MS));
+  let listed = await mail.listEmails({ query: `in:inbox newer_than:${days}d`, limit: ask });
   // A connector that reads the query as plain text finds nothing; ask again and filter here.
   if (listed.length === 0) listed = await mail.listEmails({ limit: ask });
-  const since = now.getTime() - MAIL_WINDOW_MS;
+  const since = window.since.getTime();
   const recent = listed
     .filter((email) => {
-      const at = Date.parse(email.receivedAt);
-      return Number.isNaN(at) || at >= since;
+      const received = Date.parse(email.receivedAt);
+      return Number.isNaN(received) || received >= since;
     })
     .sort((a, b) => (Date.parse(b.receivedAt) || 0) - (Date.parse(a.receivedAt) || 0));
   return { emails: recent.slice(0, BRIEF_MAIL_CAP) as TriageEmail[], capped: recent.length > BRIEF_MAIL_CAP };
@@ -106,6 +139,8 @@ export interface SummaryInput {
   calendar: CalendarEvent[];
   tasks: Task[];
   couldNotCheck: string[];
+  /** Which mail was read. Without it, the last day. */
+  mailWindow?: MailWindow;
 }
 
 function eventTime(event: CalendarEvent, timeZone: string): string {
@@ -123,6 +158,11 @@ export function summaryPrompt(input: SummaryInput): string {
       : input.mailRead
         ? "connected"
         : "connected, but could not be read just now",
+    ...(input.mailRead && input.mailWindow
+      ? {
+          mailChecked: `${input.mailWindow.words}, from ${weekdayOf(localDate(input.mailWindow.since, input.timeZone))} ${localTime(input.mailWindow.since.toISOString(), input.timeZone)}`,
+        }
+      : {}),
     needsYou: sorted.slice(0, 8).map((item) => ({
       from: item.from.name || item.from.email,
       subject: item.subject,
@@ -209,7 +249,9 @@ export function plainSummary(input: SummaryInput): string {
           : "One email needs you";
       sentences.push(`${more}, starting with ${sender} about “${first.subject}”.`);
     } else if (input.needsYou.length === 0) {
-      sentences.push(waiting > 0 ? "No email needs you." : "No new mail in the last day.");
+      sentences.push(
+        waiting > 0 ? "No email needs you." : `No new mail ${input.mailWindow?.words ?? "in the last day"}.`,
+      );
     }
     if (unsorted > 0) {
       sentences.push(
@@ -353,18 +395,28 @@ export function createBriefService(deps: BriefDeps): BriefService {
     let mailRead = false;
     let calendarRead = false;
     let ownerNames: string[] = [];
+    const previous = db.get<{ created_at: string }>(
+      "SELECT created_at FROM proactive_briefs WHERE date < ? ORDER BY date DESC LIMIT 1",
+      [date],
+    );
+    const window = mailWindow(at, previous?.created_at);
 
     if (!mail) {
       couldNotCheck.push("Mail: not connected", "Calendar: not connected");
     } else {
       let emails: TriageEmail[] = [];
       try {
-        const read = await readMail(mail, at);
+        const read = await readMail(mail, at, window);
         emails = read.emails;
         mailRead = true;
+        if (window.cut) {
+          couldNotCheck.push(
+            `Mail: only the last ${BRIEF_MAIL_MAX_DAYS} days were checked; the last brief was longer ago than that`,
+          );
+        }
         if (read.capped) {
           couldNotCheck.push(
-            `Mail: only the newest ${BRIEF_MAIL_CAP} messages from the last day were sorted; older ones weren't checked`,
+            `Mail: only the newest ${BRIEF_MAIL_CAP} messages ${window.words.replace(/^in /, "from ")} were sorted; older ones weren't checked`,
           );
         }
       } catch {
@@ -418,6 +470,7 @@ export function createBriefService(deps: BriefDeps): BriefService {
       calendar,
       tasks,
       couldNotCheck,
+      mailWindow: window,
     };
     // With no mail there is nothing to summarise; the plain summary says how to connect it. When a
     // source could not be read, the plain summary says so in words the code chose: a model handed

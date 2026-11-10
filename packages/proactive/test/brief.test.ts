@@ -321,6 +321,77 @@ describe("the morning brief", () => {
     expect(brief2.couldNotCheck).toEqual([]);
   });
 
+  it("reads mail since the last brief, so a late morning leaves no gap", async () => {
+    const mail = fakeMail({
+      emails: [
+        email({ subject: "After lunch", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-22T12:00:00Z" }),
+        email({ subject: "Morning", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-21T10:00:00Z" }),
+        email({
+          subject: "Before the last brief",
+          labels: ["CATEGORY_SOCIAL"],
+          receivedAt: "2026-10-21T07:00:00Z",
+        }),
+      ],
+    });
+    const p = setup({ at: "2026-10-21T08:00:00Z", mail: () => mail });
+    await p.brief.generate();
+    // The server slept through 08:00; today's brief is made at 15:00.
+    p.clock.set("2026-10-22T15:00:00Z");
+    mail.emailQueries.length = 0;
+    const brief = await p.brief.generate();
+    expect(mail.emailQueries[0]).toEqual({ query: "in:inbox newer_than:2d", limit: BRIEF_MAIL_CAP + 1 });
+    expect(brief.canWait.map((i) => i.subject)).toEqual(["After lunch", "Morning"]);
+    expect(brief.couldNotCheck).toEqual([]);
+    // A second brief the same day still reads at least the last day.
+    expect((await p.brief.generate({ force: true })).canWait).toHaveLength(2);
+  });
+
+  it("covers a weekend away, and says so when the last brief was more than three days ago", async () => {
+    const saturday = email({
+      subject: "Saturday",
+      labels: ["CATEGORY_SOCIAL"],
+      receivedAt: "2026-10-24T11:00:00Z",
+    });
+    const mail = fakeMail({ emails: [saturday] });
+    const p = setup({ at: "2026-10-23T09:00:00Z", mail: () => mail });
+    await p.brief.generate(); // Friday
+    p.clock.set("2026-10-26T08:00:00Z"); // Monday
+    const monday = await p.brief.generate();
+    expect(monday.canWait.map((i) => i.subject)).toEqual(["Saturday"]);
+    expect(monday.couldNotCheck).toEqual([]);
+
+    const away = setup({
+      at: "2026-10-20T08:00:00Z",
+      mail: () =>
+        fakeMail({
+          emails: [
+            saturday,
+            email({ subject: "Wednesday", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-21T11:00:00Z" }),
+          ],
+        }),
+    });
+    await away.brief.generate();
+    away.clock.set("2026-10-25T08:00:00Z");
+    const back = await away.brief.generate();
+    expect(back.canWait.map((i) => i.subject)).toEqual(["Saturday"]);
+    expect(back.couldNotCheck).toEqual([
+      "Mail: only the last 3 days were checked; the last brief was longer ago than that",
+    ]);
+  });
+
+  it("says no new mail since the last brief when there was none", async () => {
+    const events = [
+      event({ title: "Kiln check", start: "2026-10-22T16:00:00Z", end: "2026-10-22T16:30:00Z" }),
+    ];
+    const p = setup({ at: "2026-10-21T08:00:00Z", mail: () => fakeMail({ events }) });
+    await p.brief.generate();
+    p.clock.set("2026-10-22T15:00:00Z");
+    const brief = await p.brief.generate();
+    expect(brief.summary).toBe(
+      "No new mail since the last brief. You have 1 thing on your calendar today, starting with “Kiln check” at 16:00.",
+    );
+  });
+
   it("asks again without a query when the connector reads the query as plain text", async () => {
     const mail = fakeMail({
       ignoresQuery: true,
@@ -466,6 +537,20 @@ describe("the brief's summary", () => {
     expect(prompt).toContain("Calendar: not connected");
     expect(prompt).toContain('"mail": "connected"');
     expect(prompt).toContain('"calendar": []');
+    const since = summaryPrompt({
+      date: "2026-10-22",
+      timeZone: LA,
+      mailConnected: true,
+      mailRead: true,
+      calendarRead: true,
+      needsYou: [],
+      canWait: [],
+      calendar: [],
+      tasks: [],
+      couldNotCheck: [],
+      mailWindow: { since: new Date("2026-10-21T15:00:00Z"), words: "since the last brief", cut: false },
+    });
+    expect(since).toContain('"mailChecked": "since the last brief, from Wednesday 08:00"');
   });
 
   it("never hands the model an empty list for a source it could not read", () => {
