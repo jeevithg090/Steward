@@ -213,6 +213,47 @@ describe("the catalogue", () => {
     expect(errors[0]).toBeInstanceOf(UnportableSchemaError);
     expect(String((errors[0] as Error).message)).toContain("mcp__docs__tree");
   });
+
+  it("leaves out a schema whose references would multiply out of all proportion when inlined", () => {
+    // Twenty fields that each refer to the next level, four levels deep: no loop, but inlined it
+    // would be 160,000 copies of the leaf, sent with every model call.
+    const level = (next: string) => ({
+      type: "object",
+      properties: Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`f${i}`, { $ref: next }])),
+    });
+    const fanOut = {
+      type: "object",
+      properties: { root: { $ref: "#/$defs/d0" } },
+      $defs: {
+        d0: level("#/$defs/d1"),
+        d1: level("#/$defs/d2"),
+        d2: level("#/$defs/d3"),
+        d3: level("#/$defs/leaf"),
+        leaf: { type: "string" },
+      },
+    };
+    expect(portableSchema(fanOut)).toBeUndefined();
+
+    // A loop through many fields is refused at the first repeat, not after walking every branch.
+    const defs = Object.fromEntries(
+      Array.from({ length: 20 }, (_, i) => [`d${i}`, level(`#/$defs/d${(i + 1) % 20}`)]),
+    );
+    expect(
+      portableSchema({ type: "object", properties: { root: { $ref: "#/$defs/d0" } }, $defs: defs }),
+    ).toBeUndefined();
+
+    // Reusing one definition in many places is not a loop, and is still inlined.
+    const reused = {
+      type: "object",
+      properties: { from: { $ref: "#/$defs/a" }, to: { $ref: "#/$defs/a" } },
+      $defs: {
+        a: { type: "object", properties: { email: { $ref: "#/$defs/email" } } },
+        email: { type: "string" },
+      },
+    };
+    const inner = { type: "object", properties: { email: { type: "string" } } };
+    expect(portableSchema(reused)).toEqual({ type: "object", properties: { from: inner, to: inner } });
+  });
 });
 
 describe("arguments that do not fit a tool's parameters", () => {
