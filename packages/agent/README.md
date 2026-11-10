@@ -106,6 +106,20 @@ What the model reads, and what the web app receives in `TOOL_CALL_RESULT.content
 { ok: false, error: string }                          // it failed, or the arguments were wrong
 ```
 
+Calls the model run answers itself come back in the same envelope, never as the AI SDK's raw
+text: arguments that do not fit the tool's parameters say what to change (`"to" must be a list,
+such as ["sam@example.com"].`), a tool that does not exist is named, arguments cut off at the reply
+limit say so, and the AG-UI state tools BuiltInAgent adds are "not available here". A built-in
+tool's call whose only slips are ones its argument readers accept (an optional field sent as
+null, a number sent as text or outside its range, one text where a list of text belongs) is put
+right and goes to the gateway as the corrected call, which is what the record keeps. MCP tools are
+never corrected: their server reads its own arguments.
+
+The same call failing three times, three model turns in a row of calls that could not run, or a
+second call cut off at the reply limit, stop the run with a plain sentence instead of using every
+step. Words cut off at the reply limit end with "I ran out of room in that reply. Ask me to carry
+on."
+
 Display tools (`show_*`) return `{ shown: true }`; the web app draws them from the call's arguments.
 
 ## The tools

@@ -9,12 +9,15 @@ import {
   AGENT_PROBLEM,
   CANCELLED_BY_PERSON,
   CONVERSATION_TOO_LONG,
+  cutOffAt,
   GATE_UNAVAILABLE,
   INITIATOR_UNKNOWN,
   KEPT_GETTING_IT_WRONG,
+  KEPT_RUNNING_OUT,
   NO_LONGER_GRANTED,
   normaliseUsage,
   PARTLY_DONE,
+  RAN_OUT_OF_ROOM,
   STATE_TOOL_UNAVAILABLE,
   STOPPED,
   TOO_MANY_STEPS,
@@ -909,6 +912,119 @@ describe("history and errors", () => {
     });
     expect(turn.types).not.toContain("CUSTOM");
     expect(text(turn.events)).toBe("Whose address is it?");
+  });
+
+  it("runs a built-in call whose only slips are ones its readers accept, as the corrected call", async () => {
+    script((req) =>
+      lastIsTool(req)
+        ? { content: "Done." }
+        : {
+            toolCalls: [
+              {
+                name: "mail_send",
+                arguments: JSON.stringify({ to: "sam@example.com", cc: null, subject: "Hi", body: "Hello" }),
+              },
+              { name: "mail_list", arguments: JSON.stringify({ limit: "20", query: null }) },
+              { name: "mail_list", arguments: JSON.stringify({ limit: 100 }) },
+            ],
+          },
+    );
+    const turn = await runTurn(agent(), [user("email sam, then list my mail")]);
+    // No call is answered inside: each goes to the gateway, as the call its readers would read.
+    expect(fakes.governance.callsFor("mail_send").map((c) => c.args)).toEqual([
+      { to: ["sam@example.com"], subject: "Hi", body: "Hello" },
+    ]);
+    expect(fakes.governance.callsFor("mail_list").map((c) => c.args)).toEqual([{ limit: 20 }, { limit: 50 }]);
+    expect(results(turn.events).every((r) => r.content.ok === true)).toBe(true);
+    expect(requests()).toHaveLength(2);
+    expect(text(turn.events)).toBe("Done.");
+  });
+
+  it("tells the model exactly what to change when arguments do not fit, in Steward's envelope", async () => {
+    fakes.mcp.tools = [
+      {
+        name: "mcp__notes__add",
+        server: "notes",
+        tool: "add",
+        description: "Add a note",
+        parameters: {
+          type: "object",
+          properties: { text: { type: "string" }, pinned: { type: "boolean" } },
+          required: ["text"],
+        },
+        kind: "write",
+      },
+    ];
+    script((req) =>
+      lastIsTool(req)
+        ? { content: "Let me fix those." }
+        : {
+            toolCalls: [
+              { name: "web_fetch", arguments: "{}" },
+              { name: "mail_list", arguments: JSON.stringify({ unreadOnly: "yes" }) },
+              { name: "mcp__notes__add", arguments: JSON.stringify({ text: "milk", pinned: null }) },
+              { name: "send_email", arguments: JSON.stringify({ to: "sam@example.com" }) },
+            ],
+          },
+    );
+    const turn = await runTurn(agent(), [user("do it all")]);
+    expect(fakes.governance.calls).toHaveLength(0);
+    expect(results(turn.events).map((r) => r.content)).toEqual([
+      { ok: false, error: '"url" is required.' },
+      { ok: false, error: '"unreadOnly" must be true or false.' },
+      // An MCP server's tool is never corrected: its server reads its own arguments.
+      { ok: false, error: 'Leave out "pinned" instead of sending null.' },
+      { ok: false, error: 'There is no tool called "send_email". Use only the tools you are offered.' },
+    ]);
+    // What the model reads next is what was emitted.
+    const sent = requests()[1]?.messages.filter((m) => m.role === "tool") ?? [];
+    expect(sent.map((m) => JSON.parse(String(m.content)))).toEqual(
+      results(turn.events).map((r) => r.content),
+    );
+    expect(text(turn.events)).toBe("Let me fix those.");
+  });
+
+  it("says a call was cut off at the reply limit, and stops when it happens again", async () => {
+    script(() => ({
+      toolCalls: [{ name: "make_page", arguments: '{"title":"Report","format":"markdown","content":"# Rep' }],
+      finishReason: "length",
+    }));
+    const turn = await runTurn(agent({ maxOutputTokens: 512 }), [user("write the long report")]);
+    expect(fakes.governance.calls).toHaveLength(0);
+    expect(requests()).toHaveLength(2);
+    expect(results(turn.events).map((r) => r.content)).toEqual([
+      { ok: false, error: cutOffAt(512) },
+      { ok: false, error: cutOffAt(512) },
+    ]);
+    expect(cutOffAt(512)).toContain("(512 tokens)");
+    expect(text(turn.events)).toBe(KEPT_RUNNING_OUT);
+    expect(turn.types.at(-1)).toBe("RUN_FINISHED");
+  });
+
+  it("still runs a call that fit beside one cut off, and leaves no call without a result", async () => {
+    script(() => ({
+      toolCalls: [
+        { name: "file_list", arguments: "{}" },
+        { name: "make_page", arguments: '{"title":"Report","format":"markdown","content":"# Rep' },
+      ],
+      finishReason: "length",
+    }));
+    const turn = await runTurn(agent({ maxSegments: 2 }), [user("list, then write the report")]);
+    expect(fakes.governance.callsFor("file_list")).toHaveLength(2);
+    const starts = turn.events
+      .filter((e) => e.type === "TOOL_CALL_START")
+      .map((e) => (e as unknown as { toolCallId: string }).toolCallId);
+    expect(starts).toHaveLength(4);
+    expect(new Set(results(turn.events).map((r) => r.toolCallId))).toEqual(new Set(starts));
+    expect(text(turn.events)).toBe(TOO_MANY_STEPS);
+  });
+
+  it("says so when the model's words were cut off at the reply limit", async () => {
+    script(() => ({ content: "First, the plan. Then it just", finishReason: "length" }));
+    const turn = await runTurn(agent(), [user("tell me everything")]);
+    expect(text(turn.events)).toBe(`First, the plan. Then it just${RAN_OUT_OF_ROOM}`);
+    const said = turn.events.filter((e) => e.type === "TEXT_MESSAGE_START");
+    expect(said).toHaveLength(2);
   });
 
   it("stops after the step limit with a plain sentence", async () => {

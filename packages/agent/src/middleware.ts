@@ -35,7 +35,7 @@ import { Observable, type Subscription } from "rxjs";
 import { answeredIds, callsIn, findCall, isTainted, sanitizeHistory } from "./history.ts";
 import { BUILTIN_TOOLS, toAgUiTool } from "./tools/catalogue.ts";
 import { DELEGATE_TOOL, delegateToolFor, delegationEnvelope, isDelegationRun } from "./tools/delegate.ts";
-import { ArgumentError } from "./tools/schema.ts";
+import { ArgumentError, explainArgs, forgiveArgs } from "./tools/schema.ts";
 import type {
   DelegationRun,
   GateFacts,
@@ -70,6 +70,26 @@ export const KEPT_GETTING_IT_WRONG =
 
 /** How many times the same call may fail before it runs, or model turns in a row may do nothing else. */
 const MAX_MISTAKES = 3;
+
+/** What the model reads for a call whose arguments were cut off at the reply limit. */
+export function cutOffAt(maxOutputTokens: number | undefined): string {
+  const limit = maxOutputTokens ? ` (${maxOutputTokens} tokens)` : "";
+  return `Your reply reached its length limit${limit} while writing these arguments, so they were cut off and nothing was done. Make the call shorter, such as a shorter page, or split the work into smaller steps.`;
+}
+
+/** The assistant's last words when its replies keep being cut off at the limit. */
+export const KEPT_RUNNING_OUT =
+  "My replies kept running out of room before I could finish, so I stopped. Ask for a shorter version, or for it in parts.";
+
+/** Added after words cut off at the reply limit. */
+export const RAN_OUT_OF_ROOM = "I ran out of room in that reply. Ask me to carry on.";
+
+/** What the model reads when arguments did not fit and Steward cannot say exactly why. */
+const ARGS_DO_NOT_FIT =
+  "The arguments did not fit what this tool takes. Check its parameters and call it again.";
+
+/** How the AI SDK answers a call whose arguments did not parse or did not fit the tool's schema. */
+const INVALID_INPUT = "Error: Invalid input for tool";
 
 const BAD_JSON = "The arguments were not a JSON object. Call the tool again with valid arguments.";
 
@@ -126,6 +146,8 @@ export interface GovernedToolsOptions {
   context?: (messages: Message[], initiator: Initiator) => Context[];
   /** How many model calls one run may make. */
   maxSegments?: number;
+  /** The most one model reply may write, so a call cut off at that limit can say so. */
+  maxOutputTokens?: number;
   /** Where unexpected errors go. They never escape the run. */
   onError?: (error: unknown, where: string) => void;
 }
@@ -528,12 +550,14 @@ export class GovernedToolsMiddleware extends Middleware {
     // 2. The model and its tools, until the model answers in words, a call is parked, or the limit.
     const context = [...input.context, ...this.contextFor(messages, initiator)];
     const offered = [...input.tools.filter((t) => !owned.has(t.name)), ...tools.map(toAgUiTool)];
+    const offeredNames = new Set(offered.map((t) => t.name));
     const forwardedProps = withoutStewardProps(input.forwardedProps);
     let lastFinish = this.finished(input);
-    // How often each exact call came back answered by the model run itself, and how many model
-    // turns in a row did nothing else.
+    // How often each exact call came back answered by the model run itself, how many model turns in
+    // a row did nothing else, and how many were cut off at the reply limit mid-call.
     const mistakes = new Map<string, number>();
     let insideStreak = 0;
+    let cutOffs = 0;
 
     for (let segment = 0; segment < this.maxSegments; segment++) {
       if (signal.aborted) {
@@ -553,7 +577,13 @@ export class GovernedToolsMiddleware extends Middleware {
       };
       const before = new Set(callsIn(request.messages).map((c) => c.id));
       const seg = await this.runSegment(request, next, io);
-      messages = this.releaseInside(seg, mergeHistory(messages, request.messages, seg.messages), emit);
+      const settled = this.settleInside(
+        seg,
+        mergeHistory(messages, request.messages, seg.messages),
+        scope,
+        offeredNames,
+      );
+      messages = settled.messages;
       if (seg.failure) {
         emit(withUsage(this.modelError(seg, io.tally.acted), usage));
         return;
@@ -580,7 +610,7 @@ export class GovernedToolsMiddleware extends Middleware {
       // Calls the model run answered itself (arguments that did not fit, a tool that does not
       // exist) get another model turn, so the model can read why and recover instead of going
       // quiet. The same mistake made again and again stops the run instead of using every step.
-      const inside = new Set(seg.inside.map((e) => e.toolCallId));
+      const inside = new Set(seg.inside.map((e) => e.toolCallId).filter((id) => !settled.rescued.has(id)));
       for (const call of fresh) {
         if (!inside.has(call.id)) continue;
         const key = `${call.function.name}\u0000${call.function.arguments}`;
@@ -588,7 +618,14 @@ export class GovernedToolsMiddleware extends Middleware {
       }
       const answeredInside = fresh.length > 0 && pending.length === 0;
       insideStreak = answeredInside ? insideStreak + 1 : 0;
+      if (settled.cutOff) cutOffs++;
       if (answeredInside) {
+        // Only when nothing else waits: a call that did fit still runs, and the model hears both.
+        if (cutOffs >= 2) {
+          this.say(KEPT_RUNNING_OUT, emit);
+          finish(seg.terminal);
+          return;
+        }
         if (insideStreak >= MAX_MISTAKES || [...mistakes.values()].some((n) => n >= MAX_MISTAKES)) {
           this.say(KEPT_GETTING_IT_WRONG, emit);
           finish(seg.terminal);
@@ -599,6 +636,8 @@ export class GovernedToolsMiddleware extends Middleware {
       }
       const mine = pending.filter((c) => owned.has(c.function.name));
       if (mine.length === 0) {
+        // Words cut off at the reply limit end mid-sentence; say so rather than leave them hanging.
+        if (fresh.length === 0 && finishReasonOf(seg.terminal) === "length") this.say(RAN_OUT_OF_ROOM, emit);
         finish(seg.terminal);
         return;
       }
@@ -720,13 +759,30 @@ export class GovernedToolsMiddleware extends Middleware {
 
   /**
    * Emits the results the model run gave its own calls, rewritten where Steward has something
-   * better to say, and keeps the history in step with what was emitted.
+   * better to say, and keeps the history in step with what was emitted. A Steward tool whose
+   * arguments only need the slips its readers accept put right is not answered here: its result is
+   * dropped, so the call goes to the gateway like any other (`rescued`).
    */
-  private releaseInside(seg: Segment, messages: Message[], emit: Emit): Message[] {
+  private settleInside(
+    seg: Segment,
+    messages: Message[],
+    scope: RunScope,
+    offered: ReadonlySet<string>,
+  ): { messages: Message[]; rescued: Set<string>; cutOff: boolean } {
     let out = messages;
+    const rescued = new Set<string>();
+    const lengthCut = finishReasonOf(seg.terminal) === "length";
+    let cutOff = false;
     for (const event of seg.inside) {
       const call = findCall(seg.messages, event.toolCallId);
-      const content = this.insideAnswer(call, event.content);
+      const answer = this.insideAnswer(call, event.content, scope.owned, offered, lengthCut);
+      if (answer === "rescue") {
+        rescued.add(event.toolCallId);
+        out = out.filter((m) => !(m.role === "tool" && m.id === event.messageId));
+        continue;
+      }
+      if (answer.cutOff) cutOff = true;
+      const { content } = answer;
       if (content !== event.content) {
         out = out.map((m) =>
           m.role === "tool" && m.toolCallId === event.toolCallId && m.id === event.messageId
@@ -734,20 +790,49 @@ export class GovernedToolsMiddleware extends Middleware {
             : m,
         );
       }
-      emit({ ...event, content } as BaseEvent);
+      scope.io.emit({ ...event, content } as BaseEvent);
     }
-    return out;
+    return { messages: out, rescued, cutOff };
   }
 
-  /** What the model reads for a call its own run answered. */
+  /**
+   * What the model reads for a call its own run answered, in Steward's envelope: the state tools
+   * are unavailable, a tool that does not exist is named, arguments cut off at the reply limit say
+   * so, and arguments that did not fit say exactly what to change.
+   */
   private insideAnswer(
     call: ToolCall | undefined,
     content: ToolCallResultEvent["content"],
-  ): ToolCallResultEvent["content"] {
-    if (call && STATE_TOOLS.has(call.function.name)) {
-      return serialise({ ok: false, error: STATE_TOOL_UNAVAILABLE });
+    owned: Map<string, StewardTool>,
+    offered: ReadonlySet<string>,
+    lengthCut: boolean,
+  ): { content: ToolCallResultEvent["content"]; cutOff?: boolean } | "rescue" {
+    if (!call) return { content };
+    const name = call.function.name;
+    if (STATE_TOOLS.has(name)) return { content: serialise({ ok: false, error: STATE_TOOL_UNAVAILABLE }) };
+    const tool = owned.get(name);
+    if (!tool) {
+      if (offered.has(name)) return { content };
+      return {
+        content: serialise({
+          ok: false,
+          error: `There is no tool called "${name.slice(0, 80)}". Use only the tools you are offered.`,
+        }),
+      };
     }
-    return content;
+    if (typeof content !== "string" || !content.startsWith(INVALID_INPUT)) return { content };
+    const args = parseArgs(call.function.arguments || "{}");
+    if (args === undefined) {
+      return lengthCut
+        ? { content: serialise({ ok: false, error: cutOffAt(this.opts.maxOutputTokens) }), cutOff: true }
+        : { content: serialise({ ok: false, error: BAD_JSON }) };
+    }
+    if (tool.source === "builtin" && !explainArgs(tool.parameters, forgiveArgs(tool.parameters, args))) {
+      return "rescue";
+    }
+    return {
+      content: serialise({ ok: false, error: explainArgs(tool.parameters, args) ?? ARGS_DO_NOT_FIT }),
+    };
   }
 
   /**
@@ -781,13 +866,20 @@ export class GovernedToolsMiddleware extends Middleware {
     // about a call that could only fail. A resume always goes to the gateway, which closes the approval.
     let problem: Error | undefined;
     let args: ToolArgs = {};
-    try {
-      const parsed: unknown = JSON.parse(call.function.arguments || "{}");
-      if (!isRecord(parsed)) throw new Error("not an object");
-      args = parsed;
-    } catch {
+    const parsed = parseArgs(call.function.arguments || "{}");
+    if (parsed === undefined) {
       if (!mode.resume) return { content: serialise({ ok: false, error: BAD_JSON }) };
       problem = new Error(BAD_JSON);
+    } else {
+      args = parsed;
+      // A built-in tool's call that only needs the slips its readers accept put right (an optional
+      // field sent as null, a number sent as text) runs as the corrected call, which is what the
+      // gateway decides on and the record keeps. The same correction on a resume keeps it the
+      // exact call the person answered.
+      if (tool.source === "builtin" && explainArgs(tool.parameters, args)) {
+        const forgiven = forgiveArgs(tool.parameters, args);
+        if (!explainArgs(tool.parameters, forgiven)) args = forgiven;
+      }
     }
 
     const ctx: ToolContext = {
@@ -1186,6 +1278,23 @@ function withdrawnTool(name: string): StewardTool | undefined {
 /** What BuiltInAgent would have given the model for an interrupt that is not Steward's. */
 function foreignResumeValue(entry: ResumeEntry): unknown {
   return entry.status === "cancelled" ? { status: "cancelled" } : (entry.payload ?? { status: "resolved" });
+}
+
+/** A call's arguments as an object, or `undefined` when they are not JSON or not an object. */
+function parseArgs(text: string): ToolArgs | undefined {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    return isRecord(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Why the model stopped writing: `length` when it hit the reply limit. */
+function finishReasonOf(event: RunFinishedEvent | undefined): string | undefined {
+  const metadata = (event as { metadata?: unknown } | undefined)?.metadata;
+  const reason = isRecord(metadata) ? metadata.finishReason : undefined;
+  return typeof reason === "string" ? reason : undefined;
 }
 
 /** The server's run token never travels further than this middleware. */

@@ -176,6 +176,10 @@ model you run yourself.
   what it does write. Steward reserves 4096 tokens per reply (`STEWARD_MODEL_MAX_TOKENS`). If
   replies fail with "out of credit", add credit or lower that number. The setup checklist makes the
   same reservation, so it says "needs credit" before a conversation does.
+- **The reply limit.** A reply that reaches `STEWARD_MODEL_MAX_TOKENS` is cut off. Cut-off words
+  end with "I ran out of room in that reply. Ask me to carry on." A tool call cut off mid-way never
+  runs: the model is told to make it shorter, and a second cut-off call stops the run. A long
+  report through `make_page` is the usual cause.
 - **Gemini.** Gemini's OpenAI-compatible endpoint returns "thought signatures" with tool calls that
   must be sent back on the next turn. Steward's OpenAI-shaped client does not keep them yet, so
   long tool loops on Gemini may fail; prefer OpenRouter, NVIDIA or OpenAI for now.

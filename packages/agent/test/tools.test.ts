@@ -9,6 +9,7 @@ import {
 import { BUILTIN_TOOLS, buildToolCatalogue, grantedBuiltins, toAgUiTool } from "../src/tools/catalogue.ts";
 import { pageSlug, stripActiveContent } from "../src/tools/display.ts";
 import { objectRoot } from "../src/tools/mcp.ts";
+import { explainArgs, forgiveArgs } from "../src/tools/schema.ts";
 import { parseAddress, urlTarget } from "../src/tools/target.ts";
 import type { StewardTool, ToolArgs, ToolContext } from "../src/tools/types.ts";
 import { type Fakes, makeFakes, servicesFrom } from "./fakes.ts";
@@ -130,6 +131,84 @@ describe("the catalogue", () => {
     });
     expect(objectRoot({ type: "object" })).toEqual({ type: "object", properties: {} });
     expect(objectRoot(undefined)).toEqual({ type: "object", properties: {} });
+  });
+});
+
+describe("arguments that do not fit a tool's parameters", () => {
+  const explain = (name: string, args: unknown) => explainArgs(tool(name).parameters, args);
+  const forgive = (name: string, args: Record<string, unknown>) => forgiveArgs(tool(name).parameters, args);
+
+  it("uses only schema words the explanation knows, so it cannot miss what the provider checks", () => {
+    const known = new Set([
+      "type",
+      "description",
+      "properties",
+      "required",
+      "items",
+      "enum",
+      "minimum",
+      "maximum",
+      "minItems",
+      "maxItems",
+      "anyOf",
+    ]);
+    const walk = (schema: Record<string, unknown>, where: string) => {
+      for (const key of Object.keys(schema)) expect(known.has(key), `${where}: ${key}`).toBe(true);
+      for (const [key, field] of Object.entries((schema.properties ?? {}) as Record<string, object>)) {
+        walk(field as Record<string, unknown>, `${where}.${key}`);
+      }
+      if (schema.items) walk(schema.items as Record<string, unknown>, `${where}[]`);
+      for (const branch of (schema.anyOf ?? []) as Record<string, unknown>[]) walk(branch, `${where}|`);
+    };
+    for (const t of BUILTIN_TOOLS) walk(t.parameters, t.name);
+  });
+
+  it("says nothing for arguments that fit", () => {
+    expect(explain("mail_send", { to: ["sam@example.com"], subject: "Hi", body: "Hello" })).toBeUndefined();
+    expect(explain("mail_list", {})).toBeUndefined();
+    expect(
+      explain("show_table", { title: "Ages", columns: ["Name", "Age"], rows: [["Sam", 30]] }),
+    ).toBeUndefined();
+  });
+
+  it("names what to change, three problems at most", () => {
+    expect(explain("web_fetch", {})).toBe('"url" is required.');
+    expect(explain("web_fetch", { url: null })).toBe('"url" is required and cannot be null.');
+    expect(explain("mail_list", { query: null })).toBe('Leave out "query" instead of sending null.');
+    expect(explain("mail_list", { limit: "20" })).toBe(
+      '"limit" must be a whole number, such as 20, not the text "20".',
+    );
+    expect(explain("mail_list", { limit: 2.5 })).toBe('"limit" must be a whole number.');
+    expect(explain("mail_list", { limit: 100 })).toBe('"limit" must be at most 50.');
+    expect(explain("mail_send", { to: "sam@example.com", subject: "Hi", body: "Hello" })).toBe(
+      '"to" must be a list, such as ["sam@example.com"].',
+    );
+    expect(explain("make_page", { title: "Plan", format: "pdf", content: "x" })).toBe(
+      '"format" must be one of: markdown, html.',
+    );
+    expect(explain("show_table", { title: "Ages", columns: [], rows: [[true]] })).toBe(
+      '"columns" needs at least 1 item. "rows[0][0]" must be text or a number.',
+    );
+    expect(explain("mail_send", {})).toBe('"to" is required. "subject" is required. "body" is required.');
+    expect(explain("web_fetch", "https://example.com")).toBe("The arguments must be a JSON object.");
+  });
+
+  it("puts right only the slips the readers accept, and leaves everything else as it was", () => {
+    expect(forgive("mail_list", { limit: "20", query: null, unreadOnly: true })).toEqual({
+      limit: 20,
+      unreadOnly: true,
+    });
+    expect(forgive("mail_list", { limit: 100 })).toEqual({ limit: 50 });
+    expect(forgive("mail_list", { limit: 0 })).toEqual({ limit: 1 });
+    expect(forgive("mail_send", { to: "sam@example.com", cc: null, subject: "Hi", body: "Hello" })).toEqual({
+      to: ["sam@example.com"],
+      subject: "Hi",
+      body: "Hello",
+    });
+    // A wrong kind and a required null are not guessed at.
+    expect(forgive("mail_list", { unreadOnly: "yes" })).toEqual({ unreadOnly: "yes" });
+    expect(forgive("web_fetch", { url: null })).toEqual({ url: null });
+    expect(explain("web_fetch", forgive("web_fetch", { url: null }))).toBeDefined();
   });
 });
 

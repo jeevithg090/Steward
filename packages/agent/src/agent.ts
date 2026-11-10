@@ -119,11 +119,12 @@ export function toolServices(deps: AgentDeps): ToolServices {
  */
 export function createStewardAgent(deps: AgentDeps): StewardAgent {
   const services = toolServices(deps);
+  const maxOutputTokens = deps.maxOutputTokens ?? 4096;
   const agent = new StewardAgent({
     model: deps.model,
     prompt: buildSystemPrompt({ tenant: deps.tenant, profile: deps.profile }),
     maxSteps: 1,
-    maxOutputTokens: deps.maxOutputTokens ?? 4096,
+    maxOutputTokens,
   });
   agent.agentId = deps.profile.id;
   agent.description = deps.profile.title;
@@ -136,6 +137,7 @@ export function createStewardAgent(deps: AgentDeps): StewardAgent {
       governance: deps.governance,
       services,
       maxSegments: deps.maxSegments ?? 24,
+      maxOutputTokens,
       ...(report ? { onError: report } : {}),
       tools: () =>
         buildToolCatalogue({
