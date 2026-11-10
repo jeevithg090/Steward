@@ -32,6 +32,11 @@ function serve() {
     if (req.path === "/api/rules/presets") return { body: rules.filter((r) => r.source === "preset") };
     const id = req.path.match(/^\/api\/rules\/(rul_\w+)$/)?.[1];
     const found = rules.find((r) => r.id === id);
+    if (req.path === "/api/rules/dry-run") {
+      return {
+        body: { effect: "ask", reason: "Sending an email asks unless you allowed it.", findings: [] },
+      };
+    }
     if (found && req.method === "PUT") {
       const body = req.body as Rule;
       if (
@@ -150,6 +155,66 @@ describe("RulesPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /Emails only to your own company/ }));
     expect((screen.getByPlaceholderText('tool.surface == "calendar"') as HTMLTextAreaElement).value).toBe(
       'tool.kind == "send" && target.recipients.all(r, endsWith(r, "@mycompany.com"))',
+    );
+  });
+});
+
+describe("RulesPage: would this be allowed?", () => {
+  const tester = () => screen.getByRole("region", { name: "Would this be allowed?" });
+  const argsBox = () => within(tester()).getByRole("textbox", { name: /Arguments/ }) as HTMLTextAreaElement;
+
+  it("asks the gateway, and clears the answer as soon as the question changes", async () => {
+    const server = serve();
+    renderWithProviders(<RulesPage />);
+    await screen.findByRole("article", { name: "My own rule" });
+    fireEvent.click(within(tester()).getByRole("button", { name: "Check" }));
+    expect(await within(tester()).findByText("Steward would ask you first.")).toBeTruthy();
+    expect(server.calls.find((c) => c.path === "/api/rules/dry-run")?.body).toMatchObject({
+      tool: "mail_send",
+      tainted: false,
+      initiator: "person",
+    });
+
+    fireEvent.click(within(tester()).getByRole("checkbox", { name: /already read a web page/ }));
+    await waitFor(() => expect(within(tester()).queryByText("Steward would ask you first.")).toBeNull());
+  });
+
+  it("refuses arguments that aren't a JSON object, without asking", async () => {
+    const server = serve();
+    renderWithProviders(<RulesPage />);
+    await screen.findByRole("article", { name: "My own rule" });
+    fireEvent.change(argsBox(), { target: { value: "[1, 2]" } });
+    fireEvent.click(within(tester()).getByRole("button", { name: "Check" }));
+    expect(await within(tester()).findByText(/Arguments must be a JSON object/)).toBeTruthy();
+    expect(server.calls.some((c) => c.path === "/api/rules/dry-run")).toBe(false);
+  });
+
+  it("gives a click the button's name, and says why it matters", async () => {
+    serve();
+    renderWithProviders(<RulesPage />);
+    await screen.findByRole("article", { name: "My own rule" });
+    fireEvent.change(within(tester()).getByRole("combobox", { name: "Action" }), {
+      target: { value: "browser_click" },
+    });
+    expect(JSON.parse(argsBox().value)).toEqual({ ref: "e12", element: "Place order" });
+    expect(within(tester()).getByText(/give it as element/)).toBeTruthy();
+  });
+
+  it("checks a connected app's tool by its name", async () => {
+    const server = serve();
+    renderWithProviders(<RulesPage />);
+    await screen.findByRole("article", { name: "My own rule" });
+    fireEvent.change(within(tester()).getByRole("combobox", { name: "Action" }), {
+      target: { value: "__other" },
+    });
+    fireEvent.change(within(tester()).getByRole("textbox", { name: /Tool name/ }), {
+      target: { value: "mcp__notion__search" },
+    });
+    fireEvent.click(within(tester()).getByRole("button", { name: "Check" }));
+    await waitFor(() =>
+      expect(server.calls.find((c) => c.path === "/api/rules/dry-run")?.body).toMatchObject({
+        tool: "mcp__notion__search",
+      }),
     );
   });
 });

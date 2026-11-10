@@ -1,6 +1,6 @@
 import { type Decision, type Effect, type Rule, TOOLS } from "@steward/shared";
 import { FlaskConical, Pencil, Plus, ShieldCheck, Trash, Undo2 } from "lucide-react";
-import { type FormEvent, type ReactNode, useId, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { RuleBadge } from "@/components/cards/RuleBadge.tsx";
 import { Badge } from "@/components/ui/Badge.tsx";
@@ -552,6 +552,9 @@ function RuleForm({ rule, onDone }: { rule?: Rule; onDone: () => void }) {
 
 const ARG_EXAMPLES: Record<string, Record<string, unknown>> = {
   browser_navigate: { url: "https://example.com" },
+  browser_click: { ref: "e12", element: "Place order" },
+  browser_type: { ref: "e3", element: "Search", text: "running shoes", submit: true },
+  browser_press: { key: "Enter", ref: "e7", element: "Send" },
   mail_send: { to: ["someone@example.com"], subject: "Hello", body: "Just checking in." },
   calendar_create: { title: "Coffee", start: "2026-10-28T10:00:00Z", end: "2026-10-28T10:30:00Z" },
   shell_run: { command: "ls -la" },
@@ -559,9 +562,13 @@ const ARG_EXAMPLES: Record<string, Record<string, unknown>> = {
   web_fetch: { url: "https://example.com" },
 };
 
+/** Browser actions whose risk depends on the element they touch, which a real page names. */
+const ELEMENT_TOOLS = new Set(["browser_click", "browser_type", "browser_press"]);
+
 /** "Would this be allowed?": asks the gateway to decide a made-up call without running it. */
 function DryRunTester() {
   const dryRun = useDryRun();
+  const rules = useRules();
   const [tool, setTool] = useState("mail_send");
   const [other, setOther] = useState("");
   const [args, setArgs] = useState(JSON.stringify(ARG_EXAMPLES.mail_send, null, 2));
@@ -569,8 +576,22 @@ function DryRunTester() {
   const [initiator, setInitiator] = useState<NonNullable<DryRunInput["initiator"]>>("person");
   const [argsError, setArgsError] = useState<string | undefined>();
   const resultId = useId();
+  const { reset } = dryRun;
+
+  // An answer belongs to the action and the rules it was given: change either, and it goes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: clears when the rules are read again.
+  useEffect(() => reset(), [rules.dataUpdatedAt, reset]);
+
+  /** Every change to the question clears the old answer. */
+  function changed<T>(set: (value: T) => void): (value: T) => void {
+    return (value) => {
+      reset();
+      set(value);
+    };
+  }
 
   function pickTool(name: string) {
+    reset();
     setTool(name);
     if (name !== "__other") setArgs(JSON.stringify(ARG_EXAMPLES[name] ?? {}, null, 2));
   }
@@ -614,7 +635,7 @@ function DryRunTester() {
           <Field label="Started by">
             <Select
               value={initiator}
-              onChange={(e) => setInitiator(e.target.value as NonNullable<DryRunInput["initiator"]>)}
+              onChange={(e) => changed(setInitiator)(e.target.value as NonNullable<DryRunInput["initiator"]>)}
             >
               <option value="person">You, in a conversation</option>
               <option value="routine">A routine</option>
@@ -627,23 +648,31 @@ function DryRunTester() {
           <Field label="Tool name" description="Connected app tools are named mcp__<server>__<tool>.">
             <Input
               value={other}
-              onChange={(e) => setOther(e.target.value)}
+              onChange={(e) => changed(setOther)(e.target.value)}
               placeholder="mcp__notion__search"
             />
           </Field>
         ) : null}
-        <Field label="Arguments (JSON)" error={argsError}>
+        <Field
+          label="Arguments (JSON)"
+          error={argsError}
+          description={
+            ELEMENT_TOOLS.has(tool)
+              ? "On a real page, Steward reads the element's name from the page. Here, give it as element: a button named like Send, Pay or Place order is treated as sending or paying."
+              : undefined
+          }
+        >
           <Textarea
             value={args}
             rows={4}
             className="font-mono text-sub"
             spellCheck={false}
-            onChange={(e) => setArgs(e.target.value)}
+            onChange={(e) => changed(setArgs)(e.target.value)}
           />
         </Field>
         <Checkbox
           checked={tainted}
-          onChange={(e) => setTainted(e.target.checked)}
+          onChange={(e) => changed(setTainted)(e.target.checked)}
           label="It has already read a web page or an email in this conversation"
           description="Content Steward doesn't trust can carry instructions, so risky actions then always ask."
         />
