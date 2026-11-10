@@ -23,7 +23,7 @@ import {
 } from "@copilotkit/runtime/v2";
 import type { Db } from "@steward/db";
 import { fromJson } from "@steward/db";
-import { type Observable, ReplaySubject } from "rxjs";
+import { Observable, ReplaySubject } from "rxjs";
 import { type RunSummary, summariseRun } from "./run-summary.ts";
 
 /** One run in flight. The lock is in memory, so a crash never leaves a thread stuck "running". */
@@ -268,29 +268,35 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
     return runSubject.asObservable();
   }
 
+  /**
+   * The thread's history, then the live run (if any) as it happens. The history is read when the
+   * stream is subscribed to, and a browser that goes away takes its subscription to the live run
+   * with it, so a reconnect never keeps a copy of the conversation alive until the run ends.
+   */
   connect(request: AgentRunnerConnectRequest): Observable<BaseEvent> {
-    const out = new ReplaySubject<BaseEvent>(Infinity);
-    const emitted = new Set<string>();
-    for (const event of compactEvents(this.history(request.threadId))) {
-      out.next(event);
-      const id = messageIdOf(event);
-      if (id) emitted.add(id);
-    }
-    const live = this.live.get(request.threadId);
-    if (!live) {
-      out.complete();
-      return out.asObservable();
-    }
-    live.subject.subscribe({
-      next: (event) => {
-        const id = messageIdOf(event);
-        if (id && emitted.has(id)) return;
+    return new Observable<BaseEvent>((out) => {
+      const emitted = new Set<string>();
+      for (const event of compactEvents(this.history(request.threadId))) {
         out.next(event);
-      },
-      complete: () => out.complete(),
-      error: (err: unknown) => out.error(err),
+        const id = messageIdOf(event);
+        if (id) emitted.add(id);
+      }
+      const live = this.live.get(request.threadId);
+      if (!live) {
+        out.complete();
+        return;
+      }
+      const following = live.subject.subscribe({
+        next: (event) => {
+          const id = messageIdOf(event);
+          if (id && emitted.has(id)) return;
+          out.next(event);
+        },
+        complete: () => out.complete(),
+        error: (err: unknown) => out.error(err),
+      });
+      return () => following.unsubscribe();
     });
-    return out.asObservable();
   }
 
   isRunning(request: AgentRunnerIsRunningRequest): Promise<boolean> {

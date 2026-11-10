@@ -1,5 +1,6 @@
-import { EventType, type Message, type RunStartedEvent } from "@ag-ui/client";
+import { type BaseEvent, EventType, type Message, type RunStartedEvent } from "@ag-ui/client";
 import { ThreadAlreadyRunningError } from "@copilotkit/runtime/v2";
+import type { Subject } from "rxjs";
 import { describe, expect, it } from "vitest";
 import { mergeHistory, previewOf, type RunFinished, SERVER_PROPS_KEY } from "../src/runtime/runner.ts";
 import { collect, EchoAgent, runInput, runnerOnMemoryDb, startRun } from "./helpers.ts";
@@ -144,6 +145,35 @@ describe("NodeSqliteAgentRunner", () => {
     const events = await run;
     expect(events.at(-1)?.type).toBe(EventType.RUN_FINISHED);
     expect(runner.isThreadBusy("t1")).toBe(false);
+  });
+
+  it("lets go of the live run when a browser that connected goes away", async () => {
+    const { runner } = runnerOnMemoryDb();
+    await collect(startRun(runner, new EchoAgent({ agentId: "steward" }), runInput("t1", "r0", "earlier")));
+    const agent = new EchoAgent({ agentId: "steward" });
+    agent.delayMs = 5_000;
+    const run = collect(startRun(runner, agent, runInput("t1", "r1", "slow")));
+    const live = (runner as unknown as { live: Map<string, { subject: Subject<BaseEvent> }> }).live.get("t1");
+    expect(live?.subject.observed).toBe(false);
+
+    const seen: BaseEvent[] = [];
+    const watching = runner.connect({ threadId: "t1" }).subscribe((event) => seen.push(event));
+    expect(seen.some((e) => e.type === EventType.TEXT_MESSAGE_CONTENT)).toBe(true);
+    expect(live?.subject.observed).toBe(true);
+    watching.unsubscribe();
+    expect(live?.subject.observed).toBe(false);
+
+    await runner.stop({ threadId: "t1" });
+    await run;
+  });
+
+  it("reads the history when a connect is subscribed to, not before", async () => {
+    const { runner } = runnerOnMemoryDb();
+    const agent = new EchoAgent({ agentId: "steward" });
+    const early = runner.connect({ threadId: "t1" });
+    await collect(startRun(runner, agent, runInput("t1", "r1", "hi")));
+    const events = await collect(early);
+    expect(events.some((e) => e.type === EventType.TEXT_MESSAGE_CONTENT)).toBe(true);
   });
 
   it("deletes one thread, refuses while running, and ignores clear-all", async () => {
