@@ -86,8 +86,9 @@ backoff and refreshes everything after a reconnect, because events may have been
 The shell imports `ChatPage` and `ComputerPage` from `src/features` (PLAN.md §5.1) in one file,
 `src/app/features.ts`, and only lazily. `ChatPage` there is the chat inside `StewardCopilotProvider`:
 CopilotKit and the markdown, maths and charts that replies draw with stay out of the first load, and
-are fetched in the background a few seconds after it (`prefetchChat()`). A test fails if the shell
-imports CopilotKit or Streamdown statically. The chat track imports from the shell: `api` and the
+are fetched in the background a few seconds after it (`prefetchChat()`). A test fails if the app root
+or its routes import CopilotKit or Streamdown statically. (The bot pages still import the chat's
+`Markdown` statically, inside their own lazy chunk.) The chat track imports from the shell: `api` and the
 hooks, `useLiveEvents`, `cn`, the UI kit, the cards and `useAccessibility()`.
 
 A page hands a message to the chat with `/chat?prompt=…` (`chatPromptHref()` in
