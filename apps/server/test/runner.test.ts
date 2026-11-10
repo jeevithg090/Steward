@@ -1,8 +1,9 @@
-import { EventType, type Message, type RunStartedEvent } from "@ag-ui/client";
+import { type BaseEvent, EventType, type Message, type RunStartedEvent } from "@ag-ui/client";
 import { ThreadAlreadyRunningError } from "@copilotkit/runtime/v2";
+import { Observable } from "rxjs";
 import { describe, expect, it } from "vitest";
 import { mergeHistory, previewOf, type RunFinished, SERVER_PROPS_KEY } from "../src/runtime/runner.ts";
-import { collect, EchoAgent, runInput, runnerOnMemoryDb, startRun } from "./helpers.ts";
+import { collect, EchoAgent, runInput, runnerOnMemoryDb, startRun, waitFor } from "./helpers.ts";
 
 describe("NodeSqliteAgentRunner", () => {
   it("runs an agent, stores the run and the conversation", async () => {
@@ -134,15 +135,103 @@ describe("NodeSqliteAgentRunner", () => {
     expect(finished[1]?.interrupts[0]?.metadata).toMatchObject({ approvalId: "apr_1" });
   });
 
-  it("stops a run on request", async () => {
+  it("stops a run on request, and the run says it was stopped", async () => {
     const { runner } = runnerOnMemoryDb();
     const agent = new EchoAgent({ agentId: "steward" });
     agent.delayMs = 5_000;
+    const finished: RunFinished[] = [];
+    runner.onRunFinished((run) => finished.push(run));
+    // No protocol version, like every run the server starts itself.
     const run = collect(startRun(runner, agent, runInput("t1", "r1", "slow")));
     expect(await runner.stop({ threadId: "t1", runId: "other" })).toBe(false);
     expect(await runner.stop({ threadId: "t1" })).toBe(true);
     const events = await run;
-    expect(events.at(-1)?.type).toBe(EventType.RUN_FINISHED);
+    expect(events.at(-1)).toMatchObject({ type: EventType.RUN_FINISHED, outcome: { type: "cancelled" } });
+    expect(finished.map((f) => f.outcome)).toEqual(["cancelled"]);
+    expect(runner.isThreadBusy("t1")).toBe(false);
+  });
+
+  it("reads a stopped run as stopped when the agent ends it itself, or fails on the stop", async () => {
+    const { runner } = runnerOnMemoryDb();
+    const finished: RunFinished[] = [];
+    runner.onRunFinished((run) => finished.push(run));
+
+    // An agent that closes the run itself when stopped, with no outcome (it saw no protocol version).
+    const closes = new EchoAgent({ agentId: "steward" });
+    closes.delayMs = 5_000;
+    const clone = closes.clone();
+    clone.agentId = "steward";
+    clone.threadId = "t1";
+    let end: (() => void) | undefined;
+    clone.run = (input) =>
+      new Observable((sub) => {
+        sub.next({ type: EventType.RUN_STARTED, threadId: input.threadId, runId: input.runId } as BaseEvent);
+        end = () => {
+          sub.next({
+            type: EventType.RUN_FINISHED,
+            threadId: input.threadId,
+            runId: input.runId,
+          } as BaseEvent);
+          sub.complete();
+        };
+      });
+    clone.abortRun = () => end?.();
+    const first = collect(runner.run({ threadId: "t1", agent: clone, input: runInput("t1", "r1", "slow") }));
+    await waitFor(() => end !== undefined);
+    await runner.stop({ threadId: "t1" });
+    expect((await first).at(-1)).toMatchObject({ outcome: { type: "cancelled" } });
+
+    // An agent whose stop throws: the stop explains the end, so it is not a failure.
+    const throws = new EchoAgent({ agentId: "steward" });
+    const broken = throws.clone();
+    broken.agentId = "steward";
+    broken.threadId = "t2";
+    let fail: ((err: Error) => void) | undefined;
+    broken.run = () =>
+      new Observable((sub) => {
+        fail = (err) => sub.error(err);
+      });
+    broken.abortRun = () => fail?.(new Error("This operation was aborted"));
+    const second = collect(
+      runner.run({ threadId: "t2", agent: broken, input: runInput("t2", "r2", "slow") }),
+    );
+    await waitFor(() => fail !== undefined);
+    await runner.stop({ threadId: "t2" });
+    await second;
+
+    expect(finished.map((f) => [f.runId, f.outcome, f.error])).toEqual([
+      ["r1", "cancelled", undefined],
+      ["r2", "cancelled", undefined],
+    ]);
+  });
+
+  it("frees the thread when finishing a run goes wrong", async () => {
+    const { runner } = runnerOnMemoryDb();
+    const agent = new EchoAgent({ agentId: "steward" });
+    const clone = agent.clone();
+    clone.agentId = "steward";
+    clone.threadId = "t1";
+    clone.setMessages(runInput("t1", "r1", "hi").messages);
+    // Once the run has started, reading the agent's messages throws, as a broken agent might.
+    let broken = false;
+    const messages = clone.messages;
+    Object.defineProperty(clone, "messages", {
+      configurable: true,
+      get: () => {
+        if (broken) throw new Error("broken agent");
+        return messages;
+      },
+      set: () => {},
+    });
+    runner.onRunStarted(() => {
+      broken = true;
+    });
+    const run = collect(runner.run({ threadId: "t1", agent: clone, input: runInput("t1", "r1", "hi") }));
+    const ended = await Promise.race([
+      run.then(() => true),
+      new Promise<false>((resolve) => setTimeout(() => resolve(false), 3_000)),
+    ]);
+    expect(ended).toBe(true);
     expect(runner.isThreadBusy("t1")).toBe(false);
   });
 

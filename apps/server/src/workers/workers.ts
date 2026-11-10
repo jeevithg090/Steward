@@ -23,6 +23,8 @@ const ROUTINE_BUSY_WAIT_MS = 5 * 60_000;
 /** A failed brief is retried at most this often on the same day. */
 const BRIEF_RETRY_MS = 30 * 60_000;
 const BRIEF_DATE_KEY = "worker.briefDate";
+/** What a routine's last run says after the person stopped it. */
+export const STOPPED_RUN = "You stopped this run.";
 
 export interface WorkerDeps {
   routines: RoutineStore;
@@ -158,7 +160,10 @@ export class Workers {
       initiator: { kind: "routine", id: routine.id },
     });
     void run.done.then((result) => {
-      if (result.outcome === "error") this.record(routine, { status: "failed", error: result.error }, result);
+      // Stopped on purpose: nothing failed, and the person who stopped it needs no notification.
+      if (result.outcome === "cancelled") this.record(routine, { status: "skipped", error: STOPPED_RUN });
+      else if (result.outcome === "error")
+        this.record(routine, { status: "failed", error: result.error }, result);
       else if (result.refusals.length > 0)
         this.record(routine, { status: "refused", error: result.refusals[0] }, result);
       else this.record(routine, { status: "ok" }, result);

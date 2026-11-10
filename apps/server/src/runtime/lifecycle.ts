@@ -56,6 +56,9 @@ function firstUserText(messages: readonly Message[]): string | undefined {
   return undefined;
 }
 
+/** What a task says after the person stopped its run. */
+export const STOPPED_NEXT_STEP = "You stopped this. Start it again when you're ready.";
+
 /** A new run in a task's conversation means work has started again. */
 const RESTARTS: ReadonlySet<Task["state"]> = new Set(["needs_input", "ready_for_review", "failed"]);
 
@@ -63,10 +66,11 @@ const RESTARTS: ReadonlySet<Task["state"]> = new Set(["needs_input", "ready_for_
  * What happens around every run, whoever started it:
  * - the thread gets a row (so it is listed while it runs) and, after its first run, a title taken
  *   from the first thing the person said;
- * - a task's state follows its conversation: working → ready for review, or failed. While an
- *   approval is waiting the task store already reads `needs_you` (it is derived from the approval,
- *   never stored), so a parked run only updates the task's next step. A task the server started
- *   also leaves a notification, since nobody was watching;
+ * - a task's state follows its conversation: working → ready for review, failed, or needs input
+ *   when the person stopped the run. While an approval is waiting the task store already reads
+ *   `needs_you` (it is derived from the approval, never stored), so a parked run only updates the
+ *   task's next step. A task the server started also leaves a notification, since nobody was
+ *   watching, unless the person stopped it;
  * - every finished run gets a `run.finished` row in the record: how it ended, who started it, and
  *   the tokens it used per provider and model when the agent reported them;
  * - `run.started` and `run.finished` go out live, so a conversation already open in a browser
@@ -156,7 +160,10 @@ export function wireRunLifecycle(deps: {
       return;
     }
     if (task.state !== "working") return;
-    if (run.outcome === "error") {
+    if (run.outcome === "cancelled") {
+      // The person stopped it, so they know: no notification, and the task waits for them.
+      tasks.update(task.id, { state: "needs_input", nextStep: STOPPED_NEXT_STEP });
+    } else if (run.outcome === "error") {
       const error = clip(run.error ?? "It stopped before finishing.", 400);
       tasks.update(task.id, { state: "failed", error });
       if (fromServer)

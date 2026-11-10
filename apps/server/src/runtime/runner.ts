@@ -6,7 +6,9 @@ import {
   compactEvents,
   EventType,
   type Message,
+  PROTOCOL_VERSION,
   type RunAgentInput,
+  type RunFinishedEvent,
   type RunStartedEvent,
   type StateSnapshotEvent,
 } from "@ag-ui/client";
@@ -93,6 +95,18 @@ export function mergeHistory(stored: readonly Message[], incoming: Message[]): M
   if (stored.every((m) => incomingIds.has(m.id))) return incoming;
   const storedIds = new Set(stored.map((m) => m.id));
   return [...stored, ...incoming.filter((m) => !storedIds.has(m.id))];
+}
+
+/**
+ * The end of a run the person stopped, saying so. AG-UI only marks a stopped run `cancelled` for a
+ * client that sent a protocol version, and a run the server starts (a routine, a task, a resume)
+ * has none, so without this a stopped routine would read as one that finished.
+ */
+export function endedAsStopped(event: BaseEvent): BaseEvent {
+  if (event.type !== EventType.RUN_FINISHED) return event;
+  const outcome = (event as RunFinishedEvent).outcome;
+  if (outcome?.type === "interrupt" || outcome?.type === "cancelled") return event;
+  return { ...event, outcome: { type: "cancelled" } } as RunFinishedEvent;
 }
 
 /** A short plain-text preview of the last message with words in it. */
@@ -187,54 +201,70 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
     };
 
     const finish = (interruptionMessage?: string) => {
-      const agentEventCount = events.length;
-      // A stop can arrive before the agent's first event.
-      if (live.stopRequested && !events.some((e) => e.type === EventType.RUN_STARTED)) {
-        const started: RunStartedEvent = { type: EventType.RUN_STARTED, threadId, runId, input: newInput() };
-        events.unshift(started);
-        emit(started);
-      }
-      const appended = finalizeRunEvents(events, {
-        stopRequested: live.stopRequested,
-        protocolVersion: input.protocolVersion,
-        ...(interruptionMessage !== undefined ? { interruptionMessage } : {}),
-      });
-      for (const event of appended) emit(event);
-
-      // Merged again, so the snapshot never drops a turn only the server saw, whatever the agent did
-      // with its messages.
-      let stored: Message[] = [];
+      let messages: Message[] = [];
       try {
-        stored = this.getThreadMessages(threadId);
-      } catch (err) {
-        console.error("[steward] could not read a thread:", err instanceof Error ? err.message : err);
-      }
-      const messages = [
-        ...mergeHistory(stored, Array.isArray(request.agent.messages) ? request.agent.messages : []),
-      ];
-      // An immediate failure that produced nothing is not history.
-      if (interruptionMessage === undefined || agentEventCount > 0 || live.stopRequested) {
-        try {
-          this.persist({ threadId, runId, parentRunId, agentId, events, messages });
-        } catch (err) {
-          console.error("[steward] could not store a run:", err instanceof Error ? err.message : err);
+        const agentEventCount = events.length;
+        const stopped = live.stopRequested;
+        // A stop can arrive before the agent's first event.
+        if (stopped && !events.some((e) => e.type === EventType.RUN_STARTED)) {
+          const started: RunStartedEvent = {
+            type: EventType.RUN_STARTED,
+            threadId,
+            runId,
+            input: newInput(),
+          };
+          events.unshift(started);
+          emit(started);
         }
-      }
-      this.live.delete(threadId);
+        const appended = finalizeRunEvents(events, {
+          stopRequested: stopped,
+          // With a version the closing event of a stopped run says `cancelled` (see endedAsStopped).
+          protocolVersion: input.protocolVersion ?? (stopped ? PROTOCOL_VERSION : undefined),
+          ...(interruptionMessage !== undefined ? { interruptionMessage } : {}),
+        });
+        for (const event of appended) emit(event);
 
-      // Listeners hear about the run before its stream completes, so they can still tell which
-      // runs the server started; the thread is already free for a follow-up run.
-      const summary = summariseRun(events, interruptionMessage);
-      for (const listener of this.finishedListeners) {
+        // Merged again, so the snapshot never drops a turn only the server saw, whatever the agent
+        // did with its messages.
+        let stored: Message[] = [];
         try {
-          listener({ ...summary, threadId, runId, agentId, messages });
+          stored = this.getThreadMessages(threadId);
         } catch (err) {
-          console.error("[steward] run listener failed:", err instanceof Error ? err.message : err);
+          console.error("[steward] could not read a thread:", err instanceof Error ? err.message : err);
         }
+        messages = [
+          ...mergeHistory(stored, Array.isArray(request.agent.messages) ? request.agent.messages : []),
+        ];
+        // An immediate failure that produced nothing is not history.
+        if (interruptionMessage === undefined || agentEventCount > 0 || stopped) {
+          try {
+            this.persist({ threadId, runId, parentRunId, agentId, events, messages });
+          } catch (err) {
+            console.error("[steward] could not store a run:", err instanceof Error ? err.message : err);
+          }
+        }
+        this.live.delete(threadId);
+
+        // Listeners hear about the run before its stream completes, so they can still tell which
+        // runs the server started; the thread is already free for a follow-up run. A stopped run
+        // reads from its events alone: the error an abort throws is the stop, not a failure.
+        const summary = summariseRun(events, stopped ? undefined : interruptionMessage);
+        for (const listener of this.finishedListeners) {
+          try {
+            listener({ ...summary, threadId, runId, agentId, messages });
+          } catch (err) {
+            console.error("[steward] run listener failed:", err instanceof Error ? err.message : err);
+          }
+        }
+      } catch (err) {
+        console.error("[steward] could not finish a run:", err instanceof Error ? err.message : err);
+      } finally {
+        // Whatever went wrong above, the thread is freed and everyone waiting hears the end.
+        if (this.live.get(threadId) === live) this.live.delete(threadId);
+        runSubject.complete();
+        liveSubject.complete();
+        resolveDone();
       }
-      runSubject.complete();
-      liveSubject.complete();
-      resolveDone();
     };
 
     for (const listener of this.startedListeners) {
@@ -255,6 +285,8 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
               ...started,
               input: started.input ? withoutServerProps(started.input) : newInput(),
             } as RunStartedEvent;
+          } else if (live.stopRequested) {
+            processed = endedAsStopped(event);
           }
           events.push(processed);
           emit(processed);
@@ -263,7 +295,10 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
       .then(
         () => finish(),
         (error: unknown) => finish(error instanceof Error ? error.message : String(error)),
-      );
+      )
+      .catch((err: unknown) => {
+        console.error("[steward] a run ended badly:", err instanceof Error ? err.message : err);
+      });
 
     return runSubject.asObservable();
   }
