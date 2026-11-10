@@ -25,6 +25,17 @@ export const VIEWER_CSP = "default-src 'none'; style-src 'unsafe-inline'; img-sr
 /** Attributes that would send the frame, or a ping, somewhere else when clicked or submitted. */
 const LEAVING = new Set(["href", "xlink:href", "ping", "action", "formaction", "target", "formtarget"]);
 const LINKS = new Set(["a", "area"]);
+/** SVG animations, which can set an attribute after the page is drawn, with no script. */
+const ANIMATIONS = new Set(["animate", "set"]);
+
+/** An SVG animation that would give an element one of the attributes above, such as a link's href. */
+function animatesLeaving(node: Element): boolean {
+  if (!ANIMATIONS.has(node.localName.toLowerCase())) return false;
+  return [...node.attributes].some(
+    (attribute) =>
+      attribute.name.toLowerCase() === "attributename" && LEAVING.has(attribute.value.trim().toLowerCase()),
+  );
+}
 
 /**
  * The page as the frame will draw it. Parsing with DOMParser runs nothing and loads nothing. Scripts
@@ -39,6 +50,11 @@ export function sandboxedDocument(html: string): string {
     node.remove();
   }
   for (const node of doc.querySelectorAll("*")) {
+    // The frame may still navigate itself when a link is clicked, so no animation may add one back.
+    if (animatesLeaving(node)) {
+      node.remove();
+      continue;
+    }
     const href = LINKS.has(node.localName)
       ? (node.getAttribute("href") ?? node.getAttribute("xlink:href"))
       : null;
@@ -113,7 +129,7 @@ export function FileViewer({ agentId, path }: { agentId: string; path: string })
       ) : null}
       {data.truncated ? (
         <p className="m-0 text-caption text-needs">
-          This file is large, so only its first {formatBytes(new Blob([data.text]).size)} are shown.
+          This file is large, so only the first {formatBytes(new Blob([data.text]).size)} is shown.
         </p>
       ) : null}
       <FileContent file={data} />
