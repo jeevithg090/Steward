@@ -112,6 +112,15 @@ set"), and answers with that sentence if a conversation reaches it anyway. Add t
 and restart, and it can take a conversation. `GET /api/agents` says the same for every agent:
 its provider, its model, whether it can answer, and why not.
 
+## Long conversations
+
+A model can read only so much at once. Before every model call Steward keeps the conversation it
+sends inside about 100,000 tokens: big results older than the last three turns, and all but the
+newest three browser snapshots, become a short note saying the model can look again. If it is
+still too long, the oldest turns are left out and the model is told so. Nothing is deleted: the
+conversation on screen, the record and taint keep everything. If a model still says the
+conversation is too long, Steward says to start a new one; what it remembers carries over.
+
 ## What a run cost
 
 Every finished run gets a "Finished work" entry in the record with how it ended and the tokens it

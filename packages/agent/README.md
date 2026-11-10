@@ -35,18 +35,18 @@ const agent = createStewardAgent({
 
 ## Exports
 
-| Export                                                                              | What it does                                                                                                                                                                                                      |
-| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadTenant(dir)`                                                                   | Reads `brand.yaml`, `agents.yaml`, `skills.yaml`, `rules.yaml`, `model.yaml`; validates with zod; fills defaults for missing files; throws `TenantError` naming the file and the field.                           |
-| `resolveModelConfig(tenant, env, profile?)`                                         | Picks the provider, model and endpoint. `STEWARD_MODEL_PROVIDER`, `STEWARD_MODEL`, `STEWARD_MODEL_BASE_URL` override model.yaml; blank values count as unset. No key → the scripted model, with `fallbackReason`. |
-| `createModel(cfg, env)`                                                             | Builds the AI SDK model with `createOpenAI(...).chat(id)` (always Chat Completions). For `scripted`, starts the in-process aimock server. Returns `{ model, label, scripted, close }`.                            |
-| `createTextModel(model, label)`                                                     | A `TextModel` for triage and the brief, on `generateText`.                                                                                                                                                        |
-| `createStewardAgent(deps)`                                                          | A `StewardAgent` (a `BuiltInAgent` that survives `clone()`) with the `GovernedToolsMiddleware`.                                                                                                                   |
-| `GovernedToolsMiddleware`                                                           | The governed tool loop described below. Exported for the server and tests.                                                                                                                                        |
-| `buildToolCatalogue`, `BUILTIN_TOOLS`, `grantedBuiltins`, `mcpTool`, `toAgUiTool`   | The tool catalogue.                                                                                                                                                                                               |
-| `buildSystemPrompt`, `buildRunContext`                                              | The prompt and the per-run context.                                                                                                                                                                               |
-| `startScriptedModel`, `scriptedReply`                                               | The scripted demo model, for e2e tests and demos.                                                                                                                                                                 |
-| `sanitizeHistory`, `isTainted`, `envelopeFor`, `wrapUntrusted`, `modelErrorMessage` | Helpers the server and web may want.                                                                                                                                                                              |
+| Export                                                                                               | What it does                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `loadTenant(dir)`                                                                                    | Reads `brand.yaml`, `agents.yaml`, `skills.yaml`, `rules.yaml`, `model.yaml`; validates with zod; fills defaults for missing files; throws `TenantError` naming the file and the field.                           |
+| `resolveModelConfig(tenant, env, profile?)`                                                          | Picks the provider, model and endpoint. `STEWARD_MODEL_PROVIDER`, `STEWARD_MODEL`, `STEWARD_MODEL_BASE_URL` override model.yaml; blank values count as unset. No key → the scripted model, with `fallbackReason`. |
+| `createModel(cfg, env)`                                                                              | Builds the AI SDK model with `createOpenAI(...).chat(id)` (always Chat Completions). For `scripted`, starts the in-process aimock server. Returns `{ model, label, scripted, close }`.                            |
+| `createTextModel(model, label)`                                                                      | A `TextModel` for triage and the brief, on `generateText`.                                                                                                                                                        |
+| `createStewardAgent(deps)`                                                                           | A `StewardAgent` (a `BuiltInAgent` that survives `clone()`) with the `GovernedToolsMiddleware`.                                                                                                                   |
+| `GovernedToolsMiddleware`                                                                            | The governed tool loop described below. Exported for the server and tests.                                                                                                                                        |
+| `buildToolCatalogue`, `BUILTIN_TOOLS`, `grantedBuiltins`, `mcpTool`, `toAgUiTool`                    | The tool catalogue.                                                                                                                                                                                               |
+| `buildSystemPrompt`, `buildRunContext`                                                               | The prompt and the per-run context.                                                                                                                                                                               |
+| `startScriptedModel`, `scriptedReply`                                                                | The scripted demo model, for e2e tests and demos.                                                                                                                                                                 |
+| `sanitizeHistory`, `budgetHistory`, `isTainted`, `envelopeFor`, `wrapUntrusted`, `modelErrorMessage` | Helpers the server and web may want.                                                                                                                                                                              |
 
 ## How a turn flows
 
@@ -87,6 +87,13 @@ browser / routine ──RunAgentInput──► runtime ──clone()──► St
   compared in constant time. The token is stripped before the model run.
 - **History.** Dangling tool calls (an interrupted turn, an approval nobody answered before the
   person wrote again) are dropped before every model call, so one never breaks the conversation.
+  Then `budgetHistory` keeps what one model call carries inside `maxHistoryChars` (400,000
+  characters, about 100k tokens): only the newest three browser snapshots stay whole, results
+  over 2,000 characters older than the last three turns become a note saying the model can call
+  the tool again, and long text in those turns' call arguments is cut to its start. Still too
+  long, the oldest whole turns are left out (never the latest), and the model is told so in its
+  context. Failures and refusals always stay. Taint, the gateway and the saved thread read the
+  full history, so leaving something out never makes a conversation less tainted.
 - **Stop.** `StewardAgent.abortRun()` also aborts the tool that is running, not only the model stream.
 - **Never throws.** A model error becomes one `RUN_ERROR` with code `STEWARD_MODEL_ERROR`, in plain
   words read from the HTTP status first and then the provider's own words (OpenRouter's upstream

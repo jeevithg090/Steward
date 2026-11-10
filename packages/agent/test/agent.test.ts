@@ -10,6 +10,7 @@ import {
   CANCELLED_BY_PERSON,
   CONVERSATION_TOO_LONG,
   cutOffAt,
+  EARLIER_LEFT_OUT,
   GATE_UNAVAILABLE,
   INITIATOR_UNKNOWN,
   KEPT_GETTING_IT_WRONG,
@@ -607,6 +608,96 @@ describe("taint", () => {
     );
     await runTurn(agent(), history);
     expect(fakes.governance.callsFor("file_write")[0]?.tainted).toBe(false);
+  });
+});
+
+describe("a long conversation", () => {
+  /** Thirty earlier turns, each with a 20,000-character page the model read. */
+  function longHistory(): Message[] {
+    return Array.from(
+      { length: 30 },
+      (_, i) =>
+        [
+          user(`read page ${i}`),
+          {
+            id: `a${i}`,
+            role: "assistant",
+            toolCalls: [
+              {
+                id: `call_${i}`,
+                type: "function",
+                function: { name: "web_fetch", arguments: '{"url":"x.com"}' },
+              },
+            ],
+          },
+          {
+            id: `t${i}`,
+            role: "tool",
+            toolCallId: `call_${i}`,
+            content: JSON.stringify({ ok: true, data: { untrusted: true, data: "w".repeat(20_000) } }),
+          },
+          { id: `r${i}`, role: "assistant", content: `Page ${i} says hello.` },
+        ] as Message[],
+    ).flat();
+  }
+  const sizeOf = (req: ChatCompletionRequest | undefined) =>
+    (req?.messages ?? [])
+      .filter((m) => m.role !== "system")
+      .reduce(
+        (n, m) => n + JSON.stringify(m.content ?? "").length + JSON.stringify(m.tool_calls ?? []).length,
+        0,
+      );
+
+  it("stays inside the history budget, keeps the latest turns whole, and keeps the person's words", async () => {
+    // aimock's journal keeps only the first 64 KB of a request, so the replies keep what was sent.
+    const seen: ChatCompletionRequest[] = [];
+    script((req) => {
+      seen.push(req);
+      return { content: "Done." };
+    });
+    const turn = await runTurn(agent(), [...longHistory(), user("and the last one?")]);
+    expect(turn.error).toBeUndefined();
+    const [req] = seen;
+    expect(sizeOf(req)).toBeLessThan(120_000);
+    const sent = req?.messages ?? [];
+    // Every person's turn is still there; only the old pages became a note.
+    expect(sent.filter((m) => m.role === "user")).toHaveLength(31);
+    const pages = sent.filter((m) => m.role === "tool").map((m) => String(m.content));
+    expect(pages).toHaveLength(30);
+    expect(pages.filter((c) => c.includes("w".repeat(20_000)))).toHaveLength(2);
+    expect(systemOf(req)).not.toContain(EARLIER_LEFT_OUT.value);
+  });
+
+  it("leaves out the oldest turns when it must, says so, and still counts what they read for taint", async () => {
+    const seen: ChatCompletionRequest[] = [];
+    script((req) => {
+      seen.push(req);
+      return lastIsTool(req)
+        ? { content: "Sent." }
+        : toolCall("mail_send", { to: ["sam@example.com"], subject: "Hi", body: "Hello" });
+    });
+    const history: Message[] = [
+      user("read the page"),
+      {
+        id: "a_old",
+        role: "assistant",
+        toolCalls: [
+          { id: "call_old", type: "function", function: { name: "mail_read", arguments: '{"id":"m1"}' } },
+        ],
+      },
+      { id: "t_old", role: "tool", toolCallId: "call_old", content: JSON.stringify({ ok: true, data: {} }) },
+      ...Array.from({ length: 40 }, (_, i) => [
+        user(`note ${i}: ${"n".repeat(2_000)}`),
+        { id: `r${i}`, role: "assistant", content: "Noted." } as Message,
+      ]).flat(),
+      user("email sam"),
+    ];
+    await runTurn(agent({ maxHistoryChars: 20_000 }), history);
+    const [first] = seen;
+    expect(sizeOf(first)).toBeLessThan(25_000);
+    expect(first?.messages.some((m) => (m.tool_calls ?? []).some((c) => c.id === "call_old"))).toBe(false);
+    expect(systemOf(first)).toContain(EARLIER_LEFT_OUT.value);
+    expect(fakes.governance.callsFor("mail_send")[0]?.tainted).toBe(true);
   });
 });
 

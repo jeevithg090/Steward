@@ -32,7 +32,7 @@ import {
   type ToolResultEnvelope,
 } from "@steward/shared";
 import { Observable, type Subscription } from "rxjs";
-import { answeredIds, callsIn, findCall, isTainted, sanitizeHistory } from "./history.ts";
+import { answeredIds, budgetHistory, callsIn, findCall, isTainted, sanitizeHistory } from "./history.ts";
 import { BUILTIN_TOOLS, toAgUiTool } from "./tools/catalogue.ts";
 import { DELEGATE_TOOL, delegateToolFor, delegationEnvelope, isDelegationRun } from "./tools/delegate.ts";
 import { ArgumentError, explainArgs, forgiveArgs } from "./tools/schema.ts";
@@ -106,6 +106,16 @@ const STATE_TOOLS: ReadonlySet<string> = new Set(["AGUISendStateSnapshot", "AGUI
 /** Results longer than this are cut before the model sees them. */
 const MAX_RESULT_CHARS = 120_000;
 
+/** How much history one model call carries by default: about 100k tokens. */
+export const DEFAULT_HISTORY_CHARS = 400_000;
+
+/** What the model is told when the start of a long conversation was left out to fit its window. */
+export const EARLIER_LEFT_OUT: Context = {
+  description: "The start of this conversation",
+  value:
+    "The earliest messages of this conversation were left out to save room. If the person refers to something you cannot see, ask them, or look in memory and your workspace.",
+};
+
 const INITIATOR_KINDS: readonly Initiator["kind"][] = [
   "person",
   "routine",
@@ -148,6 +158,8 @@ export interface GovernedToolsOptions {
   maxSegments?: number;
   /** The most one model reply may write, so a call cut off at that limit can say so. */
   maxOutputTokens?: number;
+  /** The most history, in characters, one model call carries. See `budgetHistory`. */
+  maxHistoryChars?: number;
   /** Where unexpected errors go. They never escape the run. */
   onError?: (error: unknown, where: string) => void;
 }
@@ -402,10 +414,12 @@ function sameToken(given: string, expected: string): boolean {
  */
 export class GovernedToolsMiddleware extends Middleware {
   private readonly maxSegments: number;
+  private readonly maxHistoryChars: number;
 
   constructor(private readonly opts: GovernedToolsOptions) {
     super();
     this.maxSegments = Math.max(1, opts.maxSegments ?? 24);
+    this.maxHistoryChars = Math.max(10_000, opts.maxHistoryChars ?? DEFAULT_HISTORY_CHARS);
   }
 
   run(input: RunAgentInput, next: AbstractAgent): Observable<BaseEvent> {
@@ -564,13 +578,16 @@ export class GovernedToolsMiddleware extends Middleware {
         finish(this.cancelled(input));
         return;
       }
+      // Within the model's window: old big results become a note, then the oldest turns go.
+      // Taint, the gateway and the saved thread keep reading the full history.
+      const sent = budgetHistory(sanitizeHistory(ownMessages(messages)), this.maxHistoryChars);
       const request: RunAgentInput = {
         ...input,
-        messages: sanitizeHistory(ownMessages(messages)),
+        messages: sent.messages,
         // Always empty, so BuiltInAgent puts no "Application State" in the system prompt: nothing
         // the browser or a state tool wrote reaches the model's instructions.
         state: {},
-        context,
+        context: sent.droppedTurns ? [...context, EARLIER_LEFT_OUT] : context,
         tools: offered,
         forwardedProps,
         resume: undefined,

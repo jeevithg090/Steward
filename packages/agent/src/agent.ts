@@ -58,6 +58,11 @@ export interface AgentDeps {
    * (65k tokens on OpenRouter for Sonnet) and refuse accounts with a small balance. Default 4096.
    */
   maxOutputTokens?: number;
+  /**
+   * The most conversation, in characters, one model call carries (about four to a token). Old
+   * big results and then the oldest turns are left out to stay inside it. Default 400,000.
+   */
+  maxHistoryChars?: number;
   /** Where unexpected errors go. Defaults to a one-line console.error without stack or arguments. */
   onError?: (error: unknown, where: string) => void;
 }
@@ -138,6 +143,7 @@ export function createStewardAgent(deps: AgentDeps): StewardAgent {
       services,
       maxSegments: deps.maxSegments ?? 24,
       maxOutputTokens,
+      ...(deps.maxHistoryChars !== undefined ? { maxHistoryChars: deps.maxHistoryChars } : {}),
       ...(report ? { onError: report } : {}),
       tools: () =>
         buildToolCatalogue({
