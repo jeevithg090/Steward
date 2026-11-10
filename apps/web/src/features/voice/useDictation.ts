@@ -6,7 +6,10 @@
  * `error` says so in plain words, so the composer can explain rather than show a dead button.
  *
  * Some browsers (Chrome among them) send the audio to their own speech service to recognise it. The
- * composer says so beside the microphone.
+ * composer says so, in words on screen, while it listens.
+ *
+ * `cancel` ends listening at once and drops whatever the recogniser still hands back afterwards:
+ * the composer calls it when it sends, having already taken the words still being heard.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -81,6 +84,8 @@ export interface Dictation {
   error: string | null;
   start: () => void;
   stop: () => void;
+  /** Stops at once, and ignores any result the recogniser still delivers. */
+  cancel: () => void;
   toggle: () => void;
 }
 
@@ -98,12 +103,23 @@ export function useDictation(options: DictationOptions = {}): Dictation {
   const [interim, setInterim] = useState("");
   const [error, setError] = useState<string | null>(supported ? null : NOT_SUPPORTED);
   const recognition = useRef<Recognition | null>(null);
+  /** Counts listening sessions; a result or end from an older one is ignored. */
+  const generation = useRef(0);
   const onFinal = useRef(options.onFinal);
   onFinal.current = options.onFinal;
   const lang = options.lang;
 
   const stop = useCallback(() => {
     recognition.current?.stop();
+  }, []);
+
+  const cancel = useCallback(() => {
+    generation.current++;
+    const instance = recognition.current;
+    recognition.current = null;
+    instance?.abort();
+    setListening(false);
+    setInterim("");
   }, []);
 
   const start = useCallback(() => {
@@ -114,11 +130,18 @@ export function useDictation(options: DictationOptions = {}): Dictation {
     }
     if (recognition.current) return;
     const instance = new Recogniser();
+    const session = ++generation.current;
+    const current = () => generation.current === session;
     instance.continuous = true;
     instance.interimResults = true;
     instance.lang = lang ?? (document.documentElement.lang || navigator.language || "en");
-    instance.onstart = () => setListening(true);
+    instance.onstart = () => {
+      if (current()) setListening(true);
+    };
     instance.onresult = (event) => {
+      // `stop()` asks for a last result, and `abort()` may still deliver one: after a cancel it is
+      // words already sent, so it goes nowhere.
+      if (!current()) return;
       let pending = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
@@ -134,11 +157,12 @@ export function useDictation(options: DictationOptions = {}): Dictation {
       setInterim(pending.trim());
     };
     instance.onerror = (event) => {
-      const message = dictationError(event.error);
+      const message = current() ? dictationError(event.error) : undefined;
       if (message) setError(message);
     };
     instance.onend = () => {
       if (recognition.current === instance) recognition.current = null;
+      if (!current()) return;
       setListening(false);
       setInterim("");
     };
@@ -170,5 +194,5 @@ export function useDictation(options: DictationOptions = {}): Dictation {
     [],
   );
 
-  return { supported, listening, interim, error, start, stop, toggle };
+  return { supported, listening, interim, error, start, stop, cancel, toggle };
 }

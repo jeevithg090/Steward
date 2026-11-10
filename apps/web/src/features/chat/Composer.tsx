@@ -1,8 +1,10 @@
 /**
  * Where the person writes to Steward. Enter sends, Shift+Enter adds a line. Typing `/` lists the
  * skills; the arrow keys choose and Enter or Tab picks one. The microphone dictates into the box
- * (nothing is sent until the person sends it). While a reply runs, Stop ends it; while an approval
- * waits, sending waits too, and the composer says why and offers a way to the request.
+ * (nothing is sent until the person sends it). Sending while it listens sends the words still being
+ * heard too, and stops listening there, so nothing arrives in the box afterwards. While a reply
+ * runs, Stop ends it; while an approval waits, sending waits too, and the composer says why and
+ * offers a way to the request.
  */
 import { ArrowUp, Mic, MicOff, Square } from "lucide-react";
 import { type KeyboardEvent, type RefObject, useEffect, useId, useRef, useState } from "react";
@@ -60,7 +62,11 @@ export function Composer({
   const matches = query !== undefined && !pickerClosed ? matchSkills(skills.data ?? [], query) : [];
   const pickerOpen = matches.length > 0;
   const blocked = Boolean(blockedReason);
-  const canSend = !running && !blocked && draft.trim() !== "";
+  // What a send would send: the box, and while listening the words still being heard.
+  const outgoing = [draft.trim(), dictation.listening ? dictation.interim.trim() : ""]
+    .filter(Boolean)
+    .join(" ");
+  const canSend = !running && !blocked && outgoing !== "";
 
   // Grow with the text, up to a limit, then scroll.
   // biome-ignore lint/correctness/useExhaustiveDependencies: the height follows the draft.
@@ -73,8 +79,9 @@ export function Composer({
 
   function send() {
     if (!canSend) return;
-    if (dictation.listening) dictation.stop();
-    onSend(draft.trim());
+    // Cancelled, not stopped: a stop hands back the last words once more, into an emptied box.
+    if (dictation.listening) dictation.cancel();
+    onSend(outgoing);
     setDraft("");
     setPickerClosed(false);
   }
@@ -190,7 +197,6 @@ export function Composer({
           size="icon"
           aria-label={dictation.listening ? "Stop listening" : "Speak your message"}
           aria-pressed={dictation.listening}
-          title={dictation.supported ? "Uses your browser's speech service" : undefined}
           onClick={toggleMic}
           className={cn(dictation.listening && "bg-problem-soft text-problem")}
         >
@@ -208,10 +214,13 @@ export function Composer({
       </div>
 
       {dictation.listening ? (
-        <p className="m-0 mt-1.5 px-2 text-caption text-ink-2">
-          <span className="font-medium text-problem">Listening… </span>
-          {dictation.interim}
-        </p>
+        <div className="mt-1.5 px-2 text-caption text-ink-2">
+          <p className="m-0">
+            <span className="font-medium text-problem">Listening… </span>
+            {dictation.interim}
+          </p>
+          <p className="m-0 text-ink-3">Your browser may send what you say to its own speech service.</p>
+        </div>
       ) : null}
       <p id={ids.status} role="status" className="sr-only">
         {dictation.listening ? "Listening." : ""}

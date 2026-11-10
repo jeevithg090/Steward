@@ -68,8 +68,9 @@ status has a word and an icon beside its colour.
   Nothing leaves your device for this. A Stop button silences it.
 - **Dictation.** The microphone button in the composer takes your message by voice, with the
   browser's speech recognition. Some browsers, Chrome among them, send the audio to their own
-  speech service to recognise it; the composer says so beside the button. Where a browser has no
-  speech recognition, the button explains instead of doing nothing.
+  speech service to recognise it; while it listens, the composer says so in words under the box.
+  Sending while it listens sends the words still being heard too, and stops listening. Where a
+  browser has no speech recognition, the button explains instead of doing nothing.
 
 ### Understanding
 

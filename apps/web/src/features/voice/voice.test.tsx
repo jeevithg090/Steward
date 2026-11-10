@@ -1,7 +1,9 @@
-import { act, cleanup, renderHook } from "@testing-library/react";
+import { act, cleanup, fireEvent, renderHook, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AccessibilityProvider } from "@/app/accessibility.tsx";
+import { mockFetch, renderWithProviders } from "@/lib/testing.tsx";
+import { Composer } from "../chat/Composer.tsx";
 import { speechChunks, speechText } from "./speech-text.ts";
 import { dictationError, NOT_SUPPORTED, type Recognition, useDictation } from "./useDictation.ts";
 import { speechPreferences, useSpeak } from "./useSpeak.ts";
@@ -89,6 +91,25 @@ describe("useDictation", () => {
     expect(dictationError("no-speech")).toContain("didn't hear anything");
   });
 
+  it("ignores whatever the recogniser hands back after a cancel", () => {
+    scope.SpeechRecognition = FakeRecognition;
+    const onFinal = vi.fn();
+    const { result } = renderHook(() => useDictation({ onFinal }));
+    act(() => result.current.start());
+    const recogniser = FakeRecognition.last!;
+    act(() => recogniser.hear([["see you at", false]]));
+    act(() => result.current.cancel());
+    expect(result.current.listening).toBe(false);
+    expect(result.current.interim).toBe("");
+    act(() => recogniser.hear([["see you at ten", true]]));
+    expect(onFinal).not.toHaveBeenCalled();
+    // A new session after it works as before.
+    act(() => result.current.start());
+    act(() => FakeRecognition.last!.hear([["hello", true]]));
+    expect(onFinal).toHaveBeenCalledWith("hello");
+    expect(result.current.listening).toBe(true);
+  });
+
   it("stops the microphone when the composer goes away", () => {
     scope.SpeechRecognition = FakeRecognition;
     const { result, unmount } = renderHook(() => useDictation());
@@ -96,6 +117,47 @@ describe("useDictation", () => {
     const abort = vi.spyOn(FakeRecognition.last!, "abort");
     unmount();
     expect(abort).toHaveBeenCalled();
+  });
+});
+
+describe("dictating into the composer", () => {
+  function setup() {
+    scope.SpeechRecognition = FakeRecognition;
+    mockFetch(() => ({ body: [] }));
+    const onSend = vi.fn();
+    renderWithProviders(<Composer onSend={onSend} onStop={() => {}} running={false} />);
+    fireEvent.click(screen.getByRole("button", { name: "Speak your message" }));
+    const recogniser = FakeRecognition.last!;
+    const box = screen.getByRole("textbox", { name: "Message Steward" }) as HTMLTextAreaElement;
+    return { onSend, recogniser, box };
+  }
+
+  it("sends the words still being heard, and none land in the box afterwards", () => {
+    const { onSend, recogniser, box } = setup();
+    act(() => recogniser.hear([["email sam about friday", true]]));
+    act(() => recogniser.hear([["see you at ten", false]]));
+    expect(box.value).toBe("email sam about friday");
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    expect(onSend).toHaveBeenCalledWith("email sam about friday see you at ten");
+    // The recogniser settles what it heard after the send; it must not refill the emptied box.
+    act(() => recogniser.hear([["see you at ten", true]]));
+    expect(box.value).toBe("");
+    expect(screen.queryByText("Listening…")).toBeNull();
+  });
+
+  it("can send words that are only still being heard", () => {
+    const { onSend, recogniser } = setup();
+    act(() => recogniser.hear([["what needs me today", false]]));
+    const send = screen.getByRole("button", { name: "Send" }) as HTMLButtonElement;
+    expect(send.disabled).toBe(false);
+    fireEvent.click(send);
+    expect(onSend).toHaveBeenCalledWith("what needs me today");
+  });
+
+  it("says on screen, not in a tooltip, that the browser's speech service may hear it", () => {
+    setup();
+    expect(screen.getByText("Your browser may send what you say to its own speech service.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Stop listening" }).getAttribute("title")).toBeNull();
   });
 });
 
