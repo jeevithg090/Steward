@@ -1,3 +1,4 @@
+import { BlockedAddressError, McpConfigError, McpLookupError } from "@steward/connectors";
 import { type ConnectionsInfo, McpServerBody, ROUTES } from "@steward/shared";
 import type { Hono } from "hono";
 import type { z } from "zod";
@@ -34,6 +35,12 @@ export function registerConnectionRoutes(app: Hono, s: StewardServices): void {
         allowAgain: body.allowAgain,
       });
     } catch (err) {
+      // The manager's own sentences say what to fix. A server that saves but fails to connect is not
+      // an error here: it comes back with status "error" and the reason.
+      if (err instanceof McpConfigError || err instanceof BlockedAddressError) {
+        throw new HttpError(400, err.message);
+      }
+      if (err instanceof McpLookupError) throw new HttpError(502, err.message);
       console.error("[steward] tool server failed:", err instanceof Error ? err.message : err);
       throw new HttpError(502, "Couldn't start or reach that tool server. Check its command or address.");
     }

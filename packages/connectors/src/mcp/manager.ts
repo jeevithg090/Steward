@@ -18,7 +18,7 @@ import {
   mcpToolName,
 } from "@steward/shared";
 import { migrations } from "../migrations.ts";
-import { assertPublicHost, checkWebAddress, type LookupFn } from "../net/address.ts";
+import { assertPublicHost, BlockedAddressError, checkWebAddress, type LookupFn } from "../net/address.ts";
 import { createGuardedFetch } from "../net/guarded-fetch.ts";
 import { type McpCallOutput, resultText } from "./result.ts";
 
@@ -51,6 +51,22 @@ export interface StewardMcpManager extends McpManager {
     opts?: { signal?: AbortSignal },
   ): Promise<McpCallOutput>;
   ready(): Promise<void>;
+}
+
+/** A server config Steward won't save, with a sentence the person can act on. */
+export class McpConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "McpConfigError";
+  }
+}
+
+/** An http server's address could not be looked up when it was saved. */
+export class McpLookupError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "McpLookupError";
+  }
 }
 
 /** The most of a server's own words a failure carries. */
@@ -257,10 +273,15 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
   async function checkServerUrl(raw: string): Promise<URL> {
     const verdict = checkWebAddress(raw, { allowPrivateHosts: opts.allowPrivateHosts });
     if (!verdict.ok) throw verdict.error;
-    await assertPublicHost(verdict.url.hostname, {
-      allowPrivateHosts: opts.allowPrivateHosts,
-      lookup: opts.lookup,
-    });
+    try {
+      await assertPublicHost(verdict.url.hostname, {
+        allowPrivateHosts: opts.allowPrivateHosts,
+        lookup: opts.lookup,
+      });
+    } catch (err) {
+      if (err instanceof BlockedAddressError) throw err;
+      throw new McpLookupError(err instanceof Error ? err.message : String(err));
+    }
     return verdict.url;
   }
 
@@ -812,19 +833,19 @@ function sameConnection(a: McpServerConfig, b: McpServerConfig): boolean {
 
 function validate(input: McpServerConfig): SavedConfig {
   if (!ID_PATTERN.test(input.id)) {
-    throw new Error(
+    throw new McpConfigError(
       "A server id is 1 to 41 lower-case letters, digits or dashes, starting with a letter or digit.",
     );
   }
   const name = input.name?.trim();
-  if (!name) throw new Error("Give the server a name.");
+  if (!name) throw new McpConfigError("Give the server a name.");
   const strings = (list: unknown, what: string): string[] => {
     if (!Array.isArray(list) || list.some((v) => typeof v !== "string"))
-      throw new Error(`${what} must be a list of text.`);
+      throw new McpConfigError(`${what} must be a list of text.`);
     return list as string[];
   };
   const args = strings(input.args ?? [], "Arguments");
-  if (args.some((a) => a.includes("\0"))) throw new Error("Arguments can't contain NUL characters.");
+  if (args.some((a) => a.includes("\0"))) throw new McpConfigError("Arguments can't contain NUL characters.");
   const base = {
     id: input.id,
     name,
@@ -836,20 +857,21 @@ function validate(input: McpServerConfig): SavedConfig {
 
   if (input.transport === "stdio") {
     const command = input.command?.trim();
-    if (!command) throw new Error("A stdio server needs the program to run, such as npx or uvx.");
-    if (/[\0\r\n]/.test(command)) throw new Error("The program can't contain line breaks.");
+    if (!command) throw new McpConfigError("A stdio server needs the program to run, such as npx or uvx.");
+    if (/[\0\r\n]/.test(command)) throw new McpConfigError("The program can't contain line breaks.");
     if (/\s/.test(command) && args.length === 0 && !existsSync(command)) {
-      throw new Error(
+      throw new McpConfigError(
         'Put just the program in "command" and each argument separately in "args", e.g. npx and ["-y", "@scope/server"].',
       );
     }
     return { ...base, transport: "stdio", command, args };
   }
   if (input.transport === "http") {
-    if (!input.url) throw new Error("An http server needs its address, such as https://mcp.example.com/mcp.");
+    if (!input.url)
+      throw new McpConfigError("An http server needs its address, such as https://mcp.example.com/mcp.");
     return { ...base, transport: "http", url: input.url, args: [] };
   }
-  throw new Error('The transport must be "stdio" or "http".');
+  throw new McpConfigError('The transport must be "stdio" or "http".');
 }
 
 function setFailure(state: ServerState, failure: Failure): void {

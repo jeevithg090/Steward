@@ -390,7 +390,13 @@ function AddServer() {
       },
       {
         onSuccess: (server) => {
-          toast.success(`Added ${server.name}`, { description: "Switch on the tools Steward may use." });
+          if (server.status === "error") {
+            toast.warning(`Saved ${server.name}, but it didn't connect`, {
+              description: server.error ?? "Its card below says what went wrong.",
+            });
+          } else {
+            toast.success(`Added ${server.name}`, { description: "Switch on the tools Steward may use." });
+          }
           setId("");
           setName("");
           setCommand("");
