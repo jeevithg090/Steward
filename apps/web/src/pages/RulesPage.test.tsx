@@ -1,6 +1,8 @@
 import type { Rule } from "@steward/shared";
-import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { Toaster } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { queryKeys } from "@/lib/api.ts";
 import { type FakeRequest, mockFetch, renderWithProviders } from "@/lib/testing.tsx";
 import { RulesPage } from "./RulesPage.tsx";
 
@@ -104,6 +106,43 @@ describe("RulesPage", () => {
     expect(server.calls.some((c) => c.method === "PUT")).toBe(false);
   });
 
+  it("puts a rule back on from Undo on the toast", async () => {
+    const server = serve();
+    renderWithProviders(
+      <>
+        <RulesPage />
+        <Toaster />
+      </>,
+    );
+    const bot = await screen.findByRole("article", { name: "Rent Scout: never pay a deposit" });
+    fireEvent.click(within(bot).getByRole("switch", { name: /In use/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Switch off this safety rule?" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Switch off" }));
+    // Toasts outlive a test, so find this rule's own toast.
+    const mine = await waitFor(() => {
+      const found = screen
+        .getAllByText("Rule switched off")
+        .map((t) => t.closest<HTMLElement>("[data-sonner-toast]"))
+        .find((t) => t?.textContent?.includes("Rent Scout: never pay a deposit"));
+      if (!found) throw new Error("No toast for the bot's rule yet");
+      return found;
+    });
+    fireEvent.click(within(mine).getByRole("button", { name: "Undo" }));
+    await waitFor(() => expect(server.calls.filter((c) => c.method === "PUT")).toHaveLength(2));
+    const puts = server.calls.filter((c) => c.method === "PUT");
+    expect(puts.map((c) => [c.url, (c.body as Rule).enabled])).toEqual([
+      ["/api/rules/rul_bot", false],
+      ["/api/rules/rul_bot", true],
+    ]);
+    await waitFor(() =>
+      expect(
+        within(card("Rent Scout: never pay a deposit"))
+          .getByRole("switch", { name: /In use/ })
+          .getAttribute("aria-checked"),
+      ).toBe("true"),
+    );
+  });
+
   it("switches the person's own rule off without asking", async () => {
     const server = serve();
     renderWithProviders(<RulesPage />);
@@ -176,6 +215,26 @@ describe("RulesPage: would this be allowed?", () => {
     });
 
     fireEvent.click(within(tester()).getByRole("checkbox", { name: /already read a web page/ }));
+    await waitFor(() => expect(within(tester()).queryByText("Steward would ask you first.")).toBeNull());
+  });
+
+  it("keeps the answer when the rules read back the same, and clears it when one changes", async () => {
+    serve();
+    const { client } = renderWithProviders(<RulesPage />);
+    await screen.findByRole("article", { name: "My own rule" });
+    fireEvent.click(within(tester()).getByRole("button", { name: "Check" }));
+    expect(await within(tester()).findByText("Steward would ask you first.")).toBeTruthy();
+
+    // Coming back to the tab reads the rules again; nothing changed, so the answer still holds.
+    await act(async () => {
+      await client.refetchQueries({ queryKey: queryKeys.ruleList });
+      // The new list reaches the page a tick later, and a cleared answer a tick after that. With
+      // the answer kept this wait changes nothing; it only gives a wrongly cleared one time to show.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    expect(within(tester()).getByText("Steward would ask you first.")).toBeTruthy();
+
+    fireEvent.click(within(card("My own rule")).getByRole("switch", { name: /In use/ }));
     await waitFor(() => expect(within(tester()).queryByText("Steward would ask you first.")).toBeNull());
   });
 

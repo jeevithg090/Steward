@@ -578,9 +578,11 @@ function DryRunTester() {
   const resultId = useId();
   const { reset } = dryRun;
 
-  // An answer belongs to the action and the rules it was given: change either, and it goes.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: clears when the rules are read again.
-  useEffect(() => reset(), [rules.dataUpdatedAt, reset]);
+  // An answer belongs to the action and the rules it was given: change either, and it goes. The
+  // list keeps its identity while the rules read back the same (a refetch on returning to the tab),
+  // so only a real change clears the answer.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: clears when the rules change.
+  useEffect(() => reset(), [rules.data, reset]);
 
   /** Every change to the question clears the old answer. */
   function changed<T>(set: (value: T) => void): (value: T) => void {
