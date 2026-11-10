@@ -33,7 +33,6 @@ export function ChatPage() {
   const location = useLocation();
   const starter = starterFrom(location.state);
   const linked = params.get("prompt") || undefined;
-  const prompt = starter ?? linked;
   const requestedAgent = params.get("agent") || undefined;
   const threads = useThreads();
   const create = useCreateThread();
@@ -43,8 +42,10 @@ export function ChatPage() {
     (agentId: string = requestedAgent ?? DEFAULT_AGENT_ID) => {
       if (creating.current) return;
       creating.current = true;
+      // Only a message the person's own page handed over names the conversation. A link's words
+      // are not theirs until they send them, and then the first message they sent names it.
       create.mutate(
-        { agentId, title: titleFromPrompt(prompt) },
+        { agentId, title: titleFromPrompt(starter) },
         {
           onSuccess: (thread) => {
             // `creating` stays set until the address carries the new id (the effect below clears it).
@@ -62,7 +63,7 @@ export function ChatPage() {
         },
       );
     },
-    [create, navigate, prompt, linked, starter, location.state, requestedAgent],
+    [create, navigate, linked, starter, location.state, requestedAgent],
   );
 
   useEffect(() => {
