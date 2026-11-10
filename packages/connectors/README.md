@@ -193,7 +193,7 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
   most 200 tools (`notice` says when there were more), one entry per name (a repeated name keeps its
   strictest entry, so a destructive one wins), descriptions cut at 1,000 characters with a visible
   `…`, and a tool whose input schema is over 16 KB listed but not offered. Each offered description
-  ends by saying it was written by the server, not by Steward.
+  ends by saying it, and the descriptions of its inputs, were written by the server, not by Steward.
 - **Calls** time out after 60 seconds. Results become text: text parts joined, embedded resources as
   their text, resource links as their address, other parts named (`[image]`), structured content as
   JSON when that is all there is (never both, so nothing is read twice), and an empty result said in

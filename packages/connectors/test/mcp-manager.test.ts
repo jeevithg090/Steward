@@ -226,7 +226,7 @@ describe("MCP manager with an in-process server", () => {
     const [search] = tools;
     expect(search).toMatchObject({ server: "notes", tool: "search_notes", kind: "read" });
     expect(search?.description).toBe(
-      'Finds notes that mention the words.\n\nWritten by the MCP server "Notes", not by Steward.',
+      'Finds notes that mention the words.\n\nThis and the descriptions of its inputs were written by the MCP server "Notes", not by Steward.',
     );
     expect(search?.parameters).toMatchObject({
       type: "object",

@@ -521,8 +521,9 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
             name: mcpToolName(state.config.id, tool.name),
             server: state.config.id,
             tool: tool.name,
-            // The person named the server; the rest is the server's own words, and the model is told so.
-            description: `${hider(state)(tool.description) || tool.name}\n\nWritten by the MCP server "${state.config.name}", not by Steward.`,
+            // The person named the server; the rest is the server's own words, and the model is told
+            // so, for the descriptions inside its input schema too.
+            description: `${hider(state)(tool.description) || tool.name}\n\nThis and the descriptions of its inputs were written by the MCP server "${state.config.name}", not by Steward.`,
             parameters: objectSchema(tool.inputSchema),
             kind: kindOf(state.config, tool),
           });

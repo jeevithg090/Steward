@@ -119,9 +119,10 @@ one at a web address. Steward saves them on this computer, hands them only to th
 shows them again, on the page, in the record or to the model. Put tokens there, never in a
 program's arguments or in an address.
 
-What a server writes reaches the model only as the server's words: each offered description ends by
-saying the server wrote it, descriptions are cut at 1,000 characters, a server's listing is kept to
-200 tools, and a tool whose inputs take more than 16 KB to describe is listed but not offered.
+What a server writes reaches the model only as the server's words. Each offered description ends by
+saying the server wrote it and the descriptions of its inputs, and its errors are quoted and labelled
+as its own. Descriptions are cut at 1,000 characters, a server's listing is kept to 200 tools, and a
+tool whose inputs take more than 16 KB to describe is listed but not offered.
 
 ## What "runs" means in a tainted conversation
 
