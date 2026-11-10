@@ -21,3 +21,4 @@ export {
 } from "./network.ts";
 export { SHELL_DEFAULT_TIMEOUT_MS, SHELL_MAX_TIMEOUT_MS, SHELL_OUTPUT_LIMIT } from "./shell.ts";
 export { MASKED_VALUE, SNAPSHOT_CHAR_LIMIT } from "./snapshot.ts";
+export { Workspace } from "./workspace.ts";

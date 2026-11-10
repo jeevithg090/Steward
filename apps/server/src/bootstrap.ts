@@ -47,6 +47,7 @@ import {
   devCors,
   hostGuard,
   isAllowedUpgrade,
+  isUploadPath,
   limitBody,
   originGuard,
   proxyGuard,
@@ -453,8 +454,13 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     app.use("/api/*", devCors(security));
     const agentLimit = limitBody(BODY_LIMITS.agent);
     const apiLimit = limitBody(BODY_LIMITS.api);
+    const uploadLimit = limitBody(BODY_LIMITS.upload);
     app.use("/api/*", (c, next) =>
-      (c.req.path.startsWith(`${COPILOTKIT_PATH}/`) ? agentLimit : apiLimit)(c, next),
+      (c.req.path.startsWith(`${COPILOTKIT_PATH}/`)
+        ? agentLimit
+        : isUploadPath(c.req.path)
+          ? uploadLimit
+          : apiLimit)(c, next),
     );
     app.use("/api/*", originGuard(security));
     app.use("/demo-google/*", limitBody(BODY_LIMITS.demo));

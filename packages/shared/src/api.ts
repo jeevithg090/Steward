@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ActivityItem, ComputerStatus, WorkspaceFile } from "./computer.ts";
+import type { ActivityItem, ComputerStatus, WorkspaceFile, WorkspaceFileText } from "./computer.ts";
 import type {
   AgentProfile,
   Brand,
@@ -136,6 +136,16 @@ export const SettingsBody = z.object({
     .optional(),
   timezone: z.string().optional(),
   approvalExpiryHours: z.number().int().min(1).max(168).optional(),
+});
+
+/** The largest text file the person can attach. */
+export const UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
+
+/** A text file the person attaches to a message. It lands in the agent's workspace under `uploads/`. */
+export const UploadBody = z.object({
+  /** The file's own name; the server makes it safe and adds a number when the name is taken. */
+  name: z.string().min(1).max(200),
+  text: z.string().max(UPLOAD_MAX_BYTES),
 });
 
 export const ThreadCreateBody = z.object({
@@ -288,6 +298,8 @@ export const ROUTES = {
   computer: "/api/computer/:agentId", // ComputerStatus
   computerActivity: "/api/computer/:agentId/activity", // ActivityItem[]
   computerFiles: "/api/computer/:agentId/files", // ?dir= → WorkspaceFile[]
+  computerFile: "/api/computer/:agentId/file", // ?path= → WorkspaceFileText (read only, never as a page)
+  computerUploads: "/api/computer/:agentId/uploads", // POST UploadBody → WorkspaceFile (into uploads/)
   computerReset: "/api/computer/:agentId/reset", // POST → ComputerStatus
   computerWs: "/ws/computer/:agentId", // WebSocket, see computer.ts
 
@@ -339,4 +351,5 @@ export type {
   Task,
   ThreadSummary,
   WorkspaceFile,
+  WorkspaceFileText,
 };
