@@ -224,7 +224,7 @@ export interface McpServerInfo {
   id: string;
   name: string;
   transport: "stdio" | "http";
-  status: "connected" | "connecting" | "error" | "disabled";
+  status: "connected" | "connecting" | "error";
   error?: string;
   /**
    * The saved configuration, so the Connections page can edit it. The address has the value of any

@@ -91,15 +91,12 @@ function MailCard({ mail }: { mail: { connected: boolean; label: string; isDemo:
 function statusPill(server: McpServerDetail) {
   if (server.status === "connected") return <Pill tone="done">Connected</Pill>;
   if (server.status === "error") return <Pill tone="problem">Problem</Pill>;
-  if (server.status === "connecting") {
-    return (
-      <Pill tone="neutral" icon={null}>
-        <Spinner />
-        Connecting…
-      </Pill>
-    );
-  }
-  return <Pill tone="neutral">Off</Pill>;
+  return (
+    <Pill tone="neutral" icon={null}>
+      <Spinner />
+      Connecting…
+    </Pill>
+  );
 }
 
 function McpSection({ servers }: { servers: McpServerDetail[] }) {
