@@ -67,7 +67,12 @@ export function RulesPage() {
   const yours = all.filter((r) => r.source === "person");
   const always = all.filter((r) => r.source === "always");
   const tenant = all.filter((r) => r.source === "tenant");
+  const fromBots = all.filter((r) => r.source === "bot");
   const builtIn = presets.data ?? all.filter((r) => r.source === "preset");
+  // A rule from a source this page doesn't know still shows, so no rule in force is ever hidden.
+  const other = all.filter((r) => !KNOWN_SOURCES.has(r.source));
+  // While the rules can't be read, "none yet" would be untrue: the error above says what happened.
+  const emptyUnlessError = (empty: ReactNode) => (rules.isError ? null : empty);
 
   return (
     <Page
@@ -99,12 +104,12 @@ export function RulesPage() {
         description="Rules you wrote. Change or remove them any time."
         loading={rules.isPending}
         rules={yours}
-        empty={
+        empty={emptyUnlessError(
           <EmptyState icon={ShieldCheck} title="No rules of your own yet" level={3}>
             Steward follows the built-in rules below. Add one to allow, ask about or refuse something
             specific.
-          </EmptyState>
-        }
+          </EmptyState>,
+        )}
         render={(rule) => <EditableRule rule={rule} onEdit={() => setEditing(rule)} />}
       />
 
@@ -114,7 +119,7 @@ export function RulesPage() {
         description="Made when you chose Always allow on a request. Revoke one and Steward asks again next time."
         loading={rules.isPending}
         rules={always}
-        empty={<p className="text-ink-2 text-sub">Nothing is always allowed yet.</p>}
+        empty={emptyUnlessError(<p className="text-ink-2 text-sub">Nothing is always allowed yet.</p>)}
         render={(rule) => <AlwaysRule rule={rule} />}
       />
 
@@ -124,6 +129,16 @@ export function RulesPage() {
           title="From your setup"
           description="Rules that came with this Steward's package. Switch one off here; change it in the package's rules.yaml."
           rules={tenant}
+          render={(rule) => <ShippedRule rule={rule} />}
+        />
+      ) : null}
+
+      {fromBots.length > 0 ? (
+        <RuleSection
+          id="rules-bots"
+          title="From your bots"
+          description="Rules that came with a bot you added. They can only ask or refuse. Switch one off here; removing the bot removes them."
+          rules={fromBots}
           render={(rule) => <ShippedRule rule={rule} />}
         />
       ) : null}
@@ -141,6 +156,16 @@ export function RulesPage() {
         }
         render={(rule) => <ShippedRule rule={rule} />}
       />
+
+      {other.length > 0 ? (
+        <RuleSection
+          id="rules-other"
+          title="Other rules"
+          description="Rules from somewhere this page doesn't know. They still apply. Switch one off here."
+          rules={other}
+          render={(rule) => <ShippedRule rule={rule} />}
+        />
+      ) : null}
 
       <DryRunTester />
 
@@ -212,39 +237,87 @@ function RuleBody({ rule, children }: { rule: Rule; children?: ReactNode }) {
   );
 }
 
+/** Where the sections above expect rules to come from. */
+const KNOWN_SOURCES = new Set<Rule["source"]>(["person", "always", "tenant", "bot", "preset"]);
+
+/** A safety rule that didn't come from the person: switching it off asks first. */
+const isSafetyFloor = (rule: Rule) => rule.effect !== "allow" && rule.source !== "person";
+
+/** What switching a rule off lets Steward do, in one sentence. */
+function offMeans(rule: Rule): string {
+  return rule.effect === "deny"
+    ? "While it's off, Steward is no longer refused this. Your other rules and the defaults decide instead."
+    : "While it's off, Steward may go ahead without asking you first, if your other rules and the defaults allow it.";
+}
+
 /**
  * Switches a rule on or off. It sends the rule's own fields back unchanged, which is all the server
- * lets a preset or tenant rule do.
+ * lets a preset, tenant or bot rule do. Switching off one of Steward's safety rules asks first, and
+ * every switch-off can be undone from its toast.
  */
 function InUseSwitch({ rule }: { rule: Rule }) {
   const update = useUpdateRule();
+  const [confirming, setConfirming] = useState(false);
+
+  function setEnabled(enabled: boolean, offerUndo = true) {
+    update.mutate(
+      {
+        id: rule.id,
+        name: rule.name,
+        effect: rule.effect,
+        when: rule.when,
+        description: rule.description,
+        enabled,
+      },
+      {
+        onSuccess: () => {
+          setConfirming(false);
+          if (!enabled && offerUndo) {
+            toast("Rule switched off", {
+              description: rule.name,
+              action: { label: "Undo", onClick: () => setEnabled(true, false) },
+            });
+          }
+        },
+        onError: (error) => toast.error("Couldn't change the rule", { description: error.message }),
+      },
+    );
+  }
+
   return (
-    <Switch
-      checked={rule.enabled}
-      disabled={update.isPending}
-      label={
-        <>
-          In use<span className="sr-only">: {rule.name}</span>
-        </>
-      }
-      onCheckedChange={(enabled) =>
-        update.mutate(
-          {
-            id: rule.id,
-            name: rule.name,
-            effect: rule.effect,
-            when: rule.when,
-            description: rule.description,
-            enabled,
-          },
-          { onError: (error) => toast.error("Couldn't change the rule", { description: error.message }) },
-        )
-      }
-    />
+    <>
+      <Switch
+        checked={rule.enabled}
+        disabled={update.isPending}
+        label={
+          <>
+            In use<span className="sr-only">: {rule.name}</span>
+          </>
+        }
+        onCheckedChange={(enabled) =>
+          !enabled && isSafetyFloor(rule) ? setConfirming(true) : setEnabled(enabled)
+        }
+      />
+      <Dialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        size="sm"
+        title="Switch off this safety rule?"
+        description={`"${rule.name}". ${offMeans(rule)}`}
+        footer={
+          <>
+            <Button onClick={() => setConfirming(false)}>Keep it on</Button>
+            <Button variant="danger" loading={update.isPending} onClick={() => setEnabled(false)}>
+              Switch off
+            </Button>
+          </>
+        }
+      />
+    </>
   );
 }
 
-/** A preset or tenant rule: it can be switched off here, never edited or deleted. */
+/** A preset, tenant or bot rule: it can be switched off here, never edited or deleted. */
 function ShippedRule({ rule }: { rule: Rule }) {
   return (
     <RuleBody rule={rule}>

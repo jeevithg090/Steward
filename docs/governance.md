@@ -41,14 +41,18 @@ allowed?" tester and the record all show that name.
 
 A rule has a name, an effect, a condition and a note. The condition is written in
 [CEL](https://cel.dev), the Common Expression Language, a small, safe language for true-or-false
-questions. Rules come from four places:
+questions. Rules come from five places:
 
 | Source   | Where it comes from                                          | Can be changed                                                      |
 | -------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
 | `preset` | Ships with Steward (`packages/gateway/src/presets.ts`).      | Switched on or off on `/rules`. Never edited or deleted.            |
 | `tenant` | `tenants/<id>/rules.yaml`, synced on every start.            | Switched on or off on `/rules`. Change the file to change the rule. |
+| `bot`    | A bot you added from `/bots`. Only ask or deny, never allow. | Switched on or off on `/rules`. Removing the bot removes them.      |
 | `person` | Written by you on `/rules`.                                  | Edited, switched off or deleted.                                    |
 | `always` | Written when you press **Always allow** on an approval card. | Revoked on `/rules`.                                                |
+
+Switching off a built-in, setup or bot rule that asks or refuses asks you first, and the toast that
+follows has **Undo**.
 
 Some examples, from simple to specific:
 

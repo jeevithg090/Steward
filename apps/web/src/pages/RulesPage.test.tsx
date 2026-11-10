@@ -24,6 +24,8 @@ function serve() {
     rule({ id: "rul_preset", name: "Ask before paying", source: "preset", when: 'tool.kind == "pay"' }),
     rule({ id: "rul_tenant", name: "Ask before calendar changes", source: "tenant", description: "Tenant" }),
     rule({ id: "rul_mine", name: "My own rule", source: "person", effect: "deny" }),
+    rule({ id: "rul_bot", name: "Rent Scout: never pay a deposit", source: "bot", effect: "deny" }),
+    rule({ id: "rul_odd", name: "From somewhere new", source: "plugin" as Rule["source"], effect: "deny" }),
   ];
   return mockFetch((req: FakeRequest) => {
     if (req.path === "/api/rules" && req.method === "GET") return { body: rules };
@@ -62,6 +64,9 @@ describe("RulesPage", () => {
     }
 
     fireEvent.click(within(preset).getByRole("switch", { name: /In use/ }));
+    // A safety rule asks before it goes off.
+    const dialog = await screen.findByRole("dialog", { name: "Switch off this safety rule?" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Switch off" }));
     await waitFor(() => expect(server.calls.some((c) => c.method === "PUT")).toBe(true));
     const put = server.calls.find((c) => c.method === "PUT");
     expect(put?.url).toBe("/api/rules/rul_preset");
@@ -79,6 +84,55 @@ describe("RulesPage", () => {
       ),
     );
     expect(within(card("Ask before paying")).getByText("Off")).toBeTruthy();
+  });
+
+  it("asks before a built-in refusal goes off, and keeping it on changes nothing", async () => {
+    const server = serve();
+    renderWithProviders(<RulesPage />);
+    const bot = await screen.findByRole("article", { name: "Rent Scout: never pay a deposit" });
+    fireEvent.click(within(bot).getByRole("switch", { name: /In use/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Switch off this safety rule?" });
+    expect(dialog.textContent).toContain("Rent Scout: never pay a deposit");
+    expect(dialog.textContent).toContain("no longer refused");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Keep it on" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(server.calls.some((c) => c.method === "PUT")).toBe(false);
+  });
+
+  it("switches the person's own rule off without asking", async () => {
+    const server = serve();
+    renderWithProviders(<RulesPage />);
+    const mine = await screen.findByRole("article", { name: "My own rule" });
+    fireEvent.click(within(mine).getByRole("switch", { name: /In use/ }));
+    await waitFor(() => expect(server.calls.some((c) => c.method === "PUT")).toBe(true));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("shows rules that came with a bot, and any rule from a source it doesn't know, with only a switch", async () => {
+    serve();
+    renderWithProviders(<RulesPage />);
+    const bots = await screen.findByRole("region", { name: "From your bots" });
+    const other = screen.getByRole("region", { name: "Other rules" });
+    for (const [section, name] of [
+      [bots, "Rent Scout: never pay a deposit"],
+      [other, "From somewhere new"],
+    ] as const) {
+      const shown = within(section).getByRole("article", { name });
+      expect(within(shown).getByRole("switch", { name: /In use/ })).toBeTruthy();
+      expect(within(shown).queryByRole("button", { name: /Edit|Delete/ })).toBeNull();
+    }
+  });
+
+  it("doesn't say there are no rules when the rules couldn't be read", async () => {
+    mockFetch((req) =>
+      req.path === "/api/rules"
+        ? { status: 500, body: { error: "Steward couldn't read the rules." } }
+        : { body: [] },
+    );
+    renderWithProviders(<RulesPage />);
+    expect((await screen.findByRole("alert")).textContent).toContain("Steward couldn't read the rules.");
+    expect(screen.queryByText("No rules of your own yet")).toBeNull();
+    expect(screen.queryByText("Nothing is always allowed yet.")).toBeNull();
   });
 
   it("keeps Edit and Delete for the person's own rules", async () => {
