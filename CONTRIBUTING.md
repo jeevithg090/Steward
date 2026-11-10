@@ -24,11 +24,14 @@ switch or magnifier, please report it the same way, and say which one you use.
 
 ## Setting up
 
-You need Node 24 or newer, and pnpm 10 (`corepack enable` installs the version the repository asks
-for).
+You need Node 24.2 or newer, and pnpm 10. On Node 24, `corepack enable` installs the version the
+repository asks for. Node 25 and later no longer include corepack: run `npm install -g corepack`
+first, or install pnpm with `npm install -g pnpm@10`. Steward runs on macOS and Linux; on Windows,
+use WSL.
 
 ```sh
 pnpm install
+pnpm exec playwright install chromium   # the agent's browser
 cp .env.example .env      # a key is optional; without one the scripted model runs
 pnpm dev                  # http://localhost:5173
 ```
@@ -41,7 +44,7 @@ pnpm e2e                  # Playwright, if you changed anything a person sees or
 pnpm eval:triage          # if you changed triage
 ```
 
-`pnpm format` fixes formatting. The first `pnpm e2e` may need `pnpm exec playwright install chromium`.
+`pnpm format` fixes formatting. `pnpm dev --help` says what `pnpm dev` starts.
 
 ## Finding your way
 

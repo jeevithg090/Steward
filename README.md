@@ -8,7 +8,7 @@
 It does the work, asks before it acts, and keeps a record you can read.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node ≥ 24](https://img.shields.io/badge/node-%E2%89%A5%2024-417e38.svg)](https://nodejs.org)
+[![Node ≥ 24.2](https://img.shields.io/badge/node-%E2%89%A5%2024.2-417e38.svg)](https://nodejs.org)
 [![1,251 bots](https://img.shields.io/badge/bots-1%2C251-0f6e66.svg)](#bots)
 ![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)
 
@@ -60,13 +60,15 @@ More of what it does:
 
 ## Quick start
 
-You need [Node](https://nodejs.org) 24 or newer and [pnpm](https://pnpm.io) 10
-(`corepack enable` gives you the right one).
+You need [Node](https://nodejs.org) 24.2 or newer and [pnpm](https://pnpm.io) 10. On Node 24,
+`corepack enable` gives you the right pnpm. Node 25 and later no longer include corepack, so run
+`npm install -g pnpm@10` instead. Steward runs on macOS and Linux; on Windows, use WSL.
 
 ```sh
 git clone https://github.com/jeevithg090/Steward.git
 cd Steward
 pnpm install
+pnpm exec playwright install chromium   # the agent's browser
 cp .env.example .env
 ```
 
@@ -82,17 +84,15 @@ Or leave it blank: Steward runs a scripted demo model that needs no key, and say
 pnpm dev
 ```
 
-Open <http://localhost:5173>. The first run shows a short welcome and a setup checklist. Steward
-starts with a made-up demo inbox and calendar, labelled as such, so there is something to work
-with straight away.
+When it says _Steward is ready: open http://localhost:5173/_, open that address. If the server
+could not start, it says why instead. The first run shows a short welcome and a setup checklist.
+Steward starts with a made-up demo inbox and calendar, labelled as such, so there is something to
+work with straight away.
 
 > [!TIP]
 > **Keep your keys outside the repository** by pointing at any `.env` file:
 > `STEWARD_ENV_FILE=/path/to/.env pnpm dev`. Every setting is in
 > [docs/configuration.md](docs/configuration.md).
-
-The agent's browser is Playwright's Chromium. If Steward says it is missing, install it once with
-`pnpm exec playwright install chromium`.
 
 ## Try it in five minutes
 
@@ -268,6 +268,8 @@ tenants/steward/
 └── harnesses.yaml  the coding agents it may run
 ```
 
+A package can also have a `shortcuts.yaml` with phone shortcuts of its own; Tempo's has two.
+
 Copy it, change it, and run `STEWARD_TENANT=yours pnpm dev`. The repository ships a second package
 to show how far that goes: **Tempo** (`tenants/tempo/`) turns Steward into a personal agent that
 wins back money and time. It finds Delay Repay claims for late trains, checks messages and links
@@ -275,7 +277,7 @@ for scams, and audits bills and subscriptions, and it never pays or types bank d
 rules forbid it, not because its prompt asks nicely.
 
 ```sh
-STEWARD_TENANT=tempo pnpm dev
+STEWARD_TENANT=tempo STEWARD_DATA_DIR=.steward-data/tempo pnpm dev
 ```
 
 The guide is [docs/make-it-your-own.md](docs/make-it-your-own.md).
@@ -325,24 +327,29 @@ it. The gateway, the take-the-wheel computer, the secret box, the approval inter
 brief, triage, tasks, routines and tenant packages all started there. Files that adapt their code
 say so at the top.
 
-|                  | OpenBot and OpenDuet                                       | Steward                                                                                     |
-| ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Runs with        | Docker, Bun, PostgreSQL, a CopilotKit Intelligence project | Node 24 and `pnpm dev`; one SQLite file                                                     |
-| Model            | OpenAI by default                                          | Any OpenAI-compatible endpoint, per agent, or a built-in scripted model for demos and tests |
-| Agent's computer | One container per agent                                    | One Playwright Chromium profile and workspace per agent, in-process                         |
-| The record       | An audit table                                             | A hash-chained record that verifies itself                                                  |
-| Prompt injection | Untrusted-content guidance and an LLM reviewer             | Guidance plus taint: after reading untrusted content, risky actions always ask              |
-| What leaves      | Credential scan and a check on messages to others          | Named findings (card numbers, IBANs, ID numbers, keys, health words) on the approval card   |
-| Helpers          | A coworker catalogue                                       | A directory of 1,251 bots, AI-made and adapted, whose rules can only tighten yours          |
-| Access           | Web (phone-first), Slack, Teams                            | Web, accessibility first; iPhone Shortcuts and a phone app over a relay you host            |
+|                  | OpenBot and OpenDuet                                                                                             | Steward                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Runs with        | Docker (OpenBot's desktop app runs it for you), Bun, PostgreSQL, a CopilotKit Intelligence project               | Node 24.2 and `pnpm dev`; one SQLite file                                                   |
+| Model            | OpenAI by default                                                                                                | Any OpenAI-compatible endpoint, per agent, or a built-in scripted model for demos and tests |
+| Agent's computer | A container per person, with a folder and browser profile per Bot; an Isolated Bot gets its own; optional gVisor | One Playwright Chromium profile and workspace per agent, in-process, on your machine        |
+| The record       | An audit table                                                                                                   | A hash-chained record that verifies itself                                                  |
+| Prompt injection | Untrusted-content guidance and an LLM reviewer                                                                   | Guidance plus taint: after reading untrusted content, risky actions always ask              |
+| What leaves      | Credential scan and a check on messages to others                                                                | Named findings (card numbers, IBANs, ID numbers, keys, health words) on the approval card   |
+| Helpers          | A coworker catalogue                                                                                             | A directory of 1,251 bots, AI-made and adapted, whose rules can only tighten yours          |
+| Access           | Web and Mac and Windows desktop apps; Slack, Teams, iOS and Android in early access                              | Web, accessibility first; iPhone Shortcuts and a phone app over a relay you host            |
+| Telemetry        | OpenDuet sends usage data to CopilotKit unless you turn it off; OpenBot's is opt-in on your own servers          | None: CopilotKit's telemetry is switched off at start-up                                    |
+
+<sub>Checked against their READMEs and docs on 10 November 2026.</sub>
 
 What they do that Steward does not, yet:
 
-- **Slack and Microsoft Teams.** Steward is web and iPhone only.
+- **Desktop apps and chat apps.** OpenBot ships signed Mac and Windows apps that need no terminal,
+  and has Slack, Teams, iOS and Android in early access. Steward is web and iPhone only.
 - **Many people.** OpenBot has sign-in, SSO, teams, admin roles and per-person policy. Steward is
   single-user and local.
-- **Container isolation.** OpenBot gives each agent's computer its own container. Steward's browser
-  and shell run on your machine as you, which is why commands ask.
+- **Container isolation.** OpenBot runs each person's Bots in a container, can give an Isolated Bot
+  a container of its own, and can run them under gVisor. Steward's browser and shell run on your
+  machine as you, which is why commands ask.
 - **Intelligence.** CopilotKit Intelligence gives OpenDuet threads and memory across devices, and
   learning over time. Steward keeps threads and memory in its own SQLite file, on one machine.
 - **Any AG-UI agent as a coworker.** Steward runs its own agents and ACP coding agents, not
@@ -350,6 +357,12 @@ What they do that Steward does not, yet:
 - **An action reviewer and a credential vault.** OpenBot can have a model review consequential
   actions, and keeps saved passwords encrypted. Steward relies on deterministic rules and never
   stores passwords.
+- **Finer approvals.** OpenBot can allow an action for the rest of one conversation, and has an
+  Extra vigilant switch that makes ordinary changes ask too.
+- **Teaching by showing.** In OpenBot you can take over a Bot's browser and record a task for it to
+  learn.
+- **Channels and Make.** OpenDuet groups work into channels, and makes design systems, designs and
+  slides on request. Steward makes pages, tables and charts in the conversation.
 
 If you need a platform for a company, use OpenBot. If you want one person's steward that runs
 anywhere in a minute, that is Steward.
