@@ -273,6 +273,23 @@ describe("MailCalendar over the demo server: mail", () => {
     await expect(mail.listEmails({ limit: 5 })).rejects.toThrow(/limiting requests right now \(429\)/);
   });
 
+  it("fails the listing when every read is refused as a bad request, rather than saying the inbox is empty", async () => {
+    const app = createDemoGoogleApp({ now: () => TUESDAY });
+    const fetch: FetchLike = async (input, init) =>
+      /\/messages\/[^?/]+\?/.test(String(input))
+        ? Response.json({ error: { code: 400, message: "Precondition check failed." } }, { status: 400 })
+        : app.fetch(new Request(input, init));
+    const mail = createGoogleMailCalendar({
+      baseUrl: "http://demo.test/",
+      label: "Demo inbox",
+      isDemo: true,
+      fetch,
+    });
+    await expect(mail.listEmails({ limit: 5 })).rejects.toThrow(GoogleApiError);
+    // A single read by id still treats a 400 as not there: the id may have come from anywhere.
+    expect(await mail.getEmail("not-an-id")).toBeUndefined();
+  });
+
   it("returns undefined for an email that does not exist", async () => {
     const { mail } = setup();
     expect(await mail.getEmail("ffffffffffffffff")).toBeUndefined();

@@ -181,10 +181,12 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
       );
       const refs = list.messages ?? [];
       // Mail is archived, trashed and deleted between the list and the read all the time. A message
-      // gone by then is left out; any other refusal still fails the listing, since it says more.
+      // gone by then (404) is left out; any other refusal still fails the listing, since it says
+      // more. A 400 is not "gone" here: Gmail itself just gave the id, so a 400 on every read
+      // would otherwise turn a broken mailbox into an empty one.
       const messages = await mapLimit(refs, LOOKUP_CONCURRENCY, (r) =>
         getMessage(r.id, "metadata", SUMMARY_HEADERS).catch((err: unknown) => {
-          if (isGone(err)) return undefined;
+          if (err instanceof GoogleApiError && err.status === 404) return undefined;
           throw err;
         }),
       );
