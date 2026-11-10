@@ -42,16 +42,26 @@ const kit = vi.hoisted(() => {
       return { unsubscribe: () => state.subscribers.delete(subscriber) };
     },
   };
+  const coreSubscribers = new Set<Subscriber>();
   const copilotkit = {
     connectAgent: vi.fn(async () => ({ newMessages: [] })),
     runAgent: vi.fn(async () => ({ newMessages: [] })),
     stopAgent: vi.fn(),
+    subscribe(subscriber: Subscriber) {
+      coreSubscribers.add(subscriber);
+      return { unsubscribe: () => coreSubscribers.delete(subscriber) };
+    },
   };
   const emit = (name: string, params: Record<string, unknown> = {}) => {
     for (const subscriber of [...state.subscribers])
       subscriber[name]?.({ messages: state.messages, ...params });
   };
-  return { state, agent, copilotkit, emit };
+  /** CopilotKit's own error report, as its `onError` subscribers hear it. */
+  const coreError = (code: string, context: Record<string, unknown> = {}) => {
+    for (const subscriber of [...coreSubscribers])
+      subscriber.onError?.({ code, context, error: new Error(code) });
+  };
+  return { state, agent, copilotkit, emit, coreError, coreSubscribers };
 });
 
 vi.mock("@copilotkit/react-core/v2", async () => {
@@ -72,6 +82,7 @@ vi.mock("@copilotkit/react-core/v2", async () => {
     CopilotChatConfigurationProvider: ({ children }: { children: unknown }) => children,
     CopilotKitProvider: ({ children }: { children: unknown }) => children,
     CopilotKitCoreErrorCode: {
+      AGENT_CONNECT_FAILED: "agent_connect_failed",
       AGENT_RUN_FAILED: "agent_run_failed",
       AGENT_RUN_FAILED_EVENT: "agent_run_failed_event",
       AGENT_RUN_ERROR_EVENT: "agent_run_error_event",
@@ -134,6 +145,7 @@ beforeEach(() => {
   kit.state.messages = [];
   kit.state.isRunning = false;
   kit.state.subscribers.clear();
+  kit.coreSubscribers.clear();
   kit.state.interrupts = [];
   kit.copilotkit.connectAgent.mockReset();
   kit.copilotkit.connectAgent.mockImplementation(async () => ({ newMessages: [] }));
@@ -229,6 +241,106 @@ describe("ChatThread", () => {
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(kit.copilotkit.runAgent).toHaveBeenCalledTimes(1);
     expect(screen.queryByText(/Couldn't reach Steward/)).toBeNull();
+  });
+
+  describe("when the history cannot be read", () => {
+    // CopilotKit 1.81 never rejects a connect: it reports the failure, then resolves.
+    const failingConnect = () => {
+      kit.emit("onRunInitialized", { input: { runId: "run_connect" } });
+      kit.emit("onRunFailed", { error: new TypeError("Failed to fetch") });
+      kit.emit("onRunFinalized");
+      return Promise.resolve({ newMessages: [] });
+    };
+
+    it("says so, offers no starters (so no switch of agent), and Try again reads it again", async () => {
+      kit.copilotkit.connectAgent.mockImplementation(failingConnect);
+      draw();
+      expect(await screen.findByText("Couldn't load the earlier messages")).toBeTruthy();
+      expect(screen.queryByRole("heading", { name: /What can Steward do for you/ })).toBeNull();
+      expect(screen.queryByRole("radio")).toBeNull();
+      // One problem, said once: not a second "Couldn't reach Steward" with a Try again that runs the model.
+      expect(screen.queryByText(/Couldn't reach Steward/)).toBeNull();
+      expect(screen.getAllByRole("button", { name: "Try again" })).toHaveLength(1);
+
+      kit.copilotkit.connectAgent.mockImplementation(async () => ({ newMessages: [] }));
+      fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+      expect(await screen.findByRole("heading", { name: /What can Steward do for you/ })).toBeTruthy();
+      expect(kit.copilotkit.connectAgent).toHaveBeenCalledTimes(2);
+      expect(kit.copilotkit.runAgent).not.toHaveBeenCalled();
+      expect(screen.queryByText("Couldn't load the earlier messages")).toBeNull();
+    });
+
+    it("also hears a failure CopilotKit reports only through its own errors", async () => {
+      kit.copilotkit.connectAgent.mockImplementation(async () => {
+        kit.coreError("agent_connect_failed", { agentId: undefined });
+        return { newMessages: [] };
+      });
+      draw();
+      expect(await screen.findByText("Couldn't load the earlier messages")).toBeTruthy();
+      expect(screen.queryByRole("heading", { name: /What can Steward do for you/ })).toBeNull();
+    });
+
+    it("says the newest messages could not be read when following a run fails", async () => {
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      kit.copilotkit.connectAgent.mockImplementation(failingConnect);
+      act(() =>
+        live.dispatch({ type: "run.finished", threadId: "thr_1", runId: "run_sweep", agentId: "steward" }),
+      );
+      expect(await screen.findByText("Couldn't load Steward's newest messages")).toBeTruthy();
+      kit.copilotkit.connectAgent.mockImplementation(async () => ({ newMessages: [] }));
+      fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+      await act(async () => {});
+      expect(kit.copilotkit.connectAgent).toHaveBeenCalledTimes(3);
+      expect(kit.copilotkit.runAgent).not.toHaveBeenCalled();
+      expect(screen.queryByText("Couldn't load Steward's newest messages")).toBeNull();
+    });
+  });
+
+  describe("failures read back from the history", () => {
+    const replay = (...runs: ("ok" | "failed")[]) =>
+      kit.copilotkit.connectAgent.mockImplementation(async () => {
+        kit.emit("onRunInitialized", { input: { runId: "run_connect" } });
+        runs.forEach((outcome, index) => {
+          kit.emit("onRunStartedEvent", { event: { type: "RUN_STARTED", runId: `run_${index}` } });
+          if (outcome === "failed")
+            kit.emit("onRunErrorEvent", { event: { type: "RUN_ERROR", message: "429 rate limit" } });
+        });
+        kit.emit("onRunFinalized");
+        return { newMessages: [] };
+      });
+
+    it("are not news when a later run worked", async () => {
+      kit.state.messages = [{ id: "a1", role: "assistant", content: "All done." }];
+      replay("failed", "ok");
+      draw();
+      await screen.findByText("All done.");
+      await act(async () => {});
+      expect(screen.queryByRole("alert")).toBeNull();
+      expect(screen.queryByText(/model provider is busy/)).toBeNull();
+      expect(kit.copilotkit.runAgent).not.toHaveBeenCalled();
+    });
+
+    it("say the last reply didn't finish when the newest run failed, and Try again runs it", async () => {
+      kit.state.messages = [{ id: "u1", role: "user", content: "What needs me today?" }];
+      replay("ok", "failed");
+      draw();
+      expect(await screen.findByText("Steward's last reply didn't finish")).toBeTruthy();
+      expect(screen.getByText("The model provider is busy. Try again in a minute.")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+      expect(kit.copilotkit.runAgent).toHaveBeenCalledTimes(1);
+    });
+
+    it("show a followed run's own failure as it is", async () => {
+      draw();
+      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      replay("ok", "failed");
+      act(() =>
+        live.dispatch({ type: "run.finished", threadId: "thr_1", runId: "run_sweep", agentId: "steward" }),
+      );
+      expect(await screen.findByText("The model provider is busy. Try again in a minute.")).toBeTruthy();
+      expect(screen.queryByText("Steward's last reply didn't finish")).toBeNull();
+    });
   });
 
   it("names the current step while Steward works, and Stop ends the run", async () => {

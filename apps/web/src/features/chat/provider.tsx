@@ -3,8 +3,9 @@
  * renderer registered once. The chat UI is Steward's own, so CopilotKit's stock chat styles are not
  * imported.
  *
- * Problems CopilotKit reports become a toast in plain words. A failed reply inside an open
- * conversation is already shown there with "Try again", so it is not toasted twice.
+ * Problems CopilotKit reports become a toast in plain words. A failed reply, or a conversation
+ * that could not be loaded, is already shown in the open conversation with "Try again", so it is
+ * not toasted twice.
  */
 import { CopilotKitCoreErrorCode, CopilotKitProvider } from "@copilotkit/react-core/v2";
 import { COPILOTKIT_PATH } from "@steward/shared";
@@ -25,6 +26,7 @@ export function claimInlineRunErrors(): () => void {
 }
 
 const RUN_ERRORS = new Set<string>([
+  CopilotKitCoreErrorCode.AGENT_CONNECT_FAILED,
   CopilotKitCoreErrorCode.AGENT_RUN_FAILED,
   CopilotKitCoreErrorCode.AGENT_RUN_FAILED_EVENT,
   CopilotKitCoreErrorCode.AGENT_RUN_ERROR_EVENT,

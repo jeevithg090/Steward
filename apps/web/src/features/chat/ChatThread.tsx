@@ -13,9 +13,15 @@
  * Runs the server starts here (a routine, a task, the resume sweep after an answer) are followed:
  * their `run.started` and `run.finished` live events make the conversation connect again, so their
  * messages and any request for an answer appear without a reload.
+ *
+ * A connect never rejects: CopilotKit reports a failed one through the agent's `onRunFailed` and its
+ * own `onError`, then resolves. So each connect records how it went, and only then does the page say
+ * whether the history loaded. Errors replayed from the history are not news: only the newest run's
+ * failure is shown, and nothing earlier than that.
  */
 import {
   CopilotChatConfigurationProvider,
+  CopilotKitCoreErrorCode,
   type Message,
   useAgent,
   useCopilotKit,
@@ -63,6 +69,22 @@ export interface ChatThreadProps {
   onPromptConsumed?: () => void;
 }
 
+/** One connect: what was on screen before it (a replay skips that), whether to stay quiet, how it went. */
+interface Connecting {
+  shown: Set<string>;
+  quiet: boolean;
+  /** Nothing could be read: the server is down, or the conversation's agent is gone. */
+  failed: boolean;
+  /** How the newest run read so far failed, in words. A run that starts after it clears it. */
+  lastError: string | null;
+}
+
+/** A failed reply shown under the conversation. `earlier` when it was read from the history. */
+interface RunProblem {
+  message: string;
+  earlier: boolean;
+}
+
 /** True the first time a prompt is seen for a thread in this tab, so a reload never sends it twice. */
 function firstTimeInTab(key: string): boolean {
   try {
@@ -96,7 +118,9 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
   const [load, setLoad] = useState<"loading" | "ready" | "failed">("loading");
   const [connectAttempt, setConnectAttempt] = useState(0);
   const [follow, setFollow] = useState(0);
-  const [runError, setRunError] = useState<string | null>(null);
+  const [runError, setRunError] = useState<RunProblem | null>(null);
+  /** A connect to follow a run failed after the history had loaded. */
+  const [followFailed, setFollowFailed] = useState(false);
   const [pending, setPending] = useState<PendingApproval[]>([]);
   const [panelOpen, setPanelOpen] = useState(() => storage.get(PANEL_KEY) !== "closed");
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -108,8 +132,8 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
   const spoken = useRef(new Set<string>());
   /** Runs this page already shows: the ones it started, and the ones it has replayed or followed. */
   const shownRuns = useRef(new Set<string>());
-  /** While connecting: what was on screen before (a replay skips it), and whether to stay quiet. */
-  const connecting = useRef<{ shown: Set<string>; quiet: boolean } | null>(null);
+  /** The connect in flight, if any. */
+  const connecting = useRef<Connecting | null>(null);
   const loaded = useRef(false);
   const readAloudRef = useRef(readAloud);
   readAloudRef.current = readAloud;
@@ -138,7 +162,8 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
   const waitingForAnswer = pending.length > 0 || orphans.length > 0;
   const busy = running || waitingForAnswer;
 
-  // Run failures arrive as events: `runAgent` resolves even when the run fails.
+  // Run failures arrive as events: `runAgent` and `connectAgent` resolve even when they fail. While
+  // connecting they are noted on the connect, and the connect decides what to show once it ends.
   useEffect(() => {
     if (!isReady) return;
     const subscription = agent.subscribe({
@@ -148,13 +173,20 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
       },
       onRunStartedEvent: ({ event }) => {
         shownRuns.current.add(event.runId);
+        if (connecting.current) connecting.current.lastError = null;
       },
       onEvent: ({ event }) => {
         const id = connecting.current ? replayedId(event) : undefined;
         if (id && connecting.current?.shown.has(id)) return { stopPropagation: true };
       },
-      onRunFailed: ({ error }) => setRunError(plainRunError(error)),
-      onRunErrorEvent: ({ event }) => setRunError(plainRunError(event.message)),
+      onRunFailed: ({ error }) => {
+        if (connecting.current) connecting.current.failed = true;
+        else setRunError({ message: plainRunError(error), earlier: false });
+      },
+      onRunErrorEvent: ({ event }) => {
+        if (connecting.current) connecting.current.lastError = plainRunError(event.message);
+        else setRunError({ message: plainRunError(event.message), earlier: false });
+      },
       onRunFinalized: ({ messages: finished }) => {
         // A connect ends here too. Loading the history is quiet; a run followed live is not.
         const quiet = connecting.current?.quiet ?? false;
@@ -173,6 +205,18 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
     return () => subscription.unsubscribe();
   }, [agent, isReady, speak]);
 
+  // A connect can also fail before it reaches the agent; CopilotKit then reports it only here.
+  useEffect(() => {
+    const subscription = copilotkit.subscribe({
+      onError: ({ code, context }) => {
+        if (code !== CopilotKitCoreErrorCode.AGENT_CONNECT_FAILED || !connecting.current) return;
+        if (context.agentId === undefined || context.agentId === agent.agentId)
+          connecting.current.failed = true;
+      },
+    });
+    return () => subscription.unsubscribe();
+  }, [copilotkit, agent]);
+
   // Load the thread's history, and connect again to follow a run the server starts here. History is
   // never read aloud: only replies that arrive while here.
   // biome-ignore lint/correctness/useExhaustiveDependencies: `connectAttempt` is Try again; `follow` a server run.
@@ -182,21 +226,32 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
     const first = !loaded.current;
     if (first) setLoad("loading");
     // The server replays the whole thread, and what is on screen must not be written twice.
-    connecting.current = { shown: shownIds(agent.messages), quiet: first };
-    copilotkit
-      .connectAgent({ agent })
-      .then(() => {
-        if (!current) return;
-        for (const message of agent.messages) spoken.current.add(message.id);
-        loaded.current = true;
-        setLoad("ready");
-      })
-      .catch(() => {
-        if (current && !loaded.current) setLoad("failed");
-      })
-      .finally(() => {
-        if (current) connecting.current = null;
-      });
+    const attempt: Connecting = {
+      shown: shownIds(agent.messages),
+      quiet: first,
+      failed: false,
+      lastError: null,
+    };
+    connecting.current = attempt;
+    const settle = (failed: boolean) => {
+      if (!current) return;
+      if (connecting.current === attempt) connecting.current = null;
+      if (failed) {
+        if (first) setLoad("failed");
+        else setFollowFailed(true);
+        return;
+      }
+      for (const message of agent.messages) spoken.current.add(message.id);
+      loaded.current = true;
+      setLoad("ready");
+      setFollowFailed(false);
+      // Only the newest run's failure is worth saying; an older one was followed by a run that worked.
+      if (attempt.lastError) setRunError({ message: attempt.lastError, earlier: first });
+    };
+    copilotkit.connectAgent({ agent }).then(
+      () => settle(attempt.failed),
+      () => settle(true),
+    );
     return () => {
       current = false;
     };
@@ -233,6 +288,12 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
     setRunError(null);
     void copilotkit.runAgent({ agent });
   }, [agent, copilotkit]);
+
+  /** Reads the conversation again; never a new reply. */
+  const reconnect = useCallback(() => {
+    setFollowFailed(false);
+    setConnectAttempt((n) => n + 1);
+  }, []);
 
   // `?prompt=`: sent once, after the history has loaded.
   const promptTaken = useRef(false);
@@ -343,12 +404,7 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                     role="alert"
                     title="Couldn't load the earlier messages"
                     action={
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        icon={<RotateCw />}
-                        onClick={() => setConnectAttempt((n) => n + 1)}
-                      >
+                      <Button size="sm" variant="secondary" icon={<RotateCw />} onClick={reconnect}>
                         Try again
                       </Button>
                     }
@@ -357,7 +413,8 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                   </Notice>
                 ) : null}
 
-                {empty && load !== "loading" ? <Starters onPick={send} disabled={busy || !isReady} /> : null}
+                {/* Only a conversation known to be empty offers starters, and with them a switch of agent. */}
+                {empty && load === "ready" ? <Starters onPick={send} disabled={busy || !isReady} /> : null}
                 {empty && load === "loading" ? (
                   <p role="status" className="m-0 py-10 text-center text-ink-2 text-sub">
                     Loading the conversation…
@@ -395,17 +452,32 @@ function Conversation({ threadId, runtimeAgentId, title, initialPrompt, onPrompt
                   </Notice>
                 ) : null}
 
+                {followFailed && !running ? (
+                  <Notice
+                    tone="problem"
+                    role="alert"
+                    title="Couldn't load Steward's newest messages"
+                    action={
+                      <Button size="sm" variant="secondary" icon={<RotateCw />} onClick={reconnect}>
+                        Try again
+                      </Button>
+                    }
+                  />
+                ) : null}
+
                 {runError && !running ? (
                   <Notice
                     tone="problem"
                     role="alert"
-                    title={runError}
+                    title={runError.earlier ? "Steward's last reply didn't finish" : runError.message}
                     action={
                       <Button size="sm" variant="secondary" icon={<RotateCw />} onClick={retry}>
                         Try again
                       </Button>
                     }
-                  />
+                  >
+                    {runError.earlier ? runError.message : undefined}
+                  </Notice>
                 ) : null}
 
                 <RunStatus
