@@ -14,19 +14,27 @@ export function DemoRibbon() {
   const demoMail = info.data.mail.isDemo;
   const scripted = info.data.model.scripted;
   if (!demoMail && !scripted) return null;
-  const text =
-    demoMail && scripted
-      ? "Demo inbox · Scripted model — add a key in .env to use a real model"
-      : scripted
-        ? "Scripted model — add a key in .env to use a real model"
-        : "Demo inbox — the mail and calendar here are made up";
+  // A model chosen in Settings wins over .env, so the way to a real model starts there.
+  const setUp = (
+    <Link to="/settings" className="underline underline-offset-2 hover:text-accent">
+      set up a real model
+    </Link>
+  );
   return (
     <aside
       aria-label="Demo data"
       className="flex items-center justify-center gap-2 bg-needs-soft px-4 py-1.5 text-center font-medium text-caption text-ink"
     >
       <FlaskConical aria-hidden="true" className="size-4 shrink-0 text-needs" />
-      <span>{text}</span>
+      <span>
+        {demoMail && scripted ? (
+          <>Demo inbox · Scripted model — {setUp}</>
+        ) : scripted ? (
+          <>Scripted model — {setUp}</>
+        ) : (
+          "Demo inbox — the mail and calendar here are made up"
+        )}
+      </span>
     </aside>
   );
 }
