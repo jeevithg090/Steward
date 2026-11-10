@@ -178,8 +178,8 @@ function ChainBadge() {
             Record intact · {plural(check.count, "entry", "entries")}
             {check.scope === "recent" ? "" : " verified"}
           </span>
-          <span className="min-w-0 flex-1 text-ink-2">{intactDetail(check)}</span>
-          {checkAll}
+          <span className="text-ink-2">{intactDetail(check)}</span>
+          <span className="sm:ml-auto">{checkAll}</span>
         </div>
       ) : (
         <div role="alert" className="flex items-start gap-3 rounded-field bg-problem-soft px-4 py-3 text-sub">
@@ -226,53 +226,57 @@ function KeepACopy() {
   }
 
   return (
-    <section
-      aria-labelledby="record-copy"
-      className="flex flex-col gap-4 rounded-card bg-card px-4 py-4 text-sub shadow-card"
-    >
-      <h2 id="record-copy" className="font-semibold text-ink">
-        Keep a copy elsewhere
-      </h2>
-      {head ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-ink-2">
-            The newest seal. Write it down somewhere off this computer now and then: if the record is ever cut
-            short or rewritten, it will no longer match.
-          </p>
-          <p className="break-all font-mono text-caption text-ink">
-            <span className="text-ink-2">#{head.seq}:</span>
-            {head.hash}
-          </p>
-          <CopySeal text={`${head.seq}:${head.hash}`} />
+    <details className="group rounded-card bg-card px-4 text-sub shadow-card">
+      <summary className="flex min-h-target cursor-pointer list-none items-center gap-3 py-2 [&::-webkit-details-marker]:hidden">
+        <h2 className="min-w-0 flex-1 font-semibold text-ink">Keep a copy elsewhere</h2>
+        {head ? <span className="text-caption text-ink-2 tabular-nums">Newest seal #{head.seq}</span> : null}
+        <ChevronDown
+          aria-hidden="true"
+          className="size-5 shrink-0 text-ink-2 transition-transform duration-(--st-dur-swap) group-open:rotate-180"
+        />
+      </summary>
+      <div className="flex flex-col gap-4 pb-4">
+        {head ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-ink-2">
+              The newest seal. Write it down somewhere off this computer now and then: if the record is ever
+              cut short or rewritten, it will no longer match.
+            </p>
+            <p className="break-all font-mono text-caption text-ink">
+              <span className="text-ink-2">#{head.seq}:</span>
+              {head.hash}
+            </p>
+            <CopySeal text={`${head.seq}:${head.hash}`} />
+          </div>
+        ) : null}
+        <form onSubmit={checkSaved} className="flex flex-col gap-2" aria-label="Check a saved seal">
+          <Field
+            label="Check a seal you saved"
+            description="The entry number, a colon, then the seal, as you copied it."
+          >
+            <Input
+              value={seal}
+              onChange={(e) => setSeal(e.target.value)}
+              placeholder="1234:3fa9…"
+              spellCheck={false}
+              autoComplete="off"
+              className="font-mono"
+            />
+          </Field>
+          <Button type="submit" className="self-start" loading={saved.isPending} disabled={!seal.trim()}>
+            Check it
+          </Button>
+          <SavedSealResult check={saved.data} error={saved.error} pending={saved.isPending} />
+        </form>
+        <div className="flex flex-col items-start gap-1">
+          <a href={api.audit.exportUrl} download className={buttonVariants({ size: "md" })}>
+            <Download aria-hidden="true" />
+            Download the record
+          </a>
+          <p className="text-caption text-ink-2">Every entry with its seal, oldest first, in one file.</p>
         </div>
-      ) : null}
-      <form onSubmit={checkSaved} className="flex flex-col gap-2" aria-label="Check a saved seal">
-        <Field
-          label="Check a seal you saved"
-          description="The entry number, a colon, then the seal, as you copied it."
-        >
-          <Input
-            value={seal}
-            onChange={(e) => setSeal(e.target.value)}
-            placeholder="1234:3fa9…"
-            spellCheck={false}
-            autoComplete="off"
-            className="font-mono"
-          />
-        </Field>
-        <Button type="submit" className="self-start" loading={saved.isPending} disabled={!seal.trim()}>
-          Check it
-        </Button>
-        <SavedSealResult check={saved.data} error={saved.error} pending={saved.isPending} />
-      </form>
-      <div className="flex flex-col items-start gap-1">
-        <a href={api.audit.exportUrl} download className={buttonVariants({ size: "md" })}>
-          <Download aria-hidden="true" />
-          Download the record
-        </a>
-        <p className="text-caption text-ink-2">Every entry with its seal, oldest first, in one file.</p>
       </div>
-    </section>
+    </details>
   );
 }
 

@@ -57,6 +57,7 @@ describe("RecordPage", () => {
       return { ok, count: 12, scope: "full", head, anchor: { seq: Number(seq), hash: hash ?? "", ok } };
     });
     renderWithProviders(<RecordPage />);
+    fireEvent.click(await screen.findByText("Newest seal #12"));
     expect(await screen.findByText(HASH)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Copy the seal" })).toBeTruthy();
 
