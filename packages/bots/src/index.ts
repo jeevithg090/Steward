@@ -27,7 +27,13 @@ export {
 export { type InjectionHit, scanForInjection } from "./scan.ts";
 export { RULE_WHEN_MAX, scopeToBot } from "./scope.ts";
 export { parseSkillMd, SKILL_NAME, SkillMdError, serializeSkillMd } from "./skill.ts";
-export { describeMayDo, expandStar, packFromTenant, profileFromPack } from "./tenant.ts";
+export {
+  botInstructionsFrame,
+  describeMayDo,
+  expandStar,
+  packFromTenant,
+  profileFromPack,
+} from "./tenant.ts";
 export {
   JARGON,
   MAX_SENTENCE_WORDS,

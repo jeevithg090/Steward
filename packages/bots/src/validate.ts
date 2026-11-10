@@ -8,7 +8,7 @@ export { ONLY_TIGHTEN };
 /**
  * Everything a pack must pass before it is listed or installed (plan §4.3 and §5). It fails closed:
  * a tool Steward does not have, a rule that would loosen the gateway or does not compile, text that
- * reads as orders for the model, or personal data in the instructions are errors. Long sentences
+ * reads as orders for the model, or personal data anywhere in its text are errors. Long sentences
  * and jargon are warnings, so an author sees them without being blocked.
  */
 
@@ -140,6 +140,40 @@ function plainLanguage(path: string, text: string, out: PackProblem[]): void {
   }
 }
 
+/** Every piece of text in a pack that a model or a person reads, with where it is. */
+function readText(pack: BotPack): [string, string][] {
+  const out: [string, string][] = [
+    ["name", pack.name],
+    ["pitch", pack.pitch],
+    ["instructions", pack.instructions],
+    ["readme", pack.readme],
+  ];
+  pack.starters.forEach((starter, i) => {
+    out.push([`starters[${i}]`, starter]);
+  });
+  pack.skills.forEach((skill, i) => {
+    out.push([`skills[${i}].description`, skill.description], [`skills[${i}].body`, skill.body]);
+  });
+  pack.examples.forEach((example, i) => {
+    out.push([`examples[${i}].ask`, example.ask], [`examples[${i}].does`, example.does]);
+  });
+  pack.rules.forEach((rule, i) => {
+    out.push([`rules[${i}].name`, rule.name], [`rules[${i}].description`, rule.description]);
+  });
+  pack.routines.forEach((routine, i) => {
+    out.push([`routines[${i}].title`, routine.title], [`routines[${i}].prompt`, routine.prompt]);
+  });
+  pack.shortcuts.forEach((shortcut, i) => {
+    out.push(
+      [`shortcuts[${i}].title`, shortcut.title],
+      [`shortcuts[${i}].description`, shortcut.description],
+    );
+    if (shortcut.siriPhrase) out.push([`shortcuts[${i}].siriPhrase`, shortcut.siriPhrase]);
+    if (shortcut.prompt) out.push([`shortcuts[${i}].prompt`, shortcut.prompt]);
+  });
+  return out;
+}
+
 /**
  * Checks a pack against this Steward: its schema, its tools, its rules through the gateway's own
  * rule check, its skills, and its text. `ok` is false when any problem is an error.
@@ -224,21 +258,20 @@ export function validatePack(input: unknown, ctx: ValidateContext): ValidationRe
     });
   });
 
-  injection("instructions", pack.instructions, problems);
-  injection("readme", pack.readme, problems);
-  pack.skills.forEach((skill, i) => {
-    injection(`skills[${i}].body`, skill.body, problems);
-  });
-  pack.examples.forEach((example, i) => {
-    injection(`examples[${i}].ask`, example.ask, problems);
-    injection(`examples[${i}].does`, example.does, problems);
+  pack.shortcuts.forEach((shortcut, i) => {
+    const ref = shortcut.action.ref;
+    if (ref && !skillNames.has(ref)) {
+      problems.push(error(`shortcuts[${i}].action.ref`, `"${ref}" is not one of this bot's skills`));
+    }
   });
 
-  personalData("instructions", pack.instructions, problems);
-  pack.skills.forEach((skill, i) => {
-    personalData(`skills[${i}].description`, skill.description, problems);
-    personalData(`skills[${i}].body`, skill.body, problems);
-  });
+  // Every field the model or the person reads: the pitch opens the bot's prompt, skill
+  // descriptions are listed to every agent, a deny rule's description is the refusal the model
+  // hears, and routine and shortcut prompts run as the bot's own turns.
+  for (const [path, text] of readText(pack)) {
+    injection(path, text, problems);
+    personalData(path, text, problems);
+  }
 
   plainLanguage("pitch", pack.pitch, problems);
   plainLanguage("instructions", pack.instructions, problems);

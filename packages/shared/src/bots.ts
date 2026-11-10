@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { CatalogueEntry } from "./phone.ts";
 
 /**
  * Bots: ready-made agents from the directory (docs/plans/bot-directory.md). A bot is a pack: a
@@ -73,6 +72,28 @@ export const BotRuleSchema = z.object({
   description: z.string().max(500).default(""),
 });
 
+/**
+ * A phone launcher a pack brings (docs/plans/phone-and-shortcuts.md §4.3): a prompt with `{input}`
+ * where the person's words go, or one of the bot's own skills. It only ever starts a conversation
+ * with the bot (scope `chat`); the catalogue sets where it comes from.
+ */
+export const BotShortcutSchema = z
+  .object({
+    id: botId,
+    title: z.string().min(1).max(60),
+    description: z.string().max(200).default(""),
+    siriPhrase: z.string().min(1).max(60).optional(),
+    prompt: z.string().min(1).max(600).optional(),
+    action: z.object({ kind: z.literal("skill"), ref: botId.optional() }).default({ kind: "skill" }),
+    scopes: z.array(z.literal("chat")).max(1).default(["chat"]),
+    source: z.literal("bot").default("bot"),
+  })
+  .refine((s) => s.prompt !== undefined || s.action.ref !== undefined, {
+    message: "a shortcut needs a prompt or one of the bot's skills",
+    path: ["prompt"],
+  });
+export type BotShortcut = z.infer<typeof BotShortcutSchema>;
+
 export const BotPackSchema = z.object({
   id: botId,
   name: z.string().min(1).max(80),
@@ -108,7 +129,7 @@ export const BotPackSchema = z.object({
     .max(6)
     .default([]),
   /** Phone launchers (docs/plans/phone-and-shortcuts.md §4.3). */
-  shortcuts: z.array(z.custom<CatalogueEntry>()).max(6).default([]),
+  shortcuts: z.array(BotShortcutSchema).max(6).default([]),
   /** The listing text written for people, Markdown. */
   readme: z.string().max(40_000).default(""),
   /** sha256 of the canonical pack without this field; set by the builder. */
