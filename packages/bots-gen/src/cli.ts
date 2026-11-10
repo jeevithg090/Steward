@@ -21,7 +21,16 @@ import {
 import type { Problem } from "./generate.ts";
 import { interleaveByCategory, JOBS_FILE, loadJobs } from "./jobs.ts";
 import { createSeedModel, judgeConfig, seedModelConfig } from "./model.ts";
-import { type RegenerateOptions, readCounts, readRetired, runRetirement } from "./retire.ts";
+import {
+  CATEGORY_FLOOR,
+  RETIRE_AFTER_DAYS,
+  RETIRE_SHARE,
+  type RegenerateOptions,
+  readCounts,
+  readGenerateLog,
+  readRetired,
+  runRetirement,
+} from "./retire.ts";
 import { proposeJobs, readAiJobs, writeAiJobs } from "./taxonomy.ts";
 
 /**
@@ -34,7 +43,7 @@ import { proposeJobs, readAiJobs, writeAiJobs } from "./taxonomy.ts";
  *   jobs [--target 106] [--category <key>] [--per-call 25] [--rounds 8]
  *   generate --limit N [--category <key>] [--concurrency 4] [--template] [--no-judge] [--retry-dropped]
  *   dedupe [--confirm] [--min 0.8]
- *   retire [--days 90] [--floor 20] [--now <date>] [--apply] [--regenerate]
+ *   retire [--days 90] [--floor 20] [--share 0.1] [--now <date>] [--apply] [--regenerate]
  *   build [--site <url>] [--name <text>]
  *   report [--write]
  */
@@ -466,16 +475,16 @@ async function shelfDuplicates(opts: { confirm: boolean; min?: number }): Promis
 async function retire(opts: {
   days: number;
   floor: number;
+  share: number;
   now?: string;
   apply: boolean;
   regenerate: boolean;
 }): Promise<void> {
   const now = opts.now ? new Date(opts.now) : new Date();
   if (Number.isNaN(now.getTime())) throw new Error(`--now: "${opts.now}" is not a date`);
-  const rows = await readLog();
-  const jobById = new Map(
-    rows.flatMap((r) => (r.status === "written" && r.id ? [[r.id, r.job] as const] : [])),
-  );
+  if (!(opts.share > 0 && opts.share <= 1)) throw new Error("--share: give a fraction above 0, up to 1");
+  await moveOldLog();
+  const fromLog = await readGenerateLog(DIRECTORY);
   let regenerate: RegenerateOptions | undefined;
   if (opts.regenerate) {
     const models = await seedModels(false);
@@ -499,13 +508,15 @@ async function retire(opts: {
     now,
     days: opts.days,
     floor: opts.floor,
+    share: opts.share,
     apply: opts.apply,
-    jobOf: (id) => jobById.get(id),
+    jobOf: fromLog.jobOf,
+    scoreOf: fromLog.scoreOf,
     ...(regenerate ? { regenerate } : {}),
     log,
   });
   log(
-    `Retirement as of ${now.toISOString().slice(0, 10)}: ${run.retire.length} AI-made bots unused for ${opts.days} days.`,
+    `Retirement as of ${now.toISOString().slice(0, 10)}: ${run.retire.length + run.held.length} AI-made bots unused for ${opts.days} days; ${run.retire.length} ${opts.apply ? "retired" : "would go"} in this run.`,
   );
   for (const r of run.retire.slice(0, 50)) log(`  ${r.id} (${r.category}, made ${r.generated})`);
   if (run.retire.length > 50) log(`  … and ${run.retire.length - 50} more`);
@@ -513,8 +524,17 @@ async function retire(opts: {
   log(
     `  ${run.young.length} AI-made bots are inside their ${opts.days} days${soonest ? `; the first reaches it in ${soonest.daysLeft} days` : ""}.`,
   );
+  if (run.held.length > 0) {
+    const held = tally(run.held, (h) => `${h.category} (${h.reason})`);
+    log(
+      `  ${run.held.length} more are due but held back: a run takes at most ${Math.round(opts.share * 100)}% of a category, lowest judge score first, and never goes under the floor of ${opts.floor}.`,
+    );
+    log(`    ${formatTally(held)}`);
+  }
   for (const t of run.thinned)
-    log(`  thinned: ${t.category} has ${t.live}, floor ${t.floor}, needs ${t.need}`);
+    log(
+      `  thinned: ${t.category} has ${t.live}, floor ${t.floor}; ${t.need} new bots would let as many go now`,
+    );
   if (!opts.apply)
     log("Nothing was changed. Add --apply to retire them, and --regenerate to top up thinned categories.");
   else
@@ -678,6 +698,7 @@ async function main(argv: string[]): Promise<void> {
       min: { type: "string" },
       days: { type: "string" },
       floor: { type: "string" },
+      share: { type: "string" },
       now: { type: "string" },
       apply: { type: "boolean", default: false },
       regenerate: { type: "boolean", default: false },
@@ -721,8 +742,9 @@ async function main(argv: string[]): Promise<void> {
       return;
     case "retire":
       await retire({
-        days: int(values.days, 90),
-        floor: int(values.floor, 20),
+        days: int(values.days, RETIRE_AFTER_DAYS),
+        floor: int(values.floor, CATEGORY_FLOOR),
+        share: values.share ? Number.parseFloat(values.share) : RETIRE_SHARE,
         now: values.now,
         apply: values.apply,
         regenerate: values.regenerate,

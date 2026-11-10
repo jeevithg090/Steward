@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildIndex, writeBotFolder } from "@steward/bots";
@@ -7,7 +7,13 @@ import { type BotPack, type TextModel, TOOLS } from "@steward/shared";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { generateBatch } from "../src/batch.ts";
 import type { Job } from "../src/jobs.ts";
-import { planRetirement, readRetired, runRetirement } from "../src/retire.ts";
+import {
+  CATEGORY_FLOOR,
+  planRetirement,
+  readGenerateLog,
+  readRetired,
+  runRetirement,
+} from "../src/retire.ts";
 
 const ENGINE = new CelEngine(CONTEXT_SCHEMA, neutralContext);
 const CTX = { tools: Object.keys(TOOLS), validateRule: (w: string) => ENGINE.validate(w) };
@@ -74,10 +80,12 @@ describe("planRetirement", () => {
     expect(plan.retire).toEqual([]);
   });
 
-  it("names the categories that lost bots and fell under the floor, with how many to add", () => {
+  it("never takes a category under its floor, and names it with how many new bots would free", () => {
     const plan = planRetirement({ packs: SHELF, counts: COUNTS, now: NOW, floor: 6 });
-    // food keeps 6 of 7 (at the floor); money loses its only bot.
-    expect(plan.thinned).toEqual([{ category: "money", live: 0, floor: 6, need: 6 }]);
+    // food keeps 6 of 7 (at the floor); money keeps its only bot, held by the floor.
+    expect(plan.retire.map((r) => r.id)).toEqual(["old-unused"]);
+    expect(plan.held).toEqual([{ id: "old-money", category: "money", reason: "floor" }]);
+    expect(plan.thinned).toEqual([{ category: "money", live: 1, floor: 6, need: 1 }]);
   });
 
   it("records the job each bot came from, when the log knows it", () => {
@@ -85,6 +93,7 @@ describe("planRetirement", () => {
       packs: SHELF,
       counts: COUNTS,
       now: NOW,
+      floor: 0,
       jobOf: (id) => (id === "old-unused" ? "cook the old thing" : undefined),
     });
     expect(plan.retire.find((r) => r.id === "old-unused")?.job).toBe("cook the old thing");
@@ -106,14 +115,21 @@ describe("runRetirement", () => {
   });
 
   it("plans without changing anything unless asked to apply", async () => {
-    const run = await runRetirement({ dir, counts: COUNTS, now: NOW });
+    const run = await runRetirement({ dir, counts: COUNTS, now: NOW, floor: 0 });
     expect(run.applied).toBe(false);
     expect(run.retire).toHaveLength(2);
     expect(existsSync(join(dir, "bots", "old-unused"))).toBe(true);
   });
 
   it("removes the folders and packs, keeps a retired list, and rebuilds the index", async () => {
-    const run = await runRetirement({ dir, counts: COUNTS, now: NOW, apply: true, jobOf: () => "a job" });
+    const run = await runRetirement({
+      dir,
+      counts: COUNTS,
+      now: NOW,
+      floor: 0,
+      apply: true,
+      jobOf: () => "a job",
+    });
     expect(run.applied).toBe(true);
     expect(existsSync(join(dir, "bots", "old-unused"))).toBe(false);
     expect(existsSync(join(dir, "packs", "old-unused.json"))).toBe(false);
@@ -129,12 +145,12 @@ describe("runRetirement", () => {
       ["old-unused", "a job"],
     ]);
     // A second run on the same day finds nothing more to do.
-    const again = await runRetirement({ dir, counts: COUNTS, now: NOW, apply: true });
+    const again = await runRetirement({ dir, counts: COUNTS, now: NOW, floor: 0, apply: true });
     expect(again.retire).toEqual([]);
     expect(await readRetired(dir)).toHaveLength(2);
   });
 
-  it("tops up a thinned category from unused jobs, and never regenerates a retired job", async () => {
+  it("keeps a bot the floor holds when no new bot could be written for it", async () => {
     const jobs: Job[] = [
       { category: "money", job: "a job", tools: [], connectors: [] },
       { category: "money", job: "split a restaurant bill between friends fairly", tools: [], connectors: [] },
@@ -154,16 +170,163 @@ describe("runRetirement", () => {
       jobOf: () => "a job",
       regenerate: { model: templateFailingModel(), jobs, ctx: CTX },
     });
-    expect(run.thinned).toEqual([{ category: "money", live: 0, floor: 2, need: 2 }]);
-    // The model answers nothing usable, so the run reports what it could not write and moves on.
+    expect(run.thinned).toEqual([{ category: "money", live: 1, floor: 2, need: 1 }]);
+    // The model answers nothing usable, so nothing replaces old-money and it stays.
     expect(run.regenerated).toEqual([]);
     expect(run.outOfJobs).toEqual([]);
+    expect(run.held.map((h) => h.id)).toEqual(["old-money"]);
+    expect(existsSync(join(dir, "bots", "old-money"))).toBe(true);
+  });
+
+  it("lets a bot the floor holds go once a new bot for its category is written", async () => {
+    const jobs: Job[] = [
+      { category: "money", job: "a job", tools: [], connectors: [] },
+      { category: "money", job: "split a restaurant bill between friends fairly", tools: [], connectors: [] },
+    ];
+    const run = await runRetirement({
+      dir,
+      counts: COUNTS,
+      now: NOW,
+      floor: 2,
+      apply: true,
+      jobOf: () => "a job",
+      scoreOf: () => 4,
+      regenerate: { model: packWritingModel(), jobs, ctx: CTX },
+    });
+    expect(run.regenerated.map((r) => r.category)).toEqual(["money"]);
+    // old-unused goes as usual (food has room); old-money only because a new money bot was written.
+    expect(run.retire.map((r) => r.id)).toEqual(["old-unused", "old-money"]);
+    expect(run.held).toEqual([]);
+    expect(existsSync(join(dir, "bots", "old-money"))).toBe(false);
+    const index = JSON.parse(readFileSync(join(dir, "index.json"), "utf8")) as {
+      bots: { id: string; category: string }[];
+    };
+    // money still has one bot: the new one.
+    expect(index.bots.filter((b) => b.category === "money").map((b) => b.id)).toEqual([
+      run.regenerated[0]?.id,
+    ]);
+  });
+
+  it("reads each bot's job and score from the generate log when none are given", async () => {
+    const rows = [
+      {
+        job: "cook the old thing",
+        category: "food",
+        id: "old-unused",
+        status: "written",
+        score: 4.2,
+        at: "t",
+      },
+      { job: "count the money", category: "money", id: "old-money", status: "written", score: 3.8, at: "t" },
+    ];
+    writeFileSync(
+      join(dir, "generate-log.jsonl"),
+      `${rows.map((r) => JSON.stringify(r)).join("\n")}\nnot json\n`,
+    );
+    const log = await readGenerateLog(dir);
+    expect(log.scoreOf("old-money")).toBe(3.8);
+    expect(log.jobOf("missing")).toBeUndefined();
+    const run = await runRetirement({ dir, counts: COUNTS, now: NOW, floor: 0 });
+    expect(run.retire.find((r) => r.id === "old-unused")?.job).toBe("cook the old thing");
+  });
+});
+
+describe("retirement pacing", () => {
+  /** One category of `n` AI-made bots, all past their 90 days, all unused. */
+  const category = (n: number, made = "2026-10-28") =>
+    Array.from({ length: n }, (_, i) =>
+      pack(`bot-${String(i).padStart(3, "0")}`, {
+        author: { kind: "ai", model: "test/model", generated: made },
+      }),
+    );
+
+  it("takes at most a tenth of a category in one run, lowest judge score first", () => {
+    const shelf = category(100);
+    const score = (id: string) => Number(id.slice(4)) / 10;
+    const plan = planRetirement({ packs: shelf, counts: {}, now: NOW, scoreOf: score });
+    expect(plan.retire.map((r) => r.id)).toEqual(shelf.slice(0, 10).map((p) => p.id));
+    expect(plan.held.filter((h) => h.reason === "cap")).toHaveLength(70);
+    expect(plan.held.filter((h) => h.reason === "floor")).toHaveLength(20);
+    expect(plan.held[0]?.id).toBe("bot-010");
+    expect(plan.thinned).toEqual([]);
+  });
+
+  it("puts a bot with no score before any scored one", () => {
+    const shelf = category(30);
+    const plan = planRetirement({
+      packs: shelf,
+      counts: {},
+      now: NOW,
+      scoreOf: (id) => (id === "bot-029" ? undefined : 5),
+    });
+    expect(plan.retire.map((r) => r.id)).toEqual(["bot-000", "bot-001", "bot-029"]);
+  });
+
+  it("thins a category night by night and never takes it under its floor", () => {
+    let shelf = category(100);
+    const nights: number[] = [];
+    for (let night = 0; night < 60; night++) {
+      const now = new Date(NOW.getTime() + night * 86_400_000);
+      const plan = planRetirement({ packs: shelf, counts: {}, now });
+      const live = shelf.length;
+      expect(plan.retire.length).toBeLessThanOrEqual(Math.max(1, Math.floor(live / 10)));
+      const gone = new Set(plan.retire.map((r) => r.id));
+      shelf = shelf.filter((p) => !gone.has(p.id));
+      expect(shelf.length).toBeGreaterThanOrEqual(CATEGORY_FLOOR);
+      nights.push(shelf.length);
+    }
+    expect(nights.slice(0, 3)).toEqual([90, 81, 73]);
+    expect(nights.at(-1)).toBe(CATEGORY_FLOOR);
+  });
+
+  it("keeps the whole shipped mix: no category is emptied on the night most bots come due", () => {
+    // 1,064 AI-made bots from two days, in a mix like the shipped shelf's, and a few people's bots.
+    const sizes: Record<string, number> = { food: 97, money: 95, investing: 74, travel: 46, sports: 35 };
+    const shelf: BotPack[] = [];
+    for (const [cat, n] of Object.entries(sizes)) {
+      for (let i = 0; i < n; i++) {
+        shelf.push(
+          pack(`${cat}-${i}`, {
+            category: cat as BotPack["category"],
+            author: { kind: "ai", model: "test/model", generated: i % 2 ? "2026-10-29" : "2026-10-28" },
+          }),
+        );
+      }
+    }
+    const plan = planRetirement({ packs: shelf, counts: {}, now: new Date("2027-01-28T03:00:00Z") });
+    const left = (cat: string) => sizes[cat]! - plan.retire.filter((r) => r.category === cat).length;
+    for (const cat of Object.keys(sizes)) {
+      expect(left(cat)).toBeGreaterThanOrEqual(CATEGORY_FLOOR);
+      expect(left(cat)).toBeGreaterThanOrEqual(Math.ceil(sizes[cat]! * 0.9));
+    }
   });
 });
 
 /** A model whose answers never parse, so the batch reports drops instead of writing. */
 function templateFailingModel(): TextModel {
   return { label: "fake/model", complete: async () => "no json here" };
+}
+
+/** A model that writes a plain, valid pack for whatever job it is given. */
+function packWritingModel(): TextModel {
+  return {
+    label: "fake/model",
+    complete: async ({ prompt }) => {
+      const job = /The job, in the person's words: "([^"]+)"/.exec(prompt)?.[1] ?? "a job";
+      return JSON.stringify({
+        name: "Bill splitter",
+        pitch: `Helps with this: ${job}.`,
+        category: "money",
+        needs: { tools: ["show_table"], connectors: [], model: "any" },
+        instructions: "Ask for the amounts. Add them up. Show a table. Say what you could not check.",
+        starters: ["Split this bill."],
+        examples: [{ ask: "Split 60 between three (a made-up example).", does: "Shows 20 each." }],
+        skills: [],
+        rules: [],
+        readme: "# Bill splitter\n\nSplits a bill.",
+      });
+    },
+  };
 }
 
 describe("generateBatch", () => {

@@ -251,7 +251,10 @@ it is a suggestion.
 5. **Label and version.** `author.kind: ai` with model and date; `version: 1`;
    "AI-made, not yet used by anyone" until the first install.
 6. **Retire.** A nightly job retires AI-made bots with no installs after 90 days and regenerates
-   categories that thinned out.
+   categories that thinned out. Built with pacing (10 Nov 2026): one night takes at most a tenth
+   of a category, lowest judge score first, and never takes a category under its floor of 20
+   unless the same run wrote a new bot for it. Without that, the 1,064 bots made on 28 and 29 Oct
+   would have left in two nights around 27 Jan 2027, leaving investing and travel empty.
 
 Launch target: **2,000 bots across 19 categories**, plus the 505 LobeChat conversions and
 OpenBot's ten, all through the same validators. Cost at today's prices is a few tens of dollars;

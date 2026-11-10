@@ -99,7 +99,8 @@ falls back; judge parsing; dedupe; the LobeChat converter on a real file; the Op
 a real YAML; `jobs.yaml` parses and names only tools that exist. With a fake embedder and a fixed
 clock: the embedding cache, the band and its model question, the word-overlap fallback, job
 proposals and `jobs-ai.yaml`, retries and pacing, retirement (90 days, installs and votes keep a
-bot, people's bots are never retired, the retired list, top-up of thinned categories) and
+bot, people's bots are never retired, the retired list, a tenth of a category per run at most,
+lowest judge score first, never under the floor unless a new bot took the place) and
 `generateBatch`.
 
 ## Licences and credit

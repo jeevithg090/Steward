@@ -90,7 +90,7 @@ file). A value already in the environment wins; a blank value counts as unset.
 | `DIRECTORY_SOURCE_URL`     |                           | Where your copy of the code is, for the footer's Source link.                                                                                                            |
 | `DIRECTORY_RETIRE_DAYS`    | `90`                      | Retire AI-made bots nobody installed or said they use within this many days of being made. `0` turns retirement off.                                                     |
 | `DIRECTORY_RETIRE_HOUR`    | `3`                       | The UTC hour after which the day's retirement runs.                                                                                                                      |
-| `DIRECTORY_CATEGORY_FLOOR` | `20`                      | A category that loses bots and falls under this many is reported, or topped up.                                                                                          |
+| `DIRECTORY_CATEGORY_FLOOR` | `20`                      | Retirement never takes a category under this many. One held there is reported, or topped up.                                                                             |
 | `DIRECTORY_REGENERATE`     | off                       | Top up thinned categories with new AI-made bots. Needs a model key in the environment (`NVIDIA_API_KEY` or `STEWARD_SEED_*`).                                            |
 
 Keys belong in the environment or your host's secret store, never in a file in the repository
@@ -142,13 +142,23 @@ leaves the shelf. Bots made or claimed by people are never retired, and neither 
 single install or vote.
 
 Once a day, after `DIRECTORY_RETIRE_HOUR` UTC, the server checks its own counts, removes each such
-bot's folder and pack, adds it to `<DIRECTORY_DIR>/retired.json`, and rebuilds the index. Then:
+bot's folder and pack, adds it to `<DIRECTORY_DIR>/retired.json`, and rebuilds the index.
+
+It goes slowly, because most of the shipped bots were made on the same two days:
+
+- one night takes at most a tenth of a category (at least one bot), the lowest judge scores
+  first, as `generate-log.jsonl` recorded them; a bot with no score goes before any scored one;
+- it never takes a category under `DIRECTORY_CATEGORY_FLOOR`. A category held there is shown on
+  `/admin`, or, with `DIRECTORY_REGENERATE` on and a model key set, given new bots from the
+  taxonomy, and one held bot goes for each new bot written;
+- the rest wait for the next night, and the log says how many were held back and why.
+
+So a category of 100 unused bots loses 10 the first night, 9 the next, and reaches 20 on the
+17th night. Then:
 
 - the bot's page answers **410 Gone** and says why, and `/api/bots/<id>` does the same;
 - `GET /api/retired` lists every retired bot, so a fork or a generator can avoid making it again;
-  `seed generate` reads the same file and never regenerates a retired job or a look-alike of it;
-- a category that lost bots and fell under `DIRECTORY_CATEGORY_FLOOR` is shown on `/admin`, or,
-  with `DIRECTORY_REGENERATE` on and a model key set, topped up with new bots from the taxonomy.
+  `seed generate` reads the same file and never regenerates a retired job or a look-alike of it.
 
 `/admin` shows the last run. A reviewer can run it at once with `POST /api/admin/retire`. The same
 job runs from the command line, with a date of your choosing:
@@ -156,6 +166,7 @@ job runs from the command line, with a date of your choosing:
 ```sh
 pnpm --filter @steward/bots-gen seed retire --now 2027-02-01          # what it would do
 pnpm --filter @steward/bots-gen seed retire --apply --regenerate      # do it, and top up
+pnpm --filter @steward/bots-gen seed retire --share 0.2               # let one run take a fifth
 ```
 
 Steward copies a bot when someone adds it, so a retired bot keeps working for people who have it.

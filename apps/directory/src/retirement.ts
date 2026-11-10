@@ -20,9 +20,10 @@ import type { DirectoryStore, RetirementRunRecord } from "./store.ts";
 /**
  * The directory's nightly retirement (plan §4.6), on this server's own counts: once a day, after
  * `hour` UTC, AI-made bots nobody installed or used within `days` of being made leave the shelf
- * and go on `retired.json`, and the index is rebuilt. With `regenerate` on and a model key in the
- * environment, categories that fell under `floor` are topped up with new bots from the taxonomy;
- * otherwise the review page says which categories need more.
+ * and go on `retired.json`, and the index is rebuilt. One night takes at most a tenth of a
+ * category, lowest judge score first (from `generate-log.jsonl`), and never takes a category under
+ * `floor`. With `regenerate` on and a model key in the environment, a category the floor held is
+ * given new bots from the taxonomy and as many held bots go; otherwise the review page lists it.
  */
 export interface RetirementSettings {
   /** 0 turns retirement off. */
