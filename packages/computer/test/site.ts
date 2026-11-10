@@ -52,6 +52,12 @@ const PAGES: Record<string, string> = {
     <label>One-time code <input id="code"></label>
     <button onclick="document.getElementById('status').textContent = 'Code length: ' + document.getElementById('code').value.length">Check</button>
     <p id="status"></p>`,
+  "/reveal": `<!doctype html><title>Sign in</title>
+    <label>Password <input type="password" id="pw" oninput="document.getElementById('strength').textContent = 'Strength of ' + this.value + ': weak'"></label>
+    <button onclick="const old = document.getElementById('pw'); const shown = document.createElement('input'); shown.id = 'pw'; shown.value = old.value; old.replaceWith(shown); document.title = 'Hi ' + shown.value; alert('Your password is ' + shown.value)">Show password</button>
+    <a id="go" href="/next">Go on</a>
+    <script>document.getElementById('pw').addEventListener('change', (e) => { document.getElementById('go').href = '/next?note=x' + e.target.value + 'y'; });</script>
+    <p id="strength"></p>`,
   "/otp": `<!doctype html><title>Verify</title>
     <form action="/otp-done" method="get"><label>Code <input name="code" id="code"></label><button>Verify</button></form>`,
   "/otp-done": `<!doctype html><title>Verified</title><p>Verified</p>`,

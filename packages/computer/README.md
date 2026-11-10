@@ -173,9 +173,13 @@ Individual keystrokes are not recorded.
 
 The value is never logged, stored, returned, or put in activity text, and Playwright's error
 messages are not passed on because they can quote their arguments. Only a keyed digest (a random
-in-memory key, gone when the computer closes) is kept, so that a page that puts the value into
-its address, such as a GET form, can have it replaced with `hidden` in every URL Steward reports.
-Filling never submits the form; that is a separate, governed click.
+in-memory key, gone when the computer closes) is kept. With it, Steward finds the value wherever
+the page echoes it and hides it before anything leaves the computer: a field the page rebuilt
+without the mark (a "Show password" toggle), text such as "Strength of …: weak", the title, a
+dialog, and the address (a GET form), where it reads `hidden`. Such a field still counts as
+sensitive. Values shorter than 4 characters are hidden only where they are a field's whole value,
+so a short PIN does not blank out every number on the page. A value the page changes (upper case,
+split, encoded) is not found. Filling never submits the form; that is a separate, governed click.
 
 ## Network safety
 

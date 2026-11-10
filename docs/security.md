@@ -182,7 +182,9 @@ redirects itself and checks each hop.
   [the secret box](governance.md#the-secret-box).
 - **Masked snapshots.** Password, one-time code and card fields, and any field the secret box
   filled, read as `[hidden: sensitive field]` in every snapshot the agent takes. Playwright on its
-  own would print them in clear text.
+  own would print them in clear text. A value from the secret box is also hidden where the page
+  repeats it: in its text, its title, a dialog or its address. A value the page changes (upper case,
+  split up, encoded) is not caught.
 - **Redacted record.** Values under names like `password`, `token`, `secret`, `authorization`,
   `cookie` and `api_key` are replaced with `[redacted]` before anything is written or hashed.
 - **Commands never see Steward's keys.** The shell gets an allow-listed environment.

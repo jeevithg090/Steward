@@ -6,7 +6,6 @@
  * Every acting method passes the wheel's single gate (`WheelControl.admit`) before it touches
  * anything, so nothing the agent does can run underneath the person.
  */
-import { createHmac, randomBytes } from "node:crypto";
 import { lstat, mkdir, rm, stat } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import type {
@@ -40,14 +39,18 @@ import {
 import { parseClientMessage } from "./messages.ts";
 import { displayUrl, type HostPolicy, parseWebUrl, portOf } from "./network.ts";
 import { type FrameMessage, PersonInput, Screencast } from "./screen.ts";
+import { SecretEcho } from "./secrets.ts";
 import { removeStaleHomes, runShell } from "./shell.ts";
 import {
   type AriaItem,
   buttonRefs,
   FIELD_ROLES,
   fieldRefs,
+  fieldsHolding,
   focusedNode,
   indexRefs,
+  MASKED_VALUE,
+  mapItemText,
   RefBook,
   type RefEntry,
   refFrame,
@@ -179,11 +182,11 @@ export class AgentComputer implements Computer {
   /** Set by an explicit close: only `start` (the manager's get or reset) brings the browser back. */
   private closed = false;
   /**
-   * Keyed digests of values typed through the secret box, never the values. They let a URL that
-   * echoes a filled value (a GET form) be cleaned before it reaches the model or the screen.
+   * Keyed digests of values typed through the secret box, never the values. They let a page that
+   * echoes a filled value (a re-rendered field, a strength meter, its title, a GET form's address)
+   * be cleaned before it reaches the model, the record or the screen.
    */
-  private readonly secretKey = randomBytes(32);
-  private readonly secretDigests = new Set<string>();
+  private readonly secrets = new SecretEcho();
   private blockNotices = new Map<string, number>();
   /** Clears HOME folders an earlier process left in `tmp`, once, before the first command. */
   private homesSwept: Promise<void> | undefined;
@@ -272,7 +275,7 @@ export class AgentComputer implements Computer {
     await this.input.reset();
     if (context) await context.close().catch(() => {});
     if (proxy) await proxy.close().catch(() => {});
-    this.secretDigests.clear();
+    this.secrets.clear();
     this.documentChanged();
     this.emitStatus();
   }
@@ -310,7 +313,11 @@ export class AgentComputer implements Computer {
       // anything else is dismissed, the safe answer to "Delete this?", and the model is told.
       page.on("dialog", (dialog) => {
         const kind = dialog.type();
-        const message = dialog.message().replace(/\s+/g, " ").trim().slice(0, 200);
+        const message = this.secrets
+          .scrub(dialog.message(), MASKED_VALUE)
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 200);
         if (kind === "beforeunload") {
           dialog.accept().catch(() => {});
           return;
@@ -361,7 +368,7 @@ export class AgentComputer implements Computer {
       .title()
       .then((title) => {
         if (page !== this.livePage) return;
-        this.title = title;
+        this.title = this.secrets.scrub(title, MASKED_VALUE);
         this.emitStatus();
       })
       .catch(() => {});
@@ -411,7 +418,13 @@ export class AgentComputer implements Computer {
   private async capture(page: Page, boxes: boolean): Promise<AriaItem[]> {
     for (let attempt = 0; ; attempt++) {
       try {
-        return toAriaItems(await page.ariaSnapshotJSON({ mode: "ai", boxes, timeout: ACTION_TIMEOUT_MS }));
+        const items = toAriaItems(
+          await page.ariaSnapshotJSON({ mode: "ai", boxes, timeout: ACTION_TIMEOUT_MS }),
+        );
+        // Every reader of the page (snapshots, ref checks, the gateway's facts) sees it scrubbed.
+        return this.secrets.size === 0
+          ? items
+          : mapItemText(items, (t) => this.secrets.scrub(t, MASKED_VALUE));
       } catch (error) {
         if (attempt >= 2 || !isNavigationRace(error)) {
           throw new ComputerError("failed", `The page could not be read: ${briefCause(error)}`);
@@ -422,7 +435,8 @@ export class AgentComputer implements Computer {
   }
 
   private async sensitiveRefs(page: Page, items: AriaItem[]): Promise<Set<string>> {
-    const masked = new Set<string>();
+    // A field showing a filled value lost its mark (the page rebuilt it): still secret.
+    const masked = new Set<string>(fieldsHolding(items, MASKED_VALUE));
     await Promise.all(
       fieldRefs(items).map(async (pwRef) => {
         if (await isSensitive(page, pwRef)) masked.add(pwRef);
@@ -445,7 +459,10 @@ export class AgentComputer implements Computer {
     const rendered = renderSnapshot(items, { refFor: (pwRef) => this.refs.refFor(pwRef), masked });
     this.snap = { generation, entries: rendered.entries };
     this.control.snapshotTaken();
-    const title = await page.title().catch(() => this.title);
+    const title = await page
+      .title()
+      .then((t) => this.secrets.scrub(t, MASKED_VALUE))
+      .catch(() => this.title);
     if (page === this.livePage) {
       this.title = title;
       this.emitStatus();
@@ -1006,7 +1023,7 @@ export class AgentComputer implements Computer {
       return;
     }
     const length = value.length;
-    this.secretDigests.add(this.digest(value));
+    this.secrets.add(value);
     this.record("secret.filled", { length, host: request.host });
     this.log.add({
       kind: "secret",
@@ -1016,20 +1033,20 @@ export class AgentComputer implements Computer {
     this.finishSecret({ filled: true, length }, request.id);
   }
 
-  private digest(value: string): string {
-    return createHmac("sha256", this.secretKey).update(value).digest("base64url");
+  /** The URL with any query value or path segment that is, or holds, a filled secret replaced. */
+  private safeUrl(raw: string): string {
+    if (this.secrets.size === 0) return raw;
+    return this.secrets.scrub(this.hideUrlParts(raw), "hidden");
   }
 
-  /** The URL with any query value or path segment that equals a filled secret replaced. */
-  private safeUrl(raw: string): string {
-    if (this.secretDigests.size === 0) return raw;
+  private hideUrlParts(raw: string): string {
     let url: URL;
     try {
       url = new URL(raw);
     } catch {
       return raw;
     }
-    const hidden = (text: string) => text !== "" && this.secretDigests.has(this.digest(text));
+    const hidden = (text: string) => this.secrets.has(text);
     let changed = false;
     for (const [key, value] of [...url.searchParams]) {
       if (hidden(value)) {

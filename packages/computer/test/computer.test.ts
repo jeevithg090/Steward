@@ -580,6 +580,45 @@ describe("the computer, in real Chromium", () => {
     unsubscribe();
   });
 
+  it("hides a filled secret wherever the page echoes it", async () => {
+    const SECRET = "correct-horse-battery";
+    const c = await manager.get("echo");
+    const page = await c.navigate(`${site.base}/reveal`);
+    const asked = c.requestSecret(refOf(page.snapshot, 'textbox "Password"'), "The password");
+    await waitFor(() => manager.status("echo").secret !== undefined);
+    const request = manager.status("echo").secret as NonNullable<ComputerStatus["secret"]>;
+    await manager.handle("echo", { type: "secret", requestId: request.id, value: SECRET });
+    await expect(asked).resolves.toEqual({ filled: true, length: SECRET.length });
+
+    // The page writes the value into its own text as it is typed.
+    const typed = await c.snapshot();
+    expect(typed.snapshot).toContain("Strength of [hidden: sensitive field]: weak");
+    // "Show password" rebuilds the field without the mark, retitles the page and shows a dialog.
+    const shown = await c.click(refOf(typed.snapshot, 'button "Show password"'));
+    const field = refOf(shown.snapshot, 'textbox "Password"');
+    expect(shown.snapshot).toContain(`textbox "Password" [ref=${field}]: [hidden: sensitive field]`);
+    expect(shown.snapshot).toContain(
+      '[The page showed a alert box: "Your password is [hidden: sensitive field]"',
+    );
+    expect(shown.title).toBe("Hi [hidden: sensitive field]");
+    expect(await c.describe(field)).toEqual({ role: "textbox", name: "Password", sensitive: true });
+    // An address that carries it inside a longer value.
+    const next = await c.click(refOf(shown.snapshot, 'link "Go on"'));
+    expect(next.url).toBe(`${site.base}/next?note=xhiddeny`);
+
+    const everything = [
+      typed.snapshot,
+      shown.snapshot,
+      shown.title,
+      next.snapshot,
+      next.url,
+      JSON.stringify(c.status()),
+      JSON.stringify(c.activity(500)),
+      JSON.stringify(audit.events),
+    ].join("\n");
+    expect(everything).not.toContain(SECRET);
+  });
+
   it("puts a secret only into a field of the site the person is shown", async () => {
     const c = await manager.get("vault");
     // A frame from another site on the page: the person would see the page's host, not the frame's.
