@@ -3,7 +3,7 @@
  *
  * execute: decide → record `tool.decided` → allow: act, record `tool.completed` / `tool.failed`;
  *          deny: refuse with a sentence the model relays; ask: open the approval and park.
- * resume:  claim the answer once → check it is the same call on the same page → re-check deny rules → act.
+ * resume:  claim the answer once → check it is recent, the same call on the same page → re-check deny rules → act.
  *
  * Nothing acts unless its decision is already in the record. Any internal error refuses.
  */
@@ -217,6 +217,13 @@ export class GatewayGovernance implements Governance {
           return this.refuseResume(prepared, summary, "The answer could not be read", ["Not done."]);
       }
 
+      if (this.answerTooOld(approval)) {
+        return this.refuseResume(prepared, summary, "The answer was too old to act on", [
+          "Not done: this answer is too old to act on.",
+          "Ask again if it is still needed.",
+        ]);
+      }
+
       if (actionDigest(prepared) !== digest) {
         return this.refuseResume(prepared, summary, "The call changed after it was approved", [
           "Not done: the call changed after the person approved it.",
@@ -265,6 +272,17 @@ export class GatewayGovernance implements Governance {
   }
 
   // ── Internals ──────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * An answer is acted on within the time a request waits for one (`expiryHours`, counted from the
+   * answer). Past that, a resume that comes late (after a crash, or from a tab opened days later)
+   * would act on a decision made for a moment that has gone, so it is not used. No time: too old.
+   */
+  private answerTooOld(approval: Approval): boolean {
+    const decided = Date.parse(approval.decidedAt ?? "");
+    if (!Number.isFinite(decided)) return true;
+    return this.deps.now().getTime() - decided > this.deps.expiryHours() * 3_600_000;
+  }
 
   private summaryOf(call: PreparedCall): string {
     try {

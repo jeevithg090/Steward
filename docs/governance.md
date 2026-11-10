@@ -267,8 +267,11 @@ browser sent. Before acting it checks that:
    (two tabs, or a tab and the sweep) act once. The second is told "Already handled".
 3. The answer was Allow. A refusal, an expiry or a cancellation is passed to the agent as a plain
    sentence, with your note if you left one, and the instruction not to try again.
-4. The call is the same call: same tool, same arguments, compared by a digest taken when it asked.
-5. No deny rule added while you were deciding now refuses it.
+4. The answer is recent: no older than a request waits for one (24 hours by default, counted from
+   when you answered). A resume that only comes later, after a crash or from a tab opened days
+   later, does not act. The agent is told the answer is too old and to ask again.
+5. The call is the same call: same tool, same arguments, compared by a digest taken when it asked.
+6. No deny rule added while you were deciding now refuses it.
 
 Only then does it act, and record the outcome.
 

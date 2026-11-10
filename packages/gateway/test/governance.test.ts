@@ -200,6 +200,50 @@ describe("decide and resume", () => {
     ]);
   });
 
+  it("acts on an answer while it is recent, and never on one older than a request waits", async () => {
+    const { gw, advance } = setup({ expiryHours: 24 });
+    const fresh = mail("Fresh");
+    gw.approvals.decide(parked(await gw.governance.execute(fresh, async () => null)).id, "once", "local");
+    advance(23 * HOUR);
+    const spy = spyAction("sent");
+    expect((await gw.governance.resume(fresh, spy.act)).status).toBe("done");
+    expect(spy.calls).toHaveLength(1);
+
+    // Allow once, then the resume only comes a month later (a crashed sweep, a tab opened again).
+    const stale = mail("Stale");
+    const approval = parked(await gw.governance.execute(stale, async () => null));
+    gw.approvals.decide(approval.id, "once", "local");
+    advance(30 * 24 * HOUR);
+    const late = await gw.governance.resume(stale, spy.act);
+    expect(late).toMatchObject({
+      status: "refused",
+      decision: { effect: "deny", rule: { id: "default:answer-check" } },
+    });
+    if (late.status === "refused") expect(late.message).toMatch(/too old to act on\. Ask again/);
+    expect(spy.calls).toHaveLength(1);
+    const decided = gw.audit.forToolCall(stale.toolCallId).filter((r) => r.type === "tool.decided");
+    expect(decided.at(-1)).toMatchObject({
+      effect: "deny",
+      rule: { id: "default:answer-check" },
+      detail: { reason: "The answer was too old to act on", resumed: true },
+    });
+    // The answer is used up: a second late resume does not act either.
+    expect((await gw.governance.resume(stale, spy.act)).status).toBe("refused");
+    expect(spy.calls).toHaveLength(1);
+  });
+
+  it("counts an answer's age by the expiry setting as it is now", async () => {
+    let hours = 24;
+    const { gw, advance } = setup({ expiryHours: () => hours });
+    const call = mail();
+    gw.approvals.decide(parked(await gw.governance.execute(call, async () => null)).id, "once", "local");
+    advance(2 * HOUR);
+    hours = 1;
+    const spy = spyAction("sent");
+    expect((await gw.governance.resume(call, spy.act)).status).toBe("refused");
+    expect(spy.calls).toHaveLength(0);
+  });
+
   it("concurrent resumes: only one acts", async () => {
     const { gw } = setup();
     const call = mail();
