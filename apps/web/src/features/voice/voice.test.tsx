@@ -249,4 +249,13 @@ describe("speechText", () => {
     expect(speechChunks(text, 30)).toEqual(["One sentence here.", "Another one follows. A third."]);
     expect(speechChunks("x".repeat(50), 20)).toEqual(["x".repeat(20), "x".repeat(20), "x".repeat(10)]);
   });
+
+  it("keeps every word of a sentence with a full stop inside a word", () => {
+    const text = "Send an email to sam@example.com about the 3.5 hours. The request is below.";
+    expect(speechChunks(text)).toEqual([text]);
+    expect(speechChunks(text, 60)).toEqual([
+      "Send an email to sam@example.com about the 3.5 hours.",
+      "The request is below.",
+    ]);
+  });
 });

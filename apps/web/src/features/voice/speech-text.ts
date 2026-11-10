@@ -48,7 +48,9 @@ export function speechText(markdown: string): string {
  * about fifteen seconds, so long replies are queued as sentences of at most `max` characters.
  */
 export function speechChunks(text: string, max = 220): string[] {
-  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) ?? [text];
+  // A sentence ends at . ! or ? followed by a space. A full stop inside a word, as in
+  // sam@example.com, example.com or 3.5, does not end one (and must not lose its start).
+  const sentences = text.split(/(?<=[.!?])\s+/);
   const chunks: string[] = [];
   let current = "";
   for (const raw of sentences) {
