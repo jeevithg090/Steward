@@ -663,6 +663,43 @@ describe("always allow", () => {
     expect(restarted.audit.page({}).total).toBe(before);
   });
 
+  it("switches off an old Always allow that is too long to narrow, rather than leave it wide", () => {
+    const { db, gw } = setup();
+    const long = gw.rules.create({
+      name: "Always allow calendar_create",
+      effect: "allow",
+      // Near the limit: the extra condition would take it past 2,000 characters.
+      when: `tool.name == "calendar_create" && target.host != "${"x".repeat(1935)}"`,
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const errors: unknown[] = [];
+    const log = console.error;
+    console.error = (...args: unknown[]) => errors.push(args);
+    let restarted: ReturnType<typeof createGateway>;
+    try {
+      restarted = createGateway({ db });
+    } finally {
+      console.error = log;
+    }
+    expect(restarted.rules.get(long.id)).toMatchObject({ when: long.when, enabled: false });
+    expect(errors).toHaveLength(1);
+    const invite = gateCall("calendar_create", { title: "Sync", attendees: ["stranger@evil.example"] });
+    expect(restarted.governance.dryRun(invite).effect).toBe("ask");
+    const changes = restarted.audit.page({ type: "policy.changed", q: "Always allow calendar_create" });
+    expect(changes.events[0]?.detail).toMatchObject({ change: "updated", enabled: false, switched: "off" });
+    // Already off: a later start leaves it, and the record, alone.
+    const before = restarted.audit.page({}).total;
+    console.error = () => {};
+    try {
+      createGateway({ db });
+    } finally {
+      console.error = log;
+    }
+    expect(restarted.audit.page({}).total).toBe(before);
+  });
+
   it("is not offered for a browser action the rule could not name", async () => {
     const { gw } = setup();
     const before = gw.rules.list().length;

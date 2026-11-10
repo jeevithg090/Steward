@@ -186,7 +186,8 @@ export function alwaysRuleFor(
  * Always allow rules written before "nobody" was pinned let a call that had no recipients run
  * later with any. Narrows each such rule once, in the shape `alwaysRuleFor` wrote it (a rule
  * someone rewrote by hand is left alone), so an event allowed with no guests still invites nobody.
- * Each change is recorded as a policy change. Returns how many were narrowed.
+ * A rule that cannot take the extra condition (it would be too long) is switched off instead of
+ * staying wide. Each change is recorded as a policy change. Returns how many were narrowed.
  */
 export function narrowAlwaysRules(rules: SqliteRuleStore): number {
   let narrowed = 0;
@@ -198,10 +199,22 @@ export function narrowAlwaysRules(rules: SqliteRuleStore): number {
       rules.update(rule.id, { when: `${rule.when} && size(target.recipients) == 0` });
       narrowed++;
     } catch (err) {
-      // Never stop Steward from starting over this; the rule stays as it was.
+      // Never stop Steward from starting over this.
       console.error(
         JSON.stringify({ type: "gateway.always_rule_not_narrowed", ruleId: rule.id, error: String(err) }),
       );
+      if (!rule.enabled) continue;
+      try {
+        rules.update(rule.id, { enabled: false });
+      } catch (offErr) {
+        console.error(
+          JSON.stringify({
+            type: "gateway.always_rule_not_switched_off",
+            ruleId: rule.id,
+            error: String(offErr),
+          }),
+        );
+      }
     }
   }
   return narrowed;
