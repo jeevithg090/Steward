@@ -649,10 +649,11 @@ export function ChoicesToolCard(tool: ToolProps) {
 
 export function PageToolCard(tool: ToolProps) {
   const state = useToolState(tool);
+  const chat = useChatActions();
   const gate = Gate({ tool, state });
   if (gate && (state.waiting || state.outcome.status !== "pending")) return gate;
   const saved = state.outcome.status === "ok" ? recordFrom(state.outcome.data, ["page", "file"]) : undefined;
-  return <PageCard page={{ ...tool.args, ...saved }} />;
+  return <PageCard page={{ ...tool.args, ...saved }} agentId={chat?.agentId} />;
 }
 
 // ── The bot directory ───────────────────────────────────────────────────────────────────────────

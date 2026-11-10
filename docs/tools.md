@@ -84,6 +84,18 @@ Display only: these draw a card in the chat and change nothing.
 | `show_comparison` | ui   | ui      | no     | runs       | Two to four options side by side, with pros and cons.             |
 | `show_choices`    | ui   | ui      | no     | runs       | A few clear choices the person can tap.                           |
 
+## Opening what Steward made
+
+Everything in an agent's workspace opens from `/computer` → **Files**, and a page Steward made
+opens from its card in the chat with **Open**. Steward never serves a workspace file as a page on
+its own address: the file comes to the web app as text, and is drawn the safe way for its kind.
+
+- Markdown is drawn like a reply: raw HTML is dropped, images are not loaded, and links ask first.
+- An HTML page is drawn in a sandboxed frame. Its scripts, forms and pop-ups are off, its links
+  lead nowhere, and it loads nothing from the web, so a page built from what Steward read cannot
+  act or send anything.
+- Anything else is shown as plain text. Only text files open, and only their first 1 MB.
+
 ## Tools from connected apps (MCP)
 
 Tools from MCP servers added on `/connections` are named `mcp__<server>__<tool>`, have surface

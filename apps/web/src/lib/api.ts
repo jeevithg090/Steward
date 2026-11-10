@@ -55,6 +55,7 @@ import {
   type ThreadSummary,
   type TriageItem,
   type WorkspaceFile,
+  type WorkspaceFileText,
 } from "@steward/shared";
 import {
   QueryClient,
@@ -359,6 +360,12 @@ export const api = {
       get<ActivityItem[]>(route(ROUTES.computerActivity, { agentId }), undefined, signal),
     files: (agentId: string, dir?: string, signal?: AbortSignal) =>
       get<WorkspaceFile[]>(route(ROUTES.computerFiles, { agentId }), { dir }, signal),
+    /** One file's text, to read. HTML comes back as text and is drawn in a sandboxed frame. */
+    file: (agentId: string, path: string, signal?: AbortSignal) =>
+      get<WorkspaceFileText>(route(ROUTES.computerFile, { agentId }), { path }, signal),
+    /** Adds a text file the person attached; it lands under uploads/ with a safe name. */
+    upload: (agentId: string, body: { name: string; text: string }) =>
+      send<WorkspaceFile>("POST", route(ROUTES.computerUploads, { agentId }), body),
     reset: (agentId: string) => send<ComputerStatus>("POST", route(ROUTES.computerReset, { agentId })),
     /** The WebSocket URL for the live screen, on this page's own host. */
     wsUrl: (agentId: string) => {
@@ -445,6 +452,7 @@ export const queryKeys = {
   computerStatus: (agentId: string) => ["computer", agentId, "status"] as const,
   computerActivity: (agentId: string) => ["computer", agentId, "activity"] as const,
   computerFiles: (agentId: string, dir?: string) => ["computer", agentId, "files", dir ?? ""] as const,
+  computerFile: (agentId: string, path: string) => ["computer", agentId, "file", path] as const,
   notifications: ["notifications"] as const,
   /** Every bots query: the directory pages and the installed list. */
   bots: ["bots"] as const,
@@ -874,6 +882,21 @@ export function useComputerFiles(
   return useQuery<WorkspaceFile[], ApiError>({
     queryKey: queryKeys.computerFiles(agentId, dir),
     queryFn: ({ signal }) => api.computer.files(agentId, dir, signal),
+    ...opts,
+  });
+}
+
+/** A workspace file's text, while `path` is set. */
+export function useWorkspaceFile(
+  agentId: string = DEFAULT_AGENT_ID,
+  path: string | undefined,
+  opts?: QueryOpts<WorkspaceFileText>,
+) {
+  return useQuery<WorkspaceFileText, ApiError>({
+    queryKey: queryKeys.computerFile(agentId, path ?? ""),
+    queryFn: ({ signal }) => api.computer.file(agentId, path ?? "", signal),
+    enabled: Boolean(path),
+    staleTime: 0,
     ...opts,
   });
 }

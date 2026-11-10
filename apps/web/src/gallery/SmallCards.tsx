@@ -3,9 +3,12 @@
  * it made (`make_page`), web search results and a page it read, and a command's output.
  */
 import { CalendarClock, ExternalLink, FileText, Inbox, Repeat, Terminal } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
 import { buttonVariants } from "@/components/ui/Button.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
+import { FileViewerDialog } from "@/features/computer/FileViewer.tsx";
+import { DEFAULT_AGENT_ID } from "@/lib/api.ts";
 import { checkCron } from "@/lib/cron.ts";
 import { cn } from "@/lib/utils.ts";
 import { formatWhen, hostOf, safeHref } from "./format.ts";
@@ -180,11 +183,23 @@ const PAGE_KINDS: Record<string, string> = {
   report: "Report",
 };
 
-export function PageCard({ page }: { page: Record<string, unknown> | undefined }) {
+export function PageCard({
+  page,
+  agentId = DEFAULT_AGENT_ID,
+}: {
+  page: Record<string, unknown> | undefined;
+  /** Whose workspace the page is in: the conversation's agent. */
+  agentId?: string;
+}) {
+  const [open, setOpen] = useState(false);
   const title = text(page?.title) ?? "Page";
   const kind = PAGE_KINDS[text(page?.kind)?.toLowerCase() ?? ""] ?? "Page";
   const path = text(page?.path) ?? text(page?.file);
   const summary = text(page?.summary);
+  const filesLink = `/computer?${new URLSearchParams({
+    ...(agentId !== DEFAULT_AGENT_ID ? { agent: agentId } : {}),
+    ...(path ? { file: path } : {}),
+  }).toString()}`;
   return (
     <CardFrame
       title={
@@ -197,12 +212,19 @@ export function PageCard({ page }: { page: Record<string, unknown> | undefined }
       caption={kind}
       footer={
         path ? (
-          <Link
-            to={`/computer?file=${encodeURIComponent(path)}`}
-            className={buttonVariants({ variant: "secondary", size: "sm" })}
-          >
-            Open in Steward's files
-          </Link>
+          <span className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-label={`Open ${title}`}
+              className={buttonVariants({ variant: "secondary", size: "sm" })}
+            >
+              Open
+            </button>
+            <Link to={filesLink} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              Show in Steward's files
+            </Link>
+          </span>
         ) : (
           <Quiet>Saving it to Steward's files…</Quiet>
         )
@@ -210,6 +232,7 @@ export function PageCard({ page }: { page: Record<string, unknown> | undefined }
     >
       {summary ? <p className="m-0 text-sub text-ink-2">{summary}</p> : null}
       {path ? <p className="m-0 mt-1 font-mono text-caption text-ink-3">{path}</p> : null}
+      <FileViewerDialog agentId={agentId} path={open ? path : undefined} onClose={() => setOpen(false)} />
     </CardFrame>
   );
 }

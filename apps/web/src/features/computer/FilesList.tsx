@@ -1,7 +1,7 @@
 /**
  * The agent's workspace folder: what it saved and made. Folders open in place, with a path to walk
- * back up. A file named in the address (`/computer?file=report.md`) is highlighted, so a page card
- * in the chat can point straight at it.
+ * back up; a file opens in the viewer, drawn safely (FileViewer.tsx). A file named in the address
+ * (`/computer?file=report.md`) is highlighted, so a page card in the chat can point straight at it.
  */
 import type { WorkspaceFile } from "@steward/shared";
 import { ChevronRight, FileText, Folder, RotateCw } from "lucide-react";
@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button.tsx";
 import { useComputerFiles } from "@/lib/api.ts";
 import { formatBytes, relativeTime } from "@/lib/utils.ts";
+import { FileViewerDialog } from "./FileViewer.tsx";
 
 function parentOf(path: string): string | undefined {
   const parts = path.split("/").filter(Boolean);
@@ -24,6 +25,7 @@ function nameOf(path: string): string {
 export function FilesList({ agentId, highlight }: { agentId: string; highlight?: string }) {
   const [dir, setDir] = useState<string | undefined>(() => (highlight ? parentOf(highlight) : undefined));
   const files = useComputerFiles(agentId, dir);
+  const [opened, setOpened] = useState<string | undefined>();
   const crumbs = dir ? dir.split("/").filter(Boolean) : [];
 
   const sorted: WorkspaceFile[] = [...(files.data ?? [])].sort((a, b) =>
@@ -113,23 +115,27 @@ export function FilesList({ agentId, highlight }: { agentId: string; highlight?:
                     <span className="shrink-0 text-caption text-ink-3">{meta}</span>
                   </button>
                 ) : (
-                  <div
+                  <button
+                    type="button"
+                    onClick={() => setOpened(file.path)}
+                    aria-label={`Open ${name}, ${meta}`}
                     className={
                       marked
-                        ? "flex min-h-target items-center gap-3 rounded-tile bg-accent-soft px-1"
-                        : "flex min-h-target items-center gap-3 px-1"
+                        ? "flex min-h-target w-full items-center gap-3 rounded-tile bg-accent-soft px-1 text-left hover:bg-tile"
+                        : "flex min-h-target w-full items-center gap-3 rounded-tile px-1 text-left hover:bg-tile"
                     }
                   >
                     <FileText aria-hidden className="size-4 shrink-0 text-ink-3" />
                     <span className="min-w-0 flex-1 truncate font-mono text-ink text-sub">{name}</span>
                     <span className="shrink-0 text-caption text-ink-3">{meta}</span>
-                  </div>
+                  </button>
                 )}
               </li>
             );
           })}
         </ul>
       )}
+      <FileViewerDialog agentId={agentId} path={opened} onClose={() => setOpened(undefined)} />
     </div>
   );
 }
