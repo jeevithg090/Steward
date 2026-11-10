@@ -1,4 +1,4 @@
-import { newId, ROUTES, ThreadCreateBody } from "@steward/shared";
+import { newId, ROUTES, ThreadCreateBody, ThreadPatchBody } from "@steward/shared";
 import type { Hono } from "hono";
 import type { StewardServices } from "../context.ts";
 import { HttpError, notFound, readBody } from "../http/errors.ts";
@@ -34,6 +34,16 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
     const summary = s.threads.summary(c.req.param("id"));
     if (!summary) throw notFound("that conversation");
     return c.json(summary);
+  });
+
+  // Renames a conversation. A thread the runner knows but the server has no row for gets one.
+  app.patch(ROUTES.thread, async (c) => {
+    const id = c.req.param("id");
+    const summary = s.threads.summary(id);
+    if (!summary) throw notFound("that conversation");
+    const body = await readBody(c, ThreadPatchBody);
+    s.threads.upsertMeta({ id, agentId: summary.agentId, title: body.title });
+    return c.json(s.threads.summary(id));
   });
 
   app.delete(ROUTES.thread, async (c) => {

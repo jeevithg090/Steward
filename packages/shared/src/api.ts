@@ -148,6 +148,11 @@ export const UploadBody = z.object({
   text: z.string().max(UPLOAD_MAX_BYTES),
 });
 
+export const ThreadPatchBody = z.object({
+  /** A new name for the conversation. */
+  title: z.string().trim().min(1, "Give the conversation a name.").max(200),
+});
+
 export const ThreadCreateBody = z.object({
   title: z.string().max(200).optional(),
   /** Defaults to the tenant's first agent. */
@@ -257,7 +262,7 @@ export const ROUTES = {
   events: "/api/events", // SSE stream of LiveEvent
 
   threads: "/api/threads", // ThreadSummary[] · POST ThreadCreateBody → ThreadSummary
-  thread: "/api/threads/:id", // ThreadSummary · DELETE
+  thread: "/api/threads/:id", // ThreadSummary · PATCH ThreadPatchBody → ThreadSummary · DELETE
 
   approvals: "/api/approvals", // ?status=pending → Approval[]
   approval: "/api/approvals/:id", // Approval
