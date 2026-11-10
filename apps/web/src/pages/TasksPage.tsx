@@ -10,7 +10,15 @@ import { EmptyState } from "@/components/ui/EmptyState.tsx";
 import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
 import { Page } from "@/components/ui/PageHeader.tsx";
 import { type TabItem, Tabs } from "@/components/ui/Tabs.tsx";
-import { needsYouCount, useApprovals, usePatchTask, useStartTask, useTasks } from "@/lib/api.ts";
+import {
+  NEEDS_YOU_STATES,
+  needsYouCount,
+  useApprovals,
+  usePatchTask,
+  useStartTask,
+  useTasks,
+} from "@/lib/api.ts";
+import { plural } from "@/lib/utils.ts";
 
 export type TaskView =
   | "needs_you"
@@ -66,8 +74,8 @@ const VIEWS: { value: TaskView; label: string; empty: { title: string; body: str
 ];
 
 /** Which task states each view lists. Tasks that could not finish need the person, so they sit in Needs you. */
-const VIEW_STATES: Record<TaskView, TaskState[]> = {
-  needs_you: ["needs_you", "failed"],
+const VIEW_STATES: Record<TaskView, readonly TaskState[]> = {
+  needs_you: NEEDS_YOU_STATES,
   suggested: ["suggested"],
   working: ["working"],
   ready_for_review: ["ready_for_review"],
@@ -82,28 +90,29 @@ function isView(value: string | null): value is TaskView {
 export function TasksPage() {
   const [params, setParams] = useSearchParams();
   const view: TaskView = isView(params.get("view")) ? (params.get("view") as TaskView) : "needs_you";
-  const tasks = useTasks();
+  // Each view asks for its own tasks: one list of everything was cut at the server's limit, and
+  // the oldest, often the ones that still need the person, fell off it. Needs you is always asked
+  // for too, since the approvals a task stands for are found there.
+  const needsYou = useTasks(NEEDS_YOU_STATES);
+  const tasks = useTasks(VIEW_STATES[view]);
   const pending = useApprovals("pending");
 
   const all = tasks.data?.tasks ?? [];
   const pendingApprovals = (pending.data ?? []).filter((a) => a.status === "pending");
   const approvalById = new Map(pendingApprovals.map((a) => [a.id, a]));
-  const linked = new Set(all.map((t) => t.approvalId).filter(Boolean));
+  const linked = new Set((needsYou.data?.tasks ?? []).map((t) => t.approvalId).filter(Boolean));
   const looseApprovals = pendingApprovals.filter((a) => !linked.has(a.id));
+  const counts = tasks.data?.counts ?? needsYou.data?.counts;
 
   const countFor = (v: TaskView): number => {
-    if (v === "needs_you") return needsYouCount(tasks.data, pending.data);
-    const counts = tasks.data?.counts;
-    return VIEW_STATES[v].reduce(
-      (sum, state) => sum + (counts?.[state] ?? all.filter((t) => t.state === state).length),
-      0,
-    );
+    if (v === "needs_you") return needsYouCount(needsYou.data, pending.data);
+    return VIEW_STATES[v].reduce((sum, state) => sum + (counts?.[state] ?? 0), 0);
   };
 
   const items: TabItem<TaskView>[] = VIEWS.map((v) => ({
     value: v.value,
     label: v.label,
-    count: tasks.data ? countFor(v.value) : undefined,
+    count: counts && needsYou.data ? countFor(v.value) : undefined,
   }));
 
   const current = VIEWS.find((v) => v.value === view)!;
@@ -123,8 +132,11 @@ export function TasksPage() {
     );
   else {
     const loose = view === "needs_you" ? looseApprovals : [];
+    // The server lists at most its limit; the count says how many there really are.
+    const inView = VIEW_STATES[view].reduce((sum, state) => sum + (counts?.[state] ?? 0), 0);
+    const unlisted = Math.max(0, inView - shown.length);
     body =
-      shown.length === 0 && loose.length === 0 ? (
+      shown.length === 0 && loose.length === 0 && inView === 0 ? (
         <EmptyState icon={view === "needs_you" ? Inbox : ListChecks} title={current.empty.title}>
           {current.empty.body}
         </EmptyState>
@@ -143,6 +155,11 @@ export function TasksPage() {
               />
             </li>
           ))}
+          {unlisted > 0 ? (
+            <li className="text-ink-2 text-sub">
+              {plural(unlisted, "older task")} {unlisted === 1 ? "isn't" : "aren't"} listed here.
+            </li>
+          ) : null}
         </ul>
       );
   }

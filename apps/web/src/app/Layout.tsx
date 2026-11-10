@@ -6,7 +6,15 @@ import { Badge } from "@/components/ui/Badge.tsx";
 import { Button } from "@/components/ui/Button.tsx";
 import { Dialog } from "@/components/ui/Dialog.tsx";
 import { Loading } from "@/components/ui/Notice.tsx";
-import { needsYouCount, useApprovals, useCreateThread, useInfo, useTasks, useThreads } from "@/lib/api.ts";
+import {
+  NEEDS_YOU_STATES,
+  needsYouCount,
+  useApprovals,
+  useCreateThread,
+  useInfo,
+  useTasks,
+  useThreads,
+} from "@/lib/api.ts";
 import { claimRouteFocus, markRouteChange } from "@/lib/focus.ts";
 import { useLiveSync } from "@/lib/live.ts";
 import { showBrowserNotification } from "@/lib/notify.ts";
@@ -116,7 +124,7 @@ export function AppShell() {
 }
 
 function useTasksBadge(): number {
-  const tasks = useTasks(undefined, { refetchInterval: 120_000 });
+  const tasks = useTasks(NEEDS_YOU_STATES, { refetchInterval: 120_000 });
   const pending = useApprovals("pending");
   return needsYouCount(tasks.data, pending.data);
 }

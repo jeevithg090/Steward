@@ -87,6 +87,12 @@ describe("api: every route in ROUTES", () => {
     ["audit verify", () => api.audit.verify(), "GET", "/api/audit/verify"],
     ["tasks", () => api.tasks.list("suggested"), "GET", "/api/tasks?state=suggested"],
     [
+      "tasks in several states",
+      () => api.tasks.list(["needs_you", "failed"]),
+      "GET",
+      "/api/tasks?state=needs_you%2Cfailed",
+    ],
+    [
       "task (PATCH)",
       () => api.tasks.patch("tsk_1", { state: "resolved" }),
       "PATCH",

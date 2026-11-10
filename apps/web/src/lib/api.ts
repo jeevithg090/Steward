@@ -321,7 +321,13 @@ export const api = {
   },
 
   tasks: {
-    list: (state?: TaskState, signal?: AbortSignal) => get<TasksResponse>(ROUTES.tasks, { state }, signal),
+    /** One state or several (`needs_you,failed`); without one, every state but hidden. */
+    list: (state?: TaskState | readonly TaskState[], signal?: AbortSignal) =>
+      get<TasksResponse>(
+        ROUTES.tasks,
+        { state: typeof state === "string" ? state : state?.join(",") },
+        signal,
+      ),
     patch: (id: string, body: TaskPatchInput) => send<Task>("PATCH", route(ROUTES.task, { id }), body),
     start: (id: string, body: TaskStartInput = {}) =>
       send<{ task: Task; threadId: string }>("POST", route(ROUTES.taskStart, { id }), body),
@@ -452,7 +458,8 @@ export const queryKeys = {
    */
   auditVerify: ["auditVerify"] as const,
   tasks: ["tasks"] as const,
-  taskList: (state?: TaskState) => ["tasks", state ?? "all"] as const,
+  taskList: (state?: TaskState | readonly TaskState[]) =>
+    ["tasks", typeof state === "string" ? state : (state?.join(",") ?? "all")] as const,
   brief: ["brief"] as const,
   briefFor: (date: string) => ["brief", date] as const,
   inbox: ["inbox"] as const,
@@ -678,7 +685,7 @@ export function useVerifyAudit(opts?: QueryOpts<ChainCheck>) {
 
 // ── Tasks ──────────────────────────────────────────────────────────────────────────────────────
 
-export function useTasks(state?: TaskState, opts?: QueryOpts<TasksResponse>) {
+export function useTasks(state?: TaskState | readonly TaskState[], opts?: QueryOpts<TasksResponse>) {
   return useQuery<TasksResponse, ApiError>({
     queryKey: queryKeys.taskList(state),
     queryFn: ({ signal }) => api.tasks.list(state, signal),
@@ -1072,9 +1079,14 @@ export function useRevokeDevice() {
 
 // ── Derived counts ─────────────────────────────────────────────────────────────────────────────
 
+/** What Needs you lists: tasks that need the person, and tasks that could not finish. */
+export const NEEDS_YOU_STATES: readonly TaskState[] = ["needs_you", "failed"];
+
 /**
  * How many things wait on the person: tasks that need them, tasks that could not finish, and
  * pending approvals no task already stands for. The Tasks badge and the Needs you tab use this.
+ * `tasks` must list the Needs you tasks (`NEEDS_YOU_STATES`): a task waiting on an approval is
+ * always one of them, so that is where an approval's task is found.
  */
 export function needsYouCount(tasks: TasksResponse | undefined, pending: Approval[] | undefined): number {
   const taskCount = (tasks?.counts.needs_you ?? 0) + (tasks?.counts.failed ?? 0);
