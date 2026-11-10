@@ -113,6 +113,11 @@ and start again; the profile and workspace stay) and `closeAll`. After an explic
 computer stays closed until `get` or `reset`; an action already in flight fails with code `closed`
 rather than bringing the browser back.
 
+Closing has a time limit, so a browser stuck in a GPU or renderer hang cannot keep the computer
+shut until Steward restarts: the screencast and input sessions get 3 s each, and the browser 10 s.
+A browser still running after that is killed (found through its profile's `SingletonLock`), with
+one line in the log, and the next `get` starts a fresh one.
+
 ## The live screen
 
 `subscribe(agentId, listener)` sends the current status at once, then:
