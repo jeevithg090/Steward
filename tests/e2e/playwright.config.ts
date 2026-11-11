@@ -14,6 +14,10 @@ import { DEVICE_PORT, SERVER_PORT, SERVER_URL, WEB_PORT, WEB_URL } from "./env.t
  *   STEWARD_E2E_SERVER_PORT=8797 STEWARD_E2E_WEB_PORT=4173 pnpm e2e
  *                                  run beside `pnpm dev`, on ports of its own. The web port must
  *                                  be 5173 or 4173: the server answers only those dev origins.
+ *   pnpm build && STEWARD_E2E_BUILT=1 pnpm e2e
+ *                                  also run the "built" project: a few specs against the
+ *                                  production build, served by the Steward server itself with
+ *                                  its real headers, as an install runs it. CI always does.
  *
  * Each run gets a fresh data folder under test-results/e2e-data (the newest three are kept), so a
  * run never reads or changes the data in your own .steward-data. Reusing servers is opt-in for the
@@ -35,6 +39,13 @@ if (!process.env.STEWARD_E2E_DATA_DIR) {
 const DATA_DIR = process.env.STEWARD_E2E_DATA_DIR;
 
 const reuseExistingServer = !CI && process.env.STEWARD_E2E_REUSE === "1";
+
+// The server serves apps/web/dist when it finds it at start. Opt-in outside CI, so an old build
+// left in the folder never fails a run that did not ask for it.
+const BUILT = CI || process.env.STEWARD_E2E_BUILT === "1";
+if (BUILT && !existsSync(join(REPO_ROOT, "apps", "web", "dist", "index.html"))) {
+  throw new Error("The built project needs the production build first: run `pnpm build`.");
+}
 
 /** Deletes the `run-<time>` folders in `dir` but the newest `keep`, which a run still going may use. */
 function removeOlderRuns(dir: string, keep: number): void {
@@ -67,7 +78,22 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    // Through the Vite dev server, which proxies /api and /ws to the Steward server.
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // The production build, from the Steward server's own origin. A failure only the bundler or
+    // the server's Content-Security-Policy causes shows here: the page fixture fails on the
+    // console error a blocked resource leaves.
+    ...(BUILT
+      ? [
+          {
+            name: "built",
+            testMatch: ["chat.spec.ts", "approval.spec.ts", "knowledge.spec.ts"],
+            use: { ...devices["Desktop Chrome"], baseURL: SERVER_URL },
+          },
+        ]
+      : []),
+  ],
   // Runs once both servers answer, before any spec.
   globalSetup: "./global-setup.ts",
   webServer: [
