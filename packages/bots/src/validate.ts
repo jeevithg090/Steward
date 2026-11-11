@@ -272,6 +272,9 @@ export function validatePack(input: unknown, ctx: ValidateContext): ValidationRe
     injection(path, text, problems);
     personalData(path, text, problems);
   }
+  // The bot's prompt says who wrote its instructions (botInstructionsFrame), so the handle reaches
+  // the model too. It is the author's own public name, so it is not checked for personal data.
+  if (pack.author.kind === "person") injection("author.handle", pack.author.handle, problems);
 
   plainLanguage("pitch", pack.pitch, problems);
   plainLanguage("instructions", pack.instructions, problems);
