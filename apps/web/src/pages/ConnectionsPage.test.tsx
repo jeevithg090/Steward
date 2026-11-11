@@ -10,8 +10,15 @@ afterEach(() => {
 });
 
 type Tool = McpServerInfo["tools"][number];
+/** A made-up fingerprint for a tool, as the manager would send it. */
+const FINGERPRINT = (name: string) =>
+  name
+    .padEnd(64, "0")
+    .replace(/[^0-9a-f]/g, "f")
+    .slice(0, 64);
 const tool = (over: Partial<Tool> & Pick<Tool, "name">): Tool => ({
   description: `The ${over.name} tool.`,
+  fingerprint: FINGERPRINT(over.name),
   granted: true,
   kind: "write",
   offerable: true,
@@ -32,6 +39,7 @@ function notes(over: Partial<McpServerInfo> = {}): McpServerInfo {
       tool({ name: "post_note", kind: "send" }),
       tool({ name: "erase_note", kind: "delete", destructive: true }),
       tool({ name: "lookup", kind: "read", changed: true }),
+      tool({ name: "draft_note", granted: false }),
       tool({
         name: "export.all",
         granted: false,
@@ -105,7 +113,30 @@ describe("ConnectionsPage: MCP servers", () => {
     const notesCard = await card();
     expect(within(notesCard).getByText("Changed since you allowed it")).toBeTruthy();
     fireEvent.click(within(notesCard).getByRole("button", { name: /Allow again.*lookup/ }));
-    await waitFor(() => expect(lastPut(server.calls)).toMatchObject({ allowAgain: ["lookup"] }));
+    // Pinned to what the person just read, not to whatever the server says by the time it saves.
+    await waitFor(() =>
+      expect(lastPut(server.calls)).toMatchObject({
+        allowAgain: ["lookup"],
+        seen: { lookup: FINGERPRINT("lookup") },
+      }),
+    );
+  });
+
+  it("switches a tool on as the person read it, and sends nothing it saw when switching one off", async () => {
+    const server = serve([notes()]);
+    renderWithProviders(<ConnectionsPage />);
+    const notesCard = await card();
+    fireEvent.click(within(notesCard).getByRole("switch", { name: /draft_note/ }));
+    await waitFor(() => expect(lastPut(server.calls)).toBeDefined());
+    expect(lastPut(server.calls)).toMatchObject({
+      granted: expect.arrayContaining(["draft_note"]),
+      seen: { draft_note: FINGERPRINT("draft_note") },
+    });
+    expect(lastPut(server.calls)).not.toHaveProperty("allowAgain");
+
+    fireEvent.click(within(notesCard).getByRole("switch", { name: /search_notes/ }));
+    await waitFor(() => expect(server.calls.filter((c) => c.method === "PUT")).toHaveLength(2));
+    expect(lastPut(server.calls)).not.toHaveProperty("seen");
   });
 
   it("says why a tool can't be offered and won't switch it on", async () => {

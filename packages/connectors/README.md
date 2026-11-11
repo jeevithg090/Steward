@@ -185,7 +185,10 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
   sha256 of its description, input schema and destructive hint. If the server changes any of them
   later (it can, with a `tools/list_changed` notification), the tool is marked `changed`, withheld
   from the model and refused by `call`, until the person allows it again (`allowAgain`). Saving any
-  other change keeps the old pin, so it never re-approves a changed tool by accident. A tool granted
+  other change keeps the old pin, so it never re-approves a changed tool by accident. `list()` gives
+  each tool's `fingerprint`, and the page sends back the one it showed (`seen`) when the person
+  switches a tool on or allows it again, so a server that changes a tool while the person is reading
+  it is caught too; without `seen`, the tool is pinned to the listing at the save. A tool granted
   before its server listed it is pinned to the first listing that has it.
 - **Names.** Tools are offered as `mcp__<server>__<tool>`. A tool whose full name a model cannot call
   (more than 64 characters, or characters other than letters, digits, `_` and `-`) is listed but not

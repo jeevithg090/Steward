@@ -165,6 +165,11 @@ export interface McpManager {
      * it since it was allowed is withheld until it is allowed again.
      */
     allowAgain?: string[];
+    /**
+     * For tools just granted or allowed again: the fingerprint of the listing the person read. The
+     * tool is pinned to it, so a change the server made in the meantime withholds the tool.
+     */
+    seen?: Record<string, string>;
     /** stdio: environment variables to set (a string) or remove (null). Others keep their value. */
     env?: Record<string, string | null>;
     /** http: an access token to set, or null to remove it. Left out, the saved one stays. */

@@ -137,6 +137,8 @@ interface Marks {
   deletes: string[];
   /** Tools the person looked at again after their server changed them. */
   allowAgain?: string[];
+  /** What a tool just switched on or allowed again said when the person read it here. */
+  seen?: Record<string, string>;
 }
 
 const KIND_CHOICES: { value: McpToolKind; label: string }[] = [
@@ -171,9 +173,14 @@ function withKind(marks: Marks, name: string, kind: McpToolKind): Marks {
   };
 }
 
-function withGrant(marks: Marks, name: string, on: boolean): Marks {
-  const granted = marks.granted.filter((n) => n !== name);
-  return { ...marks, granted: on ? [...granted, name] : granted };
+/** The fingerprint of what the person is reading now, so the tool is pinned to that. */
+function seenOf(tool: McpServerDetail["tools"][number]): Pick<Marks, "seen"> {
+  return tool.fingerprint ? { seen: { [tool.name]: tool.fingerprint } } : {};
+}
+
+function withGrant(marks: Marks, tool: McpServerDetail["tools"][number], on: boolean): Marks {
+  const granted = marks.granted.filter((n) => n !== tool.name);
+  return on ? { ...marks, granted: [...granted, tool.name], ...seenOf(tool) } : { ...marks, granted };
 }
 
 function McpServerCard({ server }: { server: McpServerDetail }) {
@@ -303,8 +310,8 @@ function McpServerCard({ server }: { server: McpServerDetail }) {
               tool={tool}
               busy={upsert.isPending}
               onKind={(kind) => save(withKind(marks, tool.name, kind))}
-              onGrant={(on) => save(withGrant(marks, tool.name, on))}
-              onAllowAgain={() => save({ ...marks, allowAgain: [tool.name] })}
+              onGrant={(on) => save(withGrant(marks, tool, on))}
+              onAllowAgain={() => save({ ...marks, allowAgain: [tool.name], ...seenOf(tool) })}
             />
           ))}
         </ul>

@@ -36,7 +36,7 @@ import {
 
 export type McpServerConfig = Parameters<McpManager["upsert"]>[0];
 /** A config as the manager keeps it: every list present, and nothing that only applies to one save. */
-type SavedConfig = Omit<McpServerConfig, "allowAgain" | "env" | "bearerToken"> & {
+type SavedConfig = Omit<McpServerConfig, "allowAgain" | "seen" | "env" | "bearerToken"> & {
   sends: string[];
   deletes: string[];
 };
@@ -496,6 +496,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         return {
           name: t.name,
           description: hider(state)(t.description),
+          fingerprint: t.fingerprint,
           granted: config.granted.includes(t.name),
           kind: kindOf(config, t),
           ...(t.destructive ? { destructive: true } : {}),
@@ -607,7 +608,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       }
       const secrets = nextSecrets(existing?.secrets, input, config, opts.allowPrivateHosts);
       if (config.transport === "http") await checkServerUrl(config.url as string);
-      const pins = keptPins(existing, config, input.allowAgain ?? []);
+      const pins = keptPins(existing, config, input.allowAgain ?? [], seenOf(input.seen));
       const now = new Date().toISOString();
       db.tx(() => {
         db.run(
@@ -855,20 +856,43 @@ function kindOf(config: SavedConfig, tool: ListedTool): McpToolKind {
 
 /**
  * The pins to keep for a save: a tool no longer granted loses its pin, and a newly granted tool or
- * one the person allowed again is pinned afresh from the listing (see `fillPins`). Every other
- * granted tool keeps the pin it had, so saving one switch never re-approves a tool that changed.
+ * one the person allowed again is pinned afresh: to what the page showed them (`seen`) when it says,
+ * otherwise to the listing now (see `fillPins`). Every other granted tool keeps the pin it had, so
+ * saving one switch never re-approves a tool that changed, whatever `seen` says.
  */
 function keptPins(
   existing: ServerState | undefined,
   config: SavedConfig,
   allowAgain: readonly string[],
+  seen: Record<string, string>,
 ): Record<string, string> {
   const before = new Set(existing?.config.granted ?? []);
   const pins: Record<string, string> = {};
   for (const [name, pin] of Object.entries(existing?.pins ?? {})) {
     if (config.granted.includes(name) && before.has(name) && !allowAgain.includes(name)) pins[name] = pin;
   }
+  for (const name of config.granted) {
+    // A pin from the page only ever matches what the server lists now or withholds the tool: it
+    // can't loosen anything.
+    if (pins[name] === undefined && seen[name] !== undefined) pins[name] = seen[name];
+  }
   return pins;
+}
+
+/** What the page says the person read, checked: tool names to fingerprints. */
+function seenOf(seen: unknown): Record<string, string> {
+  if (seen === undefined) return {};
+  if (seen === null || typeof seen !== "object" || Array.isArray(seen)) {
+    throw new McpConfigError("What the page saw must be tool names with their fingerprints.");
+  }
+  const out: Record<string, string> = {};
+  for (const [name, fingerprint] of Object.entries(seen)) {
+    if (typeof fingerprint !== "string" || !/^[0-9a-f]{64}$/.test(fingerprint)) {
+      throw new McpConfigError(`The fingerprint the page sent for "${name}" isn't one Steward made.`);
+    }
+    out[name] = fingerprint;
+  }
+  return out;
 }
 
 /**

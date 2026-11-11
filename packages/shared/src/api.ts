@@ -116,6 +116,12 @@ export const McpServerBody = z.object({
   /** Granted tools the person looked at again after their server changed them: allowed as they are now. */
   allowAgain: z.array(z.string()).default([]),
   /**
+   * What each tool the person just switched on, or allowed again, said when they read it: its
+   * `fingerprint` from the listing the page showed. The tool is pinned to that, so a server that
+   * changes it in the meantime is caught. Left out, the tool is pinned to the current listing.
+   */
+  seen: z.record(z.string(), z.string().regex(/^[0-9a-f]{64}$/)).optional(),
+  /**
    * For stdio: environment variables for the program, such as an access token. Write-only: saved
    * values never come back. A name set to null is removed; names left out keep their saved value.
    * PATH and HOME are Steward's to set.
@@ -243,6 +249,11 @@ export interface McpServerInfo {
     name: string;
     /** The server's own description, cut at 1,000 characters. */
     description: string;
+    /**
+     * What the tool says it does, as one hash (its description, inputs and destructive hint). Sent
+     * back in `seen` when the person switches it on or allows it again.
+     */
+    fingerprint?: string;
     granted: boolean;
     kind: McpToolKind;
     /** The server says the tool can destroy or overwrite things, so it can't be marked a read or a write. */

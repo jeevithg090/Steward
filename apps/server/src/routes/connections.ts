@@ -121,6 +121,7 @@ export function registerConnectionRoutes(app: Hono, s: StewardServices): void {
         sends: body.sends,
         deletes: body.deletes,
         allowAgain: body.allowAgain,
+        ...(body.seen ? { seen: body.seen } : {}),
         ...(body.env !== undefined ? { env: body.env } : {}),
         ...(body.bearerToken !== undefined ? { bearerToken: body.bearerToken } : {}),
       });

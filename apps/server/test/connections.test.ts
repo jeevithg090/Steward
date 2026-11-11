@@ -134,6 +134,7 @@ describe("the MCP connection routes", () => {
       sends: ["post"],
       deletes: ["erase"],
       allowAgain: ["find"],
+      seen: { find: "a".repeat(64) },
     });
     expect(res.status).toBe(201);
     expect(saved[0]).toMatchObject({
@@ -142,7 +143,12 @@ describe("the MCP connection routes", () => {
       sends: ["post"],
       deletes: ["erase"],
       allowAgain: ["find"],
+      seen: { find: "a".repeat(64) },
     });
+    // A fingerprint Steward didn't make never reaches the manager.
+    const bad = await send("POST", "/api/connections/mcp", { ...STDIO, id: "other", seen: { find: "x" } });
+    expect(bad.status).toBe(400);
+    expect(saved).toHaveLength(1);
   });
 
   describe("the record of what the person allowed", () => {
