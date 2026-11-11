@@ -9,10 +9,11 @@ export const MAX_RESULT_CHARS = 20_000;
 const LINK_FIELD_CHARS = 400;
 
 export interface McpCallOutput {
-  /** The result as text, which is what the model reads. */
+  /**
+   * The result as text, which is what the model reads. `structuredContent` is in it only when the
+   * content parts said nothing: a tool that sends both (as the spec recommends) is read once.
+   */
   text: string;
-  /** The server's `structuredContent`, when it sent one. */
-  structured?: unknown;
   truncated: boolean;
 }
 
@@ -24,7 +25,12 @@ export interface McpCallOutput {
  * arrived. An empty result says so in words: an empty string reads as "the tool had nothing to say"
  * and the model fills the gap from memory.
  */
-export function resultText(content: unknown, structuredContent?: unknown): McpCallOutput {
+export function resultText(
+  content: unknown,
+  structuredContent?: unknown,
+  /** Hides saved secrets. Applied before the cut, so a cut never leaves part of one behind. */
+  hide: (text: string) => string = (text) => text,
+): McpCallOutput {
   const parts = Array.isArray(content) ? content : [];
   let joined = parts.map(partText).join("\n");
   const structured =
@@ -40,8 +46,8 @@ export function resultText(content: unknown, structuredContent?: unknown): McpCa
       };
     }
   }
+  joined = hide(joined);
   const out: McpCallOutput = { text: joined, truncated: false };
-  if (structured) out.structured = structured;
   if (joined.length <= MAX_RESULT_CHARS) return out;
   let end = MAX_RESULT_CHARS;
   const code = joined.charCodeAt(end - 1);

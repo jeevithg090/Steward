@@ -1,4 +1,4 @@
-import type { McpToolDefinition } from "@steward/shared";
+import { type McpToolDefinition, mcpToolName, type ToolKind } from "@steward/shared";
 import type { ObjectSchema, StewardTool, ToolArgs } from "./types.ts";
 
 /** A server's schema, forced to the object root every provider and the AI SDK require. */
@@ -161,9 +161,28 @@ export function textIn(value: unknown, depth = 0): string[] {
 }
 
 /**
- * An MCP tool the person granted to this agent. Its kind comes from the manager (the person marks
- * reads; everything else is a write) and its output is untrusted, like a web page. Throws an
- * `UnportableSchemaError` when its schema cannot be sent (see `portableSchema`).
+ * Whether an agent's profile lets it use an MCP tool the person granted on Connections. The person
+ * grants; a profile can only narrow that. `"*"` keeps every granted tool. Any other list keeps only
+ * the MCP tools it names, one by one (`mcp__<server>__<tool>`) or a whole server (`mcp__<server>__*`),
+ * so an agent limited to a few built-ins never picks up every connected app.
+ */
+export function profileAllowsMcp(
+  profileTools: readonly string[],
+  def: Pick<McpToolDefinition, "name" | "server">,
+): boolean {
+  if (profileTools.includes("*")) return true;
+  return profileTools.includes(def.name) || profileTools.includes(mcpToolName(def.server, "*"));
+}
+
+/** The kinds an MCP tool can have. Anything else from the manager is a write: fail closed. */
+const MCP_KINDS: ReadonlySet<ToolKind> = new Set<ToolKind>(["read", "write", "send", "delete"]);
+
+/**
+ * An MCP tool the person granted to this agent. Its kind comes from the manager (what the person
+ * marked: read, write, send or delete, made stricter by the server's destructive hint), so a tool
+ * that posts or deletes meets the same taint and routine rules as Steward's own sends and deletes.
+ * Its output is untrusted, like a web page. Throws an `UnportableSchemaError` when its schema cannot
+ * be sent (see `portableSchema`).
  */
 export function mcpTool(def: McpToolDefinition): StewardTool {
   const parameters = portableSchema(def.parameters);
@@ -172,12 +191,13 @@ export function mcpTool(def: McpToolDefinition): StewardTool {
     name: def.name,
     description: def.description || `The ${def.tool} tool from the ${def.server} connection.`,
     parameters,
-    kind: def.kind === "read" ? "read" : "write",
+    kind: MCP_KINDS.has(def.kind) ? def.kind : "write",
     surface: "mcp",
     source: `mcp:${def.server}`,
     taints: true,
     toGateCall: async (args: ToolArgs) => {
       const target = { mcp: { server: def.server, tool: def.tool } };
+      // Every kind but a read can carry text out of Steward, so all of them get the outbound check.
       if (def.kind === "read") return { target };
       const outbound = textIn(args).join("\n").slice(0, 20_000);
       return outbound ? { target, outbound } : { target };

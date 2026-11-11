@@ -22,6 +22,8 @@ export { DEMO_ACCOUNT, DEMO_LABEL, DEMO_TIME_ZONE } from "./google/demo-constant
 export {
   createMcpManager,
   McpCallError,
+  McpConfigError,
+  McpLookupError,
   type McpManagerOptions,
   type McpServerConfig,
   type StewardMcpManager,

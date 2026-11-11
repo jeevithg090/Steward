@@ -112,6 +112,28 @@ export const McpServerBody = z.object({
   granted: z.array(z.string()).default([]),
   /** Tools the person marked as reads. Everything else is treated as a write. */
   reads: z.array(z.string()).default([]),
+  /** Tools the person marked as sending or posting: they follow the rules for sends. */
+  sends: z.array(z.string()).default([]),
+  /** Tools the person marked as deleting. One the server calls destructive is a delete anyway. */
+  deletes: z.array(z.string()).default([]),
+  /** Granted tools the person looked at again after their server changed them: allowed as they are now. */
+  allowAgain: z.array(z.string()).default([]),
+  /**
+   * What each tool the person just switched on, or allowed again, said when they read it: its
+   * `fingerprint` from the listing the page showed. The tool is pinned to that, so a server that
+   * changes it in the meantime is caught. Left out, the tool is pinned to the current listing.
+   */
+  seen: z.record(z.string(), z.string().regex(/^[0-9a-f]{64}$/)).optional(),
+  /**
+   * For stdio: environment variables for the program, such as an access token. Write-only: saved
+   * values never come back. A name set to null is removed; names left out keep their saved value.
+   * PATH and HOME are Steward's to set.
+   */
+  env: z
+    .record(z.string().regex(/^[A-Z_][A-Z0-9_]{0,63}$/), z.string().min(1).max(8192).nullable())
+    .optional(),
+  /** For http: an access token, sent as `Authorization: Bearer …`. Write-only; null removes it. */
+  bearerToken: z.string().min(1).max(8192).nullable().optional(),
 });
 
 export const SettingsBody = z.object({
@@ -201,17 +223,54 @@ export interface Settings {
   approvalExpiryHours: number;
 }
 
+/**
+ * What an MCP tool does, as the person marked it: `read`, `write` (the default), `send` or `delete`.
+ * A tool the server calls destructive is a `delete` whatever it was marked, unless marked `send`.
+ */
+export type McpToolKind = "read" | "write" | "send" | "delete";
+
 export interface McpServerInfo {
   id: string;
   name: string;
   transport: "stdio" | "http";
-  status: "connected" | "connecting" | "error" | "disabled";
+  status: "connected" | "connecting" | "error";
   error?: string;
-  /** The saved configuration, so the Connections page can edit it. None of it is secret. */
+  /**
+   * The saved configuration, so the Connections page can edit it. The address has the value of any
+   * key-looking query parameter shown as `***` (sending that address back keeps the saved one).
+   */
   command?: string;
   args?: string[];
   url?: string;
-  tools: { name: string; description: string; granted: boolean; kind: "read" | "write" }[];
+  /** For stdio: the names of the environment variables saved for it. Never their values. */
+  envNames?: string[];
+  /** For http: whether an access token is saved for it. Never the token. */
+  hasToken?: boolean;
+  /** Something the person should know about the listing, e.g. that it was cut at 200 tools. */
+  notice?: string;
+  tools: {
+    name: string;
+    /** The server's own description, cut at 1,000 characters. */
+    description: string;
+    /**
+     * What the tool says it does, as one hash (its description, inputs and destructive hint). Sent
+     * back in `seen` when the person switches it on or allows it again.
+     */
+    fingerprint?: string;
+    granted: boolean;
+    kind: McpToolKind;
+    /** The server says the tool can destroy or overwrite things, so it can't be marked a read or a write. */
+    destructive?: boolean;
+    /** False when no model could be offered it, even granted: its name or its inputs are out of bounds. */
+    offerable: boolean;
+    /** Why it can't be offered, in words for the person. */
+    why?: string;
+    /**
+     * Granted, but its server has changed what it says it does since the person allowed it, so it
+     * is withheld until they allow it again.
+     */
+    changed?: boolean;
+  }[];
 }
 
 export interface ConnectionsInfo {
@@ -289,6 +348,7 @@ export const ROUTES = {
   connections: "/api/connections", // ConnectionsInfo
   mcpServers: "/api/connections/mcp", // POST McpServerBody → McpServerInfo
   mcpServer: "/api/connections/mcp/:id", // PUT McpServerBody · DELETE
+  mcpServerReconnect: "/api/connections/mcp/:id/reconnect", // POST → McpServerInfo
 
   computer: "/api/computer/:agentId", // ComputerStatus
   computerActivity: "/api/computer/:agentId/activity", // ActivityItem[]

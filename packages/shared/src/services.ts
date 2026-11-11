@@ -2,7 +2,7 @@
  * Service interfaces between packages. Each package implements its own and depends only on these,
  * so tracks can be built in parallel and wired together in `apps/server`.
  */
-import type { McpServerInfo } from "./api.ts";
+import type { McpServerInfo, McpToolKind } from "./api.ts";
 import type {
   ActivityItem,
   Computer,
@@ -149,7 +149,7 @@ export interface McpToolDefinition {
   description: string;
   /** JSON Schema, always `{ type: "object", ... }`. */
   parameters: Record<string, unknown>;
-  kind: "read" | "write";
+  kind: McpToolKind;
 }
 
 export interface McpManager {
@@ -171,7 +171,30 @@ export interface McpManager {
     url?: string;
     granted: string[];
     reads: string[];
+    /** Tools that send or post. Default none. */
+    sends?: string[];
+    /** Tools that delete. Default none; a tool the server calls destructive is one anyway. */
+    deletes?: string[];
+    /**
+     * Granted tools to pin afresh to what their server says now. A granted tool whose server changed
+     * it since it was allowed is withheld until it is allowed again.
+     */
+    allowAgain?: string[];
+    /**
+     * For tools just granted or allowed again: the fingerprint of the listing the person read. The
+     * tool is pinned to it, so a change the server made in the meantime withholds the tool.
+     */
+    seen?: Record<string, string>;
+    /** stdio: environment variables to set (a string) or remove (null). Others keep their value. */
+    env?: Record<string, string | null>;
+    /** http: an access token to set, or null to remove it. Left out, the saved one stays. */
+    bearerToken?: string | null;
   }): Promise<McpServerInfo>;
+  /**
+   * Starts a server's connection again without changing its config: for one that failed to start or
+   * dropped. Answers once it connects, or with status `connecting` if it is still starting.
+   */
+  reconnect(id: string): Promise<McpServerInfo>;
   remove(id: string): Promise<void>;
   closeAll(): Promise<void>;
 }

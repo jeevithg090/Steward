@@ -153,22 +153,27 @@ await mcp.upsert({
   transport: "stdio",
   command: "npx",
   args: ["-y", "@modelcontextprotocol/server-github"],
+  env: { GITHUB_PERSONAL_ACCESS_TOKEN: token }, // write-only: never comes back from list()
   granted: ["search_issues", "create_issue"],
   reads: ["search_issues"],
+  sends: ["create_issue"], // it posts where other people read it
 });
 
 mcp.grantedTools("steward");
 // [{ name: "mcp__github__search_issues", kind: "read", parameters: { type: "object", ... } },
-//  { name: "mcp__github__create_issue", kind: "write", ... }]
+//  { name: "mcp__github__create_issue", kind: "send", ... }]
 
 await mcp.call("github", "search_issues", { q: "is:open label:bug" });
-// { text: "...", truncated: false, structured?: {...} }
+// { text: "...", truncated: false }
 ```
 
 - **Persistence.** Configs live in `connectors_mcp_servers`, with the last tool listing, so granted
   tools can be offered before a server has reconnected after a restart.
 - **Connections.** Saved servers connect at start. One that drops is marked and reconnects on its next
-  call. Changing only the name, grants or reads does not restart the server.
+  call, or when the person asks (`reconnect(id)`, **Try again** on the Connections page). Changing
+  only the name, grants or kinds does not restart the server. A stdio server has 60 seconds to start
+  (a first `npx -y` downloads the package); a save or a reconnect answers after at most 15 seconds,
+  and a server still starting then shows as `connecting` until it is done.
 - **stdio servers** start without a shell (arguments are passed as they are, so `;` or `$(...)` mean
   nothing), in the home folder, with only `PATH`, `HOME`, `LANG` and `TERM` from Steward's environment.
   The MCP SDK adds its own safe list (`USER`, `LOGNAME`, `SHELL`). No API key in Steward's environment
@@ -176,19 +181,52 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
 - **http servers** (Streamable HTTP) pass the same address checks as `web_fetch`, when saved and on
   every request: loopback and private networks are refused unless `allowPrivateHosts`, and metadata
   addresses always. Requests connect to the exact addresses that were checked.
-- **Read or write.** A tool is a read only when the person listed it in `reads` and the server did not
-  mark it `destructiveHint: true`. Everything else is a write. A server's own `readOnlyHint` is never
-  believed: it would let a server declare its own tools harmless.
+- **Secrets.** A stdio server can be given environment variables (`env`, such as an access token),
+  set on top of the scrubbed four; `PATH` and `HOME` are refused. An http server can be given an
+  access token (`bearerToken`), sent as `Authorization: Bearer …` only to its own address (redirects
+  are never followed) and only over https unless `allowPrivateHosts`. They are write-only: kept in
+  `connectors_mcp_secrets`, apart from the config; a save that leaves them out keeps them, and a
+  name (or the token) set to `null` removes it. `list()` returns only `envNames` and `hasToken`. Every
+  saved value, and any key-looking query value in the address (`api_key`, `token`, `sig`…), is
+  replaced by `***` in errors, stderr, results, descriptions and input schemas, before anything is
+  cut, quoted or put on one line (so no part of one is left), and the address is shown with those
+  values as `***` (sending that address back keeps the saved one).
+- **Kinds.** A tool's kind is what the person marked: `sends` make it a `send`, `deletes` a
+  `delete`, `reads` a `read`; anything unmarked is a `write`. A tool the server marks
+  `destructiveHint: true` is a `delete` whatever it was marked, unless it was marked a send. A
+  server's own `readOnlyHint` is never believed: it would let a server declare its own tools harmless.
 - **Grants.** Only granted tools are offered, and `call` refuses anything not granted, whatever the
-  caller says. Grants are per server and apply to every agent for now.
+  caller says. Grants are per server; the agent package offers them to an agent whose profile has
+  `"*"`, and to any other only the tools its profile names (`mcp__<server>__<tool>` or
+  `mcp__<server>__*`).
+- **Pins.** A granted tool is pinned to what its server said it did when the person allowed it: a
+  sha256 of its description, input schema and destructive hint. If the server changes any of them
+  later (it can, with a `tools/list_changed` notification), the tool is marked `changed`, withheld
+  from the model and refused by `call`, until the person allows it again (`allowAgain`). Saving any
+  other change keeps the old pin, so it never re-approves a changed tool by accident. `list()` gives
+  each tool's `fingerprint`, and the page sends back the one it showed (`seen`) when the person
+  switches a tool on or allows it again, so a server that changes a tool while the person is reading
+  it is caught too; without `seen`, the tool is pinned to the listing at the save. A tool granted
+  before its server listed it is pinned to the first listing that has it.
 - **Names.** Tools are offered as `mcp__<server>__<tool>`. A tool whose full name a model cannot call
   (more than 64 characters, or characters other than letters, digits, `_` and `-`) is listed but not
-  offered.
+  offered, with `offerable: false` and a `why` the Connections page shows.
+- **Listings are bounded**, because every offered description and schema is read on every turn: at
+  most 200 tools (`notice` says when there were more), one entry per name (a repeated name keeps its
+  strictest entry, so a destructive one wins), names and descriptions cut at 128 and 1,000
+  characters with a visible `…`, and a tool whose input schema is over 16 KB listed but not
+  offered. Each offered description ends by saying it, and the descriptions of its inputs, were
+  written by the server, not by Steward.
 - **Calls** time out after 60 seconds. Results become text: text parts joined, embedded resources as
   their text, resource links as their address, other parts named (`[image]`), structured content as
-  JSON when that is all there is, and an empty result said in words. Long results are cut at 20,000
-  characters, visibly. A tool's own error (`isError`) throws `McpCallError`, so the record shows it
-  as failed.
+  JSON when that is all there is (never both, so nothing is read twice), and an empty result said in
+  words. Long results are cut at 20,000 characters, visibly. A tool's own error (`isError`) throws
+  `McpCallError`, so the record shows it as failed.
+- **Errors** reach the model as the call's error, so they are written by Steward: its own sentence
+  first (`steward`), then anything the server wrote (its error text, its JSON-RPC message, the end
+  of its stderr, or an SDK error that repeats what it sent, such as an unsupported protocol
+  version) quoted as one JSON string, cut at 500 characters (`serverSaid`), and labelled as
+  the server's words that must not be followed. A quote in the server's text can't close Steward's.
 
 ## The web
 
@@ -232,6 +270,9 @@ first, and the root dot is dropped (`metadata.google.internal.`), so no spelling
 | Migration                    | Table                                                                                                                     |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `connectors.001_mcp_servers` | `connectors_mcp_servers`: id, name, transport, command, args, url, granted, reads, the last tool listing, the last error. |
+| `connectors.002_mcp_kinds`   | Adds the tools the person marked as sending (`sends_json`) and deleting (`deletes_json`).                                 |
+| `connectors.003_mcp_pins`    | Adds `pins_json`: each granted tool's fingerprint when the person allowed it.                                             |
+| `connectors.004_mcp_secrets` | `connectors_mcp_secrets`: each server's environment variables and access token, write-only, removed with the server.      |
 
 ## Tests
 

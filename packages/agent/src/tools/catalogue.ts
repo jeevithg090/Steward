@@ -6,7 +6,7 @@ import { DIRECTORY_TOOLS } from "./directory.ts";
 import { DISPLAY_TOOLS } from "./display.ts";
 import { FILE_TOOLS } from "./files.ts";
 import { MAIL_TOOLS } from "./mail.ts";
-import { mcpTool } from "./mcp.ts";
+import { mcpTool, profileAllowsMcp } from "./mcp.ts";
 import { STEWARD_TOOLS } from "./steward.ts";
 import type { StewardTool } from "./types.ts";
 import { WEB_TOOLS } from "./web.ts";
@@ -32,8 +32,9 @@ export function grantedBuiltins(granted: readonly string[]): StewardTool[] {
 
 /**
  * The tools offered to the model for one run: the profile's built-ins, then the MCP tools the person
- * granted to this agent. MCP grants change while Steward runs, so this is built per run. A manager
- * that fails offers no MCP tools rather than failing the run.
+ * granted on Connections that the profile allows (all of them for `"*"`, otherwise only those it
+ * names). MCP grants change while Steward runs, so this is built per run. A manager that fails
+ * offers no MCP tools rather than failing the run.
  */
 export function buildToolCatalogue(opts: {
   agentId: string;
@@ -51,7 +52,7 @@ export function buildToolCatalogue(opts: {
       opts.onError?.(error);
     }
     for (const def of defs) {
-      if (names.has(def.name)) continue;
+      if (names.has(def.name) || !profileAllowsMcp(opts.granted, def)) continue;
       names.add(def.name);
       // One schema the provider refuses would fail every model call, so such a tool is left out.
       try {

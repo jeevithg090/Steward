@@ -200,6 +200,12 @@ describe("api: every route in ROUTES", () => {
       { id: "notes", name: "Notes", transport: "stdio", command: "npx" },
     ],
     ["mcp (DELETE)", () => api.connections.removeMcp("notes"), "DELETE", "/api/connections/mcp/notes"],
+    [
+      "mcp reconnect",
+      () => api.connections.reconnectMcp("notes"),
+      "POST",
+      "/api/connections/mcp/notes/reconnect",
+    ],
     ["computer", () => api.computer.status("steward"), "GET", "/api/computer/steward"],
     ["computer activity", () => api.computer.activity("steward"), "GET", "/api/computer/steward/activity"],
     [

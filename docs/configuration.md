@@ -126,7 +126,9 @@ Everything Steward keeps is in one folder, `.steward-data/` by default, which is
 
 To start over, stop Steward and delete the folder. To back it up, stop Steward and copy the folder.
 The `profile/` holds whatever sites the agent was signed in to, so treat a copy of it like a copy
-of your browser profile.
+of your browser profile. `steward.db` also holds the secret settings and access tokens you saved for
+connected apps on `/connections` (in their own table, never shown again on screen), so treat a copy
+of it the same way.
 
 ## Ports
 

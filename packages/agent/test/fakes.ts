@@ -358,6 +358,9 @@ export class FakeMcp implements McpManager {
   async upsert(): Promise<never> {
     throw new Error("not in tests");
   }
+  async reconnect(): Promise<never> {
+    throw new Error("not in tests");
+  }
   async remove() {}
   async closeAll() {}
 }

@@ -87,12 +87,42 @@ Display only: these draw a card in the chat and change nothing.
 ## Tools from connected apps (MCP)
 
 Tools from MCP servers added on `/connections` are named `mcp__<server>__<tool>`, have surface
-`mcp`, and are treated as untrusted (they taint). Their kind is `write` unless you marked the tool
-as a read when you added the server; Steward does not trust a server's own claim that a tool only
-reads. So by default an MCP tool **asks**, and one you marked as a read runs.
+`mcp`, and are treated as untrusted (they taint). Their kind is what you said the tool does on
+`/connections`:
 
-A tool is offered to the agent only once you grant it, on `/connections` or by name in the
-tenant's `agents.yaml`. Granting a tool never skips the gateway.
+| You marked it  | Kind     | By default | After reading something untrusted | From a routine                  |
+| -------------- | -------- | ---------- | --------------------------------- | ------------------------------- |
+| Only reads     | `read`   | runs       | runs                              | runs                            |
+| Changes things | `write`  | asks       | asks                              | asks                            |
+| Sends or posts | `send`   | asks       | **asks, without Always allow**    | refused ("Routines never send") |
+| Deletes things | `delete` | asks       | **asks, without Always allow**    | asks                            |
+
+Anything you have not marked is a `write`. Steward never believes a server that says its tool only
+reads (`readOnlyHint`), but it does believe one that says its tool can destroy things
+(`destructiveHint`), because that only makes it stricter: such a tool is a `delete`, and can be
+marked only as deleting or as sending. Every kind but a read gets the check on what leaves.
+
+A tool is offered only once you grant it on `/connections`. An agent whose `tools` in the tenant's
+`agents.yaml` is `["*"]` gets every tool you granted; an agent with a list gets only the ones it
+names, one by one (`mcp__<server>__<tool>`) or a whole server (`mcp__<server>__*`). So a profile can
+narrow what you granted, never add to it. Granting a tool never skips the gateway, and what you
+allow goes in the record as **Rules changed**: the tools allowed or stopped, how you marked them,
+and which secret settings changed (never their values).
+
+Steward remembers what the tool said it did when you allowed it; if its server changes that later
+(its description, its inputs, or whether it can destroy things), Steward stops using it and
+`/connections` shows **Changed since you allowed it** until you allow it again.
+
+A server that needs a token gets it from `/connections`: **Secret settings** for a program on this
+computer (environment variables such as `GITHUB_PERSONAL_ACCESS_TOKEN`), or an **Access token** for
+one at a web address. Steward saves them on this computer, hands them only to that server, and never
+shows them again, on the page, in the record or to the model. Put tokens there, never in a
+program's arguments or in an address.
+
+What a server writes reaches the model only as the server's words. Each offered description ends by
+saying the server wrote it and the descriptions of its inputs, and its errors are quoted and labelled
+as its own. Descriptions are cut at 1,000 characters, a server's listing is kept to 200 tools, and a
+tool whose inputs take more than 16 KB to describe is listed but not offered.
 
 ## What "runs" means in a tainted conversation
 
