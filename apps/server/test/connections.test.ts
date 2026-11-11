@@ -205,6 +205,28 @@ describe("the MCP connection routes", () => {
       ]);
     });
 
+    it("records the tools allowed on a new server that hasn't listed them yet", async () => {
+      const { send, recorded } = app();
+      const res = await send("POST", "/api/connections/mcp", {
+        ...STDIO,
+        command: "steward-no-such-program-anywhere",
+        granted: ["search_issues", "create_issue"],
+        reads: ["search_issues"],
+        sends: ["create_issue"],
+      });
+      expect(res.body).toMatchObject({ status: "error", tools: [] });
+      expect(recorded.map((r) => r.detail)).toEqual([
+        {
+          change: "connection",
+          summary:
+            'Added the tool server GitHub; Allowed search_issues ("Only reads") and create_issue ("Sends or posts") on GitHub',
+          server: "github",
+          allowed: ["search_issues", "create_issue"],
+          kinds: { search_issues: "read", create_issue: "send" },
+        },
+      ]);
+    });
+
     it("records tools switched off, marked again or allowed again, and secrets by name only", async () => {
       const before = notes([tool("find", true, "write"), tool("post", true, "send"), tool("look", true)]);
       const after = notes([tool("find", true, "read"), tool("post", false, "send"), tool("look", true)]);

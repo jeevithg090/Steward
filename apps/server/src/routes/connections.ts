@@ -30,6 +30,14 @@ const KIND_WORDS: Record<McpToolKind, string> = {
   delete: '"Deletes things"',
 };
 
+/** A kind as the person marked it in a save, before the server has said whether the tool destroys. */
+function markedKind(body: Partial<Pick<McpBody, "reads" | "sends" | "deletes">>, name: string): McpToolKind {
+  if (body.sends?.includes(name)) return "send";
+  if (body.deletes?.includes(name)) return "delete";
+  if (body.reads?.includes(name)) return "read";
+  return "write";
+}
+
 /** `a`, `a and b`, `a, b and c`. */
 function listed(items: readonly string[]): string {
   if (items.length <= 1) return items.join("");
@@ -45,7 +53,8 @@ function listed(items: readonly string[]): string {
 export function connectionChange(
   before: McpServerInfo | undefined,
   after: McpServerInfo,
-  body: Pick<McpBody, "allowAgain" | "env" | "bearerToken">,
+  body: Pick<McpBody, "allowAgain" | "env" | "bearerToken"> &
+    Partial<Pick<McpBody, "granted" | "reads" | "sends" | "deletes">>,
 ): Record<string, unknown> | undefined {
   const was = new Map((before?.tools ?? []).map((t) => [t.name, t]));
   const allowed: string[] = [];
@@ -60,6 +69,14 @@ export function connectionChange(
     } else if (!tool.granted && prev?.granted) stopped.push(tool.name);
     else if (tool.granted && prev && prev.kind !== tool.kind) kinds[tool.name] = tool.kind;
     if (tool.granted && body.allowAgain.includes(tool.name)) again.push(tool.name);
+  }
+  // A new server's grants count before it lists its tools: a save can answer before it connects.
+  if (!before) {
+    for (const name of body.granted ?? []) {
+      if (allowed.includes(name)) continue;
+      allowed.push(name);
+      kinds[name] = markedKind(body, name);
+    }
   }
   const names = Object.keys(body.env ?? {});
   const secrets = [
