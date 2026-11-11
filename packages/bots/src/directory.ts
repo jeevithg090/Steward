@@ -92,7 +92,16 @@ export type BotsQueryValue = z.infer<typeof BotsQuery>;
 
 const WEB = /^https?:\/\//i;
 
-const LOOPBACK = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+/** This machine, as the server's own check of STEWARD_DIRECTORY_URL reads it. */
+function isLoopback(hostname: string): boolean {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  return (
+    host === "localhost" ||
+    host.endsWith(".localhost") ||
+    host === "::1" ||
+    /^127(?:\.\d{1,3}){3}$/.test(host)
+  );
+}
 
 /**
  * Where a pack or index may be read from on the web: https anywhere, and plain http only on this
@@ -100,7 +109,7 @@ const LOOPBACK = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
  */
 function checkWebLocation(url: URL): void {
   if (url.protocol === "https:") return;
-  if (url.protocol === "http:" && LOOPBACK.has(url.hostname.toLowerCase())) return;
+  if (url.protocol === "http:" && isLoopback(url.hostname)) return;
   throw new Error(`Steward only reads bots from https addresses, and ${url.host || url.href} is not one`);
 }
 

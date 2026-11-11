@@ -453,6 +453,22 @@ describe("DirectoryClient on the web", () => {
     expect(client.resolvePackUrl("http://127.0.0.1:8790/packs/a.json")).toBe(
       "http://127.0.0.1:8790/packs/a.json",
     );
+    // This machine as the server's STEWARD_DIRECTORY_URL check reads it: any 127.x, *.localhost, ::1.
+    for (const local of [
+      "http://127.0.0.2:8790/a.json",
+      "http://bots.localhost/a.json",
+      "http://[::1]/a.json",
+    ]) {
+      expect(client.resolvePackUrl(local)).toBe(local);
+    }
+    expect(() => client.resolvePackUrl("http://localhost.example.com/a.json")).toThrow(/https/);
+    expect(() => client.resolvePackUrl("http://128.0.0.1/a.json")).toThrow(/https/);
+    const configured = new DirectoryClient({
+      source: "http://bots.localhost:8790/index.json",
+      fetch: (async (_input: string | URL | Request, init?: RequestInit) =>
+        fakeFetch(INDEX_URL, init)) as typeof fetch,
+    });
+    expect((await configured.index()).bots.length).toBeGreaterThan(0);
     // A folder index takes web packs on the same terms.
     const folder = new DirectoryClient({ source: join(root, "index.json") });
     expect(() => folder.resolvePackUrl("http://10.0.0.5/pack.json")).toThrow(/https/);
