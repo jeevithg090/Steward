@@ -145,8 +145,7 @@ describe("NodeSqliteAgentRunner", () => {
     expect(stored.map((m) => m.id).slice(0, 4)).toEqual(["u-1", "msg-r1", "u-2", "msg-r2"]);
     expect(stored.at(-1)).toMatchObject({ role: "assistant", content: "echo: firing 50" });
 
-    // The person's own turn on the routine's conversation still shows everything, and so does a
-    // resume, which carries on from the call it waited on rather than starting a turn.
+    // The person's own turn on the routine's conversation still shows everything.
     await collect(
       startRun(runner, agent, {
         ...runInput("t1", "r51", ""),
@@ -154,6 +153,43 @@ describe("NodeSqliteAgentRunner", () => {
       }),
     );
     expect(agent.seen.at(-1)!.messages.filter((m) => m.role === "user")).toHaveLength(51);
+  });
+
+  it("shows the resume of a routine's parked call the same window, with the call it waited on", async () => {
+    const { db, runner } = runnerOnMemoryDb();
+    const agent = new EchoAgent({ agentId: "steward" });
+    const history: Message[] = [];
+    for (let n = 1; n <= 20; n++) {
+      history.push({ id: `u-${n}`, role: "user", content: `firing ${n}` });
+      history.push({ id: `a-${n}`, role: "assistant", content: `done ${n}` });
+    }
+    // The last firing parked a send, waiting for the person's answer.
+    history.push({
+      id: "a-park",
+      role: "assistant",
+      content: "",
+      toolCalls: [{ id: "c-send", type: "function", function: { name: "mail_send", arguments: "{}" } }],
+    });
+    db.run(
+      "INSERT INTO runner_threads (id, agent_id, created_at, updated_at, messages) VALUES (?, ?, ?, ?, ?)",
+      ["t1", "steward", "2026-01-01", "2026-01-01", JSON.stringify(history)],
+    );
+    const routine = { [SERVER_PROPS_KEY]: { token: "t", initiator: { kind: "routine", id: "rtn_1" } } };
+    await collect(
+      startRun(
+        runner,
+        agent,
+        runInput("t1", "r-resume", "", {
+          messages: history,
+          forwardedProps: routine,
+          resume: [{ interruptId: "c-send", status: "resolved" }],
+        }),
+      ),
+    );
+    const shown = agent.seen.at(-1)!.messages;
+    expect(shown.filter((m) => m.role === "user")).toHaveLength(ROUTINE_TURNS);
+    expect(shown.at(-1)?.id).toBe("a-park");
+    expect(runner.getThreadMessages("t1").filter((m) => m.role === "user")).toHaveLength(20);
   });
 
   it("keeps a routine's conversation tainted after the read that tainted it leaves the window", async () => {

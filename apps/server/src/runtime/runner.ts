@@ -138,11 +138,14 @@ function lastTaintedTurn(messages: Message[], taints: (toolName: string) => bool
   return [];
 }
 
-/** True for a new firing of a routine: a run the server started for one, ending on its user turn. */
-function isRoutineFiring(input: RunAgentInput, messages: readonly Message[]): boolean {
+/**
+ * True for a run the server started for a routine: a firing, or the resume of a call one parked. A
+ * resume carries on from the routine's last turn, which every window keeps whole.
+ */
+function isRoutineRun(input: RunAgentInput): boolean {
   const props = input.forwardedProps as Record<string, unknown> | undefined;
   const server = props?.[SERVER_PROPS_KEY] as { initiator?: { kind?: unknown } } | undefined;
-  return server?.initiator?.kind === "routine" && messages.at(-1)?.role === "user";
+  return server?.initiator?.kind === "routine";
 }
 
 /**
@@ -221,12 +224,10 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
     const stored = this.getThreadMessages(threadId);
     const given = Array.isArray(request.agent.messages) ? request.agent.messages : [];
     const merged = mergeHistory(stored, given);
-    // A routine's firing shows the model its last few turns (and, while the conversation is tainted,
+    // A routine's run shows the model its last few turns (and, while the conversation is tainted,
     // the last turn that tainted it); the stored conversation keeps all of them, since finishing
     // merges what the agent ends with back into what is stored.
-    const shown = isRoutineFiring(request.input, merged)
-      ? recentTurns(merged, ROUTINE_TURNS, toolTaints)
-      : merged;
+    const shown = isRoutineRun(request.input) ? recentTurns(merged, ROUTINE_TURNS, toolTaints) : merged;
     if (shown !== given) request.agent.setMessages(shown);
 
     const input = withoutServerProps(request.input);
