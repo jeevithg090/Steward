@@ -1,12 +1,21 @@
 import { TOOLS } from "@steward/shared";
 import { beforeEach, describe, expect, it } from "vitest";
-import { envelopeFor, modelErrorMessage } from "../src/middleware.ts";
+import {
+  CONVERSATION_TOO_LONG,
+  describeModelFailure,
+  envelopeFor,
+  modelErrorMessage,
+} from "../src/middleware.ts";
 import { BUILTIN_TOOLS, buildToolCatalogue, grantedBuiltins, toAgUiTool } from "../src/tools/catalogue.ts";
 import { pageSlug, stripActiveContent } from "../src/tools/display.ts";
-import { objectRoot } from "../src/tools/mcp.ts";
+import { objectRoot, portableSchema, UnportableSchemaError } from "../src/tools/mcp.ts";
+import { explainArgs, forgiveArgs } from "../src/tools/schema.ts";
 import { parseAddress, urlTarget } from "../src/tools/target.ts";
 import type { StewardTool, ToolArgs, ToolContext } from "../src/tools/types.ts";
 import { type Fakes, makeFakes, servicesFrom } from "./fakes.ts";
+
+const MODEL_CREDIT =
+  "The model provider says the account is out of credit. Check your account with them, then try again.";
 
 let fakes: Fakes;
 let ctx: ToolContext;
@@ -122,6 +131,210 @@ describe("the catalogue", () => {
     });
     expect(objectRoot({ type: "object" })).toEqual({ type: "object", properties: {} });
     expect(objectRoot(undefined)).toEqual({ type: "object", properties: {} });
+  });
+
+  it("sends an MCP schema in the form providers take: notes dropped, local refs inlined, null types read", () => {
+    const schema = {
+      $schema: "http://json-schema.org/draft-07/schema#",
+      $id: "urn:notes",
+      $comment: "generated",
+      type: "object",
+      properties: {
+        to: { $ref: "#/$defs/address" },
+        cc: { type: "array", items: { $ref: "#/definitions/address" } },
+        due: { type: ["string", "null"], format: "date", examples: ["2026-11-10"] },
+        size: { type: ["integer", "string"] },
+        examples: { type: "string", description: "A property the server happens to call examples." },
+        tag: { enum: [{ $ref: "data, not a reference" }] },
+      },
+      required: ["to"],
+      $defs: { address: { type: "object", properties: { email: { type: "string" } }, required: ["email"] } },
+      definitions: { address: { $ref: "#/$defs/address" } },
+    };
+    const address = { type: "object", properties: { email: { type: "string" } }, required: ["email"] };
+    expect(portableSchema(schema)).toEqual({
+      type: "object",
+      properties: {
+        to: address,
+        cc: { type: "array", items: address },
+        due: { type: "string", format: "date" },
+        size: { anyOf: [{ type: "integer" }, { type: "string" }] },
+        examples: { type: "string", description: "A property the server happens to call examples." },
+        tag: { enum: [{ $ref: "data, not a reference" }] },
+      },
+      required: ["to"],
+    });
+    expect(portableSchema(undefined)).toEqual({ type: "object", properties: {} });
+  });
+
+  it("leaves out an MCP tool whose schema still refers elsewhere, says which, and keeps the rest", () => {
+    const tree = {
+      type: "object",
+      properties: { node: { $ref: "#/$defs/node" } },
+      $defs: {
+        node: {
+          type: "object",
+          properties: { children: { type: "array", items: { $ref: "#/$defs/node" } } },
+        },
+      },
+    };
+    expect(portableSchema(tree)).toBeUndefined();
+    expect(
+      portableSchema({ type: "object", properties: { a: { $ref: "https://example.com/a.json" } } }),
+    ).toBeUndefined();
+
+    fakes.mcp.tools = [
+      {
+        name: "mcp__docs__tree",
+        server: "docs",
+        tool: "tree",
+        description: "",
+        parameters: tree,
+        kind: "read",
+      },
+      {
+        name: "mcp__docs__find",
+        server: "docs",
+        tool: "find",
+        description: "",
+        parameters: { type: "object", properties: { q: { type: "string" } } },
+        kind: "read",
+      },
+    ];
+    const errors: unknown[] = [];
+    const tools = buildToolCatalogue({
+      agentId: "steward",
+      granted: [],
+      mcp: fakes.mcp,
+      onError: (e) => errors.push(e),
+    });
+    expect(tools.map((t) => t.name)).toEqual(["mcp__docs__find"]);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toBeInstanceOf(UnportableSchemaError);
+    expect(String((errors[0] as Error).message)).toContain("mcp__docs__tree");
+  });
+
+  it("leaves out a schema whose references would multiply out of all proportion when inlined", () => {
+    // Twenty fields that each refer to the next level, four levels deep: no loop, but inlined it
+    // would be 160,000 copies of the leaf, sent with every model call.
+    const level = (next: string) => ({
+      type: "object",
+      properties: Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`f${i}`, { $ref: next }])),
+    });
+    const fanOut = {
+      type: "object",
+      properties: { root: { $ref: "#/$defs/d0" } },
+      $defs: {
+        d0: level("#/$defs/d1"),
+        d1: level("#/$defs/d2"),
+        d2: level("#/$defs/d3"),
+        d3: level("#/$defs/leaf"),
+        leaf: { type: "string" },
+      },
+    };
+    expect(portableSchema(fanOut)).toBeUndefined();
+
+    // A loop through many fields is refused at the first repeat, not after walking every branch.
+    const defs = Object.fromEntries(
+      Array.from({ length: 20 }, (_, i) => [`d${i}`, level(`#/$defs/d${(i + 1) % 20}`)]),
+    );
+    expect(
+      portableSchema({ type: "object", properties: { root: { $ref: "#/$defs/d0" } }, $defs: defs }),
+    ).toBeUndefined();
+
+    // Reusing one definition in many places is not a loop, and is still inlined.
+    const reused = {
+      type: "object",
+      properties: { from: { $ref: "#/$defs/a" }, to: { $ref: "#/$defs/a" } },
+      $defs: {
+        a: { type: "object", properties: { email: { $ref: "#/$defs/email" } } },
+        email: { type: "string" },
+      },
+    };
+    const inner = { type: "object", properties: { email: { type: "string" } } };
+    expect(portableSchema(reused)).toEqual({ type: "object", properties: { from: inner, to: inner } });
+  });
+});
+
+describe("arguments that do not fit a tool's parameters", () => {
+  const explain = (name: string, args: unknown) => explainArgs(tool(name).parameters, args);
+  const forgive = (name: string, args: Record<string, unknown>) => forgiveArgs(tool(name).parameters, args);
+
+  it("uses only schema words the explanation knows, so it cannot miss what the provider checks", () => {
+    const known = new Set([
+      "type",
+      "description",
+      "properties",
+      "required",
+      "items",
+      "enum",
+      "minimum",
+      "maximum",
+      "minItems",
+      "maxItems",
+      "anyOf",
+    ]);
+    const walk = (schema: Record<string, unknown>, where: string) => {
+      for (const key of Object.keys(schema)) expect(known.has(key), `${where}: ${key}`).toBe(true);
+      for (const [key, field] of Object.entries((schema.properties ?? {}) as Record<string, object>)) {
+        walk(field as Record<string, unknown>, `${where}.${key}`);
+      }
+      if (schema.items) walk(schema.items as Record<string, unknown>, `${where}[]`);
+      for (const branch of (schema.anyOf ?? []) as Record<string, unknown>[]) walk(branch, `${where}|`);
+    };
+    for (const t of BUILTIN_TOOLS) walk(t.parameters, t.name);
+  });
+
+  it("says nothing for arguments that fit", () => {
+    expect(explain("mail_send", { to: ["sam@example.com"], subject: "Hi", body: "Hello" })).toBeUndefined();
+    expect(explain("mail_list", {})).toBeUndefined();
+    expect(
+      explain("show_table", { title: "Ages", columns: ["Name", "Age"], rows: [["Sam", 30]] }),
+    ).toBeUndefined();
+  });
+
+  it("names what to change, three problems at most", () => {
+    expect(explain("web_fetch", {})).toBe('"url" is required.');
+    expect(explain("web_fetch", { url: null })).toBe('"url" is required and cannot be null.');
+    expect(explain("mail_list", { query: null })).toBe('Leave out "query" instead of sending null.');
+    expect(explain("mail_list", { limit: "20" })).toBe(
+      '"limit" must be a whole number, such as 20, not the text "20".',
+    );
+    expect(explain("mail_list", { limit: 2.5 })).toBe('"limit" must be a whole number.');
+    expect(explain("mail_list", { limit: 100 })).toBe('"limit" must be at most 50.');
+    expect(explain("mail_send", { to: "sam@example.com", subject: "Hi", body: "Hello" })).toBe(
+      '"to" must be a list, such as ["sam@example.com"].',
+    );
+    expect(explain("make_page", { title: "Plan", format: "pdf", content: "x" })).toBe(
+      '"format" must be one of: markdown, html.',
+    );
+    expect(explain("show_table", { title: "Ages", columns: [], rows: [[true]] })).toBe(
+      '"columns" needs at least 1 item. "rows[0][0]" must be text or a number.',
+    );
+    expect(explain("mail_send", {})).toBe('"to" is required. "subject" is required. "body" is required.');
+    expect(explain("web_fetch", "https://example.com")).toBe("The arguments must be a JSON object.");
+  });
+
+  it("puts right only the slips the readers accept, and leaves everything else as it was", () => {
+    expect(forgive("mail_list", { limit: "20", query: null, unreadOnly: true })).toEqual({
+      limit: 20,
+      unreadOnly: true,
+    });
+    expect(forgive("mail_list", { limit: 100 })).toEqual({ limit: 50 });
+    expect(forgive("mail_list", { limit: 0 })).toEqual({ limit: 1 });
+    expect(forgive("mail_send", { to: "sam@example.com", cc: null, subject: "Hi", body: "Hello" })).toEqual({
+      to: ["sam@example.com"],
+      subject: "Hi",
+      body: "Hello",
+    });
+    // A wrong kind and a required null are not guessed at.
+    // One text with commas is split the way readStringList splits it, never kept as one item.
+    expect(
+      forgive("mail_send", { to: "sam@example.com, kim@example.com,", subject: "Hi", body: "Hello" }),
+    ).toEqual({ to: ["sam@example.com", "kim@example.com"], subject: "Hi", body: "Hello" });
+    expect(forgive("mail_list", { unreadOnly: "yes" })).toEqual({ unreadOnly: "yes" });
+    expect(forgive("web_fetch", { url: null })).toEqual({ url: null });
+    expect(explain("web_fetch", forgive("web_fetch", { url: null }))).toBeDefined();
   });
 });
 
@@ -496,5 +709,69 @@ describe("model errors in plain words", () => {
     expect(modelErrorMessage("Bad request for key sk-or-v1-0123456789abcdef0123456789abcdef")).toBe(
       "The model could not answer: Bad request for key [hidden]",
     );
+  });
+
+  it("reads the words providers really send, without mistaking a token limit for a key", () => {
+    const key = "The model provider did not accept the key. Check it in Settings, then try again.";
+    const limit =
+      "The model will not write replies as long as Steward asks for. Lower STEWARD_MODEL_MAX_TOKENS, then restart Steward.";
+    const stopped = "The model stopped answering before it finished. Try again in a moment.";
+    const table: [string, number | undefined, string][] = [
+      ["Invalid 'max_tokens': integer above maximum value. Expected a value <= 16384.", 400, limit],
+      ["max_tokens: 100000 > 64000, which is the maximum allowed number of output tokens", 400, limit],
+      ["max_tokens is too large: 200000. This model supports at most 16384 completion tokens", 400, limit],
+      ["This model's maximum context length is 128000 tokens.", 400, CONVERSATION_TOO_LONG],
+      ["prompt is too long: 210000 tokens > 200000 maximum", 400, CONVERSATION_TOO_LONG],
+      [
+        "The input token count exceeds the maximum number of tokens allowed (1048576).",
+        400,
+        CONVERSATION_TOO_LONG,
+      ],
+      ["the request exceeds the available context size, try increasing it", 500, CONVERSATION_TOO_LONG],
+      ["Request Entity Too Large", 413, CONVERSATION_TOO_LONG],
+      ["terminated", undefined, stopped],
+      ["Request timed out.", undefined, stopped],
+      ["Gateway Timeout", 504, stopped],
+      ["Provider returned error", 401, key],
+      ["Invalid authentication credentials", 403, key],
+      ["Insufficient credits. Add more using https://openrouter.ai/settings/credits", 402, MODEL_CREDIT],
+      // OpenRouter's usual refusal for a small balance names max_tokens, but the status says credit.
+      [
+        "This request requires more credits, or fewer max_tokens. You requested up to 4096 tokens, but can only afford 1200.",
+        402,
+        MODEL_CREDIT,
+      ],
+      ["You exceeded your current quota, please check your plan and billing details.", 429, MODEL_CREDIT],
+      ["Too Many Requests", 429, "The model provider is busy right now. Wait a moment, then try again."],
+      ["Not Found", 404, "The model provider does not know that model. Check the model name in Settings."],
+      ["Service Unavailable", 503, "The model provider is having trouble right now. Try again in a moment."],
+    ];
+    for (const [raw, status, expected] of table) {
+      expect(modelErrorMessage(raw, status), `${status ?? "-"} ${raw}`).toBe(expected);
+    }
+    expect(modelErrorMessage("Invalid token count")).not.toBe(key);
+    // A refusal with its own reason keeps it: a 403 is not always the key.
+    expect(modelErrorMessage("Your input was flagged by moderation", 403)).toBe(
+      "The model could not answer: Your input was flagged by moderation",
+    );
+  });
+
+  it("finds the status and the provider's own words inside the error", () => {
+    const upstream = JSON.stringify({ error: { message: "Invalid schema for function 'mcp__x__y'" } });
+    const apiError = Object.assign(new Error("Provider returned error"), {
+      statusCode: 400,
+      responseBody: JSON.stringify({
+        error: { message: "Provider returned error", metadata: { raw: upstream } },
+      }),
+    });
+    expect(describeModelFailure(apiError)).toEqual({
+      status: 400,
+      text: "Provider returned error: Invalid schema for function 'mcp__x__y'",
+    });
+    const retried = Object.assign(new Error("Failed after 3 attempts. Last error: Too Many Requests"), {
+      lastError: Object.assign(new Error("Too Many Requests"), { statusCode: 429 }),
+    });
+    expect(describeModelFailure(retried)).toEqual({ status: 429, text: "Too Many Requests" });
+    expect(describeModelFailure("socket hang up")).toEqual({ text: "socket hang up" });
   });
 });

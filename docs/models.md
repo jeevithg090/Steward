@@ -112,6 +112,15 @@ set"), and answers with that sentence if a conversation reaches it anyway. Add t
 and restart, and it can take a conversation. `GET /api/agents` says the same for every agent:
 its provider, its model, whether it can answer, and why not.
 
+## Long conversations
+
+A model can read only so much at once. Before every model call Steward keeps the conversation it
+sends inside about 100,000 tokens: big results older than the last three turns, and all but the
+newest three browser snapshots, become a short note saying the model can look again. If it is
+still too long, the oldest turns are left out and the model is told so. Nothing is deleted: the
+conversation on screen, the record and taint keep everything. If a model still says the
+conversation is too long, Steward says to start a new one; what it remembers carries over.
+
 ## What a run cost
 
 Every finished run gets a "Finished work" entry in the record with how it ended and the tokens it
@@ -143,7 +152,9 @@ the demo ribbon on every page. When there was a key problem, the model's label s
 "Scripted demo model (no key for openrouter)".
 
 Triage and the brief summary ask the model for a short structured answer. The scripted model has
-none to give, so they fall back to rules and say so; nothing is guessed.
+none to give, so they fall back to rules and say so; nothing is guessed. A real model gets 45
+seconds for each of those answers; one that takes longer counts as not answering, so a provider
+that hangs cannot hold up the morning brief.
 
 The script is `packages/agent/fixtures/scripted.json`, in aimock's fixture format, plus the request
 matching in `packages/agent/src/scripted.ts`. The end-to-end tests run against it.
@@ -180,6 +191,14 @@ model you run yourself.
   what it does write. Steward reserves 4096 tokens per reply (`STEWARD_MODEL_MAX_TOKENS`). If
   replies fail with "out of credit", add credit or lower that number. The setup checklist makes the
   same reservation, so it says "needs credit" before a conversation does.
-- **Gemini.** Gemini's OpenAI-compatible endpoint returns "thought signatures" with tool calls that
-  must be sent back on the next turn. Steward's OpenAI-shaped client does not keep them yet, so
-  long tool loops on Gemini may fail; prefer OpenRouter, NVIDIA or OpenAI for now.
+- **The reply limit.** A reply that reaches `STEWARD_MODEL_MAX_TOKENS` is cut off. Cut-off words
+  end with "I ran out of room in that reply. Ask me to carry on." A tool call cut off mid-way never
+  runs: the model is told to make it shorter, and a second cut-off call stops the run. A long
+  report through `make_page` is the usual cause.
+- **Gemini.** Gemini's OpenAI-compatible endpoint returns a "thought signature" with each tool
+  call (`extra_content.google.thought_signature`), and Gemini 3 refuses the next step of a turn
+  when the call comes back without it. Steward keeps each signature as the reply arrives and sends
+  it back with the call. A call it has no signature for, such as one from before a restart or from
+  another model, gets the placeholder Google documents for that case. This is tested against a
+  stand-in for Gemini's replies, not yet against Gemini itself: if tool calls fail with "missing a
+  thought_signature", reach Gemini through OpenRouter instead.

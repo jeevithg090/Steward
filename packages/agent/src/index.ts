@@ -4,9 +4,10 @@
  */
 export { type AgentDeps, createStewardAgent, StewardAgent, toolServices } from "./agent.ts";
 export { buildRunContext, CONTEXT_PREFIX, skillCalled } from "./context.ts";
-export { isTainted, sanitizeHistory } from "./history.ts";
+export { budgetHistory, isTainted, sanitizeHistory } from "./history.ts";
 export {
   CANCELLED_BY_PERSON,
+  DEFAULT_HISTORY_CHARS,
   envelopeFor,
   GATE_UNAVAILABLE,
   GovernedToolsMiddleware,

@@ -35,18 +35,18 @@ const agent = createStewardAgent({
 
 ## Exports
 
-| Export                                                                              | What it does                                                                                                                                                                                                      |
-| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `loadTenant(dir)`                                                                   | Reads `brand.yaml`, `agents.yaml`, `skills.yaml`, `rules.yaml`, `model.yaml`; validates with zod; fills defaults for missing files; throws `TenantError` naming the file and the field.                           |
-| `resolveModelConfig(tenant, env, profile?)`                                         | Picks the provider, model and endpoint. `STEWARD_MODEL_PROVIDER`, `STEWARD_MODEL`, `STEWARD_MODEL_BASE_URL` override model.yaml; blank values count as unset. No key → the scripted model, with `fallbackReason`. |
-| `createModel(cfg, env)`                                                             | Builds the AI SDK model with `createOpenAI(...).chat(id)` (always Chat Completions). For `scripted`, starts the in-process aimock server. Returns `{ model, label, scripted, close }`.                            |
-| `createTextModel(model, label)`                                                     | A `TextModel` for triage and the brief, on `generateText`.                                                                                                                                                        |
-| `createStewardAgent(deps)`                                                          | A `StewardAgent` (a `BuiltInAgent` that survives `clone()`) with the `GovernedToolsMiddleware`.                                                                                                                   |
-| `GovernedToolsMiddleware`                                                           | The governed tool loop described below. Exported for the server and tests.                                                                                                                                        |
-| `buildToolCatalogue`, `BUILTIN_TOOLS`, `grantedBuiltins`, `mcpTool`, `toAgUiTool`   | The tool catalogue.                                                                                                                                                                                               |
-| `buildSystemPrompt`, `buildRunContext`                                              | The prompt and the per-run context.                                                                                                                                                                               |
-| `startScriptedModel`, `scriptedReply`                                               | The scripted demo model, for e2e tests and demos.                                                                                                                                                                 |
-| `sanitizeHistory`, `isTainted`, `envelopeFor`, `wrapUntrusted`, `modelErrorMessage` | Helpers the server and web may want.                                                                                                                                                                              |
+| Export                                                                                               | What it does                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `loadTenant(dir)`                                                                                    | Reads `brand.yaml`, `agents.yaml`, `skills.yaml`, `rules.yaml`, `model.yaml`; validates with zod; fills defaults for missing files; throws `TenantError` naming the file and the field.                           |
+| `resolveModelConfig(tenant, env, profile?)`                                                          | Picks the provider, model and endpoint. `STEWARD_MODEL_PROVIDER`, `STEWARD_MODEL`, `STEWARD_MODEL_BASE_URL` override model.yaml; blank values count as unset. No key → the scripted model, with `fallbackReason`. |
+| `createModel(cfg, env)`                                                                              | Builds the AI SDK model with `createOpenAI(...).chat(id)` (always Chat Completions). For `scripted`, starts the in-process aimock server. Returns `{ model, label, scripted, close }`.                            |
+| `createTextModel(model, label, opts?)`                                                               | A `TextModel` for triage and the brief, on `generateText`. Each answer has 45 s (`timeoutMs`), then fails with a `TimeoutError`.                                                                                  |
+| `createStewardAgent(deps)`                                                                           | A `StewardAgent` (a `BuiltInAgent` that survives `clone()`) with the `GovernedToolsMiddleware`.                                                                                                                   |
+| `GovernedToolsMiddleware`                                                                            | The governed tool loop described below. Exported for the server and tests.                                                                                                                                        |
+| `buildToolCatalogue`, `BUILTIN_TOOLS`, `grantedBuiltins`, `mcpTool`, `toAgUiTool`                    | The tool catalogue.                                                                                                                                                                                               |
+| `buildSystemPrompt`, `buildRunContext`                                                               | The prompt and the per-run context.                                                                                                                                                                               |
+| `startScriptedModel`, `scriptedReply`                                                                | The scripted demo model, for e2e tests and demos.                                                                                                                                                                 |
+| `sanitizeHistory`, `budgetHistory`, `isTainted`, `envelopeFor`, `wrapUntrusted`, `modelErrorMessage` | Helpers the server and web may want.                                                                                                                                                                              |
 
 ## How a turn flows
 
@@ -87,9 +87,20 @@ browser / routine ──RunAgentInput──► runtime ──clone()──► St
   compared in constant time. The token is stripped before the model run.
 - **History.** Dangling tool calls (an interrupted turn, an approval nobody answered before the
   person wrote again) are dropped before every model call, so one never breaks the conversation.
+  Then `budgetHistory` keeps what one model call carries inside `maxHistoryChars` (400,000
+  characters, about 100k tokens): only the newest three browser snapshots stay whole, results
+  over 2,000 characters older than the last three turns become a note saying the model can call
+  the tool again, and long text in those turns' call arguments is cut to its start. Still too
+  long, the oldest whole turns are left out (never the latest), and the model is told so in its
+  context. Failures and refusals always stay. Taint, the gateway and the saved thread read the
+  full history, so leaving something out never makes a conversation less tainted.
 - **Stop.** `StewardAgent.abortRun()` also aborts the tool that is running, not only the model stream.
-- **Never throws.** Model errors become one `RUN_ERROR` in plain words; gateway errors become a
-  refusal (fail closed); anything else becomes `RUN_ERROR` with code `STEWARD_AGENT_ERROR`.
+- **Never throws.** A model error becomes one `RUN_ERROR` with code `STEWARD_MODEL_ERROR`, in plain
+  words read from the HTTP status first and then the provider's own words (OpenRouter's upstream
+  detail included). It carries the tokens the run used before it failed (`usage`), and says so when
+  the run had already changed something, so a retry does not do it twice. Gateway errors become a
+  refusal (fail closed). Anything else becomes `RUN_ERROR` with code `STEWARD_AGENT_ERROR` and a
+  plain sentence; the detail goes to `onError`, never into the conversation.
 
 ## Tool results
 
@@ -101,6 +112,22 @@ What the model reads, and what the web app receives in `TOOL_CALL_RESULT.content
 { ok: false, refused: true, rule?: string, message } // a rule or the person said no
 { ok: false, error: string }                          // it failed, or the arguments were wrong
 ```
+
+Calls the model run answers itself come back in the same envelope, never as the AI SDK's raw
+text: arguments that do not fit the tool's parameters say what to change (`"to" must be a list,
+such as ["sam@example.com"].`), a tool that does not exist is named, arguments cut off at the reply
+limit say so, and the AG-UI state tools BuiltInAgent adds are "not available here". A built-in
+tool's call whose only slips are ones its argument readers accept (an optional field sent as
+null, a number sent as text or outside its range, one text where a list of text belongs, split at
+commas as the readers split it) is put right and goes to the gateway as the corrected call, which
+is what the record keeps. MCP tools are
+never corrected, because their server reads its own arguments, and nor are display tools, because
+the web app draws them from the call as the model wrote it.
+
+The same call failing three times, three model turns in a row of calls that could not run, or a
+second call cut off at the reply limit, stop the run with a plain sentence instead of using every
+step. Words cut off at the reply limit end with "I ran out of room in that reply. Ask me to carry
+on."
 
 Display tools (`show_*`) return `{ shown: true }`; the web app draws them from the call's arguments.
 
@@ -127,9 +154,18 @@ Display tools (`show_*`) return `{ shown: true }`; the web app draws them from t
 | `brief_today`, `triage_inbox`                                         | read             | mail     | yes       | none                                                                    |
 | `show_table`, `show_chart`, `show_comparison`, `show_choices`         | ui               | ui       | no        | none                                                                    |
 | `make_page`                                                           | write            | file     | no        | `path` = `made/<slug>.md` or `.html`                                    |
+| `directory_find`                                                      | read             | web      | yes       | none                                                                    |
+| `delegate_task`                                                       | write            | task     | yes       | none; offered only when there is an agent to hand to                    |
 | `mcp__<server>__<tool>`                                               | from the manager | mcp      | yes       | `mcp { server, tool }`; `outbound` for writes                           |
 
 Kinds, surfaces and taint come from `TOOLS` in `@steward/shared`; this package never restates them.
+
+An MCP server's schema goes to the model in the form every provider takes, as the built-in ones
+do: `$schema`, `$id`, `$comment` and `examples` are dropped, local references (`#/$defs/…`,
+`#/definitions/…`) are inlined up to five levels deep, and `type: ["string", "null"]` is read as
+`string`. One schema a provider refuses would fail every model call of that agent, so a tool whose
+schema still refers elsewhere after that is left out, and `onError` names it. So is one that
+refers to itself, or that would grow past 10,000 parts once its references are inlined.
 
 ## Adding a tool
 
@@ -156,11 +192,16 @@ Kinds, surfaces and taint come from `TOOLS` in `@steward/shared`; this package n
 | `anthropic`         | `https://api.anthropic.com/v1` (OpenAI-compatible)        | `ANTHROPIC_API_KEY`               |
 | `nvidia`            | `https://integrate.api.nvidia.com/v1`                     | `NVIDIA_API_KEY`                  |
 | `gemini`            | `https://generativelanguage.googleapis.com/v1beta/openai` | `GEMINI_API_KEY`                  |
+| `xai`               | `https://api.x.ai/v1`                                     | `XAI_API_KEY`                     |
 | `ollama`            | `http://127.0.0.1:11434/v1`                               | none                              |
 | `openai-compatible` | `STEWARD_MODEL_BASE_URL`                                  | `STEWARD_MODEL_API_KEY`, optional |
 | `scripted`          | in-process aimock on a free loopback port                 | none                              |
 
 model.yaml may name a different key variable with `apiKeyEnv` (the name, never the key).
+
+NVIDIA's requests turn thinking off (`withExtraBody`). Gemini's go through
+`withThoughtSignatures`, which keeps the thought signature Gemini sends with each tool call and
+puts it back on that call in later requests, so Gemini 3 accepts the next step.
 
 **The scripted demo model** answers from `fixtures/scripted.json` (aimock's fixture shape, matched
 ignoring case and only before a tool has returned in the turn) and from `src/scripted.ts`:

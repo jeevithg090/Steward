@@ -1,11 +1,17 @@
+import { createServer, type Server } from "node:http";
+import type { AddressInfo } from "node:net";
+import { createOpenAI } from "@ai-sdk/openai";
 import type { TenantPackage } from "@steward/shared";
-import { describe, expect, it } from "vitest";
+import { jsonSchema, type ModelMessage, streamText, tool } from "ai";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createModel,
   createTextModel,
   profileModel,
   resolveModelConfig,
   SCRIPTED_MODEL_ID,
+  SKIP_THOUGHT_SIGNATURE,
+  withThoughtSignatures,
 } from "../src/model.ts";
 import { TENANT } from "./fakes.ts";
 
@@ -325,6 +331,52 @@ describe("createModel", () => {
   });
 });
 
+describe("createTextModel", () => {
+  let server: Server | undefined;
+  afterEach(() => {
+    server?.closeAllConnections();
+    server?.close();
+    server = undefined;
+  });
+
+  /** A provider that takes the request and never answers. */
+  async function silentProvider() {
+    server = createServer(() => {});
+    await new Promise<void>((resolve) => server?.listen(0, "127.0.0.1", resolve));
+    const { port } = server.address() as AddressInfo;
+    const model = createOpenAI({ name: "silent", baseURL: `http://127.0.0.1:${port}/v1`, apiKey: "k" }).chat(
+      "m",
+    );
+    return { model };
+  }
+
+  it("gives up on a model that never answers, with a TimeoutError the callers know", async () => {
+    const { model } = await silentProvider();
+    const text = createTextModel(model, "Silent", { timeoutMs: 300 });
+    const started = Date.now();
+    const error = await text.complete({ system: "Sort this email.", prompt: "Hi" }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(Error);
+    // Not refused, which would fail at once: it waited, then gave up at the limit.
+    expect(error).toMatchObject({
+      name: "TimeoutError",
+      message: "The model did not answer within 1 second.",
+    });
+    expect(Date.now() - started).toBeGreaterThanOrEqual(250);
+    expect(Date.now() - started).toBeLessThan(5_000);
+  });
+
+  it("still stops when the caller stops it, as the caller's own stop", async () => {
+    const { model } = await silentProvider();
+    const text = createTextModel(model, "Silent", { timeoutMs: 30_000 });
+    const stop = new AbortController();
+    const pending = text.complete({ system: "s", prompt: "p", signal: stop.signal }).catch((e: unknown) => e);
+    setTimeout(() => stop.abort(), 100);
+    const error = await pending;
+    expect((error as Error).name).not.toBe("TimeoutError");
+    expect(stop.signal.aborted).toBe(true);
+  });
+});
+
 describe("withExtraBody", () => {
   it("adds provider switches to JSON bodies and leaves the rest alone", async () => {
     const { withExtraBody } = await import("../src/model.ts");
@@ -341,5 +393,220 @@ describe("withExtraBody", () => {
       chat_template_kwargs: { enable_thinking: false },
     });
     expect(seen[1]).toBe("not json");
+  });
+});
+
+describe("withThoughtSignatures", () => {
+  const SIGNATURE = { google: { thought_signature: "CvcQAdHN2OekY10ClPFkYA==" } };
+
+  /** Gemini's streamed reply: one tool call with its signature, split mid-line across chunks. */
+  function geminiStream(): Response {
+    const chunks = [
+      { choices: [{ index: 0, delta: { role: "assistant", content: "" } }] },
+      {
+        choices: [
+          {
+            index: 0,
+            delta: {
+              tool_calls: [
+                {
+                  index: 0,
+                  id: "call_g1",
+                  type: "function",
+                  function: { name: "file_list", arguments: "{}" },
+                  extra_content: SIGNATURE,
+                },
+              ],
+            },
+          },
+        ],
+      },
+      { choices: [{ index: 0, delta: {}, finish_reason: "tool_calls" }] },
+    ];
+    const text = `${chunks.map((c) => `data: ${JSON.stringify(c)}\n\n`).join("")}data: [DONE]\n\n`;
+    const bytes = new TextEncoder().encode(text);
+    const cut = Math.floor(bytes.length / 2);
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(bytes.slice(0, cut));
+        controller.enqueue(bytes.slice(cut));
+        controller.close();
+      },
+    });
+    return new Response(body, { headers: { "content-type": "text/event-stream" } });
+  }
+
+  it("keeps each tool call's signature as the reply streams past, and sends it back after", async () => {
+    const sent: Record<string, unknown>[] = [];
+    const base = vi.fn(async (_url: unknown, init?: RequestInit) => {
+      sent.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+      return sent.length === 1
+        ? geminiStream()
+        : new Response("data: [DONE]\n\n", { headers: { "content-type": "text/event-stream" } });
+    });
+    const model = createOpenAI({
+      name: "gemini",
+      baseURL: "https://gemini.test/v1beta/openai",
+      apiKey: "k",
+      fetch: withThoughtSignatures(base as unknown as typeof fetch),
+    }).chat("gemini-3.5-flash");
+    const tools = { file_list: tool({ inputSchema: jsonSchema({ type: "object", properties: {} }) }) };
+
+    const first = streamText({ model, prompt: "list my files", tools });
+    const calls = await first.toolCalls;
+    expect(calls.map((c) => c.toolCallId)).toEqual(["call_g1"]);
+
+    const messages: ModelMessage[] = [
+      { role: "user", content: "list my files" },
+      {
+        role: "assistant",
+        content: [{ type: "tool-call", toolCallId: "call_g1", toolName: "file_list", input: {} }],
+      },
+      {
+        role: "tool",
+        content: [
+          {
+            type: "tool-result",
+            toolCallId: "call_g1",
+            toolName: "file_list",
+            output: { type: "text", value: "[]" },
+          },
+        ],
+      },
+    ];
+    await streamText({ model, messages, tools }).consumeStream();
+    const assistant = ((sent[1]?.messages ?? []) as Record<string, unknown>[]).find(
+      (m) => m.role === "assistant",
+    );
+    expect(assistant?.tool_calls).toEqual([
+      {
+        id: "call_g1",
+        type: "function",
+        function: { name: "file_list", arguments: "{}" },
+        extra_content: SIGNATURE,
+      },
+    ]);
+  });
+
+  it("gives a step it never saw the placeholder Google documents, on its first call only", async () => {
+    let body = "";
+    const base = (async (_url: unknown, init?: RequestInit) => {
+      body = String(init?.body);
+      return new Response("{}", { headers: { "content-type": "application/json" } });
+    }) as typeof fetch;
+    const f = withThoughtSignatures(base);
+    const call = (id: string) => ({ id, type: "function", function: { name: "file_list", arguments: "{}" } });
+    await f("https://gemini.test", {
+      method: "POST",
+      body: JSON.stringify({
+        messages: [
+          { role: "user", content: "hi" },
+          { role: "assistant", tool_calls: [call("old_1"), call("old_2")] },
+          { role: "assistant", content: "Done." },
+        ],
+      }),
+    });
+    const [, assistant, words] = (JSON.parse(body) as { messages: Record<string, unknown>[] }).messages;
+    expect(assistant?.tool_calls).toEqual([
+      { ...call("old_1"), extra_content: { google: { thought_signature: SKIP_THOUGHT_SIGNATURE } } },
+      call("old_2"),
+    ]);
+    expect(words).toEqual({ role: "assistant", content: "Done." });
+
+    await f("https://gemini.test", { method: "POST", body: "not json" });
+    expect(body).toBe("not json");
+  });
+
+  it("reads signatures from a whole reply too, and keeps no more than 500", async () => {
+    let n = 0;
+    let body = "";
+    const base = (async (_url: unknown, init?: RequestInit) => {
+      body = String(init?.body);
+      const id = `call_${n++}`;
+      return Response.json({
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              tool_calls: [
+                {
+                  id,
+                  type: "function",
+                  function: { name: "f", arguments: "{}" },
+                  extra_content: { google: { thought_signature: id } },
+                },
+              ],
+            },
+          },
+        ],
+      });
+    }) as typeof fetch;
+    const f = withThoughtSignatures(base);
+    for (let i = 0; i < 501; i++) await f("https://gemini.test", { method: "POST", body: "{}" });
+    const ask = (id: string) =>
+      f("https://gemini.test", {
+        method: "POST",
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "assistant",
+              tool_calls: [{ id, type: "function", function: { name: "f", arguments: "{}" } }],
+            },
+          ],
+        }),
+      }).then(
+        () =>
+          (JSON.parse(body) as { messages: { tool_calls: { extra_content: unknown }[] }[] }).messages[0]
+            ?.tool_calls[0]?.extra_content,
+      );
+    expect(await ask("call_500")).toEqual({ google: { thought_signature: "call_500" } });
+    expect(await ask("call_0")).toEqual({ google: { thought_signature: SKIP_THOUGHT_SIGNATURE } });
+  });
+
+  it("is used for Gemini only", async () => {
+    const seen: string[] = [];
+    vi.stubGlobal("fetch", async (_url: unknown, init?: RequestInit) => {
+      seen.push(String(init?.body));
+      return Response.json({
+        choices: [{ index: 0, message: { role: "assistant", content: "Hi." }, finish_reason: "stop" }],
+      });
+    });
+    try {
+      const messages: ModelMessage[] = [
+        { role: "user", content: "list" },
+        {
+          role: "assistant",
+          content: [{ type: "tool-call", toolCallId: "c1", toolName: "file_list", input: {} }],
+        },
+        {
+          role: "tool",
+          content: [
+            {
+              type: "tool-result",
+              toolCallId: "c1",
+              toolName: "file_list",
+              output: { type: "text", value: "[]" },
+            },
+          ],
+        },
+      ];
+      for (const provider of ["gemini", "openai"] as const) {
+        const created = await createModel(
+          { provider, model: "m" },
+          { GEMINI_API_KEY: "k", OPENAI_API_KEY: "k" },
+        );
+        const text = createTextModel(created.model, created.label);
+        await text.complete({ system: "s", prompt: "p" });
+        const { generateText } = await import("ai");
+        await generateText({ model: created.model, messages });
+      }
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    const withTools = seen.filter((b) => b.includes("tool_calls"));
+    expect(withTools).toHaveLength(2);
+    expect(withTools[0]).toContain(SKIP_THOUGHT_SIGNATURE);
+    expect(withTools[1]).not.toContain("extra_content");
   });
 });

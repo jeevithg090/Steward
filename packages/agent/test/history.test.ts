@@ -1,7 +1,7 @@
 import type { Message } from "@ag-ui/client";
 import { handOn, taskStart } from "@steward/shared";
 import { describe, expect, it } from "vitest";
-import { isTainted, sanitizeHistory } from "../src/history.ts";
+import { budgetHistory, isTainted, LEFT_OUT, sanitizeHistory } from "../src/history.ts";
 
 const call = (id: string, name = "web_fetch") => ({
   id,
@@ -105,5 +105,109 @@ describe("isTainted", () => {
         taints,
       ),
     ).toBe(false);
+  });
+});
+
+describe("budgetHistory", () => {
+  const big = (n: number, tag = "x") =>
+    JSON.stringify({ ok: true, data: { untrusted: true, data: tag.repeat(n) } });
+  const named = (id: string, name: string, args = "{}"): Message => ({
+    id,
+    role: "assistant",
+    toolCalls: [{ id: `c_${id}`, type: "function", function: { name, arguments: args } }],
+  });
+  const result = (id: string, content: string): Message => ({
+    id: `t_${id}`,
+    role: "tool",
+    toolCallId: `c_${id}`,
+    content,
+  });
+  const omitted = (m: Message | undefined) => {
+    const content = (m as { content?: unknown } | undefined)?.content;
+    return typeof content === "string" && content.includes(LEFT_OUT);
+  };
+  /** One turn: the person asks, the model calls a tool, the tool answers, the model replies. */
+  const turn = (n: number, tool = "web_fetch", content = big(3_000)): Message[] => [
+    u(`u${n}`),
+    named(`a${n}`, tool),
+    result(`a${n}`, content),
+    { id: `r${n}`, role: "assistant", content: `Reply ${n}.` },
+  ];
+
+  it("leaves a history that fits as it was, message for message", () => {
+    const history = [...turn(1), ...turn(2)];
+    const out = budgetHistory(history, 1_000_000);
+    expect(out.droppedTurns).toBe(false);
+    for (const [i, m] of out.messages.entries()) expect(m).toBe(history[i]);
+  });
+
+  it("leaves out big results older than the last three turns, but keeps failures and small ones", () => {
+    const failure = JSON.stringify({ ok: false, error: "e".repeat(5_000) });
+    const history = [
+      ...turn(1),
+      ...turn(2, "file_list", '{"ok":true,"data":[]}'),
+      ...turn(3, "web_fetch", failure),
+      ...turn(4),
+      ...turn(5),
+      ...turn(6),
+    ];
+    const out = budgetHistory(history, 1_000_000).messages;
+    const byId = new Map(out.map((m) => [m.id, m]));
+    expect(omitted(byId.get("t_a1"))).toBe(true);
+    expect(byId.get("t_a2")).toBe(history[6]);
+    expect(byId.get("t_a3")).toBe(history[10]);
+    for (const id of ["t_a4", "t_a5", "t_a6"]) expect(omitted(byId.get(id))).toBe(false);
+    expect(JSON.parse(String((byId.get("t_a1") as { content: string }).content))).toEqual({
+      ok: true,
+      data: { omitted: true, note: LEFT_OUT },
+    });
+  });
+
+  it("keeps only the newest three browser snapshots whole, even within one turn", () => {
+    const steps = [1, 2, 3, 4, 5].flatMap((n) => [
+      named(`b${n}`, "browser_snapshot"),
+      result(`b${n}`, big(1_500)),
+    ]);
+    const out = budgetHistory([u("u1"), ...steps], 1_000_000).messages;
+    const tools = out.filter((m) => m.role === "tool");
+    expect(tools.map(omitted)).toEqual([true, true, false, false, false]);
+  });
+
+  it("cuts long text in old calls' arguments to its start, as valid JSON", () => {
+    const page = JSON.stringify({ title: "Plan", format: "markdown", content: "p".repeat(10_000) });
+    const history = [
+      u("u1"),
+      named("a1", "make_page", page),
+      result("a1", '{"ok":true,"data":{"path":"made/plan.md"}}'),
+      ...turn(2),
+      ...turn(3),
+      ...turn(4),
+    ];
+    const out = budgetHistory(history, 1_000_000).messages;
+    const call = (out[1] as { toolCalls: { function: { arguments: string } }[] }).toolCalls[0];
+    const args = JSON.parse(call?.function.arguments ?? "{}") as Record<string, string>;
+    expect(args.title).toBe("Plan");
+    expect(args.content).toMatch(/^p{200}… \[9800 more characters left out to save room\]$/);
+  });
+
+  it("leaves out the oldest whole turns when it is still too long, never the latest", () => {
+    const history = Array.from({ length: 10 }, (_, i) => turn(i + 1, "file_list", big(1_000))).flat();
+    const out = budgetHistory(history, 5_000);
+    expect(out.droppedTurns).toBe(true);
+    expect(out.messages[0]?.role).toBe("user");
+    expect(out.messages.at(-1)).toBe(history.at(-1));
+    const size = out.messages.reduce((n, m) => n + JSON.stringify(m).length, 0);
+    expect(size).toBeLessThan(10_000);
+    // Calls and their results stay in pairs.
+    expect(sanitizeHistory(out.messages)).toEqual(out.messages);
+
+    const huge = turn(1, "file_list", big(50_000));
+    expect(budgetHistory(huge, 5_000).messages).toHaveLength(huge.length);
+  });
+
+  it("leaves out big results of the latest turn when that alone is too long, except the latest step's", () => {
+    const steps = [1, 2, 3].flatMap((n) => [named(`f${n}`, "file_read"), result(`f${n}`, big(20_000))]);
+    const out = budgetHistory([u("u1"), ...steps], 30_000).messages;
+    expect(out.filter((m) => m.role === "tool").map(omitted)).toEqual([true, true, false]);
   });
 });

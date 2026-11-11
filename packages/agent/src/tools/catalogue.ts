@@ -53,7 +53,12 @@ export function buildToolCatalogue(opts: {
     for (const def of defs) {
       if (names.has(def.name)) continue;
       names.add(def.name);
-      tools.push(mcpTool(def));
+      // One schema the provider refuses would fail every model call, so such a tool is left out.
+      try {
+        tools.push(mcpTool(def));
+      } catch (error) {
+        opts.onError?.(error);
+      }
     }
   }
   return tools;
