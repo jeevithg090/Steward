@@ -39,3 +39,28 @@ export function loadEnvFiles(repoRoot: string, env: NodeJS.ProcessEnv = process.
   }
   return loaded;
 }
+
+/** The server's port when STEWARD_PORT is unset (`DEFAULT_SERVER_PORT`; this file imports nothing). */
+const SERVER_PORT = 8787;
+const WILDCARDS = new Set(["0.0.0.0", "::", "[::]"]);
+
+/**
+ * Where the web app's dev server (Vite) finds Steward's: `STEWARD_SERVER_URL` when it is set, or else
+ * the address the server itself will listen on, from `STEWARD_PORT` and `STEWARD_HOST`. Both are
+ * read the way the server reads them (the shell, then `STEWARD_ENV_FILE`, then `<repo>/.env`), so a
+ * port changed in `.env` moves the server and the proxy together. `env` is not changed.
+ */
+export function devServerTarget(repoRoot: string, env: NodeJS.ProcessEnv = process.env): string {
+  const read: NodeJS.ProcessEnv = { ...env };
+  loadEnvFiles(repoRoot, read);
+  const given = read.STEWARD_SERVER_URL?.trim();
+  if (given) return given;
+  const port = read.STEWARD_PORT?.trim() || String(SERVER_PORT);
+  const host = read.STEWARD_HOST?.trim() || "127.0.0.1";
+  const reach = WILDCARDS.has(host)
+    ? "127.0.0.1"
+    : host.includes(":") && !host.startsWith("[")
+      ? `[${host}]`
+      : host;
+  return `http://${reach}:${port}`;
+}

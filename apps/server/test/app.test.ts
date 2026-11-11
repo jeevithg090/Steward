@@ -99,6 +99,51 @@ describe.runIf(missing.length === 0)("the server, end to end over HTTP", () => {
     expect((await t.api("/api/settings", { method: "PUT", json: { briefTime: "7am" } })).status).toBe(400);
   });
 
+  it("says what is wrong with a request in plain words, never zod's", async () => {
+    const problem = async (path: string, method: string, json: unknown) => {
+      const res = await t.api<{ error: string }>(path, { method, json });
+      expect(res.status).toBe(400);
+      return res.body.error;
+    };
+    expect(await problem("/api/settings", "PUT", { approvalExpiryHours: "3" })).toBe(
+      "approvalExpiryHours: this should be a number.",
+    );
+    expect(await problem("/api/settings", "PUT", { approvalExpiryHours: 500 })).toBe(
+      "approvalExpiryHours: use 168 or less.",
+    );
+    expect(await problem("/api/settings", "PUT", { briefTime: "7am" })).toBe(
+      "briefTime: use a time like 07:30.",
+    );
+    expect(
+      await problem("/api/settings", "PUT", {
+        model: { provider: "openai-compatible", model: "m", baseUrl: "javascript:alert(1)" },
+      }),
+    ).toBe("model.baseUrl: use a web address that starts with http:// or https://.");
+    expect((await t.api<Settings>("/api/settings")).body.model.baseUrl).toBeUndefined();
+    expect(await problem("/api/rules", "POST", { name: "", effect: "maybe", when: "true" })).toBe(
+      "name: write something.",
+    );
+    expect(await problem("/api/rules", "POST", { name: "n", effect: "maybe", when: "true" })).toBe(
+      "effect: choose allow, ask or deny.",
+    );
+    expect(await problem("/api/rules", "POST", { effect: "ask", when: "true" })).toBe(
+      "name: this is needed.",
+    );
+    expect(
+      await problem("/api/skills", "POST", { name: "Bad Name", description: "d", instructions: "i" }),
+    ).toBe("name: use up to 41 lower-case letters, digits and dashes, starting with a letter or digit.");
+    expect(await problem("/api/memory", "POST", { text: "x".repeat(1001) })).toBe(
+      "text: keep it to 1000 characters or fewer.",
+    );
+    expect(await problem("/api/memory", "POST", ["a list"])).toBe("Send the details as a JSON object.");
+    for (const error of [
+      await problem("/api/settings", "PUT", { approvalExpiryHours: 0.5 }),
+      await problem("/api/threads", "POST", { title: 5 }),
+    ]) {
+      expect(error).not.toMatch(/Invalid|expected|received|pattern|\/\^/);
+    }
+  });
+
   it("runs the setup checklist without naming settings", async () => {
     const { body: checks } = await t.api<SetupCheck[]>("/api/setup");
     const model = checks.find((c) => c.id === "model");
@@ -648,6 +693,29 @@ describe.runIf(missing.length === 0)(
       });
       expect(put.body.model.baseUrl).toBeUndefined();
       expect(t.server.services.models.config.baseUrl).toBe("https://openrouter.ai/api/v1");
+    });
+
+    it("puts each change of model on the record, with only the host of an address", async () => {
+      const rows = async () =>
+        (await t.api<AuditPage>("/api/audit?type=settings.model_changed&limit=50")).body.events;
+      const put = (model: unknown) => t.api("/api/settings", { method: "PUT", json: { model } });
+      await put({ provider: "openrouter", model: "anthropic/claude-sonnet-5.5" });
+      const before = (await rows()).length;
+      const address = "https://user:sk-in-the-address@models.example:8443/v1?key=sk-in-the-query";
+      await put({ provider: "openai-compatible", model: "local-1", baseUrl: address });
+      // The same choice again, and a change to something else, are not a new place to send to.
+      await put({ provider: "openai-compatible", model: "local-1", baseUrl: address });
+      await t.api("/api/settings", { method: "PUT", json: { plainLanguage: true } });
+      const after = await rows();
+      expect(after.length).toBe(before + 1);
+      const row = after[0]!;
+      expect(row.actorId).toBe("local");
+      expect(row.detail).toEqual({
+        from: { provider: "openrouter", model: "anthropic/claude-sonnet-5.5" },
+        to: { provider: "openai-compatible", model: "local-1", host: "models.example:8443" },
+      });
+      expect(JSON.stringify(row)).not.toMatch(/sk-|user:|\/v1/);
+      expect((await t.api<ChainCheck>("/api/audit/verify")).body.ok).toBe(true);
     });
   },
 );

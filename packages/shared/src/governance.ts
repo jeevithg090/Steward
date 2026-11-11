@@ -208,7 +208,18 @@ export type AuditType =
   | "harness.started"
   | "harness.stopped"
   | "delegation.started"
-  | "delegation.finished";
+  | "delegation.finished"
+  /**
+   * Changes that widen where conversations go or what runs unasked. Settings: the model, so where
+   * every conversation (mail included) is sent; detail `{ from?, to }`, each `{ provider, model,
+   * host? }` with only the host of an address. Tool servers: `{ id, transport, command | host,
+   * granted, reads }` (reads run without asking). Phone: the address phones use, `{ host }`.
+   */
+  | "settings.model_changed"
+  | "mcp.server_added"
+  | "mcp.server_changed"
+  | "mcp.server_removed"
+  | "phone.address_changed";
 
 export interface AuditEvent {
   /** Monotonic, starting at 1. */

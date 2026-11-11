@@ -1,9 +1,9 @@
 import { memoryDb } from "@steward/db";
 import { createGateway } from "@steward/gateway";
-import type { LiveEvent, NotificationStore, TaskStore } from "@steward/shared";
+import type { LiveEvent, NotificationStore, Task, TaskStore } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import { createEventBus } from "../src/live/bus.ts";
-import { recordedUsage, wireRunLifecycle } from "../src/runtime/lifecycle.ts";
+import { recordedUsage, STOPPED_NEXT_STEP, wireRunLifecycle } from "../src/runtime/lifecycle.ts";
 import { ServerRuns } from "../src/runtime/server-runs.ts";
 import { ThreadStore } from "../src/store/threads.ts";
 import { collect, EchoAgent, runInput, runnerOnMemoryDb, startRun } from "./helpers.ts";
@@ -112,6 +112,49 @@ describe("run lifecycle", () => {
       },
     ]);
     expect(audit.verify().ok).toBe(true);
+    unwire();
+  });
+});
+
+describe("a run the person stopped", () => {
+  it("leaves the task waiting for them, with no notification, and records it as cancelled", async () => {
+    const { runner, db } = runnerOnMemoryDb();
+    const agent = new EchoAgent({ agentId: "steward" });
+    agent.delayMs = 5_000;
+    const runs = new ServerRuns({ runner, agent: () => agent, serverRunToken: "tok" });
+    const { audit } = createGateway({ db: memoryDb() });
+    const task = { id: "tsk_1", title: "Pay the plumber", state: "working" as Task["state"] };
+    const updates: Partial<Task>[] = [];
+    const notes: unknown[] = [];
+    const unwire = wireRunLifecycle({
+      runner,
+      threads: new ThreadStore(db, runner),
+      tasks: {
+        byThread: () => task,
+        update: (_id: string, patch: Partial<Task>) => {
+          updates.push(patch);
+          Object.assign(task, patch);
+        },
+      } as unknown as TaskStore,
+      notifications: { add: (n: unknown) => notes.push(n) } as unknown as NotificationStore,
+      runs,
+      bus: createEventBus(),
+      audit,
+    });
+
+    const run = runs.start({
+      agentId: "steward",
+      threadId: "t1",
+      userText: "Pay the plumber",
+      initiator: { kind: "task", id: task.id },
+    });
+    await runner.stop({ threadId: "t1" });
+    const result = await run.done;
+
+    expect(result.outcome).toBe("cancelled");
+    expect(updates).toEqual([{ state: "needs_input", nextStep: STOPPED_NEXT_STEP }]);
+    expect(notes).toEqual([]);
+    expect(audit.page({ type: "run.finished" }).events[0]?.detail).toMatchObject({ outcome: "cancelled" });
     unwire();
   });
 });

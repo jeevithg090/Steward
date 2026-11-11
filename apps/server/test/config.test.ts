@@ -1,8 +1,17 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { DEFAULT_SERVER_PORT } from "@steward/shared";
 import { describe, expect, it } from "vitest";
-import { ConfigError, DEV_ORIGINS, isLoopbackHost, loadConfig, parseFlag, REPO_ROOT } from "../src/config.ts";
-import { loadEnvFiles, normaliseEnv } from "../src/env.ts";
+import {
+  ConfigError,
+  DEV_ORIGINS,
+  isLoopbackHost,
+  loadConfig,
+  parseFlag,
+  REPO_ROOT,
+  startupWarnings,
+} from "../src/config.ts";
+import { devServerTarget, loadEnvFiles, normaliseEnv } from "../src/env.ts";
 import { tempDir } from "./helpers.ts";
 
 describe("loadConfig", () => {
@@ -15,7 +24,7 @@ describe("loadConfig", () => {
     expect(config.tenantDir).toBe(join(REPO_ROOT, "tenants", "steward"));
     expect(config.demoGoogle).toBe(true);
     expect(config.allowPrivateHosts).toBe(false);
-    expect(config.devOrigins).toEqual(DEV_ORIGINS);
+    expect(config.devOrigins).toEqual([]);
     expect(config.workers).toBe(true);
   });
 
@@ -49,8 +58,11 @@ describe("loadConfig", () => {
     expect(loadConfig({ NODE_ENV: "production" }).devOrigins).toEqual([]);
   });
 
-  it("answers the Vite dev server and `vite preview` in development", () => {
-    expect(loadConfig({}).devOrigins).toEqual(
+  it("trusts the Vite ports' origins only with STEWARD_DEV_ORIGINS, and never in production", () => {
+    expect(loadConfig({}).devOrigins).toEqual([]);
+    const on = loadConfig({ STEWARD_DEV_ORIGINS: "1" });
+    expect(on.devOrigins).toEqual(DEV_ORIGINS);
+    expect(on.devOrigins).toEqual(
       expect.arrayContaining([
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -58,6 +70,9 @@ describe("loadConfig", () => {
         "http://127.0.0.1:4173",
       ]),
     );
+    expect(startupWarnings(on).join(" ")).toMatch(/STEWARD_DEV_ORIGINS is on/);
+    expect(startupWarnings(loadConfig({})).join(" ")).not.toMatch(/STEWARD_DEV_ORIGINS/);
+    expect(() => loadConfig({ STEWARD_DEV_ORIGINS: "1", NODE_ENV: "production" })).toThrow(/refused/);
   });
 
   it("points at the bundled bot directory by default, and never posts counts unless asked", () => {
@@ -77,6 +92,28 @@ describe("loadConfig", () => {
       ConfigError,
     );
     expect(() => loadConfig({ STEWARD_DIRECTORY_URL: "ftp://bots.example/index.json" })).toThrow(ConfigError);
+  });
+
+  it("names each flag or number it could not read, and keeps its default", () => {
+    const config = loadConfig({
+      STEWARD_DEMO_GOOGLE: "disabled",
+      STEWARD_WORKERS: "none",
+      STEWARD_HEADFUL: "yes",
+      STEWARD_MODEL_MAX_TOKENS: "lots",
+      STEWARD_DELEGATION_DEPTH: "3",
+      STEWARD_DELEGATION_CONCURRENCY: "50",
+    });
+    expect(config.demoGoogle).toBe(true);
+    expect(config.workers).toBe(true);
+    expect(config.unreadable).toEqual([
+      'STEWARD_DEMO_GOOGLE is "disabled", which is neither on nor off, so the default (on) is used.',
+      'STEWARD_WORKERS is "none", which is neither on nor off, so the default (on) is used.',
+      'STEWARD_MODEL_MAX_TOKENS is "lots", which is not a whole number from 256 to 65536, so the default is used.',
+      'STEWARD_DELEGATION_CONCURRENCY is "50", which is not a whole number from 1 to 10, so the default is used.',
+    ]);
+    expect(startupWarnings(config).slice(0, 4)).toEqual(config.unreadable);
+    expect(loadConfig({ STEWARD_DEMO_GOOGLE: "off", STEWARD_WORKERS: " " }).unreadable).toEqual([]);
+    expect(loadConfig({ STEWARD_HEADFUL: "x".repeat(60) }).unreadable[0]).toContain(`"${"x".repeat(40)}…"`);
   });
 
   it("parses flags leniently", () => {
@@ -149,6 +186,64 @@ describe("environment", () => {
     } finally {
       remove();
     }
+  });
+
+  it("points the web app's dev proxy where the server will listen, from the shell or .env", () => {
+    const { dir, remove } = tempDir();
+    try {
+      expect(devServerTarget(dir, {})).toBe(`http://127.0.0.1:${DEFAULT_SERVER_PORT}`);
+      writeFileSync(join(dir, ".env"), "STEWARD_PORT=9123\nSTEWARD_HOST=\n");
+      expect(devServerTarget(dir, {})).toBe("http://127.0.0.1:9123");
+      expect(devServerTarget(dir, { STEWARD_PORT: "9200" })).toBe("http://127.0.0.1:9200");
+      expect(devServerTarget(dir, { STEWARD_PORT: " " })).toBe("http://127.0.0.1:9123");
+      writeFileSync(join(dir, "keys.env"), "STEWARD_PORT=9300\n");
+      expect(devServerTarget(dir, { STEWARD_ENV_FILE: "keys.env" })).toBe("http://127.0.0.1:9300");
+      expect(devServerTarget(dir, { STEWARD_HOST: "::1" })).toBe("http://[::1]:9123");
+      expect(devServerTarget(dir, { STEWARD_HOST: "0.0.0.0" })).toBe("http://127.0.0.1:9123");
+      expect(devServerTarget(dir, { STEWARD_HOST: "localhost" })).toBe("http://localhost:9123");
+      const env = { STEWARD_SERVER_URL: "http://127.0.0.1:8931" };
+      expect(devServerTarget(dir, env)).toBe("http://127.0.0.1:8931");
+      expect(env).toEqual({ STEWARD_SERVER_URL: "http://127.0.0.1:8931" });
+    } finally {
+      remove();
+    }
+  });
+
+  it("documents every variable the server and its packages read", () => {
+    const docs = readFileSync(join(REPO_ROOT, "docs/configuration.md"), "utf8");
+    // Passed through to, or set for, the shell and coding agents: not settings of Steward's.
+    const passedThrough = new Set([
+      "HOME",
+      "LANG",
+      "PATH",
+      "PYTHONNOUSERSITE",
+      "RUST_LOG",
+      "TMPDIR",
+      "XDG_CACHE_HOME",
+      "XDG_CONFIG_HOME",
+      "XDG_DATA_HOME",
+      "XDG_STATE_HOME",
+    ]);
+    const reads =
+      /\benv\.([A-Z][A-Z0-9_]+)|\benv\["([A-Z][A-Z0-9_]+)"\]|keyEnv: "([A-Z0-9_]+)"|KEY_ENV = "([A-Z0-9_]+)"/g;
+    const roots = [
+      "apps/server/src",
+      ...["agent", "computer", "connectors", "gateway", "harnesses", "proactive"].map(
+        (p) => `packages/${p}/src`,
+      ),
+    ];
+    const names = new Set<string>();
+    for (const root of roots) {
+      for (const file of readdirSync(join(REPO_ROOT, root), { recursive: true, encoding: "utf8" })) {
+        if (!file.endsWith(".ts") || file.endsWith(".test.ts")) continue;
+        for (const m of readFileSync(join(REPO_ROOT, root, file), "utf8").matchAll(reads)) {
+          const name = m.slice(1).find(Boolean)!;
+          if (!passedThrough.has(name)) names.add(name);
+        }
+      }
+    }
+    expect(names.size).toBeGreaterThan(25);
+    expect([...names].filter((name) => !docs.includes(`\`${name}`)).sort()).toEqual([]);
   });
 
   it("leaves reading .env to the server in every script, not to Node's --env-file", () => {

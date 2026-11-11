@@ -6,7 +6,9 @@ import {
   compactEvents,
   EventType,
   type Message,
+  PROTOCOL_VERSION,
   type RunAgentInput,
+  type RunFinishedEvent,
   type RunStartedEvent,
   type StateSnapshotEvent,
 } from "@ag-ui/client";
@@ -21,8 +23,10 @@ import {
   type LocalThreadEndpointRunner,
   ThreadAlreadyRunningError,
 } from "@copilotkit/runtime/v2";
+import { isTainted } from "@steward/agent";
 import type { Db } from "@steward/db";
 import { fromJson } from "@steward/db";
+import { isBuiltinTool, TOOLS } from "@steward/shared";
 import { Observable, ReplaySubject } from "rxjs";
 import { type RunSummary, summariseRun } from "./run-summary.ts";
 
@@ -82,6 +86,68 @@ function messageIdOf(event: BaseEvent): string | undefined {
   return typeof id === "string" ? id : undefined;
 }
 
+/** How many user turns of a routine's conversation the model sees on a firing, the new one included. */
+export const ROUTINE_TURNS = 6;
+
+/**
+ * Whether a tool's results carry outside content. Unknown tools (a tool server's, say) count as
+ * tainting, as they do for the gateway: fail closed.
+ */
+export function toolTaints(name: string): boolean {
+  return isBuiltinTool(name) ? TOOLS[name].taints : true;
+}
+
+/**
+ * The last `turns` user turns and everything after them, after any system messages that lead. A
+ * routine fires on one conversation for ever, and each firing is a user turn: without a window every
+ * firing sends all the earlier ones to the model, until the prompt is too long and every firing
+ * fails. Cutting at a user turn keeps each tool call with its result.
+ *
+ * Taint is read from the messages a run is given, so a window must not wash it out: with `taints`,
+ * when the turns left out read outside content (mail, a web page) and the window did not, the most
+ * recent turn that did comes along, whole, ahead of the window.
+ */
+export function recentTurns(
+  messages: Message[],
+  turns: number,
+  taints?: (toolName: string) => boolean,
+): Message[] {
+  const lead = messages.findIndex((m) => m.role !== "system");
+  if (lead < 0) return messages;
+  let users = 0;
+  for (let i = messages.length - 1; i >= lead; i--) {
+    if (messages[i]!.role !== "user" || ++users < turns) continue;
+    if (i === lead) return messages;
+    const shown = messages.slice(i);
+    const carried =
+      taints && !isTainted(shown, taints) ? lastTaintedTurn(messages.slice(lead, i), taints) : [];
+    return [...messages.slice(0, lead), ...carried, ...shown];
+  }
+  return messages;
+}
+
+/** The most recent turn (a user message and what followed it) whose tool results taint, or none. */
+function lastTaintedTurn(messages: Message[], taints: (toolName: string) => boolean): Message[] {
+  let end = messages.length;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (i > 0 && messages[i]!.role !== "user") continue;
+    const turn = messages.slice(i, end);
+    if (isTainted(turn, taints)) return turn;
+    end = i;
+  }
+  return [];
+}
+
+/**
+ * True for a run the server started for a routine: a firing, or the resume of a call one parked. A
+ * resume carries on from the routine's last turn, which every window keeps whole.
+ */
+function isRoutineRun(input: RunAgentInput): boolean {
+  const props = input.forwardedProps as Record<string, unknown> | undefined;
+  const server = props?.[SERVER_PROPS_KEY] as { initiator?: { kind?: unknown } } | undefined;
+  return server?.initiator?.kind === "routine";
+}
+
 /**
  * The stored conversation with what `incoming` adds to it. A browser that missed a run the server
  * started (a routine, a resume) sends a stale history; when it lacks stored messages, the stored
@@ -93,6 +159,18 @@ export function mergeHistory(stored: readonly Message[], incoming: Message[]): M
   if (stored.every((m) => incomingIds.has(m.id))) return incoming;
   const storedIds = new Set(stored.map((m) => m.id));
   return [...stored, ...incoming.filter((m) => !storedIds.has(m.id))];
+}
+
+/**
+ * The end of a run the person stopped, saying so. AG-UI only marks a stopped run `cancelled` for a
+ * client that sent a protocol version, and a run the server starts (a routine, a task, a resume)
+ * has none, so without this a stopped routine would read as one that finished.
+ */
+export function endedAsStopped(event: BaseEvent): BaseEvent {
+  if (event.type !== EventType.RUN_FINISHED) return event;
+  const outcome = (event as RunFinishedEvent).outcome;
+  if (outcome?.type === "interrupt" || outcome?.type === "cancelled") return event;
+  return { ...event, outcome: { type: "cancelled" } } as RunFinishedEvent;
 }
 
 /** A short plain-text preview of the last message with words in it. */
@@ -143,22 +221,22 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
 
     // Turns only the server saw (a routine's parked call, a sweep's resume) must reach the model,
     // or it answers without them and the snapshot the sweep reads loses them.
+    const stored = this.getThreadMessages(threadId);
     const given = Array.isArray(request.agent.messages) ? request.agent.messages : [];
-    const merged = mergeHistory(this.getThreadMessages(threadId), given);
-    if (merged !== given) request.agent.setMessages(merged);
+    const merged = mergeHistory(stored, given);
+    // A routine's run shows the model its last few turns (and, while the conversation is tainted,
+    // the last turn that tainted it); the stored conversation keeps all of them, since finishing
+    // merges what the agent ends with back into what is stored.
+    const shown = isRoutineRun(request.input) ? recentTurns(merged, ROUTINE_TURNS, toolTaints) : merged;
+    if (shown !== given) request.agent.setMessages(shown);
 
     const input = withoutServerProps(request.input);
     const runId = input.runId;
     const agentId = request.agent.agentId ?? "default";
-    const historic = this.history(threadId);
-    const seen = new Set<string>();
-    for (const event of historic) {
-      const id = messageIdOf(event);
-      if (id) seen.add(id);
-      if (event.type === EventType.RUN_STARTED) {
-        for (const m of (event as RunStartedEvent).input?.messages ?? []) seen.add(m.id);
-      }
-    }
+    // Every message a stored run said or was given is in the stored conversation, so its ids are the
+    // ones not to store again in this run's RUN_STARTED; reading every stored run's events for them
+    // would grow with the conversation, on every run.
+    const seen = new Set(stored.map((m) => m.id));
     const parentRunId = this.latestRunId(threadId);
     const newInput = (): RunAgentInput => ({
       ...input,
@@ -187,54 +265,70 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
     };
 
     const finish = (interruptionMessage?: string) => {
-      const agentEventCount = events.length;
-      // A stop can arrive before the agent's first event.
-      if (live.stopRequested && !events.some((e) => e.type === EventType.RUN_STARTED)) {
-        const started: RunStartedEvent = { type: EventType.RUN_STARTED, threadId, runId, input: newInput() };
-        events.unshift(started);
-        emit(started);
-      }
-      const appended = finalizeRunEvents(events, {
-        stopRequested: live.stopRequested,
-        protocolVersion: input.protocolVersion,
-        ...(interruptionMessage !== undefined ? { interruptionMessage } : {}),
-      });
-      for (const event of appended) emit(event);
-
-      // Merged again, so the snapshot never drops a turn only the server saw, whatever the agent did
-      // with its messages.
-      let stored: Message[] = [];
+      let messages: Message[] = [];
       try {
-        stored = this.getThreadMessages(threadId);
-      } catch (err) {
-        console.error("[steward] could not read a thread:", err instanceof Error ? err.message : err);
-      }
-      const messages = [
-        ...mergeHistory(stored, Array.isArray(request.agent.messages) ? request.agent.messages : []),
-      ];
-      // An immediate failure that produced nothing is not history.
-      if (interruptionMessage === undefined || agentEventCount > 0 || live.stopRequested) {
-        try {
-          this.persist({ threadId, runId, parentRunId, agentId, events, messages });
-        } catch (err) {
-          console.error("[steward] could not store a run:", err instanceof Error ? err.message : err);
+        const agentEventCount = events.length;
+        const stopped = live.stopRequested;
+        // A stop can arrive before the agent's first event.
+        if (stopped && !events.some((e) => e.type === EventType.RUN_STARTED)) {
+          const started: RunStartedEvent = {
+            type: EventType.RUN_STARTED,
+            threadId,
+            runId,
+            input: newInput(),
+          };
+          events.unshift(started);
+          emit(started);
         }
-      }
-      this.live.delete(threadId);
+        const appended = finalizeRunEvents(events, {
+          stopRequested: stopped,
+          // With a version the closing event of a stopped run says `cancelled` (see endedAsStopped).
+          protocolVersion: input.protocolVersion ?? (stopped ? PROTOCOL_VERSION : undefined),
+          ...(interruptionMessage !== undefined ? { interruptionMessage } : {}),
+        });
+        for (const event of appended) emit(event);
 
-      // Listeners hear about the run before its stream completes, so they can still tell which
-      // runs the server started; the thread is already free for a follow-up run.
-      const summary = summariseRun(events, interruptionMessage);
-      for (const listener of this.finishedListeners) {
+        // Merged again, so the snapshot never drops a turn only the server saw, whatever the agent
+        // did with its messages.
+        let stored: Message[] = [];
         try {
-          listener({ ...summary, threadId, runId, agentId, messages });
+          stored = this.getThreadMessages(threadId);
         } catch (err) {
-          console.error("[steward] run listener failed:", err instanceof Error ? err.message : err);
+          console.error("[steward] could not read a thread:", err instanceof Error ? err.message : err);
         }
+        messages = [
+          ...mergeHistory(stored, Array.isArray(request.agent.messages) ? request.agent.messages : []),
+        ];
+        // An immediate failure that produced nothing is not history.
+        if (interruptionMessage === undefined || agentEventCount > 0 || stopped) {
+          try {
+            this.persist({ threadId, runId, parentRunId, agentId, events, messages });
+          } catch (err) {
+            console.error("[steward] could not store a run:", err instanceof Error ? err.message : err);
+          }
+        }
+        this.live.delete(threadId);
+
+        // Listeners hear about the run before its stream completes, so they can still tell which
+        // runs the server started; the thread is already free for a follow-up run. A stopped run
+        // reads from its events alone: the error an abort throws is the stop, not a failure.
+        const summary = summariseRun(events, stopped ? undefined : interruptionMessage);
+        for (const listener of this.finishedListeners) {
+          try {
+            listener({ ...summary, threadId, runId, agentId, messages });
+          } catch (err) {
+            console.error("[steward] run listener failed:", err instanceof Error ? err.message : err);
+          }
+        }
+      } catch (err) {
+        console.error("[steward] could not finish a run:", err instanceof Error ? err.message : err);
+      } finally {
+        // Whatever went wrong above, the thread is freed and everyone waiting hears the end.
+        if (this.live.get(threadId) === live) this.live.delete(threadId);
+        runSubject.complete();
+        liveSubject.complete();
+        resolveDone();
       }
-      runSubject.complete();
-      liveSubject.complete();
-      resolveDone();
     };
 
     for (const listener of this.startedListeners) {
@@ -255,6 +349,8 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
               ...started,
               input: started.input ? withoutServerProps(started.input) : newInput(),
             } as RunStartedEvent;
+          } else if (live.stopRequested) {
+            processed = endedAsStopped(event);
           }
           events.push(processed);
           emit(processed);
@@ -263,7 +359,10 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
       .then(
         () => finish(),
         (error: unknown) => finish(error instanceof Error ? error.message : String(error)),
-      );
+      )
+      .catch((err: unknown) => {
+        console.error("[steward] a run ended badly:", err instanceof Error ? err.message : err);
+      });
 
     return runSubject.asObservable();
   }

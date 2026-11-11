@@ -68,6 +68,7 @@ function store(items: Approval[]): ApprovalStore {
       throw new Error("not used");
     },
     expireDue: () => 0,
+    cancel: () => undefined,
   };
 }
 

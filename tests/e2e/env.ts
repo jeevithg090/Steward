@@ -3,8 +3,8 @@
  * can never disagree. The web app's dev server proxies `/api` and `/ws` to the Steward server.
  *
  * `STEWARD_E2E_SERVER_PORT` and `STEWARD_E2E_WEB_PORT` move the run off 8787 and 5173, so it can
- * run while `pnpm dev` is up without the specs reaching that server and its data. The web port
- * must be one the server accepts as a dev origin (5173 or 4173, `DEV_PORTS` in the server config).
+ * run while `pnpm dev` is up without the specs reaching that server and its data. Any free web port
+ * works: Vite's proxy passes the page's own address through, so the server sees its own origin.
  */
 
 function port(name: string, fallback: number): number {

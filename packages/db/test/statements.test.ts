@@ -20,7 +20,7 @@ describe("Db", () => {
   });
 
   it("prepares a statement once and reuses it", () => {
-    const db = memoryDb([{ id: "test.001", sql: "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT)" }]);
+    const db = memoryDb([{ id: "test.001_t", sql: "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT)" }]);
     const prepare = preparing(db);
     for (let i = 0; i < 5; i++) db.run("INSERT INTO t (name) VALUES (?)", [`n${i}`]);
     expect(db.get<{ n: number }>("SELECT count(*) AS n FROM t")?.n).toBe(5);
@@ -44,18 +44,18 @@ describe("Db", () => {
   });
 
   it("keeps working after a migration changes the schema under a kept statement", () => {
-    const db = memoryDb([{ id: "test.001", sql: "CREATE TABLE t (a TEXT); INSERT INTO t VALUES ('x');" }]);
+    const db = memoryDb([{ id: "test.001_t", sql: "CREATE TABLE t (a TEXT); INSERT INTO t VALUES ('x');" }]);
     expect(db.get("SELECT * FROM t")).toEqual({ a: "x" });
-    db.migrate([{ id: "test.002", sql: "ALTER TABLE t ADD COLUMN b TEXT NOT NULL DEFAULT 'y'" }]);
+    db.migrate([{ id: "test.002_t", sql: "ALTER TABLE t ADD COLUMN b TEXT NOT NULL DEFAULT 'y'" }]);
     expect(db.get("SELECT * FROM t")).toEqual({ a: "x", b: "y" });
     db.migrate([
-      { id: "test.003", sql: "DROP TABLE t; CREATE TABLE t (z INTEGER); INSERT INTO t VALUES (5);" },
+      { id: "test.003_t", sql: "DROP TABLE t; CREATE TABLE t (z INTEGER); INSERT INTO t VALUES (5);" },
     ]);
     expect(db.get("SELECT * FROM t")).toEqual({ z: 5 });
   });
 
   it("reuses a statement after it failed", () => {
-    const db = memoryDb([{ id: "test.001", sql: "CREATE TABLE t (id TEXT PRIMARY KEY)" }]);
+    const db = memoryDb([{ id: "test.001_t", sql: "CREATE TABLE t (id TEXT PRIMARY KEY)" }]);
     db.run("INSERT INTO t (id) VALUES (?)", ["a"]);
     expect(() => db.run("INSERT INTO t (id) VALUES (?)", ["a"])).toThrow(/UNIQUE/);
     db.run("INSERT INTO t (id) VALUES (?)", ["b"]);
@@ -80,7 +80,7 @@ describe("Db", () => {
   });
 
   it("joins nested transactions to the outer one, and rolls back all of it on an error", () => {
-    const db = memoryDb([{ id: "test.001", sql: "CREATE TABLE t (id TEXT PRIMARY KEY)" }]);
+    const db = memoryDb([{ id: "test.001_t", sql: "CREATE TABLE t (id TEXT PRIMARY KEY)" }]);
     expect(() =>
       db.tx(() => {
         db.run("INSERT INTO t (id) VALUES (?)", ["outer"]);
@@ -134,7 +134,7 @@ describe("Db", () => {
     const db = new Db(path);
     expect(db.get<{ journal_mode: string }>("PRAGMA journal_mode")?.journal_mode).toBe("wal");
     expect(db.get<{ timeout: number }>("PRAGMA busy_timeout")?.timeout).toBe(5000);
-    db.migrate([{ id: "test.001", sql: "CREATE TABLE t (id TEXT)" }]);
+    db.migrate([{ id: "test.001_t", sql: "CREATE TABLE t (id TEXT)" }]);
     db.run("INSERT INTO t (id) VALUES (?)", ["kept"]);
     db.close();
     const again = new Db(path);

@@ -196,6 +196,41 @@ describe.runIf(missing.length === 0)("AG-UI runs through the CopilotKit runtime"
     expect(t.server.services.gateway.audit.verify().ok).toBe(true);
   });
 
+  it("withdraws a conversation's waiting requests when it is deleted, so Allow cannot act later", async () => {
+    const { threadId, approvalId } = await askToSend();
+    expect((await t.api(`/api/threads/${threadId}`, { method: "DELETE" })).status).toBe(200);
+    const after = (await t.api<Approval>(`/api/approvals/${approvalId}`)).body;
+    expect(after).toMatchObject({ status: "cancelled" });
+    expect(after.claimedAt).toBeDefined();
+    const pending = (await t.api<Approval[]>("/api/approvals?status=pending")).body;
+    expect(pending.map((a) => a.id)).not.toContain(approvalId);
+    const late = await t.api(`/api/approvals/${approvalId}/decision`, {
+      method: "POST",
+      json: { answer: "once" },
+    });
+    expect(late.status).toBe(409);
+  });
+
+  it("withdraws a deleted routine's waiting request", async () => {
+    const routine = t.server.services.proactive.routines.create({
+      title: "Weekly note",
+      prompt: "Send the weekly note.",
+      schedule: "0 9 * * 1",
+      timezone: "UTC",
+      enabled: true,
+      agentId: "steward",
+    });
+    const events = await run({ threadId: routine.threadId, messages: [user(EMAIL_ASK)] });
+    const end = finished(events);
+    const approvalId =
+      end.outcome?.type === "interrupt"
+        ? (end.outcome.interrupts[0]!.metadata as { approvalId: string }).approvalId
+        : "";
+    expect((await t.api<Approval>(`/api/approvals/${approvalId}`)).body.status).toBe("pending");
+    expect((await t.api(`/api/routines/${routine.id}`, { method: "DELETE" })).status).toBe(200);
+    expect((await t.api<Approval>(`/api/approvals/${approvalId}`)).body.status).toBe("cancelled");
+  });
+
   it("refuses to run on a thread that is already running", async () => {
     const threadId = randomUUID();
     const first = run({ threadId, messages: [user("hello")] });

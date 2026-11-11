@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { StewardServices } from "../context.ts";
 import { asUserError, HttpError, notFound, readBody } from "../http/errors.ts";
 import { isTimezone } from "../store/settings.ts";
+import { withdrawApprovals } from "./threads.ts";
 
 /** Like `RoutineBody`, but a missing time zone means the person's own rather than UTC. */
 const RoutineCreateBody = RoutineBody.extend({ timezone: z.string().optional() });
@@ -72,8 +73,11 @@ export function registerRoutineRoutes(app: Hono, s: StewardServices): void {
 
   app.delete(ROUTES.routine, (c) => {
     const id = c.req.param("id");
-    if (!routines.get(id)) throw notFound("that routine");
+    const routine = routines.get(id);
+    if (!routine) throw notFound("that routine");
     routines.remove(id);
+    // Nothing will fire it again, so a request its last run left waiting goes too.
+    withdrawApprovals(s, routine.threadId);
     return c.json({ ok: true });
   });
 

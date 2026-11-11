@@ -9,8 +9,10 @@ export const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 export const DEV_PORTS = [5173, 4173] as const;
 
 /**
- * Origins of the Vite dev and preview servers, the only cross-origin callers the API answers. Their
- * proxy keeps the browser's Origin, so without them every POST through it would be refused.
+ * Origins of the Vite dev and preview servers. Their proxy passes the browser's Host through, so a
+ * page they serve reaches the API as its own origin and needs none of these. They are trusted only
+ * with `STEWARD_DEV_ORIGINS=1`, for a web app that calls the server directly (`VITE_STEWARD_API_URL`):
+ * nothing checks that Steward owns those ports, and any page on them could then use the whole API.
  */
 export const DEV_ORIGINS = DEV_PORTS.flatMap((port) => [
   `http://localhost:${port}`,
@@ -57,7 +59,7 @@ export interface ServerConfig {
    * (`STEWARD_RELAY_TOKEN`). Steward dials out; nothing listens beyond this machine.
    */
   relay?: { url: string; token: string };
-  /** Origins allowed to call the API from another origin. Empty in production. */
+  /** Origins allowed to call the API from another origin. Empty unless `STEWARD_DEV_ORIGINS` is on. */
   devOrigins: string[];
   /** Background workers: routines, the daily brief, approval expiry. Tests switch them off. */
   workers: boolean;
@@ -75,6 +77,8 @@ export interface ServerConfig {
   directoryCounts: boolean;
   /** The environment model resolution reads. Never echoed to a person. */
   env: NodeJS.ProcessEnv;
+  /** Flags and numbers set to something Steward could not read, in words. Their defaults apply. */
+  unreadable: string[];
 }
 
 export class ConfigError extends Error {
@@ -90,6 +94,39 @@ export function parseFlag(value: string | undefined, fallback: boolean): boolean
   if (TRUE.has(v)) return true;
   if (FALSE.has(v)) return false;
   return fallback;
+}
+
+/**
+ * Numbers read where they are used, leniently: an unreadable one falls back to its default there.
+ * `loadConfig` names each one that is set but unreadable, so a typo is not silently ignored.
+ */
+const LENIENT_NUMBERS: readonly (readonly [name: string, min: number, max: number])[] = [
+  ["STEWARD_MODEL_MAX_TOKENS", 256, 65_536],
+  ["STEWARD_DELEGATION_DEPTH", 1, 10],
+  ["STEWARD_DELEGATION_CONCURRENCY", 1, 10],
+];
+
+/** A value as the person wrote it, short enough for one line of the log. */
+const shown = (value: string) => JSON.stringify(value.length > 40 ? `${value.slice(0, 40)}…` : value);
+
+/** Why a set flag or number cannot be read, or undefined when it can (or is unset). */
+function unreadableFlag(name: string, value: string | undefined, fallback: boolean): string | undefined {
+  const v = value?.trim().toLowerCase();
+  if (!v || TRUE.has(v) || FALSE.has(v)) return undefined;
+  return `${name} is ${shown(value!.trim())}, which is neither on nor off, so the default (${fallback ? "on" : "off"}) is used.`;
+}
+
+function unreadableNumber(
+  name: string,
+  value: string | undefined,
+  min: number,
+  max: number,
+): string | undefined {
+  const v = value?.trim();
+  if (!v) return undefined;
+  const n = Number(v);
+  if (Number.isInteger(n) && n >= min && n <= max) return undefined;
+  return `${name} is ${shown(v)}, which is not a whole number from ${min} to ${max}, so the default is used.`;
 }
 
 function parsePort(value: string | undefined, name = "STEWARD_PORT", fallback = DEFAULT_SERVER_PORT): number {
@@ -183,6 +220,13 @@ export function loadConfig(
     );
   }
 
+  const devOrigins = parseFlag(env.STEWARD_DEV_ORIGINS, false);
+  if (devOrigins && production) {
+    throw new ConfigError(
+      "STEWARD_DEV_ORIGINS lets any page on the Vite ports (5173 and 4173) use Steward. It is refused when NODE_ENV=production.",
+    );
+  }
+
   const port = parsePort(env.STEWARD_PORT);
   const relayUrl = env.STEWARD_RELAY_URL?.trim();
   const relayToken = env.STEWARD_RELAY_TOKEN?.trim();
@@ -200,6 +244,19 @@ export function loadConfig(
       throw new ConfigError("STEWARD_RELAY_TOKEN must be set (24+ characters) with STEWARD_RELAY_URL.");
     }
   }
+  const flags: readonly (readonly [name: string, fallback: boolean])[] = [
+    ["STEWARD_DEMO_GOOGLE", true],
+    ["STEWARD_HEADFUL", false],
+    ["STEWARD_ALLOW_PRIVATE_HOSTS", false],
+    ["STEWARD_DEV_ORIGINS", false],
+    ["STEWARD_WORKERS", true],
+    ["STEWARD_DIRECTORY_COUNTS", false],
+  ];
+  const unreadable = [
+    ...flags.map(([name, fallback]) => unreadableFlag(name, env[name], fallback)),
+    ...LENIENT_NUMBERS.map(([name, min, max]) => unreadableNumber(name, env[name], min, max)),
+  ].filter((why): why is string => why !== undefined);
+
   const config: ServerConfig = {
     repoRoot,
     port,
@@ -227,23 +284,25 @@ export function loadConfig(
           },
         }
       : {}),
-    devOrigins: production ? [] : [...DEV_ORIGINS],
+    devOrigins: devOrigins ? [...DEV_ORIGINS] : [],
     workers: parseFlag(env.STEWARD_WORKERS, true),
     resumeDelayMs: 3000,
     directoryUrl: resolveDirectory(env.STEWARD_DIRECTORY_URL, repoRoot),
     directoryCounts: parseFlag(env.STEWARD_DIRECTORY_COUNTS, false),
     env,
+    unreadable,
     ...overrides,
   };
   return config;
 }
 
 /**
- * What the server says at start when it is set up to be reached from beyond this machine. The main
- * port has no sign-in, so a tunnel or a listed host name there lets anyone who reaches it act as you.
+ * What the server says at start: each setting it could not read, and when it is set up to be reached
+ * from beyond this machine. The main port has no sign-in, so a tunnel or a listed host name there
+ * lets anyone who reaches it act as you.
  */
 export function startupWarnings(config: ServerConfig): string[] {
-  const warnings: string[] = [];
+  const warnings: string[] = [...config.unreadable];
   if (!isLoopbackHost(config.host)) {
     warnings.push(
       `Steward is listening on ${config.host}, beyond this machine. It has no sign-in: anyone who can reach this address and is allowed by STEWARD_ALLOWED_HOSTS can use it.`,
@@ -252,6 +311,11 @@ export function startupWarnings(config: ServerConfig): string[] {
   if (config.allowedHosts.length > 0) {
     warnings.push(
       `STEWARD_ALLOWED_HOSTS lets ${config.allowedHosts.join(", ")} reach Steward's main port (${config.port}), which has no sign-in. Never point a tunnel at it. For a phone, point the tunnel at the device port (${config.devicePort ?? DEFAULT_DEVICE_PORT}) instead: see docs/security.md.`,
+    );
+  }
+  if (config.devOrigins.length > 0) {
+    warnings.push(
+      `STEWARD_DEV_ORIGINS is on: any page on ${DEV_PORTS.join(" or ")} of this machine can use Steward, even another project's dev server. Turn it off unless the web app calls the server directly (VITE_STEWARD_API_URL).`,
     );
   }
   if (config.devicePort !== null && !isLoopbackHost(config.deviceHost)) {

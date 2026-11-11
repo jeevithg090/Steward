@@ -1,7 +1,7 @@
 // Must stay the first import: it fixes the environment before the CopilotKit runtime loads.
 import "./runtime-env.ts";
 import { randomBytes } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import type { AbstractAgent } from "@ag-ui/client";
@@ -18,7 +18,7 @@ import {
   createMcpManager,
   createWebTools,
 } from "@steward/connectors";
-import { Db } from "@steward/db";
+import { Db, keepPrivate } from "@steward/db";
 import { createGateway, migrations as gatewayMigrations } from "@steward/gateway";
 import { HarnessSessionStore, migrations as harnessMigrations, loadHarnesses } from "@steward/harnesses";
 import { buildCatalogue, loadTenantShortcuts, type TenantShortcut } from "@steward/phone";
@@ -126,11 +126,39 @@ export interface StewardServer {
   close(): Promise<void>;
 }
 
-/** The address the server uses to reach itself (the demo inbox lives on the same server). */
-function selfAddress(host: string): string {
-  if (host === "0.0.0.0" || host === "" || isLoopbackHost(host)) return "127.0.0.1";
-  if (host === "::" || host === "[::]") return "[::1]";
-  return host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+const WILDCARDS = new Set(["", "0.0.0.0", "::", "[::]"]);
+
+/**
+ * The address the server uses to reach a socket it listens on (the demo inbox lives on the same
+ * server), and the one it prints. A loopback name or a wildcard means wherever the socket actually
+ * is: `localhost` and `::1` are often IPv6 only, where 127.0.0.1 reaches nothing. A name or address
+ * beyond this machine is kept as given, since that is what the host guard accepts.
+ */
+export function selfAddress(host: string, bound: AddressInfo): string {
+  if (!WILDCARDS.has(host) && !isLoopbackHost(host)) {
+    return host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+  }
+  if (bound.family === "IPv6") return bound.address === "::" ? "[::1]" : `[${bound.address}]`;
+  return bound.address === "0.0.0.0" ? "127.0.0.1" : bound.address;
+}
+
+/** A port Steward could not listen on, in words that say what to do. */
+function listenError(err: unknown, port: number, host: string, setting: string): ConfigError {
+  const code = (err as { code?: unknown }).code;
+  if (code === "EADDRINUSE") {
+    return new ConfigError(
+      `Port ${port} is already in use. Is Steward already running? Stop it, or set ${setting} to a free port.`,
+    );
+  }
+  if (code === "EACCES") {
+    return new ConfigError(`This user may not listen on port ${port}. Set ${setting} to a port above 1023.`);
+  }
+  if (code === "EADDRNOTAVAIL" || code === "ENOTFOUND") {
+    return new ConfigError(`${host} is not an address of this machine, so Steward cannot listen on it.`);
+  }
+  return new ConfigError(
+    `Couldn't listen on port ${port} (${err instanceof Error ? err.message : String(err)}). Set ${setting} to a free port.`,
+  );
 }
 
 async function step(name: string, work: Promise<unknown> | (() => unknown), ms = 5_000): Promise<void> {
@@ -194,6 +222,9 @@ function loadTenantOrExplain(config: ServerConfig): TenantPackage {
  * until `listen()`; tests may use `app.request(...)` directly.
  */
 export async function createApp(config: ServerConfig): Promise<StewardServer> {
+  // Mail, memory, every conversation, phones' data keys and the agent's sign-ins: this user's only.
+  mkdirSync(config.dataDir, { recursive: true, mode: 0o700 });
+  keepPrivate(config.dataDir);
   const db = new Db(config.dbPath);
   const cleanups: (() => Promise<void> | void)[] = [];
   try {
@@ -554,9 +585,14 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       if (server) throw new Error("Steward is already listening.");
       const port = opts.port ?? config.port;
       const hostname = opts.host ?? config.host;
-      server = await serveOn(app.fetch, port, hostname);
+      try {
+        server = await serveOn(app.fetch, port, hostname);
+      } catch (err) {
+        throw listenError(err, port, hostname, "STEWARD_PORT");
+      }
       injectWebSocket(server);
-      const actualPort = (server.address() as AddressInfo).port;
+      const bound = server.address() as AddressInfo;
+      const actualPort = bound.port;
       const devicePort = opts.devicePort !== undefined ? opts.devicePort : port === 0 ? 0 : config.devicePort;
       let deviceUrl: string | undefined;
       if (devicePort !== null) {
@@ -565,15 +601,17 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
         } catch (err) {
           server.close();
           server = undefined;
+          const why = listenError(err, devicePort, config.deviceHost, "STEWARD_DEVICE_PORT").message;
           throw new ConfigError(
-            `The phone port ${devicePort} is in use (${err instanceof Error ? err.message : String(err)}). Set STEWARD_DEVICE_PORT to a free port, or to off.`,
+            `The phone port could not start. ${why} STEWARD_DEVICE_PORT=off switches it off.`,
           );
         }
-        phoneListener.port = (deviceServer.address() as AddressInfo).port;
+        const deviceBound = deviceServer.address() as AddressInfo;
+        phoneListener.port = deviceBound.port;
         phoneListener.running = true;
-        deviceUrl = `http://${selfAddress(config.deviceHost)}:${phoneListener.port}`;
+        deviceUrl = `http://${selfAddress(config.deviceHost, deviceBound)}:${phoneListener.port}`;
       }
-      const self = selfAddress(hostname);
+      const self = selfAddress(hostname, bound);
       if (config.demoGoogle) {
         mailRef.current = createGoogleMailCalendar({
           baseUrl: `http://${self}:${actualPort}/demo-google`,

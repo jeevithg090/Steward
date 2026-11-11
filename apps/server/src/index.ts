@@ -2,6 +2,7 @@
 // telemetry off). Reading `.env` can wait until `main`: the runtime reads model settings lazily.
 import { createApp, type StewardServer } from "./bootstrap.ts";
 import { ConfigError, loadConfig, REPO_ROOT, startupWarnings } from "./config.ts";
+import { guardProcess } from "./crash.ts";
 import { loadEnvFiles, normaliseEnv } from "./env.ts";
 
 export type { Listening, StewardServer } from "./bootstrap.ts";
@@ -15,7 +16,28 @@ async function main(): Promise<void> {
   const loadedEnvFiles = loadEnvFiles(REPO_ROOT, process.env);
   normaliseEnv(process.env);
 
-  let server: StewardServer;
+  let server: StewardServer | undefined;
+  let stopping = false;
+  /** Closes Steward cleanly, then exits: 0 for a signal, 1 after an error. A second call exits now. */
+  const stop = (why: string) => {
+    if (stopping) {
+      console.error("Stopping now.");
+      process.exit(1);
+    }
+    stopping = true;
+    const code = why === "error" ? 1 : 0;
+    if (!server) process.exit(code);
+    console.log(`\n${why === "error" ? "After that error" : why}: closing Steward…`);
+    server
+      .close()
+      .then(() => process.exit(code))
+      .catch((err: unknown) => {
+        console.error("Steward did not close cleanly:", err instanceof Error ? err.message : err);
+        process.exit(1);
+      });
+  };
+  guardProcess(process, stop);
+
   try {
     const config = loadConfig(process.env);
     server = await createApp(config);
@@ -48,22 +70,6 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  let stopping = false;
-  const stop = (signal: string) => {
-    if (stopping) {
-      console.error("Stopping now.");
-      process.exit(1);
-    }
-    stopping = true;
-    console.log(`\n${signal}: closing Steward…`);
-    server
-      .close()
-      .then(() => process.exit(0))
-      .catch((err: unknown) => {
-        console.error("Steward did not close cleanly:", err);
-        process.exit(1);
-      });
-  };
   process.on("SIGINT", () => stop("SIGINT"));
   process.on("SIGTERM", () => stop("SIGTERM"));
 }
