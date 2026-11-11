@@ -23,8 +23,10 @@ import {
   type LocalThreadEndpointRunner,
   ThreadAlreadyRunningError,
 } from "@copilotkit/runtime/v2";
+import { isTainted } from "@steward/agent";
 import type { Db } from "@steward/db";
 import { fromJson } from "@steward/db";
+import { isBuiltinTool, TOOLS } from "@steward/shared";
 import { type Observable, ReplaySubject } from "rxjs";
 import { type RunSummary, summariseRun } from "./run-summary.ts";
 
@@ -88,20 +90,52 @@ function messageIdOf(event: BaseEvent): string | undefined {
 export const ROUTINE_TURNS = 6;
 
 /**
+ * Whether a tool's results carry outside content. Unknown tools (a tool server's, say) count as
+ * tainting, as they do for the gateway: fail closed.
+ */
+export function toolTaints(name: string): boolean {
+  return isBuiltinTool(name) ? TOOLS[name].taints : true;
+}
+
+/**
  * The last `turns` user turns and everything after them, after any system messages that lead. A
  * routine fires on one conversation for ever, and each firing is a user turn: without a window every
  * firing sends all the earlier ones to the model, until the prompt is too long and every firing
  * fails. Cutting at a user turn keeps each tool call with its result.
+ *
+ * Taint is read from the messages a run is given, so a window must not wash it out: with `taints`,
+ * when the turns left out read outside content (mail, a web page) and the window did not, the most
+ * recent turn that did comes along, whole, ahead of the window.
  */
-export function recentTurns(messages: Message[], turns: number): Message[] {
+export function recentTurns(
+  messages: Message[],
+  turns: number,
+  taints?: (toolName: string) => boolean,
+): Message[] {
   const lead = messages.findIndex((m) => m.role !== "system");
   if (lead < 0) return messages;
   let users = 0;
   for (let i = messages.length - 1; i >= lead; i--) {
     if (messages[i]!.role !== "user" || ++users < turns) continue;
-    return i === lead ? messages : [...messages.slice(0, lead), ...messages.slice(i)];
+    if (i === lead) return messages;
+    const shown = messages.slice(i);
+    const carried =
+      taints && !isTainted(shown, taints) ? lastTaintedTurn(messages.slice(lead, i), taints) : [];
+    return [...messages.slice(0, lead), ...carried, ...shown];
   }
   return messages;
+}
+
+/** The most recent turn (a user message and what followed it) whose tool results taint, or none. */
+function lastTaintedTurn(messages: Message[], taints: (toolName: string) => boolean): Message[] {
+  let end = messages.length;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (i > 0 && messages[i]!.role !== "user") continue;
+    const turn = messages.slice(i, end);
+    if (isTainted(turn, taints)) return turn;
+    end = i;
+  }
+  return [];
 }
 
 /** True for a new firing of a routine: a run the server started for one, ending on its user turn. */
@@ -187,9 +221,12 @@ export class NodeSqliteAgentRunner extends AgentRunner implements LocalThreadEnd
     const stored = this.getThreadMessages(threadId);
     const given = Array.isArray(request.agent.messages) ? request.agent.messages : [];
     const merged = mergeHistory(stored, given);
-    // A routine's firing shows the model its last few turns; the stored conversation keeps all of
-    // them, since finishing merges what the agent ends with back into what is stored.
-    const shown = isRoutineFiring(request.input, merged) ? recentTurns(merged, ROUTINE_TURNS) : merged;
+    // A routine's firing shows the model its last few turns (and, while the conversation is tainted,
+    // the last turn that tainted it); the stored conversation keeps all of them, since finishing
+    // merges what the agent ends with back into what is stored.
+    const shown = isRoutineFiring(request.input, merged)
+      ? recentTurns(merged, ROUTINE_TURNS, toolTaints)
+      : merged;
     if (shown !== given) request.agent.setMessages(shown);
 
     const input = withoutServerProps(request.input);
