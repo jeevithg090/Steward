@@ -123,7 +123,9 @@ it is otherwise.
   the success: the case that must not happen is the one that matters.
 - End-to-end specs in `tests/e2e` find things by role, label and visible text, the way a screen
   reader would. If a spec cannot find a control that way, the control needs fixing, not the spec.
-- Tests never need a network or a key. Use the scripted model and the demo inbox.
+- Tests never need a network or a key. Use the scripted model and the demo inbox. A web test that
+  calls `fetch` without `mockFetch` fails, and an e2e spec fails on a console error, an uncaught
+  error in the page, or a request to any host but this machine.
 
 ## Accessibility checklist for anything on screen
 

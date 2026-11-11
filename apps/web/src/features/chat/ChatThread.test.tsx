@@ -83,6 +83,8 @@ vi.mock("@copilotkit/react-core/v2", async () => {
 vi.mock("@/lib/api.ts", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api.ts")>()),
   useInfo: () => ({ data: undefined }),
+  // One agent, so the empty conversation draws no picker. Unmocked, it asked a real port.
+  useAgents: () => ({ data: { agents: [] } }),
   useApprovals: () => ({ data: [] }),
   useApproval: () => ({ data: undefined }),
   useSkills: () => ({ data: [] }),
