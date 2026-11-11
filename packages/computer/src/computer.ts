@@ -64,6 +64,8 @@ import {
 import { DEFAULT_READ_BYTES, formatBytes, Workspace } from "./workspace.ts";
 
 export const ACTION_TIMEOUT_MS = 10_000;
+/** How long the in-page key guard lives at most, should Steward not get to remove it. */
+const KEY_GUARD_MS = ACTION_TIMEOUT_MS + 5_000;
 export const NAVIGATION_TIMEOUT_MS = 30_000;
 export const SECRET_TIMEOUT_MS = 10 * 60_000;
 const SETTLE_MS = 150;
@@ -800,15 +802,25 @@ export class AgentComputer implements Computer {
             await this.submitterOf(page, await this.capture(page, false), entry.pwRef),
           );
           if (now !== judged) throw new ComputerError("stale_ref", MESSAGES.submitterChanged);
-          await locator.press("Enter", { timeout: ACTION_TIMEOUT_MS });
+          const field = await locator.elementHandle({ timeout: ACTION_TIMEOUT_MS });
+          try {
+            if (!(await pressOnly(page, field, "Enter", true)))
+              throw new ComputerError("stale_ref", MESSAGES.focusChanged);
+          } finally {
+            await field.dispose().catch(() => {});
+          }
         }
       } catch (error) {
-        const typed = isComputerError(error) && error.message === MESSAGES.submitterChanged;
+        const why = !isComputerError(error)
+          ? undefined
+          : error.message === MESSAGES.submitterChanged
+            ? "the form changed"
+            : error.message === MESSAGES.focusChanged
+              ? "focus moved"
+              : undefined;
         this.log.add({
           kind: "type",
-          text: typed
-            ? `Typed into ${label} but did not press Enter: the form changed`
-            : `Could not type into ${label}`,
+          text: why ? `Typed into ${label} but did not press Enter: ${why}` : `Could not type into ${label}`,
           ok: false,
         });
         if (isComputerError(error)) throw error;
@@ -847,10 +859,12 @@ export class AgentComputer implements Computer {
           judged.generation === this.generation;
         await now.handle?.dispose().catch(() => {});
         if (!same) throw new ComputerError("stale_ref", MESSAGES.focusChanged);
-        // Through the judged element: Playwright puts focus back on it right before the key.
-        if (judged.handle && now.key !== "none")
-          await judged.handle.press(name, { timeout: ACTION_TIMEOUT_MS });
-        else await page.keyboard.press(name);
+        // Through the judged element (Playwright puts focus back on it right before the key), and
+        // only to it: focus moved in between, and the key goes nowhere.
+        if (judged.handle) {
+          const landed = await pressOnly(page, judged.handle, name, now.key !== "none");
+          if (!landed) throw new ComputerError("stale_ref", MESSAGES.focusChanged);
+        } else await page.keyboard.press(name);
       } catch (error) {
         if (isComputerError(error)) throw error;
         if (/Unknown key/i.test(String(error))) {
@@ -1661,6 +1675,56 @@ function submitterKey(submitter: Submitter | undefined): string {
 async function sameElement(a: ElementHandle | undefined, b: ElementHandle | undefined): Promise<boolean> {
   if (!a || !b) return a === b;
   return a.evaluate((el, other) => el === other, b).catch(() => false);
+}
+
+/**
+ * Presses `key` on `el`, or nowhere. Playwright puts focus on the element and sends the key as two
+ * steps, so a page that moves focus on a timer could catch the key on another element in between.
+ * A guard in the page stops a key going down anywhere else. `focus: false` sends the key to the
+ * page as it is (nothing had focus, and `el` is the body). True when nothing was stopped.
+ */
+async function pressOnly(page: Page, el: ElementHandle, key: string, focus: boolean): Promise<boolean> {
+  const guard = await el.evaluateHandle(guardKeys, KEY_GUARD_MS).catch(() => undefined);
+  if (!guard) return false;
+  let stopped = false;
+  try {
+    if (focus) await el.press(key, { timeout: ACTION_TIMEOUT_MS });
+    else await page.keyboard.press(key);
+  } finally {
+    // A key that opened another page took this one with it, and with it the guard.
+    stopped = await guard
+      .evaluate((g) => {
+        g.done.abort();
+        return g.stopped;
+      })
+      .catch(() => false);
+    await guard.dispose().catch(() => {});
+  }
+  return !stopped;
+}
+
+/**
+ * Runs in the page: until `done` is aborted, or `ms` pass, a key that goes down (keydown, and the
+ * keypress that commits Enter) on anything but `el` is stopped before the page or the browser acts
+ * on it. A key that lands on `el` and moves focus itself (Tab) is not stopped. Keys inside a frame
+ * are the frame's own. No named inner functions (see `defaultButtonOf`).
+ */
+function guardKeys(el: Element, ms: number): { stopped: boolean; done: AbortController } {
+  const state = { stopped: false, done: new AbortController() };
+  for (const type of ["keydown", "keypress"]) {
+    window.addEventListener(
+      type,
+      (event) => {
+        if (event.composedPath()[0] === el) return;
+        state.stopped = true;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      },
+      { capture: true, signal: state.done.signal },
+    );
+  }
+  setTimeout(() => state.done.abort(), ms);
+  return state;
 }
 
 /** Whether the element still has focus. */

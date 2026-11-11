@@ -13,7 +13,7 @@ import type {
   ComputerServerMessage,
   ComputerStatus,
 } from "@steward/shared";
-import type { BrowserContext, Page } from "playwright";
+import type { BrowserContext, ElementHandle, Page } from "playwright";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ComputerError, createComputerManager, MASKED_VALUE, MESSAGES } from "../src/index.ts";
 import { refOf, startSite, type TestSite } from "./site.ts";
@@ -281,6 +281,46 @@ describe("the computer, in real Chromium", { timeout: 90_000 }, () => {
     expect(c.activity().map((a) => a.text)).toContain(
       "Typed into 'Note' but did not press Enter: the form changed",
     );
+  });
+
+  it("stops a key that focus carries to another element after the last check", async () => {
+    const c = await manager.get("racer");
+    const page = await c.navigate(`${site.base}/focus-race`);
+    const live = (c as unknown as { livePage: Page }).livePage;
+    const body = await live.$("body");
+    const proto = Object.getPrototypeOf(body) as ElementHandle;
+    await body?.dispose();
+    const press = proto.press;
+    // Playwright puts focus on the element, then sends the key in a second step. A page that moves
+    // focus on a timer can do it in between; here it always does.
+    proto.press = async function (this: ElementHandle, key: string) {
+      await this.focus();
+      await live.evaluate(() => document.getElementById("buy")?.focus());
+      await live.keyboard.press(key);
+    };
+    try {
+      const searched = await c.click(refOf(page.snapshot, 'textbox "Search"'));
+      expect(await c.focused()).toMatchObject({ role: "textbox", name: "Search" });
+      const moved = await refusal(() => c.press("Enter"));
+      expect(moved).toMatchObject({ code: "stale_ref", message: MESSAGES.focusChanged });
+
+      const note = refOf(searched.snapshot, 'textbox "Note"');
+      expect(await c.submitterFor(note)).toEqual({ role: "button", name: "Save note" });
+      const typed = await refusal(() => c.type(note, "hello", { submit: true }));
+      expect(typed).toMatchObject({ code: "stale_ref", message: MESSAGES.focusChanged });
+      expect(c.activity().at(-1)?.text).toBe("Typed into 'Note' but did not press Enter: focus moved");
+    } finally {
+      proto.press = press;
+    }
+    const after = await c.snapshot();
+    expect(after.snapshot).not.toContain("Order placed");
+
+    // Without the race, keys land where they were judged, including ones that move focus themselves.
+    await c.click(refOf(after.snapshot, 'textbox "Search"'));
+    expect(await c.focused()).toMatchObject({ name: "Search" });
+    await c.press("Tab");
+    expect(await c.focused()).toMatchObject({ name: "Note" });
+    expect((await c.press("Enter")).snapshot).toContain("Saved");
   });
 
   it("finds the button Enter presses inside a frame, from the frame's own buttons", async () => {

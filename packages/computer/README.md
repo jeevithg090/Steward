@@ -99,8 +99,12 @@ The action then does what was judged, or nothing:
 - `press(key)` runs only after `focused()` in the same document. Just before the key it reads focus
   again; if the facts or the element changed (a page that moves focus to "Place order" after the
   check), it refuses with code `stale_ref`. The key is sent through the element that was judged.
+  Playwright focuses the element and sends the key as two steps, so a guard in the page stops the
+  key if it would go down anywhere else in between (`stale_ref` again). A key that lands on the
+  element and moves focus itself, such as Tab, is not stopped.
 - `type(ref, text, { submit: true })` runs only after `submitterFor(ref)`. After typing, it looks for
-  the form's default button again; if typing changed it, Enter is not pressed (`stale_ref`).
+  the form's default button again; if typing changed it, Enter is not pressed (`stale_ref`). Enter
+  goes to the field under the same guard.
 
 Each check is used once.
 

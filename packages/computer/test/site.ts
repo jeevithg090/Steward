@@ -42,6 +42,13 @@ const PAGES: Record<string, string> = {
       <button>Save note</button>
     </form>
     <p id="out"></p>`,
+  "/focus-race": `<!doctype html><title>Race</title>
+    <form onsubmit="event.preventDefault(); document.getElementById('out').textContent = 'Searched'"><input aria-label="Search"></form>
+    <form onsubmit="event.preventDefault(); document.getElementById('out').textContent = 'Saved'">
+      <label>Note <input></label><button>Save note</button>
+    </form>
+    <button id="buy" onclick="document.getElementById('out').textContent = 'Order placed'">Place order</button>
+    <p id="out"></p>`,
   "/framed": `<!doctype html><title>Framed</title><h1>Pay</h1><button>Back to shop</button>
     <iframe src="/checkout" title="Payment" width="800" height="400"></iframe>`,
   "/rename": `<!doctype html><title>Rename</title>
