@@ -27,6 +27,16 @@ describe("SecretEcho", () => {
     expect(echo.scrub("emoji 😀 abcdef", HIDE)).toBe(`emoji 😀 ${HIDE}`);
   });
 
+  it("hides a value written into an address, encoded either common way", () => {
+    const echo = new SecretEcho();
+    echo.add("p@ss word!");
+    // A GET form sends p%40ss+word%21; encodeURIComponent writes p%40ss%20word!.
+    expect(echo.scrub("/done?code=p%40ss+word%21&page=2", HIDE)).toBe(`/done?code=${HIDE}&page=2`);
+    expect(echo.scrub("/next?q=p%40ss%20word!", HIDE)).toBe(`/next?q=${HIDE}`);
+    expect(echo.has("p%40ss+word%21")).toBe(true);
+    expect(echo.scrub("p%40ss+word", HIDE)).toBe("p%40ss+word");
+  });
+
   it("hides a short value only where it is the whole text", () => {
     const echo = new SecretEcho();
     const pin = "123".slice(0, MIN_SCRUBBED_INSIDE - 1);

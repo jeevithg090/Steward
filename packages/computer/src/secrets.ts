@@ -6,7 +6,9 @@
  * Masking by element is not enough: a page can re-render the field (a "Show password" toggle),
  * echo the value into text ("Strength of …: weak"), its title or its address. `scrub` finds any run
  * of text whose digest matches a filled value and replaces it, so the value does not reach the
- * model, the record or the screen's status, wherever the page puts it.
+ * model, the record or the screen's status, wherever the page puts it. Each value is remembered as
+ * written and as web addresses encode it, so a link or text that repeats a GET form's address
+ * (`p%40ss+word%21`) is caught too.
  */
 import { createHmac, randomBytes } from "node:crypto";
 
@@ -15,6 +17,21 @@ import { createHmac, randomBytes } from "node:crypto";
  * inside longer text: a four-digit PIN found inside every year and price would hide half a page.
  */
 export const MIN_SCRUBBED_INSIDE = 4;
+
+/**
+ * `value` as written, as `encodeURIComponent` writes it (`%20` for a space), and as a form sent with
+ * GET writes it (`+` for a space, and `!'()~` encoded too).
+ */
+function writtenForms(value: string): string[] {
+  const forms = new Set([value]);
+  try {
+    forms.add(encodeURIComponent(value));
+  } catch {
+    // A lone surrogate cannot be encoded; the value as written is still kept.
+  }
+  forms.add(new URLSearchParams([["", value]]).toString().slice(1));
+  return [...forms];
+}
 
 export class SecretEcho {
   private readonly key = randomBytes(32);
@@ -26,12 +43,17 @@ export class SecretEcho {
   /** Value length → base^(length - 1) mod 2^32, for rolling the fingerprint. */
   private readonly powers = new Map<number, number>();
 
+  /** How many forms of filled values are remembered; 0 when nothing was filled. */
   get size(): number {
     return this.digests.size;
   }
 
   add(value: string): void {
     if (value === "") return;
+    for (const form of writtenForms(value)) this.addForm(form);
+  }
+
+  private addForm(value: string): void {
     this.digests.add(this.digest(value));
     let set = this.prints.get(value.length);
     if (!set) {
@@ -52,7 +74,7 @@ export class SecretEcho {
 
   /** Whether `text` is exactly a filled value. */
   has(text: string): boolean {
-    return text !== "" && this.digests.has(this.digest(text));
+    return text !== "" && this.prints.has(text.length) && this.digests.has(this.digest(text));
   }
 
   /** `text` with every filled value in it replaced by `replacement`. */

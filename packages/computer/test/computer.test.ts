@@ -64,6 +64,21 @@ async function refusal(fn: () => Promise<unknown>): Promise<ComputerError> {
   throw new Error("expected a refusal");
 }
 
+/** The agent asks for a secret for `ref`, and the person sends `value` through the secret box. */
+async function fillSecret(
+  m: ComputerManager,
+  agentId: string,
+  ref: string,
+  value: string,
+): Promise<{ filled: boolean; length: number }> {
+  const c = await m.get(agentId);
+  const asked = c.requestSecret(ref, "The value");
+  await waitFor(() => m.status(agentId).secret !== undefined);
+  const request = m.status(agentId).secret as NonNullable<ComputerStatus["secret"]>;
+  await m.handle(agentId, { type: "secret", requestId: request.id, value });
+  return asked;
+}
+
 let site: TestSite;
 /** Stands in for Steward's own server: a protected port the browser must never reach. */
 let own: TestSite;
@@ -748,6 +763,25 @@ describe("the computer, in real Chromium", { timeout: 90_000 }, () => {
     expect(everything).not.toContain(SECRET);
   });
 
+  it("hides a filled secret the page writes into links and text, encoded as addresses are", async () => {
+    const SECRET = "p@ss word!";
+    const c = await manager.get("encode");
+    const page = await c.navigate(`${site.base}/encode`);
+    const code = refOf(page.snapshot, 'textbox "Code"');
+    await expect(fillSecret(manager, "encode", code, SECRET)).resolves.toMatchObject({ filled: true });
+    // A GET form sends it as code=p%40ss+word%21; the page puts that into a link and its text, and
+    // builds another link with encodeURIComponent (p%40ss%20word!).
+    const sent = await c.click(refOf((await c.snapshot()).snapshot, 'button "Verify"'));
+    expect(sent.url).toBe(`${site.base}/encoded?code=hidden`);
+    expect(sent.snapshot).toContain("[url=/encoded?code=hidden&page=2]");
+    expect(sent.snapshot).toContain("[url=/next?q=hidden]");
+    expect(sent.snapshot).toContain(`You asked for ?code=${MASKED_VALUE}`);
+    const everything = [sent.snapshot, sent.url, JSON.stringify(c.status()), JSON.stringify(c.activity(500))];
+    for (const form of [SECRET, encodeURIComponent(SECRET), "p%40ss+word%21", "p%40ss"]) {
+      expect(everything.join("\n"), form).not.toContain(form);
+    }
+  });
+
   it("puts a secret only into a field of the site the person is shown", async () => {
     const c = await manager.get("vault");
     // A frame from another site on the page: the person would see the page's host, not the frame's.
@@ -823,6 +857,24 @@ describe("the computer, in real Chromium", { timeout: 90_000 }, () => {
     expect(first.activity().at(-1)?.text).toBe(
       "Closed the browser to make room for another one; it starts again when needed",
     );
+  });
+
+  it("still hides a filled secret the page kept, after the browser closed when idle", async () => {
+    const SECRET = "sk-test-abcdef123456";
+    const c = await napping.get("keeper");
+    // Watched while the secret is filled, so it cannot close half way.
+    const unsubscribe = napping.subscribe("keeper", () => {});
+    const page = await c.navigate(`${site.base}/keep`);
+    const key = refOf(page.snapshot, 'textbox "API key"');
+    await expect(fillSecret(napping, "keeper", key, SECRET)).resolves.toMatchObject({ filled: true });
+    await c.click(refOf((await c.snapshot()).snapshot, 'button "Save"'));
+    expect((await c.navigate(`${site.base}/show`)).snapshot).toContain(`Your key: ${MASKED_VALUE}`);
+    unsubscribe();
+    await waitFor(() => !napping.status("keeper").running, 10_000);
+    // The profile kept the value, so the page still shows it after the browser starts again.
+    const again = await c.navigate(`${site.base}/show`);
+    expect(again.snapshot).toContain(`Your key: ${MASKED_VALUE}`);
+    expect(again.snapshot).not.toContain(SECRET);
   });
 
   it("resets by closing and starting again", async () => {

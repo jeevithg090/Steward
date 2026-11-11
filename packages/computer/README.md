@@ -186,14 +186,17 @@ Individual keystrokes are not recorded.
    only `{ length, host }`. `secret.cancel` resolves `{ filled: false, length: 0 }`.
 
 The value is never logged, stored, returned, or put in activity text, and Playwright's error
-messages are not passed on because they can quote their arguments. Only a keyed digest (a random
-in-memory key, gone when the computer closes) is kept. With it, Steward finds the value wherever
-the page echoes it and hides it before anything leaves the computer: a field the page rebuilt
-without the mark (a "Show password" toggle), text such as "Strength of …: weak", the title, a
-dialog, and the address (a GET form), where it reads `hidden`. Such a field still counts as
-sensitive. Values shorter than 4 characters are hidden only where they are a field's whole value,
-so a short PIN does not blank out every number on the page. A value the page changes (upper case,
-split, encoded) is not found. Filling never submits the form; that is a separate, governed click.
+messages are not passed on because they can quote their arguments. Only keyed digests (under a
+random in-memory key, gone when Steward stops) are kept, of the value as written and as web
+addresses encode it (`p%40ss+word%21`, `p%40ss%20word!`). They stay when the browser closes and
+starts again, since the profile, and so the page, may still hold the value. With them, Steward
+finds the value wherever the page echoes it and hides it before anything leaves the computer: a
+field the page rebuilt without the mark (a "Show password" toggle), text such as "Strength of …:
+weak", the title, a dialog, and addresses (the page's and its links', such as a GET form's), where
+it reads `hidden`. Such a field still counts as sensitive. Values shorter than 4 characters are
+hidden only where they are a field's whole value, so a short PIN does not blank out every number on
+the page. A value the page changes in other ways (upper case, split up, encoded another way) is not
+found. Filling never submits the form; that is a separate, governed click.
 
 ## Network safety
 

@@ -68,6 +68,22 @@ const PAGES: Record<string, string> = {
   "/otp": `<!doctype html><title>Verify</title>
     <form action="/otp-done" method="get"><label>Code <input name="code" id="code"></label><button>Verify</button></form>`,
   "/otp-done": `<!doctype html><title>Verified</title><p>Verified</p>`,
+  "/encode": `<!doctype html><title>Verify</title>
+    <form action="/encoded" method="get"><label>Code <input name="code"></label><button>Verify</button></form>`,
+  // Writes the code it was sent back into links and text, encoded the ways addresses are.
+  "/encoded": `<!doctype html><title>Encoded</title>
+    <a id="more">More results</a><a id="again">Search again</a><p id="said"></p>
+    <script>
+      const code = new URLSearchParams(location.search).get('code') || '';
+      document.getElementById('more').href = location.pathname + location.search + '&page=2';
+      document.getElementById('again').href = '/next?q=' + encodeURIComponent(code);
+      document.getElementById('said').textContent = 'You asked for ' + location.search;
+    </script>`,
+  "/keep": `<!doctype html><title>Keep</title><label>API key <input id="key"></label>
+    <button onclick="localStorage.setItem('key', document.getElementById('key').value); document.getElementById('kept').textContent = 'Kept'">Save</button>
+    <p id="kept"></p>`,
+  "/show": `<!doctype html><title>Show</title><p id="shown"></p>
+    <script>document.getElementById('shown').textContent = 'Your key: ' + localStorage.getItem('key');</script>`,
   "/files": `<!doctype html><title>Files</title>
     <a href="/report.csv" download>Download the report</a>
     <button onclick="document.getElementById('answer').textContent = confirm('Delete everything?') ? 'deleted' : 'kept'">Delete everything</button>

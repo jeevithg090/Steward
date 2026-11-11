@@ -209,7 +209,8 @@ export class AgentComputer implements Computer {
   /**
    * Keyed digests of values typed through the secret box, never the values. They let a page that
    * echoes a filled value (a re-rendered field, a strength meter, its title, a GET form's address)
-   * be cleaned before it reaches the model, the record or the screen.
+   * be cleaned before it reaches the model, the record or the screen. Kept for as long as this
+   * computer exists, across closes and restarts of its browser.
    */
   private readonly secrets = new SecretEcho();
   private blockNotices = new Map<string, number>();
@@ -323,7 +324,8 @@ export class AgentComputer implements Computer {
     if (context) await context.close().catch(() => {});
     if (proxy) await proxy.close().catch(() => {});
     this.stopDownloadWatch();
-    this.secrets.clear();
+    // The filled values' digests stay: the profile outlives the browser, and a page can show a value
+    // it kept (in a cookie, its storage or its server) after the browser starts again.
     this.documentChanged();
     this.emitStatus();
   }
@@ -586,7 +588,11 @@ export class AgentComputer implements Computer {
         // Every reader of the page (snapshots, ref checks, the gateway's facts) sees it scrubbed.
         return this.secrets.size === 0
           ? items
-          : mapItemText(items, (t) => this.secrets.scrub(t, MASKED_VALUE));
+          : mapItemText(
+              items,
+              (t) => this.secrets.scrub(t, MASKED_VALUE),
+              (u) => this.safeUrl(u),
+            );
       } catch (error) {
         if (isCrash(error)) throw new ComputerError("failed", MESSAGES.pageCrashed);
         if (attempt >= 2 || !isNavigationRace(error)) {
@@ -1211,45 +1217,33 @@ export class AgentComputer implements Computer {
     this.finishSecret({ filled: true, length }, request.id);
   }
 
-  /** The URL with any query value or path segment that is, or holds, a filled secret replaced. */
+  /**
+   * An address (the page's, or a link's, which may be relative) with any part that is, or holds, a
+   * filled secret replaced by `hidden`.
+   */
   private safeUrl(raw: string): string {
     if (this.secrets.size === 0) return raw;
     return this.secrets.scrub(this.hideUrlParts(raw), "hidden");
   }
 
+  /**
+   * Each part of the address between `/ ? # & = ;` (a path segment, a query name or value, the
+   * fragment) that decodes to a filled value, however it was percent-encoded, reads `hidden`. The
+   * rest of the address is left exactly as written.
+   */
   private hideUrlParts(raw: string): string {
-    let url: URL;
-    try {
-      url = new URL(raw);
-    } catch {
-      return raw;
-    }
-    const hidden = (text: string) => this.secrets.has(text);
-    let changed = false;
-    for (const [key, value] of [...url.searchParams]) {
-      if (hidden(value)) {
-        url.searchParams.set(key, "hidden");
-        changed = true;
+    return raw.replace(/[^/?#&=;]+/g, (part) => {
+      for (const text of [part, part.replace(/\+/g, " ")]) {
+        let decoded = text;
+        try {
+          decoded = decodeURIComponent(text);
+        } catch {
+          // Not valid percent-encoding: compare it as written.
+        }
+        if (this.secrets.has(decoded) || this.secrets.has(text)) return "hidden";
       }
-    }
-    const segments = url.pathname.split("/").map((segment) => {
-      let decoded = segment;
-      try {
-        decoded = decodeURIComponent(segment);
-      } catch {
-        // Keep the raw segment.
-      }
-      if (!hidden(decoded)) return segment;
-      changed = true;
-      return "hidden";
+      return part;
     });
-    if (hidden(url.hash.slice(1))) {
-      url.hash = "hidden";
-      changed = true;
-    }
-    if (!changed) return raw;
-    url.pathname = segments.join("/");
-    return url.href;
   }
 
   // ── Workspace and shell ──────────────────────────────────────────────────────────────────────
