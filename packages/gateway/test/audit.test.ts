@@ -267,6 +267,20 @@ describe("a seal written down elsewhere", () => {
     expect(check.head?.seq).toBe(head.seq + 1);
   });
 
+  it("cannot vouch for a seal when the chain breaks before it, and names the break", async () => {
+    const { gw, db } = seed(5);
+    const { head } = gw.audit.verify();
+    if (!head) throw new Error("no head");
+    db.exec("DROP TRIGGER gateway_audit_no_update");
+    db.run("UPDATE gateway_audit SET detail_json = '{\"i\":99}' WHERE seq = 3");
+    // The sealed entry itself is untouched, but the walk from the first never reaches it intact.
+    expect(await gw.audit.check({ anchor: head })).toMatchObject({
+      ok: false,
+      brokenAt: 3,
+      anchor: { seq: head.seq, ok: false },
+    });
+  });
+
   it("does not match once the record was cut or rewritten, even in a fresh Steward", async () => {
     const { gw, db } = seed(4);
     const { head } = gw.audit.verify();

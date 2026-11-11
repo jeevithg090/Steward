@@ -295,15 +295,23 @@ function SavedSealResult({
   if (!check || !anchor) return null;
   return (
     <p role="status" className={anchor.ok ? "text-ink" : "font-semibold text-problem"}>
-      {anchor.ok
-        ? check.ok
-          ? `That seal still matches entry #${anchor.seq}. The record up to it has not changed.`
-          : check.brokenAt !== undefined
-            ? `That seal still matches entry #${anchor.seq}, but entry #${check.brokenAt} is missing or has changed.`
-            : `That seal still matches entry #${anchor.seq}, but the record has been changed.`
-        : `That seal doesn't match entry #${anchor.seq}. The record was cut short or rewritten since you saved it.`}
+      {sealMessage(check, anchor)}
     </p>
   );
+}
+
+function sealMessage(check: ChainCheck, anchor: NonNullable<ChainCheck["anchor"]>): string {
+  const broken = check.brokenAt;
+  if (!anchor.ok) {
+    // A break before the seal: the walk never reached it, so whether it matches says nothing.
+    return broken !== undefined && broken <= anchor.seq
+      ? `Entry #${broken} is missing or has changed, so the record up to your seal at entry #${anchor.seq} can't be trusted.`
+      : `That seal doesn't match entry #${anchor.seq}. The record was cut short or rewritten since you saved it.`;
+  }
+  if (check.ok) return `That seal still matches entry #${anchor.seq}. The record up to it has not changed.`;
+  return broken !== undefined
+    ? `That seal still matches entry #${anchor.seq}, but entry #${broken} is missing or has changed.`
+    : `That seal still matches entry #${anchor.seq}, but the record has been changed.`;
 }
 
 function CopySeal({ text }: { text: string }) {
