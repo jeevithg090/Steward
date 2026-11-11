@@ -68,6 +68,8 @@ export default defineConfig({
         STEWARD_HOST: "127.0.0.1",
         STEWARD_HEADFUL: "0",
         STEWARD_ALLOW_PRIVATE_HOSTS: "0",
+        // A small directory of its own, so the bots that ship with Steward never change what is tested.
+        STEWARD_DIRECTORY_URL: join(REPO_ROOT, "tests", "e2e", "fixtures", "directory", "index.json"),
         // Ignore a STEWARD_ENV_FILE from the shell: the run must not pick up someone's real keys.
         STEWARD_ENV_FILE: "",
       },
