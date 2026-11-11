@@ -44,6 +44,8 @@ const START = String.raw`(?:^|[;&|\n\r\x60])`;
 const REST = String.raw`[^;&|\n\r\x60]*?`;
 /** A command-line flag and the space after it, up to eight of them. */
 const FLAGS = String.raw`(?:-[^\s;&|]+\s+){0,8}`;
+/** What `env` or `sudo` take before the program they run: flags and settings such as FOO=1. */
+const RUNNER_ARGS = String.raw`(?:-[^\s;&|]+\s+|\w+=[^\s;&|]*\s+){0,8}`;
 /** A path in front of a program's name, such as /usr/bin/. */
 const DIRS = String.raw`(?:[^\s;&|/]*/)*`;
 /** A download command, by name or by path. */
@@ -61,8 +63,9 @@ function firstInCommand(group: string, word: string): string {
 
 const DESTRUCTIVE_SHELL = [
   // rm with a recursive flag aimed at /, ~ or $HOME (relative paths inside the workspace are fine).
-  // The flag and the path may come in any order after rm, within the same simple command.
-  String.raw`${firstInCommand("rm", "rm")}(?=${REST}\s-(?:[a-qs-z]*r[a-z]*|-recursive)(?![^\s;&|]))(?=${REST}\s['"]?(?:/|~|\$\{?HOME\b))`,
+  // The flag and the path may come in any order after rm, within the same simple command. Where
+  // output goes (`> /dev/null`, `2> /tmp/log`) is not something rm deletes.
+  String.raw`${firstInCommand("rm", "rm")}(?=${REST}\s-(?:[a-qs-z]*r[a-z]*|-recursive)(?![^\s;&|]))(?=${REST}(?<![\s<>])\s+['"]?(?:/|~|\$\{?HOME\b))`,
   String.raw`--no-preserve-root\b`,
   String.raw`\bmkfs(?:\.[a-z0-9]+)?\b`,
   // dd reading from anything (if=), within the same simple command.
@@ -74,11 +77,13 @@ const DESTRUCTIVE_SHELL = [
 ].join("|");
 
 const PIPE_TO_SHELL = [
-  // A download anywhere in the command, and a pipe into a shell anywhere in it (through tee or
-  // anything else). Anchored at the start and written as two look-aheads, so it reads the command once.
-  String.raw`^(?=[\s\S]*\b(?:curl|wget|fetch)\b)(?=[\s\S]*\|\s*(?:(?:sudo|doas)\s+${FLAGS}|env\s+|exec\s+)?${SHELL})`,
-  // A shell or eval running a download's output: bash -c "$(curl …)", eval "$(curl …)", bash <(curl …).
-  String.raw`\b(?:(?:ba|z|da|k|fi)?sh|eval|source)\s+${FLAGS}(?:["']?\$\(|<\()\s*${DOWNLOAD}`,
+  // A download anywhere in the command, and a pipe into a shell anywhere in it (through tee, env,
+  // /usr/bin/env or anything else). Anchored at the start and written as two look-aheads, so it
+  // reads the command once.
+  String.raw`^(?=[\s\S]*\b(?:curl|wget|fetch)\b)(?=[\s\S]*\|\s*(?:${DIRS}(?:sudo|doas|env)\s+${RUNNER_ARGS}|exec\s+)?${SHELL})`,
+  // A shell or eval running a download's output: bash -c "$(curl …)", bash -c "`curl …`",
+  // eval "$(curl …)", bash <(curl …).
+  String.raw`\b(?:(?:ba|z|da|k|fi)?sh|eval|source)\s+${FLAGS}(?:["']?(?:\$\(|\x60)|<\()\s*${DOWNLOAD}`,
   // Sourcing a download: . <(curl …)
   String.raw`(?:^|[\s;&|(])\.\s+<\(\s*${DOWNLOAD}`,
 ].join("|");

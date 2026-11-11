@@ -184,7 +184,7 @@ deleted.
 | ------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Never touch cloud metadata           | deny   | `target.host` is 169.254.169.254, metadata.google.internal, and the other cloud metadata addresses                                                                      |
 | Never run destructive shell commands | deny   | shell commands with `rm -r` on `/`, `~` or `$HOME`, `--no-preserve-root`, `mkfs`, `dd if=`, fork bombs, `shutdown`/`reboot`/`halt`, `sudo`/`doas`, writes to `/dev/sd*` |
-| Never pipe a download into a shell   | deny   | `curl … \| sh`, `wget … \| bash`, also through `tee` or `/bin/sh`; `bash -c "$(curl …)"`, `eval "$(curl …)"`, `bash <(curl …)`                                          |
+| Never pipe a download into a shell   | deny   | `curl … \| sh`, `wget … \| bash`, also through `tee`, `env` or `/bin/sh`; `bash -c "$(curl …)"`, `eval "$(curl …)"`, `bash <(curl …)`                                   |
 | Never touch key and password files   | deny   | file tools on `.env`, `id_rsa`, `*.pem`, `credentials.json`, `.ssh/`, `.aws/`, `.gnupg/` (not `.env.example`)                                                           |
 | Routines ask before they send        | ask    | `initiator.kind == "routine"` and kind `send`, `sign` or `delete`                                                                                                       |
 | Routines ask before running commands | ask    | `initiator.kind == "routine"` and kind `shell`                                                                                                                          |
