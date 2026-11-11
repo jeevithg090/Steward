@@ -15,7 +15,10 @@ import {
 } from "@steward/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadConfig, startupWarnings } from "../src/config.ts";
-import { checkPhoneUrl, isPrivateHost } from "../src/device/phone.ts";
+import type { DeviceApi } from "../src/device/api.ts";
+import { InstallStore, UNFETCHED } from "../src/device/installs.ts";
+import { createDeviceApp } from "../src/device/listener.ts";
+import { checkPhoneUrl, isPrivateHost, type PhoneSettings } from "../src/device/phone.ts";
 import {
   CODE_ALPHABET,
   DeviceStore,
@@ -137,6 +140,27 @@ describe("device store", () => {
     const types = gw.audit.page({ limit: 20 }).events.map((e) => e.type);
     expect(types).toEqual(expect.arrayContaining(["device.paired", "device.changed", "device.revoked"]));
     expect(gw.audit.verify().ok).toBe(true);
+  });
+
+  it("revokes at start a one-tap key whose file nobody fetched, and keeps every other phone", () => {
+    const { gw, store } = storeOnMemory();
+    const unfetched = store.issue({ deviceName: "iPhone (one-tap file)", kind: "shortcut" }).device;
+    const fetched = store.issue({ deviceName: "iPhone (one-tap file)", kind: "shortcut" }).device;
+    store.touch(fetched);
+    const paired = pair(store, store.createPairing("shortcut").code).device;
+    const app = store.issueRemote({ deviceName: "Phone app", publicKey: "{}", dataKey: "x" });
+
+    createDeviceApp({
+      api: {} as DeviceApi,
+      phone: {} as PhoneSettings,
+      devices: store,
+      installs: new InstallStore(),
+    });
+    expect(store.get(unfetched.id)?.revokedAt).toBeTruthy();
+    for (const kept of [fetched, paired, app])
+      expect(store.get(kept.id)?.revokedAt, kept.name).toBeUndefined();
+    const revoked = gw.audit.page({ type: "device.revoked" }).events;
+    expect(revoked.map((e) => e.detail)).toEqual([expect.objectContaining({ reason: UNFETCHED })]);
   });
 
   it("records a pairing code that did not work", () => {
@@ -269,6 +293,9 @@ describe.runIf(missing.length === 0)("the device listener", () => {
     expect(info.presets.map((p) => p.id)).toEqual(["preset_device_floor", "preset_shortcut_taint"]);
     expect(info.transports.map((x) => x.id)).toEqual(["tailscale", "cloudflared"]);
     expect(info.transports[0]?.command).toContain(String(t.server.services.phoneListener.port));
+    // The relay learns what kind of update each message is, and it serves the app's code.
+    expect(info.relay.sees.join("\n")).toMatch(/what kind of update each message is/i);
+    expect(info.relay.sees.join("\n")).toMatch(/the phone app itself, which it serves/i);
   });
 
   it("refuses everything but pairing without a device token", async () => {
@@ -295,6 +322,61 @@ describe.runIf(missing.length === 0)("the device listener", () => {
     expect(brief.body.say.length).toBeLessThanOrEqual(300);
     const devices = (await t.api<Device[]>("/api/devices")).body;
     expect(devices.some((d) => d.shortcutVersion === `steward@${STEWARD_SHORTCUT.version}`)).toBe(true);
+  });
+
+  it("records which phone ran a routine, which still runs as the routine", async () => {
+    const { token, deviceId } = await pairPhone("Hall iPhone");
+    const s = t.server.services;
+    const routine = s.proactive.routines.create({
+      title: "Look at the day",
+      prompt: "Tell me what needs me today.",
+      schedule: "0 9 * * *",
+      timezone: "UTC",
+      enabled: true,
+      agentId: "steward",
+    });
+    const ran = await device<DeviceReply>(`/device/run/${encodeURIComponent(`routine:${routine.id}`)}`, {
+      token,
+      json: {},
+    });
+    expect(ran.status).toBe(200);
+    expect(ran.body.ui).toEqual([{ say: "Started Look at the day. Steward will tell you when it's done." }]);
+    await waitFor(() => s.proactive.routines.get(routine.id)?.lastStatus);
+    const row = s.gateway.audit
+      .page({ type: "run.started", limit: 20 })
+      .events.find((e) => e.threadId === routine.threadId);
+    expect(row?.detail).toMatchObject({
+      via: `device:${deviceId}`,
+      device: "Hall iPhone",
+      routine: routine.id,
+    });
+    expect(row?.runId).toBeTruthy();
+  });
+
+  it("carries on only in a conversation the same phone started", async () => {
+    const s = t.server.services;
+    const mine = await pairPhone("Desk iPhone");
+    const other = await pairPhone("Other iPhone");
+    const first = await device<DeviceSayReply>("/device/say", { token: mine.token, json: { text: "hello" } });
+    expect(first.status).toBe(200);
+    const again = await device<DeviceSayReply>("/device/say", {
+      token: mine.token,
+      json: { text: "hello again", threadId: first.body.threadId },
+    });
+    expect(again.status).toBe(200);
+    expect(again.body.threadId).toBe(first.body.threadId);
+
+    // A conversation started on the Mac, and one another phone started, are as unknown as a made-up id.
+    s.threads.upsertMeta({ id: "thr_from_the_mac", agentId: s.defaultAgentId, kind: "chat", title: "Mac" });
+    for (const threadId of ["thr_from_the_mac", first.body.threadId, "thr_made_up"]) {
+      const res = await device<{ error: string }>("/device/say", {
+        token: other.token,
+        json: { text: "post here", threadId },
+      });
+      expect(res.status, threadId).toBe(404);
+      expect(res.body.error).toBe("Couldn't find that conversation.");
+    }
+    expect(s.runner.getThreadMessages("thr_from_the_mac")).toEqual([]);
   });
 
   it("answers nothing on the main port: no /device there, and no tunnel-shaped request", async () => {
@@ -384,6 +466,25 @@ describe.runIf(missing.length === 0)("the device listener", () => {
     expect(no.body.ui).toEqual([{ say: "Refused. Steward won't do it." }]);
     expect((await t.api<Approval>(`/api/approvals/${item!.id}`)).body.status).toBe("refused");
     expect(deviceId).toBeTruthy();
+  });
+
+  it("leaves what Steward asks out of the brief for a phone that may not see requests", async () => {
+    const asker = await pairPhone("Asking iPhone");
+    await device<DeviceSayReply>("/device/say", { token: asker.token, json: { text: EMAIL_ASK } });
+    expect(t.server.services.gateway.approvals.list({ status: "pending" }).length).toBeGreaterThan(0);
+
+    const { token, deviceId } = await pairPhone("Brief-only iPhone");
+    await t.api(`/api/devices/${deviceId}`, { method: "PATCH", json: { scopes: ["brief:read"] } });
+    const brief = await device<DeviceReply & { say: string; items: string[] }>("/device/brief", { token });
+    expect(brief.status).toBe(200);
+    const shown = JSON.stringify(brief.body);
+    expect(shown).not.toContain("Steward asks");
+    expect(shown).not.toContain("sam@example.com");
+    expect(brief.body.say).not.toMatch(/request/);
+
+    // With "See what Steward asks" on, the same brief lists them.
+    const full = await device<{ items: string[] }>("/device/brief", { token: asker.token });
+    expect(full.body.items.some((i) => i.startsWith("Steward asks:"))).toBe(true);
   });
 
   it("records a phone's yes with via, and the run resumes exactly as from the web", async () => {

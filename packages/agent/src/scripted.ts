@@ -6,7 +6,7 @@ import {
   type FixtureResponse,
   LLMock,
 } from "@copilotkit/aimock";
-import { unframe } from "@steward/shared";
+import { TASK_FRAME, unframe } from "@steward/shared";
 import { z } from "zod";
 
 /**
@@ -320,10 +320,15 @@ const MAIL_TOPICS: [RegExp, string][] = [
   [/\btickets?\b/i, "ticket"],
 ];
 
-/** What the person wrote this turn, without a routine's or a task's frame or a /skill. */
+/**
+ * What the person wrote this turn, without a routine's or a task's frame or a /skill. A task they
+ * worded starts "Task: <title>"; the label goes too, or "Task: Email sam@…" would read as a request
+ * that ends at its first colon.
+ */
 function personText(req: ChatCompletionRequest): string {
-  return unframe(lastUserText(req))
-    .body.replace(/^\s*\/[a-z0-9-]+\s*/i, "")
+  const { frame, body } = unframe(lastUserText(req));
+  return (frame === TASK_FRAME ? body.replace(/^Task:\s*/, "") : body)
+    .replace(/^\s*\/[a-z0-9-]+\s*/i, "")
     .trim();
 }
 

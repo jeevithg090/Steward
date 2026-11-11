@@ -33,8 +33,17 @@ export interface DirectoryConfig {
   github?: { clientId: string; clientSecret: string; token?: string };
   /** GitHub logins (lower case) who may review submissions at `/admin`. */
   adminLogins: string[];
-  /** Read the client address from `X-Forwarded-For`, when a proxy in front sets it. */
-  trustProxy: boolean;
+  /**
+   * GitHub account ids who may review (`ADMIN_GITHUB_IDS`). An id never changes hands; a handle can
+   * be renamed and then taken by someone else, so ids are the safer list.
+   */
+  adminIds: number[];
+  /**
+   * How many proxies you run in front (`DIRECTORY_TRUST_PROXY`), 0 for none. The client address is
+   * that many entries from the right of `X-Forwarded-For`: a proxy appends the address it saw, so
+   * whatever a visitor wrote there themselves sits further left and is never read.
+   */
+  trustProxy: number;
   production: boolean;
   /** Where this directory's code is, for the footer's Source link. Left out when unset. */
   sourceUrl?: string;
@@ -64,6 +73,21 @@ function parseCount(name: string, value: string | undefined, fallback: number, m
   const n = Number(value);
   if (!Number.isInteger(n) || n < 0 || n > max) {
     throw new ConfigError(`${name} must be a whole number from 0 to ${max}, not "${value}".`);
+  }
+  return n;
+}
+
+/** `DIRECTORY_TRUST_PROXY`: off, on (one proxy), or the number of proxies in front. */
+export function parseProxyHops(value: string | undefined): number {
+  const v = value?.trim().toLowerCase();
+  if (!v) return 0;
+  if (TRUE.has(v)) return 1;
+  if (FALSE.has(v)) return 0;
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < 0 || n > 10) {
+    throw new ConfigError(
+      `DIRECTORY_TRUST_PROXY must be off, on, or how many proxies are in front (1 to 10), not "${value}".`,
+    );
   }
   return n;
 }
@@ -147,6 +171,19 @@ export function loadConfig(
       .map((s) => s.trim().toLowerCase().replace(/^@/, ""))
       .filter(Boolean);
 
+  const adminIds =
+    overrides.adminIds ??
+    (env.ADMIN_GITHUB_IDS ?? "")
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean)
+      .map((v) => {
+        if (!/^\d{1,12}$/.test(v)) {
+          throw new ConfigError(`ADMIN_GITHUB_IDS takes GitHub account ids (numbers), not "${v}".`);
+        }
+        return Number(v);
+      });
+
   const siteUrl =
     overrides.siteUrl ??
     parseSiteUrl(env.DIRECTORY_SITE_URL, "DIRECTORY_SITE_URL", `http://127.0.0.1:${port}`, production);
@@ -186,11 +223,26 @@ export function loadConfig(
     name: overrides.name ?? (env.DIRECTORY_NAME?.trim() || "Steward bots"),
     ...(github ? { github } : {}),
     adminLogins,
-    trustProxy: overrides.trustProxy ?? parseFlag(env.DIRECTORY_TRUST_PROXY, false),
+    adminIds,
+    trustProxy: overrides.trustProxy ?? parseProxyHops(env.DIRECTORY_TRUST_PROXY),
     production,
     ...(sourceUrl ? { sourceUrl } : {}),
     ...(seedDir ? { seedDir } : {}),
   };
+}
+
+/** How many reviewers are named, by id or by handle. */
+export function reviewerCount(config: Pick<DirectoryConfig, "adminLogins" | "adminIds">): number {
+  return config.adminLogins.length + config.adminIds.length;
+}
+
+/** Whether a signed-in person may review: their GitHub id is listed, or their handle is. */
+export function isReviewer(
+  config: Pick<DirectoryConfig, "adminLogins" | "adminIds">,
+  user: { githubId: number; login: string } | undefined,
+): boolean {
+  if (!user) return false;
+  return config.adminIds.includes(user.githubId) || config.adminLogins.includes(user.login.toLowerCase());
 }
 
 /**
@@ -203,7 +255,7 @@ export function describeConfig(config: DirectoryConfig): string[] {
     `bots      ${config.directoryDir}`,
     `data      ${config.dataDir}`,
     `sign-in   ${config.github ? "GitHub (on)" : "off: set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET to take submissions"}`,
-    `review    ${config.adminLogins.length} reviewer${config.adminLogins.length === 1 ? "" : "s"} (ADMIN_GITHUB_LOGINS)`,
+    `review    ${reviewerCount(config)} reviewer${reviewerCount(config) === 1 ? "" : "s"} (ADMIN_GITHUB_IDS, ADMIN_GITHUB_LOGINS)`,
     `mcp       ${config.siteUrl}/mcp`,
     `retire    ${
       config.retirement.days > 0
@@ -230,6 +282,6 @@ export function publicInfo(config: DirectoryConfig): {
     mcp: `${config.siteUrl}/mcp`,
     feed: `${config.siteUrl}/feed.xml`,
     signIn: Boolean(config.github),
-    submissions: Boolean(config.github) && config.adminLogins.length > 0,
+    submissions: Boolean(config.github) && reviewerCount(config) > 0,
   };
 }

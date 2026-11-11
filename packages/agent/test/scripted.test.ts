@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { BaseEvent } from "@ag-ui/client";
 import type { ChatCompletionRequest, ChatMessage, FixtureResponse } from "@copilotkit/aimock";
+import { taskStart } from "@steward/shared";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createStewardAgent } from "../src/agent.ts";
 import { type CreatedModel, createModel } from "../src/model.ts";
@@ -461,5 +462,21 @@ describe("the scripted model behind the real agent", () => {
       { to: [{ email: "sam@example.com" }], subject: "Friday", body: "See you at 10" },
     ]);
     expect(say(resumed.events)).toContain("Sent to sam@example.com.");
+  });
+});
+
+describe("a task the person worded", () => {
+  it("reads the task's own words, not its label, so a send it asks for is a send", () => {
+    const text = taskStart({
+      title: "Email sam@example.com about Friday: see you at 10",
+      detail: "",
+      source: "person",
+    });
+    const reply = scriptedReply({
+      model: "steward-scripted",
+      messages: [{ role: "user", content: text }],
+      tools: [{ type: "function", function: { name: "mail_send", parameters: {} } }],
+    } as never);
+    expect(JSON.stringify(reply)).toContain("mail_send");
   });
 });

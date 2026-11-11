@@ -11,7 +11,7 @@ import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
 import { Catalogue, MAX_LIMIT, type SortKey } from "./catalogue.ts";
-import { type DirectoryConfig, publicInfo } from "./config.ts";
+import { type DirectoryConfig, isReviewer, publicInfo } from "./config.ts";
 import { GitHub, GitHubError } from "./github.ts";
 import { mcpRequestHandler, UNTRUSTED, VIA } from "./mcp.ts";
 import { clientAddress, RateLimiter, rateLimit } from "./rate-limit.ts";
@@ -206,8 +206,7 @@ export async function createDirectoryApp(
   const address = (c: Context) => clientAddress(c, config.trustProxy);
   const userOf = (c: Context): Session | undefined =>
     store.session(getCookie(c, SESSION_COOKIE) ?? "", now());
-  const isAdmin = (user: Session | undefined) =>
-    user !== undefined && config.adminLogins.includes(user.login.toLowerCase());
+  const isAdmin = (user: Session | undefined) => isReviewer(config, user);
   const site = (c: Context): SiteContext => {
     const user = userOf(c);
     return { config, catalogue, ...(user ? { user } : {}) };
@@ -505,7 +504,21 @@ export async function createDirectoryApp(
 
   app.get("/api/submissions/mine", (c) => {
     const user = requireUser(c);
-    return c.json({ submissions: submissions.mine(user.githubId).map(publicSubmission) });
+    return c.json({
+      submissions: submissions.mine(user.githubId).map(publicSubmission),
+      // Sent through MCP under this handle: say "mine" or "not mine".
+      unconfirmed: submissions.unconfirmed(user).map(publicSubmission),
+    });
+  });
+
+  app.post("/api/submissions/:sid/confirm", sameSite, writeLimit, limitBody(1024), (c) => {
+    const user = requireUser(c);
+    return c.json({ submission: publicSubmission(submissions.confirm(c.req.param("sid"), user)) });
+  });
+
+  app.post("/api/submissions/:sid/disown", sameSite, writeLimit, limitBody(1024), (c) => {
+    const user = requireUser(c);
+    return c.json({ submission: publicSubmission(submissions.disown(c.req.param("sid"), user)) });
   });
 
   app.post("/api/bots/:id/claim", sameSite, writeLimit, limitBody(BODY_LIMIT), async (c) => {
@@ -552,8 +565,36 @@ export async function createDirectoryApp(
 
   // ── GitHub sign-in ────────────────────────────────────────────────────────────────────────────
 
-  const safeNext = (next: string | undefined) =>
-    next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next.slice(0, 300) : "/submit";
+  /**
+   * Where to go after sign-in: a path on this site, or `/submit`. Control characters and
+   * backslashes are refused outright, because browsers drop tabs and newlines and read `\` as `/`
+   * when they follow a Location header, so "/\t/evil.example" would leave the site. What is left is
+   * resolved against this site and kept only when it stays here. Resolving collapses dot segments,
+   * so "/.//evil.example" comes out as "//evil.example": the result is checked again.
+   */
+  const safeNext = (next: string | undefined): string => {
+    const onSite = (path: string) => path.startsWith("/") && !path.startsWith("//") && path.length <= 300;
+    if (!next || !onSite(next)) return "/submit";
+    for (const ch of next) {
+      const n = ch.charCodeAt(0);
+      if (n < 0x20 || n === 0x7f || ch === "\\") return "/submit";
+    }
+    try {
+      const url = new URL(next, siteOrigin);
+      const path = `${url.pathname}${url.search}${url.hash}`;
+      return url.origin === siteOrigin && onSite(path) ? path : "/submit";
+    } catch {
+      return "/submit";
+    }
+  };
+
+  const decodeNext = (raw: string): string | undefined => {
+    try {
+      return raw ? decodeURIComponent(raw) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
 
   app.get("/auth/github", (c) => {
     if (!github.signInEnabled) {
@@ -578,13 +619,16 @@ export async function createDirectoryApp(
   app.get("/auth/github/callback", async (c) => {
     const saved = getCookie(c, STATE_COOKIE) ?? "";
     deleteCookie(c, STATE_COOKIE, { path: "/auth/github" });
-    const [state, nextRaw] = saved.split(".");
-    const given = c.req.query("state") ?? "";
+    // The state is base64url, so the first dot ends it; the address after it may have dots of its own.
+    const dot = saved.indexOf(".");
+    const state = dot < 0 ? saved : saved.slice(0, dot);
+    const nextRaw = dot < 0 ? "" : saved.slice(dot + 1);
+    const given = Buffer.from(c.req.query("state") ?? "");
+    const expected = Buffer.from(state);
     const code = c.req.query("code") ?? "";
+    // Bytes, not characters: a state with a multibyte character is a different length in bytes.
     const matches =
-      Boolean(state) &&
-      given.length === state!.length &&
-      timingSafeEqual(Buffer.from(given), Buffer.from(state!));
+      expected.length > 0 && given.length === expected.length && timingSafeEqual(given, expected);
     if (!matches || !code) {
       return htmlPage(
         c,
@@ -609,7 +653,7 @@ export async function createDirectoryApp(
         path: "/",
         maxAge: Math.floor((Date.parse(session.expiresAt) - now().getTime()) / 1000),
       });
-      return c.redirect(safeNext(nextRaw ? decodeURIComponent(nextRaw) : undefined), 303);
+      return c.redirect(safeNext(decodeNext(nextRaw)), 303);
     } catch (error) {
       const message =
         error instanceof GitHubError ? error.message : "GitHub could not be reached. Try again.";
@@ -758,9 +802,38 @@ export async function createDirectoryApp(
     [writeLimit],
   );
 
+  const yours = (user: Session) => ({
+    mine: submissions.mine(user.githubId),
+    unconfirmed: submissions.unconfirmed(user),
+  });
+
   app.get("/submit", (c) => {
     const ctx = site(c);
-    return htmlPage(c, submitPage(ctx, ctx.user ? { mine: submissions.mine(ctx.user.githubId) } : {}));
+    const m = c.req.query("m");
+    const message =
+      m === "confirmed"
+        ? "Thanks. It is marked as yours, and a reviewer will look at it."
+        : m === "disowned"
+          ? "Thanks. It was turned down, so nothing will be listed."
+          : undefined;
+    return htmlPage(
+      c,
+      submitPage(ctx, ctx.user ? { ...yours(ctx.user), ...(message ? { message } : {}) } : {}),
+    );
+  });
+
+  app.post("/submit/:sid/confirm", sameSite, writeLimit, limitBody(1024), (c) => {
+    const ctx = site(c);
+    if (!ctx.user) return c.redirect("/auth/github?next=%2Fsubmit", 303);
+    submissions.confirm(c.req.param("sid"), ctx.user);
+    return c.redirect("/submit?m=confirmed", 303);
+  });
+
+  app.post("/submit/:sid/disown", sameSite, writeLimit, limitBody(1024), (c) => {
+    const ctx = site(c);
+    if (!ctx.user) return c.redirect("/auth/github?next=%2Fsubmit", 303);
+    submissions.disown(c.req.param("sid"), ctx.user);
+    return c.redirect("/submit?m=disowned", 303);
   });
 
   app.post("/submit", sameSite, writeLimit, limitBody(BODY_LIMIT), async (c) => {
@@ -778,7 +851,7 @@ export async function createDirectoryApp(
         c,
         submitPage(ctx, {
           message: `Thanks. "${submission.pack.name}" is waiting for a reviewer.`,
-          mine: submissions.mine(ctx.user.githubId),
+          ...yours(ctx.user),
         }),
         201,
       );
@@ -794,7 +867,7 @@ export async function createDirectoryApp(
           error: true,
           problems: problem.problems.map((p) => `${p.path}: ${p.message}`),
           url,
-          mine: submissions.mine(ctx.user.githubId),
+          ...yours(ctx.user),
         }),
         problem.status as ContentfulStatusCode,
       );

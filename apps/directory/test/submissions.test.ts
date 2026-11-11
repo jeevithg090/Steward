@@ -91,15 +91,78 @@ describe("GitHub sign-in", () => {
     expect(f.server.store.session(session)).toBeUndefined();
   });
 
-  it("never redirects off the site after sign-in", async () => {
+  /** Starts sign-in with `next` (already encoded for the address) and says where the callback goes. */
+  async function landsOn(next: string): Promise<string | null> {
     f.github.users.set("code-ben", { id: 102, login: "ben" });
-    const start = await f.request("/auth/github?next=%2F%2Fevil.example%2Fx");
+    const start = await f.request(`/auth/github?next=${next}`);
     const state = new URL(start.headers.get("location")!).searchParams.get("state")!;
     const cookie = (start.headers.get("set-cookie") ?? "").split(";")[0]!;
     const back = await f.request(`/auth/github/callback?code=code-ben&state=${state}`, {
       headers: { cookie },
     });
-    expect(back.headers.get("location")).toBe("/submit");
+    expect(back.status).toBe(303);
+    return back.headers.get("location");
+  }
+
+  it("never redirects off the site after sign-in", async () => {
+    // Browsers drop tabs and newlines and read a backslash as a slash in a Location header, so
+    // each of these would become "//evil.example" and leave the site.
+    for (const next of [
+      "%2F%2Fevil.example%2Fx",
+      "%2F%09%2Fevil.example%2Fx",
+      "%2F%0A%2Fevil.example%2Fx",
+      "%2F%0D%2F3232235777",
+      "%2F%5Cevil.example",
+      "%5C%5Cevil.example",
+      "https%3A%2F%2Fevil.example",
+      // Dot segments collapse when the path is resolved, which would leave "//evil.example".
+      "%2F.%2F%2Fevil.example%2Fx",
+      "%2Fx%2F..%2F%2Fevil.example",
+      "%2F%252e%2F%2Fevil.example",
+      "%2F%252E%252E%2F%2Fevil.example",
+    ]) {
+      expect(await landsOn(next), next).toBe("/submit");
+    }
+  });
+
+  it("checks the address in the state cookie again, dot segments and all", async () => {
+    f.github.users.set("code-ben", { id: 102, login: "ben" });
+    const start = await f.request("/auth/github?next=%2Fsubmit");
+    const state = new URL(start.headers.get("location")!).searchParams.get("state")!;
+    const name = (start.headers.get("set-cookie") ?? "").split("=")[0]!;
+    // The callback trusts nothing it reads back: the cookie may not be the one sign-in set.
+    for (const next of ["/.//evil.example/x", "/x/..//evil.example", "/%2e%2e//evil.example"]) {
+      const back = await f.request(`/auth/github/callback?code=code-ben&state=${state}`, {
+        headers: { cookie: `${name}=${state}.${encodeURIComponent(next)}` },
+      });
+      expect(back.status, next).toBe(303);
+      expect(back.headers.get("location"), next).toBe("/submit");
+    }
+  });
+
+  it("keeps a `next` with dots and a query whole", async () => {
+    expect(await landsOn(encodeURIComponent("/bots?q=meal.plan&sort=new"))).toBe(
+      "/bots?q=meal.plan&sort=new",
+    );
+    expect(await landsOn(encodeURIComponent("/bots/chore-chart"))).toBe("/bots/chore-chart");
+  });
+
+  it("refuses a state with a multibyte character, or a broken cookie, without failing", async () => {
+    f.github.users.set("code-ana", { id: 101, login: "ana" });
+    const start = await f.request("/auth/github?next=%2Fsubmit");
+    const state = new URL(start.headers.get("location")!).searchParams.get("state")!;
+    const cookie = (start.headers.get("set-cookie") ?? "").split(";")[0]!;
+    // Same number of characters as the real state, more bytes.
+    const wide = `${state.slice(0, -1)}é`;
+    const odd = await f.request(`/auth/github/callback?code=code-ana&state=${encodeURIComponent(wide)}`, {
+      headers: { cookie },
+    });
+    expect(odd.status).toBe(400);
+    const broken = await f.request(`/auth/github/callback?code=code-ana&state=${state}`, {
+      headers: { cookie: `${cookie.split(".")[0]}.%E0%A4%A` },
+    });
+    expect(broken.status).toBe(303);
+    expect(broken.headers.get("location")).toBe("/submit");
   });
 });
 
@@ -325,6 +388,131 @@ describe("review", () => {
   });
 });
 
+describe("approval checks ownership again", () => {
+  const approve = (id: string) =>
+    f.request(`/api/admin/submissions/${id}/approve`, {
+      method: "POST",
+      session: f.signIn("rev", 900),
+      json: {},
+    });
+
+  it("refuses the second of two people's new bots with the same id, and keeps the first one's", async () => {
+    f.github.addRepo("ana", "bots", GOOD);
+    f.github.addRepo("mal", "bots", { ...GOOD, author: { kind: "person", handle: "mal" } });
+    const first = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    const second = await submit(f.signIn("mal", 666), "https://github.com/mal/bots");
+    expect([first.body.submission.kind, second.body.submission.kind]).toEqual(["new", "new"]);
+
+    expect((await approve(first.body.submission.id)).status).toBe(200);
+    const taken = await approve(second.body.submission.id);
+    expect(taken.status).toBe(409);
+    expect(taken.body.error).toBe(
+      'The id "chore-chart" now belongs to @ana. Ask the submitter to pick another id.',
+    );
+    expect((await f.request("/api/bots/chore-chart")).body.pack.author.handle).toBe("ana");
+    expect(f.server.store.approvedFor("chore-chart")?.submitter.githubId).toBe(101);
+    expect(f.server.store.submission(second.body.submission.id)?.status).toBe("pending");
+
+    // The review page says why, and offers no Approve for it.
+    const page = await f.request("/admin", { session: f.signIn("rev", 900) });
+    expect(page.text).toContain("now belongs to @ana");
+    expect(page.text).not.toContain(`/admin/submissions/${second.body.submission.id}/approve`);
+    expect(page.text).toContain(`/admin/submissions/${second.body.submission.id}/reject`);
+  });
+
+  it("refuses the second of two claims of the same AI-made bot", async () => {
+    const claim = (session: string) =>
+      f.request("/api/bots/meal-planner/claim", { method: "POST", session, json: { confirmItsMine: true } });
+    const ana = await claim(f.signIn("ana", 101));
+    const mal = await claim(f.signIn("mal", 666));
+    expect((await approve(ana.body.submission.id)).status).toBe(200);
+    const second = await approve(mal.body.submission.id);
+    expect(second.status).toBe(409);
+    expect(second.body.error).toContain("now belongs to @ana");
+    expect((await f.request("/api/bots/meal-planner")).body.pack.author.handle).toBe("ana");
+  });
+
+  it("still lets the owner's own older update through after a newer one", async () => {
+    f.github.addRepo("ana", "bots", GOOD);
+    const made = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(made.body.submission.id)).status).toBe(200);
+    f.github.addRepo("ana", "bots", { ...GOOD, version: 2, pitch: "Second pitch." });
+    const v2 = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    f.github.addRepo("ana", "bots", { ...GOOD, version: 3, pitch: "Third pitch." });
+    const v3 = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(v3.body.submission.id)).status).toBe(200);
+    expect((await approve(v2.body.submission.id)).status).toBe(200);
+    expect((await f.request("/api/bots/chore-chart")).body.pack.version).toBe(4);
+  });
+
+  it("decides by GitHub id once a listing has an owner, so a renamed handle cannot take it", async () => {
+    f.github.addRepo("ana", "bots", GOOD);
+    const made = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(made.body.submission.id)).status).toBe(200);
+    // Ana renamed her account; someone else registered "ana" and sends an update.
+    f.github.addRepo("ana", "bots", { ...GOOD, version: 2, pitch: "Not Ana's." });
+    const impostor = await submit(f.signIn("ana", 777), "https://github.com/ana/bots");
+    expect(impostor.status).toBe(409);
+    expect(impostor.body.error).toContain("taken by a bot made by @ana");
+  });
+
+  it("tells the reviewer when a claim is for a listing another GitHub account owns", async () => {
+    f.github.addRepo("ana", "bots", GOOD);
+    const made = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(made.body.submission.id)).status).toBe(200);
+    // Ana renamed her account; someone else registered "ana" and claims her listing.
+    const claim = await f.request("/api/bots/chore-chart/claim", {
+      method: "POST",
+      session: f.signIn("ana", 777),
+      json: { confirmItsMine: true },
+    });
+    expect(claim.status).toBe(201);
+    const pending = f.server.store.submission(claim.body.submission.id)!;
+    expect(pending.warnings.map((w) => w.message)).toContain(
+      "It belongs to another GitHub account (approved here as @ana). The same handle does not mean the same person. Approving gives the listing to @ana.",
+    );
+  });
+
+  it("warns the same way for a claim sent as a pack with a higher version", async () => {
+    const aiMade = { ...GOOD, author: { kind: "ai" as const, model: "a-model", generated: "2026-10-01" } };
+    f.github.addRepo("ana", "bots", aiMade);
+    const made = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(made.body.submission.id)).status).toBe(200);
+    f.github.addRepo("mal", "bots", { ...aiMade, version: 2, author: { kind: "person", handle: "mal" } });
+    const claim = await submit(f.signIn("mal", 666), "https://github.com/mal/bots");
+    expect(claim.status).toBe(201);
+    expect(claim.body.submission.kind).toBe("claim");
+    const pending = f.server.store.submission(claim.body.submission.id)!;
+    expect(pending.warnings.map((w) => w.message)).toContain(
+      "It belongs to another GitHub account (approved here as @ana). The same handle does not mean the same person. Approving gives the listing to @mal.",
+    );
+  });
+
+  it("matches a seed listing by handle only, and tells the reviewer", async () => {
+    f.github.addRepo("sam", "rent", {
+      ...GOOD,
+      id: "rent-scout",
+      version: 2,
+      author: { kind: "person", handle: "sam" },
+    });
+    const update = await submit(f.signIn("sam", 303), "https://github.com/sam/rent");
+    expect(update.status).toBe(201);
+    expect(update.body.submission.kind).toBe("update");
+    const [pending] = f.server.submissions.pending();
+    expect(pending!.warnings.some((w) => w.message.includes("by GitHub handle only"))).toBe(true);
+  });
+
+  it("takes reviewers by GitHub id, which a renamed handle cannot take over", async () => {
+    const g = await makeFixture({ config: { adminLogins: [], adminIds: [900] } });
+    try {
+      expect((await g.request("/admin", { session: g.signIn("whoever-900-is-now", 900) })).status).toBe(200);
+      expect((await g.request("/admin", { session: g.signIn("rev", 901) })).status).toBe(403);
+    } finally {
+      await g.close();
+    }
+  });
+});
+
 describe("claims", () => {
   it("claims an AI-made bot: approved, it becomes the person's, based on an AI-made draft", async () => {
     const ana = f.signIn("ana", 101);
@@ -448,5 +636,90 @@ describe("submit_bot over MCP", () => {
     } finally {
       await client.close();
     }
+  });
+
+  async function viaMcp(packUrl: string, creator: string): Promise<string> {
+    const client = new Client({ name: "scripted-agent", version: "1.0.0" });
+    await client.connect(
+      new StreamableHTTPClientTransport(new URL(`${SITE}/mcp`), {
+        fetch: async (input, init) =>
+          f.server.app.request(typeof input === "string" ? input : input.toString(), init),
+      }),
+    );
+    try {
+      const sent = await client.callTool({
+        name: "submit_bot",
+        arguments: { confirm_its_mine: true, pack_url: packUrl, creator_handle: creator },
+      });
+      expect(sent.isError).toBeFalsy();
+      return (sent.structuredContent as { id: string }).id;
+    } finally {
+      await client.close();
+    }
+  }
+
+  const form = (session: string, path: string) =>
+    f.request(path, {
+      method: "POST",
+      session,
+      headers: { origin: SITE, "content-type": "application/x-www-form-urlencoded" },
+      body: "",
+    });
+
+  it("waits for the named creator to sign in and say it is theirs before a claim can be approved", async () => {
+    f.github.addRepo(
+      "ana",
+      "meals",
+      pack("meal-planner", { name: "Meal Planner", pitch: "Plans dinners.", category: "food", version: 2 }),
+    );
+    const id = await viaMcp("https://github.com/ana/meals", "ana");
+    expect(f.server.store.submission(id)).toMatchObject({ kind: "claim", submitter: { verified: false } });
+    const rev = f.signIn("rev", 900);
+    const early = await f.request(`/api/admin/submissions/${id}/approve`, {
+      method: "POST",
+      session: rev,
+      json: {},
+    });
+    expect(early.status).toBe(409);
+    expect(early.body.error).toContain("has not confirmed this is theirs");
+    expect((await f.request("/admin", { session: rev })).text).toContain("has not confirmed this is theirs");
+
+    // Ana signs in: /submit lists it under "Sent in your name" with the two answers.
+    const ana = f.signIn("Ana", 101);
+    const page = await f.request("/submit", { session: ana });
+    expect(page.text).toContain("Sent in your name");
+    expect(page.text).toContain(`/submit/${id}/confirm`);
+    expect((await f.request("/api/submissions/mine", { session: ana })).body.unconfirmed).toHaveLength(1);
+
+    // Someone else cannot answer for her.
+    expect((await form(f.signIn("mal", 666), `/submit/${id}/confirm`)).status).toBe(403);
+
+    const yes = await form(ana, `/submit/${id}/confirm`);
+    expect(yes.status).toBe(303);
+    expect(yes.headers.get("location")).toBe("/submit?m=confirmed");
+    expect(f.server.store.submission(id)?.submitter).toEqual({ githubId: 101, login: "ana", verified: true });
+    expect(f.server.submissions.mine(101).map((s) => s.id)).toContain(id);
+    expect((await form(ana, `/submit/${id}/confirm`)).status).toBe(404);
+
+    const approved = await f.request(`/api/admin/submissions/${id}/approve`, {
+      method: "POST",
+      session: rev,
+      json: {},
+    });
+    expect(approved.status).toBe(200);
+    expect(f.server.store.approvedFor("meal-planner")?.submitter.githubId).toBe(101);
+  });
+
+  it("turns a submission down when the person it names says it is not theirs", async () => {
+    f.github.addRepo("mal", "bots", { ...GOOD, author: { kind: "person", handle: "ana" } });
+    const id = await viaMcp("https://github.com/mal/bots", "ana");
+    const ana = f.signIn("ana", 101);
+    const no = await f.request(`/api/submissions/${id}/disown`, { method: "POST", session: ana, json: {} });
+    expect(no.status).toBe(200);
+    expect(f.server.store.submission(id)).toMatchObject({
+      status: "rejected",
+      note: "@ana said this was not theirs.",
+    });
+    expect(f.server.submissions.unconfirmed({ login: "ana" })).toEqual([]);
   });
 });

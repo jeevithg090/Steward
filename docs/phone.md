@@ -110,7 +110,8 @@ and dies after 5 wrong tries. The key is stored in `iCloud Drive/Shortcuts/Stewa
 
 **One tap, with the key inside (Mac only).** The Shortcuts page can make a copy of the Steward
 shortcut that already holds a new key, signed on this Mac for your own devices
-(`people-who-know-me`; nothing goes to Apple). The link works once, for 10 minutes. Open it only on
+(`people-who-know-me`; nothing goes to Apple). The link works once, for 10 minutes. If nobody
+downloads it in that time, or Steward restarts first, the key inside is revoked. Open it only on
 your own iPhone, and delete the download afterwards. Whether an iPhone accepts it with Private
 Sharing switched off is still to be checked (below); pairing with the code always works.
 
@@ -132,14 +133,14 @@ Answers come back as words the shortcut shows, and Siri reads them aloud when Si
 
 Each phone has its own key and its own list, under Settings → Phone:
 
-| It may                | Out of the box | What it means                                           |
-| --------------------- | -------------- | ------------------------------------------------------- |
-| Read the brief        | yes            | What needs you today.                                   |
-| See what Steward asks | yes            | List requests waiting for you, and **refuse** them.     |
-| Say yes to requests   | **no**         | "This phone can say yes to things Steward asks about."  |
-| Talk to Steward       | yes            | Ask for things; work started from a phone is marked so. |
-| Tasks                 | yes            | See tasks.                                              |
-| Run routines          | yes            | Run one of your routines now.                           |
+| It may                | Out of the box | What it means                                                                                                |
+| --------------------- | -------------- | ------------------------------------------------------------------------------------------------------------ |
+| Read the brief        | yes            | What needs you today. Requests are in it only if the phone may see them.                                     |
+| See what Steward asks | yes            | List requests waiting for you, and **refuse** them. Without it, a notification says only that Steward waits. |
+| Say yes to requests   | **no**         | "This phone can say yes to things Steward asks about."                                                       |
+| Talk to Steward       | yes            | Ask for things, and carry on in conversations this phone started.                                            |
+| Tasks                 | yes            | See tasks, and start or hide one. A task started here runs as the phone's.                                   |
+| Run routines          | yes            | Run one of your routines now.                                                                                |
 
 And never, whatever you switch on:
 
@@ -149,11 +150,15 @@ And never, whatever you switch on:
 - **Always allow** is chosen on your Mac: it writes a standing rule.
 - **Rules, settings, connections, secrets, the shell and the computer** are not reachable from a
   phone at all.
+- **Conversations started on your Mac**, by a routine or by another phone are not reachable from
+  it either. A phone carries on only in its own chats and in the tasks it started.
 - **Work started from a phone asks before it sends**, signs, deletes or runs a command, even where
-  you chose Always allow (a preset on `/rules`).
+  you chose Always allow (a preset on `/rules`). That includes a task started from the phone. A
+  routine run from the phone keeps the routine's own rules, which ask for the same things.
 
-Every answer from a phone is in the record: "Answered from Sam's iPhone (Shortcuts)". Revoke a
-phone in Settings → Phone; its next call is refused.
+Every answer from a phone is in the record: "Answered from Sam's iPhone (Shortcuts)". So is every
+task or routine a phone starts: "Started work, from Sam's iPhone". Revoke a phone in Settings →
+Phone; its next call is refused.
 
 ## Updates
 
@@ -181,11 +186,12 @@ RELAY_PUBLIC_URL=https://relay.example.com \
 pnpm --filter @steward/relay start
 ```
 
-It listens on `127.0.0.1:8790`. Put HTTPS in front of it, for example with Caddy:
+It listens on `127.0.0.1:8791` (`RELAY_PORT` to change it). Put HTTPS in front of it, for example
+with Caddy:
 
 ```text
 relay.example.com {
-  reverse_proxy 127.0.0.1:8790
+  reverse_proxy 127.0.0.1:8791
 }
 ```
 
@@ -222,10 +228,16 @@ is no master secret to hand over or recover. A lost phone is revoked and a new o
 ### What the relay can see
 
 Which phones are paired (by id), when they connect and from which IP address, how large each
-message is and when it was sent, the name of each request (for example `approval.decide`), and your
-phone's push address. Not what any message says: chat, approvals and notifications are sealed with
-each phone's own key before they leave Steward. Push bodies are sealed too, so Apple and Google see
-only an opaque blob and a level.
+message is and when it was sent, the name of each request (for example `approval.decide`), what
+kind of update each message is (a request, a notification, a conversation, by its id) and how
+urgent a notification is, and your phone's push address. So it can tell when Steward is waiting
+for you, and which conversation is active. It never sees what any message says: chat, approvals
+and notifications are sealed with each phone's own key before they leave Steward. Push bodies are
+sealed too, so Apple and Google see only an opaque blob and a level.
+
+**The relay also serves the app itself.** Whoever controls the relay's server could change the
+app's code, and that code holds the phone's keys. The six-digit check catches keys swapped in
+transit, not a changed app. So host the relay somewhere only you control, as you would Steward.
 
 ### Answers from the app
 
@@ -236,11 +248,20 @@ only an opaque blob and a level.
   finished on your Mac.
 - The record says "Answered from Sam's iPhone (phone app, Face ID checked)".
 - Revoke the phone in Settings → Phone: the relay closes its connection and forgets its token and
-  log at once.
+  log at once. If Steward can't reach the relay then, the relay forgets them as soon as Steward
+  reconnects: each time it connects, Steward lists the phones it still knows, and the relay drops
+  the rest. So one relay serves one Steward.
 
 What the app may ask is a closed list: `approval.decide`, `chat.send`, `task.start`, `task.hide`,
 `routine.run`, `run.stop` and `brief.get`. Rules, settings, connections, secrets, the shell and the
 computer are never reachable from it.
+
+The relay is not trusted to pass each request on once, on time, and to the right place. So every
+request is sealed with its name, a one-time id and the time it was made. Steward refuses a request
+it has seen before, or one more than two minutes old, and records the refusal. Its answer is sealed
+with the same id, so the app never takes one request's answer for another's. Each update is sealed
+with its kind (a request, a notification, a conversation), so the relay cannot pass one off as
+another. A phone can start at most 20 chats, tasks or routines a minute.
 
 ## For maintainers: signing a release
 

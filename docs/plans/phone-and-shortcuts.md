@@ -428,7 +428,8 @@ you, Chat and Tasks. It reuses the existing components and accessibility work.
 4. The desktop seals the data key to the device key.
 
 Pairing requests expire after 2 minutes and are used once. Tokens are per device and revocable.
-There is no handover of a master secret, and a recovery key is offered.
+There is no handover of a master secret, and nothing to recover: a lost phone is revoked and a
+new one paired. (`packages/remote` keeps the recovery-key format, unused.)
 
 ### 5.3 Data plane
 
@@ -516,7 +517,7 @@ Only if the PWA's iOS limits block us, or once Phase 2 is stable.
 | A hostile web page triggers `run-shortcut` pairing | The shortcut shows the host and machine name and needs a tap. It accepts only `steward-pair:` with `u`, `c` and `n`. Codes are single-use and short-lived. Plain `http` is accepted only for private hosts, with a warning. |
 | A stolen phone                                     | Revocation in Settings → Phone. Scopes are narrow and `approvals:decide` is off by default. Floor kinds are never decided from a phone. The PWA uses WebAuthn for tainted sends.                                            |
 | Replayed approvals                                 | Signed, nonce'd, time-boxed decisions (PWA). Claim-once in the gateway. The digest check is unchanged.                                                                                                                      |
-| A curious relay operator                           | End-to-end encryption, and the relay stores ciphertext and ids only. What it still sees is listed in Settings: ids, timing, IP addresses, sizes and RPC method names.                                                       |
+| A curious relay operator                           | End-to-end encryption; the relay keeps ciphertext and ids only. Settings lists what it sees: ids, timing, IPs, sizes, method names, topics, push levels. It serves the app, so you host it.                                 |
 | Push content leaking                               | Push bodies are sealed. Steward never sends plaintext through Apple, Google or the relay.                                                                                                                                   |
 | A shortcut's own data at rest                      | The token sits in Shortcuts Storage or iCloud Drive and is readable by the person's other shortcuts. This is documented. The token is revocable and can only call `/device/*`.                                              |
 | Old weaknesses copied from Happy                   | §1 "not taken", plus review gates: no remote shell, no phone-set permission modes, no secret in `localStorage`.                                                                                                             |

@@ -251,7 +251,7 @@ export class DeviceStore {
   }
 
   /** Revokes at once: the next call with its token is refused, and the relay is told. */
-  revoke(id: string): Device | undefined {
+  revoke(id: string, detail: Record<string, unknown> = {}): Device | undefined {
     const at = this.now().toISOString();
     const changed = this.db.run(
       "UPDATE devices SET revoked_at = ?, remote_key = NULL WHERE id = ? AND revoked_at IS NULL",
@@ -259,7 +259,7 @@ export class DeviceStore {
     );
     const device = this.get(id);
     if (changed.changes === 1 && device) {
-      this.record("device.revoked", device, {});
+      this.record("device.revoked", device, detail);
       for (const listener of this.revokeListeners) {
         try {
           listener(device);
@@ -269,6 +269,18 @@ export class DeviceStore {
       }
     }
     return device;
+  }
+
+  /**
+   * Revokes the keys made for one-tap files that nobody fetched. Such a key was never seen: a phone
+   * paired by code is seen at pairing, and a file is seen when it is fetched. Download links live in
+   * memory, so at start none of these files can be fetched any more. Called once, at start.
+   */
+  revokeUnfetchedFiles(reason: string): Device[] {
+    const rows = this.db.all<{ id: string }>(
+      "SELECT id FROM devices WHERE kind = 'shortcut' AND last_seen_at IS NULL AND revoked_at IS NULL",
+    );
+    return rows.flatMap((row) => this.revoke(row.id, { reason }) ?? []);
   }
 
   onRevoke(listener: (device: Device) => void): () => void {
@@ -336,6 +348,25 @@ export class DeviceStore {
     return added.changes === 1;
   }
 
+  /** Notes a conversation this phone started, so it may carry on in it. */
+  addThread(deviceId: string, threadId: string): void {
+    this.db.run("INSERT OR IGNORE INTO device_threads (device_id, thread_id, created_at) VALUES (?, ?, ?)", [
+      deviceId,
+      threadId,
+      this.now().toISOString(),
+    ]);
+  }
+
+  /** True when this phone started the conversation: the only ones it may post into or stop. */
+  hasThread(deviceId: string, threadId: string): boolean {
+    return (
+      this.db.get("SELECT 1 AS yes FROM device_threads WHERE device_id = ? AND thread_id = ?", [
+        deviceId,
+        threadId,
+      ]) !== undefined
+    );
+  }
+
   update(id: string, patch: { scopes?: DeviceScope[]; name?: string }): Device | undefined {
     const before = this.get(id);
     if (!before || before.revokedAt) return undefined;
@@ -352,16 +383,26 @@ export class DeviceStore {
     return after;
   }
 
+  /**
+   * Notes that a phone started work that is not its own conversation, a task or a routine, so the
+   * record says which phone it was. A routine still runs as the routine, with its own presets.
+   */
+  started(device: Device, run: { threadId: string; runId: string }, detail: Record<string, unknown>): void {
+    this.record("run.started", device, detail, run);
+  }
+
   /** Writes a device row to the record. A record that cannot be written is reported, never silent. */
   record(
-    type: "device.paired" | "device.changed" | "device.revoked" | "device.refused",
+    type: "device.paired" | "device.changed" | "device.revoked" | "device.refused" | "run.started",
     device: Device | undefined,
     detail: Record<string, unknown>,
+    run?: { threadId: string; runId: string },
   ): void {
     try {
       this.audit.append({
         type,
         actorId: this.actorId,
+        ...(run ? { threadId: run.threadId, runId: run.runId } : {}),
         detail: {
           ...(device ? { via: `device:${device.id}`, device: device.name, deviceKind: device.kind } : {}),
           ...detail,

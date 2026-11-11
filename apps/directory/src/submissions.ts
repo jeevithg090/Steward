@@ -55,6 +55,8 @@ export interface CheckedPack {
   fetched: FetchedPack;
 }
 
+export type PendingSubmission = Submission & { blocked?: string };
+
 export const CONFIRM_FIRST =
   "Confirm the pack is yours, or that you may share it under MIT, before submitting it.";
 
@@ -107,6 +109,64 @@ export class Submissions {
     }
   }
 
+  /**
+   * Whether the submitter owns a listing now. Once a submission for it was approved, only that
+   * person's GitHub id counts: a handle can be renamed and then registered by someone else. A
+   * listing nobody has had approved here (a seed) can only be matched by handle, and the reviewer
+   * is told so.
+   */
+  private ownership(botId: string, existing: BotPack, submitter: Submitter): "id" | "handle" | undefined {
+    const owner = this.opts.store.approvedFor(botId);
+    if (owner?.submitter.githubId !== undefined) {
+      return submitter.githubId !== undefined && owner.submitter.githubId === submitter.githubId
+        ? "id"
+        : undefined;
+    }
+    const handle =
+      owner?.submitter.login ?? (existing.author.kind === "person" ? existing.author.handle : "");
+    return submitter.verified && handle !== "" && handle.toLowerCase() === submitter.login.toLowerCase()
+      ? "handle"
+      : undefined;
+  }
+
+  /** Who a listing belongs to now, for a refusal: the approved owner, or the credited author. */
+  private ownerName(botId: string, existing: BotPack): string | undefined {
+    const owner = this.opts.store.approvedFor(botId)?.submitter.login;
+    return owner ?? (existing.author.kind === "person" ? existing.author.handle : undefined);
+  }
+
+  /**
+   * The reviewer's warning for a claim of a listing another GitHub account had approved here, or
+   * undefined. A handle that matches may be the owner's old one, renamed and registered again.
+   */
+  private ownedElsewhere(botId: string, submitter: Submitter): PackProblem | undefined {
+    const owner = this.opts.store.approvedFor(botId)?.submitter;
+    if (owner?.githubId === undefined || owner.githubId === submitter.githubId) return undefined;
+    return {
+      path: "submitter",
+      message: `It belongs to another GitHub account (approved here as @${owner.login}). The same handle does not mean the same person. Approving gives the listing to @${submitter.login}.`,
+      severity: "warn",
+    };
+  }
+
+  /**
+   * Why a pending submission can no longer be approved, or undefined when it still can. The checks
+   * made at submit time held for the listing as it was then; if another approval moved it on since
+   * (a competing claim, a new owner), only its current owner may still change it.
+   */
+  stale(submission: Submission): string | undefined {
+    const previous = this.opts.catalogue.pack(submission.botId);
+    if (!previous) return undefined;
+    if (submission.baseVersion !== undefined && previous.version === submission.baseVersion) return undefined;
+    // Made before the base was kept: a claim was the reviewer's call then, and still is.
+    if (submission.baseVersion === undefined && submission.kind === "claim") return undefined;
+    if (this.ownership(submission.botId, previous, submission.submitter)) return undefined;
+    const owner = this.ownerName(submission.botId, previous);
+    return owner
+      ? `The id "${submission.botId}" now belongs to @${owner}. Ask the submitter to pick another id.`
+      : `"${submission.botId}" changed since this was submitted. Ask the submitter to send it again.`;
+  }
+
   /** New listing, update of the submitter's own, or a claim of an AI-made one. Anything else is refused. */
   private kindFor(pack: BotPack, submitter: Submitter): Submission["kind"] {
     const existing = this.opts.catalogue.pack(pack.id);
@@ -121,11 +181,7 @@ export class Submissions {
       }
       return "claim";
     }
-    const owner = this.opts.store.approvedFor(pack.id);
-    const mine = owner?.submitter.githubId !== undefined && owner.submitter.githubId === submitter.githubId;
-    const sameHandle =
-      submitter.verified && existing.author.handle.toLowerCase() === submitter.login.toLowerCase();
-    if (!mine && !sameHandle) {
+    if (!this.ownership(pack.id, existing, submitter)) {
       throw new SubmissionError(
         `The id "${pack.id}" is taken by a bot made by @${existing.author.handle}. Pick another id, or claim that listing if it is yours.`,
         409,
@@ -184,6 +240,15 @@ export class Submissions {
       });
     }
     const existing = this.opts.catalogue.pack(pack.id);
+    const elsewhere = kind === "claim" ? this.ownedElsewhere(pack.id, submitter) : undefined;
+    if (elsewhere) notes.push(elsewhere);
+    if (kind === "update" && existing && this.ownership(pack.id, existing, submitter) === "handle") {
+      notes.push({
+        path: "submitter",
+        message: `Matched to this listing by GitHub handle only: nobody has had it approved here yet. Check @${login} made it.`,
+        severity: "warn",
+      });
+    }
     const { hash: _hash, ...withoutHash } = pack;
     const stored: BotPack =
       kind === "claim" && existing
@@ -196,6 +261,7 @@ export class Submissions {
       sourceUrl: fetched.source.url,
       submitter,
       ownerMatches,
+      baseVersion: existing?.version ?? 0,
       warnings: notes,
       createdAt: this.now().toISOString(),
     });
@@ -219,7 +285,10 @@ export class Submissions {
       throw new SubmissionError("This bot is already yours.", 409);
     }
     const notes: PackProblem[] = [];
-    if (
+    const elsewhere = this.ownedElsewhere(input.botId, input.submitter);
+    if (elsewhere) {
+      notes.push(elsewhere);
+    } else if (
       existing.author.kind === "person" &&
       existing.author.handle.toLowerCase() !== input.submitter.login.toLowerCase()
     ) {
@@ -242,13 +311,70 @@ export class Submissions {
       sourceUrl: profileUrl(input.submitter.login),
       submitter: input.submitter,
       ownerMatches: true,
+      baseVersion: existing.version,
       warnings: notes,
       createdAt: this.now().toISOString(),
     });
   }
 
-  pending(): Submission[] {
-    return this.opts.store.submissions({ status: "pending" });
+  /** What waits for a reviewer, each with the reason it cannot be approved now, if there is one. */
+  pending(): PendingSubmission[] {
+    return this.opts.store.submissions({ status: "pending" }).map((s) => {
+      const blocked = this.blocked(s);
+      return blocked ? { ...s, blocked } : s;
+    });
+  }
+
+  /**
+   * Why a reviewer cannot approve a pending submission now, or undefined. A claim sent through MCP
+   * under someone's handle waits until that person signs in and confirms it, and one whose listing
+   * has moved on to another owner since is refused (see `stale`).
+   */
+  blocked(submission: Submission): string | undefined {
+    if (submission.kind !== "new" && !submission.submitter.verified) {
+      return `@${submission.submitter.login} has not confirmed this is theirs yet. They sign in on /submit to confirm it.`;
+    }
+    return this.stale(submission);
+  }
+
+  /** Submissions sent through MCP under this person's handle, waiting for them to say yes or no. */
+  unconfirmed(user: { login: string }): Submission[] {
+    return this.opts.store.unconfirmedFor(user.login);
+  }
+
+  private unconfirmedOne(id: string, user: { login: string }): Submission {
+    const submission = this.opts.store.submission(id);
+    if (submission?.status !== "pending" || submission.submitter.verified) {
+      throw new SubmissionError("That submission is not waiting for you to confirm it.", 404);
+    }
+    if (submission.submitter.login.toLowerCase() !== user.login.toLowerCase()) {
+      throw new SubmissionError("That submission names someone else.", 403);
+    }
+    return submission;
+  }
+
+  /** "This is mine": the signed-in person the submission names takes it as theirs. */
+  confirm(id: string, user: { githubId: number; login: string }): Submission {
+    const submission = this.unconfirmedOne(id, user);
+    const warnings = [
+      ...submission.warnings.filter((w) => w.path !== "submitter"),
+      {
+        path: "submitter",
+        message: `Sent through MCP; @${user.login} signed in and confirmed it is theirs.`,
+        severity: "warn" as const,
+      },
+    ];
+    return this.opts.store.confirmSubmission(id, user.githubId, warnings) ?? submission;
+  }
+
+  /** "Not mine": the person it names says they did not send it, so it is rejected. */
+  disown(id: string, user: { githubId: number; login: string }): Submission {
+    const submission = this.unconfirmedOne(id, user);
+    const note = `@${user.login} said this was not theirs.`;
+    return (
+      this.opts.store.decideSubmission(id, "rejected", user.login, note, this.now().toISOString()) ??
+      submission
+    );
   }
 
   mine(githubId: number): Submission[] {
@@ -268,11 +394,13 @@ export class Submissions {
     if (!submission) throw new SubmissionError("That submission no longer exists.", 404);
     if (submission.status !== "pending")
       throw new SubmissionError(`That submission was already ${submission.status}.`, 409);
+    const blocked = this.blocked(submission);
+    if (blocked) throw new SubmissionError(blocked, 409);
     const catalogue = this.opts.catalogue;
     const previous = catalogue.pack(submission.botId);
     let pack = submission.pack;
     if (previous && pack.version <= previous.version) {
-      // Another approval moved the listing on since this was submitted; keep the versions in order.
+      // The owner's own earlier change was approved since; keep the versions in order.
       pack = { ...pack, version: previous.version + 1 };
     }
     const folder = join(catalogue.dir, "bots", submission.botId);

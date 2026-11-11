@@ -1,7 +1,7 @@
 import { describeMayDo } from "@steward/bots";
 import type { BotListing, BotPack } from "@steward/shared";
 import type { Catalogue, SortKey } from "./catalogue.ts";
-import type { DirectoryConfig } from "./config.ts";
+import { type DirectoryConfig, isReviewer, reviewerCount } from "./config.ts";
 import {
   authorHtml,
   authorText,
@@ -35,7 +35,7 @@ const SORTS: { key: SortKey; label: string }[] = [
 ];
 
 function isAdmin(ctx: SiteContext): boolean {
-  return ctx.user !== undefined && ctx.config.adminLogins.includes(ctx.user.login.toLowerCase());
+  return isReviewer(ctx.config, ctx.user);
 }
 
 function navUser(ctx: SiteContext): NavUser | undefined {
@@ -175,7 +175,7 @@ ${searchForm(ctx, q, category, sort)}
     )
     .join("")}</ul>
 <p class="meta" role="status">${plural(found.total, "bot")}${q ? ` match "${esc(q)}"` : ""}${query.needs?.length ? ` that need ${query.needs.map(escape).join(", ")}` : ""}.</p>
-${found.bots.length ? `<ul class="grid">${found.bots.map((b) => cardHtml(b, catalogue)).join("")}</ul>` : '<p>Nothing matched. Try other words, or <a href="/submit">make and submit the bot</a>.</p>'}
+${found.bots.length ? `<ul class="grid">${found.bots.map((b) => cardHtml(b, catalogue)).join("")}</ul>` : `<p>Nothing matched. ${found.hint ? esc(found.hint) : "Try other words."} Or <a href="/submit">make and submit the bot</a>.</p>`}
 ${
   pages > 1
     ? `<nav class="pager" aria-label="Pages">${pageNo > 1 ? `<a href="${link(pageNo - 1)}">Previous</a>` : ""}<span class="meta">Page ${pageNo} of ${pages}</span>${pageNo < pages ? `<a href="${link(pageNo + 1)}">Next</a>` : ""}</nav>`
@@ -305,7 +305,26 @@ export interface SubmitState {
   error?: boolean;
   problems?: string[];
   mine?: Submission[];
+  /** Sent through MCP under this person's handle, waiting for them to say whether it is theirs. */
+  unconfirmed?: Submission[];
   url?: string;
+}
+
+function unconfirmedHtml(list: Submission[]): string {
+  if (!list.length) return "";
+  return `<h2>Sent in your name</h2>
+<p>An agent sent ${list.length === 1 ? "this bot" : "these bots"} through the directory's MCP tool and named you as the creator. Nothing is listed until you say it is yours and a reviewer approves it.</p>
+${list
+  .map(
+    (s) => `<section class="card" aria-labelledby="u-${esc(s.id)}">
+<h3 id="u-${esc(s.id)}">${esc(s.pack.name)} <span class="meta">${esc(s.botId)} · v${s.pack.version} · ${formatDate(s.createdAt)}</span></h3>
+<p>${esc(s.pack.pitch)}</p>
+<p class="meta">From ${safeHref(s.sourceUrl) ? `<a href="${esc(s.sourceUrl)}" rel="nofollow noopener ugc">${esc(s.sourceUrl)}</a>` : esc(s.sourceUrl)}</p>
+<form class="stack" method="post" action="/submit/${esc(s.id)}/confirm"><button class="primary" type="submit">This is mine</button></form>
+<form class="stack" method="post" action="/submit/${esc(s.id)}/disown"><button class="quiet" type="submit">Not mine</button></form>
+</section>`,
+  )
+  .join("")}`;
 }
 
 function submissionRow(s: Submission): string {
@@ -315,7 +334,7 @@ function submissionRow(s: Submission): string {
 export function submitPage(ctx: SiteContext, state: SubmitState = {}): string {
   const { config, user } = ctx;
   const signIn = Boolean(config.github);
-  const canReview = config.adminLogins.length > 0;
+  const canReview = reviewerCount(config) > 0;
   let form: string;
   if (!signIn) {
     form = `<p class="notice">This directory has no GitHub sign-in set up, so it does not take submissions. Its host can turn it on with <code>GITHUB_CLIENT_ID</code> and <code>GITHUB_CLIENT_SECRET</code>.</p>`;
@@ -331,7 +350,8 @@ ${state.problems?.length ? `<ul class="notice">${state.problems.map((p) => `<li>
 <label class="check"><input type="checkbox" name="confirm" value="1" required> <span>This pack is mine, or I may share it, and I publish it under the MIT licence.</span></label>
 <button class="primary" type="submit">Submit for review</button>
 </form>
-${!canReview ? `<p class="notice">No reviewer is set on this directory (ADMIN_GITHUB_LOGINS), so submissions will wait.</p>` : ""}
+${!canReview ? `<p class="notice">No reviewer is set on this directory (ADMIN_GITHUB_IDS or ADMIN_GITHUB_LOGINS), so submissions will wait.</p>` : ""}
+${unconfirmedHtml(state.unconfirmed ?? [])}
 ${
   state.mine?.length
     ? `<h2>Your submissions</h2><table><thead><tr><th>Bot</th><th>Kind</th><th>Status</th><th>Sent</th></tr></thead><tbody>${state.mine.map(submissionRow).join("")}</tbody></table>`
@@ -351,7 +371,7 @@ ${form}
 <h2>Claiming an existing listing</h2>
 <p>Bots adapted from other open catalogues are credited to their original authors, and AI-made bots to the model that wrote them. If one is yours, open its page and use <em>Claim it</em>; a reviewer confirms, and the listing becomes yours.</p>
 <h2>From an agent</h2>
-<p>The MCP tool <code>submit_bot(confirm_its_mine, pack_url, creator_handle)</code> does the same without a sign-in; the submission is marked unverified until the creator signs in here.</p>
+<p>The MCP tool <code>submit_bot(confirm_its_mine, pack_url, creator_handle)</code> does the same without a sign-in. The submission is marked unverified until the creator signs in here and says it is theirs; it is listed under "Sent in your name".</p>
 `;
   return frame(ctx, "/submit", "Submit a bot", body, { noindex: Boolean(user) });
 }
@@ -391,7 +411,8 @@ export function privacyPage(ctx: SiteContext): string {
 }
 
 export interface AdminData {
-  pending: Submission[];
+  /** `blocked` says why one cannot be approved now: it is unconfirmed, or the listing moved on. */
+  pending: (Submission & { blocked?: string })[];
   reports: Report[];
   message?: string;
   retirement?: {
@@ -444,7 +465,7 @@ ${
 <h3 id="s-${esc(s.id)}">${esc(s.pack.name)} <span class="meta">${esc(s.botId)} · v${s.pack.version} · ${esc(s.kind)} · ${formatDate(s.createdAt)}</span></h3>
 <p>${esc(s.pack.pitch)}</p>
 ${packSummary(s)}
-<form class="stack" method="post" action="/admin/submissions/${esc(s.id)}/approve"><button class="primary" type="submit">Approve and list</button></form>
+${s.blocked ? `<p class="notice" role="note">${esc(s.blocked)}</p>` : `<form class="stack" method="post" action="/admin/submissions/${esc(s.id)}/approve"><button class="primary" type="submit">Approve and list</button></form>`}
 <form class="stack" method="post" action="/admin/submissions/${esc(s.id)}/reject"><label>Reason for the submitter<input name="note" maxlength="500"></label><button class="quiet" type="submit">Reject</button></form>
 </section>`,
         )

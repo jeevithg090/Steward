@@ -43,7 +43,12 @@ export interface SearchQuery {
 export interface SearchResult {
   bots: BotListing[];
   total: number;
+  /** Set when the query had no words to search for, so nothing matched. */
+  hint?: string;
 }
+
+/** What a search with no usable words says instead of listing every bot. */
+export const NO_WORDS_HINT = 'Try a few plain words about the job, such as "plan my meals".';
 
 export interface CategoryCount {
   id: string;
@@ -87,9 +92,13 @@ const STOPWORDS = new Set([
   "need",
 ]);
 
+/**
+ * The words of a query, in any script. Each is only letters and digits, so once quoted by
+ * `ftsQuery` nothing in it can be read as FTS5 syntax.
+ */
 export function tokensOf(text: string): string[] {
   const seen = new Set<string>();
-  for (const token of text.toLowerCase().match(/[a-z0-9]+/g) ?? []) {
+  for (const token of text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []) {
     if (STOPWORDS.has(token) || token.length < 2) continue;
     seen.add(token);
     if (seen.size >= 12) break;
@@ -284,7 +293,11 @@ export class Catalogue {
     const limit = clamp(Math.trunc(query.limit ?? 50), 1, MAX_LIMIT);
     const offset = Math.max(0, Math.trunc(query.offset ?? 0));
     const sort: SortKey = query.sort ?? "match";
-    const tokens = tokensOf(query.q ?? "");
+    const q = query.q?.trim() ?? "";
+    const tokens = tokensOf(q);
+    // Words were asked for but none are searchable ("help me please"): nothing matches, rather
+    // than every bot, so no one is told a bot fits a job it was never checked against.
+    if (q && tokens.length === 0) return { bots: [], total: 0, hint: NO_WORDS_HINT };
     const category = query.category?.trim();
     const params: string[] = [];
     let sql: string;

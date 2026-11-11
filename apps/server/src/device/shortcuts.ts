@@ -17,7 +17,7 @@ import {
 } from "@steward/shortcuts";
 import type { StewardServices } from "../context.ts";
 import { HttpError, notFound } from "../http/errors.ts";
-import type { InstallStore } from "./installs.ts";
+import { type InstallStore, UNFETCHED } from "./installs.ts";
 import { machineName } from "./phone.ts";
 
 /**
@@ -116,9 +116,9 @@ export async function makeInstall(
     bytes: Uint8Array,
     name: string,
     personal: boolean,
-    onExpire?: () => void,
+    hooks: { onExpire?: () => void; onTake?: () => void } = {},
   ): ShortcutInstall => {
-    const held = deps.installs.add({ bytes, name, personal, ...(onExpire ? { onExpire } : {}) });
+    const held = deps.installs.add({ bytes, name, personal, ...hooks });
     return {
       url: `${url}${route(DEVICE_ROUTES.install, { id: `${held.id}.shortcut` })}`,
       expiresAt: held.expiresAt,
@@ -167,8 +167,13 @@ export async function makeInstall(
       s.devices.revoke(device.id);
       throw err;
     }
-    return offer(bytes, STEWARD_SHORTCUT.name, true, () => {
-      if (!s.devices.get(device.id)?.lastSeenAt) s.devices.revoke(device.id);
+    return offer(bytes, STEWARD_SHORTCUT.name, true, {
+      // Fetching its file is the first time Steward sees this phone. A key whose file nobody
+      // fetched is revoked when the link dies, or at the next start if Steward stopped first.
+      onTake: () => s.devices.touch(device),
+      onExpire: () => {
+        if (!s.devices.get(device.id)?.lastSeenAt) s.devices.revoke(device.id, { reason: UNFETCHED });
+      },
     });
   }
 

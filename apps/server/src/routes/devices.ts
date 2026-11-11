@@ -22,7 +22,9 @@ const RELAY_SEES = [
   "When they connect, from which IP address",
   "How large each message is, and when it was sent",
   "The name of each request (for example approval.decide), never its content",
+  "What kind of update each message is (a request, a notification, a conversation), and how urgent a notification is",
   "Your phone's push address",
+  "The phone app itself, which it serves: host the relay somewhere only you control",
 ];
 
 /**

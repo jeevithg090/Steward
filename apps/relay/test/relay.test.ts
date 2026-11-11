@@ -1,5 +1,5 @@
 import { createECDH, createPublicKey, randomBytes, verify } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToDevice, ToMachine } from "@steward/remote";
@@ -157,6 +157,30 @@ describe("the relay server", () => {
     expect((await refused).error).toBe("A phone can't ask for that.");
   });
 
+  it("revokes every phone Steward no longer lists when it connects", async () => {
+    const { url, ws, logs } = await start();
+    const kept = await device(ws, "dev_keepkeep");
+    const gone = await device(ws, "dev_gonegone");
+    relay!.store.append(gone.deviceId, [{ localId: "a", topic: "approvals", c: "sealed" }]);
+    const told = next(gone.ws, "revoked");
+    const closed = new Promise<number>((r) => gone.ws.once("close", (code) => r(code)));
+    const machine = await open(`${ws}/v1/machine`, { authorization: `Bearer ${TOKEN}` });
+    // Not a list of ids: nothing changes.
+    machine.send(JSON.stringify({ type: "devices.sync", deviceIds: "everyone" }));
+    machine.send(JSON.stringify({ type: "devices.sync", deviceIds: [kept.deviceId] }));
+    await told;
+    expect(await closed).toBe(4403);
+    expect(relay!.store.deviceForToken(gone.token)).toBeUndefined();
+    expect(relay!.store.after(gone.deviceId, 0)).toEqual([]);
+    expect(relay!.store.deviceForToken(kept.token)).toBe(kept.deviceId);
+    expect(kept.ws.readyState).toBe(WebSocket.OPEN);
+    const envelopes = await fetch(`${url}/v1/envelopes`, {
+      headers: { authorization: `Bearer ${gone.token}` },
+    });
+    expect(envelopes.status).toBe(401);
+    expect(logs.filter((l) => l.includes('"event":"devices.sync"'))).toHaveLength(1);
+  });
+
   it("waits the grace for Steward to come back, then says it is offline", async () => {
     const { ws } = await start({ graceMs: 150 });
     const phone = await device(ws);
@@ -207,6 +231,31 @@ describe("the relay server", () => {
     expect((await fetch(`${url}/sw.js`)).headers.get("content-type")).toContain("javascript");
     expect((await fetch(`${url}/..%2f..%2fetc%2fpasswd`)).status).toBe(200);
     expect(await (await fetch(`${url}/..%2f..%2fetc%2fpasswd`)).text()).toContain("<title>Steward</title>");
+  });
+
+  it("never serves a file from a sibling folder or through a link that points out", async () => {
+    const parent = mkdtempSync(join(tmpdir(), "relay-static-"));
+    dirs.push(parent);
+    const dir = join(parent, "dist-phone");
+    mkdirSync(dir);
+    writeFileSync(join(dir, "index.html"), "<!doctype html><title>Steward</title>");
+    // A folder whose name starts the same way: a check without a separator lets it through.
+    mkdirSync(join(parent, "dist-phone-old"));
+    writeFileSync(join(parent, "dist-phone-old", "secret.txt"), "the old build's secret");
+    writeFileSync(join(parent, "outside.txt"), "outside the app");
+    symlinkSync(join(parent, "outside.txt"), join(dir, "linked.txt"));
+    const { url } = await start({ staticDir: dir });
+    for (const path of [
+      "/..%2fdist-phone-old/secret.txt",
+      "/..%2fdist-phone-old%2fsecret.txt",
+      "/linked.txt",
+    ]) {
+      const res = await fetch(`${url}${path}`);
+      const text = await res.text();
+      expect(text, path).not.toContain("secret");
+      expect(text, path).not.toContain("outside the app");
+      expect(text, path).toContain("<title>Steward</title>");
+    }
   });
 
   it("only accepts https push addresses", async () => {

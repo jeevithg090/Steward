@@ -30,6 +30,8 @@ describe("config", () => {
     const full = loadConfig(ENV, { repoRoot: "/srv/steward" });
     expect(full.siteUrl).toBe("https://bots.example.org");
     expect(full.adminLogins).toEqual(["quill-reviewer", "second-quill"]);
+    expect(loadConfig({ ADMIN_GITHUB_IDS: "583231, 9919" }).adminIds).toEqual([583231, 9919]);
+    expect(() => loadConfig({ ADMIN_GITHUB_IDS: "octocat" })).toThrow(ConfigError);
     expect(full.github).toEqual({ clientId: "Iv1.abcdef", clientSecret: SECRET, token: TOKEN });
   });
 
@@ -40,6 +42,15 @@ describe("config", () => {
       loadConfig({ NODE_ENV: "production", DIRECTORY_SITE_URL: "http://bots.example.org" }),
     ).toThrow(/https/);
     expect(() => loadConfig({ DIRECTORY_SITE_URL: "https://bots.example.org/?x=1" })).toThrow(ConfigError);
+  });
+
+  it("reads DIRECTORY_TRUST_PROXY as off, on (one proxy) or a number of proxies", () => {
+    expect(loadConfig({}).trustProxy).toBe(0);
+    expect(loadConfig({ DIRECTORY_TRUST_PROXY: "1" }).trustProxy).toBe(1);
+    expect(loadConfig({ DIRECTORY_TRUST_PROXY: "on" }).trustProxy).toBe(1);
+    expect(loadConfig({ DIRECTORY_TRUST_PROXY: "off" }).trustProxy).toBe(0);
+    expect(loadConfig({ DIRECTORY_TRUST_PROXY: "2" }).trustProxy).toBe(2);
+    expect(() => loadConfig({ DIRECTORY_TRUST_PROXY: "lots" })).toThrow(ConfigError);
   });
 
   it("parses .env lines: comments, quotes, export, and blank values", () => {

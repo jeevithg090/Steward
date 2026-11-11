@@ -75,6 +75,11 @@ export class RelayStore {
     return this.db.get("SELECT id FROM devices WHERE id = ? AND revoked_at IS NULL", [id]) !== undefined;
   }
 
+  /** Every device that is not revoked. */
+  activeIds(): string[] {
+    return this.db.all<{ id: string }>("SELECT id FROM devices WHERE revoked_at IS NULL").map((r) => r.id);
+  }
+
   /** Revokes a device and drops its log and push subscription. */
   revoke(id: string): void {
     this.db.tx(() => {

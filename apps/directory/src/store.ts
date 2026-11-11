@@ -99,6 +99,12 @@ export const migrations: Migration[] = [
     id: "directory.006_retirement_held",
     sql: "ALTER TABLE retirement_runs ADD COLUMN held INTEGER NOT NULL DEFAULT 0;",
   },
+  {
+    // The listing's version when each submission was made (0: there was none), so an approval can
+    // tell that the listing moved on since. Older rows have none and are checked by owner only.
+    id: "directory.007_submission_base",
+    sql: `ALTER TABLE submissions ADD COLUMN base_version INTEGER;`,
+  },
 ];
 
 export interface RetirementRunRecord {
@@ -148,6 +154,11 @@ export interface Submission {
   submitter: Submitter;
   /** The repository or gist belongs to the submitter's GitHub account. */
   ownerMatches: boolean;
+  /**
+   * The listing's version when this was submitted, 0 when there was no listing. Missing on
+   * submissions made before it was kept.
+   */
+  baseVersion?: number;
   warnings: BotProblem[];
   status: SubmissionStatus;
   note: string;
@@ -191,6 +202,7 @@ interface SubmissionRow {
   login: string;
   verified: number;
   owner_matches: number;
+  base_version: number | null;
   warnings_json: string;
   status: SubmissionStatus;
   note: string;
@@ -234,6 +246,7 @@ const toSubmission = (row: SubmissionRow): Submission => ({
     verified: row.verified === 1,
   },
   ownerMatches: row.owner_matches === 1,
+  ...(row.base_version === null ? {} : { baseVersion: row.base_version }),
   warnings: fromJson<BotProblem[]>(row.warnings_json, []),
   status: row.status,
   note: row.note,
@@ -407,8 +420,8 @@ export class DirectoryStore {
     this.db.run(
       `INSERT INTO submissions
          (id, bot_id, kind, pack_json, source_url, github_id, login, verified, owner_matches, warnings_json,
-          status, note, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', '', ?)`,
+          status, note, created_at, base_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', '', ?, ?)`,
       [
         submission.id,
         submission.botId,
@@ -421,6 +434,7 @@ export class DirectoryStore {
         submission.ownerMatches ? 1 : 0,
         toJson(submission.warnings),
         submission.createdAt,
+        submission.baseVersion ?? null,
       ],
     );
     return submission;
@@ -448,6 +462,27 @@ export class DirectoryStore {
     }
     const sql = `SELECT * FROM submissions ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY created_at, rowid`;
     return this.db.all<SubmissionRow>(sql, params).map(toSubmission);
+  }
+
+  /** Pending submissions sent through MCP under this handle that its owner has not confirmed yet. */
+  unconfirmedFor(login: string): Submission[] {
+    return this.db
+      .all<SubmissionRow>(
+        `SELECT * FROM submissions WHERE status = 'pending' AND verified = 0 AND lower(login) = lower(?)
+         ORDER BY created_at, rowid`,
+        [login],
+      )
+      .map(toSubmission);
+  }
+
+  /** The person the submission names signed in and said it is theirs. */
+  confirmSubmission(id: string, githubId: number, warnings: BotProblem[]): Submission | undefined {
+    this.db.run(
+      `UPDATE submissions SET verified = 1, github_id = ?, warnings_json = ?
+       WHERE id = ? AND status = 'pending' AND verified = 0`,
+      [githubId, toJson(warnings), id],
+    );
+    return this.submission(id);
   }
 
   /** The newest approved submission for a bot: who owns the listing now. */

@@ -67,6 +67,12 @@ Put it behind a proxy that ends TLS (Caddy, nginx, your platform's load balancer
 `DIRECTORY_SITE_URL` to the public https address, and set `DIRECTORY_TRUST_PROXY=1` so the rate
 limiter sees each visitor's address rather than the proxy's.
 
+The directory reads the address your proxy added: the last entry of `X-Forwarded-For`. Anything a
+visitor wrote into that header themselves comes before it and is never read. nginx
+(`$proxy_add_x_forwarded_for`), Fly and most load balancers add their entry at the end, and Caddy
+replaces the header, so one proxy needs `1`. With two in front (a CDN and then nginx, say), set
+`DIRECTORY_TRUST_PROXY=2`.
+
 ## Settings
 
 All from the environment, or `.env` at the repository root (`DIRECTORY_ENV_FILE` names another
@@ -85,8 +91,9 @@ file). A value already in the environment wins; a blank value counts as unset.
 | `GITHUB_CLIENT_ID`         |                           | A GitHub OAuth app, for sign-in. Set both or neither.                                                                                                                    |
 | `GITHUB_CLIENT_SECRET`     |                           | Its secret. Never logged, never shown, never written to the database.                                                                                                    |
 | `DIRECTORY_GITHUB_TOKEN`   |                           | Optional. A token with no scopes, only to raise GitHub's rate limit when reading submitted packs.                                                                        |
+| `ADMIN_GITHUB_IDS`         |                           | GitHub account ids who may review at `/admin`, comma separated. Safer than handles: an id never changes hands.                                                           |
 | `ADMIN_GITHUB_LOGINS`      |                           | GitHub handles who may review at `/admin`, comma separated.                                                                                                              |
-| `DIRECTORY_TRUST_PROXY`    | off                       | Read the client address from `X-Forwarded-For`. Only behind a proxy you run.                                                                                             |
+| `DIRECTORY_TRUST_PROXY`    | off                       | How many proxies you run in front, `1` (or `on`) for one: the client address is that many entries from the end of `X-Forwarded-For`. Only behind proxies you run.        |
 | `DIRECTORY_SOURCE_URL`     |                           | Where your copy of the code is, for the footer's Source link.                                                                                                            |
 | `DIRECTORY_RETIRE_DAYS`    | `90`                      | Retire AI-made bots nobody installed or said they use within this many days of being made. `0` turns retirement off.                                                     |
 | `DIRECTORY_RETIRE_HOUR`    | `3`                       | The UTC hour after which the day's retirement runs.                                                                                                                      |
@@ -100,7 +107,10 @@ or the image.
 
 1. Make a GitHub OAuth app (GitHub → Settings → Developer settings → OAuth Apps). The homepage
    is your `DIRECTORY_SITE_URL`; the callback is `<DIRECTORY_SITE_URL>/auth/github/callback`.
-2. Set `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` and `ADMIN_GITHUB_LOGINS`, and restart.
+2. Set `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` and the reviewers, and restart. Name reviewers
+   by GitHub account id in `ADMIN_GITHUB_IDS` (your id is the `id` in
+   `https://api.github.com/users/<you>`). An id never changes hands. `ADMIN_GITHUB_LOGINS` takes
+   handles too, but a handle can be renamed and then registered by someone else.
 
 Sign-in asks GitHub for no scope, so the directory sees only the public profile. The token is
 used once to read it and then dropped; the session keeps the GitHub id, handle, name and avatar
@@ -123,12 +133,16 @@ investing bot that never sends the person to a doctor or a qualified adviser. Wh
 name says what its condition does is for the reviewer to read.
 
 An id another person's bot already has is refused. To update your own bot, raise `version` in
-`bot.yaml` and submit again.
+`bot.yaml` and submit again. Once a bot has been approved here, it belongs to that GitHub account:
+only the same account id can update it, whatever the handle is now. A listing nobody has had
+approved here yet (one that shipped with the directory) is matched by handle, and the reviewer is
+told so.
 
 **Claiming.** On a bot's page, a signed-in person can claim it: an AI-made bot, or one adapted
 from another catalogue and credited to its original author. Submitting a pack with an AI-made
 bot's id and a higher version is also a claim. Once approved, the listing is credited to them,
-and an AI-made bot keeps "based on an AI-made draft".
+and an AI-made bot keeps "based on an AI-made draft". A claim of a listing that another GitHub
+account had approved here warns the reviewer, even when the handles match.
 
 **Reviewing.** A reviewer opens `/admin`, reads each pending pack (its instructions, README,
 skills, rules and the checks' warnings) and approves or rejects it with a note. Approving writes
@@ -136,6 +150,11 @@ the pack into `<DIRECTORY_DIR>/bots/<id>/`, writes the current counts to `counts
 `buildIndex` (which checks every pack again) and reloads. If the build leaves the pack out, the
 folder is put back and the approval is refused. Reports and removal requests are listed on the
 same page; nothing is emailed. Removing a listing is deleting its folder and rebuilding.
+
+Approving checks ownership again. If another approval moved the listing on since a submission
+was made (two people sent the same new id, or two people claimed the same AI-made bot), only the
+listing's owner may still change it: the page says "The id now belongs to @someone" and offers
+no Approve, and the API answers 409.
 
 The plan has the server open a pull request to a separate `steward-bots` repository instead of
 writing the folder. That is not built: here the folder on the server is the record, so back up
@@ -250,7 +269,15 @@ other:
 | `submit_bot(confirm_its_mine, pack_url, creator_handle)` | A pending submission, marked unverified until the creator signs in. |
 
 Every result carries `pageUrl`, `packUrl`, `author` and the line "via the Steward directory", and
-says listing text is third-party. Add it to Claude Code with:
+says listing text is third-party. A query with no words to search for ("help me please", or only
+punctuation) matches no bots.
+
+Anyone can name any handle in `submit_bot`, so its submission waits for that person. When they
+sign in, `/submit` lists it under **Sent in your name** with **This is mine** and **Not mine**.
+"Not mine" turns it down. A claim of an existing listing cannot be approved until they say it is
+theirs; a new bot can, and the reviewer sees that it is unverified.
+
+Add it to Claude Code with:
 
 ```sh
 claude mcp add --transport http steward-bots https://<your site>/mcp

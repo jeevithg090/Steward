@@ -137,7 +137,11 @@ export class DeviceApi {
     this.need(device, "brief:read");
     const { proactive, gateway } = this.s;
     const brief = proactive.brief.latest();
-    const pending = gateway.approvals.list({ status: "pending", limit: 50 });
+    // What Steward asks is its own scope: a phone that may not see requests is not told about them
+    // here either, not their words and not how many.
+    const pending = device.scopes.includes("approvals:read")
+      ? gateway.approvals.list({ status: "pending", limit: 50 })
+      : [];
     const waiting = proactive.tasks.list({ state: "needs_you", limit: 20 });
 
     const items: string[] = [
@@ -154,7 +158,7 @@ export class DeviceApi {
     const say = clip(parts.join(" "), BRIEF_MAX);
     const ui: DeviceUi[] = [{ say }];
     if (items.length > 0) ui.push({ show: { title: "What needs you", body: items.slice(0, 12).join("\n") } });
-    if (pending.length > 0 && device.scopes.includes("approvals:read")) {
+    if (pending.length > 0) {
       ui.push({
         choose: {
           title: "Answer them now?",
@@ -252,6 +256,15 @@ export class DeviceApi {
     return { approval, ui: [{ say }] };
   }
 
+  /**
+   * A phone carries on only in a conversation it started (a chat, or a task it started), never in
+   * one started on the Mac, by a routine or by another phone. Any other id is as unknown as a
+   * made-up one, so a phone learns nothing from trying.
+   */
+  mayPostTo(device: Device, threadId: string): boolean {
+    return this.s.threads.exists(threadId) && this.deps.devices.hasThread(device.id, threadId);
+  }
+
   /** Starts a turn in Steward and waits up to 20 s for its answer. */
   async say(
     device: Device,
@@ -260,11 +273,12 @@ export class DeviceApi {
     this.need(device, "chat");
     const { s } = this;
     let threadId = body.threadId;
-    if (threadId && !s.threads.exists(threadId)) throw notFound("that conversation");
+    if (threadId && !this.mayPostTo(device, threadId)) throw notFound("that conversation");
     const agentId = (threadId && s.threads.getMeta(threadId)?.agentId) || s.defaultAgentId;
     if (!threadId) {
       threadId = newId("thr");
       s.threads.upsertMeta({ id: threadId, agentId, kind: "chat", title: clip(body.text, 80) });
+      this.deps.devices.addThread(device.id, threadId);
     }
     const userText = body.skill ? `/${body.skill} ${body.text}` : body.text;
     const run = s.runs.start({ agentId, threadId, userText, initiator: { kind: "device", id: device.id } });
@@ -359,7 +373,8 @@ export class DeviceApi {
         if (!routine) throw notFound("that routine");
         if (!routine.enabled)
           return { ui: [{ say: `${routine.title} is paused. Turn it on in Steward first.` }] };
-        this.s.workers.runRoutine(routine);
+        const started = this.s.workers.runRoutine(routine);
+        this.deps.devices.started(device, started, { routine: routine.id });
         return { ui: [{ say: `Started ${routine.title}. Steward will tell you when it's done.` }] };
       }
       default:
