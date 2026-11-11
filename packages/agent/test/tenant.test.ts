@@ -133,7 +133,9 @@ describe("loadTenant", () => {
   it("names the file and the field when something is wrong", () => {
     const err = loadError(tenantDir({ "agents.yaml": "agents:\n  - id: Bad Id\n    name: x\n" }));
     expect(err.file).toBe("agents.yaml");
-    expect(err.message).toMatch(/^agents\.yaml line 2: agents\[0\]\.id: id must be lower case/);
+    expect(err.message).toBe(
+      "agents.yaml line 2: agents[0].id: must be lower case letters, digits and hyphens, starting with a letter or digit",
+    );
   });
 
   it("refuses unknown fields, so a typo never silently does nothing", () => {
@@ -215,10 +217,16 @@ describe("loadTenant", () => {
   });
 
   it("shows how the file starts when the list's name is left out", () => {
-    const err = loadError(tenantDir({ "agents.yaml": "id: helper\nname: Helper\n" }));
-    expect(err.message).toBe(
-      'agents.yaml: the file must start with "agents:" and list each one under it, starting with "- ", like this:\n\n  agents:\n    - id: helper\n      name: Helper\n',
+    const howItStarts =
+      'agents.yaml: the file must start with "agents:" and list each one under it, starting with "- ", like this:\n\n  agents:\n    - id: helper\n      name: Helper\n';
+    expect(loadError(tenantDir({ "agents.yaml": "id: helper\nname: Helper\n" })).message).toBe(howItStarts);
+    // Only the list, without its name.
+    expect(loadError(tenantDir({ "agents.yaml": "- id: helper\n  name: Helper\n" })).message).toBe(
+      howItStarts,
     );
+    expect(
+      loadError(tenantDir({ "skills.yaml": "- name: s\n  description: d\n  instructions: i\n" })).message,
+    ).toMatch(/^skills\.yaml: the file must start with "skills:"/);
   });
 
   it("refuses duplicate agent ids and skill names", () => {

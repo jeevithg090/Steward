@@ -48,10 +48,10 @@ export class TenantError extends Error {
 }
 
 const ID = /^[a-z0-9][a-z0-9-]{0,40}$/;
-const idField = (what: string) =>
-  z
-    .string()
-    .regex(ID, `${what} must be lower case letters, digits and hyphens, starting with a letter or digit`);
+// The message follows the field's path ("agents[0].id: must be ..."), so it does not name the field again.
+const idField = z
+  .string()
+  .regex(ID, "must be lower case letters, digits and hyphens, starting with a letter or digit");
 
 /** WCAG contrast of a `#rrggbb` colour against white, the text colour on buttons. */
 export function contrastWithWhite(hex: string): number {
@@ -104,7 +104,7 @@ const brandFile = z
 
 const agentEntry = z
   .object({
-    id: idField("id"),
+    id: idField,
     name: z.string().min(1).max(60),
     title: z.string().max(120).default(""),
     instructions: z.string().max(20_000).default(""),
@@ -118,7 +118,7 @@ const agentsFile = z.object({ agents: z.array(agentEntry).min(1) }).strict();
 
 const skillEntry = z
   .object({
-    name: idField("name"),
+    name: idField,
     description: z.string().min(1).max(300),
     instructions: z.string().min(1).max(8000),
     tools: z.array(toolName).default([]),
@@ -266,7 +266,8 @@ function validate<S extends z.ZodType>(
   const result = schema.safeParse(value);
   if (result.success) return result.data;
   const root = value as Record<string, unknown>;
-  if (list && typeof value === "object" && !Array.isArray(value) && !(list.key in root)) {
+  // A file that is only the list ("- id: helper"), or one entry without it ("id: helper").
+  if (list && typeof value === "object" && (Array.isArray(value) || !(list.key in root))) {
     throw new TenantError(
       `${file}: the file must start with "${list.key}:" and list each one under it, starting with "- ", like this:\n\n${list.example}\n`,
       file,
