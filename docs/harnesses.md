@@ -60,9 +60,11 @@ The loader refuses:
   stopped, and the chat says which command to check: "Gemini CLI did not answer within 30
   seconds. Check that 'gemini --experimental-acp' starts its Agent Client Protocol mode." Stop
   works while it starts, and so does deleting the conversation.
-- **Stopping stops everything it started.** The tool runs in a process group of its own. Stop,
-  Delete, a retired profile and shutdown end the whole group, so a dev server or test watcher the
-  agent started does not outlive it.
+- **Stopping it stops everything it started.** The tool runs in a process group of its own.
+  Deleting the conversation, 15 minutes with nothing to do, a retired profile and shutdown end the
+  whole group, so a dev server or test watcher the agent started does not outlive it. Stop ends
+  the turn and leaves the tool running for the next message; if the turn has not ended within 10
+  seconds, the whole group is stopped too.
 - **When it stops, the chat says why,** in the tool's own words: its last line on stderr and the
   exit code, with anything shaped like a key masked ("Codex stopped (exit code 3): you are not
   signed in"). A missing program says it is not installed.
