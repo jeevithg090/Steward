@@ -164,7 +164,8 @@ An MCP server's schema goes to the model in the form every provider takes, as th
 do: `$schema`, `$id`, `$comment` and `examples` are dropped, local references (`#/$defs/…`,
 `#/definitions/…`) are inlined up to five levels deep, and `type: ["string", "null"]` is read as
 `string`. One schema a provider refuses would fail every model call of that agent, so a tool whose
-schema still refers elsewhere after that is left out, and `onError` names it.
+schema still refers elsewhere after that is left out, and `onError` names it. So is one that
+refers to itself, or that would grow past 10,000 parts once its references are inlined.
 
 ## Adding a tool
 
