@@ -1169,6 +1169,43 @@ describe("history and errors", () => {
     expect(text(turn.events)).toBe(KEPT_GETTING_IT_WRONG);
   });
 
+  it("counts a call its own readers refuse as a mistake too, even one put right first", async () => {
+    const notAnAddress = { ok: false, error: '"bob" in "to" is not an email address.' };
+    // One text where a list belongs is put right, then the reader refuses the address.
+    script(() => toolCall("mail_send", { to: "bob", subject: "Hi", body: "Hello" }));
+    const putRight = await runTurn(agent(), [user("email bob")]);
+    expect(requests()).toHaveLength(3);
+    expect(fakes.governance.calls).toHaveLength(0);
+    expect(results(putRight.events).map((r) => r.content)).toEqual([
+      notAnAddress,
+      notAnAddress,
+      notAnAddress,
+    ]);
+    expect(text(putRight.events)).toBe(KEPT_GETTING_IT_WRONG);
+    expect(putRight.types.at(-1)).toBe("RUN_FINISHED");
+
+    llm.clearFixtures();
+    llm.clearRequests();
+    script(() => toolCall("mail_send", { to: ["bob"], subject: "Hi", body: "Hello" }));
+    const asWritten = await runTurn(agent(), [user("email bob")]);
+    expect(requests()).toHaveLength(3);
+    expect(text(asWritten.events)).toBe(KEPT_GETTING_IT_WRONG);
+  });
+
+  it("stops when the same call keeps failing beside one that runs", async () => {
+    script(() => ({
+      toolCalls: [
+        { name: "file_list", arguments: "{}" },
+        { name: "web_fetch", arguments: "{}" },
+      ],
+    }));
+    const turn = await runTurn(agent(), [user("list and fetch")]);
+    expect(requests()).toHaveLength(3);
+    expect(fakes.governance.callsFor("file_list")).toHaveLength(3);
+    expect(text(turn.events)).toBe(KEPT_GETTING_IT_WRONG);
+    expect(turn.types.at(-1)).toBe("RUN_FINISHED");
+  });
+
   it("answers every call of the turn when stopped during the first, so none spins forever", async () => {
     const computer = fakes.computers.computer("steward");
     let started!: () => void;

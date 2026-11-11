@@ -207,7 +207,8 @@ interface Segment {
 }
 
 type GateResult =
-  | { content: string }
+  /** `mistake`: arguments that could never run, answered without reaching the gateway. */
+  | { content: string; mistake?: true }
   | { parked: { call: ToolCall; outcome: Extract<GateOutcome<unknown>, { status: "parked" }> } }
   /** A task handed to another agent, now running: the run follows it before the call has a result. */
   | { delegated: { call: ToolCall; run: DelegationRun } };
@@ -628,22 +629,24 @@ export class GovernedToolsMiddleware extends Middleware {
       // exist) get another model turn, so the model can read why and recover instead of going
       // quiet. The same mistake made again and again stops the run instead of using every step.
       const inside = new Set(seg.inside.map((e) => e.toolCallId).filter((id) => !settled.rescued.has(id)));
-      for (const call of fresh) {
-        if (!inside.has(call.id)) continue;
+      const noteMistake = (call: ToolCall) => {
         const key = `${call.function.name}\u0000${call.function.arguments}`;
         mistakes.set(key, (mistakes.get(key) ?? 0) + 1);
-      }
+      };
+      for (const call of fresh) if (inside.has(call.id)) noteMistake(call);
+      const keptGettingItWrong = () =>
+        insideStreak >= MAX_MISTAKES || [...mistakes.values()].some((n) => n >= MAX_MISTAKES);
       const answeredInside = fresh.length > 0 && pending.length === 0;
-      insideStreak = answeredInside ? insideStreak + 1 : 0;
       if (settled.cutOff) cutOffs++;
       if (answeredInside) {
+        insideStreak++;
         // Only when nothing else waits: a call that did fit still runs, and the model hears both.
         if (cutOffs >= 2) {
           this.say(KEPT_RUNNING_OUT, emit);
           finish(seg.terminal);
           return;
         }
-        if (insideStreak >= MAX_MISTAKES || [...mistakes.values()].some((n) => n >= MAX_MISTAKES)) {
+        if (keptGettingItWrong()) {
           this.say(KEPT_GETTING_IT_WRONG, emit);
           finish(seg.terminal);
           return;
@@ -661,6 +664,9 @@ export class GovernedToolsMiddleware extends Middleware {
 
       const parked: Extract<GateResult, { parked: unknown }>["parked"][] = [];
       const delegated: { callId: string; run: DelegationRun }[] = [];
+      // Calls whose arguments could never run, answered before the gateway: mistakes too, even
+      // when the model run let them through (an address that is not one, a list put right first).
+      const wrong = new Set(inside);
       for (const call of mine) {
         if (signal.aborted) break;
         const tool = owned.get(call.function.name);
@@ -668,7 +674,13 @@ export class GovernedToolsMiddleware extends Middleware {
         const result = await this.gate(call, tool, messages, scope, { resume: false, cancelled: false });
         if ("parked" in result) parked.push(result.parked);
         else if ("delegated" in result) delegated.push({ callId: call.id, run: result.delegated.run });
-        else messages = this.answer(messages, call.id, result.content, emit);
+        else {
+          messages = this.answer(messages, call.id, result.content, emit);
+          if (result.mistake) {
+            wrong.add(call.id);
+            noteMistake(call);
+          }
+        }
       }
       // Handed-on tasks run side by side; each one's answer becomes its call's result.
       const asked: Interrupt[] = [];
@@ -696,6 +708,13 @@ export class GovernedToolsMiddleware extends Middleware {
       }
       // The browser still owes results for tools it offered itself; it continues the run.
       if (mine.length !== pending.length) {
+        finish(seg.terminal);
+        return;
+      }
+      // The same mistake made again and again stops here too, whatever else the turn did.
+      insideStreak = fresh.every((c) => wrong.has(c.id)) ? insideStreak + 1 : 0;
+      if (keptGettingItWrong()) {
+        this.say(KEPT_GETTING_IT_WRONG, emit);
         finish(seg.terminal);
         return;
       }
@@ -885,7 +904,7 @@ export class GovernedToolsMiddleware extends Middleware {
     let args: ToolArgs = {};
     const parsed = parseArgs(call.function.arguments || "{}");
     if (parsed === undefined) {
-      if (!mode.resume) return { content: serialise({ ok: false, error: BAD_JSON }) };
+      if (!mode.resume) return { content: serialise({ ok: false, error: BAD_JSON }), mistake: true };
       problem = new Error(BAD_JSON);
     } else {
       args = parsed;
@@ -916,7 +935,7 @@ export class GovernedToolsMiddleware extends Middleware {
         facts = await tool.toGateCall(args, ctx);
       } catch (error) {
         if (error instanceof ArgumentError && !mode.resume) {
-          return { content: serialise({ ok: false, error: error.message }) };
+          return { content: serialise({ ok: false, error: error.message }), mistake: true };
         }
         problem = error instanceof Error ? error : new Error(String(error));
       }
