@@ -190,4 +190,38 @@ describe("rules from bots", () => {
     expect(() => gw.rules.update(deny.id, { when: "false" })).toThrow(/came with a bot cannot be changed/);
     expect(gw.rules.get(deny.id)).toMatchObject({ effect: "deny", when: 'tool.kind == "pay"' });
   });
+
+  it("can be limited to the bot's agent by Steward, which changes only the condition and is recorded", () => {
+    const { gw } = setup();
+    const deny = gw.rules.create({
+      name: "Rent Scout: never pay a deposit",
+      effect: "deny",
+      when: 'tool.kind == "pay"',
+      description: "",
+      enabled: true,
+      source: "bot",
+    });
+    const limited = gw.rules.limitToAgent(deny.id, "rent-scout");
+    expect(limited).toMatchObject({
+      name: deny.name,
+      effect: "deny",
+      enabled: true,
+      source: "bot",
+      when: 'agent.id == "rent-scout" && (tool.kind == "pay"\n)',
+    });
+    expect(gw.rules.get(deny.id)?.when).toBe(limited.when);
+    expect(gw.audit.page({ type: "policy.changed", q: deny.name }).events[0]?.detail).toMatchObject({
+      change: "updated",
+    });
+    const mine = gw.rules.create({
+      name: "Mine",
+      effect: "ask",
+      when: 'tool.kind == "pay"',
+      description: "",
+      enabled: true,
+      source: "person",
+    });
+    expect(() => gw.rules.limitToAgent(mine.id, "rent-scout")).toThrow(/Only a bot's rule/);
+    expect(() => gw.rules.limitToAgent(deny.id, 'x" || true || "')).toThrow(/not an agent id/);
+  });
 });

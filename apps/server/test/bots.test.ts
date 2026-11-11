@@ -1,8 +1,11 @@
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
+import { dirname, join } from "node:path";
+import { hashPack } from "@steward/bots";
 import { generateBot } from "@steward/bots-gen";
 import { memoryDb } from "@steward/db";
-import { createGateway } from "@steward/gateway";
+import { createGateway, gateCallFor } from "@steward/gateway";
 import {
   type AppInfo,
   type AuditPage,
@@ -17,6 +20,7 @@ import {
   type Skill,
 } from "@steward/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { directoryFetch } from "../src/bots/fetch.ts";
 import { countsEndpoint, directoryError } from "../src/bots/service.ts";
 import { missingPackages, tempDir } from "./helpers.ts";
 import { startTestServer, type TestServer } from "./server.ts";
@@ -187,6 +191,15 @@ describe("countsEndpoint", () => {
     ).toBeUndefined();
   });
 
+  it("refuses a site on another origin unless it is https", () => {
+    expect(
+      countsEndpoint("https://bots.example/index.json", "rent-scout", { site: "http://192.168.1.1" }),
+    ).toBe("https://bots.example/api/bots/rent-scout/installed");
+    expect(
+      countsEndpoint("http://127.0.0.1:8790/index.json", "rent-scout", { site: "http://127.0.0.1:8790" }),
+    ).toBe("http://127.0.0.1:8790/api/bots/rent-scout/installed");
+  });
+
   it("is the directory's site, or beside the index when the index names none", () => {
     expect(
       countsEndpoint("https://bots.example/index.json", "rent-scout", { site: "https://bots.example" }),
@@ -197,6 +210,36 @@ describe("countsEndpoint", () => {
     expect(
       countsEndpoint("https://cdn.example/steward/index.json", "a/b", { site: "https://bots.example/" }),
     ).toBe("https://bots.example/api/bots/a%2Fb/installed");
+  });
+});
+
+describe("directoryFetch", () => {
+  it("reaches the configured directory on this machine, and nothing else there", async () => {
+    const seen: string[] = [];
+    const local = createServer((req, res) => {
+      seen.push(req.url ?? "");
+      res.end("{}");
+    });
+    await new Promise<void>((done) => local.listen(0, "127.0.0.1", done));
+    const { port } = local.address() as AddressInfo;
+    try {
+      const read = directoryFetch({
+        directoryUrl: `http://127.0.0.1:${port}/index.json`,
+        allowPrivateHosts: false,
+      });
+      expect((await read(`http://127.0.0.1:${port}/packs/a.json`)).status).toBe(200);
+      await expect(read(`http://localhost:${port}/packs/a.json`)).rejects.toThrow(/private network/);
+      const fromFile = directoryFetch({
+        directoryUrl: "/srv/directory/index.json",
+        allowPrivateHosts: false,
+      });
+      await expect(fromFile(`http://127.0.0.1:${port}/packs/a.json`)).rejects.toThrow(/private network/);
+      const allowed = directoryFetch({ directoryUrl: "/srv/directory/index.json", allowPrivateHosts: true });
+      expect((await allowed(`http://127.0.0.1:${port}/packs/b.json`)).status).toBe(200);
+      expect(seen).toEqual(["/packs/a.json", "/packs/b.json"]);
+    } finally {
+      await new Promise<void>((done) => local.close(() => done()));
+    }
   });
 });
 
@@ -229,6 +272,11 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
     expect(dev.body.bots.map((b) => b.id)).toEqual(["shell-helper"]);
     const search = await t.api<{ bots: BotListing[]; total: number }>("/api/bots?q=rent");
     expect(search.body.bots.map((b) => b.id)).toEqual(["rent-scout"]);
+    const browsing = await t.api<{ bots: BotListing[]; total: number }>("/api/bots?needs=browser");
+    expect(browsing.body.bots.map((b) => b.id)).toEqual(["rent-scout"]);
+    const words = await t.api<{ bots: BotListing[]; total: number }>("/api/bots?q=help+me+please");
+    expect(words.body).toMatchObject({ bots: [], total: 0 });
+    expect((await t.api("/api/bots?needs=everything")).status).toBe(400);
     expect((await t.api("/api/bots?category=nope")).status).toBe(400);
     expect((await t.api("/api/bots?limit=0")).status).toBe(400);
     expect((await t.api<InstalledBot[]>("/api/bots/installed")).body).toEqual([]);
@@ -252,6 +300,7 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
         "sending anything",
         "paying",
         "signing",
+        "deleting",
       ]),
     );
     expect(shell.body.toolsMissing).toEqual([]);
@@ -275,7 +324,9 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
       json: { packUrl: "packs/does-not-exist.json" },
     });
     expect(res.status).toBe(404);
-    expect(res.body.error).toBe("That bot isn't in the directory.");
+    expect(res.body.error).toBe(
+      "There is no bot at that address. It may have been removed, or the link is wrong.",
+    );
     expect(JSON.stringify(res.body)).not.toContain(directory.indexPath.split("/").slice(0, -1).join("/"));
   });
 
@@ -327,6 +378,47 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
     expect(res.body.error).toMatch(/Let it pay/);
     expect(res.body.problems.some((p) => p.path === "rules[0].effect")).toBe(true);
     expect((await t.api<InstalledBot[]>("/api/bots/installed")).body).toEqual([]);
+  });
+
+  it("adds by address only the pack the person read: one that changed since is refused", async () => {
+    const preview = await t.api<BotPreview>("/api/bots/preview", {
+      method: "POST",
+      json: { packUrl: "packs/shell-helper.json" },
+    });
+    expect(preview.body.pack.hash).toBe(hashPack(SHELL_HELPER));
+    const stale = await t.api<{ error: string }>("/api/bots/install", {
+      method: "POST",
+      json: { packUrl: "packs/shell-helper.json", hash: "0".repeat(64) },
+    });
+    expect(stale.status).toBe(409);
+    expect(stale.body.error).toMatch(/changed after you read it/);
+    expect((await t.api<InstalledBot[]>("/api/bots/installed")).body).toEqual([]);
+    const added = await t.api<InstalledBot>("/api/bots/install", {
+      method: "POST",
+      json: { packUrl: "packs/shell-helper.json", hash: preview.body.pack.hash },
+    });
+    expect(added.status).toBe(201);
+    expect((await t.api(`/api/bots/installed/${added.body.id}`, { method: "DELETE" })).status).toBe(200);
+  });
+
+  it("answers 404 for a bot the directory does not have, and never shows a path on this machine", async () => {
+    for (const packUrl of ["packs/does-not-exist.json", "packs/does-not-exist.json/inner"]) {
+      const res = await t.api<{ error: string }>("/api/bots/preview", { method: "POST", json: { packUrl } });
+      expect(res.status, packUrl).toBe(404);
+      expect(res.body.error).toBe(
+        "There is no bot at that address. It may have been removed, or the link is wrong.",
+      );
+    }
+    // A pack path that is a folder: read, refused, and still no path.
+    const folder = await t.api<{ error: string }>("/api/bots/preview", {
+      method: "POST",
+      json: { packUrl: "packs" },
+    });
+    expect(folder.status).toBe(502);
+    expect(folder.body.error).toBe(
+      "Couldn't get that bot from the directory: The pack at packs could not be read (EISDIR)",
+    );
+    expect(folder.body.error).not.toContain(dirname(directory.indexPath));
   });
 
   it("refuses a bot that takes one of Steward's own agent ids, or whose hash does not match", async () => {
@@ -437,6 +529,37 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
     expect(left.some((s) => s.name === "daily-note-note-taker")).toBe(false);
   });
 
+  it("never fetches a pack from this machine, a private network or cloud metadata from a link", async () => {
+    let hits = 0;
+    const local = createServer((_req, res) => {
+      hits++;
+      res.end(JSON.stringify(NOTE_TAKER));
+    });
+    await new Promise<void>((done) => local.listen(0, "127.0.0.1", done));
+    const { port } = local.address() as AddressInfo;
+    try {
+      const cases: [string, RegExp][] = [
+        [`http://127.0.0.1:${port}/pack.json`, /on this computer or its private network/],
+        [`http://localhost:${port}/pack.json`, /on this computer or its private network/],
+        ["https://10.0.0.5/pack.json", /on this computer or its private network/],
+        ["https://169.254.169.254/latest/meta-data", /cloud metadata/],
+        ["http://169.254.169.254/latest/meta-data", /only reads bots from https addresses/],
+        ["http://bots.example/pack.json", /only reads bots from https addresses/],
+      ];
+      for (const [packUrl, why] of cases) {
+        const res = await t.api<{ error: string }>("/api/bots/preview", {
+          method: "POST",
+          json: { packUrl },
+        });
+        expect(res.status, packUrl).toBe(502);
+        expect(res.body.error, packUrl).toMatch(why);
+      }
+      expect(hits).toBe(0);
+    } finally {
+      await new Promise<void>((done) => local.close(() => done()));
+    }
+  });
+
   it("never posts an install count for a directory read from a file", async () => {
     const spy = vi.spyOn(globalThis, "fetch");
     const res = await t.api<InstalledBot>("/api/bots/install", {
@@ -473,6 +596,23 @@ describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
       expect(preview.status).toBe(200);
       expect(preview.body.problems.filter((p) => p.severity === "error")).toEqual([]);
       expect((await t.api("/api/bots/make", { method: "POST", json: { job: "x" } })).status).toBe(400);
+    },
+  );
+
+  it.runIf(haveGenerator)(
+    "makes a template bot when the person's model answers with something unusable, and says so in the pack",
+    async () => {
+      const complete = vi.fn(async () => "Sorry, I can't write JSON today.");
+      vi.spyOn(t.server.services.models, "textModel").mockReturnValue({ complete } as never);
+      const made = await t.api<BotPack & { error?: string }>("/api/bots/make", {
+        method: "POST",
+        json: { job: "find me a flat to rent near Oxford", name: "Flat Finder" },
+      });
+      expect(complete).toHaveBeenCalled();
+      expect(made.body.error).toBeUndefined();
+      expect(made.status).toBe(200);
+      expect(made.body.author).toMatchObject({ kind: "ai", model: "template" });
+      expect(BotPackSchema.safeParse(made.body).success).toBe(true);
     },
   );
 
@@ -571,6 +711,124 @@ describe.runIf(missing.length === 0 && botRulesSupported)(
       expect(listed.body.bots.find((b) => b.id === "shell-helper")?.installed).toBeUndefined();
     });
 
+    it("binds a bot's rules to its own agent: Steward and other bots are untouched", async () => {
+      const drafts: BotPack = {
+        ...NOTE_TAKER,
+        id: "drafts-only",
+        name: "Drafts Only",
+        needs: { tools: ["mail_send", "file_write"], connectors: [], model: "any" },
+        skills: [],
+        rules: [
+          { name: "Drafts only", effect: "deny", when: 'tool.kind == "send"', description: "Drafts only." },
+          { name: "Ask before writing", effect: "ask", when: 'tool.kind == "write"', description: "" },
+        ],
+      };
+      const res = await t.api<InstalledBot>("/api/bots/install", { method: "POST", json: { pack: drafts } });
+      expect(res.status).toBe(201);
+      const rules = (await t.api<Rule[]>("/api/rules")).body.filter((r) => res.body.ruleIds.includes(r.id));
+      expect(rules.map((r) => r.when).sort()).toEqual([
+        'agent.id == "drafts-only" && (tool.kind == "send"\n)',
+        'agent.id == "drafts-only" && (tool.kind == "write"\n)',
+      ]);
+      const { governance } = t.server.services.gateway;
+      const decide = (tool: string, agentId: string) =>
+        governance.dryRun(gateCallFor({ tool, args: {}, agentId, actorId: "local" })).effect;
+      expect(decide("mail_send", "drafts-only")).toBe("deny");
+      expect(decide("file_write", "drafts-only")).toBe("ask");
+      // Steward's own agent keeps the gateway's defaults: a send asks, a file write runs.
+      expect(decide("mail_send", "steward")).toBe("ask");
+      expect(decide("file_write", "steward")).toBe("allow");
+      expect(decide("file_write", "rent-scout")).toBe("allow");
+      expect((await t.api("/api/bots/installed/drafts-only", { method: "DELETE" })).status).toBe(200);
+    });
+
+    it("previews what a pack may do under its own rules, never the installed version's", async () => {
+      const v1: BotPack = {
+        ...NOTE_TAKER,
+        id: "careful-notes",
+        name: "Careful Notes",
+        version: 1,
+        needs: { tools: ["file_write"], connectors: [], model: "any" },
+        skills: [],
+        rules: [{ name: "Ask before writing", effect: "ask", when: 'tool.kind == "write"', description: "" }],
+      };
+      const preview = async (pack: BotPack) =>
+        (await t.api<BotPreview>("/api/bots/preview", { method: "POST", json: { pack } })).body;
+
+      // Not installed yet: its own rule already decides, so writing asks.
+      const fresh = await preview(v1);
+      expect(fresh.mayDoWithoutAsking).not.toContain("write files in its workspace");
+      expect(fresh.asksBefore).toContain("write files in its workspace");
+
+      expect((await t.api("/api/bots/install", { method: "POST", json: { pack: v1 } })).status).toBe(201);
+      // Version 2 drops that rule and adds a tool: both now run without asking, and the update says so.
+      const v2: BotPack = {
+        ...v1,
+        version: 2,
+        needs: { ...v1.needs, tools: ["file_write", "task_update"] },
+        rules: [],
+      };
+      const next = await preview(v2);
+      expect(next.mayDoWithoutAsking).toEqual(["write files in its workspace", "change tasks"]);
+      expect(next.asksBefore).not.toContain("write files in its workspace");
+      expect(next.changes).toEqual([
+        "New: it may change tasks without asking.",
+        "Drops the rule “Ask before writing” (it asks first).",
+      ]);
+      // Previewing changes nothing: the installed version still asks before writing.
+      const decide = (tool: string) =>
+        t.server.services.gateway.governance.dryRun(
+          gateCallFor({ tool, args: {}, agentId: "careful-notes", actorId: "local" }),
+        ).effect;
+      expect(decide("file_write")).toBe("ask");
+      expect((await t.api("/api/bots/installed/careful-notes", { method: "DELETE" })).status).toBe(200);
+    });
+
+    it("limits the rules of a bot installed before rules were scoped, leaving edited ones alone", async () => {
+      const { gateway, installedBots, bots } = t.server.services;
+      const pack: BotPack = {
+        ...NOTE_TAKER,
+        id: "old-bot",
+        name: "Old Bot",
+        skills: [],
+        rules: [
+          { name: "No sending", effect: "deny", when: 'tool.kind == "send"', description: "" },
+          { name: "Ask on writes", effect: "ask", when: 'tool.kind == "write"', description: "" },
+        ],
+      };
+      const make = (name: string, effect: "ask" | "deny", when: string) =>
+        gateway.rules.create({ name, effect, when, description: "", enabled: true, source: "bot" });
+      const unscoped = make("Old Bot: No sending", "deny", 'tool.kind == "send"');
+      // The person changed this one on Rules: it is theirs now.
+      const edited = make("Old Bot: Ask on writes", "ask", 'tool.kind == "write" && tool.surface == "file"');
+      installedBots.upsert({
+        id: pack.id,
+        name: pack.name,
+        version: pack.version,
+        hash: "0".repeat(64),
+        source: "local",
+        agentId: pack.id,
+        pack,
+        skillIds: [],
+        ruleIds: [unscoped.id, edited.id],
+        routineIds: [],
+      });
+      const decide = (tool: string, agentId: string) =>
+        gateway.governance.dryRun(gateCallFor({ tool, args: {}, agentId, actorId: "local" })).effect;
+      expect(decide("mail_send", "steward")).toBe("deny");
+
+      expect(bots.scopeInstalledRules()).toBe(1);
+      expect(gateway.rules.get(unscoped.id)?.when).toBe('agent.id == "old-bot" && (tool.kind == "send"\n)');
+      expect(gateway.rules.get(edited.id)?.when).toBe('tool.kind == "write" && tool.surface == "file"');
+      expect(decide("mail_send", "steward")).toBe("ask");
+      expect(decide("mail_send", "old-bot")).toBe("deny");
+      // Running it again changes nothing.
+      expect(bots.scopeInstalledRules()).toBe(0);
+      await bots.remove(pack.id);
+      expect(gateway.rules.get(unscoped.id)).toBeUndefined();
+      expect(gateway.rules.get(edited.id)).toBeUndefined();
+    });
+
     it("removes exactly what a bot brought: another bot's and the person's own things survive", async () => {
       const shell = await t.api<InstalledBot>("/api/bots/install", {
         method: "POST",
@@ -636,10 +894,24 @@ describe.runIf(missing.length === 0 && botRulesSupported)(
       const v1: BotPack = {
         ...RENT_SCOUT,
         version: 1,
+        needs: { ...RENT_SCOUT.needs, tools: ["browser_snapshot", "web_search", "show_table"] },
         skills: [{ ...RENT_SCOUT.skills[0]!, body: "The old way: search one site only." }],
       };
       const first = await t.api<InstalledBot>("/api/bots/install", { method: "POST", json: { pack: v1 } });
       expect(first.status).toBe(201);
+
+      // Before it is applied, the update says what it changes.
+      const preview = await t.api<BotPreview>("/api/bots/preview", {
+        method: "POST",
+        json: { packUrl: "packs/rent-scout.json" },
+      });
+      expect(preview.body.alreadyInstalled?.version).toBe(1);
+      expect(preview.body.changes).toEqual([
+        "New: it may browse the web on its own computer without asking.",
+        "Changes what /find-rentals does.",
+      ]);
+      const same = await t.api<BotPreview>("/api/bots/preview", { method: "POST", json: { pack: v1 } });
+      expect(same.body.changes).toBeUndefined();
       const listed = (await t.api<InstalledBot[]>("/api/bots/installed")).body.find(
         (b) => b.id === "rent-scout",
       );

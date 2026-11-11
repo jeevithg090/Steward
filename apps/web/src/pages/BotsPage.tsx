@@ -13,16 +13,16 @@ import { Card } from "@/components/ui/Card.tsx";
 import { Dialog } from "@/components/ui/Dialog.tsx";
 import { EmptyState } from "@/components/ui/EmptyState.tsx";
 import { ChoiceGroup, Field, Input, Select } from "@/components/ui/Field.tsx";
-import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
+import { ErrorNotice, Loading, Notice } from "@/components/ui/Notice.tsx";
 import { Page } from "@/components/ui/PageHeader.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
 import {
   type BotsQueryInput,
+  useBotPages,
   useBots,
   useInfo,
   useInstalledBots,
   useRemoveBot,
-  useUpdateBot,
 } from "@/lib/api.ts";
 import { plural } from "@/lib/utils.ts";
 
@@ -42,7 +42,10 @@ const SORTS: { value: Sort; label: string }[] = [
 
 /** How long typing settles before the directory is asked. */
 const SEARCH_DELAY_MS = 250;
+/** Bots per page; "Show more" asks for the next page. */
 const PAGE_SIZE = 60;
+/** How to build the bundled directory, for a Steward run from its repository. */
+const BUILD_COMMAND = "pnpm --filter @steward/bots-gen seed build";
 
 function isSort(value: string | null): value is Sort {
   return value === "match" || value === "new" || value === "used";
@@ -52,22 +55,39 @@ function isCategory(value: string | null): value is BotCategory {
   return Boolean(value) && Object.hasOwn(BOT_CATEGORIES, value as string);
 }
 
+type Need = NonNullable<BotsQueryInput["needs"]>;
+
+/** What a bot reaches, for the filter: the words on the choice and in the results line. */
+const NEEDS: { value: Need; label: string; caption: string }[] = [
+  { value: "mail", label: "Your mail", caption: "using your mail" },
+  { value: "calendar", label: "Your calendar", caption: "using your calendar" },
+  { value: "browser", label: "Its browser", caption: "using a browser" },
+  { value: "none", label: "Chat only", caption: "for chat only" },
+];
+
+function isNeed(value: string | null): value is Need {
+  return NEEDS.some((need) => need.value === value);
+}
+
 export function BotsPage() {
   const [params, setParams] = useSearchParams();
   const q = params.get("q") ?? "";
   const category = isCategory(params.get("category")) ? (params.get("category") as BotCategory) : undefined;
   const sort: Sort = isSort(params.get("sort")) ? (params.get("sort") as Sort) : "match";
-  const filtering = q !== "" || category !== undefined;
+  const needs = isNeed(params.get("needs")) ? (params.get("needs") as Need) : undefined;
+  const filtering = q !== "" || category !== undefined || needs !== undefined;
 
   const info = useInfo();
   const installed = useInstalledBots();
-  const query: BotsQueryInput = {
+  const query: Omit<BotsQueryInput, "offset"> = {
     ...(q ? { q } : {}),
     ...(category ? { category } : {}),
+    ...(needs ? { needs } : {}),
     sort,
     limit: PAGE_SIZE,
   };
-  const browse = useBots(query);
+  const browse = useBotPages(query);
+  const first = browse.data?.pages[0];
   // Suggested for you: inbox bots when mail is connected, everyday ones otherwise.
   const suggestedCategory: BotCategory = info.data?.mail.connected ? "productivity" : "misc";
   const suggested = useBots({ category: suggestedCategory, sort: "used", limit: 4 }, { enabled: !filtering });
@@ -75,11 +95,11 @@ export function BotsPage() {
   const [opened, setOpened] = useState<BotListing | undefined>();
   const [making, setMaking] = useState(false);
 
-  const categories = browse.data?.categories ?? (BOT_CATEGORIES as Record<string, string>);
+  const categories = first?.categories ?? (BOT_CATEGORIES as Record<string, string>);
   const installedById = new Map((installed.data ?? []).map((bot) => [bot.id, bot]));
 
   const set = useCallback(
-    (next: Partial<{ q: string; category: string; sort: Sort }>) => {
+    (next: Partial<{ q: string; category: string; sort: Sort; needs: string }>) => {
       setParams(
         (current) => {
           const out = new URLSearchParams(current);
@@ -96,7 +116,9 @@ export function BotsPage() {
   );
 
   const suggestions = (suggested.data?.bots ?? []).filter((bot) => !installedById.has(bot.id)).slice(0, 4);
-  const results = browse.data?.bots ?? [];
+  const results = uniqueById((browse.data?.pages ?? []).flatMap((page) => page.bots));
+  const total = Math.max(first?.total ?? 0, results.length);
+  const problem = first?.directory?.problem;
   const makeCard = (
     <Card
       as="article"
@@ -131,7 +153,7 @@ export function BotsPage() {
         </Button>
       }
     >
-      <Filters q={q} category={category} sort={sort} categories={categories} onChange={set} />
+      <Filters q={q} category={category} sort={sort} needs={needs} categories={categories} onChange={set} />
 
       {!filtering && installed.data && installed.data.length > 0 ? (
         <InstalledSection bots={installed.data} />
@@ -156,20 +178,38 @@ export function BotsPage() {
 
       <Section
         title={filtering ? "Results" : "Browse"}
+        live
         caption={
           browse.data
-            ? `${plural(browse.data.total ?? results.length, "bot")}${category ? ` in ${categoryLabel(category, categories)}` : ""}${q ? ` for “${q}”` : ""}`
+            ? resultsCaption(results.length, total, {
+                category: category ? categoryLabel(category, categories) : undefined,
+                needs: NEEDS.find((need) => need.value === needs)?.caption,
+                q,
+              })
             : undefined
         }
       >
         {browse.isPending ? (
           <Loading>Loading the directory…</Loading>
-        ) : browse.isError ? (
+        ) : browse.isError && results.length === 0 ? (
           <ErrorNotice
             title="Couldn't load the directory"
             error={browse.error}
             onRetry={() => void browse.refetch()}
           />
+        ) : results.length === 0 && problem ? (
+          <Notice tone="needs" title={problem}>
+            <p className="m-0">
+              If you run Steward from its repository, build the directory with{" "}
+              <code className="break-all">{BUILD_COMMAND}</code>, then reload this page. You can still make a
+              bot of your own.
+            </p>
+            <div className="mt-2">
+              <Button size="sm" icon={<WandSparkles />} onClick={() => setMaking(true)}>
+                Make a bot
+              </Button>
+            </div>
+          </Notice>
         ) : results.length === 0 ? (
           <EmptyState
             icon={Bot}
@@ -182,7 +222,7 @@ export function BotsPage() {
             }
           >
             {filtering
-              ? "Try other words, or make a bot for this job yourself."
+              ? "Try a few plain words about the job, or fewer choices. Or make a bot for this job yourself."
               : "Make the first one: say what it should do and Steward writes it."}
           </EmptyState>
         ) : (
@@ -200,6 +240,20 @@ export function BotsPage() {
             <li>{makeCard}</li>
           </Grid>
         )}
+        {results.length > 0 && browse.isFetchNextPageError ? (
+          <ErrorNotice
+            title="Couldn't load more bots"
+            error={browse.error}
+            onRetry={() => void browse.fetchNextPage()}
+          />
+        ) : null}
+        {results.length > 0 && browse.hasNextPage && !browse.isFetchNextPageError ? (
+          <div className="flex justify-center">
+            <Button loading={browse.isFetchingNextPage} onClick={() => void browse.fetchNextPage()}>
+              Show more bots
+            </Button>
+          </div>
+        ) : null}
       </Section>
 
       <Dialog
@@ -209,7 +263,13 @@ export function BotsPage() {
         size="lg"
       >
         {opened ? (
-          <ListingDialogBody key={opened.id} listing={opened} onDone={() => setOpened(undefined)} />
+          <ListingDialogBody
+            key={opened.id}
+            packUrl={opened.packUrl}
+            name={opened.name}
+            listing={opened}
+            onDone={() => setOpened(undefined)}
+          />
         ) : null}
       </Dialog>
 
@@ -218,7 +278,39 @@ export function BotsPage() {
   );
 }
 
-function Section({ title, caption, children }: { title: string; caption?: string; children: ReactNode }) {
+/** "Showing 60 of 1,251 bots", or "12 bots in Money & finance for “rent”" once all are shown. */
+function resultsCaption(
+  shown: number,
+  total: number,
+  filter: { category?: string; needs?: string; q?: string } = {},
+): string {
+  const scope = [
+    filter.category ? ` in ${filter.category}` : "",
+    filter.needs ? ` ${filter.needs}` : "",
+    filter.q ? ` for “${filter.q}”` : "",
+  ].join("");
+  const all = `${total.toLocaleString()} ${total === 1 ? "bot" : "bots"}`;
+  return shown < total ? `Showing ${shown.toLocaleString()} of ${all}${scope}` : `${all}${scope}`;
+}
+
+/** The listings once each: a page that shifted under a changing sort can repeat a bot. */
+function uniqueById(listings: BotListing[]): BotListing[] {
+  const seen = new Set<string>();
+  return listings.filter((listing) => !seen.has(listing.id) && Boolean(seen.add(listing.id)));
+}
+
+function Section({
+  title,
+  caption,
+  live = false,
+  children,
+}: {
+  title: string;
+  caption?: string;
+  /** The caption says how many results there are, so a screen reader hears it change. */
+  live?: boolean;
+  children: ReactNode;
+}) {
   const id = useId();
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
@@ -226,7 +318,14 @@ function Section({ title, caption, children }: { title: string; caption?: string
         <h2 id={id} className="m-0 font-semibold text-ink text-title">
           {title}
         </h2>
-        {caption ? <p className="m-0 mt-0.5 text-caption text-ink-2">{caption}</p> : null}
+        {live ? (
+          // Always in the page, so the change from loading to a count is announced.
+          <p role="status" className="m-0 mt-0.5 text-caption text-ink-2">
+            {caption ?? ""}
+          </p>
+        ) : caption ? (
+          <p className="m-0 mt-0.5 text-caption text-ink-2">{caption}</p>
+        ) : null}
       </div>
       {children}
     </section>
@@ -243,14 +342,16 @@ function Filters({
   q,
   category,
   sort,
+  needs,
   categories,
   onChange,
 }: {
   q: string;
   category: BotCategory | undefined;
   sort: Sort;
+  needs: Need | undefined;
   categories: Record<string, string>;
-  onChange: (next: Partial<{ q: string; category: string; sort: Sort }>) => void;
+  onChange: (next: Partial<{ q: string; category: string; sort: Sort; needs: string }>) => void;
 }) {
   const [text, setText] = useState(q);
   // Typing settles before the address (and the directory) hear about it.
@@ -297,6 +398,12 @@ function Filters({
         onValueChange={(value) => onChange({ category: value })}
         choices={choices}
       />
+      <ChoiceGroup
+        legend="What it uses"
+        value={needs ?? ""}
+        onValueChange={(value) => onChange({ needs: value })}
+        choices={[{ value: "", label: "Anything" }, ...NEEDS.map(({ value, label }) => ({ value, label }))]}
+      />
     </search>
   );
 }
@@ -319,8 +426,8 @@ function InstalledSection({ bots }: { bots: InstalledBot[] }) {
 
 function InstalledRow({ bot }: { bot: InstalledBot }) {
   const remove = useRemoveBot();
-  const update = useUpdateBot();
   const [confirming, setConfirming] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const newer = bot.updateAvailable;
   return (
     <Card
@@ -355,15 +462,8 @@ function InstalledRow({ bot }: { bot: InstalledBot }) {
             variant="primary"
             size="sm"
             icon={<RefreshCw />}
-            loading={update.isPending}
             aria-label={`Update ${bot.name}`}
-            onClick={() =>
-              update.mutate(bot.id, {
-                onSuccess: (row) =>
-                  toast.success("Bot updated", { description: `${row.name} is now version ${row.version}.` }),
-                onError: (error) => toast.error("Couldn't update it", { description: error.message }),
-              })
-            }
+            onClick={() => setUpdating(true)}
           >
             Update
           </Button>
@@ -378,6 +478,19 @@ function InstalledRow({ bot }: { bot: InstalledBot }) {
           Remove
         </Button>
       </div>
+      {newer ? (
+        <Dialog
+          open={updating}
+          onOpenChange={setUpdating}
+          title={`Update ${bot.name}`}
+          description={`Version ${newer.version}. Read what changes before you update.`}
+          size="lg"
+        >
+          {updating ? (
+            <ListingDialogBody packUrl={newer.packUrl} name={bot.name} onDone={() => setUpdating(false)} />
+          ) : null}
+        </Dialog>
+      ) : null}
       <Dialog
         open={confirming}
         onOpenChange={setConfirming}
@@ -421,19 +534,32 @@ function sourceHost(source: string): string {
   return "the directory on this computer";
 }
 
-/** The listing inside the Add dialog: preview fetched on open, Add at the bottom. */
-function ListingDialogBody({ listing, onDone }: { listing: BotListing; onDone: () => void }) {
-  const preview = useListingPreview({ packUrl: listing.packUrl });
+/**
+ * A listing inside a dialog: the preview is fetched on open, the actions sit at the bottom. The
+ * same body serves Add and Update, so an update is read (with what changes) before it applies.
+ */
+function ListingDialogBody({
+  packUrl,
+  name,
+  listing,
+  onDone,
+}: {
+  packUrl: string;
+  name: string;
+  listing?: BotListing;
+  onDone: () => void;
+}) {
+  const preview = useListingPreview({ packUrl });
   const pack = preview.data?.pack;
   if (!pack) {
     return preview.isError ? (
       <ErrorNotice
         title="Couldn't load this bot"
         error={preview.error}
-        onRetry={() => preview.mutate({ packUrl: listing.packUrl })}
+        onRetry={() => preview.mutate({ packUrl })}
       />
     ) : (
-      <Loading>Loading {listing.name}…</Loading>
+      <Loading>Loading {name}…</Loading>
     );
   }
   return (
@@ -442,8 +568,9 @@ function ListingDialogBody({ listing, onDone }: { listing: BotListing; onDone: (
       <div className="border-hair border-t pt-4">
         <BotActions
           pack={pack}
-          source={{ packUrl: listing.packUrl }}
+          source={{ packUrl }}
           installed={preview.data?.alreadyInstalled}
+          onUpdated={onDone}
           onCancel={onDone}
         />
       </div>

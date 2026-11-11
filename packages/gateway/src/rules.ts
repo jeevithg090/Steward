@@ -189,23 +189,47 @@ export class SqliteRuleStore implements RuleStore {
       if (!fixed) this.checkInput(next);
       next.name = next.name.trim();
       next.description = next.description.trim();
-      this.db.run(
-        `UPDATE gateway_rules SET name = ?, effect = ?, cel = ?, description = ?, enabled = ?, updated_at = ?
-         WHERE id = ?`,
-        [
-          next.name,
-          next.effect,
-          next.when,
-          next.description,
-          next.enabled ? 1 : 0,
-          this.now().toISOString(),
-          id,
-        ],
-      );
-      this.cached = undefined;
-      this.record("updated", next, current);
-      return next;
+      return this.write(current, next);
     });
+  }
+
+  /**
+   * Limits a bot's rule to that bot's agent, for a rule written before bot rules were limited.
+   * `update` refuses to change a bot's rule; this is Steward's own narrowing, with no API route to
+   * it, and it changes nothing but the condition: `agent.id == "<agent>" && (<the old one>\n)`.
+   */
+  limitToAgent(id: string, agentId: string): Rule {
+    return this.withAudit(() => {
+      const current = this.get(id);
+      if (!current) throw new GatewayError("not_found", "There is no rule with that id.");
+      if (current.source !== "bot") {
+        throw new GatewayError("invalid", "Only a bot's rule is limited to its agent this way.");
+      }
+      if (!/^[a-z0-9][a-z0-9-]*$/.test(agentId))
+        throw new GatewayError("invalid", "That is not an agent id.");
+      const when = `agent.id == "${agentId}" && (${current.when}\n)`;
+      this.validate(when);
+      return this.write(current, { ...current, when });
+    });
+  }
+
+  private write(current: Rule, next: Rule): Rule {
+    this.db.run(
+      `UPDATE gateway_rules SET name = ?, effect = ?, cel = ?, description = ?, enabled = ?, updated_at = ?
+       WHERE id = ?`,
+      [
+        next.name,
+        next.effect,
+        next.when,
+        next.description,
+        next.enabled ? 1 : 0,
+        this.now().toISOString(),
+        current.id,
+      ],
+    );
+    this.cached = undefined;
+    this.record("updated", next, current);
+    return next;
   }
 
   remove(id: string): void {

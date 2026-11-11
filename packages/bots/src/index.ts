@@ -5,15 +5,20 @@
  */
 export { type ZipEntry, zipEntries, zipPack } from "./archive.ts";
 export { canonicalPack, hashPack } from "./canonical.ts";
+export { type DiffOptions, diffPacks } from "./diff.ts";
 export {
   BotListingSchema,
   type BotsQueryValue,
   type BuildIndexOptions,
   buildIndex,
   DEFAULT_CACHE_MS,
+  DEFAULT_TIMEOUT_MS,
   DirectoryClient,
   type DirectoryClientOptions,
   DirectoryIndexSchema,
+  MAX_INDEX_BYTES,
+  MAX_PACK_BYTES,
+  PackNotFoundError,
 } from "./directory.ts";
 export {
   BotPackError,
@@ -25,8 +30,15 @@ export {
   writeBotFolder,
 } from "./pack.ts";
 export { type InjectionHit, scanForInjection } from "./scan.ts";
+export { RULE_WHEN_MAX, scopeToBot } from "./scope.ts";
 export { parseSkillMd, SKILL_NAME, SkillMdError, serializeSkillMd } from "./skill.ts";
-export { describeMayDo, expandStar, packFromTenant, profileFromPack } from "./tenant.ts";
+export {
+  botInstructionsFrame,
+  describeMayDo,
+  expandStar,
+  packFromTenant,
+  profileFromPack,
+} from "./tenant.ts";
 export {
   JARGON,
   MAX_SENTENCE_WORDS,

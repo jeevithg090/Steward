@@ -1,6 +1,22 @@
-import { type DirectoryClient, describeMayDo, hashPack, type PackProblem, validatePack } from "@steward/bots";
+import {
+  type DirectoryClient,
+  describeMayDo,
+  diffPacks,
+  hashPack,
+  PackNotFoundError,
+  type PackProblem,
+  scopeToBot,
+  validatePack,
+} from "@steward/bots";
 import type { Db } from "@steward/db";
-import { gateCallFor, type StewardGateway } from "@steward/gateway";
+import {
+  CelEngine,
+  CONTEXT_SCHEMA,
+  decide,
+  gateCallFor,
+  neutralContext,
+  type StewardGateway,
+} from "@steward/gateway";
 import {
   type BotListing,
   type BotPack,
@@ -14,6 +30,7 @@ import {
   type McpManager,
   mcpToolName,
   parseMcpToolName,
+  type Rule,
   TOOL_PLAIN_WORDS,
   TOOLS,
 } from "@steward/shared";
@@ -40,8 +57,11 @@ const SKILL_NAME_MAX = 41;
 const SKILL_DESCRIPTION_MAX = 300;
 const RULE_NAME_MAX = 120;
 
-/** What every bot asks before, whatever its tools: the gateway's defaults for send, pay and sign. */
-const ALWAYS_ASKS = ["sending anything", "paying", "signing"];
+/**
+ * What every bot asks before, whatever its tools: the gateway's defaults for send, pay, sign and
+ * delete. The listing shows the same four when it has no preview.
+ */
+const ALWAYS_ASKS = ["sending anything", "paying", "signing", "deleting"];
 
 /** Plain words for a tool the gateway would ask about, without the "(asks first)" note. */
 function askWords(tool: string): string {
@@ -59,6 +79,8 @@ function dedupe(words: string[]): string[] {
 /**
  * Where an install is counted, for a directory read over the network: `<site>/api/bots/<id>/installed`,
  * or beside the index when the index names no site. A directory read from a file has no such place.
+ * A site on another origin from the index must be https; the post goes through the same guarded
+ * fetch as the directory, so a site on a private address is never reached.
  */
 export function countsEndpoint(
   source: string,
@@ -67,11 +89,20 @@ export function countsEndpoint(
 ): string | undefined {
   if (!isRemoteDirectory(source)) return undefined;
   const site = index?.site?.trim();
-  const base = site && isRemoteDirectory(site) ? (site.endsWith("/") ? site : `${site}/`) : source;
+  const usable = site && isRemoteDirectory(site) && (sameOrigin(site, source) || /^https:/i.test(site));
+  const base = usable ? (site.endsWith("/") ? site : `${site}/`) : source;
   try {
     return new URL(`api/bots/${encodeURIComponent(id)}/installed`, base).toString();
   } catch {
     return undefined;
+  }
+}
+
+function sameOrigin(a: string, b: string): boolean {
+  try {
+    return new URL(a).origin === new URL(b).origin;
+  } catch {
+    return false;
   }
 }
 
@@ -118,6 +149,9 @@ export interface BotServiceDeps {
  * away exactly that.
  */
 export class BotService {
+  /** Decides previews with the gateway's own policy, over the rules the pack would bring. */
+  private readonly engine = new CelEngine(CONTEXT_SCHEMA, neutralContext);
+
   constructor(private readonly deps: BotServiceDeps) {}
 
   /** Every tool name this Steward has: the built-ins and the tools of connected MCP servers. */
@@ -201,6 +235,12 @@ export class BotService {
       try {
         pack = await this.deps.directory.pack(body.packUrl);
       } catch (err) {
+        if (err instanceof PackNotFoundError) {
+          throw new HttpError(
+            404,
+            "There is no bot at that address. It may have been removed, or the link is wrong.",
+          );
+        }
         throw directoryError(err);
       }
       const source = isRemoteDirectory(body.packUrl) ? body.packUrl : this.deps.directorySource;
@@ -210,20 +250,68 @@ export class BotService {
   }
 
   /**
-   * What the pack would mean for this person: what it may do without asking is decided by the real
-   * gateway (a representative call per tool, untainted), never declared by the pack.
+   * The rules the bot's agent would be decided by once this pack is in: every rule but the ones the
+   * installed version brought (an install or update takes those away), plus the pack's own ask and
+   * deny rules, limited to the bot as `install` writes them. A rule that cannot be read is left out:
+   * such a pack is refused anyway.
+   */
+  private rulesWith(pack: BotPack): Rule[] {
+    const { gateway, store } = this.deps;
+    const replaced = new Set(store.get(pack.id)?.ruleIds ?? []);
+    const others = gateway.rules
+      .current()
+      .filter((rule) => !(rule.source === "bot" && replaced.has(rule.id)));
+    const createdAt = new Date().toISOString();
+    const own: Rule[] = [];
+    pack.rules.forEach((rule, i) => {
+      if (rule.effect !== "ask" && rule.effect !== "deny") return;
+      let when: string;
+      try {
+        gateway.rules.validate(rule.when);
+        when = scopeToBot(pack.id, rule.when);
+        gateway.rules.validate(when);
+      } catch {
+        return;
+      }
+      own.push({
+        id: `preview:${pack.id}:${i}`,
+        name: clip(`${pack.name}: ${rule.name}`, RULE_NAME_MAX),
+        effect: rule.effect,
+        when,
+        description: rule.description,
+        source: "bot",
+        enabled: true,
+        createdAt,
+      });
+    });
+    return [...others, ...own];
+  }
+
+  /**
+   * What the pack would mean for this person: what it may do without asking is decided by the
+   * gateway's own policy (a representative call per tool, untainted) over the rules the pack would
+   * bring, never declared by the pack. For an update, the installed version's rules are not counted:
+   * they go when the update applies.
    */
   preview(pack: BotPack): BotPreview {
-    const { gateway, actorId } = this.deps;
+    const { actorId } = this.deps;
     const known = new Set(this.knownTools());
     const present = new Set(this.connectors());
     const allowed: string[] = [];
     const asks: string[] = [];
+    let rules: Rule[] | undefined;
+    try {
+      rules = this.rulesWith(pack);
+    } catch {
+      rules = undefined; // The rules could not be read: nothing counts as running without asking.
+    }
     for (const tool of dedupe(pack.needs.tools)) {
       if (!known.has(tool)) continue;
       let decision: Decision | undefined;
       try {
-        decision = gateway.governance.dryRun(gateCallFor({ tool, args: {}, agentId: pack.id, actorId }));
+        decision = rules
+          ? decide(this.engine, rules, gateCallFor({ tool, args: {}, agentId: pack.id, actorId })).decision
+          : undefined;
       } catch {
         decision = undefined; // Deciding failed: not something it may do without asking.
       }
@@ -231,8 +319,12 @@ export class BotService {
       else if (decision?.effect === "ask") asks.push(tool);
     }
     const installed = this.deps.store.get(pack.id);
+    // An update is read before it is applied: what this pack changes from the installed one.
+    const replaces =
+      installed !== undefined && pack.version >= installed.version && hashPack(pack) !== installed.hash;
     return {
-      pack,
+      // With its hash, so installing by address can ask for exactly this pack.
+      pack: { ...pack, hash: hashPack(pack) },
       mayDoWithoutAsking: describeMayDo(allowed),
       asksBefore: dedupe([
         ...asks.map(askWords),
@@ -242,6 +334,9 @@ export class BotService {
       needsMissing: dedupe(pack.needs.connectors).filter((c) => !present.has(c)),
       toolsMissing: dedupe(pack.needs.tools).filter((t) => !known.has(t)),
       ...(installed ? { alreadyInstalled: toInstalledBot(installed) } : {}),
+      ...(installed && replaces
+        ? { changes: diffPacks(installed.pack, pack, { runsWithoutAsking: new Set(allowed) }) }
+        : {}),
     };
   }
 
@@ -340,10 +435,13 @@ export class BotService {
         });
         const ruleIds = pack.rules.map((rule) => {
           try {
+            // The condition must parse on its own before it is wrapped (see scopeToBot).
+            gateway.rules.validate(rule.when);
             return gateway.rules.create({
               name: clip(`${pack.name}: ${rule.name}`, RULE_NAME_MAX),
               effect: rule.effect,
-              when: rule.when,
+              // The pack's condition, limited to this bot's agent: never Steward's or another bot's.
+              when: scopeToBot(pack.id, rule.when),
               description: rule.description,
               enabled: true,
               source: "bot",
@@ -436,6 +534,34 @@ export class BotService {
     return this.install(checked.pack, source, { fromDirectory: true });
   }
 
+  /**
+   * Limits the rules of bots installed before rules were scoped to their own agent. A rule is
+   * rewritten only while its condition is still exactly one the pack brought: one the person has
+   * edited on Rules is theirs and is left alone. Returns how many rules changed. Safe to run at
+   * every start; a rule that cannot be rewritten stays as it is, which only ever asks more.
+   */
+  scopeInstalledRules(): number {
+    const { store, gateway } = this.deps;
+    let changed = 0;
+    for (const record of store.list()) {
+      const written = new Set((record.pack.rules ?? []).map((r) => r.when));
+      for (const ruleId of record.ruleIds) {
+        const rule = gateway.rules.get(ruleId);
+        if (rule?.source !== "bot" || !written.has(rule.when)) continue;
+        try {
+          gateway.rules.limitToAgent(ruleId, record.agentId);
+          changed++;
+        } catch (err) {
+          console.error(
+            `[steward] the rule "${rule.name}" could not be limited to ${record.name}:`,
+            err instanceof Error ? err.message : err,
+          );
+        }
+      }
+    }
+    return changed;
+  }
+
   /** Removes a bot and exactly what it brought. Its conversations keep their history. */
   async remove(id: string): Promise<void> {
     const { store, gateway, db, actorId } = this.deps;
@@ -511,7 +637,9 @@ export function directoryError(err: unknown): HttpError {
   if (code === "ENOENT" || code === "ENOTDIR" || /^The directory answered 404\b/.test(message)) {
     return new HttpError(404, "That bot isn't in the directory.");
   }
-  if (typeof code === "string") {
+  // A file system error (EACCES, EISDIR…) names a path on this machine. Other errors, such as an
+  // address Steward refused to open, say what to do and are passed on.
+  if (typeof code === "string" && /^E[A-Z0-9]+$/.test(code)) {
     console.error("[steward] reading a bot from the directory failed:", message);
     return new HttpError(502, "Couldn't read that bot from the directory.");
   }

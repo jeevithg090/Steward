@@ -159,6 +159,41 @@ pnpm --filter @steward/bots-gen seed retire --apply --regenerate      # do it, a
 
 Steward copies a bot when someone adds it, so a retired bot keeps working for people who have it.
 
+## Adding a bot to Steward
+
+What a Steward does with a directory's bots, whichever directory it reads:
+
+- **Reading packs.** A pack comes from the configured directory, or from a link to
+  `/bots/add?pack=<address>`. Steward reads https addresses, and plain http only on this machine.
+  Every address except the configured directory's own goes through the same check as the
+  agent's browser: this machine, the local network and cloud metadata are refused unless
+  `STEWARD_ALLOW_PRIVATE_HOSTS=1`. Each redirect is checked the same way. A read gives up after
+  10 seconds, and a pack over 2 MB (an index over 16 MB) is cut off.
+- **The listing pins the pack.** Each listing in `index.json` carries its pack's `hash`. A pack
+  whose content no longer matches its own hash, or its listing's, is refused.
+- **Search.** Listings also carry `keywords`: the bot's starters and skills, at most 400
+  characters. Search scores the name first, then the category, then the pitch and keywords. A
+  search of only filler words ("help me please") matches nothing. A search that is exactly a
+  bot's id finds that bot first, which is how a bot's page (`/bots/<id>`) finds it.
+- **Checks.** Every field the model reads is scanned for orders aimed at the model and for
+  personal data: the name, pitch, starters, instructions, skills, rules, routines, shortcuts,
+  examples and README. A bot's instructions reach the model after a line that says who wrote them
+  and that they never override the person, the rules or the gateway. That line names the author,
+  so the author's handle is scanned for orders too.
+- **Its rules bind only that bot.** A pack's ask and deny rules are installed as
+  `agent.id == "<bot>" && (<its condition>)`, so they apply only when you talk to that bot. Rules
+  of bots added before this are limited the same way when Steward starts, unless you edited them.
+- **What it may do without asking** is what the gateway decides for each tool the bot holds,
+  never what the pack says. It counts the bot's own rules, and for an update the new version's
+  rules, not the ones it replaces. Every tool is named; a connected app's tool reads "use <tool> on
+  <app>". Sending, paying, signing and deleting always ask.
+- **Updates.** Update opens the newer version's listing with **What changes**: tools added or
+  removed (new ones that run without asking first), rules, skills, routines, and changed
+  instructions. Nothing changes until you press Update. Add and Update install exactly the pack
+  shown: the install names its hash, and a pack that changed after you read it is refused.
+- **Unknown bots.** A link to a bot the directory does not have says "No bot by that name". Errors
+  never show a path on this machine.
+
 ## Submitting from Steward
 
 **Make a bot** in Steward's Bots page ends with **Submit to the directory**. It downloads the pack's

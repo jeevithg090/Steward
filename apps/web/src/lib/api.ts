@@ -415,7 +415,10 @@ export const api = {
     preview: (body: BotPreviewInput) => send<BotPreview>("POST", ROUTES.botsPreview, body),
     install: (body: BotInstallInput) => send<InstalledBot>("POST", ROUTES.botsInstall, body),
     remove: (id: string) => send<void>("DELETE", route(ROUTES.botInstalled, { id })),
-    /** Applies the newer version the directory has for an installed bot. */
+    /**
+     * Applies the newer version the directory has for an installed bot, at once. The web app does
+     * not use it: it previews the newer pack (with what changes) and installs that pack instead.
+     */
     update: (id: string) => send<InstalledBot>("POST", `${route(ROUTES.botInstalled, { id })}/update`),
     /** Writes a pack from a job in the person's words. Returned, not installed. */
     make: (body: BotMakeInput) => send<BotPack>("POST", ROUTES.botsMake, body),
@@ -494,6 +497,7 @@ export const queryKeys = {
   phoneCatalogue: ["phone", "catalogue"] as const,
   devices: ["devices"] as const,
   botList: (query: BotsQueryInput) => ["bots", "list", query] as const,
+  botPages: (query: Omit<BotsQueryInput, "offset">) => ["bots", "pages", query] as const,
   botsInstalled: ["bots", "installed"] as const,
 };
 
@@ -1016,6 +1020,23 @@ export function useBots(query: BotsQueryInput = {}, opts?: QueryOpts<BotsRespons
   });
 }
 
+/**
+ * The directory a page at a time, for a list that grows with "Show more": each page asks from where
+ * the last one ended, until every match is loaded.
+ */
+export function useBotPages(query: Omit<BotsQueryInput, "offset">) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.botPages(query),
+    queryFn: ({ pageParam, signal }) => api.bots.list({ ...query, offset: pageParam }, signal),
+    initialPageParam: 0,
+    getNextPageParam: (last: BotsResponse, pages: BotsResponse[]) => {
+      const loaded = pages.reduce((sum, page) => sum + page.bots.length, 0);
+      return last.bots.length > 0 && loaded < last.total ? loaded : undefined;
+    },
+    staleTime: 60_000,
+  });
+}
+
 export function useInstalledBots(opts?: QueryOpts<InstalledBot[]>) {
   return useQuery<InstalledBot[], ApiError>({
     queryKey: queryKeys.botsInstalled,
@@ -1053,7 +1074,6 @@ export function invalidateBots(qc: QueryClient): void {
 
 export const useInstallBot = () => useBotsMutation((body: BotInstallInput) => api.bots.install(body));
 export const useRemoveBot = () => useBotsMutation((id: string) => api.bots.remove(id));
-export const useUpdateBot = () => useBotsMutation((id: string) => api.bots.update(id));
 
 /** Submit to the directory: downloads `<id>.zip`, the pack folder ready for a repository. */
 export function useExportBot() {

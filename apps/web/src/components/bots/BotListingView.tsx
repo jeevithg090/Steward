@@ -1,19 +1,14 @@
 import type { BotListing, BotPack, BotPreview, InstalledBot } from "@steward/shared";
 import { Check, Plus, RefreshCw, RotateCw, ShieldCheck, TriangleAlert } from "lucide-react";
 import { type ReactNode, useEffect, useId, useRef } from "react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge.tsx";
 import { Button, LinkButton } from "@/components/ui/Button.tsx";
 import { Notice } from "@/components/ui/Notice.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
 import { Markdown } from "@/features/chat/Markdown.tsx";
-import {
-  type BotPreviewInput,
-  useBotPreview,
-  useInstallBot,
-  useInstalledBots,
-  useUpdateBot,
-} from "@/lib/api.ts";
+import { type BotPreviewInput, useBotPreview, useInstallBot, useInstalledBots } from "@/lib/api.ts";
 import { checkCron } from "@/lib/cron.ts";
 import { EFFECT_LABELS } from "@/lib/labels.ts";
 import { cn, plural } from "@/lib/utils.ts";
@@ -199,6 +194,18 @@ export function BotListingView({
         <NeedsRow needs={pack.needs} />
       </div>
 
+      {preview?.changes ? (
+        <Section level={level} title={`What changes in version ${pack.version}`}>
+          <PlainList items={preview.changes} empty="Nothing but the version number." />
+          <p className="m-0 text-caption text-ink-2">
+            {preview.alreadyInstalled
+              ? `Compared with version ${preview.alreadyInstalled.version}, which you have now. `
+              : ""}
+            Nothing changes until you press Update.
+          </p>
+        </Section>
+      ) : null}
+
       <Section level={level} title="What it does">
         {readmeBody(pack.readme, pack.name) ? (
           <Markdown headingsFrom={(level + 1) as 3 | 4 | 5}>{readmeBody(pack.readme, pack.name)}</Markdown>
@@ -325,7 +332,7 @@ export function BotListingView({
           </ul>
         )}
         <p className="m-0 text-caption text-ink-2">
-          A bot's rules can only ask or refuse more than yours do, never less.
+          These apply only when you talk to {pack.name}. A bot's rules can only ask or refuse, never allow.
         </p>
       </Section>
 
@@ -434,33 +441,58 @@ export interface BotActionsProps {
   source: { packUrl: string } | { pack: BotPack };
   /** The installed row the preview reported, if any. The installed list is read too. */
   installed?: InstalledBot;
-  /** Disabled until the preview has come back, so nothing is added unseen. */
+  /** Disabled until the preview has come back, so nothing is added or updated unseen. */
   ready?: boolean;
   onInstalled?: (installed: InstalledBot) => void;
+  onUpdated?: (installed: InstalledBot) => void;
   onCancel?: () => void;
   className?: string;
 }
 
-/** Add to Steward, or Installed with Update when the directory has a newer version. */
+/**
+ * True when the pack on screen would replace the installed bot: a higher version, or the same
+ * version with other contents. Update always applies the pack on screen, never another one.
+ */
+export function replacesInstalled(
+  pack: Pick<BotPack, "version" | "hash">,
+  mine: Pick<InstalledBot, "version" | "hash"> | undefined,
+): boolean {
+  if (!mine) return false;
+  if (pack.version !== mine.version) return pack.version > mine.version;
+  return Boolean(pack.hash) && pack.hash !== mine.hash;
+}
+
+/**
+ * Add to Steward, or Installed with Update when the pack on screen is newer than the installed
+ * one. The listing above shows what the update changes; Update applies exactly that pack.
+ */
 export function BotActions({
   pack,
   source,
   installed,
   ready = true,
   onInstalled,
+  onUpdated,
   onCancel,
   className,
 }: BotActionsProps) {
   const installedList = useInstalledBots();
   const install = useInstallBot();
-  const update = useUpdateBot();
   const mine = installedList.data?.find((bot) => bot.id === pack.id) ?? installed;
-  const newer = mine ? (mine.updateAvailable?.version ?? pack.version) > mine.version : false;
-  const error = install.error ?? update.error;
+  const newer = replacesInstalled(pack, mine);
+  // The directory has a newer version than the one on screen: say where it is, not Update.
+  const elsewhere =
+    mine && !newer && mine.updateAvailable && mine.updateAvailable.version > pack.version
+      ? mine.updateAvailable.version
+      : undefined;
+  const error = install.error;
   const waitId = useId();
 
+  // By address, the pack is fetched again: name the one on screen, so nothing else is added.
+  const exactly = "packUrl" in source && pack.hash ? { ...source, hash: pack.hash } : source;
+
   function add() {
-    install.mutate(source, {
+    install.mutate(exactly, {
       onSuccess: (row) => {
         toast.success("Bot added", { description: `${row.name} is ready to pick in a new conversation.` });
         onInstalled?.(row);
@@ -470,9 +502,11 @@ export function BotActions({
 
   function apply() {
     if (!mine) return;
-    update.mutate(mine.id, {
-      onSuccess: (row) =>
-        toast.success("Bot updated", { description: `${row.name} is now version ${row.version}.` }),
+    install.mutate(exactly, {
+      onSuccess: (row) => {
+        toast.success("Bot updated", { description: `${row.name} is now version ${row.version}.` });
+        onUpdated?.(row);
+      },
     });
   }
 
@@ -485,8 +519,15 @@ export function BotActions({
               Installed
             </Pill>
             {newer ? (
-              <Button variant="primary" icon={<RefreshCw />} loading={update.isPending} onClick={apply}>
-                Update
+              <Button
+                variant="primary"
+                icon={<RefreshCw />}
+                loading={install.isPending}
+                disabled={!ready}
+                onClick={apply}
+                aria-describedby={ready ? undefined : waitId}
+              >
+                Update to version {pack.version}
               </Button>
             ) : null}
             <LinkButton
@@ -510,9 +551,21 @@ export function BotActions({
         )}
         {onCancel ? <Button onClick={onCancel}>Cancel</Button> : null}
       </div>
-      {!mine && !ready ? (
+      {(!mine || newer) && !ready ? (
         <p id={waitId} className="m-0 text-caption text-ink-2">
-          Add is ready once what it may do has been worked out.
+          {mine ? "Update" : "Add"} is ready once what it may do has been worked out.
+        </p>
+      ) : null}
+      {elsewhere ? (
+        <p className="m-0 text-caption text-ink-2">
+          Version {elsewhere} is in the directory.{" "}
+          <Link
+            to={`/bots/${encodeURIComponent(pack.id)}`}
+            className="text-accent underline underline-offset-2"
+          >
+            Read what changes
+          </Link>
+          .
         </p>
       ) : null}
       {mine ? (

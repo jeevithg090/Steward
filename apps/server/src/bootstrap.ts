@@ -32,6 +32,7 @@ import {
 } from "@steward/shared";
 import { readSigned } from "@steward/shortcuts";
 import { Hono } from "hono";
+import { directoryFetch } from "./bots/fetch.ts";
 import { BotService, botAgentSources } from "./bots/service.ts";
 import { ConfigError, DEV_PORTS, isLoopbackHost, type ServerConfig } from "./config.ts";
 import type { ProactiveServices, StewardServices } from "./context.ts";
@@ -285,7 +286,11 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
 
     // The bot directory (a URL or a file) and the bots installed from it. Each installed bot
     // becomes an agent beside the tenant's, rebuilt whenever one is added, updated or removed.
-    const directory = new DirectoryClient({ source: config.directoryUrl });
+    const fetchDirectory = directoryFetch({
+      directoryUrl: config.directoryUrl,
+      allowPrivateHosts: config.allowPrivateHosts,
+    });
+    const directory = new DirectoryClient({ source: config.directoryUrl, fetch: fetchDirectory });
     const installedBots = new InstalledBotStore(db);
 
     const host = new AgentHost({
@@ -351,7 +356,10 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       bus,
       actorId: LOCAL_ACTOR,
       tenantAgentIds: tenant.agents.map((a) => a.id),
+      fetch: fetchDirectory,
     });
+    // Bots installed before their rules were limited to their own agent.
+    bots.scopeInstalledRules();
 
     // Tasks one agent hands another (`delegate_task`), run through the same runner as routines.
     const delegations: Delegations = new Delegations({

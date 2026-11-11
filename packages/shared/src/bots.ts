@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { CatalogueEntry } from "./phone.ts";
 
 /**
  * Bots: ready-made agents from the directory (docs/plans/bot-directory.md). A bot is a pack: a
@@ -73,6 +72,28 @@ export const BotRuleSchema = z.object({
   description: z.string().max(500).default(""),
 });
 
+/**
+ * A phone launcher a pack brings (docs/plans/phone-and-shortcuts.md §4.3): a prompt with `{input}`
+ * where the person's words go, or one of the bot's own skills. It only ever starts a conversation
+ * with the bot (scope `chat`); the catalogue sets where it comes from.
+ */
+export const BotShortcutSchema = z
+  .object({
+    id: botId,
+    title: z.string().min(1).max(60),
+    description: z.string().max(200).default(""),
+    siriPhrase: z.string().min(1).max(60).optional(),
+    prompt: z.string().min(1).max(600).optional(),
+    action: z.object({ kind: z.literal("skill"), ref: botId.optional() }).default({ kind: "skill" }),
+    scopes: z.array(z.literal("chat")).max(1).default(["chat"]),
+    source: z.literal("bot").default("bot"),
+  })
+  .refine((s) => s.prompt !== undefined || s.action.ref !== undefined, {
+    message: "a shortcut needs a prompt or one of the bot's skills",
+    path: ["prompt"],
+  });
+export type BotShortcut = z.infer<typeof BotShortcutSchema>;
+
 export const BotPackSchema = z.object({
   id: botId,
   name: z.string().min(1).max(80),
@@ -108,7 +129,7 @@ export const BotPackSchema = z.object({
     .max(6)
     .default([]),
   /** Phone launchers (docs/plans/phone-and-shortcuts.md §4.3). */
-  shortcuts: z.array(z.custom<CatalogueEntry>()).max(6).default([]),
+  shortcuts: z.array(BotShortcutSchema).max(6).default([]),
   /** The listing text written for people, Markdown. */
   readme: z.string().max(40_000).default(""),
   /** sha256 of the canonical pack without this field; set by the builder. */
@@ -134,6 +155,10 @@ export interface BotListing {
   /** Where the full pack is: an https URL or a path relative to the index. */
   packUrl: string;
   pageUrl?: string;
+  /** The pack's content hash when the index was built. A fetched pack must match it. */
+  hash?: string;
+  /** Words from its starters and skills, for search: at most 400 characters. */
+  keywords?: string;
 }
 
 export interface DirectoryIndex {
@@ -175,6 +200,12 @@ export interface BotPreview {
   /** Tools the pack names that this Steward does not have. */
   toolsMissing: string[];
   alreadyInstalled?: InstalledBot;
+  /**
+   * When this pack would update the installed bot: what changes, in plain words, widening changes
+   * first. Empty when only the version moves. Absent when the bot is not installed, or this pack
+   * would not replace it.
+   */
+  changes?: string[];
   /** What validation noticed. An `error` here means Add is refused; a `warn` is shown. */
   problems?: BotProblem[];
 }
@@ -198,6 +229,14 @@ export const BotPreviewBody = z
   .object({
     packUrl: z.string().min(1).max(2048).optional(),
     pack: BotPackSchema.optional(),
+    /**
+     * Installing by address: the hash of the pack the person read (the preview's `pack.hash`). A
+     * pack that changed since is refused, so what is added is exactly what was shown.
+     */
+    hash: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .optional(),
   })
   .refine((b) => b.packUrl || b.pack, "Give a pack or its URL");
 
@@ -214,16 +253,27 @@ export const BotsQuery = z.object({
   q: z.string().max(200).optional(),
   category: z.enum(Object.keys(BOT_CATEGORIES) as [BotCategory, ...BotCategory[]]).optional(),
   sort: z.enum(["new", "used", "installs", "match"]).default("match"),
+  /** What the bot reaches: the person's mail or calendar, its own browser, or nothing (chat only). */
+  needs: z.enum(["mail", "calendar", "browser", "none"]).optional(),
   limit: z.coerce.number<number>().int().min(1).max(100).default(50),
   offset: z.coerce.number<number>().int().min(0).default(0),
 });
 
-/** Plain words for a tool, for "what it may do" lines. */
+/**
+ * Plain words for a tool, for "what it may do" lines. Every built-in tool has some, so a listing
+ * never leaves out something a bot may do. The `show_*` tools are left out on purpose: they only
+ * draw a table, a chart or choices in the conversation and reach nothing.
+ */
 export const TOOL_PLAIN_WORDS: Record<string, string> = {
   browser_navigate: "browse the web on its own computer",
   browser_snapshot: "read web pages",
   browser_click: "click on web pages",
   browser_type: "type into web pages",
+  browser_press: "press keys on web pages",
+  browser_scroll: "scroll web pages",
+  browser_back: "go back a page in its browser",
+  request_help: "stop and ask you for help",
+  request_secret: "ask you to type a password or code into a web page",
   web_search: "search the web",
   web_fetch: "read web pages",
   mail_list: "read your mail",
@@ -231,12 +281,17 @@ export const TOOL_PLAIN_WORDS: Record<string, string> = {
   mail_send: "send email (asks first)",
   calendar_list: "read your calendar",
   calendar_create: "add calendar events (asks first)",
+  file_list: "list files in its workspace",
   file_read: "read files in its workspace",
   file_write: "write files in its workspace",
   shell_run: "run commands (asks first)",
   memory_remember: "remember facts about you",
   task_create: "add tasks",
+  task_update: "change tasks",
   routine_create: "add routines",
+  delegate_task: "hand work to another agent",
+  brief_today: "read your mail and calendar for the morning brief",
+  triage_inbox: "read your mail and sort what needs you",
   make_page: "make pages and documents",
   directory_find: "look up bots in the directory",
 };

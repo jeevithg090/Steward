@@ -14,7 +14,7 @@ import { BOT_CATEGORIES, type BotListing, type BotPack } from "@steward/shared";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { stringify as stringifyYaml } from "yaml";
 import { hashPack } from "../src/canonical.ts";
-import { buildIndex, DirectoryClient } from "../src/directory.ts";
+import { buildIndex, DirectoryClient, MAX_PACK_BYTES, PackNotFoundError } from "../src/directory.ts";
 import { parseBotFolder, writeBotFolder } from "../src/pack.ts";
 
 const NEEDS = { tools: ["web_search", "web_fetch"], connectors: [], model: "any" };
@@ -164,9 +164,14 @@ describe("buildIndex", () => {
       updatedAt: "2026-01-05T00:00:00.000Z",
       packUrl: "packs/rent-scout.json",
       pageUrl: "https://bots.example.com/bots/rent-scout",
+      hash: expect.stringMatching(/^[0-9a-f]{64}$/),
+      keywords: "Find two-bed flats near Oxford. · find rentals · Finds rentals.",
     });
+    // A bot with no starters or skills carries no keywords at all.
+    expect(index.bots.find((b: BotListing) => b.id === "meal-planner")).not.toHaveProperty("keywords");
     const written = JSON.parse(readFileSync(join(root, "packs", "rent-scout.json"), "utf8")) as BotPack;
     expect(written.hash).toBe(hashPack(written));
+    expect(rent.hash).toBe(written.hash);
     expect(written.skills[0]?.name).toBe("find-rentals");
     expect(written.readme).toBe("# Rent Scout\n\nFinds rentals.");
     expect(existsSync(join(root, "packs", "bad-bot.json"))).toBe(false);
@@ -240,6 +245,15 @@ describe("DirectoryClient on a folder", () => {
   const ids = async (q: Parameters<DirectoryClient["list"]>[0]) =>
     (await client.list(q)).bots.map((b) => b.id);
 
+  it("says a pack is not there without naming the folder it looked in", async () => {
+    const missing = client.pack("packs/nope.json");
+    await expect(missing).rejects.toBeInstanceOf(PackNotFoundError);
+    await expect(missing).rejects.toThrow("There is no bot at packs/nope.json");
+    const folder = await client.pack("packs").catch((err: Error) => err);
+    expect((folder as Error).message).toBe("The pack at packs could not be read (EISDIR)");
+    expect((folder as Error).message).not.toContain(root);
+  });
+
   it("ranks by installs when there is nothing to match", async () => {
     const found = await client.list({ sort: "match", limit: 50, offset: 0 });
     expect(found.total).toBe(3);
@@ -258,6 +272,27 @@ describe("DirectoryClient on a folder", () => {
     expect(await ids({ q: "dinner", sort: "match", limit: 50, offset: 0 })).toEqual(["meal-planner"]);
     expect(await ids({ q: "food", sort: "match", limit: 50, offset: 0 })).toEqual(["meal-planner"]);
     expect(await ids({ q: "unicorns", sort: "match", limit: 50, offset: 0 })).toEqual([]);
+  });
+
+  it("finds a bot by its starters and skills, and none for words that say nothing about a job", async () => {
+    // "Oxford" and "two-bed" are only in Rent Scout's starter.
+    expect(await ids({ q: "oxford", sort: "match", limit: 50, offset: 0 })).toEqual(["rent-scout"]);
+    expect(await ids({ q: "two bed", sort: "match", limit: 50, offset: 0 })).toEqual(["rent-scout"]);
+    const empty = await client.list({ q: "help me please", sort: "match", limit: 50, offset: 0 });
+    expect(empty).toEqual({ bots: [], total: 0 });
+    // Words in another script are words, not nothing: no bot here has them.
+    expect(await ids({ q: "日本語の献立", sort: "match", limit: 50, offset: 0 })).toEqual([]);
+    expect(await ids({ q: "  ", sort: "match", limit: 50, offset: 0 })).toHaveLength(3);
+  });
+
+  it("filters by what a bot reaches: mail, calendar, its browser, or nothing", async () => {
+    expect(await ids({ needs: "mail", sort: "match", limit: 50, offset: 0 })).toEqual(["inbox-zero"]);
+    expect(await ids({ needs: "browser", sort: "match", limit: 50, offset: 0 })).toEqual([]);
+    // Every bot here searches the web, so none is chat only.
+    expect(await ids({ needs: "none", sort: "match", limit: 50, offset: 0 })).toEqual([]);
+    expect(await ids({ needs: "mail", q: "rent", sort: "match", limit: 50, offset: 0 })).toEqual([
+      "inbox-zero",
+    ]);
   });
 
   it("filters by category and pages with limit and offset", async () => {
@@ -354,7 +389,7 @@ describe("DirectoryClient on the web", () => {
     expect((await client.pack("https://cdn.example.com/inbox-zero.json")).id).toBe("inbox-zero");
     const meal = await client.get("meal-planner");
     await expect(client.pack(meal as BotListing)).rejects.toThrow(/must be web addresses too/);
-    await expect(client.pack("packs/nope.json")).rejects.toThrow(/answered 404/);
+    await expect(client.pack("packs/nope.json")).rejects.toThrow("There is no bot at packs/nope.json");
     expect(fetched.some((u) => u.startsWith("file:"))).toBe(false);
   });
 
@@ -371,6 +406,224 @@ describe("DirectoryClient on the web", () => {
     await fresh.index();
     await fresh.index();
     expect(fetched.filter((u) => u === INDEX_URL)).toHaveLength(4);
+  });
+
+  it("gives up on a directory that does not answer, and refuses a body that is too large", async () => {
+    const hang = (async (_input: string | URL | Request, init?: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+      })) as typeof fetch;
+    await expect(
+      new DirectoryClient({ source: INDEX_URL, fetch: hang, timeoutMs: 50 }).index(),
+    ).rejects.toThrow("The directory took longer than 0.05 seconds for the index");
+
+    const declared = (async (input: string | URL | Request, init?: RequestInit) =>
+      String(input) === INDEX_URL
+        ? fakeFetch(input, init)
+        : new Response("{}", { headers: { "content-length": String(MAX_PACK_BYTES + 1) } })) as typeof fetch;
+    await expect(
+      new DirectoryClient({ source: INDEX_URL, fetch: declared }).pack("https://cdn.example.com/x.json"),
+    ).rejects.toThrow("The pack at https://cdn.example.com/x.json is larger than 2 MB");
+
+    // A server that says nothing of its length, or lies about it, is cut off as it streams.
+    let sent = 0;
+    const endless = (async (input: string | URL | Request, init?: RequestInit) =>
+      String(input) === INDEX_URL
+        ? fakeFetch(input, init)
+        : new Response(
+            new ReadableStream<Uint8Array>({
+              pull(controller) {
+                sent += 64 * 1024;
+                controller.enqueue(new Uint8Array(64 * 1024).fill(32));
+              },
+            }),
+          )) as typeof fetch;
+    await expect(
+      new DirectoryClient({ source: INDEX_URL, fetch: endless }).pack("https://cdn.example.com/x.json"),
+    ).rejects.toThrow(/larger than 2 MB/);
+    expect(sent).toBeLessThan(MAX_PACK_BYTES + 256 * 1024);
+  });
+
+  it("reads packs only from https, or http on this machine, and checks every redirect", async () => {
+    const client = new DirectoryClient({ source: INDEX_URL, fetch: fakeFetch });
+    expect(() => client.resolvePackUrl("http://169.254.169.254/latest/meta-data")).toThrow(
+      /only reads bots from https addresses/,
+    );
+    expect(() => client.resolvePackUrl("http://bots.example.com/packs/a.json")).toThrow(/https/);
+    expect(client.resolvePackUrl("http://127.0.0.1:8790/packs/a.json")).toBe(
+      "http://127.0.0.1:8790/packs/a.json",
+    );
+    // This machine as the server's STEWARD_DIRECTORY_URL check reads it: any 127.x, *.localhost, ::1.
+    for (const local of [
+      "http://127.0.0.2:8790/a.json",
+      "http://bots.localhost/a.json",
+      "http://[::1]/a.json",
+    ]) {
+      expect(client.resolvePackUrl(local)).toBe(local);
+    }
+    expect(() => client.resolvePackUrl("http://localhost.example.com/a.json")).toThrow(/https/);
+    expect(() => client.resolvePackUrl("http://128.0.0.1/a.json")).toThrow(/https/);
+    const configured = new DirectoryClient({
+      source: "http://bots.localhost:8790/index.json",
+      fetch: (async (_input: string | URL | Request, init?: RequestInit) =>
+        fakeFetch(INDEX_URL, init)) as typeof fetch,
+    });
+    expect((await configured.index()).bots.length).toBeGreaterThan(0);
+    // A folder index takes web packs on the same terms.
+    const folder = new DirectoryClient({ source: join(root, "index.json") });
+    expect(() => folder.resolvePackUrl("http://10.0.0.5/pack.json")).toThrow(/https/);
+    expect(folder.resolvePackUrl("https://cdn.example.com/a.json")).toBe("https://cdn.example.com/a.json");
+
+    const hops: string[] = [];
+    const redirecting = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      hops.push(url);
+      expect(init?.redirect).toBe("manual");
+      if (url === "https://cdn.example.com/moved.json")
+        return new Response(null, { status: 302, headers: { location: "/inbox-zero.json" } });
+      if (url === "https://cdn.example.com/downgrade.json")
+        return new Response(null, { status: 301, headers: { location: "http://cdn.example.com/x.json" } });
+      return fakeFetch(input, init);
+    }) as typeof fetch;
+    const follows = new DirectoryClient({ source: INDEX_URL, fetch: redirecting });
+    expect((await follows.pack("https://cdn.example.com/moved.json")).id).toBe("inbox-zero");
+    await expect(follows.pack("https://cdn.example.com/downgrade.json")).rejects.toThrow(/https/);
+    expect(hops).not.toContain("http://cdn.example.com/x.json");
+  });
+
+  it("pins a pack to the hash its listing was built with", async () => {
+    const index = JSON.parse(files[INDEX_URL] as string) as { bots: BotListing[] };
+    const rent = index.bots.find((b) => b.id === "rent-scout") as BotListing;
+    expect(rent.hash).toMatch(/^[0-9a-f]{64}$/);
+    // The pack was swapped, hash and all, after the index was built: it matches itself, not the listing.
+    const swapped = JSON.parse(files["https://bots.example.com/packs/rent-scout.json"] as string) as BotPack;
+    swapped.instructions = "Something else entirely.";
+    const { hash: _old, ...rest } = swapped;
+    const resealed = { ...rest, hash: hashPack(rest as BotPack) };
+    const swappedFetch = (async (input: string | URL | Request, init?: RequestInit) =>
+      String(input) === "https://bots.example.com/packs/rent-scout.json"
+        ? new Response(JSON.stringify(resealed))
+        : fakeFetch(input, init)) as typeof fetch;
+    const client = new DirectoryClient({ source: INDEX_URL, fetch: swappedFetch });
+    await expect(client.pack(rent)).rejects.toThrow("pack changed since it was listed");
+    await expect(client.pack("packs/rent-scout.json")).rejects.toThrow("pack changed since it was listed");
+    await expect(client.pack("https://bots.example.com/packs/rent-scout.json")).rejects.toThrow(
+      "pack changed since it was listed",
+    );
+    // A pack the index does not list is held to its own hash only.
+    expect((await client.pack("https://cdn.example.com/inbox-zero.json")).id).toBe("inbox-zero");
+  });
+
+  it("reads the index again before refusing a pack that is newer than the cached listing", async () => {
+    const index = JSON.parse(files[INDEX_URL] as string) as { bots: BotListing[] };
+    const packUrl = "https://bots.example.com/packs/rent-scout.json";
+    const original = files[packUrl] as string;
+    const client = new DirectoryClient({ source: INDEX_URL, fetch: fakeFetch });
+    const stale = (await client.get("rent-scout")) as BotListing;
+    const reads = () => fetched.filter((u) => u === INDEX_URL).length;
+    const before = reads();
+    // The directory is rebuilt: a new pack, and an index listing its new hash.
+    const next = JSON.parse(original) as BotPack;
+    next.version = 2;
+    next.pitch = "Finds rentals, now with more care.";
+    const { hash: _old, ...rest } = next;
+    const sealed = { ...rest, hash: hashPack(rest as BotPack) };
+    try {
+      files[packUrl] = JSON.stringify(sealed);
+      files[INDEX_URL] = JSON.stringify({
+        ...index,
+        bots: index.bots.map((b) => (b.id === "rent-scout" ? { ...b, version: 2, hash: sealed.hash } : b)),
+      });
+      expect((await client.pack(stale)).version).toBe(2);
+      expect(reads() - before).toBe(1);
+      // A pack that matches neither the cached listing nor a fresh one is still refused.
+      files[packUrl] = JSON.stringify({
+        ...sealed,
+        pitch: "Swapped again.",
+        hash: hashPack({ ...rest, pitch: "Swapped again." } as BotPack),
+      });
+      await expect(client.pack(stale)).rejects.toThrow("pack changed since it was listed");
+    } finally {
+      files[packUrl] = original;
+      files[INDEX_URL] = JSON.stringify(index);
+    }
+  });
+
+  it("says a pack the web does not have is not there, and any other answer is a failure", async () => {
+    const client = new DirectoryClient({ source: INDEX_URL, fetch: fakeFetch });
+    await expect(client.pack("https://cdn.example.com/gone.json")).rejects.toBeInstanceOf(PackNotFoundError);
+    const broken = (async () => new Response("", { status: 500 })) as typeof fetch;
+    const failing = new DirectoryClient({ source: INDEX_URL, fetch: broken });
+    const err = await failing.pack("https://cdn.example.com/x.json").catch((e: Error) => e);
+    expect(err).not.toBeInstanceOf(PackNotFoundError);
+    expect((err as Error).message).toMatch(/answered 500/);
+  });
+
+  it("tells a chat-only bot from one with a browser or a connected app, and reads odd keywords as none", async () => {
+    const listing = (id: string, tools: string[], connectors: string[] = []) => ({
+      id,
+      name: id,
+      pitch: "A bot.",
+      category: "misc",
+      version: 1,
+      author: { kind: "person", handle: "sam" },
+      needs: { tools, connectors, model: "any" },
+      updatedAt: "2026-01-01T00:00:00Z",
+      packUrl: `packs/${id}.json`,
+    });
+    files["https://other.example/index.json"] = JSON.stringify({
+      name: "Other",
+      generatedAt: "2026-01-01T00:00:00Z",
+      categories: {},
+      bots: [
+        { ...listing("chatty", ["show_table"]), keywords: "x".repeat(5000) },
+        listing("surfer", ["browser_navigate"]),
+        listing("planner", ["mcp__notion__search"]),
+        listing("diary", [], ["calendar"]),
+      ],
+    });
+    const client = new DirectoryClient({ source: "https://other.example/index.json", fetch: fakeFetch });
+    const needs = async (n: "mail" | "calendar" | "browser" | "none") =>
+      (await client.list({ needs: n, sort: "match", limit: 50, offset: 0 })).bots.map((b) => b.id);
+    expect(await needs("none")).toEqual(["chatty"]);
+    expect(await needs("browser")).toEqual(["surfer"]);
+    expect(await needs("calendar")).toEqual(["diary"]);
+    expect((await client.get("chatty"))?.keywords).toBeUndefined();
+  });
+
+  it("finds a bot by its own id first, however many others share its words", async () => {
+    const listing = (id: string, name: string, pitch: string, installs = 0) => ({
+      id,
+      name,
+      pitch,
+      category: "food",
+      version: 1,
+      author: { kind: "person", handle: "sam" },
+      needs: { tools: [], connectors: [], model: "any" },
+      installs,
+      updatedAt: "2026-01-01T00:00:00Z",
+      packUrl: `packs/${id}.json`,
+    });
+    files["https://ids.example/index.json"] = JSON.stringify({
+      name: "Ids",
+      generatedAt: "2026-01-01T00:00:00Z",
+      categories: {},
+      bots: [
+        listing("meal-planner", "Weekly menus", "Plans your week."),
+        listing("meal-planner-pro", "Meal Planner Pro", "A meal planner for busy weeks.", 90),
+        listing("family-meal-planner", "Family Meal Planner", "A meal planner for a family.", 50),
+        listing("help-me", "Helper", "Answers questions about food."),
+      ],
+    });
+    const client = new DirectoryClient({ source: "https://ids.example/index.json", fetch: fakeFetch });
+    const ids = async (q: string, limit = 1) =>
+      (await client.list({ q, sort: "match", limit, offset: 0 })).bots.map((b) => b.id);
+    expect(await ids("meal-planner")).toEqual(["meal-planner"]);
+    expect(await ids("Meal-Planner")).toEqual(["meal-planner"]);
+    // An id made only of filler words still finds its bot, and only that one.
+    expect(await ids("help-me", 10)).toEqual(["help-me"]);
+    // Words are still ranked as words: the names that match come before the pitch that does not.
+    expect(await ids("meal planner", 10)).toEqual(["meal-planner-pro", "family-meal-planner"]);
   });
 
   it("says when the index is missing or not an index", async () => {

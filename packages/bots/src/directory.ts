@@ -28,6 +28,8 @@ import { validatePack } from "./validate.ts";
  */
 
 const CATEGORY_KEYS = Object.keys(BOT_CATEGORIES) as [BotCategory, ...BotCategory[]];
+/** The most of a listing's `keywords`: enough for its starters and skills, small for the index. */
+const KEYWORDS_MAX = 400;
 
 export const BotListingSchema = z.object({
   id: z.string().min(1).max(64),
@@ -42,6 +44,16 @@ export const BotListingSchema = z.object({
   updatedAt: z.string().min(1),
   packUrl: z.string().min(1).max(2048),
   pageUrl: z.string().max(2048).optional(),
+  /** The pack's content hash when it was listed. The pack fetched must still have it. */
+  hash: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/)
+    .optional(),
+  /**
+   * Words from the starters and skills, so a search finds more than the name and pitch say. Only a
+   * help: a listing whose words are too long is read without them, never refused.
+   */
+  keywords: z.string().max(KEYWORDS_MAX).optional().catch(undefined),
 });
 
 export const DirectoryIndexSchema = z.object({
@@ -53,18 +65,78 @@ export const DirectoryIndexSchema = z.object({
 });
 
 export const DEFAULT_CACHE_MS = 5 * 60_000;
+/** How long one read from the web may take before it is given up. */
+export const DEFAULT_TIMEOUT_MS = 10_000;
+/** The largest index read: 1,251 bots are about 1 MB. */
+export const MAX_INDEX_BYTES = 16 * 1024 * 1024;
+/** The largest pack read. The schema's own limits keep a real pack well under 1 MB. */
+export const MAX_PACK_BYTES = 2 * 1024 * 1024;
+/** Redirects followed, each one checked like the address it came from. */
+const MAX_REDIRECTS = 3;
 
 export interface DirectoryClientOptions {
   /** An https URL of an `index.json`, or a path to one on disk. */
   source: string;
+  /**
+   * How the web is read. The server passes one that refuses private and metadata addresses
+   * (except the configured directory's own), since a pack address can come from a link.
+   */
   fetch?: typeof fetch;
   /** How long an index is reused before it is read again. */
   cacheMs?: number;
+  /** How long one read from the web may take. */
+  timeoutMs?: number;
 }
 
 export type BotsQueryValue = z.infer<typeof BotsQuery>;
 
 const WEB = /^https?:\/\//i;
+
+/** This machine, as the server's own check of STEWARD_DIRECTORY_URL reads it. */
+function isLoopback(hostname: string): boolean {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  return (
+    host === "localhost" ||
+    host.endsWith(".localhost") ||
+    host === "::1" ||
+    /^127(?:\.\d{1,3}){3}$/.test(host)
+  );
+}
+
+/**
+ * Where a pack or index may be read from on the web: https anywhere, and plain http only on this
+ * machine, since anything else could be changed on the way.
+ */
+function checkWebLocation(url: URL): void {
+  if (url.protocol === "https:") return;
+  if (url.protocol === "http:" && isLoopback(url.hostname)) return;
+  throw new Error(`Steward only reads bots from https addresses, and ${url.host || url.href} is not one`);
+}
+
+/** The body as text, refused once it passes `max` bytes, whatever the server said its length was. */
+async function readCapped(response: Response, max: number, what: string): Promise<string> {
+  const tooBig = () => new Error(`${what} is larger than ${Math.round(max / 1024 / 1024)} MB`);
+  const declared = Number(response.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > max) {
+    await response.body?.cancel().catch(() => {});
+    throw tooBig();
+  }
+  if (!response.body) return "";
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > max) {
+      await reader.cancel().catch(() => {});
+      throw tooBig();
+    }
+    chunks.push(value);
+  }
+  return new TextDecoder().decode(Buffer.concat(chunks));
+}
 
 /** Words that carry no meaning for matching a job. */
 const STOPWORDS = new Set([
@@ -98,15 +170,27 @@ const STOPWORDS = new Set([
   "one",
 ]);
 
+/** The words of a text that can match a job, in any script. */
 function tokensOf(text: string): string[] {
   return [
     ...new Set(
       text
         .toLowerCase()
-        .split(/[^a-z0-9]+/)
+        .split(/[^\p{L}\p{N}]+/u)
         .filter((t) => t && !STOPWORDS.has(t)),
     ),
   ];
+}
+
+/** Whether a listing reaches what a `needs` filter names. `none` is chat only: it reaches nothing. */
+function reaches(needs: BotListing["needs"], wanted: NonNullable<BotsQueryValue["needs"]>): boolean {
+  const surfaces = new Set<string>(needs.connectors);
+  for (const tool of needs.tools) {
+    if (Object.hasOwn(TOOLS, tool)) surfaces.add(TOOLS[tool as keyof typeof TOOLS].surface);
+    else surfaces.add("mcp");
+  }
+  surfaces.delete("ui");
+  return wanted === "none" ? surfaces.size === 0 : surfaces.has(wanted);
 }
 
 /** Exact words count fully; "rental" for "rentals" or "plan" for "planner" count less. */
@@ -123,19 +207,40 @@ function best(query: string, words: readonly string[]): number {
   return top;
 }
 
-/** Name matches count most, then the category, then the pitch. */
+/** Name matches count most, then the category, then the pitch and the starters and skills. */
 function scoreOf(listing: BotListing, tokens: readonly string[], categories: Record<string, string>): number {
   const name = tokensOf(listing.name);
   const pitch = tokensOf(listing.pitch);
   const category = tokensOf(`${listing.category} ${categories[listing.category] ?? ""}`);
+  const keywords = tokensOf(listing.keywords ?? "");
   let score = 0;
   for (const token of tokens) {
-    score += 3 * best(token, name) + 2 * best(token, category) + best(token, pitch);
+    score +=
+      3 * best(token, name) + 2 * best(token, category) + Math.max(best(token, pitch), best(token, keywords));
   }
   return score;
 }
 
+/** A listing's search words: its starters, then its skills' names and descriptions, cut at a word. */
+export function keywordsOf(pack: Pick<BotPack, "starters" | "skills">): string {
+  const parts = [
+    ...pack.starters,
+    ...pack.skills.flatMap((skill) => [skill.name.replace(/-/g, " "), skill.description]),
+  ];
+  const text = parts
+    .map((part) => part.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join(" · ");
+  if (text.length <= KEYWORDS_MAX) return text;
+  const cut = text.slice(0, KEYWORDS_MAX);
+  const space = cut.lastIndexOf(" ");
+  return space > KEYWORDS_MAX / 2 ? cut.slice(0, space) : cut;
+}
+
 type Scored = { listing: BotListing; score: number };
+
+/** More than any number of word matches can add up to. */
+const EXACT_ID_SCORE = 1_000_000;
 
 const desc = (a: number, b: number) => b - a;
 const later = (a: string, b: string) => (a < b ? 1 : a > b ? -1 : 0);
@@ -163,6 +268,24 @@ function comparator(sort: BotsQueryValue["sort"]): (a: Scored, b: Scored) => num
   };
 }
 
+/**
+ * The directory has no pack at that address: no such file in its folder, or the web answered 404
+ * or 410. Its message names the address as it was given, never a path on this machine.
+ */
+export class PackNotFoundError extends Error {
+  constructor(packUrl: string) {
+    super(`There is no bot at ${packUrl}`);
+    this.name = "PackNotFoundError";
+  }
+}
+
+/** A failed file read, without the absolute path Node puts in its message. */
+function fileProblem(err: unknown): string | undefined {
+  const code = (err as NodeJS.ErrnoException | undefined)?.code;
+  if (typeof code !== "string" || !/^E[A-Z]+$/.test(code)) return undefined;
+  return code;
+}
+
 function parseJson(text: string, where: string): unknown {
   try {
     return JSON.parse(text);
@@ -175,6 +298,7 @@ export class DirectoryClient {
   private readonly source: string;
   private readonly fetchFn: typeof fetch;
   private readonly cacheMs: number;
+  private readonly timeoutMs: number;
   private cached?: { index: DirectoryIndex; at: number };
   private loading?: Promise<DirectoryIndex>;
 
@@ -182,6 +306,7 @@ export class DirectoryClient {
     this.source = opts.source;
     this.fetchFn = opts.fetch ?? globalThis.fetch;
     this.cacheMs = opts.cacheMs ?? DEFAULT_CACHE_MS;
+    this.timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   }
 
   /** True when the index comes from the web, which decides where packs may come from. */
@@ -189,18 +314,56 @@ export class DirectoryClient {
     return WEB.test(this.source);
   }
 
-  private async read(location: string, what: string): Promise<string> {
-    if (WEB.test(location)) {
-      const response = await this.fetchFn(location, { headers: { accept: "application/json" } });
-      if (!response.ok) throw new Error(`The directory answered ${response.status} for ${what}`);
-      return response.text();
+  /**
+   * Reads a location: a file, or a web address with a time limit and a size cap. Redirects are
+   * followed by hand, a few at most, each one held to the same rules as the first address.
+   */
+  private async read(location: string, what: string, maxBytes: number): Promise<string> {
+    if (!WEB.test(location)) return readFile(location, "utf8");
+    const signal = AbortSignal.timeout(this.timeoutMs);
+    let url = new URL(location);
+    for (let hop = 0; ; hop++) {
+      checkWebLocation(url);
+      let response: Response;
+      try {
+        response = await this.fetchFn(url.href, {
+          headers: { accept: "application/json" },
+          redirect: "manual",
+          signal,
+        });
+      } catch (err) {
+        if (signal.aborted) {
+          throw new Error(`The directory took longer than ${this.timeoutMs / 1000} seconds for ${what}`);
+        }
+        throw err;
+      }
+      const next = response.headers.get("location");
+      if (response.status >= 300 && response.status < 400 && next) {
+        await response.body?.cancel().catch(() => {});
+        if (hop >= MAX_REDIRECTS) throw new Error(`The directory redirected too many times for ${what}`);
+        url = new URL(next, url);
+        continue;
+      }
+      if (!response.ok) {
+        await response.body?.cancel().catch(() => {});
+        throw Object.assign(new Error(`The directory answered ${response.status} for ${what}`), {
+          status: response.status,
+        });
+      }
+      try {
+        return await readCapped(response, maxBytes, `${what.charAt(0).toUpperCase()}${what.slice(1)}`);
+      } catch (err) {
+        if (signal.aborted) {
+          throw new Error(`The directory took longer than ${this.timeoutMs / 1000} seconds for ${what}`);
+        }
+        throw err;
+      }
     }
-    return readFile(location, "utf8");
   }
 
   private async load(): Promise<DirectoryIndex> {
     const location = this.fromWeb ? this.source : resolve(this.source);
-    const raw = parseJson(await this.read(location, "its index"), "The directory index");
+    const raw = parseJson(await this.read(location, "the index", MAX_INDEX_BYTES), "The directory index");
     const checked = DirectoryIndexSchema.safeParse(raw);
     if (!checked.success) {
       const issue = checked.error.issues[0];
@@ -240,14 +403,24 @@ export class DirectoryClient {
   async list(input: BotsQueryValue): Promise<{ bots: BotListing[]; total: number }> {
     const query = BotsQuery.parse(input);
     const index = await this.index();
-    const tokens = tokensOf(query.q ?? "");
+    const q = query.q?.trim() ?? "";
+    const tokens = tokensOf(q);
+    // A bot's own id finds that bot first, however many others share its words: a bot's page
+    // (`/bots/<id>`) looks it up this way.
+    const id = q.toLowerCase();
+    const named = q !== "" && index.bots.some((listing) => listing.id === id);
+    // Words that say nothing about a job ("help me please") match no bot, rather than every bot.
+    if (q !== "" && tokens.length === 0 && !named) return { bots: [], total: 0 };
     let scored: Scored[] = index.bots
       .filter((listing) => !query.category || listing.category === query.category)
+      .filter((listing) => !query.needs || reaches(listing.needs, query.needs))
       .map((listing) => ({
         listing,
-        score: tokens.length > 0 ? scoreOf(listing, tokens, index.categories) : 0,
+        score:
+          (named && listing.id === id ? EXACT_ID_SCORE : 0) +
+          (tokens.length > 0 ? scoreOf(listing, tokens, index.categories) : 0),
       }));
-    if (tokens.length > 0) scored = scored.filter((s) => s.score > 0);
+    if (q !== "") scored = scored.filter((s) => s.score > 0);
     scored.sort(comparator(query.sort));
     return {
       bots: scored.slice(query.offset, query.offset + query.limit).map((s) => s.listing),
@@ -260,22 +433,25 @@ export class DirectoryClient {
     return index.bots.find((b) => b.id === id);
   }
 
-  /** Where a listing's pack is, resolved against the index. Refuses a disk path from a web index. */
+  /**
+   * Where a listing's pack is, resolved against the index. Refuses a disk path from a web index, a
+   * path outside a folder index, and a plain http address anywhere but this machine.
+   */
   resolvePackUrl(packUrl: string): string {
     const trimmed = packUrl.trim();
-    if (this.fromWeb) {
+    if (this.fromWeb || WEB.test(trimmed)) {
       let url: URL;
       try {
-        url = new URL(trimmed, this.source);
+        url = new URL(trimmed, this.fromWeb ? this.source : undefined);
       } catch {
         throw new Error(`"${trimmed}" is not a web address`);
       }
       if (!WEB.test(url.href)) {
         throw new Error("The directory index came from the web, so its packs must be web addresses too");
       }
+      checkWebLocation(url);
       return url.href;
     }
-    if (WEB.test(trimmed)) return trimmed;
     const base = dirname(resolve(this.source));
     let path: string;
     if (trimmed.startsWith("file:")) path = fileURLToPath(trimmed);
@@ -295,7 +471,20 @@ export class DirectoryClient {
   async pack(listingOrPackUrl: BotListing | string): Promise<BotPack> {
     const packUrl = typeof listingOrPackUrl === "string" ? listingOrPackUrl : listingOrPackUrl.packUrl;
     const location = this.resolvePackUrl(packUrl);
-    const raw = parseJson(await this.read(location, `the pack at ${packUrl}`), "The pack");
+    const listing = typeof listingOrPackUrl === "string" ? await this.listingAt(location) : listingOrPackUrl;
+    let text: string;
+    try {
+      text = await this.read(location, `the pack at ${packUrl}`, MAX_PACK_BYTES);
+    } catch (err) {
+      const status = (err as { status?: unknown }).status;
+      const code = fileProblem(err);
+      if (status === 404 || status === 410 || code === "ENOENT" || code === "ENOTDIR") {
+        throw new PackNotFoundError(packUrl);
+      }
+      if (code) throw new Error(`The pack at ${packUrl} could not be read (${code})`);
+      throw err;
+    }
+    const raw = parseJson(text, "The pack");
     const checked = BotPackSchema.safeParse(raw);
     if (!checked.success) {
       const issue = checked.error.issues[0];
@@ -304,8 +493,33 @@ export class DirectoryClient {
       );
     }
     const pack = checked.data;
-    if (pack.hash && hashPack(pack) !== pack.hash) throw new Error("pack changed since it was listed");
+    const actual = hashPack(pack);
+    if (pack.hash && actual !== pack.hash) throw new Error("pack changed since it was listed");
+    // The listing pins the pack: one swapped since the index was built, hash and all, is refused.
+    // The index may only be older than the pack (rebuilt since it was cached): read it once more.
+    if (listing?.hash && actual !== listing.hash) {
+      this.invalidate();
+      const fresh = await this.listingAt(location);
+      if (fresh?.hash !== actual) throw new Error("pack changed since it was listed");
+    }
     return pack;
+  }
+
+  /** The index's listing whose pack lives at `location`, when the index can be read and has one. */
+  private async listingAt(location: string): Promise<BotListing | undefined> {
+    let index: DirectoryIndex;
+    try {
+      index = await this.index();
+    } catch {
+      return undefined; // No index to compare with: the pack's own hash still has to hold.
+    }
+    return index.bots.find((listing) => {
+      try {
+        return this.resolvePackUrl(listing.packUrl) === location;
+      } catch {
+        return false;
+      }
+    });
   }
 }
 
@@ -418,6 +632,7 @@ export async function buildIndex(dir: string, opts: BuildIndexOptions = {}): Pro
     const pack: BotPack = { ...result.pack, hash: hashPack(result.pack) };
     await writeFile(join(root, "packs", `${pack.id}.json`), `${JSON.stringify(pack, null, 2)}\n`, "utf8");
     const count = counts[pack.id];
+    const keywords = keywordsOf(pack);
     bots.push({
       id: pack.id,
       name: pack.name,
@@ -431,6 +646,8 @@ export async function buildIndex(dir: string, opts: BuildIndexOptions = {}): Pro
       updatedAt: await latestMtime(join(botsDir, folder)),
       packUrl: `packs/${pack.id}.json`,
       ...(site ? { pageUrl: `${site}/bots/${pack.id}` } : {}),
+      hash: pack.hash,
+      ...(keywords ? { keywords } : {}),
     });
   }
 

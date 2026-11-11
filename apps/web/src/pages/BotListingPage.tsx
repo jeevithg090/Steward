@@ -5,13 +5,16 @@ import { LinkButton } from "@/components/ui/Button.tsx";
 import { EmptyState } from "@/components/ui/EmptyState.tsx";
 import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
 import { Page } from "@/components/ui/PageHeader.tsx";
-import { useBots, useInstalledBots } from "@/lib/api.ts";
+import { ApiError, useBots, useInstalledBots } from "@/lib/api.ts";
 
 /**
  * `/bots/:id`: one bot's listing. The directory row is looked up by id; the pack and what it means
  * here come from a preview. A bot the directory does not list (one made here) is shown from its
  * installed row, since there is no pack to preview.
  */
+
+/** A bot id as packs carry it; anything else is no bot's address. */
+const BOT_ID = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
 const BACK = (
   <Link
@@ -25,7 +28,8 @@ const BACK = (
 
 export function BotListingPage() {
   const { id = "" } = useParams();
-  const list = useBots({ q: id, limit: 100 });
+  const validId = BOT_ID.test(id) && !id.includes("--");
+  const list = useBots({ q: id, limit: 100 }, { enabled: validId });
   const installed = useInstalledBots();
   const listing = list.data?.bots.find((bot) => bot.id === id);
   const mine = installed.data?.find((bot) => bot.id === id);
@@ -34,8 +38,10 @@ export function BotListingPage() {
   const preview = useListingPreview(packUrl ? { packUrl } : undefined);
   const pack = preview.data?.pack;
   const name = pack?.name ?? listing?.name ?? mine?.name ?? "Bot";
+  // The directory has no pack there: that is "no bot by that name", not a failure.
+  const missing = !validId || (preview.error instanceof ApiError && preview.error.status === 404);
 
-  if (list.isPending || (preview.isPending && !pack)) {
+  if (validId && (list.isPending || (preview.isPending && !pack))) {
     return (
       <Page title={name} documentTitle={name} description={BACK}>
         <Loading>Loading {name === "Bot" ? "the bot" : name}…</Loading>
@@ -44,9 +50,7 @@ export function BotListingPage() {
   }
 
   if (!pack) {
-    // The directory has no pack by that id: that is "no bot by that name", not a failure.
-    const missing = preview.error?.status === 404;
-    const problem = list.error ?? (missing ? undefined : preview.error);
+    const problem = missing ? undefined : (list.error ?? preview.error);
     return (
       <Page title={name} documentTitle={name} description={BACK}>
         {mine ? (

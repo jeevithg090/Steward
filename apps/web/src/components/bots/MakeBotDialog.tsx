@@ -128,11 +128,16 @@ function MakeForm({ onMade, onCancel }: { onMade: (pack: BotPack) => void; onCan
 function MadePack({ pack, onBack }: { pack: BotPack; onBack: () => void }) {
   const info = useInfo();
   const preview = useListingPreview({ pack });
+  const scripted = info.data?.model.scripted === true;
+  // A template pack says so, whether there was no model or the model's answer could not be used.
+  const template = scripted || (pack.author.kind === "ai" && pack.author.model === "template");
   return (
     <div className="flex flex-col gap-5">
-      {info.data?.model.scripted ? (
+      {template ? (
         <Notice tone="neutral" role="note">
-          Made from a template because no model key is set.
+          {scripted
+            ? "Made from a template because no model key is set."
+            : "Made from a template because the model's answer could not be used. Read it before you add it, or change the job and try again."}
         </Notice>
       ) : null}
       <BotListingView
