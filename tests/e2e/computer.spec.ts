@@ -23,8 +23,13 @@ test.describe("The agent's computer", () => {
     await page.goto("/record");
     const main = page.getByRole("main");
     await main.getByRole("searchbox", { name: "Search" }).fill("127.0.0.1");
+    // The count says "match" only once the search has answered, so the rows below are its rows,
+    // not the whole record's, and "no Done" cannot pass on an empty or stale list.
+    await expect(main.getByText(/ match\.$/)).toBeVisible();
     const entries = main.getByRole("region", { name: "Entries" }).getByRole("listitem");
-    await expect(entries.filter({ hasText: "Failed" }).first()).toBeVisible();
+    await expect(
+      entries.filter({ hasText: "Failed" }).filter({ hasText: "127.0.0.1" }).first(),
+    ).toBeVisible();
     // Nothing about it says the page was opened.
     await expect(entries.filter({ hasText: "Done" })).toHaveCount(0);
   });

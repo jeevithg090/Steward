@@ -42,7 +42,10 @@ test.describe("Memory", () => {
     if (word) await forgetFacts(api, word);
   });
 
-  test("a fact said in chat is on the Memory page, and Forget removes it", async ({ page }, testInfo) => {
+  test("a fact said in chat is on the Memory page, and Forget removes it", async ({
+    page,
+    api,
+  }, testInfo) => {
     word = uniqueWord(testInfo, "platform");
     const fact = `I take the train on Fridays from ${word}`;
     await openNewChat(page);
@@ -61,8 +64,17 @@ test.describe("Memory", () => {
     await item.getByRole("button", { name: `Forget: ${fact}`, exact: true }).click();
     await expect(list.getByRole("listitem").filter({ hasText: fact })).toHaveCount(0);
     // Forgotten on the server too, not just hidden on the page.
+    const facts = (await (await api.get("/api/memory")).json()) as Fact[];
+    expect(facts.filter((f) => f.text.includes(word))).toEqual([]);
+    // And after a reload. The heading is there before the list loads, so wait for the list itself
+    // (its items, or "Nothing yet") before saying the fact is not in it.
     await page.reload();
-    await expect(page.getByRole("heading", { level: 2, name: "What Steward remembers" })).toBeVisible();
+    await expect(
+      list
+        .getByRole("listitem")
+        .or(list.getByRole("heading", { name: "Nothing yet" }))
+        .first(),
+    ).toBeVisible();
     await expect(page.getByRole("main").getByText(fact)).toHaveCount(0);
   });
 });
