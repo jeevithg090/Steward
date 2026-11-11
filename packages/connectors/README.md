@@ -192,9 +192,10 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
   offered, with `offerable: false` and a `why` the Connections page shows.
 - **Listings are bounded**, because every offered description and schema is read on every turn: at
   most 200 tools (`notice` says when there were more), one entry per name (a repeated name keeps its
-  strictest entry, so a destructive one wins), descriptions cut at 1,000 characters with a visible
-  `…`, and a tool whose input schema is over 16 KB listed but not offered. Each offered description
-  ends by saying it, and the descriptions of its inputs, were written by the server, not by Steward.
+  strictest entry, so a destructive one wins), names and descriptions cut at 128 and 1,000
+  characters with a visible `…`, and a tool whose input schema is over 16 KB listed but not
+  offered. Each offered description ends by saying it, and the descriptions of its inputs, were
+  written by the server, not by Steward.
 - **Calls** time out after 60 seconds. Results become text: text parts joined, embedded resources as
   their text, resource links as their address, other parts named (`[image]`), structured content as
   JSON when that is all there is (never both, so nothing is read twice), and an empty result said in

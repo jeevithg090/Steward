@@ -202,6 +202,8 @@ const MAX_TOOL_PAGES = 20;
 export const MAX_TOOLS = 200;
 export const MAX_DESCRIPTION_CHARS = 1_000;
 export const MAX_SCHEMA_CHARS = 16_384;
+/** A tool name past this is cut visibly: no model could call it, and it would fill the page and the record. */
+export const MAX_NAME_CHARS = 128;
 /** Socket failures that mean the server is gone, not that it refused this one call. */
 const NETWORK_CODES = new Set([
   "ECONNREFUSED",
@@ -783,8 +785,10 @@ function listedTool(tool: Tool, hide: (text: string) => string): ListedTool {
  */
 function bounded(listed: readonly ListedTool[]): Listing {
   const byName = new Map<string, ListedTool>();
-  for (const tool of listed) {
-    if (typeof tool?.name !== "string" || tool.name === "") continue;
+  for (const entry of listed) {
+    if (typeof entry?.name !== "string" || entry.name === "") continue;
+    const tool =
+      entry.name.length > MAX_NAME_CHARS ? { ...entry, name: cut(entry.name, MAX_NAME_CHARS) } : entry;
     const kept = byName.get(tool.name);
     if (kept && (kept.destructive || !tool.destructive)) continue;
     byName.set(tool.name, tool);
@@ -825,11 +829,11 @@ function cut(text: string, max: number): string {
 /** Why a model can't be offered this tool, in words for the person, or undefined when it can. */
 function unofferable(serverId: string, tool: ListedTool): string | undefined {
   const full = mcpToolName(serverId, tool.name);
-  if (!/^[A-Za-z0-9_-]+$/.test(tool.name)) {
-    return "Its name has characters models don't accept. Only letters, digits, _ and - work.";
-  }
-  if (!MODEL_TOOL_NAME.test(full)) {
+  if (full.length > 64) {
     return `Its full name, ${full}, is longer than the 64 characters models accept.`;
+  }
+  if (!/^[A-Za-z0-9_-]+$/.test(tool.name) || !MODEL_TOOL_NAME.test(full)) {
+    return "Its name has characters models don't accept. Only letters, digits, _ and - work.";
   }
   if (tool.schemaTooBig) {
     return "It describes its inputs at more length than Steward sends to a model (16 KB).";

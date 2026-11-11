@@ -23,6 +23,7 @@ import { z } from "zod";
 import {
   createMcpManager,
   MAX_DESCRIPTION_CHARS,
+  MAX_NAME_CHARS,
   MAX_SERVER_SAID_CHARS,
   MAX_TOOLS,
   McpCallError,
@@ -530,6 +531,7 @@ describe("MCP manager with an in-process server", () => {
       { name: "a_tool_name_that_is_much_too_long_to_offer_anywhere", inputSchema: objectInput },
       { name: "export.all", inputSchema: objectInput },
       { name: "everything", inputSchema: huge },
+      { name: "z".repeat(100_000), inputSchema: objectInput },
     ]);
     const mcp = manager({ createTransport: raw.createTransport });
     const info = await mcp.upsert({
@@ -549,6 +551,11 @@ describe("MCP manager with an in-process server", () => {
       why: expect.stringMatching(/characters/),
     });
     expect(byName.everything).toMatchObject({ offerable: false, why: expect.stringMatching(/16 KB/) });
+    // A name no model could call is cut, so it can't fill the page or the record.
+    const giant = info.tools.find((t) => t.name.startsWith("zzz"));
+    expect(giant?.name).toHaveLength(MAX_NAME_CHARS);
+    expect(giant?.name.endsWith("…")).toBe(true);
+    expect(giant).toMatchObject({ offerable: false, why: expect.stringMatching(/longer than the 64/) });
     expect(mcp.grantedTools("steward").map((t) => t.tool)).toEqual(["fine"]);
     // Kept small in the database too.
     const row = db.get<{ tools_json: string }>("SELECT tools_json FROM connectors_mcp_servers WHERE id = ?", [
