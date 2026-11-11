@@ -400,14 +400,23 @@ export class RemoteBridge {
             );
           }
           break;
-        case "notification":
+        case "notification": {
+          // A "needs your answer" note says what Steward asks. That is its own scope, as in the
+          // brief: without it, the phone hears that Steward waits, not for what.
+          const hidden =
+            event.notification.level === "needs_you" && !device.scopes.includes("approvals:read");
           await this.seal(
             device.id,
             "notifications",
-            { title: event.notification.title, body: event.notification.body, href: "#today" },
+            {
+              title: event.notification.title,
+              body: hidden ? "Open Steward on your Mac to see what it asks." : event.notification.body,
+              href: "#today",
+            },
             event.notification.level,
           );
           break;
+        }
         case "task.updated":
         case "brief.ready":
           await this.seal(device.id, "today", { type: event.type });

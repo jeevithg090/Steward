@@ -133,14 +133,14 @@ Answers come back as words the shortcut shows, and Siri reads them aloud when Si
 
 Each phone has its own key and its own list, under Settings → Phone:
 
-| It may                | Out of the box | What it means                                                              |
-| --------------------- | -------------- | -------------------------------------------------------------------------- |
-| Read the brief        | yes            | What needs you today. Requests are in it only if the phone may see them.   |
-| See what Steward asks | yes            | List requests waiting for you, and **refuse** them.                        |
-| Say yes to requests   | **no**         | "This phone can say yes to things Steward asks about."                     |
-| Talk to Steward       | yes            | Ask for things, and carry on in conversations this phone started.          |
-| Tasks                 | yes            | See tasks, and start or hide one. A task started here runs as the phone's. |
-| Run routines          | yes            | Run one of your routines now.                                              |
+| It may                | Out of the box | What it means                                                                                                |
+| --------------------- | -------------- | ------------------------------------------------------------------------------------------------------------ |
+| Read the brief        | yes            | What needs you today. Requests are in it only if the phone may see them.                                     |
+| See what Steward asks | yes            | List requests waiting for you, and **refuse** them. Without it, a notification says only that Steward waits. |
+| Say yes to requests   | **no**         | "This phone can say yes to things Steward asks about."                                                       |
+| Talk to Steward       | yes            | Ask for things, and carry on in conversations this phone started.                                            |
+| Tasks                 | yes            | See tasks, and start or hide one. A task started here runs as the phone's.                                   |
+| Run routines          | yes            | Run one of your routines now.                                                                                |
 
 And never, whatever you switch on:
 

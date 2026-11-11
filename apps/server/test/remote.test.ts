@@ -404,6 +404,38 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
     });
   });
 
+  it("tells a phone that may not see requests that Steward waits, never what it asks", async () => {
+    const s = t.server.services;
+    const quiet = await pair("Brief-only iPhone");
+    await t.api(`/api/devices/${quiet.deviceId}`, { method: "PATCH", json: { scopes: ["brief:read"] } });
+    const asks = "Send the email to sam@example.com about Friday";
+    const notes = () => [one, quiet].map((p) => p.envelopes.filter((e) => e.topic === "notifications"));
+    const before = notes().map((list) => list.length);
+    s.proactive.notifications.add({
+      title: "Weekly review needs your answer",
+      body: asks,
+      href: "/chat/thr_x",
+      level: "needs_you",
+    });
+    const [toOne, toQuiet] = await waitFor(() => {
+      const now = notes();
+      return now.every((list, i) => list.length > before[i]!) ? now.map((l) => l.at(-1)!) : undefined;
+    });
+    const seen = await quiet.open<{ title: string; body: string }>(toQuiet!);
+    expect(seen?.title).toBe("Weekly review needs your answer");
+    expect(seen?.body).not.toContain("sam@example.com");
+    expect(seen?.body).toBe("Open Steward on your Mac to see what it asks.");
+    // A phone that may see requests gets the words, as before.
+    expect((await one.open<{ body: string }>(toOne!))?.body).toBe(asks);
+    // Other notifications are unchanged for it.
+    s.proactive.notifications.add({ title: "Brief ready", body: "Three things today.", level: "info" });
+    const info = await waitFor(() =>
+      quiet.envelopes.filter((e) => e.topic === "notifications").at(before[1]! + 1),
+    );
+    expect((await quiet.open<{ body: string }>(info))?.body).toBe("Three things today.");
+    await t.api(`/api/devices/${quiet.deviceId}`, { method: "DELETE" });
+  });
+
   it("sends a sealed push when the app is not on screen, and none while it is", async () => {
     const ua = createECDH("prime256v1");
     const uaPublic = new Uint8Array(ua.generateKeys());
