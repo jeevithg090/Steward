@@ -157,6 +157,17 @@ const NOT_A_NAME = new Set([
 ]);
 
 const NAME_SHAPE = /^\p{Lu}[\p{L}'’-]*$/u;
+/** A title before a name: "Dr Sam Taylor" on a To line, "Dear Ms Taylor" in a body. */
+const TITLE = /^(Mr|Mrs|Ms|Miss|Mx|Dr|Prof)\.?$/;
+const TITLE_SOURCE = "(?:Mr|Mrs|Ms|Miss|Mx|Dr|Prof)\\.?";
+
+/** The family name in a full name: the last word, or what comes before the comma in "Taylor, Sam". */
+function surnameOf(full: string): string | undefined {
+  const [last, given] = full.split(",").map((part) => part.trim());
+  const words = (last ?? "").split(" ").filter(Boolean);
+  const surname = given !== undefined ? last : words.length > 1 ? words[words.length - 1] : undefined;
+  return surname && surname.length > 1 && NAME_SHAPE.test(surname) ? surname : undefined;
+}
 
 /**
  * The display names the mail itself gives the inbox owner ("Sam Taylor" on a To line), and the
@@ -174,10 +185,12 @@ export function ownerNames(emails: readonly TriageEmail[], ownerEmail: string | 
       if (!full || full.includes("@")) continue;
       // "Taylor, Sam" puts the given name after the comma.
       const [last, given] = full.split(",").map((part) => part.trim());
-      const words = (given ?? last ?? "").split(" ").filter(Boolean);
+      const parts = (given ?? last ?? "").split(" ").filter(Boolean);
+      // "Dr Sam Taylor": the given name comes after the title.
+      const words = parts.length > 1 && TITLE.test(parts[0] ?? "") ? parts.slice(1) : parts;
       const usable = (word: string | undefined): word is string =>
         word !== undefined && word.length > 1 && NAME_SHAPE.test(word) && !NOT_A_NAME.has(word.toLowerCase());
-      if (words.length > 1 || given !== undefined || usable(full)) names.add(full);
+      if (parts.length > 1 || given !== undefined || usable(full)) names.add(full);
       if (usable(words[0])) names.add(words[0]);
     }
   }
@@ -213,7 +226,8 @@ const KEPT = /(\d+)/g;
  * sender, its other recipients), and each is kept whole: "Sam Patel" stays "Sam Patel" when the
  * owner is Sam Taylor, and so does "Lebron James" when the owner is James. A given name followed by
  * another capitalised word ("Sam Patel" met only in a body) is kept too, and an address is never
- * touched.
+ * touched. A title with the owner's family name ("Ms Taylor", from a "Dear Ms Taylor") goes too,
+ * unless someone else on the mail has that family name.
  */
 export function withoutOwnerNames(
   text: string,
@@ -226,19 +240,35 @@ export function withoutOwnerNames(
   const holdsOwnerName = (other: string) =>
     !names.includes(other) &&
     names.some((name) => new RegExp(`${NAME_BEFORE}${escapeRegExp(name)}${NAME_AFTER}`, "u").test(other));
-  const keep = [...new Set(others.map((other) => other?.replace(/\s+/g, " ").trim() ?? ""))]
-    .filter((other) => other.length > 0 && holdsOwnerName(other))
-    .sort((a, b) => b.length - a.length);
+  const otherNames = [...new Set(others.map((other) => other?.replace(/\s+/g, " ").trim() ?? ""))].filter(
+    (other) => other.length > 0,
+  );
+  const keep = otherNames.filter(holdsOwnerName).sort((a, b) => b.length - a.length);
   for (const other of keep) {
     out = out.replace(new RegExp(`${NAME_BEFORE}${escapeRegExp(other)}${NAME_AFTER}`, "gu"), () => {
       kept.push(other);
       return `${kept.length - 1}`;
     });
   }
-  for (const name of names) {
-    const n = escapeRegExp(name);
+  // Longest first: a title with a full name, the full names, a title with the family name, then the
+  // given names. Only a lone given name needs the guard against a surname after it.
+  const otherSurnames = new Set(otherNames.map(surnameOf));
+  const surnames = [...new Set(names.map(surnameOf))].filter(
+    (surname): surname is string => surname !== undefined && !otherSurnames.has(surname),
+  );
+  const patterns = [
+    ...names.map((name) => ({ source: `${TITLE_SOURCE} ${escapeRegExp(name)}`, lone: false })),
+    ...names
+      .filter((name) => name.includes(" "))
+      .map((name) => ({ source: escapeRegExp(name), lone: false })),
+    ...surnames.map((surname) => ({ source: `${TITLE_SOURCE} ${escapeRegExp(surname)}`, lone: false })),
+    ...names
+      .filter((name) => !name.includes(" "))
+      .map((name) => ({ source: escapeRegExp(name), lone: true })),
+  ];
+  for (const { source: n, lone } of patterns) {
     // A lone given name followed by a capitalised word is someone else's first name.
-    const surname = name.includes(" ") ? "" : "(?! \\p{Lu}\\p{Ll})";
+    const surname = lone ? "(?! \\p{Lu}\\p{Ll})" : "";
     out = out
       .replace(new RegExp(`^\\s*${n}(?:\\s*[,:!—–]|\\s+-)\\s*`, "u"), "")
       .replace(new RegExp(`${NAME_BEFORE}${n}['’]s${NAME_AFTER}`, "gu"), "your")

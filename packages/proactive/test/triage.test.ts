@@ -314,6 +314,30 @@ describe("the owner's name", () => {
     expect(withoutOwnerNames("Asks whether you will sign.", ["Will"])).toBe("Asks whether you will sign.");
   });
 
+  it("takes out a title with the owner's family name, as a formal letter writes it", () => {
+    const owner = "owner@studio.example";
+    const titled = ownerNames(
+      [email({ subject: "a", to: [{ name: "Dr. Sam Taylor", email: owner }] })],
+      owner,
+    );
+    expect(titled).toEqual(["Dr. Sam Taylor", "Sam"]);
+    expect(withoutOwnerNames("Dr. Sam must sign.", titled)).toBe("You must sign.");
+    const names = ["Sam Taylor", "Sam"];
+    expect(withoutOwnerNames("Ms Taylor must pay by Friday.", names)).toBe("You must pay by Friday.");
+    expect(withoutOwnerNames("Ms. Taylor's invoice is due. Mr Taylor is late.", names)).toBe(
+      "Your invoice is due. You are late.",
+    );
+    expect(withoutOwnerNames("Dr Sam Taylor, the proof is ready.", names)).toBe("The proof is ready.");
+    expect(withoutOwnerNames("Ms Taylor must pay.", ["Taylor, Sam", "Sam"])).toBe("You must pay.");
+    // Someone else on the mail with that family name keeps theirs, and so does a longer name.
+    expect(withoutOwnerNames("Ms Taylor asks you to sign.", names, ["Jo Taylor"])).toBe(
+      "Ms Taylor asks you to sign.",
+    );
+    expect(withoutOwnerNames("Mrs Taylorson asks for a quote.", names)).toBe(
+      "Mrs Taylorson asks for a quote.",
+    );
+  });
+
   it("leaves someone else's name alone when it shares the owner's", () => {
     const names = ["Sam Taylor", "Sam"];
     // The sender, named on the mail.

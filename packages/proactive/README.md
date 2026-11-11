@@ -90,7 +90,8 @@ Needs you or can wait, with a one-line reason, for each email. Adapted from Open
    names you: it knows your address (from the connector or the most-addressed recipient) and what you
    told Steward about yourself in Memory. The message is fenced as data. Your own address is shown
    bare, without the display name your mail account puts on it, and if the model still uses that
-   name (from a "Hi Sam," in the body), the reason and the brief's summary say "you" instead.
+   name (from a "Hi Sam," or "Dear Ms Taylor," in the body), the reason and the brief's summary say
+   "you" instead.
 3. **Never a silent guess.** When the model fails or is missing, the email goes under needs you with
    "Couldn't sort this one; showing it to be safe.", `by: "rules"`, confidence 0, and the brief says
    how many and why. Provider error text is never stored: it can echo parts of a key.
