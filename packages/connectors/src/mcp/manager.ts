@@ -1105,7 +1105,9 @@ function nextSecrets(
       bearer = token;
     }
   }
-  if (bearer !== undefined && config.url && new URL(config.url).protocol !== "https:" && !allowPrivateHosts) {
+  // An address that can't be read is refused by the address check, with its own sentence.
+  const protocol = config.url && URL.canParse(config.url) ? new URL(config.url).protocol : undefined;
+  if (bearer !== undefined && protocol !== undefined && protocol !== "https:" && !allowPrivateHosts) {
     throw new McpConfigError(
       "Steward sends an access token only to an https address, so nobody on the way can read it.",
     );

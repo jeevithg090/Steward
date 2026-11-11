@@ -1101,6 +1101,10 @@ describe("MCP manager over real transports", () => {
       await expect(
         mcp.upsert({ ...REMOTE, url: "http://mcp.example.com/mcp", bearerToken: TOKEN }),
       ).rejects.toThrow(/only to an https address/);
+      // An address that can't be read gets the address check's own sentence, not a crash.
+      await expect(mcp.upsert({ ...REMOTE, url: "not an address", bearerToken: TOKEN })).rejects.toThrow(
+        BlockedAddressError,
+      );
     });
   });
 
