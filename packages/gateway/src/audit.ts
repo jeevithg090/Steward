@@ -3,12 +3,25 @@
  *
  * Every row carries `prevHash` (the hash of the row before) and `hash` = sha256(prevHash +
  * canonical JSON of the row without `hash`). Triggers refuse UPDATE and DELETE; if someone gets
- * past them (by dropping the triggers, or editing the file), `verify()` finds the first row that no
+ * past them (by dropping the triggers, or editing the file), a check finds the first row that no
  * longer matches. Details are redacted before they are hashed, so a secret never enters the chain.
+ *
+ * Checking hashes every row, which takes seconds on a big record, so `check()` does it a page at a
+ * time and gives way between pages. It remembers the newest row it found intact; the next check
+ * hashes only the rows after it (and re-reads that row and the numbering), and a full walk runs
+ * again at least hourly, on request, or whenever something looks off.
  */
 import type { Db } from "@steward/db";
 import { fromJson, toJson } from "@steward/db";
-import type { AuditLog, AuditType, ChainCheck, Effect, EventBus } from "@steward/shared";
+import type {
+  AuditType,
+  ChainAnchor,
+  ChainCheck,
+  ChainCheckOptions,
+  Effect,
+  EventBus,
+  RecordLog,
+} from "@steward/shared";
 import { type AuditEvent, newId } from "@steward/shared";
 import { maskSensitive } from "./outbound.ts";
 import {
@@ -23,7 +36,33 @@ import {
 /** The hash the first row chains from. */
 export const GENESIS_HASH = "0".repeat(64);
 
-export type AuditInput = Parameters<AuditLog["append"]>[0];
+export type AuditInput = Parameters<RecordLog["append"]>[0];
+
+/** Rows hashed between two pauses of a check. */
+const CHECK_PAGE = 250;
+/** A check walks the whole chain again when the last full walk is older than this. */
+export const FULL_CHECK_EVERY_MS = 60 * 60_000;
+
+/** The newest row a check found chaining, intact, from the first one. */
+interface Checkpoint {
+  seq: number;
+  hash: string;
+  at: string;
+}
+
+/** Where a walk stopped: at the end, or at the first row that is missing or does not match. */
+interface Walked {
+  last?: Checkpoint;
+  brokenAt?: number;
+}
+
+/**
+ * Text the database stores as it is given. A lone UTF-16 surrogate would come back as U+FFFD, so
+ * the row would never match its hash again; it is replaced before hashing instead.
+ */
+function wellFormed<T extends string | undefined>(text: T): T {
+  return (typeof text === "string" ? text.toWellFormed() : text) as T;
+}
 
 interface AuditRow {
   seq: number;
@@ -51,6 +90,11 @@ function hashBody(event: Omit<AuditEvent, "hash">): string {
 
 export function hashEvent(event: Omit<AuditEvent, "hash">): string {
   return sha256Hex(event.prevHash + hashBody(event));
+}
+
+function rowIntact(row: AuditRow): boolean {
+  const { hash, ...body } = rowToEvent(row);
+  return hashEvent(body) === hash;
 }
 
 function rowToEvent(row: AuditRow): AuditEvent {
@@ -128,7 +172,24 @@ function escapeLike(text: string): string {
   return text.replace(/[\\%_]/g, (c) => `\\${c}`);
 }
 
-export class SqliteAuditLog implements AuditLog {
+export class SqliteAuditLog implements RecordLog {
+  /** The newest row known to chain intact from the first. Kept in memory only. */
+  private verified: Checkpoint | undefined;
+  /**
+   * The newest row any check has found intact. The checkpoint moves back to just before a break;
+   * this never moves back, so cutting the record after a break is still seen.
+   */
+  private newest: Checkpoint | undefined;
+  /** When the whole chain was last walked. */
+  private fullAt: Date | undefined;
+  /**
+   * A row an earlier check found intact that later changed or went: the record was rewritten
+   * while Steward ran. A fresh walk of a rewritten chain can pass, so this is kept until restart.
+   */
+  private rewrittenAt: number | undefined;
+  /** Checks run one at a time, so two never move the checkpoint past each other. */
+  private queue: Promise<unknown> = Promise.resolve();
+
   constructor(
     private readonly db: Db,
     private readonly bus?: EventBus,
@@ -155,15 +216,15 @@ export class SqliteAuditLog implements AuditLog {
       seq: (last?.seq ?? 0) + 1,
       id: newId("aud"),
       at: this.now().toISOString(),
-      type: input.type,
-      actorId: input.actorId || "system",
-      agentId: input.agentId,
-      threadId: input.threadId,
-      runId: input.runId,
-      toolCallId: input.toolCallId,
+      type: wellFormed(input.type),
+      actorId: wellFormed(input.actorId || "system"),
+      agentId: wellFormed(input.agentId),
+      threadId: wellFormed(input.threadId),
+      runId: wellFormed(input.runId),
+      toolCallId: wellFormed(input.toolCallId),
       tool: input.tool,
       target: recordTarget(input.target),
-      effect: input.effect,
+      effect: wellFormed(input.effect),
       rule: input.rule,
       detail: redactForAudit(input.detail ?? {}, paths),
       prevHash: last?.hash ?? GENESIS_HASH,
@@ -268,29 +329,143 @@ export class SqliteAuditLog implements AuditLog {
     return more && last ? { events, nextBefore: last.seq, total } : { events, total };
   }
 
-  /** Walks the whole chain, oldest first, in pages. */
-  verify(): ChainCheck {
-    let prev = GENESIS_HASH;
-    let expected = 1;
-    let count = 0;
-    const PAGE = 500;
+  /** Hashes every row again, all at once. Blocks while it runs: the server uses `check`. */
+  verify(opts: Pick<ChainCheckOptions, "anchor"> = {}): ChainCheck {
+    const gen = this.fullWalk(opts.anchor);
+    for (;;) {
+      const step = gen.next();
+      if (step.done) return step.value;
+    }
+  }
+
+  /**
+   * Checks the chain a page at a time, giving way to other work between pages. Without `full` or
+   * an anchor it hashes only the rows added since the last full walk, once it has confirmed that
+   * the newest row that walk reached is unchanged and the numbering has no gaps. Anything off, or
+   * a last full walk over an hour old, walks the whole chain instead.
+   */
+  check(opts: ChainCheckOptions = {}): Promise<ChainCheck> {
+    const run = () => this.drain(this.checkSteps(opts));
+    const result = this.queue.then(run, run);
+    this.queue = result.catch(() => undefined);
+    return result;
+  }
+
+  /** Every row as stored, oldest first, a page at a time (rows numbered below 1 included). */
+  *exportPages(pageSize = 500): Generator<AuditEvent[], void> {
+    const size = Math.min(Math.max(Math.trunc(pageSize), 1), 5_000);
+    let after = Number.MIN_SAFE_INTEGER;
+    for (;;) {
+      const rows = this.db.all<AuditRow>("SELECT * FROM gateway_audit WHERE seq > ? ORDER BY seq LIMIT ?", [
+        after,
+        size,
+      ]);
+      if (rows.length > 0) yield rows.map(rowToEvent);
+      const last = rows[rows.length - 1];
+      if (!last || rows.length < size) return;
+      after = last.seq;
+    }
+  }
+
+  private async drain(gen: Generator<void, ChainCheck>): Promise<ChainCheck> {
+    for (;;) {
+      const step = gen.next();
+      if (step.done) return step.value;
+      await new Promise<void>((resolve) => setImmediate(resolve));
+    }
+  }
+
+  private *checkSteps(opts: ChainCheckOptions): Generator<void, ChainCheck> {
+    const from = this.verified;
+    const stale = !this.fullAt || this.now().getTime() - this.fullAt.getTime() >= FULL_CHECK_EVERY_MS;
+    if (opts.full || opts.anchor || !from || stale) return yield* this.fullWalk(opts.anchor);
+    // The rows before the checkpoint are not hashed again, so check what can be checked cheaply:
+    // nothing numbered below 1, no gaps, and the checkpoint row itself unchanged.
+    const shape = this.shape();
+    const row = this.db.get<AuditRow>("SELECT * FROM gateway_audit WHERE seq = ?", [from.seq]);
+    if (shape.lo !== 1 || shape.n !== shape.hi || !row || row.hash !== from.hash || !rowIntact(row)) {
+      return yield* this.fullWalk();
+    }
+    const walked = yield* this.walk(from);
+    return this.result(walked, "recent");
+  }
+
+  private *fullWalk(anchor?: ChainAnchor): Generator<void, ChainCheck> {
+    const shape = this.shape();
+    // The chain starts at 1. A row numbered below it was put there by hand.
+    const walked: Walked = shape.n > 0 && shape.lo < 1 ? { brokenAt: shape.lo } : yield* this.walk(undefined);
+    this.fullAt = this.now();
+    const check = this.result(walked, "full");
+    if (!anchor) return check;
+    const seal = { seq: anchor.seq, hash: anchor.hash.trim().toLowerCase() };
+    const reached = walked.last !== undefined && seal.seq <= walked.last.seq;
+    const ok = reached && this.matches(seal);
+    return { ...check, ok: check.ok && ok, anchor: { ...seal, ok } };
+  }
+
+  /** Whether the row numbered `seq` still has this hash. */
+  private matches(seal: ChainAnchor): boolean {
+    const row = this.db.get<{ hash: string }>("SELECT hash FROM gateway_audit WHERE seq = ?", [seal.seq]);
+    return row?.hash === seal.hash;
+  }
+
+  /** Hashes rows again after `from` (or from the first), giving way between pages. */
+  private *walk(from: Checkpoint | undefined): Generator<void, Walked> {
+    let prev = from?.hash ?? GENESIS_HASH;
+    let expected = (from?.seq ?? 0) + 1;
+    let last = from;
     for (;;) {
       const rows = this.db.all<AuditRow>("SELECT * FROM gateway_audit WHERE seq >= ? ORDER BY seq LIMIT ?", [
         expected,
-        PAGE,
+        CHECK_PAGE,
       ]);
       for (const row of rows) {
-        // A missing row (gap in seq) or a row that does not chain from the one before.
-        if (row.seq !== expected || row.prev_hash !== prev) return { ok: false, count, brokenAt: row.seq };
-        const event = rowToEvent(row);
-        const { hash, ...body } = event;
-        if (hashEvent(body) !== hash) return { ok: false, count, brokenAt: row.seq };
+        // A missing row (gap in seq), a row that does not chain from the one before, or one changed.
+        if (row.seq !== expected || row.prev_hash !== prev || !rowIntact(row)) {
+          return last ? { last, brokenAt: row.seq } : { brokenAt: row.seq };
+        }
         prev = row.hash;
         expected++;
-        count++;
+        last = { seq: row.seq, hash: row.hash, at: row.at };
       }
-      if (rows.length < PAGE) return { ok: true, count };
+      if (rows.length < CHECK_PAGE) return last ? { last } : {};
+      yield;
     }
+  }
+
+  private shape(): { n: number; lo: number; hi: number } {
+    const row = this.db.get<{ n: number; lo: number | null; hi: number | null }>(
+      "SELECT COUNT(*) AS n, MIN(seq) AS lo, MAX(seq) AS hi FROM gateway_audit",
+    );
+    return { n: row?.n ?? 0, lo: row?.lo ?? 0, hi: row?.hi ?? 0 };
+  }
+
+  /**
+   * The newest row any check found intact must still be there with the same hash. If it changed or
+   * went, the record was rewritten or cut while Steward ran, and that is kept until restart, even
+   * when the chain that is left holds together.
+   */
+  private noteRewrite(walked: Walked): void {
+    const top = this.newest;
+    if (top && !this.matches(top)) this.rewrittenAt ??= Math.min(top.seq, (walked.last?.seq ?? 0) + 1);
+    if (walked.last && (!top || walked.last.seq > top.seq)) this.newest = walked.last;
+  }
+
+  /** Moves the checkpoint to where the walk stopped, and says what it found. */
+  private result(walked: Walked, scope: "full" | "recent"): ChainCheck {
+    this.noteRewrite(walked);
+    this.verified = walked.last;
+    const breaks = [walked.brokenAt, this.rewrittenAt].filter((n): n is number => n !== undefined);
+    const brokenAt = breaks.length > 0 ? Math.min(...breaks) : undefined;
+    const count = Math.min(
+      walked.last?.seq ?? 0,
+      brokenAt === undefined ? Number.POSITIVE_INFINITY : brokenAt - 1,
+    );
+    const check: ChainCheck = { ok: brokenAt === undefined, count: Math.max(count, 0), scope };
+    if (brokenAt !== undefined) check.brokenAt = brokenAt;
+    if (this.fullAt) check.fullCheckAt = this.fullAt.toISOString();
+    if (walked.last && check.ok) check.head = { ...walked.last };
+    return check;
   }
 
   /** All rows for one tool call, oldest first. Handy for tests and the action card's history. */

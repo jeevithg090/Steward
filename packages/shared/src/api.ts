@@ -262,7 +262,8 @@ export const ROUTES = {
   rulesPresets: "/api/rules/presets", // Rule[] (the shipped presets, read only)
 
   audit: "/api/audit", // ?before=&limit=&type=&effect=&q= → AuditPage
-  auditVerify: "/api/audit/verify", // ChainCheck
+  auditVerify: "/api/audit/verify", // ?full=1&anchor=seq:hash → ChainCheck
+  auditExport: "/api/audit/export", // every entry, oldest first, as JSON Lines (a download)
 
   tasks: "/api/tasks", // ?state= → TasksResponse
   task: "/api/tasks/:id", // PATCH TaskPatchBody → Task

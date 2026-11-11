@@ -323,7 +323,11 @@ export const api = {
   audit: {
     page: (opts: AuditFilters & { before?: number } = {}, signal?: AbortSignal) =>
       get<AuditPage>(ROUTES.audit, { ...opts }, signal),
-    verify: (signal?: AbortSignal) => get<ChainCheck>(ROUTES.auditVerify, undefined, signal),
+    /** The quick check; `full` hashes every entry again; `anchor` ("1234:3fa9…") checks a saved seal. */
+    verify: (opts: { full?: boolean; anchor?: string } = {}, signal?: AbortSignal) =>
+      get<ChainCheck>(ROUTES.auditVerify, { full: opts.full ? 1 : undefined, anchor: opts.anchor }, signal),
+    /** Where the browser downloads the whole record, oldest first, as JSON Lines. */
+    exportUrl: BASE + ROUTES.auditExport,
   },
 
   tasks: {
@@ -706,8 +710,19 @@ export function useAudit(filters: AuditFilters = {}) {
 export function useVerifyAudit(opts?: QueryOpts<ChainCheck>) {
   return useQuery<ChainCheck, ApiError>({
     queryKey: queryKeys.auditVerify,
-    queryFn: ({ signal }) => api.audit.verify(signal),
+    queryFn: ({ signal }) => api.audit.verify({}, signal),
     ...opts,
+  });
+}
+
+/** Hashes every entry again, or checks a seal written down earlier. A full check updates the badge. */
+export function useCheckRecord() {
+  const qc = useQueryClient();
+  return useMutation<ChainCheck, ApiError, { full?: boolean; anchor?: string }>({
+    mutationFn: (opts) => api.audit.verify(opts),
+    onSuccess: (check, opts) => {
+      if (opts.full && !opts.anchor) qc.setQueryData(queryKeys.auditVerify, check);
+    },
   });
 }
 

@@ -5,6 +5,8 @@ import {
   type ApprovalDecider,
   ApprovalDecisionBody,
   type ApprovalStatus,
+  type AuditEvent,
+  type ChainAnchor,
   DryRunBody,
   ROUTES,
   type Rule,
@@ -15,7 +17,7 @@ import type { StewardServices } from "../context.ts";
 import { asUserError, HttpError, notFound, readBody } from "../http/errors.ts";
 import { clip } from "../runtime/run-summary.ts";
 import { dryRunCall } from "../tools/dry-run.ts";
-import { enumQuery, intQuery, textQuery } from "./query.ts";
+import { enumQuery, flagQuery, intQuery, textQuery } from "./query.ts";
 
 const APPROVAL_STATUSES: readonly ApprovalStatus[] = [
   "pending",
@@ -24,7 +26,44 @@ const APPROVAL_STATUSES: readonly ApprovalStatus[] = [
   "expired",
   "cancelled",
 ];
-const EFFECTS = ["allow", "ask", "deny"] as const;
+/** Decided effects, and `failed` for calls that failed after being allowed. */
+const EFFECTS = ["allow", "ask", "deny", "failed"] as const;
+
+/** A seal written down earlier: `1234:` and the entry's 64-character hash. */
+const ANCHOR = /^(\d{1,15}):([0-9a-f]{64})$/i;
+
+function anchorQuery(raw: string | undefined): ChainAnchor | undefined {
+  const text = raw?.trim();
+  if (!text) return undefined;
+  const match = ANCHOR.exec(text);
+  const seq = Number(match?.[1]);
+  if (!match?.[2] || !Number.isSafeInteger(seq) || seq < 1) {
+    throw new HttpError(
+      400,
+      "That seal doesn't look right. Give the entry number, a colon, then its 64-character seal.",
+    );
+  }
+  return { seq, hash: match[2].toLowerCase() };
+}
+
+/** The record as JSON Lines, a page at a time, so a big record never sits in memory whole. */
+function exportStream(pages: Generator<AuditEvent[], void>): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  return new ReadableStream<Uint8Array>({
+    pull(controller) {
+      try {
+        const next = pages.next();
+        if (next.done) return controller.close();
+        controller.enqueue(encoder.encode(next.value.map((e) => `${JSON.stringify(e)}\n`).join("")));
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+    cancel() {
+      pages.return();
+    },
+  });
+}
 
 /**
  * Rules that ship with Steward or the tenant package, or came with a bot: they can be switched
@@ -216,5 +255,20 @@ export function registerGovernanceRoutes(app: Hono, s: StewardServices): void {
     );
   });
 
-  app.get(ROUTES.auditVerify, (c) => c.json(audit.verify()));
+  app.get(ROUTES.auditVerify, async (c) => {
+    const anchor = anchorQuery(c.req.query("anchor"));
+    return c.json(await audit.check({ full: flagQuery(c, "full"), ...(anchor ? { anchor } : {}) }));
+  });
+
+  app.get(ROUTES.auditExport, () => {
+    const day = new Date().toISOString().slice(0, 10);
+    return new Response(exportStream(audit.exportPages()), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/x-ndjson; charset=utf-8",
+        "Content-Disposition": `attachment; filename="steward-record-${day}.jsonl"`,
+        "Cache-Control": "no-store",
+      },
+    });
+  });
 }

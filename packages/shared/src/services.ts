@@ -29,6 +29,7 @@ import type {
   AuditEvent,
   AuditType,
   ChainCheck,
+  ChainCheckOptions,
   Decision,
   Effect,
   GateCall,
@@ -102,12 +103,25 @@ export interface AuditLog {
   verify(): ChainCheck;
 }
 
+/** The record as the gateway keeps it: checked without holding up the server, and exported whole. */
+export interface RecordLog extends AuditLog {
+  /** Hashes every entry again, all at once. For tests and small records; the server uses `check`. */
+  verify(opts?: Pick<ChainCheckOptions, "anchor">): ChainCheck;
+  /**
+   * Checks the chain a page at a time, giving way to other work between pages. Without `full` or
+   * an anchor, only the entries added since the last full check are hashed again.
+   */
+  check(opts?: ChainCheckOptions): Promise<ChainCheck>;
+  /** Every entry as stored, oldest first, a page at a time: for downloading the record. */
+  exportPages(pageSize?: number): Generator<AuditEvent[], void>;
+}
+
 /** Everything the gateway package exposes once constructed by `createGateway(...)`. */
 export interface GatewayServices {
   governance: Governance;
   rules: RuleStore;
   approvals: ApprovalStore;
-  audit: AuditLog;
+  audit: RecordLog;
 }
 
 // ── @steward/computer ──────────────────────────────────────────────────────────────────────────

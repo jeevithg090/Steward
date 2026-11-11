@@ -119,13 +119,34 @@ function rowToRecord(row: ApprovalRow): ApprovalRecord {
   return record;
 }
 
-/** What "Always allow" turns into. Scoped as narrowly as the call allows. */
-export function alwaysRuleFor(approval: Pick<Approval, "tool" | "target" | "summary">): {
+/** What "Always allow" writes: an `allow` rule with source `always`. */
+export interface AlwaysRule {
   name: string;
   when: string;
   description: string;
-} {
+}
+
+function named(name: unknown): boolean {
+  return typeof name === "string" && name.trim() !== "";
+}
+
+/**
+ * What "Always allow" turns into, scoped as narrowly as the call allows; undefined when a rule
+ * could not name what was approved, so Always allow must not be offered. A browser action on a
+ * page with no host (a blank page, a file) would allow that element on every site, one on an
+ * element the computer could not name would allow any unnamed element on that host, and a key
+ * press whose control it could not name would allow whatever that key does next time.
+ */
+export function alwaysRuleFor(
+  approval: Pick<Approval, "tool" | "target" | "summary"> & { args?: Record<string, unknown> },
+): AlwaysRule | undefined {
   const { tool, target } = approval;
+  if (tool.surface === "browser") {
+    if (!named(target.host) || !named(target.element?.name)) return undefined;
+    const submits =
+      tool.name === "browser_press" || (tool.name === "browser_type" && approval.args?.submit === true);
+    if (submits && !named(target.element?.submitter?.name)) return undefined;
+  }
   const parts = [`tool.name == ${celString(tool.name)}`];
   const scope: string[] = [];
   if (target.host) {
@@ -144,12 +165,15 @@ export function alwaysRuleFor(approval: Pick<Approval, "tool" | "target" | "summ
     parts.push(`target.command == ${celString(target.command)}`);
     scope.push(`\`${truncate(target.command, 60)}\``);
   }
+  // The exact people, or nobody: an event approved with no guests never lets a later one invite anyone.
   const recipients = target.recipients ?? [];
   if (recipients.length > 0) {
     parts.push(
       `size(target.recipients) > 0 && target.recipients.all(r, r in [${recipients.map(celString).join(", ")}])`,
     );
     scope.push(`to ${listPeople(recipients)}`);
+  } else {
+    parts.push("size(target.recipients) == 0");
   }
   const label = target.mcp ? `${target.mcp.tool} on ${target.mcp.server}` : tool.name;
   return {
@@ -157,6 +181,51 @@ export function alwaysRuleFor(approval: Pick<Approval, "tool" | "target" | "summ
     when: parts.join(" && "),
     description: truncate(`You chose Always allow for: ${approval.summary}`, 500),
   };
+}
+
+/**
+ * Always allow rules written before "nobody" was pinned let a call that had no recipients run
+ * later with any. Narrows each such rule once, in the shape `alwaysRuleFor` wrote it (a rule
+ * someone rewrote by hand is left alone), so an event allowed with no guests still invites nobody.
+ * A rule that cannot be narrowed is switched off instead of staying wide: one that would grow too
+ * long, and one for a click, typing or key press on an element that had no name (which allows that
+ * kind of action on every element of the site) or on a page with no host (which allows it on every
+ * site). Each change is recorded as a policy change. Never stops Steward from starting. Returns
+ * how many were narrowed.
+ */
+export function narrowAlwaysRules(rules: SqliteRuleStore): number {
+  const log = (type: string, rule: Rule, err: unknown) =>
+    console.error(JSON.stringify({ type, ruleId: rule.id, error: String(err) }));
+  const switchOff = (rule: Rule) => {
+    if (!rule.enabled) return;
+    try {
+      rules.update(rule.id, { enabled: false });
+    } catch (err) {
+      log("gateway.always_rule_not_switched_off", rule, err);
+    }
+  };
+  let narrowed = 0;
+  for (const rule of rules.list()) {
+    const written =
+      rule.source === "always" && rule.when.startsWith("tool.name == ") && !rule.when.includes("||");
+    if (!written) continue;
+    if (
+      /^tool\.name == "browser_(click|type|press)"/.test(rule.when) &&
+      (!rule.when.includes("target.element.name") || !rule.when.includes("target.host"))
+    ) {
+      switchOff(rule);
+      continue;
+    }
+    if (rule.when.includes("target.recipients")) continue;
+    try {
+      rules.update(rule.id, { when: `${rule.when} && size(target.recipients) == 0` });
+      narrowed++;
+    } catch (err) {
+      log("gateway.always_rule_not_narrowed", rule, err);
+      switchOff(rule);
+    }
+  }
+  return narrowed;
 }
 
 export interface OpenInput {
@@ -347,6 +416,12 @@ export class SqliteApprovalStore implements ApprovalStore {
         let created: Rule | undefined;
         if (answer === "always") {
           const rule = alwaysRuleFor(current);
+          if (!rule) {
+            throw new GatewayError(
+              "invalid",
+              "Always allow is not offered for this one. Allow it once, or refuse it.",
+            );
+          }
           created = this.rules.insert({ ...rule, effect: "allow", source: "always", enabled: true });
         }
         const status: ApprovalStatus = answer === "refuse" ? "refused" : "allowed";

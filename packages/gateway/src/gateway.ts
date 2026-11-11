@@ -1,6 +1,6 @@
 import type { Db } from "@steward/db";
 import type { EventBus, GatewayServices, TenantPackage } from "@steward/shared";
-import { SqliteApprovalStore } from "./approvals.ts";
+import { narrowAlwaysRules, SqliteApprovalStore } from "./approvals.ts";
 import { SqliteAuditLog } from "./audit.ts";
 import { CelEngine } from "./cel.ts";
 import { CONTEXT_SCHEMA, neutralContext } from "./context.ts";
@@ -40,7 +40,8 @@ function hoursFrom(value: GatewayOptions["expiryHours"]): () => number {
 
 /**
  * Builds the gateway on one database: applies its migrations (idempotent), syncs the shipped
- * presets and the tenant's rules, and returns the governance door with its stores.
+ * presets and the tenant's rules, narrows old Always allow rules that ignored recipients, and
+ * returns the governance door with its stores.
  *
  * Throws when a tenant rule does not compile, so a broken package stops the server at start rather
  * than refusing every call later.
@@ -52,6 +53,7 @@ export function createGateway(opts: GatewayOptions): StewardGateway {
   const audit = new SqliteAuditLog(opts.db, opts.bus, now);
   const rules = new SqliteRuleStore(opts.db, audit, engine, now);
   rules.sync(PRESET_RULES, opts.tenantRules ?? []);
+  narrowAlwaysRules(rules);
   const approvals = new SqliteApprovalStore(opts.db, audit, rules, opts.bus, now);
   const governance = new GatewayGovernance({
     rules,

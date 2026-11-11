@@ -1,6 +1,7 @@
 import type { Approval, GateOutcome } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import { GatewayError } from "../src/errors.ts";
+import { createGateway } from "../src/gateway.ts";
 import { gateCall, HOUR, setup, spyAction } from "./helpers.ts";
 
 function parked<T>(outcome: GateOutcome<T>): Approval {
@@ -217,6 +218,50 @@ describe("decide and resume", () => {
       "tool.completed",
       "tool.decided",
     ]);
+  });
+
+  it("acts on an answer while it is recent, and never on one older than a request waits", async () => {
+    const { gw, advance } = setup({ expiryHours: 24 });
+    const fresh = mail("Fresh");
+    gw.approvals.decide(parked(await gw.governance.execute(fresh, async () => null)).id, "once", "local");
+    advance(23 * HOUR);
+    const spy = spyAction("sent");
+    expect((await gw.governance.resume(fresh, spy.act)).status).toBe("done");
+    expect(spy.calls).toHaveLength(1);
+
+    // Allow once, then the resume only comes a month later (a crashed sweep, a tab opened again).
+    const stale = mail("Stale");
+    const approval = parked(await gw.governance.execute(stale, async () => null));
+    gw.approvals.decide(approval.id, "once", "local");
+    advance(30 * 24 * HOUR);
+    const late = await gw.governance.resume(stale, spy.act);
+    expect(late).toMatchObject({
+      status: "refused",
+      decision: { effect: "deny", rule: { id: "default:answer-check" } },
+    });
+    if (late.status === "refused") expect(late.message).toMatch(/too old to act on\. Ask again/);
+    expect(spy.calls).toHaveLength(1);
+    const decided = gw.audit.forToolCall(stale.toolCallId).filter((r) => r.type === "tool.decided");
+    expect(decided.at(-1)).toMatchObject({
+      effect: "deny",
+      rule: { id: "default:answer-check" },
+      detail: { reason: "The answer was too old to act on", resumed: true },
+    });
+    // The answer is used up: a second late resume does not act either.
+    expect((await gw.governance.resume(stale, spy.act)).status).toBe("refused");
+    expect(spy.calls).toHaveLength(1);
+  });
+
+  it("counts an answer's age by the expiry setting as it is now", async () => {
+    let hours = 24;
+    const { gw, advance } = setup({ expiryHours: () => hours });
+    const call = mail();
+    gw.approvals.decide(parked(await gw.governance.execute(call, async () => null)).id, "once", "local");
+    advance(2 * HOUR);
+    hours = 1;
+    const spy = spyAction("sent");
+    expect((await gw.governance.resume(call, spy.act)).status).toBe("refused");
+    expect(spy.calls).toHaveLength(0);
   });
 
   it("concurrent resumes: only one acts", async () => {
@@ -568,7 +613,7 @@ describe("always allow", () => {
     expect(approval.summary).toBe("Press Enter in 'Message' on mail.example, which clicks 'Send'");
     const decided = gw.approvals.decide(approval.id, "always", "local");
     expect(gw.rules.get(decided.createdRuleId ?? "")?.when).toBe(
-      'tool.name == "browser_press" && target.host == "mail.example" && target.element.name == "Message" && tool.kind == "send"',
+      'tool.name == "browser_press" && target.host == "mail.example" && target.element.name == "Message" && tool.kind == "send" && size(target.recipients) == 0',
     );
     expect(gw.governance.dryRun(press("Post reply")).effect).toBe("allow");
     expect(gw.governance.dryRun(press("Delete conversation")).effect).toBe("ask");
@@ -589,13 +634,237 @@ describe("always allow", () => {
     expect(() => gw.approvals.decide(tainted.id, "always", "local")).toThrow(/Always allow is not offered/);
   });
 
+  it("pins 'nobody' when the approved call had no recipients, so a later invite still asks", async () => {
+    const { gw } = setup();
+    const event = (attendees?: string[]) =>
+      gateCall("calendar_create", {
+        title: "Focus time",
+        start: "2026-10-28T09:00:00Z",
+        ...(attendees ? { attendees } : {}),
+      });
+    const approval = parked(await gw.governance.execute(event(), async () => null));
+    const decided = gw.approvals.decide(approval.id, "always", "local");
+    expect(gw.rules.get(decided.createdRuleId ?? "")?.when).toBe(
+      'tool.name == "calendar_create" && size(target.recipients) == 0',
+    );
+    expect(gw.governance.dryRun(event()).effect).toBe("allow");
+    expect(gw.governance.dryRun(event(["stranger@evil.example"])).effect).toBe("ask");
+  });
+
+  it("narrows an Always allow written before 'nobody' was pinned, once, when Steward starts", () => {
+    const { db, gw } = setup();
+    const old = gw.rules.create({
+      name: "Always allow calendar_create",
+      effect: "allow",
+      when: 'tool.name == "calendar_create"',
+      description: "You chose Always allow for: Add 'Focus time' to your calendar",
+      enabled: true,
+      source: "always",
+    });
+    const handWritten = gw.rules.create({
+      name: "Calendar or mail",
+      effect: "allow",
+      when: 'tool.name == "calendar_create" || tool.name == "calendar_update"',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const sam = gw.rules.create({
+      name: "Always allow mail_send to sam@example.com",
+      effect: "allow",
+      when: 'tool.name == "mail_send" && size(target.recipients) > 0 && target.recipients.all(r, r in ["sam@example.com"])',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const restarted = createGateway({ db, now: () => new Date("2026-10-28T09:00:00.000Z") });
+    expect(restarted.rules.get(old.id)?.when).toBe(
+      'tool.name == "calendar_create" && size(target.recipients) == 0',
+    );
+    expect(restarted.rules.get(handWritten.id)?.when).toBe(handWritten.when);
+    expect(restarted.rules.get(sam.id)?.when).toBe(sam.when);
+    const invite = gateCall("calendar_create", { title: "Sync", attendees: ["stranger@evil.example"] });
+    restarted.rules.update(handWritten.id, { enabled: false });
+    expect(restarted.governance.dryRun(invite).effect).toBe("ask");
+    const changes = restarted.audit.page({ type: "policy.changed", q: "Always allow calendar_create" });
+    expect(changes.events[0]?.detail).toMatchObject({
+      change: "updated",
+      when: expect.stringContaining("== 0"),
+    });
+    // Once only.
+    const before = restarted.audit.page({}).total;
+    createGateway({ db });
+    expect(restarted.audit.page({}).total).toBe(before);
+  });
+
+  it("switches off an old Always allow that is too long to narrow, rather than leave it wide", () => {
+    const { db, gw } = setup();
+    const long = gw.rules.create({
+      name: "Always allow calendar_create",
+      effect: "allow",
+      // Near the limit: the extra condition would take it past 2,000 characters.
+      when: `tool.name == "calendar_create" && target.host != "${"x".repeat(1935)}"`,
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const errors: unknown[] = [];
+    const log = console.error;
+    console.error = (...args: unknown[]) => errors.push(args);
+    let restarted: ReturnType<typeof createGateway>;
+    try {
+      restarted = createGateway({ db });
+    } finally {
+      console.error = log;
+    }
+    expect(restarted.rules.get(long.id)).toMatchObject({ when: long.when, enabled: false });
+    expect(errors).toHaveLength(1);
+    const invite = gateCall("calendar_create", { title: "Sync", attendees: ["stranger@evil.example"] });
+    expect(restarted.governance.dryRun(invite).effect).toBe("ask");
+    const changes = restarted.audit.page({ type: "policy.changed", q: "Always allow calendar_create" });
+    expect(changes.events[0]?.detail).toMatchObject({ change: "updated", enabled: false, switched: "off" });
+    // Already off: a later start leaves it, and the record, alone.
+    const before = restarted.audit.page({}).total;
+    console.error = () => {};
+    try {
+      createGateway({ db });
+    } finally {
+      console.error = log;
+    }
+    expect(restarted.audit.page({}).total).toBe(before);
+  });
+
+  it("switches off an old Always allow for an element with no name or a page with no host, and keeps a named one", () => {
+    const { db, gw } = setup();
+    // What an older Steward wrote for Enter in a field it could not name: every Enter that sends there.
+    const blind = gw.rules.create({
+      name: "Always allow browser_press on chat.example",
+      effect: "allow",
+      when: 'tool.name == "browser_press" && target.host == "chat.example" && tool.kind == "send"',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const named = gw.rules.create({
+      name: "Always allow browser_press 'Reply' on chat.example",
+      effect: "allow",
+      when: 'tool.name == "browser_press" && target.host == "chat.example" && target.element.name == "Reply" && tool.kind == "send"',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    // What an older Steward wrote for a click on a page with no host: that button on every site.
+    const anywhere = gw.rules.create({
+      name: "Always allow browser_click 'Send'",
+      effect: "allow",
+      when: 'tool.name == "browser_click" && target.element.name == "Send" && tool.kind == "send"',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const click = gateCall(
+      "browser_click",
+      { ref: "e2" },
+      { target: { host: "bank.example", element: { ref: "e2", role: "button", name: "Send" } } },
+    );
+    expect(gw.governance.dryRun(click).effect).toBe("allow");
+    const press = (name: string) =>
+      gateCall(
+        "browser_press",
+        { key: "Enter" },
+        {
+          target: {
+            host: "chat.example",
+            element: { ref: "e9", role: "textbox", name, submitter: { role: "button", name: "Send" } },
+          },
+        },
+      );
+    expect(gw.governance.dryRun(press("Message the whole team")).effect).toBe("allow");
+    const restarted = createGateway({ db });
+    expect(restarted.rules.get(blind.id)).toMatchObject({ when: blind.when, enabled: false });
+    expect(restarted.rules.get(anywhere.id)).toMatchObject({ when: anywhere.when, enabled: false });
+    expect(restarted.governance.dryRun(click).effect).toBe("ask");
+    expect(restarted.rules.get(named.id)).toMatchObject({
+      when: `${named.when} && size(target.recipients) == 0`,
+      enabled: true,
+    });
+    expect(restarted.governance.dryRun(press("Reply")).effect).toBe("allow");
+    expect(restarted.governance.dryRun(press("Message the whole team")).effect).toBe("ask");
+    const before = restarted.audit.page({}).total;
+    createGateway({ db });
+    expect(restarted.audit.page({}).total).toBe(before);
+  });
+
+  it("is not offered for a browser action the rule could not name", async () => {
+    const { gw } = setup();
+    const before = gw.rules.list().length;
+    const press = (key: string, element: Record<string, unknown>) =>
+      gateCall(
+        "browser_press",
+        { key },
+        { target: { host: "mail.example", element: { ref: "", role: "textbox", ...element } } },
+      );
+    // Neither the field nor the control Enter would press has a name.
+    const blind = parked(await gw.governance.execute(press("Enter", { name: "" }), async () => null));
+    expect(blind.canAlways).toBe(false);
+    expect(() => gw.approvals.decide(blind.id, "always", "local")).toThrow(/Always allow is not offered/);
+    // A named field, but the computer could not name what Enter activates.
+    const unknownControl = parked(
+      await gw.governance.execute(press("Control+Enter", { name: "Reply to all" }), async () => null),
+    );
+    expect(unknownControl.canAlways).toBe(false);
+    // Typing with submit presses Enter afterwards: the same applies.
+    const submitted = parked(
+      await gw.governance.execute(
+        gateCall(
+          "browser_type",
+          { ref: "e4", text: "Thanks", submit: true },
+          { target: { host: "mail.example", element: { ref: "e4", role: "textbox", name: "Post a reply" } } },
+        ),
+        async () => null,
+      ),
+    );
+    expect(submitted.canAlways).toBe(false);
+    expect(gw.rules.list()).toHaveLength(before);
+  });
+
+  it("is not offered for a browser action on a page with no host, which would allow it on every site", async () => {
+    const { gw } = setup();
+    const click = (target: { host?: string; url: string }) =>
+      gateCall(
+        "browser_click",
+        { ref: "e1" },
+        { target: { ...target, element: { ref: "e1", role: "button", name: "Send" } } },
+      );
+    for (const url of ["about:blank", "file:///Users/me/page.html"]) {
+      const approval = parked(await gw.governance.execute(click({ url }), async () => null));
+      expect(approval.canAlways).toBe(false);
+      expect(() => gw.approvals.decide(approval.id, "always", "local")).toThrow(
+        /Always allow is not offered/,
+      );
+    }
+    // The same button on a site still offers it, pinned to that site.
+    const onSite = parked(
+      await gw.governance.execute(
+        click({ host: "mail.example", url: "https://mail.example/inbox" }),
+        async () => null,
+      ),
+    );
+    expect(onSite.canAlways).toBe(true);
+    const decided = gw.approvals.decide(onSite.id, "always", "local");
+    expect(gw.rules.get(decided.createdRuleId ?? "")?.when).toContain('target.host == "mail.example"');
+    expect(gw.governance.dryRun(click({ host: "chat.example", url: "https://chat.example/" })).effect).toBe(
+      "ask",
+    );
+  });
+
   it("scopes MCP tools to the server", async () => {
     const { gw } = setup();
     const call = gateCall("mcp__github__create_issue", { title: "Bug" });
     const approval = parked(await gw.governance.execute(call, async () => null));
     const decided = gw.approvals.decide(approval.id, "always", "local");
     expect(gw.rules.get(decided.createdRuleId ?? "")?.when).toBe(
-      'tool.name == "mcp__github__create_issue" && target.mcp.server == "github"',
+      'tool.name == "mcp__github__create_issue" && target.mcp.server == "github" && size(target.recipients) == 0',
     );
   });
 

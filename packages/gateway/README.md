@@ -252,9 +252,14 @@ Live events on the bus: `approval.created`, `approval.decided` (answered, expire
 
 Table `gateway_audit`. Each row: `seq` (from 1, no gaps), `prevHash`, and
 `hash = sha256(prevHash + canonical JSON of the row without hash)`, where canonical JSON sorts keys
-at every level. Triggers refuse UPDATE and DELETE. `verify()` walks the chain in pages and returns
-`{ ok, count, brokenAt }`; it finds edited, rehashed and deleted rows. It cannot see rows cut from
-the end; keep a copy of the latest hash elsewhere if that matters to you.
+at every level. Triggers refuse UPDATE and DELETE. `verify()` walks the whole chain at once and
+returns `{ ok, count, brokenAt, head }`; it finds edited, rehashed and deleted rows, and rows
+numbered below 1. The server uses `check({ full?, anchor? })` instead: it walks a page at a time,
+giving way between pages, hashes only the rows added since the last full walk unless asked or an
+hour has passed, and reports a rewrite if the newest row it ever found intact changes or goes.
+Rows cut from the end before a check saw them, or before a restart, cannot be seen that way: keep
+`head` (`seq:hash`) elsewhere and pass it back as `anchor`. `exportPages()` yields every row as
+stored, oldest first.
 
 Redaction before hashing: values under keys such as password, secret, token, key, authorization,
 cookie, otp, pin, cvv (in any spelling: `apiKey`, `x-auth-token`) become `[redacted]`; the text
