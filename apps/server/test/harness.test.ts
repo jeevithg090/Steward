@@ -50,7 +50,7 @@ describe.runIf(missing.length === 0)("an external coding agent, end to end over 
     });
     // Every "work" turn edits the project and then runs the tests; this rule lets the edit through,
     // so the run parks on the tests. Set here, not in a test, so each test works alone.
-    await t.api("/api/rules", {
+    const rule = await t.api("/api/rules", {
       method: "POST",
       json: {
         name: "The fake agent may work on the project",
@@ -59,6 +59,8 @@ describe.runIf(missing.length === 0)("an external coding agent, end to end over 
         description: "",
       },
     });
+    // Without it every "work" turn parks on the edit instead, and the tests fail far from the cause.
+    expect(rule.status).toBe(201);
   });
   afterAll(async () => {
     await t?.close();
