@@ -30,10 +30,10 @@ const CI = Boolean(process.env.CI);
 
 // Playwright loads this file in the runner and again in each worker. Fixing the folder in the
 // environment the first time means the workers, which inherit it, agree with the server. The
-// first load also clears out the folders of older runs, keeping the newest few to look into.
+// first load also clears out the folders of older runs: with this one, the newest three are kept.
 if (!process.env.STEWARD_E2E_DATA_DIR) {
   const runs = join(REPO_ROOT, "test-results", "e2e-data");
-  removeOlderRuns(runs, 3);
+  removeOlderRuns(runs, 2);
   process.env.STEWARD_E2E_DATA_DIR = join(runs, `run-${Date.now()}`);
 }
 const DATA_DIR = process.env.STEWARD_E2E_DATA_DIR;

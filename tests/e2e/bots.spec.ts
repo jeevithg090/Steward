@@ -105,7 +105,7 @@ test.describe("Bots", () => {
     const made = page.getByRole("dialog");
     const submit = made.getByRole("region", { name: "Submit to the directory" });
     await expect(submit).toBeVisible({ timeout: 60_000 });
-    // The bundled directory is a folder on this machine, which takes no submissions.
+    // The run's own directory is a folder on this machine, which takes no submissions.
     await expect(submit.getByRole("note")).toContainText(/takes no submissions/);
     await submit.getByRole("textbox", { name: /Your GitHub handle/ }).fill("ana-b");
     const [download] = await Promise.all([
