@@ -269,7 +269,14 @@ export class Submissions {
       throw new SubmissionError("This bot is already yours.", 409);
     }
     const notes: PackProblem[] = [];
-    if (
+    if (owner?.submitter.githubId !== undefined) {
+      // Owned by a GitHub id: a handle that matches may be the old one, renamed and registered again.
+      notes.push({
+        path: "submitter",
+        message: `It belongs to another GitHub account (approved here as @${owner.submitter.login}). The same handle does not mean the same person. Approving gives the listing to @${input.submitter.login}.`,
+        severity: "warn",
+      });
+    } else if (
       existing.author.kind === "person" &&
       existing.author.handle.toLowerCase() !== input.submitter.login.toLowerCase()
     ) {

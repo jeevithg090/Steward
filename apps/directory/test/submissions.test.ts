@@ -456,6 +456,23 @@ describe("approval checks ownership again", () => {
     expect(impostor.body.error).toContain("taken by a bot made by @ana");
   });
 
+  it("tells the reviewer when a claim is for a listing another GitHub account owns", async () => {
+    f.github.addRepo("ana", "bots", GOOD);
+    const made = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(made.body.submission.id)).status).toBe(200);
+    // Ana renamed her account; someone else registered "ana" and claims her listing.
+    const claim = await f.request("/api/bots/chore-chart/claim", {
+      method: "POST",
+      session: f.signIn("ana", 777),
+      json: { confirmItsMine: true },
+    });
+    expect(claim.status).toBe(201);
+    const pending = f.server.store.submission(claim.body.submission.id)!;
+    expect(pending.warnings.map((w) => w.message)).toContain(
+      "It belongs to another GitHub account (approved here as @ana). The same handle does not mean the same person. Approving gives the listing to @ana.",
+    );
+  });
+
   it("matches a seed listing by handle only, and tells the reviewer", async () => {
     f.github.addRepo("sam", "rent", {
       ...GOOD,
