@@ -1,6 +1,6 @@
 # Directory report
 
-Generated 2026-11-10. 1251 packs in `directory/bots/`.
+Generated 2026-11-11. 1251 packs in `directory/bots/`.
 
 ## By category
 

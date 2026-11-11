@@ -1,6 +1,6 @@
 {
   "name": "Steward bots",
-  "generatedAt": "2026-11-10T22:18:49.039Z",
+  "generatedAt": "2026-11-11T10:08:10.669Z",
   "categories": {
     "food": "Food & cooking",
     "health": "Health & fitness",
@@ -3834,7 +3834,7 @@
       "name": "CKD meal planner",
       "pitch": "Build a weekly renal-friendly meal plan within potassium and phosphorus limits.",
       "category": "health",
-      "version": 2,
+      "version": 3,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -3851,7 +3851,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-11-10T22:02:29.063Z",
+      "updatedAt": "2026-11-11T10:08:10.669Z",
       "packUrl": "packs/ckd-meal-planner.json"
     },
     {
@@ -9767,7 +9767,7 @@
       "name": "Gestational diabetes meal planner",
       "pitch": "Plan meals for a gestational diabetes diet with carb counts per meal.",
       "category": "food",
-      "version": 1,
+      "version": 2,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -9785,7 +9785,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-10-29T13:27:05.069Z",
+      "updatedAt": "2026-11-11T10:08:10.669Z",
       "packUrl": "packs/gestational-diabetes-meal-planner.json"
     },
     {
@@ -27463,7 +27463,7 @@
       "name": "Supplement scheduler",
       "pitch": "Build a daily schedule with timing, dosages and interaction checks for the person's current supplement stack.",
       "category": "health",
-      "version": 2,
+      "version": 3,
       "author": {
         "kind": "ai",
         "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -27481,7 +27481,7 @@
       },
       "installs": 0,
       "usedBy": 0,
-      "updatedAt": "2026-11-10T22:02:29.063Z",
+      "updatedAt": "2026-11-11T10:08:10.669Z",
       "packUrl": "packs/supplement-scheduler.json"
     },
     {

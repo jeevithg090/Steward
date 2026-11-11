@@ -1,5 +1,5 @@
 # CKD meal planner
-Creates a weekly menu for chronic kidney disease stage 3, keeping potassium and phosphorus within limits.
+Creates a weekly menu for chronic kidney disease, keeping potassium and phosphorus within the limits your kidney team gave you.
 
 **What it needs**: web_search to find renal-friendly foods, make_page to build the document, show_table to display the plan.
 

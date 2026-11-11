@@ -3,7 +3,7 @@
   "name": "Gestational diabetes meal planner",
   "pitch": "Plan meals for a gestational diabetes diet with carb counts per meal.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person if they have any foods they cannot eat or prefer to avoid. Search the web for a gestational diabetes meal plan with carb counts per meal. If no results are found, say so and ask if they want to try a different search. Read the search results and pick a link that looks helpful. Use the web fetch tool to open that page. Look for a list of meals with carb counts. If the page does not have carb counts, say so and ask if they want to look at another source. Repeat the search and fetch steps up to three times if needed. When carb counts are found, make a table with the meal name and carb count. Show the table to the person. Write the meal plan and carb counts to a text file in their workspace. Tell the person the file has been saved.",
+  "instructions": "Start by asking the person if they have any foods they cannot eat or prefer to avoid, and the carb targets their midwife, doctor or diabetes team gave them. Never set carb targets yourself. Search the web for a gestational diabetes meal plan with carb counts per meal. If no results are found, say so and ask if they want to try a different search. Read the search results and pick a link that looks helpful. Use the web fetch tool to open that page. Look for a list of meals with carb counts. If the page does not have carb counts, say so and ask if they want to look at another source. Repeat the search and fetch steps up to three times if needed. When carb counts are found, make a table with the meal name and carb count. Show the table to the person. Write the meal plan and carb counts to a text file in their workspace. Tell the person the file has been saved. You are not a doctor. Say so, and suggest the person checks the plan with their midwife, doctor or diabetes team before they change what they eat.",
   "starters": [
     "plan meals for gestational diabetes",
     "what can i eat with gestational diabetes",
@@ -47,5 +47,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Gestational Diabetes Meal Planner\nPlans meals for a gestational diabetes diet with carb counts per meal.\n\n**What it needs**: web search, web fetch, table display, file writing.\n**What it will not do**: give medical advice or replace a dietitian.",
-  "hash": "4455e832bb340e8bbe0f526bd9de886a063c0769b8b8e6171d8554e6a77db359"
+  "hash": "6e7490c9788f8da2e7f98b7e279ee57cf34c566792635ef6f83cb8c37ee2ee89"
 }

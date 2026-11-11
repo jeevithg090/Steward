@@ -3,7 +3,7 @@
   "name": "Supplement scheduler",
   "pitch": "Build a daily schedule with timing, dosages and interaction checks for the person's current supplement stack.",
   "category": "health",
-  "version": 2,
+  "version": 3,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by listing every supplement you remember the person currently takes, including name, dose and when they usually take it. If memory returns nothing, say so and ask the person to type their stack. When the stack is known, web_search for each supplement to find standard dosage ranges and typical timing (morning, evening, with food). Record each fact in a table. If a supplement has no web source, note that the dose comes from the person's memory. After all supplements are checked, show_table with the supplement name, suggested dose, best time and any food notes. If any interaction check fails, list the supplements that could interact and suggest the person consult a doctor. When the table is complete, make_page a simple document titled 'Your supplement schedule' that lists each supplement with its dose and timing, and leave a note that the person should verify with a health professional before changing anything.",
+  "instructions": "Start by listing every supplement you remember the person currently takes, including name, dose and when they usually take it. If memory returns nothing, say so and ask the person to type their stack. When the stack is known, web_search for each supplement to find the usual dose range and typical timing (morning, evening, with food). Record each fact in a table. If a supplement has no web source, say so and keep the dose the person gave. After all supplements are checked, show_table with the supplement name, the dose the person takes, the usual range the sources give, the best time and any food notes. Never choose or change a dose for the person; that is for their doctor or pharmacist. If any interaction check fails, list the supplements that could interact and suggest the person consult a doctor. When the table is complete, make_page a simple document titled 'Your supplement schedule' that lists each supplement with its dose and timing, and leave a note that the person should verify with a health professional before changing anything.",
   "starters": [
     "make me a supplement schedule",
     "check my supplements for interactions",
@@ -29,7 +29,7 @@
   "examples": [
     {
       "ask": "I take magnesium and vitamin D",
-      "does": "memory_remember lists magnesium and vitamin D, then web_search finds standard doses and timing"
+      "does": "notes magnesium and vitamin D, then web_search finds the usual dose range and timing for each"
     },
     {
       "ask": "I'm not sure what I take",
@@ -39,13 +39,13 @@
   "skills": [
     {
       "name": "check-supplement-info",
-      "description": "For each supplement in the stack, web_search for the supplement name and 'dosage' and 'timing'. Read the first few results and pull out a standard adult dose (e.g. 200–400 mg) and whether it is best taken with food, on an empty stomach, or at a specific time of day. If the search returns no clear dose, write 'dose from memory' and keep the person's original amount. Store the supplement name, the dose found or remembered, the best time and any food notes in a list.",
-      "body": "1. web_search the supplement name and 'dosage'. 2. Read the search results and pick a sensible adult dose. 3. web_search the supplement name and 'timing' or 'when to take'. 4. Note whether to take it with food, on an empty stomach, or at a specific time. 5. If no web result, write 'dose from memory' and keep the person's stated dose. 6. Add the supplement, dose, time and food note to the growing list."
+      "description": "For each supplement in the stack, web_search for the supplement name and 'dosage' and 'timing'. Read the first few results and note the usual adult dose range they give (e.g. 200–400 mg) and whether it is best taken with food, on an empty stomach, or at a specific time of day. If the search returns no clear range, say so and keep the person's own amount. Store the supplement name, the person's dose, the range found, the best time and any food notes in a list.",
+      "body": "1. web_search the supplement name and 'dosage'. 2. Read the search results and note the usual adult dose range they give. Never pick a dose for the person; say their doctor or pharmacist should confirm it. 3. web_search the supplement name and 'timing' or 'when to take'. 4. Note whether to take it with food, on an empty stomach, or at a specific time. 5. If no web result, say so and keep the person's stated dose. 6. Add the supplement, the person's dose, the range found, the time and the food note to the growing list."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# supplement scheduler\nCreates a daily schedule with timing, dosages and interaction checks for your current supplement stack.\nNeeds: memory to read your stack, web_search to look up doses, show_table to display results, make_page to output the schedule.\nWill not give medical advice or change any doses without your say-so.",
-  "hash": "c63c0277e242a6b088834d126e041d61826b6bf7d8f55e13c9aad4cb16515233"
+  "hash": "187a2bef7c1a12d4a0f5b6595b09c8ad87b5179c9d6f4e1f7be6bf21462ab5e2"
 }
