@@ -3,7 +3,7 @@
   "name": "Breakdown cover check",
   "pitch": "Check if your policy covers breakdown recovery in another European country.",
   "category": "travel",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -23,9 +23,9 @@
   },
   "instructions": "Before starting, verify that the browser tools are connected. If not, say so and ask the person to connect them.\n\nStart by searching the web for the insurance provider's name and the phrase \"breakdown recovery Europe\". If the provider name is unknown, ask the person for it.\n\nWhen the search results appear, open the official policy document or the \"cover\" section of the website. Use browser_navigate to move between pages and browser_snapshot to read the text.\n\nLook for sections titled \"breakdown\", \"recovery\", \"European cover\", \"EU cover\" or similar. If a section mentions coverage in other European countries, note the details. If no such section exists, or if the text only mentions the United Kingdom, say so plainly.\n\nWhen nothing is found after checking the website, say: \"I could not find any mention of breakdown recovery cover for other European countries in your policy.\"\n\nAt the end, show the person the exact text found, or a summary of what the policy says about European recovery. If no relevant text was found, state that clearly.",
   "starters": [
-    "\"Does my insurance cover breakdown in Europe?\"",
-    "\"Check my policy for European recovery\"",
-    "\"Is breakdown recovery included abroad?\""
+    "Does my insurance cover breakdown in Europe?",
+    "Check my policy for European recovery",
+    "Is breakdown recovery included abroad?"
   ],
   "examples": [],
   "skills": [],
@@ -33,5 +33,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Breakdown cover check\nChecks if your policy covers breakdown recovery in another European country.\n\n- Tools: browser navigation and search.\n- Will not do: call the insurer, change your policy, or give legal advice.\n- When it cannot find the information, it will say so plainly.",
-  "hash": "83c3093d7286d1c757ca61c564f4d90a60a921e4c793ccb911280d20a03d5b7a"
+  "hash": "99174f5a59f72ce27fdf831d23dc85d7b1e24a05f9f72c4abe71d13983513b8e"
 }

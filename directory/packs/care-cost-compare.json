@@ -3,7 +3,7 @@
   "name": "Care cost compare",
   "pitch": "Compare long-term care insurance costs with self-funding via an investment account.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -48,22 +48,9 @@
       "body": "1. Use web_search for \"average conservative investment portfolio return rate UK\" or similar, depending on the person's location. 2. Note the typical annual return percentage found. 3. Ask the person for the estimated annual cost of long-term care in their area, or search for average care home fees. 4. Multiply the annual care cost by the number of years wanted to get a total self-funding target. 5. Calculate the lump sum needed today to reach that total, using the investment return rate as a growth assumption. 6. If any figure cannot be found, say what it is and ask the person if they want to change the assumptions."
     }
   ],
-  "rules": [
-    {
-      "name": "ask before showing money comparison",
-      "effect": "ask",
-      "when": "tool.kind == \"pay\"",
-      "description": "Do not show or quote any price until the person has confirmed the search assumptions."
-    },
-    {
-      "name": "refuse to give financial advice",
-      "effect": "deny",
-      "when": "tool.kind == \"shell\"",
-      "description": "Do not run any shell commands that calculate or output financial figures for the person."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# care cost compare\n\nCompare the cost of long-term care insurance with self-funding using a dedicated investment account.\n\nWhat it does: Gathers average insurance premiums and investment return data, then shows a side-by-side comparison of total premiums paid versus the investment lump sum needed for the same coverage period.\n\nWhat it needs: web_search, browser_navigate, browser_snapshot, show_comparison, make_page.\n\nWhat it will not do: It will not give personal financial advice, quote guaranteed prices, or calculate exact future values. It always tells the person the assumptions used and recommends consulting a qualified financial adviser before making a decision.",
-  "hash": "9c87dbd16917ef3b220a90232d487ab7bf2bb6c06fb7b81319492acf4f85b5e1"
+  "hash": "77d1a694cbe7eff642cdbefe41f9508dfb33cce7d0d5d7e29ee3d5c21cd7525e"
 }

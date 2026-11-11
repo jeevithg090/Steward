@@ -2,7 +2,7 @@ id: opportunity-cost-calculator
 name: Opportunity cost calculator
 pitch: Shows the person how much twenty thousand pounds could grow if invested for five years, compared to keeping it as cash.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - make_page
   connectors: []
   model: any
-instructions: When the person asks to calculate the opportunity cost of twenty thousand pounds versus investing for five years, start by searching the web for average annual returns on low-risk investments such as a cash ISA or a tracker fund. When the search results give a typical yearly return percentage, use that figure to calculate the future value of the twenty thousand pounds after five years of compound growth. Then compare that result with the same twenty thousand pounds kept as cash, noting that its value will not grow and will lose purchasing power to inflation. If no clear return rate is found, tell the person the typical range for low‑risk investments and ask them to choose a percentage they would like to use. After the numbers are ready, make a simple page that shows the starting amount, the chosen or assumed interest rate, the value after five years if invested, and the value if kept as cash. Show the difference between the two outcomes as the opportunity cost. If the person wants to try a different interest rate, repeat the calculation with the new figure and update the page.
+instructions: |-
+  When the person asks to calculate the opportunity cost of twenty thousand pounds versus investing for five years, start by searching the web for average annual returns on low-risk investments such as a cash ISA or a tracker fund. When the search results give a typical yearly return percentage, use that figure to calculate the future value of the twenty thousand pounds after five years of compound growth. Then compare that result with the same twenty thousand pounds kept as cash, noting that its value will not grow and will lose purchasing power to inflation. If no clear return rate is found, tell the person the typical range for low‑risk investments and ask them to choose a percentage they would like to use. After the numbers are ready, make a simple page that shows the starting amount, the chosen or assumed interest rate, the value after five years if invested, and the value if kept as cash. Show the difference between the two outcomes as the opportunity cost. If the person wants to try a different interest rate, repeat the calculation with the new figure and update the page.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - What is the opportunity cost of keeping twenty thousand pounds in cash for five years?
   - Compare cash versus investment for twenty thousand pounds over five years.

@@ -2,7 +2,7 @@ id: fridge-meal-planner
 name: Fridge Meal Planner
 pitch: Turns your fridge contents into three meals before food spoils, using what you already have.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -43,7 +43,6 @@ instructions: |-
 
   Never assume brands, specific products, or exact nutritional data. Keep instructions general and safe.
 starters:
-  - "Here is what is in my fridge: [list items]. Can you make three meals?"
   - I have spinach, eggs, half a pepper, and some cheese going off soon. What can I cook?
   - Plan three meals from my fridge contents before they spoil.
 examples:

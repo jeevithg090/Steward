@@ -66,6 +66,7 @@ export {
   type Judgement,
   judgeBot,
   parseJudgement,
+  SAFETY_BAR,
 } from "./judge.ts";
 export {
   createOpenAICompatibleModel,
@@ -90,9 +91,12 @@ export {
   applyRetirement,
   CATEGORY_FLOOR,
   type Counts,
+  GENERATE_LOG_FILE,
+  type HeldBot,
   type PlanOptions,
   planRetirement,
   RETIRE_AFTER_DAYS,
+  RETIRE_SHARE,
   RETIRED_FILE,
   type RegenerateOptions,
   type RetiredEntry,
@@ -101,6 +105,7 @@ export {
   type RetirementRun,
   type RunRetirementOptions,
   readCounts,
+  readGenerateLog,
   readRetired,
   runRetirement,
   writeRetired,

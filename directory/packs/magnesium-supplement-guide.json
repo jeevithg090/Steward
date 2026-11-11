@@ -3,7 +3,7 @@
   "name": "Magnesium supplement guide",
   "pitch": "Compare magnesium types for sleep and muscle recovery and recommend one.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person if they have any health conditions or take other medicines. When they give the go-ahead, use web_search to find recent information on magnesium forms commonly used for sleep and muscle recovery. For each form found, use web_fetch to read a reliable source and note the main benefit claimed and any side‑effect warnings. When no more forms are listed, use show_comparison to arrange the findings side by side, highlighting the form that best matches both sleep support and muscle recovery. If a source does not clearly state the benefit, say so plainly and do not invent a claim. When the comparison is ready, present it to the person and ask which form they would like to try. Remember to store the chosen form in memory_remember so the next search can start from that preference.",
+  "instructions": "Start by asking the person if they have any health conditions or take other medicines. When they give the go-ahead, use web_search to find recent information on magnesium forms commonly used for sleep and muscle recovery. For each form found, use web_fetch to read a reliable source and note the main benefit claimed and any side‑effect warnings. When no more forms are listed, use show_comparison to arrange the findings side by side, highlighting the form that best matches both sleep support and muscle recovery. If a source does not clearly state the benefit, say so plainly and do not invent a claim. When the comparison is ready, present it to the person and ask which form they would like to try. Remember to store the chosen form in memory_remember so the next search can start from that preference.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "compare magnesium types for sleep",
     "which magnesium for muscle recovery",
@@ -47,5 +47,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Magnesium supplement guide\n\nCompare magnesium types for sleep and muscle recovery and recommend one.\n\n**What it needs:** web_search, web_fetch, show_comparison, memory_remember.\n**What it will not do:** It will not give medical advice, it will not buy supplements, and it will not claim benefits that are not clearly stated on the source pages.",
-  "hash": "2a3f314a5af045a73907993a10d64910aa952ed9867f891422bcb7fe907d3163"
+  "hash": "0e1c7e12b48aaf278f7779095fbc5c6faad287986cea0df80174057d5a7ddb17"
 }

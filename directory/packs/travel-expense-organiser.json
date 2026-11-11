@@ -3,7 +3,7 @@
   "name": "Travel expense organiser",
   "pitch": "Sorts travel receipts and tickets into a date‑ordered spreadsheet.",
   "category": "work",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,9 @@
     "tools": [
       "file_read",
       "file_write",
-      "shell_run"
+      "shell_run",
+      "file_list",
+      "show_table"
     ],
     "connectors": [],
     "model": "any"
@@ -47,5 +49,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Travel expense organiser\nSorts travel receipts and tickets into a date‑ordered spreadsheet.\n\nWhat it does: reads receipt files, extracts date/vendor/amount, writes a CSV sorted by date.\nWhat it needs: file_read, file_write, shell_run.\nWhat it will not do: it cannot read receipts that are scanned images without text, it cannot guess missing dates, and it will ask before writing any new file.",
-  "hash": "5cac270d3080320e09b6c1d1131a23c91d44539716e08f60bbd5c74eac830970"
+  "hash": "777e9e501f347107c98be4bfe57cd0214da853e90dc16d989c474056e15db265"
 }

@@ -3,7 +3,7 @@
   "name": "Batch cooking plan",
   "pitch": "Plan a Sunday batch-cook that fills the freezer for a fortnight.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,9 +21,9 @@
   },
   "instructions": "Start by searching for easy batch-cook recipes that freeze well and serve 4–6 portions. When nothing is found, say so and ask the person whether they have a cuisine or ingredient preference. Collect 5 to 7 recipes that together give at least 14 meals. When a recipe is found, note its name, main ingredients, cooking time, and how many portions it makes. When a recipe cannot be found, skip it and move to the next. When all recipes are gathered, use make_page to create a simple table with three columns: Recipe, Portions, Freeze notes. Fill the table with the collected recipes. When a recipe lacks freeze notes, write \"Check freezer suitability\" in that cell. When the table is complete, show it to the person with show_table. If fewer than 5 recipes are found, tell the person how many were found and ask if they want to add their own or search for more.",
   "starters": [
-    "\"plan a batch cook for two weeks\"",
-    "\"what can I freeze for lunch\"",
-    "\"Sunday cooking plan\""
+    "plan a batch cook for two weeks",
+    "what can I freeze for lunch",
+    "Sunday cooking plan"
   ],
   "examples": [],
   "skills": [],
@@ -31,5 +31,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Batch cooking plan\nPlan a Sunday batch-cook that fills the freezer for a fortnight.\n\nWhat it does: Finds recipes that freeze well, creates a table of what to cook, and shows it so the person can decide.\n\nWhat it needs: web_search to find recipes, make_page to build the table, show_table to display it.\n\nWhat it will not do: It cannot cook the food, buy ingredients, or set up a shopping order. It will not invent nutrition facts or cooking times.",
-  "hash": "cfee385fa1b95f1ac87273625e53f33c76b7eb6256dc629eeac2c0fe2009cf9a"
+  "hash": "8a85ba2d9aa77dac1105819cb0c8d905b26abcc581b2b5bce2611b96126b81e0"
 }

@@ -3,7 +3,7 @@
   "name": "Returns modeler",
   "pitch": "Run historical bootstrapping on your retirement withdrawal sequence to estimate success odds.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for their planned annual withdrawal amount, the size of their portfolio, and how many years they expect to draw from it. When they give those numbers, use web_search to find reliable historical US market return data (e.g., annual S&P 500 total return or a balanced index) covering at least 50 years. If web_search returns no results or an error, say so and ask if they have a preferred data source. When you have a list of annual returns, write a short script that repeatedly picks a random starting year, takes the next N returns (where N is their withdrawal horizon), calculates the final portfolio balance given the annual withdrawal, and records whether the balance stays positive. Run at least 1 000 bootstrap iterations. After the simulations, count how many iterations left the portfolio above zero and divide by the total iterations to get a success rate. Show the success rate as a percentage with one decimal, and list the median ending balance of the successful runs. If the search or calculations produce no data, say plainly what could not be checked and stop. End by offering to save the results as a text file or to run a new search with different parameters.",
+  "instructions": "Start by asking the person for their planned annual withdrawal amount, the size of their portfolio, and how many years they expect to draw from it. When they give those numbers, use web_search to find reliable historical US market return data (e.g., annual S&P 500 total return or a balanced index) covering at least 50 years. If web_search returns no results or an error, say so and ask if they have a preferred data source. When you have a list of annual returns, write a short script that repeatedly picks a random starting year, takes the next N returns (where N is their withdrawal horizon), calculates the final portfolio balance given the annual withdrawal, and records whether the balance stays positive. Run at least 1 000 bootstrap iterations. After the simulations, count how many iterations left the portfolio above zero and divide by the total iterations to get a success rate. Show the success rate as a percentage with one decimal, and list the median ending balance of the successful runs. If the search or calculations produce no data, say plainly what could not be checked and stop. End by offering to save the results as a text file or to run a new search with different parameters.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "model my retirement withdrawals",
     "run sequence of returns risk",
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# returns modeler\nEstimate the probability your retirement withdrawals will succeed using historical bootstrapping.\n\nWhat it does: pulls historical market return data, runs thousands of random start-year simulations, and reports a success rate and median ending balance.\n\nWhat it needs: web_search to find market data, show_table to display the results, make_page to save a text summary.\n\nWhat it will not do: it cannot predict your personal future, it does not give financial advice, and it cannot access private account data.",
-  "hash": "577849c1a9d26596794fb2a104f8d6ad3db1abd8cd295ee362b60bdb45e081eb"
+  "hash": "6d9136d169f3b64512f56622a01a56f54a48de3ff18ff8bfcbe17a17a01dd99a"
 }

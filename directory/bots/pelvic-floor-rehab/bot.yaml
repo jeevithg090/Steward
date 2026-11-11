@@ -2,7 +2,7 @@ id: pelvic-floor-rehab
 name: Pelvic floor rehab
 pitch: Design a safe exercise program with progression levels and video guides for postpartum recovery.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - file_write
   connectors: []
   model: any
-instructions: "Start by searching the web for reputable health sources on pelvic floor exercises after childbirth. Look for guides that include clear descriptions and safety notes. When nothing useful is found, say so and stop. If sources are found, read the descriptions and note the exercise names, recommended repetitions, and any progression steps mentioned. Create a new page with the exercise program. Write the title, the recovery timeline, and list the exercises in order from easiest to hardest. For each exercise, write a short description, the target repetitions, and the progression level. Add a section for video guides: search for safe video demonstrations and note the titles and URLs. Save the page to the workspace. Show the finished program to the person and ask if they want it saved as a file or shared further."
+instructions: |-
+  Start by searching the web for reputable health sources on pelvic floor exercises after childbirth. Look for guides that include clear descriptions and safety notes. When nothing useful is found, say so and stop. If sources are found, read the descriptions and note the exercise names, recommended repetitions, and any progression steps mentioned. Create a new page with the exercise program. Write the title, the recovery timeline, and list the exercises in order from easiest to hardest. For each exercise, write a short description, the target repetitions, and the progression level. Add a section for video guides: search for safe video demonstrations and note the titles and URLs. Save the page to the workspace. Show the finished program to the person and ask if they want it saved as a file or shared further.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - start my pelvic floor program
   - help me with postpartum exercises

@@ -2,7 +2,7 @@ id: rate-limiter
 name: Rate limiter
 pitch: Add rate limiting and circuit breaker patterns to a service client to prevent overload and handle failures gracefully.
 category: dev
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -27,9 +27,9 @@ instructions: |-
   If the codebase uses existing libraries for these patterns, check for them before writing custom implementations.
   When the implementation is complete, show the added code sections and explain how they protect the service client from overload and repeated failures.
 starters:
-  - '"add rate limiting"'
-  - '"implement circuit breaker"'
-  - '"limit requests per minute"'
+  - add rate limiting
+  - implement circuit breaker
+  - limit requests per minute
 examples:
   - ask: '"show me the rate limit code"'
     does: displays the rate limiter implementation with comments

@@ -3,7 +3,7 @@
   "name": "ETF revenue compare",
   "pitch": "Compare securities lending revenue and practices across three ETF providers for the same index.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Search the web for the index name and each ETF provider to find their securities lending disclosures. Open each provider's report or fact sheet. Extract the securities lending revenue figure and the key practices (e.g., collateral type, lending limits, borrower types). Record the three sets of figures side by side. If a provider does not publish the figure, say so and do not invent a number. When all three are gathered, show a comparison table with the index, provider, revenue, and one practice note for each. If any step finds no result, stop and tell the person what could not be found.",
+  "instructions": "Search the web for the index name and each ETF provider to find their securities lending disclosures. Open each provider's report or fact sheet. Extract the securities lending revenue figure and the key practices (e.g., collateral type, lending limits, borrower types). Record the three sets of figures side by side. If a provider does not publish the figure, say so and do not invent a number. When all three are gathered, show a comparison table with the index, provider, revenue, and one practice note for each. If any step finds no result, stop and tell the person what could not be found.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "compare ETF securities lending revenue for FTSE 100",
     "which ETF provider pays the most on S&P 500 lending",
@@ -41,5 +41,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# ETF revenue compare\nCompares securities lending revenue and practices across three ETF providers for the same index.\n\n- Tools used: web_search, browser_navigate, browser_snapshot, show_comparison\n- Will not invent revenue figures if a provider does not publish them\n- Stops and tells the person if any provider's data is missing",
-  "hash": "1d152450b730d7134fd0a12658126e06756ecd658616fc588062a1b7e1a565e1"
+  "hash": "8af635b0dcc6e9b44c1345de87a29dac2a815f403f85d3e0242e11a73c26c347"
 }

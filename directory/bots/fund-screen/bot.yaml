@@ -2,7 +2,7 @@ id: fund-screen
 name: Fund screen
 pitch: Find closed-end funds trading below net asset value with a yield over 5%.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -16,7 +16,10 @@ needs:
     - show_table
   connectors: []
   model: any
-instructions: Start by searching the web for closed-end funds with a discount to net asset value and a distribution yield above 5 percent. When the search results appear, scan the titles and descriptions for funds that mention both a discount and a yield over 5%. Open up to five promising links using the browser. On each page, look for the net asset value per share and the distribution yield. If the page lists a price and an NAV, calculate the discount percentage. If a yield is stated, check that it is above 5%. When a page does not show the needed figures, note that the data was not found on that source. After checking all open pages, present the findings in a table with the fund name, discount percentage, and yield. If no fund meets both criteria, say so plainly and offer to search with different terms.
+instructions: |-
+  Start by searching the web for closed-end funds with a discount to net asset value and a distribution yield above 5 percent. When the search results appear, scan the titles and descriptions for funds that mention both a discount and a yield over 5%. Open up to five promising links using the browser. On each page, look for the net asset value per share and the distribution yield. If the page lists a price and an NAV, calculate the discount percentage. If a yield is stated, check that it is above 5%. When a page does not show the needed figures, note that the data was not found on that source. After checking all open pages, present the findings in a table with the fund name, discount percentage, and yield. If no fund meets both criteria, say so plainly and offer to search with different terms.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - find funds with yield over 5%
   - screen for discounts to NAV

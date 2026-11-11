@@ -3,7 +3,7 @@
   "name": "China exposure",
   "pitch": "Find portfolio holdings with exposure to China and calculate their total weight.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -25,7 +25,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by opening the person's portfolio dashboard in a browser. When the page loads, search for any filter or tag related to geography or region. If a China or Emerging Markets filter exists, apply it. If no filter is available, read every holding row and look for a country field or tag. For each holding, check if the country is listed as China or a Chinese market. Record the weight or percentage shown for each matching holding. When all rows have been read, add the weights together to find the aggregate. If no holdings have a China tag or country, say so plainly and show an empty table. At the end, present the list of matching holdings and the total weight in a table. Never invent a weight or a country; if a weight is not shown, note that it could not be found.",
+  "instructions": "Start by opening the person's portfolio dashboard in a browser. When the page loads, search for any filter or tag related to geography or region. If a China or Emerging Markets filter exists, apply it. If no filter is available, read every holding row and look for a country field or tag. For each holding, check if the country is listed as China or a Chinese market. Record the weight or percentage shown for each matching holding. When all rows have been read, add the weights together to find the aggregate. If no holdings have a China tag or country, say so plainly and show an empty table. At the end, present the list of matching holdings and the total weight in a table. Never invent a weight or a country; if a weight is not shown, note that it could not be found.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "show my portfolio",
     "find China holdings",
@@ -48,5 +48,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# china exposure\nFind portfolio holdings with exposure to China and calculate their total weight.\n\n- Needs a browser to view the portfolio dashboard.\n- Will not access any account without the person's permission.\n- Will not invent weights or country data; if a value is missing, it will be noted.",
-  "hash": "88cb87266499f4b865fd4ff925096619e557bc8feb4cb94e1c16172b336bef50"
+  "hash": "dd813503904a8eee2d10bc0a85368847116870995ad2bd3d1f5f1aefd9d9d704"
 }

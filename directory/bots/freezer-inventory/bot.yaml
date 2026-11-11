@@ -2,7 +2,7 @@ id: freezer-inventory
 name: Freezer inventory
 pitch: List freezer items, their expiration dates, and suggest meals to use them up.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -23,8 +23,3 @@ starters:
   - list my freezer items
   - what's in the freezer
   - add new freezer item
-rules:
-  - name: calendar reminder
-    effect: ask
-    when: tool.kind == "pay"
-    description: ask before adding a paid calendar event

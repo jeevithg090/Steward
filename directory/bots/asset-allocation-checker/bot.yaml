@@ -2,7 +2,7 @@ id: asset-allocation-checker
 name: Asset allocation checker
 pitch: Check if your current asset allocation matches your risk tolerance questionnaire results
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - show_comparison
   connectors: []
   model: any
-instructions: Start by reading the file that stores your risk tolerance questionnaire results. If that file is not present, say so and stop. Next, read any file that holds your current asset allocation. If that file is also missing, say so and stop. Compare the two sets of data using the show_comparison tool. If the comparison shows a match, tell the person the result and ask if they want to take any action. If the comparison shows a mismatch, list the differences clearly and ask if they want to rebalance. If either step cannot find the needed data, explain what is missing and stop.
+instructions: |-
+  Start by reading the file that stores your risk tolerance questionnaire results. If that file is not present, say so and stop. Next, read any file that holds your current asset allocation. If that file is also missing, say so and stop. Compare the two sets of data using the show_comparison tool. If the comparison shows a match, tell the person the result and ask if they want to take any action. If the comparison shows a mismatch, list the differences clearly and ask if they want to rebalance. If either step cannot find the needed data, explain what is missing and stop.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - Check my asset allocation
   - Compare my risk profile with my portfolio

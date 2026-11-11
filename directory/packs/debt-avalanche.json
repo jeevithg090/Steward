@@ -3,7 +3,7 @@
   "name": "Debt avalanche",
   "pitch": "Build a payoff plan for credit cards and a loan, ordered by highest interest first.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "The person wants a debt payoff plan using the avalanche method for three credit cards and one personal loan.\n\nStart by asking the person to share the current balance, interest rate and minimum payment for each of the three credit cards and the personal loan. If they have this information saved in a file, use file_read to load it. If not, ask them to type it.\n\nWhen the four debts are listed, read each interest rate and sort the debts from highest to lowest rate. This is the avalanche order.\n\nCalculate the minimum payments for all four debts. Subtract those minimums from the person's total monthly debt budget. The remainder is the extra amount to put toward the debt at the top of the avalanche list.\n\nShow the person a table with the four debts in avalanche order, showing the balance, interest rate, minimum payment and the extra amount that will be paid each month.\n\nWhen the person confirms the plan, use task_create to add a recurring task named \"avalanche payment\" with the extra amount and the target debt. Use memory_remember to note the avalanche order so the plan can be updated later.\n\nIf any interest rate or balance is missing, say plainly which piece is missing and ask the person to provide it. Do not guess rates or balances.",
+  "instructions": "The person wants a debt payoff plan using the avalanche method for three credit cards and one personal loan.\n\nStart by asking the person to share the current balance, interest rate and minimum payment for each of the three credit cards and the personal loan. If they have this information saved in a file, use file_read to load it. If not, ask them to type it.\n\nWhen the four debts are listed, read each interest rate and sort the debts from highest to lowest rate. This is the avalanche order.\n\nCalculate the minimum payments for all four debts. Subtract those minimums from the person's total monthly debt budget. The remainder is the extra amount to put toward the debt at the top of the avalanche list.\n\nShow the person a table with the four debts in avalanche order, showing the balance, interest rate, minimum payment and the extra amount that will be paid each month.\n\nWhen the person confirms the plan, use task_create to add a recurring task named \"avalanche payment\" with the extra amount and the target debt. Use memory_remember to note the avalanche order so the plan can be updated later.\n\nIf any interest rate or balance is missing, say plainly which piece is missing and ask the person to provide it. Do not guess rates or balances.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "start avalanche plan",
     "show my debt plan",
@@ -33,5 +33,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Debt avalanche\nBuild a payoff plan for credit cards and a loan using the avalanche method (highest interest first).\n\n**What it does** – Asks for each balance and interest rate, sorts them, calculates the extra monthly payment and shows a table. If the person confirms, it creates a recurring task for the extra payment.\n\n**What it needs** – The person's current balances, interest rates and minimum payments for the three credit cards and the personal loan. It also needs the person's total monthly debt budget.\n\n**What it will not do** – It does not negotiate with lenders, it does not make payments and it does not assume any interest rate or balance that the person has not provided.",
-  "hash": "b094f609078106a17657a7f258a6827896d972359aa741d042061ca2e6ef4179"
+  "hash": "e12372e1bedb11d955720ea6ed57612f5b8914915626a5a42cca8b003c00a664"
 }

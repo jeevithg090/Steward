@@ -3,7 +3,7 @@
   "name": "Brainstorm to outline",
   "pitch": "Turns your messy notes into a clear project outline with headings and bullet points.",
   "category": "work",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,9 +20,9 @@
   },
   "instructions": "Read the person's notes file. Identify the main idea and key points. Group related points under headings. Create a new outline file with a clear structure: title, main headings as bold lines, bullet points for details. If the notes are too vague, ask the person for the core topic before building the outline. Show the new outline file to the person.",
   "starters": [
-    "\"turn these notes into a plan\"",
-    "\"organise my brainstorm\"",
-    "\"make an outline from this\""
+    "turn these notes into a plan",
+    "organise my brainstorm",
+    "make an outline from this"
   ],
   "examples": [
     {
@@ -35,5 +35,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## Brainstorm to outline\nTurns messy notes into a structured project outline.\n\nWhat it does: reads a notes file, groups ideas under headings, writes a new outline file.\nWhat it needs: file_read to open the notes, make_page to write the outline.\nWhat it will not do: rewrite the content or add new ideas beyond what is in the notes.",
-  "hash": "86410f64406e99cfdf7e9d669cbcfb53acfcd4d97b3e7d949cf0f8fa27e7516c"
+  "hash": "f547e98b2402a6a844a7c168892d7769e42a3800329ad4e7c8a6ee4f77f6dd55"
 }

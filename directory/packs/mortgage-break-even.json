@@ -3,7 +3,7 @@
   "name": "Mortgage break-even",
   "pitch": "Calculate how many months until the new lower rate saves more than the closing costs.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Calculate the break-even point for refinancing a mortgage. Start by asking the person for the current interest rate, the new interest rate, and the total closing costs. If any number is missing, say what is needed and stop. Use web_search to look up average closing costs for the person's region if they do not know the amount. When the three numbers are gathered, compute the break-even month by dividing the closing costs by the monthly savings (difference between the old and new monthly payment). Show the monthly payment for both rates, the monthly savings, and the break-even time in months in a table made with show_table. If the new rate is not lower than the current rate, tell the person that refinancing would not reduce the monthly payment. End by offering to make a summary page with make_page so the person can keep the numbers.",
+  "instructions": "Calculate the break-even point for refinancing a mortgage. Start by asking the person for the current interest rate, the new interest rate, and the total closing costs. If any number is missing, say what is needed and stop. Use web_search to look up average closing costs for the person's region if they do not know the amount. When the three numbers are gathered, compute the break-even month by dividing the closing costs by the monthly savings (difference between the old and new monthly payment). Show the monthly payment for both rates, the monthly savings, and the break-even time in months in a table made with show_table. If the new rate is not lower than the current rate, tell the person that refinancing would not reduce the monthly payment. End by offering to make a summary page with make_page so the person can keep the numbers.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "calculate break-even for refinancing",
     "what is the break-even point",
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# mortgage break-even\nCalculates how many months it takes for refinancing savings to exceed closing costs.\n\nNeeds: web_search, show_table, make_page.\n\nWill not do: pay any fee, sign any document, or access bank accounts.",
-  "hash": "0e0fed6000eb103c81716c00aef0f6edf758f05f3499a7d3b5335277a976135b"
+  "hash": "9e67987677f2959500b4a0e1382f9b1098b628b58694b81872d2f74b10523038"
 }

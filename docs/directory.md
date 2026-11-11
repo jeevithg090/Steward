@@ -48,7 +48,8 @@ STEWARD_DIRECTORY_URL=http://127.0.0.1:8790/index.json
 ```
 
 `directory/index.json` must exist. The repository ships it built; after changing `directory/bots`,
-run `pnpm --filter @steward/bots-gen seed build`.
+run `pnpm --filter @steward/bots-gen seed build`. A bot's date (the "newest" order and the feed) is
+when its content last changed, so a rebuild of an unchanged folder changes nothing.
 
 ### With Docker
 
@@ -89,7 +90,7 @@ file). A value already in the environment wins; a blank value counts as unset.
 | `DIRECTORY_SOURCE_URL`     |                           | Where your copy of the code is, for the footer's Source link.                                                                                                            |
 | `DIRECTORY_RETIRE_DAYS`    | `90`                      | Retire AI-made bots nobody installed or said they use within this many days of being made. `0` turns retirement off.                                                     |
 | `DIRECTORY_RETIRE_HOUR`    | `3`                       | The UTC hour after which the day's retirement runs.                                                                                                                      |
-| `DIRECTORY_CATEGORY_FLOOR` | `20`                      | A category that loses bots and falls under this many is reported, or topped up.                                                                                          |
+| `DIRECTORY_CATEGORY_FLOOR` | `20`                      | Retirement never takes a category under this many. One held there is reported, or topped up.                                                                             |
 | `DIRECTORY_REGENERATE`     | off                       | Top up thinned categories with new AI-made bots. Needs a model key in the environment (`NVIDIA_API_KEY` or `STEWARD_SEED_*`).                                            |
 
 Keys belong in the environment or your host's secret store, never in a file in the repository
@@ -110,10 +111,16 @@ address for 30 days or until sign-out.
 and the skills (a gist names each skill file `<skill-name>.SKILL.md`), and confirms it is theirs.
 The server reads the files, then checks the pack exactly as `seed build` does: the schema, every
 tool against Steward's catalogue, every rule through the gateway's own rule engine (and only `ask`
-or `deny`: an `allow` is refused), no text that reads as orders for the model, no personal data.
-A pack that fails is refused with the reasons and nothing is kept. One that passes waits as
-pending, with any warnings for the reviewer: long sentences, jargon, an address owned by another
-account, or an author in `bot.yaml` who is not the person submitting.
+or `deny`: an `allow` is refused), no rule that could never fire (`tool.kind == "calendar_create"`
+names a tool, not a kind) or that ignores the call (`true`), no text that reads as orders for the
+model, no personal data. A pack that fails is refused with the reasons and nothing is kept. One
+that passes waits as pending, with any warnings for the reviewer: long sentences, jargon, an
+address owned by another account, an author in `bot.yaml` who is not the person submitting, a rule
+none of the bot's tools can trigger or that refuses its own tools, a tool the text names but the
+bot does not hold, a password asked for in the chat, starters in quote marks or with
+`[placeholders]`, or a health, money or
+investing bot that never sends the person to a doctor or a qualified adviser. Whether a rule's
+name says what its condition does is for the reviewer to read.
 
 An id another person's bot already has is refused. To update your own bot, raise `version` in
 `bot.yaml` and submit again.
@@ -141,13 +148,23 @@ leaves the shelf. Bots made or claimed by people are never retired, and neither 
 single install or vote.
 
 Once a day, after `DIRECTORY_RETIRE_HOUR` UTC, the server checks its own counts, removes each such
-bot's folder and pack, adds it to `<DIRECTORY_DIR>/retired.json`, and rebuilds the index. Then:
+bot's folder and pack, adds it to `<DIRECTORY_DIR>/retired.json`, and rebuilds the index.
+
+It goes slowly, because most of the shipped bots were made on the same two days:
+
+- one night takes at most a tenth of a category (at least one bot), the lowest judge scores
+  first, as `generate-log.jsonl` recorded them; a bot with no score goes before any scored one;
+- it never takes a category under `DIRECTORY_CATEGORY_FLOOR`. A category held there is shown on
+  `/admin`, or, with `DIRECTORY_REGENERATE` on and a model key set, given new bots from the
+  taxonomy, and one held bot goes for each new bot written;
+- the rest wait for the next night; `/admin` says how many were held back, and the log says why.
+
+So a category of 100 unused bots loses 10 the first night, 9 the next, and reaches 20 on the
+17th night. Then:
 
 - the bot's page answers **410 Gone** and says why, and `/api/bots/<id>` does the same;
 - `GET /api/retired` lists every retired bot, so a fork or a generator can avoid making it again;
-  `seed generate` reads the same file and never regenerates a retired job or a look-alike of it;
-- a category that lost bots and fell under `DIRECTORY_CATEGORY_FLOOR` is shown on `/admin`, or,
-  with `DIRECTORY_REGENERATE` on and a model key set, topped up with new bots from the taxonomy.
+  `seed generate` reads the same file and never regenerates a retired job or a look-alike of it.
 
 `/admin` shows the last run. A reviewer can run it at once with `POST /api/admin/retire`. The same
 job runs from the command line, with a date of your choosing:
@@ -155,6 +172,7 @@ job runs from the command line, with a date of your choosing:
 ```sh
 pnpm --filter @steward/bots-gen seed retire --now 2027-02-01          # what it would do
 pnpm --filter @steward/bots-gen seed retire --apply --regenerate      # do it, and top up
+pnpm --filter @steward/bots-gen seed retire --share 0.2               # let one run take a fifth
 ```
 
 Steward copies a bot when someone adds it, so a retired bot keeps working for people who have it.
@@ -259,8 +277,13 @@ The software does the checks it can; these it cannot:
 - **Reading the launch bots.** The plan asks that a person read the first 200 bots before launch.
   On 29 Oct 2026 the shelf has 1,064 AI-made bots of the 2,000 planned (1,251 bots in all).
   Every AI-made bot has passed the validators, the judge (3.5 of 5 or better) and the duplicate
-  check, but nobody has read them. `directory/REPORT.md` lists them by category; the review page
-  shows any one in full.
+  check, but nobody has read them. `directory/REPORT.md` lists them by category and lists the
+  warnings still open; the review page shows any one in full. On 10 Nov 2026 a scripted pass
+  fixed what the checks could find (rules that never fired or were named for something else,
+  tools named but not held, quoted starters, health and money bots that never sent anyone to a
+  professional, and four bots that asked for passwords in the chat or made them up). People's bots, the LobeChat conversions among them, were left as their authors
+  wrote them; the report names the ones still missing such a line. A health or money bot can
+  still be wrong in what it says; only a reader finds that.
 - **Reading the AI-proposed jobs.** `packages/bots-gen/src/jobs-ai.yaml` was written by a model.
   Move a job to `jobs.yaml` once someone has read it.
 - **Vendor terms for generated output.** The seed bots were written by NVIDIA's hosted Nemotron 3

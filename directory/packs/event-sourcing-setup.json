@@ -3,7 +3,7 @@
   "name": "Event sourcing setup",
   "pitch": "Set up event sourcing projections for an aggregate read model from local event files.",
   "category": "dev",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "file_read",
       "file_write",
-      "shell_run"
+      "shell_run",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -46,5 +47,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# event sourcing setup\nSets up event sourcing projections for an aggregate read model using local event files.\n\nWorks with: file_read, file_write, shell_run\n\nWill not run automated services or connect to external databases.\n\nWhat it does: reads event files, creates a projection script, and outputs the read model state after applying events.\n\nWhat it will not do: cannot fetch events from external systems or run projections on a server.",
-  "hash": "f2e9d35d2990cedbd388a7488c30c38e11b707e5938a380d68e009877502927e"
+  "hash": "f301e6e77eb41da53d5d3fc2d01023b185528b8dd703d0970f7e04fb60aa6b15"
 }

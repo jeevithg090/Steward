@@ -3,7 +3,7 @@
   "name": "Retirement plan scout",
   "pitch": "Compare sep ira, simple ira and solo 401k for a small llc.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for a clear side-by-side comparison of sep ira, simple ira and solo 401k rules for a single-member llc. When you find a page that lists the key points – contribution limits, who can contribute, tax treatment and any filing requirements – open it with browser_snapshot. Read the snapshot and pick out the three columns of data. If the page does not have a ready-made table, build one yourself: list the feature, the sep ira rule, the simple ira rule and the solo 401k rule for each row. When you have the three columns of data, run show_comparison with those columns so the person can see the options side by side. If no page gives a clean comparison, say what you could not find and stop. At the end, use make_page to create a short plain‑text summary that lists the three plans and their most important differences, and show that to the person.",
+  "instructions": "Start by searching the web for a clear side-by-side comparison of sep ira, simple ira and solo 401k rules for a single-member llc. When you find a page that lists the key points – contribution limits, who can contribute, tax treatment and any filing requirements – open it with browser_snapshot. Read the snapshot and pick out the three columns of data. If the page does not have a ready-made table, build one yourself: list the feature, the sep ira rule, the simple ira rule and the solo 401k rule for each row. When you have the three columns of data, run show_comparison with those columns so the person can see the options side by side. If no page gives a clean comparison, say what you could not find and stop. At the end, use make_page to create a short plain‑text summary that lists the three plans and their most important differences, and show that to the person.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "compare sep ira simple ira solo 401k",
     "retirement plan options for my llc",
@@ -48,5 +48,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# retirement plan scout\n\nCompares sep ira, simple ira and solo 401k for a single‑member llc. Uses web search and a snapshot comparison table. Will not give tax advice or recommend a specific plan.\n\n**needs**: web_search, browser_navigate, browser_snapshot, show_comparison, make_page\n\n**will not**: file forms, open accounts, or give personalised tax guidance.",
-  "hash": "166435e4e22a15b44c53c921de083ca4190dcc216acfe7d17a64c1118aaee003"
+  "hash": "3bb257ab040033f2e9ed27966d56b8894ec64c28238f9c635985f509c0e50f0e"
 }

@@ -5,9 +5,9 @@ import { describe, expect, it } from "vitest";
 
 const validateRuleLocally = (when: string) => new CelEngine(CONTEXT_SCHEMA, neutralContext).validate(when);
 
-import { generateBot, templatePack, toolsForJob } from "../src/generate.ts";
+import { assembleCandidate, generateBot, REFERRAL, templatePack, toolsForJob } from "../src/generate.ts";
 import { parseJsonObject, repairTrailingCommas } from "../src/json.ts";
-import { isPackTool, RULE_MENU } from "../src/prompt.ts";
+import { buildGenerateSystem, isPackTool, RULE_MENU, ruleMenuEntry } from "../src/prompt.ts";
 import { displayName, distinctName, nameFromJob, slugify } from "../src/text.ts";
 
 const CTX = {
@@ -164,6 +164,101 @@ describe("generateBot with a model", () => {
 });
 
 describe("rules", () => {
+  const assemble = (tools: string[], rules: unknown[]) =>
+    assembleCandidate({ needs: { tools }, rules }, { job: "plan a dinner party" }, CTX) as {
+      rules: { name: string; effect: string; when: string; description: string }[];
+    };
+
+  it("names each rule from the menu, so its name says what its condition does", () => {
+    const { rules } = assemble(
+      ["web_search", "calendar_create", "mail_send"],
+      [
+        {
+          name: "check availability",
+          effect: "ask",
+          when: "tool.name == 'calendar_create'",
+          description: "x",
+        },
+        {
+          name: "no medical advice",
+          effect: "deny",
+          when: 'tool.kind  ==  "pay"',
+          description: "Never diagnose.",
+        },
+      ],
+    );
+    expect(rules).toEqual([
+      {
+        name: "Ask before adding to the calendar",
+        effect: "ask",
+        when: 'tool.name == "calendar_create"',
+        description: "Asks you before it adds anything to your calendar.",
+      },
+      {
+        name: "Never pay",
+        effect: "deny",
+        when: 'tool.kind == "pay"',
+        description: "Refuses to pay for anything.",
+      },
+    ]);
+  });
+
+  it("drops a rule off the menu, one for a tool the bot lacks, and the same rule twice", () => {
+    const { rules } = assemble(
+      ["web_search", "make_page", "browser_navigate", "browser_snapshot"],
+      [
+        { name: "no medical advice", effect: "ask", when: 'tool.name == "web_search"' },
+        { name: "check availability", effect: "ask", when: 'tool.kind == "calendar_create"' },
+        { name: "ask before sending", effect: "ask", when: 'tool.kind == "send"' },
+        { name: "ask before paying", effect: "ask", when: 'tool.kind == "pay"' },
+        { name: "remember", effect: "deny", when: 'tool.name == "memory_remember"' },
+        { name: "Drafts only", effect: "deny", when: 'tool.kind == "send"' },
+        { name: "Drafts only again", effect: "deny", when: "tool.kind == 'send'" },
+      ],
+    );
+    // Reading pages cannot send or pay; a deny on sending stays, as a promise.
+    expect(rules.map((r) => r.name)).toEqual(["Never send"]);
+    // A click the gateway raises to pay is something to ask about.
+    expect(assemble(["browser_click"], [{ effect: "ask", when: 'tool.kind == "pay"' }]).rules).toHaveLength(
+      1,
+    );
+  });
+
+  it("keeps an allow rule so the validator refuses it", () => {
+    const { rules } = assemble(
+      ["mail_send"],
+      [{ name: "Let it send", effect: "allow", when: 'tool.kind == "send"' }],
+    );
+    expect(rules).toMatchObject([{ effect: "allow" }]);
+  });
+
+  it("knows a menu entry whatever its quotes and spacing", () => {
+    expect(ruleMenuEntry("tool.surface=='browser'&&tool.kind=='write'")?.ask.name).toBe(
+      "Ask before clicking or typing",
+    );
+    expect(ruleMenuEntry('tool.name == "web_search"')).toBeUndefined();
+  });
+
+  it("tells the model what a rule cannot do and what health and money bots must say", () => {
+    const system = buildGenerateSystem(Object.keys(TOOLS));
+    expect(system).toContain("A rule only decides whether a tool may run");
+    expect(system).toContain("not a doctor or a financial adviser");
+    expect(system).toContain("no quote marks around them and no [placeholders]");
+  });
+
+  it("gives a template health or money bot a line that sends the person to someone qualified", () => {
+    for (const category of ["health", "money", "investing"] as const) {
+      const pack = templatePack({ job: "track my blood pressure readings", category }, CTX);
+      expect(pack.instructions).toContain(REFERRAL[category]);
+      expect(validatePack(pack, CTX).problems.filter((p) => /never tells the agent/.test(p.message))).toEqual(
+        [],
+      );
+    }
+    expect(templatePack({ job: "plan a dinner", category: "food" }, CTX).instructions).not.toContain(
+      "not a doctor",
+    );
+  });
+
   it("accepts every entry of the rule menu and refuses what it does not know", () => {
     for (const rule of RULE_MENU) expect(() => validateRuleLocally(rule.when)).not.toThrow();
     // The gateway's own engine decides the wording; here only the refusal matters.

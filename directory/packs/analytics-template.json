@@ -3,7 +3,7 @@
   "name": "Analytics template",
   "pitch": "Build a monthly report template with chart placeholders and ready-to-fill tables.",
   "category": "social",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "file_write",
       "make_page",
-      "show_table"
+      "show_table",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -46,5 +47,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Analytics template\nCreates a monthly report markdown with a metric table and four chart placeholders.\n\nWhat it does: builds a ready-to-fill template so you can plug in your numbers each month.\nWhat it needs: file_write, make_page, show_table.\nWhat it will not do: it cannot add real data or connect to any analytics service; it only makes the blank structure.",
-  "hash": "3ff030ea950f2d9e28a01f73479b1fbefc3161df7ca76064d1b1342f662ac99d"
+  "hash": "5b76b2bc3b44057a1e13dafb97b65cf03f591c46c88e170ac4c6944dbba79b99"
 }

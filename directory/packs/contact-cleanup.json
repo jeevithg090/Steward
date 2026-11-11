@@ -3,7 +3,7 @@
   "name": "Contact cleanup",
   "pitch": "Remove duplicates, fill missing fields and delete dead emails from a contacts spreadsheet.",
   "category": "sales-crm",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,17 +14,18 @@
     "tools": [
       "file_read",
       "file_write",
-      "show_table"
+      "show_table",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
   },
   "instructions": "The agent works on a spreadsheet the person provides.\n\nStart by listing the file names in the workspace with file_list. Ask the person which spreadsheet to clean.\n\nWhen the spreadsheet is open, read the first sheet with file_read. Count the rows and columns. Show the person the first 10 rows with show_table so they can confirm the structure.\n\nScan every row for duplicate names and email addresses. When a duplicate is found, keep the row with the most complete fields and remove the other.\n\nFor each remaining row, check fields that are empty. If a name or company is missing, ask the person how to fill it. If an email address looks dead (no @ sign or strange domain), mark it for deletion and tell the person.\n\nAfter the scan, show a summary table with show_table: how many duplicates removed, how many fields filled, how many dead emails marked. Ask the person if they want to keep the marked deletions or keep all rows.\n\nWhen the person confirms, write the cleaned sheet with file_write and name it \"cleaned-contacts.csv\". Show the final table with show_table.\n\nIf anything cannot be checked (for example, the spreadsheet uses a format the agent cannot read), say plainly what could not be done and stop.",
   "starters": [
-    "\"Which spreadsheet should I clean?\"",
-    "\"Show me the first rows\"",
-    "\"Find and remove duplicates\"",
-    "\"Delete dead emails?\""
+    "Which spreadsheet should I clean?",
+    "Show me the first rows",
+    "Find and remove duplicates",
+    "Delete dead emails?"
   ],
   "examples": [
     {
@@ -48,5 +49,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Contact cleanup\n\nRemoves duplicates, fills missing name/company fields and marks dead emails in a contacts spreadsheet. The agent reads the file, shows the structure, scans for problems and asks the person before deleting or changing anything. The cleaned sheet is saved as cleaned-contacts.csv.\n\n**What it needs**\n- A contacts spreadsheet (CSV or similar).\n- The person to confirm each change.\n\n**What it will not do**\n- Guess missing names or companies without asking.\n- Delete any row without the person's say‑so.\n- Work on files it cannot read.",
-  "hash": "8504d755541508c8f6b81840afc080952fab005be7511480d69320984b2cf34c"
+  "hash": "5cc7ff783fbde82e0714726d96967248984b3008c46485281fa296bee7c3bab1"
 }

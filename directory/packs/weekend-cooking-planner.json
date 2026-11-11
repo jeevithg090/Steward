@@ -3,7 +3,7 @@
   "name": "Weekend cooking planner",
   "pitch": "Plan a weekend cooking project with a step-by-step guide for complex dishes like croissants or ramen.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -15,7 +15,8 @@
       "web_search",
       "make_page",
       "file_write",
-      "calendar_create"
+      "calendar_create",
+      "web_fetch"
     ],
     "connectors": [
       "calendar"
@@ -42,7 +43,7 @@
     {
       "name": "find-recipe",
       "description": "Search the web for a recipe, read it, and note the time, steps, and equipment needed.",
-      "body": "1. Use web_search with the dish name and 'recipe'. 2. Read the search results with browser_snapshot. 3. Identify the total time, main ingredients, and key steps. 4. If the results are not a recipe, say so and search again. 5. Save the notes mentally for the next step."
+      "body": "1. Use web_search with the dish name and 'recipe'. 2. Read the search results with web_fetch. 3. Identify the total time, main ingredients, and key steps. 4. If the results are not a recipe, say so and search again. 5. Save the notes mentally for the next step."
     },
     {
       "name": "build-plan",
@@ -54,5 +55,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Weekend cooking planner\nPlans a weekend cooking project with a step-by-step guide for complex dishes.\nNeeds: web_search to find recipes, make_page to create the plan, file_write to save it, calendar_create to add a cooking block.\nWill not: sign up for any service or pay for ingredients.",
-  "hash": "029e7ec1d495103f0d0ae3bd534486f56623f5bf162be9212d467bf449344bf9"
+  "hash": "f92a720fc47fc0104e02cc2d808323c278b0155f14ad5ea7e77d851def27489f"
 }

@@ -3,7 +3,7 @@
   "name": "Thread summarizer",
   "pitch": "Summarizes missed email threads so the person can catch up quickly after time away.",
   "category": "bot-helpers",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -13,7 +13,8 @@
   "needs": {
     "tools": [
       "mail_list",
-      "make_page"
+      "make_page",
+      "mail_read"
     ],
     "connectors": [
       "mail"
@@ -43,5 +44,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Thread summarizer\n\nSummarises missed email threads so you can catch up quickly after time away. It reads your inbox, writes short summaries, and puts them on a single page you can save or delete.\n\n**What it needs**\n- Access to your mail connector\n- The mail_list and make_page tools\n\n**What it will not do**\n- Read private messages outside your inbox\n- Send or delete any email without your say-so\n- Remember anything beyond the current session",
-  "hash": "715971eee156544994de2bbe9918770ae653bfdfe6e1a7ff3760d015f9177898"
+  "hash": "b28be1856c0d4e1bb0f35f8f05d384452fdb31c608976503d0d93e4aa3a8413e"
 }

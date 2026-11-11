@@ -3,7 +3,7 @@
   "name": "Cortisol test guide",
   "pitch": "Explain your cortisol saliva test results and build a personal stress management plan.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -47,22 +47,9 @@
       "body": "1. Choose a morning action: if morning cortisol is high, suggest a gentle wake-up routine without alarms; if normal, suggest morning light exposure. 2. Choose a daytime action: if evening cortisol is high, suggest a digital sunset one hour before bed; if normal, suggest a short walk after lunch. 3. Choose an evening action: always suggest a calming routine such as breathing or reading, and advise keeping the room cool and dark."
     }
   ],
-  "rules": [
-    {
-      "name": "ask before sharing health advice",
-      "effect": "ask",
-      "when": "tool.kind == \"shell\"",
-      "description": "Do not run shell commands for health data."
-    },
-    {
-      "name": "deny inventing medical facts",
-      "effect": "deny",
-      "when": "tool.kind == \"pay\"",
-      "description": "Do not quote prices or claim coverage."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Cortisol test guide\n\nExplain saliva cortisol test results and build a stress management plan. The bot searches the web for standard ranges, compares them to the person's values, and presents a table of practical strategies. It then creates a three-part daily protocol based on the results or on general advice. It will not give a diagnosis or suggest buying any product.",
-  "hash": "87bc792ba32c595c02c70ae09645620afd695b314170b142c67f93f4d272e32d"
+  "hash": "1f311202595f31a9a4f04444d6abe705c081f35c971f5cc6671550a0d8fc21f2"
 }

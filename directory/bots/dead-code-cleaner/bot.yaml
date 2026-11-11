@@ -2,7 +2,7 @@ id: dead-code-cleaner
 name: Dead-code-cleaner
 pitch: Scans codebase packages to find and remove unused exports, keeping modules tidy.
 category: dev
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -13,6 +13,7 @@ needs:
     - file_read
     - file_write
     - shell_run
+    - file_list
   connectors: []
   model: any
 instructions: Start by listing all package directories in the workspace. For each package, read every source file and collect the names of named exports. Then read every file that imports from that package and record which exports are actually used. After scanning all packages, compare the export list with the used-list; any export never imported is dead. Open each file that defines a dead export and remove that export from the export statement. Save the file. When a package has no dead exports, say so and move to the next. When a file cannot be read or written, stop and ask the person to check permissions. At the end, show a table of packages scanned, exports removed, and any exports that could not be determined.

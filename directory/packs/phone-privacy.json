@@ -3,7 +3,7 @@
   "name": "Phone privacy",
   "pitch": "Checks public people-search sites to see if your phone number appears online.",
   "category": "privacy",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -22,9 +22,9 @@
   },
   "instructions": "# Check if your phone number is listed on public people search sites\n\n## Start by searching\nWhen the person asks, use `web_search` to look for the exact phone number on people-search sites. Include the area code and format the person gave. If the number has a name attached, add that too.\n\n## Visit the results\nWhen search results appear, use `browser_navigate` to open the top few sites that look like people-search directories. Do not log in or create accounts.\n\n## Read the snippets\nWhen on each site, use `browser_snapshot` to read the visible text. Look for the phone number anywhere on the page. If the number is shown, note the site name and the URL.\n\n## When nothing is found\nIf no search results return a people-search site, or if a site does not show the number in its preview, tell the person plainly what was checked and that the number was not found in the preview. Do not make claims about whether the number is private.\n\n## Report back\nWhen finished, list each site visited and whether the number appeared in the preview. If the number was found, give the person the URL so they can decide what to do next. If not found, say so and suggest they try again later or check a different format.",
   "starters": [
-    "\"check my phone number\"",
-    "\"are my details public?\"",
-    "\"search for my number\""
+    "check my phone number",
+    "are my details public?",
+    "search for my number"
   ],
   "examples": [],
   "skills": [],
@@ -32,5 +32,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Phone privacy\nChecks public people-search sites to see if your phone number appears online.\n\n**What it does:** Searches the web for the phone number you give it, visits a few directories, and tells you if the number shows up in the preview.\n\n**What it needs:** web_search, web_fetch, browser_navigate, browser_snapshot.\n\n**What it will not do:** It will not remove the number from any site, it will not create accounts, and it will not claim the number is definitely private—only whether it appears in a preview.",
-  "hash": "6979269f9539b25cb54545888e1d5fa206f7e8dc39b874624edfd30f67e440da"
+  "hash": "fbeef6905aef5aae71b98eb1b30c987bc842c5b028c8357db04e2a3c2f0be600"
 }

@@ -3,7 +3,7 @@
   "name": "PAD walking program",
   "pitch": "A progressive walking plan to manage claudication symptoms from peripheral artery disease.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -47,22 +47,9 @@
       "body": "1. Use make_page to create a page titled 'Progressive Walking Plan for PAD'.\n2. Include a session format: 'Walk until pain reaches moderate level (3–4/10). Rest until pain drops to 1–2/10 or disappears. Repeat 3–5 times.'\n3. Add a weekly progression: 'Increase total walking time by 5 minutes every 2 weeks, keeping the rest‑until‑pain‑subsides pattern.'\n4. List safety notes: stop if pain is severe or sudden, check feet daily for sores, and consult a doctor before changing the plan.\n5. Show the page to the person and ask if they want it saved or turned into a routine."
     }
   ],
-  "rules": [
-    {
-      "name": "ask before logging health data",
-      "effect": "ask",
-      "when": "tool.name == \"routine_create\"",
-      "description": "check the person wants a reminder before setting it up"
-    },
-    {
-      "name": "deny sharing medical advice as diagnosis",
-      "effect": "deny",
-      "when": "tool.kind == \"write\" && tool.surface == \"browser\"",
-      "description": "do not present the plan as a medical prescription"
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# PAD Walking Program\nA progressive walking plan to manage claudication symptoms from peripheral artery disease.\n\nWhat it does: searches for walking guidelines, creates a text page with a session format and weekly progression, and can set a reminder to log walks.\n\nWhat it needs: web_search to find guidelines, make_page to output the plan, routine_create for optional reminders.\n\nWhat it will not do: give a diagnosis or replace a doctor's advice; it always presents the plan as a general template and asks the person to check with their clinician.",
-  "hash": "b3ed7d63c20c522d7023107a2faeb3d581e344f45670e83a193800cde50873f2"
+  "hash": "3ecbcdfcdf9f9714c947a48402c51e41e5706c8a2ec8852bdcb58dd6255d092c"
 }

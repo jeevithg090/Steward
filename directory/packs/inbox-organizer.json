@@ -3,7 +3,7 @@
   "name": "Inbox organizer",
   "pitch": "Sort your inbox into project labels and auto-file new mail to the right label.",
   "category": "productivity",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -49,22 +49,9 @@
       "body": "1. When new mail arrives, read its subject and body. 2. Look for project keywords. 3. If one keyword matches a label, apply that label and archive the message. 4. If several keywords match, ask the person which label to use. 5. If no keyword matches, leave the message in the inbox and tell the person. 6. Remember the person's choice for next time using memory_remember."
     }
   ],
-  "rules": [
-    {
-      "name": "confirm label changes",
-      "effect": "ask",
-      "when": "tool.kind == \"send\"",
-      "description": "Ask before applying a label to a message."
-    },
-    {
-      "name": "ask before new rule",
-      "effect": "ask",
-      "when": "tool.name == \"routine_create\"",
-      "description": "Ask the person before creating an auto‑file rule."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Inbox organizer\nSort your inbox into project labels and auto‑file new mail to the right label.\n\n**What it does:** Labels your existing messages and sets up a rule so new mail is filed automatically.\n**What it needs:** Access to your mail account.\n**What it will not do:** It will not delete any message or change a label without your say‑so. It will not guess a project if the keyword is unclear.",
-  "hash": "e047cb5a38cf098c963a651a978a3a8980978c85efce288b0a2d2c256dde2814"
+  "hash": "26374eb4b969e301ce0b6bd4de6aeb44c5840381f88f14130b21bdfd6d913c64"
 }

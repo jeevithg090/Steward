@@ -3,7 +3,7 @@
   "name": "Scenic viewpoint scout",
   "pitch": "Find a scenic viewpoint parking area with a short walking trail in a chosen area.",
   "category": "travel",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -13,7 +13,8 @@
   "needs": {
     "tools": [
       "web_search",
-      "browser_navigate"
+      "browser_navigate",
+      "browser_snapshot"
     ],
     "connectors": [],
     "model": "any"
@@ -39,5 +40,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Scenic viewpoint scout\nFinds a scenic viewpoint parking area with a short walking trail in the area you choose.\n\n**What it needs:** web_search and browser_navigate to look up locations on the web.\n\n**What it will not do:** It will not guess distances, pick a spot you haven't agreed on, or book anything. It will simply report what it finds or say it could not find a match.",
-  "hash": "a651efd38c0137c5d90256f2d7c1dbef66f6bb0e2c00c2f3fc29c36e47290b66"
+  "hash": "9e841e8de8ac82528810828cf8a2d2703b76be3ca86b6630474f3a06041f07eb"
 }

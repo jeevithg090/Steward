@@ -2,7 +2,7 @@ id: home-strength-planner
 name: Home Strength Planner
 pitch: Creates a weekly no-equipment strength plan with three sessions, exercise details, and progression guidance.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -62,6 +62,8 @@ instructions: |-
   - A detailed multi-page plan document.
   - A short text summary they can copy to notes.
   - Reminder: "This is a template. Listen to your body. Consult a professional if unsure."
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - Make me a 4-week no-equipment strength plan, three days a week, 30 minutes each.
   - I'm a beginner with knee issues. Plan three 20-minute home strength sessions per week.

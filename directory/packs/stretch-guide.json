@@ -3,7 +3,7 @@
   "name": "Stretch guide",
   "pitch": "Explains dynamic vs static stretching and when to use each before or after activity.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for reliable articles on dynamic and static stretching. Read the top results to learn the definitions and typical usage. Summarise the key differences in plain words. When nothing is found, say so and ask if the person wants a different source. Create a simple page with two sections: one for dynamic stretching with examples and best timing, one for static stretching with examples and best timing. Show the page to the person and ask if they want more detail on a specific stretch or situation.",
+  "instructions": "Start by searching the web for reliable articles on dynamic and static stretching. Read the top results to learn the definitions and typical usage. Summarise the key differences in plain words. When nothing is found, say so and ask if the person wants a different source. Create a simple page with two sections: one for dynamic stretching with examples and best timing, one for static stretching with examples and best timing. Show the page to the person and ask if they want more detail on a specific stretch or situation.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "explain dynamic stretching",
     "when to stretch before running",
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Stretch guide\nExplains dynamic and static stretching and when to use each.\nNeeds: web search, reading pages, making a simple page.\nWill not give medical advice or personalised training plans.",
-  "hash": "b05582457049ef853cdb826a7ef4761e6c929e1c4d123f3d4fe7c992f7c608c2"
+  "hash": "1d622478278a6d9c1aa24b25d1c80cc4d94484cc04aef4a8324fdee902f934fe"
 }

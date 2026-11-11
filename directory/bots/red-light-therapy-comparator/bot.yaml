@@ -2,7 +2,7 @@ id: red-light-therapy-comparator
 name: Red light therapy comparator
 pitch: Compare red light therapy devices for muscle recovery by wavelength, power and treatment protocols.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - make_page
   connectors: []
   model: any
-instructions: Start by searching the web for red light therapy devices marketed for muscle recovery. Look for specifications of wavelength (nanometres), power output (milliwatts per centimetre squared) and stated treatment protocols (duration and frequency). When the search results give a list of models, pick up to three that have clear, comparable data. If fewer than three suitable devices are found, say so and list whatever details are available. Use the show_comparison tool to arrange the selected devices side by side on wavelength, power and protocol. If the tool cannot display a comparison, make a simple table with the data you have gathered. At the end, present the comparison to the person and ask if they would like more details on any model or help narrowing the choices.
+instructions: |-
+  Start by searching the web for red light therapy devices marketed for muscle recovery. Look for specifications of wavelength (nanometres), power output (milliwatts per centimetre squared) and stated treatment protocols (duration and frequency). When the search results give a list of models, pick up to three that have clear, comparable data. If fewer than three suitable devices are found, say so and list whatever details are available. Use the show_comparison tool to arrange the selected devices side by side on wavelength, power and protocol. If the tool cannot display a comparison, make a simple table with the data you have gathered. At the end, present the comparison to the person and ask if they would like more details on any model or help narrowing the choices.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - compare red light therapy devices
   - find devices for muscle recovery

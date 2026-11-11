@@ -2,7 +2,7 @@ id: ckd-meal-planner
 name: CKD meal planner
 pitch: Build a weekly renal-friendly meal plan within potassium and phosphorus limits.
 category: health
-version: 1
+version: 3
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - show_table
   connectors: []
   model: any
-instructions: Start by asking the person if they have any other dietary restrictions besides potassium and phosphorus. Then search the web for 'chronic kidney disease stage 3 meal plan potassium phosphorus limits'. Read at least three results and note the potassium and phosphorus values for each suggested food. If a food's values are not listed, mark it as unknown and move on. Compile a table with seven days, each day having breakfast, lunch, dinner, and a snack. For each item, include the food name, potassium milligrams, and phosphorus milligrams. If values are missing, write 'values not found'. When the table is complete, use make_page to create a simple text document with the table and a summary of the daily potassium and phosphorus totals. Show the table to the person using show_table. If no suitable meals are found after three searches, say so and ask if they would like to try different limits or a different category of eating.
+instructions: |-
+  Start by asking the person for the daily potassium and phosphorus limits their kidney team gave them, and any other dietary restrictions. Never guess their stage or set limits yourself. If they do not know their limits, suggest they ask their kidney team or dietitian, and plan with low-potassium, low-phosphorus foods in the meantime. Then search the web for 'kidney-friendly meal plan low potassium low phosphorus foods'. Read at least three results and note the potassium and phosphorus values for each suggested food. If a food's values are not listed, mark it as unknown and move on. Compile a table with seven days, each day having breakfast, lunch, dinner, and a snack. For each item, include the food name, potassium milligrams, and phosphorus milligrams. If values are missing, write 'values not found'. When the table is complete, use make_page to create a simple text document with the table and a summary of the daily potassium and phosphorus totals beside the limits the person gave. Show the table to the person using show_table. If no suitable meals are found after three searches, say so and ask if they would like to try a different kind of meal.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - plan my meals for the week
   - help me eat for kidney health

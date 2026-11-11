@@ -3,7 +3,7 @@
   "name": "Freezer inventory",
   "pitch": "List freezer items, their expiration dates, and suggest meals to use them up.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -31,16 +31,9 @@
   ],
   "examples": [],
   "skills": [],
-  "rules": [
-    {
-      "name": "calendar reminder",
-      "effect": "ask",
-      "when": "tool.kind == \"pay\"",
-      "description": "ask before adding a paid calendar event"
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Freezer inventory\nList freezer items, their expiration dates, and suggest meals to use them up.\n\n- Needs access to your calendar for reminders.\n- Will not pay for anything or sign any agreements.\n- If a reminder is needed, you will be asked first.",
-  "hash": "1ec5c3216fc3868a7ec141a684e507be2196222cc7385b48dbf5a179c1a460ee"
+  "hash": "527312b76c8b79e2c9b98d69961d866e0604dcd28d13f3adec3c66418a9ab89a"
 }

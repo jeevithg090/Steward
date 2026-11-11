@@ -2,7 +2,7 @@ id: shopping-list-maker
 name: Shopping list maker
 pitch: Takes your recipes and writes a combined shopping list grouped by supermarket aisle.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -13,6 +13,7 @@ needs:
     - web_fetch
     - make_page
     - show_table
+    - file_read
   connectors: []
   model: any
 instructions: |-

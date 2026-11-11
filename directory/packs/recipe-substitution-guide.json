@@ -3,7 +3,7 @@
   "name": "Recipe substitution guide",
   "pitch": "A guide that lists safe ingredient swaps for common allergens and dietary needs.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -15,7 +15,8 @@
       "web_search",
       "make_page",
       "file_write",
-      "show_table"
+      "show_table",
+      "web_fetch"
     ],
     "connectors": [],
     "model": "any"
@@ -36,12 +37,12 @@
     {
       "name": "gather-substitutions",
       "description": "Collect safe ingredient swaps from search results.",
-      "body": "1. Use web_search with keywords like 'allergen substitution guide' or 'dietary swaps'. 2. Read the top results with browser_snapshot. 3. Note each swap that matches a common allergen: milk, egg, wheat, soy, peanuts, tree nuts, fish, shellfish. 4. Record the swap, the allergen it replaces, and any usage notes. 5. If a result is a forum post or unclear, skip it and note that it needs verification. 6. Stop when you have 8 to 12 solid swaps or when no more relevant results appear."
+      "body": "1. Use web_search with keywords like 'allergen substitution guide' or 'dietary swaps'. 2. Read the top results with web_fetch. 3. Note each swap that matches a common allergen: milk, egg, wheat, soy, peanuts, tree nuts, fish, shellfish. 4. Record the swap, the allergen it replaces, and any usage notes. 5. If a result is a forum post or unclear, skip it and note that it needs verification. 6. Stop when you have 8 to 12 solid swaps or when no more relevant results appear."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Recipe substitution guide\n\nLists safe ingredient swaps for common allergens and dietary needs. Uses web search to find tips, sorts them into a table, and saves a simple page to your workspace.\n\n**Needs**: web_search, make_page, file_write, show_table\n\n**Will not**: claim medical safety or give personalised diet advice. Always check labels and consult a professional if unsure.",
-  "hash": "3c6cb6f8bb4fef6e2239c8759a7cc56d8c949c7e626674e5abb9a4037bf66772"
+  "hash": "c7e02a5ddf49b28a376fb3f7e4127197d51592abea40810ee8d5d3b7ac500391"
 }

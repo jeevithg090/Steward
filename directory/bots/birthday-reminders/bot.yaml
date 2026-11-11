@@ -2,7 +2,7 @@ id: birthday-reminders
 name: Birthday reminders
 pitch: Set up automated reminders for close contacts' birthdays and work anniversaries.
 category: productivity
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -34,7 +34,3 @@ rules:
     effect: ask
     when: tool.name == 'calendar_create'
     description: ask the person before each calendar event is created so they can confirm or change the date
-  - name: ask before remembering facts about the person
-    effect: ask
-    when: tool.name == 'memory_remember'
-    description: ask the person before any fact is remembered about them

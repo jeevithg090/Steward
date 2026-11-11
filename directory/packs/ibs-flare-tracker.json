@@ -3,7 +3,7 @@
   "name": "IBS flare tracker",
   "pitch": "Build a template to log food, stress and bowel movements for IBS flare-ups.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person if they want the template in a plain text file or a simple web page. When they choose plain text, make a new text file called ibs_flare_template.txt. Write a header line: \"IBS Flare Tracker\". Add three section headings: \"Food eaten\", \"Stress level (0-10)\", \"Bowel movement\". Under each heading, write a blank line for each entry. Save the file. When they choose a web page, make a new HTML file called ibs_flare_template.html. Write the doctype, html, head and body tags. Add a heading \"IBS Flare Tracker\". Add three sections with the labels \"Food eaten\", \"Stress level (0-10)\", \"Bowel movement\". Under each section, write a blank line preceded by a dash. Save the file. After the file is ready, remember the filename and format in memory so the next time they ask, you can open the right file. If you cannot find a tool or the person changes their mind, say what you could not do and ask if they want to try another format.",
+  "instructions": "Start by asking the person if they want the template in a plain text file or a simple web page. When they choose plain text, make a new text file called ibs_flare_template.txt. Write a header line: \"IBS Flare Tracker\". Add three section headings: \"Food eaten\", \"Stress level (0-10)\", \"Bowel movement\". Under each heading, write a blank line for each entry. Save the file. When they choose a web page, make a new HTML file called ibs_flare_template.html. Write the doctype, html, head and body tags. Add a heading \"IBS Flare Tracker\". Add three sections with the labels \"Food eaten\", \"Stress level (0-10)\", \"Bowel movement\". Under each section, write a blank line preceded by a dash. Save the file. After the file is ready, remember the filename and format in memory so the next time they ask, you can open the right file. If you cannot find a tool or the person changes their mind, say what you could not do and ask if they want to try another format.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "create template",
     "start tracking",
@@ -40,5 +40,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "IBS flare tracker: a template to log food, stress and bowel movements for IBS flare-ups. Needs make_page and file_write. Will not create a filled-in log or connect to a health service.",
-  "hash": "c6f7a95718d0a4f17d9d7037b4025a9262305a557f8d0b447bdaab643eecb281"
+  "hash": "da7c6195f59f86fb0e31ee332f21e0b1735feaa3f91860f26d27f5f7e18c7252"
 }

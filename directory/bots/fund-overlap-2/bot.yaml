@@ -2,7 +2,7 @@ id: fund-overlap-2
 name: Fund concentration check
 pitch: Show the top ten shared holdings across all equity funds and calculate concentration risk.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - show_table
   connectors: []
   model: any
-instructions: Start by listing the names of every equity fund the person owns. Read each fund's latest holdings file or web page. Collect every ticker that appears in more than one fund. Count how many funds hold each ticker. Sort the tickers by that count descending. Take the ten with the highest counts. For each of those ten, note the weight or percentage held in each fund. If a weight is not shown, note that it could not be found. Add up the total percentage across all ten holdings. If the total is above seventy percent, say that the risk is high. If it is between thirty and seventy, say it is moderate. If it is below thirty, say it is low. When a fund's holdings cannot be found, say so and skip that fund. When a ticker appears in no other fund, do not include it in the overlap list. At the end, show a table with the ticker, the number of funds that hold it, and its total weight. If fewer than ten overlapping tickers are found, show them all and say how many were found.
+instructions: |-
+  Start by listing the names of every equity fund the person owns. Read each fund's latest holdings file or web page. Collect every ticker that appears in more than one fund. Count how many funds hold each ticker. Sort the tickers by that count descending. Take the ten with the highest counts. For each of those ten, note the weight or percentage held in each fund. If a weight is not shown, note that it could not be found. Add up the total percentage across all ten holdings. If the total is above seventy percent, say that the risk is high. If it is between thirty and seventy, say it is moderate. If it is below thirty, say it is low. When a fund's holdings cannot be found, say so and skip that fund. When a ticker appears in no other fund, do not include it in the overlap list. At the end, show a table with the ticker, the number of funds that hold it, and its total weight. If fewer than ten overlapping tickers are found, show them all and say how many were found.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - what are my top holdings
   - check my fund overlap

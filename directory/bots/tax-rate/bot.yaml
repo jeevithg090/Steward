@@ -2,7 +2,7 @@ id: tax-rate
 name: Tax-rate
 pitch: Calculate the effective tax rate across federal, state, and local taxes for last year.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -32,6 +32,8 @@ instructions: |-
   If any component (federal, state, or local) is missing from the documents, say which part could not be found and show the rate calculated from the available figures.
 
   End by making a summary page with make_page that states the effective tax rate and lists the figures used, so the person can review the calculation.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - calculate my tax rate
   - what was my effective tax rate last year

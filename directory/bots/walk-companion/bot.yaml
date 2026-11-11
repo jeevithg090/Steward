@@ -2,7 +2,7 @@ id: walk-companion
 name: Walk companion
 pitch: A ten-minute walk after lunch every day for two weeks, with friendly check‑ins and a final summary.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -14,7 +14,10 @@ needs:
     - memory_remember
   connectors: []
   model: any
-instructions: 'Start by asking the person if they want a reminder each day at 13:00 for a ten‑minute walk after lunch. If they agree, create a routine named "daily walk" that triggers at 13:00 and shows the message "Time for your ten‑minute walk after lunch". Record in memory that the walk habit started today and will last for two weeks. Each day when the routine fires, ask the person if they completed the walk. If they say yes, note it in memory and reply "Great, another walk done". If they say no, reply "No walk today – maybe tomorrow". After seven days, ask if they want to continue the habit for the second week. If yes, keep the routine running for another seven days and remind them each day. If no, end the routine and tell them "Walk habit finished after two weeks". At the end of the two weeks, give a short summary: how many walks were completed and how many were missed. If the person types anything else, reply "I’m here to keep you company on your walks – just let me know how it’s going."'
+instructions: |-
+  Start by asking the person if they want a reminder each day at 13:00 for a ten‑minute walk after lunch. If they agree, create a routine named "daily walk" that triggers at 13:00 and shows the message "Time for your ten‑minute walk after lunch". Record in memory that the walk habit started today and will last for two weeks. Each day when the routine fires, ask the person if they completed the walk. If they say yes, note it in memory and reply "Great, another walk done". If they say no, reply "No walk today – maybe tomorrow". After seven days, ask if they want to continue the habit for the second week. If yes, keep the routine running for another seven days and remind them each day. If no, end the routine and tell them "Walk habit finished after two weeks". At the end of the two weeks, give a short summary: how many walks were completed and how many were missed. If the person types anything else, reply "I’m here to keep you company on your walks – just let me know how it’s going."
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - Start my walk habit
   - How am I doing?

@@ -3,7 +3,7 @@
   "name": "Stakeholder digest",
   "pitch": "A daily summary of emails from key stakeholders, filtered out of the inbox noise.",
   "category": "productivity",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "mail_list",
       "mail_read",
-      "routine_create"
+      "routine_create",
+      "memory_remember"
     ],
     "connectors": [
       "mail"
@@ -48,5 +49,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Stakeholder digest\nCreates a daily summary of emails from key stakeholders, filtered out of the inbox noise.\n\n**What it needs**\n- Access to your mail connector.\n- You to name the senders or subjects that count as key stakeholders.\n\n**What it will not do**\n- Send anything without your say-so.\n- Remember senders you do not name.\n- Run without your permission each day.",
-  "hash": "7502e58cff570c3e4f854ef0e3681be58705b877ca2f3ebafd4bfadec22ad747"
+  "hash": "e92cbc2feb850ad5ea079ed0b11f5d5462b5a67135aecf5ce55b9effb1d17ab9"
 }

@@ -3,7 +3,7 @@
   "name": "Component migrator",
   "pitch": "Convert class components to hooks across a react codebase.",
   "category": "dev",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "file_read",
       "file_write",
-      "shell_run"
+      "shell_run",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -55,5 +56,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# component migrator\nconvert class components to hooks across a react codebase\n\nthis bot reads source files, finds class components, and rewrites them as functional components with useState and useEffect. it does not run the code or guarantee the app works, only that the syntax is valid.\n\nneeds: file_read, file_write, shell_run (to check syntax).\n\nwill not: run the app, fix runtime errors, or add new features.",
-  "hash": "bd1bb5e9f53b71c6d4ccdfabf4b5ecea51ea0f400f330cc789a5816a9fb557df"
+  "hash": "a880c1af9c30e0bb4c224b6cd4fb7e918aba1641418d4e537c35375677943ba0"
 }

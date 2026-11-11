@@ -2,7 +2,7 @@ id: video-title-and-thumbnail-writer
 name: Video title and thumbnail writer
 pitch: Writes honest, click-worthy titles and thumbnail text for videos, balancing clarity with curiosity.
 category: video-audio
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -49,10 +49,10 @@ instructions: |-
   ## What to show at the end
   A clean page with the chosen title, the chosen thumbnail text, and 2 backup options. Include a one-line note on why the chosen set is honest and click-worthy.
 starters:
-  - Help me write a title and thumbnail text for a video about [topic].
+  - Help me write a title and thumbnail text for a video about fixing a bike puncture.
   - I have a draft title but it feels flat. Can you improve it?
-  - Give me 5 honest title options for my tutorial on [skill].
-  - What thumbnail text works for a review video about [product type]?
+  - Give me 5 honest title options for my tutorial on knife sharpening.
+  - What thumbnail text works for a review video about budget headphones?
 examples:
   - ask: Help me write a title and thumbnail text for a video about growing tomatoes in small balconies.
     does: 'The bot asks for the core promise and audience, searches top balcony tomato videos, then returns a table of 5 titles like "Grow Tomatoes on a Tiny Balcony: 3 Varieties That Actually Work" with thumbnail texts "3 Varieties", "No Garden Needed", "Harvest in 60 Days".'

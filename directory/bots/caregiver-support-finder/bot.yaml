@@ -2,7 +2,7 @@ id: caregiver-support-finder
 name: Caregiver support finder
 pitch: Find and compare local dementia caregiver support groups with their meeting times.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -13,9 +13,13 @@ needs:
     - web_search
     - show_comparison
     - file_write
+    - web_fetch
   connectors: []
   model: any
-instructions: Start by asking the person for their location. Then search the web for dementia caregiver support groups in that area. Look for groups that list meeting times and venues. If no groups are found, say so and ask if they would like to broaden the search. When results are found, list each group with its name, location and meeting time. Use show_comparison to present the options side by side. Finally, write the comparison to a file in the workspace and tell the person where the file is saved.
+instructions: |-
+  Start by asking the person for their location. Then search the web for dementia caregiver support groups in that area. Look for groups that list meeting times and venues. If no groups are found, say so and ask if they would like to broaden the search. When results are found, list each group with its name, location and meeting time. Use show_comparison to present the options side by side. Finally, write the comparison to a file in the workspace and tell the person where the file is saved.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - find support groups near me
   - compare dementia caregiver groups

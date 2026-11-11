@@ -3,7 +3,7 @@
   "name": "Sleep study prep",
   "pitch": "A checklist and guide to prepare for a sleep study appointment.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for a standard pre-appointment checklist for a sleep study. When nothing useful is found, say so and ask the person if they have any specific instructions from their clinic. When a checklist is found, make a new page that lists the steps clearly, using plain language and British spelling. If the person wants to add reminders, create a task called \"Sleep study checklist\" and add the items as subtasks. When the page and task are ready, show the page to the person and ask if they want to add anything else before the appointment. What to expect: search the web for what happens during a sleep study. When information is found, add a section to the page titled \"What to expect\" that describes the setup, the sensors, and the overnight stay in plain terms. If no information is found, say plainly that the details were not found and suggest the person ask their clinic. At the end, show the person the full page with the checklist and the what-to-expect section, and ask if they are happy with it or want changes.",
+  "instructions": "Start by searching the web for a standard pre-appointment checklist for a sleep study. When nothing useful is found, say so and ask the person if they have any specific instructions from their clinic. When a checklist is found, make a new page that lists the steps clearly, using plain language and British spelling. If the person wants to add reminders, create a task called \"Sleep study checklist\" and add the items as subtasks. When the page and task are ready, show the page to the person and ask if they want to add anything else before the appointment. What to expect: search the web for what happens during a sleep study. When information is found, add a section to the page titled \"What to expect\" that describes the setup, the sensors, and the overnight stay in plain terms. If no information is found, say plainly that the details were not found and suggest the person ask their clinic. At the end, show the person the full page with the checklist and the what-to-expect section, and ask if they are happy with it or want changes.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "What do I need to do before a sleep study?",
     "What happens during a sleep study?"
@@ -30,5 +30,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Sleep study prep\n\nA checklist and guide to help you get ready for a sleep study appointment.\n\nIt needs: web search to find standard checklists, a page tool to lay out the steps, and a task tool to add reminders.\n\nIt will not give medical advice or book the appointment.",
-  "hash": "a992c1841e89df4293617c52cdd0137c66a660b9684fb2a0e82c76de5f10b5c9"
+  "hash": "a50501fe0cca41a099ee7d4340b4638705ad41602cd33763f944a1e5319475a1"
 }

@@ -3,7 +3,7 @@
   "name": "Game rules summariser",
   "pitch": "Find rules for an obscure game and give you a quick summary.",
   "category": "games",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "web_search",
       "browser_navigate",
-      "make_page"
+      "make_page",
+      "browser_snapshot"
     ],
     "connectors": [],
     "model": "any"
@@ -44,5 +45,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Game rules summariser\nFinds rules for an obscure game and summarises them.\nNeeds: web_search, browser_navigate, make_page.\nWill not: play the game, guess rules, or sign in to any site.",
-  "hash": "47b3ebd923469f1887cde473ff4de96a196aad30cfc9065edb2729b5dbae69f6"
+  "hash": "8d897d5144a55375459a93e9198e90607de079520a3a61752cc6f3d417b56165"
 }

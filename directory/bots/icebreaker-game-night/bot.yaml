@@ -2,7 +2,7 @@ id: icebreaker-game-night
 name: Icebreaker game night
 pitch: Plan a game night with icebreaker activities that last five minutes each.
 category: games
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -12,6 +12,7 @@ needs:
   tools:
     - make_page
     - web_search
+    - web_fetch
   connectors: []
   model: any
 instructions: Search the web for icebreaker games that last about five minutes each. Read the descriptions and pick three that seem fun and easy to run. Write a short plan with the activity name, a one‑sentence description and the time needed. Save the plan as a simple text page with make_page. Show the plan to the person and ask if they want to change anything.

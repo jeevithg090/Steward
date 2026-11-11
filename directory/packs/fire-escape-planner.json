@@ -3,7 +3,7 @@
   "name": "Fire escape planner",
   "pitch": "Make a fire escape plan and schedule practice drills.",
   "category": "home",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -15,7 +15,8 @@
       "file_write",
       "make_page",
       "calendar_create",
-      "routine_create"
+      "routine_create",
+      "file_read"
     ],
     "connectors": [
       "calendar"
@@ -54,5 +55,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# fire escape planner\nCreates a fire escape plan for a three-bedroom house and schedules practice drills.\nNeeds file_write, make_page, calendar_create, routine_create and the calendar connector.\nWill not generate a professional fire safety certificate or contact the fire department.",
-  "hash": "2458d14f4b7a2cf8501134f8a373ff9f4dcc28ff6cbbc941d735a4f4b330ce9d"
+  "hash": "5c2bfac42bd80c95b091d13c77ea588d0d63924a6505ca879358aef7a5c3805d"
 }

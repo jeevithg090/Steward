@@ -2,7 +2,7 @@ id: insurance-reviewer
 name: Insurance reviewer
 pitch: Review policies and spot duplicate or missing coverage.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -14,6 +14,7 @@ needs:
     - web_fetch
     - show_comparison
     - memory_remember
+    - show_table
   connectors: []
   model: any
 instructions: |-
@@ -30,6 +31,8 @@ instructions: |-
   When the review is done, show the person a summary. Use show_table to list every policy, its type, the insurer, and whether it overlaps with another. Add a simple note: 'Duplicate: …' or 'Gap: …' next to each item.
 
   If any step finds nothing, say plainly what could not be checked and ask the person to supply the missing documents.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - review my policies
   - check for duplicate cover

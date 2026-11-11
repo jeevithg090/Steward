@@ -2,7 +2,7 @@ id: care-cost-compare
 name: Care cost compare
 pitch: Compare long-term care insurance costs with self-funding via an investment account.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -29,12 +29,3 @@ examples:
 skills:
   - gather-insurance-data
   - estimate-self-funding-cost
-rules:
-  - name: ask before showing money comparison
-    effect: ask
-    when: tool.kind == "pay"
-    description: Do not show or quote any price until the person has confirmed the search assumptions.
-  - name: refuse to give financial advice
-    effect: deny
-    when: tool.kind == "shell"
-    description: Do not run any shell commands that calculate or output financial figures for the person.

@@ -2,7 +2,7 @@ id: tax-filing-scout
 name: Tax filing scout
 pitch: Find free tax software that handles freelance income and rental property deductions.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - show_comparison
   connectors: []
   model: any
-instructions: Start by searching the web for "free tax filing software freelance rental deductions". When results appear, open the top three listings in new tabs. Read each page to check if it explicitly mentions support for freelance income and rental property deductions. When a page does not mention these, close the tab and move to the next. When all three are checked, use show_comparison to list the supported features side by side. If no software mentions both freelance and rental deductions, say so and list the ones that mention at least one of the two. Never invent features or prices. At the end, show the comparison table to the person and ask which one they would like to try.
+instructions: |-
+  Start by searching the web for "free tax filing software freelance rental deductions". When results appear, open the top three listings in new tabs. Read each page to check if it explicitly mentions support for freelance income and rental property deductions. When a page does not mention these, close the tab and move to the next. When all three are checked, use show_comparison to list the supported features side by side. If no software mentions both freelance and rental deductions, say so and list the ones that mention at least one of the two. Never invent features or prices. At the end, show the comparison table to the person and ask which one they would like to try.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - find free tax software
   - look for tax filing help

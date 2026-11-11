@@ -3,7 +3,7 @@
   "name": "Digital legacy",
   "pitch": "Organises account logins, beneficiaries and executor instructions into a single document.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,12 +14,13 @@
     "tools": [
       "file_write",
       "make_page",
-      "memory_remember"
+      "memory_remember",
+      "file_read"
     ],
     "connectors": [],
     "model": "any"
   },
-  "instructions": "# What to do\n\n1. Ask the person which accounts they want included. If they have no list, ask if they want to start one now.\n2. If they have a list, read it with file_read. If no list exists, say so and ask if they want to create one.\n3. For each account, note the service name, username and password method. If a password is stored in a password manager, ask the person to confirm the master password method before recording.\n4. Ask about beneficiaries for each account or for the estate as a whole. Record names and any conditions the person wants to mention.\n5. Ask for executor instructions: what they want done first, any preferred service providers, or any special wishes.\n6. Use make_page to assemble a plain‑text document with sections: Accounts, Beneficiaries, Executor instructions. Keep the language simple and clear.\n7. Save the file with file_write. Suggest a filename such as \"legacy‑notes.txt\" or let the person choose.\n8. Remember the file path with memory_remember so the agent can find it again.\n\n# When nothing is found\n\nIf the person has no account list, no beneficiary details and no executor instructions, say: \"I could not find any account list, beneficiary details or executor instructions. Would you like to start one now?\" and wait for their reply.\n\n# When a tool is not connected\n\nIf file_write, make_page or memory_remember are not available, say: \"I am unable to create or save the document at the moment. Please let me know if you would like to try again later.\"\n\n# What to show the person\n\nAfter the document is saved, show the person the first few lines of the file with file_read. If the file is long, offer to show the head or let them read the full file themselves.",
+  "instructions": "# What to do\n\n1. Ask the person which accounts they want included. If they have no list, ask if they want to start one now.\n2. If they have a list, read it with file_read. If no list exists, say so and ask if they want to create one.\n3. For each account, note the service name, username and password method. If a password is stored in a password manager, ask the person to confirm the master password method before recording.\n4. Ask about beneficiaries for each account or for the estate as a whole. Record names and any conditions the person wants to mention.\n5. Ask for executor instructions: what they want done first, any preferred service providers, or any special wishes.\n6. Use make_page to assemble a plain‑text document with sections: Accounts, Beneficiaries, Executor instructions. Keep the language simple and clear.\n7. Save the file with file_write. Suggest a filename such as \"legacy‑notes.txt\" or let the person choose.\n8. Remember the file path with memory_remember so the agent can find it again.\n\n# When nothing is found\n\nIf the person has no account list, no beneficiary details and no executor instructions, say: \"I could not find any account list, beneficiary details or executor instructions. Would you like to start one now?\" and wait for their reply.\n\n# When a tool is not connected\n\nIf file_write, make_page or memory_remember are not available, say: \"I am unable to create or save the document at the moment. Please let me know if you would like to try again later.\"\n\n# What to show the person\n\nAfter the document is saved, show the person the first few lines of the file with file_read. If the file is long, offer to show the head or let them read the full file themselves.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "list my accounts",
     "who are my beneficiaries",
@@ -42,5 +43,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Digital legacy\nOrganises account logins, beneficiaries and executor instructions into a single plain‑text document.\n\n**What it needs:** file_write, make_page, memory_remember.\n\n**What it will not do:** It will not guess passwords, it will not access any online accounts, and it will not share the document with anyone else without the person's say‑so.",
-  "hash": "05e01e89f6d1b037079a0803605d78de4512eb4b7f11fe11f023a09c38d70144"
+  "hash": "fdcfb9fab51ce78d85891285eaef142b165e3d166f0d3ff0658c06740aea263e"
 }

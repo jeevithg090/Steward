@@ -137,7 +137,7 @@ skills.sh ecosystem usable inside Steward, and lets our skills be installed else
 | meetmybot.ai                                                                                                        | The product shape: 18 job categories, the listing fields (pitch, what it does, what you need, creator, Try it), "I use this", claim and report flows, no paid placement, the MCP connector's tool set, `bots.json`, `feed.xml`, `llms.txt` | (patterns only; its data is third-party creators') | Re-implemented. No data copied.                                                                                                                                                                         |
 | [lobehub/lobe-chat-agents](https://github.com/lobehub/lobe-chat-agents)                                             | 505 agents as JSON (`meta.title/description/tags/category`, `config.systemRole/openingMessage/openingQuestions/fewShots`, `examples`, `author`, `homepage`, `createdAt`), schema v1, translations                                          | MIT                                                | **Seed converter**: `systemRole` → instructions, `openingQuestions` → starters, `examples` → examples, with credit to each `author`. Prompt-only bots get `needs.tools: []` and are marked "chat only". |
 | [CopilotKit/openbot](https://github.com/CopilotKit/openbot) `examples/fintech/catalog/`                             | Ten coworker YAMLs (expense review, ticket triage, release notes, on-call handover, …) with standing roles                                                                                                                                 | MIT                                                | Converted to packs; good "work" category seeds                                                                                                                                                          |
-| [Agent Skills spec](https://agentskills.io) ([agentskills/agentskills](https://github.com/agentskills/agentskills)) | The `SKILL.md` format and the `skills-ref` validator                                                                                                                                                                                       | Apache-2.0                                         | Adopted for skills; validator run in CI                                                                                                                                                                 |
+| [Agent Skills spec](https://agentskills.io) ([agentskills/agentskills](https://github.com/agentskills/agentskills)) | The `SKILL.md` format and the `skills-ref` validator                                                                                                                                                                                       | Apache-2.0                                         | Adopted for skills; the `skills-ref` validator is not run yet                                                                                                                                           |
 | [vercel-labs/skills](https://github.com/vercel-labs/skills) (`npx skills`) and [skills.sh](https://skills.sh)       | Installing skills from any GitHub repo; a public skills index                                                                                                                                                                              | MIT                                                | Steward's skill loader reads the same layout; the Bots page can show "skills you can also add" from skills.sh (link, not copy)                                                                          |
 | [obra/superpowers](https://github.com/obra/superpowers)                                                             | A large MIT skills library                                                                                                                                                                                                                 | MIT                                                | Candidate seed for developer bots                                                                                                                                                                       |
 | [anthropics/skills](https://github.com/anthropics/skills)                                                           | Anthropic's skills (pdf, docx, xlsx, pptx, …)                                                                                                                                                                                              | **Proprietary** (`LICENSE.txt`)                    | **Not bundled.** The directory may link to them for people to install themselves.                                                                                                                       |
@@ -239,19 +239,38 @@ it is a suggestion.
 3. **Validate** (fails closed):
    - schema and ids; every tool exists; every rule is `ask` or `deny` and compiles in the
      gateway's CEL engine;
-   - `skills-ref validate` on each skill;
+   - **what each rule means** (built 10 Nov 2026, `packages/bots/src/meaning.ts`): a condition
+     that reads nothing about the call, or compares the tool with a kind, place or tool that does
+     not exist (`tool.kind == "calendar_create"`), is refused. Each condition that reads only the
+     tool is tried against every tool the bot holds, in every kind the gateway could raise it to;
+     an ask rule none of them triggers, an ask before reading only, a deny rule that refuses the
+     bot's own tools and the same rule twice are warnings. Whether a rule's name matches its
+     condition needs a reader: the judge is shown the rules (step 4);
    - **injection scan** over instructions and skills (the gateway's outbound scanner plus a list
      of "ignore previous instructions"-style patterns);
-   - **gateway dry run**: each example ask is turned into the tool calls the bot would plausibly
-     make and run through `governance.dryRun`; a bot whose first example would be refused by a
-     preset is rejected;
-   - plain-language check (sentence length, no jargon list), no personal data, no brand claims.
-4. **Judge.** A second model scores usefulness, honesty and overlap against a rubric; below the bar
-   is dropped. Near-duplicates (embedding distance) are merged.
+   - plain-language check (sentence length, no jargon list), no personal data, no brand claims;
+   - **content warnings** (built 10 Nov 2026, `packages/bots/src/content.ts`): a tool the text
+     names but the bot does not hold, `memory_remember` used to look something up, a password
+     asked for in the chat (a bot hands sign-ins to the person with `request_help`), starters in
+     quote marks or with `[placeholders]`, and a health, money or investing bot that never tells
+     the agent to send the person to a doctor or a qualified adviser;
+   - **not built yet:** `skills-ref validate` on each skill, and the **example dry run** (each
+     example ask turned into the tool calls the bot would plausibly make and run through
+     `governance.dryRun`, rejecting a bot whose first example a preset would refuse). Neither
+     runs in CI.
+4. **Judge.** A second model scores usefulness, honesty and clarity against a rubric, and safety
+   for health, money and investing bots. It sees each rule, and a rule whose name says something
+   its condition does not costs a point. Below the bar, or under 3 for safety, is dropped.
+   Near-duplicates (embedding distance) are merged. A generated rule must be one of the
+   generator's menu of conditions, and takes its name and description from the menu, so its name
+   says what it does.
 5. **Label and version.** `author.kind: ai` with model and date; `version: 1`;
    "AI-made, not yet used by anyone" until the first install.
 6. **Retire.** A nightly job retires AI-made bots with no installs after 90 days and regenerates
-   categories that thinned out.
+   categories that thinned out. Built with pacing (10 Nov 2026): one night takes at most a tenth
+   of a category, lowest judge score first, and never takes a category under its floor of 20
+   unless the same run wrote a new bot for it. Without that, the 1,064 bots made on 28 and 29 Oct
+   would have left in two nights around 27 Jan 2027, leaving investing and travel empty.
 
 Launch target: **2,000 bots across 19 categories**, plus the 505 LobeChat conversions and
 OpenBot's ten, all through the same validators. Cost at today's prices is a few tens of dollars;
@@ -357,7 +376,7 @@ The `AgentProfile` gains `source: "tenant" | "bot:<id>"`; `AppInfo.agents` lists
 
 | Track                     | Owns                                                                                                           | Done when                                                                                                           | Size  |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----- |
-| Pack format and loader    | `packages/bots` (schema, `SKILL.md` loader, validators incl. rule and injection checks, pack hash)             | Round-trips tenants/steward and tenants/tempo as packs; `skills-ref`-valid; tests                                   | ~1k   |
+| Pack format and loader    | `packages/bots` (schema, `SKILL.md` loader, validators incl. rule and injection checks, pack hash)             | Round-trips tenants/steward and tenants/tempo as packs; tests (`skills-ref` not run yet)                            | ~1k   |
 | Installed bots            | `apps/server` (tables, routes, `AgentHost` from tenant + installed, audit rows), `packages/shared/src/bots.ts` | Install, preview, update with diff, remove; agent appears in `/api/info`; tests                                     | ~900  |
 | Bots page and picker      | `apps/web/src/pages/BotsPage.tsx`, `features/chat` agent picker, `/bots/add` route                             | Browse, listing, Add, Installed, Make a bot; axe clean; e2e                                                         | ~1.2k |
 | Generator                 | `packages/bots-gen` (taxonomy, generate, validate, judge, dedupe, retire)                                      | 2,000 packs generated in CI with the validator report; `make-a-bot` works locally with the scripted model for tests | ~900  |

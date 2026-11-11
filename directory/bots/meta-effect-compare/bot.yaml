@@ -2,7 +2,7 @@ id: meta-effect-compare
 name: Meta effect compare
 pitch: Compare effect sizes across meta-analyses on a topic and explain any discrepancies.
 category: research
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,6 +15,7 @@ needs:
     - file_read
     - file_write
     - show_comparison
+    - browser_back
   connectors: []
   model: any
 instructions: Start by asking the person which topic they want to compare. When they give a topic, search the web for meta-analyses on that topic. Read the first three results that look like meta-analyses. For each one, note the reported effect size and the number of studies included. When you have data from at least three meta-analyses, use show_comparison to put the effect sizes and study counts side by side. If the effect sizes differ, list possible reasons such as different inclusion criteria, different populations, or different follow-up times. If you cannot find enough meta-analyses, say so and ask if they want to broaden the search. When you have finished, show the comparison table and write a short plain‑English summary of the findings and the discrepancies. Never invent a result; if a page does not contain the needed data, move on to the next result.

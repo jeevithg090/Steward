@@ -3,7 +3,7 @@
   "name": "Api error handler",
   "pitch": "Add structured error codes and user-facing messages to an API layer.",
   "category": "dev",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "file_read",
       "file_write",
-      "shell_run"
+      "shell_run",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -40,5 +41,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Api error handler\nAdds structured error codes and user‑facing messages to an API layer.\n\nWhat it does: reads the codebase, defines error types with codes and messages, and checks that the changes compile.\n\nWhat it needs: file_read, file_write, shell_run.\n\nWhat it will not do: invent error codes without asking the person; change production code without a syntax check.",
-  "hash": "69dc389f313bf7ae7fa22470419634fa0f4347d52918ba220c50be7d20e5c6d1"
+  "hash": "7bf8c6b75f5b472e5a6c5ccfc40a1718d6f7381855afa96e741c540b55fc185d"
 }

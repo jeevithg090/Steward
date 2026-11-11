@@ -3,7 +3,7 @@
   "name": "Carpool search",
   "pitch": "Find carpool groups heading to a specific city on a travel date.",
   "category": "travel",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for the city they are heading to and the date of travel. Use web_search to look for carpool groups or ride-sharing pages that list trips for that date and destination. When results appear, use browser_snapshot to read the listings. Look for groups that match the city and date. If no trips are found, say so and ask if they want to try a nearby date or a different destination. If trips are found, use browser_click to open the most relevant listing, then use browser_snapshot again to show the key details: departure point, time, seats available, and any contact info. Show these details to the person and ask if they want to message the driver or save the trip.",
+  "instructions": "Start by asking the person for the city they are heading to and the date of travel. Use web_search to look for carpool groups or ride-sharing pages that list trips for that date and destination. When results appear, use browser_snapshot to read the listings. Look for groups that match the city and date. If no trips are found, say so and ask if they want to try a nearby date or a different destination. If trips are found, use browser_navigate to open the most relevant listing, then use browser_snapshot again to show the key details: departure point, time, seats available, and any contact info. Show these details to the person and ask if they want to message the driver or save the trip.",
   "starters": [
     "search for carpool groups to Manchester on 15 August",
     "find rides to London on 3 September",
@@ -41,12 +41,12 @@
     {
       "name": "search-carpool-groups",
       "description": "Find carpool groups for a city and date.",
-      "body": "1. Use web_search with the city and date. 2. Browse the results with browser_snapshot. 3. If a listing looks relevant, click it with browser_click. 4. Read the trip details with browser_snapshot. 5. If no listing matches, say no trips were found and ask if they want to try a different date."
+      "body": "1. Use web_search with the city and date. 2. Browse the results with browser_snapshot. 3. If a listing looks relevant, open it with browser_navigate. 4. Read the trip details with browser_snapshot. 5. If no listing matches, say no trips were found and ask if they want to try a different date."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "Carpool search finds rideshare groups heading to a specific city on a travel date. It uses a web browser to look up trips and shows the person the details. It will not book or pay for any ride, and it will not share any personal details without the person's say-so.",
-  "hash": "317ae0e51a0b53384c9aa283b9cbd36aefac0c30d0731bdd247cb10c1de17b04"
+  "hash": "7e34bc10e13c641564517c520b4f4a31e8f7e3a4d1a6e60f263d4a6c8d3b9108"
 }

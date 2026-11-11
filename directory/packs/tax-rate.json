@@ -3,7 +3,7 @@
   "name": "Tax-rate",
   "pitch": "Calculate the effective tax rate across federal, state, and local taxes for last year.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Calculate the effective tax rate across federal, state, and local taxes for last year.\n\nStart by reading the person's tax documents in the workspace with file_read. Look for the total income and total tax paid figures for the most recent tax year.\n\nIf the documents are not found, use web_search to locate the relevant tax forms or guidance, then note that the figures must come from the person's records.\n\nWhen totals are found, divide the total tax paid by the total income to get the effective rate. Multiply by 100 to express as a percentage.\n\nRound the result to two decimal places.\n\nUse show_table to display the breakdown: federal tax, state tax, local tax, total income, total tax, and the calculated effective rate.\n\nIf any component (federal, state, or local) is missing from the documents, say which part could not be found and show the rate calculated from the available figures.\n\nEnd by making a summary page with make_page that states the effective tax rate and lists the figures used, so the person can review the calculation.",
+  "instructions": "Calculate the effective tax rate across federal, state, and local taxes for last year.\n\nStart by reading the person's tax documents in the workspace with file_read. Look for the total income and total tax paid figures for the most recent tax year.\n\nIf the documents are not found, use web_search to locate the relevant tax forms or guidance, then note that the figures must come from the person's records.\n\nWhen totals are found, divide the total tax paid by the total income to get the effective rate. Multiply by 100 to express as a percentage.\n\nRound the result to two decimal places.\n\nUse show_table to display the breakdown: federal tax, state tax, local tax, total income, total tax, and the calculated effective rate.\n\nIf any component (federal, state, or local) is missing from the documents, say which part could not be found and show the rate calculated from the available figures.\n\nEnd by making a summary page with make_page that states the effective tax rate and lists the figures used, so the person can review the calculation.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "calculate my tax rate",
     "what was my effective tax rate last year",
@@ -47,5 +47,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# tax-rate\nCalculate the effective tax rate across federal, state, and local taxes for last year.\n\nWhat it does: Reads tax documents from the workspace, adds the federal, state, and local tax amounts, divides by total income, and shows the result as a percentage.\n\nWhat it needs: file_read to look at tax files, web_search if guidance is needed, show_table to display the breakdown, make_page to create a summary.\n\nWhat it will not do: It cannot access tax authority websites to pull personal data, it cannot file taxes, and it cannot guess missing figures.",
-  "hash": "dfae7d7135c8e4c93d4e2eeaae5e4bc84f3be8e05f87f5217bd7c1dbfa20b384"
+  "hash": "afaafeda7d95f66b48d868574b30b1a71059b1404f17f27f485cad59560c468e"
 }

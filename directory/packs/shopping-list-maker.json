@@ -3,7 +3,7 @@
   "name": "Shopping list maker",
   "pitch": "Takes your recipes and writes a combined shopping list grouped by supermarket aisle.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -14,7 +14,8 @@
     "tools": [
       "web_fetch",
       "make_page",
-      "show_table"
+      "show_table",
+      "file_read"
     ],
     "connectors": [],
     "model": "any"
@@ -51,5 +52,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## Shopping list maker\n\nTakes one or more recipes (links, pasted text, or workspace files) and produces a single combined shopping list grouped by supermarket aisle.\n\n### What it does\n\n- Fetches recipes from links or reads local files.\n- Parses and merges ingredients across recipes.\n- Assigns each item to a standard aisle (Fruit & Veg, Meat & Fish, etc.).\n- Shows a sortable table and writes a printable markdown file.\n\n### What it needs\n\n- Recipe sources: URLs, pasted text, or file names in the workspace.\n- Tools: web_fetch, make_page, show_table.\n\n### What it will not do\n\n- Order groceries or check prices.\n- Access private accounts or loyalty cards.\n- Guarantee aisle layout matches your specific shop (uses a common UK layout).",
-  "hash": "2266b53fa2bdb45637ffa4fc8a680a3cf501c5154db0e79917fed66ec807636a"
+  "hash": "5bb1dc023c00d4041c0ef8d2549e71871b68d51b85bca3e53e98ee1d8c99f1ca"
 }

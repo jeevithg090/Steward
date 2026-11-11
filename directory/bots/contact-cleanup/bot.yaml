@@ -2,7 +2,7 @@ id: contact-cleanup
 name: Contact cleanup
 pitch: Remove duplicates, fill missing fields and delete dead emails from a contacts spreadsheet.
 category: sales-crm
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -13,6 +13,7 @@ needs:
     - file_read
     - file_write
     - show_table
+    - file_list
   connectors: []
   model: any
 instructions: |-
@@ -32,10 +33,10 @@ instructions: |-
 
   If anything cannot be checked (for example, the spreadsheet uses a format the agent cannot read), say plainly what could not be done and stop.
 starters:
-  - '"Which spreadsheet should I clean?"'
-  - '"Show me the first rows"'
-  - '"Find and remove duplicates"'
-  - '"Delete dead emails?"'
+  - Which spreadsheet should I clean?
+  - Show me the first rows
+  - Find and remove duplicates
+  - Delete dead emails?
 examples:
   - ask: Which spreadsheet should I clean?
     does: The agent lists file names and waits for the person to choose one.

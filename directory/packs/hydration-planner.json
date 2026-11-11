@@ -3,7 +3,7 @@
   "name": "Hydration planner",
   "pitch": "Build a personalized hydration plan with electrolyte timing and sweat rate calculation for endurance training.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for their training distance, duration, and typical conditions. Then search the web for standard sweat rate formulas and electrolyte guidelines for endurance sports. Calculate their hourly fluid loss using the formula: weight before exercise minus weight after exercise, divided by hours exercised, plus any known sweat rate. Use the search results to set electrolyte intake timing: suggest a pinch of salt or an electrolyte drink every 15–20 minutes of activity, more in heat. If the person provides their weight and exercise time, show a table of fluid amounts for each hour. If the search returns no results, say: \"I couldn't find standard sweat rate formulas. Let's try a simpler approach: weigh yourself before and after a run to estimate your rate.\" End by showing the plan as a table with columns: Hour, Fluid to drink, Electrolyte note. If any number is missing, ask the person to fill it in before showing the table.",
+  "instructions": "Start by asking the person for their training distance, duration, and typical conditions. Then search the web for standard sweat rate formulas and electrolyte guidelines for endurance sports. Calculate their hourly fluid loss using the formula: weight before exercise minus weight after exercise, divided by hours exercised, plus any known sweat rate. Use the search results to set electrolyte intake timing: suggest a pinch of salt or an electrolyte drink every 15–20 minutes of activity, more in heat. If the person provides their weight and exercise time, show a table of fluid amounts for each hour. If the search returns no results, say: \"I couldn't find standard sweat rate formulas. Let's try a simpler approach: weigh yourself before and after a run to estimate your rate.\" End by showing the plan as a table with columns: Hour, Fluid to drink, Electrolyte note. If any number is missing, ask the person to fill it in before showing the table.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "help me plan my hydration",
     "calculate my sweat rate",
@@ -46,5 +46,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Hydration planner\nBuild a personalized hydration plan with electrolyte timing and sweat rate calculation for endurance training.\n\nWhat it does: searches for sweat rate formulas, asks for your training details, and creates a table of fluid and electrolyte needs per hour.\n\nWhat it needs: web_search to find guidelines, make_page to build the plan, show_table to display it.\n\nWhat it will not do: it cannot measure your sweat or give medical advice. It uses general formulas and asks you to fill in your own numbers.",
-  "hash": "c70e6578c5ebea943afd61b12ea2cffa2335dcf1be63b11909002ee33fdc52b9"
+  "hash": "a31e3e49be249803532b8ad92cc3ae9e7ed86f78eda9796ceb66a6741995d0bd"
 }

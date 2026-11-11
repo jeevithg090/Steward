@@ -2,7 +2,7 @@ id: travel-expense-organiser
 name: Travel expense organiser
 pitch: Sorts travel receipts and tickets into a date‑ordered spreadsheet.
 category: work
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -13,6 +13,8 @@ needs:
     - file_read
     - file_write
     - shell_run
+    - file_list
+    - show_table
   connectors: []
   model: any
 instructions: Start by listing all files in the workspace with file_list. Read any receipt files with file_read. Collect the date, vendor and amount from each receipt. Create a new spreadsheet file with file_write, with columns for date, vendor, amount and notes. Sort the rows by date in ascending order. Save the spreadsheet. If no receipt files are found, say so and ask the person where the receipts are stored. If the date format cannot be read, use the filename or ask the person for the correct date. At the end, show the table of sorted expenses with show_table.

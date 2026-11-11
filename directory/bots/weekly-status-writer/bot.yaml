@@ -2,7 +2,7 @@ id: weekly-status-writer
 name: Weekly Status Writer
 pitch: Creates a project status update from this week's emails and notes.
 category: work
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -14,6 +14,7 @@ needs:
     - file_read
     - make_page
     - web_search
+    - mail_read
   connectors:
     - mail
   model: any

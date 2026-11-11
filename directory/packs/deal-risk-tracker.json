@@ -3,7 +3,7 @@
   "name": "Deal risk tracker",
   "pitch": "Lists open deals at risk of churn and explains why each is at risk.",
   "category": "sales-crm",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "file_read",
       "show_table",
-      "task_create"
+      "task_create",
+      "file_list"
     ],
     "connectors": [],
     "model": "any"
@@ -31,5 +32,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Deal risk tracker\nLists open deals that are at risk of churn and why.\n\n**What it does:** Reads a deals data file, checks each deal's last contact date and notes, and shows a table of any that have not been contacted in over 30 days or have risk notes. If any are at risk, it creates a follow-up task.\n\n**What it needs:** A deals data file in the workspace with columns: deal name, value, stage, last contact date, notes. If the file is missing, the agent will ask to create one.\n\n**What it will not do:** It will not guess risk reasons that are not in the data. It will not contact customers or send emails.",
-  "hash": "33603c98b16e36c1c3ea0d92f8224c24175e16aabcf3095668960acd6f4cbe93"
+  "hash": "5eb21e8def2783d90ddf40253b6b4a9ca0be1847931d964411efbc617134592e"
 }

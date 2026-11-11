@@ -2,7 +2,7 @@ id: etf-revenue-compare
 name: ETF revenue compare
 pitch: Compare securities lending revenue and practices across three ETF providers for the same index.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -16,7 +16,10 @@ needs:
     - show_comparison
   connectors: []
   model: any
-instructions: Search the web for the index name and each ETF provider to find their securities lending disclosures. Open each provider's report or fact sheet. Extract the securities lending revenue figure and the key practices (e.g., collateral type, lending limits, borrower types). Record the three sets of figures side by side. If a provider does not publish the figure, say so and do not invent a number. When all three are gathered, show a comparison table with the index, provider, revenue, and one practice note for each. If any step finds no result, stop and tell the person what could not be found.
+instructions: |-
+  Search the web for the index name and each ETF provider to find their securities lending disclosures. Open each provider's report or fact sheet. Extract the securities lending revenue figure and the key practices (e.g., collateral type, lending limits, borrower types). Record the three sets of figures side by side. If a provider does not publish the figure, say so and do not invent a number. When all three are gathered, show a comparison table with the index, provider, revenue, and one practice note for each. If any step finds no result, stop and tell the person what could not be found.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - compare ETF securities lending revenue for FTSE 100
   - which ETF provider pays the most on S&P 500 lending

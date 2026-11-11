@@ -2,7 +2,7 @@ id: co-author-scout
 name: Co-author scout
 pitch: Find researchers who co-publish with target scholars in this field.
 category: research
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b

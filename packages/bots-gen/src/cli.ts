@@ -21,7 +21,16 @@ import {
 import type { Problem } from "./generate.ts";
 import { interleaveByCategory, JOBS_FILE, loadJobs } from "./jobs.ts";
 import { createSeedModel, judgeConfig, seedModelConfig } from "./model.ts";
-import { type RegenerateOptions, readCounts, readRetired, runRetirement } from "./retire.ts";
+import {
+  CATEGORY_FLOOR,
+  RETIRE_AFTER_DAYS,
+  RETIRE_SHARE,
+  type RegenerateOptions,
+  readCounts,
+  readGenerateLog,
+  readRetired,
+  runRetirement,
+} from "./retire.ts";
 import { proposeJobs, readAiJobs, writeAiJobs } from "./taxonomy.ts";
 
 /**
@@ -34,7 +43,7 @@ import { proposeJobs, readAiJobs, writeAiJobs } from "./taxonomy.ts";
  *   jobs [--target 106] [--category <key>] [--per-call 25] [--rounds 8]
  *   generate --limit N [--category <key>] [--concurrency 4] [--template] [--no-judge] [--retry-dropped]
  *   dedupe [--confirm] [--min 0.8]
- *   retire [--days 90] [--floor 20] [--now <date>] [--apply] [--regenerate]
+ *   retire [--days 90] [--floor 20] [--share 0.1] [--now <date>] [--apply] [--regenerate]
  *   build [--site <url>] [--name <text>]
  *   report [--write]
  */
@@ -466,16 +475,16 @@ async function shelfDuplicates(opts: { confirm: boolean; min?: number }): Promis
 async function retire(opts: {
   days: number;
   floor: number;
+  share: number;
   now?: string;
   apply: boolean;
   regenerate: boolean;
 }): Promise<void> {
   const now = opts.now ? new Date(opts.now) : new Date();
   if (Number.isNaN(now.getTime())) throw new Error(`--now: "${opts.now}" is not a date`);
-  const rows = await readLog();
-  const jobById = new Map(
-    rows.flatMap((r) => (r.status === "written" && r.id ? [[r.id, r.job] as const] : [])),
-  );
+  if (!(opts.share > 0 && opts.share <= 1)) throw new Error("--share: give a fraction above 0, up to 1");
+  await moveOldLog();
+  const fromLog = await readGenerateLog(DIRECTORY);
   let regenerate: RegenerateOptions | undefined;
   if (opts.regenerate) {
     const models = await seedModels(false);
@@ -499,13 +508,15 @@ async function retire(opts: {
     now,
     days: opts.days,
     floor: opts.floor,
+    share: opts.share,
     apply: opts.apply,
-    jobOf: (id) => jobById.get(id),
+    jobOf: fromLog.jobOf,
+    scoreOf: fromLog.scoreOf,
     ...(regenerate ? { regenerate } : {}),
     log,
   });
   log(
-    `Retirement as of ${now.toISOString().slice(0, 10)}: ${run.retire.length} AI-made bots unused for ${opts.days} days.`,
+    `Retirement as of ${now.toISOString().slice(0, 10)}: ${run.retire.length + run.held.length} AI-made bots unused for ${opts.days} days; ${run.retire.length} ${opts.apply ? "retired" : "would go"} in this run.`,
   );
   for (const r of run.retire.slice(0, 50)) log(`  ${r.id} (${r.category}, made ${r.generated})`);
   if (run.retire.length > 50) log(`  … and ${run.retire.length - 50} more`);
@@ -513,8 +524,17 @@ async function retire(opts: {
   log(
     `  ${run.young.length} AI-made bots are inside their ${opts.days} days${soonest ? `; the first reaches it in ${soonest.daysLeft} days` : ""}.`,
   );
+  if (run.held.length > 0) {
+    const held = tally(run.held, (h) => `${h.category} (${h.reason})`);
+    log(
+      `  ${run.held.length} more are due but held back: a run takes at most ${Math.round(opts.share * 100)}% of a category, lowest judge score first, and never goes under the floor of ${opts.floor}.`,
+    );
+    log(`    ${formatTally(held)}`);
+  }
   for (const t of run.thinned)
-    log(`  thinned: ${t.category} has ${t.live}, floor ${t.floor}, needs ${t.need}`);
+    log(
+      `  thinned: ${t.category} has ${t.live}, floor ${t.floor}; ${t.need} new bots would let as many go now`,
+    );
   if (!opts.apply)
     log("Nothing was changed. Add --apply to retire them, and --regenerate to top up thinned categories.");
   else
@@ -562,11 +582,9 @@ async function report(write: boolean): Promise<void> {
     "",
     "## Problems",
     "",
-    `${errors.length} errors, ${warnings.length} warnings across ${new Set(problems.map((p) => p.id)).size} packs.`,
+    `${errors.length} errors, ${warnings.length} warnings across ${new Set(problems.map((p) => p.id)).size} packs. Warnings do not stop a pack; a reviewer reads them.`,
     "",
-    ...Object.entries(
-      tally(warnings, (w) => w.problem.message.replace(/\(.*?\)|".*?"/g, "…").slice(0, 80)),
-    ).map(([msg, n]) => `- ${n} × ${msg}`),
+    ...warningLines(warnings),
     ...errors.map((e) => `- ERROR ${e.id}: ${e.problem.path}: ${e.problem.message}`),
     "",
     "## Generation log",
@@ -585,6 +603,43 @@ async function report(write: boolean): Promise<void> {
     await writeFile(join(DIRECTORY, "REPORT.md"), text, "utf8");
     log("Written to directory/REPORT.md.");
   }
+}
+
+/** Warnings by kind, most first. Style ones are counted; the others name their packs. */
+const WARNING_KINDS: readonly [RegExp, string, "style" | "content"][] = [
+  [/^a sentence has \d+ words/, "a sentence is over 35 words", "style"],
+  [/^uses jargon/, "uses jargon", "style"],
+  [/^names .* not in needs\.tools/, "the text names a tool the bot does not hold", "content"],
+  [/^uses \w+ to look something up/, "a tool is used to look up what it cannot", "content"],
+  [/^is wrapped in quote marks/, "a starter is in quote marks", "content"],
+  [/^has a placeholder/, "a starter has a placeholder", "content"],
+  [/^never tells the agent/, "a health or money bot never sends the person to a professional", "content"],
+  [/^never applies/, "a rule none of the bot's tools can trigger", "content"],
+  [/^can never apply/, "a deny rule no tool can trigger", "content"],
+  [/^only asks before reading/, "a rule asks before reading or showing only", "content"],
+  [/^refuses .* which this bot needs/, "a rule refuses the bot's own tools", "content"],
+  [/^is the same rule as/, "the same rule twice", "content"],
+];
+
+function warningLines(warnings: readonly { id: string; problem: Problem }[]): string[] {
+  const groups = new Map<string, { kind: "style" | "content"; ids: string[] }>();
+  for (const { id, problem } of warnings) {
+    const known = WARNING_KINDS.find(([re]) => re.test(problem.message));
+    const label = known?.[1] ?? problem.message.replace(/\(.*?\)|".*?"/g, "…").slice(0, 80);
+    const group = groups.get(label) ?? { kind: known?.[2] ?? "content", ids: [] };
+    group.ids.push(id);
+    groups.set(label, group);
+  }
+  return [...groups.entries()]
+    .sort((a, b) => b[1].ids.length - a[1].ids.length)
+    .map(([label, { kind, ids }]) => {
+      const packs = [...new Set(ids)];
+      const named =
+        kind === "content"
+          ? `: ${packs.slice(0, 12).join(", ")}${packs.length > 12 ? `, and ${packs.length - 12} more` : ""}`
+          : "";
+      return `- ${ids.length} × ${label}${named}`;
+    });
 }
 
 /** The launch target (plan §4): AI-made bots across the 19 categories. */
@@ -678,6 +733,7 @@ async function main(argv: string[]): Promise<void> {
       min: { type: "string" },
       days: { type: "string" },
       floor: { type: "string" },
+      share: { type: "string" },
       now: { type: "string" },
       apply: { type: "boolean", default: false },
       regenerate: { type: "boolean", default: false },
@@ -721,8 +777,9 @@ async function main(argv: string[]): Promise<void> {
       return;
     case "retire":
       await retire({
-        days: int(values.days, 90),
-        floor: int(values.floor, 20),
+        days: int(values.days, RETIRE_AFTER_DAYS),
+        floor: int(values.floor, CATEGORY_FLOOR),
+        share: values.share ? Number.parseFloat(values.share) : RETIRE_SHARE,
         now: values.now,
         apply: values.apply,
         regenerate: values.regenerate,

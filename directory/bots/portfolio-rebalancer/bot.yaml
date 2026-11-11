@@ -2,7 +2,7 @@ id: portfolio-rebalancer
 name: Portfolio Rebalancer
 pitch: Calculates the trades needed to return your portfolio to its target asset allocation and presents them for your review.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -63,6 +63,8 @@ instructions: |-
   - A clear allocation comparison table.
   - A detailed trade list they can copy or export.
   - A summary of any assumptions or data issues.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - Rebalance my portfolio using the holdings and targets files in the workspace.
   - Show me the trades needed to get back to my target allocation.

@@ -86,17 +86,23 @@ describe("the nightly retirement", () => {
     expect((await f.request("/api/bots?q=dinners")).body.total).toBe(0);
   });
 
-  it("reports a thinned category when top-up is off, on the review page", async () => {
+  it("never takes a category under its floor, and reports it when top-up is off", async () => {
     const thin = await makeFixture({
       config: { retirement: { days: 90, hour: 3, floor: 3, regenerate: false } },
     });
     try {
       const run = await thin.server.retirement.run(NOW);
-      expect(run.thinned).toEqual([{ category: "food", live: 0, floor: 3, need: 3 }]);
+      // food has one bot, under the floor of 3: it stays until a new bot can take its place.
+      expect(run.retired).toEqual([]);
+      expect(run.held).toBe(1);
+      expect(run.thinned).toEqual([{ category: "food", live: 1, floor: 3, need: 1 }]);
       expect(run.problem).toBeUndefined();
+      expect(existsSync(join(thin.dir, "bots", "meal-planner"))).toBe(true);
       const page = await thin.request("/admin", { session: thin.signIn("rev", 900) });
-      expect(page.text).toContain("1 bot retired");
-      expect(page.text).toContain("Thinned: food (0 of 3)");
+      expect(page.text).toContain("0 bots retired");
+      expect(page.text).toContain("1 more bot due but held back for a later run.");
+      expect(page.text).toContain("never takes a category under 3");
+      expect(page.text).toContain("Thinned: food (1 of 3)");
       expect(page.text).toContain("top-up is off");
     } finally {
       await thin.close();

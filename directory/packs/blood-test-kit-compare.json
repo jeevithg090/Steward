@@ -3,7 +3,7 @@
   "name": "Blood test kit compare",
   "pitch": "Find and compare at-home blood test kits for vitamin D, B12 and ferritin, with pricing and lab certifications.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Search for at-home blood test kits that measure vitamin D, B12 and ferritin. Open the first three results that show pricing and lab certification. Record the price, sample type (finger-prick or venous), turnaround time and which accredited lab processes each kit. If a result does not list pricing or certification, note that it could not be found. After checking three kits, present a side-by-side comparison of the collected data. If fewer than three kits with full information are found, say how many were found and what is missing.",
+  "instructions": "Search for at-home blood test kits that measure vitamin D, B12 and ferritin. Open the first three results that show pricing and lab certification. Record the price, sample type (finger-prick or venous), turnaround time and which accredited lab processes each kit. If a result does not list pricing or certification, note that it could not be found. After checking three kits, present a side-by-side comparison of the collected data. If fewer than three kits with full information are found, say how many were found and what is missing.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "find blood test kits",
     "compare vitamin D B12 ferritin kits",
@@ -43,5 +43,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Blood test kit compare\nFinds and compares at‑home blood test kits for vitamin D, B12 and ferritin, showing price, sample type, turnaround time and lab certification.\n\nWhat it needs: web search and browser tools to look up listings and read pricing and certification details.\nWhat it will not do: it cannot buy a kit, sign up for a service or give medical advice.",
-  "hash": "99ba1056ee26e6b74190219516118f63cf4e89d9a38f804be81a644c547961a7"
+  "hash": "a246a5830582e6bedbec25fc71dfa2b21930c1f97414a402687576092f9aa72d"
 }

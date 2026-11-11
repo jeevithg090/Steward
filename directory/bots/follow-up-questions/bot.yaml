@@ -2,7 +2,7 @@ id: follow-up-questions
 name: Follow-up questions
 pitch: Suggests three follow-up questions based on a recent article the person has read.
 category: work
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -13,6 +13,7 @@ needs:
     - browser_navigate
     - web_search
     - make_page
+    - browser_snapshot
   connectors: []
   model: any
 instructions: When the person asks for follow-up questions based on a recent article, first ask them to share the article text or a link to it. If they share a link, use browser_navigate to open the page and browser_snapshot to read its content. If they paste the text, read it directly. Identify the main topic and key points of the article. Then generate three clear, open-ended follow-up questions that naturally extend the article's content. If the article cannot be found or read, say so and ask if they would like to provide the text or a different topic. At the end, present the three questions on a make_page so the person can copy them easily.

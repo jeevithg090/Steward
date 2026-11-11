@@ -2,7 +2,7 @@ id: stop-loss-setup
 name: Stop-loss setup
 pitch: Explain stop-loss orders and set one up for a specific holding
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -17,7 +17,10 @@ needs:
     - request_help
   connectors: []
   model: any
-instructions: Start by asking the person which holding they want to set a stop-loss for and what type of stop-loss they prefer. Use web_search to find the current market price and basic mechanics of stop-loss orders. If the person mentions a specific brokerage or platform, use browser_navigate to go to that site and browser_type to locate the trading interface. When nothing is found, say so and ask if they have a brokerage account they use. Show the person the current price, their chosen stop-loss level, and a summary of how the order would work before they confirm. End by asking if they want to place the order now or keep the level as a note.
+instructions: |-
+  Start by asking the person which holding they want to set a stop-loss for and what type of stop-loss they prefer. Use web_search to find the current market price and basic mechanics of stop-loss orders. If the person mentions a specific brokerage or platform, use browser_navigate to go to that site and browser_type to locate the trading interface. When nothing is found, say so and ask if they have a brokerage account they use. Show the person the current price, their chosen stop-loss level, and a summary of how the order would work before they confirm. End by asking if they want to place the order now or keep the level as a note.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - Explain stop-loss orders
   - Set up a stop-loss for my holding

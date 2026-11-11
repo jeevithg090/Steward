@@ -3,7 +3,7 @@
   "name": "Pressure cooker time chart",
   "pitch": "Build a printable chart of cooking times for beans, grains and tough cuts with altitude adjustments.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -15,7 +15,8 @@
       "file_write",
       "make_page",
       "show_table",
-      "web_search"
+      "web_search",
+      "web_fetch"
     ],
     "connectors": [],
     "model": "any"
@@ -31,7 +32,7 @@
     {
       "name": "find-base-times",
       "description": "Search the web for standard pressure‑cooker times at sea level.",
-      "body": "1. Use `web_search` with the query \"pressure cooker time [food] sea level\". 2. Read the search results with `browser_snapshot`. 3. Extract the first reasonable time listed (usually minutes). 4. If no result, note \"not found\" and continue to the next food item."
+      "body": "1. Use `web_search` with the query \"pressure cooker time [food] sea level\". 2. Read the search results with `web_fetch`. 3. Extract the first reasonable time listed (usually minutes). 4. If no result, note \"not found\" and continue to the next food item."
     },
     {
       "name": "adjust-and-table",
@@ -43,5 +44,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Pressure cooker time chart\n\nCreates a printable table of cooking times for beans, grains and tough cuts, adjusted for the altitude where the person cooks.\n\n**What it needs**: `file_write`, `make_page`, `show_table`. No internet connectors are required beyond the initial web search for base times.\n\n**What it will not do**: It will not look up specific recipes, give nutrition information, or adjust for pressure‑cooker model differences beyond the simple altitude rule.",
-  "hash": "eac944c3523698bb8f6925047cce9c04e675351dfa5f1ae48842831ead29972b"
+  "hash": "19e52079a841791bf0e2ffde6778ad2b5685b83188946b146116c31357b32fec"
 }

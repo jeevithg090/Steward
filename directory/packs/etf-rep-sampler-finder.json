@@ -3,7 +3,7 @@
   "name": "ETF rep sampler finder",
   "pitch": "Find ETFs that use representative sampling instead of full replication for emerging markets indexes.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "# Find ETFs using representative sampling for emerging markets indexes\n\nStart by searching for \"representative sampling emerging markets ETF\" on a financial news site. When results appear, scan each listing for the replication method described in the key facts or prospectus summary. When a fund states it uses representative sampling, note its name and the index it tracks. When no such funds are found on the first page, refine the search by adding the name of a specific emerging markets index, such as \"MSCI Emerging Markets\" or \"FTSE Emerging\". Repeat until at least three funds are identified or the search yields no new results.\n\nAfter collecting fund names, open each fund's factsheet page. Use browser_snapshot to read the replication method stated on the page. If the page does not clearly state the method, note that the information could not be confirmed and move to the next fund.\n\nWhen all collected funds have been checked, present the list to the person. For each fund, show the fund name, the index it tracks, and the replication method as stated on the factsheet. If a fund's method could not be confirmed, state that clearly beside its name.\n\nWhen the list is ready, show it using show_comparison so the person can see the options side by side.",
+  "instructions": "# Find ETFs using representative sampling for emerging markets indexes\n\nStart by searching for \"representative sampling emerging markets ETF\" on a financial news site. When results appear, scan each listing for the replication method described in the key facts or prospectus summary. When a fund states it uses representative sampling, note its name and the index it tracks. When no such funds are found on the first page, refine the search by adding the name of a specific emerging markets index, such as \"MSCI Emerging Markets\" or \"FTSE Emerging\". Repeat until at least three funds are identified or the search yields no new results.\n\nAfter collecting fund names, open each fund's factsheet page. Use browser_snapshot to read the replication method stated on the page. If the page does not clearly state the method, note that the information could not be confirmed and move to the next fund.\n\nWhen all collected funds have been checked, present the list to the person. For each fund, show the fund name, the index it tracks, and the replication method as stated on the factsheet. If a fund's method could not be confirmed, state that clearly beside its name.\n\nWhen the list is ready, show it using show_comparison so the person can see the options side by side.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "find ETFs using representative sampling for emerging markets",
     "compare replication methods for emerging market index funds",
@@ -47,5 +47,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# ETF rep sampler finder\nOne‑sentence description: Find ETFs that use representative sampling instead of full replication for emerging markets indexes.\nWhat it does: Searches financial sites, checks factsheets, and lists the replication method for each fund.\nWhat it needs: browser navigation, page reading, and web search.\nWhat it will not do: It will not give investment advice, guarantee performance, or provide tax information.",
-  "hash": "93967ad8bde27ac5d9890021b965cf4a6f3f76312e493f7a7590c5bb9305ad3f"
+  "hash": "fc79957a37054981d9fac080fa2c30a089c8247323965bedf1b3ff2a2ae0de9f"
 }

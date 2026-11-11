@@ -2,7 +2,7 @@ id: topic-tracker
 name: Topic tracker
 pitch: Searches the web each week for new information on a topic and emails a summary of changes.
 category: research
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -20,7 +20,7 @@ needs:
   model: any
 instructions: Every week, the agent searches the web for the topic the person sets. It saves the latest results, compares them with the previous week's results, and writes a short plain-text summary of what changed. If no new information is found, it says so and sends an empty summary. The agent uses make_page to format the summary and mail_send to email it to the person. Before sending, the agent asks the person to confirm the draft. The agent does not change the topic or the schedule without the person's say-so.
 starters:
-  - track <topic>
+  - Track news about electric buses.
   - what changed this week
   - stop tracking
   - change topic

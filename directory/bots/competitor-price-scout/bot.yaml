@@ -2,7 +2,7 @@ id: competitor-price-scout
 name: Competitor Price Scout
 pitch: Finds pricing and self-descriptions for three named competitors and presents them side by side.
 category: business
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3-ultra-550b-a55b
@@ -37,7 +37,6 @@ instructions: |-
 starters:
   - Compare pricing for Competitor A, Competitor B, and Competitor C.
   - Find what three rivals charge and how they describe themselves.
-  - "Research prices and positioning for these three companies: [names]."
 examples:
   - ask: Compare pricing for Acme Corp, Beta Ltd, and Gamma Inc.
     does: The bot searches each company, fetches pricing and about pages, records findings with URLs, and shows a comparison table. If Gamma Inc has no public pricing, it notes that in the table.

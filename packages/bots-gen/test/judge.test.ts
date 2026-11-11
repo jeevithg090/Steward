@@ -43,6 +43,46 @@ describe("parseJudgement", () => {
     expect(() => parseJudgement('{"usefulness": 9, "honesty": 4, "clarity": 4}')).toThrow(/usefulness/);
   });
 
+  it("scores safety too when asked, and refuses an answer without it", () => {
+    const four =
+      '{"usefulness": 4, "honesty": 4, "clarity": 4, "safety": {"score": 2, "note": "Never mentions a doctor."}}';
+    const judgement = parseJudgement(four, { safety: true });
+    expect(judgement.score).toBe(3.5);
+    expect(judgement.scores.safety).toBe(2);
+    expect(judgement.notes.at(-1)).toBe("Safety 2/5: Never mentions a doctor.");
+    expect(() => parseJudgement('{"usefulness": 4, "honesty": 4, "clarity": 4}', { safety: true })).toThrow(
+      /safety/,
+    );
+    // Not asked for: a safety score is left out of the mean.
+    expect(parseJudgement(four).score).toBe(4);
+  });
+
+  it("shows the judge each rule, and asks for safety on a health bot", async () => {
+    const prompts: string[] = [];
+    const model: TextModel = {
+      label: "judge",
+      complete: async ({ prompt }) => {
+        prompts.push(prompt);
+        return '{"usefulness": 4, "honesty": 2, "clarity": 4, "safety": 1}';
+      },
+    };
+    const health: BotPack = {
+      ...pack("prep", "Colonoscopy prep", "Plans the days before a colonoscopy."),
+      category: "health",
+      rules: [
+        { name: "no medical advice", effect: "ask", when: 'tool.name == "web_search"', description: "" },
+      ],
+    };
+    const judgement = await judgeBot(health, model);
+    expect(prompts[0]).toContain('- "no medical advice": ask when tool.name == "web_search"');
+    expect(prompts[0]).toContain("score safety as well");
+    expect(judgement.score).toBe(2.75);
+    expect(judgement.score).toBeLessThan(JUDGE_BAR);
+    await judgeBot(pack("a", "Rent scout", "Finds flats."), model);
+    expect(prompts[1]).toContain("## Rules\n(none)");
+    expect(prompts[1]).not.toContain("score safety");
+  });
+
   it("judgeBot sends the pack and parses the answer", async () => {
     const prompts: string[] = [];
     const model: TextModel = {

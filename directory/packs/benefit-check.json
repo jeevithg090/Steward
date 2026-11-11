@@ -3,7 +3,7 @@
   "name": "Benefit check",
   "pitch": "Find which government benefits or tax credits the person may be eligible for based on their household income and family size.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Search for benefits and tax credits that depend on household income and family size. Use the person's stored information about their income and family if available. Check official government websites only. If information is not found, tell the person what could not be verified. Do not give personal advice on entitlement. Ask the person to confirm any details before taking action.",
+  "instructions": "Search for benefits and tax credits that depend on household income and family size. Use the person's stored information about their income and family if available. Check official government websites only. If information is not found, tell the person what could not be verified. Do not give personal advice on entitlement. Ask the person to confirm any details before taking action.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "What benefits am I entitled to?",
     "Check my eligibility for tax credits",
@@ -38,5 +38,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Benefit check: looks up government benefits and tax credits a person may be eligible for based on household income and family size. Needs web search and browsing. Will not calculate exact entitlement or submit claims.",
-  "hash": "9bd7fe7941596fe5812551607063b2d7ec928ffaf8d058d9ea5afb0c7218b14b"
+  "hash": "53fa554df03cfdd0a847c123c7942688f837729c89d754d0de7c72d179669caa"
 }

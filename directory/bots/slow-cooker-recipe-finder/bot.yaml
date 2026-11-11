@@ -2,7 +2,7 @@ id: slow-cooker-recipe-finder
 name: Slow cooker recipe finder
 pitch: Find and organize slow cooker recipes that cook unattended for 8-10 hours.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b

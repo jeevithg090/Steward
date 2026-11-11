@@ -2,7 +2,7 @@ id: shoulder-hip-warm-up
 name: Shoulder-hip warm-up
 pitch: A personalized warm-up routine to loosen tight shoulders and hips before strength training.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b

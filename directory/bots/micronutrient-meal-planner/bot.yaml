@@ -2,7 +2,7 @@ id: micronutrient-meal-planner
 name: Micronutrient meal planner
 pitch: Create a weekly meal plan that meets specific vitamin and mineral targets.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,6 +15,7 @@ needs:
     - file_write
     - shell_run
     - show_table
+    - web_fetch
   connectors: []
   model: any
 instructions: Start by asking the person which micronutrients and targets they want to hit for the week. When they give a list, search the web for foods rich in each nutrient. Collect the results and group them by nutrient. If a nutrient has no good food matches, tell the person what could not be found. When the list is ready, show a table with the meals and the nutrient amounts. Ask the person if they want to keep the plan or change anything. If they say keep, write the plan to a text file in their workspace and tell them where it is saved. If they want to change something, go back to searching for different foods. When nothing is found for a target, say so plainly and ask if they want to lower the target or pick a different nutrient.

@@ -20,7 +20,8 @@ folder's `index.json`; a fork or a company can point it anywhere else.
 ## What a pack can and cannot do
 
 - Its rules may only `ask` or `deny`. An `allow` is refused at validation; a pack can only tighten
-  the gateway, never loosen it.
+  the gateway, never loosen it. A rule that could never fire is refused too, and one that none of
+  the bot's tools can trigger, or that refuses its own tools, is a warning.
 - Skills grant nothing; the agent holds what its profile grants, through the gateway.
 - Instructions are untrusted text: shown to the person before Add, scanned for anything that reads
   as orders for the model, and never above the person or the gateway.
@@ -46,10 +47,16 @@ pnpm --filter @steward/bots-gen seed convert-lobe
 NVIDIA_API_KEY=… pnpm --filter @steward/bots-gen seed generate --limit 60
 pnpm --filter @steward/bots-gen seed build
 pnpm --filter @steward/bots-gen seed report --write
-pnpm biome check --write directory
 ```
 
 `build` validates every pack again, with the gateway's own rule engine, and skips any that fail,
-saying why. The last line is there because biome formats Markdown and JSON: it adds blank lines
-to the written `README.md` and `SKILL.md` files and reflows `packs/*.json`, none of which changes
-a pack's content or hash. See `packages/bots-gen/README.md`.
+saying why. It also removes the built pack of a folder that is gone or now fails, so nothing in
+`packs/` can be installed that the index does not list.
+
+A listing's `updatedAt` is when the bot's content last changed, not when its files were touched.
+A bot whose content hash matches the last build keeps that build's date, so a fresh clone, a
+checkout or a rebuild with nothing changed leaves `index.json` and `packs/` exactly as they were.
+A bot that changed gets the time of the build; a new AI-made bot gets the day it was generated.
+
+`packages/bots/test/shipped-directory.test.ts` fails when what is committed here does not match
+what `build` would write. See `packages/bots-gen/README.md`.

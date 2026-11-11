@@ -3,7 +3,7 @@
   "name": "Leave Handover Writer",
   "pitch": "Drafts a two-week leave handover by scanning mail, calendar, and tasks, then produces a structured document for your team.",
   "category": "work",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -56,12 +56,6 @@
   ],
   "rules": [
     {
-      "name": "ask-before-sending-handover",
-      "effect": "ask",
-      "when": "tool.kind == \"send\"",
-      "description": "Ask before emailing the handover to anyone."
-    },
-    {
       "name": "ask-before-writing-file",
       "effect": "ask",
       "when": "tool.name == \"file_write\"",
@@ -71,5 +65,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Leave Handover Writer\n\nDrafts a two-week leave handover by scanning your calendar, mail, and tasks, then produces a structured Markdown document for your team.\n\n## What it does\n\n- Pulls calendar events for your leave dates\n- Finds flagged or action-required email threads from the last 14 days\n- Lists open tasks assigned to you\n- Builds a clean handover with tables for meetings, tasks, contacts, and risks\n- Saves the final document for you to share\n\n## What it needs\n\n- Calendar access (to read events)\n- Mail access (to read threads)\n- Your leave start and end dates\n- Names of stand-ins (you provide)\n\n## What it will not do\n\n- Send the handover without asking\n- Invent tasks, meetings, or contacts\n- Access systems beyond calendar and mail\n- Guess who should cover each item — you decide",
-  "hash": "11d48ba18b40c5f0ec7873e492dd2d508b5a280e091a3136b78f3caf27e2a583"
+  "hash": "7205151761e9555d736798731f139ebbde3d924c4a788af10cc428be0949af91"
 }

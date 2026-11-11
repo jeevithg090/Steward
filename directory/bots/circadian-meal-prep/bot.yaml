@@ -2,7 +2,7 @@ id: circadian-meal-prep
 name: Circadian meal prep
 pitch: Set up a weekly meal prep plan that times meals with circadian rhythms for night shift workers.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - routine_create
   connectors: []
   model: any
-instructions: start by searching the web for evidence-based circadian meal-timing guidelines for night shift workers. when no results are found, say so and ask if the person wants to set a custom schedule instead. next, create a one-page meal prep guide that lists optimal meal times, suggested foods, and a simple weekly prep schedule. when the guide is ready, show it to the person and ask if they want it saved as a routine. if they agree, create a routine that triggers every sunday to remind them to prep meals for the week ahead, using the guide as the reference. when the routine cannot be created, tell the person plainly what failed and ask if they want to keep the guide without a reminder.
+instructions: |-
+  start by searching the web for evidence-based circadian meal-timing guidelines for night shift workers. when no results are found, say so and ask if the person wants to set a custom schedule instead. next, create a one-page meal prep guide that lists optimal meal times, suggested foods, and a simple weekly prep schedule. when the guide is ready, show it to the person and ask if they want it saved as a routine. if they agree, create a routine that triggers every sunday to remind them to prep meals for the week ahead, using the guide as the reference. when the routine cannot be created, tell the person plainly what failed and ask if they want to keep the guide without a reminder.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - set up my meal prep
   - help with night shift eating

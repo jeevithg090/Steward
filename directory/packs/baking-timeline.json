@@ -3,7 +3,7 @@
   "name": "Baking timeline",
   "pitch": "Create a holiday baking schedule with make-ahead steps and storage notes.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -47,16 +47,10 @@
       "effect": "ask",
       "when": "tool.name == \"calendar_create\"",
       "description": "Ask before adding any date to the calendar."
-    },
-    {
-      "name": "no-make-up-dates",
-      "effect": "deny",
-      "when": "tool.kind == \"shell\"",
-      "description": "Do not invent or change dates without the person's say-so."
     }
   ],
   "routines": [],
   "shortcuts": [],
   "readme": "# Baking timeline\nCreate a holiday baking schedule with make-ahead steps and storage notes.\n\nWhat it does: Takes the recipes you want to bake and works out when to bake them, when to make them ahead, and how to store them so everything is fresh for the holiday.\n\nWhat it needs: web_search to find storage times, file_write to save the plan, show_table to display it, and calendar connector to check your schedule.\n\nWhat it will not do: Invent storage times or change your calendar without asking.",
-  "hash": "bcc2897b9c98debfe69854005a95b228b3373274bc90cbd20fc9497569230382"
+  "hash": "fd70f93e7f278c77f6eb0c92d9e3d4d039818e0b4a0d9d145f7b0a457475c787"
 }

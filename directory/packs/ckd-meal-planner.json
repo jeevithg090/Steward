@@ -3,7 +3,7 @@
   "name": "CKD meal planner",
   "pitch": "Build a weekly renal-friendly meal plan within potassium and phosphorus limits.",
   "category": "health",
-  "version": 1,
+  "version": 3,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person if they have any other dietary restrictions besides potassium and phosphorus. Then search the web for 'chronic kidney disease stage 3 meal plan potassium phosphorus limits'. Read at least three results and note the potassium and phosphorus values for each suggested food. If a food's values are not listed, mark it as unknown and move on. Compile a table with seven days, each day having breakfast, lunch, dinner, and a snack. For each item, include the food name, potassium milligrams, and phosphorus milligrams. If values are missing, write 'values not found'. When the table is complete, use make_page to create a simple text document with the table and a summary of the daily potassium and phosphorus totals. Show the table to the person using show_table. If no suitable meals are found after three searches, say so and ask if they would like to try different limits or a different category of eating.",
+  "instructions": "Start by asking the person for the daily potassium and phosphorus limits their kidney team gave them, and any other dietary restrictions. Never guess their stage or set limits yourself. If they do not know their limits, suggest they ask their kidney team or dietitian, and plan with low-potassium, low-phosphorus foods in the meantime. Then search the web for 'kidney-friendly meal plan low potassium low phosphorus foods'. Read at least three results and note the potassium and phosphorus values for each suggested food. If a food's values are not listed, mark it as unknown and move on. Compile a table with seven days, each day having breakfast, lunch, dinner, and a snack. For each item, include the food name, potassium milligrams, and phosphorus milligrams. If values are missing, write 'values not found'. When the table is complete, use make_page to create a simple text document with the table and a summary of the daily potassium and phosphorus totals beside the limits the person gave. Show the table to the person using show_table. If no suitable meals are found after three searches, say so and ask if they would like to try a different kind of meal.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "plan my meals for the week",
     "help me eat for kidney health",
@@ -35,12 +35,12 @@
     {
       "name": "build-meal-table",
       "description": "Create a seven-day table with breakfast, lunch, dinner, and a snack for each day. For each food item, list the name, potassium (mg), and phosphorus (mg). If a value is not found in the search results, write 'values not found'. After the table, add a row showing the total potassium and phosphorus for each day.",
-      "body": "1. Open a blank page in make_page. 2. Write a header: 'Weekly CKD Meal Plan (Stage 3)'. 3. Create a table with columns: Day, Meal, Food, Potassium (mg), Phosphorus (mg). 4. Fill seven rows for each day, with sub-rows for breakfast, lunch, dinner, and snack. 5. As you add each food, note the potassium and phosphorus values from the web search. 6. If values are missing, type 'values not found'. 7. After the table, add a summary row: 'Daily totals: potassium ___ mg, phosphorus ___ mg'. 8. Save the page and return the text to the person."
+      "body": "1. Open a blank page in make_page. 2. Write a header: 'Weekly kidney-friendly meal plan'. 3. Create a table with columns: Day, Meal, Food, Potassium (mg), Phosphorus (mg). 4. Fill seven rows for each day, with sub-rows for breakfast, lunch, dinner, and snack. 5. As you add each food, note the potassium and phosphorus values from the web search. 6. If values are missing, type 'values not found'. 7. After the table, add a summary row: 'Daily totals: potassium ___ mg, phosphorus ___ mg', beside the limits the person gave. 8. Save the page and return the text to the person."
     }
   ],
   "rules": [],
   "routines": [],
   "shortcuts": [],
-  "readme": "# CKD meal planner\nCreates a weekly menu for chronic kidney disease stage 3, keeping potassium and phosphorus within limits.\n\n**What it needs**: web_search to find renal-friendly foods, make_page to build the document, show_table to display the plan.\n\n**What it will not do**: It cannot give medical advice or replace a dietitian. It will not force any payments or sign-ups.",
-  "hash": "d28c859bc18a1d141c31fa7b8d6718c28407c8984ab84b6d58f48469b29f4292"
+  "readme": "# CKD meal planner\nCreates a weekly menu for chronic kidney disease, keeping potassium and phosphorus within the limits your kidney team gave you.\n\n**What it needs**: web_search to find renal-friendly foods, make_page to build the document, show_table to display the plan.\n\n**What it will not do**: It cannot give medical advice or replace a dietitian. It will not force any payments or sign-ups.",
+  "hash": "f2b31d45c2ba11a1bb567f7ad3f6b813a76fdad88040d048fb6d831984dbe888"
 }

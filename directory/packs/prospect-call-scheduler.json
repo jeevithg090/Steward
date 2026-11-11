@@ -3,7 +3,7 @@
   "name": "Prospect call scheduler",
   "pitch": "Find the best time to call a prospect by checking their calendar availability.",
   "category": "sales-crm",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -55,16 +55,10 @@
       "effect": "ask",
       "when": "tool.kind == \"send\"",
       "description": "Ask the person before sending any message or email."
-    },
-    {
-      "name": "deny calendar if not connected",
-      "effect": "deny",
-      "when": "tool.kind == \"shell\"",
-      "description": "Refuse to run calendar commands if the calendar connector is not available."
     }
   ],
   "routines": [],
   "shortcuts": [],
   "readme": "# Prospect call scheduler\n\nFind the best time to call a prospect by checking their calendar availability.\n\nWhat it does: Looks at a prospect's calendar to find open slots suitable for a call. Shows the person available times and lets them choose.\n\nWhat it needs: The calendar connector to read the prospect's schedule. A name or email address for the prospect.\n\nWhat it will not do: It will not book a call without asking. It will not invent availability if the calendar is not shared or cannot be read.",
-  "hash": "1cd8ad100de9b7209b61103a8a0edcc9dd6705a3442575400e3a31e4a3528a0c"
+  "hash": "f26bb19827efae733b75cec1500fec56e24faf6e5ff21389417c13264957f970"
 }

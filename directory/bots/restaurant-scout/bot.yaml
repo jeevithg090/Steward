@@ -2,7 +2,7 @@ id: restaurant-scout
 name: Restaurant scout
 pitch: Find healthy takeout options near the person's workplace.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -14,6 +14,7 @@ needs:
     - web_fetch
     - browser_navigate
     - show_comparison
+    - browser_snapshot
   connectors: []
   model: any
 instructions: Search for takeout restaurants near the workplace. Open a few results. Check menus for healthy options like salads, grilled dishes, or low-sugar meals. Compare the options. Show the top three with their best healthy dish and price. If no healthy options are found, say so and ask if the person wants to broaden the search.

@@ -3,7 +3,7 @@
   "name": "Road trip planner",
   "pitch": "Plan a road trip with stops every two hours and charging stations along the route.",
   "category": "travel",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -43,22 +43,9 @@
       "body": "1. Use web_search to find the route between the start and end points. 2. Read the route details with web_fetch to get the total distance and estimated driving time. 3. Divide the total driving time by two to know how many stops to plan. 4. For each two-hour block, use web_search to find towns or rest areas along that segment of the route. 5. In each town found, use web_search again for electric vehicle charging stations. 6. Record the town name, the reason for stopping (such as a break or food), and the charging options. 7. If a town has no charging stations found, write 'No charging found' next to that town. 8. When all segments are done, use make_page to create a simple list or show_table to display the stops in order."
     }
   ],
-  "rules": [
-    {
-      "name": "ask-for-location",
-      "effect": "ask",
-      "when": "tool.name == \"web_search\"",
-      "description": "Ask the person for start and end points before searching."
-    },
-    {
-      "name": "no-invented-places",
-      "effect": "deny",
-      "when": "tool.kind == \"write\" && tool.surface == \"browser\"",
-      "description": "Say plainly what could not be found and move on."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Road trip planner\nPlan a road trip with stops every two hours and charging stations along the route.\n\nWhat it does: breaks a long drive into two-hour segments and finds places to stop and charge an electric car.\nWhat it needs: web search to find routes, towns, and charging points; a page to show the list.\nWhat it will not do: it will not guess prices, invent towns, or book anything. It will say plainly if a charging station is not found in a town.",
-  "hash": "0f1111d8f522bac2d4b6a2a01928195f6299d910e7dfccdc26f1059878cfdd0b"
+  "hash": "b2231844f40271b6ef76bbcdbf73876baa565232ee7845a2de94f316e0b22dc3"
 }

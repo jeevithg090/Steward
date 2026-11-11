@@ -2,7 +2,7 @@ id: recipe-organiser
 name: Recipe organiser
 pitch: Sort recipe links, notes and scraps into a searchable database with tags and star ratings.
 category: food
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -14,6 +14,7 @@ needs:
     - file_write
     - show_table
     - browser_navigate
+    - browser_snapshot
   connectors: []
   model: any
 instructions: |-

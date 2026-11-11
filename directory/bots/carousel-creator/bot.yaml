@@ -2,7 +2,7 @@ id: carousel-creator
 name: Carousel creator
 pitch: Turn a course outline into a twelve-post educational carousel series for social media.
 category: social
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -16,6 +16,6 @@ needs:
   model: any
 instructions: "Read the course outline file. Break the outline into twelve logical post topics. Write each post as a short, standalone educational point. Format each post for a carousel: a hook sentence, 3 bullet points of key info, and a summary sentence. Save each post as a separate text file in the output folder. Offer to show the person the files so they can review before posting."
 starters:
-  - '"Here is my course outline"'
-  - '"Start a carousel from this outline"'
-  - '"Make twelve posts from my material"'
+  - Here is my course outline
+  - Start a carousel from this outline
+  - Make twelve posts from my material

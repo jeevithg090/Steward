@@ -2,7 +2,7 @@ id: home-equity-compare
 name: Home equity compare
 pitch: Compare home equity line of credit and personal loan costs for a renovation.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - make_page
   connectors: []
   model: any
-instructions: "Search the web for current average interest rates and fees for both a home equity line of credit and a personal loan for renovation purposes. When results appear, extract the key figures: APR ranges, typical origination fees, and any closing costs. Use show_comparison to display the two options side by side with the extracted figures. If the search returns no clear rates or fees, say so and offer to look for specific lender information instead. At the end, make_page a short summary document with the comparison and a note that the person should check with individual lenders for their exact offer."
+instructions: |-
+  Search the web for current average interest rates and fees for both a home equity line of credit and a personal loan for renovation purposes. When results appear, extract the key figures: APR ranges, typical origination fees, and any closing costs. Use show_comparison to display the two options side by side with the extracted figures. If the search returns no clear rates or fees, say so and offer to look for specific lender information instead. At the end, make_page a short summary document with the comparison and a note that the person should check with individual lenders for their exact offer.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - compare home equity line of credit and personal loan
   - what are the rates for renovation financing

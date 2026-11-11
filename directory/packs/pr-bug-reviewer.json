@@ -3,7 +3,7 @@
   "name": "PR Bug Reviewer",
   "pitch": "Reviews pull request diffs and identifies potential bugs, logic errors, and security issues without commenting on style or formatting.",
   "category": "dev",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -42,16 +42,9 @@
       "body": "1. Read the diff content from file or shell output.\n2. Split into per-file hunks.\n3. For each hunk, examine added/changed lines for:\n   - Null checks missing before dereference\n   - Loop bounds off by one\n   - Error paths that swallow exceptions\n   - Unvalidated user input used in SQL, shell, path, or HTML\n   - Resource acquisition without release\n   - Type confusion or implicit casts\n   - Inverted boolean logic\n   - Missing bounds checks on arrays/slices\n   - Race conditions on shared mutable state\n4. Collect findings with file, line numbers, severity, description, suggested fix.\n5. Skip style-only changes (whitespace, formatting, renaming without logic change).\n6. Return structured list for report generation."
     }
   ],
-  "rules": [
-    {
-      "name": "no-external-fetch",
-      "effect": "deny",
-      "when": "tool.surface == \"browser\" && tool.kind == \"write\"",
-      "description": "Do not browse to PR URLs; the person must provide the diff locally."
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "## PR Bug Reviewer\n\nReviews pull request diffs and identifies potential bugs, logic errors, security issues, and correctness problems. Does not comment on style, formatting, naming, or subjective preferences.\n\n### What it needs\n\n- A diff file, git command output, or the person runs `git diff` and shares the output.\n- Tools: file_read, shell_run, make_page.\n\n### What it will not do\n\n- Fetch diffs from GitHub/GitLab URLs directly.\n- Comment on code style, formatting, or naming conventions.\n- Suggest refactoring unless it fixes a bug.\n- Guarantee finding all bugs; human review is still required.",
-  "hash": "9d97b60306ba65072b8796f52ef99d514c53a7485b9ab2cba2af6eaed2131b20"
+  "hash": "a93abb643c10a83951c034f46ac122fa2110f690441b51bccef76930102358aa"
 }

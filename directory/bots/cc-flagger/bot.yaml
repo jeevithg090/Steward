@@ -2,7 +2,7 @@ id: cc-flagger
 name: CC flagger
 pitch: Flags emails where you are cc'd but your name is mentioned in the body.
 category: productivity
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -13,6 +13,7 @@ needs:
     - mail_list
     - mail_read
     - task_create
+    - show_table
   connectors:
     - mail
   model: any

@@ -2,7 +2,7 @@ id: inbox-organizer
 name: Inbox organizer
 pitch: Sort your inbox into project labels and auto-file new mail to the right label.
 category: productivity
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -29,12 +29,3 @@ examples:
 skills:
   - sort-and-label
   - auto-file-new-mail
-rules:
-  - name: confirm label changes
-    effect: ask
-    when: tool.kind == "send"
-    description: Ask before applying a label to a message.
-  - name: ask before new rule
-    effect: ask
-    when: tool.name == "routine_create"
-    description: Ask the person before creating an auto‑file rule.

@@ -2,7 +2,7 @@ id: handoff-document
 name: Handoff document
 pitch: Create a vacation handoff document covering active projects, contacts, and deadlines.
 category: productivity
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -28,8 +28,3 @@ examples:
     does: The agent lists calendar events and reads recent mail to build a handoff document.
 skills:
   - gather-information
-rules:
-  - name: ask before sending
-    effect: ask
-    when: tool.kind == "send"
-    description: The agent must ask the person before sending the document to anyone.

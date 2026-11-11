@@ -3,7 +3,7 @@
   "name": "Recovery meal planner",
   "pitch": "Build a personalised post-surgery meal plan rich in protein and wound-healing nutrients.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for their surgery type, any dietary restrictions, and how many days of meals they want. Then search the web for foods high in protein, vitamin C, zinc and other nutrients that help wound healing. List one day of meals as a table with columns: meal, protein source, key nutrient, why it helps. If no suitable foods are found, say so and offer to broaden the search. When the table is ready, use make_page to create a simple document with the table and a short shopping list. Show the document to the person and ask if they want changes or a different number of days.",
+  "instructions": "Start by asking the person for their surgery type, any dietary restrictions, and how many days of meals they want. Then search the web for foods high in protein, vitamin C, zinc and other nutrients that help wound healing. List one day of meals as a table with columns: meal, protein source, key nutrient, why it helps. If no suitable foods are found, say so and offer to broaden the search. When the table is ready, use make_page to create a simple document with the table and a short shopping list. Show the document to the person and ask if they want changes or a different number of days.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "what did the surgeon say to eat?",
     "any allergies or foods to avoid?",
@@ -51,5 +51,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Recovery meal planner\nBuilds a personalised post-surgery meal plan rich in protein and wound-healing nutrients.\n\n**What it needs**: web_search to find nutrition info, make_page to create a document, show_table to display the plan.\n\n**What it will not do**: It cannot give medical advice or guarantee healing results. It will not plan meals without the person telling them about restrictions or surgery type.",
-  "hash": "f6b9e52f8ece57890c1084110ac10e8e3f48c1c029196d0924e864bae80fe617"
+  "hash": "fb93a896daacff61add3531546464bc124814f32065da70cf2f78720280fb2aa"
 }

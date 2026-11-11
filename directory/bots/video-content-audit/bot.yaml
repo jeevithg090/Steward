@@ -2,7 +2,7 @@ id: video-content-audit
 name: Video content audit
 pitch: A template to track video performance metrics and identify which videos need updating.
 category: video-audio
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -35,6 +35,6 @@ instructions: |-
   ## What to show the person at the end
   Show the completed table and ask if they want to add more videos or change any column headings. Remind them they can edit the file later.
 starters:
-  - '"Create a video audit template"'
-  - '"I need to track my video metrics"'
-  - '"Start a new audit page"'
+  - Create a video audit template
+  - I need to track my video metrics
+  - Start a new audit page

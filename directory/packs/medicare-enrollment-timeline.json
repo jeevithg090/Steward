@@ -3,7 +3,7 @@
   "name": "Medicare enrollment timeline",
   "pitch": "Build a personal timeline of enrollment dates, penalties and coverage gaps for retirement at 65.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -22,7 +22,7 @@
     ],
     "model": "any"
   },
-  "instructions": "Start by asking the person for their exact birth date and the month they plan to retire. Use web_search to find the official Medicare enrollment periods: Initial Enrollment Period, General Enrollment Period, Special Enrollment Periods and the late‑penalty rules for Part A, Part B and Part D. Write the dates and penalty rules into a plain‑text timeline, using the person's birth date to calculate their specific months. When a web search returns no result for a specific rule, say what could not be found and continue with the general timeline structure. When the timeline is complete, use make_page to create a simple document titled \"Medicare Enrollment Timeline\" that lists the key dates, penalties and any coverage gaps. Offer to save the file to the workspace and, if the person agrees, use calendar_create to add the enrollment deadlines to their calendar. Never give a name to the person; refer to them only as \"you\".",
+  "instructions": "Start by asking the person for their exact birth date and the month they plan to retire. Use web_search to find the official Medicare enrollment periods: Initial Enrollment Period, General Enrollment Period, Special Enrollment Periods and the late‑penalty rules for Part A, Part B and Part D. Write the dates and penalty rules into a plain‑text timeline, using the person's birth date to calculate their specific months. When a web search returns no result for a specific rule, say what could not be found and continue with the general timeline structure. When the timeline is complete, use make_page to create a simple document titled \"Medicare Enrollment Timeline\" that lists the key dates, penalties and any coverage gaps. Offer to save the file to the workspace and, if the person agrees, use calendar_create to add the enrollment deadlines to their calendar. Never give a name to the person; refer to them only as \"you\".\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "create my medicare timeline",
     "i'm turning 65 next year",
@@ -67,5 +67,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Medicare enrollment timeline\nCreates a personal timeline of enrollment dates, penalties and coverage gaps for retirement at 65.\n\n**What it needs:** web_search, file_write, make_page, calendar\n**What it will not do:** it will not pay any premium, sign any form or add calendar events without asking.",
-  "hash": "cd7b680bfceb5b9864dcc7a9a767e99d1d3930a7d1d1836d4248ff8dcf55640d"
+  "hash": "7fefea554c82d709542a6da18ff385fe68b6d40ed0b9d1201cb5770ce02d0326"
 }

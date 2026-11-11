@@ -2,7 +2,7 @@ id: hourly-cost-calculator
 name: Hourly cost calculator
 pitch: Calculate the real hourly rate of a side gig after taxes, expenses and unpaid admin time.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -25,6 +25,8 @@ instructions: |-
   Subtract all expenses from the gross earnings. Then subtract any estimated tax amount based on the rate found. Divide the result by the total paid hours (earning hours only, not admin time). Show the person the calculation step by step using show_table so they can see gross, expenses, tax estimate, net and hourly rate.
 
   If any of the numbers are missing, ask the person for them before continuing. Never invent tax rates, expense amounts or hours worked. If a lookup fails, tell the person what could not be found and ask if they have the figures themselves.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - what are my total earnings for this gig?
   - what expenses did I pay out of pocket?

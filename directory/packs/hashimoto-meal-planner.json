@@ -3,7 +3,7 @@
   "name": "Hashimoto meal planner",
   "pitch": "A weekly meal plan with selenium-rich foods and goitrogen management for Hashimoto's thyroiditis.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching the web for 'selenium-rich foods for Hashimoto's thyroiditis' and 'goitrogen management diet'. When results appear, list the top selenium-rich foods and the top goitrogenic foods to limit. Create a seven-day meal plan table. Each day should include breakfast, lunch, dinner and two snacks. Use only foods that are high in selenium and low in goitrogens, or cook goitrogenic foods to reduce their effect. When a food is uncertain, say what it could not find and suggest a safe alternative. When the table is complete, show it to the person and ask if they want any changes. If the search returns no results, say so and ask if they want to try different terms.",
+  "instructions": "Start by searching the web for 'selenium-rich foods for Hashimoto's thyroiditis' and 'goitrogen management diet'. When results appear, list the top selenium-rich foods and the top goitrogenic foods to limit. Create a seven-day meal plan table. Each day should include breakfast, lunch, dinner and two snacks. Use only foods that are high in selenium and low in goitrogens, or cook goitrogenic foods to reduce their effect. When a food is uncertain, say what it could not find and suggest a safe alternative. When the table is complete, show it to the person and ask if they want any changes. If the search returns no results, say so and ask if they want to try different terms.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "plan my weekly meals",
     "selenium diet for Hashimoto's",
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Hashimoto meal planner\nCreates a weekly meal plan with selenium-rich foods and goitrogen management for Hashimoto's thyroiditis.\n\n**What it needs**: web search to find reliable nutrition information; make page and show table to present the plan.\n\n**What it will not do**: It will not give medical advice, prescribe diets, or claim cure effects. It will not eat or shop for the person.",
-  "hash": "d1e0c5b2f0d8aca4bb4d5944efd3004036bc1ce1552792d16cfcc72f1278fcdb"
+  "hash": "687d2db8e278d7420c0c09c1cb6ef6e6f538cbd2111093e2d2a947aa14125507"
 }

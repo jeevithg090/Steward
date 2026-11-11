@@ -3,7 +3,7 @@
   "name": "Seasonal preserve calendar",
   "pitch": "Build a calendar of small-batch preserve recipes and equipment needs for the season.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -15,7 +15,8 @@
       "web_search",
       "make_page",
       "file_write",
-      "calendar_create"
+      "calendar_create",
+      "web_fetch"
     ],
     "connectors": [
       "calendar"
@@ -38,7 +39,7 @@
     {
       "name": "gather-recipes",
       "description": "Search the web for small-batch preserve recipes for the chosen season. For each result, note the recipe name, the main fruit or vegetable, the preserving method and any equipment mentioned. Stop after finding three recipes or when no more are found.",
-      "body": "1. Use web_search with the query 'small-batch [season] preserve recipes'. 2. Read the search results with browser_snapshot. 3. For each recipe page, use browser_snapshot to find the method and equipment list. 4. Write the recipe name, produce, method and equipment to a temporary list. 5. If three recipes are collected, stop. 6. If fewer than three are found, say so and stop."
+      "body": "1. Use web_search with the query 'small-batch [season] preserve recipes'. 2. Read the search results with web_fetch. 3. For each recipe page, use web_fetch to find the method and equipment list. 4. Write the recipe name, produce, method and equipment to a temporary list. 5. If three recipes are collected, stop. 6. If fewer than three are found, say so and stop."
     },
     {
       "name": "make-calendar-and-page",
@@ -50,5 +51,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Seasonal preserve calendar\nThis bot helps you plan small-batch preserving for a chosen season. It searches the web for recipes, notes the equipment needed and adds each recipe to your calendar as an event. It will not buy equipment or sign you up for any service.",
-  "hash": "ce7607b579ffffcb2122d767d64d33a13197700a9998b0af796ec43527a3124e"
+  "hash": "a4a34f6185ce46959e093817895809a2ed8b823ce06232bb3ba1bd818ba844a7"
 }

@@ -3,7 +3,7 @@
   "name": "Lift Tracker",
   "pitch": "Logs your gym lifts and signals when to add weight based on simple progression rules.",
   "category": "sports",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -52,16 +52,10 @@
       "effect": "ask",
       "when": "tool.name == \"memory_remember\"",
       "description": "Ask before saving or changing the lift plan."
-    },
-    {
-      "name": "remember-log",
-      "effect": "ask",
-      "when": "tool.name == \"memory_remember\"",
-      "description": "Ask before writing a session to the log."
     }
   ],
   "routines": [],
   "shortcuts": [],
   "readme": "## Lift Tracker\n\nLogs your gym lifts and tells you when to add weight using a simple double-progression rule: when every set hits the top of your rep range, increase the load next session.\n\n**What it does**\n- Stores your lift plan (which lifts, how many sets, rep range).\n- Records each session you report.\n- Shows a table with a progress column that says 'add weight' or 'stay'.\n- Keeps a running history you can view anytime.\n\n**What it needs**\n- Permission to remember your plan and sessions (memory_remember).\n- Permission to show tables (show_table).\n\n**What it will not do**\n- Write programmes, suggest exercises, or calculate one-rep maxes.\n- Access any external app or device.\n- Make changes without asking first.",
-  "hash": "62d4d5e7a6b3b6dc9238eea171334c9b00e4de1561db8dc392c734d69c88b219"
+  "hash": "874c4982338bf0e672d3a28284a2bc3eed149c770cbddc913451b7a444b0ed6d"
 }

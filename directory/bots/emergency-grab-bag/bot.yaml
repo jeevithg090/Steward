@@ -2,7 +2,7 @@ id: emergency-grab-bag
 name: Emergency grab bag
 pitch: Build a checklist of documents, medicines and contacts for a family evacuation.
 category: home
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -18,8 +18,8 @@ needs:
   model: any
 instructions: 'Start by asking the person how many people are in the family and if any have special medical needs. When the numbers are known, make a new page titled "Family emergency grab bag". Add a table with three columns: "Item", "Who", "Notes". Fill the first rows with the core categories: identification documents, health insurance cards, prescription medicines, a small first-aid kit, contact list, cash and a phone charger. For each row, ask the person to fill in the name of who should carry each item. When a category has no specific item, leave the cell blank and add a note such as "check with [name]". After the table, add a plain‑text section: "Important documents – keep copies in a waterproof bag". List the documents the person should check: passport, birth certificate, driving licence, insurance policy. Below that, add a contacts section with columns "Name" and "Phone". Ask the person to add at least two emergency contacts who live outside the home. Save the page to the workspace with file_write. If the person says they do not know what documents to include, say: "I could not find a standard list for your family size. Ask a local council or Red Cross for a template." If any step finds no response after two attempts, stop and ask the person to clarify the missing information.'
 starters:
-  - '"Start the grab bag checklist"'
-  - '"I need an evacuation list"'
+  - Start the grab bag checklist
+  - I need an evacuation list
 examples:
   - ask: '"How many people are in the family?"'
     does: Ask the person for the number and any special medical needs.

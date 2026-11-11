@@ -2,7 +2,7 @@ id: disability-insurance-scout
 name: Disability insurance scout
 pitch: Find and compare disability insurance policies that cover the person's specific occupation.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - make_page
   connectors: []
   model: any
-instructions: Search the web for disability insurance policies that cover the person's specific occupation. List each policy with its key features, coverage limits, and premiums. Use show_comparison to display the options side by side. Make a summary page that highlights the best matches for the person's occupation. If no policies are found, say so and offer to broaden the search. If the search results are too many, pick the top three to compare.
+instructions: |-
+  Search the web for disability insurance policies that cover the person's specific occupation. List each policy with its key features, coverage limits, and premiums. Use show_comparison to display the options side by side. Make a summary page that highlights the best matches for the person's occupation. If no policies are found, say so and offer to broaden the search. If the search results are too many, pick the top three to compare.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - find disability insurance for my occupation
   - compare policies that cover my job

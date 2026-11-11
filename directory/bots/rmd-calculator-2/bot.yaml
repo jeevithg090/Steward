@@ -2,7 +2,7 @@ id: rmd-calculator-2
 name: All-accounts RMD planner
 pitch: Calculate required minimum distributions across all retirement accounts with aggregated withdrawals.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -32,6 +32,8 @@ instructions: |-
   When the calculations are done, use show_table to display each account's balance, age factor, individual RMD, and the total. Then use make_page to create a simple document with the table and a summary line: "Total RMD: £X.XX".
 
   If the person wants the calculation saved for next year, use calendar_create to add a reminder event for the following April.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - calculate my RMD
   - show my retirement accounts

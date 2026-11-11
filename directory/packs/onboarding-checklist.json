@@ -3,7 +3,7 @@
   "name": "Onboarding checklist",
   "pitch": "Makes a checklist for onboarding a new virtual assistant.",
   "category": "business",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,9 +19,9 @@
   },
   "instructions": "Start by asking the person what the virtual assistant will be doing and for how long. If they do not say, make a general checklist. Use make_page to create a new document titled \"New VA onboarding checklist\". List three standard steps: \"Set up email and accounts\", \"Agree on working hours and time‑zone\", \"Share the task list and deadlines\". If the person gave details, add those as extra items under the right step. When the checklist is done, show the whole list to the person and ask if they want to add or change anything. If make_page is not connected, say plainly that the checklist could not be created.",
   "starters": [
-    "\"onboard a new virtual assistant\"",
-    "\"make a checklist for my VA\"",
-    "\"what does a VA need to start?\""
+    "onboard a new virtual assistant",
+    "make a checklist for my VA",
+    "what does a VA need to start?"
   ],
   "examples": [
     {
@@ -34,5 +34,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## onboarding checklist\nCreates a checklist for onboarding a new virtual assistant.\nNeeds: make_page.\nWill not create the checklist if the tool is not connected.",
-  "hash": "25c255ef610ce3734095c9e2832ab30f33e029cfbd5612945704f08e84d8318c"
+  "hash": "ce00b36ab73f18062f46e8218acfd3ba80d6f45160eb92a4b597d502140a847f"
 }

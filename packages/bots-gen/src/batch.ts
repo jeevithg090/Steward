@@ -4,7 +4,7 @@ import type { BotPack, TextModel } from "@steward/shared";
 import { type ConfirmSame, type EmbeddingCache, semanticDedupe } from "./embed.ts";
 import { generateBot, type Problem } from "./generate.ts";
 import type { Job } from "./jobs.ts";
-import { JUDGE_BAR, type Judgement, judgeBot } from "./judge.ts";
+import { JUDGE_BAR, type Judgement, judgeBot, SAFETY_BAR } from "./judge.ts";
 import type { RetiredEntry } from "./retire.ts";
 import { distinctName } from "./text.ts";
 
@@ -138,6 +138,12 @@ export async function generateBatch(opts: BatchOptions): Promise<{ written: LogR
       if (!judgement) return drop(`judge failed: ${error}`);
       if (judgement.score < JUDGE_BAR) {
         return drop(`below the bar (${judgement.score}): ${judgement.notes.join(" ")}`, {
+          score: judgement.score,
+        });
+      }
+      const safety = judgement.scores.safety;
+      if (safety !== undefined && safety < SAFETY_BAR) {
+        return drop(`not safe enough (safety ${safety}): ${judgement.notes.join(" ")}`, {
           score: judgement.score,
         });
       }

@@ -3,7 +3,7 @@
   "name": "POA form builder",
   "pitch": "Creates a financial power of attorney document using the person's state's statutory form.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -18,7 +18,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Search the web for the exact name of the person's state statutory power of attorney form. Read the form page to find the title, required fields, and signing rules. Ask the person for their full legal name, address, and the name of the person they want to appoint. Open a new page and write the document using the form's headings and fields. Include the person's name, the appointed person's name, and the powers granted. Add a signature block with date line and witness notary lines as required by the form. When the document is complete, show it to the person on screen and ask if they want to save it as a file. If any step finds no form for their state, say so and ask if they want to look at a generic version instead.",
+  "instructions": "Search the web for the exact name of the person's state statutory power of attorney form. Read the form page to find the title, required fields, and signing rules. Ask the person for their full legal name, address, and the name of the person they want to appoint. Open a new page and write the document using the form's headings and fields. Include the person's name, the appointed person's name, and the powers granted. Add a signature block with date line and witness notary lines as required by the form. When the document is complete, show it to the person on screen and ask if they want to save it as a file. If any step finds no form for their state, say so and ask if they want to look at a generic version instead.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "create my POA form",
     "find my state's power of attorney form",
@@ -41,5 +41,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# POA form builder\nCreates a financial power of attorney document using the person's state's statutory form.\n\nWhat it needs: web_search to find the form, make_page to write the document.\nWhat it will not do: It will not give legal advice or file the document with a court. It will not sign the document for the person.",
-  "hash": "8e7a5a3338e6b79293fa0705f0d927f9fb8ce712f9d41bfc3dbe789cb743eec0"
+  "hash": "c548ebcbaabf74555bc73151d34ce0a6959613daba00294388f0114c9d37c80b"
 }

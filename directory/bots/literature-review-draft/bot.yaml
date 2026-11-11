@@ -2,7 +2,7 @@ id: literature-review-draft
 name: Literature review draft
 pitch: Turns your research notes into a structured draft you can edit.
 category: research
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -17,9 +17,9 @@ needs:
   model: any
 instructions: Read the person's research notes file. Identify the main topic and section headings. Group related notes under each heading. Write a paragraph for each group that summarises the key points and links them to the main topic. Save the draft as a new file. Offer the draft to the person to review.
 starters:
-  - '"review my notes"'
-  - '"start a literature review"'
-  - '"organise my research"'
+  - review my notes
+  - start a literature review
+  - organise my research
 examples:
   - ask: '"I have notes on climate change"'
     does: reads the notes file, finds headings, writes a draft and saves it

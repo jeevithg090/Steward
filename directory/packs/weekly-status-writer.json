@@ -3,7 +3,7 @@
   "name": "Weekly Status Writer",
   "pitch": "Creates a project status update from this week's emails and notes.",
   "category": "work",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -15,7 +15,8 @@
       "mail_list",
       "file_read",
       "make_page",
-      "web_search"
+      "web_search",
+      "mail_read"
     ],
     "connectors": [
       "mail"
@@ -56,5 +57,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## Weekly Status Writer\n\nCreates a structured project status update from the past week's emails and local notes. It reads sent mail, filters out noise, and organises activity into a standard format: Summary, Completed, In Progress, Blockers, and Next Week's Focus.\n\n**Needs**: Mail access to read recent threads. Workspace access to read any project logs or manual notes.\n\n**Will not do**: Send the update to anyone. Post to Slack, Notion, or any tool. Invent progress that isn't in the sources. Assume which project matters without being told.",
-  "hash": "20d549037bd86fff5700d0155516789a00954704eb4921dc0ebcc62f2d3457e8"
+  "hash": "d9e8c57aa4e098a158b08bc1d1a9003e349e778a0b3e9e9cc8a354129cea310c"
 }

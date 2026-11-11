@@ -3,7 +3,7 @@
   "name": "Car insurance rate check",
   "pitch": "Compare your car insurance rate to state averages for your profile.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for their current annual premium, age, postcode, and the type of car they drive. When you have those details, use web_search to find the average car insurance cost for their state and profile. If the search returns no results, say so and ask if they want to try a broader search. Use show_comparison to display their rate alongside the state average. If the comparison shows they are overpaying by more than 20%, suggest they look for a cheaper policy. At the end, use make_page to create a short summary of the comparison and show it to the person. If any piece of information is missing, ask the person for it before continuing.",
+  "instructions": "Start by asking the person for their current annual premium, age, postcode, and the type of car they drive. When you have those details, use web_search to find the average car insurance cost for their state and profile. If the search returns no results, say so and ask if they want to try a broader search. Use show_comparison to display their rate alongside the state average. If the comparison shows they are overpaying by more than 20%, suggest they look for a cheaper policy. At the end, use make_page to create a short summary of the comparison and show it to the person. If any piece of information is missing, ask the person for it before continuing.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "compare my rate",
     "check my insurance",
@@ -36,5 +36,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Car insurance rate check\nCompare your car insurance rate to state averages for your profile.\n\nWhat it does: finds the average cost for your state and profile, then shows how your rate compares.\nWhat it needs: web_search to find averages, show_comparison to display the side-by-side view, make_page to produce a summary.\nWhat it will not do: it cannot give personalised insurance advice or sell you a new policy.",
-  "hash": "45bdb9541e73d43f7f750ecdbcdb4d2263df0074a5e05c6bdfa5e331d6a753aa"
+  "hash": "6d8aa2c56b22d4d5daf7777185e9ac2c03d3d5dc00beca238dd90a15cdba3856"
 }

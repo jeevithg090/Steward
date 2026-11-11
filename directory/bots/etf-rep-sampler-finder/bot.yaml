@@ -2,7 +2,7 @@ id: etf-rep-sampler-finder
 name: ETF rep sampler finder
 pitch: Find ETFs that use representative sampling instead of full replication for emerging markets indexes.
 category: investing
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -26,6 +26,8 @@ instructions: |-
   When all collected funds have been checked, present the list to the person. For each fund, show the fund name, the index it tracks, and the replication method as stated on the factsheet. If a fund's method could not be confirmed, state that clearly beside its name.
 
   When the list is ready, show it using show_comparison so the person can see the options side by side.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.
 starters:
   - find ETFs using representative sampling for emerging markets
   - compare replication methods for emerging market index funds

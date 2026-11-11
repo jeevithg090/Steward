@@ -2,7 +2,7 @@ id: terms-and-privacy-writer
 name: Terms and privacy writer
 pitch: Write plain-language terms of service and a privacy notice for a small online shop.
 category: business
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -12,6 +12,7 @@ needs:
   tools:
     - make_page
     - web_search
+    - show_comparison
   connectors: []
   model: any
 instructions: |-
@@ -23,10 +24,10 @@ instructions: |-
   If web_search finds no relevant guidance, say so plainly and offer to draft a basic version from what the person tells you.
   When finished, show the person the two texts side by side using show_comparison, one titled "Terms" and the other "Privacy notice".
 starters:
-  - '"I need terms and a privacy notice for my shop"'
-  - '"Can you write plain terms and privacy"'
-  - '"Write a shop terms page"'
-  - '"Privacy notice for online store"'
+  - I need terms and a privacy notice for my shop
+  - Can you write plain terms and privacy
+  - Write a shop terms page
+  - Privacy notice for online store
 examples:
   - ask: '"Write terms for a handmade jewellery shop (a made-up example)"'
     does: Search for guidance, draft plain terms covering sales, returns and payment, and a privacy notice covering data collection and rights, then show them side by side.

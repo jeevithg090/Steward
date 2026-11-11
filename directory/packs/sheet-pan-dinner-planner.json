@@ -3,7 +3,7 @@
   "name": "Sheet pan dinner planner",
   "pitch": "Plan a month of balanced sheet pan dinners with rotating proteins and vegetables.",
   "category": "food",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "web_search",
       "file_write",
-      "show_table"
+      "show_table",
+      "web_fetch"
     ],
     "connectors": [],
     "model": "any"
@@ -43,7 +44,7 @@
     {
       "name": "find-recipes",
       "description": "Search the web for sheet pan dinner recipes. Open at least three results. Look for ones that list a protein and a vegetable. If a result is an ad or does not have a clear recipe, close it and try the next. Note the protein, vegetable, and cooking time for each good result. Stop when four recipes are noted.",
-      "body": "1. Use web_search to look for 'sheet pan dinner recipes'. 2. Read the search results with browser_snapshot. 3. If a result looks like a recipe with a protein and vegetable, write down the name, protein, vegetable, and cooking time. 4. If the result is an ad or unclear, close it and try the next result. 5. Repeat until four recipes are noted."
+      "body": "1. Use web_search to look for 'sheet pan dinner recipes'. 2. Read the search results with web_fetch. 3. If a result looks like a recipe with a protein and vegetable, write down the name, protein, vegetable, and cooking time. 4. If the result is an ad or unclear, close it and try the next result. 5. Repeat until four recipes are noted."
     },
     {
       "name": "build-plan",
@@ -55,5 +56,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Sheet pan dinner planner\n\nPlan a month of balanced sheet pan dinners with rotating proteins and vegetables.\n\nWhat it does: searches for recipes, picks four that rotate proteins and veg, and writes a 28‑day table.\nWhat it needs: web search, file write, and a table view.\nWhat it will not do: it cannot cook the meals or decide what the person likes; it only suggests recipes it finds online.",
-  "hash": "e90fd645f4bfaf7e9b351da8fe96477f529e8d9aa938495cc915c8fe25746bbc"
+  "hash": "f49c21b735da1b4029a268858cc3b86825716ed388ed5b2783cbccb9f8cfb083"
 }

@@ -3,7 +3,7 @@
   "name": "Caffeine taper",
   "pitch": "A month-long plan to reduce caffeine and avoid withdrawal headaches.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for their typical daily caffeine amount in milligrams from coffee, tea, energy drinks and chocolate. If they cannot recall, ask them to keep a simple log for two days. Create a taper schedule that reduces intake by about 25 mg each week, aiming for a final dose of 0 mg by day 30. Write the schedule on a page using make_page, with one column for the day, one for the planned milligrams, and one for notes. When a day's dose is due, show the table and ask the person if they took it; if they missed it, note it and adjust the next day's plan. If headaches appear, pause the taper at the current dose for two days, then continue at the same level. At the end of the month, show a comparison table of the starting dose versus the final dose, and ask if they want to keep a lower intake or stop completely. If the person prefers not to taper on their own, say so and stop.",
+  "instructions": "Start by asking the person for their typical daily caffeine amount in milligrams from coffee, tea, energy drinks and chocolate. If they cannot recall, ask them to keep a simple log for two days. Create a taper schedule that reduces intake by about 25 mg each week, aiming for a final dose of 0 mg by day 30. Write the schedule on a page using make_page, with one column for the day, one for the planned milligrams, and one for notes. When a day's dose is due, show the table and ask the person if they took it; if they missed it, note it and adjust the next day's plan. If headaches appear, pause the taper at the current dose for two days, then continue at the same level. At the end of the month, show a comparison table of the starting dose versus the final dose, and ask if they want to keep a lower intake or stop completely. If the person prefers not to taper on their own, say so and stop.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "help me cut caffeine",
     "i want to reduce my coffee intake",
@@ -55,5 +55,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Caffeine taper\nA month‑long plan to reduce caffeine and avoid withdrawal headaches.\n\nWhat it does: creates a weekly reduction schedule, tracks symptoms, and stores the plan on a page.\nWhat it needs: the person's current daily caffeine amount; make_page, show_table and routine_create tools.\nWhat it will not do: give medical diagnosis or prescribe medication.",
-  "hash": "c1dd62aa435c239f61eb81e69c4cd9511cfa5b448ba52ab1e6d8cb3e75fe2eec"
+  "hash": "5a845e4c2b2d2b4a4461f4501430c7c41bce68f7bb8dafb509f6dd299f643738"
 }

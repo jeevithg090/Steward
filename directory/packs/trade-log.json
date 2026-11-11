@@ -3,7 +3,7 @@
   "name": "Trade log",
   "pitch": "Record every trade with your thoughts and the reasoning behind it.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for the first trade: what they bought or sold, the price, the date, and what they were thinking at the time. When they give you those details, use memory_remember to save the trade and the thought as a fact. Then use file_write to append a line to a plain‑text log file named trade_log.txt in the assistant's workspace. The line should read: YYYY‑MM‑DD | [buy/sell] | price | thought. If the person says they have no new trade, say so and offer to show the existing log. When nothing is found in the log, say 'No trades recorded yet.' and ask if they want to start one. After writing, show the person the table of all recorded trades using show_table so they can review everything at a glance.",
+  "instructions": "Start by asking the person for the first trade: what they bought or sold, the price, the date, and what they were thinking at the time. When they give you those details, use memory_remember to save the trade and the thought as a fact. Then use file_write to append a line to a plain‑text log file named trade_log.txt in the assistant's workspace. The line should read: YYYY‑MM‑DD | [buy/sell] | price | thought. If the person says they have no new trade, say so and offer to show the existing log. When nothing is found in the log, say 'No trades recorded yet.' and ask if they want to start one. After writing, show the person the table of all recorded trades using show_table so they can review everything at a glance.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "log a new trade",
     "show me my trades",
@@ -46,5 +46,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Trade log\nRecord every trade you make and the thought behind it.\n\n- Needs: memory_remember, file_write, show_table\n- Will not: make any trades, send money, or access external accounts\n- At the end of each entry, show a table of all recorded trades so you can review them at a glance.",
-  "hash": "4eed84290dc2ada52bd391cccb7ecb865d05332fe0ea32847bc82118355bc0ff"
+  "hash": "c974fbbda6240a2adfe5f0e0bb5025d4613461b1245d41084cc6001c2f7921ac"
 }

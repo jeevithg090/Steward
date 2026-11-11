@@ -2,7 +2,7 @@ id: colonoscopy-prep
 name: Colonoscopy prep
 pitch: A shopping list, timeline, and medication guidance for a clear liquid diet colonoscopy prep.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -28,12 +28,3 @@ examples:
     does: Search the web for colonoscopy prep timeline and add the steps to the page.
 skills:
   - build-prep-page
-rules:
-  - name: no medical advice
-    effect: ask
-    when: tool.name == 'web_search'
-    description: Do not give advice on stopping or changing any medicine.
-  - name: ask before sharing
-    effect: ask
-    when: tool.name == 'make_page'
-    description: Let the person decide if they want the page sent to them or kept private.

@@ -3,7 +3,7 @@
   "name": "CC flagger",
   "pitch": "Flags emails where you are cc'd but your name is mentioned in the body.",
   "category": "productivity",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -14,7 +14,8 @@
     "tools": [
       "mail_list",
       "mail_read",
-      "task_create"
+      "task_create",
+      "show_table"
     ],
     "connectors": [
       "mail"
@@ -44,5 +45,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# CC flagger\nFlags emails where you are cc'd but your name appears in the body, so you can quickly see what needs your input.\n\n**What it does:** Scans recent mail, checks the Cc line and body for your name, and lists matches.\n\n**What it needs:** Access to your mail box.\n\n**What it will not do:** It will not reply to or forward any email, and it will not read messages you mark as private.",
-  "hash": "b518f48be3e33ae36a12f9d956a55bc29cde712794d8dd5ac0b007aed5f92ed4"
+  "hash": "03e644584a7f3481a9f99ace3c06c4476f572af9c4eb6418818d992c55fa4a97"
 }

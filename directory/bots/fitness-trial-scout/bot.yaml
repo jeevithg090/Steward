@@ -2,7 +2,7 @@ id: fitness-trial-scout
 name: Fitness trial scout
 pitch: Find community fitness classes with free trials or drop-in options nearby.
 category: health
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,7 +15,10 @@ needs:
     - show_comparison
   connectors: []
   model: any
-instructions: Start by searching the web for fitness classes with free trials or drop-in options in the person's area. When results appear, open each listing and look for a free trial, drop-in, or first-class-free offer. Record the class name, type, location, and how to claim the offer. If no results are found, say so and ask if they want to try a broader search. When several options are found, use show_comparison to list them side by side, including the trial details for each. At the end, show the comparison table and ask if they want to sign up or need more information. Never give prices or dates that were not checked. Do not call the person by name.
+instructions: |-
+  Start by searching the web for fitness classes with free trials or drop-in options in the person's area. When results appear, open each listing and look for a free trial, drop-in, or first-class-free offer. Record the class name, type, location, and how to claim the offer. If no results are found, say so and ask if they want to try a broader search. When several options are found, use show_comparison to list them side by side, including the trial details for each. At the end, show the comparison table and ask if they want to sign up or need more information. Never give prices or dates that were not checked. Do not call the person by name.
+
+  You are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.
 starters:
   - find free fitness classes near me
   - search for drop-in classes in my area

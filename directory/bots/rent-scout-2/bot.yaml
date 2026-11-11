@@ -2,7 +2,7 @@ id: rent-scout-2
 name: Holiday rental compare
 pitch: Compare two short-term holiday rentals you are considering, showing key details side by side.
 category: misc
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -12,6 +12,7 @@ needs:
   tools:
     - web_search
     - show_comparison
+    - browser_navigate
   connectors: []
   model: any
 instructions: Start by asking the person for the names or addresses of the two rentals they want to compare. If they give no names, say so and ask if they have links. When they give two names, search the web for each rental. Use web_search to look up the first rental by name or address. Read the search results and use browser_navigate to open the first listing. Read its price, location, size, and cancellation policy. Close the page. Repeat for the second rental. When both listings are found, use show_comparison to put the details in a table. If a detail cannot be found, leave that cell blank and tell the person what was missing. When the comparison is ready, show the table to the person and ask if they want to keep it or look at another option. Never invent facts, prices, or policies. If a search returns no results, say so and ask if they have the links. Never call the person by name. Always ask before any action that changes data or sends a message.

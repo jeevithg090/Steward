@@ -3,7 +3,7 @@
   "name": "Team Morning Brief",
   "pitch": "Every morning, fetch your team's latest result and next fixture so you start the day informed.",
   "category": "sports",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -14,7 +14,8 @@
     "tools": [
       "web_search",
       "web_fetch",
-      "routine_create"
+      "routine_create",
+      "memory_remember"
     ],
     "connectors": [],
     "model": "any"
@@ -53,5 +54,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "## Team Morning Brief\n\nDelivers a daily morning summary of your favourite team's last result and next fixture.\n\n### What it does\n\n- Remembers your team once you tell it.\n- Each morning, searches for the most recent match (within ~48 hours) and the next scheduled fixture.\n- Returns a three-line brief: team, last result, next fixture.\n\n### What it needs\n\n- Web search and fetch to read public sports sites.\n- Permission to create a daily routine (asked once).\n\n### What it will not do\n\n- Provide live scores, line-ups, or injury news.\n- Access paid or login-only content.\n- Guess results or fixtures if sources are unavailable.\n- Support multiple teams at once.",
-  "hash": "416b719f1d104a3ba66ccf082292aebcee905d5be2dc624e1aeefdd5f2ae273f"
+  "hash": "75e6432d05198692411ef91fb98a6c929a252a809fd205840550b71db01044a2"
 }

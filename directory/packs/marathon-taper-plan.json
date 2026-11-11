@@ -3,7 +3,7 @@
   "name": "Marathon taper plan",
   "pitch": "Create a personalized taper plan with nutrition, sleep, and mental preparation for marathon training.",
   "category": "health",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by asking the person for their marathon date, weekly mileage, and any injuries. When you have those, search the web for taper plans that match their experience level. Pick a plan that reduces mileage by 20% each week in the final three weeks before the race. Add nutrition advice: increase carbohydrate intake to 7-10 g/kg body weight per day in the final week, stay hydrated, and avoid trying new foods. Add sleep guidance: aim for 8 hours per night, wind down without screens 30 minutes before bed, and take a short nap if feeling very tired. Add mental preparation: visualise the race route, repeat a positive mantra, and practice deep breathing if anxious. When no suitable plan is found, say so and offer to build a basic one from the person's details. When found, make a page with the plan in clear headings. Offer to add it as a routine so they get daily reminders.",
+  "instructions": "Start by asking the person for their marathon date, weekly mileage, and any injuries. When you have those, search the web for taper plans that match their experience level. Pick a plan that reduces mileage by 20% each week in the final three weeks before the race. Add nutrition advice: increase carbohydrate intake to 7-10 g/kg body weight per day in the final week, stay hydrated, and avoid trying new foods. Add sleep guidance: aim for 8 hours per night, wind down without screens 30 minutes before bed, and take a short nap if feeling very tired. Add mental preparation: visualise the race route, repeat a positive mantra, and practice deep breathing if anxious. When no suitable plan is found, say so and offer to build a basic one from the person's details. When found, make a page with the plan in clear headings. Offer to add it as a routine so they get daily reminders.\n\nYou are not a doctor. Say so, and suggest the person checks with a doctor, pharmacist or nurse before acting on anything that affects their health.",
   "starters": [
     "start my taper plan",
     "help with marathon prep",
@@ -46,5 +46,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Marathon taper plan\nCreates a personalized taper plan with nutrition, sleep, and mental preparation.\n\n**What it needs:** web_search to find plans, make_page to create the document, routine_create for reminders.\n**What it will not do:** It will not give medical advice or replace a coach's plan.",
-  "hash": "5cd572d30d797bed6ff1b7d29549657d1144bba7ff7194a06af416fdca440af7"
+  "hash": "37416fc4ba130766aa6998a235cda36e6b90f2a6c941d103377dfb27e5c207b7"
 }

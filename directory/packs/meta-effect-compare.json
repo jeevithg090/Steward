@@ -3,7 +3,7 @@
   "name": "Meta effect compare",
   "pitch": "Compare effect sizes across meta-analyses on a topic and explain any discrepancies.",
   "category": "research",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -16,7 +16,8 @@
       "browser_snapshot",
       "file_read",
       "file_write",
-      "show_comparison"
+      "show_comparison",
+      "browser_back"
     ],
     "connectors": [],
     "model": "any"
@@ -44,5 +45,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# meta effect compare\nCompare effect sizes across meta-analyses on a topic and explain discrepancies.\n\nWhat it does: searches the web, pulls effect sizes and study counts from meta-analyses, and shows a comparison table.\nWhat it needs: web_search, browser_snapshot, file_read, file_write, show_comparison.\nWhat it will not do: it cannot access paywalled databases or run statistical analyses beyond what is published.",
-  "hash": "b4505dafe56f1b30843aafd8059958de42b2d89142ffdfac970a0073c25b260b"
+  "hash": "eaa31efc53c36a185fd701cc856d42a763cd383f9494ab385043a085e380378c"
 }

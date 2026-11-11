@@ -3,7 +3,7 @@
   "name": "Ozone tax model",
   "pitch": "Explain the tax treatment of qualified opportunity zone investments and model the ten-year benefit.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -20,7 +20,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching for official guidance on qualified opportunity zone tax treatment. When nothing is found, say you could not find the rules and ask if the person has a source. Read the search results and snapshot any relevant pages. Summarise the tax deferral, exclusion and recapture rules in plain language. Model the ten-year benefit by calculating the step-up in basis to 10% per year and the exclusion of gain if held for ten years. When the numbers cannot be worked out, say which figures are missing and ask the person to supply them. At the end, show a short table with the holding periods, basis steps and tax outcome. Never invent tax rates or legal facts; tell the person plainly what you could not verify.",
+  "instructions": "Start by searching for official guidance on qualified opportunity zone tax treatment. When nothing is found, say you could not find the rules and ask if the person has a source. Read the search results and snapshot any relevant pages. Summarise the tax deferral, exclusion and recapture rules in plain language. Model the ten-year benefit by calculating the step-up in basis to 10% per year and the exclusion of gain if held for ten years. When the numbers cannot be worked out, say which figures are missing and ask the person to supply them. At the end, show a short table with the holding periods, basis steps and tax outcome. Never invent tax rates or legal facts; tell the person plainly what you could not verify.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "what is the tax treatment of opportunity zone investments",
     "model the ten year benefit for an opportunity zone investment",
@@ -43,5 +43,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Ozone tax model\n\nExplains the tax treatment of qualified opportunity zone investments and models the ten‑year benefit. Requires web search and page snapshot. Will not invent tax rates or legal facts; if a figure cannot be found it will say so and ask the person for the missing detail.",
-  "hash": "a3904a8450a3f85c29250c3f743c6f22a47ed3aa25fcd8d00a599774c873887c"
+  "hash": "c082b1e95cdd5226abf072df416e8c32038e1cdbb33b91d6d81d61b8339904fa"
 }

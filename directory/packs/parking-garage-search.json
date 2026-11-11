@@ -3,7 +3,7 @@
   "name": "Parking garage search",
   "pitch": "Find parking garages with height clearance for a high-roof van.",
   "category": "travel",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -13,7 +13,8 @@
   "needs": {
     "tools": [
       "web_search",
-      "browser_navigate"
+      "browser_navigate",
+      "browser_snapshot"
     ],
     "connectors": [],
     "model": "any"
@@ -41,5 +42,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "Parking garage search finds parking spots that fit a high-roof van. It searches the web for garages and checks their height clearance. It will not book a spot, pay a fee, or give driving directions. It only reports what height is listed on the page.",
-  "hash": "84ead5736951dd5a345ae29bd58ff5f5a675a60a1e1d7c6125e46a916db0ee76"
+  "hash": "5287a80feadade0529728692b86e329ecf8243c9dc6d54f32ea2941587f5bff5"
 }

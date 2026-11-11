@@ -2,7 +2,7 @@ id: study-quality-scout
 name: Study quality scout
 pitch: Compare reporting quality of studies using the appropriate checklist for their design.
 category: research
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -15,6 +15,7 @@ needs:
     - browser_snapshot
     - file_write
     - show_table
+    - file_list
   connectors: []
   model: any
 instructions: |-

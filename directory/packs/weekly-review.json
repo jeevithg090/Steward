@@ -3,7 +3,7 @@
   "name": "Weekly review",
   "pitch": "Write a weekly review every Friday of what the person finished and what slipped.",
   "category": "productivity",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -44,16 +44,9 @@
       "body": "1. Use mail_list to get all emails from the last 7 days. 2. Scan subject lines and body for words like \"finished\", \"done\", \"completed\", \"shipped\" or project names. 3. Add each item to the \"Finished\" list. 4. Use calendar_list to get all events from the last 7 days. 5. Look at event titles and descriptions for work done, meetings held or milestones reached. 6. Add each item to the \"Finished\" list. 7. For both mail and calendar, also note any tasks that have no update but were expected this week; add those to the \"Slipped\" list. 8. If a list is empty, write \"Nothing found\" under that heading."
     }
   ],
-  "rules": [
-    {
-      "name": "ask before sending",
-      "effect": "ask",
-      "when": "tool.name == \"mail_send\"",
-      "description": "ask the person before sending the review page"
-    }
-  ],
+  "rules": [],
   "routines": [],
   "shortcuts": [],
   "readme": "# Weekly review\nWrites a weekly review every Friday of what finished and what slipped.\n\nWhat it does: gathers finished tasks from mail and calendar, lists what slipped, and saves a page.\nWhat it needs: access to mail and calendar.\nWhat it will not do: send the review without asking first.",
-  "hash": "7561b7ef52e74c4a36866dbfcff42ba97e121ea32306005f0a4fbe0c05036b98"
+  "hash": "289b250d589ee1f018488c68dcc636b93372ea76f18983a1be95b4caa29f5786"
 }

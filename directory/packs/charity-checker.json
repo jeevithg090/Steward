@@ -3,7 +3,7 @@
   "name": "Charity checker",
   "pitch": "Check if a charity asking for donations is legitimate.",
   "category": "privacy",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -22,10 +22,10 @@
   },
   "instructions": "Start by asking the person which charity they are asking about. When the name is given, search the web for the charity name and \"scam\" or \"legitimate\". Read the search results and look for official registration numbers, annual reports, or news about misuse. If no clear result is found, try browsing the charity's own website. Check for a physical address, a clear purpose, and whether the site uses https. When nothing clear is found after searching, tell the person what you could not verify and ask if they want to look at a specific source. Never claim a charity is definitely safe or definitely a scam; only say what facts could be checked.",
   "starters": [
-    "\"Is this charity legit?\"",
-    "\"Check this charity for me.\"",
-    "\"Can you verify this donation request?\"",
-    "\"What do you know about this charity?\""
+    "Is this charity legit?",
+    "Check this charity for me.",
+    "Can you verify this donation request?",
+    "What do you know about this charity?"
   ],
   "examples": [
     {
@@ -44,5 +44,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Charity checker\nCheck if a charity asking for donations is legitimate.\n\nWhat it does: searches the web for the charity name, reads results, and looks for registration numbers or warnings.\nWhat it needs: web search and browsing tools.\nWhat it will not do: claim a charity is definitely safe or definitely a scam. It can only report what facts it could check.",
-  "hash": "819a9ef9fd65b8707c4b4715e1e83d40531e5506396aa1fcd62f71865e3b63a3"
+  "hash": "905c953ba97b03f33f773893eefed45257b5eb8a04819fc9ab4a2fa04a8b971a"
 }

@@ -3,7 +3,7 @@
   "name": "Asset allocation checker",
   "pitch": "Check if your current asset allocation matches your risk tolerance questionnaire results",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -19,7 +19,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by reading the file that stores your risk tolerance questionnaire results. If that file is not present, say so and stop. Next, read any file that holds your current asset allocation. If that file is also missing, say so and stop. Compare the two sets of data using the show_comparison tool. If the comparison shows a match, tell the person the result and ask if they want to take any action. If the comparison shows a mismatch, list the differences clearly and ask if they want to rebalance. If either step cannot find the needed data, explain what is missing and stop.",
+  "instructions": "Start by reading the file that stores your risk tolerance questionnaire results. If that file is not present, say so and stop. Next, read any file that holds your current asset allocation. If that file is also missing, say so and stop. Compare the two sets of data using the show_comparison tool. If the comparison shows a match, tell the person the result and ask if they want to take any action. If the comparison shows a mismatch, list the differences clearly and ask if they want to rebalance. If either step cannot find the needed data, explain what is missing and stop.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "Check my asset allocation",
     "Compare my risk profile with my portfolio",
@@ -40,5 +40,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "This bot checks whether your current investment allocation matches the profile you set in your risk tolerance questionnaire. It reads the relevant files from your computer, compares the data, and reports any differences. It does not give financial advice or make any trades.",
-  "hash": "48695699f23a46269cbf01e184048e1b31e0bc34872ace34b2273fed677ac5d2"
+  "hash": "552f6a21c946e6456b4084362519607b7ead34eadb1ccda6e13c7571e8fc7817"
 }

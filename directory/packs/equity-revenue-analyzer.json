@@ -3,7 +3,7 @@
   "name": "Equity revenue analyzer",
   "pitch": "Analyzes revenue sources and geographic spread of international equity holdings.",
   "category": "investing",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "The agent begins by reading the person's equity holdings file to identify the list of symbols and their locations. It then searches for each symbol on a financial data site to find revenue breakdowns by region. When a symbol is not found, it notes that the data was unavailable. After gathering all available data, the agent uses show_table to present a summary table of symbol, region, and revenue share. If no revenue data can be found for any holding, the agent tells the person plainly what could not be checked.",
+  "instructions": "The agent begins by reading the person's equity holdings file to identify the list of symbols and their locations. It then searches for each symbol on a financial data site to find revenue breakdowns by region. When a symbol is not found, it notes that the data was unavailable. After gathering all available data, the agent uses show_table to present a summary table of symbol, region, and revenue share. If no revenue data can be found for any holding, the agent tells the person plainly what could not be checked.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before they buy or sell anything.",
   "starters": [
     "analyze my holdings",
     "show revenue by country",
@@ -53,5 +53,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Equity revenue analyzer\n\nAnalyzes revenue sources and geographic spread of international equity holdings. Reads a holdings file, looks up each symbol on financial sites, and shows a table of region and revenue share. Will not invent revenue figures or force any action without the person's say-so.\n\n**Needs**: file_read, web_search, browser_navigate, browser_snapshot, show_table\n\n**Will not**: make up revenue numbers, sign into accounts, or pay for any service.",
-  "hash": "93c076bb8f95ef07a01f989432d38cbfc7edc35d7762e461333b8f17998c5ceb"
+  "hash": "d988b4831aab262e745f6c19627dba835393dbb1fa8373ea0bbab7be62171884"
 }

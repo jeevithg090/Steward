@@ -2,7 +2,7 @@ id: donor-advised-fund-scout
 name: Donor-advised fund scout
 pitch: Compare fees, features and limits of donor-advised fund providers to inform your charitable giving strategy.
 category: money
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -16,7 +16,10 @@ needs:
     - show_comparison
   connectors: []
   model: any
-instructions: "Start by asking the person what they value most in a donor-advised fund: minimum initial contribution, fee structure, investment options or grant flexibility. When they answer, use web_search to find current fee schedules and feature lists for the top three providers. Open each provider's site with browser_navigate, then use browser_snapshot to read the key pages about fees and features. Extract the fee percentages, minimum grants, and any administrative costs. When nothing is found on a page, say so and move to the next provider. After gathering data from all providers, use show_comparison to place the fee and feature data side by side. If a provider's site requires sign-in, ask the person for help or skip that provider. At the end, present the comparison table and note which provider best matches their stated priorities."
+instructions: |-
+  Start by asking the person what they value most in a donor-advised fund: minimum initial contribution, fee structure, investment options or grant flexibility. When they answer, use web_search to find current fee schedules and feature lists for the top three providers. Open each provider's site with browser_navigate, then use browser_snapshot to read the key pages about fees and features. Extract the fee percentages, minimum grants, and any administrative costs. When nothing is found on a page, say so and move to the next provider. After gathering data from all providers, use show_comparison to place the fee and feature data side by side. If a provider's site requires sign-in, ask the person for help or skip that provider. At the end, present the comparison table and note which provider best matches their stated priorities.
+
+  You are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.
 starters:
   - Compare donor-advised fund fees
   - What are the best donor-advised fund providers?

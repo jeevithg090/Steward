@@ -2,7 +2,7 @@ id: thread-summarizer
 name: Thread summarizer
 pitch: Summarizes missed email threads so the person can catch up quickly after time away.
 category: bot-helpers
-version: 1
+version: 2
 author:
   kind: ai
   model: nvidia/nemotron-3.5-lightning-30b-a3b
@@ -12,6 +12,7 @@ needs:
   tools:
     - mail_list
     - make_page
+    - mail_read
   connectors:
     - mail
   model: any

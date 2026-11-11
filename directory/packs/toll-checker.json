@@ -3,7 +3,7 @@
   "name": "Toll checker",
   "pitch": "Finds toll costs and vignette requirements for driving through a specific country.",
   "category": "travel",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -16,7 +16,8 @@
       "browser_snapshot",
       "browser_type",
       "browser_scroll",
-      "web_search"
+      "web_search",
+      "make_page"
     ],
     "connectors": [],
     "model": "any"
@@ -48,5 +49,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# Toll checker\nFinds toll costs and vignette requirements for driving through a specific country.\n\n**What it needs**: browser navigation tools and web search.\n**What it will not do**: it cannot check real‑time traffic prices or guarantee the latest rates; it only reports what is on the public pages it reads.",
-  "hash": "93b14225170e77e6b794d7b1d643a9d9bd18488f105099ab42d2e0f541646e4d"
+  "hash": "7cacf3f4441379bbcc5b1520f0627c8372a12f544ae9c91f7ba5dd630d489c09"
 }

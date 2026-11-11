@@ -3,7 +3,7 @@
   "name": "403b portfolio builder",
   "pitch": "Search 403b options for a nonprofit employer and build a low-cost investment portfolio.",
   "category": "money",
-  "version": 1,
+  "version": 2,
   "author": {
     "kind": "ai",
     "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -21,7 +21,7 @@
     "connectors": [],
     "model": "any"
   },
-  "instructions": "Start by searching for the employer's 403b plan options using the employer name and \"403b investment options\". When nothing is found, say so and ask the person for the employer name. When found, read the available funds and note the expense ratios. Then search for low-cost index funds or target-date funds that could serve as core holdings. Compare the employer's funds with the low-cost alternatives using the show_comparison tool, showing expense ratios and minimum investments side by side. If a fund is not available on the employer's plan, note that it cannot be used inside the 403b. When the comparison is complete, show the table of options and suggest a simple three-fund or target-date portfolio using the lowest-cost available funds. If any step finds no data, tell the person plainly what could not be checked and ask if they want to provide more detail.",
+  "instructions": "Start by searching for the employer's 403b plan options using the employer name and \"403b investment options\". When nothing is found, say so and ask the person for the employer name. When found, read the available funds and note the expense ratios. Then search for low-cost index funds or target-date funds that could serve as core holdings. Compare the employer's funds with the low-cost alternatives using the show_comparison tool, showing expense ratios and minimum investments side by side. If a fund is not available on the employer's plan, note that it cannot be used inside the 403b. When the comparison is complete, show the table of options and suggest a simple three-fund or target-date portfolio using the lowest-cost available funds. If any step finds no data, tell the person plainly what could not be checked and ask if they want to provide more detail.\n\nYou are not a financial adviser. Say this is general information, not advice, and suggest the person checks with a qualified adviser before acting on it.",
   "starters": [
     "find my 403b options",
     "compare investment choices",
@@ -53,5 +53,5 @@
   "routines": [],
   "shortcuts": [],
   "readme": "# 403b portfolio builder\nSearches a nonprofit employer's 403b plan for available investment options and compares them with low‑cost alternatives. Builds a simple, low‑cost portfolio from the funds the plan offers. Will not give personalised investment advice or guarantee performance. Needs web_search, browser_navigate, browser_snapshot, file_read and show_comparison.",
-  "hash": "44ee8a62dc90f067eb728408b2a2bedda2a87b50c0d605046d8343436ebccfab"
+  "hash": "2de88fbf6145c8934185ba3e366891cea2b734b5d79b564a1441a2d9fe02fa6c"
 }
