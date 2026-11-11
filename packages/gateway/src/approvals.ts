@@ -132,7 +132,8 @@ function named(name: unknown): boolean {
 
 /**
  * What "Always allow" turns into, scoped as narrowly as the call allows; undefined when a rule
- * could not name what was approved, so Always allow must not be offered. A browser action on an
+ * could not name what was approved, so Always allow must not be offered. A browser action on a
+ * page with no host (a blank page, a file) would allow that element on every site, one on an
  * element the computer could not name would allow any unnamed element on that host, and a key
  * press whose control it could not name would allow whatever that key does next time.
  */
@@ -141,7 +142,7 @@ export function alwaysRuleFor(
 ): AlwaysRule | undefined {
   const { tool, target } = approval;
   if (tool.surface === "browser") {
-    if (!named(target.element?.name)) return undefined;
+    if (!named(target.host) || !named(target.element?.name)) return undefined;
     const submits =
       tool.name === "browser_press" || (tool.name === "browser_type" && approval.args?.submit === true);
     if (submits && !named(target.element?.submitter?.name)) return undefined;
@@ -187,9 +188,10 @@ export function alwaysRuleFor(
  * later with any. Narrows each such rule once, in the shape `alwaysRuleFor` wrote it (a rule
  * someone rewrote by hand is left alone), so an event allowed with no guests still invites nobody.
  * A rule that cannot be narrowed is switched off instead of staying wide: one that would grow too
- * long, and one for a click, typing or key press on an element that had no name, which allows that
- * kind of action on every element of the site. Each change is recorded as a policy change. Never
- * stops Steward from starting. Returns how many were narrowed.
+ * long, and one for a click, typing or key press on an element that had no name (which allows that
+ * kind of action on every element of the site) or on a page with no host (which allows it on every
+ * site). Each change is recorded as a policy change. Never stops Steward from starting. Returns
+ * how many were narrowed.
  */
 export function narrowAlwaysRules(rules: SqliteRuleStore): number {
   const log = (type: string, rule: Rule, err: unknown) =>
@@ -209,7 +211,7 @@ export function narrowAlwaysRules(rules: SqliteRuleStore): number {
     if (!written) continue;
     if (
       /^tool\.name == "browser_(click|type|press)"/.test(rule.when) &&
-      !rule.when.includes("target.element.name")
+      (!rule.when.includes("target.element.name") || !rule.when.includes("target.host"))
     ) {
       switchOff(rule);
       continue;

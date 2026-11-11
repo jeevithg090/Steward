@@ -700,7 +700,7 @@ describe("always allow", () => {
     expect(restarted.audit.page({}).total).toBe(before);
   });
 
-  it("switches off an old Always allow for an element that had no name, and keeps a named one", () => {
+  it("switches off an old Always allow for an element with no name or a page with no host, and keeps a named one", () => {
     const { db, gw } = setup();
     // What an older Steward wrote for Enter in a field it could not name: every Enter that sends there.
     const blind = gw.rules.create({
@@ -719,6 +719,21 @@ describe("always allow", () => {
       enabled: true,
       source: "always",
     });
+    // What an older Steward wrote for a click on a page with no host: that button on every site.
+    const anywhere = gw.rules.create({
+      name: "Always allow browser_click 'Send'",
+      effect: "allow",
+      when: 'tool.name == "browser_click" && target.element.name == "Send" && tool.kind == "send"',
+      description: "",
+      enabled: true,
+      source: "always",
+    });
+    const click = gateCall(
+      "browser_click",
+      { ref: "e2" },
+      { target: { host: "bank.example", element: { ref: "e2", role: "button", name: "Send" } } },
+    );
+    expect(gw.governance.dryRun(click).effect).toBe("allow");
     const press = (name: string) =>
       gateCall(
         "browser_press",
@@ -733,6 +748,8 @@ describe("always allow", () => {
     expect(gw.governance.dryRun(press("Message the whole team")).effect).toBe("allow");
     const restarted = createGateway({ db });
     expect(restarted.rules.get(blind.id)).toMatchObject({ when: blind.when, enabled: false });
+    expect(restarted.rules.get(anywhere.id)).toMatchObject({ when: anywhere.when, enabled: false });
+    expect(restarted.governance.dryRun(click).effect).toBe("ask");
     expect(restarted.rules.get(named.id)).toMatchObject({
       when: `${named.when} && size(target.recipients) == 0`,
       enabled: true,
@@ -775,6 +792,36 @@ describe("always allow", () => {
     );
     expect(submitted.canAlways).toBe(false);
     expect(gw.rules.list()).toHaveLength(before);
+  });
+
+  it("is not offered for a browser action on a page with no host, which would allow it on every site", async () => {
+    const { gw } = setup();
+    const click = (target: { host?: string; url: string }) =>
+      gateCall(
+        "browser_click",
+        { ref: "e1" },
+        { target: { ...target, element: { ref: "e1", role: "button", name: "Send" } } },
+      );
+    for (const url of ["about:blank", "file:///Users/me/page.html"]) {
+      const approval = parked(await gw.governance.execute(click({ url }), async () => null));
+      expect(approval.canAlways).toBe(false);
+      expect(() => gw.approvals.decide(approval.id, "always", "local")).toThrow(
+        /Always allow is not offered/,
+      );
+    }
+    // The same button on a site still offers it, pinned to that site.
+    const onSite = parked(
+      await gw.governance.execute(
+        click({ host: "mail.example", url: "https://mail.example/inbox" }),
+        async () => null,
+      ),
+    );
+    expect(onSite.canAlways).toBe(true);
+    const decided = gw.approvals.decide(onSite.id, "always", "local");
+    expect(gw.rules.get(decided.createdRuleId ?? "")?.when).toContain('target.host == "mail.example"');
+    expect(gw.governance.dryRun(click({ host: "chat.example", url: "https://chat.example/" })).effect).toBe(
+      "ask",
+    );
   });
 
   it("scopes MCP tools to the server", async () => {
