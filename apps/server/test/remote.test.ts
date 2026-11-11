@@ -323,6 +323,60 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
     expect(await one.open(envelope)).toBeDefined();
   });
 
+  it("runs a task it starts as the phone's, so it asks before it sends even under Always allow", async () => {
+    const s = t.server.services;
+    const rule = await t.api<{ id: string }>("/api/rules", {
+      method: "POST",
+      json: { name: "Email freely", effect: "allow", when: 'tool.name == "mail_send"', description: "Test" },
+    });
+    expect(rule.status).toBe(201);
+    try {
+      const task = s.proactive.tasks.create({ title: EMAIL_ASK, detail: "", source: "person" });
+      const started = await one.call<{ threadId: string }>("task.start", { taskId: task.id });
+      expect(started.ok).toBe(true);
+      const threadId = started.ok ? started.value.threadId : "";
+      const asked = await waitFor(
+        () =>
+          s.gateway.audit
+            .page({ type: "approval.requested", limit: 20 })
+            .events.find((e) => e.threadId === threadId),
+        10_000,
+      );
+      expect(asked.rule?.id).toBe("preset_device_sends");
+      expect(
+        s.gateway.audit
+          .page({ type: "tool.completed", limit: 50 })
+          .events.some((e) => e.threadId === threadId),
+      ).toBe(false);
+      const from = s.gateway.audit.page({ type: "run.started", limit: 20 }).events;
+      expect(from.find((e) => e.threadId === threadId)?.detail).toMatchObject({
+        via: `device:${one.deviceId}`,
+        task: task.id,
+      });
+
+      // A routine runs as the routine, with its own presets; the record still names the phone.
+      const routine = s.proactive.routines.create({
+        title: "Look at the day",
+        prompt: "Tell me what needs me today.",
+        schedule: "0 9 * * *",
+        timezone: "UTC",
+        enabled: true,
+        agentId: "steward",
+      });
+      const ran = await one.call<{ threadId: string }>("routine.run", { routineId: routine.id });
+      expect(ran.ok).toBe(true);
+      // Its run has finished and left its notification once the routine notes how it went.
+      await waitFor(() => s.proactive.routines.get(routine.id)?.lastStatus);
+      const routineRow = s.gateway.audit
+        .page({ type: "run.started", limit: 20 })
+        .events.find((e) => e.threadId === routine.threadId);
+      expect(routineRow?.detail).toMatchObject({ via: `device:${one.deviceId}`, routine: routine.id });
+      expect(s.gateway.audit.verify().ok).toBe(true);
+    } finally {
+      await t.api(`/api/rules/${rule.body.id}`, { method: "DELETE" });
+    }
+  });
+
   it("refuses an answer signed by another key, or for another approval", async () => {
     const answer = await one.signed("apr_whatever", "refuse");
     const forged = { ...answer, approvalId: "apr_other" };

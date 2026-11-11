@@ -132,14 +132,14 @@ Answers come back as words the shortcut shows, and Siri reads them aloud when Si
 
 Each phone has its own key and its own list, under Settings → Phone:
 
-| It may                | Out of the box | What it means                                                            |
-| --------------------- | -------------- | ------------------------------------------------------------------------ |
-| Read the brief        | yes            | What needs you today. Requests are in it only if the phone may see them. |
-| See what Steward asks | yes            | List requests waiting for you, and **refuse** them.                      |
-| Say yes to requests   | **no**         | "This phone can say yes to things Steward asks about."                   |
-| Talk to Steward       | yes            | Ask for things; work started from a phone is marked so.                  |
-| Tasks                 | yes            | See tasks, and start or hide one.                                        |
-| Run routines          | yes            | Run one of your routines now.                                            |
+| It may                | Out of the box | What it means                                                              |
+| --------------------- | -------------- | -------------------------------------------------------------------------- |
+| Read the brief        | yes            | What needs you today. Requests are in it only if the phone may see them.   |
+| See what Steward asks | yes            | List requests waiting for you, and **refuse** them.                        |
+| Say yes to requests   | **no**         | "This phone can say yes to things Steward asks about."                     |
+| Talk to Steward       | yes            | Ask for things; work started from a phone is marked so.                    |
+| Tasks                 | yes            | See tasks, and start or hide one. A task started here runs as the phone's. |
+| Run routines          | yes            | Run one of your routines now.                                              |
 
 And never, whatever you switch on:
 
@@ -150,10 +150,12 @@ And never, whatever you switch on:
 - **Rules, settings, connections, secrets, the shell and the computer** are not reachable from a
   phone at all.
 - **Work started from a phone asks before it sends**, signs, deletes or runs a command, even where
-  you chose Always allow (a preset on `/rules`).
+  you chose Always allow (a preset on `/rules`). That includes a task started from the phone. A
+  routine run from the phone keeps the routine's own rules, which ask for the same things.
 
-Every answer from a phone is in the record: "Answered from Sam's iPhone (Shortcuts)". Revoke a
-phone in Settings → Phone; its next call is refused.
+Every answer from a phone is in the record: "Answered from Sam's iPhone (Shortcuts)". So is every
+task or routine a phone starts: "Started work, from Sam's iPhone". Revoke a phone in Settings →
+Phone; its next call is refused.
 
 ## Updates
 

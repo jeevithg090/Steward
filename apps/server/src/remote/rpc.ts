@@ -159,7 +159,9 @@ export async function handleRpc(ctx: RpcContext, method: RemoteMethod, params: u
     case "task.start": {
       api.need(device, "tasks");
       const body = parse(TaskId, params);
-      const started = startTask(s, body.taskId, body.note);
+      // Started from a phone, the run is the phone's: its presets apply, as to a chat it started.
+      const started = startTask(s, body.taskId, body.note, { kind: "device", id: device.id });
+      s.devices.started(device, started, { task: started.task.id });
       return { taskId: started.task.id, threadId: started.threadId };
     }
     case "task.hide": {
@@ -176,6 +178,7 @@ export async function handleRpc(ctx: RpcContext, method: RemoteMethod, params: u
       if (!routine) throw notFound("that routine");
       if (!routine.enabled) throw new HttpError(409, "That routine is paused. Turn it on first.");
       const run = s.workers.runRoutine(routine);
+      s.devices.started(device, run, { routine: routine.id });
       return { threadId: run.threadId };
     }
     case "run.stop": {

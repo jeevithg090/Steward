@@ -297,6 +297,35 @@ describe.runIf(missing.length === 0)("the device listener", () => {
     expect(devices.some((d) => d.shortcutVersion === `steward@${STEWARD_SHORTCUT.version}`)).toBe(true);
   });
 
+  it("records which phone ran a routine, which still runs as the routine", async () => {
+    const { token, deviceId } = await pairPhone("Hall iPhone");
+    const s = t.server.services;
+    const routine = s.proactive.routines.create({
+      title: "Look at the day",
+      prompt: "Tell me what needs me today.",
+      schedule: "0 9 * * *",
+      timezone: "UTC",
+      enabled: true,
+      agentId: "steward",
+    });
+    const ran = await device<DeviceReply>(`/device/run/${encodeURIComponent(`routine:${routine.id}`)}`, {
+      token,
+      json: {},
+    });
+    expect(ran.status).toBe(200);
+    expect(ran.body.ui).toEqual([{ say: "Started Look at the day. Steward will tell you when it's done." }]);
+    await waitFor(() => s.proactive.routines.get(routine.id)?.lastStatus);
+    const row = s.gateway.audit
+      .page({ type: "run.started", limit: 20 })
+      .events.find((e) => e.threadId === routine.threadId);
+    expect(row?.detail).toMatchObject({
+      via: `device:${deviceId}`,
+      device: "Hall iPhone",
+      routine: routine.id,
+    });
+    expect(row?.runId).toBeTruthy();
+  });
+
   it("answers nothing on the main port: no /device there, and no tunnel-shaped request", async () => {
     const { token } = await pairPhone();
     const onMain = await fetch(`${t.base}/device/home`, { headers: { authorization: `Bearer ${token}` } });

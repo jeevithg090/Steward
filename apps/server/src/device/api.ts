@@ -363,7 +363,8 @@ export class DeviceApi {
         if (!routine) throw notFound("that routine");
         if (!routine.enabled)
           return { ui: [{ say: `${routine.title} is paused. Turn it on in Steward first.` }] };
-        this.s.workers.runRoutine(routine);
+        const started = this.s.workers.runRoutine(routine);
+        this.deps.devices.started(device, started, { routine: routine.id });
         return { ui: [{ say: `Started ${routine.title}. Steward will tell you when it's done.` }] };
       }
       default:

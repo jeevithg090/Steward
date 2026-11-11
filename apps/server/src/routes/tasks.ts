@@ -1,4 +1,5 @@
 import {
+  type Initiator,
   newId,
   ROUTES,
   TaskPatchBody,
@@ -22,8 +23,12 @@ const STATES: readonly TaskState[] = [
   "hidden",
 ];
 
-/** Start: hands a task to Steward in a conversation of its own. The web app and the phone app share it. */
-export function startTask(s: StewardServices, id: string, note?: string) {
+/**
+ * Start: hands a task to Steward in a conversation of its own. The web app and the phone app share
+ * it. The run is the task's unless a stricter initiator is given: a task started from a phone runs
+ * as the phone's, so "Phones ask before they send" still applies to it.
+ */
+export function startTask(s: StewardServices, id: string, note?: string, initiator?: Initiator) {
   const { tasks } = s.proactive;
   const task = tasks.get(id);
   if (!task) throw notFound("that task");
@@ -34,18 +39,19 @@ export function startTask(s: StewardServices, id: string, note?: string) {
   const agentId = s.threads.getMeta(threadId)?.agentId ?? s.defaultAgentId;
   s.threads.upsertMeta({ id: threadId, agentId, kind: "task", title: task.title });
   tasks.update(id, { state: "working", threadId });
+  let runId: string;
   try {
-    s.runs.start({
+    runId = s.runs.start({
       agentId,
       threadId,
       userText: taskStart(task, note),
-      initiator: { kind: "task", id: task.id },
-    });
+      initiator: initiator ?? { kind: "task", id: task.id },
+    }).runId;
   } catch (err) {
     tasks.update(id, { state: task.state });
     throw err;
   }
-  return { task: tasks.get(id) ?? task, threadId };
+  return { task: tasks.get(id) ?? task, threadId, runId };
 }
 
 /** `/api/tasks`: the Tasks page, and Start, which hands a task to Steward in a conversation of its own. */
@@ -81,6 +87,7 @@ export function registerTaskRoutes(app: Hono, s: StewardServices): void {
 
   app.post(ROUTES.taskStart, async (c) => {
     const body = await readBody(c, TaskStartBody);
-    return c.json(startTask(s, c.req.param("id"), body.note));
+    const { task, threadId } = startTask(s, c.req.param("id"), body.note);
+    return c.json({ task, threadId });
   });
 }

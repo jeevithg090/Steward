@@ -352,16 +352,26 @@ export class DeviceStore {
     return after;
   }
 
+  /**
+   * Notes that a phone started work that is not its own conversation, a task or a routine, so the
+   * record says which phone it was. A routine still runs as the routine, with its own presets.
+   */
+  started(device: Device, run: { threadId: string; runId: string }, detail: Record<string, unknown>): void {
+    this.record("run.started", device, detail, run);
+  }
+
   /** Writes a device row to the record. A record that cannot be written is reported, never silent. */
   record(
-    type: "device.paired" | "device.changed" | "device.revoked" | "device.refused",
+    type: "device.paired" | "device.changed" | "device.revoked" | "device.refused" | "run.started",
     device: Device | undefined,
     detail: Record<string, unknown>,
+    run?: { threadId: string; runId: string },
   ): void {
     try {
       this.audit.append({
         type,
         actorId: this.actorId,
+        ...(run ? { threadId: run.threadId, runId: run.runId } : {}),
         detail: {
           ...(device ? { via: `device:${device.id}`, device: device.name, deviceKind: device.kind } : {}),
           ...detail,
