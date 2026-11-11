@@ -134,7 +134,8 @@ told so.
 **Claiming.** On a bot's page, a signed-in person can claim it: an AI-made bot, or one adapted
 from another catalogue and credited to its original author. Submitting a pack with an AI-made
 bot's id and a higher version is also a claim. Once approved, the listing is credited to them,
-and an AI-made bot keeps "based on an AI-made draft".
+and an AI-made bot keeps "based on an AI-made draft". A claim of a listing that another GitHub
+account had approved here warns the reviewer, even when the handles match.
 
 **Reviewing.** A reviewer opens `/admin`, reads each pending pack (its instructions, README,
 skills, rules and the checks' warnings) and approves or rejects it with a note. Approving writes
