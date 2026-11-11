@@ -370,6 +370,36 @@ describe("the morning brief", () => {
     expect(brief.couldNotCheck).toEqual([]);
   });
 
+  it("reads the day a first brief missed when that brief couldn't read the mail", async () => {
+    const working = fakeMail({
+      emails: [
+        email({ subject: "Monday evening", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-19T20:00:00Z" }),
+      ],
+    });
+    let current = fakeMail({ failEmails: true });
+    const p = setup({ at: "2026-10-20T08:00:00Z", mail: () => current });
+    expect((await p.brief.generate()).couldNotCheck).toEqual(["Mail: couldn't be read just now"]);
+    current = working;
+    p.clock.set("2026-10-21T08:00:00Z");
+    const brief = await p.brief.generate();
+    expect(brief.canWait.map((i) => i.subject)).toEqual(["Monday evening"]);
+    expect(brief.couldNotCheck).toEqual([]);
+  });
+
+  it("says the 3-day reach was hit when every recent brief couldn't read the mail", async () => {
+    let current = fakeMail({ failEmails: true });
+    const p = setup({ at: "2026-10-18T08:00:00Z", mail: () => current });
+    for (const day of ["18", "19", "20", "21"]) {
+      p.clock.set(`2026-10-${day}T08:00:00Z`);
+      await p.brief.generate();
+    }
+    current = fakeMail({});
+    p.clock.set("2026-10-22T08:00:00Z");
+    expect((await p.brief.generate()).couldNotCheck).toEqual([
+      "Mail: only the last 3 days were checked; the last brief to read it was longer ago than that",
+    ]);
+  });
+
   it("covers a weekend away, and says so when the last brief was more than three days ago", async () => {
     const saturday = email({
       subject: "Saturday",
@@ -399,7 +429,7 @@ describe("the morning brief", () => {
     const back = await away.brief.generate();
     expect(back.canWait.map((i) => i.subject)).toEqual(["Saturday"]);
     expect(back.couldNotCheck).toEqual([
-      "Mail: only the last 3 days were checked; the last brief was longer ago than that",
+      "Mail: only the last 3 days were checked; the last brief to read it was longer ago than that",
     ]);
   });
 

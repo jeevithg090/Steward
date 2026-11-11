@@ -51,7 +51,7 @@ export interface MailWindow {
   since: Date;
   /** "in the last day", "since the last brief" or "in the last 3 days". */
   words: string;
-  /** True when the last brief was longer ago than the window reaches. */
+  /** True when the last brief to read the mail was longer ago than the window reaches. */
   cut: boolean;
 }
 
@@ -391,13 +391,14 @@ export function createBriefService(deps: BriefDeps): BriefService {
       "SELECT created_at, body FROM proactive_briefs WHERE date < ? ORDER BY date DESC LIMIT ?",
       [date, BRIEF_MAIL_MAX_DAYS + 1],
     );
-    let at: string | undefined;
     for (const row of earlier) {
-      at = row.created_at;
       const body = fromJson<Brief | undefined>(row.body, undefined);
-      if (!body?.couldNotCheck?.includes(MAIL_UNREAD)) break;
+      if (!body?.couldNotCheck?.includes(MAIL_UNREAD)) return row.created_at;
     }
-    return at;
+    // None of them read the mail. The oldest would have read the day before it was made, so start
+    // there: a first brief that failed must not leave its own day in no brief.
+    const oldest = earlier.length > 0 ? Date.parse(earlier[earlier.length - 1]!.created_at) : Number.NaN;
+    return Number.isNaN(oldest) ? undefined : new Date(oldest - DAY_MS).toISOString();
   }
 
   async function build(
@@ -427,7 +428,7 @@ export function createBriefService(deps: BriefDeps): BriefService {
         mailRead = true;
         if (window.cut) {
           couldNotCheck.push(
-            `Mail: only the last ${BRIEF_MAIL_MAX_DAYS} days were checked; the last brief was longer ago than that`,
+            `Mail: only the last ${BRIEF_MAIL_MAX_DAYS} days were checked; the last brief to read it was longer ago than that`,
           );
         }
         if (read.capped) {
