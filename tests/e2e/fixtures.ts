@@ -154,6 +154,11 @@ export function uniqueAddress(testInfo: TestInfo, label: string): string {
   return `${label}-${testInfo.retry}-${Date.now().toString(36)}@example.com`;
 }
 
+/** A word (lowercase letters and digits) no other test and no earlier attempt has used. */
+export function uniqueWord(testInfo: TestInfo, label: string): string {
+  return `${label}${testInfo.retry}x${Date.now().toString(36)}`;
+}
+
 /**
  * The approval card whose summary names `text` (an address, say). The card is a region named by
  * its summary, and says why it asks; the tool's own card in the transcript does neither.

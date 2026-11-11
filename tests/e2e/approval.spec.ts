@@ -96,12 +96,19 @@ test.describe("Asking before acting", () => {
     expect(sent).toHaveLength(1);
     expect(sent[0]).toMatchObject({ subject: "The plan", body: "See you at 10" });
 
-    const { entries } = await recordAbout(page, address);
+    const { main, entries } = await recordAbout(page, address);
     await expect(entries.filter({ hasText: "Asked you" })).toHaveCount(1);
     await expect(entries.filter({ hasText: "You answered" })).toHaveCount(1);
     await expect(entries.filter({ hasText: "Done" }).filter({ hasText: "Send an email" })).toHaveCount(1);
     // The new entries are sealed into the chain like every other.
     expect(await verifiedCount(page)).toBeGreaterThan(before);
+
+    // "What happened" narrows the list to one kind of entry: here, the answer alone.
+    await main.getByRole("combobox", { name: "What happened" }).selectOption({ label: "You answered" });
+    await expect(entries).toHaveCount(1);
+    await expect(entries).toContainText("You answered");
+    await main.getByRole("combobox", { name: "What happened" }).selectOption({ label: "Everything" });
+    await expect(entries.filter({ hasText: "Asked you" })).toHaveCount(1);
   });
 
   test.describe("Always allow", () => {
