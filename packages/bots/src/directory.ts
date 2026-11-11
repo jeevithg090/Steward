@@ -230,6 +230,9 @@ export function keywordsOf(pack: Pick<BotPack, "starters" | "skills">): string {
 
 type Scored = { listing: BotListing; score: number };
 
+/** More than any number of word matches can add up to. */
+const EXACT_ID_SCORE = 1_000_000;
+
 const desc = (a: number, b: number) => b - a;
 const later = (a: string, b: string) => (a < b ? 1 : a > b ? -1 : 0);
 
@@ -391,17 +394,24 @@ export class DirectoryClient {
   async list(input: BotsQueryValue): Promise<{ bots: BotListing[]; total: number }> {
     const query = BotsQuery.parse(input);
     const index = await this.index();
-    const tokens = tokensOf(query.q ?? "");
+    const q = query.q?.trim() ?? "";
+    const tokens = tokensOf(q);
+    // A bot's own id finds that bot first, however many others share its words: a bot's page
+    // (`/bots/<id>`) looks it up this way.
+    const id = q.toLowerCase();
+    const named = q !== "" && index.bots.some((listing) => listing.id === id);
     // Words that say nothing about a job ("help me please") match no bot, rather than every bot.
-    if (query.q?.trim() && tokens.length === 0) return { bots: [], total: 0 };
+    if (q !== "" && tokens.length === 0 && !named) return { bots: [], total: 0 };
     let scored: Scored[] = index.bots
       .filter((listing) => !query.category || listing.category === query.category)
       .filter((listing) => !query.needs || reaches(listing.needs, query.needs))
       .map((listing) => ({
         listing,
-        score: tokens.length > 0 ? scoreOf(listing, tokens, index.categories) : 0,
+        score:
+          (named && listing.id === id ? EXACT_ID_SCORE : 0) +
+          (tokens.length > 0 ? scoreOf(listing, tokens, index.categories) : 0),
       }));
-    if (tokens.length > 0) scored = scored.filter((s) => s.score > 0);
+    if (q !== "") scored = scored.filter((s) => s.score > 0);
     scored.sort(comparator(query.sort));
     return {
       bots: scored.slice(query.offset, query.offset + query.limit).map((s) => s.listing),

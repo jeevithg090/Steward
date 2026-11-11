@@ -575,6 +575,41 @@ describe("DirectoryClient on the web", () => {
     expect((await client.get("chatty"))?.keywords).toBeUndefined();
   });
 
+  it("finds a bot by its own id first, however many others share its words", async () => {
+    const listing = (id: string, name: string, pitch: string, installs = 0) => ({
+      id,
+      name,
+      pitch,
+      category: "food",
+      version: 1,
+      author: { kind: "person", handle: "sam" },
+      needs: { tools: [], connectors: [], model: "any" },
+      installs,
+      updatedAt: "2026-01-01T00:00:00Z",
+      packUrl: `packs/${id}.json`,
+    });
+    files["https://ids.example/index.json"] = JSON.stringify({
+      name: "Ids",
+      generatedAt: "2026-01-01T00:00:00Z",
+      categories: {},
+      bots: [
+        listing("meal-planner", "Weekly menus", "Plans your week."),
+        listing("meal-planner-pro", "Meal Planner Pro", "A meal planner for busy weeks.", 90),
+        listing("family-meal-planner", "Family Meal Planner", "A meal planner for a family.", 50),
+        listing("help-me", "Helper", "Answers questions about food."),
+      ],
+    });
+    const client = new DirectoryClient({ source: "https://ids.example/index.json", fetch: fakeFetch });
+    const ids = async (q: string, limit = 1) =>
+      (await client.list({ q, sort: "match", limit, offset: 0 })).bots.map((b) => b.id);
+    expect(await ids("meal-planner")).toEqual(["meal-planner"]);
+    expect(await ids("Meal-Planner")).toEqual(["meal-planner"]);
+    // An id made only of filler words still finds its bot, and only that one.
+    expect(await ids("help-me", 10)).toEqual(["help-me"]);
+    // Words are still ranked as words: the names that match come before the pitch that does not.
+    expect(await ids("meal planner", 10)).toEqual(["meal-planner-pro", "family-meal-planner"]);
+  });
+
   it("says when the index is missing or not an index", async () => {
     await expect(
       new DirectoryClient({ source: "https://bots.example.com/none.json", fetch: fakeFetch }).index(),
