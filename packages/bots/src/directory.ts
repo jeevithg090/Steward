@@ -380,12 +380,21 @@ async function readText(path: string): Promise<string | undefined> {
   }
 }
 
+/**
+ * What a build needs of the last index: when it was built and each bot's date. Read loosely, so a
+ * listing field added or changed since (a new field, a longer pitch) does not reset every date.
+ */
+const PreviousIndexSchema = z.object({
+  generatedAt: z.string(),
+  bots: z.array(z.object({ id: z.string(), updatedAt: z.string() }).nullable().catch(null)),
+});
+
 /** The last build's index, for each bot's `updatedAt`; undefined when there is none or it is broken. */
-function previousIndex(text: string | undefined): DirectoryIndex | undefined {
+function previousIndex(text: string | undefined): z.infer<typeof PreviousIndexSchema> | undefined {
   if (!text) return undefined;
   try {
-    const checked = DirectoryIndexSchema.safeParse(JSON.parse(text));
-    return checked.success ? (checked.data as DirectoryIndex) : undefined;
+    const checked = PreviousIndexSchema.safeParse(JSON.parse(text));
+    return checked.success ? checked.data : undefined;
   } catch {
     return undefined;
   }
@@ -442,7 +451,13 @@ export async function buildIndex(dir: string, opts: BuildIndexOptions = {}): Pro
   const indexPath = join(root, "index.json");
   const oldIndex = await readText(indexPath);
   const previous = previousIndex(oldIndex);
-  const before = new Map((previous?.bots ?? []).map((listing) => [listing.id, listing.updatedAt]));
+  const before = new Map(
+    (previous?.bots ?? []).flatMap((listing) =>
+      listing && Number.isFinite(Date.parse(listing.updatedAt))
+        ? [[listing.id, listing.updatedAt] as const]
+        : [],
+    ),
+  );
 
   const bots: BotListing[] = [];
   for (const folder of folders) {

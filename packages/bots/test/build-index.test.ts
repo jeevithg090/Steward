@@ -1,4 +1,13 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, utimesSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  utimesSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { BotListing, BotPack, DirectoryIndex } from "@steward/shared";
@@ -103,6 +112,27 @@ describe("buildIndex dates", () => {
     expect(dateOf(root, "rent-scout")).toBe("2026-12-01T08:00:00.000Z");
     expect(dateOf(root, "meal-planner")).toBe("2026-10-28T00:00:00.000Z");
     expect(readIndex(root).generatedAt).toBe("2026-12-01T08:00:00.000Z");
+  });
+
+  it("keeps the dates when the last index lists bots in an older shape", async () => {
+    await writeBotFolder(join(root, "bots", "inbox-zero"), pack("inbox-zero"));
+    touch(join(root, "bots", "inbox-zero"), new Date("2026-02-05T00:00:00Z"));
+    await buildIndex(root, { now: at("2026-11-10T12:00:00Z") });
+    // A listing field added since, one taken away, and a date that cannot be read.
+    const old = readIndex(root) as unknown as { bots: Record<string, unknown>[] };
+    for (const listing of old.bots) {
+      delete listing.pitch;
+      listing.retiredSoon = true;
+    }
+    const inbox = old.bots.find((b) => b.id === "inbox-zero");
+    if (inbox) inbox.updatedAt = "not a date";
+    writeFileSync(join(root, "index.json"), JSON.stringify(old));
+    touch(join(root, "bots"), new Date("2026-12-01T00:00:00Z"));
+    await buildIndex(root, { now: at("2026-12-01T08:00:00Z") });
+    expect(dateOf(root, "rent-scout")).toBe("2026-01-05T00:00:00.000Z");
+    // The unreadable date is treated as a bot the last build did not list.
+    expect(dateOf(root, "inbox-zero")).toBe("2026-12-01T00:00:00.000Z");
+    expect(readIndex(root).bots.every((b: BotListing) => b.pitch === "A bot.")).toBe(true);
   });
 
   it("never dates a bot after the build", async () => {
