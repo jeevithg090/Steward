@@ -10,11 +10,13 @@ import { ErrorBoundary } from "./ErrorBoundary.tsx";
 import { prefetchChat } from "./features.ts";
 import { useWideLayout } from "./layout-mode.ts";
 import { AppRoutes } from "./routes.tsx";
+import { ServerGate } from "./ServerGate.tsx";
 
 /**
  * The root: data (react-query), the person's accessibility settings, toasts, the default agent and
- * the router. Order matters: settings sit above everything that draws. CopilotKit is not here: it
- * loads with the chat (`features.ts`), fetched in the background once the first page has drawn.
+ * the router. Order matters: settings sit above everything that draws, and nothing else draws until
+ * the server has answered once. CopilotKit is not here: it loads with the chat (`features.ts`),
+ * fetched in the background once the first page has drawn.
  */
 export function App() {
   const [queryClient] = useState(createQueryClient);
@@ -23,11 +25,13 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <AccessibilityRoot>
         <ErrorBoundary>
-          <BrowserRouter>
-            <DefaultAgent>
-              <AppRoutes />
-            </DefaultAgent>
-          </BrowserRouter>
+          <ServerGate>
+            <BrowserRouter>
+              <DefaultAgent>
+                <AppRoutes />
+              </DefaultAgent>
+            </BrowserRouter>
+          </ServerGate>
         </ErrorBoundary>
         <ThemedToaster />
       </AccessibilityRoot>

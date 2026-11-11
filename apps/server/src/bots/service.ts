@@ -201,10 +201,7 @@ export class BotService {
       try {
         pack = await this.deps.directory.pack(body.packUrl);
       } catch (err) {
-        throw new HttpError(
-          502,
-          `Couldn't get that bot from the directory: ${err instanceof Error ? clip(err.message, 200) : "it did not answer."}`,
-        );
+        throw directoryError(err);
       }
       const source = isRemoteDirectory(body.packUrl) ? body.packUrl : this.deps.directorySource;
       return { raw: pack, source, fromDirectory: true };
@@ -501,4 +498,25 @@ export class BotService {
 /** `<name>-<bot id>`, cut to the skill store's limit. */
 function suffixed(name: string, botId: string): string {
   return `${name}-${botId}`.slice(0, SKILL_NAME_MAX).replace(/-+$/, "");
+}
+
+/**
+ * A failed directory read as the person should hear it. A pack that isn't there is a 404, so the
+ * page can say there is no bot by that name. A file system error names a path on this machine,
+ * which stays in the server's log and never reaches the page.
+ */
+export function directoryError(err: unknown): HttpError {
+  const code = (err as { code?: unknown } | null)?.code;
+  const message = err instanceof Error ? err.message : "";
+  if (code === "ENOENT" || code === "ENOTDIR" || /^The directory answered 404\b/.test(message)) {
+    return new HttpError(404, "That bot isn't in the directory.");
+  }
+  if (typeof code === "string") {
+    console.error("[steward] reading a bot from the directory failed:", message);
+    return new HttpError(502, "Couldn't read that bot from the directory.");
+  }
+  return new HttpError(
+    502,
+    `Couldn't get that bot from the directory: ${message ? clip(message, 200) : "it did not answer."}`,
+  );
 }

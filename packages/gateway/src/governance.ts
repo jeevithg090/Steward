@@ -352,7 +352,9 @@ export class GatewayGovernance implements Governance {
         toolCallId: call.toolCallId,
         tool: call.tool,
         target: call.target,
-        detail,
+        // Who started it, as on the decision: a record filtered to failures or results doesn't
+        // show the decision, and without this a routine's failed send would read as the person's.
+        detail: { ...detail, initiator: call.initiator },
       });
     } catch (err) {
       console.error(

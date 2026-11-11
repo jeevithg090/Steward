@@ -30,6 +30,8 @@ export type Contrast = "normal" | "more";
 export type MotionPreference = "system" | "reduce";
 export type ThemePreference = "system" | "light" | "dark";
 export type FontPreference = "default" | "readable";
+/** How fast replies are read aloud: slower, normal, faster. */
+export type SpeechRate = 0.8 | 1 | 1.25;
 
 export interface AccessibilitySettings {
   textSize: TextSize;
@@ -39,6 +41,10 @@ export interface AccessibilitySettings {
   font: FontPreference;
   /** Read Steward's replies aloud (the chat's voice feature reads this). */
   readAloud: boolean;
+  /** The voice that reads aloud, by `voiceURI`; "" is this device's usual voice. */
+  speechVoice: string;
+  /** How fast it reads. */
+  speechRate: SpeechRate;
   /** Ask Steward for short sentences and everyday words. */
   plainLanguage: boolean;
   /**
@@ -86,6 +92,8 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   theme: "system",
   font: "default",
   readAloud: false,
+  speechVoice: "",
+  speechRate: 1,
   plainLanguage: false,
   shortcuts: true,
 };
@@ -108,6 +116,9 @@ export function readStoredAccessibility(): Partial<LocalSettings> {
   if (parsed.theme === "system" || parsed.theme === "light" || parsed.theme === "dark")
     out.theme = parsed.theme;
   if (parsed.font === "default" || parsed.font === "readable") out.font = parsed.font;
+  if (typeof parsed.speechVoice === "string" && parsed.speechVoice.length <= 500)
+    out.speechVoice = parsed.speechVoice;
+  if ([0.8, 1, 1.25].includes(parsed.speechRate as number)) out.speechRate = parsed.speechRate as SpeechRate;
   if (typeof parsed.readAloud === "boolean") out.readAloud = parsed.readAloud;
   if (typeof parsed.shortcuts === "boolean") out.shortcuts = parsed.shortcuts;
   return out;

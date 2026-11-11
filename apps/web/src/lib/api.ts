@@ -118,6 +118,8 @@ export interface AuditFilters {
   effect?: string;
   q?: string;
   limit?: number;
+  /** Start below this entry number instead of at the newest: `before: 8` starts at entry #7. */
+  before?: number;
 }
 
 // ── The fetch layer ────────────────────────────────────────────────────────────────────────────
@@ -152,12 +154,26 @@ export function withQuery(path: string, query?: Query): string {
   return qs ? `${path}?${qs}` : path;
 }
 
+/** What every failed call says when Steward's server can't be reached at all. */
+export const UNREACHABLE_MESSAGE =
+  "Couldn't reach Steward. Check that the server is running, then try again.";
+
+/**
+ * True when the server never answered: the network failed, or a proxy in front of it (Vite's, in
+ * development) said 502, 503 or 504 because the server is down or still starting.
+ */
+export function isUnreachable(error: unknown): boolean {
+  return error instanceof ApiError && (error.status === 0 || error.message === UNREACHABLE_MESSAGE);
+}
+
 function errorMessage(body: unknown, status: number): string {
   if (body && typeof body === "object") {
     const record = body as Record<string, unknown>;
     if (typeof record.error === "string" && record.error) return record.error;
     if (typeof record.message === "string" && record.message) return record.message;
   }
+  // Steward's own errors are JSON. Anything else at these codes came from a proxy, not Steward.
+  if (status === 502 || status === 503 || status === 504) return UNREACHABLE_MESSAGE;
   if (typeof body === "string" && body.length > 0 && body.length < 300 && !body.startsWith("<")) return body;
   if (status === 404) return "Couldn't find that. It may have been removed.";
   if (status === 409) return "That changed while you were looking. Reload and try again.";
@@ -186,7 +202,7 @@ export async function request<T>(
     });
   } catch (err) {
     if (opts.signal?.aborted) throw err;
-    throw new ApiError("Couldn't reach Steward. Check that the server is running, then try again.", 0);
+    throw new ApiError(UNREACHABLE_MESSAGE, 0);
   }
   const text = await res.text();
   let data: unknown;
@@ -212,7 +228,7 @@ export async function requestFile(path: string, body: unknown): Promise<Blob> {
       credentials: "same-origin",
     });
   } catch {
-    throw new ApiError("Couldn't reach Steward. Check that the server is running, then try again.", 0);
+    throw new ApiError(UNREACHABLE_MESSAGE, 0);
   }
   if (!res.ok) {
     const text = await res.text();
@@ -306,7 +322,13 @@ export const api = {
   },
 
   tasks: {
-    list: (state?: TaskState, signal?: AbortSignal) => get<TasksResponse>(ROUTES.tasks, { state }, signal),
+    /** One state or several (`needs_you,failed`); without one, every state but hidden. */
+    list: (state?: TaskState | readonly TaskState[], signal?: AbortSignal) =>
+      get<TasksResponse>(
+        ROUTES.tasks,
+        { state: typeof state === "string" ? state : state?.join(",") },
+        signal,
+      ),
     patch: (id: string, body: TaskPatchInput) => send<Task>("PATCH", route(ROUTES.task, { id }), body),
     start: (id: string, body: TaskStartInput = {}) =>
       send<{ task: Task; threadId: string }>("POST", route(ROUTES.taskStart, { id }), body),
@@ -433,9 +455,14 @@ export const queryKeys = {
   presets: ["rules", "presets"] as const,
   audit: ["audit"] as const,
   auditPages: (filters: AuditFilters) => ["audit", "pages", filters] as const,
-  auditVerify: ["audit", "verify"] as const,
+  /**
+   * Outside `audit` on purpose: a new entry, or a rule change, refreshes the list but must not make
+   * the server check the whole chain again. The check runs on its own timer and after a reconnect.
+   */
+  auditVerify: ["auditVerify"] as const,
   tasks: ["tasks"] as const,
-  taskList: (state?: TaskState) => ["tasks", state ?? "all"] as const,
+  taskList: (state?: TaskState | readonly TaskState[]) =>
+    ["tasks", typeof state === "string" ? state : (state?.join(",") ?? "all")] as const,
   brief: ["brief"] as const,
   briefFor: (date: string) => ["brief", date] as const,
   inbox: ["inbox"] as const,
@@ -647,7 +674,7 @@ export function useAudit(filters: AuditFilters = {}) {
   return useInfiniteQuery({
     queryKey: queryKeys.auditPages(filters),
     queryFn: ({ pageParam, signal }) => api.audit.page({ ...filters, before: pageParam }, signal),
-    initialPageParam: undefined as number | undefined,
+    initialPageParam: filters.before as number | undefined,
     getNextPageParam: (last: AuditPage) => last.nextBefore,
   });
 }
@@ -662,7 +689,7 @@ export function useVerifyAudit(opts?: QueryOpts<ChainCheck>) {
 
 // ── Tasks ──────────────────────────────────────────────────────────────────────────────────────
 
-export function useTasks(state?: TaskState, opts?: QueryOpts<TasksResponse>) {
+export function useTasks(state?: TaskState | readonly TaskState[], opts?: QueryOpts<TasksResponse>) {
   return useQuery<TasksResponse, ApiError>({
     queryKey: queryKeys.taskList(state),
     queryFn: ({ signal }) => api.tasks.list(state, signal),
@@ -1074,9 +1101,14 @@ export function useRevokeDevice() {
 
 // ── Derived counts ─────────────────────────────────────────────────────────────────────────────
 
+/** What Needs you lists: tasks that need the person, and tasks that could not finish. */
+export const NEEDS_YOU_STATES: readonly TaskState[] = ["needs_you", "failed"];
+
 /**
  * How many things wait on the person: tasks that need them, tasks that could not finish, and
  * pending approvals no task already stands for. The Tasks badge and the Needs you tab use this.
+ * `tasks` must list the Needs you tasks (`NEEDS_YOU_STATES`): a task waiting on an approval is
+ * always one of them, so that is where an approval's task is found.
  */
 export function needsYouCount(tasks: TasksResponse | undefined, pending: Approval[] | undefined): number {
   const taskCount = (tasks?.counts.needs_you ?? 0) + (tasks?.counts.failed ?? 0);

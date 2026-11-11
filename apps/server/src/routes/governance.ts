@@ -26,8 +26,12 @@ const APPROVAL_STATUSES: readonly ApprovalStatus[] = [
 ];
 const EFFECTS = ["allow", "ask", "deny"] as const;
 
-/** Rules that ship with Steward or the tenant package: they can be switched off, not rewritten. */
-const isShipped = (rule: Rule) => rule.source === "preset" || rule.source === "tenant";
+/**
+ * Rules that ship with Steward or the tenant package, or came with a bot: they can be switched
+ * off, not rewritten. A bot's rules go when the bot is removed.
+ */
+const isShipped = (rule: Rule) =>
+  rule.source === "preset" || rule.source === "tenant" || rule.source === "bot";
 
 /**
  * The one way an answer is recorded, for the web card and for a phone alike: the approval must be
@@ -162,7 +166,9 @@ export function registerGovernanceRoutes(app: Hono, s: StewardServices): void {
       if (rewritten) {
         throw new HttpError(
           403,
-          "Rules that come with Steward can't be changed. Switch it off, or add your own rule.",
+          rule.source === "bot"
+            ? "Rules that came with a bot can't be changed. Switch it off, or remove the bot."
+            : "Rules that come with Steward can't be changed. Switch it off, or add your own rule.",
         );
       }
       return c.json(rules.update(id, { enabled: body.enabled }));
@@ -180,7 +186,12 @@ export function registerGovernanceRoutes(app: Hono, s: StewardServices): void {
     const rule = rules.get(id);
     if (!rule) throw notFound("that rule");
     if (isShipped(rule)) {
-      throw new HttpError(403, "Rules that come with Steward can't be deleted. Switch it off instead.");
+      throw new HttpError(
+        403,
+        rule.source === "bot"
+          ? "Rules that came with a bot go when the bot is removed. Switch it off, or remove the bot."
+          : "Rules that come with Steward can't be deleted. Switch it off instead.",
+      );
     }
     rules.remove(id);
     return c.json({ ok: true });

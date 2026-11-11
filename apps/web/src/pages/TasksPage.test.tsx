@@ -1,5 +1,6 @@
 import type { Approval, Task, TaskState, TasksResponse } from "@steward/shared";
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
+import { Toaster } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mockFetch, renderWithProviders } from "@/lib/testing.tsx";
 import { TasksPage } from "./TasksPage.tsx";
@@ -59,17 +60,22 @@ const looseApproval = {
 const TASKS = [
   task("needs_you", "Confirm Thursday's delivery"),
   task("failed", "Book the venue", { error: "the site didn't answer" }),
-  task("suggested", "Reply to the supplier"),
-  task("suggested", "Chase the unpaid invoice"),
+  task("suggested", "Reply to the supplier", { emailId: "msg_supplier" }),
+  task("suggested", "Chase the unpaid invoice", { emailId: "msg_invoice" }),
   task("working", "Compare three quotes", { threadId: "thr_9" }),
   task("ready_for_review", "Draft the newsletter", { threadId: "thr_8" }),
   task("resolved", "Renew the domain"),
   task("hidden", "Something hidden"),
 ];
 
-function serve(tasks: Task[] = TASKS, approvals: Approval[] = [looseApproval]) {
+/** Lists the states asked for, as the server does; hidden only when asked. Counts cover every task. */
+function serve(tasks: Task[] = TASKS, approvals: Approval[] = [looseApproval], limit = 500) {
   return mockFetch((req) => {
-    if (req.path === "/api/tasks" && req.method === "GET") return { body: response(tasks) };
+    if (req.path === "/api/tasks" && req.method === "GET") {
+      const wanted = req.query.get("state")?.split(",");
+      const listed = tasks.filter((t) => (wanted ? wanted.includes(t.state) : t.state !== "hidden"));
+      return { body: { ...response(tasks), tasks: listed.slice(0, limit) } };
+    }
     if (req.path === "/api/approvals") return { body: approvals };
     if (req.path.startsWith("/api/approvals/")) return { body: approvals[0] };
     if (req.method === "PATCH") return { body: { ...tasks[0], ...(req.body as object) } };
@@ -107,13 +113,31 @@ describe("TasksPage", () => {
     renderWithProviders(<TasksPage />, { route: "/tasks" });
     fireEvent.click(await screen.findByRole("tab", { name: "Suggested 2" }));
     expect(screen.getByRole("tab", { name: "Suggested 2" }).getAttribute("aria-selected")).toBe("true");
-    expect(screen.getByText("Reply to the supplier")).toBeTruthy();
+    expect(await screen.findByText("Reply to the supplier")).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "Start" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: "Hide" })).toHaveLength(2);
 
     fireEvent.keyDown(screen.getByRole("tab", { name: "Suggested 2" }), { key: "ArrowRight" });
     expect(screen.getByRole("tab", { name: "Working 1" }).getAttribute("aria-selected")).toBe("true");
-    expect(screen.getByText("Compare three quotes")).toBeTruthy();
+    expect(await screen.findByText("Compare three quotes")).toBeTruthy();
+  });
+
+  it("asks the server for each view's own tasks", async () => {
+    const { calls } = serve();
+    renderWithProviders(<TasksPage />, { route: "/tasks?view=resolved" });
+    expect(await screen.findByText("Renew the domain")).toBeTruthy();
+    const asked = calls.filter((c) => c.path === "/api/tasks").map((c) => c.query.get("state"));
+    expect(asked).toEqual(expect.arrayContaining(["needs_you,failed", "resolved"]));
+    expect(asked).not.toContain(null);
+  });
+
+  it("never says a view is empty while its count says otherwise", async () => {
+    const old = Array.from({ length: 4 }, (_, i) => task("resolved", `Old job ${i}`));
+    serve([...TASKS, ...old], [], 2);
+    renderWithProviders(<TasksPage />, { route: "/tasks?view=resolved" });
+    expect(await screen.findByRole("tab", { name: "Resolved 5" })).toBeTruthy();
+    expect(await screen.findByText("3 older tasks aren't listed here.")).toBeTruthy();
+    expect(screen.queryByText("Nothing resolved yet")).toBeNull();
   });
 
   it("opens on the segment named in the address", async () => {
@@ -131,6 +155,41 @@ describe("TasksPage", () => {
     const patch = calls.find((c) => c.method === "PATCH")!;
     expect(patch.path).toMatch(/^\/api\/tasks\/tsk_\d+$/);
     expect(patch.body).toEqual({ state: "resolved" });
+  });
+
+  it("hides a suggestion, and Undo on the toast puts it back", async () => {
+    const { calls } = serve();
+    renderWithProviders(
+      <>
+        <TasksPage />
+        <Toaster />
+      </>,
+      { route: "/tasks?view=suggested" },
+    );
+    fireEvent.click((await screen.findAllByRole("button", { name: "Hide" }))[0]!);
+    const toast = await screen.findByText("Hidden. Steward won't suggest this email again.");
+    expect(toast).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
+    await waitFor(() => expect(calls.filter((c) => c.method === "PATCH")).toHaveLength(2));
+    const [hidden, undone] = calls.filter((c) => c.method === "PATCH");
+    expect(hidden?.body).toEqual({ state: "hidden" });
+    expect(undone?.path).toBe(hidden?.path);
+    expect(undone?.body).toEqual({ state: "suggested" });
+  });
+
+  it("doesn't speak of suggesting again when hiding a task that came from no email", async () => {
+    serve();
+    renderWithProviders(
+      <>
+        <TasksPage />
+        <Toaster />
+      </>,
+      { route: "/tasks?view=needs_you" },
+    );
+    expect(await screen.findByText("Book the venue")).toBeTruthy();
+    // Neither task in Needs you came from an email.
+    fireEvent.click(screen.getAllByRole("button", { name: "Hide" })[0]!);
+    expect(await screen.findByText("Hidden.")).toBeTruthy();
   });
 
   it("says when a segment is empty", async () => {

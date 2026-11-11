@@ -1,6 +1,7 @@
-import type { AuditEvent, AuditType } from "@steward/shared";
+import type { AuditEvent, AuditType, Initiator } from "@steward/shared";
 import { ChevronDown, ScrollText, ShieldAlert, ShieldCheck } from "lucide-react";
 import { type FormEvent, useEffect, useId, useState } from "react";
+import { Link, useSearchParams } from "react-router";
 import { RuleBadge } from "@/components/cards/RuleBadge.tsx";
 import { Button } from "@/components/ui/Button.tsx";
 import { EmptyState } from "@/components/ui/EmptyState.tsx";
@@ -15,34 +16,89 @@ import { cn, formatDateTime, plural, prettyJson, relativeTime } from "@/lib/util
 
 const PAGE_SIZE = 50;
 
+/** The outcomes the record can be filtered by, as the server names them. */
+const OUTCOMES: { value: string; label: string }[] = [
+  { value: "allow", label: "Permitted" },
+  { value: "ask", label: "Asked" },
+  { value: "deny", label: "Refused" },
+  { value: "failed", label: "Failed" },
+];
+
+/** "12 entries." or, with a filter on, "1 entry matches." */
+function countSentence(total: number, filtered: boolean): string {
+  const count = plural(total, "entry", "entries");
+  return filtered ? `${count} ${total === 1 ? "matches" : "match"}.` : `${count}.`;
+}
+
 /**
  * The record: every decision, request, answer and outcome, newest first. Each row seals the one
  * before it (a hash chain), and the badge at the top asks the server to check the whole chain.
+ * The filters live in the address, so they survive a reload and Back, and a link can open them.
  */
 export function RecordPage() {
-  const [type, setType] = useState("");
-  const [effect, setEffect] = useState("");
-  const [search, setSearch] = useState("");
-  const [q, setQ] = useState("");
+  const [params, setParams] = useSearchParams();
+  const typeParam = params.get("type") ?? "";
+  const type = typeParam in AUDIT_TYPE_LABELS ? typeParam : "";
+  const effectParam = params.get("effect") ?? "";
+  const effect = OUTCOMES.some((o) => o.value === effectParam) ? effectParam : "";
+  const q = params.get("q") ?? "";
+  const from = Number(params.get("from"));
+  const before = Number.isSafeInteger(from) && from > 0 ? from + 1 : undefined;
+  const [search, setSearch] = useState(q);
+  const filtered = Boolean(type || effect || q);
   const filters: AuditFilters = {
     type: type || undefined,
     effect: effect || undefined,
     q: q || undefined,
     limit: PAGE_SIZE,
+    before,
   };
   const audit = useAudit(filters);
   const events = audit.data?.pages.flatMap((p) => p.events) ?? [];
   const total = audit.data?.pages[0]?.total;
+  const started = startersOf(events);
+
+  function setFilter(name: string, value: string) {
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (value) next.set(name, value);
+        else next.delete(name);
+        return next;
+      },
+      { replace: true },
+    );
+  }
+
+  // Back or a link can change the search in the address; the field follows it. The field keeps
+  // what is being typed when only the spaces at its ends differ: "web " stays, ready for the next word.
+  useEffect(() => setSearch((typed) => (typed.trim() === q ? typed : q)), [q]);
 
   // Search as the person pauses typing, not on every key.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs when the typed search changes.
   useEffect(() => {
-    const timer = setTimeout(() => setQ(search.trim()), 350);
+    const timer = setTimeout(() => {
+      if (search.trim() !== q) setFilter("q", search.trim());
+    }, 350);
     return () => clearTimeout(timer);
   }, [search]);
 
+  // The count is announced when the person changes a filter, not each time a new entry arrives.
+  const filterKey = `${type}|${effect}|${q}`;
+  const [announced, setAnnounced] = useState({ key: filterKey, text: "" });
+  if (announced.key !== filterKey && total !== undefined && !audit.isFetching) {
+    setAnnounced({ key: filterKey, text: countSentence(total, filtered) });
+  }
+
   function submit(event: FormEvent) {
     event.preventDefault();
-    setQ(search.trim());
+    setFilter("q", search.trim());
+  }
+
+  /** Opens the record at one entry, with no filter that could hide it. */
+  function showEntry(seq: number) {
+    setSearch("");
+    setParams(new URLSearchParams({ from: String(seq) }), { replace: true });
   }
 
   return (
@@ -56,7 +112,7 @@ export function RecordPage() {
         </p>
       }
     >
-      <ChainBadge />
+      <ChainBadge onShowEntry={showEntry} />
 
       <form
         onSubmit={submit}
@@ -64,7 +120,7 @@ export function RecordPage() {
         aria-label="Filter the record"
       >
         <Field label="What happened">
-          <Select value={type} onChange={(e) => setType(e.target.value)}>
+          <Select value={type} onChange={(e) => setFilter("type", e.target.value)}>
             <option value="">Everything</option>
             {(Object.keys(AUDIT_TYPE_LABELS) as AuditType[]).map((t) => (
               <option key={t} value={t}>
@@ -74,11 +130,13 @@ export function RecordPage() {
           </Select>
         </Field>
         <Field label="Outcome">
-          <Select value={effect} onChange={(e) => setEffect(e.target.value)}>
+          <Select value={effect} onChange={(e) => setFilter("effect", e.target.value)}>
             <option value="">Any</option>
-            <option value="allow">Permitted</option>
-            <option value="ask">Asked</option>
-            <option value="deny">Refused</option>
+            {OUTCOMES.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </Select>
         </Field>
         <Field label="Search">
@@ -95,11 +153,18 @@ export function RecordPage() {
         <h2 id="record-entries" className="sr-only">
           Entries
         </h2>
-        <p aria-live="polite" className="text-ink-2 text-sub">
-          {total !== undefined
-            ? `${plural(total, "entry", "entries")}${type || effect || q ? " match" : ""}.`
-            : ""}
+        <p className="text-ink-2 text-sub">{total !== undefined ? countSentence(total, filtered) : ""}</p>
+        <p aria-live="polite" className="sr-only">
+          {announced.text}
         </p>
+        {before !== undefined ? (
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sub">
+            <span className="text-ink-2">Showing entry #{before - 1} and older.</span>
+            <Button variant="link" onClick={() => setFilter("from", "")}>
+              Back to the newest
+            </Button>
+          </p>
+        ) : null}
         {audit.isPending ? (
           <Loading>Loading the record…</Loading>
         ) : audit.isError ? (
@@ -109,11 +174,8 @@ export function RecordPage() {
             onRetry={() => void audit.refetch()}
           />
         ) : events.length === 0 ? (
-          <EmptyState
-            icon={ScrollText}
-            title={type || effect || q ? "Nothing matches" : "Nothing recorded yet"}
-          >
-            {type || effect || q
+          <EmptyState icon={ScrollText} title={filtered ? "Nothing matches" : "Nothing recorded yet"}>
+            {filtered
               ? "Try another filter, or clear the search."
               : "Every action Steward takes, and every decision about one, will be written here."}
           </EmptyState>
@@ -121,7 +183,7 @@ export function RecordPage() {
           <ol className="flex flex-col overflow-hidden rounded-card bg-card shadow-card">
             {events.map((event) => (
               <li key={event.id} className="border-hair-2 border-t first:border-t-0">
-                <AuditRow event={event} />
+                <AuditRow event={event} startedBy={startedByOf(event, started)} />
               </li>
             ))}
           </ol>
@@ -140,8 +202,11 @@ export function RecordPage() {
   );
 }
 
-/** "Record intact · N entries verified", or a red warning naming the first broken entry. */
-function ChainBadge() {
+/**
+ * "Record intact · N entries verified", or a warning naming the first broken entry: what it means,
+ * what still holds, and what to do.
+ */
+function ChainBadge({ onShowEntry }: { onShowEntry: (seq: number) => void }) {
   const verify = useVerifyAudit({ refetchInterval: 60_000 });
   if (verify.isPending) return <Loading className="justify-start py-2">Checking the record…</Loading>;
   if (verify.isError) {
@@ -155,34 +220,104 @@ function ChainBadge() {
   }
   const check = verify.data;
   if (check.ok) {
+    // Only "intact" is announced: the count grows with every entry and would be read out each time.
     return (
-      <p
-        role="status"
-        className="flex flex-wrap items-center gap-3 rounded-field bg-done-soft px-4 py-3 text-sub"
-      >
+      <p className="flex flex-wrap items-center gap-3 rounded-field bg-done-soft px-4 py-3 text-sub">
         <ShieldCheck aria-hidden="true" className="size-5 shrink-0 text-done" />
         <span className="font-semibold text-ink">
-          Record intact · {plural(check.count, "entry", "entries")} verified
+          <span role="status">Record intact</span> · {plural(check.count, "entry", "entries")} verified
         </span>
         <span className="text-ink-2">Every entry still seals the one before it.</span>
       </p>
     );
   }
+  const at = check.brokenAt;
   return (
     <div role="alert" className="flex items-start gap-3 rounded-field bg-problem-soft px-4 py-3 text-sub">
       <ShieldAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-problem" />
-      <div>
+      <div className="flex min-w-0 flex-col gap-1.5">
         <p className="font-semibold text-ink">The record has been changed</p>
         <p className="text-ink-2">
-          {check.brokenAt !== undefined
-            ? `Entry #${check.brokenAt} no longer matches the entry before it. Everything from there on can't be trusted.`
-            : "Part of the chain no longer matches. Entries after the break can't be trusted."}{" "}
-          {plural(check.count, "entry", "entries")} checked.
+          {at !== undefined
+            ? `Entry #${at} is missing, out of order, or no longer seals the entry before it. The ${plural(check.count, "entry", "entries")} before it still check out; from #${at} on, the record can't be trusted.`
+            : "Part of the chain no longer matches. Entries after the break can't be trusted."}
         </p>
+        <p className="text-ink-2">
+          Steward still checks every action against your rules before it acts. Only the history is in doubt.
+        </p>
+        <p className="text-ink-2">
+          Keep a copy of <code className="break-all font-mono">.steward-data/steward.db</code> as it is now.
+          You can check that file yourself, with the short script under "Checking it" in{" "}
+          <code className="font-mono">docs/governance.md</code>.
+        </p>
+        {at !== undefined ? (
+          <div>
+            <Button size="sm" onClick={() => onShowEntry(at)}>
+              Show entry #{at}
+            </Button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
+
+/** Who started each tool call and run, from the decisions on screen: only those record it. */
+function startersOf(events: AuditEvent[]): Map<string, Initiator> {
+  const started = new Map<string, Initiator>();
+  for (const event of events) {
+    const initiator = initiatorOf(event);
+    if (!initiator) continue;
+    if (event.toolCallId) started.set(`call:${event.toolCallId}`, initiator);
+    if (event.runId && !started.has(`run:${event.runId}`)) started.set(`run:${event.runId}`, initiator);
+  }
+  return started;
+}
+
+const INITIATOR_KINDS = new Set<string>(["person", "routine", "task", "resume", "system", "device"]);
+
+function initiatorOf(event: AuditEvent): Initiator | undefined {
+  const initiator = event.detail?.initiator as Partial<Initiator> | string | undefined;
+  // A run's own row (`run.finished`) records only the kind, as a word.
+  if (typeof initiator === "string") {
+    return INITIATOR_KINDS.has(initiator) ? { kind: initiator as Initiator["kind"], id: "" } : undefined;
+  }
+  return initiator && typeof initiator.kind === "string" ? (initiator as Initiator) : undefined;
+}
+
+function startedByOf(event: AuditEvent, started: Map<string, Initiator>): Initiator | undefined {
+  return (
+    initiatorOf(event) ??
+    (event.toolCallId ? started.get(`call:${event.toolCallId}`) : undefined) ??
+    (event.runId ? started.get(`run:${event.runId}`) : undefined)
+  );
+}
+
+/** Who an entry was by, in words: "You", "A routine, for you", "Steward, after your answer". */
+function actorLabel(event: AuditEvent, startedBy: Initiator | undefined, fromPhone?: string): string {
+  const you = event.actorId === "local" ? "You" : event.actorId;
+  const forYou = event.actorId === "local" ? "for you" : `for ${event.actorId}`;
+  switch (startedBy?.kind) {
+    case "routine":
+      return `A routine, ${forYou}`;
+    case "task":
+      return `A task, ${forYou}`;
+    case "resume":
+      return event.actorId === "local" ? "Steward, after your answer" : `Steward, after ${you} answered`;
+    case "system":
+      return `Steward, ${forYou}`;
+    default:
+      return fromPhone ? `${you}, from ${fromPhone}` : you;
+  }
+}
+
+/** The collapsed row's note for work nobody started by hand. */
+const STARTED_BY: Partial<Record<Initiator["kind"], string>> = {
+  routine: "Started by a routine",
+  task: "Started by a task",
+  resume: "Carried on after your answer",
+  system: "Started by Steward",
+};
 
 /** How a recorded run ended, from its `run.finished` detail. */
 const RUN_OUTCOMES: Record<string, { label: string; tone: "done" | "needs" | "neutral" | "problem" }> = {
@@ -203,14 +338,15 @@ function outcomeOf(event: AuditEvent) {
   return undefined;
 }
 
-function AuditRow({ event }: { event: AuditEvent }) {
+function AuditRow({ event, startedBy }: { event: AuditEvent; startedBy?: Initiator }) {
   const [open, setOpen] = useState(false);
   const detailId = useId();
   const outcome = outcomeOf(event);
   const target = targetSummary(event.target);
   const refusal = event.effect === "deny";
-  const actor = event.actorId === "local" ? "You" : event.actorId;
   const fromPhone = deviceVia(event.detail);
+  const actor = actorLabel(event, startedBy, fromPhone);
+  const startedNote = startedBy ? STARTED_BY[startedBy.kind] : undefined;
 
   return (
     <div>
@@ -235,6 +371,8 @@ function AuditRow({ event }: { event: AuditEvent }) {
             <span className="mt-0.5 block text-ink-2 text-sub">Answered from {fromPhone}</span>
           ) : fromPhone ? (
             <span className="mt-0.5 block text-ink-2 text-sub">From {fromPhone}</span>
+          ) : startedNote ? (
+            <span className="mt-0.5 block text-ink-2 text-sub">{startedNote}</span>
           ) : null}
           {event.type === "run.finished" ? (
             <span className="mt-0.5 block text-ink-2 text-sub">{usageSummary(event.detail)}</span>
@@ -267,7 +405,6 @@ function AuditRow({ event }: { event: AuditEvent }) {
           <dt className="text-ink-2">By</dt>
           <dd className="text-ink">
             {actor}
-            {fromPhone ? `, from ${fromPhone}` : ""}
             {event.agentId ? ` · agent ${event.agentId}` : ""}
           </dd>
           {!refusal && event.rule ? (
@@ -281,7 +418,14 @@ function AuditRow({ event }: { event: AuditEvent }) {
           {event.threadId ? (
             <>
               <dt className="text-ink-2">Conversation</dt>
-              <dd className="break-all font-mono text-ink">{event.threadId}</dd>
+              <dd>
+                <Link
+                  to={`/chat/${encodeURIComponent(event.threadId)}`}
+                  className="text-accent underline underline-offset-4 hover:text-accent-hover"
+                >
+                  Open the conversation
+                </Link>
+              </dd>
             </>
           ) : null}
           {event.toolCallId ? (

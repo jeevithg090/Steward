@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button.tsx";
 import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
 import { Pill, type Tone } from "@/components/ui/Pill.tsx";
 import { useCheckSetup, useSetup } from "@/lib/api.ts";
+import { type NotificationPermissionState, notificationPermission } from "@/lib/notify.ts";
 import { cn, plural, pluralWord } from "@/lib/utils.ts";
 
 const STATUS: Record<SetupCheck["status"], { label: string; tone: (c: SetupCheck) => Tone }> = {
@@ -37,12 +38,88 @@ export function summariseSetup(checks: SetupCheck[]): string {
   return parts.join(" ");
 }
 
+/** What only this browser knows: whether it may show notifications, and whether it can speak. */
+export interface BrowserFacts {
+  notifications: NotificationPermissionState;
+  speech: boolean;
+}
+
+function browserFacts(): BrowserFacts {
+  return {
+    notifications: notificationPermission(),
+    speech:
+      typeof globalThis.speechSynthesis === "object" &&
+      typeof globalThis.SpeechSynthesisUtterance === "function",
+  };
+}
+
+/**
+ * The server can't see this browser, so it leaves Notifications and Voice "not checked". The browser
+ * answers them here; without this the checklist could never say everything is set up.
+ */
+export function withBrowserFacts(checks: SetupCheck[], facts: BrowserFacts = browserFacts()): SetupCheck[] {
+  return checks.map((check) => {
+    if (check.status !== "not_checked") return check;
+    if (check.id === "notifications") {
+      switch (facts.notifications) {
+        case "granted":
+          return {
+            ...check,
+            status: "ready",
+            detail:
+              "On in this browser. Steward tells you when it needs you and the tab is in the background.",
+          };
+        case "denied":
+          return {
+            ...check,
+            status: "needs_setup",
+            detail: "Blocked for this site in this browser. You see what needs you only when you look.",
+            fix: "Allow notifications for this site in your browser's settings.",
+          };
+        case "unsupported":
+          return {
+            ...check,
+            status: "needs_setup",
+            detail: "This browser can't show notifications. You see what needs you only when you look.",
+            fix: undefined,
+            href: undefined,
+          };
+        default:
+          return { ...check, status: "needs_setup", detail: "Off in this browser." };
+      }
+    }
+    if (check.id === "voice") {
+      return facts.speech
+        ? {
+            ...check,
+            status: "ready",
+            detail: "This browser can read replies aloud. Switch it on with Read replies aloud.",
+          }
+        : {
+            ...check,
+            status: "needs_setup",
+            detail: "This browser can't read replies aloud.",
+            fix: undefined,
+            href: undefined,
+          };
+    }
+    return check;
+  });
+}
+
 /**
  * What is ready and what needs setting up. Ready means it works, not merely that something is set:
  * the server checks each row for real, and "Check again" asks it to look once more.
  * `headingLevel` is the level of the heading this list sits under; each row is one below it.
+ * `onNavigate` hears a "Go to …" link being followed, before the app moves there.
  */
-export function SetupChecklist({ headingLevel = 2 }: { headingLevel?: 1 | 2 | 3 }) {
+export function SetupChecklist({
+  headingLevel = 2,
+  onNavigate,
+}: {
+  headingLevel?: 1 | 2 | 3;
+  onNavigate?: () => void;
+}) {
   const setup = useSetup();
   const check = useCheckSetup();
   const [announcement, setAnnouncement] = useState("");
@@ -59,7 +136,7 @@ export function SetupChecklist({ headingLevel = 2 }: { headingLevel?: 1 | 2 | 3 
     );
   }
 
-  const checks = setup.data;
+  const checks = withBrowserFacts(setup.data);
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -71,7 +148,9 @@ export function SetupChecklist({ headingLevel = 2 }: { headingLevel?: 1 | 2 | 3 
           onClick={() =>
             check.mutate(undefined, {
               onSuccess: (fresh) =>
-                setAnnouncement(`Checked again. ${summariseSetup(Array.isArray(fresh) ? fresh : checks)}`),
+                setAnnouncement(
+                  `Checked again. ${summariseSetup(Array.isArray(fresh) ? withBrowserFacts(fresh) : checks)}`,
+                ),
               onError: () => setAnnouncement("Couldn't check again. Try again."),
             })
           }
@@ -120,6 +199,7 @@ export function SetupChecklist({ headingLevel = 2 }: { headingLevel?: 1 | 2 | 3 
                   item.href.startsWith("/") ? (
                     <Link
                       to={item.href}
+                      onClick={onNavigate}
                       className="mt-1 inline-flex min-h-target items-center text-accent text-sub underline underline-offset-4"
                     >
                       Go to {item.label}

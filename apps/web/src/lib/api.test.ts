@@ -1,6 +1,6 @@
 import { type Approval, ROUTES, type Task, type TasksResponse } from "@steward/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, api, needsYouCount, withQuery } from "./api.ts";
+import { ApiError, api, isUnreachable, needsYouCount, UNREACHABLE_MESSAGE, withQuery } from "./api.ts";
 import { mockFetch } from "./testing.tsx";
 
 afterEach(() => {
@@ -86,6 +86,12 @@ describe("api: every route in ROUTES", () => {
     ],
     ["audit verify", () => api.audit.verify(), "GET", "/api/audit/verify"],
     ["tasks", () => api.tasks.list("suggested"), "GET", "/api/tasks?state=suggested"],
+    [
+      "tasks in several states",
+      () => api.tasks.list(["needs_you", "failed"]),
+      "GET",
+      "/api/tasks?state=needs_you%2Cfailed",
+    ],
     [
       "task (PATCH)",
       () => api.tasks.patch("tsk_1", { state: "resolved" }),
@@ -340,8 +346,28 @@ describe("api errors", () => {
   });
 
   it("falls back to a plain sentence when the body is not JSON", async () => {
-    mockFetch(() => ({ status: 502, body: "<html>Bad gateway</html>" }));
+    mockFetch(() => ({ status: 500, body: "<html>Internal error</html>" }));
     await expect(api.info()).rejects.toThrow("Steward hit a problem. Try again in a moment.");
+  });
+
+  it.each([502, 503, 504])(
+    "says the server can't be reached when a proxy answers %i for it",
+    async (status) => {
+      // Vite's proxy answers an empty 502 while the server is down or still starting.
+      mockFetch(() => ({ status }));
+      const empty = (await api.info().catch((e: unknown) => e)) as ApiError;
+      expect(empty.message).toBe(UNREACHABLE_MESSAGE);
+      expect(isUnreachable(empty)).toBe(true);
+      mockFetch(() => ({ status, body: "<html>Bad gateway</html>" }));
+      await expect(api.info()).rejects.toThrow(UNREACHABLE_MESSAGE);
+    },
+  );
+
+  it("keeps Steward's own sentence on a 502", async () => {
+    mockFetch(() => ({ status: 502, body: { error: "Couldn't get that bot from the directory." } }));
+    const error = (await api.info().catch((e: unknown) => e)) as ApiError;
+    expect(error.message).toBe("Couldn't get that bot from the directory.");
+    expect(isUnreachable(error)).toBe(false);
   });
 
   it("says the server can't be reached when fetch itself fails", async () => {
@@ -354,6 +380,7 @@ describe("api errors", () => {
     const error = (await api.info().catch((e: unknown) => e)) as ApiError;
     expect(error.status).toBe(0);
     expect(error.message).toMatch(/Couldn't reach Steward/);
+    expect(isUnreachable(error)).toBe(true);
   });
 });
 

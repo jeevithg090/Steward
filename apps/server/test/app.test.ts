@@ -185,6 +185,33 @@ describe.runIf(missing.length === 0)("the server, end to end over HTTP", () => {
     expect((await t.api(`/api/rules/${created.body.id}`, { method: "DELETE" })).status).toBe(404);
   });
 
+  it("lets a bot's rule be switched off, never rewritten to allow or deleted on its own", async () => {
+    const rule = t.server.services.gateway.rules.create({
+      name: "Rent Scout: never pay a deposit",
+      effect: "deny",
+      when: 'tool.kind == "pay"',
+      description: "",
+      enabled: true,
+      source: "bot",
+    });
+    const body = { name: rule.name, effect: rule.effect, when: rule.when, description: rule.description };
+    const loosened = await t.api<{ error: string }>(`/api/rules/${rule.id}`, {
+      method: "PUT",
+      json: { ...body, effect: "allow", enabled: true },
+    });
+    expect(loosened.status).toBe(403);
+    expect(loosened.body.error).toMatch(/came with a bot/);
+    const off = await t.api<Rule>(`/api/rules/${rule.id}`, {
+      method: "PUT",
+      json: { ...body, enabled: false },
+    });
+    expect(off.body).toMatchObject({ effect: "deny", enabled: false, source: "bot" });
+    const deleted = await t.api<{ error: string }>(`/api/rules/${rule.id}`, { method: "DELETE" });
+    expect(deleted.status).toBe(403);
+    expect(deleted.body.error).toMatch(/remove the bot/);
+    t.server.services.gateway.rules.remove(rule.id);
+  });
+
   it("pages the record and verifies its chain", async () => {
     const page = await t.api<AuditPage>("/api/audit?limit=5");
     expect(page.status).toBe(200);

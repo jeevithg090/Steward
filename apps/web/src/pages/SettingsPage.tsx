@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/Badge.tsx";
 import { Button } from "@/components/ui/Button.tsx";
 import { Card, CardHeader } from "@/components/ui/Card.tsx";
 import { Field, Input, Select } from "@/components/ui/Field.tsx";
-import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
+import { ErrorNotice, Loading, Notice } from "@/components/ui/Notice.tsx";
 import { Page } from "@/components/ui/PageHeader.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
 import { type SettingsInput, useInfo, useSettings, useUpdateSettings } from "@/lib/api.ts";
@@ -53,19 +53,57 @@ export function SettingsPage() {
   );
 }
 
-const PROVIDERS: { value: NonNullable<SettingsInput["model"]>["provider"]; label: string }[] = [
-  { value: "openrouter", label: "OpenRouter" },
-  { value: "openai", label: "OpenAI" },
-  { value: "anthropic", label: "Anthropic" },
-  { value: "nvidia", label: "NVIDIA" },
-  { value: "gemini", label: "Google Gemini" },
-  { value: "xai", label: "xAI (Grok)" },
-  { value: "ollama", label: "Ollama (on this computer)" },
-  { value: "openai-compatible", label: "Another OpenAI-compatible server" },
-  { value: "scripted", label: "Scripted (for demos and tests)" },
+/**
+ * The providers, the key each one reads from .env, and the model it starts with. They mirror
+ * `PROVIDERS` in packages/agent/src/model.ts and the table in docs/models.md.
+ */
+const PROVIDERS: {
+  value: NonNullable<SettingsInput["model"]>["provider"];
+  label: string;
+  key?: string;
+  model: string;
+}[] = [
+  {
+    value: "openrouter",
+    label: "OpenRouter",
+    key: "OPENROUTER_API_KEY",
+    model: "anthropic/claude-sonnet-5.5",
+  },
+  { value: "openai", label: "OpenAI", key: "OPENAI_API_KEY", model: "gpt-5.6-terra" },
+  { value: "anthropic", label: "Anthropic", key: "ANTHROPIC_API_KEY", model: "claude-sonnet-5-5" },
+  { value: "nvidia", label: "NVIDIA", key: "NVIDIA_API_KEY", model: "nvidia/nemotron-3-ultra-550b-a55b" },
+  { value: "gemini", label: "Google Gemini", key: "GEMINI_API_KEY", model: "gemini-3.5-flash" },
+  { value: "xai", label: "xAI (Grok)", key: "XAI_API_KEY", model: "grok-4.7" },
+  { value: "ollama", label: "Ollama (on this computer)", model: "llama3.2" },
+  {
+    value: "openai-compatible",
+    label: "Another OpenAI-compatible server",
+    key: "STEWARD_MODEL_API_KEY",
+    model: "",
+  },
+  { value: "scripted", label: "Scripted (for demos and tests)", model: "steward-scripted" },
 ];
 
 type Provider = (typeof PROVIDERS)[number]["value"];
+
+const providerOf = (value: string | undefined) => PROVIDERS.find((p) => p.value === value);
+
+/** What a provider needs from .env, in one line under the Provider field. */
+function keyNote(provider: Provider): string {
+  if (provider === "scripted") return "Needs no key. It gives fixed answers, for demos and tests.";
+  const key = providerOf(provider)?.key;
+  if (provider === "openai-compatible") return `Reads ${key} from .env, if the server needs a key.`;
+  return key ? `Reads ${key} from .env.` : "Needs no key.";
+}
+
+/** Why a chosen provider isn't the one running: almost always a missing key. */
+function fallbackSentence(provider: string): string {
+  const known = providerOf(provider);
+  const label = known?.label ?? provider;
+  return known?.key
+    ? `You chose ${label}, but there's no ${known.key} in .env, so Steward can't use it yet. Add the key to .env and restart Steward.`
+    : `You chose ${label}, but Steward couldn't use it. Check its address, then restart Steward.`;
+}
 
 /**
  * Only these take a server address. Every other provider has its own fixed endpoint, and an address
@@ -85,9 +123,12 @@ function ModelSection() {
 
   const current = settings.data?.model ?? info.data?.model;
   const scripted = info.data?.model.scripted ?? false;
+  // Settings show the model the person chose, /api/info the one running: they differ when the
+  // chosen provider has no key and Steward fell back to the scripted model.
+  const fellBack = scripted && current !== undefined && current.provider !== "scripted";
 
   function startEditing() {
-    const known = PROVIDERS.find((p) => p.value === current?.provider);
+    const known = providerOf(current?.provider);
     setProvider(known?.value ?? "openrouter");
     setModel(current?.model ?? "");
     setBaseUrl(takesAddress(known?.value) ? (settings.data?.model.baseUrl ?? "") : "");
@@ -95,8 +136,10 @@ function ModelSection() {
   }
 
   function changeProvider(next: Provider) {
-    // An address belongs to the provider it was typed for.
-    if (next !== provider) setBaseUrl("");
+    if (next === provider) return;
+    // An address belongs to the provider it was typed for, and so does a model's name.
+    setBaseUrl("");
+    setModel(providerOf(next)?.model ?? "");
     setProvider(next);
   }
 
@@ -104,12 +147,21 @@ function ModelSection() {
     event.preventDefault();
     if (!model.trim()) return;
     const address = takesAddress(provider) ? baseUrl.trim() : "";
+    const label = providerOf(provider)?.label ?? provider;
     update.mutate(
       { model: { provider, model: model.trim(), ...(address ? { baseUrl: address } : {}) } },
       {
-        onSuccess: () => {
-          toast.success("Model saved", { description: `${provider} · ${model.trim()}` });
+        onSuccess: async (saved) => {
           setEditing(false);
+          // Saved is not the same as running: ask what Steward runs on now.
+          const running = (await info.refetch()).data?.model;
+          if (running?.scripted && saved.model.provider !== "scripted") {
+            toast.warning("Saved, but Steward is still on the scripted model", {
+              description: fallbackSentence(saved.model.provider),
+            });
+          } else {
+            toast.success("Model saved", { description: `${label} · ${saved.model.model}` });
+          }
         },
       },
     );
@@ -133,8 +185,12 @@ function ModelSection() {
         <dl className="mt-4 grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sub">
           <dt className="text-ink-2">Provider</dt>
           <dd className="flex flex-wrap items-center gap-2 text-ink">
-            {PROVIDERS.find((p) => p.value === current.provider)?.label ?? current.provider}
-            {scripted ? <Badge tone="needs">Scripted</Badge> : null}
+            {providerOf(current.provider)?.label ?? current.provider}
+            {fellBack ? (
+              <Badge tone="needs">Not in use</Badge>
+            ) : scripted ? (
+              <Badge tone="needs">Scripted</Badge>
+            ) : null}
           </dd>
           <dt className="text-ink-2">Model</dt>
           <dd className="break-all font-mono text-ink">{current.model}</dd>
@@ -142,15 +198,22 @@ function ModelSection() {
       ) : (
         <ErrorNotice className="mt-4" title="Couldn't load the model" error={settings.error ?? info.error} />
       )}
+      {fellBack && current ? (
+        <Notice className="mt-4" tone="needs" title="Steward is still using the scripted demo model">
+          {fallbackSentence(current.provider)}
+        </Notice>
+      ) : null}
       <p className="mt-4 text-ink-2 text-sub">
-        {scripted ? "The scripted model gives fixed answers so you can try Steward without a key. " : ""}
-        To change it for good, set <code>STEWARD_MODEL_PROVIDER</code>, <code>STEWARD_MODEL</code> and the
-        provider's key in <code>.env</code>, then restart Steward. Keys are only ever read from there.
+        {scripted && !fellBack
+          ? "The scripted model gives fixed answers so you can try Steward without a key. "
+          : ""}
+        A model you choose here is saved, and used instead of the one in <code>.env</code>, now and after
+        every restart. Keys are only ever read from <code>.env</code>.
       </p>
       {editing ? (
         <form onSubmit={submit} className="mt-5 flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Provider">
+            <Field label="Provider" description={keyNote(provider)}>
               <Select value={provider} onChange={(e) => changeProvider(e.target.value as Provider)}>
                 {PROVIDERS.map((p) => (
                   <option key={p.value} value={p.value}>
@@ -165,7 +228,7 @@ function ModelSection() {
                 onChange={(e) => setModel(e.target.value)}
                 className="font-mono"
                 spellCheck={false}
-                placeholder="anthropic/claude-sonnet-5.5"
+                placeholder={providerOf(provider)?.model || "the model's name on that server"}
               />
             </Field>
           </div>
@@ -219,10 +282,11 @@ function ScheduleSection() {
       draft.approvalExpiryHours >= 1 &&
       draft.approvalExpiryHours <= 168
     : true;
+  const timeOk = draft ? /^\d{2}:\d{2}$/.test(draft.briefTime) : true;
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (!draft || !expiryOk) return;
+    if (!draft || !expiryOk || !timeOk) return;
     update.mutate(draft, { onSuccess: () => toast.success("Settings saved") });
   }
 
@@ -245,7 +309,12 @@ function ScheduleSection() {
       ) : draft ? (
         <form onSubmit={submit} className="mt-5 flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Brief time" description="Steward makes your brief at this time each morning.">
+            <Field
+              label="Brief time"
+              required
+              description="Steward makes your brief at this time each morning."
+              error={timeOk ? undefined : "Choose a time, like 08:00."}
+            >
               <Input
                 type="time"
                 value={draft.briefTime}

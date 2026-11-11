@@ -1,3 +1,4 @@
+import type { Approval } from "@steward/shared";
 import { FlaskConical, Hand, WifiOff } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useApprovals, useInfo } from "@/lib/api.ts";
@@ -14,25 +15,54 @@ export function DemoRibbon() {
   const demoMail = info.data.mail.isDemo;
   const scripted = info.data.model.scripted;
   if (!demoMail && !scripted) return null;
-  const text =
-    demoMail && scripted
-      ? "Demo inbox · Scripted model — add a key in .env to use a real model"
-      : scripted
-        ? "Scripted model — add a key in .env to use a real model"
-        : "Demo inbox — the mail and calendar here are made up";
+  // A model chosen in Settings wins over .env, so the way to a real model starts there.
+  const setUp = (
+    <Link to="/settings" className="underline underline-offset-2 hover:text-accent">
+      set up a real model
+    </Link>
+  );
   return (
     <aside
       aria-label="Demo data"
       className="flex items-center justify-center gap-2 bg-needs-soft px-4 py-1.5 text-center font-medium text-caption text-ink"
     >
       <FlaskConical aria-hidden="true" className="size-4 shrink-0 text-needs" />
-      <span>{text}</span>
+      <span>
+        {demoMail && scripted ? (
+          <>Demo inbox · Scripted model — {setUp}</>
+        ) : scripted ? (
+          <>Scripted model — {setUp}</>
+        ) : (
+          "Demo inbox — the mail and calendar here are made up"
+        )}
+      </span>
     </aside>
   );
 }
 
 /** Pages where the pending approvals are already listed, so the banner would only repeat them. */
 const QUIET_ON = ["/tasks", "/welcome"];
+
+/** The conversation open at this path, if any. */
+function openThread(path: string): string | undefined {
+  const match = /^\/chat\/([^/]+)/.exec(path);
+  if (!match?.[1]) return undefined;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * True where every pending request is already on screen: Today and Tasks list them all, and a
+ * conversation shows its own.
+ */
+export function bannerQuietOn(path: string, approvals: Pick<Approval, "threadId">[]): boolean {
+  if (path === "/" || QUIET_ON.some((p) => path.startsWith(p))) return true;
+  const thread = openThread(path);
+  return thread !== undefined && approvals.every((a) => a.threadId === thread);
+}
 
 /**
  * Says, on every page, that Steward is waiting for an answer. The live region is always mounted so
@@ -42,8 +72,13 @@ export function NeedsYouBanner() {
   const location = useLocation();
   const pending = useApprovals("pending", { refetchInterval: 60_000 });
   const approvals = (pending.data ?? []).filter((a) => a.status === "pending");
-  const show = approvals.length > 0 && !QUIET_ON.some((p) => location.pathname.startsWith(p));
+  const show = approvals.length > 0 && !bannerQuietOn(location.pathname, approvals);
   const first = approvals[0];
+  // One request: answer it in its own conversation, where it was asked. More: all of them in Tasks.
+  const answerAt =
+    approvals.length === 1 && first?.threadId
+      ? `/chat/${encodeURIComponent(first.threadId)}`
+      : "/tasks?view=needs_you";
   return (
     <div aria-live="polite" aria-atomic="true">
       {show && first ? (
@@ -63,7 +98,7 @@ export function NeedsYouBanner() {
             </span>
           </p>
           <Link
-            to="/tasks?view=needs_you"
+            to={answerAt}
             className="inline-flex min-h-target items-center rounded-field bg-card px-3 font-medium text-ink text-sub shadow-[inset_0_0_0_1px_var(--st-line)] hover:bg-tile"
           >
             Answer {approvals.length === 1 ? "it" : "them"}

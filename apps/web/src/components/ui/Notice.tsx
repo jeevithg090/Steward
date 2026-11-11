@@ -36,7 +36,9 @@ export function Notice({ tone = "neutral", title, children, action, role, classN
       <Icon aria-hidden="true" className="mt-0.5 size-[1.15em] shrink-0" />
       <div className="min-w-0 flex-1 text-ink">
         {title ? <p className="font-semibold">{title}</p> : null}
-        {children ? <div className={cn(title && "mt-0.5", "text-ink-2")}>{children}</div> : null}
+        {children ? (
+          <div className={cn(title && "mt-0.5", "text-ink-2 [overflow-wrap:anywhere]")}>{children}</div>
+        ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

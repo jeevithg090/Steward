@@ -1,6 +1,6 @@
 import type { Task, TriageItem } from "@steward/shared";
 import { ArrowRight, EyeOff, Play, Send, Sparkles, Sunrise } from "lucide-react";
-import { type FormEvent, useId, useState } from "react";
+import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { ApprovalCard } from "@/components/cards/ApprovalCard.tsx";
@@ -210,17 +210,38 @@ function NewestSuggestion() {
   const start = useStartTask();
   const patch = usePatchTask();
   const [answer, setAnswer] = useState<{ id: string; kind: "started" | "hidden" } | undefined>();
+  const heading = useRef<HTMLHeadingElement>(null);
+  /** The task just hidden, while its card is on its way out. */
+  const [hiding, setHiding] = useState<string>();
 
   const newest: Task | undefined = [...(suggested.data?.tasks ?? [])]
     .filter((t) => t.state === "suggested")
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+
+  // Hide takes its button away, and then the next suggestion (or none) takes the card's place, so
+  // focus would fall to the page. It goes to this heading instead, or to the page's when no
+  // suggestion is left; only when focus was lost, never away from where the person moved it.
+  useEffect(() => {
+    if (!hiding) return;
+    const active = document.activeElement;
+    if (!active || active === document.body || !active.isConnected) {
+      (heading.current ?? document.getElementById("page-title"))?.focus();
+    }
+    if (newest?.id !== hiding) setHiding(undefined);
+  }, [hiding, newest?.id]);
+
   if (!newest) return null;
   const answered = answer?.id === newest.id ? answer.kind : undefined;
 
   return (
     <section aria-labelledby="today-suggestion" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="today-suggestion" className="flex items-center gap-2 font-semibold text-ink text-title">
+        <h2
+          ref={heading}
+          id="today-suggestion"
+          tabIndex={-1}
+          className="flex items-center gap-2 font-semibold text-ink text-title"
+        >
           <Sparkles aria-hidden="true" className="size-5 text-accent" />
           Steward could take this on
         </h2>
@@ -233,6 +254,8 @@ function NewestSuggestion() {
         </Link>
       </div>
       <TaskCard
+        // A new card for each task, so a button focused on one never becomes the next one's.
+        key={newest.id}
         task={newest}
         actions={
           answered ? (
@@ -267,7 +290,28 @@ function NewestSuggestion() {
                   patch.mutate(
                     { id: newest.id, state: "hidden" },
                     {
-                      onSuccess: () => setAnswer({ id: newest.id, kind: "hidden" }),
+                      onSuccess: () => {
+                        setAnswer({ id: newest.id, kind: "hidden" });
+                        setHiding(newest.id);
+                        // The card is replaced at once, so the way back is on the toast.
+                        toast.success(
+                          newest.emailId ? "Hidden. Steward won't suggest this email again." : "Hidden.",
+                          {
+                            description: newest.title,
+                            action: {
+                              label: "Undo",
+                              onClick: () =>
+                                patch.mutate(
+                                  { id: newest.id, state: "suggested" },
+                                  {
+                                    onError: (error) =>
+                                      toast.error("Couldn't bring it back", { description: error.message }),
+                                  },
+                                ),
+                            },
+                          },
+                        );
+                      },
                       onError: (error) => toast.error("Couldn't hide it", { description: error.message }),
                     },
                   )

@@ -1,5 +1,6 @@
 import type { Settings } from "@steward/shared";
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
+import { Toaster, toast } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AccessibilityProvider } from "@/app/accessibility.tsx";
 import { mockFetch, renderWithProviders } from "@/lib/testing.tsx";
@@ -9,10 +10,12 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   localStorage.clear();
+  // Toasts are kept outside React; without this one test's toasts show in the next test's Toaster.
+  toast.dismiss();
 });
 
 /** The server reports the running model with its resolved address, the provider's default included. */
-function serve(model: Settings["model"]) {
+function serve(model: Settings["model"], running = { provider: "scripted", model: "-", scripted: false }) {
   const settings: Settings = {
     model,
     plainLanguage: false,
@@ -24,8 +27,7 @@ function serve(model: Settings["model"]) {
     if (req.path === "/api/settings" && req.method === "GET") return { body: settings };
     if (req.path === "/api/settings" && req.method === "PUT") return { body: settings };
     // The running model as /api/info names it, before the settings arrive.
-    if (req.path === "/api/info")
-      return { body: { model: { provider: "scripted", model: "-", scripted: false } } };
+    if (req.path === "/api/info") return { body: { model: running } };
     if (req.path === "/api/setup") return { body: [] };
     return undefined;
   });
@@ -97,5 +99,106 @@ describe("Settings: the model", () => {
     expect(await choose(server, "anthropic", "claude-sonnet-5.5")).toEqual({
       model: { provider: "anthropic", model: "claude-sonnet-5.5" },
     });
+  });
+});
+
+describe("Settings: saved and running", () => {
+  const SCRIPTED = { provider: "scripted", model: "steward-scripted", scripted: true };
+
+  it("says when the chosen provider has no key and Steward is still on the scripted model", async () => {
+    serve({ provider: "openrouter", model: "anthropic/claude-sonnet-5.5" }, SCRIPTED);
+    await draw("anthropic/claude-sonnet-5.5");
+    expect(await screen.findByText("Steward is still using the scripted demo model")).toBeTruthy();
+    expect(screen.getByText(/there's no OPENROUTER_API_KEY in \.env/)).toBeTruthy();
+    expect(screen.getByText("Not in use")).toBeTruthy();
+    // The page never says .env wins: a choice saved here does.
+    expect(screen.queryByText(/for good/)).toBeNull();
+    expect(screen.getByText(/used instead of the one in/)).toBeTruthy();
+  });
+
+  it("says nothing of a fallback when the scripted model is the one chosen", async () => {
+    serve({ provider: "scripted", model: "steward-scripted" }, SCRIPTED);
+    await draw("steward-scripted");
+    expect(screen.queryByText("Steward is still using the scripted demo model")).toBeNull();
+    expect(screen.getByText("Scripted")).toBeTruthy();
+  });
+
+  it("starts each provider with its own model name and says which key it reads", async () => {
+    serve({ provider: "scripted", model: "steward-scripted" }, SCRIPTED);
+    await draw("steward-scripted");
+    fireEvent.click(await screen.findByRole("button", { name: "Try another model" }));
+    fireEvent.change(provider(), { target: { value: "openrouter" } });
+    expect(modelField().value).toBe("anthropic/claude-sonnet-5.5");
+    expect(screen.getByText("Reads OPENROUTER_API_KEY from .env.")).toBeTruthy();
+    fireEvent.change(provider(), { target: { value: "scripted" } });
+    expect(modelField().value).toBe("steward-scripted");
+  });
+});
+
+describe("Settings: saving a model", () => {
+  /** Keeps what is saved; Steward runs scripted unless `running` says otherwise. */
+  function serveSaving(running: (saved: Settings["model"]) => { provider: string; scripted: boolean }) {
+    const settings: Settings = {
+      model: { provider: "scripted", model: "steward-scripted" },
+      plainLanguage: false,
+      briefTime: "08:00",
+      timezone: "Europe/London",
+      approvalExpiryHours: 24,
+    };
+    return mockFetch((req) => {
+      if (req.path === "/api/settings" && req.method === "PUT") {
+        settings.model = (req.body as { model: Settings["model"] }).model;
+        return { body: settings };
+      }
+      if (req.path === "/api/settings") return { body: settings };
+      if (req.path === "/api/info") return { body: { model: { model: "-", ...running(settings.model) } } };
+      if (req.path === "/api/setup") return { body: [] };
+      return undefined;
+    });
+  }
+
+  function drawWithToasts() {
+    renderWithProviders(
+      <>
+        <SettingsPage />
+        <Toaster />
+      </>,
+      {
+        wrap: (children) => (
+          <AccessibilityProvider savePlainLanguage={async () => {}}>{children}</AccessibilityProvider>
+        ),
+      },
+    );
+  }
+
+  it("doesn't say Model saved when the chosen provider can't run", async () => {
+    const server = serveSaving(() => ({ provider: "scripted", scripted: true }));
+    drawWithToasts();
+    await screen.findByText("steward-scripted");
+    await choose(server, "openrouter", "anthropic/claude-sonnet-5.5");
+    expect(await screen.findByText("Saved, but Steward is still on the scripted model")).toBeTruthy();
+    expect(screen.getAllByText(/there's no OPENROUTER_API_KEY in \.env/).length).toBeGreaterThan(0);
+    expect(screen.queryByText("Model saved")).toBeNull();
+  });
+
+  it("says Model saved, with the provider's name, when it runs", async () => {
+    const server = serveSaving((saved) => ({ provider: saved.provider, scripted: false }));
+    drawWithToasts();
+    await screen.findByText("steward-scripted");
+    await choose(server, "nvidia", "nvidia/nemotron-3-ultra-550b-a55b");
+    expect(await screen.findByText("Model saved")).toBeTruthy();
+    expect(screen.getByText("NVIDIA · nvidia/nemotron-3-ultra-550b-a55b")).toBeTruthy();
+  });
+});
+
+describe("Settings: brief time", () => {
+  it("asks for a time instead of sending an empty one", async () => {
+    const server = serve({ provider: "scripted", model: "steward-scripted" });
+    await draw("steward-scripted");
+    const time = screen.getByLabelText(/Brief time/) as HTMLInputElement;
+    fireEvent.change(time, { target: { value: "" } });
+    fireEvent.submit(time.closest("form")!);
+    expect(await screen.findByText("Choose a time, like 08:00.")).toBeTruthy();
+    expect(server.calls.some((c) => c.method === "PUT")).toBe(false);
   });
 });
