@@ -232,9 +232,10 @@ that:
   and ask rules still come first. A send after reading a web page still asks.
 
 Each one is named above the message box with **Turn off**, and it ends when you turn it off or
-delete the conversation. It is not stored with your rules and never appears on `/rules`. The record
-shows it being added and turned off as `policy.changed`, and each call it lets through as allowed
-by a rule with source `conversation`.
+delete the conversation. One you gave a task Steward handed to another agent is named in the
+conversation you answered it in. It is not stored with your rules and never appears on `/rules`.
+The record shows it being added and turned off as `policy.changed`, and each call it lets through
+as allowed by a rule with source `conversation`.
 
 ## Approvals
 
