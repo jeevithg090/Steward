@@ -32,10 +32,13 @@ describe.runIf(missing.length === 0)("the migrations applied at start", async ()
     }
   });
 
-  it("number each package's migrations in order", () => {
-    for (const list of Object.values(lists)) {
+  it("number each package's migrations in order, each number once", () => {
+    for (const [owner, list] of Object.entries(lists)) {
       const numbers = list.map(({ id }) => Number(id.split(".")[1]?.slice(0, 3)));
       expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
+      // Two branches that each took the next free number (server.005_devices and
+      // server.005_delegations) would both apply, so nothing else catches it: renumber one.
+      expect(new Set(numbers).size, `${owner} uses a number twice`).toBe(numbers.length);
     }
   });
 
