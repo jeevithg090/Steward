@@ -136,6 +136,20 @@ export class Submissions {
   }
 
   /**
+   * The reviewer's warning for a claim of a listing another GitHub account had approved here, or
+   * undefined. A handle that matches may be the owner's old one, renamed and registered again.
+   */
+  private ownedElsewhere(botId: string, submitter: Submitter): PackProblem | undefined {
+    const owner = this.opts.store.approvedFor(botId)?.submitter;
+    if (owner?.githubId === undefined || owner.githubId === submitter.githubId) return undefined;
+    return {
+      path: "submitter",
+      message: `It belongs to another GitHub account (approved here as @${owner.login}). The same handle does not mean the same person. Approving gives the listing to @${submitter.login}.`,
+      severity: "warn",
+    };
+  }
+
+  /**
    * Why a pending submission can no longer be approved, or undefined when it still can. The checks
    * made at submit time held for the listing as it was then; if another approval moved it on since
    * (a competing claim, a new owner), only its current owner may still change it.
@@ -226,6 +240,8 @@ export class Submissions {
       });
     }
     const existing = this.opts.catalogue.pack(pack.id);
+    const elsewhere = kind === "claim" ? this.ownedElsewhere(pack.id, submitter) : undefined;
+    if (elsewhere) notes.push(elsewhere);
     if (kind === "update" && existing && this.ownership(pack.id, existing, submitter) === "handle") {
       notes.push({
         path: "submitter",
@@ -269,13 +285,9 @@ export class Submissions {
       throw new SubmissionError("This bot is already yours.", 409);
     }
     const notes: PackProblem[] = [];
-    if (owner?.submitter.githubId !== undefined) {
-      // Owned by a GitHub id: a handle that matches may be the old one, renamed and registered again.
-      notes.push({
-        path: "submitter",
-        message: `It belongs to another GitHub account (approved here as @${owner.submitter.login}). The same handle does not mean the same person. Approving gives the listing to @${input.submitter.login}.`,
-        severity: "warn",
-      });
+    const elsewhere = this.ownedElsewhere(input.botId, input.submitter);
+    if (elsewhere) {
+      notes.push(elsewhere);
     } else if (
       existing.author.kind === "person" &&
       existing.author.handle.toLowerCase() !== input.submitter.login.toLowerCase()

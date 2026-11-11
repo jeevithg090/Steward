@@ -473,6 +473,21 @@ describe("approval checks ownership again", () => {
     );
   });
 
+  it("warns the same way for a claim sent as a pack with a higher version", async () => {
+    const aiMade = { ...GOOD, author: { kind: "ai" as const, model: "a-model", generated: "2026-10-01" } };
+    f.github.addRepo("ana", "bots", aiMade);
+    const made = await submit(f.signIn("ana", 101), "https://github.com/ana/bots");
+    expect((await approve(made.body.submission.id)).status).toBe(200);
+    f.github.addRepo("mal", "bots", { ...aiMade, version: 2, author: { kind: "person", handle: "mal" } });
+    const claim = await submit(f.signIn("mal", 666), "https://github.com/mal/bots");
+    expect(claim.status).toBe(201);
+    expect(claim.body.submission.kind).toBe("claim");
+    const pending = f.server.store.submission(claim.body.submission.id)!;
+    expect(pending.warnings.map((w) => w.message)).toContain(
+      "It belongs to another GitHub account (approved here as @ana). The same handle does not mean the same person. Approving gives the listing to @mal.",
+    );
+  });
+
   it("matches a seed listing by handle only, and tells the reviewer", async () => {
     f.github.addRepo("sam", "rent", {
       ...GOOD,
