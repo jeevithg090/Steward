@@ -176,11 +176,9 @@ test.describe("Reflow", () => {
 test.describe("The chat at the largest text on a laptop", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  // The shell moves to its phone layout at 150% text on a 1280 px screen, but the chat still
-  // measures its own fixed 64rem: it draws the desktop computer panel and pins the composer under
-  // the shell's tab bar. Fixed when ChatThread takes `useWideLayout()` from app/layout-mode.ts
-  // (handed to the web-chat track); remove `fixme` then.
-  test.fixme("follows the shell's phone layout", async ({ page }) => {
+  // The shell moves to its phone layout at 150% text on a 1280 px screen, and the chat goes with it:
+  // no desktop computer panel, and the composer stays above the shell's tab bar.
+  test("follows the shell's phone layout", async ({ page }) => {
     await useDisplaySettings(page, { textSize: 150 });
     await openNewChat(page);
     const bar = page.getByRole("navigation", { name: "Main" });

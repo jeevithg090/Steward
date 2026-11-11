@@ -32,6 +32,7 @@ import { newId } from "@steward/shared";
 import { ArrowDown, Monitor, PanelRightClose, RotateCw } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useAccessibility } from "@/app/accessibility.tsx";
+import { useWideLayout } from "@/app/layout-mode.ts";
 import { ApprovalCard } from "@/components/cards/ApprovalCard.tsx";
 import { Button } from "@/components/ui/Button.tsx";
 import { Dialog } from "@/components/ui/Dialog.tsx";
@@ -40,7 +41,7 @@ import { useDocumentTitle } from "@/components/ui/PageHeader.tsx";
 import { DEFAULT_AGENT_ID, useApprovals, useInfo } from "@/lib/api.ts";
 import { claimRouteFocus } from "@/lib/focus.ts";
 import { useLiveEvents } from "@/lib/live.ts";
-import { storage } from "@/lib/utils.ts";
+import { cn, storage } from "@/lib/utils.ts";
 import { ComputerPanel } from "../computer/ComputerPanel.tsx";
 import { ComputerSession, useOptionalComputer } from "../computer/session.tsx";
 import { useSpeak } from "../voice/useSpeak.ts";
@@ -61,11 +62,9 @@ import { RunStatus } from "./RunStatus.tsx";
 import { Starters } from "./Starters.tsx";
 import { subRunOf } from "./subruns.tsx";
 import { Transcript } from "./Transcript.tsx";
-import { useMediaQuery } from "./use-media-query.ts";
 
 /** Whether the computer panel is open on wide screens, remembered in this browser. */
 const PANEL_KEY = "steward.chat.computerPanel";
-const WIDE = "(min-width: 64rem)";
 /** Within this many pixels of the bottom, new messages keep the view pinned to the end. */
 const PINNED_SLACK = 96;
 
@@ -166,7 +165,11 @@ function Conversation({
   /** Scrolling started from here glides, unless the person asked for less motion. */
   const glide: ScrollBehavior = reducedMotion ? "auto" : "smooth";
   const speaker = useSpeak();
-  const wide = useMediaQuery(WIDE);
+  // The shell's own breakpoint, which grows with the person's text size, so at 150% text on a laptop
+  // the chat takes the phone layout with the shell instead of drawing the desktop panel under it.
+  const wide = useWideLayout();
+  const wideRef = useRef(wide);
+  wideRef.current = wide;
   const info = useInfo();
   const pendingList = useApprovals("pending");
   const computer = useOptionalComputer();
@@ -213,7 +216,7 @@ function Conversation({
   // heading instead, so the on-screen keyboard does not cover the conversation uninvited.
   useEffect(() => {
     if (!claimRouteFocus()) return;
-    if (globalThis.matchMedia?.(WIDE).matches) composerRef.current?.focus();
+    if (wideRef.current) composerRef.current?.focus();
     else headingRef.current?.focus();
   }, []);
 
@@ -416,7 +419,7 @@ function Conversation({
 
   const showComputer = useCallback((asked?: ComputerView) => {
     if (asked) setView((current) => ({ ...asked, n: current.n + 1 }));
-    if (globalThis.matchMedia?.(WIDE).matches) {
+    if (wideRef.current) {
       setPanelOpen(true);
       storage.set(PANEL_KEY, "open");
       // Once it is drawn, take the keyboard there, so "See screen" lands on the screen.
@@ -523,8 +526,7 @@ function Conversation({
     const next = [...(approvalsRef.current?.querySelectorAll<HTMLElement>("[data-approval-id]") ?? [])].find(
       (element) => !answered.current.has(element.dataset.approvalId ?? ""),
     );
-    const target =
-      next ?? (globalThis.matchMedia?.(WIDE).matches ? composerRef.current : approvalsRef.current);
+    const target = next ?? (wideRef.current ? composerRef.current : approvalsRef.current);
     target?.focus({ preventScroll: true });
   }, []);
 
@@ -547,7 +549,9 @@ function Conversation({
     <CopilotChatConfigurationProvider agentId={localAgentId} threadId={threadId} hasExplicitThreadId>
       <ChatActionsContext.Provider value={actions}>
         <div className="flex w-full min-w-0 flex-1 items-start">
-          <div className="flex min-h-[calc(100dvh-8rem)] min-w-0 flex-1 flex-col lg:min-h-dvh">
+          <div
+            className={cn("flex min-w-0 flex-1 flex-col", wide ? "min-h-dvh" : "min-h-[calc(100dvh-8rem)]")}
+          >
             <header className="flex items-center justify-between gap-2 border-hair-2 border-b px-4 py-2 sm:px-6">
               <div className="min-w-0">
                 <h1
@@ -683,7 +687,12 @@ function Conversation({
             </div>
 
             {/* Above the shell's tab bar on small screens; at the very bottom on wide ones. */}
-            <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 bg-surface px-4 pt-2 pb-3 sm:px-6 lg:bottom-0 lg:pb-4">
+            <div
+              className={cn(
+                "sticky z-10 bg-surface px-4 pt-2 sm:px-6",
+                wide ? "bottom-0 pb-4" : "bottom-[calc(3.5rem+env(safe-area-inset-bottom))] pb-3",
+              )}
+            >
               {!pinned ? (
                 <div className="pointer-events-none absolute inset-x-0 bottom-full flex justify-center pb-2">
                   <Button

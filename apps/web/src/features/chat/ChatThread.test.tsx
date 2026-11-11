@@ -327,7 +327,7 @@ describe("ChatThread", () => {
   describe("after an approval is answered", () => {
     const wide = () =>
       vi.stubGlobal("matchMedia", (query: string) => ({
-        matches: query === "(min-width: 64rem)",
+        matches: query === "(min-width: 64em)",
         media: query,
         addEventListener() {},
         removeEventListener() {},
@@ -549,7 +549,7 @@ describe("ChatThread", () => {
 
   it("opens a saved file in the computer beside the conversation, on Files", async () => {
     vi.stubGlobal("matchMedia", (query: string) => ({
-      matches: query === "(min-width: 64rem)",
+      matches: query === "(min-width: 64em)",
       media: query,
       addEventListener() {},
       removeEventListener() {},
@@ -692,7 +692,7 @@ describe("ChatThread", () => {
 
     it("stays in the panel when the panel is open beside it", async () => {
       vi.stubGlobal("matchMedia", (query: string) => ({
-        matches: query === "(min-width: 64rem)",
+        matches: query === "(min-width: 64em)",
         media: query,
         addEventListener() {},
         removeEventListener() {},
