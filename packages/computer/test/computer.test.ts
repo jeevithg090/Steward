@@ -83,7 +83,9 @@ afterAll(async () => {
   if (dataDir) await rm(dataDir, { recursive: true, force: true });
 });
 
-describe("the computer, in real Chromium", () => {
+// Several tests start or restart a real browser, which takes far longer on a busy machine than the
+// node project's 30 s allows.
+describe("the computer, in real Chromium", { timeout: 60_000 }, () => {
   it("starts on first use, with its profile and workspace in place", async () => {
     expect(manager.status("alpha")).toMatchObject({
       agentId: "alpha",

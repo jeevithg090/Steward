@@ -29,6 +29,10 @@ export default defineConfig({
           environmentOptions: { happyDOM: { url: "http://steward.test/" } },
           setupFiles: ["./test/setup.ts"],
           include: ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
+          // Rendering a page on a busy machine can take seconds; Vitest's 5 s and 10 s defaults
+          // fail tests that pass on their own.
+          testTimeout: 20_000,
+          hookTimeout: 30_000,
           server: { deps: { inline: [/@copilotkit\//] } },
         },
       },

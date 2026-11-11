@@ -3,7 +3,11 @@
  * from the server stubs `fetch` with `mockFetch` (src/lib/testing.tsx). Any other call to `fetch`
  * fails the test that made it, with the method and path, instead of quietly trying a local port.
  */
+import { configure } from "@testing-library/react";
 import { afterEach, beforeEach } from "vitest";
+
+// `findBy…` and `waitFor` give up after 1 s by default, which a busy machine can miss.
+configure({ asyncUtilTimeout: 3000 });
 
 let unmocked: string[] = [];
 

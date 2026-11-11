@@ -153,9 +153,14 @@ export function parseSse(text: string): BaseEvent[] {
   return events;
 }
 
+/**
+ * Polls `check` until it gives a value. The default is generous because a run through the scripted
+ * model can take seconds on a busy machine, and under the node project's 30 s test timeout, so this
+ * error, not a bare timeout, is what a failing test reports.
+ */
 export async function waitFor<T>(
   check: () => T | undefined | false | Promise<T | undefined | false>,
-  timeoutMs = 10_000,
+  timeoutMs = 20_000,
   stepMs = 50,
 ): Promise<T> {
   const until = Date.now() + timeoutMs;

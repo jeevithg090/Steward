@@ -126,6 +126,8 @@ it is otherwise.
 - Tests never need a network or a key. Use the scripted model and the demo inbox. A web test that
   calls `fetch` without `mockFetch` fails, and an e2e spec fails on a console error, an uncaught
   error in the page, or a request to any host but this machine.
+- No test waits on the clock to prove something is fast. Compare how the time grows with the input
+  instead, so a busy machine cannot fail it.
 
 ## Accessibility checklist for anything on screen
 

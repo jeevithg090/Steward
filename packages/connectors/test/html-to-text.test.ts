@@ -120,55 +120,87 @@ describe("htmlToText output", () => {
 describe("htmlToText on large and broken input", () => {
   const MB = 1024 * 1024;
   const fill = (unit: string, chars: number) => unit.repeat(Math.ceil(chars / unit.length));
-  /** Converts and times it: every step that rescanned the text or the input made pages like these take minutes. */
-  const timed = (html: string, opts?: Parameters<typeof htmlToText>[1]) => {
+  const ms = (html: string, opts?: Parameters<typeof htmlToText>[1]) => {
     const start = performance.now();
-    const result = htmlToText(html, opts);
-    return { ...result, ms: performance.now() - start };
+    htmlToText(html, opts);
+    return performance.now() - start;
   };
 
-  it("converts 2 MB of short paragraphs in well under a second", () => {
-    const { text, ms } = timed(fill("<p>a</p>", 2 * MB));
+  /**
+   * Every step that rescanned the text or the input made pages like these take minutes. A clock
+   * limit cannot tell that from a busy machine, so this compares how the time grows instead: four
+   * times the input must take well under 16 times as long, which is what a rescan (quadratic)
+   * gives; a single pass gives about 4. Each size keeps its fastest of up to three runs, the least
+   * the machine let it take. Under 50 ms for the full size is too fast to be quadratic at all.
+   */
+  const expectLinear = (
+    make: (chars: number) => string,
+    size: number,
+    opts?: Parameters<typeof htmlToText>[1],
+  ) => {
+    const small = make(size / 4);
+    const large = make(size);
+    htmlToText(small, opts);
+    let fastestSmall = Number.POSITIVE_INFINITY;
+    let fastestLarge = Number.POSITIVE_INFINITY;
+    const linear = () => fastestLarge < 50 || fastestLarge / Math.max(fastestSmall, 1) < 8;
+    for (let run = 0; run < 3 && !(run > 0 && linear()); run++) {
+      fastestSmall = Math.min(fastestSmall, ms(small, opts));
+      fastestLarge = Math.min(fastestLarge, ms(large, opts));
+    }
+    const growth = `${fastestSmall.toFixed(1)} ms for ${small.length} characters, ${fastestLarge.toFixed(1)} ms for ${large.length}`;
+    expect(linear(), `the time grew faster than the input: ${growth}`).toBe(true);
+    // A single pass that is merely slow is still a bug, but only a gross one is the clock's to catch.
+    expect(fastestLarge, growth).toBeLessThan(10_000);
+  };
+
+  it("converts 2 MB of short paragraphs in one pass", () => {
+    const paragraphs = (chars: number) => fill("<p>a</p>", chars);
+    const text = htmlToText(paragraphs(2 * MB)).text;
     expect(text.startsWith("a\n\na\n\na")).toBe(true);
     expect(text).toHaveLength(3 * Math.ceil((2 * MB) / 8) - 2);
-    expect(ms).toBeLessThan(1000);
+    expectLinear(paragraphs, 2 * MB);
   });
 
-  it("converts a 340 KB article in well under a second", () => {
+  it("converts a 340 KB article in one pass", () => {
     const section = (i: number) =>
       `<h2>Part ${i}</h2><p>Councillors met on Tuesday to discuss the plans, which are set out in <a href="/archive/${i}">the archive</a> and were <b>first</b> published in spring.</p>` +
       `<ul><li>Budget</li><li>Timeline, with <a href="https://other.example/t">a chart</a></li></ul><table><tr><td>Cost</td><td>£${i}</td></tr></table>\n`;
-    let article = "<html><head><title>Plans</title></head><body><article>";
-    for (let i = 0; article.length < 340 * 1024; i++) article += section(i);
-    const { text, ms } = timed(`${article}</article></body></html>`, { baseUrl: "https://news.example/" });
+    const article = (chars: number) => {
+      let html = "<html><head><title>Plans</title></head><body><article>";
+      for (let i = 0; html.length < chars; i++) html += section(i);
+      return `${html}</article></body></html>`;
+    };
+    const opts = { baseUrl: "https://news.example/" };
+    const { text } = htmlToText(article(340 * 1024), opts);
     expect(text).toContain(
       "discuss the plans, which are set out in [the archive](https://news.example/archive/7)",
     );
     expect(text).toContain("- Timeline, with [a chart](https://other.example/t)\n\nCost | £7\n\n## Part 8");
-    expect(ms).toBeLessThan(1000);
+    expectLinear(article, 340 * 1024, opts);
   });
 
-  it.each([
-    ["tags that never close", fill("<a ", MB)],
-    ["quotes that never close", fill('<a "', MB)],
-    ["one tag name that never ends", `<${"a".repeat(MB)}`],
-    ["comments that never close", fill("<!--", MB)],
-    ["scripts that never close", fill("<script>", MB)],
-    ["titles that never close", fill("<title>", MB)],
-    ["a title full of unclosed tags", `<title>${fill("<", MB)}</title>`],
-    ["meta tags that never close", fill("<meta property=og:title ", MB)],
-    ["declarations that never close", fill("<!", MB)],
-    ["links nested deep", `${fill('<a href="https://x.example/">', MB)}x${fill("</a>", MB / 4)}`],
-    ["links that each span a line break", fill('word <a href="/q">a<br>b</a> ', MB)],
-    ["links around blocks", fill('<span>Foo</span> <a href="/x"><div>Card</div></a>', MB)],
-    ["lists nested deep", `${fill("<ul>", MB)}${fill("<li>x", MB / 4)}`],
-    ["empty list items", fill("x<li></li>", MB)],
-    ["empty headings", fill("x<h2></h2>", MB)],
-    ["empty table cells and rows", fill("x<td></td><tr>", MB)],
-    ["preformatted tabs between blocks", `<pre>${fill("x\t<div>", MB)}`],
-    ["preformatted spaces before a bar", `<pre>x${fill(" ", MB)}|y</pre>`],
-  ])("stays fast on %s", (_, html) => {
-    expect(timed(html, { baseUrl: "https://site.example/" }).ms).toBeLessThan(1000);
+  it.each<[string, (chars: number) => string]>([
+    ["tags that never close", (n) => fill("<a ", n)],
+    ["quotes that never close", (n) => fill('<a "', n)],
+    ["one tag name that never ends", (n) => `<${"a".repeat(n)}`],
+    ["comments that never close", (n) => fill("<!--", n)],
+    ["scripts that never close", (n) => fill("<script>", n)],
+    ["titles that never close", (n) => fill("<title>", n)],
+    ["a title full of unclosed tags", (n) => `<title>${fill("<", n)}</title>`],
+    ["meta tags that never close", (n) => fill("<meta property=og:title ", n)],
+    ["declarations that never close", (n) => fill("<!", n)],
+    ["links nested deep", (n) => `${fill('<a href="https://x.example/">', n)}x${fill("</a>", n / 4)}`],
+    ["links that each span a line break", (n) => fill('word <a href="/q">a<br>b</a> ', n)],
+    ["links around blocks", (n) => fill('<span>Foo</span> <a href="/x"><div>Card</div></a>', n)],
+    ["lists nested deep", (n) => `${fill("<ul>", n)}${fill("<li>x", n / 4)}`],
+    ["empty list items", (n) => fill("x<li></li>", n)],
+    ["empty headings", (n) => fill("x<h2></h2>", n)],
+    ["empty table cells and rows", (n) => fill("x<td></td><tr>", n)],
+    ["preformatted tabs between blocks", (n) => `<pre>${fill("x\t<div>", n)}`],
+    ["preformatted spaces before a bar", (n) => `<pre>x${fill(" ", n)}|y</pre>`],
+  ])("stays linear on %s", (_, make) => {
+    expectLinear(make, MB, { baseUrl: "https://site.example/" });
   });
 
   it("stops soon after maxChars, cuts the text to it and says so", () => {
