@@ -163,6 +163,27 @@ function toAriaItem(value: unknown): AriaItem | undefined {
   return node;
 }
 
+/**
+ * The items with every string the page wrote (text, names, values) passed through `fn`, and every
+ * link's address through `url`.
+ */
+export function mapItemText(
+  items: readonly AriaItem[],
+  fn: (text: string) => string,
+  url: (address: string) => string = fn,
+): AriaItem[] {
+  return items.map((item) => {
+    if (typeof item === "string") return fn(item);
+    const node: AriaNode = { ...item };
+    if (node.name !== undefined) node.name = fn(node.name);
+    if (node.text !== undefined) node.text = fn(node.text);
+    if (node.url !== undefined) node.url = url(node.url);
+    if (node.placeholder !== undefined) node.placeholder = fn(node.placeholder);
+    if (node.children) node.children = mapItemText(node.children, fn, url);
+    return node;
+  });
+}
+
 function* walk(items: readonly AriaItem[]): Generator<AriaNode> {
   for (const item of items) {
     if (typeof item === "string") continue;
@@ -176,6 +197,15 @@ export function indexRefs(items: readonly AriaItem[]): Map<string, { role: strin
   const out = new Map<string, { role: string; name: string }>();
   for (const node of walk(items)) {
     if (node.ref) out.set(node.ref, { role: node.role, name: node.name ?? "" });
+  }
+  return out;
+}
+
+/** Playwright refs of fields whose value holds a secret Steward hid (see secrets.ts). */
+export function fieldsHolding(items: readonly AriaItem[], marker: string): string[] {
+  const out: string[] = [];
+  for (const node of walk(items)) {
+    if (node.ref && FIELD_ROLES.has(node.role) && node.text?.includes(marker)) out.push(node.ref);
   }
   return out;
 }

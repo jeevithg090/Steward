@@ -211,13 +211,14 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       tenantRules: tenant.rules,
       expiryHours: () => settings.approvalExpiryHours(),
     });
+    // Steward's own server, its phone port, and the Vite dev and preview servers (they proxy the
+    // API): the agent's browser and web_fetch never reach them, whatever STEWARD_ALLOW_PRIVATE_HOSTS says.
+    const ownPorts = [config.port, ...DEV_PORTS, ...(config.devicePort ? [config.devicePort] : [])];
     const computers = createComputerManager({
       dataDir: config.dataDir,
       headful: config.headful,
       allowPrivateHosts: config.allowPrivateHosts,
-      // Steward's own server, its phone port, and the Vite dev and preview servers (they proxy the
-      // API), whatever STEWARD_ALLOW_PRIVATE_HOSTS says.
-      protectedPorts: [config.port, ...DEV_PORTS, ...(config.devicePort ? [config.devicePort] : [])],
+      protectedPorts: ownPorts,
       audit: gateway.audit,
       actorId: LOCAL_ACTOR,
     });
@@ -228,7 +229,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
     const mail = () => mailRef.current;
     const mcp = createMcpManager({ db, allowPrivateHosts: config.allowPrivateHosts });
     cleanups.push(() => mcp.closeAll());
-    const web = createWebTools({ allowPrivateHosts: config.allowPrivateHosts });
+    const web = createWebTools({ allowPrivateHosts: config.allowPrivateHosts, protectedPorts: ownPorts });
 
     let models: AgentHost | undefined;
     const proactive: ProactiveServices = createProactive({

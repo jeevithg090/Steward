@@ -19,6 +19,15 @@ export interface ComputerManagerOptions {
   actorId?: string;
   /** DNS resolver for the host checks. Tests inject one; production uses the system resolver. */
   lookup?: LookupFn;
+  /** The largest file a page may download, in bytes: 100 MB, or less if set. */
+  maxDownloadBytes?: number;
+  /** Close a browser nothing has used for this long: 15 minutes unless set. 0 keeps them open. */
+  idleCloseMs?: number;
+  /**
+   * The most browsers that run at once. Starting one more first closes the least recently used
+   * one that nothing is using; when all are busy, it starts anyway. No limit unless set.
+   */
+  maxRunning?: number;
 }
 
 /** Agent ids become folder names, so they are held to a safe alphabet. */
@@ -53,15 +62,32 @@ export function createComputerManager(opts: ComputerManagerOptions): ComputerMan
         policy,
         ...(opts.audit ? { audit: opts.audit } : {}),
         actorId: opts.actorId ?? "local",
+        ...(opts.maxDownloadBytes !== undefined ? { maxDownloadBytes: opts.maxDownloadBytes } : {}),
+        ...(opts.idleCloseMs !== undefined ? { idleCloseMs: opts.idleCloseMs } : {}),
       });
       computers.set(agentId, found);
     }
     return found;
   };
 
+  /** Makes room for `next` to start under `maxRunning`, closing the least recently used idle ones. */
+  const makeRoom = async (next: AgentComputer): Promise<void> => {
+    const max = opts.maxRunning;
+    if (max === undefined || max < 1 || next.status().running) return;
+    const others = [...computers.values()]
+      .filter((c) => c !== next && c.status().running)
+      .sort((a, b) => a.lastUsedAt - b.lastUsedAt);
+    let running = others.length + 1;
+    for (const other of others) {
+      if (running <= max) return;
+      if (await other.closeIdle("to make room for another one")) running--;
+    }
+  };
+
   return {
     async get(agentId) {
       const found = computer(agentId);
+      await makeRoom(found);
       await found.start();
       return found;
     },
@@ -74,6 +100,7 @@ export function createComputerManager(opts: ComputerManagerOptions): ComputerMan
     async reset(agentId) {
       const found = computer(agentId);
       await found.close();
+      await makeRoom(found);
       await found.start();
       return found.status();
     },

@@ -6,8 +6,8 @@
  * Every acting method passes the wheel's single gate (`WheelControl.admit`) before it touches
  * anything, so nothing the agent does can run underneath the person.
  */
-import { createHmac, randomBytes } from "node:crypto";
-import { lstat, mkdir, rm, stat } from "node:fs/promises";
+import { constants } from "node:fs";
+import { copyFile, link, lstat, mkdir, readdir, rm, stat, unlink } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import type {
   ActivityItem,
@@ -33,21 +33,26 @@ import {
   briefCause,
   ComputerError,
   isComputerError,
+  isCrash,
   isNavigationRace,
   MESSAGES,
   staleRef,
 } from "./errors.ts";
 import { parseClientMessage } from "./messages.ts";
-import { displayUrl, type HostPolicy, parseWebUrl } from "./network.ts";
+import { displayUrl, type HostPolicy, parseWebUrl, portOf } from "./network.ts";
 import { type FrameMessage, PersonInput, Screencast } from "./screen.ts";
-import { runShell } from "./shell.ts";
+import { SecretEcho } from "./secrets.ts";
+import { removeStaleHomes, runShell } from "./shell.ts";
 import {
   type AriaItem,
   buttonRefs,
   FIELD_ROLES,
   fieldRefs,
+  fieldsHolding,
   focusedNode,
   indexRefs,
+  MASKED_VALUE,
+  mapItemText,
   RefBook,
   type RefEntry,
   refFrame,
@@ -59,6 +64,8 @@ import {
 import { DEFAULT_READ_BYTES, formatBytes, Workspace } from "./workspace.ts";
 
 export const ACTION_TIMEOUT_MS = 10_000;
+/** How long the in-page key guard lives at most, should Steward not get to remove it. */
+const KEY_GUARD_MS = ACTION_TIMEOUT_MS + 5_000;
 export const NAVIGATION_TIMEOUT_MS = 30_000;
 export const SECRET_TIMEOUT_MS = 10 * 60_000;
 const SETTLE_MS = 150;
@@ -67,7 +74,13 @@ const SCROLL_SETTLE_MAX_MS = 1_500;
 const DEFAULT_SCROLL_PX = 600;
 const MAX_TYPED_CHARS = 20_000;
 const MAX_SECRET_CHARS = 4_096;
-const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
+export const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
+/** Downloads a page may start in any minute. More are stopped, so a page cannot fill the disk. */
+export const MAX_DOWNLOADS_PER_MINUTE = 10;
+/** How often the size of running downloads is checked. */
+const DOWNLOAD_CHECK_MS = 250;
+/** A browser nothing has used for this long is closed; the next use starts it again. */
+export const IDLE_CLOSE_MS = 15 * 60_000;
 const BLOCK_NOTICE_MS = 60_000;
 
 type Listener = (msg: ComputerServerMessage) => void;
@@ -86,7 +99,7 @@ const ACTIVATED_ROLES = new Set(["button", "link", "menuitem", "menuitemcheckbox
 
 export interface AgentComputerOptions {
   agentId: string;
-  /** `<dataDir>/computers/<agentId>`: holds `profile`, `workspace` and `tmp`. */
+  /** `<dataDir>/computers/<agentId>`: holds `profile`, `workspace`, `tmp` and `downloading`. */
   dir: string;
   headful: boolean;
   policy: HostPolicy;
@@ -94,6 +107,10 @@ export interface AgentComputerOptions {
   actorId: string;
   /** How long closing waits for the browser before killing it. `CLOSE_BROWSER_MS` unless a test says. */
   closeTimeoutMs?: number;
+  /** The largest file a page may download. 100 MB unless set lower. */
+  maxDownloadBytes?: number;
+  /** Close the browser after this long unused (15 minutes by default). 0 keeps it open. */
+  idleCloseMs?: number;
 }
 
 /**
@@ -128,6 +145,22 @@ interface PendingSecret {
   finish: (result: { filled: boolean; length: number }) => void;
 }
 
+/** What `focused()` reported, so the key press that follows goes where the gateway was told it would. */
+interface JudgedFocus {
+  page: Page;
+  generation: number;
+  key: string;
+  /** The element that had focus (through shadow roots), or the body when nothing had. */
+  handle: ElementHandle | undefined;
+}
+
+/** What `submitterFor(ref)` reported, so Enter after typing presses the button the gateway judged. */
+interface JudgedSubmit {
+  ref: string;
+  generation: number;
+  key: string;
+}
+
 interface BlockedNote {
   at: number;
   host: string;
@@ -159,6 +192,9 @@ export class AgentComputer implements Computer {
   private readonly workspace: Workspace;
   private readonly profileDir: string;
   private readonly tmpDir: string;
+  /** Where Chromium writes running downloads, outside the workspace, until they are checked. */
+  private readonly downloadsDir: string;
+  private readonly maxDownloadBytes: number;
   private readonly control = new WheelControl(() => this.emitStatus());
   private readonly log: ActivityLog;
   private readonly listeners = new Set<Listener>();
@@ -166,6 +202,9 @@ export class AgentComputer implements Computer {
   private readonly input = new PersonInput();
   private readonly refs = new RefBook();
   private readonly wired = new WeakSet<Page>();
+  /** Tabs whose renderer died. They are closing; nothing acts on them again. */
+  private readonly crashed = new WeakSet<Page>();
+  private opening: Promise<Page | undefined> | undefined;
   private readonly shells = new Set<() => void>();
 
   private context: BrowserContext | undefined;
@@ -182,17 +221,40 @@ export class AgentComputer implements Computer {
   private lastFrame: FrameMessage | undefined;
   private lastStatusKey = "";
   private blocks: BlockedNote[] = [];
-  /** Dialogs the page raised since the last observation, told to the model with the next one. */
-  private dialogNotes: string[] = [];
+  /**
+   * What happened to the page since the last observation (a dialog it raised, a crash, a browser
+   * that had to start again, a download), told to the model with the next one.
+   */
+  private pageNotes: string[] = [];
+  /** Downloads saved since the last observation, told to the model in one line with the next one. */
+  private savedDownloads: string[] = [];
+  private judgedFocus: JudgedFocus | undefined;
+  private judgedSubmit: JudgedSubmit | undefined;
   /** Set by an explicit close: only `start` (the manager's get or reset) brings the browser back. */
   private closed = false;
   /**
-   * Keyed digests of values typed through the secret box, never the values. They let a URL that
-   * echoes a filled value (a GET form) be cleaned before it reaches the model or the screen.
+   * Keyed digests of values typed through the secret box, never the values. They let a page that
+   * echoes a filled value (a re-rendered field, a strength meter, its title, a GET form's address)
+   * be cleaned before it reaches the model, the record or the screen. Kept for as long as this
+   * computer exists, across closes and restarts of its browser.
    */
-  private readonly secretKey = randomBytes(32);
-  private readonly secretDigests = new Set<string>();
+  private readonly secrets = new SecretEcho();
   private blockNotices = new Map<string, number>();
+  /** Clears HOME folders an earlier process left in `tmp`, once, before the first command. */
+  private homesSwept: Promise<void> | undefined;
+  /** When recent downloads started, for the per-minute limit. */
+  private downloadStarts: number[] = [];
+  private downloadRefusedAt = 0;
+  private downloadsRunning = 0;
+  private downloadWatch: ReturnType<typeof setInterval> | undefined;
+  private checkingDownloads = false;
+  /** Running downloads Steward stopped for size, by Chromium's id, and how many have not ended yet. */
+  private readonly stoppedForSize = new Set<string>();
+  private sizeStops = 0;
+  /** When the agent or the person last used the computer, for closing it when idle. */
+  private lastUsed = Date.now();
+  private idleTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly idleCloseMs: number;
 
   constructor(opts: AgentComputerOptions) {
     this.opts = opts;
@@ -200,6 +262,9 @@ export class AgentComputer implements Computer {
     this.workspace = new Workspace(join(opts.dir, "workspace"));
     this.profileDir = join(opts.dir, "profile");
     this.tmpDir = join(opts.dir, "tmp");
+    this.downloadsDir = join(opts.dir, "downloading");
+    this.maxDownloadBytes = Math.min(MAX_DOWNLOAD_BYTES, opts.maxDownloadBytes ?? MAX_DOWNLOAD_BYTES);
+    this.idleCloseMs = Math.max(0, opts.idleCloseMs ?? IDLE_CLOSE_MS);
     this.log = new ActivityLog(opts.agentId, (item) => this.broadcast({ type: "activity", item }));
   }
 
@@ -219,6 +284,9 @@ export class AgentComputer implements Computer {
   private async launch(): Promise<void> {
     await this.workspace.init();
     await mkdir(this.tmpDir, { recursive: true });
+    // Parts of downloads an earlier browser left behind.
+    await rm(this.downloadsDir, { recursive: true, force: true });
+    await mkdir(this.downloadsDir, { recursive: true });
     const proxy = await startEgressProxy({
       policy: this.opts.policy,
       onBlocked: (b) => this.noteBlocked({ at: Date.now(), host: b.host, message: b.message }),
@@ -227,6 +295,7 @@ export class AgentComputer implements Computer {
     try {
       context = await launchBrowser({
         profileDir: this.profileDir,
+        downloadsDir: this.downloadsDir,
         headful: this.opts.headful,
         proxyUrl: proxy.url,
       });
@@ -252,6 +321,8 @@ export class AgentComputer implements Computer {
     this.adopt(page);
     this.emitStatus();
     this.reconcileCast();
+    this.touch();
+    this.scheduleIdleCheck(this.idleCloseMs);
   }
 
   /** Closes the browser and everything waiting on it. The workspace and the profile stay. */
@@ -288,7 +359,9 @@ export class AgentComputer implements Computer {
       await settlesWithin(closing, stepMs);
     }
     if (proxy) await proxy.close().catch(() => {});
-    this.secretDigests.clear();
+    this.stopDownloadWatch();
+    // The filled values' digests stay: the profile outlives the browser, and a page can show a value
+    // it kept (in a cookie, its storage or its server) after the browser starts again.
     this.documentChanged();
     this.emitStatus();
   }
@@ -303,9 +376,84 @@ export class AgentComputer implements Computer {
     void proxy?.close().catch(() => {});
     this.control.interrupt();
     this.finishSecret({ filled: false, length: 0 });
+    this.stopDownloadWatch();
+    this.note(MESSAGES.browserRestarted);
+    this.log.add({ kind: "navigate", text: "The browser stopped by itself", ok: false });
     this.documentChanged();
     this.reconcileCast();
     this.emitStatus();
+  }
+
+  /** Something used the computer: the idle clock starts again. */
+  private touch(): void {
+    this.lastUsed = Date.now();
+  }
+
+  /** When the computer was last used, in ms since the epoch. */
+  get lastUsedAt(): number {
+    return this.lastUsed;
+  }
+
+  /**
+   * True while closing the browser would cut something short: someone watches the screen, the
+   * person holds the wheel or is asked for help or a secret, or an action, command or download runs.
+   */
+  isBusy(): boolean {
+    return (
+      this.listeners.size > 0 ||
+      this.control.controller === "person" ||
+      this.control.help !== undefined ||
+      this.control.pending() > 0 ||
+      this.secret !== undefined ||
+      this.shells.size > 0 ||
+      this.downloadsRunning > 0 ||
+      this.starting !== undefined
+    );
+  }
+
+  /**
+   * Closes a running browser that nothing is using, telling the model with its next look. Unlike
+   * `close`, the next use starts the browser again by itself. False when it was busy or not running.
+   */
+  async closeIdle(why: string): Promise<boolean> {
+    if (!this.context || this.stopping || this.isBusy()) return false;
+    const lookAgain = this.control.snapshotRequired;
+    this.log.add({
+      kind: "control",
+      text: `Closed the browser ${why}; it starts again when needed`,
+      ok: true,
+    });
+    this.note(MESSAGES.idleRestarted);
+    const stopping = this.close();
+    // Not a close on purpose: an action that comes during or after it starts the browser again.
+    this.closed = false;
+    await stopping;
+    // Nobody used the screen, so only the look the agent already owed is owed.
+    this.control.snapshotRequired = lookAgain;
+    return true;
+  }
+
+  private scheduleIdleCheck(ms: number): void {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.idleTimer = undefined;
+    if (this.idleCloseMs === 0 || !this.context) return;
+    this.idleTimer = setTimeout(() => void this.checkIdle(), Math.max(50, ms));
+    this.idleTimer.unref();
+  }
+
+  private async checkIdle(): Promise<void> {
+    this.idleTimer = undefined;
+    if (!this.context || this.stopping) return;
+    const left = this.lastUsed + this.idleCloseMs - Date.now();
+    if (left > 0) {
+      this.scheduleIdleCheck(left);
+      return;
+    }
+    if (this.isBusy()) {
+      this.scheduleIdleCheck(this.idleCloseMs);
+      return;
+    }
+    await this.closeIdle(`after ${durationLabel(this.idleCloseMs)} with nothing to do`);
   }
 
   // ── Pages ────────────────────────────────────────────────────────────────────────────────────
@@ -322,24 +470,63 @@ export class AgentComputer implements Computer {
         if (page === this.livePage) this.retarget();
       });
       page.on("download", (download) => void this.saveDownload(download));
+      // A crashed tab is not closed and answers nothing; without this every action fails on it.
+      page.on("crash", () => this.onCrash(page));
       // Headless Chromium draws no dialogs, so nobody could answer one. Leaving a page is allowed;
       // anything else is dismissed, the safe answer to "Delete this?", and the model is told.
       page.on("dialog", (dialog) => {
         const kind = dialog.type();
-        const message = dialog.message().replace(/\s+/g, " ").trim().slice(0, 200);
+        const message = this.secrets
+          .scrub(dialog.message(), MASKED_VALUE)
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 200);
         if (kind === "beforeunload") {
           dialog.accept().catch(() => {});
           return;
         }
         dialog.dismiss().catch(() => {});
         const note = `The page showed a ${kind} box${message ? `: "${message}"` : ""}. Steward dismissed it.`;
-        this.dialogNotes.push(note);
-        if (this.dialogNotes.length > 5) this.dialogNotes.shift();
+        this.note(note);
         this.log.add({ kind: "click", text: `Dismissed a ${kind} box from the page`, ok: true });
       });
     }
     // The newest page is the live one, so a popup the agent opened is what it sees next.
     if (!page.isClosed()) this.setLive(page);
+  }
+
+  /** Adds a line for the next observation. Keeps the newest few. */
+  private note(text: string): void {
+    this.pageNotes.push(text);
+    if (this.pageNotes.length > 5) this.pageNotes.shift();
+  }
+
+  /** The page's renderer died: carry on in another tab, close this one, and tell the model. */
+  private onCrash(page: Page): void {
+    const context = this.context;
+    if (!context?.pages().includes(page)) return;
+    this.crashed.add(page);
+    void page.close().catch(() => {});
+    if (page !== this.livePage) return;
+    this.log.add({
+      kind: "navigate",
+      text: "The page stopped working, so Steward opened a fresh tab",
+      ok: false,
+    });
+    this.note(MESSAGES.pageCrashed);
+    this.retarget();
+    if (!this.livePage) void this.freshTab(context);
+  }
+
+  /** Opens a blank tab, once, for a computer left with none; the context's page event adopts it. */
+  private freshTab(context: BrowserContext): Promise<Page | undefined> {
+    this.opening ??= context
+      .newPage()
+      .catch(() => undefined)
+      .finally(() => {
+        this.opening = undefined;
+      });
+    return this.opening;
   }
 
   private setLive(page: Page): void {
@@ -351,7 +538,7 @@ export class AgentComputer implements Computer {
   }
 
   private retarget(): void {
-    const open = this.context?.pages().filter((p) => !p.isClosed()) ?? [];
+    const open = this.context?.pages().filter((p) => !p.isClosed() && !this.crashed.has(p)) ?? [];
     const next = open.at(-1);
     if (next) {
       this.setLive(next);
@@ -365,6 +552,8 @@ export class AgentComputer implements Computer {
   /** The live document changed: refs from earlier snapshots no longer apply. */
   private documentChanged(): void {
     this.generation++;
+    this.forgetFocus();
+    this.judgedSubmit = undefined;
     this.refs.newDocument();
     this.title = "";
     this.emitStatus();
@@ -375,7 +564,7 @@ export class AgentComputer implements Computer {
       .title()
       .then((title) => {
         if (page !== this.livePage) return;
-        this.title = title;
+        this.title = this.secrets.scrub(title, MASKED_VALUE);
         this.emitStatus();
       })
       .catch(() => {});
@@ -387,15 +576,18 @@ export class AgentComputer implements Computer {
    * under it.
    */
   private async ensurePage(opts: { restart?: boolean } = {}): Promise<Page> {
+    this.touch();
     if (!this.context && (this.closed || opts.restart === false)) {
       throw new ComputerError("closed", MESSAGES.computerStopped);
     }
     await this.start();
     const context = this.context;
     if (!context) throw new ComputerError("closed", MESSAGES.computerStopped);
-    if (this.livePage && !this.livePage.isClosed()) return this.livePage;
-    const open = context.pages().filter((p) => !p.isClosed());
-    const page = open.at(-1) ?? (await context.newPage());
+    const live = this.livePage;
+    if (live && !live.isClosed() && !this.crashed.has(live)) return live;
+    const open = context.pages().filter((p) => !p.isClosed() && !this.crashed.has(p));
+    const page = open.at(-1) ?? (await this.freshTab(context));
+    if (!page) throw new ComputerError("failed", "The browser could not open a tab.");
     this.adopt(page);
     return page;
   }
@@ -407,6 +599,7 @@ export class AgentComputer implements Computer {
       return await fn(await this.ensurePage());
     } finally {
       release();
+      this.touch();
     }
   }
 
@@ -425,8 +618,19 @@ export class AgentComputer implements Computer {
   private async capture(page: Page, boxes: boolean): Promise<AriaItem[]> {
     for (let attempt = 0; ; attempt++) {
       try {
-        return toAriaItems(await page.ariaSnapshotJSON({ mode: "ai", boxes, timeout: ACTION_TIMEOUT_MS }));
+        const items = toAriaItems(
+          await page.ariaSnapshotJSON({ mode: "ai", boxes, timeout: ACTION_TIMEOUT_MS }),
+        );
+        // Every reader of the page (snapshots, ref checks, the gateway's facts) sees it scrubbed.
+        return this.secrets.size === 0
+          ? items
+          : mapItemText(
+              items,
+              (t) => this.secrets.scrub(t, MASKED_VALUE),
+              (u) => this.safeUrl(u),
+            );
       } catch (error) {
+        if (isCrash(error)) throw new ComputerError("failed", MESSAGES.pageCrashed);
         if (attempt >= 2 || !isNavigationRace(error)) {
           throw new ComputerError("failed", `The page could not be read: ${briefCause(error)}`);
         }
@@ -436,7 +640,8 @@ export class AgentComputer implements Computer {
   }
 
   private async sensitiveRefs(page: Page, items: AriaItem[]): Promise<Set<string>> {
-    const masked = new Set<string>();
+    // A field showing a filled value lost its mark (the page rebuilt it): still secret.
+    const masked = new Set<string>(fieldsHolding(items, MASKED_VALUE));
     await Promise.all(
       fieldRefs(items).map(async (pwRef) => {
         if (await isSensitive(page, pwRef)) masked.add(pwRef);
@@ -459,13 +664,19 @@ export class AgentComputer implements Computer {
     const rendered = renderSnapshot(items, { refFor: (pwRef) => this.refs.refFor(pwRef), masked });
     this.snap = { generation, entries: rendered.entries };
     this.control.snapshotTaken();
-    const title = await page.title().catch(() => this.title);
+    const title = await page
+      .title()
+      .then((t) => this.secrets.scrub(t, MASKED_VALUE))
+      .catch(() => this.title);
     if (page === this.livePage) {
       this.title = title;
       this.emitStatus();
     }
-    const notes = this.dialogNotes.map((note) => `[${note}]\n`).join("");
-    this.dialogNotes = [];
+    const notes = [...this.pageNotes, ...savedNote(this.savedDownloads)]
+      .map((note) => `[${note}]\n`)
+      .join("");
+    this.pageNotes = [];
+    this.savedDownloads = [];
     return {
       url: this.safeUrl(page.url()),
       title,
@@ -540,7 +751,8 @@ export class AgentComputer implements Computer {
 
   /** Checks and opens a URL for either driver. Throws a readable refusal when it is blocked. */
   private async openUrl(page: Page, target: URL, who: "agent" | "person"): Promise<void> {
-    const verdict = await this.opts.policy.checkUrl(target);
+    const policy = this.opts.policy;
+    const verdict = policy.checkPort(await policy.checkUrl(target), portOf(target));
     if (!verdict.ok) {
       if (verdict.reason === "unresolved") throw new ComputerError("not_found", verdict.message);
       this.log.add({ kind: "navigate", text: `Refused to open ${displayUrl(target)}`, ok: false });
@@ -592,8 +804,10 @@ export class AgentComputer implements Computer {
     if (text.length > MAX_TYPED_CHARS)
       throw new ComputerError("bad_input", "That is too much text to type at once.");
     return this.screenAction(async (page) => {
-      const { locator, entry } = await this.resolveRef(page, ref);
+      const { locator, entry, ref: id } = await this.resolveRef(page, ref);
       const label = elementLabel(entry.role, entry.name);
+      // Enter submits the field's form: only after Steward told the gateway which button that is.
+      const judged = opts.submit ? this.takeJudgedSubmit(id) : undefined;
       let chose = false;
       try {
         const isSelect = await locator
@@ -624,9 +838,33 @@ export class AgentComputer implements Computer {
         } else {
           await locator.fill(text, { timeout: ACTION_TIMEOUT_MS });
         }
-        if (opts.submit) await locator.press("Enter", { timeout: ACTION_TIMEOUT_MS });
+        if (judged !== undefined) {
+          // Typing can change the form (a page that adds a button as you type): look again first.
+          const now = submitterKey(
+            await this.submitterOf(page, await this.capture(page, false), entry.pwRef),
+          );
+          if (now !== judged) throw new ComputerError("stale_ref", MESSAGES.submitterChanged);
+          const field = await locator.elementHandle({ timeout: ACTION_TIMEOUT_MS });
+          try {
+            if (!(await pressOnly(page, field, "Enter", true)))
+              throw new ComputerError("stale_ref", MESSAGES.focusChanged);
+          } finally {
+            await field.dispose().catch(() => {});
+          }
+        }
       } catch (error) {
-        this.log.add({ kind: "type", text: `Could not type into ${label}`, ok: false });
+        const why = !isComputerError(error)
+          ? undefined
+          : error.message === MESSAGES.submitterChanged
+            ? "the form changed"
+            : error.message === MESSAGES.focusChanged
+              ? "focus moved"
+              : undefined;
+        this.log.add({
+          kind: "type",
+          text: why ? `Typed into ${label} but did not press Enter: ${why}` : `Could not type into ${label}`,
+          ok: false,
+        });
         if (isComputerError(error)) throw error;
         throw typingError(error, label);
       }
@@ -649,9 +887,28 @@ export class AgentComputer implements Computer {
     const name = key.trim();
     return this.screenAction(async (page) => {
       this.requireFreshLook();
+      const judged = this.judgedFocus;
+      this.judgedFocus = undefined;
       try {
-        await page.keyboard.press(name);
+        // The key goes to what the gateway was told has focus, or nowhere.
+        if (!judged || judged.page !== page || judged.generation !== this.generation) {
+          throw new ComputerError("stale_ref", MESSAGES.focusUnchecked);
+        }
+        const now = await this.readFocus(page);
+        const same =
+          now.key === judged.key &&
+          (await sameElement(now.handle, judged.handle)) &&
+          judged.generation === this.generation;
+        await now.handle?.dispose().catch(() => {});
+        if (!same) throw new ComputerError("stale_ref", MESSAGES.focusChanged);
+        // Through the judged element (Playwright puts focus back on it right before the key), and
+        // only to it: focus moved in between, and the key goes nowhere.
+        if (judged.handle) {
+          const landed = await pressOnly(page, judged.handle, name, now.key !== "none");
+          if (!landed) throw new ComputerError("stale_ref", MESSAGES.focusChanged);
+        } else await page.keyboard.press(name);
       } catch (error) {
+        if (isComputerError(error)) throw error;
         if (/Unknown key/i.test(String(error))) {
           throw new ComputerError(
             "bad_input",
@@ -659,6 +916,8 @@ export class AgentComputer implements Computer {
           );
         }
         throw actionError(error, `Could not press ${name}`);
+      } finally {
+        await judged?.handle?.dispose().catch(() => {});
       }
       this.log.add({ kind: "key", text: `Pressed ${name}`, ok: true });
       return this.observe(await this.settle());
@@ -716,7 +975,30 @@ export class AgentComputer implements Computer {
    */
   async focused(): Promise<Focused | undefined> {
     const page = this.livePage;
+    this.forgetFocus();
     if (!this.context || !page || page.isClosed()) return undefined;
+    const generation = this.generation;
+    const read = await this.readFocus(page);
+    // `press` sends the key only if focus is still here, on this element, in this document.
+    this.judgedFocus = { page, generation, key: read.key, handle: read.handle };
+    return read.facts;
+  }
+
+  /** What has focus now: the facts the gateway judges, a key to compare them by, and the element. */
+  private async readFocus(
+    page: Page,
+  ): Promise<{ facts: Focused | undefined; key: string; handle: ElementHandle | undefined }> {
+    const handle = await page
+      .evaluateHandle(deepActiveElement)
+      .then((h) => h.asElement() ?? undefined)
+      .catch(() => undefined);
+    const facts = await this.focusFacts(page);
+    // Focus moved while it was read: the facts may not be this element's. Fail closed.
+    const settled = facts && !(await stillActive(handle)) ? unknownFocus() : facts;
+    return { facts: settled, key: focusKey(settled), handle };
+  }
+
+  private async focusFacts(page: Page): Promise<Focused | undefined> {
     let items: AriaItem[];
     try {
       items = await this.capture(page, false);
@@ -737,23 +1019,51 @@ export class AgentComputer implements Computer {
     return submitter ? { role, name, sensitive, submitter } : { role, name, sensitive };
   }
 
+  private forgetFocus(): void {
+    void this.judgedFocus?.handle?.dispose().catch(() => {});
+    this.judgedFocus = undefined;
+  }
+
   /** The default submit button of the form that holds `ref`: what Enter after typing would press. */
   async submitterFor(ref: string): Promise<Submitter | undefined> {
+    this.judgedSubmit = undefined;
     const snap = this.snap;
-    const entry = typeof ref === "string" ? snap?.entries.get(ref.trim()) : undefined;
+    const id = typeof ref === "string" ? ref.trim() : "";
+    const entry = snap?.entries.get(id);
     const page = this.livePage;
     // A ref that no longer names the same element is refused as stale when the action runs.
     if (!entry || snap?.generation !== this.generation) return undefined;
     if (!this.context || !page || page.isClosed()) return undefined;
+    const generation = this.generation;
+    const answer = await this.submitterNow(page, entry);
+    if (answer.known) this.judgedSubmit = { ref: id, generation, key: submitterKey(answer.submitter) };
+    return answer.submitter;
+  }
+
+  private async submitterNow(
+    page: Page,
+    entry: RefEntry,
+  ): Promise<{ known: boolean; submitter: Submitter | undefined }> {
     let items: AriaItem[];
     try {
       items = await this.capture(page, false);
     } catch {
-      return unnamedSubmitter();
+      return { known: true, submitter: unnamedSubmitter() };
     }
     const now = indexRefs(items).get(entry.pwRef);
-    if (!now || now.role !== entry.role || now.name !== entry.name) return undefined;
-    return this.submitterOf(page, items, entry.pwRef);
+    if (!now || now.role !== entry.role || now.name !== entry.name)
+      return { known: false, submitter: undefined };
+    return { known: true, submitter: await this.submitterOf(page, items, entry.pwRef) };
+  }
+
+  /** The submitter `submitterFor` reported for `ref` in this document, used once. Refuses when there is none. */
+  private takeJudgedSubmit(ref: string): string {
+    const judged = this.judgedSubmit;
+    this.judgedSubmit = undefined;
+    if (!judged || judged.ref !== ref || judged.generation !== this.generation) {
+      throw new ComputerError("stale_ref", MESSAGES.submitterUnchecked);
+    }
+    return judged.key;
   }
 
   /**
@@ -836,6 +1146,17 @@ export class AgentComputer implements Computer {
     }
     const host = hostOf(page.url());
     if (!host) throw new ComputerError("bad_input", "Open the page that needs the value first.");
+    // The person is shown the page's host, so the field must belong to that host too: a frame from
+    // another site (an ad, a widget) would get the value under the page's name.
+    const fieldSite = await frameHostOf(resolved.locator);
+    if (fieldSite !== host) {
+      throw new ComputerError(
+        "blocked",
+        fieldSite
+          ? `That field belongs to ${fieldSite}, not ${host}. Steward does not put secrets into fields from another site. Ask the person to take the wheel instead.`
+          : "Steward cannot tell which site that field belongs to, so it will not put a secret into it. Ask the person to take the wheel instead.",
+      );
+    }
     if (this.secret) throw new ComputerError("busy", "Steward is already waiting for another value.");
 
     const request: SecretRequest = {
@@ -903,6 +1224,8 @@ export class AgentComputer implements Computer {
     try {
       const field = page.getByRef(pending.pwRef);
       if ((await field.count()) === 0) throw new Error("gone");
+      // The frame holding the field may have moved to another site since the person was asked.
+      if ((await frameHostOf(field)) !== request.host) throw new Error("moved");
       // Mark first, so no snapshot can catch the value in clear text between the fill and the mark.
       await field.evaluate(
         (el, attr) => {
@@ -920,7 +1243,7 @@ export class AgentComputer implements Computer {
       return;
     }
     const length = value.length;
-    this.secretDigests.add(this.digest(value));
+    this.secrets.add(value);
     this.record("secret.filled", { length, host: request.host });
     this.log.add({
       kind: "secret",
@@ -930,54 +1253,44 @@ export class AgentComputer implements Computer {
     this.finishSecret({ filled: true, length }, request.id);
   }
 
-  private digest(value: string): string {
-    return createHmac("sha256", this.secretKey).update(value).digest("base64url");
+  /**
+   * An address (the page's, or a link's, which may be relative) with any part that is, or holds, a
+   * filled secret replaced by `hidden`.
+   */
+  private safeUrl(raw: string): string {
+    if (this.secrets.size === 0) return raw;
+    return this.secrets.scrub(this.hideUrlParts(raw), "hidden");
   }
 
-  /** The URL with any query value or path segment that equals a filled secret replaced. */
-  private safeUrl(raw: string): string {
-    if (this.secretDigests.size === 0) return raw;
-    let url: URL;
-    try {
-      url = new URL(raw);
-    } catch {
-      return raw;
-    }
-    const hidden = (text: string) => text !== "" && this.secretDigests.has(this.digest(text));
-    let changed = false;
-    for (const [key, value] of [...url.searchParams]) {
-      if (hidden(value)) {
-        url.searchParams.set(key, "hidden");
-        changed = true;
+  /**
+   * Each part of the address between `/ ? # & = ;` (a path segment, a query name or value, the
+   * fragment) that decodes to a filled value, however it was percent-encoded, reads `hidden`. The
+   * rest of the address is left exactly as written.
+   */
+  private hideUrlParts(raw: string): string {
+    return raw.replace(/[^/?#&=;]+/g, (part) => {
+      for (const text of [part, part.replace(/\+/g, " ")]) {
+        let decoded = text;
+        try {
+          decoded = decodeURIComponent(text);
+        } catch {
+          // Not valid percent-encoding: compare it as written.
+        }
+        if (this.secrets.has(decoded) || this.secrets.has(text)) return "hidden";
       }
-    }
-    const segments = url.pathname.split("/").map((segment) => {
-      let decoded = segment;
-      try {
-        decoded = decodeURIComponent(segment);
-      } catch {
-        // Keep the raw segment.
-      }
-      if (!hidden(decoded)) return segment;
-      changed = true;
-      return "hidden";
+      return part;
     });
-    if (hidden(url.hash.slice(1))) {
-      url.hash = "hidden";
-      changed = true;
-    }
-    if (!changed) return raw;
-    url.pathname = segments.join("/");
-    return url.href;
   }
 
   // ── Workspace and shell ──────────────────────────────────────────────────────────────────────
 
   async listFiles(dir?: string): Promise<WorkspaceFile[]> {
+    this.touch();
     return this.workspace.list(dir);
   }
 
   async readFile(path: string, opts: { maxBytes?: number } = {}): Promise<string> {
+    this.touch();
     const limit = opts.maxBytes ?? DEFAULT_READ_BYTES;
     try {
       const file = await this.workspace.read(path, limit);
@@ -993,6 +1306,7 @@ export class AgentComputer implements Computer {
 
   async writeFile(path: string, content: string): Promise<WorkspaceFile> {
     this.control.admit(false);
+    this.touch();
     try {
       const file = await this.workspace.write(path, content);
       this.log.add({ kind: "file", text: `Saved ${file.path} (${formatBytes(file.size)})`, ok: true });
@@ -1010,6 +1324,8 @@ export class AgentComputer implements Computer {
     this.control.admit(false);
     const cwd = await this.workspace.root();
     await mkdir(this.tmpDir, { recursive: true });
+    this.homesSwept ??= removeStaleHomes(this.tmpDir);
+    await this.homesSwept;
     const result = await runShell(command, {
       cwd,
       tmpDir: this.tmpDir,
@@ -1020,6 +1336,7 @@ export class AgentComputer implements Computer {
         return () => this.shells.delete(stop);
       },
     });
+    this.touch();
     const label = `Ran \`${commandLabel(command)}\``;
     const note = result.timedOut
       ? ` (stopped after ${durationLabel(result.durationMs)})`
@@ -1046,16 +1363,21 @@ export class AgentComputer implements Computer {
 
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
+    this.touch();
     this.sendTo(listener, { type: "status", status: this.status() });
     if (this.lastFrame && this.context) this.sendTo(listener, this.lastFrame);
     this.reconcileCast();
     return () => {
-      if (this.listeners.delete(listener)) this.reconcileCast();
+      if (!this.listeners.delete(listener)) return;
+      // The idle clock starts when the last watcher leaves.
+      this.touch();
+      this.reconcileCast();
     };
   }
 
   /** Input from the person's screen. Never throws: problems go back to the screen as an error message. */
   async handle(raw: ComputerClientMessage): Promise<void> {
+    this.touch();
     try {
       await this.dispatch(raw);
     } catch (error) {
@@ -1216,28 +1538,143 @@ export class AgentComputer implements Computer {
     return byRoute ? new ComputerError("blocked", "Steward blocked that address.") : undefined;
   }
 
+  /**
+   * Saves a file the page downloaded into `downloads/`. A page can start downloads on its own, so
+   * each is held to a size while it runs (checked every 250 ms, stopped soon after it passes) and
+   * to a number a minute, and the model hears about each in its next observation.
+   */
   private async saveDownload(download: Download): Promise<void> {
     const name = safeFileName(download.suggestedFilename());
+    const context = download.page().context();
+    const now = Date.now();
+    this.downloadStarts = this.downloadStarts.filter((at) => now - at < 60_000);
+    if (this.downloadStarts.length >= MAX_DOWNLOADS_PER_MINUTE) {
+      await download.cancel().catch(() => {});
+      await download.delete().catch(() => {});
+      // One line a minute, so a page starting hundreds does not flood the log.
+      if (now - this.downloadRefusedAt >= 60_000) {
+        this.downloadRefusedAt = now;
+        this.log.add({
+          kind: "file",
+          text: `Stopped more downloads from the page: at most ${MAX_DOWNLOADS_PER_MINUTE} a minute`,
+          ok: false,
+        });
+        this.note(
+          `The page started more than ${MAX_DOWNLOADS_PER_MINUTE} downloads in a minute, so Steward stopped the rest.`,
+        );
+      }
+      return;
+    }
+    this.downloadStarts.push(now);
+    this.downloadsRunning++;
+    if (!this.downloadWatch) {
+      this.downloadWatch = setInterval(() => void this.checkDownloads(), DOWNLOAD_CHECK_MS);
+      this.downloadWatch.unref();
+    }
     try {
-      const root = await this.workspace.root();
-      const dir = await this.workspace.realParent(root, ["downloads"]);
-      const target = await freeName(dir, name);
-      await download.saveAs(target);
-      const size = (await stat(target)).size;
-      if (size > MAX_DOWNLOAD_BYTES) {
-        await rm(target, { force: true });
-        this.log.add({ kind: "file", text: `Deleted the download ${name}: over 100 MB`, ok: false });
+      const failure = await download.failure().catch(() => "failed");
+      // The browser closed or restarted under it: nothing to save and nobody to tell.
+      if (context !== this.context) return;
+      if (failure !== null) {
+        if (failure === "canceled" && this.sizeStops > 0) {
+          this.sizeStops--;
+          this.tooBig(name);
+        } else {
+          this.log.add({ kind: "file", text: `Could not save the download ${name}`, ok: false });
+          this.note(`The download of ${name} did not finish.`);
+        }
         return;
       }
+      const source = await download.path();
+      if (this.stoppedForSize.delete(basename(source))) this.sizeStops--; // finished as it was stopped
+      const size = (await stat(source)).size;
+      if (size > this.maxDownloadBytes) {
+        this.tooBig(name);
+        return;
+      }
+      const root = await this.workspace.root();
+      const dir = await this.workspace.realParent(root, ["downloads"]);
+      const saved = basename(await placeFile(source, dir, name));
       this.log.add({
         kind: "file",
-        text: `Downloaded downloads/${basename(target)} (${formatBytes(size)})`,
+        text: `Downloaded downloads/${saved} (${formatBytes(size)})`,
         ok: true,
       });
+      this.savedDownloads.push(`${saved} (${formatBytes(size)})`);
     } catch {
       this.log.add({ kind: "file", text: `Could not save the download ${name}`, ok: false });
+      this.note(`The download of ${name} could not be saved.`);
+    } finally {
+      // Chromium's copy, in the downloading folder, is never kept.
       await download.delete().catch(() => {});
+      this.downloadsRunning--;
+      if (this.downloadsRunning <= 0) this.stopDownloadWatch();
     }
+  }
+
+  private tooBig(name: string): void {
+    const limit = sizeLimit(this.maxDownloadBytes);
+    this.log.add({ kind: "file", text: `Stopped the download ${name}: over ${limit}`, ok: false });
+    this.note(`Steward stopped the download of ${name}: it was over ${limit}, the most a page may download.`);
+  }
+
+  /** Stops any running download that has passed the size limit. Chromium names them `<id>.crdownload`. */
+  private async checkDownloads(): Promise<void> {
+    const context = this.context;
+    if (!context || this.checkingDownloads) return;
+    this.checkingDownloads = true;
+    try {
+      for (const entry of await readdir(this.downloadsDir).catch(() => [])) {
+        if (!entry.endsWith(".crdownload")) continue;
+        const id = entry.slice(0, -".crdownload".length);
+        if (this.stoppedForSize.has(id)) continue;
+        const size = (await lstat(join(this.downloadsDir, entry)).catch(() => undefined))?.size ?? 0;
+        if (size <= this.maxDownloadBytes) continue;
+        this.stoppedForSize.add(id);
+        this.sizeStops++;
+        await this.cancelDownload(context, id);
+      }
+    } finally {
+      this.checkingDownloads = false;
+    }
+  }
+
+  /** Cancels a running download by Chromium's id. Any tab's DevTools session can do it. */
+  private async cancelDownload(context: BrowserContext, id: string): Promise<void> {
+    const page =
+      context.pages().find((p) => !p.isClosed() && !this.crashed.has(p)) ?? (await this.freshTab(context));
+    if (!page) return;
+    const session = await context.newCDPSession(page).catch(() => undefined);
+    if (!session) return;
+    await session.send("Browser.cancelDownload", { guid: id }).catch(() => {});
+    await session.detach().catch(() => {});
+  }
+
+  private stopDownloadWatch(): void {
+    if (this.downloadWatch) clearInterval(this.downloadWatch);
+    this.downloadWatch = undefined;
+    if (this.downloadsRunning <= 0) {
+      this.stoppedForSize.clear();
+      this.sizeStops = 0;
+    }
+  }
+}
+
+/**
+ * The host of the frame that holds the element, read from the browser (never from page script, which
+ * can say anything). Empty when the frame is not a web page of its own (`about:`, `data:`, `blob:`)
+ * or cannot be read, so a caller comparing hosts fails closed.
+ */
+async function frameHostOf(locator: Locator): Promise<string> {
+  const handle = await locator.elementHandle({ timeout: 2_000 }).catch(() => null);
+  if (!handle) return "";
+  try {
+    const frame = await handle.ownerFrame();
+    return frame ? hostOf(frame.url()) : "";
+  } catch {
+    return "";
+  } finally {
+    await handle.dispose().catch(() => {});
   }
 }
 
@@ -1247,6 +1684,97 @@ async function isSensitive(page: Page, pwRef: string): Promise<boolean> {
     .getByRef(pwRef)
     .evaluate((el, selector) => el.matches(selector), SENSITIVE_FIELD_SELECTOR, { timeout: 1_000 })
     .catch(() => true);
+}
+
+/** A stable comparison key for focus facts. */
+function focusKey(facts: Focused | undefined): string {
+  if (!facts) return "none";
+  return JSON.stringify([
+    facts.role ?? null,
+    facts.name ?? null,
+    facts.sensitive,
+    submitterKey(facts.submitter),
+  ]);
+}
+
+function submitterKey(submitter: Submitter | undefined): string {
+  return submitter ? JSON.stringify([submitter.role ?? null, submitter.name ?? null]) : "none";
+}
+
+/** Whether two handles are one element. Missing handles match only each other. */
+async function sameElement(a: ElementHandle | undefined, b: ElementHandle | undefined): Promise<boolean> {
+  if (!a || !b) return a === b;
+  return a.evaluate((el, other) => el === other, b).catch(() => false);
+}
+
+/**
+ * Presses `key` on `el`, or nowhere. Playwright puts focus on the element and sends the key as two
+ * steps, so a page that moves focus on a timer could catch the key on another element in between.
+ * A guard in the page stops a key going down anywhere else. `focus: false` sends the key to the
+ * page as it is (nothing had focus, and `el` is the body). True when nothing was stopped.
+ */
+async function pressOnly(page: Page, el: ElementHandle, key: string, focus: boolean): Promise<boolean> {
+  const guard = await el.evaluateHandle(guardKeys, KEY_GUARD_MS).catch(() => undefined);
+  if (!guard) return false;
+  let stopped = false;
+  try {
+    if (focus) await el.press(key, { timeout: ACTION_TIMEOUT_MS });
+    else await page.keyboard.press(key);
+  } finally {
+    // A key that opened another page took this one with it, and with it the guard.
+    stopped = await guard
+      .evaluate((g) => {
+        g.done.abort();
+        return g.stopped;
+      })
+      .catch(() => false);
+    await guard.dispose().catch(() => {});
+  }
+  return !stopped;
+}
+
+/**
+ * Runs in the page: until `done` is aborted, or `ms` pass, a key that goes down (keydown, and the
+ * keypress that commits Enter) on anything but `el` is stopped before the page or the browser acts
+ * on it. A key that lands on `el` and moves focus itself (Tab) is not stopped. Keys inside a frame
+ * are the frame's own. No named inner functions (see `defaultButtonOf`).
+ */
+function guardKeys(el: Element, ms: number): { stopped: boolean; done: AbortController } {
+  const state = { stopped: false, done: new AbortController() };
+  for (const type of ["keydown", "keypress"]) {
+    window.addEventListener(
+      type,
+      (event) => {
+        if (event.composedPath()[0] === el) return;
+        state.stopped = true;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      },
+      { capture: true, signal: state.done.signal },
+    );
+  }
+  setTimeout(() => state.done.abort(), ms);
+  return state;
+}
+
+/** Whether the element still has focus. */
+async function stillActive(handle: ElementHandle | undefined): Promise<boolean> {
+  if (!handle) return false;
+  return handle.evaluate(isDeepActive).catch(() => false);
+}
+
+/** Runs in the page: the focused element, through open shadow roots (frames are their own documents). */
+function deepActiveElement(): Element | null {
+  let el = document.activeElement;
+  while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
+  return el;
+}
+
+/** Runs in the page: whether `el` is what `deepActiveElement` finds. Repeated, because each runs alone. */
+function isDeepActive(el: Element): boolean {
+  let active = document.activeElement;
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+  return active === el;
 }
 
 /**
@@ -1285,23 +1813,54 @@ function safeFileName(name: string): string {
   return cleaned || "download";
 }
 
-async function freeName(dir: string, name: string): Promise<string> {
+/**
+ * Puts the finished download into `dir` under `name`, or `name (2)` and so on when that is taken.
+ * Each try is atomic (a hard link, or an exclusive copy across disks), so two downloads with one
+ * name can never overwrite each other or an existing file. The source is removed after.
+ */
+async function placeFile(source: string, dir: string, name: string): Promise<string> {
   const ext = extname(name);
   const stem = name.slice(0, name.length - ext.length);
-  for (let n = 1; n < 1000; n++) {
-    const candidate = join(dir, n === 1 ? name : `${stem} (${n})${ext}`);
-    const taken = await lstat(candidate).then(
-      () => true,
-      () => false,
-    );
-    if (!taken) return candidate;
+  const names = Array.from({ length: 999 }, (_, i) => (i === 0 ? name : `${stem} (${i + 1})${ext}`));
+  for (const candidate of [...names, `${stem}-${Date.now()}${ext}`]) {
+    const target = join(dir, candidate);
+    try {
+      await link(source, target).catch(async (error: unknown) => {
+        if (!["EXDEV", "EPERM", "ENOTSUP"].includes(errorCode(error))) throw error;
+        await copyFile(source, target, constants.COPYFILE_EXCL);
+      });
+    } catch (error) {
+      if (errorCode(error) === "EEXIST") continue;
+      throw error;
+    }
+    await unlink(source).catch(() => {});
+    return target;
   }
-  return join(dir, `${stem}-${Date.now()}${ext}`);
+  throw new Error("no free name");
+}
+
+function errorCode(error: unknown): string {
+  return (error as NodeJS.ErrnoException | undefined)?.code ?? "";
+}
+
+/** One line for the downloads saved since the model last looked. */
+function savedNote(saved: readonly string[]): string[] {
+  if (saved.length === 0) return [];
+  if (saved.length === 1) return [`Saved a download to downloads/${saved[0]}.`];
+  const shown = saved.slice(0, 10).join(", ");
+  const more = saved.length > 10 ? ` and ${saved.length - 10} more` : "";
+  return [`Saved ${saved.length} downloads to downloads/: ${shown}${more}.`];
+}
+
+/** "100 MB" for a whole number of megabytes. */
+function sizeLimit(bytes: number): string {
+  return bytes % (1024 * 1024) === 0 ? `${bytes / 1024 / 1024} MB` : formatBytes(bytes);
 }
 
 function navigationError(error: unknown, target: URL): ComputerError {
   const text = String(error);
   const where = displayUrl(target);
+  if (isCrash(error)) return new ComputerError("failed", MESSAGES.pageCrashed);
   if (/ERR_NAME_NOT_RESOLVED/.test(text))
     return new ComputerError("not_found", `Could not find ${target.hostname}.`);
   if (/Timeout \d+ms exceeded/i.test(text)) {
@@ -1322,7 +1881,7 @@ function navigationError(error: unknown, target: URL): ComputerError {
   if (/Download is starting/i.test(text)) {
     return new ComputerError(
       "failed",
-      "That address started a download instead of opening a page. It is saved in downloads/.",
+      "That address started a download instead of opening a page. Steward saves it in downloads/ when it finishes.",
     );
   }
   return new ComputerError("failed", `Could not open ${where}: ${briefCause(error)}`);
@@ -1330,6 +1889,7 @@ function navigationError(error: unknown, target: URL): ComputerError {
 
 function actionError(error: unknown, prefix: string): ComputerError {
   if (isComputerError(error)) return error;
+  if (isCrash(error)) return new ComputerError("failed", MESSAGES.pageCrashed);
   if (/Timeout \d+ms exceeded/i.test(String(error))) {
     return new ComputerError(
       "timeout",

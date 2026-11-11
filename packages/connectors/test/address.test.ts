@@ -152,3 +152,46 @@ describe("assertPublicHost", () => {
     );
   });
 });
+
+describe("protected ports", () => {
+  const policy = {
+    allowPrivateHosts: true,
+    protectedPorts: [8787],
+    lookup: fakeDns({
+      "steward.test": ["127.0.0.1"],
+      "nas.test": ["192.168.1.20"],
+      "me.test": ["192.168.1.5"],
+    }),
+    ownAddresses: () => ["127.0.0.1", "192.168.1.5", "fe80::1c2b:3aff:fe4d:5e6f%en0"],
+  };
+
+  it.each([
+    "http://127.0.0.1:8787/api/memory",
+    "http://localhost:8787/",
+    "http://admin.localhost:8787/",
+    "http://0.0.0.0:8787/",
+    "http://[::]:8787/",
+    "http://[::ffff:127.0.0.1]:8787/",
+    "http://[::127.0.0.1]:8787/",
+    "http://[64:ff9b::7f00:1]:8787/",
+    "http://192.168.1.5:8787/",
+  ])("refuses this machine's protected port at %s, even with private hosts allowed", async (url) => {
+    const verdict = checkWebAddress(url, policy);
+    expect(verdict.ok).toBe(false);
+    if (!verdict.ok) expect(verdict.reason).toMatch(/Steward's own server/);
+  });
+
+  it("refuses a name that resolves to this machine, once the port is known", async () => {
+    await expect(assertPublicHost("steward.test", policy, 8787)).rejects.toThrow(/Steward's own server/);
+    await expect(assertPublicHost("me.test", policy, 8787)).rejects.toThrow(/Steward's own server/);
+    await expect(assertPublicHost("steward.test", policy, 3000)).resolves.toHaveLength(1);
+    await expect(assertPublicHost("nas.test", policy, 8787)).resolves.toHaveLength(1);
+  });
+
+  it("leaves other ports and other machines alone", () => {
+    expect(checkWebAddress("http://127.0.0.1:3000/", policy).ok).toBe(true);
+    expect(checkWebAddress("http://192.168.1.6:8787/", policy).ok).toBe(true);
+    expect(checkWebAddress("http://127.0.0.1/", { ...policy, protectedPorts: [80] }).ok).toBe(false);
+    expect(checkWebAddress("https://127.0.0.1/", { ...policy, protectedPorts: [80] }).ok).toBe(true);
+  });
+});

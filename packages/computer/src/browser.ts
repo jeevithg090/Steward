@@ -10,7 +10,7 @@ import { hostname } from "node:os";
 import { join } from "node:path";
 import { type BrowserContext, chromium, type Route } from "playwright";
 import { ComputerError } from "./errors.ts";
-import type { HostPolicy } from "./network.ts";
+import { type HostPolicy, portOf } from "./network.ts";
 
 export const VIEWPORT = { width: 1280, height: 800 } as const;
 
@@ -92,6 +92,8 @@ export async function writeProfilePreferences(profileDir: string): Promise<void>
 
 export interface LaunchOptions {
   profileDir: string;
+  /** Where Chromium writes downloads while they run, so their size can be watched. */
+  downloadsDir: string;
   headful: boolean;
   proxyUrl: string;
 }
@@ -131,6 +133,7 @@ export async function launchBrowser(opts: LaunchOptions): Promise<BrowserContext
     // Service workers fetch outside `context.route`; the agent's browser does not need them.
     serviceWorkers: "block",
     acceptDownloads: true,
+    downloadsPath: opts.downloadsDir,
     proxy: { server: opts.proxyUrl },
     // Steward owns shutdown, so the profile is closed cleanly and cookies are flushed.
     handleSIGINT: false,
@@ -173,7 +176,7 @@ export async function installRouteGuard(
         await route.fallback().catch(() => {});
         return;
       }
-      const verdict = await policy.checkUrl(url);
+      const verdict = policy.checkPort(await policy.checkUrl(url), portOf(url));
       if (verdict.ok) {
         await route.fallback().catch(() => {});
         return;

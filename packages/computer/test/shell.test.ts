@@ -1,8 +1,16 @@
-import { mkdtemp, realpath, rm, stat } from "node:fs/promises";
+import { spawn, spawnSync } from "node:child_process";
+import { mkdir, mkdtemp, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { clampTimeout, runShell, SHELL_OUTPUT_LIMIT, shellEnvironment } from "../src/shell.ts";
+import {
+  clampTimeout,
+  removeStaleHomes,
+  runShell,
+  SHELL_OUTPUT_LIMIT,
+  shellEnvironment,
+} from "../src/shell.ts";
 
 let dir: string;
 let tmp: string;
@@ -22,6 +30,15 @@ const exists = (p: string) =>
     () => false,
   );
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const has = (tool: string) => spawnSync("/bin/sh", ["-c", `command -v ${tool}`]).status === 0;
+const alive = (pid: number) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 describe("runShell", () => {
   it("runs bash in the workspace and reports the exit code and both streams", async () => {
@@ -33,7 +50,7 @@ describe("runShell", () => {
     expect(result.durationMs).toBeGreaterThanOrEqual(0);
   });
 
-  it("passes only allow-listed variables, with HOME set to the workspace", async () => {
+  it("passes only allow-listed variables, with a HOME of the command's own outside the workspace", async () => {
     const result = await runShell("env", {
       cwd: dir,
       tmpDir: tmp,
@@ -55,7 +72,13 @@ describe("runShell", () => {
         .split("\n")
         .map((line) => [line.slice(0, line.indexOf("=")), line.slice(line.indexOf("=") + 1)]),
     );
-    expect(env.HOME).toBe(dir);
+    const home = env.HOME ?? "";
+    expect(home.startsWith(join(tmp, "home-"))).toBe(true);
+    expect(env.XDG_CONFIG_HOME).toBe(join(home, ".config"));
+    expect(env.XDG_DATA_HOME).toBe(join(home, ".local", "share"));
+    expect(env.XDG_STATE_HOME).toBe(join(home, ".local", "state"));
+    expect(env.XDG_CACHE_HOME).toBe(join(home, ".cache"));
+    expect(env.PYTHONNOUSERSITE).toBe("1");
     expect(env.TMPDIR).toBe(tmp);
     expect(env.LANG).toBe("en_GB.UTF-8");
     expect(env.LC_ALL).toBe("C");
@@ -68,15 +91,88 @@ describe("runShell", () => {
 
   it("never passes loader or bash hooks, even when asked", () => {
     const env = shellEnvironment(
-      { BASH_ENV: "x", LD_PRELOAD: "y", DYLD_INSERT_LIBRARIES: "z", LC_CTYPE: "UTF-8" },
-      dir,
+      { BASH_ENV: "x", LD_PRELOAD: "y", DYLD_INSERT_LIBRARIES: "z", LC_CTYPE: "UTF-8", HOME: "/Users/x" },
+      join(tmp, "home-a"),
       tmp,
     );
-    expect(env).toMatchObject({ HOME: dir, TMPDIR: tmp, LC_CTYPE: "UTF-8" });
+    expect(env).toMatchObject({ HOME: join(tmp, "home-a"), TMPDIR: tmp, LC_CTYPE: "UTF-8" });
     expect(Object.keys(env)).not.toContain("BASH_ENV");
     expect(Object.keys(env)).not.toContain("LD_PRELOAD");
     expect(Object.keys(env)).not.toContain("DYLD_INSERT_LIBRARIES");
   });
+
+  it("gives every command a fresh, empty HOME and removes it afterwards", async () => {
+    const first = await runShell('ls -A "$HOME"; echo "$HOME"; touch "$HOME/left-behind"', {
+      cwd: dir,
+      tmpDir: tmp,
+    });
+    const home = first.stdout.trim();
+    expect(home.startsWith(join(tmp, "home-"))).toBe(true);
+    expect(await exists(home)).toBe(false);
+    const second = await runShell('ls -A "$HOME"; echo "$HOME"', { cwd: dir, tmpDir: tmp });
+    expect(second.stdout.trim()).not.toBe(home);
+    expect(second.stdout).not.toContain("left-behind");
+  });
+
+  it("ignores config files saved in the workspace that a HOME there would have read", async () => {
+    // file_write saves these without asking; none of them may change what a command runs.
+    await writeFile(join(dir, ".gitconfig"), "[user]\n\tname = Planted\n[alias]\n\tst = !echo PLANTED\n");
+    await mkdir(join(dir, ".config", "git"), { recursive: true });
+    await writeFile(join(dir, ".config", "git", "config"), "[user]\n\temail = planted@example.com\n");
+    if (has("git")) {
+      const git = await runShell("git config --global user.name; git config --global user.email; echo done", {
+        cwd: dir,
+        tmpDir: tmp,
+      });
+      expect(git.stdout).toBe("done\n");
+    }
+    if (has("python3")) {
+      // Where Python's user site would be with HOME set to the workspace.
+      const site = spawnSync("python3", ["-c", "import site; print(site.getusersitepackages())"], {
+        env: { PATH: process.env.PATH ?? "", HOME: dir },
+        encoding: "utf8",
+      }).stdout.trim();
+      expect(site.startsWith(dir)).toBe(true);
+      await mkdir(site, { recursive: true });
+      await writeFile(join(site, "zz_planted.pth"), 'import sys; sys.stderr.write("PLANTED CODE RAN\\n")\n');
+      const py = await runShell("python3 -c 'print(2 + 2)'", { cwd: dir, tmpDir: tmp });
+      expect(py.stdout).toBe("4\n");
+      expect(py.stderr).not.toContain("PLANTED");
+    }
+  });
+
+  it("clears HOME folders left by an earlier process, and nothing else", async () => {
+    const left = join(tmp, "home-stale");
+    await mkdir(join(left, ".config"), { recursive: true });
+    await writeFile(join(tmp, "keep.txt"), "x");
+    await removeStaleHomes(tmp);
+    expect(await exists(left)).toBe(false);
+    expect(await exists(join(tmp, "keep.txt"))).toBe(true);
+  });
+
+  it("kills running commands when the server process dies", async () => {
+    const pidFile = join(dir, "orphan.pid");
+    const script = join(dir, "crash.mts");
+    const shell = join(dirname(fileURLToPath(import.meta.url)), "../src/shell.ts");
+    await writeFile(
+      script,
+      [
+        `import { existsSync } from "node:fs";`,
+        `import { runShell } from ${JSON.stringify(shell)};`,
+        `void runShell(${JSON.stringify(`echo $$ > "${pidFile}"; exec sleep 30`)}, { cwd: ${JSON.stringify(dir)}, tmpDir: ${JSON.stringify(tmp)} });`,
+        `const wait = setInterval(() => { if (existsSync(${JSON.stringify(pidFile)})) { clearInterval(wait); setTimeout(() => { throw new Error("crash"); }, 50); } }, 20);`,
+      ].join("\n"),
+    );
+    const tsx = join(dirname(fileURLToPath(import.meta.url)), "../../../node_modules/.bin/tsx");
+    const child = spawn(tsx, [script], { stdio: "ignore" });
+    const code = await new Promise<number | null>((resolve) => child.on("exit", (c) => resolve(c)));
+    expect(code).not.toBe(0);
+    const pid = Number((await readFile(pidFile, "utf8")).trim());
+    expect(pid).toBeGreaterThan(0);
+    const end = Date.now() + 3_000;
+    while (alive(pid) && Date.now() < end) await delay(50);
+    expect(alive(pid)).toBe(false);
+  }, 30_000);
 
   it("kills the whole process group on timeout", async () => {
     const marker = join(dir, "late.txt");

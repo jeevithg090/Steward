@@ -50,6 +50,18 @@ export const MESSAGES = {
   noSnapshot: "There is no snapshot of this page yet. Take a snapshot first and use the refs it returns.",
   stillFinishing: "Steward is still finishing an action. Try taking the wheel again in a moment.",
   computerStopped: "The computer stopped. Start it again to carry on.",
+  pageCrashed:
+    "The page you were on crashed. Steward opened a fresh tab; open the page again if you still need it.",
+  browserRestarted:
+    "The browser stopped by itself, so Steward started it again. Open the page again if you still need it.",
+  idleRestarted:
+    "Steward closed the browser while nothing was using it, and started it again. Open the page again if you still need it.",
+  focusUnchecked: "Steward has not checked what has focus on this page. Take a new snapshot, then try again.",
+  focusChanged: "What has focus changed since Steward checked it. Take a new snapshot, then try again.",
+  submitterUnchecked:
+    "Steward has not checked which button Enter would press in that form. Take a new snapshot, then try again.",
+  submitterChanged:
+    "The button Enter would press in that form changed since Steward checked it, so Enter was not pressed. Take a new snapshot, then try again.",
 } as const;
 
 export function staleRef(ref: string, why?: string): ComputerError {
@@ -65,6 +77,12 @@ export function briefCause(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
   const first = text.split("\n")[0] ?? "";
   return first.replace(/^\w+\.\w+:\s*/, "").slice(0, 200);
+}
+
+/** True for the Playwright errors raised when the page's renderer died. */
+export function isCrash(error: unknown): boolean {
+  const text = error instanceof Error ? error.message : String(error);
+  return /Target crashed|Page crashed/i.test(text);
 }
 
 /** True for the Playwright errors raised when a navigation replaced the page mid-call. */

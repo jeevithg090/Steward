@@ -1,5 +1,6 @@
 import { lookup as dnsLookup } from "node:dns/promises";
 import { isIP } from "node:net";
+import { networkInterfaces } from "node:os";
 import { ComputerError } from "./errors.ts";
 
 /**
@@ -165,6 +166,43 @@ export function classifyAddress(ip: string): AddressClass | undefined {
   return PRIVATE_V6.some(([base, prefix]) => inV6Range(groups, base, prefix)) ? "private" : "public";
 }
 
+/** Every address this machine's network interfaces have, read now: they change as networks do. */
+export function ownAddresses(): string[] {
+  try {
+    return Object.values(networkInterfaces()).flatMap((list) => (list ?? []).map((i) => i.address));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Whether dialling `address` reaches this machine: loopback (127.0.0.0/8, ::1), "this host"
+ * (0.0.0.0/8 and ::, which connect to the machine itself), the same hidden in IPv6 (mapped,
+ * compatible, NAT64), and the machine's own interface addresses, where a server on 0.0.0.0 answers.
+ */
+export function isThisMachine(address: string, own: readonly string[] = ownAddresses()): boolean {
+  const host = canonicalHost(address);
+  const groups = parseIpv6(host);
+  const v4 = parseIpv4(host) ?? (groups ? embeddedV4(groups) : undefined);
+  if (v4) {
+    if (v4[0] === 127 || v4[0] === 0) return true;
+    const text = v4.join(".");
+    return own.some((a) => parseIpv4(canonicalHost(a))?.join(".") === text);
+  }
+  if (!groups) return false;
+  if (groups.slice(0, 7).every((g) => g === 0) && (groups[7] ?? 0) <= 1) return true; // :: and ::1
+  return own.some((a) => {
+    const mine = parseIpv6(canonicalHost(a));
+    return mine?.every((g, i) => g === groups[i]) === true;
+  });
+}
+
+/** The port a web URL connects to, with the scheme's default when none is written. */
+export function portOf(url: URL): number {
+  if (url.port) return Number(url.port);
+  return url.protocol === "https:" || url.protocol === "wss:" ? 443 : 80;
+}
+
 /** Lower case, no brackets, no trailing dots: the form every check compares. */
 export function canonicalHost(hostname: string): string {
   let host = hostname.trim().toLowerCase();
@@ -243,6 +281,8 @@ export interface HostPolicyOptions {
   protectedPorts?: readonly number[];
   /** Injectable for tests. Defaults to the system resolver. */
   lookup?: LookupFn;
+  /** This machine's own addresses, for the protected-port check. Injectable for tests. */
+  ownAddresses?: () => readonly string[];
   /** How long a DNS answer is trusted. Short on purpose. */
   cacheMs?: number;
   now?: () => number;
@@ -260,6 +300,7 @@ export class HostPolicy {
   readonly allowPrivateHosts: boolean;
   readonly protectedPorts: ReadonlySet<number>;
   private readonly lookup: LookupFn;
+  private readonly own: () => readonly string[];
   private readonly cacheMs: number;
   private readonly now: () => number;
   private readonly cache = new Map<string, { expires: number; addresses?: ResolvedAddress[] }>();
@@ -269,6 +310,7 @@ export class HostPolicy {
     this.allowPrivateHosts = opts.allowPrivateHosts ?? false;
     this.protectedPorts = new Set(opts.protectedPorts ?? []);
     this.lookup = opts.lookup ?? systemLookup;
+    this.own = opts.ownAddresses ?? ownAddresses;
     this.cacheMs = opts.cacheMs ?? 30_000;
     this.now = opts.now ?? Date.now;
   }
@@ -313,13 +355,14 @@ export class HostPolicy {
   }
 
   /**
-   * A second check once the port is known: loopback on a protected port is Steward itself. Returns
-   * the verdict unchanged when it is fine.
+   * A second check once the port is known: this machine on a protected port is Steward itself,
+   * however the address is written (`127.0.0.1`, `0.0.0.0`, `[::ffff:127.0.0.1]`, its own LAN
+   * address). Returns the verdict unchanged when it is fine.
    */
   checkPort(verdict: HostVerdict, port: number): HostVerdict {
     if (!verdict.ok || !this.protectedPorts.has(port)) return verdict;
-    const loopback = verdict.addresses.some((a) => a.address === "::1" || a.address.startsWith("127."));
-    if (!loopback) return verdict;
+    const own = this.own();
+    if (!verdict.addresses.some((a) => isThisMachine(a.address, own))) return verdict;
     return {
       ok: false,
       host: verdict.host,

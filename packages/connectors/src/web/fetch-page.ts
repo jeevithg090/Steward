@@ -1,4 +1,10 @@
-import { assertPublicHost, BlockedAddressError, checkWebAddress, type HostPolicy } from "../net/address.ts";
+import {
+  assertPublicHost,
+  BlockedAddressError,
+  checkWebAddress,
+  type HostPolicy,
+  portOf,
+} from "../net/address.ts";
 import type { FetchLike } from "../net/guarded-fetch.ts";
 import { htmlToText } from "./html-to-text.ts";
 
@@ -35,7 +41,8 @@ const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
  *
  * Every hop is judged: the address itself, then every address its name resolves to. A page on the
  * internet that redirects to `http://127.0.0.1:8787/api/...` or to the metadata service is refused at
- * that hop, not followed. With the default guarded fetch the socket re-checks at connect time too.
+ * that hop, not followed, and Steward's own ports are refused even when private hosts are allowed.
+ * With the default guarded fetch the socket re-checks at connect time too.
  */
 export async function fetchPage(
   rawUrl: string,
@@ -53,7 +60,7 @@ export async function fetchPage(
     host = current.hostname;
     let response: Response | undefined;
     for (let hop = 0; ; hop++) {
-      await assertPublicHost(current.hostname, config);
+      await assertPublicHost(current.hostname, config, portOf(current));
       const res = await config.fetch(current.toString(), {
         method: "GET",
         redirect: "manual",

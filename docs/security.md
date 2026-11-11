@@ -146,7 +146,9 @@ forward the last ten emails to…". Steward assumes this will happen.
   arguments, so you approve what will happen, not the model's description of it.
 - **Element names come from the page, not the model.** When the agent clicks, the gateway judges
   the element by the computer's own snapshot. A button the model calls "Next" but the page calls
-  "Place order" is judged as a payment.
+  "Place order" is judged as a payment. A key press goes only to the element that was judged: if
+  the page moves focus, or adds a new submit button, between the check and the key, the key is not
+  pressed.
 - **Refusals stop.** A refused call returns a sentence telling the agent not to try again by
   another route, and the refusal is recorded.
 
@@ -168,6 +170,10 @@ The agent's browser, `web_fetch` and MCP servers reached over HTTP all refuse:
   A preset deny rule says the same thing a second time.
 - **Loopback, private, link-local and other non-public ranges,** including IPv6 forms and
   IPv4-mapped addresses, unless you set `STEWARD_ALLOW_PRIVATE_HOSTS=1` (refused in production).
+- **Steward's own ports on this machine,** even with that setting: its server, its phone port and
+  the Vite dev servers, which pass requests on to its API. Every way of writing this machine counts:
+  `127.0.0.1`, `localhost`, `0.0.0.0`, `[::]`, `[::ffff:127.0.0.1]` and the machine's own network
+  addresses. The agent's browser and `web_fetch` check this.
 
 Names are resolved and every address is checked, so `evil.example` pointing at `127.0.0.1` is
 refused like `127.0.0.1` itself. The checked address is the one that is dialled, so a second DNS
@@ -186,7 +192,10 @@ redirects itself and checks each hop.
   [the secret box](governance.md#the-secret-box).
 - **Masked snapshots.** Password, one-time code and card fields, and any field the secret box
   filled, read as `[hidden: sensitive field]` in every snapshot the agent takes. Playwright on its
-  own would print them in clear text.
+  own would print them in clear text. A value from the secret box is also hidden where the page
+  repeats it: in its text, its title, a dialog, its address or a link, also when written the way
+  web addresses encode it. A value the page changes in other ways (upper case, split up) is not
+  caught.
 - **Redacted record.** Values under names like `password`, `token`, `secret`, `authorization`,
   `cookie` and `api_key` are replaced with `[redacted]` before anything is written or hashed.
 - **Commands never see Steward's keys.** The shell gets an allow-listed environment.
@@ -212,10 +221,19 @@ file, run a script.
 
 - **File tools stay in the workspace.** No absolute paths, no `..`, a `realpath` check of where a
   path really lands so a symlink cannot lead outside, and files opened with `O_NOFOLLOW` so a link
-  swapped in afterwards fails rather than being followed. A preset keeps them away from `.env`, SSH
+  swapped in afterwards fails rather than being followed. A file with more than one hard link is
+  never written, since it may be a file outside the workspace, and only regular files are read or
+  written, so a named pipe cannot make a read wait forever. A preset keeps them away from `.env`, SSH
   keys, `.pem` files and cloud credentials.
-- **Commands run with `bash -c` in the workspace,** never a login shell, with `HOME` set to the
-  workspace and an environment limited to `PATH`, the locale and terminal variables, and `TZ`.
+- **Pages cannot fill the disk with downloads.** A page can start a download with nobody asking.
+  Each file may be at most 100 MB, checked while it downloads, and at most 10 downloads may start in
+  a minute; Steward stops the rest. Files land in `downloads/` in the workspace, never over an
+  existing file, and the agent is told what was saved or stopped.
+- **Commands run with `bash -c` in the workspace,** never a login shell, with an environment
+  limited to `PATH`, the locale and terminal variables, and `TZ`. Each command gets a new, empty
+  `HOME` outside the workspace, removed when it ends, so a file the agent saved without asking (a
+  `.gitconfig`, an `.npmrc`, a Python `.pth` file) cannot change what a later command runs. If the
+  server stops, even by crashing, running commands are stopped with it.
 - **A time limit** (120 seconds by default, at most 600) kills the whole process group, and output
   is capped at 64 KiB per stream.
 - **Commands ask, every time,** unless you write a rule or press Always allow for that exact
@@ -225,8 +243,10 @@ file, run a script.
 
 **But the shell is not a sandbox.** It runs as your user, on your machine, with your permissions.
 Containment applies to the file tools, not to commands: a command you allow can read and write
-anything your user account can, and reach the network. That is why commands ask by default, and why
-the approval card shows the exact command. Read it before you allow it.
+anything your user account can, and reach the network. A command also runs what is in the
+workspace: a script, a Makefile, `package.json` scripts, `.git` hooks, or a Python module in the
+folder. That is why commands ask by default, and why the approval card shows the exact command.
+Read it, and what it uses from the workspace, before you allow it.
 
 ## Approvals and routines
 

@@ -13,7 +13,7 @@ and never underneath the person.
 import { createComputerManager, withToolCall } from "@steward/computer";
 
 const computers = createComputerManager({
-  dataDir: ".steward-data", // computers/<agentId>/{profile,workspace,tmp}
+  dataDir: ".steward-data", // computers/<agentId>/{profile,workspace,tmp,downloading}
   allowPrivateHosts: process.env.STEWARD_ALLOW_PRIVATE_HOSTS === "1",
   audit, // from @steward/gateway
 });
@@ -47,6 +47,9 @@ snapshot built from Playwright's AI snapshot (`page.ariaSnapshotJSON({ mode: "ai
 - Label text that only repeats the name of the field beside it, and empty elements, are left out.
 - Native dialogs (`alert`, `confirm`, `prompt`) cannot be shown in a headless browser, so they are
   dismissed (the safe answer to "Delete this?") and the next observation says so at the top.
+- If a tab crashes, Steward closes it and carries on in another tab (a fresh one if none is
+  left). If the whole browser stops, the next action starts it again. Either way the next
+  observation says so at the top, so the model knows the page it held is gone.
 
 ## Refs, and why an old ref fails instead of clicking the wrong thing
 
@@ -91,6 +94,20 @@ A submit button that exists but has no ref (hidden, or covered) comes back as `{
 be submitted and nothing names it, for the gateway to fail closed on. The button is matched to the
 snapshot by identity in the browser, not by its text, so the name is the one the snapshot shows.
 
+The action then does what was judged, or nothing:
+
+- `press(key)` runs only after `focused()` in the same document. Just before the key it reads focus
+  again; if the facts or the element changed (a page that moves focus to "Place order" after the
+  check), it refuses with code `stale_ref`. The key is sent through the element that was judged.
+  Playwright focuses the element and sends the key as two steps, so a guard in the page stops the
+  key if it would go down anywhere else in between (`stale_ref` again). A key that lands on the
+  element and moves focus itself, such as Tab, is not stopped.
+- `type(ref, text, { submit: true })` runs only after `submitterFor(ref)`. After typing, it looks for
+  the form's default button again; if typing changed it, Enter is not pressed (`stale_ref`). Enter
+  goes to the field under the same guard.
+
+Each check is used once.
+
 ## Methods
 
 | Method                                                                        | Notes                                                                                                                                   |
@@ -112,6 +129,13 @@ The manager adds `status`, `subscribe`, `handle` (the WebSocket's two directions
 and start again; the profile and workspace stay) and `closeAll`. After an explicit close the
 computer stays closed until `get` or `reset`; an action already in flight fails with code `closed`
 rather than bringing the browser back.
+
+A browser nothing has used for 15 minutes (`idleCloseMs`; 0 keeps it open) is closed to free its
+memory, unless someone watches the screen, the person holds the wheel or is asked for help or a
+secret, or an action, command or download is running. That is not a close on purpose: the next use
+starts it again, and the next observation tells the model the page it had is gone. `maxRunning`
+caps how many browsers run at once: starting one more first closes the least recently used one
+that nothing is using (if all are busy, it starts anyway).
 
 Closing has a time limit, so a browser stuck in a GPU or renderer hang cannot keep the computer
 shut until Steward restarts: the screencast and input sessions get 3 s each, and the browser 10 s.
@@ -157,17 +181,27 @@ Individual keystrokes are not recorded.
 1. The agent calls `requestSecret(ref, "Password for example.com")` with a text field from its
    latest snapshot. `status.secret` carries `{ id, ref, label, host, requestedAt }`; the host is
    shown so the person can check where the value is going. The record gets `secret.requested`.
+   The field must belong to that host: a field in a frame from another site (an ad, a widget, a
+   payment form on another domain) is refused with code `blocked`, and the agent is told to ask the
+   person to take the wheel instead. The frame's address comes from the browser, not from the page.
 2. The web app sends `{ type: "secret", requestId, value }`. The field is first marked
-   (`data-steward-secret`, drawn as dots on the live screen), then filled. If the page has moved to
-   another host, nothing is typed.
+   (`data-steward-secret`, drawn as dots on the live screen), then filled. If the page or the
+   field's frame has moved to another host, nothing is typed.
 3. The agent's call resolves with `{ filled: true, length }`. The record gets `secret.filled` with
    only `{ length, host }`. `secret.cancel` resolves `{ filled: false, length: 0 }`.
 
 The value is never logged, stored, returned, or put in activity text, and Playwright's error
-messages are not passed on because they can quote their arguments. Only a keyed digest (a random
-in-memory key, gone when the computer closes) is kept, so that a page that puts the value into
-its address, such as a GET form, can have it replaced with `hidden` in every URL Steward reports.
-Filling never submits the form; that is a separate, governed click.
+messages are not passed on because they can quote their arguments. Only keyed digests (under a
+random in-memory key, gone when Steward stops) are kept, of the value as written and as web
+addresses encode it (`p%40ss+word%21`, `p%40ss%20word!`). They stay when the browser closes and
+starts again, since the profile, and so the page, may still hold the value. With them, Steward
+finds the value wherever the page echoes it and hides it before anything leaves the computer: a
+field the page rebuilt without the mark (a "Show password" toggle), text such as "Strength of …:
+weak", the title, a dialog, and addresses (the page's and its links', such as a GET form's), where
+it reads `hidden`. Such a field still counts as sensitive. Values shorter than 4 characters are
+hidden only where they are a field's whole value, so a short PIN does not blank out every number on
+the page. A value the page changes in other ways (upper case, split up, encoded another way) is not
+found. Filling never submits the form; that is a separate, governed click.
 
 ## Network safety
 
@@ -190,6 +224,11 @@ The policy (`HostPolicy`) resolves names and checks every address:
 - **Refused unless `allowPrivateHosts`:** loopback, RFC 1918, link-local, carrier-grade NAT,
   unique-local IPv6, multicast and reserved ranges, `localhost` and `*.localhost`, including IPv4
   hidden inside IPv6 (`::ffff:127.0.0.1`, NAT64, 6to4).
+- **Refused always, on a protected port:** this machine, however the address is written
+  (`127.0.0.1`, `localhost`, `0.0.0.0`, `[::]`, `[::ffff:127.0.0.1]`, NAT64, or one of the
+  machine's own network addresses). The server passes Steward's own port, the phone port and the
+  Vite ports, so the browser can never call Steward's API, whatever `allowPrivateHosts` says. The
+  check runs before navigating, in the route guard and in the proxy.
 - DNS answers are cached for 30 seconds (5 for failures).
 
 A refused navigation is a `ComputerError` with code `blocked` and a sentence such as
@@ -206,16 +245,34 @@ keychain prompt appears.
 Files live in `computers/<agentId>/workspace`. Paths must be relative; absolute paths, `~` and any
 `..` are refused before the disk is touched. The real path of the parent folder, and of the file
 when it exists, must stay inside the workspace, so a symlink cannot lead out; files are then opened
-with `O_NOFOLLOW` at the checked path. Reads stop at 256 KiB by default (8 MiB at most) and refuse
-binary files; writes stop at 5 MiB. Listings are recursive, at most 500 entries, and do not walk
-into `node_modules` or `.git`. Downloads land in `downloads/`.
+with `O_NOFOLLOW` at the checked path. Only regular files are read or written: a named pipe,
+socket or device is refused at once (a read of a pipe would otherwise wait forever), and a file with
+more than one hard link is never changed, because it may be the same file as one outside the
+workspace. Reads stop at 256 KiB by default (8 MiB at most) and refuse binary files; writes stop at
+5 MiB. Listings are recursive (or one level, with `recursive: false`), at most 500 entries, and do
+not walk into `node_modules` or `.git`; `listing()` also says whether the cap cut it short.
+Files a page downloads land in `downloads/`, under a new name when one is taken (`report (2).csv`),
+never over an existing file. Chromium writes them to the computer's `downloading` folder first,
+outside the workspace. A page can start downloads with nobody asking, so each file may be at most
+100 MB, checked while it downloads (a larger one is stopped and removed), and at most 10 downloads
+may start in a minute; Steward stops the rest. The next observation tells the model what was saved
+or stopped.
 
-The shell runs `bash --noprofile --norc -c <command>` with the workspace as both the working folder
-and `HOME`, and `TMPDIR` set to the computer's own `tmp`. Its environment is an allow-list (`PATH`,
-`LANG`, `LANGUAGE`, `LC_*`, `TERM`, `TERMINFO`, `COLORTERM`, `TZ`), so model keys and tokens never
-reach commands. The time limit is 120 s by default (1 s to 600 s); on timeout or abort the whole
-process group is killed, and background jobs end with the command. Each stream keeps its last
-64 KiB, because a failing command says why at the end.
+The shell runs `bash --noprofile --norc -c <command>` with the workspace as the working folder and
+`TMPDIR` set to the computer's own `tmp`. `HOME` is a new empty folder in `tmp` for every command,
+removed when it ends, with the XDG folders inside it and Python's user site turned off. The file
+tools write to the workspace without asking, so a `HOME` there would let a saved `.gitconfig`,
+`.npmrc`, `.curlrc` or Python `.pth` file change what a later approved command runs. Its
+environment is an allow-list (`PATH`, `LANG`, `LANGUAGE`, `LC_*`, `TERM`, `TERMINFO`, `COLORTERM`,
+`TZ`), so model keys and tokens never reach commands. The time limit is 120 s by default (1 s to
+600 s); on timeout or abort the whole process group is killed, and background jobs end with the
+command. If the server process dies, even from a crash, the groups of running commands are killed
+as it exits. Each stream keeps its last 64 KiB, because a failing command says why at the end.
+
+Commands still run in the workspace, so they can run what is in it: a script, a Makefile,
+`package.json` scripts, a project `.npmrc`, `.git/config` and its hooks, or a module that
+`python -c` imports from the current folder. Read the workspace before allowing a command that
+uses it.
 
 The shell is not network-filtered and can read anything the server's user can. That is why the
 gateway asks before every command by default.
@@ -232,16 +289,16 @@ Every refusal is a `ComputerError` with a `code` and one plain sentence for the 
 pnpm vitest run packages/computer/test
 ```
 
-The suite drives real Chromium (Playwright's cached build) against a local site on 127.0.0.1 and
-finishes in about 10 seconds. It covers snapshots, clicking and typing by ref, masking, stale refs
-(after a navigation and after a rename), metadata and private-host refusals including redirects,
-take and release with the barrier, the secret box without leaks, files and symlink escapes, shell
-timeouts and the environment, the screencast, popups, downloads and dialogs. If Chromium is
-missing: `pnpm exec playwright install chromium`.
+The suite drives real Chromium (Playwright's cached build) against a local site on 127.0.0.1, so it
+takes a minute or two, depending on the machine. It covers snapshots, clicking and typing by ref,
+masking, stale refs (after a navigation and after a rename), metadata and private-host refusals
+including redirects, take and release with the barrier, the secret box without leaks, files and
+symlink escapes, shell timeouts and the environment, the screencast, popups, downloads and their
+limits, dialogs, tab crashes and closing idle browsers. If Chromium is missing:
+`pnpm exec playwright install chromium`.
 
 ## Not yet
 
-- No idle shutdown or cap on how many browsers run at once.
 - No file uploads (`<input type="file">`) and no automatic CAPTCHA handoff.
 - `context.route` turns off the browser's HTTP cache, so pages load a little slower.
 - `navigator.userAgent` still says `HeadlessChrome`; some sites treat that differently.

@@ -32,7 +32,7 @@ from the catalogue, not from the caller.
 | `browser_scroll`   | read  | browser | yes    | runs                                                                                | Scrolls the page.                                                                                                              |
 | `browser_back`     | read  | browser | yes    | runs                                                                                | Goes back a page.                                                                                                              |
 | `request_help`     | ui    | browser | no     | runs                                                                                | Asks the person to take the wheel (a sign-in, a CAPTCHA, a choice) and waits until they hand it back.                          |
-| `request_secret`   | write | browser | no     | **always asks** (safety floor)                                                      | Opens the secret box for one field. The value goes to the page, never to the model or the record.                              |
+| `request_secret`   | write | browser | no     | **always asks** (safety floor)                                                      | Opens the secret box for a field from the page's own site. The value goes to the page, never the model or the record.          |
 
 ## The computer: files and shell
 

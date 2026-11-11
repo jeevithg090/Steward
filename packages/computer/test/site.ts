@@ -33,6 +33,22 @@ const PAGES: Record<string, string> = {
     <form><label>Coupon <input id="coupon"></label><button style="display:none">Redeem</button></form>
     <button>Help</button>
     <input aria-hidden="true" style="width:0;height:0;border:0;padding:0">`,
+  "/focus-flip": `<!doctype html><title>Focus</title>
+    <form onsubmit="event.preventDefault(); document.getElementById('out').textContent = 'Searched'"><input aria-label="Search"></form>
+    <div role="button" onmousedown="event.preventDefault()" onclick="setTimeout(() => document.getElementById('buy').focus(), 0)">Arm</div>
+    <button id="buy" onclick="document.getElementById('out').textContent = 'Order placed'">Place order</button>
+    <form onsubmit="event.preventDefault(); document.getElementById('out').textContent = 'Order placed'">
+      <label>Note <input oninput="if (!document.getElementById('sneaky')) { const b = document.createElement('button'); b.id = 'sneaky'; b.textContent = 'Place order'; this.form.prepend(b); }"></label>
+      <button>Save note</button>
+    </form>
+    <p id="out"></p>`,
+  "/focus-race": `<!doctype html><title>Race</title>
+    <form onsubmit="event.preventDefault(); document.getElementById('out').textContent = 'Searched'"><input aria-label="Search"></form>
+    <form onsubmit="event.preventDefault(); document.getElementById('out').textContent = 'Saved'">
+      <label>Note <input></label><button>Save note</button>
+    </form>
+    <button id="buy" onclick="document.getElementById('out').textContent = 'Order placed'">Place order</button>
+    <p id="out"></p>`,
   "/framed": `<!doctype html><title>Framed</title><h1>Pay</h1><button>Back to shop</button>
     <iframe src="/checkout" title="Payment" width="800" height="400"></iframe>`,
   "/rename": `<!doctype html><title>Rename</title>
@@ -43,13 +59,42 @@ const PAGES: Record<string, string> = {
     <label>One-time code <input id="code"></label>
     <button onclick="document.getElementById('status').textContent = 'Code length: ' + document.getElementById('code').value.length">Check</button>
     <p id="status"></p>`,
+  "/reveal": `<!doctype html><title>Sign in</title>
+    <label>Password <input type="password" id="pw" oninput="document.getElementById('strength').textContent = 'Strength of ' + this.value + ': weak'"></label>
+    <button onclick="const old = document.getElementById('pw'); const shown = document.createElement('input'); shown.id = 'pw'; shown.value = old.value; old.replaceWith(shown); document.title = 'Hi ' + shown.value; alert('Your password is ' + shown.value)">Show password</button>
+    <a id="go" href="/next">Go on</a>
+    <script>document.getElementById('pw').addEventListener('change', (e) => { document.getElementById('go').href = '/next?note=x' + e.target.value + 'y'; });</script>
+    <p id="strength"></p>`,
   "/otp": `<!doctype html><title>Verify</title>
     <form action="/otp-done" method="get"><label>Code <input name="code" id="code"></label><button>Verify</button></form>`,
   "/otp-done": `<!doctype html><title>Verified</title><p>Verified</p>`,
+  "/encode": `<!doctype html><title>Verify</title>
+    <form action="/encoded" method="get"><label>Code <input name="code"></label><button>Verify</button></form>`,
+  // Writes the code it was sent back into links and text, encoded the ways addresses are.
+  "/encoded": `<!doctype html><title>Encoded</title>
+    <a id="more">More results</a><a id="again">Search again</a><p id="said"></p>
+    <script>
+      const code = new URLSearchParams(location.search).get('code') || '';
+      document.getElementById('more').href = location.pathname + location.search + '&page=2';
+      document.getElementById('again').href = '/next?q=' + encodeURIComponent(code);
+      document.getElementById('said').textContent = 'You asked for ' + location.search;
+    </script>`,
+  "/keep": `<!doctype html><title>Keep</title><label>API key <input id="key"></label>
+    <button onclick="localStorage.setItem('key', document.getElementById('key').value); document.getElementById('kept').textContent = 'Kept'">Save</button>
+    <p id="kept"></p>`,
+  "/show": `<!doctype html><title>Show</title><p id="shown"></p>
+    <script>document.getElementById('shown').textContent = 'Your key: ' + localStorage.getItem('key');</script>`,
   "/files": `<!doctype html><title>Files</title>
     <a href="/report.csv" download>Download the report</a>
     <button onclick="document.getElementById('answer').textContent = confirm('Delete everything?') ? 'deleted' : 'kept'">Delete everything</button>
     <p id="answer"></p>`,
+  "/huge": `<!doctype html><title>Huge</title><a href="/endless.bin" download>Download the big file</a>`,
+  // Starts a dozen downloads as soon as it loads, with nobody asking. Frames get past Chromium's own
+  // limit of ten downloads a page.
+  "/flood": `<!doctype html><title>Flood</title><p>Hello</p>${Array.from(
+    { length: 12 },
+    (_, i) => `<iframe src="/report.csv?n=${i}" title="Frame ${i}"></iframe>`,
+  ).join("")}`,
   "/typing": `<!doctype html><title>Typing</title><style>body{margin:0}input{position:absolute;left:0;top:0;width:400px;height:40px}</style>
     <input id="box" aria-label="Box">`,
   "/animate": `<!doctype html><title>Animate</title><body><div id="d" style="width:200px;height:200px;background:#f00"></div>
@@ -64,11 +109,19 @@ const PAGES: Record<string, string> = {
 export interface TestSite {
   base: string;
   port: number;
+  /** How many requests reached the site. */
+  readonly hits: number;
+  /** Responses to /endless.bin still being sent. */
+  readonly endless: number;
   close(): Promise<void>;
 }
 
 export async function startSite(): Promise<TestSite> {
+  let hits = 0;
+  let endless = 0;
+  let port = 0;
   const server: Server = createServer((req, res) => {
+    hits++;
     const path = new URL(req.url ?? "/", "http://x").pathname;
     if (path === "/slow") {
       setTimeout(() => {
@@ -85,6 +138,28 @@ export async function startSite(): Promise<TestSite> {
       res.end("month,total\naug,42\n");
       return;
     }
+    if (path === "/endless.bin") {
+      // A download that never ends, sent in 64 KB pieces until the browser stops it.
+      endless++;
+      res.writeHead(200, {
+        "content-type": "application/octet-stream",
+        "content-disposition": 'attachment; filename="endless.bin"',
+      });
+      const piece = Buffer.alloc(64 * 1024, 7);
+      const timer = setInterval(() => res.write(piece), 5);
+      res.on("close", () => {
+        clearInterval(timer);
+        endless--;
+      });
+      return;
+    }
+    if (path === "/cross-frame") {
+      // The same server under another name is another site: a frame from localhost on a 127.0.0.1 page.
+      res.setHeader("content-type", "text/html; charset=utf-8");
+      res.end(`<!doctype html><title>Cross frame</title><h1>Shop</h1>
+        <iframe src="http://localhost:${port}/secret" title="Widget" width="800" height="300"></iframe>`);
+      return;
+    }
     if (path === "/redirect-meta") {
       res.writeHead(302, { location: "http://169.254.169.254/latest/meta-data/" }).end();
       return;
@@ -99,10 +174,16 @@ export async function startSite(): Promise<TestSite> {
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
-  const port = typeof address === "object" && address ? address.port : 0;
+  port = typeof address === "object" && address ? address.port : 0;
   return {
     base: `http://127.0.0.1:${port}`,
     port,
+    get hits() {
+      return hits;
+    },
+    get endless() {
+      return endless;
+    },
     close: () =>
       new Promise<void>((resolve) => {
         server.closeAllConnections();
