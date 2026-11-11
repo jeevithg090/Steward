@@ -32,8 +32,8 @@ const BYPASS_FLAGS = [
   /bypass[-_]?permissions/i,
   /danger[-_]full[-_]access/i,
   /^--yolo\b/i,
-  // `-y`, alone or among other one-letter flags (`-dy` is debug and yolo to Gemini CLI).
-  /^-[A-Za-z]{0,4}y[A-Za-z]{0,4}$/,
+  // `-y`, alone or among other one-letter flags (`-dy` is debug and yolo to Gemini CLI), or `-y=true`.
+  /^-[A-Za-z]{0,4}y[A-Za-z]{0,4}(=|$)/,
   /^--full[-_]?auto\b/i,
   /^--auto[-_]?approve\b/i,
   /^--auto[-_]?edit\b/i,

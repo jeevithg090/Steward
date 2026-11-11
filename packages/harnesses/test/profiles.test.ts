@@ -70,6 +70,7 @@ describe("harnesses.yaml", () => {
       ["--dangerously-allow-everything"],
       // `-y` among other one-letter flags, a value written onto `-a`, and a camel-cased name.
       ["--experimental-acp", "-dy"],
+      ["-y=true"],
       ["-anever"],
       ["--approvalMode=yolo"],
       // A flag inside one argument, as a shell wrapper writes it.
