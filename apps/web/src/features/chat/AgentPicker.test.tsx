@@ -183,7 +183,7 @@ describe("the agent picker in an empty conversation", () => {
     expect(screen.queryByText("xAI · grok-4.7")).toBeNull();
   });
 
-  it("starts a new conversation with the chosen bot and drops the empty one", async () => {
+  it("starts a new conversation with the chosen bot and drops the empty one, only if it is empty", async () => {
     const { calls } = serve();
     const actions = {
       threadId: "thr_empty",
@@ -215,7 +215,12 @@ describe("the agent picker in an empty conversation", () => {
     fireEvent.click(bot);
     await waitFor(() => expect(screen.getByTestId("where").textContent).toBe("/chat?agent=rent-scout"));
     await waitFor(() =>
-      expect(calls.some((c) => c.method === "DELETE" && c.path === "/api/threads/thr_empty")).toBe(true),
+      expect(
+        calls.some(
+          (c) =>
+            c.method === "DELETE" && c.path === "/api/threads/thr_empty" && c.query.get("ifEmpty") === "1",
+        ),
+      ).toBe(true),
     );
   });
 });

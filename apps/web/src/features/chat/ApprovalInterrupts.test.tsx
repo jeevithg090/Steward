@@ -135,6 +135,23 @@ describe("ApprovalInterrupts", () => {
     expect(interruptState.cancel).toHaveBeenCalledWith("call_apr_2");
   });
 
+  it("tells the conversation an answer landed before it resumes, so focus can move first", () => {
+    open("apr_1");
+    const order: string[] = [];
+    interruptState.resolve.mockImplementationOnce(async () => {
+      order.push("resume");
+    });
+    render(
+      <ApprovalInterrupts
+        agentId="thread:t1"
+        onPending={() => {}}
+        onAnswered={(id) => order.push(`answered ${id}`)}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Allow once" }));
+    expect(order).toEqual(["answered apr_1", "resume"]);
+  });
+
   it("carries on when the approval is decided somewhere else, once however many times it hears", () => {
     open("apr_1");
     render(<ApprovalInterrupts agentId="thread:t1" onPending={() => {}} />);

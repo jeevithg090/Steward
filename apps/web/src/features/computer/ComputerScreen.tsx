@@ -23,7 +23,7 @@ import {
   useRef,
 } from "react";
 import { cn } from "@/lib/utils.ts";
-import { keyMessage, mouseButton, toViewport } from "./input.ts";
+import { keyMessage, mouseButton, PASTE_LIMIT, textParts, toViewport } from "./input.ts";
 import { useComputer } from "./session.tsx";
 import type { Frame } from "./socket.ts";
 
@@ -46,7 +46,7 @@ async function decode(frame: Frame): Promise<CanvasImageSource & { close?: () =>
 
 export function ComputerScreen({
   className,
-  label = "Steward's screen",
+  label,
   onLeave,
 }: {
   className?: string;
@@ -55,12 +55,14 @@ export function ComputerScreen({
   onLeave?: () => void;
 }) {
   const computer = useComputer();
+  const who = computer.name;
+  const screenLabel = label ?? `${who}'s screen`;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const helpId = useId();
   const driving = computer.driving && computer.connection === "open";
   const sizeRef = useRef(computer.frameSize);
   sizeRef.current = computer.frameSize;
-  const { subscribeFrames, lastFrame, send } = computer;
+  const { subscribeFrames, lastFrame, send, notify } = computer;
 
   // Draw frames as they arrive. A monotonic id stops a slow decode from painting over a newer frame;
   // a hidden tab keeps only the latest frame and draws it when it is shown again.
@@ -180,6 +182,10 @@ export function ComputerScreen({
   const onKey = (action: "down" | "up") => (event: KeyboardEvent<HTMLCanvasElement>) => {
     if (!driving) return;
     if (event.key === "Escape") {
+      // Leaving the screen is all the first Escape does: in the phone's sheet it must not also close
+      // the sheet around it.
+      event.preventDefault();
+      event.stopPropagation();
       if (action === "down") onLeave?.();
       return;
     }
@@ -199,21 +205,47 @@ export function ComputerScreen({
     const text = event.clipboardData.getData("text");
     if (!text) return;
     event.preventDefault();
-    send({ type: "text", text });
+    if (text.length > PASTE_LIMIT) {
+      notify(
+        `That's too much to paste at once. Paste up to ${PASTE_LIMIT.toLocaleString()} characters at a time.`,
+      );
+      return;
+    }
+    // The server takes text in pieces of a set size, so a long paste goes as several.
+    for (const part of textParts(text)) if (!send({ type: "text", text: part })) break;
   };
 
-  // React's onWheel is passive and cannot stop the page scrolling, so a native listener does it.
+  // React's onWheel is passive and cannot stop the page scrolling, so a native listener does it. A
+  // trackpad sends many wheel events a frame: they are added up, and one message goes per frame.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !driving) return;
+    let queued = false;
+    let frame = 0;
+    let pending: { x: number; y: number; deltaX: number; deltaY: number } | null = null;
     const onWheel = (event: WheelEvent) => {
       const point = pointAt(event);
       if (!point) return;
       event.preventDefault();
-      send({ type: "wheel", ...point, deltaX: event.deltaX, deltaY: event.deltaY });
+      pending = {
+        ...point,
+        deltaX: (pending?.deltaX ?? 0) + event.deltaX,
+        deltaY: (pending?.deltaY ?? 0) + event.deltaY,
+      };
+      if (queued) return;
+      queued = true;
+      frame = requestAnimationFrame(() => {
+        queued = false;
+        const next = pending;
+        pending = null;
+        if (next) send({ type: "wheel", ...next });
+      });
     };
     canvas.addEventListener("wheel", onWheel, { passive: false });
-    return () => canvas.removeEventListener("wheel", onWheel);
+    return () => {
+      canvas.removeEventListener("wheel", onWheel);
+      if (queued) cancelAnimationFrame(frame);
+    };
   }, [driving, pointAt, send]);
 
   // Taking the wheel puts the keyboard on the screen straight away.
@@ -250,7 +282,9 @@ export function ComputerScreen({
         style={{ aspectRatio: `${width} / ${height}` }}
         role={driving ? "application" : "img"}
         aria-roledescription={driving ? "remote screen" : undefined}
-        aria-label={driving ? `${label}. You have control.` : `${label}, live. Steward is driving.`}
+        aria-label={
+          driving ? `${screenLabel}. You have control.` : `${screenLabel}, live. ${who} is driving.`
+        }
         aria-describedby={driving ? helpId : undefined}
         tabIndex={driving ? 0 : -1}
         onPointerDown={onPointerDown}
@@ -275,8 +309,8 @@ export function ComputerScreen({
       />
       {driving ? (
         <p id={helpId} className="sr-only">
-          Keys you press here go to Steward's computer, and so do clicks. Press Escape to leave the screen;
-          you keep control until you hand it back.
+          Keys you press here go to {who}'s computer, and so do clicks. Press Escape to leave the screen; you
+          keep control until you hand it back.
         </p>
       ) : null}
       {resting ? (
@@ -287,8 +321,8 @@ export function ComputerScreen({
           <MonitorPause aria-hidden className="size-8 text-ink-3" />
           <p className="m-0 max-w-xs text-ink-2 text-sub">
             {computer.status?.running
-              ? "Waiting for the first picture from Steward's screen…"
-              : "Steward's computer is resting. It wakes when Steward needs it."}
+              ? `Waiting for the first picture from ${who}'s screen…`
+              : `${who}'s computer is resting. It wakes when ${who} needs it.`}
           </p>
         </div>
       ) : null}

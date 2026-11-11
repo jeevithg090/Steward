@@ -58,6 +58,19 @@ describe("BriefCard", () => {
     expect(screen.getByText(/Tuesday/).textContent).toMatch(/27/);
   });
 
+  it("keeps its headings but adds no page regions where it is one of many", () => {
+    const { container } = render(
+      <>
+        <BriefCard brief={brief()} headingLevel={3} landmarks={false} />
+        <BriefCard brief={brief()} headingLevel={3} landmarks={false} />
+      </>,
+    );
+    expect(container.querySelectorAll("section")).toHaveLength(0);
+    expect(screen.queryAllByRole("region")).toHaveLength(0);
+    expect(screen.getAllByRole("heading", { name: "Your brief" })).toHaveLength(2);
+    expect(screen.getAllByRole("heading", { level: 4 }).length).toBeGreaterThan(0);
+  });
+
   it("lists who needs you, what about, and why", () => {
     render(<BriefCard brief={brief()} />);
     const needs = screen.getByRole("region", { name: /Needs you/ });

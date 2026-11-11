@@ -294,7 +294,12 @@ export const api = {
     list: (signal?: AbortSignal) => get<ThreadSummary[]>(ROUTES.threads, undefined, signal),
     get: (id: string) => get<ThreadSummary>(route(ROUTES.thread, { id })),
     create: (body: ThreadCreateInput = {}) => send<ThreadSummary>("POST", ROUTES.threads, body),
-    remove: (id: string) => send<void>("DELETE", route(ROUTES.thread, { id })),
+    /** `ifEmpty` keeps a conversation that has any history: the server answers 409 instead. */
+    remove: (id: string, opts: { ifEmpty?: boolean } = {}) =>
+      send<void>(
+        "DELETE",
+        withQuery(route(ROUTES.thread, { id }), opts.ifEmpty ? { ifEmpty: "1" } : undefined),
+      ),
   },
 
   approvals: {
@@ -445,6 +450,7 @@ export const queryKeys = {
   settings: ["settings"] as const,
   setup: ["setup"] as const,
   threads: ["threads"] as const,
+  thread: (id: string) => ["threads", "one", id] as const,
   approvals: ["approvals"] as const,
   /** Every approval list, but not the single approvals (those are set directly when they change). */
   approvalLists: ["approvals", "list"] as const,
@@ -578,18 +584,36 @@ export function useThreads(opts?: QueryOpts<ThreadSummary[]>) {
   });
 }
 
+/** One conversation's summary, for a conversation the list does not have (yet). */
+export function useThread(id: string, opts?: QueryOpts<ThreadSummary>) {
+  return useQuery<ThreadSummary, ApiError>({
+    queryKey: queryKeys.thread(id),
+    queryFn: () => api.threads.get(id),
+    ...opts,
+  });
+}
+
 export function useCreateThread() {
   const qc = useQueryClient();
   return useMutation<ThreadSummary, ApiError, ThreadCreateInput | undefined>({
     mutationFn: (body) => api.threads.create(body ?? {}),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.threads }),
+    onSuccess: (thread) => {
+      // Known at once, so the new conversation opens with its own agent rather than the default.
+      qc.setQueryData<ThreadSummary[]>(queryKeys.threads, (old) => [
+        thread,
+        ...(old ?? []).filter((other) => other.id !== thread.id),
+      ]);
+      qc.setQueryData(queryKeys.thread(thread.id), thread);
+      void qc.invalidateQueries({ queryKey: queryKeys.threads });
+    },
   });
 }
 
 export function useDeleteThread() {
   const qc = useQueryClient();
-  return useMutation<void, ApiError, string>({
-    mutationFn: (id) => api.threads.remove(id),
+  return useMutation<void, ApiError, string | { id: string; ifEmpty?: boolean }>({
+    mutationFn: (target) =>
+      typeof target === "string" ? api.threads.remove(target) : api.threads.remove(target.id, target),
     onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.threads }),
   });
 }

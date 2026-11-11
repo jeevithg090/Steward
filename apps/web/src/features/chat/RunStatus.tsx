@@ -8,12 +8,15 @@ import { Button } from "@/components/ui/Button.tsx";
 import { Pill } from "@/components/ui/Pill.tsx";
 
 export function RunStatus({
+  agentName = "Steward",
   running,
   step,
   waitingForAnswer,
   speaking,
   onStopSpeaking,
 }: {
+  /** Who is working, as the person knows the agent. */
+  agentName?: string;
   running: boolean;
   /** The current step, in words. */
   step: string;
@@ -22,9 +25,9 @@ export function RunStatus({
   onStopSpeaking: () => void;
 }) {
   const words = waitingForAnswer
-    ? "Steward is waiting for your answer."
+    ? `${agentName} is waiting for your answer.`
     : running
-      ? `Steward is working: ${step}.`
+      ? `${agentName} is working: ${step}.`
       : "";
   return (
     <div className="flex min-h-9 flex-wrap items-center gap-3">

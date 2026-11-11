@@ -5,6 +5,8 @@
  * thread id), replays the thread's history with `connectAgent`, and draws the transcript, the
  * approvals Steward is waiting on, what it is doing right now, and the composer. Beside it sits
  * Steward's computer: a panel on wide screens (open or closed, remembered), a sheet on small ones.
+ * Everything that names the agent names the one this conversation is with: a bot, a coding agent or
+ * another Steward, as the person knows it.
  *
  * Patterns follow OpenBot's app/src/components/channels/channel-chat.tsx (MIT, CopilotKit): a
  * thread-scoped agent, failures read from the agent's own events (a run that fails still resolves),
@@ -13,9 +15,15 @@
  * Runs the server starts here (a routine, a task, the resume sweep after an answer) are followed:
  * their `run.started` and `run.finished` live events make the conversation connect again, so their
  * messages and any request for an answer appear without a reload.
+ *
+ * A connect never rejects: CopilotKit reports a failed one through the agent's `onRunFailed` and its
+ * own `onError`, then resolves. So each connect records how it went, and only then does the page say
+ * whether the history loaded. Errors replayed from the history are not news: only the newest run's
+ * failure is shown, and nothing earlier than that.
  */
 import {
   CopilotChatConfigurationProvider,
+  CopilotKitCoreErrorCode,
   type Message,
   useAgent,
   useCopilotKit,
@@ -29,20 +37,27 @@ import { Button } from "@/components/ui/Button.tsx";
 import { Dialog } from "@/components/ui/Dialog.tsx";
 import { Notice } from "@/components/ui/Notice.tsx";
 import { useDocumentTitle } from "@/components/ui/PageHeader.tsx";
-import { useApprovals, useInfo } from "@/lib/api.ts";
+import { DEFAULT_AGENT_ID, useApprovals, useInfo } from "@/lib/api.ts";
 import { claimRouteFocus } from "@/lib/focus.ts";
 import { useLiveEvents } from "@/lib/live.ts";
 import { storage } from "@/lib/utils.ts";
 import { ComputerPanel } from "../computer/ComputerPanel.tsx";
 import { ComputerSession, useOptionalComputer } from "../computer/session.tsx";
 import { useSpeak } from "../voice/useSpeak.ts";
-import { ApprovalInterrupts, type PendingApproval } from "./ApprovalInterrupts.tsx";
+import {
+  ApprovalInterrupts,
+  askedByOf,
+  isStewardApproval,
+  type PendingApproval,
+} from "./ApprovalInterrupts.tsx";
 import { Composer } from "./Composer.tsx";
-import { type ChatActions, ChatActionsContext } from "./chat-context.tsx";
+import { ComputerNotice } from "./ComputerNotice.tsx";
+import { type ChatActions, ChatActionsContext, type ComputerView } from "./chat-context.tsx";
 import { currentStep, latestTurnToolCalls, plainRunError, replayedId, shownIds, textOf } from "./messages.ts";
 import { claimInlineRunErrors } from "./provider.tsx";
 import { RunStatus } from "./RunStatus.tsx";
 import { Starters } from "./Starters.tsx";
+import { subRunOf } from "./subruns.tsx";
 import { Transcript } from "./Transcript.tsx";
 import { useMediaQuery } from "./use-media-query.ts";
 
@@ -68,6 +83,43 @@ export interface ChatThreadProps {
   onPromptConsumed?: () => void;
 }
 
+/** How a run ended: it finished (or stopped to ask), the person stopped it, or it failed. */
+type RunEnd = "ok" | "stopped" | "failed";
+
+/** One connect: what was on screen before it (a replay skips that), whether to stay quiet, how it went. */
+interface Connecting {
+  shown: Set<string>;
+  quiet: boolean;
+  /** Nothing could be read: the server is down, or the conversation's agent is gone. */
+  failed: boolean;
+  /** How the newest run read so far failed, in words. A run that starts after it clears it. */
+  lastError: string | null;
+  /** How the newest run read so far ended, once it has. */
+  ended: RunEnd | null;
+}
+
+/** A failed reply shown under the conversation. `earlier` when it was read from the history. */
+interface RunProblem {
+  message: string;
+  earlier: boolean;
+}
+
+/**
+ * What read-aloud says when a run stops to ask: "Steward is asking before it acts: Send an email to
+ * sam@example.com. The request is below." Undefined when none of the interrupts is an approval.
+ */
+export function askingAloud(interrupts: readonly unknown[], agentName: string): string | undefined {
+  const asks = interrupts.filter(isStewardApproval);
+  if (asks.length === 0) return undefined;
+  const lines = asks.map((interrupt) => {
+    const summary = (interrupt.metadata as { summary?: unknown } | undefined)?.summary;
+    const what = typeof summary === "string" && summary.trim() ? summary : (interrupt.message ?? "");
+    const words = what.trim().replace(/[.!?]+$/, "") || "something it wants to do";
+    return `${askedByOf(interrupt) ?? agentName} is asking before it acts: ${words}.`;
+  });
+  return [...lines, asks.length === 1 ? "The request is below." : "The requests are below."].join(" ");
+}
+
 /** True the first time a prompt is seen for a thread in this tab, so a reload never sends it twice. */
 function firstTimeInTab(key: string): boolean {
   try {
@@ -80,9 +132,18 @@ function firstTimeInTab(key: string): boolean {
 }
 
 export function ChatThread(props: ChatThreadProps) {
+  const info = useInfo();
+  const known = info.data?.agents.find((agent) => agent.id === props.runtimeAgentId)?.name;
+  // An agent the server no longer lists (a bot that was removed) keeps its own id: the brand's name
+  // would say Steward answers when it does not.
+  const agentName =
+    known ??
+    (info.data && props.runtimeAgentId !== DEFAULT_AGENT_ID
+      ? props.runtimeAgentId
+      : (info.data?.brand.name ?? "Steward"));
   return (
-    <ComputerSession agentId={props.runtimeAgentId}>
-      <Conversation {...props} />
+    <ComputerSession agentId={props.runtimeAgentId} name={agentName}>
+      <Conversation {...props} agentName={agentName} />
     </ComputerSession>
   );
 }
@@ -90,15 +151,18 @@ export function ChatThread(props: ChatThreadProps) {
 function Conversation({
   threadId,
   runtimeAgentId,
+  agentName,
   title,
   initialPrompt,
   linkedPrompt,
   onPromptConsumed,
-}: ChatThreadProps) {
+}: ChatThreadProps & { agentName: string }) {
   const localAgentId = `thread:${threadId}`;
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: localAgentId, runtimeAgentId, threadId, throttleMs: 40 });
-  const { readAloud } = useAccessibility();
+  const { readAloud, reducedMotion } = useAccessibility();
+  /** Scrolling started from here glides, unless the person asked for less motion. */
+  const glide: ScrollBehavior = reducedMotion ? "auto" : "smooth";
   const speaker = useSpeak();
   const wide = useMediaQuery(WIDE);
   const info = useInfo();
@@ -108,25 +172,36 @@ function Conversation({
   const [load, setLoad] = useState<"loading" | "ready" | "failed">("loading");
   const [connectAttempt, setConnectAttempt] = useState(0);
   const [follow, setFollow] = useState(0);
-  const [runError, setRunError] = useState<string | null>(null);
+  const [runError, setRunError] = useState<RunProblem | null>(null);
+  /** How the newest run ended, so a step it left open is not shown as running for ever. */
+  const [lastRun, setLastRun] = useState<RunEnd | null>(null);
+  /** A connect to follow a run failed after the history had loaded. */
+  const [followFailed, setFollowFailed] = useState(false);
   const [pending, setPending] = useState<PendingApproval[]>([]);
   const [panelOpen, setPanelOpen] = useState(() => storage.get(PANEL_KEY) !== "closed");
   const [sheetOpen, setSheetOpen] = useState(false);
+  /** The tab and file a card asked the computer to open on; `n` counts the asks, so each one lands. */
+  const [view, setView] = useState<ComputerView & { n: number }>({ n: 0 });
   const [pinned, setPinned] = useState(true);
   // A message from a link waits in the composer, noted, until the person sends something.
   const [fromLink, setFromLink] = useState(() => linkedPrompt?.trim() || undefined);
   const approvalsRef = useRef<HTMLDivElement>(null);
+  const columnRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const spoken = useRef(new Set<string>());
   /** Runs this page already shows: the ones it started, and the ones it has replayed or followed. */
   const shownRuns = useRef(new Set<string>());
-  /** While connecting: what was on screen before (a replay skips it), and whether to stay quiet. */
-  const connecting = useRef<{ shown: Set<string>; quiet: boolean } | null>(null);
+  /** The connect in flight, if any. */
+  const connecting = useRef<Connecting | null>(null);
   const loaded = useRef(false);
   const readAloudRef = useRef(readAloud);
   readAloudRef.current = readAloud;
+  const agentNameRef = useRef(agentName);
+  agentNameRef.current = agentName;
+  /** What to say about approvals once the run that stopped to ask has ended. */
+  const askAloud = useRef<string | undefined>(undefined);
   const speak = speaker.speak;
 
   useDocumentTitle(title || "Chat");
@@ -144,48 +219,101 @@ function Conversation({
   const running = agent.isRunning;
 
   // Approvals for this thread that no open interrupt stands for: the page was reloaded after the
-  // run parked, say. They are answered here all the same, and the server carries the run on.
+  // run parked, say. They are answered here all the same, and the server carries the run on. Not
+  // while a run streams: its approval is listed before the run ends with the interrupt that
+  // carries it, and drawing it twice would announce it twice and lose the keyboard between.
   const interruptApprovalIds = new Set(pending.map((entry) => entry.approvalId).filter(Boolean));
-  const orphans = (pendingList.data ?? []).filter(
-    (approval) => approval.threadId === threadId && !interruptApprovalIds.has(approval.id),
-  );
+  const orphans = running
+    ? []
+    : (pendingList.data ?? []).filter(
+        (approval) => approval.threadId === threadId && !interruptApprovalIds.has(approval.id),
+      );
   const waitingForAnswer = pending.length > 0 || orphans.length > 0;
   const busy = running || waitingForAnswer;
 
-  // Run failures arrive as events: `runAgent` resolves even when the run fails.
+  // Run failures arrive as events: `runAgent` and `connectAgent` resolve even when they fail. While
+  // connecting they are noted on the connect, and the connect decides what to show once it ends.
   useEffect(() => {
     if (!isReady) return;
     const subscription = agent.subscribe({
       onRunInitialized: ({ input }) => {
         shownRuns.current.add(input.runId);
         setRunError(null);
+        if (!connecting.current) setLastRun(null);
       },
       onRunStartedEvent: ({ event }) => {
         shownRuns.current.add(event.runId);
+        askAloud.current = undefined;
+        if (connecting.current) {
+          connecting.current.lastError = null;
+          connecting.current.ended = null;
+        } else setLastRun(null);
+      },
+      onRunFinishedEvent: (params) => {
+        const { outcome } = params;
+        const ended: RunEnd = outcome === "cancelled" ? "stopped" : "ok";
+        // The newest run, if it stopped to ask, says so aloud, unless it is history being loaded.
+        askAloud.current =
+          outcome === "interrupt" && !connecting.current?.quiet
+            ? askingAloud(params.interrupts, agentNameRef.current)
+            : undefined;
+        if (connecting.current) connecting.current.ended = ended;
+        else setLastRun(ended);
       },
       onEvent: ({ event }) => {
         const id = connecting.current ? replayedId(event) : undefined;
         if (id && connecting.current?.shown.has(id)) return { stopPropagation: true };
       },
-      onRunFailed: ({ error }) => setRunError(plainRunError(error)),
-      onRunErrorEvent: ({ event }) => setRunError(plainRunError(event.message)),
+      onRunFailed: ({ error }) => {
+        if (connecting.current) connecting.current.failed = true;
+        else {
+          setRunError({ message: plainRunError(error), earlier: false });
+          setLastRun("failed");
+        }
+      },
+      onRunErrorEvent: ({ event }) => {
+        if (connecting.current) {
+          connecting.current.lastError = plainRunError(event.message);
+          connecting.current.ended = "failed";
+        } else {
+          setRunError({ message: plainRunError(event.message), earlier: false });
+          setLastRun("failed");
+        }
+      },
       onRunFinalized: ({ messages: finished }) => {
         // A connect ends here too. Loading the history is quiet; a run followed live is not.
         const quiet = connecting.current?.quiet ?? false;
+        // Only this conversation's agent: a handed-on task's words are folded away on screen, and
+        // read out in the same voice they would sound like the conversation's own.
         const fresh = finished.filter(
           (message) =>
             !quiet &&
             message.role === "assistant" &&
+            !subRunOf(message) &&
             !spoken.current.has(message.id) &&
             textOf(message.content).trim(),
         );
         for (const message of finished) spoken.current.add(message.id);
-        if (readAloudRef.current && fresh.length > 0)
-          speak(fresh.map((message) => textOf(message.content)).join("\n\n"));
+        const asking = quiet ? undefined : askAloud.current;
+        askAloud.current = undefined;
+        const words = [...fresh.map((message) => textOf(message.content)), ...(asking ? [asking] : [])];
+        if (readAloudRef.current && words.length > 0) speak(words.join("\n\n"));
       },
     });
     return () => subscription.unsubscribe();
   }, [agent, isReady, speak]);
+
+  // A connect can also fail before it reaches the agent; CopilotKit then reports it only here.
+  useEffect(() => {
+    const subscription = copilotkit.subscribe({
+      onError: ({ code, context }) => {
+        if (code !== CopilotKitCoreErrorCode.AGENT_CONNECT_FAILED || !connecting.current) return;
+        if (context.agentId === undefined || context.agentId === agent.agentId)
+          connecting.current.failed = true;
+      },
+    });
+    return () => subscription.unsubscribe();
+  }, [copilotkit, agent]);
 
   // Load the thread's history, and connect again to follow a run the server starts here. History is
   // never read aloud: only replies that arrive while here.
@@ -196,21 +324,34 @@ function Conversation({
     const first = !loaded.current;
     if (first) setLoad("loading");
     // The server replays the whole thread, and what is on screen must not be written twice.
-    connecting.current = { shown: shownIds(agent.messages), quiet: first };
-    copilotkit
-      .connectAgent({ agent })
-      .then(() => {
-        if (!current) return;
-        for (const message of agent.messages) spoken.current.add(message.id);
-        loaded.current = true;
-        setLoad("ready");
-      })
-      .catch(() => {
-        if (current && !loaded.current) setLoad("failed");
-      })
-      .finally(() => {
-        if (current) connecting.current = null;
-      });
+    const attempt: Connecting = {
+      shown: shownIds(agent.messages),
+      quiet: first,
+      failed: false,
+      lastError: null,
+      ended: null,
+    };
+    connecting.current = attempt;
+    const settle = (failed: boolean) => {
+      if (!current) return;
+      if (connecting.current === attempt) connecting.current = null;
+      if (failed) {
+        if (first) setLoad("failed");
+        else setFollowFailed(true);
+        return;
+      }
+      for (const message of agent.messages) spoken.current.add(message.id);
+      loaded.current = true;
+      setLoad("ready");
+      setFollowFailed(false);
+      // Only the newest run's failure is worth saying; an older one was followed by a run that worked.
+      if (attempt.lastError) setRunError({ message: attempt.lastError, earlier: first });
+      if (attempt.ended) setLastRun(attempt.ended);
+    };
+    copilotkit.connectAgent({ agent }).then(
+      () => settle(attempt.failed),
+      () => settle(true),
+    );
     return () => {
       current = false;
     };
@@ -242,12 +383,22 @@ function Conversation({
   const busyRef = useRef(busy);
   busyRef.current = busy;
 
-  const stop = useCallback(() => copilotkit.stopAgent({ agent }), [agent, copilotkit]);
+  const stop = useCallback(() => {
+    // The stream may end without a word once it is cut, so the page notes the stop itself.
+    setLastRun("stopped");
+    copilotkit.stopAgent({ agent });
+  }, [agent, copilotkit]);
 
   const retry = useCallback(() => {
     setRunError(null);
     void copilotkit.runAgent({ agent });
   }, [agent, copilotkit]);
+
+  /** Reads the conversation again; never a new reply. */
+  const reconnect = useCallback(() => {
+    setFollowFailed(false);
+    setConnectAttempt((n) => n + 1);
+  }, []);
 
   // A message a Steward page handed over: sent once, after the history has loaded. A message from
   // a link is already in the composer; it only leaves the address.
@@ -261,7 +412,8 @@ function Conversation({
     onPromptConsumed?.();
   }, [initialPrompt, linkedPrompt, isReady, load, threadId, send, onPromptConsumed]);
 
-  const showComputer = useCallback(() => {
+  const showComputer = useCallback((asked?: ComputerView) => {
+    if (asked) setView((current) => ({ ...asked, n: current.n + 1 }));
     if (globalThis.matchMedia?.(WIDE).matches) {
       setPanelOpen(true);
       storage.set(PANEL_KEY, "open");
@@ -284,21 +436,24 @@ function Conversation({
     ...pending.map((entry) => entry.toolCallId),
     ...orphans.map((approval) => approval.toolCallId),
   ].join(",");
+  const runEnded = !running && (lastRun === "stopped" || lastRun === "failed") ? lastRun : null;
   const actions = useMemo<ChatActions>(() => {
     const latestSet = new Set(latestKey ? latestKey.split(",") : []);
     const awaitingSet = new Set(awaitingKey ? awaitingKey.split(",") : []);
     return {
       threadId,
       agentId: runtimeAgentId,
+      agentName,
       send: (text) => {
         if (!busyRef.current) sendRef.current(text);
       },
       busy,
       isLatestTurn: (id) => latestSet.has(id),
       isAwaitingApproval: (id) => awaitingSet.has(id),
+      runEnded,
       showComputer,
     };
-  }, [threadId, runtimeAgentId, busy, latestKey, awaitingKey, showComputer]);
+  }, [threadId, runtimeAgentId, agentName, busy, latestKey, awaitingKey, runEnded, showComputer]);
 
   // The page itself scrolls (the shell's layout grows with its content). While the person is at the
   // end of the conversation, new messages keep it in view; once they scroll up, it stays put.
@@ -318,10 +473,51 @@ function Conversation({
     if (pinned) window.scrollTo?.({ top: document.documentElement.scrollHeight });
   }, [tail, pinned]);
 
+  // Much of the conversation grows in place without a new message: a draft or a table streaming
+  // into its card, a handed-on task's steps, an approval, a notice. While the person is at the end,
+  // any growth of the column keeps the end in view, at most once a frame.
+  const pinnedRef = useRef(pinned);
+  pinnedRef.current = pinned;
+  useEffect(() => {
+    const column = columnRef.current;
+    if (!column || typeof ResizeObserver === "undefined") return;
+    let queued = false;
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      if (!pinnedRef.current || queued) return;
+      queued = true;
+      frame = requestAnimationFrame(() => {
+        queued = false;
+        if (pinnedRef.current) window.scrollTo?.({ top: document.documentElement.scrollHeight });
+      });
+    });
+    observer.observe(column);
+    return () => {
+      observer.disconnect();
+      if (queued) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  // An answered card goes at once, so before it does the keyboard moves somewhere that stays: the
+  // next request if one is left, else the composer on wide screens, else where the requests were
+  // (so a phone's keyboard does not open uninvited). The answer itself is announced by the card.
+  // A request already answered is not "left": with several, each answered card stays until the last
+  // answer carries the run on, and then they all go together.
+  const answered = useRef(new Set<string>());
+  const onAnswered = useCallback((approvalId: string) => {
+    answered.current.add(approvalId);
+    const next = [...(approvalsRef.current?.querySelectorAll<HTMLElement>("[data-approval-id]") ?? [])].find(
+      (element) => !answered.current.has(element.dataset.approvalId ?? ""),
+    );
+    const target =
+      next ?? (globalThis.matchMedia?.(WIDE).matches ? composerRef.current : approvalsRef.current);
+    target?.focus({ preventScroll: true });
+  }, []);
+
   const focusApprovals = () => {
     const target =
       approvalsRef.current?.querySelector<HTMLElement>("[data-approval-id]") ?? approvalsRef.current;
-    target?.scrollIntoView({ block: "center", behavior: "smooth" });
+    target?.scrollIntoView({ block: "center", behavior: glide });
     target?.focus({ preventScroll: true });
   };
 
@@ -339,53 +535,66 @@ function Conversation({
         <div className="flex w-full min-w-0 flex-1 items-start">
           <div className="flex min-h-[calc(100dvh-8rem)] min-w-0 flex-1 flex-col lg:min-h-dvh">
             <header className="flex items-center justify-between gap-2 border-hair-2 border-b px-4 py-2 sm:px-6">
-              <h1
-                ref={headingRef}
-                tabIndex={-1}
-                className="m-0 min-w-0 truncate font-semibold text-ink text-sub"
-              >
-                {title || "Conversation"}
-              </h1>
+              <div className="min-w-0">
+                <h1
+                  ref={headingRef}
+                  tabIndex={-1}
+                  className="m-0 min-w-0 truncate font-semibold text-ink text-sub"
+                >
+                  {title || "Conversation"}
+                </h1>
+                {/* Who answers, once there is more than one agent to talk to. */}
+                {(info.data?.agents.length ?? 0) > 1 ? (
+                  <p className="m-0 truncate text-caption text-ink-2">With {agentName}</p>
+                ) : null}
+              </div>
               {wide && panelOpen ? null : (
-                <Button variant="ghost" size="sm" icon={<Monitor />} onClick={showComputer}>
+                <Button variant="ghost" size="sm" icon={<Monitor />} onClick={() => showComputer()}>
                   Show computer
                 </Button>
               )}
             </header>
 
             <div className="flex-1 px-4 sm:px-6">
-              <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 py-6">
+              <div ref={columnRef} className="mx-auto flex w-full max-w-3xl flex-col gap-4 py-6">
                 {load === "failed" ? (
                   <Notice
                     tone="problem"
                     role="alert"
                     title="Couldn't load the earlier messages"
                     action={
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        icon={<RotateCw />}
-                        onClick={() => setConnectAttempt((n) => n + 1)}
-                      >
+                      <Button size="sm" variant="secondary" icon={<RotateCw />} onClick={reconnect}>
                         Try again
                       </Button>
                     }
                   >
-                    You can still write to Steward; the conversation carries on from here.
+                    You can still write to {agentName}; the conversation carries on from here.
                   </Notice>
                 ) : null}
 
-                {empty && load !== "loading" ? <Starters onPick={send} disabled={busy || !isReady} /> : null}
+                {/* Only a conversation known to be empty offers starters, and with them a switch of agent. */}
+                {empty && load === "ready" ? <Starters onPick={send} disabled={busy || !isReady} /> : null}
                 {empty && load === "loading" ? (
                   <p role="status" className="m-0 py-10 text-center text-ink-2 text-sub">
                     Loading the conversation…
                   </p>
                 ) : null}
 
-                <Transcript messages={messages} running={running} />
+                <Transcript
+                  messages={messages}
+                  running={running}
+                  speaker={agentName}
+                  live={load !== "loading"}
+                />
 
                 <div ref={approvalsRef} tabIndex={-1} className="flex flex-col gap-3 outline-none">
-                  {isReady ? <ApprovalInterrupts agentId={localAgentId} onPending={setPending} /> : null}
+                  {isReady ? (
+                    <ApprovalInterrupts
+                      agentId={localAgentId}
+                      onPending={setPending}
+                      onAnswered={onAnswered}
+                    />
+                  ) : null}
                   {orphans.map((approval) => (
                     <div
                       key={approval.id}
@@ -393,7 +602,12 @@ function Conversation({
                       tabIndex={-1}
                       className="outline-none"
                     >
-                      <ApprovalCard approvalId={approval.id} initial={approval} headingLevel={3} />
+                      <ApprovalCard
+                        approvalId={approval.id}
+                        initial={approval}
+                        headingLevel={3}
+                        onDecided={() => onAnswered(approval.id)}
+                      />
                     </div>
                   ))}
                 </div>
@@ -402,9 +616,9 @@ function Conversation({
                   <Notice
                     tone="needs"
                     role="alert"
-                    title="Steward needs you on its computer"
+                    title={`${agentName} needs you on its computer`}
                     action={
-                      <Button size="sm" variant="primary" onClick={showComputer}>
+                      <Button size="sm" variant="primary" onClick={() => showComputer({ tab: "screen" })}>
                         Show the computer
                       </Button>
                     }
@@ -413,20 +627,38 @@ function Conversation({
                   </Notice>
                 ) : null}
 
-                {runError && !running ? (
+                <ComputerNotice computer={computer} hidden={!(wide && panelOpen) && !sheetOpen} />
+
+                {followFailed && !running ? (
                   <Notice
                     tone="problem"
                     role="alert"
-                    title={runError}
+                    title={`Couldn't load ${agentName}'s newest messages`}
                     action={
-                      <Button size="sm" variant="secondary" icon={<RotateCw />} onClick={retry}>
+                      <Button size="sm" variant="secondary" icon={<RotateCw />} onClick={reconnect}>
                         Try again
                       </Button>
                     }
                   />
                 ) : null}
 
+                {runError && !running ? (
+                  <Notice
+                    tone="problem"
+                    role="alert"
+                    title={runError.earlier ? `${agentName}'s last reply didn't finish` : runError.message}
+                    action={
+                      <Button size="sm" variant="secondary" icon={<RotateCw />} onClick={retry}>
+                        Try again
+                      </Button>
+                    }
+                  >
+                    {runError.earlier ? runError.message : undefined}
+                  </Notice>
+                ) : null}
+
                 <RunStatus
+                  agentName={agentName}
                   running={running}
                   step={currentStep(messages)}
                   waitingForAnswer={waitingForAnswer && !running}
@@ -447,7 +679,7 @@ function Conversation({
                     className="pointer-events-auto shadow-float"
                     onClick={() => {
                       setPinned(true);
-                      window.scrollTo?.({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+                      window.scrollTo?.({ top: document.documentElement.scrollHeight, behavior: glide });
                     }}
                   >
                     Jump to the latest
@@ -460,6 +692,7 @@ function Conversation({
                 </Notice>
               ) : null}
               <Composer
+                agentName={agentName}
                 className="mx-auto w-full max-w-3xl"
                 initialDraft={fromLink}
                 onSend={send}
@@ -477,11 +710,14 @@ function Conversation({
             <aside
               ref={panelRef}
               tabIndex={-1}
-              aria-label="Steward's computer"
+              aria-label={`${agentName}'s computer`}
               className="sticky top-0 flex h-dvh w-[min(40rem,42%)] min-w-[22rem] shrink-0 flex-col overflow-y-auto border-hair border-l bg-surface p-4"
             >
               <ComputerPanel
+                key={view.n}
                 agentId={runtimeAgentId}
+                initialTab={view.tab}
+                highlightFile={view.file}
                 actions={
                   <Button variant="ghost" size="icon" aria-label="Hide the computer" onClick={hidePanel}>
                     <PanelRightClose aria-hidden />
@@ -496,11 +732,18 @@ function Conversation({
           <Dialog
             open={sheetOpen}
             onOpenChange={setSheetOpen}
-            title="Steward's computer"
+            title={`${agentName}'s computer`}
             size="lg"
             placement="sheet"
           >
-            <ComputerPanel agentId={runtimeAgentId} headingLevel={3} showTitle={false} />
+            <ComputerPanel
+              key={view.n}
+              agentId={runtimeAgentId}
+              initialTab={view.tab}
+              highlightFile={view.file}
+              headingLevel={3}
+              showTitle={false}
+            />
           </Dialog>
         ) : null}
       </ChatActionsContext.Provider>

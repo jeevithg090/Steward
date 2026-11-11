@@ -1,9 +1,10 @@
 /**
  * How each Steward tool call looks in the conversation.
  *
- * Every call has the same four ways to stand besides done: running, waiting for the person's
- * answer, refused by a rule, or failed. `Gate` draws those the same way for every tool, so a card
- * only has to draw success. Results arrive as strings and are read with `readToolResult`, which
+ * Every call has the same five ways to stand besides done: running, waiting for the person's
+ * answer, refused by a rule, failed, or stopped before it returned (the run was stopped or failed,
+ * or a later turn began, so no answer will come). `Gate` draws those the same way for every tool,
+ * so a card only has to draw success. Results arrive as strings and are read with `readToolResult`, which
  * undoes double encoding, Steward's governed envelope and the untrusted-content wrapper.
  */
 import type { Brief, CalendarEvent, EmailSummary, Task, TriageItem } from "@steward/shared";
@@ -54,6 +55,8 @@ interface ToolState {
   outcome: ToolOutcome;
   /** Parked until the person answers the approval card. */
   waiting: boolean;
+  /** Never returned and never will: its run was stopped or failed, or the turn is over. */
+  stopped: boolean;
 }
 
 function useToolState(tool: ToolProps): ToolState {
@@ -62,12 +65,23 @@ function useToolState(tool: ToolProps): ToolState {
   const waiting =
     outcome.status === "parked" ||
     (outcome.status === "pending" && (chat?.isAwaitingApproval(tool.toolCallId) ?? false));
-  return { chat, outcome, waiting };
+  const stopped =
+    outcome.status === "pending" &&
+    !waiting &&
+    chat !== null &&
+    (Boolean(chat.runEnded) || !chat.isLatestTurn(tool.toolCallId));
+  return { chat, outcome, waiting, stopped };
 }
 
-/** The running, waiting, refused and failed lines. Null once the call succeeded. */
+/** The line for a call that will never return. */
+function StoppedLine({ tool }: { tool: ToolProps }) {
+  return <ToolLine state="failed" label={`Stopped before it finished: ${toolLabel(tool.name)}`} />;
+}
+
+/** The running, waiting, refused, failed and stopped lines. Null once the call succeeded. */
 function Gate({ tool, state }: { tool: ToolProps; state: ToolState }): ReactElement | null {
   const { outcome, waiting } = state;
+  if (state.stopped) return <StoppedLine tool={tool} />;
   if (waiting) {
     return (
       <ToolLine
@@ -105,7 +119,10 @@ function Gate({ tool, state }: { tool: ToolProps; state: ToolState }): ReactElem
   return null;
 }
 
-/** Brings the computer into view: the chat's panel, or the computer page outside a chat. */
+/**
+ * Brings the computer into view on its screen: the chat's panel, which shows this conversation's
+ * agent, or the computer page outside a chat.
+ */
 function ScreenLink({ chat }: { chat: ChatActions | null }) {
   if (chat) {
     return (
@@ -114,7 +131,7 @@ function ScreenLink({ chat }: { chat: ChatActions | null }) {
         size="sm"
         icon={<Monitor />}
         className="px-2 text-caption"
-        onClick={() => chat.showComputer()}
+        onClick={() => chat.showComputer({ tab: "screen" })}
       >
         See screen
       </Button>
@@ -142,7 +159,7 @@ export function BrowserLine(tool: ToolProps) {
   const gate = Gate({ tool, state });
   const page = recordFrom(state.outcome.status === "ok" ? state.outcome.data : undefined);
   const { label } = toolName(tool.name, tool.args, gate ? "running" : "done");
-  if (gate && (state.waiting || state.outcome.status !== "pending")) return gate;
+  if (gate && (state.waiting || state.stopped || state.outcome.status !== "pending")) return gate;
   return (
     <ToolLine
       state={gate ? "running" : "done"}
@@ -157,30 +174,32 @@ export function BrowserLine(tool: ToolProps) {
 export function HelpRequestCard(tool: ToolProps) {
   const state = useToolState(tool);
   const computer = useOptionalComputer();
-  const reason = text(tool.args.reason) ?? "Steward needs you to do something on its screen.";
+  const who = state.chat?.agentName ?? "Steward";
+  const reason = text(tool.args.reason) ?? `${who} needs you to do something on its screen.`;
   if (state.outcome.status === "refused" || state.outcome.status === "error") return Gate({ tool, state });
   if (state.outcome.status === "ok") {
     const data = recordFrom(state.outcome.data);
     return (
       <ToolLine
         label={
-          data?.released === false ? "Steward stopped waiting for help" : "You helped. Steward carried on."
+          data?.released === false ? `${who} stopped waiting for help` : `You helped. ${who} carried on.`
         }
         detail={reason}
       />
     );
   }
-  // A request from an earlier turn that never finished (the run was stopped) is history, not a call to act.
-  if (state.chat && !state.chat.isLatestTurn(tool.toolCallId)) {
-    return <ToolLine label="Asked you for help" detail={reason} />;
+  // A request that will never be answered (the run was stopped or failed, or a later turn began) is
+  // history, not a call to act.
+  if (state.stopped) {
+    return <ToolLine state="failed" label="Stopped before it finished: asked you for help" detail={reason} />;
   }
   return (
     <section
-      aria-label="Steward needs your help"
+      aria-label={`${who} needs your help`}
       className="my-2 flex max-w-2xl flex-wrap items-center gap-3 rounded-field bg-needs-soft px-4 py-3 text-sub"
     >
       <p className="m-0 min-w-0 flex-1 text-ink">
-        <strong className="font-semibold">Steward needs you: </strong>
+        <strong className="font-semibold">{who} needs you: </strong>
         {reason}
       </p>
       <Button
@@ -188,7 +207,7 @@ export function HelpRequestCard(tool: ToolProps) {
         size="sm"
         onClick={() => {
           computer?.take();
-          state.chat?.showComputer();
+          state.chat?.showComputer({ tab: "screen" });
         }}
       >
         Take the wheel
@@ -197,32 +216,45 @@ export function HelpRequestCard(tool: ToolProps) {
   );
 }
 
+/** Why a secret was not typed in, when the tool says. */
+const SECRET_UNFILLED: Record<string, string> = {
+  cancelled: "You closed the secret box without sending.",
+  timeout: "Nobody typed it in time.",
+  page_changed: "The page changed before it could be typed in.",
+  fill_failed: "It could not be typed into the field.",
+};
+
 /** `request_secret`: the value itself never appears here, only that it was asked for and filled. */
 export function SecretRequestLine(tool: ToolProps) {
   const state = useToolState(tool);
+  const who = state.chat?.agentName ?? "Steward";
   const what = lowerFirst(text(tool.args.label) ?? "a password");
   if (state.outcome.status === "ok") {
     const data = recordFrom(state.outcome.data);
-    const length = typeof data?.length === "number" ? data.length : undefined;
+    // The tool reports `characters`; `length` is what older results carried.
+    const count = [data?.characters, data?.length].find(
+      (value): value is number => typeof value === "number" && value > 0,
+    );
+    const reason = SECRET_UNFILLED[text(data?.reason) ?? ""];
     return data?.filled === false ? (
       <ToolLine
         state="failed"
         label={`Didn't fill in ${what}`}
-        note="The secret box was closed without sending."
+        note={reason ?? "Nothing was typed in: the box was closed, the time ran out, or the page changed."}
       />
     ) : (
       <ToolLine
         label={`You filled in ${what}`}
-        detail={length ? `${length} characters, never shown to Steward` : undefined}
+        detail={count ? `${count} characters, never shown to ${who}` : undefined}
       />
     );
   }
-  if (state.outcome.status === "pending" && !state.waiting) {
+  if (state.outcome.status === "pending" && !state.waiting && !state.stopped) {
     return (
       <ToolLine
         state="waiting"
         label={`Waiting for you to type ${what}`}
-        note="Type it in the secret box. It goes straight to the page and Steward never sees it."
+        note={`Type it in the secret box. It goes straight to the page and ${state.chat?.agentName ?? "Steward"} never sees it.`}
         action={<ScreenLink chat={state.chat} />}
       />
     );
@@ -271,20 +303,34 @@ export function FileLine(tool: ToolProps) {
   const file = recordFrom(data);
   const path = text(file?.path) ?? text(tool.args.path);
   const size = typeof file?.size === "number" ? formatBytes(file.size) : undefined;
+  const chat = state.chat;
+  // In a chat, the file opens in the computer beside it: this conversation's agent's, where it was
+  // saved, and without leaving. Outside one there is only the computer page.
   return (
     <ToolLine
       label={label}
       detail={size}
       action={
         path ? (
-          <LinkButton
-            to={`/computer?file=${encodeURIComponent(path)}`}
-            variant="ghost"
-            size="sm"
-            className="px-2 text-caption"
-          >
-            Open in files
-          </LinkButton>
+          chat ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="px-2 text-caption"
+              onClick={() => chat.showComputer({ tab: "files", file: path })}
+            >
+              Open in files
+            </Button>
+          ) : (
+            <LinkButton
+              to={`/computer?file=${encodeURIComponent(path)}`}
+              variant="ghost"
+              size="sm"
+              className="px-2 text-caption"
+            >
+              Open in files
+            </LinkButton>
+          )
         ) : undefined
       }
     />
@@ -338,7 +384,7 @@ export function MailListCard(tool: ToolProps) {
 export function MailReadCard(tool: ToolProps) {
   const state = useToolState(tool);
   const gate = Gate({ tool, state });
-  if (gate && (state.waiting || state.outcome.status !== "pending")) return gate;
+  if (gate && (state.waiting || state.stopped || state.outcome.status !== "pending")) return gate;
   const ok = state.outcome.status === "ok" ? state.outcome : undefined;
   return (
     <EmailCard
@@ -352,10 +398,10 @@ export function MailReadCard(tool: ToolProps) {
 /** `mail_send`: the whole draft, always, with where it stands. */
 export function MailSendCard(tool: ToolProps) {
   const state = useToolState(tool);
-  const { outcome, waiting } = state;
+  const { outcome, waiting, stopped } = state;
   const draftState: DraftState = waiting
     ? "waiting"
-    : outcome.status === "pending"
+    : outcome.status === "pending" && !stopped
       ? "writing"
       : outcome.status === "ok"
         ? "sent"
@@ -368,8 +414,10 @@ export function MailSendCard(tool: ToolProps) {
       : outcome.status === "error"
         ? outcome.message
         : waiting
-          ? "Steward is waiting for your answer before this leaves."
-          : undefined;
+          ? `${state.chat?.agentName ?? "Steward"} is waiting for your answer before this leaves.`
+          : stopped
+            ? "Stopped before it was sent."
+            : undefined;
   return <DraftCard draft={tool.args} state={draftState} note={note} />;
 }
 
@@ -516,6 +564,7 @@ export function TaskToolCard(tool: ToolProps) {
 export function RoutineToolCard(tool: ToolProps) {
   const state = useToolState(tool);
   const { outcome, waiting } = state;
+  if (state.stopped) return <StoppedLine tool={tool} />;
   if (outcome.status === "pending" && !waiting)
     return <ToolLine state="running" label={toolName(tool.name, tool.args, "running").label} />;
   if (outcome.status === "error") return Gate({ tool, state });
@@ -576,7 +625,12 @@ export function BriefToolCard(tool: ToolProps) {
 
   return (
     <div className="my-2 max-w-2xl">
-      <BriefCard brief={brief} headingLevel={3} onStart={state.chat ? onStart : undefined} />
+      <BriefCard
+        brief={brief}
+        headingLevel={3}
+        landmarks={false}
+        onStart={state.chat ? onStart : undefined}
+      />
       {problem ? (
         <p role="alert" className="m-0 mt-2 text-problem text-sub">
           Couldn't start that task. {problem}
@@ -650,7 +704,7 @@ export function ChoicesToolCard(tool: ToolProps) {
 export function PageToolCard(tool: ToolProps) {
   const state = useToolState(tool);
   const gate = Gate({ tool, state });
-  if (gate && (state.waiting || state.outcome.status !== "pending")) return gate;
+  if (gate && (state.waiting || state.stopped || state.outcome.status !== "pending")) return gate;
   const saved = state.outcome.status === "ok" ? recordFrom(state.outcome.data, ["page", "file"]) : undefined;
   return <PageCard page={{ ...tool.args, ...saved }} />;
 }

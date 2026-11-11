@@ -125,16 +125,18 @@ small scripted model in-process (built on `@copilotkit/aimock`, on a random loop
 brief, the computer, approvals, rules and the record all work for real. It does not understand
 language: it recognises a handful of requests and says so.
 
-| Try                                                    | What it does                                                              |
-| ------------------------------------------------------ | ------------------------------------------------------------------------- |
-| "hello"                                                | Says hello, says it is the scripted demo model, and suggests what to try. |
-| "What needs me today?"                                 | Calls `brief_today` on the demo inbox and summarises it.                  |
-| "Open news.ycombinator.com and tell me the top story." | Opens the page on the agent's computer and reads the first headline.      |
-| "Email sam@example.com about Friday: see you at 10"    | Calls `mail_send`, which asks you first.                                  |
-| "Remember that I prefer morning meetings"              | Calls `memory_remember`.                                                  |
-| "Every weekday at 8, check my mail"                    | Calls `routine_create` with a cron schedule.                              |
-| "Search the web for …"                                 | Calls `web_search`.                                                       |
-| "Compare …" or "Show me a table"                       | Draws a comparison or a table.                                            |
+| Try                                                    | What it does                                                               |
+| ------------------------------------------------------ | -------------------------------------------------------------------------- |
+| "hello"                                                | Says hello, says it is the scripted demo model, and suggests what to try.  |
+| "What needs me today?"                                 | Calls `brief_today` on the demo inbox and summarises it.                   |
+| "Open news.ycombinator.com and tell me the top story." | Opens the page on the agent's computer and reads the first headline.       |
+| "Email sam@example.com about Friday: see you at 10"    | Calls `mail_send`, which asks you first.                                   |
+| "Remember that I prefer morning meetings"              | Calls `memory_remember`.                                                   |
+| "Every weekday at 8, check my mail"                    | Calls `routine_create` with a cron schedule.                               |
+| "Check my mail", or a question about an email or bills | Calls `mail_list`, then says what it cannot work out without a real model. |
+| Start on an email in the brief, or "Reply to …"        | Finds that email, then says it cannot write the reply.                     |
+| "Search the web for …"                                 | Calls `web_search`.                                                        |
+| "Compare …" or "Show me a table"                       | Draws a fixed example comparison or table, and says it is one.             |
 
 Everything it says ends by saying it is the scripted model, and the app shows "Scripted model" in
 the demo ribbon on every page. When there was a key problem, the model's label says why, such as

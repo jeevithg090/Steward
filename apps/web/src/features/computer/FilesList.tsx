@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button.tsx";
 import { useComputerFiles } from "@/lib/api.ts";
 import { formatBytes, relativeTime } from "@/lib/utils.ts";
+import { useOptionalComputer } from "./session.tsx";
 
 function parentOf(path: string): string | undefined {
   const parts = path.split("/").filter(Boolean);
@@ -24,6 +25,7 @@ function nameOf(path: string): string {
 export function FilesList({ agentId, highlight }: { agentId: string; highlight?: string }) {
   const [dir, setDir] = useState<string | undefined>(() => (highlight ? parentOf(highlight) : undefined));
   const files = useComputerFiles(agentId, dir);
+  const who = useOptionalComputer()?.name ?? "Steward";
   const crumbs = dir ? dir.split("/").filter(Boolean) : [];
 
   const sorted: WorkspaceFile[] = [...(files.data ?? [])].sort((a, b) =>
@@ -87,7 +89,7 @@ export function FilesList({ agentId, highlight }: { agentId: string; highlight?:
         </p>
       ) : sorted.length === 0 ? (
         <p className="m-0 py-6 text-center text-ink-2 text-sub">
-          {dir ? "This folder is empty." : "Nothing saved yet. Files Steward makes show up here."}
+          {dir ? "This folder is empty." : `Nothing saved yet. Files ${who} makes show up here.`}
         </p>
       ) : (
         <ul

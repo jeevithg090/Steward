@@ -29,6 +29,8 @@ const ACTIVITY_LIMIT = 200;
 
 export interface Computer {
   agentId: string;
+  /** Whose computer it is, in words: "Steward", or a bot's or another agent's name. */
+  name: string;
   connection: ConnectionState;
   /** Why the screen is not live, once retries are spent. */
   problem: string | null;
@@ -54,6 +56,8 @@ export interface Computer {
   sendSecret: (requestId: string, value: string) => boolean;
   cancelSecret: (requestId: string) => boolean;
   retry: () => void;
+  /** Tells the person something about the screen, where its notices show. */
+  notify: (message: string) => void;
   clearNotice: () => void;
 }
 
@@ -79,12 +83,25 @@ function mergeActivity(current: ActivityItem[], incoming: ActivityItem[]): Activ
 
 export interface ComputerSessionProps {
   agentId?: string;
+  /** Whose computer it is, as the person knows the agent. Defaults to "Steward". */
+  name?: string;
   children: ReactNode;
   /** Opens the socket. For tests; defaults to the browser's `WebSocket`. */
   openSocket?: (url: string) => SocketLike;
+  /**
+   * False leaves the computer unwatched: no socket, nothing fetched, so its screencast can stop.
+   * A handed-on task's card connects only while the task runs or that agent's screen is shown.
+   */
+  connected?: boolean;
 }
 
-export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSocket }: ComputerSessionProps) {
+export function ComputerSession({
+  agentId = DEFAULT_AGENT_ID,
+  name = "Steward",
+  children,
+  openSocket,
+  connected = true,
+}: ComputerSessionProps) {
   const [connection, setConnection] = useState<ConnectionState>("connecting");
   const [problem, setProblem] = useState<string | null>(null);
   const [liveStatus, setLiveStatus] = useState<ComputerStatus | null>(null);
@@ -98,8 +115,10 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
 
   // The socket sends status as soon as it opens; until then, and while it is down, the last fetched
   // status and activity stand in.
-  const fetchedStatus = useComputerStatus(agentId, { enabled: connection !== "open" || liveStatus === null });
-  const fetchedActivity = useComputerActivity(agentId);
+  const fetchedStatus = useComputerStatus(agentId, {
+    enabled: connected && (connection !== "open" || liveStatus === null),
+  });
+  const fetchedActivity = useComputerActivity(agentId, { enabled: connected });
 
   const openRef = useRef(openSocket);
   openRef.current = openSocket;
@@ -109,6 +128,10 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
     setLiveActivity([]);
     setHasFrame(false);
     latestFrame.current = undefined;
+    if (!connected) {
+      setConnection("closed");
+      return;
+    }
     const socket = new ComputerSocket({
       url: api.computer.wsUrl(agentId),
       open: openRef.current,
@@ -136,7 +159,7 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
       socket.stop();
       if (socketRef.current === socket) socketRef.current = null;
     };
-  }, [agentId]);
+  }, [agentId, connected]);
 
   const send = useCallback((message: ComputerClientMessage) => socketRef.current?.send(message) ?? false, []);
   const subscribeFrames = useCallback((listener: (frame: Frame) => void) => {
@@ -151,7 +174,8 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
     return false;
   }, []);
 
-  const status = liveStatus ?? fetchedStatus.data ?? null;
+  // Unwatched, nothing is known: an older status could still hold a secret request or a call for help.
+  const status = connected ? (liveStatus ?? fetchedStatus.data ?? null) : null;
   const activity = useMemo(
     () => mergeActivity(fetchedActivity.data ?? [], liveActivity),
     [fetchedActivity.data, liveActivity],
@@ -160,6 +184,7 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
   const value = useMemo<Computer>(
     () => ({
       agentId,
+      name,
       connection,
       problem,
       status,
@@ -176,10 +201,12 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
       sendSecret: (requestId, secret) => send({ type: "secret", requestId, value: secret }),
       cancelSecret: (requestId) => send({ type: "secret.cancel", requestId }),
       retry: () => socketRef.current?.retry(),
+      notify: (message) => setNotice(message),
       clearNotice: () => setNotice(null),
     }),
     [
       agentId,
+      name,
       connection,
       problem,
       status,
@@ -198,6 +225,7 @@ export function ComputerSession({ agentId = DEFAULT_AGENT_ID, children, openSock
     <ComputerContext.Provider value={value}>
       {children}
       <SecretBox
+        name={name}
         request={status?.secret}
         connected={connection === "open"}
         onSend={value.sendSecret}

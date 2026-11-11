@@ -9,7 +9,9 @@ import {
   BrowserLine,
   ChoicesToolCard,
   DirectoryFindCard,
+  FileLine,
   GenericToolLine,
+  HelpRequestCard,
   MailSendCard,
   SecretRequestLine,
   TaskToolCard,
@@ -77,12 +79,91 @@ describe("tool cards", () => {
     expect(screen.getByText("Opened news.ycombinator.com")).toBeTruthy();
     expect(screen.getByText("Hacker News")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "See screen" }));
-    expect(actions.showComputer).toHaveBeenCalled();
+    expect(actions.showComputer).toHaveBeenCalledWith({ tab: "screen" });
+  });
+
+  describe("a saved file", () => {
+    const saved = tool(
+      "file_write",
+      { path: "notes/plan.md" },
+      { ok: true, data: { path: "notes/plan.md", size: 120 } },
+    );
+
+    it("opens in this conversation's computer, on Files, without leaving the chat", () => {
+      const actions = chat({ agentId: "bot1", agentName: "Focus time guard" });
+      draw(<FileLine {...saved} />, actions);
+      expect(screen.queryByRole("link", { name: "Open in files" })).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Open in files" }));
+      expect(actions.showComputer).toHaveBeenCalledWith({ tab: "files", file: "notes/plan.md" });
+    });
+
+    it("links to the computer page outside a chat", () => {
+      draw(<FileLine {...saved} />, null);
+      expect(screen.getByRole("link", { name: "Open in files" }).getAttribute("href")).toBe(
+        "/computer?file=notes%2Fplan.md",
+      );
+    });
   });
 
   it("shows a running browser step as it happens", () => {
     draw(<BrowserLine {...tool("browser_navigate", { url: "https://example.com/a" })} />);
     expect(screen.getByText("Opening example.com")).toBeTruthy();
+  });
+
+  describe("a step that will never finish", () => {
+    it("says it stopped, not that it is running, once the run was stopped or failed", () => {
+      draw(
+        <BrowserLine {...tool("browser_navigate", { url: "https://example.com/a" })} />,
+        chat({ runEnded: "stopped" }),
+      );
+      expect(screen.getByText("Stopped before it finished: Open a web page")).toBeTruthy();
+      expect(screen.queryByText("Opening example.com")).toBeNull();
+      expect(document.querySelector('[data-tool-line="running"]')).toBeNull();
+    });
+
+    it("says it stopped when it is from an earlier turn", () => {
+      draw(<GenericToolLine {...tool("mail_list", {})} />, chat({ isLatestTurn: () => false }));
+      expect(screen.getByText("Stopped before it finished: Check your mail")).toBeTruthy();
+    });
+
+    it("still shows a step waiting on an approval as waiting", () => {
+      draw(
+        <MailSendCard {...tool("mail_send", draft)} />,
+        chat({ runEnded: "stopped", isAwaitingApproval: () => true }),
+      );
+      expect(screen.getByText("Waiting for your answer")).toBeTruthy();
+      expect(screen.getByText("Steward is waiting for your answer before this leaves.")).toBeTruthy();
+    });
+
+    it("says which agent waits on a draft, in a bot's conversation", () => {
+      draw(
+        <MailSendCard {...tool("mail_send", draft)} />,
+        chat({ agentId: "bot1", agentName: "Focus time guard", isAwaitingApproval: () => true }),
+      );
+      expect(
+        screen.getByText("Focus time guard is waiting for your answer before this leaves."),
+      ).toBeTruthy();
+    });
+
+    it("says an unsent draft was stopped before it was sent", () => {
+      draw(<MailSendCard {...tool("mail_send", draft)} />, chat({ runEnded: "failed" }));
+      expect(screen.getByText("Didn't send")).toBeTruthy();
+      expect(screen.getByText("Stopped before it was sent.")).toBeTruthy();
+    });
+
+    it("no longer offers Take the wheel for a request for help nobody waits on", () => {
+      draw(
+        <HelpRequestCard {...tool("request_help", { reason: "A sign-in page needs you." })} />,
+        chat({ runEnded: "stopped" }),
+      );
+      expect(screen.getByText("Stopped before it finished: asked you for help")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Take the wheel" })).toBeNull();
+    });
+
+    it("keeps a running step running while its run goes on", () => {
+      draw(<BrowserLine {...tool("browser_navigate", { url: "https://example.com/a" })} />, chat());
+      expect(screen.getByText("Opening example.com")).toBeTruthy();
+    });
   });
 
   it("names the rule that refused a call", () => {
@@ -128,18 +209,36 @@ describe("tool cards", () => {
     });
   });
 
-  it("never shows a secret, only that it was filled", () => {
-    draw(
-      <SecretRequestLine
-        {...tool(
-          "request_secret",
-          { label: "Password", ref: "e3" },
-          { ok: true, data: { filled: true, length: 12 } },
-        )}
-      />,
-    );
-    expect(screen.getByText("You filled in password")).toBeTruthy();
-    expect(screen.getByText("12 characters, never shown to Steward")).toBeTruthy();
+  describe("a secret", () => {
+    const asked = (data: Record<string, unknown>) =>
+      tool("request_secret", { label: "Password", ref: "e3" }, { ok: true, data });
+
+    it("never shows the value, only that it was filled and how long it was", () => {
+      // What request_secret returns: `characters`, never the value.
+      draw(<SecretRequestLine {...asked({ filled: true, characters: 12, next: "…" })} />);
+      expect(screen.getByText("You filled in password")).toBeTruthy();
+      expect(screen.getByText("12 characters, never shown to Steward")).toBeTruthy();
+    });
+
+    it("names the conversation's agent", () => {
+      draw(
+        <SecretRequestLine {...asked({ filled: true, characters: 8 })} />,
+        chat({ agentId: "bot1", agentName: "Focus time guard" }),
+      );
+      expect(screen.getByText("8 characters, never shown to Focus time guard")).toBeTruthy();
+    });
+
+    it("does not claim the box was closed when it may not have been", () => {
+      draw(<SecretRequestLine {...asked({ filled: false })} />);
+      expect(screen.getByText("Didn't fill in password")).toBeTruthy();
+      expect(screen.queryByText(/closed without sending/)).toBeNull();
+      expect(screen.getByText(/the box was closed, the time ran out, or the page changed/)).toBeTruthy();
+    });
+
+    it("says why when the tool says", () => {
+      draw(<SecretRequestLine {...asked({ filled: false, reason: "page_changed" })} />);
+      expect(screen.getByText("The page changed before it could be typed in.")).toBeTruthy();
+    });
   });
 
   it("draws an MCP tool as a humanised line, with its result behind a disclosure", () => {

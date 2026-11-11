@@ -6,6 +6,7 @@ import {
   type FixtureResponse,
   LLMock,
 } from "@copilotkit/aimock";
+import { unframe } from "@steward/shared";
 import { z } from "zod";
 
 /**
@@ -61,9 +62,13 @@ function systemText(req: ChatCompletionRequest): string {
     .join("\n");
 }
 
-/** The agent's own name, from the system prompt's first line. Never the person's. */
-function agentName(req: ChatCompletionRequest): string {
-  return /You are ([A-Z][\w-]*(?: [A-Z][\w-]*)?)/.exec(systemText(req))?.[1] ?? "Steward";
+/**
+ * The agent's own name, from the system prompt's first line ("You are Focus time guard, …"): all of
+ * it, up to the comma or full stop. Never the person's.
+ */
+export function agentName(req: ChatCompletionRequest): string {
+  const name = /You are ([A-Z][^,\n]{0,60}?)(?:,\s|\.(?:\s|$)|\n|$)/.exec(systemText(req))?.[1]?.trim();
+  return name || "Steward";
 }
 
 function isDemoInbox(req: ChatCompletionRequest): boolean {
@@ -134,7 +139,7 @@ function describeResult(tool: string, data: unknown, req: ChatCompletionRequest)
       return [
         needs.length === 0
           ? "Nothing needs you today."
-          : `${count(needs.length, "thing needs", "things need")} you today. The first: ${String(top?.subject ?? "an email")}. ${String(top?.reason ?? "")}`.trim(),
+          : `${count(needs.length, "thing needs", "things need")} you today. The first: ${String(top?.subject ?? "an email").replace(/[.?!…]+$/, "")}. ${String(top?.reason ?? "")}`.trim(),
         calendar > 0 ? `You have ${count(calendar, "event", "events")} on the calendar.` : "",
         missing.length > 0 ? `I couldn't check: ${missing.join("; ")}.` : "",
         isDemoInbox(req) ? "This is the demo inbox, not your real mail." : "",
@@ -171,9 +176,7 @@ function describeResult(tool: string, data: unknown, req: ChatCompletionRequest)
     case "mail_send":
       return [Array.isArray(v.to) && v.to.length > 0 ? `Sent to ${v.to.join(", ")}.` : "Sent."];
     case "mail_list":
-      return [
-        Array.isArray(value) ? `There are ${count(value.length, "recent email", "recent emails")}.` : "Done.",
-      ];
+      return describeMail(value, req);
     case "calendar_list":
       return [Array.isArray(value) ? `${count(value.length, "event", "events")} on the calendar.` : "Done."];
     case "memory_remember":
@@ -187,13 +190,53 @@ function describeResult(tool: string, data: unknown, req: ChatCompletionRequest)
     case "make_page":
       return [`It's saved as ${String(v.path ?? "a page")}.`];
     case "show_table":
-    case "show_chart":
     case "show_comparison":
+      return [
+        "It's on screen above.",
+        "It's a fixed example: on the scripted demo model I can't make one from what you asked.",
+      ];
+    case "show_chart":
     case "show_choices":
       return ["It's on screen above."];
     default:
       return ["Done."];
   }
+}
+
+/** What the person asked about their mail, so the answer after the search can say what it can't do. */
+type MailAsk = "reply" | "scam" | "question" | "list";
+
+function mailAsk(text: string): MailAsk {
+  // "Did Sam reply?" asks about a reply; "Reply to Sam" asks for one.
+  if (TAKE_CARE.test(text) || (REPLY.test(text) && !ASKS_ABOUT.test(text.trim()))) return "reply";
+  if (/\b(scam|phish(?:ing)?|fraud|fake|genuine|legit(?:imate)?|safe)\b/i.test(text)) return "scam";
+  if (/\?\s*$|\b(which|what|how much|how many|do any|does any|is there|are there|qualify)\b/i.test(text))
+    return "question";
+  return "list";
+}
+
+const MAIL_CAVEATS: Record<MailAsk, string | undefined> = {
+  reply:
+    "On the scripted demo model I can't write the reply. A real model would read it, draft an answer and show it to you before anything is sent.",
+  scam: "On the scripted demo model I can't tell whether an email is a scam. A real model would read it, check the sender and the links, and say how sure it is.",
+  question: "On the scripted demo model I can't read them and work that out. A real model would.",
+  list: undefined,
+};
+
+function describeMail(value: unknown, req: ChatCompletionRequest): string[] {
+  const emails = (Array.isArray(value) ? value : []).filter(isRecord);
+  const first = emails[0];
+  const from = isRecord(first?.from) ? String(first.from.name || first.from.email || "") : "";
+  const ask = mailAsk(personText(req));
+  return [
+    emails.length === 0
+      ? "I found no email that matches."
+      : ask === "list"
+        ? `There are ${count(emails.length, "recent email", "recent emails")}.`
+        : `I found ${count(emails.length, "email", "emails")}. The first: “${String(first?.subject ?? "")}”${from ? ` from ${from}` : ""}.`,
+    MAIL_CAVEATS[ask],
+    isDemoInbox(req) ? "This is the demo inbox, not your real mail." : undefined,
+  ].filter((line): line is string => Boolean(line));
 }
 
 function afterTool(req: ChatCompletionRequest, result: ChatMessage): FixtureResponse {
@@ -224,6 +267,63 @@ function afterTool(req: ChatCompletionRequest, result: ChatMessage): FixtureResp
 // ── A new request from the person ──────────────────────────────────────────────────────────────
 
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
+/** The words Steward's own Start buttons send: "Take care of Helen Marsh's email: Re: Boiler…". */
+const TAKE_CARE = /^take care of (.+?)['’]s email(?::\s*(.+?))?\.?\s*$/is;
+/** A reply to write. "Draft" alone could be a memo; a reply is mail. */
+const REPLY = /\b(reply|replies|respond|write back)\b/i;
+/** Words that ask to look at mail, not to write any. */
+const LOOKS = /\b(list|check|read|find|search|show)\b/i;
+/** A question about something ("Is…", "Did…", "What…"), unlike a request ("Can you…"). */
+const ASKS_ABOUT = /^(?:is|are|was|were|did|does|do|has|have|had|what|which|who|whose|when|where|why|how)\b/i;
+
+/**
+ * Whether the person asks Steward to write, judged on the request alone: the message it dictates,
+ * after a colon or "saying", may say anything ("Email sam@example.com: read the report").
+ */
+function asksToWrite(text: string, verbs: RegExp): boolean {
+  const request = (text.split(/:|\b(?:saying|to say|that says)\b/i)[0] ?? text).trim();
+  return verbs.test(request) && !LOOKS.test(request) && !ASKS_ABOUT.test(request);
+}
+/** Things that come by email, and the word to search the mail for. */
+const MAIL_TOPICS: [RegExp, string][] = [
+  [/\bbills?\b/i, "bill"],
+  [/\binvoices?\b/i, "invoice"],
+  [/\bsubscriptions?\b/i, "subscription"],
+  [/\breceipts?\b/i, "receipt"],
+  [/\brenewals?\b/i, "renewal"],
+  [/\b(?:train|rail)\b/i, "train"],
+  [/\btickets?\b/i, "ticket"],
+];
+
+/** What the person wrote this turn, without a routine's or a task's frame or a /skill. */
+function personText(req: ChatCompletionRequest): string {
+  return unframe(lastUserText(req))
+    .body.replace(/^\s*\/[a-z0-9-]+\s*/i, "")
+    .trim();
+}
+
+/** A search of the mail for what the person describes, or undefined for the newest mail. */
+function mailQuery(text: string): string | undefined {
+  const care = TAKE_CARE.exec(text);
+  if (care) {
+    const subject = care[2]?.replace(/"/g, "").trim();
+    return subject ? `subject:"${subject}"` : `from:"${care[1]?.replace(/"/g, "").trim()}"`;
+  }
+  // A quoted phrase: its words, anywhere in the email ("mailbox 98% full").
+  const phrase = /["“]([^"“”]{2,80})["”]/.exec(text)?.[1];
+  if (phrase) return phrase.replace(/\s+/g, " ").trim();
+  // An address: the mail from it ("Did sam@example.com reply?").
+  const address = text.match(EMAIL)?.[0];
+  if (address) return `from:"${address}"`;
+  const topics = MAIL_TOPICS.filter(([pattern]) => pattern.test(text)).map(([, word]) => word);
+  return topics.length > 0 ? topics.join(" OR ") : undefined;
+}
+
+function mentionsMail(text: string): boolean {
+  return (
+    /\b(e-?mails?|mail|inbox|mailbox)\b/i.test(text) || MAIL_TOPICS.some(([pattern]) => pattern.test(text))
+  );
+}
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 function capitalise(text: string): string {
@@ -334,7 +434,7 @@ const MODELS_COMPARISON = {
 };
 
 function respondToPerson(req: ChatCompletionRequest): FixtureResponse {
-  const text = lastUserText(req).replace(/^\s*\/[a-z0-9-]+\s*/i, "");
+  const text = personText(req);
   const lower = text.toLowerCase();
   const name = agentName(req);
 
@@ -347,8 +447,12 @@ function respondToPerson(req: ChatCompletionRequest): FixtureResponse {
       "Try “What needs me today?” or “Open news.ycombinator.com and tell me the top story.”",
     );
   }
-  if (/\b(what needs me|my brief|morning brief|today'?s brief|brief me|my day)\b/.test(lower)) {
-    return offered(req, "brief_today") ? call("brief_today", {}) : unavailable();
+  // Steward's own "Start" on an email comes first: its subject is someone else's words, and may
+  // read like any other request ("every day", "my brief", "send").
+  if (TAKE_CARE.test(text)) {
+    return offered(req, "mail_list")
+      ? call("mail_list", { query: mailQuery(text), limit: 10 })
+      : unavailable();
   }
   const remember = /\bremember(?:\s+that)?\s+(.+)$/is.exec(text)?.[1]?.trim();
   if (remember) {
@@ -356,33 +460,59 @@ function respondToPerson(req: ChatCompletionRequest): FixtureResponse {
       ? call("memory_remember", { text: capitalise(remember.replace(/[.!]+$/, "")), source: "you" })
       : unavailable();
   }
+  // Before the brief: "Every weekday at 8, send me my brief" asks for a routine, not today's brief.
   const routine = parseRoutine(text);
   if (routine) {
     return offered(req, "routine_create")
       ? call("routine_create", { ...routine, intent: "Set up the routine you asked for" })
       : unavailable();
   }
-  if (/\b(send|email|e-mail|mail)\b/.test(lower) && !/\b(list|check|read)\b/.test(lower)) {
-    const email = parseEmail(text);
-    if (!email) return say("Who should I send it to? Give me their email address.", SCRIPTED_NOTE);
+  if (/\b(what needs me|my brief|morning brief|today'?s brief|brief me|my day)\b/.test(lower)) {
+    return offered(req, "brief_today") ? call("brief_today", {}) : unavailable();
+  }
+  // Sending needs an address and a request to write. "Email", like "reply", is also just a word
+  // for a message ("is this email a scam?", "did sam@example.com reply?"), and an address can be
+  // what the person asks about ("read the email from sam@example.com").
+  const email = parseEmail(text);
+  if (email && asksToWrite(text, /\b(send|e-?mail|mail|reply|write|draft|message|tell|note)\b/i)) {
     return offered(req, "mail_send")
       ? call("mail_send", { ...email, intent: "Send the email you asked for" })
       : unavailable();
   }
+  // Without an address, only a plain request to send asks for one.
+  if (
+    !email &&
+    (/^(?:please\s+)?(?:send|e-?mail)\b/.test(lower) ||
+      asksToWrite(text, /\bsend\b.*\b(?:e-?mail|mail|message|note)\b/i))
+  ) {
+    return say("Who should I send it to? Give me their email address.", SCRIPTED_NOTE);
+  }
+  // A site to open, before the mail: "open mail.example.com" is a page.
   const site = parseSite(text);
   if (site) {
     return offered(req, "browser_navigate")
       ? call("browser_navigate", { url: site, intent: "Open the page you asked for" })
       : unavailable();
   }
+  // A reply to draft, or a question about the mail: find the mail, and say after it what the
+  // scripted model cannot do with it.
+  if (mentionsMail(text) || REPLY.test(text) || email) {
+    const query = mailQuery(text);
+    const unread = !query && mailAsk(text) === "reply";
+    return offered(req, "mail_list")
+      ? call("mail_list", { ...(query ? { query } : {}), limit: 10, ...(unread ? { unreadOnly: true } : {}) })
+      : unavailable();
+  }
   const search = /\b(?:search(?: the web)?(?: for)?|look up)\s+(.+)$/i.exec(text)?.[1]?.trim();
   if (search)
     return offered(req, "web_search") ? call("web_search", { query: search, limit: 5 }) : unavailable();
-  if (/\b(compare|comparison)\b/.test(lower)) {
-    return offered(req, "show_comparison") ? call("show_comparison", MODELS_COMPARISON) : unavailable();
-  }
+  // A table when one is asked for, even to compare things; the answer after it says it is a fixed
+  // example, not what was asked.
   if (/\btable\b/.test(lower)) {
     return offered(req, "show_table") ? call("show_table", DEFAULTS_TABLE) : unavailable();
+  }
+  if (/\b(compare|comparison)\b/.test(lower)) {
+    return offered(req, "show_comparison") ? call("show_comparison", MODELS_COMPARISON) : unavailable();
   }
   return say(SCRIPTED_HELP);
 }

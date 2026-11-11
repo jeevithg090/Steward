@@ -22,7 +22,7 @@ import type {
 } from "@steward/shared";
 import { isTaintingTurn, QUOTED_TASK_FRAME } from "@steward/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { missingPackages, waitFor } from "./helpers.ts";
+import { collect, EchoAgent, missingPackages, runInput, startRun, waitFor } from "./helpers.ts";
 import { startTestServer, type TestServer } from "./server.ts";
 
 /** One raw HTTP request, for headers fetch refuses to send (Host, Upgrade). Resolves the status. */
@@ -370,6 +370,25 @@ describe.runIf(missing.length === 0)("the server, end to end over HTTP", () => {
     expect((await t.api("/api/threads", { method: "POST", json: { agentId: "nobody" } })).status).toBe(400);
     expect((await t.api(`/api/threads/${made.body.id}`, { method: "DELETE" })).body).toEqual({ ok: true });
     expect((await t.api(`/api/threads/${made.body.id}`)).status).toBe(404);
+  });
+
+  it("deletes a conversation with ?ifEmpty=1 only while nobody has written in it", async () => {
+    const blank = await t.api<ThreadSummary>("/api/threads", { method: "POST", json: {} });
+    expect((await t.api(`/api/threads/${blank.body.id}?ifEmpty=1`, { method: "DELETE" })).status).toBe(200);
+    expect((await t.api(`/api/threads/${blank.body.id}`)).status).toBe(404);
+
+    const used = await t.api<ThreadSummary>("/api/threads", { method: "POST", json: {} });
+    await collect(
+      startRun(t.server.services.runner, new EchoAgent(), runInput(used.body.id, "run_kept", "hi")),
+    );
+    expect(t.server.services.runner.getThreadMessages(used.body.id).length).toBeGreaterThan(0);
+    const kept = await t.api<{ error: string }>(`/api/threads/${used.body.id}?ifEmpty=1`, {
+      method: "DELETE",
+    });
+    expect(kept.status).toBe(409);
+    expect(kept.body.error).toBe("That conversation has messages, so it was kept.");
+    expect(t.server.services.runner.getThreadMessages(used.body.id).length).toBeGreaterThan(0);
+    expect((await t.api(`/api/threads/${used.body.id}`)).status).toBe(200);
   });
 
   it("reads the demo inbox with triage, the calendar and the brief", async () => {
