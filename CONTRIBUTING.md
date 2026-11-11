@@ -39,7 +39,7 @@ Before you push:
 pnpm check                # typecheck, Biome, Vitest
 pnpm e2e                  # Playwright, if you changed anything a person sees or anything in the server
 pnpm eval:triage          # if you changed triage
-gitleaks git .            # no real key in what you commit
+gitleaks git --log-opts="origin/main..HEAD" .   # no real key in your commits
 ```
 
 If you change `.gitleaks.toml`, run `node scripts/check-secret-rules.mjs`: it writes made-up keys
