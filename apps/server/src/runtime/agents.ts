@@ -639,8 +639,10 @@ export class AgentHost {
    * A conversation was deleted, or a handed-on task ended: its harness process stops and its resume
    * handle is forgotten.
    */
-  async closeThread(threadId: string): Promise<void> {
-    await Promise.all([...this.harnessThreads.values()].map(({ threads }) => threads.close(threadId, true)));
+  async closeThread(threadId: string, reason = "conversation deleted"): Promise<void> {
+    await Promise.all(
+      [...this.harnessThreads.values()].map(({ threads }) => threads.close(threadId, true, reason)),
+    );
   }
 
   /** Every coding agent process running now, those still starting included. For tests and the leak check. */

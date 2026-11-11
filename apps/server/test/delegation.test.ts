@@ -244,6 +244,13 @@ describe.runIf(missing.length === 0)("handing a task to another agent, end to en
         .map((e) => e.type)
         .sort(),
     ).toEqual(["delegation.finished", "delegation.started"]);
+    // The record says why Codex stopped: its task ended, not that a conversation was deleted.
+    const childThreadId = record.find((e) => e.threadId === threadId && e.type === "delegation.started")
+      ?.detail?.childThreadId;
+    const stoppedFor = (await t.api<AuditPage>("/api/audit?type=harness.stopped")).body.events
+      .filter((e) => e.threadId === childThreadId)
+      .map((e) => e.detail?.reason);
+    expect(stoppedFor).toEqual(["task ended"]);
   });
 
   it("when nobody resumes in the browser, the sweep resumes the parent, which resumes the child", async () => {

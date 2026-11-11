@@ -367,12 +367,16 @@ export class HarnessThreads {
     this.record("harness.stopped", thread.threadId, { harness: this.opts.profile.id, reason });
   }
 
-  /** Stops the conversation's harness, e.g. when the conversation is deleted, even one still starting. */
-  async close(threadId: string, forget = false): Promise<void> {
+  /**
+   * Stops the conversation's harness, even one still starting. With `forget`, its session is
+   * forgotten too: the conversation was deleted, or it was a handed-on task that ended. `reason`
+   * is what the record says.
+   */
+  async close(threadId: string, forget = false, reason?: string): Promise<void> {
     const starting = this.starting.get(threadId);
     if (starting) await this.stopStarting(starting);
     const thread = this.threads.get(threadId);
-    if (thread) await this.retire(thread, forget ? "conversation deleted" : "closed");
+    if (thread) await this.retire(thread, reason ?? (forget ? "conversation deleted" : "closed"));
     if (forget) this.opts.store?.delete(threadId);
   }
 

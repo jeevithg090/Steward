@@ -333,7 +333,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       maxDepth: delegationLimit(config.env.STEWARD_DELEGATION_DEPTH, DEFAULT_MAX_DEPTH, 0),
       maxConcurrent: delegationLimit(config.env.STEWARD_DELEGATION_CONCURRENCY, DEFAULT_MAX_CONCURRENT, 1),
       // A child's coding agent stops once its task has ended: its conversation is never used again.
-      closeChild: (threadId) => host.closeThread(threadId),
+      closeChild: (threadId) => host.closeThread(threadId, "task ended"),
     });
     // Tasks cut off by the last shutdown are marked stopped, so none stays "running" for good.
     delegations.reconcile();
