@@ -20,6 +20,7 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "e2e": "playwright test -c tests/e2e/playwright.config.ts",
+    "budget": "pnpm --filter @steward/web build && node scripts/bundle-budget.mjs",
     "eval:triage": "pnpm --filter @steward/proactive eval:triage",
     "check": "pnpm typecheck && pnpm lint && pnpm test"
   },

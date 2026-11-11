@@ -81,7 +81,8 @@ export class Screencast {
     this.page = undefined;
     if (!session) return;
     await withTimeout(session.send("Page.stopScreencast"), 2_000).catch(() => {});
-    await session.detach().catch(() => {});
+    // A hung browser never answers a detach; closing the computer must not wait on it.
+    await withTimeout(session.detach(), 2_000).catch(() => {});
   }
 }
 
@@ -240,7 +241,7 @@ export class PersonInput {
     this.page = undefined;
     this.modifiers = 0;
     this.buttons = 0;
-    await session?.detach().catch(() => {});
+    if (session) await withTimeout(session.detach(), 2_000).catch(() => {});
   }
 
   async dispatch(page: Page, msg: PersonInputMessage): Promise<void> {

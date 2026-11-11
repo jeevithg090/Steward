@@ -26,7 +26,7 @@ import type {
 import { newId, nowIso } from "@steward/shared";
 import type { BrowserContext, Download, ElementHandle, Locator, Page } from "playwright";
 import { ActivityLog, commandLabel, currentToolCall, durationLabel, elementLabel } from "./activity.ts";
-import { installRouteGuard, launchBrowser, VIEWPORT } from "./browser.ts";
+import { installRouteGuard, killProfileBrowser, launchBrowser, VIEWPORT } from "./browser.ts";
 import { WheelControl } from "./control.ts";
 import { BLOCKED_HEADER, type EgressProxy, startEgressProxy } from "./egress.ts";
 import {
@@ -92,6 +92,32 @@ export interface AgentComputerOptions {
   policy: HostPolicy;
   audit?: AuditLog;
   actorId: string;
+  /** How long closing waits for the browser before killing it. `CLOSE_BROWSER_MS` unless a test says. */
+  closeTimeoutMs?: number;
+}
+
+/**
+ * Closing never waits forever on a browser that has stopped answering, or the computer could not
+ * start again until Steward restarted: the screencast and input sessions get 3 s each, and the
+ * browser 10 s before it is killed.
+ */
+export const CLOSE_STEP_MS = 3_000;
+export const CLOSE_BROWSER_MS = 10_000;
+
+/** Waits for `promise` up to `ms`. True if it settled (either way) in time. */
+async function settlesWithin(promise: Promise<unknown>, ms: number): Promise<boolean> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const settled = await Promise.race([
+    promise.then(
+      () => true,
+      () => true,
+    ),
+    new Promise<false>((resolve) => {
+      timer = setTimeout(() => resolve(false), ms);
+    }),
+  ]);
+  clearTimeout(timer);
+  return settled;
 }
 
 interface PendingSecret {
@@ -248,9 +274,19 @@ export class AgentComputer implements Computer {
     this.control.interrupt();
     this.finishSecret({ filled: false, length: 0 });
     this.reconcileCast();
-    await this.castChain;
-    await this.input.reset();
-    if (context) await context.close().catch(() => {});
+    const browserMs = this.opts.closeTimeoutMs ?? CLOSE_BROWSER_MS;
+    const stepMs = Math.min(CLOSE_STEP_MS, browserMs);
+    await settlesWithin(this.castChain, stepMs);
+    await settlesWithin(this.input.reset(), stepMs);
+    const closing = context?.close();
+    if (closing && !(await settlesWithin(closing, browserMs))) {
+      const killed = await killProfileBrowser(this.profileDir);
+      console.warn(
+        `[computer] the browser for ${this.agentId} did not close within ${browserMs / 1000} s, so it was ${killed ? "killed" : "left behind"}`,
+      );
+      // Playwright notices the process has gone and finishes closing.
+      await settlesWithin(closing, stepMs);
+    }
     if (proxy) await proxy.close().catch(() => {});
     this.secretDigests.clear();
     this.documentChanged();

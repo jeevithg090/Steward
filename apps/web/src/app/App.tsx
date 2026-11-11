@@ -1,30 +1,32 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { BrowserRouter } from "react-router";
 import { Toaster } from "sonner";
 import { createQueryClient, useSettings } from "@/lib/api.ts";
 import { AccessibilityProvider, useAccessibility } from "./accessibility.tsx";
+import { DefaultAgent } from "./default-agent.tsx";
 import { ErrorBoundary } from "./ErrorBoundary.tsx";
-import { StewardCopilotProvider } from "./features.ts";
+import { prefetchChat } from "./features.ts";
 import { useWideLayout } from "./layout-mode.ts";
 import { AppRoutes } from "./routes.tsx";
 
 /**
- * The root: data (react-query), the person's accessibility settings, toasts, CopilotKit and the
- * router. Order matters: settings sit above everything that draws, and CopilotKit sits inside the
- * router so its tools can navigate.
+ * The root: data (react-query), the person's accessibility settings, toasts, the default agent and
+ * the router. Order matters: settings sit above everything that draws. CopilotKit is not here: it
+ * loads with the chat (`features.ts`), fetched in the background once the first page has drawn.
  */
 export function App() {
   const [queryClient] = useState(createQueryClient);
+  useEffect(() => prefetchChat(), []);
   return (
     <QueryClientProvider client={queryClient}>
       <AccessibilityRoot>
         <ErrorBoundary>
           <BrowserRouter>
-            <StewardCopilotProvider>
+            <DefaultAgent>
               <AppRoutes />
-            </StewardCopilotProvider>
+            </DefaultAgent>
           </BrowserRouter>
         </ErrorBoundary>
         <ThemedToaster />

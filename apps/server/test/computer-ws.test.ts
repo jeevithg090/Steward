@@ -4,8 +4,14 @@ import type {
   ComputerServerMessage,
   ComputerStatus,
 } from "@steward/shared";
-import { describe, expect, it } from "vitest";
-import { computerSocket, MAX_CLIENT_FRAME, parseClientMessage } from "../src/live/computer-ws.ts";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  computerSocket,
+  FRAME_DRAIN_CHECK_MS,
+  MAX_BUFFERED_FRAME_BYTES,
+  MAX_CLIENT_FRAME,
+  parseClientMessage,
+} from "../src/live/computer-ws.ts";
 
 describe("parseClientMessage", () => {
   it("accepts each message the contract defines", () => {
@@ -97,5 +103,97 @@ describe("computerSocket", () => {
       "That message could not be read.",
       "Couldn't fill that field. Try again.",
     ]);
+  });
+
+  describe("a viewer that falls behind", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    const frame = (data: string): ComputerServerMessage => ({
+      type: "frame",
+      data,
+      mime: "image/jpeg",
+      width: 1,
+      height: 1,
+    });
+
+    /** Hono's context, with the `ws` socket and its backlog underneath. */
+    function slowSocket() {
+      const sent: ComputerServerMessage[] = [];
+      const raw = { bufferedAmount: 0 };
+      const ws = {
+        readyState: 1,
+        raw,
+        send: (d: string) => sent.push(JSON.parse(d)),
+        close: () => {},
+      };
+      return { sent, raw, ws };
+    }
+
+    it("skips frames while the backlog is large, then sends only the newest once it drains", () => {
+      vi.useFakeTimers();
+      const { computers, listeners } = manager(async () => {});
+      const { sent, raw, ws } = slowSocket();
+      const handlers = computerSocket(computers, "steward", new Set());
+      handlers.onOpen(ws);
+      const stream = (msg: ComputerServerMessage) => {
+        for (const l of listeners) l(msg);
+      };
+
+      stream(frame("one"));
+      raw.bufferedAmount = MAX_BUFFERED_FRAME_BYTES + 1;
+      stream(frame("two"));
+      stream(frame("three"));
+      // Status, activity and errors never wait.
+      stream({ type: "status", status });
+      vi.advanceTimersByTime(FRAME_DRAIN_CHECK_MS * 5);
+      expect(sent.map((m) => (m.type === "frame" ? m.data : m.type))).toEqual(["status", "one", "status"]);
+
+      raw.bufferedAmount = 0;
+      vi.advanceTimersByTime(FRAME_DRAIN_CHECK_MS);
+      expect(sent.map((m) => (m.type === "frame" ? m.data : m.type))).toEqual([
+        "status",
+        "one",
+        "status",
+        "three",
+      ]);
+      // Nothing is sent twice, and the check stops once the frame is out.
+      vi.advanceTimersByTime(FRAME_DRAIN_CHECK_MS * 5);
+      expect(sent).toHaveLength(4);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it("sends a new frame at once when the backlog has gone, dropping the one held", () => {
+      vi.useFakeTimers();
+      const { computers, listeners } = manager(async () => {});
+      const { sent, raw, ws } = slowSocket();
+      const handlers = computerSocket(computers, "steward", new Set());
+      handlers.onOpen(ws);
+      raw.bufferedAmount = MAX_BUFFERED_FRAME_BYTES * 2;
+      for (const l of listeners) l(frame("old"));
+      raw.bufferedAmount = 0;
+      for (const l of listeners) l(frame("new"));
+      vi.advanceTimersByTime(FRAME_DRAIN_CHECK_MS * 5);
+      expect(sent.filter((m) => m.type === "frame").map((m) => (m as { data: string }).data)).toEqual([
+        "new",
+      ]);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it("forgets a held frame when the screen closes", () => {
+      vi.useFakeTimers();
+      const { computers, listeners } = manager(async () => {});
+      const { sent, raw, ws } = slowSocket();
+      const handlers = computerSocket(computers, "steward", new Set());
+      handlers.onOpen(ws);
+      raw.bufferedAmount = MAX_BUFFERED_FRAME_BYTES * 2;
+      for (const l of listeners) l(frame("held"));
+      handlers.onClose();
+      raw.bufferedAmount = 0;
+      vi.advanceTimersByTime(FRAME_DRAIN_CHECK_MS * 5);
+      expect(sent.map((m) => m.type)).toEqual(["status"]);
+      expect(vi.getTimerCount()).toBe(0);
+    });
   });
 });

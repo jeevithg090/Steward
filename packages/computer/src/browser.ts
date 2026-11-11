@@ -22,19 +22,40 @@ const SINGLETON_FILES = ["SingletonLock", "SingletonSocket", "SingletonCookie"];
  * refused instead, because two browsers on one profile corrupt it.
  */
 export async function sweepProfileLocks(profileDir: string): Promise<void> {
-  const lock = await readlink(join(profileDir, "SingletonLock")).catch(() => undefined);
-  if (lock) {
-    const dash = lock.lastIndexOf("-");
-    const host = lock.slice(0, dash);
-    const pid = Number(lock.slice(dash + 1));
-    if (host === hostname() && Number.isInteger(pid) && pid > 0 && pid !== process.pid && isAlive(pid)) {
-      throw new ComputerError(
-        "busy",
-        `This computer's browser profile is in use by another process (${pid}). Stop the other Steward first.`,
-      );
-    }
+  const pid = await profileLockPid(profileDir);
+  if (pid !== undefined && isAlive(pid)) {
+    throw new ComputerError(
+      "busy",
+      `This computer's browser profile is in use by another process (${pid}). Stop the other Steward first.`,
+    );
   }
   await Promise.all(SINGLETON_FILES.map((f) => rm(join(profileDir, f), { force: true })));
+}
+
+/** The process on this machine that `SingletonLock` names (`<host>-<pid>`), other than this one. */
+async function profileLockPid(profileDir: string): Promise<number | undefined> {
+  const lock = await readlink(join(profileDir, "SingletonLock")).catch(() => undefined);
+  if (!lock) return undefined;
+  const dash = lock.lastIndexOf("-");
+  const host = lock.slice(0, dash);
+  const pid = Number(lock.slice(dash + 1));
+  return host === hostname() && Number.isInteger(pid) && pid > 0 && pid !== process.pid ? pid : undefined;
+}
+
+/**
+ * Kills the Chromium that holds this profile, found through `SingletonLock`. Only for a browser
+ * that did not close when asked (a GPU or renderer hang): Playwright then waits for it forever, and
+ * while it lives the profile cannot be opened again. Returns whether a process was killed.
+ */
+export async function killProfileBrowser(profileDir: string): Promise<boolean> {
+  const pid = await profileLockPid(profileDir);
+  if (pid === undefined) return false;
+  try {
+    process.kill(pid, "SIGKILL");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function isAlive(pid: number): boolean {

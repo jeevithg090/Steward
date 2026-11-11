@@ -52,6 +52,13 @@ export interface WorkerDeps {
 }
 
 /**
+ * Routines of one agent share its computer, one browser page, so they run one at a time; and at
+ * most `concurrent` run at once, so a busy 08:00 does not start every model call and browser
+ * together. A run holds its agent's turn until it finishes or `turnMs` has passed.
+ */
+export const ROUTINE_QUEUE = { concurrent: 3, turnMs: 15 * 60_000 } as const;
+
+/**
  * The background loops: routines that are due, the daily brief at the person's brief time, and
  * approval expiry with the resume catch-up. Every timer is unref'd (it never keeps the process
  * alive) and each loop skips a tick while its previous one is still running.
@@ -61,8 +68,15 @@ export class Workers {
   private readonly busy = new Set<string>();
   private lastBriefAttempt = 0;
   private stopped = false;
+  /** Claimed routines waiting for their turn, oldest first. */
+  private readonly waiting: Routine[] = [];
+  /** Agents with a routine under way. */
+  private readonly running = new Set<string>();
 
-  constructor(private readonly deps: WorkerDeps) {}
+  constructor(
+    private readonly deps: WorkerDeps,
+    private readonly queue: { concurrent: number; turnMs: number } = ROUTINE_QUEUE,
+  ) {}
 
   private now(): Date {
     return this.deps.now?.() ?? new Date();
@@ -119,8 +133,51 @@ export class Workers {
     for (const routine of due) {
       if (this.stopped) return;
       if (!routine.enabled) continue;
-      void this.fire(routine);
+      if (this.waiting.some((r) => r.id === routine.id)) continue;
+      this.waiting.push(routine);
     }
+    this.startWaiting();
+  }
+
+  /** Starts each waiting routine whose agent is free, while fewer than the limit are under way. */
+  private startWaiting(): void {
+    for (let i = 0; i < this.waiting.length && this.running.size < this.queue.concurrent; ) {
+      if (this.stopped) return;
+      const routine = this.waiting[i] as Routine;
+      if (this.running.has(routine.agentId)) {
+        i++;
+        continue;
+      }
+      this.waiting.splice(i, 1);
+      this.running.add(routine.agentId);
+      void this.takeTurn(routine)
+        .catch((err) => {
+          console.error("[steward] a routine did not start:", err instanceof Error ? err.message : err);
+        })
+        .finally(() => {
+          this.running.delete(routine.agentId);
+          this.startWaiting();
+        });
+    }
+  }
+
+  /** Fires a routine and holds its agent's turn until the run ends or the turn limit passes. */
+  private async takeTurn(queued: Routine): Promise<void> {
+    // It may have waited a while: one switched off or removed since does not run, and one edited
+    // runs as it is now.
+    const routine = this.deps.routines.get(queued.id);
+    if (!routine?.enabled) return;
+    const run = await this.fire(routine);
+    if (!run) return;
+    let timer: NodeJS.Timeout | undefined;
+    await Promise.race([
+      run.done,
+      new Promise((resolve) => {
+        timer = setTimeout(resolve, this.queue.turnMs);
+        timer.unref();
+      }),
+    ]);
+    clearTimeout(timer);
   }
 
   /**
@@ -128,11 +185,10 @@ export class Workers {
    * the firing waits for the conversation to be free rather than being lost. When its last run still
    * waits for the person's answer, the firing is skipped and recorded as such.
    */
-  private async fire(routine: Routine): Promise<void> {
+  private async fire(routine: Routine): Promise<ServerRun | undefined> {
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        this.runRoutine(routine);
-        return;
+        return this.runRoutine(routine);
       } catch (err) {
         if (err instanceof ThreadWaitingError) {
           this.record(routine, {

@@ -89,6 +89,9 @@ Background workers in the server:
 | Approvals    | 60 s      | Expires approvals past their deadline.                  |
 | Resume sweep | on answer | Resumes answered approvals no browser has resumed.      |
 
+One agent's routines run one at a time, since they share its browser, and at most three routines
+run at once.
+
 ## Live updates
 
 - **`GET /api/events`** is a Server-Sent Events stream of `LiveEvent`s: approvals created and
@@ -97,7 +100,8 @@ Background workers in the server:
 - **`WS /ws/computer/:agent`** carries the agent's screen: JPEG frames from Chromium's own
   screencast (quality 70, up to 1280 × 800), status and activity from the server; take, release,
   mouse, keyboard, navigation and secret-box messages from the person. Input is accepted only while
-  the person holds the wheel.
+  the person holds the wheel. A browser that falls behind (more than 1 MB still on its way to it)
+  gets no new frames until it catches up, and then only the newest; status and activity never wait.
 
 ## The computer
 

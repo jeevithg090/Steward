@@ -1,7 +1,7 @@
 /**
- * CopilotKit for the whole app: the runtime at `/api/copilotkit`, no inspector, and every tool
- * renderer registered once. The chat UI is Steward's own, so CopilotKit's stock chat styles are not
- * imported.
+ * CopilotKit for the chat: the runtime at `/api/copilotkit`, no inspector, and every tool renderer
+ * registered once. It wraps the chat page only (`app/features.ts`), so the other pages never load
+ * CopilotKit. The chat UI is Steward's own, so CopilotKit's stock chat styles are not imported.
  *
  * Problems CopilotKit reports become a toast in plain words. A failed reply inside an open
  * conversation is already shown there with "Try again", so it is not toasted twice.
