@@ -137,6 +137,22 @@ describe("permissions from external coding agents", () => {
         target: { path: "/" },
       }),
     ).toBe("Change files in /, outside its own folder");
+    // Another tool's own list of files is never the card: it may leave out the path that matters.
+    expect(
+      summarize({
+        tool: { name: "Edit", kind: "write", surface: "system", source: "harness:claude-code" },
+        args: { file_path: "/Users/me/.zshrc", files: ["notes.md", "todo.md"] },
+        target: { path: "/Users/me/" },
+      }),
+    ).toBe("Change files in /Users/me/, outside its own folder");
+    // A file outside its folder is named first, never hidden among "1 other".
+    expect(
+      summarize({
+        tool: codex("write", "system"),
+        args: { files: ["src/a.ts", "src/b.ts", "/Users/me/.ssh/config"] },
+        target: { path: "/" },
+      }),
+    ).toBe("Change 3 files: /Users/me/.ssh/config, src/a.ts and 1 other, outside its own folder");
     expect(
       summarize({
         tool: { name: "Delete", kind: "delete", surface: "file", source: "harness:claude-code" },

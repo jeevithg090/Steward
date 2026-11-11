@@ -190,9 +190,13 @@ export function summarize(input: SummaryInput): string {
   return truncate(sentence, 240);
 }
 
-/** "a.ts", "a.ts and b.ts", "a.ts, b.ts and 2 others". */
+/**
+ * "a.ts", "a.ts and b.ts", "a.ts, b.ts and 2 others". Files outside the agent's own folder come
+ * first, so one is never hidden among the others.
+ */
 function listFiles(files: readonly string[]): string {
-  const shown = files.slice(0, 2).map((f) => text(f, 60) ?? f);
+  const ordered = [...files.filter(absolute), ...files.filter((f) => !absolute(f))];
+  const shown = ordered.slice(0, 2).map((f) => text(f, 60) ?? f);
   const rest = files.length - shown.length;
   if (rest === 0) return shown.join(" and ");
   return `${shown.join(", ")} and ${rest === 1 ? "1 other" : `${rest} others`}`;
@@ -210,9 +214,13 @@ function absolute(path: string): boolean {
  */
 function harnessSentence(tool: SummaryInput["tool"], args: Record<string, unknown>, target: Target): string {
   const path = text(target.path, 160);
-  const files = Array.isArray(args.files)
-    ? args.files.filter((f): f is string => typeof f === "string" && f.trim() !== "")
-    : [];
+  // Only Codex's patch carries a list of files that Steward made itself. Any other tool's
+  // arguments are its own and may leave a path out, so its card goes by target.path, which
+  // counts every path the call names.
+  const files =
+    tool.name === "apply_patch" && Array.isArray(args.files)
+      ? args.files.filter((f): f is string => typeof f === "string" && f.trim() !== "")
+      : [];
   const several = files.length > 1;
   // A change to several paths is judged by the folder that holds them all, which ends in a separator.
   const folder = path !== undefined && /[\\/]$/.test(path);
