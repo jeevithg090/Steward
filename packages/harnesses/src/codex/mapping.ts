@@ -1,10 +1,9 @@
 // The approval shapes and the decision mapping follow Happy's happy-cli/src/codex/codexAppServerClient.ts
 // (MIT, Happy Coder Contributors): handleServerRequest and mapDecisionToWire. The kinds and targets
 // follow docs/plans/orchestration.md §3.
-import { resolve } from "node:path";
 import type { TokenUsage } from "@ag-ui/client";
 import type { Target } from "@steward/shared";
-import { insideWorkspace, isVendorSettings, targetPath } from "../acp/mapping.ts";
+import { insideWorkspace, shownPath, targetPath, touchesSettings } from "../acp/mapping.ts";
 import type { HarnessPermission, HarnessUpdate, PermissionAnswer } from "../types.ts";
 import type { CodexDecision, CodexFileChange, CodexThreadItem, CodexTokenCounts } from "./types.ts";
 
@@ -96,7 +95,9 @@ export function fileChangePermission(
   itemChanges?: unknown,
 ): HarnessPermission {
   const files = changedFiles(params.fileChanges, itemChanges);
-  const outside = files.some((f) => insideWorkspace(f.path, cwd) === undefined || isVendorSettings(f.path));
+  const outside = files.some(
+    (f) => insideWorkspace(f.path, cwd) === undefined || touchesSettings(f.path, cwd),
+  );
   const grantRoot = text(params.grantRoot);
   const removes = files.some((f) => f.kind === "delete" || f.kind === "move");
   const target: Target = {};
@@ -111,7 +112,7 @@ export function fileChangePermission(
     kind: removes ? "delete" : "write",
     surface: outside || grantRoot || files.length === 0 ? "system" : "file",
     args: {
-      files: files.map((f) => insideWorkspace(f.path, cwd) ?? resolve(cwd, f.path)),
+      files: files.map((f) => shownPath(f.path, cwd)),
       ...(text(params.reason) ? { reason: text(params.reason) } : {}),
       ...(grantRoot ? { grantRoot } : {}),
     },

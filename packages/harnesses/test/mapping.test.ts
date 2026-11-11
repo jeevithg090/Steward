@@ -1,5 +1,5 @@
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import type { PermissionOption, ToolKind } from "@agentclientprotocol/sdk";
 import { memoryDb } from "@steward/db";
@@ -17,6 +17,7 @@ import {
   targetPath,
   toolNameOf,
 } from "../src/acp/mapping.ts";
+import { fileChangePermission } from "../src/codex/mapping.ts";
 
 const CWD = "/data/computers/claude-code/workspace";
 const OPTIONS: PermissionOption[] = [
@@ -178,6 +179,80 @@ describe("the ACP tool kind map (plan §3)", () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+
+  it("follows a link to a vendor tool's settings, so a change through it asks", () => {
+    const root = mkdtempSync(join(tmpdir(), "steward-ws-"));
+    try {
+      const ws = join(root, "workspace");
+      mkdirSync(join(ws, ".claude"), { recursive: true });
+      symlinkSync(join(ws, ".claude"), join(ws, "notes"));
+      const edit = permissionFrom(
+        {
+          toolCall: { toolCallId: "t", kind: "edit", rawInput: { file_path: "notes/settings.json" } },
+          options: [],
+        },
+        ws,
+      );
+      expect(edit.surface).toBe("system");
+      expect(
+        fileChangePermission({ fileChanges: { "notes/settings.json": { type: "update" } } }, "c", ws).surface,
+      ).toBe("system");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("reads ~ as the home folder, never as a folder in the workspace", () => {
+    const home = homedir();
+    expect(insideWorkspace("~/.zshrc", CWD)).toBeUndefined();
+    expect(permission("edit", { file_path: "~/.zshrc" })).toMatchObject({
+      surface: "system",
+      target: { path: join(home, ".zshrc") },
+    });
+    expect(permission("edit", { file_path: "~" }).target).toEqual({ path: home });
+    expect(permission("edit", { file_path: "~root/.profile" }).surface).toBe("system");
+    expect(fileChangePermission({ fileChanges: { "~/.zshrc": { type: "update" } } }, "c", CWD)).toMatchObject(
+      { surface: "system", args: { files: [join(home, ".zshrc")] } },
+    );
+    // A name that only starts with a tilde sign is still a file in the workspace.
+    expect(insideWorkspace("notes~/a.md", CWD)).toBe(join("notes~", "a.md"));
+  });
+
+  it("keeps a key or password file as the target among several, so the gateway's rule for them still refuses", () => {
+    const { governance } = createGateway({ db: memoryDb() });
+    const decide = (p: ReturnType<typeof permission>) =>
+      governance.dryRun({
+        toolCallId: "t1",
+        runId: "r1",
+        threadId: "th1",
+        agentId: "codex",
+        actorId: "local",
+        initiator: { kind: "person", id: "local" },
+        tool: { name: p.toolName, kind: p.kind, surface: p.surface, source: "harness:codex" },
+        args: p.args,
+        target: p.target,
+        tainted: true,
+      });
+    const alone = fileChangePermission({ fileChanges: { ".env": { type: "update" } } }, "c1", CWD);
+    expect(decide(alone).effect).toBe("deny");
+    for (const order of [
+      { ".env": { type: "update" }, "src/a.ts": { type: "update" } },
+      { "src/a.ts": { type: "update" }, ".env": { type: "update" } },
+    ]) {
+      const patch = fileChangePermission({ fileChanges: order }, "c2", CWD);
+      expect(patch.target).toEqual({ path: ".env" });
+      expect(decide(patch).effect).toBe("deny");
+    }
+    expect(decide(permission("edit", { paths: ["a.md", "keys/id_ed25519"] })).effect).toBe("deny");
+    expect(decide(permission("read", { paths: ["a.md", ".env.local"] })).effect).toBe("deny");
+    // Ordinary files together are still judged by their folder.
+    expect(permission("edit", { paths: ["a.md", ".env.example"] }).target).toEqual({ path: "./" });
+    // With a path outside the workspace, it is the folder that holds them all, and it asks.
+    expect(permission("edit", { paths: [".env", "/etc/hosts"] })).toMatchObject({
+      surface: "system",
+      target: { path: "/" },
+    });
   });
 
   it("never reads the title: neither the name, the arguments nor the target come from it", () => {

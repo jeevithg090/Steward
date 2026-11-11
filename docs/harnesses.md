@@ -102,10 +102,14 @@ that carries a command is a `shell` call whatever kind it claims.
   `system` surface).
 - **A change to several paths** is judged by the folder that holds them all, ending in `/`. A
   project file and `~/.ssh/config` give `/`, so a rule for the project folder does not allow it.
+  When they are all in the workspace and one is a key or password file (`.env`, an SSH key), it is
+  judged by that file, so the rule that keeps those out of reach still refuses it.
 - **Inside or outside is decided by real path,** as the computer's own workspace check is: a link
-  inside the workspace that leads out of it counts as outside.
+  inside the workspace that leads out of it counts as outside. A path that starts with `~` is in
+  the home folder, never in the workspace.
 - **The tools' own settings** (`.claude/`, `.gemini/`, `.codex/`, `.mcp.json`) ask even inside the
-  workspace, since a change there could let the tool stop asking.
+  workspace, since a change there could let the tool stop asking. So does a change through a link
+  that leads to them.
 
 Rules can name a coding agent by its source:
 

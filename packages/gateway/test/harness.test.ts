@@ -144,6 +144,14 @@ describe("permissions from external coding agents", () => {
         target: { path: "src/" },
       }),
     ).toBe("Delete files in src/");
+    // The workspace itself is its own folder, never "./".
+    expect(
+      summarize({
+        tool: { name: "Edit", kind: "write", surface: "file", source: "harness:claude-code" },
+        args: { paths: ["a.md", "b.md"] },
+        target: { path: "./" },
+      }),
+    ).toBe("Change files in its own folder");
     expect(
       summarize({
         tool: { name: "harness_switch_mode", kind: "write", surface: "system", source: "harness:gemini-cli" },

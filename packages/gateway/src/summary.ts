@@ -219,7 +219,9 @@ function harnessSentence(tool: SummaryInput["tool"], args: Record<string, unknow
   const where = several
     ? `${files.length} files: ${listFiles(files)}`
     : folder
-      ? `files in ${path}`
+      ? /^\.[\\/]$/.test(path)
+        ? "files in its own folder"
+        : `files in ${path}`
       : (path ?? files[0]);
   const outside = tool.surface === "system" && [path, ...files].some((p) => p && absolute(p));
   const grantRoot = text(args.grantRoot, 160);

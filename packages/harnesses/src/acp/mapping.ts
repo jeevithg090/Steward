@@ -3,6 +3,7 @@
 // with two fixes: the call is identified by `toolCallId` and described by `rawInput` and
 // `locations` (never by its title), and the answer is chosen by the option's `kind`.
 import { realpathSync } from "node:fs";
+import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import type {
   ToolKind as AcpToolKind,
@@ -109,31 +110,55 @@ function realish(path: string): string {
 }
 
 /**
+ * The full path a tool would use: `~` is the home folder, as the tools that expand it read it
+ * (`~/.zshrc` is never a file in the workspace), and anything else is taken from `cwd`.
+ */
+function fullPath(path: string, cwd: string): string {
+  const home = /^~([^\\/]*)(?:[\\/](.*))?$/s.exec(path);
+  if (home) {
+    const [, user = "", rest = ""] = home;
+    const base = user ? join(dirname(homedir()), user) : homedir();
+    return resolve(base, rest);
+  }
+  return isAbsolute(path) ? resolve(path) : resolve(cwd, path);
+}
+
+/**
  * A path inside the workspace, relative to it; `undefined` when it points outside. Compared by
  * real path, so a link inside the workspace that leads out of it counts as outside (as the
  * computer's own workspace check does).
  */
 export function insideWorkspace(path: string, cwd: string): string | undefined {
-  const full = isAbsolute(path) ? resolve(path) : resolve(cwd, path);
-  const rel = relative(realish(resolve(cwd)), realish(full));
+  const rel = relative(realish(resolve(cwd)), realish(fullPath(path, cwd)));
   if (rel === "") return ".";
   if (rel.startsWith(`..${sep}`) || rel === ".." || isAbsolute(rel)) return undefined;
   return rel;
 }
 
 /** A path as a call shows it: relative inside the workspace, absolute outside it. */
-function shownPath(path: string, cwd: string): string {
-  return insideWorkspace(path, cwd) ?? resolve(cwd, path);
+export function shownPath(path: string, cwd: string): string {
+  return insideWorkspace(path, cwd) ?? fullPath(path, cwd);
 }
+
+/**
+ * Key and password files, as the gateway's "Never touch key and password files" rule
+ * (`preset_secret_files`) names them. Kept here so this package depends only on the shared contracts.
+ */
+const KEY_FILE =
+  /(^|[\\/])(\.env(?!\.(example|sample|template)$)(\.[a-z0-9_-]+)?|id_(rsa|ecdsa|ed25519)|[^\\/]*\.pem|credentials(\.json)?)$|(^|[\\/])\.(ssh|aws|gnupg)([\\/]|$)/;
 
 /**
  * The one path a change is judged by (`target.path`). For one path, that path. For several, the
  * folder that holds them all, ending in a separator: a rule that lets the agent work in a folder
  * then allows the change only when every path is in that folder, never because the first one is.
+ * One exception: when all of them are in the workspace and one is a key or password file, it is
+ * that file, so the gateway's rule for those files still sees it.
  */
 export function targetPath(paths: readonly string[], cwd: string): string | undefined {
   const shown = [...new Set(paths.map((p) => shownPath(p, cwd)))];
   if (shown.length <= 1) return shown[0];
+  const keyFile = shown.find((p) => KEY_FILE.test(p));
+  if (keyFile && shown.every((p) => insideWorkspace(p, cwd) !== undefined)) return keyFile;
   const split = shown.map((p) => resolve(cwd, p).split(sep));
   const first = split[0] ?? [];
   const common: string[] = [];
@@ -153,6 +178,11 @@ export function targetPath(paths: readonly string[], cwd: string): string | unde
  */
 export function isVendorSettings(path: string): boolean {
   return /(^|[\\/])\.(claude|gemini|codex)([\\/]|$)|(^|[\\/])\.mcp\.json$/i.test(path);
+}
+
+/** Whether a path is a vendor tool's settings as written, or once links in the workspace are followed. */
+export function touchesSettings(path: string, cwd: string): boolean {
+  return isVendorSettings(path) || isVendorSettings(shownPath(path, cwd));
 }
 
 /** ACP kinds that change files: with no path to check, they ask. */
@@ -213,7 +243,7 @@ export function permissionFrom(
     const changes = kind !== "read";
     if (
       surface === "file" &&
-      paths.some((p) => insideWorkspace(p, cwd) === undefined || (changes && isVendorSettings(p)))
+      paths.some((p) => insideWorkspace(p, cwd) === undefined || (changes && touchesSettings(p, cwd)))
     ) {
       surface = "system";
     }
