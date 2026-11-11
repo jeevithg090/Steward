@@ -38,7 +38,7 @@ starters:
   - Show me all leads.
   - Remove lead Alex from the list.
 examples:
-  - ask: Add a lead named Sam with phone 07700 900123 at stage contacted.
+  - ask: Add a lead named Sam at stage contacted.
     does: The bot reads leads.json, adds Sam with the given details, writes the file, and confirms the addition.
   - ask: Show me all leads in a table.
     does: The bot reads leads.json and displays the leads with show_table.

@@ -94,7 +94,7 @@ describe("validatePack and scoped rules", () => {
   });
 
   it("refuses a rule that is too long once it is limited to the bot", () => {
-    const long = `tool.name == "${"x".repeat(RULE_WHEN_MAX - 20)}"`;
+    const long = `tool.kind == "send" && target.host != "${"x".repeat(RULE_WHEN_MAX - 45)}"`;
     expect(long.length).toBeLessThanOrEqual(RULE_WHEN_MAX);
     const result = validatePack({ ...pack, rules: [{ name: "Long", effect: "ask", when: long }] }, ctx);
     expect(result.ok).toBe(false);
