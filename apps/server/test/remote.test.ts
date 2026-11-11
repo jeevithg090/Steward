@@ -302,6 +302,7 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
   });
 
   it("refuses a call the relay sends again, holds back, or relabels, and records it", async () => {
+    const one = await paired();
     const threads = () => t.server.services.threads.list({ limit: 1000 }).length;
     const sealed = await sealCall(one.dataKey!, "chat.send", { text: "Remind me to call the plumber" });
     const first = await one.send<{ threadId: string }>("chat.send", sealed.c, sealed.callId);
@@ -336,6 +337,7 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
   });
 
   it("seals the call's id into its answer, so one call's answer cannot pass for another's", async () => {
+    const one = await paired();
     const a = await sealCall(one.dataKey!, "brief.get", {});
     expect((await one.send("brief.get", a.c, a.callId)).ok).toBe(true);
     const answerToA = one.last!.c!;
@@ -343,13 +345,21 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
     const b = await sealCall(one.dataKey!, "brief.get", {});
     expect(await openResult(one.dataKey!, answerToA, b.callId)).toBeUndefined();
     expect(await openResult(one.dataKey!, answerToA, a.callId)).toMatchObject({ ok: true });
-    // An envelope filed under another topic does not open as that topic.
-    const envelope = one.envelopes.find((e) => e.topic === "approvals")!;
-    expect(await one.open({ ...envelope, topic: "notifications" })).toBeUndefined();
+    // An envelope filed under another topic does not open as that topic. A notification of its own,
+    // so there is one to relabel whatever ran before.
+    t.server.services.proactive.notifications.add({
+      title: "Weekly review is done",
+      body: "Nothing needs you.",
+      href: "/chat/thr_x",
+      level: "needs_you",
+    });
+    const envelope = await waitFor(() => one.envelopes.find((e) => e.topic === "notifications"));
+    expect(await one.open({ ...envelope, topic: "approvals" })).toBeUndefined();
     expect(await one.open(envelope)).toBeDefined();
   });
 
   it("runs a task it starts as the phone's, so it asks before it sends even under Always allow", async () => {
+    const one = await paired();
     const s = t.server.services;
     const rule = await t.api<{ id: string }>("/api/rules", {
       method: "POST",
@@ -404,7 +414,10 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
   });
 
   it("posts into and stops only conversations it started, and is told no other's id", async () => {
+    const one = await paired();
     const s = t.server.services;
+    // A task of its own, so the brief has one to list whatever ran before.
+    s.proactive.tasks.create({ title: "Order more clay", detail: "", source: "person", state: "needs_you" });
     const brief = await one.call<{ tasks: Record<string, unknown>[] }>("brief.get", {});
     expect(brief.ok && brief.value.tasks.length).toBeGreaterThan(0);
     expect(brief.ok && brief.value.tasks.every((task) => !("threadId" in task))).toBe(true);
@@ -432,6 +445,7 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
   });
 
   it("tells a phone that may not see requests that Steward waits, never what it asks", async () => {
+    const one = await paired();
     const s = t.server.services;
     const quiet = await pair("Brief-only iPhone");
     await t.api(`/api/devices/${quiet.deviceId}`, { method: "PATCH", json: { scopes: ["brief:read"] } });
