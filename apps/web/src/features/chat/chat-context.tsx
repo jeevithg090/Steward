@@ -40,6 +40,8 @@ export interface ChatActions {
    * small ones. With a view, it opens on that tab (and file), so "Open in files" stays in the chat.
    */
   showComputer: (view?: ComputerView) => void;
+  /** Whether the conversation has read outside content (a page, an email, a file), so a card can warn. */
+  readOutside?: boolean;
 }
 
 export const ChatActionsContext = createContext<ChatActions | null>(null);

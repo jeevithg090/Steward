@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ActivityItem, ComputerStatus, WorkspaceFile } from "./computer.ts";
+import type { ActivityItem, ComputerStatus, WorkspaceFile, WorkspaceFileText } from "./computer.ts";
 import type {
   AgentProfile,
   Brand,
@@ -22,6 +22,7 @@ import type {
   ApprovalAnswer,
   AuditEvent,
   ChainCheck,
+  ConversationAllow,
   Decision,
   Rule,
 } from "./governance.ts";
@@ -55,7 +56,7 @@ const WEB_ADDRESS = z.url({
 });
 
 export const ApprovalDecisionBody = z.object({
-  answer: z.enum(["once", "always", "refuse"]),
+  answer: z.enum(["once", "always", "conversation", "refuse"]),
   /** Optional words from the person, passed to the agent with a refusal. */
   note: z.string().max(500).optional(),
 });
@@ -178,6 +179,38 @@ export const SettingsBody = z.object({
     .optional(),
   timezone: z.string().optional(),
   approvalExpiryHours: z.number().int().min(1).max(168).optional(),
+});
+
+/** The largest text file the person can attach. */
+export const UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
+
+/** The kinds of text file the person can attach. Anything else is refused before it reaches the workspace. */
+export const UPLOAD_EXTENSIONS = [
+  "txt",
+  "md",
+  "markdown",
+  "csv",
+  "tsv",
+  "json",
+  "ics",
+  "html",
+  "htm",
+  "xml",
+  "yaml",
+  "yml",
+  "log",
+] as const;
+
+/** A text file the person attaches to a message. It lands in the agent's workspace under `uploads/`. */
+export const UploadBody = z.object({
+  /** The file's own name; the server makes it safe and adds a number when the name is taken. */
+  name: z.string().min(1).max(200),
+  text: z.string().max(UPLOAD_MAX_BYTES),
+});
+
+export const ThreadPatchBody = z.object({
+  /** A new name for the conversation. */
+  title: z.string().trim().min(1, "Give the conversation a name.").max(200),
 });
 
 export const ThreadCreateBody = z.object({
@@ -326,7 +359,9 @@ export const ROUTES = {
   events: "/api/events", // SSE stream of LiveEvent
 
   threads: "/api/threads", // ThreadSummary[] · POST ThreadCreateBody → ThreadSummary
-  thread: "/api/threads/:id", // ThreadSummary · DELETE
+  thread: "/api/threads/:id", // ThreadSummary · PATCH ThreadPatchBody → ThreadSummary · DELETE
+  threadAllows: "/api/threads/:id/allows", // ConversationAllow[]: what was allowed for this conversation only
+  threadAllow: "/api/threads/:id/allows/:allowId", // DELETE: turn one off
 
   approvals: "/api/approvals", // ?status=pending → Approval[]
   approval: "/api/approvals/:id", // Approval
@@ -370,6 +405,8 @@ export const ROUTES = {
   computer: "/api/computer/:agentId", // ComputerStatus
   computerActivity: "/api/computer/:agentId/activity", // ActivityItem[]
   computerFiles: "/api/computer/:agentId/files", // ?dir= → WorkspaceFile[]
+  computerFile: "/api/computer/:agentId/file", // ?path= → WorkspaceFileText (read only, never as a page)
+  computerUploads: "/api/computer/:agentId/uploads", // POST UploadBody → WorkspaceFile (into uploads/)
   computerReset: "/api/computer/:agentId/reset", // POST → ComputerStatus
   computerWs: "/ws/computer/:agentId", // WebSocket, see computer.ts
 
@@ -417,6 +454,7 @@ export type {
   CalendarEvent,
   ChainCheck,
   ComputerStatus,
+  ConversationAllow,
   Decision,
   EmailSummary,
   MemoryFact,
@@ -427,4 +465,5 @@ export type {
   Task,
   ThreadSummary,
   WorkspaceFile,
+  WorkspaceFileText,
 };

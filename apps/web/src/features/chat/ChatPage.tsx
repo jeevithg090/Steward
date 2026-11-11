@@ -1,9 +1,11 @@
 /**
  * `/chat` and `/chat/:threadId`.
  *
- * Without a thread id, a new conversation is created and the address moves to it (keeping what it
- * was handed, and naming its agent in `?agent=`). With one, the conversation is drawn, keyed by its
- * id, so switching conversations starts clean.
+ * Without a thread id, the address moves to a conversation: the newest empty one with that agent
+ * when there is nothing to say yet (so visiting Chat does not pile up blanks), otherwise a new one,
+ * keeping what it was handed and naming its agent in `?agent=`. With one, the conversation is
+ * drawn, keyed by its id, so switching conversations starts clean. An id that is not there any
+ * more (deleted, or never made) says so, rather than quietly starting a new conversation under it.
  *
  * A message one of Steward's own pages hands over (`startChat`, in router state) is sent once as
  * the person's first message, then dropped, so a reload never sends it again. `?prompt=` in the
@@ -11,18 +13,22 @@
  * never sends by itself. `?agent=` picks a different agent for a new thread; when that agent cannot
  * take it (a bot that was removed, say), the page offers the others.
  *
- * A conversation always opens with its own agent: from the list, from `?agent=`, or, for one the
- * list does not have, from the server. Until then the page waits rather than guess, because a
- * guess would send a starter to the wrong agent.
+ * A conversation always opens with its own agent: from the list, or, for one the list does not
+ * have, from the server. Until then the page waits rather than guess, because a guess would send a
+ * starter to the wrong agent.
  */
+import { MessageSquareOff } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
-import { Button } from "@/components/ui/Button.tsx";
-import { ErrorNotice, Loading, Notice } from "@/components/ui/Notice.tsx";
+import { LinkButton } from "@/components/ui/Button.tsx";
+import { EmptyState } from "@/components/ui/EmptyState.tsx";
+import { ErrorNotice, Loading } from "@/components/ui/Notice.tsx";
+import { useDocumentTitle } from "@/components/ui/PageHeader.tsx";
 import { DEFAULT_AGENT_ID, useCreateThread, useThread, useThreads } from "@/lib/api.ts";
 import { starterFrom } from "@/lib/onboarding.ts";
 import { AgentPicker } from "./AgentPicker.tsx";
 import { ChatThread } from "./ChatThread.tsx";
+import { reusableThread } from "./empty-thread.ts";
 
 /** A short title for a new conversation, from the words that start it. */
 export function titleFromPrompt(prompt: string | undefined): string | undefined {
@@ -41,8 +47,8 @@ export function ChatPage() {
   const requestedAgent = params.get("agent") || undefined;
   const threads = useThreads();
   const listed = threadId ? threads.data?.find((thread) => thread.id === threadId) : undefined;
-  // Asked for only when the list cannot say which agent the conversation is with.
-  const single = useThread(threadId ?? "", { enabled: Boolean(threadId) && !listed && !requestedAgent });
+  // Asked for only when the list cannot say which agent the conversation is with, or that it exists.
+  const single = useThread(threadId, { enabled: Boolean(threadId) && !listed });
   const create = useCreateThread();
   const creating = useRef(false);
 
@@ -82,8 +88,28 @@ export function ChatPage() {
       creating.current = false;
       return;
     }
-    if (!create.isError) startThread();
-  }, [threadId, create.isError, startThread]);
+    if (create.isError) return;
+    // With nothing to say yet, go back to an empty conversation rather than make another.
+    if (!starter && !linked) {
+      if (threads.isPending) return;
+      const empty = reusableThread(threads.data, requestedAgent ?? DEFAULT_AGENT_ID);
+      if (empty) {
+        navigate(`/chat/${encodeURIComponent(empty.id)}`, { replace: true });
+        return;
+      }
+    }
+    startThread();
+  }, [
+    threadId,
+    create.isError,
+    startThread,
+    starter,
+    linked,
+    threads.isPending,
+    threads.data,
+    requestedAgent,
+    navigate,
+  ]);
 
   // Once taken, the message leaves the address and the router state, so a reload cannot repeat it.
   const dropPrompt = useCallback(() => {
@@ -126,25 +152,12 @@ export function ChatPage() {
     );
   }
 
+  if (single.error?.status === 404) return <ConversationGone />;
   const summary = listed ?? single.data;
-  const agentId = summary?.agentId ?? requestedAgent;
+  const agentId = summary?.agentId;
+  // Until it is known to exist, and with which agent, no composer: a message there would start a
+  // conversation under that id, or go to the wrong agent.
   if (!agentId) {
-    if (single.error?.status === 404) {
-      return (
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-10">
-          <Notice
-            tone="neutral"
-            role="alert"
-            title="This conversation was deleted or never existed"
-            action={
-              <Button size="sm" variant="secondary" onClick={() => navigate("/chat", { replace: true })}>
-                Start a new one
-              </Button>
-            }
-          />
-        </div>
-      );
-    }
     if (single.isError) {
       return (
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-10">
@@ -168,5 +181,30 @@ export function ChatPage() {
       linkedPrompt={starter ? undefined : linked}
       onPromptConsumed={dropPrompt}
     />
+  );
+}
+
+/** A link to a conversation that was deleted, or never existed. */
+function ConversationGone() {
+  useDocumentTitle("Conversation not found");
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-10">
+      <EmptyState
+        icon={MessageSquareOff}
+        title={<span role="alert">This conversation isn't here any more</span>}
+        action={
+          <div className="flex flex-wrap justify-center gap-2">
+            <LinkButton to="/chat" variant="primary">
+              Start a new one
+            </LinkButton>
+            <LinkButton to="/conversations" variant="secondary">
+              All conversations
+            </LinkButton>
+          </div>
+        }
+      >
+        It may have been deleted. Nothing was sent.
+      </EmptyState>
+    </div>
   );
 }

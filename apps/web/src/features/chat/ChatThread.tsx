@@ -52,8 +52,10 @@ import {
 } from "./ApprovalInterrupts.tsx";
 import { Composer } from "./Composer.tsx";
 import { ComputerNotice } from "./ComputerNotice.tsx";
+import { ConversationAllows } from "./ConversationAllows.tsx";
 import { type ChatActions, ChatActionsContext, type ComputerView } from "./chat-context.tsx";
 import { currentStep, latestTurnToolCalls, plainRunError, replayedId, shownIds, textOf } from "./messages.ts";
+import { readOutsideContent } from "./outside.ts";
 import { claimInlineRunErrors } from "./provider.tsx";
 import { RunStatus } from "./RunStatus.tsx";
 import { Starters } from "./Starters.tsx";
@@ -437,6 +439,7 @@ function Conversation({
     ...orphans.map((approval) => approval.toolCallId),
   ].join(",");
   const runEnded = !running && (lastRun === "stopped" || lastRun === "failed") ? lastRun : null;
+  const readOutside = readOutsideContent(messages);
   const actions = useMemo<ChatActions>(() => {
     const latestSet = new Set(latestKey ? latestKey.split(",") : []);
     const awaitingSet = new Set(awaitingKey ? awaitingKey.split(",") : []);
@@ -452,8 +455,19 @@ function Conversation({
       isAwaitingApproval: (id) => awaitingSet.has(id),
       runEnded,
       showComputer,
+      readOutside,
     };
-  }, [threadId, runtimeAgentId, agentName, busy, latestKey, awaitingKey, runEnded, showComputer]);
+  }, [
+    threadId,
+    runtimeAgentId,
+    agentName,
+    busy,
+    latestKey,
+    awaitingKey,
+    runEnded,
+    showComputer,
+    readOutside,
+  ]);
 
   // The page itself scrolls (the shell's layout grows with its content). While the person is at the
   // end of the conversation, new messages keep it in view; once they scroll up, it stays put.
@@ -691,6 +705,7 @@ function Conversation({
                   This message came from a link. Read it before you send it.
                 </Notice>
               ) : null}
+              <ConversationAllows threadId={threadId} className="mx-auto w-full max-w-3xl" />
               <Composer
                 agentName={agentName}
                 className="mx-auto w-full max-w-3xl"
@@ -702,6 +717,7 @@ function Conversation({
                 onShowBlocker={focusApprovals}
                 footnote={footnote}
                 inputRef={composerRef}
+                attachTo={runtimeAgentId}
               />
             </div>
           </div>

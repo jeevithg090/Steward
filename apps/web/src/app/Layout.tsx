@@ -6,15 +6,7 @@ import { Badge } from "@/components/ui/Badge.tsx";
 import { Button } from "@/components/ui/Button.tsx";
 import { Dialog } from "@/components/ui/Dialog.tsx";
 import { Loading } from "@/components/ui/Notice.tsx";
-import {
-  NEEDS_YOU_STATES,
-  needsYouCount,
-  useApprovals,
-  useCreateThread,
-  useInfo,
-  useTasks,
-  useThreads,
-} from "@/lib/api.ts";
+import { NEEDS_YOU_STATES, needsYouCount, useApprovals, useInfo, useTasks, useThreads } from "@/lib/api.ts";
 import { claimRouteFocus, markRouteChange } from "@/lib/focus.ts";
 import { useLiveSync } from "@/lib/live.ts";
 import { showBrowserNotification } from "@/lib/notify.ts";
@@ -225,19 +217,17 @@ function Rail({ onHelp, liveStatus }: { onHelp: () => void; liveStatus: ReactNod
   );
 }
 
-/** The newest conversations, and a way to start one. */
-function RecentConversations() {
+/** The newest conversations, a way to start one, and the way to all of them. */
+function RecentConversations({ onNavigate }: { onNavigate?: () => void }) {
   const threads = useThreads();
-  const create = useCreateThread();
   const navigate = useNavigate();
   const headingId = useId();
   const recent = [...(threads.data ?? [])].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 8);
 
+  // Chat starts the conversation, and picks up an empty one left open rather than making another.
   function startNew() {
-    create.mutate(undefined, {
-      onSuccess: (thread) => navigate(`/chat/${encodeURIComponent(thread.id)}`),
-      onError: () => navigate("/chat"),
-    });
+    onNavigate?.();
+    navigate("/chat");
   }
 
   return (
@@ -249,7 +239,6 @@ function RecentConversations() {
         variant="ghost"
         size="sm"
         icon={<MessageSquarePlus />}
-        loading={create.isPending}
         onClick={startNew}
         className="justify-start"
       >
@@ -265,6 +254,7 @@ function RecentConversations() {
             <li key={thread.id}>
               <NavLink
                 to={`/chat/${encodeURIComponent(thread.id)}`}
+                onClick={onNavigate}
                 className={({ isActive }) =>
                   cn(
                     "flex min-h-target flex-col justify-center rounded-field px-3 py-1.5 no-underline",
@@ -290,6 +280,21 @@ function RecentConversations() {
           ))}
         </ul>
       )}
+      {threads.isSuccess && threads.data.length > 0 ? (
+        <NavLink
+          to="/conversations"
+          end
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            cn(
+              "flex min-h-target items-center rounded-field px-3 text-accent text-sub underline-offset-2 hover:underline",
+              isActive && "bg-accent-soft",
+            )
+          }
+        >
+          All conversations
+        </NavLink>
+      ) : null}
     </section>
   );
 }
@@ -392,7 +397,7 @@ function MoreDialog({
           ))}
         </ul>
       </nav>
-      <RecentConversations />
+      <RecentConversations onNavigate={() => onOpenChange(false)} />
       <Button
         variant="ghost"
         size="sm"

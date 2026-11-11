@@ -142,6 +142,122 @@ export const routineCreate = builtin("routine_create", {
   },
 });
 
+/** The agent's own routines only: a bot never sees or changes Steward's, nor Steward a bot's. */
+function ownRoutine(args: Record<string, unknown>, ctx: Parameters<StewardTool["execute"]>[1]) {
+  const id = readString(args, "id", { max: 64 });
+  const routine = ctx.services.stores.routines.get(id);
+  if (!routine || routine.agentId !== ctx.agentId) {
+    throw new ArgumentError("There is no routine with that id. Call routine_list to find it.");
+  }
+  // The approval card names the routine from these words, so they must be the routine's own.
+  const title = readString(args, "title", { max: 120 }).trim();
+  if (title.toLowerCase() !== routine.title.trim().toLowerCase()) {
+    throw new ArgumentError(
+      `That routine is called "${routine.title}", not "${title}". Check routine_list and try again.`,
+    );
+  }
+  return routine;
+}
+
+const ROUTINE_REF = {
+  id: str("The routine's id, from routine_list."),
+  title: str("The routine's current name, exactly as routine_list gives it."),
+};
+
+export const routineList = builtin("routine_list", {
+  description:
+    "List the routines you run for the person: each one's id, name, what it does, its schedule in words, whether it is on, and when it runs next. Call it before changing or deleting one.",
+  parameters: object({}),
+  toGateCall: async () => ({ target: {} }),
+  execute: async (_args, ctx) =>
+    ctx.services.stores.routines
+      .list()
+      .filter((routine) => routine.agentId === ctx.agentId)
+      .map(
+        ({
+          id,
+          title,
+          prompt,
+          schedule,
+          scheduleText,
+          timezone,
+          enabled,
+          nextRunAt,
+          lastRunAt,
+          lastStatus,
+        }) => ({
+          id,
+          title,
+          prompt,
+          schedule,
+          scheduleText,
+          timezone,
+          enabled,
+          ...(nextRunAt ? { nextRunAt } : {}),
+          ...(lastRunAt ? { lastRunAt, lastStatus } : {}),
+        }),
+      ),
+});
+
+export const routineUpdate = builtin("routine_update", {
+  description: [
+    "Change one of your routines when the person asks: its name, what it does, its schedule or time zone, or switch it on or off.",
+    "Give its id and current name from routine_list, and only the fields that change. The schedule is a five-field cron expression, at most every 15 minutes; 'move my brief to 9' on weekdays is '0 9 * * 1-5'.",
+  ].join(" "),
+  parameters: object(
+    {
+      ...ROUTINE_REF,
+      newTitle: str("Optional. A new name."),
+      prompt: str("Optional. The new work of one run, in the imperative."),
+      schedule: str("Optional. A new five-field cron expression."),
+      timezone: str("Optional. A new IANA timezone, such as Europe/London."),
+      enabled: bool("Optional. false pauses it; true switches it back on."),
+      intent: INTENT,
+    },
+    ["id", "title"],
+  ),
+  toGateCall: async () => ({ target: {} }),
+  execute: async (args, ctx) => {
+    const routine = ownRoutine(args, ctx);
+    const newTitle = readOptionalString(args, "newTitle")?.trim();
+    const prompt = readOptionalString(args, "prompt")?.trim();
+    const schedule = readOptionalString(args, "schedule")?.trim();
+    const timezone = readOptionalString(args, "timezone");
+    const enabled = readOptionalBoolean(args, "enabled");
+    if (schedule !== undefined && schedule.split(/\s+/).length !== 5) {
+      throw new ArgumentError("schedule must be a five-field cron expression, such as 0 8 * * 1-5.");
+    }
+    if (timezone !== undefined && safeTimeZone(timezone) !== timezone)
+      throw new ArgumentError(`"${timezone}" is not a timezone I know.`);
+    if (newTitle !== undefined && (newTitle === "" || newTitle.length > 120))
+      throw new ArgumentError("newTitle must be 1 to 120 characters.");
+    if (prompt !== undefined && (prompt === "" || prompt.length > 4000))
+      throw new ArgumentError("prompt must be 1 to 4000 characters.");
+    const patch = {
+      ...(newTitle ? { title: newTitle } : {}),
+      ...(prompt ? { prompt } : {}),
+      ...(schedule ? { schedule } : {}),
+      ...(timezone ? { timezone } : {}),
+      ...(enabled !== undefined ? { enabled } : {}),
+    };
+    if (Object.keys(patch).length === 0)
+      throw new ArgumentError("Give at least one change: newTitle, prompt, schedule, timezone or enabled.");
+    return ctx.services.stores.routines.update(routine.id, patch);
+  },
+});
+
+export const routineDelete = builtin("routine_delete", {
+  description:
+    "Delete one of your routines when the person asks, so it never runs again. Its past conversation stays. Give its id and current name from routine_list. This always asks the person first.",
+  parameters: object({ ...ROUTINE_REF, intent: INTENT }, ["id", "title"]),
+  toGateCall: async () => ({ target: {} }),
+  execute: async (args, ctx) => {
+    const routine = ownRoutine(args, ctx);
+    ctx.services.stores.routines.remove(routine.id);
+    return { deleted: true, id: routine.id, title: routine.title };
+  },
+});
+
 export const briefToday = builtin("brief_today", {
   description:
     "Get today's brief from the connected mail and calendar: what needs the person, each with a one-line reason; what can wait; today's calendar; tasks in progress; and what could not be checked, and why. The app shows it as a card, so do not repeat it: add at most two short sentences, on the one thing that matters most or on what could not be checked. Never claim you checked a source listed under couldNotCheck.",
@@ -183,6 +299,9 @@ export const STEWARD_TOOLS: StewardTool[] = [
   taskCreate,
   taskUpdate,
   routineCreate,
+  routineList,
+  routineUpdate,
+  routineDelete,
   briefToday,
   triageInbox,
 ];

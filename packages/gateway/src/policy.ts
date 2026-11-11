@@ -172,7 +172,7 @@ const TAINT_KINDS = new Set<ToolKind>(["send", "pay", "sign", "delete", "shell"]
  * Tools whose effect outlives the conversation: injected text saved as a memory or a routine would
  * reach every later run. After untrusted content they ask too.
  */
-const TAINT_PERSISTS = new Set(["memory_remember", "routine_create"]);
+const TAINT_PERSISTS = new Set(["memory_remember", "routine_create", "routine_update"]);
 /**
  * Surfaces that reach past Steward and this machine: mail, the calendar, the web and connected
  * apps. After untrusted content, a write there asks. A coding agent's change to a folder on this
@@ -228,8 +228,16 @@ export function bare(reason: string): string {
 }
 
 // A bot's rules sit after the tenant's and before the person's: they may only ask or deny, so the
-// order only decides which rule is named when several would refuse the same call.
-const SOURCE_ORDER: Record<Rule["source"], number> = { preset: 0, tenant: 1, bot: 2, person: 3, always: 4 };
+// order only decides which rule is named when several would refuse the same call. What was allowed
+// for one conversation comes last (conversation.ts): it only ever allows.
+const SOURCE_ORDER: Record<Rule["source"], number> = {
+  preset: 0,
+  tenant: 1,
+  bot: 2,
+  person: 3,
+  always: 4,
+  conversation: 5,
+};
 
 /** Rules in the order they are tried within a step: presets, tenant, bot, person, always, oldest first. */
 export function orderRules(rules: readonly Rule[]): Rule[] {

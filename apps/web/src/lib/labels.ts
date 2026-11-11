@@ -33,12 +33,16 @@ const TOOL_LABELS: Record<string, string> = {
   task_create: "Add a task",
   task_update: "Update a task",
   routine_create: "Set up a routine",
+  routine_list: "Look at your routines",
+  routine_update: "Change a routine",
+  routine_delete: "Delete a routine",
   brief_today: "Make the morning brief",
   triage_inbox: "Sort your inbox",
   show_table: "Show a table",
   show_chart: "Show a chart",
   show_comparison: "Show a comparison",
   show_choices: "Offer choices",
+  show_skill: "Write a skill for you to save",
   make_page: "Make a page",
   directory_find: "Look up bots in the directory",
 };
@@ -99,6 +103,7 @@ export const RULE_SOURCE_LABELS: Record<Rule["source"], string> = {
   person: "Yours",
   always: "Always allowed",
   bot: "From a bot",
+  conversation: "Allowed in this conversation",
 };
 
 /** Model providers as people read them. The id itself for one the app does not know. */
@@ -133,6 +138,7 @@ export const AUDIT_TYPE_LABELS: Record<AuditType, string> = {
   "policy.changed": "Rules changed",
   "routine.ran": "Routine ran",
   "routine.disabled": "Routine switched off",
+  "routine.changed": "Routine changed",
   "run.started": "Started work",
   "run.finished": "Finished work",
   "harness.started": "Coding agent started",

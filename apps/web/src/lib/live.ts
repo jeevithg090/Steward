@@ -184,7 +184,10 @@ export function applyLiveEvent(qc: QueryClient, event: LiveEvent): void {
       qc.setQueryData(queryKeys.approval(event.approval.id), event.approval);
       void qc.invalidateQueries({ queryKey: queryKeys.approvalLists });
       void qc.invalidateQueries({ queryKey: queryKeys.tasks });
-      if (event.type === "approval.decided" && event.approval.answer === "always") {
+      if (
+        event.type === "approval.decided" &&
+        (event.approval.answer === "always" || event.approval.answer === "conversation")
+      ) {
         void qc.invalidateQueries({ queryKey: queryKeys.rules });
       }
       return;

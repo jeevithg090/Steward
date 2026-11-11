@@ -8,6 +8,9 @@ import { AppShell } from "./Layout.tsx";
 /** Each page is its own chunk, fetched the first time someone opens it. */
 const TodayPage = lazy(() => import("@/pages/TodayPage.tsx").then((m) => ({ default: m.TodayPage })));
 const TasksPage = lazy(() => import("@/pages/TasksPage.tsx").then((m) => ({ default: m.TasksPage })));
+const ConversationsPage = lazy(() =>
+  import("@/pages/ConversationsPage.tsx").then((m) => ({ default: m.ConversationsPage })),
+);
 const RoutinesPage = lazy(() =>
   import("@/pages/RoutinesPage.tsx").then((m) => ({ default: m.RoutinesPage })),
 );
@@ -51,6 +54,7 @@ export function AppRoutes() {
         <Route index element={<TodayPage />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="chat/:threadId" element={<ChatPage />} />
+        <Route path="conversations" element={<ConversationsPage />} />
         <Route path="bots" element={<BotsPage />} />
         <Route path="bots/add" element={<BotAddPage />} />
         <Route path="bots/:id" element={<BotListingPage />} />

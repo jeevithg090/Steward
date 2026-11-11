@@ -1,7 +1,8 @@
-import { newId, ROUTES, ThreadCreateBody } from "@steward/shared";
+import { newId, ROUTES, ThreadCreateBody, ThreadPatchBody } from "@steward/shared";
 import type { Hono } from "hono";
 import type { StewardServices } from "../context.ts";
 import { HttpError, notFound, readBody } from "../http/errors.ts";
+import { registerConversationAllowRoutes } from "./conversation-allows.ts";
 import { enumQuery, flagQuery, intQuery, textQuery } from "./query.ts";
 
 const KINDS = ["chat", "routine", "task"] as const;
@@ -52,6 +53,16 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
     return c.json(summary);
   });
 
+  // Renames a conversation. A thread the runner knows but the server has no row for gets one.
+  app.patch(ROUTES.thread, async (c) => {
+    const id = c.req.param("id");
+    const summary = s.threads.summary(id);
+    if (!summary) throw notFound("that conversation");
+    const body = await readBody(c, ThreadPatchBody);
+    s.threads.upsertMeta({ id, agentId: summary.agentId, title: body.title });
+    return c.json(s.threads.summary(id));
+  });
+
   app.delete(ROUTES.thread, async (c) => {
     const id = c.req.param("id");
     if (!s.threads.exists(id)) throw notFound("that conversation");
@@ -68,6 +79,8 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
     withdrawApprovals(s, id);
     s.runner.deleteThread(id);
     s.threads.deleteMeta(id);
+    // What was allowed for this conversation only goes with it.
+    s.gateway.conversationAllows.removeForThread(id, s.actorId);
     // A coding agent's process for this conversation stops, and its session is forgotten.
     await s.models.closeThread(id).catch(() => {});
     // So do the conversations of tasks it handed to other agents.
@@ -76,9 +89,12 @@ export function registerThreadRoutes(app: Hono, s: StewardServices): void {
       withdrawApprovals(s, child.childThreadId);
       s.runner.deleteThread(child.childThreadId);
       s.threads.deleteMeta(child.childThreadId);
+      s.gateway.conversationAllows.removeForThread(child.childThreadId, s.actorId);
       await s.models.closeThread(child.childThreadId).catch(() => {});
     }
     s.delegations.deleteForParent(id);
     return c.json({ ok: true });
   });
+
+  registerConversationAllowRoutes(app, s);
 }

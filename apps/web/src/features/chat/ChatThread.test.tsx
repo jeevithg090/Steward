@@ -110,7 +110,10 @@ vi.mock("@/lib/api.ts", async (importOriginal) => ({
   useSkills: () => ({ data: [] }),
   useComputerStatus: () => ({ data: undefined }),
   useComputerActivity: () => ({ data: [] }),
-  useThreads: () => ({ data: [] }),
+  // The conversation the ChatPage tests open: the page waits for one it cannot find.
+  useThreads: () => ({
+    data: [{ id: "thr_1", agentId: "steward", title: "", kind: "chat", updatedAt: "", running: false }],
+  }),
   useComputerFiles: (agentId: string) => ({
     data: [
       { path: "notes/plan.md", isDirectory: false, size: 120, modifiedAt: "2026-11-10T09:00:00Z", agentId },
@@ -120,6 +123,7 @@ vi.mock("@/lib/api.ts", async (importOriginal) => ({
     isError: false,
     refetch: async () => {},
   }),
+  useConversationAllows: () => ({ data: [] }),
 }));
 
 vi.mock("@/components/cards/ApprovalCard.tsx", () => ({

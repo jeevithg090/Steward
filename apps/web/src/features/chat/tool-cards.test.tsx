@@ -13,6 +13,7 @@ import {
   GenericToolLine,
   HelpRequestCard,
   MailSendCard,
+  RoutineToolCard,
   SecretRequestLine,
   TaskToolCard,
   type ToolProps,
@@ -178,6 +179,48 @@ describe("tool cards", () => {
     );
     expect(screen.getByText("Refused by your rule ‘No shopping’")).toBeTruthy();
     expect(screen.getByText("Purchases are off.")).toBeTruthy();
+  });
+
+  describe("a routine change", () => {
+    const change = { id: "rtn_1", title: "Morning brief", schedule: "0 9 * * 1-5" };
+
+    it("says what it is changing while it waits, without passing the change off as the routine", () => {
+      draw(<RoutineToolCard {...tool("routine_update", change)} />, chat({ isAwaitingApproval: () => true }));
+      expect(screen.getByText("Changing the routine “Morning brief”")).toBeTruthy();
+      expect(screen.getByText(/Waiting for your answer/)).toBeTruthy();
+      // Only the schedule changes: the routine still has its instructions.
+      expect(screen.queryByText("No instruction yet.")).toBeNull();
+    });
+
+    it("shows the routine as saved once it is changed", () => {
+      const saved = {
+        id: "rtn_1",
+        title: "Morning brief",
+        prompt: "Tell me what needs me",
+        schedule: "0 9 * * 1-5",
+        scheduleText: "Weekdays at 09:00",
+        enabled: true,
+      };
+      draw(<RoutineToolCard {...tool("routine_update", change, { ok: true, data: saved })} />);
+      expect(screen.getByRole("region", { name: "Routine: Morning brief" })).toBeTruthy();
+      expect(screen.getByText("Weekdays at 09:00")).toBeTruthy();
+      expect(screen.getByText("“Tell me what needs me”")).toBeTruthy();
+    });
+
+    it("names the refusal when it was refused", () => {
+      draw(
+        <RoutineToolCard
+          {...tool("routine_update", change, {
+            ok: false,
+            refused: true,
+            rule: "Ask after outside content",
+            message: "You refused this.",
+          })}
+        />,
+      );
+      expect(screen.getByText("You refused this.")).toBeTruthy();
+      expect(screen.queryByText("No instruction yet.")).toBeNull();
+    });
   });
 
   describe("the email draft", () => {

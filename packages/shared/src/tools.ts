@@ -35,6 +35,9 @@ export const TOOLS = {
   task_create: { kind: "write", surface: "task", taints: false },
   task_update: { kind: "write", surface: "task", taints: false },
   routine_create: { kind: "write", surface: "task", taints: false },
+  routine_list: { kind: "read", surface: "task", taints: false },
+  routine_update: { kind: "write", surface: "task", taints: false },
+  routine_delete: { kind: "delete", surface: "task", taints: false },
   // Hands a task to another agent. Its answer is another model's words, which may carry what that
   // agent read on the web or in mail, so it taints the conversation like any outside content.
   delegate_task: { kind: "write", surface: "task", taints: true },
@@ -45,6 +48,8 @@ export const TOOLS = {
   show_chart: { kind: "ui", surface: "ui", taints: false },
   show_comparison: { kind: "ui", surface: "ui", taints: false },
   show_choices: { kind: "ui", surface: "ui", taints: false },
+  // A skill drafted in the conversation: the card saves it only when the person presses Save skill
+  show_skill: { kind: "ui", surface: "ui", taints: false },
   make_page: { kind: "write", surface: "file", taints: false },
   // The bot directory: listing text is third-party, so it taints
   directory_find: { kind: "read", surface: "web", taints: true },

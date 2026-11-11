@@ -18,6 +18,7 @@ import {
   type ChainCheck,
   type ComputerStatus,
   type ConnectionsInfo,
+  type ConversationAllow,
   type Decision,
   type Device,
   type DeviceKind,
@@ -56,6 +57,7 @@ import {
   type ThreadSummary,
   type TriageItem,
   type WorkspaceFile,
+  type WorkspaceFileText,
 } from "@steward/shared";
 import {
   QueryClient,
@@ -292,8 +294,16 @@ export const api = {
 
   threads: {
     list: (signal?: AbortSignal) => get<ThreadSummary[]>(ROUTES.threads, undefined, signal),
-    get: (id: string) => get<ThreadSummary>(route(ROUTES.thread, { id })),
+    get: (id: string, signal?: AbortSignal) =>
+      get<ThreadSummary>(route(ROUTES.thread, { id }), undefined, signal),
     create: (body: ThreadCreateInput = {}) => send<ThreadSummary>("POST", ROUTES.threads, body),
+    rename: (id: string, title: string) =>
+      send<ThreadSummary>("PATCH", route(ROUTES.thread, { id }), { title }),
+    /** What was allowed for this conversation only. */
+    allows: (id: string, signal?: AbortSignal) =>
+      get<ConversationAllow[]>(route(ROUTES.threadAllows, { id }), undefined, signal),
+    turnOffAllow: (id: string, allowId: string) =>
+      send<{ ok: true }>("DELETE", route(ROUTES.threadAllow, { id, allowId })),
     /** `ifEmpty` keeps a conversation that has any history: the server answers 409 instead. */
     remove: (id: string, opts: { ifEmpty?: boolean } = {}) =>
       send<void>(
@@ -394,6 +404,12 @@ export const api = {
       get<ActivityItem[]>(route(ROUTES.computerActivity, { agentId }), undefined, signal),
     files: (agentId: string, dir?: string, signal?: AbortSignal) =>
       get<WorkspaceFile[]>(route(ROUTES.computerFiles, { agentId }), { dir }, signal),
+    /** One file's text, to read. HTML comes back as text and is drawn in a sandboxed frame. */
+    file: (agentId: string, path: string, signal?: AbortSignal) =>
+      get<WorkspaceFileText>(route(ROUTES.computerFile, { agentId }), { path }, signal),
+    /** Adds a text file the person attached; it lands under uploads/ with a safe name. */
+    upload: (agentId: string, body: { name: string; text: string }) =>
+      send<WorkspaceFile>("POST", route(ROUTES.computerUploads, { agentId }), body),
     reset: (agentId: string) => send<ComputerStatus>("POST", route(ROUTES.computerReset, { agentId })),
     /** The WebSocket URL for the live screen, on this page's own host. */
     wsUrl: (agentId: string) => {
@@ -459,6 +475,8 @@ export const queryKeys = {
   setup: ["setup"] as const,
   threads: ["threads"] as const,
   thread: (id: string) => ["threads", "one", id] as const,
+  /** Under `rules`, so every change to what may run refreshes them too. */
+  threadAllows: (id: string) => ["rules", "conversation", id] as const,
   approvals: ["approvals"] as const,
   /** Every approval list, but not the single approvals (those are set directly when they change). */
   approvalLists: ["approvals", "list"] as const,
@@ -490,6 +508,7 @@ export const queryKeys = {
   computerStatus: (agentId: string) => ["computer", agentId, "status"] as const,
   computerActivity: (agentId: string) => ["computer", agentId, "activity"] as const,
   computerFiles: (agentId: string, dir?: string) => ["computer", agentId, "files", dir ?? ""] as const,
+  computerFile: (agentId: string, path: string) => ["computer", agentId, "file", path] as const,
   notifications: ["notifications"] as const,
   /** Every bots query: the directory pages and the installed list. */
   bots: ["bots"] as const,
@@ -593,11 +612,16 @@ export function useThreads(opts?: QueryOpts<ThreadSummary[]>) {
   });
 }
 
-/** One conversation's summary, for a conversation the list does not have (yet). */
-export function useThread(id: string, opts?: QueryOpts<ThreadSummary>) {
+/**
+ * One conversation's summary, for a conversation the list does not have (yet). A 404 means it was
+ * deleted, or never existed, and is not asked again.
+ */
+export function useThread(id: string | undefined, opts?: QueryOpts<ThreadSummary>) {
   return useQuery<ThreadSummary, ApiError>({
-    queryKey: queryKeys.thread(id),
-    queryFn: () => api.threads.get(id),
+    queryKey: queryKeys.thread(id ?? ""),
+    queryFn: ({ signal }) => api.threads.get(id ?? "", signal),
+    enabled: Boolean(id),
+    retry: (count, error) => error.status !== 404 && count < 2,
     ...opts,
   });
 }
@@ -623,7 +647,43 @@ export function useDeleteThread() {
   return useMutation<void, ApiError, string | { id: string; ifEmpty?: boolean }>({
     mutationFn: (target) =>
       typeof target === "string" ? api.threads.remove(target) : api.threads.remove(target.id, target),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.threads }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.threads });
+      // Its allows for this conversation went with it.
+      void qc.invalidateQueries({ queryKey: queryKeys.rules });
+    },
+  });
+}
+
+/** What the person allowed for this conversation only, newest first. */
+export function useConversationAllows(threadId: string, opts?: QueryOpts<ConversationAllow[]>) {
+  return useQuery<ConversationAllow[], ApiError>({
+    queryKey: queryKeys.threadAllows(threadId),
+    queryFn: ({ signal }) => api.threads.allows(threadId, signal),
+    retry: false,
+    ...opts,
+  });
+}
+
+export function useTurnOffAllow() {
+  const qc = useQueryClient();
+  return useMutation<{ ok: true }, ApiError, { threadId: string; allowId: string }>({
+    mutationFn: ({ threadId, allowId }) => api.threads.turnOffAllow(threadId, allowId),
+    onSuccess: (_, { threadId }) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.threadAllows(threadId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.audit });
+    },
+  });
+}
+
+export function useRenameThread() {
+  const qc = useQueryClient();
+  return useMutation<ThreadSummary, ApiError, { id: string; title: string }>({
+    mutationFn: ({ id, title }) => api.threads.rename(id, title),
+    onSuccess: (thread) => {
+      qc.setQueryData(queryKeys.thread(thread.id), thread);
+      void qc.invalidateQueries({ queryKey: queryKeys.threads });
+    },
   });
 }
 
@@ -656,7 +716,8 @@ export function useDecideApproval() {
       void qc.invalidateQueries({ queryKey: queryKeys.approvalLists });
       void qc.invalidateQueries({ queryKey: queryKeys.tasks });
       void qc.invalidateQueries({ queryKey: queryKeys.audit });
-      if (approval.answer === "always") void qc.invalidateQueries({ queryKey: queryKeys.rules });
+      if (approval.answer === "always" || approval.answer === "conversation")
+        void qc.invalidateQueries({ queryKey: queryKeys.rules });
     },
   });
 }
@@ -976,6 +1037,21 @@ export function useComputerFiles(
   return useQuery<WorkspaceFile[], ApiError>({
     queryKey: queryKeys.computerFiles(agentId, dir),
     queryFn: ({ signal }) => api.computer.files(agentId, dir, signal),
+    ...opts,
+  });
+}
+
+/** A workspace file's text, while `path` is set. */
+export function useWorkspaceFile(
+  agentId: string = DEFAULT_AGENT_ID,
+  path: string | undefined,
+  opts?: QueryOpts<WorkspaceFileText>,
+) {
+  return useQuery<WorkspaceFileText, ApiError>({
+    queryKey: queryKeys.computerFile(agentId, path ?? ""),
+    queryFn: ({ signal }) => api.computer.file(agentId, path ?? "", signal),
+    enabled: Boolean(path),
+    staleTime: 0,
     ...opts,
   });
 }

@@ -64,6 +64,18 @@ export interface WorkspaceFile {
   isDirectory: boolean;
 }
 
+/**
+ * One workspace file as the person opens it (`GET /api/computer/:agentId/file`): its text and how
+ * to show it. Always JSON, never served as a page on Steward's origin; the web app draws HTML in a
+ * sandboxed frame with scripts, forms and network off.
+ */
+export interface WorkspaceFileText extends Omit<WorkspaceFile, "isDirectory"> {
+  format: "markdown" | "html" | "csv" | "json" | "text";
+  text: string;
+  /** Only the first part of a large file is sent. */
+  truncated: boolean;
+}
+
 /** Server → client on `WS /ws/computer/:agentId`. */
 export type ComputerServerMessage =
   | { type: "frame"; data: string; mime: "image/jpeg"; width: number; height: number }

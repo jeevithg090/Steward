@@ -1,6 +1,6 @@
 import { ROUTINE_LIMITS, type Routine } from "@steward/shared";
-import { CalendarClock, Clock, MessageSquare, Play, Plus, Repeat, Trash } from "lucide-react";
-import { type FormEvent, useId, useState } from "react";
+import { CalendarClock, Clock, MessageSquare, Pencil, Play, Plus, Repeat, Trash } from "lucide-react";
+import { type FormEvent, useEffect, useId, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { TimezoneSelect } from "@/components/forms/TimezoneSelect.tsx";
@@ -19,10 +19,12 @@ import {
   useRoutines,
   useRunRoutine,
   useSetInboxWatch,
+  useSettings,
   useUpdateRoutine,
 } from "@/lib/api.ts";
 import { CRON_PRESETS, checkCron } from "@/lib/cron.ts";
 import { browserTimeZone, formatDateTime, relativeTime } from "@/lib/utils.ts";
+import { RoutineEditDialog } from "./RoutineEditDialog.tsx";
 
 export function RoutinesPage() {
   const routines = useRoutines();
@@ -179,6 +181,7 @@ function RoutineCard({ routine }: { routine: Routine }) {
   const run = useRunRoutine();
   const remove = useDeleteRoutine();
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
   const headingId = useId();
 
   return (
@@ -260,10 +263,15 @@ function RoutineCard({ routine }: { routine: Routine }) {
         >
           Run now
         </Button>
+        <Button variant="ghost" icon={<Pencil />} onClick={() => setEditing(true)}>
+          Edit<span className="sr-only">: {routine.title}</span>
+        </Button>
         <Button variant="ghost" icon={<Trash />} onClick={() => setConfirming(true)}>
           Delete
         </Button>
-        {routine.threadId ? (
+        {/* Only once it has run: a routine Steward set up has no conversation before then, and the
+            chat says a missing one "isn't here any more". */}
+        {routine.threadId && routine.lastRunAt ? (
           <Link
             to={`/chat/${encodeURIComponent(routine.threadId)}`}
             className="inline-flex min-h-target items-center gap-1.5 px-1 text-accent text-sub underline underline-offset-4"
@@ -278,6 +286,8 @@ function RoutineCard({ routine }: { routine: Routine }) {
           This routine is paused. Turn it on to run it.
         </p>
       ) : null}
+
+      <RoutineEditDialog routine={routine} open={editing} onClose={() => setEditing(false)} />
 
       <Dialog
         open={confirming}
@@ -315,7 +325,14 @@ function NewRoutine() {
   const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
   const [schedule, setSchedule] = useState("0 8 * * 1-5");
+  // The time zone Settings names for routines, once it has loaded, unless the person chose another.
+  const settings = useSettings();
   const [timezone, setTimezone] = useState(browserTimeZone);
+  const [zoneChosen, setZoneChosen] = useState(false);
+  const savedZone = settings.data?.timezone;
+  useEffect(() => {
+    if (savedZone && !zoneChosen) setTimezone(savedZone);
+  }, [savedZone, zoneChosen]);
   const [touched, setTouched] = useState(false);
   const cron = checkCron(schedule);
 
@@ -402,7 +419,13 @@ function NewRoutine() {
           ) : null}
         </fieldset>
         <Field label="Time zone">
-          <TimezoneSelect value={timezone} onChange={setTimezone} />
+          <TimezoneSelect
+            value={timezone}
+            onChange={(zone) => {
+              setZoneChosen(true);
+              setTimezone(zone);
+            }}
+          />
         </Field>
         {create.isError ? (
           <p role="alert" className="font-medium text-problem text-sub">

@@ -10,6 +10,11 @@ export { type AuditPageOptions, GENESIS_HASH, hashEvent, SqliteAuditLog } from "
 export { CelEngine, celString, FUNCTION_NAMES, RuleSyntaxError, unescapeCelString } from "./cel.ts";
 export { buildContext, CONTEXT_SCHEMA, neutralContext, type PolicyContext } from "./context.ts";
 export {
+  canAllowInConversation,
+  inConversationScope,
+  SqliteConversationAllows,
+} from "./conversation.ts";
+export {
   DEVICE_FLOOR_PRESET,
   DEVICE_PRESETS,
   DEVICE_TAINT_PRESET,

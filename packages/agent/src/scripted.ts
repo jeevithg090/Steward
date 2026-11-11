@@ -185,6 +185,29 @@ function describeResult(tool: string, data: unknown, req: ChatCompletionRequest)
       return [
         `Done. “${String(v.title ?? "The routine")}” will run ${String(v.scheduleText ?? v.schedule ?? "on its schedule").toLowerCase()}.`,
       ];
+    case "routine_list": {
+      const routines = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
+      return routines.length === 0
+        ? ["You have no routines yet."]
+        : [
+            `You have ${count(routines.length, "routine", "routines")}: ${routines
+              .map((r) => `“${String(r.title ?? "")}” (${String(r.scheduleText ?? r.schedule ?? "")})`)
+              .join(", ")}.`,
+          ];
+    }
+    case "routine_update":
+      return [
+        `Done. “${String(v.title ?? "The routine")}” now runs ${String(v.scheduleText ?? v.schedule ?? "on its schedule").toLowerCase()}${v.enabled === false ? ", but it is paused" : ""}.`,
+      ];
+    case "routine_delete":
+      return [`Deleted “${String(v.title ?? "the routine")}”. Its past conversation stays.`];
+    case "file_read": {
+      const text = typeof v.text === "string" ? v.text : "";
+      const lines = text.split("\n").filter((line) => line.trim() !== "").length;
+      return [
+        `I've read ${String(v.path ?? "the file")}: ${count(lines, "line", "lines")} of text. Tell me what you'd like done with it.`,
+      ];
+    }
     case "task_create":
       return ["It's on your Tasks page."];
     case "make_page":
@@ -198,6 +221,8 @@ function describeResult(tool: string, data: unknown, req: ChatCompletionRequest)
     case "show_chart":
     case "show_choices":
       return ["It's on screen above."];
+    case "show_skill":
+      return ["It's on screen above. Press Save skill to keep it, or Edit first to change it."];
     default:
       return ["Done."];
   }
@@ -330,6 +355,31 @@ function capitalise(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** "Make me a skill for my weekly review" → a draft skill for show_skill. */
+export function parseSkillRequest(
+  text: string,
+): { name: string; description: string; instructions: string } | undefined {
+  const match =
+    /\b(?:make|create|write|save|draft)\s+(?:me\s+)?(?:a|an|the)\s+(?:new\s+)?skill\b(?:\s+(?:for|called|named|to)\s+(.+?))?[\s.!?]*$/i.exec(
+      text.trim(),
+    );
+  if (!match) return undefined;
+  const asked = (match[1] ?? "my weekly review").trim().replace(/[.!?]+$/, "");
+  const about = asked.replace(/^(?:my|a|an|the)\s+/i, "");
+  const name =
+    about
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 41)
+      .replace(/-+$/g, "") || "my-skill";
+  return {
+    name,
+    description: capitalise(about),
+    instructions: `Help me with ${asked}. Start with what needs me, and keep it short and plain.`,
+  };
+}
+
 /** "Every weekday at 8, check my mail" → a cron schedule and the work of one run. */
 export function parseRoutine(text: string): { schedule: string; prompt: string; title: string } | undefined {
   const every =
@@ -454,11 +504,21 @@ function respondToPerson(req: ChatCompletionRequest): FixtureResponse {
       ? call("mail_list", { query: mailQuery(text), limit: 10 })
       : unavailable();
   }
+  // The composer ends a message with this when the person attached a file.
+  const attached = /\bI attached (uploads\/\S+?) \(/.exec(text)?.[1];
+  if (attached) {
+    return offered(req, "file_read") ? call("file_read", { path: attached }) : unavailable();
+  }
   const remember = /\bremember(?:\s+that)?\s+(.+)$/is.exec(text)?.[1]?.trim();
   if (remember) {
     return offered(req, "memory_remember")
       ? call("memory_remember", { text: capitalise(remember.replace(/[.!]+$/, "")), source: "you" })
       : unavailable();
+  }
+  const skill = parseSkillRequest(text);
+  if (skill) return offered(req, "show_skill") ? call("show_skill", skill) : unavailable();
+  if (/\b(my|list|show|which|what)\b.*\broutines\b/.test(lower)) {
+    return offered(req, "routine_list") ? call("routine_list", {}) : unavailable();
   }
   // Before the brief: "Every weekday at 8, send me my brief" asks for a routine, not today's brief.
   const routine = parseRoutine(text);

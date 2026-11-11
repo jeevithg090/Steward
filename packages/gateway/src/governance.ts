@@ -15,6 +15,7 @@ import type {
   Governance,
   Initiator,
   OutboundFinding,
+  Rule,
   Target,
 } from "@steward/shared";
 import { alwaysRuleFor, type SqliteApprovalStore } from "./approvals.ts";
@@ -108,8 +109,23 @@ export class GatewayGovernance implements Governance {
     return found.initiator;
   }
 
+  /**
+   * The rules a call is decided by: every rule, and what the person allowed for this conversation
+   * only when the call is in that scope (conversation.ts). Those join the allow rules, below taint.
+   */
+  private rulesFor(call: GateCall): readonly Rule[] {
+    const rules = this.deps.rules.current();
+    let scoped: Rule[] = [];
+    try {
+      scoped = this.deps.approvals.conversations.rulesFor(call);
+    } catch {
+      // Unreadable: decide without them. They can only allow, so leaving them out is stricter.
+    }
+    return scoped.length > 0 ? [...rules, ...scoped] : rules;
+  }
+
   async execute<T>(call: GateCall, act: () => Promise<T>): Promise<GateOutcome<T>> {
-    const verdict = decide(this.deps.engine, this.deps.rules.current(), call);
+    const verdict = decide(this.deps.engine, this.rulesFor(call), call);
     const { decision, call: prepared } = verdict;
     const summary = this.summaryOf(prepared);
 
@@ -251,12 +267,23 @@ export class GatewayGovernance implements Governance {
       }
 
       const createdRule = approval.createdRuleId ? this.deps.rules.get(approval.createdRuleId) : undefined;
+      const scoped =
+        approval.answer === "conversation" && approval.createdRuleId
+          ? this.deps.approvals.conversations.get(approval.createdRuleId)
+          : undefined;
       const decision: Decision = {
         effect: "allow",
         rule: createdRule
           ? { id: createdRule.id, name: createdRule.name, source: createdRule.source }
-          : builtinRef(BUILTIN.answerOnce, "person"),
-        reason: approval.answer === "always" ? "You chose Always allow" : BUILTIN.answerOnce.reason,
+          : scoped
+            ? { id: scoped.id, name: scoped.name, source: "conversation" }
+            : builtinRef(BUILTIN.answerOnce, "person"),
+        reason:
+          approval.answer === "always"
+            ? "You chose Always allow"
+            : approval.answer === "conversation"
+              ? "You allowed this for this conversation"
+              : BUILTIN.answerOnce.reason,
         findings,
       };
       this.record(prepared, decision, summary, {

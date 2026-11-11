@@ -1,4 +1,4 @@
-import { InboxWatchBody, ROUTES, RoutineBody } from "@steward/shared";
+import { InboxWatchBody, ROUTES, type Routine, RoutineBody } from "@steward/shared";
 import type { Hono } from "hono";
 import { z } from "zod";
 import type { StewardServices } from "../context.ts";
@@ -17,6 +17,33 @@ const RoutinePatchBody = RoutineBody.extend({
 const checkTimezone = (tz: string | undefined) => {
   if (tz !== undefined && !isTimezone(tz)) throw new HttpError(400, "That is not a time zone I know.");
 };
+
+/**
+ * A routine runs unasked, so the person's own changes to one go in the record, like a change to the
+ * rules does. The agent's changes are tool calls, and the gateway records those.
+ */
+function recordChange(
+  s: StewardServices,
+  change: "created" | "updated" | "removed",
+  routine: Routine,
+  fields?: string[],
+): void {
+  s.gateway.audit.append({
+    type: "routine.changed",
+    actorId: s.actorId,
+    agentId: routine.agentId,
+    threadId: routine.threadId,
+    detail: {
+      change,
+      summary: `${change === "created" ? "Added" : change === "updated" ? "Changed" : "Deleted"} the routine '${routine.title}'`,
+      routineId: routine.id,
+      schedule: routine.schedule,
+      timezone: routine.timezone,
+      enabled: routine.enabled,
+      ...(fields ? { fields } : {}),
+    },
+  });
+}
 
 /** `/api/routines`: standing instructions on a schedule. The store refuses anything more often than every 15 minutes. */
 export function registerRoutineRoutes(app: Hono, s: StewardServices): void {
@@ -46,13 +73,15 @@ export function registerRoutineRoutes(app: Hono, s: StewardServices): void {
       kind: "routine",
       title: routine.title,
     });
+    recordChange(s, "created", routine);
     return c.json(routine, 201);
   });
 
   app.patch(ROUTES.routine, async (c) => {
     const id = c.req.param("id");
     const body = await readBody(c, RoutinePatchBody);
-    if (!routines.get(id)) throw notFound("that routine");
+    const before = routines.get(id);
+    if (!before) throw notFound("that routine");
     checkTimezone(body.timezone);
     let routine: ReturnType<typeof routines.update>;
     try {
@@ -68,6 +97,10 @@ export function registerRoutineRoutes(app: Hono, s: StewardServices): void {
         title: routine.title,
       });
     }
+    const fields = (["title", "prompt", "schedule", "timezone", "enabled"] as const).filter(
+      (key) => body[key] !== undefined && body[key] !== before[key],
+    );
+    if (fields.length > 0) recordChange(s, "updated", routine, [...fields]);
     return c.json(routine);
   });
 
@@ -78,6 +111,7 @@ export function registerRoutineRoutes(app: Hono, s: StewardServices): void {
     routines.remove(id);
     // Nothing will fire it again, so a request its last run left waiting goes too.
     withdrawApprovals(s, routine.threadId);
+    recordChange(s, "removed", routine);
     return c.json({ ok: true });
   });
 

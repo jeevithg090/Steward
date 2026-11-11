@@ -94,9 +94,9 @@ describe("which agent a conversation opens with", () => {
       return undefined;
     });
     draw("/chat/thr_gone");
-    expect(await screen.findByText("This conversation was deleted or never existed")).toBeTruthy();
+    expect(await screen.findByText("This conversation isn't here any more")).toBeTruthy();
     expect(mounts).toHaveLength(0);
-    fireEvent.click(screen.getByRole("button", { name: "Start a new one" }));
+    fireEvent.click(screen.getByRole("link", { name: "Start a new one" }));
     await waitFor(() =>
       expect(screen.getByTestId("where").textContent).toMatch(/^\/chat\/thr_new\?agent=steward$/),
     );

@@ -45,6 +45,20 @@ describe("api: every route in ROUTES", () => {
     ],
     ["thread", () => api.threads.get("thr_1"), "GET", "/api/threads/thr_1"],
     ["thread (DELETE)", () => api.threads.remove("thr_1"), "DELETE", "/api/threads/thr_1"],
+    [
+      "thread (PATCH)",
+      () => api.threads.rename("thr_1", "Trip"),
+      "PATCH",
+      "/api/threads/thr_1",
+      { title: "Trip" },
+    ],
+    ["thread allows", () => api.threads.allows("thr_1"), "GET", "/api/threads/thr_1/allows"],
+    [
+      "thread allow (DELETE)",
+      () => api.threads.turnOffAllow("thr_1", "cva_1"),
+      "DELETE",
+      "/api/threads/thr_1/allows/cva_1",
+    ],
     ["approvals", () => api.approvals.list("pending"), "GET", "/api/approvals?status=pending"],
     ["approval", () => api.approvals.get("apr_1"), "GET", "/api/approvals/apr_1"],
     [
@@ -215,6 +229,19 @@ describe("api: every route in ROUTES", () => {
       "/api/computer/steward/files?dir=reports",
     ],
     ["computer reset", () => api.computer.reset("steward"), "POST", "/api/computer/steward/reset"],
+    [
+      "computer file",
+      () => api.computer.file("steward", "made/plan.md"),
+      "GET",
+      "/api/computer/steward/file?path=made%2Fplan.md",
+    ],
+    [
+      "computer uploads",
+      () => api.computer.upload("steward", { name: "notes.md", text: "# Hi" }),
+      "POST",
+      "/api/computer/steward/uploads",
+      { name: "notes.md", text: "# Hi" },
+    ],
     ["notifications", () => api.notifications.list(), "GET", "/api/notifications"],
     ["notifications read all", () => api.notifications.readAll(), "POST", "/api/notifications/read-all"],
     [

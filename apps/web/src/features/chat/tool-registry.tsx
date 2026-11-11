@@ -9,6 +9,7 @@ import type { BuiltinToolName } from "@steward/shared";
 import { Component, type ComponentType, type ErrorInfo, type ReactNode } from "react";
 import { ToolLine } from "@/gallery/kit.tsx";
 import { DelegationCard } from "./DelegationCard.tsx";
+import { SkillToolCard } from "./SkillToolCard.tsx";
 import {
   BriefToolCard,
   BrowserLine,
@@ -19,6 +20,7 @@ import {
   ComparisonToolCard,
   DirectoryFindCard,
   FileLine,
+  GenericToolLine,
   HelpRequestCard,
   MailListCard,
   MailReadCard,
@@ -62,12 +64,16 @@ export const RENDERERS: Record<BuiltinToolName, ComponentType<ToolProps>> = {
   task_create: TaskToolCard,
   task_update: TaskToolCard,
   routine_create: RoutineToolCard,
+  routine_list: GenericToolLine,
+  routine_update: RoutineToolCard,
+  routine_delete: GenericToolLine,
   brief_today: BriefToolCard,
   triage_inbox: TriageToolCard,
   show_table: TableToolCard,
   show_chart: ChartToolCard,
   show_comparison: ComparisonToolCard,
   show_choices: ChoicesToolCard,
+  show_skill: SkillToolCard,
   make_page: PageToolCard,
   directory_find: DirectoryFindCard,
   delegate_task: DelegationCard,

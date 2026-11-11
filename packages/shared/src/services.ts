@@ -30,6 +30,7 @@ import type {
   AuditType,
   ChainCheck,
   ChainCheckOptions,
+  ConversationAllow,
   Decision,
   Effect,
   GateCall,
@@ -121,11 +122,22 @@ export interface RecordLog extends AuditLog {
   exportPages(pageSize?: number): Generator<AuditEvent[], void>;
 }
 
+/** What was allowed for one conversation only. Added by answering an approval; see `ConversationAllow`. */
+export interface ConversationAllowStore {
+  /** Newest first. */
+  forThread(threadId: string): ConversationAllow[];
+  /** Turns one off. Recorded as a policy change. False when it was not there. */
+  remove(threadId: string, id: string, actorId: string): boolean;
+  /** Turns off every one in a conversation (it was deleted). Returns how many. */
+  removeForThread(threadId: string, actorId: string): number;
+}
+
 /** Everything the gateway package exposes once constructed by `createGateway(...)`. */
 export interface GatewayServices {
   governance: Governance;
   rules: RuleStore;
   approvals: ApprovalStore;
+  conversationAllows: ConversationAllowStore;
   audit: RecordLog;
 }
 

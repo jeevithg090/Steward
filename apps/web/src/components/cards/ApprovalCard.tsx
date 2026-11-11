@@ -1,5 +1,5 @@
 import type { Approval, ApprovalAnswer } from "@steward/shared";
-import { Ban, Check, CheckCheck, Hand, TriangleAlert } from "lucide-react";
+import { Ban, Check, CheckCheck, Hand, MessageSquareMore, TriangleAlert } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { Button } from "@/components/ui/Button.tsx";
 import { Card } from "@/components/ui/Card.tsx";
@@ -15,6 +15,7 @@ import { RuleBadge } from "./RuleBadge.tsx";
 const ANNOUNCE: Record<ApprovalAnswer, string> = {
   once: "Allowed once. Steward will carry on.",
   always: "Allowed. Steward won't ask again for this.",
+  conversation: "Allowed for this conversation. Steward won't ask again for this here.",
   refuse: "Refused. Steward won't do this.",
 };
 
@@ -36,8 +37,9 @@ export interface ApprovalCardProps {
 
 /**
  * Steward asking before it acts: what it wants to do, where, why it asks, anything sensitive in
- * it, and three answers. "Always allow" appears only when the gateway offers it; payments,
- * credentials, tainted sends and the person's own ask rules never offer it.
+ * it, and its answers. "Always allow" appears only when the gateway offers it; payments,
+ * credentials, tainted sends and the person's own ask rules never offer it. "Allow in this
+ * conversation" appears where Always allow does, in a conversation the person started.
  *
  * The outcome is announced from the app's own live region, not the card's, because the card is
  * usually removed as soon as the answer lands.
@@ -260,6 +262,17 @@ export function ApprovalCardView({
             >
               Allow once
             </Button>
+            {approval.canConversation ? (
+              <Button
+                variant="secondary"
+                icon={<MessageSquareMore />}
+                loading={busy === "conversation"}
+                disabled={Boolean(busy) || !interactive}
+                onClick={() => onAnswer?.("conversation", note)}
+              >
+                Allow in this conversation
+              </Button>
+            ) : null}
             {approval.canAlways ? (
               <Button
                 variant="secondary"
@@ -278,6 +291,9 @@ export function ApprovalCardView({
             ) : null}
           </div>
           <p className="mt-3 text-caption text-ink-2">
+            {approval.canConversation
+              ? "Allow in this conversation lets the same again run here only, until you turn it off. "
+              : null}
             {approval.canAlways
               ? "Always allow adds a standing rule you can revoke in Rules. "
               : "This kind of action always asks, so there is no Always allow. "}
@@ -309,7 +325,15 @@ function Outcome({ approval }: { approval: Approval }): ReactNode {
         </Pill>
       );
     case "allowed":
-      return <Pill tone="done">{approval.answer === "always" ? "Always allowed" : "Allowed once"}</Pill>;
+      return (
+        <Pill tone="done">
+          {approval.answer === "always"
+            ? "Always allowed"
+            : approval.answer === "conversation"
+              ? "Allowed in this conversation"
+              : "Allowed once"}
+        </Pill>
+      );
     case "refused":
       return <Pill tone="problem">Refused</Pill>;
     case "expired":
@@ -327,7 +351,9 @@ function DecidedNote({ approval }: { approval: Approval }) {
       text =
         approval.answer === "always"
           ? `You allowed this${when}, and Steward won't ask again for the same thing.`
-          : `You allowed this once${when}.`;
+          : approval.answer === "conversation"
+            ? `You allowed this${when} for this conversation. Steward won't ask again for the same thing here.`
+            : `You allowed this once${when}.`;
       break;
     case "refused":
       text = `You refused this${when}. Steward didn't do it.`;

@@ -7,6 +7,7 @@ import { DISPLAY_TOOLS } from "./display.ts";
 import { FILE_TOOLS } from "./files.ts";
 import { MAIL_TOOLS } from "./mail.ts";
 import { mcpTool, profileAllowsMcp } from "./mcp.ts";
+import { SKILL_TOOLS } from "./skill-draft.ts";
 import { STEWARD_TOOLS } from "./steward.ts";
 import type { StewardTool } from "./types.ts";
 import { WEB_TOOLS } from "./web.ts";
@@ -19,6 +20,7 @@ export const BUILTIN_TOOLS: readonly StewardTool[] = [
   ...WEB_TOOLS,
   ...STEWARD_TOOLS,
   ...DISPLAY_TOOLS,
+  ...SKILL_TOOLS,
   ...DIRECTORY_TOOLS,
   ...DELEGATION_TOOLS,
 ];

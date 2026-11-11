@@ -185,7 +185,14 @@ export const BODY_LIMITS = {
   agent: 10 * 1024 * 1024,
   api: 256 * 1024,
   demo: 1024 * 1024,
+  /** A text file the person attaches (2 MB, as JSON, with room for escaping). */
+  upload: 5 * 1024 * 1024,
 } as const;
+
+/** Routes whose bodies may be larger than the API's: a file the person attaches. */
+export function isUploadPath(path: string): boolean {
+  return /^\/api\/computer\/[^/]+\/uploads$/.test(path);
+}
 
 /**
  * Refuses a body over `maxSize` before reading it. The answer closes the connection: the unread

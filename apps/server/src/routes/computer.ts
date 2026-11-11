@@ -5,6 +5,7 @@ import type { Context, Hono } from "hono";
 import type { StewardServices } from "../context.ts";
 import { asUserError, HttpError, notFound } from "../http/errors.ts";
 import { intQuery } from "./query.ts";
+import { registerWorkspaceFileRoutes } from "./workspace-files.ts";
 
 /** Where `@steward/computer` keeps an agent's workspace (PLAN §3: `computers/<agent>/workspace`). */
 export function workspaceDir(dataDir: string, agentId: string): string {
@@ -78,4 +79,6 @@ export function registerComputerRoutes(app: Hono, s: StewardServices): void {
   });
 
   app.post(ROUTES.computerReset, async (c) => c.json(await s.computers.reset(agentOf(c))));
+
+  registerWorkspaceFileRoutes(app, s);
 }

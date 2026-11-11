@@ -114,6 +114,19 @@ const OWN: Record<string, (args: Args) => [string, string, string?]> = {
   task_create: () => ["Adding a task", "Added a task"],
   task_update: () => ["Updating a task", "Updated a task"],
   routine_create: () => ["Setting up a routine", "Set up a routine"],
+  routine_list: () => ["Checking your routines", "Checked your routines"],
+  routine_update: (a) => {
+    const title = str(a.title, 60);
+    return title
+      ? [`Changing the routine “${title}”`, `Changed the routine “${title}”`]
+      : ["Changing a routine", "Changed a routine"];
+  },
+  routine_delete: (a) => {
+    const title = str(a.title, 60);
+    return title
+      ? [`Deleting the routine “${title}”`, `Deleted the routine “${title}”`]
+      : ["Deleting a routine", "Deleted a routine"];
+  },
   delegate_task: (a) => {
     const agent = str(a.agentName, 40) ?? str(a.agentId, 40) ?? "another agent";
     return [`Handing this to ${agent}`, `Handed this to ${agent}`];
@@ -124,6 +137,12 @@ const OWN: Record<string, (args: Args) => [string, string, string?]> = {
   show_chart: () => ["Drawing a chart", "Drew a chart"],
   show_comparison: () => ["Comparing the options", "Compared the options"],
   show_choices: () => ["Offering some choices", "Offered some choices"],
+  show_skill: (a) => {
+    const name = str(a.name, 41);
+    return name
+      ? [`Writing the skill /${name}`, `Wrote the skill /${name}`]
+      : ["Writing a skill", "Wrote a skill"];
+  },
   make_page: () => ["Putting it together", "Made a page"],
   directory_find: (a) => {
     const query = str(a.query, 60) ?? str(a.q, 60);

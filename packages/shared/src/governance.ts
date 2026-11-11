@@ -106,8 +106,8 @@ export interface Rule {
   /** A CEL expression over the variables in `docs/governance.md`, e.g. `tool.kind == "pay"`. */
   when: string;
   description: string;
-  /** `preset` ships with Steward; `tenant` comes from the tenant package; `person` was written in `/rules`; `always` came from an Always allow; `bot` came with an installed bot and may only ask or deny. */
-  source: "preset" | "tenant" | "person" | "always" | "bot";
+  /** `preset` ships with Steward; `tenant` comes from the tenant package; `person` was written in `/rules`; `always` came from an Always allow; `bot` came with an installed bot and may only ask or deny; `conversation` came from an Allow in this conversation and holds in that conversation only (it is never stored with the rules). */
+  source: "preset" | "tenant" | "person" | "always" | "bot" | "conversation";
   enabled: boolean;
   createdAt: string;
 }
@@ -129,7 +129,29 @@ export interface Decision {
 }
 
 export type ApprovalStatus = "pending" | "allowed" | "refused" | "expired" | "cancelled";
-export type ApprovalAnswer = "once" | "always" | "refuse";
+/** `conversation`: allow this, and the same again in this conversation only (see `ConversationAllow`). */
+export type ApprovalAnswer = "once" | "always" | "conversation" | "refuse";
+
+/**
+ * What "Allow in this conversation" leaves behind: an allow, scoped like an Always allow (the same
+ * tool, place, element and people), that holds only in one conversation, with one agent, for runs
+ * the person started. It sits with the allow rules, so deny rules, the safety floor, taint, the
+ * outbound check and ask rules still come first. It ends when it is turned off or the conversation
+ * is deleted.
+ */
+export interface ConversationAllow {
+  id: string;
+  threadId: string;
+  agentId: string;
+  /** "browser_click 'Next' on example.com, in this conversation". */
+  name: string;
+  /** The CEL condition, as Always allow would write it. */
+  when: string;
+  /** The approved call's summary: what the person saw when they chose it. */
+  summary: string;
+  approvalId: string;
+  createdAt: string;
+}
 
 export interface Approval {
   id: string;
@@ -151,6 +173,11 @@ export interface Approval {
    */
   canAlways: boolean;
   /**
+   * Whether "Allow in this conversation" is offered: only where Always allow is, for a run the
+   * person started (never a routine's, a task's or a phone's), in a conversation.
+   */
+  canConversation?: boolean;
+  /**
    * The conversation had read untrusted content when this asked. With the next field, it decides
    * what a phone may answer (docs/plans/phone-and-shortcuts.md §3.2).
    */
@@ -162,7 +189,7 @@ export interface Approval {
   claimedAt?: string;
   /** What started the run that asked. A resumed run keeps it, so a routine stays a routine. */
   initiator?: Initiator;
-  /** When `answer` is `always`, the standing rule it created. */
+  /** When `answer` is `always`, the standing rule it created; when `conversation`, the conversation allow. */
   createdRuleId?: string;
   createdAt: string;
   decidedAt?: string;
@@ -196,6 +223,8 @@ export type AuditType =
   | "policy.changed"
   | "routine.ran"
   | "routine.disabled"
+  /** The person added, changed or deleted a routine in the app (the agent's changes are tool calls). */
+  | "routine.changed"
   | "bot.installed"
   | "bot.updated"
   | "bot.removed"

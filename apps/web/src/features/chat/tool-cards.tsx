@@ -569,6 +569,13 @@ export function RoutineToolCard(tool: ToolProps) {
     return <ToolLine state="running" label={toolName(tool.name, tool.args, "running").label} />;
   if (outcome.status === "error") return Gate({ tool, state });
   const saved = outcome.status === "ok" ? recordFrom(outcome.data, ["routine"]) : undefined;
+  // A change names only what changes, so the routine is drawn once it is saved; until then, the
+  // line says what is being changed (and the approval card below shows exactly how).
+  if (tool.name === "routine_update" && !(saved && typeof saved.id === "string")) {
+    return (
+      Gate({ tool, state }) ?? <ToolLine state="done" label={toolName(tool.name, tool.args, "done").label} />
+    );
+  }
   return (
     <RoutineCard
       routine={saved && typeof saved.id === "string" ? saved : tool.args}
@@ -658,7 +665,8 @@ export function TriageToolCard(tool: ToolProps) {
 // ── Generative UI ───────────────────────────────────────────────────────────────────────────────
 
 /** Display tools draw from their arguments as they stream; a refusal or failure still shows as a line. */
-function DisplayTool({ tool, children }: { tool: ToolProps; children: ReactElement }) {
+/** A display card: drawn from its arguments, or the refused or failed line. */
+export function DisplayTool({ tool, children }: { tool: ToolProps; children: ReactElement }) {
   const state = useToolState(tool);
   if (state.outcome.status === "refused" || state.outcome.status === "error") return Gate({ tool, state });
   return children;
@@ -703,10 +711,11 @@ export function ChoicesToolCard(tool: ToolProps) {
 
 export function PageToolCard(tool: ToolProps) {
   const state = useToolState(tool);
+  const chat = useChatActions();
   const gate = Gate({ tool, state });
   if (gate && (state.waiting || state.stopped || state.outcome.status !== "pending")) return gate;
   const saved = state.outcome.status === "ok" ? recordFrom(state.outcome.data, ["page", "file"]) : undefined;
-  return <PageCard page={{ ...tool.args, ...saved }} />;
+  return <PageCard page={{ ...tool.args, ...saved }} agentId={chat?.agentId} />;
 }
 
 // ── The bot directory ───────────────────────────────────────────────────────────────────────────
