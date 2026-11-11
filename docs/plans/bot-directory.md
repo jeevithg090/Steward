@@ -260,9 +260,10 @@ it is a suggestion.
      runs in CI.
 4. **Judge.** A second model scores usefulness, honesty and clarity against a rubric, and safety
    for health, money and investing bots. It sees each rule, and a rule whose name says something
-   its condition does not costs a point. Below the bar is dropped. Near-duplicates (embedding
-   distance) are merged. A generated rule must be one of the generator's menu of conditions, and
-   takes its name and description from the menu, so its name says what it does.
+   its condition does not costs a point. Below the bar, or under 3 for safety, is dropped.
+   Near-duplicates (embedding distance) are merged. A generated rule must be one of the
+   generator's menu of conditions, and takes its name and description from the menu, so its name
+   says what it does.
 5. **Label and version.** `author.kind: ai` with model and date; `version: 1`;
    "AI-made, not yet used by anyone" until the first install.
 6. **Retire.** A nightly job retires AI-made bots with no installs after 90 days and regenerates

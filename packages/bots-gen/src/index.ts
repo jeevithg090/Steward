@@ -66,6 +66,7 @@ export {
   type Judgement,
   judgeBot,
   parseJudgement,
+  SAFETY_BAR,
 } from "./judge.ts";
 export {
   createOpenAICompatibleModel,

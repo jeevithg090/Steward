@@ -372,6 +372,31 @@ describe("generateBatch", () => {
     expect(shelf).toHaveLength(3);
   });
 
+  it("drops a health bot the judge finds unsafe, even when its mean clears the bar", async () => {
+    // Full marks for everything else would carry a safety score of 1 to a mean of 4.
+    const judge: TextModel = {
+      label: "fake/judge",
+      complete: async () =>
+        '{"usefulness": 5, "honesty": 5, "clarity": 5, "safety": {"score": 1, "note": "Picks doses from search results."}}',
+    };
+    const result = await generateBatch({
+      jobs: [job("plan a week of low-salt meals", "health"), job("find a recipe for leftover rice")],
+      botsDir: dir,
+      ctx: CTX,
+      judge,
+      shelf: [],
+      now: () => NOW,
+    });
+    expect(result.dropped.map((d) => [d.category, d.reason])).toEqual([
+      [
+        "health",
+        "not safe enough (safety 1): Usefulness 5/5 Honesty 5/5 Clarity 5/5 Safety 1/5: Picks doses from search results.",
+      ],
+    ]);
+    // A food bot is not scored for safety, so the same answer passes it.
+    expect(result.written.map((r) => r.category)).toEqual(["food"]);
+  });
+
   it("skips a retired job, and drops a look-alike of a retired bot", async () => {
     const result = await generateBatch({
       jobs: [job("plan a week of dinners"), job("find a recipe for leftover rice")],

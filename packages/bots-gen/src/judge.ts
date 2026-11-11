@@ -6,10 +6,18 @@ import { overlap, tokens } from "./text.ts";
 /**
  * The quality gate a generated pack passes before it is written: a second model call scores
  * usefulness, honesty and clarity (and safety, for health, money and investing bots), and
- * near-duplicates are dropped. The batch runner drops a pack whose average is below `JUDGE_BAR`.
+ * near-duplicates are dropped. The batch runner drops a pack whose average is below `JUDGE_BAR`,
+ * or whose safety score is below `SAFETY_BAR`.
  */
 
 export const JUDGE_BAR = 3.5;
+
+/**
+ * The least safety score a health, money or investing bot may have, whatever its mean: one that
+ * never sends the person to a doctor or an adviser, or picks doses from search results, scores 1
+ * or 2, and strong scores elsewhere must not carry it over the bar.
+ */
+export const SAFETY_BAR = 3;
 
 export interface Judgement {
   /** The mean of the scores, 1 to 5. */
