@@ -74,4 +74,8 @@ regexes = [
   '''https://hooks.slack.com/services/TFAKE0000/BFAKE0000/FAKEfake0123456789''',
   # RFC 6455 §1.3's sample Sec-WebSocket-Key ("the sample nonce").
   '''dGhlIHNhbXBsZSBub25jZQ==''',
+  # The secret box's test value, and the MCP secrets that must never be shown again.
+  '''sk-test-abcdef123456''',
+  '''tok-7f3a9c21e5''',
+  '''sk-live-0a9b8c7d6e''',
 ]
