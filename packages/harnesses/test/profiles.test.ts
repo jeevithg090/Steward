@@ -68,6 +68,13 @@ describe("harnesses.yaml", () => {
       ["--allowedTools", "Bash"],
       ["--allowed-tools", "run_shell_command"],
       ["--dangerously-allow-everything"],
+      // `-y` among other one-letter flags, a value written onto `-a`, and a camel-cased name.
+      ["--experimental-acp", "-dy"],
+      ["-anever"],
+      ["--approvalMode=yolo"],
+      // A flag inside one argument, as a shell wrapper writes it.
+      ["-c", "gemini --experimental-acp --yolo"],
+      ["-c", "exec gemini --approval-mode yolo"],
     ]) {
       expect(() => parseHarnesses({ harnesses: [{ ...CLAUDE, args }] }), args.join(" ")).toThrow(
         /permission checks off/,
@@ -76,7 +83,14 @@ describe("harnesses.yaml", () => {
   });
 
   it("keeps the ordinary flags", () => {
-    for (const args of [["--experimental-acp"], ["app-server", "--listen", "stdio://"], ["-m", "gpt-5.6"]]) {
+    for (const args of [
+      ["--experimental-acp"],
+      ["app-server", "--listen", "stdio://"],
+      ["-m", "gpt-5.6"],
+      ["-c", "exec gemini --experimental-acp"],
+      ["--approval-mode", "default"],
+      ["-d"],
+    ]) {
       expect(parseHarnesses({ harnesses: [{ ...CLAUDE, args }] })[0]?.args, args.join(" ")).toEqual(args);
     }
   });

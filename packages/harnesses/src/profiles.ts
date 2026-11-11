@@ -32,17 +32,19 @@ const BYPASS_FLAGS = [
   /bypass[-_]?permissions/i,
   /danger[-_]full[-_]access/i,
   /^--yolo\b/i,
-  /^-y$/,
-  /^--full-auto\b/i,
-  /^--auto-approve\b/i,
-  /^--auto-edit\b/i,
+  // `-y`, alone or among other one-letter flags (`-dy` is debug and yolo to Gemini CLI).
+  /^-[A-Za-z]{0,4}y[A-Za-z]{0,4}$/,
+  /^--full[-_]?auto\b/i,
+  /^--auto[-_]?approve\b/i,
+  /^--auto[-_]?edit\b/i,
   // Gemini CLI: `--approval-mode yolo` or `auto_edit` approves by itself.
-  /^--approval-mode=(yolo|auto)/i,
-  // Codex: `-a never` and the like. Steward sets the approval policy itself, per thread.
-  /^(-a|--ask-for-approval)=(never|on-failure|on-request)/i,
+  /^--approval[-_]?mode=(yolo|auto)/i,
+  // Codex: `-a never`, `-anever` and the like. Steward sets the approval policy itself, per thread.
+  /^(-a|--ask[-_]?for[-_]?approval)=(never|on-failure|on-request)/i,
+  /^-a(never|on-failure|on-request)$/i,
   // Claude Code: any permission mode, and tools allowed without asking.
-  /^--permission-mode\b/i,
-  /^--allowed-?tools\b/i,
+  /^--permission[-_]?mode\b/i,
+  /^--allowed[-_]?tools\b/i,
   // Codex config overrides (`-c approval_policy="never"`): Steward sets these itself, per thread.
   /approval[_-]?policy\s*=\s*(never|on-failure|on-request)/i,
   /sandbox[_-]?mode\s*=/i,
@@ -52,16 +54,25 @@ const BYPASS_FLAGS = [
 /** Environment names that hold a key: a key is named in `passEnv`, never written in the file. */
 const KEY_NAME = /(^|_)(API_?KEY|KEY|TOKEN|SECRET|PASSWORD|CREDENTIALS?)$/;
 
-/** The forms an argument list is checked in: each argument, and each `--flag value` as one. */
+/**
+ * The forms an argument list is checked in: each argument, each word inside one (`sh -c "gemini
+ * --yolo"` hides its flags in a single argument), and each `--flag value` pair as one.
+ */
 export function argumentForms(args: readonly string[]): { form: string; index: number }[] {
   const unquote = (arg: string) => arg.replace(/["']/g, "").trim();
-  const forms: { form: string; index: number }[] = [];
+  const words: { word: string; index: number }[] = [];
   for (const [index, arg] of args.entries()) {
-    const form = unquote(arg);
-    forms.push({ form, index });
-    const next = args[index + 1];
-    if (/^-{1,2}[A-Za-z]/.test(form) && !form.includes("=") && next !== undefined && !next.startsWith("-")) {
-      forms.push({ form: `${form}=${unquote(next)}`, index });
+    const whole = unquote(arg);
+    const parts = whole.split(/\s+/).filter(Boolean);
+    if (parts.length > 1) words.push({ word: whole, index });
+    for (const word of parts.length > 0 ? parts : [whole]) words.push({ word, index });
+  }
+  const forms: { form: string; index: number }[] = [];
+  for (const [i, { word, index }] of words.entries()) {
+    forms.push({ form: word, index });
+    const next = words[i + 1]?.word;
+    if (/^-{1,2}[A-Za-z]/.test(word) && !word.includes("=") && next !== undefined && !next.startsWith("-")) {
+      forms.push({ form: `${word}=${next}`, index });
     }
   }
   return forms;

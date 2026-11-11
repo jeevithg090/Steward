@@ -40,11 +40,12 @@ program was found, but not where it is or the profile's `env`.
 The loader refuses:
 
 - an argument that switches the tool's own permission checks off, or says what it may do without
-  asking: `--dangerously-…`, `bypassPermissions`, `danger-full-access`, `--yolo`, `-y`,
-  `--full-auto`, `--auto-approve`, `--auto-edit`, `--approval-mode yolo` or `auto_edit`,
-  `-a` or `--ask-for-approval` with `never`, `on-failure` or `on-request`, `--permission-mode`
-  with any value, and
-  `--allowedTools`. A `--flag value` pair counts the same as `--flag=value`, with or without quotes;
+  asking: `--dangerously-…`, `bypassPermissions`, `danger-full-access`, `--yolo`, `-y` (also
+  among other one-letter flags, as in `-dy`), `--full-auto`, `--auto-approve`, `--auto-edit`,
+  `--approval-mode yolo` or `auto_edit`, `-a` or `--ask-for-approval` with `never`, `on-failure`
+  or `on-request`, `--permission-mode` with any value, and `--allowedTools`. A `--flag value` pair
+  counts the same as `--flag=value`, with or without quotes, and a flag inside one argument
+  (`sh -c "gemini --yolo"`) counts too;
 - a Codex `-c` override of `approval_policy` or `sandbox_mode`, since Steward sets both itself;
 - an `env` value that looks like a key (the key shapes the outbound check knows), and an `env` name
   that holds one (`…_KEY`, `…_TOKEN`, `…_SECRET`, `…_PASSWORD`): name it in `passEnv` instead;
