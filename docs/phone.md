@@ -137,7 +137,7 @@ Each phone has its own key and its own list, under Settings → Phone:
 | Read the brief        | yes            | What needs you today. Requests are in it only if the phone may see them.   |
 | See what Steward asks | yes            | List requests waiting for you, and **refuse** them.                        |
 | Say yes to requests   | **no**         | "This phone can say yes to things Steward asks about."                     |
-| Talk to Steward       | yes            | Ask for things; work started from a phone is marked so.                    |
+| Talk to Steward       | yes            | Ask for things, and carry on in conversations this phone started.          |
 | Tasks                 | yes            | See tasks, and start or hide one. A task started here runs as the phone's. |
 | Run routines          | yes            | Run one of your routines now.                                              |
 
@@ -149,6 +149,8 @@ And never, whatever you switch on:
 - **Always allow** is chosen on your Mac: it writes a standing rule.
 - **Rules, settings, connections, secrets, the shell and the computer** are not reachable from a
   phone at all.
+- **Conversations started on your Mac**, by a routine or by another phone are not reachable from
+  it either. A phone carries on only in its own chats and in the tasks it started.
 - **Work started from a phone asks before it sends**, signs, deletes or runs a command, even where
   you chose Always allow (a preset on `/rules`). That includes a task started from the phone. A
   routine run from the phone keeps the routine's own rules, which ask for the same things.

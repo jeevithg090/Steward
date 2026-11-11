@@ -377,6 +377,24 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
     }
   });
 
+  it("posts into and stops only conversations it started, and is told no other's id", async () => {
+    const s = t.server.services;
+    const brief = await one.call<{ tasks: Record<string, unknown>[] }>("brief.get", {});
+    expect(brief.ok && brief.value.tasks.length).toBeGreaterThan(0);
+    expect(brief.ok && brief.value.tasks.every((task) => !("threadId" in task))).toBe(true);
+
+    s.threads.upsertMeta({ id: "thr_mac_only", agentId: s.defaultAgentId, kind: "chat", title: "Mac" });
+    const unknown = { ok: false, error: "Couldn't find that conversation.", status: 404 };
+    expect(await one.call("chat.send", { text: "post here", threadId: "thr_mac_only" })).toEqual(unknown);
+    expect(await one.call("run.stop", { threadId: "thr_mac_only" })).toEqual(unknown);
+    expect(s.runner.getThreadMessages("thr_mac_only")).toEqual([]);
+
+    const sent = await one.call<{ threadId: string }>("chat.send", { text: "hello" });
+    expect(sent.ok).toBe(true);
+    const own = sent.ok ? sent.value.threadId : "";
+    expect(await one.call("run.stop", { threadId: own })).toMatchObject({ ok: true });
+  });
+
   it("refuses an answer signed by another key, or for another approval", async () => {
     const answer = await one.signed("apr_whatever", "refuse");
     const forged = { ...answer, approvalId: "apr_other" };

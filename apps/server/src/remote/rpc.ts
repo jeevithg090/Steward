@@ -118,13 +118,8 @@ export async function handleRpc(ctx: RpcContext, method: RemoteMethod, params: u
       const tasks = device.scopes.includes("tasks")
         ? s.proactive.tasks
             .list({ state: ["needs_you", "working", "ready_for_review", "suggested"], limit: 30 })
-            .map((t) => ({
-              id: t.id,
-              title: t.title,
-              state: t.state,
-              detail: t.detail,
-              threadId: t.threadId,
-            }))
+            // No conversation ids: a phone carries on only in conversations it started.
+            .map((t) => ({ id: t.id, title: t.title, state: t.state, detail: t.detail }))
         : [];
       return { say: brief.say, items: brief.items, approvals, tasks };
     }
@@ -141,11 +136,12 @@ export async function handleRpc(ctx: RpcContext, method: RemoteMethod, params: u
       api.need(device, "chat");
       const body = parse(Chat, params);
       let threadId = body.threadId;
-      if (threadId && !s.threads.exists(threadId)) throw notFound("that conversation");
+      if (threadId && !api.mayPostTo(device, threadId)) throw notFound("that conversation");
       const agentId = (threadId && s.threads.getMeta(threadId)?.agentId) || s.defaultAgentId;
       if (!threadId) {
         threadId = `thr_${crypto.randomUUID().replace(/-/g, "").slice(0, 20)}`;
         s.threads.upsertMeta({ id: threadId, agentId, kind: "chat", title: body.text.slice(0, 80) });
+        s.devices.addThread(device.id, threadId);
       }
       const run = s.runs.start({
         agentId,
@@ -162,6 +158,8 @@ export async function handleRpc(ctx: RpcContext, method: RemoteMethod, params: u
       // Started from a phone, the run is the phone's: its presets apply, as to a chat it started.
       const started = startTask(s, body.taskId, body.note, { kind: "device", id: device.id });
       s.devices.started(device, started, { task: started.task.id });
+      // The phone started work there, so it may carry on in the task's conversation.
+      s.devices.addThread(device.id, started.threadId);
       return { taskId: started.task.id, threadId: started.threadId };
     }
     case "task.hide": {
@@ -184,6 +182,7 @@ export async function handleRpc(ctx: RpcContext, method: RemoteMethod, params: u
     case "run.stop": {
       api.need(device, "chat");
       const body = parse(ThreadId, params);
+      if (!api.mayPostTo(device, body.threadId)) throw notFound("that conversation");
       return { stopped: (await s.runner.stop({ threadId: body.threadId })) === true };
     }
   }

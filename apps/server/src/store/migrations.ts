@@ -132,4 +132,16 @@ export const migrations: Migration[] = [
         subagent_run_id TEXT NOT NULL REFERENCES delegations (subagent_run_id) ON DELETE CASCADE
       );`,
   },
+  {
+    // The conversations each phone started (a chat, or a task it started), so a phone carries on
+    // only in its own and never posts into one started on the Mac, by a routine or another phone.
+    id: "server.008_device_threads",
+    sql: `
+      CREATE TABLE IF NOT EXISTS device_threads (
+        device_id TEXT NOT NULL,
+        thread_id TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        PRIMARY KEY (device_id, thread_id)
+      );`,
+  },
 ];

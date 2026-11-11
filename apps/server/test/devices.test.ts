@@ -326,6 +326,32 @@ describe.runIf(missing.length === 0)("the device listener", () => {
     expect(row?.runId).toBeTruthy();
   });
 
+  it("carries on only in a conversation the same phone started", async () => {
+    const s = t.server.services;
+    const mine = await pairPhone("Desk iPhone");
+    const other = await pairPhone("Other iPhone");
+    const first = await device<DeviceSayReply>("/device/say", { token: mine.token, json: { text: "hello" } });
+    expect(first.status).toBe(200);
+    const again = await device<DeviceSayReply>("/device/say", {
+      token: mine.token,
+      json: { text: "hello again", threadId: first.body.threadId },
+    });
+    expect(again.status).toBe(200);
+    expect(again.body.threadId).toBe(first.body.threadId);
+
+    // A conversation started on the Mac, and one another phone started, are as unknown as a made-up id.
+    s.threads.upsertMeta({ id: "thr_from_the_mac", agentId: s.defaultAgentId, kind: "chat", title: "Mac" });
+    for (const threadId of ["thr_from_the_mac", first.body.threadId, "thr_made_up"]) {
+      const res = await device<{ error: string }>("/device/say", {
+        token: other.token,
+        json: { text: "post here", threadId },
+      });
+      expect(res.status, threadId).toBe(404);
+      expect(res.body.error).toBe("Couldn't find that conversation.");
+    }
+    expect(s.runner.getThreadMessages("thr_from_the_mac")).toEqual([]);
+  });
+
   it("answers nothing on the main port: no /device there, and no tunnel-shaped request", async () => {
     const { token } = await pairPhone();
     const onMain = await fetch(`${t.base}/device/home`, { headers: { authorization: `Bearer ${token}` } });

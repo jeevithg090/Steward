@@ -336,6 +336,25 @@ export class DeviceStore {
     return added.changes === 1;
   }
 
+  /** Notes a conversation this phone started, so it may carry on in it. */
+  addThread(deviceId: string, threadId: string): void {
+    this.db.run("INSERT OR IGNORE INTO device_threads (device_id, thread_id, created_at) VALUES (?, ?, ?)", [
+      deviceId,
+      threadId,
+      this.now().toISOString(),
+    ]);
+  }
+
+  /** True when this phone started the conversation: the only ones it may post into or stop. */
+  hasThread(deviceId: string, threadId: string): boolean {
+    return (
+      this.db.get("SELECT 1 AS yes FROM device_threads WHERE device_id = ? AND thread_id = ?", [
+        deviceId,
+        threadId,
+      ]) !== undefined
+    );
+  }
+
   update(id: string, patch: { scopes?: DeviceScope[]; name?: string }): Device | undefined {
     const before = this.get(id);
     if (!before || before.revokedAt) return undefined;
