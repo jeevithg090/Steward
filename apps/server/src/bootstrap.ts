@@ -360,6 +360,7 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
       runs,
       settings,
       threads,
+      watch: proactive.watch,
     });
     const setup = new SetupService({
       model: () => ({ info: host.info, text: host.textModel(), version: host.version }),
@@ -568,6 +569,8 @@ export async function createApp(config: ServerConfig): Promise<StewardServer> {
           baseUrl: `http://${self}:${actualPort}/demo-google`,
           label: "Demo inbox",
           isDemo: true,
+          // A calendar time with no offset means the person's wall clock, not the server's.
+          timeZone: () => settings.timezone(),
         });
       }
       if (config.workers) workers.start();

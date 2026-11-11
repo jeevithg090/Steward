@@ -87,6 +87,9 @@ export const RoutineBody = z.object({
   enabled: z.boolean().default(true),
 });
 
+/** Switches the inbox watch on or off. */
+export const InboxWatchBody = z.object({ enabled: z.boolean() });
+
 export const MemoryBody = z.object({ text: z.string().min(1).max(1000) });
 
 export const SkillBody = z.object({
@@ -274,6 +277,7 @@ export const ROUTES = {
   routines: "/api/routines", // Routine[] · POST RoutineBody → Routine
   routine: "/api/routines/:id", // PATCH Partial<RoutineBody> → Routine · DELETE
   routineRun: "/api/routines/:id/run", // POST → { threadId: string }
+  inboxWatch: "/api/inbox-watch", // InboxWatch · PATCH InboxWatchBody → InboxWatch
 
   memory: "/api/memory", // MemoryFact[] · POST MemoryBody → MemoryFact
   memoryItem: "/api/memory/:id", // DELETE

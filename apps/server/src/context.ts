@@ -6,6 +6,7 @@ import type {
   ComputerManager,
   EventBus,
   GatewayServices,
+  InboxWatchService,
   MailCalendar,
   McpManager,
   MemoryStore,
@@ -45,6 +46,7 @@ export interface ProactiveServices {
   triage: Triage;
   brief: BriefService;
   notifications: NotificationStore;
+  watch: InboxWatchService;
 }
 
 /** Everything the routes and workers use, wired once in `bootstrap.ts`. */

@@ -25,6 +25,7 @@ import {
   type DryRunBody,
   type EmailSummary,
   type HarnessInfo,
+  type InboxWatch,
   type InstalledBot,
   type McpServerBody,
   type McpServerInfo,
@@ -328,6 +329,8 @@ export const api = {
       send<Routine>("PATCH", route(ROUTES.routine, { id }), body),
     remove: (id: string) => send<void>("DELETE", route(ROUTES.routine, { id })),
     run: (id: string) => send<{ threadId: string }>("POST", route(ROUTES.routineRun, { id })),
+    watch: (signal?: AbortSignal) => get<InboxWatch>(ROUTES.inboxWatch, undefined, signal),
+    setWatch: (enabled: boolean) => send<InboxWatch>("PATCH", ROUTES.inboxWatch, { enabled }),
   },
 
   memory: {
@@ -438,6 +441,7 @@ export const queryKeys = {
   inbox: ["inbox"] as const,
   calendar: (from: string, to: string) => ["calendar", from, to] as const,
   routines: ["routines"] as const,
+  inboxWatch: ["routines", "inbox-watch"] as const,
   memory: ["memory"] as const,
   skills: ["skills"] as const,
   connections: ["connections"] as const,
@@ -767,6 +771,24 @@ export const useUpdateRoutine = () =>
   );
 export const useDeleteRoutine = () => useRoutinesMutation((id: string) => api.routines.remove(id));
 export const useRunRoutine = () => useRoutinesMutation((id: string) => api.routines.run(id));
+
+/** The inbox watch, refetched every minute so "last looked" stays true while the page is open. */
+export function useInboxWatch(opts?: QueryOpts<InboxWatch>) {
+  return useQuery<InboxWatch, ApiError>({
+    queryKey: queryKeys.inboxWatch,
+    queryFn: ({ signal }) => api.routines.watch(signal),
+    refetchInterval: 60_000,
+    ...opts,
+  });
+}
+
+export function useSetInboxWatch() {
+  const qc = useQueryClient();
+  return useMutation<InboxWatch, ApiError, boolean>({
+    mutationFn: (enabled) => api.routines.setWatch(enabled),
+    onSuccess: (watch) => qc.setQueryData(queryKeys.inboxWatch, watch),
+  });
+}
 
 // ── Memory ─────────────────────────────────────────────────────────────────────────────────────
 

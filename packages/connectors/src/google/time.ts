@@ -77,11 +77,11 @@ export function addDays(key: string, days: number): string {
   return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}`;
 }
 
-/** The instant a wall-clock time on a date happens in the zone. `time` is `HH:MM`. */
+/** The instant a wall-clock time on a date happens in the zone. `time` is `HH:MM` or `HH:MM:SS`. */
 export function zonedTime(key: string, time: string, timeZone: string): Date {
   const [y, m, d] = key.split("-").map(Number) as [number, number, number];
-  const [hh, mm] = time.split(":").map(Number) as [number, number];
-  const guess = Date.UTC(y, m - 1, d, hh, mm);
+  const [hh, mm, ss = 0] = time.split(":").map(Number) as [number, number, number?];
+  const guess = Date.UTC(y, m - 1, d, hh, mm, ss);
   const first = offsetMinutes(new Date(guess), timeZone);
   let t = guess - first * 60_000;
   const second = offsetMinutes(new Date(t), timeZone);

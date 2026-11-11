@@ -45,15 +45,15 @@ from the catalogue, not from the caller.
 
 ## Mail and calendar
 
-| Tool              | Kind  | Surface  | Taints | By default | What it does                                                                                |
-| ----------------- | ----- | -------- | ------ | ---------- | ------------------------------------------------------------------------------------------- |
-| `mail_list`       | read  | mail     | yes    | runs       | Lists or searches recent mail.                                                              |
-| `mail_read`       | read  | mail     | yes    | runs       | Reads one email in full.                                                                    |
-| `mail_send`       | send  | mail     | no     | **asks**   | Sends an email or a reply. The approval card shows who it goes to and exactly what it says. |
-| `calendar_list`   | read  | calendar | yes    | runs       | Lists events between two times.                                                             |
-| `calendar_create` | write | calendar | no     | **asks**   | Adds an event. The `steward` package also removes Always allow for it.                      |
-| `brief_today`     | read  | mail     | yes    | runs       | Today's brief: what needs you, what can wait, today's calendar, what could not be checked.  |
-| `triage_inbox`    | read  | mail     | yes    | runs       | Sorts recent mail into needs you and can wait, with a one-line reason each.                 |
+| Tool              | Kind  | Surface  | Taints | By default | What it does                                                                                                   |
+| ----------------- | ----- | -------- | ------ | ---------- | -------------------------------------------------------------------------------------------------------------- |
+| `mail_list`       | read  | mail     | yes    | runs       | Lists or searches recent mail.                                                                                 |
+| `mail_read`       | read  | mail     | yes    | runs       | Reads one email in full.                                                                                       |
+| `mail_send`       | send  | mail     | no     | **asks**   | Sends an email or a reply. The approval card shows who it goes to and exactly what it says.                    |
+| `calendar_list`   | read  | calendar | yes    | runs       | Lists events between two times.                                                                                |
+| `calendar_create` | write | calendar | no     | **asks**   | Adds an event. People on it are added but not emailed. The `steward` package also removes Always allow for it. |
+| `brief_today`     | read  | mail     | yes    | runs       | Today's brief: what needs you, what can wait, today's calendar, what could not be checked.                     |
+| `triage_inbox`    | read  | mail     | yes    | runs       | Sorts recent mail into needs you and can wait, with a one-line reason each.                                    |
 
 ## The web, without the browser
 

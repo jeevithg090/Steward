@@ -37,6 +37,47 @@ export function headerValue(headers: readonly Header[], name: string): string | 
   return headers.find((h) => h.name.toLowerCase() === lower)?.value;
 }
 
+// ── Text a person cannot see ──────────────────────────────────────────────────────────────────
+
+/**
+ * Never drawn, whatever the text around them: Unicode tag characters (U+E0000–E007F, which spell
+ * ASCII invisibly and which models read as plain words), bidi embeddings, overrides and isolates
+ * (U+202A–202E, U+2066–2069: text that reads differently from how it runs), zero-width space, word
+ * joiner and byte-order mark, the invisible maths operators, the Mongolian vowel separator, and the
+ * variation selectors supplement. Kept: the England, Scotland and Wales flags, the only emoji made
+ * of tag characters. Only those three spellings are kept: a black flag followed by any other short
+ * run of tags is not a flag, and a row of them would spell a message six letters at a time.
+ */
+const INVISIBLE =
+  /\u{1F3F4}\u{E0067}\u{E0062}(?:\u{E0065}\u{E006E}\u{E0067}|\u{E0073}\u{E0063}\u{E0074}|\u{E0077}\u{E006C}\u{E0073})\u{E007F}|[\u{E0000}-\u{E007F}\u202A-\u202E\u2066-\u2069\u200B\u2060\uFEFF\u2061-\u2064\u180E]|[\u{E0100}-\u{E01EF}]+/gu;
+/** A variation selector is one mark on the character before it; a run of them is a hiding place. */
+const EXTRA_SELECTORS = /(?<=[\uFE00-\uFE0F])[\uFE00-\uFE0F]+/gu;
+/**
+ * Joiners (ZWJ, ZWNJ) do real work between two letters, marks or emoji (Persian, the Indic scripts,
+ * family emoji). Anywhere else, or two in a row, they only hide things.
+ */
+const JOINABLE = String.raw`[\p{L}\p{M}\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\uFE0F]`;
+const STRAY_JOINERS = new RegExp(
+  String.raw`[\u200C\u200D]{2,}|(?<!${JOINABLE})[\u200C\u200D]|[\u200C\u200D](?![\p{L}\p{M}\p{Extended_Pictographic}])`,
+  "gu",
+);
+
+/**
+ * The text as a person sees it: characters that are never drawn are taken out, and `removed` says
+ * how many (in code points). Mail goes through this before a model reads it, because invisible
+ * text is the classic place to hide an instruction that the person on screen cannot see.
+ */
+export function visibleText(value: string): { text: string; removed: number } {
+  let removed = 0;
+  const count = (match: string) => {
+    if (match.startsWith("\u{1F3F4}")) return match;
+    removed += [...match].length;
+    return "";
+  };
+  const text = value.replace(INVISIBLE, count).replace(EXTRA_SELECTORS, count).replace(STRAY_JOINERS, count);
+  return { text, removed };
+}
+
 /** Refuses CR, LF and NUL in anything headed for a header: that is how header injection starts. */
 export function assertHeaderSafe(value: string, field: string): void {
   if (/[\r\n\0]/.test(value)) throw new Error(`The ${field} can't contain line breaks.`);

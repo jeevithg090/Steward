@@ -13,6 +13,7 @@ import type {
 import type {
   Brief,
   EmailSummary,
+  InboxWatch,
   MemoryFact,
   Routine,
   Skill,
@@ -238,7 +239,31 @@ export interface RoutineStore {
   remove(id: string): void;
   /** Records one run. Ten failures in a row switch the routine off. */
   recordRun(id: string, status: "ok" | "failed" | "refused" | "skipped", error?: string): Routine;
+  /**
+   * Claims what is due. A slot missed by more than its grace (while Steward wasn't running) is not
+   * run late: it is marked `missed` and the person is told once.
+   */
   due(now?: Date): Routine[];
+  /**
+   * Called once at start: any run still marked as running died with the last server, so it is
+   * recorded as failed and the routine is scheduled again from now. Returns how many there were.
+   */
+  recover(): number;
+}
+
+/**
+ * The inbox watch (`InboxWatch` in domain.ts). Off until the person switches it on; it only reads
+ * mail and adds suggestions, and never acts.
+ */
+export interface InboxWatchService {
+  /** Whether it is on, and when it last looked. */
+  status(): InboxWatch;
+  setEnabled(enabled: boolean): InboxWatch;
+  /**
+   * Looks once, if it is on: reads new mail, sorts it, and suggests what needs the person. It calls
+   * no tools: the only things it writes are suggestions, one notification and its own status.
+   */
+  check(opts?: { signal?: AbortSignal }): Promise<InboxWatch>;
 }
 
 /**

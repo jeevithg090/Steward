@@ -137,7 +137,7 @@ function addDays(iso: string, days: number): string {
 
 export const calendarCreate = builtin("calendar_create", {
   description:
-    "Add an event to the connected calendar. Times are ISO 8601 with an offset, such as 2026-10-28T15:00:00+00:00. Any attendees are sent an invitation, so the person is asked first when there are attendees.",
+    "Add an event to the connected calendar. Times are ISO 8601 with an offset, such as 2026-10-28T15:00:00+00:00; a time without one is read in the person's time zone. People you list are added to the event but are not emailed: nobody is sent an invitation, so never say they were. The person is asked first when there are attendees.",
   parameters: object(
     {
       title: str("The event's title."),
@@ -145,7 +145,7 @@ export const calendarCreate = builtin("calendar_create", {
       end: str("End, ISO 8601."),
       allDay: bool("True for an all-day event."),
       location: str("Optional place or address."),
-      attendees: ADDRESS_LIST("Optional people to invite"),
+      attendees: ADDRESS_LIST("Optional people to add to the event (they are not emailed)"),
       description: str("Optional notes for the event."),
       intent: INTENT,
     },
@@ -167,7 +167,7 @@ export const calendarCreate = builtin("calendar_create", {
     if (Date.parse(end) < Date.parse(start)) throw new ArgumentError("The event ends before it starts.");
     const location = readOptionalString(args, "location");
     const description = readOptionalString(args, "description");
-    return mailbox(ctx).createEvent({
+    const event = await mailbox(ctx).createEvent({
       title: readString(args, "title", { max: 300 }),
       start,
       end,
@@ -176,6 +176,8 @@ export const calendarCreate = builtin("calendar_create", {
       ...(location ? { location } : {}),
       ...(description ? { description } : {}),
     });
+    // The connector adds events without emailing anyone; the result says so, so the model does too.
+    return { ...event, notified: false };
   },
 });
 

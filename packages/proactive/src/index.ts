@@ -10,6 +10,7 @@ import type {
   Approval,
   BriefService,
   EventBus,
+  InboxWatchService,
   MailCalendar,
   MemoryStore,
   NotificationStore,
@@ -28,6 +29,7 @@ import { createSkillStore } from "./skills.ts";
 import { createTaskStore } from "./tasks.ts";
 import { createTriageCache } from "./triage.ts";
 import { createTriageService, type TriageService } from "./triage-service.ts";
+import { createInboxWatch } from "./watch.ts";
 
 export interface ProactiveOptions {
   db: Db;
@@ -58,6 +60,8 @@ export interface Proactive {
   triage: TriageService;
   brief: BriefService;
   notifications: NotificationStore;
+  /** Off until the person switches it on; reads new mail through the day and only suggests. */
+  watch: InboxWatchService;
 }
 
 /** Builds every proactive store on one database. Applies this package's migrations (safe to repeat). */
@@ -99,7 +103,19 @@ export function createProactive(opts: ProactiveOptions): Proactive {
     ...(bus ? { bus } : {}),
   });
 
-  return { tasks, memory, skills, routines, triage, brief, notifications };
+  const watch = createInboxWatch({
+    db,
+    mail: opts.mail,
+    model: opts.model,
+    triage,
+    brief,
+    tasks,
+    notifications,
+    timezone: opts.timezone,
+    now,
+  });
+
+  return { tasks, memory, skills, routines, triage, brief, notifications, watch };
 }
 
 export { BRIEF_MAIL_CAP, cleanSummary, plainSummary, SUMMARY_SYSTEM, summaryPrompt } from "./brief.ts";
@@ -129,4 +145,10 @@ export {
   UNSORTED_REASON,
 } from "./triage.ts";
 export type { TriageService } from "./triage-service.ts";
+export {
+  WATCH_MAIL_LIMIT,
+  WATCH_MAX_SUGGESTIONS,
+  WATCH_NOTES,
+  WATCH_QUERY,
+} from "./watch.ts";
 export { migrations };

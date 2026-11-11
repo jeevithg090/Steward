@@ -508,6 +508,9 @@ export class FakeRoutines implements RoutineStore {
   due() {
     return [];
   }
+  recover() {
+    return 0;
+  }
 }
 
 export function fakeBrief(date: string): Brief {

@@ -1,8 +1,9 @@
 import { ROUTINE_LIMITS } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import { ProactiveError } from "../src/errors.ts";
+import { createProactive } from "../src/index.ts";
 import { ROUTINE_MESSAGES } from "../src/routines.ts";
-import { checkSchedule, describeSchedule, nextRun, SCHEDULE_MESSAGES } from "../src/schedule.ts";
+import { checkSchedule, describeSchedule, latestRun, nextRun, SCHEDULE_MESSAGES } from "../src/schedule.ts";
 import { setup } from "./helpers.ts";
 
 const base = {
@@ -79,6 +80,22 @@ describe("schedule checks", () => {
     expect(nextRun("*/15 * * * *", "UTC", new Date("2026-10-27T08:00:01Z"), previous)?.toISOString()).toBe(
       "2026-10-27T08:15:00.000Z",
     );
+  });
+});
+
+describe("the newest slot that has passed", () => {
+  it("is the last firing at or before now, never before the one already due", () => {
+    const from = new Date("2026-10-22T07:15:00Z");
+    expect(latestRun("*/15 * * * *", "UTC", from, new Date("2026-10-22T19:30:20Z")).toISOString()).toBe(
+      "2026-10-22T19:30:00.000Z",
+    );
+    // Exactly on a firing counts that firing.
+    expect(latestRun("*/15 * * * *", "UTC", from, new Date("2026-10-22T19:30:00Z")).toISOString()).toBe(
+      "2026-10-22T19:30:00.000Z",
+    );
+    expect(
+      latestRun("0 8 * * *", "UTC", new Date("2026-10-22T08:00:00Z"), new Date("2026-10-22T19:30:00Z")),
+    ).toEqual(new Date("2026-10-22T08:00:00Z"));
   });
 });
 
@@ -254,6 +271,132 @@ describe("routine store", () => {
     expect(routines.due()).toEqual([]); // the 08:00 run is still out
     clock.set("2026-10-22T10:00:01Z");
     expect(routines.due().map((r) => r.id)).toEqual([routine.id]);
+  });
+
+  it("records a run the last server died in as failed, says so, and schedules it from now", () => {
+    const { routines, clock, db, bus } = setup({ at: "2026-10-22T08:59:00Z" });
+    const routine = routines.create({ ...base, schedule: "*/15 * * * *", timezone: "UTC", enabled: true });
+    clock.set("2026-10-22T09:00:00Z");
+    expect(routines.due()).toHaveLength(1);
+
+    // The server stops mid-run and starts again at 09:50, on the same database.
+    clock.set("2026-10-22T09:50:00Z");
+    const restarted = createProactive({
+      db,
+      bus,
+      mail: () => undefined,
+      model: () => undefined,
+      timezone: () => "UTC",
+      now: clock.now,
+    });
+    expect(restarted.routines.recover()).toBe(1);
+    const after = restarted.routines.get(routine.id)!;
+    expect(after).toMatchObject({
+      lastStatus: "failed",
+      lastError: ROUTINE_MESSAGES.stopped,
+      consecutiveFailures: 1,
+      nextRunAt: "2026-10-22T10:00:00.000Z",
+      lastRunAt: "2026-10-22T09:50:00.000Z",
+    });
+    expect(restarted.notifications.list()[0]).toMatchObject({
+      title: "A routine didn't finish",
+      body: `“${base.title}”: Steward stopped while this was running.`,
+      href: `/chat/${routine.threadId}`,
+    });
+    // Nothing is left marked as running, so the next slot is handed out on time, once.
+    expect(restarted.routines.recover()).toBe(0);
+    clock.set("2026-10-22T10:00:10Z");
+    expect(restarted.routines.due().map((r) => r.id)).toEqual([routine.id]);
+  });
+
+  it("claims a late slot within its grace and says which slot it was", () => {
+    const { routines, clock } = setup({ at: "2026-10-22T06:00:00Z" });
+    const routine = routines.create({
+      ...base,
+      schedule: "0 8 * * *",
+      timezone: "Europe/London",
+      enabled: true,
+    });
+    expect(routine.nextRunAt).toBe("2026-10-22T07:00:00.000Z");
+    clock.set("2026-10-22T07:40:00Z"); // 08:40 in London, 40 minutes late
+    const [due] = routines.due();
+    expect(due).toMatchObject({ id: routine.id, dueAt: "2026-10-22T07:00:00.000Z" });
+    expect(due?.nextRunAt).toBe("2026-10-23T07:00:00.000Z");
+    // Only the claim carries dueAt; the stored routine does not.
+    expect(routines.get(routine.id)?.dueAt).toBeUndefined();
+  });
+
+  it("measures lateness from the newest slot that passed, so a frequent routine just runs", () => {
+    const { routines, clock, notifications } = setup({ at: "2026-10-22T07:00:00Z" });
+    const routine = routines.create({ ...base, schedule: "*/15 * * * *", timezone: "UTC", enabled: true });
+    clock.set("2026-10-22T19:30:20Z"); // asleep since 07:00
+    const [due] = routines.due();
+    expect(due).toMatchObject({ id: routine.id, dueAt: "2026-10-22T19:30:00.000Z" });
+    expect(due?.nextRunAt).toBe("2026-10-22T19:45:00.000Z");
+    expect(notifications.list()).toEqual([]);
+  });
+
+  it("marks a slot missed past its grace, moves on, and tells the person once", () => {
+    const { routines, clock, notifications, bus } = setup({ at: "2026-10-22T06:00:00Z" });
+    const morning = routines.create({
+      ...base,
+      title: "Morning inbox",
+      schedule: "0 8 * * *",
+      timezone: "Europe/London",
+      enabled: true,
+    });
+    clock.set("2026-10-22T18:30:00Z"); // 19:30 in London: the server slept through 08:00
+    bus.events.length = 0;
+    expect(routines.due()).toEqual([]);
+    const after = routines.get(morning.id)!;
+    expect(after).toMatchObject({
+      lastStatus: "missed",
+      lastError: "Missed the run due at 08:00 while Steward wasn't running.",
+      lastRunAt: "2026-10-22T18:30:00.000Z",
+      nextRunAt: "2026-10-23T07:00:00.000Z",
+      consecutiveFailures: 0,
+      enabled: true,
+    });
+    expect(bus.of("routine.updated").map((e) => e.routineId)).toEqual([morning.id]);
+    expect(notifications.list()).toHaveLength(1);
+    expect(notifications.list()[0]).toMatchObject({
+      title: "A routine missed its time",
+      body: "“Morning inbox” was due at 08:00 while Steward wasn't running. Press Run now on Routines if you still need it.",
+      href: "/routines",
+      level: "problem",
+    });
+    // Nothing more until tomorrow's slot.
+    expect(routines.due()).toEqual([]);
+    expect(notifications.list()).toHaveLength(1);
+  });
+
+  it("names an earlier day, and puts several missed routines in one notification", () => {
+    const { routines, clock, notifications } = setup({ at: "2026-10-21T06:00:00Z" });
+    routines.create({
+      ...base,
+      title: "Morning inbox",
+      schedule: "0 8 * * *",
+      timezone: "UTC",
+      enabled: true,
+    });
+    const weekly = routines.create({
+      ...base,
+      title: "Weekly review",
+      schedule: "0 17 * * 3",
+      timezone: "UTC",
+      enabled: true,
+    });
+    clock.set("2026-10-22T07:00:00Z"); // Thursday 07:00: yesterday's 08:00 and 17:00 both passed
+    expect(routines.due()).toEqual([]);
+    expect(routines.get(weekly.id)?.lastError).toBe(
+      "Missed the run due on Wednesday 21 October at 17:00 while Steward wasn't running.",
+    );
+    expect(notifications.list().map((n) => [n.title, n.body])).toEqual([
+      [
+        "2 routines missed their time",
+        "“Morning inbox” and 1 more were due while Steward wasn't running. Press Run now on Routines for any you still need.",
+      ],
+    ]);
   });
 
   it("does not hand out switched-off routines, and fires a missed routine once, not once per slot", () => {

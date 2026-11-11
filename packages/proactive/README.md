@@ -30,6 +30,7 @@ proactive.routines;
 proactive.triage;
 proactive.brief;
 proactive.notifications;
+proactive.watch; // the inbox watch, off until the person switches it on
 ```
 
 `migrations` is exported too (ids start with `proactive.`), for a server that migrates every
@@ -72,6 +73,16 @@ Standing instructions on a five-field cron, each with its own conversation (`thr
   same transaction. A routine still running is skipped (its slot is not made up), unless its run
   started over an hour ago and never reported back. A server that slept fires each routine once, not
   once per missed slot. Call `recordRun` when the run ends.
+- **Late or missed.** Lateness is counted from the newest slot that has passed, so a routine every
+  15 minutes just runs at the next one. A slot up to two hours late (or half the gap to the slot after
+  it, if that is shorter) is claimed with `dueAt`, and the server adds "(Due at 08:00; starting at
+  08:40.)" to a firing more than 5 minutes late. Later than that, the slot is not run at all: the
+  routine reads `missed` ("Missed the run due at 08:00 while Steward wasn't running."), its next run
+  moves on, and one notification names what was missed, so the person can press **Run now**. A
+  missed slot is not a failure.
+- **`recover()`** is called once when the server starts. A run still marked as running died with the
+  last server: it is recorded as failed ("Steward stopped while this was running."), which notifies
+  like any first failure, and the routine is scheduled again from now.
 - `scheduleText` is plain words: "Every day at 08:00", "Weekdays at 08:00", "Mondays at 09:30",
   "Every hour", "Every 15 minutes", "On the 1st of every month at 09:00", or the cron itself when
   the shape is stranger than words.
@@ -120,6 +131,28 @@ Up to five `suggested` tasks per brief from the mail the model said needs you: "
 Pereira about Friday ship date", or "Look into “Payment failed” from Stripe" for senders that take
 no replies. Never a duplicate: an email or title that already has a task is skipped, whatever its
 state, except a task hidden more than 14 days ago. Unsorted mail is never suggested.
+
+### The inbox watch
+
+A small, safe first step towards working through the day, not only in the morning brief. It is
+**off** until the person switches it on (Routines → Watch my inbox), and it **only reads**: it calls
+no tools, never replies, sends or changes mail, and writes only suggestions, one notification and
+its own status (migration `proactive.002_inbox_watch`).
+
+- `watch.check()` looks once. It runs only when mail is connected, a real model is set (the scripted
+  one cannot sort mail) and today's brief exists. Otherwise it says why ("Couldn't look: no mailbox
+  is connected.") and leaves `checkedAt` at the last time it really looked.
+- It reads `in:inbox newer_than:1d` (at most 25; like the brief, it asks again without the query
+  and keeps the last day when a connector finds nothing for it) and leaves out mail the brief
+  covered or an earlier look dealt with. The rest is triaged as usual (the triage cache means the model is asked about
+  each email once), and model-sorted needs-you mail becomes at most **two** suggestions per look,
+  through the brief's own de-duplication. Mail past those two, and mail the model could not sort,
+  is left for the next look; unsorted mail is never suggested.
+- At most one notification per look: "New mail needs you", "Ana Pereira: Friday ship date and 1
+  more", prefixed "From the demo inbox:" for demo mail, opening Suggested on Tasks.
+- `watch.status()` is `{ enabled, checkedAt?, note?, noteAt? }`: when it last read the inbox, and
+  what its last try found or why it could not look. Provider error text is never stored.
+- The server looks every 30 minutes from the person's brief time until 21:00 local time.
 
 ### Skills, memory, notifications
 

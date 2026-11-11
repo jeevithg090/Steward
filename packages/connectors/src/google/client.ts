@@ -18,7 +18,9 @@ import {
   headerValue,
   parseAddress,
   parseAddressList,
+  visibleText,
 } from "./mime.ts";
+import { zonedTime } from "./time.ts";
 
 export interface GoogleMailCalendarOptions {
   /**
@@ -39,6 +41,12 @@ export interface GoogleMailCalendarOptions {
   fetch?: FetchLike;
   /** Per request. Default 20 s. */
   timeoutMs?: number;
+  /**
+   * The person's IANA time zone (Settings → Time zone), read on every use. A calendar time with no
+   * offset, such as `2026-07-10T14:00`, means that wall-clock time there. Without it such a time is
+   * refused rather than read in the server's own zone.
+   */
+  timeZone?: () => string;
 }
 
 /** What Gmail or Calendar answered when it said no, in words a person can act on. */
@@ -83,6 +91,7 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
   const doFetch: FetchLike = opts.fetch ?? ((input, init) => fetch(input, init));
   const timeoutMs = opts.timeoutMs ?? 20_000;
   let labelNames: Promise<Map<string, string>> | undefined;
+  const at = (value: string) => toRfc3339(value, opts.timeZone?.());
 
   async function call<T>(service: "Gmail" | "Calendar", url: string, init: RequestInit = {}): Promise<T> {
     const headers = new Headers(init.headers);
@@ -125,7 +134,12 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
     return call<GmailMessage>("Gmail", `${gmailBase}/messages/${encodeURIComponent(id)}?${params}`);
   }
 
-  async function toSummary(m: GmailMessage): Promise<GmailEmailSummary> {
+  /**
+   * A summary with only what a person would see: characters that are never drawn are taken out of
+   * the subject, the names and addresses, and the snippet (`seen` counts them, the snippet aside,
+   * since it repeats the body).
+   */
+  async function toSummary(m: GmailMessage, seen = new Seen()): Promise<GmailEmailSummary> {
     const headers = m.payload?.headers ?? [];
     const names = await labels();
     const triage: GmailEmailSummary["headers"] = {};
@@ -138,10 +152,10 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
     return {
       id: m.id,
       threadId: m.threadId,
-      from: parseAddress(headerValue(headers, "From")) ?? { email: "" },
-      to: parseAddressList(headerValue(headers, "To")),
-      subject: decodeWords(headerValue(headers, "Subject") ?? "").trim() || "(no subject)",
-      snippet: decodeEntities(m.snippet ?? ""),
+      from: seen.address(parseAddress(headerValue(headers, "From")) ?? { email: "" }),
+      to: seen.addresses(headerValue(headers, "To")),
+      subject: seen.text(decodeWords(headerValue(headers, "Subject") ?? "")).trim() || "(no subject)",
+      snippet: visibleText(decodeEntities(m.snippet ?? "")).text,
       receivedAt: new Date(
         Number.isFinite(received) && received > 0 ? received : Date.parse(dateHeader ?? "") || 0,
       ).toISOString(),
@@ -166,10 +180,17 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
         `${gmailBase}/messages?${params}`,
       );
       const refs = list.messages ?? [];
+      // Mail is archived, trashed and deleted between the list and the read all the time. A message
+      // gone by then (404) is left out; any other refusal still fails the listing, since it says
+      // more. A 400 is not "gone" here: Gmail itself just gave the id, so a 400 on every read
+      // would otherwise turn a broken mailbox into an empty one.
       const messages = await mapLimit(refs, LOOKUP_CONCURRENCY, (r) =>
-        getMessage(r.id, "metadata", SUMMARY_HEADERS),
+        getMessage(r.id, "metadata", SUMMARY_HEADERS).catch((err: unknown) => {
+          if (err instanceof GoogleApiError && err.status === 404) return undefined;
+          throw err;
+        }),
       );
-      return Promise.all(messages.map(toSummary));
+      return Promise.all(messages.filter((m): m is GmailMessage => m !== undefined).map((m) => toSummary(m)));
     },
 
     async getEmail(id) {
@@ -177,15 +198,24 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
       try {
         m = await getMessage(id, "full");
       } catch (err) {
-        if (err instanceof GoogleApiError && (err.status === 404 || err.status === 400)) return undefined;
+        if (isGone(err)) return undefined;
         throw err;
       }
-      const summary = await toSummary(m);
+      const seen = new Seen();
+      const summary = await toSummary(m, seen);
       const headers = m.payload?.headers ?? [];
+      const cc = seen.addresses(headerValue(headers, "Cc"));
+      const body = bodyOf(m.payload);
+      // Said in the body, so the model knows the sender hid something, without reading what.
+      const chars = seen.removed + body.removed;
+      const notes = [
+        chars > 0 ? `[Steward removed ${plural(chars, "hidden character")} from this email.]` : "",
+        body.passages > 0 ? `[Steward left out ${plural(body.passages, "passage")} hidden from view.]` : "",
+      ];
       const email: GmailEmail = {
         ...summary,
-        cc: parseAddressList(headerValue(headers, "Cc")),
-        body: bodyOf(m.payload),
+        cc,
+        body: [body.text, ...notes].filter(Boolean).join("\n\n"),
         headers: summary.headers,
         messageId: headerValue(headers, "Message-ID"),
       };
@@ -231,8 +261,8 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
       let pageToken: string | undefined;
       for (let page = 0; page < 5; page++) {
         const params = new URLSearchParams({
-          timeMin: toRfc3339(from),
-          timeMax: toRfc3339(to),
+          timeMin: at(from),
+          timeMax: at(to),
           singleEvents: "true",
           orderBy: "startTime",
           maxResults: "250",
@@ -252,8 +282,8 @@ export function createGoogleMailCalendar(opts: GoogleMailCalendarOptions): MailC
     async createEvent(event) {
       const body: Record<string, unknown> = {
         summary: event.title,
-        start: event.allDay ? { date: event.start.slice(0, 10) } : { dateTime: toRfc3339(event.start) },
-        end: event.allDay ? { date: allDayEnd(event.start, event.end) } : { dateTime: toRfc3339(event.end) },
+        start: event.allDay ? { date: event.start.slice(0, 10) } : { dateTime: at(event.start) },
+        end: event.allDay ? { date: allDayEnd(event.start, event.end) } : { dateTime: at(event.end) },
       };
       if (event.location) body.location = event.location;
       const description = [
@@ -300,21 +330,35 @@ interface GmailMessage {
   payload?: GmailPart;
 }
 
-/** The readable body: the first text/plain part, else the first text/html part as text. */
-function bodyOf(payload: GmailPart | undefined): string {
-  if (!payload) return "";
+/**
+ * The readable body: the first text/plain part, else the first text/html part as text, with what
+ * a person cannot see taken out. `removed` counts characters that are never drawn (taken out
+ * before the cut, so they cannot push the visible text past it, and again after HTML, whose
+ * entities can spell them); `passages` counts HTML elements hidden from view that held words.
+ */
+function bodyOf(payload: GmailPart | undefined): { text: string; removed: number; passages: number } {
+  const none = { text: "", removed: 0, passages: 0 };
+  if (!payload) return none;
   const plain = findPart(payload, "text/plain");
   const html = plain ? undefined : findPart(payload, "text/html");
   const part = plain ?? html;
-  if (!part?.body?.data) return "";
+  if (!part?.body?.data) return none;
   const charset =
     /charset="?([^";\s]+)"?/i.exec(headerValue(part.headers ?? [], "Content-Type") ?? "")?.[1] ?? "utf-8";
-  const decoded = base64UrlDecode(part.body.data, charset).replace(/\r\n/g, "\n");
+  const raw = visibleText(base64UrlDecode(part.body.data, charset).replace(/\r\n/g, "\n"));
+  const decoded = raw.text;
   // Anyone can send HTML, so it is read only as far as the body that is kept.
-  const page = html ? htmlToText(decoded.slice(0, MAX_HTML_CHARS), { maxChars: MAX_BODY_CHARS }) : undefined;
-  const text = page ? page.text : decoded.trim();
+  const page = html
+    ? htmlToText(decoded.slice(0, MAX_HTML_CHARS), { maxChars: MAX_BODY_CHARS, dropHidden: true })
+    : undefined;
+  const shown = visibleText(page ? page.text : decoded.trim());
+  const text = shown.text;
   const cut = page ? page.truncated || decoded.length > MAX_HTML_CHARS : text.length > MAX_BODY_CHARS;
-  return cut ? `${text.slice(0, MAX_BODY_CHARS)}\n\n[truncated: the message is longer than this]` : text;
+  return {
+    text: cut ? `${text.slice(0, MAX_BODY_CHARS)}\n\n[truncated: the message is longer than this]` : text,
+    removed: raw.removed + shown.removed,
+    passages: page?.hidden ?? 0,
+  };
 }
 
 function findPart(part: GmailPart, mimeType: string): GmailPart | undefined {
@@ -371,11 +415,43 @@ function videoLinkIn(description: string | undefined): string | undefined {
   return description ? /Video call: (https:\/\/\S+)/.exec(description)?.[1] : undefined;
 }
 
-/** Calendar wants RFC 3339 with an offset. A bare date becomes midnight UTC that day. */
-function toRfc3339(value: string): string {
-  const ms = Date.parse(value);
+/** A date-time with no `Z` and no offset: `2026-07-10T14:00`, `2026-07-10T14:00:00.000`. */
+const NAIVE_DATE_TIME = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/;
+const BARE_DATE = /^\d{4}-\d{2}-\d{2}$/;
+/** A date-time with `Z` or an offset. Anything looser is refused: `Date.parse` reads "tomorrow at 3" as 2001. */
+const ZONED_DATE_TIME =
+  /^(\d{4}-\d{2}-\d{2})[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}(?::?\d{2})?)$/i;
+
+export const NO_OFFSET_MESSAGE = "Give the time with its offset, such as 2026-10-28T15:00:00+01:00.";
+
+/**
+ * Calendar wants RFC 3339 with an offset. A time without one is wall-clock time in the person's
+ * zone (`Date.parse` would read it in the server's, which is wrong whenever the two differ); with
+ * no zone to go on it is refused rather than guessed. A bare date is midnight in the person's zone,
+ * or midnight UTC when there is none.
+ */
+export function toRfc3339(value: string, timeZone?: string): string {
+  const text = value.trim();
+  const naive = NAIVE_DATE_TIME.exec(text);
+  if (naive) {
+    const [, day, hh, mm, ss = "00"] = naive as unknown as [string, string, string, string, string?];
+    if (!realDay(day) || Number(hh) > 23 || Number(mm) > 59 || Number(ss) > 59) {
+      throw new Error(`"${value}" isn't a date or time.`);
+    }
+    if (!timeZone) throw new Error(`"${value}" has no time zone. ${NO_OFFSET_MESSAGE}`);
+    return zonedTime(day, `${hh}:${mm}:${ss}`, timeZone).toISOString();
+  }
+  const day = BARE_DATE.test(text) ? text : ZONED_DATE_TIME.exec(text)?.[1];
+  const ms = day && realDay(day) ? Date.parse(text) : Number.NaN;
   if (Number.isNaN(ms)) throw new Error(`"${value}" isn't a date or time.`);
+  if (timeZone && day === text) return zonedTime(text, "00:00", timeZone).toISOString();
   return new Date(ms).toISOString();
+}
+
+/** True for a `YYYY-MM-DD` that is on the calendar (not 30 February). */
+function realDay(key: string): boolean {
+  const t = new Date(`${key}T00:00:00Z`);
+  return !Number.isNaN(t.getTime()) && t.toISOString().slice(0, 10) === key;
 }
 
 /** All-day ends are exclusive: an event on the 28th ends on the 29th. */
@@ -389,6 +465,44 @@ function allDayEnd(start: string, end: string): string {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────────────────────
+
+/** Takes what is never drawn out of the parts of an email a person reads, and counts it. */
+class Seen {
+  removed = 0;
+
+  text(value: string): string {
+    const visible = visibleText(value);
+    this.removed += visible.removed;
+    return visible.text;
+  }
+
+  /**
+   * The name and the address as they are drawn. An address is cleaned too: tag characters in it
+   * are invisible on screen but read by a model, and the address the person sees is the one a
+   * reply should go to.
+   */
+  address(a: EmailAddress): EmailAddress {
+    const email = this.text(a.email).trim();
+    const name = a.name ? this.text(a.name).trim() : "";
+    return name ? { name, email } : { email };
+  }
+
+  /** A To or Cc header, cleaned; an address that was nothing but invisible characters is left out. */
+  addresses(header: string | undefined): EmailAddress[] {
+    return parseAddressList(header)
+      .map((a) => this.address(a))
+      .filter((a) => a.email !== "");
+  }
+}
+
+function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+/** Gmail's answer for a message id that no longer exists (404), or one it no longer accepts (400). */
+function isGone(err: unknown): boolean {
+  return err instanceof GoogleApiError && (err.status === 404 || err.status === 400);
+}
 
 async function failureMessage(service: string, res: Response): Promise<string> {
   let detail = "";

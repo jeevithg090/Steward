@@ -1,4 +1,4 @@
-import { ROUTES, RoutineBody } from "@steward/shared";
+import { InboxWatchBody, ROUTES, RoutineBody } from "@steward/shared";
 import type { Hono } from "hono";
 import { z } from "zod";
 import type { StewardServices } from "../context.ts";
@@ -75,6 +75,13 @@ export function registerRoutineRoutes(app: Hono, s: StewardServices): void {
     if (!routines.get(id)) throw notFound("that routine");
     routines.remove(id);
     return c.json({ ok: true });
+  });
+
+  // The inbox watch: off until the person switches it on. It only reads mail and suggests.
+  app.get(ROUTES.inboxWatch, (c) => c.json(s.proactive.watch.status()));
+  app.patch(ROUTES.inboxWatch, async (c) => {
+    const body = await readBody(c, InboxWatchBody);
+    return c.json(s.proactive.watch.setEnabled(body.enabled));
   });
 
   app.post(ROUTES.routineRun, (c) => {

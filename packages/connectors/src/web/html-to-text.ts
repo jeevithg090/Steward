@@ -21,6 +21,14 @@ export interface HtmlToTextOptions {
    * the start of a page should not pay for the rest of it.
    */
   maxChars?: number;
+  /**
+   * Leave out what the markup hides from view: elements with the `hidden` attribute or an inline
+   * style of `display:none`, `visibility:hidden`, `opacity:0`, `font-size:0`, `mso-hide:all`, a
+   * zero height or width with `overflow:hidden`, or a position or indent 1,000px or more off the
+   * page. For mail, where hidden text is where an instruction to a model hides. (`aria-hidden` is
+   * not hidden from view, so its text stays. Rules in a `<style>` block are not read.)
+   */
+  dropHidden?: boolean;
 }
 
 export interface HtmlText {
@@ -28,6 +36,8 @@ export interface HtmlText {
   text: string;
   /** `maxChars` cut the text short. */
   truncated: boolean;
+  /** With `dropHidden`: how many hidden elements that held words were left out. */
+  hidden?: number;
 }
 
 const RAW_NAMES = [
@@ -106,6 +116,17 @@ export function htmlToText(html: string, opts: HtmlToTextOptions = {}): HtmlText
   let ogTitle: string | undefined;
   let skipName: string | undefined;
   let skipDepth = 0;
+  /** The skipped element is one hidden from view; `hiddenWords` says whether it held any text. */
+  let skipHidden = false;
+  let hiddenWords = false;
+  let hidden = 0;
+  const endSkip = () => {
+    if (skipHidden && hiddenWords) hidden++;
+    skipName = undefined;
+    skipDepth = 0;
+    skipHidden = false;
+    hiddenWords = false;
+  };
   let preDepth = 0;
   let stopped = false;
   const links: { href?: string; mark: Mark }[] = [];
@@ -154,14 +175,15 @@ export function htmlToText(html: string, opts: HtmlToTextOptions = {}): HtmlText
     if (skipName) {
       // `</head>` is optional in HTML; a body tag ends the head whether or not it was closed.
       if (skipName === "head" && name === "body" && !token.closing) {
-        skipName = undefined;
-        skipDepth = 0;
+        endSkip();
         continue;
       }
       if (name === skipName) {
         if (token.closing) skipDepth--;
         else if (!token.selfClosing) skipDepth++;
-        if (skipDepth === 0) skipName = undefined;
+        if (skipDepth === 0) endSkip();
+      } else if (skipHidden && !name && token.text && hasWords(decodeEntities(token.text))) {
+        hiddenWords = true;
       }
       continue;
     }
@@ -179,6 +201,13 @@ export function htmlToText(html: string, opts: HtmlToTextOptions = {}): HtmlText
         skipName = name;
         skipDepth = 1;
       }
+      continue;
+    }
+
+    if (opts.dropHidden && !closing && !token.selfClosing && !VOID.has(name) && hiddenFromView(attrs)) {
+      skipName = name;
+      skipDepth = 1;
+      skipHidden = true;
       continue;
     }
 
@@ -255,6 +284,8 @@ export function htmlToText(html: string, opts: HtmlToTextOptions = {}): HtmlText
     else if (VOID.has(name)) continue;
   }
 
+  // A hidden element left open at the end still hid what it held.
+  if (skipName) endSkip();
   const tidied = tidy(out.toString());
   let text = tidied;
   let truncated = stopped;
@@ -264,7 +295,12 @@ export function htmlToText(html: string, opts: HtmlToTextOptions = {}): HtmlText
     text = text.slice(0, code >= 0xd800 && code <= 0xdbff ? maxChars - 1 : maxChars);
     truncated = true;
   }
-  return { title: titleTag || ogTitle || firstHeading(tidied), text, truncated };
+  return {
+    title: titleTag || ogTitle || firstHeading(tidied),
+    text,
+    truncated,
+    ...(opts.dropHidden ? { hidden } : {}),
+  };
 }
 
 interface Token {
@@ -756,6 +792,54 @@ function rawAttr(attrs: string, name: string): string | undefined {
 function attr(attrs: string, name: string): string | undefined {
   const value = rawAttr(attrs, name);
   return value === undefined ? undefined : decodeEntities(value).trim();
+}
+
+/** True when the attributes hide the element from view: `hidden`, or an inline style that does. */
+function hiddenFromView(attrs: string): boolean {
+  if (!attrs) return false;
+  // `hidden` as an attribute of its own, not inside a value such as class="hidden".
+  if (/(?:^|\s)hidden(?=[\s=/]|$)/i.test(attrs.replace(/"[^"]*"|'[^']*'/g, '""'))) return true;
+  const style = attr(attrs, "style");
+  if (!style) return false;
+  const rules = new Map<string, string>();
+  for (const declaration of style
+    .toLowerCase()
+    .replace(/\/\*.*?\*\//g, "")
+    .split(";")) {
+    const colon = declaration.indexOf(":");
+    if (colon < 0) continue;
+    const value = declaration
+      .slice(colon + 1)
+      .replace(/!important/g, "")
+      .trim();
+    rules.set(declaration.slice(0, colon).trim(), value);
+  }
+  const zero = (value: string | undefined) =>
+    value !== undefined && /^[+-]?(0*\.)?0+([a-z]+|%)?$/.test(value);
+  // Pushed a long way off the page: `left:-9999px` and the like. A small nudge is not hiding.
+  const offPage = (value: string | undefined) => {
+    const px = value === undefined ? undefined : /^-(\d+(?:\.\d+)?)px$/.exec(value)?.[1];
+    return px !== undefined && Number(px) >= 1000;
+  };
+  const clipped = rules.get("overflow") === "hidden";
+  const positioned = rules.get("position") === "absolute" || rules.get("position") === "fixed";
+  return (
+    rules.get("display") === "none" ||
+    rules.get("visibility") === "hidden" ||
+    rules.get("visibility") === "collapse" ||
+    rules.get("mso-hide") === "all" ||
+    zero(rules.get("opacity")) ||
+    zero(rules.get("font-size")) ||
+    ((zero(rules.get("max-height")) || zero(rules.get("height"))) && clipped) ||
+    ((zero(rules.get("max-width")) || zero(rules.get("width"))) && clipped) ||
+    (positioned && (offPage(rules.get("left")) || offPage(rules.get("top")))) ||
+    offPage(rules.get("text-indent"))
+  );
+}
+
+/** Text with something to read in it, not just spaces and the joiners mail pads hidden previews with. */
+function hasWords(text: string): boolean {
+  return /[^\s\u00ad\u200b-\u200d\u2060\ufeff]/u.test(text.replace(/\u034f/gu, ""));
 }
 
 function linkTarget(attrs: string, baseUrl: string | undefined): string | undefined {
