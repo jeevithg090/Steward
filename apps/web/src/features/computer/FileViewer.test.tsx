@@ -74,6 +74,53 @@ describe("sandboxedDocument", () => {
     expect([...doc.querySelectorAll("*")].filter((n) => n.localName === "animate")).toHaveLength(1);
     expect(doc.body.textContent).toContain("Open");
   });
+
+  it("cleans inside templates, which the frame draws as part of the page (shadowrootmode)", () => {
+    const html = sandboxedDocument(
+      [
+        '<div><template shadowrootmode="open">',
+        '<a href="https://evil.example/?q=secret">Read more</a>',
+        '<meta http-equiv="refresh" content="0;url=https://evil.example/r">',
+        '<svg><a><set attributeName="href" to="https://evil.example/s" /><text>More</text></a></svg>',
+        "<template><a href='https://evil.example/deeper'>Deeper</a></template>",
+        "</template></div>",
+      ].join(""),
+    );
+    expect(html).not.toMatch(/href=|http-equiv="refresh"|<set/i);
+    expect(html.match(/evil\.example/g) ?? []).toHaveLength(2); // the two links' titles only
+    expect(html).toContain("Read more");
+  });
+
+  it("reads the page again the way the frame will, until nothing changes", () => {
+    // In the first reading the link is the text of a style; read again, it is a real link.
+    const tricky =
+      '<form><math><mtext></form><form><mglyph><style></math><a href="https://evil.example/m">mx</a>';
+    for (const page of [PAGE, tricky, "<p>Plain</p>", "<table><td>cell</table><p>after"]) {
+      const once = sandboxedDocument(page);
+      expect(sandboxedDocument(once)).toBe(once);
+      expect(once).not.toMatch(/href=/i);
+    }
+  });
+
+  it("shows nothing of a page that never settles", () => {
+    let readings = 0;
+    const Real = DOMParser;
+    vi.stubGlobal(
+      "DOMParser",
+      class extends Real {
+        override parseFromString(text: string, type: DOMParserSupportedType): Document {
+          const doc = super.parseFromString(text, type);
+          readings += 1;
+          doc.body.append(doc.createTextNode(` reading ${readings}`));
+          return doc;
+        }
+      },
+    );
+    const html = sandboxedDocument("<h1>Shifting</h1>");
+    expect(html).toContain("can't be shown safely here");
+    expect(html).not.toContain("Shifting");
+    expect(html).toContain(VIEWER_CSP);
+  });
 });
 
 describe("FileViewer", () => {

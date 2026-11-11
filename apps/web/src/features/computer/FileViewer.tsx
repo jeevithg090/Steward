@@ -23,35 +23,39 @@ import { Markdown } from "../chat/Markdown.tsx";
 export const VIEWER_CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; form-action 'none'";
 
 /** Attributes that would send the frame, or a ping, somewhere else when clicked or submitted. */
-const LEAVING = new Set(["href", "xlink:href", "ping", "action", "formaction", "target", "formtarget"]);
+const LEAVING = new Set(["href", "ping", "action", "formaction", "target", "formtarget"]);
 const LINKS = new Set(["a", "area"]);
+/** What is taken out whole: what would run, load something, or lead somewhere else. */
+const DROPPED = "script, noscript, base, link, meta[http-equiv], iframe, frame, object, embed, portal";
 /** SVG animations, which can set an attribute after the page is drawn, with no script. */
 const ANIMATIONS = new Set(["animate", "set"]);
+const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+/** One of the attributes above, with or without a prefix (`href`, `xlink:href`, `x:href`). */
+function isLeaving(name: string): boolean {
+  const lower = name.trim().toLowerCase();
+  return LEAVING.has(lower.slice(lower.lastIndexOf(":") + 1));
+}
 
 /** An SVG animation that would give an element one of the attributes above, such as a link's href. */
 function animatesLeaving(node: Element): boolean {
   if (!ANIMATIONS.has(node.localName.toLowerCase())) return false;
   return [...node.attributes].some(
-    (attribute) =>
-      attribute.name.toLowerCase() === "attributename" && LEAVING.has(attribute.value.trim().toLowerCase()),
+    (attribute) => attribute.name.toLowerCase() === "attributename" && isLeaving(attribute.value),
   );
 }
 
-/**
- * The page as the frame will draw it. Parsing with DOMParser runs nothing and loads nothing. Scripts
- * are removed (the sandbox would stop them anyway), links keep their words but lead nowhere (the
- * address stays as a tooltip), and the policy is the first thing in the head, so it covers all of it.
- */
-export function sandboxedDocument(html: string): string {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  for (const node of doc.querySelectorAll(
-    "script, noscript, base, link, meta[http-equiv], iframe, frame, object, embed, portal",
-  )) {
-    node.remove();
-  }
-  for (const node of doc.querySelectorAll("*")) {
+/** The page's own referrer policy: Steward's is put first, and a later one would replace it. */
+function isReferrerMeta(node: Element): boolean {
+  return node.localName === "meta" && node.getAttribute("name")?.trim().toLowerCase() === "referrer";
+}
+
+/** Takes out of `root` what would run or lead elsewhere, and the same inside its templates. */
+function clean(root: ParentNode): void {
+  for (const node of root.querySelectorAll(DROPPED)) node.remove();
+  for (const node of root.querySelectorAll("*")) {
     // The frame may still navigate itself when a link is clicked, so no animation may add one back.
-    if (animatesLeaving(node)) {
+    if (animatesLeaving(node) || isReferrerMeta(node)) {
       node.remove();
       continue;
     }
@@ -59,10 +63,21 @@ export function sandboxedDocument(html: string): string {
       ? (node.getAttribute("href") ?? node.getAttribute("xlink:href"))
       : null;
     for (const attribute of [...node.attributes]) {
-      if (LEAVING.has(attribute.name.toLowerCase())) node.removeAttribute(attribute.name);
+      if (isLeaving(attribute.name)) node.removeAttribute(attribute.name);
     }
     if (href && !node.hasAttribute("title")) node.setAttribute("title", href);
+    // A template's contents are not part of the page here, but the frame draws one marked as a
+    // shadow root (`shadowrootmode`) as part of the page, links and all.
+    if (node.localName === "template" && node.namespaceURI === HTML_NS) {
+      clean((node as HTMLTemplateElement).content);
+    }
   }
+}
+
+/** One reading of the page: parsed (inert), cleaned, and given the policy first in its head. */
+function cleanedOnce(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  clean(doc);
   const meta = doc.createElement("meta");
   meta.setAttribute("http-equiv", "Content-Security-Policy");
   meta.setAttribute("content", VIEWER_CSP);
@@ -72,6 +87,28 @@ export function sandboxedDocument(html: string): string {
   referrer.setAttribute("content", "no-referrer");
   meta.after(referrer);
   return `<!doctype html>\n${doc.documentElement.outerHTML}`;
+}
+
+/** How many times a page is read again before it is taken as one that keeps changing. */
+const MAX_READINGS = 4;
+
+/**
+ * The page as the frame will draw it. Parsing with DOMParser runs nothing and loads nothing. Scripts
+ * are removed (the sandbox would stop them anyway), links keep their words but lead nowhere (the
+ * address stays as a tooltip), and the policy is the first thing in the head, so it covers all of it.
+ *
+ * A page can be written so that the frame reads it differently from the first reading: a link
+ * hidden as the text of a style becomes a real one. So the cleaned page is read again, the way the
+ * frame will read it, until nothing changes; one that never settles is not shown.
+ */
+export function sandboxedDocument(html: string): string {
+  let page = cleanedOnce(html);
+  for (let reading = 0; reading < MAX_READINGS; reading++) {
+    const again = cleanedOnce(page);
+    if (again === page) return page;
+    page = again;
+  }
+  return cleanedOnce("<p>This page can't be shown safely here. It is still in Steward's files.</p>");
 }
 
 function nameOf(path: string): string {
