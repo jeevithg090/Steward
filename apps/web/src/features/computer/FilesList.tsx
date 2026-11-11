@@ -18,11 +18,12 @@ function parentOf(path: string): string | undefined {
 
 /**
  * The entries directly in `dir`. The server may send a deeper listing (a running computer lists
- * recursively), but this tab opens one folder at a time.
+ * recursively), but this tab opens one folder at a time. Entries are kept by depth, not by their
+ * parent's name: a linked folder read from disk comes back under the name of the folder it points to.
  */
 function inFolder(files: readonly WorkspaceFile[], dir: string | undefined): WorkspaceFile[] {
-  const want = dir?.split("/").filter(Boolean).join("/") || undefined;
-  return files.filter((file) => parentOf(file.path) === want);
+  const depth = (dir?.split("/").filter(Boolean).length ?? 0) + 1;
+  return files.filter((file) => file.path.split("/").filter(Boolean).length === depth);
 }
 
 function nameOf(path: string): string {

@@ -19,15 +19,25 @@ const tree = [
   entry("made/page.html"),
   entry("made/assets", true),
   entry("made/assets/logo.svg"),
+  entry("link", true),
   entry("notes.md"),
 ];
+
+/** What the server sends for each folder. */
+const listings: Record<string, WorkspaceFile[]> = {
+  "": tree,
+  made: tree.filter((file) => file.path.startsWith("made/")),
+  // A stopped computer's folder is read from disk, where a linked folder comes back under the name
+  // of the folder it points to.
+  link: [entry("target/inside.txt")],
+};
 
 vi.mock("@/lib/api.ts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api.ts")>();
   return {
     ...actual,
-    useComputerFiles: () => ({
-      data: tree,
+    useComputerFiles: (_agentId: string, dir?: string) => ({
+      data: listings[dir ?? ""] ?? [],
       isLoading: false,
       isError: false,
       isFetching: false,
@@ -49,11 +59,18 @@ describe("FilesList", () => {
     render(<FilesList agentId="steward" />);
     expect(names(screen.getByRole("list", { name: "Files in the workspace" }))).toEqual([
       "downloads",
+      "link",
       "made",
       "notes.md",
     ]);
 
     fireEvent.click(screen.getByRole("button", { name: /made/ }));
     expect(names(screen.getByRole("list", { name: "Files in made" }))).toEqual(["assets", "page.html"]);
+  });
+
+  it("shows what is in a linked folder when it is read from disk", () => {
+    render(<FilesList agentId="steward" />);
+    fireEvent.click(screen.getByRole("button", { name: /link/ }));
+    expect(names(screen.getByRole("list", { name: "Files in link" }))).toEqual(["inside.txt"]);
   });
 });
