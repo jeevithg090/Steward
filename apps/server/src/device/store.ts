@@ -251,7 +251,7 @@ export class DeviceStore {
   }
 
   /** Revokes at once: the next call with its token is refused, and the relay is told. */
-  revoke(id: string): Device | undefined {
+  revoke(id: string, detail: Record<string, unknown> = {}): Device | undefined {
     const at = this.now().toISOString();
     const changed = this.db.run(
       "UPDATE devices SET revoked_at = ?, remote_key = NULL WHERE id = ? AND revoked_at IS NULL",
@@ -259,7 +259,7 @@ export class DeviceStore {
     );
     const device = this.get(id);
     if (changed.changes === 1 && device) {
-      this.record("device.revoked", device, {});
+      this.record("device.revoked", device, detail);
       for (const listener of this.revokeListeners) {
         try {
           listener(device);
@@ -269,6 +269,18 @@ export class DeviceStore {
       }
     }
     return device;
+  }
+
+  /**
+   * Revokes the keys made for one-tap files that nobody fetched. Such a key was never seen: a phone
+   * paired by code is seen at pairing, and a file is seen when it is fetched. Download links live in
+   * memory, so at start none of these files can be fetched any more. Called once, at start.
+   */
+  revokeUnfetchedFiles(reason: string): Device[] {
+    const rows = this.db.all<{ id: string }>(
+      "SELECT id FROM devices WHERE kind = 'shortcut' AND last_seen_at IS NULL AND revoked_at IS NULL",
+    );
+    return rows.flatMap((row) => this.revoke(row.id, { reason }) ?? []);
   }
 
   onRevoke(listener: (device: Device) => void): () => void {

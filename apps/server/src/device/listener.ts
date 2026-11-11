@@ -17,7 +17,7 @@ import { isLoopbackHost } from "../config.ts";
 import { HttpError, onError, readBody } from "../http/errors.ts";
 import { limitBody, requestHost, securityHeaders } from "../http/security.ts";
 import type { DeviceApi } from "./api.ts";
-import type { InstallStore } from "./installs.ts";
+import { type InstallStore, UNFETCHED } from "./installs.ts";
 import type { PhoneSettings } from "./phone.ts";
 import { RateLimiter } from "./rate-limit.ts";
 import { type DeviceStore, PairingError } from "./store.ts";
@@ -99,6 +99,8 @@ export function shortcutVersion(header: string | undefined): { id: string; versi
 export function createDeviceApp(deps: DeviceListenerDeps): Hono<DeviceEnv> {
   const { api, devices, phone } = deps;
   const now = deps.now ?? (() => Date.now());
+  // The download links of the last run died with it: a key whose file nobody fetched is revoked.
+  if (deps.installs) devices.revokeUnfetchedFiles(UNFETCHED);
   // Wrong codes only: a person pairing several phones is never slowed, a guesser is.
   const pairFailures = new RateLimiter(10, 60_000, now);
   const failedTokens = new RateLimiter(30, 60_000, now);

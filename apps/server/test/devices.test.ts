@@ -15,7 +15,10 @@ import {
 } from "@steward/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadConfig, startupWarnings } from "../src/config.ts";
-import { checkPhoneUrl, isPrivateHost } from "../src/device/phone.ts";
+import type { DeviceApi } from "../src/device/api.ts";
+import { InstallStore, UNFETCHED } from "../src/device/installs.ts";
+import { createDeviceApp } from "../src/device/listener.ts";
+import { checkPhoneUrl, isPrivateHost, type PhoneSettings } from "../src/device/phone.ts";
 import {
   CODE_ALPHABET,
   DeviceStore,
@@ -137,6 +140,27 @@ describe("device store", () => {
     const types = gw.audit.page({ limit: 20 }).events.map((e) => e.type);
     expect(types).toEqual(expect.arrayContaining(["device.paired", "device.changed", "device.revoked"]));
     expect(gw.audit.verify().ok).toBe(true);
+  });
+
+  it("revokes at start a one-tap key whose file nobody fetched, and keeps every other phone", () => {
+    const { gw, store } = storeOnMemory();
+    const unfetched = store.issue({ deviceName: "iPhone (one-tap file)", kind: "shortcut" }).device;
+    const fetched = store.issue({ deviceName: "iPhone (one-tap file)", kind: "shortcut" }).device;
+    store.touch(fetched);
+    const paired = pair(store, store.createPairing("shortcut").code).device;
+    const app = store.issueRemote({ deviceName: "Phone app", publicKey: "{}", dataKey: "x" });
+
+    createDeviceApp({
+      api: {} as DeviceApi,
+      phone: {} as PhoneSettings,
+      devices: store,
+      installs: new InstallStore(),
+    });
+    expect(store.get(unfetched.id)?.revokedAt).toBeTruthy();
+    for (const kept of [fetched, paired, app])
+      expect(store.get(kept.id)?.revokedAt, kept.name).toBeUndefined();
+    const revoked = gw.audit.page({ type: "device.revoked" }).events;
+    expect(revoked.map((e) => e.detail)).toEqual([expect.objectContaining({ reason: UNFETCHED })]);
   });
 
   it("records a pairing code that did not work", () => {

@@ -110,7 +110,8 @@ and dies after 5 wrong tries. The key is stored in `iCloud Drive/Shortcuts/Stewa
 
 **One tap, with the key inside (Mac only).** The Shortcuts page can make a copy of the Steward
 shortcut that already holds a new key, signed on this Mac for your own devices
-(`people-who-know-me`; nothing goes to Apple). The link works once, for 10 minutes. Open it only on
+(`people-who-know-me`; nothing goes to Apple). The link works once, for 10 minutes. If nobody
+downloads it in that time, or Steward restarts first, the key inside is revoked. Open it only on
 your own iPhone, and delete the download afterwards. Whether an iPhone accepts it with Private
 Sharing switched off is still to be checked (below); pairing with the code always works.
 

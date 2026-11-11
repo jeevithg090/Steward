@@ -6,8 +6,8 @@ import type {
   ShortcutInstall,
 } from "@steward/shared";
 import { readSigned } from "@steward/shortcuts";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { InstallStore } from "../src/device/installs.ts";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { INSTALL_TTL_MS, InstallStore } from "../src/device/installs.ts";
 import { launcherName, makeInstall } from "../src/device/shortcuts.ts";
 import { missingPackages } from "./helpers.ts";
 import { startTestServer, type TestServer } from "./server.ts";
@@ -30,6 +30,29 @@ describe("one-time downloads", () => {
     now = 10 * 60_000 + 1;
     expect(store.take(second.id)).toBeUndefined();
     expect(revoked).toBe(true);
+  });
+
+  it("revoke a key never fetched when its link dies, with no other call to notice", () => {
+    vi.useFakeTimers();
+    try {
+      const store = new InstallStore();
+      const expired: string[] = [];
+      const taken: string[] = [];
+      const hooks = (name: string) => ({
+        onExpire: () => expired.push(name),
+        onTake: () => taken.push(name),
+      });
+      store.add({ bytes: new Uint8Array([1]), name: "unused", personal: true, ...hooks("unused") });
+      const used = store.add({ bytes: new Uint8Array([1]), name: "used", personal: true, ...hooks("used") });
+      expect(store.take(used.id)?.name).toBe("used");
+      vi.advanceTimersByTime(INSTALL_TTL_MS - 1);
+      expect(expired).toEqual([]);
+      vi.advanceTimersByTime(1);
+      expect(expired).toEqual(["unused"]);
+      expect(taken).toEqual(["used"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("name launchers for Siri without characters a file name cannot hold", () => {
