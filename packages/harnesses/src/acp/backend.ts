@@ -11,12 +11,23 @@ import {
   type SessionUpdate,
 } from "@agentclientprotocol/sdk";
 import type { HarnessProfile } from "@steward/shared";
-import { harnessEnvironment } from "../profiles.ts";
+import {
+  delay,
+  plainExit,
+  running,
+  START_TIMEOUT_MS,
+  spawnFailed,
+  startTimedOut,
+  stderrSettled,
+  stopProcessGroup,
+} from "../process.ts";
+import { harnessEnvironment, notInstalled } from "../profiles.ts";
 import type { BackendEvents, HarnessBackend, HarnessUpdate, TurnEnd } from "../types.ts";
 import { filterStdoutLine, outcomeFor, outputOf, permissionFrom, toolNameOf } from "./mapping.ts";
 
 const STDERR_TAIL = 4096;
-const KILL_GRACE_MS = 3_000;
+/** How long a turn that failed waits to learn whether the process exited, so it can say why. */
+const EXIT_WAIT_MS = 1_000;
 
 /** A byte stream of newline-delimited lines, keeping only the lines `keep` returns. */
 export function lineFilter(keep: (line: string) => string | null): TransformStream<Uint8Array, Uint8Array> {
@@ -109,6 +120,8 @@ export class AcpBackend implements HarnessBackend {
   private loading = false;
   private stderr = "";
   private exitedPromise: Promise<void> | undefined;
+  /** Why the process ended, in plain words, once it has. */
+  private exitReason: Promise<string> | undefined;
   private closing = false;
 
   constructor(
@@ -119,42 +132,58 @@ export class AcpBackend implements HarnessBackend {
       events: BackendEvents;
       /** Steward's version, sent as the client's name. */
       version?: string;
+      /** How long `initialize` and opening the session may take. 30 seconds by default. */
+      startTimeoutMs?: number;
     },
   ) {}
 
   get pid(): number | undefined {
-    return this.child?.exitCode === null ? this.child.pid : undefined;
+    return running(this.child) ? this.child.pid : undefined;
   }
 
   async start({ resumeHandle }: { resumeHandle?: string }): Promise<{ handle: string; resumed: boolean }> {
     const { profile, cwd, events } = this.opts;
+    // A group of its own, so stopping it also stops whatever it started.
     const child = spawn(profile.command, profile.args, {
       cwd,
       env: harnessEnvironment(profile, this.opts.env),
       stdio: ["pipe", "pipe", "pipe"],
       shell: false,
+      detached: true,
     });
     this.child = child;
-    this.exitedPromise = new Promise((resolveExit) => {
-      child.once("exit", (code, signal) => {
-        resolveExit();
-        if (!this.closing) {
-          events.exited(
-            `${profile.name} stopped${signal ? ` (${signal})` : code !== null ? ` (exit code ${code})` : ""}.`,
-          );
-        }
-      });
-    });
     // Fails the start, and only the start: a later exit is reported through `events.exited`.
     let ready = false;
+    this.exitedPromise = new Promise((resolveExit) => child.once("exit", () => resolveExit()));
+    this.exitReason = new Promise((resolveReason) => {
+      child.once("exit", (code, signal) => {
+        void stderrSettled(child).then(() => {
+          const reason = plainExit(profile.name, code, signal, this.stderr);
+          resolveReason(reason);
+          if (!this.closing && ready) events.exited(reason);
+        });
+      });
+    });
     const exited = this.exitedPromise;
+    // What failed the start, when it was not the protocol: the program, its death, or the clock.
+    let reason: Error | undefined;
+    let timer: NodeJS.Timeout | undefined;
     const failed = new Promise<never>((_, reject) => {
+      const fail = (error: Error) => {
+        reason ??= error;
+        reject(reason);
+      };
       child.on("error", (err) => {
-        if (!ready) reject(new Error(`${profile.name} could not be started: ${err.message}`));
+        if (!ready) fail(spawnFailed(profile, err, notInstalled(profile)));
       });
-      void exited.then(() => {
-        if (!ready) reject(this.diedError());
+      void exited.then(async () => {
+        if (ready) return;
+        await stderrSettled(child);
+        fail(this.diedError());
       });
+      const timeoutMs = this.opts.startTimeoutMs ?? START_TIMEOUT_MS;
+      timer = setTimeout(() => fail(startTimedOut(profile, timeoutMs)), timeoutMs);
+      timer.unref();
     });
     failed.catch(() => {});
     child.stderr.on("data", (chunk: Buffer) => {
@@ -211,15 +240,31 @@ export class AcpBackend implements HarnessBackend {
       ready = true;
       return result;
     } catch (error) {
+      // The connection closes when the process dies: say how it died, not that it closed.
+      const died = reason ?? (connection.signal.aborted ? await this.diedWithin(EXIT_WAIT_MS) : undefined);
       ready = true;
       await this.close();
-      throw error instanceof Error ? error : new Error(errorText(error));
+      throw died ?? (error instanceof Error ? error : new Error(errorText(error)));
+    } finally {
+      clearTimeout(timer);
     }
   }
 
   private diedError(): Error {
-    const tail = this.stderr.trim().split("\n").slice(-3).join(" ").slice(0, 300);
-    return new Error(`${this.opts.profile.name} stopped before it was ready${tail ? `: ${tail}` : "."}`);
+    const child = this.child;
+    const { name } = this.opts.profile;
+    const said = plainExit(name, child?.exitCode ?? null, child?.signalCode ?? null, this.stderr);
+    return new Error(said.replace(`${name} stopped`, `${name} stopped before it was ready`));
+  }
+
+  /** The reason the process died, if it does within `ms`. */
+  private async diedWithin(ms: number): Promise<Error | undefined> {
+    const child = this.child;
+    if (!child || !this.exitedPromise) return undefined;
+    const ended = await Promise.race([this.exitedPromise.then(() => true), delay(ms).then(() => false)]);
+    if (!ended) return undefined;
+    await stderrSettled(child);
+    return this.diedError();
   }
 
   async prompt(text: string): Promise<TurnEnd> {
@@ -234,6 +279,13 @@ export class AcpBackend implements HarnessBackend {
       const stopReason = response.stopReason === "max_turn_requests" ? "max_tokens" : response.stopReason;
       return { stopReason };
     } catch (error) {
+      // The connection closes when the process ends: say how it ended, in its own last words.
+      const reason = this.exitReason;
+      const exited =
+        reason && (connection.signal.aborted || !running(this.child))
+          ? await Promise.race([reason, delay(EXIT_WAIT_MS).then(() => undefined)])
+          : undefined;
+      if (exited) return { stopReason: "error", error: exited };
       return {
         stopReason: "error",
         error: `${this.opts.profile.name} could not finish: ${errorText(error)}`,
@@ -259,11 +311,7 @@ export class AcpBackend implements HarnessBackend {
       // Closing an already closed connection.
     }
     const child = this.child;
-    if (!child || child.exitCode !== null || child.signalCode !== null) return;
-    child.kill("SIGTERM");
-    const timer = setTimeout(() => child.kill("SIGKILL"), KILL_GRACE_MS);
-    timer.unref();
-    await this.exitedPromise;
-    clearTimeout(timer);
+    if (!child) return;
+    await stopProcessGroup(child, this.exitedPromise);
   }
 }

@@ -154,8 +154,10 @@ export class HarnessThread {
     if (this.timer) clearTimeout(this.timer);
     for (const parked of this.parked.values()) parked.answer("cancelled");
     this.parked.clear();
+    // Requests are answered; what the harness said, and how it ended, stay for the run reading
+    // them, so it can tell the person why it stopped ("not signed in"), not only that it did.
     for (const event of this.queue) if (event.type === "permission") event.answer("cancelled");
-    this.queue.length = 0;
+    this.queue.splice(0, this.queue.length, ...this.queue.filter((e) => e.type !== "permission"));
     this.wake?.();
     try {
       if (this.turnInFlight) await this.backend.cancel();
@@ -198,13 +200,28 @@ export interface HarnessThreadsOptions {
   parkedMs?: number;
 }
 
+/** A start that was stopped (the run was stopped, the conversation deleted, Steward shut down). */
+export class HarnessStartStopped extends Error {
+  constructor(name: string) {
+    super(`${name} was stopped before it was ready.`);
+    this.name = "HarnessStartStopped";
+  }
+}
+
+/** A process on its way up: its thread, so it can be closed before it is ready. */
+interface Starting {
+  promise: Promise<{ thread: HarnessThread; notice?: string }>;
+  thread?: HarnessThread;
+  stop: AbortController;
+}
+
 /**
  * The live harness processes of one harness profile, one per conversation. Kept across agent
  * rebuilds while the profile is unchanged, so a parked request survives a bot being installed.
  */
 export class HarnessThreads {
   private readonly threads = new Map<string, HarnessThread>();
-  private readonly starting = new Map<string, Promise<{ thread: HarnessThread; notice?: string }>>();
+  private readonly starting = new Map<string, Starting>();
 
   constructor(private readonly opts: HarnessThreadsOptions) {}
 
@@ -216,15 +233,38 @@ export class HarnessThreads {
     return this.opts.workspace;
   }
 
-  /** The conversation's harness, started (and its session reopened) when it is not running. */
-  async thread(threadId: string): Promise<{ thread: HarnessThread; notice?: string }> {
+  /**
+   * The conversation's harness, started (and its session reopened) when it is not running. When
+   * `signal` aborts while it starts, the starting process is stopped and this rejects.
+   */
+  async thread(threadId: string, signal?: AbortSignal): Promise<{ thread: HarnessThread; notice?: string }> {
     const live = this.threads.get(threadId);
     if (live && !live.closed) return { thread: live };
-    const pending = this.starting.get(threadId);
-    if (pending) return pending;
-    const started = this.start(threadId).finally(() => this.starting.delete(threadId));
-    this.starting.set(threadId, started);
-    return started;
+    if (signal?.aborted) throw new HarnessStartStopped(this.opts.profile.name);
+    let starting = this.starting.get(threadId);
+    if (!starting) {
+      const entry = { stop: new AbortController() } as Starting;
+      entry.promise = this.start(threadId, entry).finally(() => {
+        if (this.starting.get(threadId) === entry) this.starting.delete(threadId);
+      });
+      this.starting.set(threadId, entry);
+      starting = entry;
+    }
+    if (!signal) return starting.promise;
+    const entry = starting;
+    const onAbort = () => void this.stopStarting(entry);
+    signal.addEventListener("abort", onAbort, { once: true });
+    try {
+      return await entry.promise;
+    } finally {
+      signal.removeEventListener("abort", onAbort);
+    }
+  }
+
+  /** Stops a process that is still starting: its start rejects, and nothing of it is kept. */
+  private async stopStarting(entry: Starting): Promise<void> {
+    entry.stop.abort();
+    await entry.thread?.close().catch(() => {});
   }
 
   /** The running harness for a conversation, without starting one. */
@@ -233,7 +273,10 @@ export class HarnessThreads {
     return live && !live.closed ? live : undefined;
   }
 
-  private async start(threadId: string): Promise<{ thread: HarnessThread; notice?: string }> {
+  private async start(
+    threadId: string,
+    entry: Starting,
+  ): Promise<{ thread: HarnessThread; notice?: string }> {
     const { profile, agentId } = this.opts;
     mkdirSync(this.opts.workspace, { recursive: true });
     let thread: HarnessThread | undefined;
@@ -270,14 +313,32 @@ export class HarnessThreads {
       idleMs: this.opts.idleMs ?? IDLE_MS,
       parkedMs: this.opts.parkedMs ?? PARKED_MS,
     });
+    entry.thread = thread;
 
     const handle = this.opts.store?.get(threadId, profile.id);
+    const stopped = new Promise<never>((_, reject) => {
+      const fail = () => reject(new HarnessStartStopped(profile.name));
+      if (entry.stop.signal.aborted) fail();
+      else entry.stop.signal.addEventListener("abort", fail, { once: true });
+    });
+    stopped.catch(() => {});
     let opened: { handle: string; resumed: boolean };
     try {
-      opened = await backend.start(handle ? { resumeHandle: handle } : {});
+      opened = await Promise.race([backend.start(handle ? { resumeHandle: handle } : {}), stopped]);
     } catch (error) {
       thread.closed = true;
+      if (entry.stop.signal.aborted) {
+        await backend.close().catch(() => {});
+        throw new HarnessStartStopped(profile.name);
+      }
       throw error;
+    }
+    // Stopped while it opened (the conversation was deleted, Steward is shutting down): nothing of
+    // it is kept, so a deleted conversation's session is never written back.
+    if (entry.stop.signal.aborted || thread.closed) {
+      thread.closed = true;
+      await backend.close().catch(() => {});
+      throw new HarnessStartStopped(profile.name);
     }
     this.threads.set(threadId, thread);
     thread.started();
@@ -306,20 +367,33 @@ export class HarnessThreads {
     this.record("harness.stopped", thread.threadId, { harness: this.opts.profile.id, reason });
   }
 
-  /** Stops the conversation's harness, e.g. when the conversation is deleted. */
-  async close(threadId: string, forget = false): Promise<void> {
+  /**
+   * Stops the conversation's harness, even one still starting. With `forget`, its session is
+   * forgotten too: the conversation was deleted, or it was a handed-on task that ended. `reason`
+   * is what the record says.
+   */
+  async close(threadId: string, forget = false, reason?: string): Promise<void> {
+    const starting = this.starting.get(threadId);
+    if (starting) await this.stopStarting(starting);
     const thread = this.threads.get(threadId);
-    if (thread) await this.retire(thread, forget ? "conversation deleted" : "closed");
+    if (thread) await this.retire(thread, reason ?? (forget ? "conversation deleted" : "closed"));
     if (forget) this.opts.store?.delete(threadId);
   }
 
   async closeAll(): Promise<void> {
-    await Promise.all([...this.threads.values()].map((t) => this.retire(t, "shutdown")));
+    await Promise.all([
+      ...[...this.starting.values()].map((s) => this.stopStarting(s)),
+      ...[...this.threads.values()].map((t) => this.retire(t, "shutdown")),
+    ]);
   }
 
-  /** The process ids running now. For tests and the leak check. */
+  /** The process ids running now, those still starting included. For tests and the leak check. */
   pids(): number[] {
-    return [...this.threads.values()].flatMap((t) => (t.backend.pid ? [t.backend.pid] : []));
+    const all = [
+      ...this.threads.values(),
+      ...[...this.starting.values()].flatMap((s) => (s.thread ? [s.thread] : [])),
+    ];
+    return all.flatMap((t) => (t.backend.pid ? [t.backend.pid] : []));
   }
 
   private record(

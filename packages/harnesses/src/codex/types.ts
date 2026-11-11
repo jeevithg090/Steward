@@ -78,8 +78,8 @@ export interface CodexTokenCounts {
   totalTokens?: number;
 }
 
-/** The answers the v2 approval requests take (plan §3). */
-export type CodexDecision = "accept" | "acceptForSession" | "decline" | "cancel";
+/** The answers Steward gives the v2 approval requests (plan §3). Never `acceptForSession`. */
+export type CodexDecision = "accept" | "decline" | "cancel";
 
 export type CodexFileChange =
   | { type: "add"; content?: string }

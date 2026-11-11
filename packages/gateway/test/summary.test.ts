@@ -24,6 +24,7 @@ describe("summarize", () => {
       "Send an email to a@x.com and 2 others: 'Plan'",
     ],
     ["shell_run", { command: "ls -la" }, {}, "Run a command: ls -la"],
+    ["delegate_task", { agentId: "codex", task: "run the tests" }, {}, "Hand 'run the tests' to codex"],
     [
       "browser_click",
       { ref: "e9" },

@@ -1,15 +1,23 @@
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
+import { join } from "node:path";
 import type { PermissionOption, ToolKind } from "@agentclientprotocol/sdk";
+import { memoryDb } from "@steward/db";
+import { createGateway } from "@steward/gateway";
 import { describe, expect, it } from "vitest";
 import { lineFilter, updateFrom } from "../src/acp/backend.ts";
 import {
   commandOf,
   filterStdoutLine,
   insideWorkspace,
+  isVendorSettings,
   outcomeFor,
   outputOf,
   permissionFrom,
+  targetPath,
   toolNameOf,
 } from "../src/acp/mapping.ts";
+import { fileChangePermission } from "../src/codex/mapping.ts";
 
 const CWD = "/data/computers/claude-code/workspace";
 const OPTIONS: PermissionOption[] = [
@@ -37,7 +45,7 @@ describe("the ACP tool kind map (plan §3)", () => {
       ["switch_mode", "write", "system"],
     ];
     for (const [acp, kind, surface] of cases) {
-      expect(permission(acp, {}), acp).toMatchObject({ kind, surface });
+      expect(permission(acp, { path: "a.md" }), acp).toMatchObject({ kind, surface });
     }
     expect(permission(undefined, {})).toMatchObject({ kind: "write", surface: "system" });
   });
@@ -59,9 +67,10 @@ describe("the ACP tool kind map (plan §3)", () => {
       surface: "file",
       target: { path: "notes/a.md" },
     });
+    // Outside the workspace, where it really is (on macOS /etc is a link to /private/etc).
     expect(permission("edit", { file_path: "/etc/hosts" })).toMatchObject({
       surface: "system",
-      target: { path: "/etc/hosts" },
+      target: { path: join(realpathSync("/etc"), "hosts") },
     });
     expect(permission("edit", {}, { locations: [{ path: `${CWD}/../../escape.txt` }] }).surface).toBe(
       "system",
@@ -70,6 +79,271 @@ describe("the ACP tool kind map (plan §3)", () => {
     expect(insideWorkspace("/elsewhere", CWD)).toBeUndefined();
     expect(permission("fetch", { url: "https://example.com/a" }).target).toEqual({
       url: "https://example.com/a",
+    });
+  });
+
+  it("reads both ends of a move and every path in a list, so a change outside asks", () => {
+    // Judged by the folder that holds both ends: here the whole disk, so no folder rule allows it.
+    expect(
+      permission("move", { source: "/Users/me/important", destination: "trash/important" }),
+    ).toMatchObject({ kind: "write", surface: "system", target: { path: "/" } });
+    expect(permission("move", { from: "a.md", to: "/tmp/a.md" }).surface).toBe("system");
+    expect(permission("edit", { old_path: "/etc/hosts", new_path: "hosts" }).surface).toBe("system");
+    expect(permission("edit", { paths: ["a.md", "/etc/hosts"] }).surface).toBe("system");
+    expect(permission("edit", { files: [{ path: "a.md" }, { path: "/etc/hosts" }] }).surface).toBe("system");
+    expect(permission("edit", { paths: ["a.md", "b/c.md"] })).toMatchObject({
+      surface: "file",
+      target: { path: "./" },
+    });
+  });
+
+  it("judges a change to several paths by the folder that holds them all, never by the first", () => {
+    expect(targetPath(["src/a.ts"], CWD)).toBe("src/a.ts");
+    expect(targetPath(["src/a.ts", `${CWD}/src/a.ts`], CWD)).toBe("src/a.ts");
+    expect(targetPath(["src/a.ts", "src/lib/b.ts"], CWD)).toBe("src/");
+    expect(targetPath(["/srv/project/a.ts", "/srv/project/lib/b.ts"], CWD)).toBe("/srv/project/");
+    expect(targetPath(["/srv/project/a.ts", "/srv/projects-old/b.ts"], CWD)).toBe("/srv/");
+    expect(targetPath(["/srv/project/a.ts", "/etc/hosts"], CWD)).toBe("/");
+    expect(targetPath([], CWD)).toBeUndefined();
+
+    // A rule that lets the agent work on /srv/project/ does not reach /etc/hosts by listing it second.
+    const { governance, rules } = createGateway({ db: memoryDb() });
+    rules.create({
+      name: "Work on the project",
+      effect: "allow",
+      when: 'tool.source == "harness:claude-code" && startsWith(target.path, "/srv/project/")',
+      description: "",
+      source: "person",
+      enabled: true,
+    });
+    const decide = (rawInput: unknown) => {
+      const p = permission("edit", rawInput);
+      return governance.dryRun({
+        toolCallId: "t1",
+        runId: "r1",
+        threadId: "th1",
+        agentId: "claude-code",
+        actorId: "local",
+        initiator: { kind: "person", id: "local" },
+        tool: { name: p.toolName, kind: p.kind, surface: p.surface, source: "harness:claude-code" },
+        args: p.args,
+        target: p.target,
+        tainted: true,
+      }).effect;
+    };
+    expect(decide({ paths: ["/srv/project/a.ts", "/srv/project/lib/b.ts"] })).toBe("allow");
+    expect(decide({ paths: ["/srv/project/a.ts", "/etc/hosts"] })).toBe("ask");
+  });
+
+  it("asks when a change names no path at all (fail closed)", () => {
+    for (const kind of ["edit", "move", "delete"] as const) {
+      expect(permission(kind, { content: "x" }).surface, kind).toBe("system");
+    }
+    // Reading names no path either, but reading runs: it changes nothing.
+    expect(permission("read", {})).toMatchObject({ kind: "read", surface: "file" });
+  });
+
+  it("asks before a change to a vendor tool's own settings, even inside the workspace", () => {
+    for (const path of [
+      ".claude/settings.json",
+      ".gemini/settings.json",
+      ".codex/config.toml",
+      ".mcp.json",
+    ]) {
+      expect(permission("edit", { file_path: path }).surface, path).toBe("system");
+      expect(isVendorSettings(`${CWD}/${path}`)).toBe(true);
+    }
+    expect(permission("read", { file_path: ".claude/settings.json" }).surface).toBe("file");
+    expect(isVendorSettings("notes/claude.md")).toBe(false);
+  });
+
+  it("counts a link inside the workspace that leads out of it as outside", () => {
+    const root = mkdtempSync(join(tmpdir(), "steward-ws-"));
+    try {
+      const ws = join(root, "workspace");
+      const outside = join(root, "outside");
+      mkdirSync(ws);
+      mkdirSync(outside);
+      symlinkSync(outside, join(ws, "link"));
+      expect(insideWorkspace("link/secret.txt", ws)).toBeUndefined();
+      expect(insideWorkspace(join(ws, "link"), ws)).toBeUndefined();
+      // A file not written yet is judged by the folder it would be in.
+      expect(insideWorkspace("new/notes.md", ws)).toBe(join("new", "notes.md"));
+      const p = permissionFrom(
+        {
+          toolCall: { toolCallId: "t", kind: "edit", rawInput: { file_path: "link/secret.txt" } },
+          options: [],
+        },
+        ws,
+      );
+      expect(p.surface).toBe("system");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("follows a link to a file not there yet, since writing through it creates that file", () => {
+    const root = mkdtempSync(join(tmpdir(), "steward-ws-"));
+    try {
+      const ws = join(root, "workspace");
+      const ssh = join(root, "home", ".ssh");
+      mkdirSync(join(ws, "docs"), { recursive: true });
+      mkdirSync(ssh, { recursive: true });
+      // Links that lead nowhere yet: one out of the workspace, one relative from a subfolder, one inside.
+      symlinkSync(join(ssh, "authorized_keys"), join(ws, "notes.md"));
+      symlinkSync("../../home/.ssh/config", join(ws, "docs", "setup.md"));
+      symlinkSync("later.md", join(ws, "soon.md"));
+      // And two links that only lead to each other.
+      symlinkSync("b", join(ws, "a"));
+      symlinkSync("a", join(ws, "b"));
+      expect(insideWorkspace("notes.md", ws)).toBeUndefined();
+      expect(insideWorkspace("docs/setup.md", ws)).toBeUndefined();
+      expect(insideWorkspace("soon.md", ws)).toBe("later.md");
+      expect(insideWorkspace("a", ws)).toBeUndefined();
+      const edit = (file_path: string) =>
+        permissionFrom(
+          { toolCall: { toolCallId: "t", kind: "edit", rawInput: { file_path } }, options: [] },
+          ws,
+        );
+      expect(edit("notes.md")).toMatchObject({
+        surface: "system",
+        target: { path: join(realpathSync(ssh), "authorized_keys") },
+      });
+      expect(edit("docs/setup.md").surface).toBe("system");
+      expect(edit("soon.md")).toMatchObject({ surface: "file", target: { path: "later.md" } });
+      expect(edit("a").surface).toBe("system");
+      expect(fileChangePermission({ fileChanges: { "notes.md": { type: "update" } } }, "c", ws).surface).toBe(
+        "system",
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("judges a path outside the workspace where it really is, so a link in a project folder does not pass its rule", () => {
+    const root = realpathSync(mkdtempSync(join(tmpdir(), "steward-ws-")));
+    try {
+      const ws = join(root, "workspace");
+      const project = join(root, "project");
+      const ssh = join(root, "home", ".ssh");
+      for (const dir of [ws, project, ssh]) mkdirSync(dir, { recursive: true });
+      symlinkSync(ssh, join(project, "notes"));
+      const { governance, rules } = createGateway({ db: memoryDb() });
+      rules.create({
+        name: "Work on the project",
+        effect: "allow",
+        when: `tool.source == "harness:claude-code" && startsWith(target.path, "${project}/")`,
+        description: "",
+        source: "person",
+        enabled: true,
+      });
+      const decide = (p: ReturnType<typeof permission>) =>
+        governance.dryRun({
+          toolCallId: "t1",
+          runId: "r1",
+          threadId: "th1",
+          agentId: "claude-code",
+          actorId: "local",
+          initiator: { kind: "person", id: "local" },
+          tool: { name: p.toolName, kind: p.kind, surface: p.surface, source: "harness:claude-code" },
+          args: p.args,
+          target: p.target,
+          tainted: true,
+        }).effect;
+      const acp = (rawInput: unknown) =>
+        permissionFrom({ toolCall: { toolCallId: "t", kind: "edit", rawInput }, options: [] }, ws);
+      const codex = (...paths: string[]) =>
+        fileChangePermission(
+          { fileChanges: Object.fromEntries(paths.map((p) => [p, { type: "update" }])) },
+          "c",
+          ws,
+        );
+      // The project's own files pass the rule.
+      expect(decide(acp({ file_path: join(project, "a.ts") }))).toBe("allow");
+      expect(decide(codex(join(project, "a.ts"), join(project, "lib", "b.ts")))).toBe("allow");
+      // A file reached through the link is judged where it really is, and asks.
+      const through = join(project, "notes", "authorized_keys");
+      expect(acp({ file_path: through }).target).toEqual({ path: join(ssh, "authorized_keys") });
+      expect(decide(acp({ file_path: through }))).toBe("ask");
+      expect(decide(codex(through))).toBe("ask");
+      expect(decide(codex(join(project, "a.ts"), through))).toBe("ask");
+      expect(codex(through).args.files).toEqual([join(ssh, "authorized_keys")]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("follows a link to a vendor tool's settings, so a change through it asks", () => {
+    const root = mkdtempSync(join(tmpdir(), "steward-ws-"));
+    try {
+      const ws = join(root, "workspace");
+      mkdirSync(join(ws, ".claude"), { recursive: true });
+      symlinkSync(join(ws, ".claude"), join(ws, "notes"));
+      const edit = permissionFrom(
+        {
+          toolCall: { toolCallId: "t", kind: "edit", rawInput: { file_path: "notes/settings.json" } },
+          options: [],
+        },
+        ws,
+      );
+      expect(edit.surface).toBe("system");
+      expect(
+        fileChangePermission({ fileChanges: { "notes/settings.json": { type: "update" } } }, "c", ws).surface,
+      ).toBe("system");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("reads ~ as the home folder, never as a folder in the workspace", () => {
+    const home = homedir();
+    expect(insideWorkspace("~/.zshrc", CWD)).toBeUndefined();
+    expect(permission("edit", { file_path: "~/.zshrc" })).toMatchObject({
+      surface: "system",
+      target: { path: join(home, ".zshrc") },
+    });
+    expect(permission("edit", { file_path: "~" }).target).toEqual({ path: home });
+    expect(permission("edit", { file_path: "~root/.profile" }).surface).toBe("system");
+    expect(fileChangePermission({ fileChanges: { "~/.zshrc": { type: "update" } } }, "c", CWD)).toMatchObject(
+      { surface: "system", args: { files: [join(home, ".zshrc")] } },
+    );
+    // A name that only starts with a tilde sign is still a file in the workspace.
+    expect(insideWorkspace("notes~/a.md", CWD)).toBe(join("notes~", "a.md"));
+  });
+
+  it("keeps a key or password file as the target among several, so the gateway's rule for them still refuses", () => {
+    const { governance } = createGateway({ db: memoryDb() });
+    const decide = (p: ReturnType<typeof permission>) =>
+      governance.dryRun({
+        toolCallId: "t1",
+        runId: "r1",
+        threadId: "th1",
+        agentId: "codex",
+        actorId: "local",
+        initiator: { kind: "person", id: "local" },
+        tool: { name: p.toolName, kind: p.kind, surface: p.surface, source: "harness:codex" },
+        args: p.args,
+        target: p.target,
+        tainted: true,
+      });
+    const alone = fileChangePermission({ fileChanges: { ".env": { type: "update" } } }, "c1", CWD);
+    expect(decide(alone).effect).toBe("deny");
+    for (const order of [
+      { ".env": { type: "update" }, "src/a.ts": { type: "update" } },
+      { "src/a.ts": { type: "update" }, ".env": { type: "update" } },
+    ]) {
+      const patch = fileChangePermission({ fileChanges: order }, "c2", CWD);
+      expect(patch.target).toEqual({ path: ".env" });
+      expect(decide(patch).effect).toBe("deny");
+    }
+    expect(decide(permission("edit", { paths: ["a.md", "keys/id_ed25519"] })).effect).toBe("deny");
+    expect(decide(permission("read", { paths: ["a.md", ".env.local"] })).effect).toBe("deny");
+    // Ordinary files together are still judged by their folder.
+    expect(permission("edit", { paths: ["a.md", ".env.example"] }).target).toEqual({ path: "./" });
+    // With a path outside the workspace, it is the folder that holds them all, and it asks.
+    expect(permission("edit", { paths: [".env", "/etc/hosts"] })).toMatchObject({
+      surface: "system",
+      target: { path: "/" },
     });
   });
 
@@ -100,21 +374,17 @@ describe("the ACP tool kind map (plan §3)", () => {
   it("keeps the structured input as the arguments", () => {
     expect(permission("execute", { command: "ls", timeout: 5 }).args).toEqual({ command: "ls", timeout: 5 });
     expect(permission("execute", "ls").args).toEqual({ input: "ls" });
-    expect(permission("execute", { command: "ls" }).offersAlways).toBe(true);
   });
 });
 
 describe("answering a permission (plan §3)", () => {
-  it("chooses the option by its kind", () => {
+  it("chooses the option by its kind, and never the harness's own Always", () => {
     expect(outcomeFor("allow_once", OPTIONS)).toEqual({ outcome: "selected", optionId: "a" });
-    expect(outcomeFor("allow_always", OPTIONS)).toEqual({ outcome: "selected", optionId: "b" });
     expect(outcomeFor("reject", OPTIONS)).toEqual({ outcome: "selected", optionId: "c" });
     expect(outcomeFor("cancelled", OPTIONS)).toEqual({ outcome: "cancelled" });
   });
 
-  it("falls back to allow once when always is not offered, and never widens a grant", () => {
-    const noAlways = OPTIONS.filter((o) => o.kind !== "allow_always");
-    expect(outcomeFor("allow_always", noAlways)).toEqual({ outcome: "selected", optionId: "a" });
+  it("never widens a grant", () => {
     const onlyAlways: PermissionOption[] = [{ optionId: "b", name: "Always", kind: "allow_always" }];
     expect(outcomeFor("allow_once", onlyAlways)).toEqual({ outcome: "cancelled" });
     expect(outcomeFor("reject", [{ optionId: "r", name: "Never", kind: "reject_always" }])).toEqual({

@@ -9,9 +9,12 @@
 //   list   → asks to run `ls`.
 //   slow   → starts, then waits until it is cancelled.
 //   edit   → asks to change a file outside its workspace.
+//   spawn  → starts a long `sleep` of its own (as a dev server would be), logs its pid, answers.
+//   crash  → says on stderr that it is not signed in (with a key in the line), and exits with 3.
 //
 // It prints a banner that is not JSON before anything else, and writes what it was answered to
 // the file named by FAKE_ACP_LOG, one JSON object per line.
+import { spawn } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import { Readable, Writable } from "node:stream";
 import { agent, methods, ndJsonStream } from "@agentclientprotocol/sdk";
@@ -190,6 +193,22 @@ const app = agent({ name: "fake-acp-agent" })
         answer === "no" ? "Not allowed." : "Edited.",
       );
       return { stopReason: "end_turn" };
+    }
+    if (text === "spawn") {
+      const helper = spawn("sleep", ["41"], { stdio: "ignore" });
+      helper.unref();
+      log({ event: "spawned", helperPid: helper.pid });
+      await say(client, sessionId, "Started a helper.");
+      return { stopReason: "end_turn" };
+    }
+    if (text === "crash") {
+      await say(client, sessionId, "Checking your sign-in.");
+      process.stderr.write("\u001b[31mdebug: loading config\u001b[0m\n");
+      process.stderr.write(
+        "Error: you are not signed in (key sk-proj-abcdefghijklmnop1234567890 expired). Run `crashy login` first.\n",
+      );
+      setTimeout(() => process.exit(3), 20);
+      return new Promise(() => {});
     }
     if (text === "slow") {
       await say(client, sessionId, "Working on it.");

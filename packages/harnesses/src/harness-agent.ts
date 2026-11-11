@@ -14,7 +14,6 @@ import {
 import {
   APPROVAL_INTERRUPT_REASON,
   type ApprovalInterruptMetadata,
-  type ApprovalStore,
   CUSTOM_EVENTS,
   type GateCall,
   type GateOutcome,
@@ -33,8 +32,6 @@ export interface HarnessAgentDeps {
   harness: HarnessProfile;
   threads: HarnessThreads;
   governance: Governance;
-  /** To tell an Always allow from an Allow once when a parked call is resumed. */
-  approvals?: Pick<ApprovalStore, "byToolCall">;
   /** `local` in single-user mode. */
   actorId: string;
   /** Random per boot. A run whose forwarded props carry it may name its initiator (routine, task, resume). */
@@ -153,24 +150,16 @@ export class HarnessAgent extends AbstractAgent {
 
     // Answers for requests no process holds any more (it stopped, or Steward restarted): the
     // approval is closed, so nothing acts and the sweep does not retry, and the person is told.
+    // Closed before anything starts, so a harness that will not start cannot keep them open.
     const stale = resumeEntries.filter((entry) => !running?.parked.has(entry.interruptId));
-    let thread: HarnessThread;
-    let notice: string | undefined;
-    try {
-      ({ thread, notice } = await this.deps.threads.thread(input.threadId));
-    } catch (error) {
-      emit({
-        type: EventType.RUN_ERROR,
-        code: "STEWARD_HARNESS_UNAVAILABLE",
-        message: error instanceof Error ? error.message : `${harness.name} could not be started.`,
-      } as BaseEvent);
-      return;
-    }
+    for (const entry of stale) await this.closeStale(entry, input, initiator);
+    const opened = await this.open(input, emit, signal);
+    if (!opened) return;
+    let { thread } = opened;
     thread.stream.attach(emit);
-    if (notice) thread.stream.say(notice);
+    if (opened.notice) thread.stream.say(opened.notice);
 
     if (stale.length > 0) {
-      for (const entry of stale) await this.closeStale(entry, input, initiator);
       thread.stream.say(
         `${harness.name} stopped while it waited for your answer, so nothing was done. Ask again if it is still needed.`,
       );
@@ -186,7 +175,9 @@ export class HarnessAgent extends AbstractAgent {
         await thread.cancelTurn();
         if (!(await thread.drainTurn(CANCEL_WAIT_MS))) {
           await this.deps.threads.close(input.threadId);
-          ({ thread } = await this.deps.threads.thread(input.threadId));
+          const reopened = await this.open(input, emit, signal);
+          if (!reopened) return;
+          thread = reopened.thread;
           thread.stream.attach(emit);
         }
         thread.stream.close(STOPPED_BEFORE_FINISHING);
@@ -206,6 +197,31 @@ export class HarnessAgent extends AbstractAgent {
     }
 
     await this.follow(thread, input, emit, signal, initiator);
+  }
+
+  /**
+   * The conversation's harness, started when it is not running. Undefined when it could not be:
+   * the run has then ended, cancelled when it was stopped meanwhile, otherwise with the reason.
+   */
+  private async open(
+    input: RunAgentInput,
+    emit: Emit,
+    signal: AbortSignal,
+  ): Promise<{ thread: HarnessThread; notice?: string } | undefined> {
+    try {
+      return await this.deps.threads.thread(input.threadId, signal);
+    } catch (error) {
+      if (signal.aborted) {
+        emit(this.cancelled(input));
+        return undefined;
+      }
+      emit({
+        type: EventType.RUN_ERROR,
+        code: "STEWARD_HARNESS_UNAVAILABLE",
+        message: error instanceof Error ? error.message : `${this.deps.harness.name} could not be started.`,
+      } as BaseEvent);
+      return undefined;
+    }
   }
 
   /** Reads the turn until it ends, parks, fails, or the run is stopped. */
@@ -315,14 +331,17 @@ export class HarnessAgent extends AbstractAgent {
     return undefined;
   }
 
-  /** The resume run: answers the parked request with what the person chose, through the gateway. */
+  /**
+   * The resume run: answers the parked request with what the person chose, through the gateway.
+   * An allow is always `allow_once`, Always allow included: that is a Steward rule, which answers
+   * the next request at once, so every call still reaches the gateway and the record. The harness
+   * is never told to stop asking.
+   */
   private async answerParked(thread: HarnessThread, entry: ResumeEntry): Promise<void> {
     const parked = thread.parked.get(entry.interruptId);
     if (!parked) return;
     thread.parked.delete(entry.interruptId);
-    const approval = this.deps.approvals?.byToolCall(parked.call.toolCallId);
-    const always = approval?.answer === "always" && approval.canAlways && parked.request.offersAlways;
-    const allow: PermissionAnswer = always ? "allow_always" : "allow_once";
+    const allow: PermissionAnswer = "allow_once";
     let answered = false;
     try {
       const outcome = await this.deps.governance.resume(parked.call, async () => {

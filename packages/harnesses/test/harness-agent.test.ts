@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,8 +13,9 @@ import {
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AcpBackend } from "../src/acp/backend.ts";
 import { HarnessAgent } from "../src/harness-agent.ts";
-import { HarnessThreads } from "../src/session.ts";
+import { HarnessStartStopped, HarnessThreads } from "../src/session.ts";
 import { HarnessSessionStore, migrations } from "../src/store.ts";
+import type { HarnessBackend } from "../src/types.ts";
 
 const FIXTURE = fileURLToPath(new URL("./fixtures/fake-acp-agent.mjs", import.meta.url));
 const root = mkdtempSync(join(tmpdir(), "steward-harness-"));
@@ -41,9 +42,15 @@ function profile(): HarnessProfile {
   };
 }
 
-function build(opts: { idleMs?: number } = {}) {
+/** A program that starts and then never says a word, as an agent run without its ACP flag does. */
+function silent(): HarnessProfile {
+  return { ...profile(), command: process.execPath, args: ["-e", "setInterval(() => {}, 1e9)"] };
+}
+
+function build(opts: { idleMs?: number; profile?: HarnessProfile; startTimeoutMs?: number } = {}) {
+  const chosen = opts.profile ?? profile();
   threads = new HarnessThreads({
-    profile: profile(),
+    profile: chosen,
     agentId: "fake",
     workspace,
     store,
@@ -52,19 +59,19 @@ function build(opts: { idleMs?: number } = {}) {
     ...(opts.idleMs ? { idleMs: opts.idleMs } : {}),
     backend: ({ cwd, events }) =>
       new AcpBackend({
-        profile: profile(),
+        profile: chosen,
         cwd,
         events,
         env: { ...process.env, OPENROUTER_API_KEY: "sk-or-must-not-leak" },
+        ...(opts.startTimeoutMs ? { startTimeoutMs: opts.startTimeoutMs } : {}),
       }),
   });
   agent = new HarnessAgent({
     agentId: "fake",
     title: "A fake ACP agent",
-    harness: profile(),
+    harness: chosen,
     threads,
     governance: gateway.governance,
-    approvals: gateway.approvals,
     actorId: "local",
     serverRunToken: "tok",
   });
@@ -101,9 +108,15 @@ const user = (content: string): Message => ({
 
 async function run(
   messages: Message[],
-  opts: { resume?: ResumeEntry[]; threadId?: string; stopAfter?: (e: BaseEvent) => boolean } = {},
+  opts: {
+    resume?: ResumeEntry[];
+    threadId?: string;
+    stopAfter?: (e: BaseEvent) => boolean;
+    stopAfterMs?: number;
+  } = {},
 ): Promise<Turn> {
   const clone = agent.clone();
+  if (opts.stopAfterMs !== undefined) setTimeout(() => clone.abortRun(), opts.stopAfterMs);
   clone.setMessages(messages);
   clone.threadId = opts.threadId ?? "thr_1";
   const events: BaseEvent[] = [];
@@ -311,20 +324,30 @@ describe("a harness agent over ACP", () => {
     });
   });
 
-  it("answers Always allow with allow_always, only where Steward offers it", async () => {
+  it("answers Always allow with allow once, so the harness keeps asking and every call is recorded", async () => {
     const first = await run([user("edit")]);
     const interrupt = interruptOf(first);
     const meta = interrupt.metadata as unknown as ApprovalInterruptMetadata;
     // A change outside the workspace asks, even though writes in it run.
     expect(meta.tool).toMatchObject({ kind: "write", surface: "system" });
-    expect(meta.summary).toBe("Use harness_edit on /etc/hosts");
     expect(meta.canAlways).toBe(true);
     gateway.approvals.decide(meta.approvalId, "always", "local");
     await run(first.messages, { resume: [{ interruptId: interrupt.id, status: "resolved" }] });
+    // Never the harness's own "always": that would stop it asking, and Steward from seeing.
     expect(permissions().at(-1)).toMatchObject({
       toolCallId: "call_edit",
-      outcome: { outcome: "selected", optionId: "always" },
+      outcome: { outcome: "selected", optionId: "yes" },
     });
+    // The next time it asks, Steward's rule answers at once, and the record has it.
+    const again = await run([...first.messages, user("edit")]);
+    expect(again.finished?.outcome).toBeUndefined();
+    expect(permissions().filter((e) => e.toolCallId === "call_edit")).toHaveLength(2);
+    expect(permissions().some((e) => JSON.stringify(e.outcome).includes("always"))).toBe(false);
+    const allowed = gateway.audit
+      .page({ type: "tool.decided" })
+      .events.filter((e) => e.target?.path === join(realpathSync("/etc"), "hosts") && e.effect === "allow");
+    // Once for the answer itself, once for the call the rule then let through.
+    expect(allowed.map((e) => e.rule?.source)).toEqual(["always", "always"]);
   });
 
   it("stop cancels the turn, and the conversation can go on", async () => {
@@ -427,6 +450,118 @@ describe("a harness agent over ACP", () => {
       serverRunToken: "tok",
     });
     const turn = await run([user("hello")]);
-    expect(turn.error).toMatch(/Fake Agent could not be started/);
+    // A missing program is "not installed", never "spawn /path ENOENT".
+    expect(turn.error).toMatch(/^Fake Agent is not installed here/);
+    expect(turn.error).not.toMatch(/ENOENT|spawn/);
   });
 });
+
+describe("a harness that does not start, or stops", () => {
+  it("gives up on a program that never answers, in plain words, and leaves no process", async () => {
+    await threads.closeAll();
+    build({ profile: silent(), startTimeoutMs: 400 });
+    const started = Date.now();
+    const turn = await run([user("hello")]);
+    expect(Date.now() - started).toBeLessThan(5_000);
+    expect(turn.error).toBe(
+      "Fake Agent did not answer within 1 second. Check that 'node -e setInterval(() => {}, 1e9)' starts its Agent Client Protocol mode.",
+    );
+    expect(threads.pids()).toEqual([]);
+    // Nothing waits on it: the next message tries again.
+    const again = await run([user("hello")]);
+    expect(again.error).toMatch(/did not answer/);
+  });
+
+  it("stop while it starts ends the run cancelled and stops the process", async () => {
+    await threads.closeAll();
+    build({ profile: silent() });
+    const pending = run([user("hello")], { stopAfterMs: 400 });
+    const pid = await waitForPid();
+    const turn = await pending;
+    expect(turn.error).toBeUndefined();
+    expect(turn.events.at(-1)?.type).toBe("RUN_FINISHED");
+    expect(await gone(pid)).toBe(true);
+    expect(threads.pids()).toEqual([]);
+  });
+
+  it("closeAll and close reach a process that is still starting, and keep nothing of it", async () => {
+    await threads.closeAll();
+    build({ profile: silent() });
+    const pending = run([user("hello")]);
+    const pid = await waitForPid();
+    await threads.closeAll();
+    const turn = await pending;
+    expect(turn.error).toBe("Fake Agent was stopped before it was ready.");
+    expect(await gone(pid)).toBe(true);
+
+    // A conversation deleted while its process starts: the session is never written back.
+    let opened: (value: { handle: string; resumed: boolean }) => void = () => {};
+    let closed = 0;
+    const stub: HarnessBackend = {
+      start: () => new Promise((resolve) => (opened = resolve)),
+      prompt: async () => ({ stopReason: "end_turn" }),
+      cancel: async () => {},
+      close: async () => {
+        closed += 1;
+      },
+      pid: undefined,
+    };
+    const stubbed = new HarnessThreads({
+      profile: profile(),
+      agentId: "fake",
+      workspace,
+      store,
+      backend: () => stub,
+    });
+    const starting = stubbed.thread("thr_deleted");
+    await new Promise((r) => setTimeout(r, 20));
+    await stubbed.close("thr_deleted", true);
+    opened({ handle: "sess_late", resumed: false });
+    await expect(starting).rejects.toBeInstanceOf(HarnessStartStopped);
+    expect(store.get("thr_deleted", "fake")).toBeUndefined();
+    expect(stubbed.running("thr_deleted")).toBeUndefined();
+    expect(closed).toBeGreaterThan(0);
+  });
+
+  it("stops what the agent started too, not only the agent", async () => {
+    const turn = await run([user("spawn")]);
+    expect(turn.text).toBe("Started a helper.");
+    const helperPid = log().find((e) => e.event === "spawned")?.helperPid as number;
+    expect(alive(helperPid)).toBe(true);
+    const [pid] = threads.pids();
+    await threads.close("thr_1");
+    expect(await gone(pid!)).toBe(true);
+    expect(await gone(helperPid)).toBe(true);
+  });
+
+  it("says why it stopped, in the tool's own last words, with keys masked", async () => {
+    const turn = await run([user("crash")]);
+    expect(turn.error).toBe(
+      "Fake Agent stopped (exit code 3): Error: you are not signed in (key •••• expired). Run `crashy login` first.",
+    );
+    expect(JSON.stringify(turn.events)).not.toContain("sk-proj-");
+    expect(threads.pids()).toEqual([]);
+  });
+
+  it("does not count a process killed by a signal as running", async () => {
+    const events = { update: () => {}, permission: async () => "cancelled" as const, exited: () => {} };
+    const backend = new AcpBackend({ profile: profile(), cwd: root, events, env: process.env });
+    await backend.start({});
+    const pid = backend.pid!;
+    process.kill(pid, "SIGKILL");
+    expect(await gone(pid)).toBe(true);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(backend.pid).toBeUndefined();
+    await backend.close();
+  });
+});
+
+/** The pid of the process the current threads are starting, once it has one. */
+async function waitForPid(): Promise<number> {
+  for (let i = 0; i < 200; i++) {
+    const [pid] = threads.pids();
+    if (pid) return pid;
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  throw new Error("no process started");
+}

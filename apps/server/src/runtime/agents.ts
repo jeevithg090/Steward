@@ -28,11 +28,11 @@ import {
   type HarnessThreadsOptions,
   harnessInfo,
   profileKey,
+  withProgramDir,
 } from "@steward/harnesses";
 import type {
   AgentInfo,
   AgentProfile,
-  ApprovalStore,
   AuditLog,
   BotPack,
   HarnessInfo,
@@ -77,7 +77,6 @@ export interface HarnessDeps {
   dataDir: string;
   store?: HarnessSessionStore;
   audit?: AuditLog;
-  approvals?: Pick<ApprovalStore, "byToolCall">;
   /** How a harness process is started. Tests pass a fake; by default, by the profile's kind. */
   backend?: (
     profile: HarnessProfile,
@@ -541,9 +540,8 @@ export class AgentHost {
         status: { ...shown, available: false, reason },
       };
     }
-    const threads = this.threadsFor(harness);
+    const threads = this.threadsFor(harness, info.path);
     inUse.add(harness.id);
-    const deps = this.deps.harnesses;
     return {
       agent: new HarnessAgent({
         agentId: profile.id,
@@ -551,7 +549,6 @@ export class AgentHost {
         harness,
         threads,
         governance: this.deps.shared.governance,
-        ...(deps?.approvals ? { approvals: deps.approvals } : {}),
         actorId: this.deps.shared.actorId,
         serverRunToken: this.deps.serverRunToken,
       }),
@@ -559,13 +556,18 @@ export class AgentHost {
     };
   }
 
-  private threadsFor(harness: HarnessProfile): HarnessThreads {
-    const key = profileKey(harness);
+  /**
+   * The processes of one harness. It is started by the path it was found at, which may be outside
+   * the server's PATH (`~/.local/bin`, `/opt/homebrew/bin`), with that folder on its own PATH.
+   */
+  private threadsFor(harness: HarnessProfile, program: string | undefined): HarnessThreads {
+    const key = `${profileKey(harness)}${program ?? ""}`;
     const existing = this.harnessThreads.get(harness.id);
     if (existing && existing.key === key) return existing.threads;
     if (existing) this.retireThreads(existing.threads);
     const deps = this.deps.harnesses;
-    const env = this.deps.env;
+    const env = withProgramDir(this.deps.env, program);
+    const started = program ? { ...harness, command: program } : harness;
     const threads = new HarnessThreads({
       profile: harness,
       agentId: harness.id,
@@ -577,7 +579,7 @@ export class AgentHost {
       backend: (opts) => {
         if (deps?.backend) return deps.backend(harness, opts);
         const common = {
-          profile: harness,
+          profile: started,
           cwd: opts.cwd,
           events: opts.events,
           env,
@@ -608,14 +610,44 @@ export class AgentHost {
     this.timers.add(timer);
   }
 
-  /** The external coding agents and whether each is installed, for `GET /api/harnesses`. */
+  /**
+   * The external coding agents and whether each is installed, for `GET /api/harnesses`. Without
+   * where the program was found or the profile's `env`: local paths and settings stay on the server.
+   */
   harnessInfos(): HarnessInfo[] {
-    return (this.deps.harnesses?.profiles ?? []).map((h) => harnessInfo(h, this.deps.env));
+    return (this.deps.harnesses?.profiles ?? []).map((h) => {
+      const { path: _path, env: _env, ...shown } = harnessInfo(h, this.deps.env);
+      return shown;
+    });
   }
 
-  /** A conversation was deleted: its harness process stops and its resume handle is forgotten. */
-  async closeThread(threadId: string): Promise<void> {
-    await Promise.all([...this.harnessThreads.values()].map(({ threads }) => threads.close(threadId, true)));
+  /**
+   * Looks again whether each coding agent's program is installed, and rebuilds the agents when one
+   * was installed or removed since, so installing a tool needs no restart. Cheap: a few file checks.
+   */
+  async refreshHarnesses(): Promise<void> {
+    const statuses = this.current?.statuses;
+    if (!statuses) return;
+    const flipped = (this.deps.harnesses?.profiles ?? []).some((h) => {
+      const status = statuses[h.id];
+      return status !== undefined && status.available !== harnessInfo(h, this.deps.env).available;
+    });
+    if (flipped) await this.rebuild();
+  }
+
+  /**
+   * A conversation was deleted, or a handed-on task ended: its harness process stops and its resume
+   * handle is forgotten.
+   */
+  async closeThread(threadId: string, reason = "conversation deleted"): Promise<void> {
+    await Promise.all(
+      [...this.harnessThreads.values()].map(({ threads }) => threads.close(threadId, true, reason)),
+    );
+  }
+
+  /** Every coding agent process running now, those still starting included. For tests and the leak check. */
+  harnessPids(): number[] {
+    return [...this.harnessThreads.values()].flatMap(({ threads }) => threads.pids());
   }
 
   /** Starts the model a config names, or reuses the one already started for it. Undefined when it fails. */

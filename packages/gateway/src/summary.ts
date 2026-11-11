@@ -68,7 +68,7 @@ export function summarize(input: SummaryInput): string {
   const recipients = target.recipients ?? [];
   let sentence: string;
 
-  if (tool.source?.startsWith("harness:")) return truncate(harnessSentence(tool, target), 240);
+  if (tool.source?.startsWith("harness:")) return truncate(harnessSentence(tool, args, target), 240);
 
   switch (tool.name) {
     case "mail_send": {
@@ -174,6 +174,12 @@ export function summarize(input: SummaryInput): string {
     case "show_choices":
       sentence = "Show some choices";
       break;
+    case "delegate_task": {
+      const task = quoted(shown("task"), 120);
+      const agent = text(args.agentId, 40);
+      sentence = `Hand ${task ?? "a task"} to ${agent ?? "another agent"}`;
+      break;
+    }
     default: {
       const mcp = target.mcp ?? parseMcpToolName(tool.name);
       sentence = mcp ? `Use ${mcp.tool} on ${mcp.server}` : `Use ${tool.name}`;
@@ -185,23 +191,78 @@ export function summarize(input: SummaryInput): string {
 }
 
 /**
- * What an external coding agent wants to do, from the structured target only: the command it would
- * run, the file it would change, the address it would fetch. Never from the harness's own title.
+ * "a.ts", "a.ts and b.ts", "a.ts, b.ts and 2 others". Files outside the agent's own folder come
+ * first, so one is never hidden among the others.
  */
-function harnessSentence(tool: SummaryInput["tool"], target: Target): string {
+function listFiles(files: readonly string[]): string {
+  const ordered = [...files.filter(absolute), ...files.filter((f) => !absolute(f))];
+  const shown = ordered.slice(0, 2).map((f) => text(f, 60) ?? f);
+  const rest = files.length - shown.length;
+  if (rest === 0) return shown.join(" and ");
+  return `${shown.join(", ")} and ${rest === 1 ? "1 other" : `${rest} others`}`;
+}
+
+/** An absolute path: one outside the agent's own folder (paths inside it are relative). */
+function absolute(path: string): boolean {
+  return path.startsWith("/") || path.startsWith("~") || /^[A-Za-z]:[\\/]/.test(path);
+}
+
+/**
+ * What an external coding agent wants to do, from structured fields only: the command it would
+ * run, the files it would change, the address it would fetch, a wider sandbox it asks for. Never
+ * from the harness's own title.
+ */
+function harnessSentence(tool: SummaryInput["tool"], args: Record<string, unknown>, target: Target): string {
   const path = text(target.path, 160);
+  // Only Codex's patch carries a list of files that Steward made itself. Any other tool's
+  // arguments are its own and may leave a path out, so its card goes by target.path, which
+  // counts every path the call names.
+  const files =
+    tool.name === "apply_patch" && Array.isArray(args.files)
+      ? args.files.filter((f): f is string => typeof f === "string" && f.trim() !== "")
+      : [];
+  const several = files.length > 1;
+  // A change to several paths is judged by the folder that holds them all, which ends in a separator.
+  const folder = path !== undefined && /[\\/]$/.test(path);
+  const where = several
+    ? `${files.length} files: ${listFiles(files)}`
+    : folder
+      ? /^\.[\\/]$/.test(path)
+        ? "files in its own folder"
+        : `files in ${path}`
+      : (path ?? files[0]);
+  const outside = tool.surface === "system" && [path, ...files].some((p) => p && absolute(p));
+  const grantRoot = text(args.grantRoot, 160);
+  let sentence: string;
   switch (tool.kind) {
     case "shell":
       return `Run a command: ${text(target.command, 120) ?? "(none given)"}`;
-    case "delete":
-      return path ? `Delete ${path}` : "Delete files";
     case "read":
       if (target.url) return `Fetch ${text(target.url, 120)}`;
       return path ? `Read ${path}` : "Read files";
     case "ui":
       return "Think it through";
-    default:
-      if (tool.surface === "file") return path ? `Change ${path}` : "Change files";
-      return `Use ${tool.name}${path ? ` on ${path}` : ""}`;
+    case "delete":
+      // A Codex patch is a delete when it deletes or moves any of its files.
+      sentence =
+        tool.name === "apply_patch" && several
+          ? `Change ${where}, deleting or moving some`
+          : where
+            ? `Delete ${where}`
+            : "Delete files it did not name";
+      break;
+    default: {
+      const mcp = target.mcp ?? parseMcpToolName(tool.name);
+      if (mcp && tool.surface === "mcp") return `Use ${mcp.tool} on ${mcp.server}`;
+      if (where && (tool.surface === "file" || tool.surface === "system")) sentence = `Change ${where}`;
+      else if (tool.name === "harness_edit" || tool.name === "harness_move")
+        sentence = "Change files it did not name";
+      else if (tool.name === "harness_switch_mode") sentence = "Change how it works";
+      else if (tool.name.startsWith("harness_")) sentence = "Use a tool it did not name";
+      else sentence = `Use ${text(tool.name, 60) ?? "a tool"}`;
+    }
   }
+  if (outside) sentence += ", outside its own folder";
+  if (grantRoot) sentence += `. It also asks to change anything in ${grantRoot} for the rest of this session`;
+  return sentence;
 }

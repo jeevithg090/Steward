@@ -113,13 +113,17 @@ describe.runIf(missing.length === 0)("an external coding agent, end to end over 
     });
     expect(body.agents.find((a) => a.id === "not-here")).toMatchObject({
       available: false,
-      reason: expect.stringContaining("Not Here is not installed on this computer"),
+      reason: expect.stringContaining("Not Here is not installed here"),
     });
     const harnesses = (await t.api<HarnessInfo[]>("/api/harnesses")).body;
     expect(harnesses.map((h) => [h.id, h.available])).toEqual([
       ["fake", true],
       ["not-here", false],
     ]);
+    // Never where a program is, or a profile's settings: they stay on the server.
+    expect(harnesses[0]).not.toHaveProperty("path");
+    expect(harnesses[0]).not.toHaveProperty("env");
+    expect(JSON.stringify(harnesses)).not.toContain(logFile);
   });
 
   it("parks a command for the person and resumes the same turn when the browser answers", async () => {
@@ -210,8 +214,6 @@ describe.runIf(missing.length === 0)("an external coding agent, end to end over 
         forwardedProps: {},
       }),
     });
-    expect(text(parseSse(await res.text()))).toMatch(
-      /^I can't start: Not Here is not installed on this computer/,
-    );
+    expect(text(parseSse(await res.text()))).toMatch(/^I can't start: Not Here is not installed here/);
   });
 });

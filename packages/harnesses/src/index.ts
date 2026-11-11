@@ -35,6 +35,7 @@ export {
   latestUserText,
   STOPPED_BEFORE_FINISHING,
 } from "./harness-agent.ts";
+export { KILL_GRACE_MS, plainExit, START_TIMEOUT_MS } from "./process.ts";
 export {
   findProgram,
   HarnessProfileError,
@@ -44,8 +45,12 @@ export {
   notInstalled,
   parseHarnesses,
   profileKey,
+  usualBinDirs,
+  withProgramDir,
 } from "./profiles.ts";
+export { maskKeys } from "./secrets.ts";
 export {
+  HarnessStartStopped,
   HarnessThread,
   HarnessThreads,
   type HarnessThreadsOptions,

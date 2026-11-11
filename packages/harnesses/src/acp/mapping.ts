@@ -2,7 +2,9 @@
 // requests follows Happy's happy-cli/src/agent/acp/AcpBackend.ts (MIT, Happy Coder Contributors),
 // with two fixes: the call is identified by `toolCallId` and described by `rawInput` and
 // `locations` (never by its title), and the answer is chosen by the option's `kind`.
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { lstatSync, readlinkSync, realpathSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import type {
   ToolKind as AcpToolKind,
   PermissionOption,
@@ -48,6 +50,25 @@ export function commandOf(input: unknown): string | undefined {
   return undefined;
 }
 
+/** The input fields that name one path: what to read or change, and both ends of a move (from first). */
+const PATH_FIELDS = [
+  "file_path",
+  "filePath",
+  "path",
+  "notebook_path",
+  "target_file",
+  "source",
+  "old_path",
+  "oldPath",
+  "from",
+  "destination",
+  "new_path",
+  "newPath",
+  "to",
+];
+/** The input fields that name several. */
+const PATH_LISTS = ["paths", "files", "file_paths", "filePaths"];
+
 /** File paths from the structured fields: ACP `locations` first, then the input's path fields. */
 export function pathsOf(locations: readonly ToolCallLocation[] | null | undefined, input: unknown): string[] {
   const paths: string[] = [];
@@ -56,22 +77,146 @@ export function pathsOf(locations: readonly ToolCallLocation[] | null | undefine
     if (path) paths.push(path);
   }
   if (isRecord(input)) {
-    for (const key of ["file_path", "filePath", "path", "notebook_path", "target_file", "destination"]) {
+    for (const key of PATH_FIELDS) {
       const path = text(input[key]);
       if (path) paths.push(path);
+    }
+    for (const key of PATH_LISTS) {
+      const list = input[key];
+      if (!Array.isArray(list)) continue;
+      for (const item of list) {
+        const path = text(item) ?? (isRecord(item) ? (text(item.path) ?? text(item.file_path)) : undefined);
+        if (path) paths.push(path);
+      }
     }
   }
   return [...new Set(paths)];
 }
 
-/** A path inside the workspace, relative to it; `undefined` when it points outside. */
+/** How many links in a row are followed before a path counts as leading nowhere it can be told. */
+const MAX_LINKS = 40;
+
+/**
+ * Where a path really lands: the real path of the deepest part of it that exists, with the rest
+ * as written. A link that points at something not there yet is followed too, since writing
+ * through it creates that file. Undefined when that cannot be told (a loop of links).
+ */
+function realish(path: string, links = 0): string | undefined {
+  const rest: string[] = [];
+  let current = path;
+  for (;;) {
+    try {
+      return join(realpathSync(current), ...rest.reverse());
+    } catch {
+      let link: string | undefined;
+      try {
+        if (lstatSync(current).isSymbolicLink()) link = readlinkSync(current);
+      } catch {
+        // Not there at all: look at its folder.
+      }
+      if (link !== undefined) {
+        if (links >= MAX_LINKS) return undefined;
+        // A relative link is read from the folder it really is in.
+        const from = realish(dirname(current), links + 1);
+        if (from === undefined) return undefined;
+        return realish(join(resolve(from, link), ...rest.reverse()), links + 1);
+      }
+      const parent = dirname(current);
+      if (parent === current) return path;
+      rest.push(basename(current));
+      current = parent;
+    }
+  }
+}
+
+/**
+ * The full path a tool would use: `~` is the home folder, as the tools that expand it read it
+ * (`~/.zshrc` is never a file in the workspace), and anything else is taken from `cwd`.
+ */
+function fullPath(path: string, cwd: string): string {
+  const home = /^~([^\\/]*)(?:[\\/](.*))?$/s.exec(path);
+  if (home) {
+    const [, user = "", rest = ""] = home;
+    const base = user ? join(dirname(homedir()), user) : homedir();
+    return resolve(base, rest);
+  }
+  return isAbsolute(path) ? resolve(path) : resolve(cwd, path);
+}
+
+/**
+ * A path inside the workspace, relative to it; `undefined` when it points outside. Compared by
+ * real path, so a link inside the workspace that leads out of it counts as outside (as the
+ * computer's own workspace check does), and so does one that leads to a file not there yet.
+ */
 export function insideWorkspace(path: string, cwd: string): string | undefined {
-  const full = isAbsolute(path) ? resolve(path) : resolve(cwd, path);
-  const rel = relative(resolve(cwd), full);
+  const root = realish(resolve(cwd));
+  const full = realish(fullPath(path, cwd));
+  if (root === undefined || full === undefined) return undefined;
+  const rel = relative(root, full);
   if (rel === "") return ".";
   if (rel.startsWith(`..${sep}`) || rel === ".." || isAbsolute(rel)) return undefined;
   return rel;
 }
+
+/**
+ * A path as a call shows it, and as rules judge it: relative inside the workspace, and outside it
+ * where it really lands, so a link in a project folder that leads elsewhere is not judged as part
+ * of that folder.
+ */
+export function shownPath(path: string, cwd: string): string {
+  const full = fullPath(path, cwd);
+  return insideWorkspace(path, cwd) ?? realish(full) ?? full;
+}
+
+/**
+ * Key and password files, as the gateway's "Never touch key and password files" rule
+ * (`preset_secret_files`) names them. Kept here so this package depends only on the shared contracts.
+ */
+const KEY_FILE =
+  /(^|[\\/])(\.env(?!\.(example|sample|template)$)(\.[a-z0-9_-]+)?|id_(rsa|ecdsa|ed25519)|[^\\/]*\.pem|credentials(\.json)?)$|(^|[\\/])\.(ssh|aws|gnupg)([\\/]|$)/;
+
+/**
+ * The one path a change is judged by (`target.path`). For one path, that path. For several, the
+ * folder that holds them all, ending in a separator: a rule that lets the agent work in a folder
+ * then allows the change only when every path is in that folder, never because the first one is.
+ * One exception: when all of them are in the workspace and one is a key or password file, it is
+ * that file, so the gateway's rule for those files still sees it.
+ */
+export function targetPath(paths: readonly string[], cwd: string): string | undefined {
+  const shown = [...new Set(paths.map((p) => shownPath(p, cwd)))];
+  if (shown.length <= 1) return shown[0];
+  const keyFile = shown.find((p) => KEY_FILE.test(p));
+  if (keyFile && shown.every((p) => insideWorkspace(p, cwd) !== undefined)) return keyFile;
+  // Paths inside are relative to the workspace's real path, and paths outside are real already.
+  const root = realish(resolve(cwd)) ?? resolve(cwd);
+  const split = shown.map((p) => resolve(root, p).split(sep));
+  const first = split[0] ?? [];
+  const common: string[] = [];
+  for (const [i, part] of first.entries()) {
+    if (split.some((parts) => parts[i] !== part)) break;
+    common.push(part);
+  }
+  const folder = common.join(sep) || sep;
+  const inside = insideWorkspace(folder, cwd);
+  if (inside !== undefined) return inside === "." ? `.${sep}` : `${inside}${sep}`;
+  return folder.endsWith(sep) ? folder : `${folder}${sep}`;
+}
+
+/**
+ * The vendor tools' own settings (`.claude/`, `.gemini/`, `.codex/`, `.mcp.json`): a change there
+ * could let the tool stop asking, so it asks even inside the workspace.
+ */
+export function isVendorSettings(path: string): boolean {
+  return /(^|[\\/])\.(claude|gemini|codex)([\\/]|$)|(^|[\\/])\.mcp\.json$/i.test(path);
+}
+
+/** Whether a path is a vendor tool's settings as written, or once links in the workspace are followed. */
+export function touchesSettings(path: string, cwd: string): boolean {
+  return isVendorSettings(path) || isVendorSettings(shownPath(path, cwd));
+}
+
+/** ACP kinds that change files: with no path to check, they ask. */
+const CHANGES = new Set<AcpToolKind>(["edit", "move", "delete"]);
 
 /** The harness's own name for a tool: ACP `name`, or a `toolName` in its `_meta`; else one from its kind. */
 export function toolNameOf(call: {
@@ -92,8 +237,9 @@ export function toolNameOf(call: {
 
 /**
  * A permission request in Steward's terms. The kind comes from ACP's tool kind, except that a call
- * that carries a command is a `shell` whatever kind it claims, and a change to a file outside the
- * agent's workspace is on the `system` surface, so it asks.
+ * that carries a command is a `shell` whatever kind it claims. A change is on the `system`
+ * surface, so it asks, when any path it names is outside the agent's workspace or is a vendor
+ * tool's own settings, and when it names no path at all (fail closed).
  */
 export function permissionFrom(
   request: {
@@ -121,12 +267,18 @@ export function permissionFrom(
     target.command = command;
   }
   const paths = pathsOf(call.locations, call.rawInput);
-  const first = paths[0];
-  if (first) {
-    const rel = insideWorkspace(first, cwd);
-    target.path = rel ?? resolve(cwd, first);
-    if (rel === undefined && surface === "file") surface = "system";
-    if (paths.some((p) => insideWorkspace(p, cwd) === undefined) && surface === "file") surface = "system";
+  const path = targetPath(paths, cwd);
+  if (path) {
+    target.path = path;
+    const changes = kind !== "read";
+    if (
+      surface === "file" &&
+      paths.some((p) => insideWorkspace(p, cwd) === undefined || (changes && touchesSettings(p, cwd)))
+    ) {
+      surface = "system";
+    }
+  } else if (surface === "file" && CHANGES.has(acpKind)) {
+    surface = "system";
   }
   if (isRecord(call.rawInput)) {
     const url = text(call.rawInput.url);
@@ -144,14 +296,14 @@ export function permissionFrom(
         ? {}
         : { input: call.rawInput },
     target,
-    offersAlways: request.options.some((o) => o.kind === "allow_always"),
   };
 }
 
 /**
- * The ACP outcome for an answer, chosen by the option's kind (plan §3): once → `allow_once`;
- * always → `allow_always` when offered, else `allow_once`; refuse → `reject_once`; a stopped run →
- * `cancelled`. An allow the harness did not offer becomes a cancel rather than a wider grant.
+ * The ACP outcome for an answer, chosen by the option's kind (plan §3): allow → `allow_once`;
+ * refuse → `reject_once`; a stopped run → `cancelled`. `allow_always` is never chosen: Always
+ * allow is a Steward rule, so the harness keeps asking and the gateway keeps deciding. An allow
+ * the harness did not offer becomes a cancel rather than a wider grant.
  */
 export function outcomeFor(
   answer: PermissionAnswer,
@@ -167,11 +319,9 @@ export function outcomeFor(
   const optionId =
     answer === "allow_once"
       ? pick("allow_once")
-      : answer === "allow_always"
-        ? pick("allow_always", "allow_once")
-        : answer === "reject"
-          ? pick("reject_once", "reject_always")
-          : undefined;
+      : answer === "reject"
+        ? pick("reject_once", "reject_always")
+        : undefined;
   return optionId === undefined ? { outcome: "cancelled" } : { outcome: "selected", optionId };
 }
 

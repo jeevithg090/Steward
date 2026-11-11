@@ -233,6 +233,8 @@ describe.runIf(missing.length === 0)("handing a task to another agent, end to en
       .map((e) => e.delta)
       .join("");
     expect(parentText).toBe("Codex says all tests pass.");
+    // The task ended, so Codex's process stops: its conversation is never used again.
+    await waitFor(() => t.server.services.models.harnessPids().length === 0 || undefined, 10_000);
     // The parent's model saw its own call and its result, never the child's messages.
     const req = seen.find((s) => s.who === "parent")!.req;
     expect(req.messages.map((m) => m.role)).toEqual(["system", "user", "assistant", "tool"]);
@@ -248,6 +250,13 @@ describe.runIf(missing.length === 0)("handing a task to another agent, end to en
         .map((e) => e.type)
         .sort(),
     ).toEqual(["delegation.finished", "delegation.started"]);
+    // The record says why Codex stopped: its task ended, not that a conversation was deleted.
+    const childThreadId = record.find((e) => e.threadId === threadId && e.type === "delegation.started")
+      ?.detail?.childThreadId;
+    const stoppedFor = (await t.api<AuditPage>("/api/audit?type=harness.stopped")).body.events
+      .filter((e) => e.threadId === childThreadId)
+      .map((e) => e.detail?.reason);
+    expect(stoppedFor).toEqual(["task ended"]);
   });
 
   it("when nobody resumes in the browser, the sweep resumes the parent, which resumes the child", async () => {

@@ -1,8 +1,9 @@
 import { accessSync, constants, existsSync, readFileSync, statSync } from "node:fs";
-import { delimiter, isAbsolute, join } from "node:path";
+import { delimiter, dirname, isAbsolute, join } from "node:path";
 import type { HarnessInfo, HarnessProfile } from "@steward/shared";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
+import { looksLikeKey } from "./secrets.ts";
 
 /**
  * Harness profiles: the external coding agents a tenant offers, read from
@@ -20,20 +21,62 @@ export class HarnessProfileError extends Error {
 const ID = /^[a-z0-9][a-z0-9-]{0,40}$/;
 const ENV_NAME = /^[A-Z][A-Z0-9_]*$/;
 
-/** Arguments that switch a vendor tool's own permission checks off. Steward never passes them. */
+/**
+ * Arguments that switch a vendor tool's own permission checks off, or tell it what it may do
+ * without asking. Steward never passes them: the tool must ask, so Steward can. Each is matched
+ * against every argument, and against each `--flag value` pair read as `--flag=value`, with quotes
+ * taken off.
+ */
 const BYPASS_FLAGS = [
-  /^--dangerously-skip-permissions\b/,
-  /^--dangerously-bypass-approvals-and-sandbox\b/,
+  /^--dangerously/i,
   /bypass[-_]?permissions/i,
   /danger[-_]full[-_]access/i,
-  /^--yolo\b/,
-  /^--full-auto\b/,
-  /^--auto-approve\b/,
-  // Codex config overrides (`-c approval_policy="never"`): Steward sets both itself, per thread.
-  /approval[_-]?policy\s*=\s*"?(never|on-failure|on-request)/i,
+  /^--yolo\b/i,
+  // `-y`, alone or among other one-letter flags (`-dy` is debug and yolo to Gemini CLI), or `-y=true`.
+  /^-[A-Za-z]{0,4}y[A-Za-z]{0,4}(=|$)/,
+  /^--full[-_]?auto\b/i,
+  /^--auto[-_]?approve\b/i,
+  /^--auto[-_]?edit\b/i,
+  // Gemini CLI: `--approval-mode yolo` or `auto_edit` approves by itself.
+  /^--approval[-_]?mode=(yolo|auto)/i,
+  // Codex: `-a never`, `-anever` and the like. Steward sets the approval policy itself, per thread.
+  /^(-a|--ask[-_]?for[-_]?approval)=(never|on-failure|on-request)/i,
+  /^-a(never|on-failure|on-request)$/i,
+  // Claude Code: any permission mode, and tools allowed without asking.
+  /^--permission[-_]?mode\b/i,
+  /^--allowed[-_]?tools\b/i,
+  // Codex config overrides (`-c approval_policy="never"`): Steward sets these itself, per thread.
+  /approval[_-]?policy\s*=\s*(never|on-failure|on-request)/i,
   /sandbox[_-]?mode\s*=/i,
+  /sandbox[_-]?workspace[_-]?write\./i,
 ];
 
+/** Environment names that hold a key: a key is named in `passEnv`, never written in the file. */
+const KEY_NAME = /(^|_)(API_?KEY|KEY|TOKEN|SECRET|PASSWORD|CREDENTIALS?)$/;
+
+/**
+ * The forms an argument list is checked in: each argument, each word inside one (`sh -c "gemini
+ * --yolo"` hides its flags in a single argument), and each `--flag value` pair as one.
+ */
+export function argumentForms(args: readonly string[]): { form: string; index: number }[] {
+  const unquote = (arg: string) => arg.replace(/["']/g, "").trim();
+  const words: { word: string; index: number }[] = [];
+  for (const [index, arg] of args.entries()) {
+    const whole = unquote(arg);
+    const parts = whole.split(/\s+/).filter(Boolean);
+    if (parts.length > 1) words.push({ word: whole, index });
+    for (const word of parts.length > 0 ? parts : [whole]) words.push({ word, index });
+  }
+  const forms: { form: string; index: number }[] = [];
+  for (const [i, { word, index }] of words.entries()) {
+    forms.push({ form: word, index });
+    const next = words[i + 1]?.word;
+    if (/^-{1,2}[A-Za-z]/.test(word) && !word.includes("=") && next !== undefined && !next.startsWith("-")) {
+      forms.push({ form: `${word}=${next}`, index });
+    }
+  }
+  return forms;
+}
 const profileEntry = z
   .object({
     id: z.string().regex(ID, "must be lower case letters, digits and hyphens"),
@@ -48,24 +91,30 @@ const profileEntry = z
     passEnv: z.array(z.string().regex(ENV_NAME, "must be an environment variable name")).max(20).optional(),
     signIn: z.enum(["vendor-tool", "api-key"]),
     models: z.array(z.string().min(1).max(120)).max(40).optional(),
+    /** How to install it, said when it is missing: "npm install -g …". */
+    install: z.string().min(1).max(300).optional(),
   })
   .strict()
   .superRefine((entry, ctx) => {
-    for (const [i, arg] of [entry.command, ...entry.args].entries()) {
-      if (BYPASS_FLAGS.some((flag) => flag.test(arg))) {
-        ctx.addIssue({
-          code: "custom",
-          path: i === 0 ? ["command"] : ["args", i - 1],
-          message: `"${arg}" turns the tool's own permission checks off. Steward never runs a harness that way`,
-        });
-      }
-    }
-    if (entry.env && Object.values(entry.env).some((v) => /\b(sk|xai|gsk|nvapi|AIza)[-_][\w-]{8,}/.test(v))) {
+    const args = [entry.command, ...entry.args];
+    const flagged = new Set<number>();
+    for (const { form, index } of argumentForms(args)) {
+      if (flagged.has(index) || !BYPASS_FLAGS.some((flag) => flag.test(form))) continue;
+      flagged.add(index);
       ctx.addIssue({
         code: "custom",
-        path: ["env"],
-        message: "looks like a key. Name the variable in passEnv instead and keep the key in .env",
+        path: index === 0 ? ["command"] : ["args", index - 1],
+        message: `"${args[index]}" turns the tool's own permission checks off. Steward never runs a harness that way`,
       });
+    }
+    for (const [name, value] of Object.entries(entry.env ?? {})) {
+      if (KEY_NAME.test(name) || looksLikeKey(value)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["env", name],
+          message: "looks like a key. Name the variable in passEnv instead and keep the key in .env",
+        });
+      }
     }
   });
 
@@ -111,6 +160,7 @@ export function parseHarnesses(value: unknown): HarnessProfile[] {
     ...(p.env ? { env: p.env } : {}),
     ...(p.passEnv ? { passEnv: p.passEnv } : {}),
     ...(p.models ? { models: p.models } : {}),
+    ...(p.install ? { install: p.install } : {}),
   }));
 }
 
@@ -138,27 +188,55 @@ function executable(path: string): boolean {
   }
 }
 
-/** Where a program would be found: its absolute path, or the first match on PATH. */
+/**
+ * Where command-line tools are often installed but a launcher's PATH may leave out (a server
+ * started from an app or a service has a short PATH). Looked in after PATH.
+ */
+export function usualBinDirs(env: NodeJS.ProcessEnv): string[] {
+  const home = env.HOME;
+  return [
+    "/opt/homebrew/bin",
+    "/usr/local/bin",
+    ...(home ? [join(home, ".local", "bin"), join(home, ".npm-global", "bin")] : []),
+  ];
+}
+
+/** Where a program would be found: its absolute path, else the first match on PATH, else in the usual places. */
 export function findProgram(command: string, env: NodeJS.ProcessEnv): string | undefined {
   if (isAbsolute(command)) return executable(command) ? command : undefined;
   if (command.includes("/")) return undefined;
-  for (const dir of (env.PATH ?? "").split(delimiter)) {
-    if (!dir) continue;
+  const onPath = (env.PATH ?? "").split(delimiter).filter(Boolean);
+  for (const dir of [...onPath, ...usualBinDirs(env).filter((d) => !onPath.includes(d))]) {
     const candidate = join(dir, command);
     if (executable(candidate)) return candidate;
   }
   return undefined;
 }
 
-/** A profile with whether its program is installed, for `GET /api/harnesses` and the picker. */
+/**
+ * The server's environment for a program found at `path`: its folder joins PATH when it is not
+ * there, so a script's `#!/usr/bin/env node` finds the node installed beside it.
+ */
+export function withProgramDir(env: NodeJS.ProcessEnv, path: string | undefined): NodeJS.ProcessEnv {
+  if (!path) return env;
+  const dir = dirname(path);
+  const dirs = (env.PATH ?? "").split(delimiter).filter(Boolean);
+  return dirs.includes(dir) ? env : { ...env, PATH: [...dirs, dir].join(delimiter) };
+}
+
+/** A profile with whether its program is installed, for the picker. `path` is for the server only. */
 export function harnessInfo(profile: HarnessProfile, env: NodeJS.ProcessEnv): HarnessInfo {
   const path = findProgram(profile.command, env);
   if (path) return { ...profile, available: true, path };
   return { ...profile, available: false, reason: notInstalled(profile) };
 }
 
-export function notInstalled(profile: Pick<HarnessProfile, "name" | "command">): string {
-  return `${profile.name} is not installed on this computer (Steward looked for "${profile.command}"). Install it, sign in to it, then restart Steward.`;
+/** Said when a harness's program is missing: what to install, when the profile says, and to sign in. */
+export function notInstalled(profile: Pick<HarnessProfile, "name" | "command" | "install">): string {
+  if (profile.install) {
+    return `${profile.name} is not installed here. To add it, run: ${profile.install}, then sign in to it.`;
+  }
+  return `${profile.name} is not installed here (Steward looked for "${profile.command}"). Install it, then sign in to it.`;
 }
 
 /** The server's variables a harness may always see: what a program needs to run, nothing secret. */
