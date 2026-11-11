@@ -70,6 +70,11 @@ export interface ToolContext {
   initiator?: import("@steward/shared").Initiator;
   /** How many hand-offs deep this run is: 0 for a run nobody handed on. */
   delegationDepth?: number;
+  /**
+   * The conversation has read content Steward does not trust, exactly as the gateway was told for
+   * this call. A task handed on from it starts tainted too. Unknown counts as tainted.
+   */
+  tainted?: boolean;
 }
 
 /** What only the tool knows about a call: what it touches and what text would leave Steward. */
@@ -149,6 +154,8 @@ export interface DelegationService {
     task: string;
     depth: number;
     initiator: import("@steward/shared").Initiator;
+    /** The parent had read untrusted content: the child's conversation starts tainted. */
+    tainted: boolean;
   }): Promise<DelegationRun>;
   /** The delegation an interrupt belongs to, when a child raised it. */
   ownerOf(interruptId: string): string | undefined;

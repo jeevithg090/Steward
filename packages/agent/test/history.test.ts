@@ -1,4 +1,5 @@
 import type { Message } from "@ag-ui/client";
+import { handOn, taskStart } from "@steward/shared";
 import { describe, expect, it } from "vitest";
 import { isTainted, sanitizeHistory } from "../src/history.ts";
 
@@ -77,6 +78,24 @@ describe("isTainted", () => {
   it("is true once a tainting tool returned, including an error", () => {
     expect(isTainted([u("u1"), a("a1", ["c1"]), t("t1", "c1")], taints)).toBe(true);
     expect(isTainted([u("u1"), a("a1", ["c1"]), t("t1", "c1", "Error: timeout")], taints)).toBe(true);
+  });
+
+  it("is true from the first turn when the words came from an email or a tainted handoff", () => {
+    const said = (content: string): Message => ({ id: "u1", role: "user", content });
+    const suggestion = {
+      title: "Reply to Ana about Friday",
+      detail: "She asked.",
+      source: "suggestion" as const,
+    };
+    expect(isTainted([said(taskStart({ ...suggestion, emailId: "m1" }))], taints)).toBe(true);
+    expect(isTainted([said(taskStart({ ...suggestion, source: "chat" }))], taints)).toBe(true);
+    expect(isTainted([said(handOn("Create a routine", true)), u("u2")], taints)).toBe(true);
+    // Content parts count the same as a string.
+    const parts = { id: "u1", role: "user", content: [{ type: "text", text: handOn("x", true) }] } as Message;
+    expect(isTainted([parts], taints)).toBe(true);
+    // The person's own task, and a handoff from an untainted conversation, start clean.
+    expect(isTainted([said(taskStart({ ...suggestion, source: "person" }))], taints)).toBe(false);
+    expect(isTainted([said(handOn("Summarise the plan", false))], taints)).toBe(false);
   });
 
   it("ignores a call that was refused, because it read nothing", () => {

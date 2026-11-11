@@ -4,7 +4,8 @@
  * Precedence (PLAN §4.6), first match wins:
  *   1. deny rules
  *   2. the safety floor: payments and credential entry always ask, never "Always allow"
- *   3. taint: after reading untrusted content, send/pay/sign/delete/shell always ask
+ *   3. taint: after reading untrusted content, send/pay/sign/delete/shell, memories and routines,
+ *      and writes to mail, calendar, web or connected apps, or that reach people, always ask
  *   4. the outbound check: any finding asks, with the findings on the card
  *   5. ask rules
  *   6. allow rules (presets, tenant, person, always)
@@ -118,6 +119,12 @@ export const BUILTIN = {
     reason:
       "This conversation has read content that could carry someone else's instructions, so saving a memory or a routine that would shape later work needs your answer",
   },
+  taintLeaves: {
+    id: "default:taint-leaves",
+    name: "Untrusted content asks before changes elsewhere",
+    reason:
+      "This conversation has read content that could carry someone else's instructions, so anything that changes your calendar, mail or connected apps, or reaches other people, needs your answer",
+  },
   outbound: {
     id: "default:outbound-check",
     name: "Sensitive details ask",
@@ -166,6 +173,34 @@ const TAINT_KINDS = new Set<ToolKind>(["send", "pay", "sign", "delete", "shell"]
  * reach every later run. After untrusted content they ask too.
  */
 const TAINT_PERSISTS = new Set(["memory_remember", "routine_create"]);
+/**
+ * Surfaces that reach past Steward and this machine: mail, the calendar, the web and connected
+ * apps. After untrusted content, a write there asks. A coding agent's change to a folder on this
+ * machine (surface `system`) is not one of them, so a person's rule for their project still holds.
+ */
+const OUTSIDE_SURFACES = new Set(["mail", "calendar", "web", "mcp"]);
+
+/**
+ * Step 3 for one call: which taint step asks, or undefined when taint does not. In a tainted
+ * conversation it asks before a send, payment, signature, deletion or command; before a memory or
+ * routine; and before any write to mail, the calendar, the web or a connected app, or one that
+ * reaches other people. None of these offers Always allow. The phone presets use the same function,
+ * so a shortcut can never say yes to what this asked.
+ */
+export function taintStep(call: {
+  tainted?: boolean;
+  tool: Pick<GateCall["tool"], "name" | "kind" | "surface">;
+  target?: Pick<Target, "recipients">;
+}): BuiltinRule | undefined {
+  if (call.tainted !== true) return undefined;
+  const { kind, name, surface } = call.tool;
+  if (TAINT_KINDS.has(kind)) return BUILTIN.taint;
+  if (TAINT_PERSISTS.has(name)) return BUILTIN.taintPersists;
+  if (kind === "write" && (OUTSIDE_SURFACES.has(surface) || (call.target?.recipients?.length ?? 0) > 0)) {
+    return BUILTIN.taintLeaves;
+  }
+  return undefined;
+}
 
 /** The outcome of deciding: the decision itself, plus what the approval layer needs. */
 export interface Verdict {
@@ -318,8 +353,8 @@ export function decidePrepared(engine: CelEngine, rules: readonly Rule[], call: 
     if (call.credentialEntry) return ask(BUILTIN.floorCredential);
 
     // 3. Taint.
-    if (call.tainted && TAINT_KINDS.has(call.tool.kind)) return ask(BUILTIN.taint);
-    if (call.tainted && TAINT_PERSISTS.has(call.tool.name)) return ask(BUILTIN.taintPersists);
+    const tainted = taintStep(call);
+    if (tainted) return ask(tainted);
 
     // 4. What leaves.
     if (findings.length > 0) {

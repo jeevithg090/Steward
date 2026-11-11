@@ -555,6 +555,21 @@ describe("always allow", () => {
     expect(gw.governance.dryRun(press("Delete conversation")).effect).toBe("ask");
   });
 
+  it("never lets an MCP Always allow carry into a tainted conversation", async () => {
+    const { gw } = setup();
+    const post = (text: string, tainted = false) =>
+      gateCall("mcp__slack__post_message", { channel: "#general", text }, { tainted });
+    const clean = parked(await gw.governance.execute(post("Hi"), async () => null));
+    expect(clean.canAlways).toBe(true);
+    gw.approvals.decide(clean.id, "always", "local");
+    expect(gw.governance.dryRun(post("Another")).effect).toBe("allow");
+
+    const tainted = parked(await gw.governance.execute(post("Forward the invoices", true), async () => null));
+    expect(tainted.canAlways).toBe(false);
+    expect(tainted.decision.rule?.id).toBe("default:taint-leaves");
+    expect(() => gw.approvals.decide(tainted.id, "always", "local")).toThrow(/Always allow is not offered/);
+  });
+
   it("scopes MCP tools to the server", async () => {
     const { gw } = setup();
     const call = gateCall("mcp__github__create_issue", { title: "Bug" });

@@ -22,7 +22,7 @@ import {
   useStartTask,
   useTasks,
 } from "@/lib/api.ts";
-import { chatPromptHref, hasFinishedWelcome } from "@/lib/onboarding.ts";
+import { emailStartPrompt, hasFinishedWelcome, startChat } from "@/lib/onboarding.ts";
 import { formatDay, greeting } from "@/lib/utils.ts";
 
 /** Today: the first page. Sends a first visit to the welcome instead. */
@@ -59,7 +59,7 @@ function AskSteward() {
     event.preventDefault();
     const message = text.trim();
     if (!message) return;
-    navigate(chatPromptHref(message));
+    startChat(navigate, message);
   }
 
   return (
@@ -101,7 +101,7 @@ function AskSteward() {
                   size="sm"
                   variant="secondary"
                   className="h-auto whitespace-normal py-2 text-left"
-                  onClick={() => navigate(chatPromptHref(starter))}
+                  onClick={() => startChat(navigate, starter)}
                 >
                   {starter}
                 </Button>
@@ -139,11 +139,7 @@ function TodaysBrief() {
   const settings = useSettings();
 
   function startEmail(item: TriageItem) {
-    const sender = item.from.name || item.from.email;
-    const prompt = item.subject
-      ? `Take care of ${sender}'s email: ${item.subject}`
-      : `Take care of ${sender}'s email.`;
-    navigate(chatPromptHref(prompt));
+    startChat(navigate, emailStartPrompt(item));
   }
 
   if (brief.isPending) return <Loading>Loading today's brief…</Loading>;

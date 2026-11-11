@@ -1,5 +1,6 @@
 // sanitizeHistory adapted from openbot/toolkit/src/history-sanitize.ts (MIT, CopilotKit)
 import type { Message, ToolCall } from "@ag-ui/client";
+import { isTaintingTurn } from "@steward/shared";
 
 /** Every tool call made in the conversation, in order. */
 export function callsIn(messages: readonly Message[]): ToolCall[] {
@@ -101,10 +102,15 @@ export function lastUserMessage(messages: readonly Message[]): Message | undefin
  * True once a tool whose results carry outside content has returned anything in this conversation.
  * A result that says the call was refused never ran, so it read nothing; everything else counts,
  * errors included, because failing safe means asking more often, never less.
+ *
+ * Also true when the conversation began from words Steward does not trust: a task that quotes an
+ * email, or one another agent handed on after reading such content. The server frames that turn
+ * (`TAINTING_FRAMES`), and the frame stays in the stored history, so every later run sees it.
  */
 export function isTainted(messages: readonly Message[], taints: (toolName: string) => boolean): boolean {
   const names = new Map(callsIn(messages).map((c) => [c.id, c.function.name]));
   for (const m of messages) {
+    if (m.role === "user" && isTaintingTurn(textOf(m))) return true;
     if (m.role !== "tool") continue;
     const name = names.get(m.toolCallId);
     if (name === undefined || !taints(name)) continue;
