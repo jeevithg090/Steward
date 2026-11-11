@@ -14,8 +14,9 @@ import { useInfo } from "@/lib/api.ts";
 export const DEFAULT_PRODUCT = "Steward";
 export const DEFAULT_ACCENT = "#0f6e66";
 
-// The stylesheet's dark surfaces (surface, card, tile), its dark ink on the accent, and black and
-// white. Kept in step with app.css by brand.test.ts.
+// The stylesheet's surfaces (surface, card, tile) in light and dark, its dark ink on the accent, and
+// black and white. Kept in step with app.css by brand.test.tsx.
+export const LIGHT_SURFACES = ["#f6f7f7", "#ffffff", "#eef1f0"] as const;
 export const DARK_SURFACES = ["#101413", "#1a1f1e", "#232a29"] as const;
 export const DARK_ON_ACCENT = "#06201d";
 const WHITE = "#ffffff";
@@ -70,15 +71,19 @@ export interface BrandShades {
 
 /**
  * Every shade the stylesheet needs from one accent, each checked for contrast: text and focus
- * rings at 4.5:1 on the surfaces it sits on, 7:1 in more-contrast mode. Undefined for a colour that
- * is not `#rrggbb` or that white text cannot be read on, so the app keeps Steward's own.
+ * rings at 4.5:1 on the surfaces it sits on, 7:1 in more-contrast mode. The light accent is the
+ * brand's own colour, or the least darker shade of it that also reads on the grey page and tiles
+ * (white text on it is 4.5:1 already, but the page is darker than white). Undefined for a colour
+ * that is not `#rrggbb` or that white text cannot be read on, so the app keeps Steward's own.
  */
 export function brandShades(accent: string): BrandShades | undefined {
   const base = accent.toLowerCase();
   if (!parseHex(base) || contrast(base, WHITE) < 4.5) return undefined;
 
-  const lightSoft = nearest(mix(base, WHITE, 0.9), WHITE, (c) => contrast(base, c) >= 4.5);
-  const lightMore = nearest(base, BLACK, (c) => contrast(c, WHITE) >= 7);
+  const onLight = (c: string, ratio: number) => LIGHT_SURFACES.every((s) => contrast(c, s) >= ratio);
+  const light = nearest(base, BLACK, (c) => onLight(c, 4.5));
+  const lightSoft = nearest(mix(light, WHITE, 0.9), WHITE, (c) => contrast(light, c) >= 4.5);
+  const lightMore = nearest(light, BLACK, (c) => onLight(c, 7));
 
   const darkSoftOf = (c: string) => mix(c, DARK_SURFACES[0], 0.82);
   const dark = nearest(
@@ -93,8 +98,8 @@ export function brandShades(accent: string): BrandShades | undefined {
 
   return {
     light: {
-      accent: base,
-      hover: mix(base, BLACK, 0.18),
+      accent: light,
+      hover: mix(light, BLACK, 0.18),
       soft: lightSoft,
       more: lightMore,
       moreHover: mix(lightMore, BLACK, 0.25),

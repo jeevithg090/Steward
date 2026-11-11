@@ -9,6 +9,7 @@ import {
   DARK_ON_ACCENT,
   DARK_SURFACES,
   DEFAULT_ACCENT,
+  LIGHT_SURFACES,
   resetBrandForTests,
   useBrandName,
 } from "./brand.ts";
@@ -44,11 +45,13 @@ describe("brandShades", () => {
       const shades = brandShades(accent);
       expect(shades, accent).toBeDefined();
       const { light, dark } = shades!;
-      expect(light.accent).toBe(accent);
-      expect(contrast(light.accent, "#ffffff"), accent).toBeGreaterThanOrEqual(4.5);
+      // Links and the current page are accent text on the page, cards and tiles, not only on white.
+      for (const surface of LIGHT_SURFACES) {
+        expect(contrast(light.accent, surface), `${accent} on ${surface}`).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(light.more, surface), `${accent} on ${surface}`).toBeGreaterThanOrEqual(7);
+      }
       expect(contrast(light.hover, "#ffffff"), accent).toBeGreaterThanOrEqual(4.5);
       expect(contrast(light.accent, light.soft), accent).toBeGreaterThanOrEqual(4.5);
-      expect(contrast(light.more, "#ffffff"), accent).toBeGreaterThanOrEqual(7);
       for (const surface of DARK_SURFACES) {
         expect(contrast(dark.accent, surface), `${accent} on ${surface}`).toBeGreaterThanOrEqual(4.5);
         expect(contrast(dark.more, surface), `${accent} on ${surface}`).toBeGreaterThanOrEqual(7);
@@ -59,13 +62,24 @@ describe("brandShades", () => {
     }
   });
 
+  it("keeps the brand's own colour in light mode, darkened only as far as the grey tiles need", () => {
+    expect(brandShades("#1d4ed8")?.light.accent).toBe("#1d4ed8");
+    expect(brandShades(DEFAULT_ACCENT)?.light.accent).toBe(DEFAULT_ACCENT);
+    // Tempo's amber is 5.0:1 on white but 4.4:1 on a tile, so links on a tile get a shade darker.
+    expect(contrast("#b45309", "#eef1f0")).toBeLessThan(4.5);
+    const tempo = brandShades("#b45309")!.light.accent;
+    expect(tempo).not.toBe("#b45309");
+    expect(contrast(tempo, "#eef1f0")).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(tempo, "#b45309")).toBeLessThan(1.1);
+  });
+
   it("refuses a colour white text cannot be read on, or one that is not #rrggbb", () => {
     expect(brandShades("#f0c419")).toBeUndefined();
     expect(brandShades("teal")).toBeUndefined();
     expect(brandShades("#b45309; color: red")).toBeUndefined();
   });
 
-  it("works from the same dark surfaces and ink as the stylesheet", async () => {
+  it("works from the same surfaces and ink as the stylesheet", async () => {
     // Vitest hands CSS imports over empty, and the web app has no Node types, so the one call this
     // test needs is typed here.
     const fs: { existsSync(file: string): boolean; readFileSync(file: string, encoding: "utf8"): string } =
@@ -74,9 +88,10 @@ describe("brandShades", () => {
     const file = ["apps/web/src/styles/app.css", "src/styles/app.css"].find((f) => fs.existsSync(f)) ?? "";
     const css = fs.readFileSync(file, "utf8");
     const [surface, card, tile] = DARK_SURFACES;
-    expect(css).toContain(`--st-surface: light-dark(#f6f7f7, ${surface});`);
-    expect(css).toContain(`--st-card: light-dark(#ffffff, ${card});`);
-    expect(css).toContain(`--st-tile: light-dark(#eef1f0, ${tile});`);
+    const [lightSurface, lightCard, lightTile] = LIGHT_SURFACES;
+    expect(css).toContain(`--st-surface: light-dark(${lightSurface}, ${surface});`);
+    expect(css).toContain(`--st-card: light-dark(${lightCard}, ${card});`);
+    expect(css).toContain(`--st-tile: light-dark(${lightTile}, ${tile});`);
     expect(css).toContain(`--st-on-accent: light-dark(#ffffff, ${DARK_ON_ACCENT});`);
     expect(css).toContain(`--st-accent: light-dark(${DEFAULT_ACCENT}, #6ad3c5);`);
   });
@@ -97,7 +112,10 @@ describe("BrandTheme", () => {
     expect(screen.getByText("Tempo")).toBeTruthy();
     const root = document.documentElement;
     expect(root.hasAttribute("data-brand")).toBe(true);
-    expect(root.style.getPropertyValue("--st-brand-accent")).toMatch(/^light-dark\(#b45309, #[0-9a-f]{6}\)$/);
+    const shades = brandShades("#b45309")!;
+    expect(root.style.getPropertyValue("--st-brand-accent")).toBe(
+      `light-dark(${shades.light.accent}, ${shades.dark.accent})`,
+    );
     expect(root.style.getPropertyValue("--st-brand-soft")).toMatch(
       /^light-dark\(#[0-9a-f]{6}, #[0-9a-f]{6}\)$/,
     );
