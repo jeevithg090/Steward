@@ -91,6 +91,20 @@ function probesFor(tool: string): Probe[] {
   return KIND_LIST.map((kind) => ({ name: tool, kind, surface: "mcp", source, own: kind === "write" }));
 }
 
+/**
+ * Every tool this Steward has, as the dry run tries it, and an MCP tool in every kind (one may be
+ * connected later), from each MCP server the condition names. A deny rule that none of these
+ * triggers refuses nothing, whatever the bot holds.
+ */
+function catalogueProbes(tools: ReadonlySet<string>, when: string): Probe[] {
+  const sources = new Set(["mcp:any"]);
+  for (const m of when.matchAll(/["'](mcp:[^"'\\]+)["']/g)) sources.add(m[1] ?? "mcp:any");
+  const later = [...sources].flatMap((source) =>
+    KIND_LIST.map((kind) => ({ name: "mcp__any__tool", kind, surface: "mcp", source, own: false })),
+  );
+  return [...[...tools].flatMap(probesFor), ...later];
+}
+
 /** The condition with its string literals emptied, so a word inside quotes is not read as a name. */
 function withoutStrings(when: string): string {
   return when.replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g, '""');
@@ -147,13 +161,13 @@ function literalProblems(path: string, when: string, tools: ReadonlySet<string>)
       out.push({
         path,
         severity: "error",
-        message: `"${value}" is not a kind of tool, so this rule never applies. Kinds are ${list(KIND_LIST)}${hint}`,
+        message: `"${value}" is not a kind of tool, so no tool ever matches it. Kinds are ${list(KIND_LIST)}${hint}`,
       });
     } else if (field === "surface" && !Object.hasOwn(SURFACES, value)) {
       out.push({
         path,
         severity: "error",
-        message: `"${value}" is not a place a tool acts, so this rule never applies. Places are ${list(Object.keys(SURFACES))}`,
+        message: `"${value}" is not a place a tool acts, so no tool ever matches it. Places are ${list(Object.keys(SURFACES))}`,
       });
     } else if (field === "name" && !tools.has(value)) {
       out.push(
@@ -166,7 +180,7 @@ function literalProblems(path: string, when: string, tools: ReadonlySet<string>)
           : {
               path,
               severity: "error",
-              message: `"${value}" is not a tool this Steward has, so this rule never applies`,
+              message: `"${value}" is not a tool this Steward has, so no call ever matches it`,
             },
       );
     }
@@ -189,7 +203,8 @@ function tryOn(when: string, probe: Probe): boolean | undefined {
  * Rule problems `validatePack` adds once each condition compiles. Errors: a condition that reads
  * nothing about the call, or compares the tool with a kind, place or tool that does not exist.
  * Warnings: an ask rule that no tool of the bot can trigger, or that only covers reading or
- * showing; a deny rule that refuses a tool the bot itself needs; the same rule twice.
+ * showing; a deny rule that refuses a tool the bot itself needs, or that no tool at all can
+ * trigger; the same rule twice.
  */
 export function checkRuleMeaning(pack: BotPack, ctx: { tools: readonly string[] }): BotProblem[] {
   const problems: BotProblem[] = [];
@@ -250,6 +265,16 @@ export function checkRuleMeaning(pack: BotPack, ctx: { tools: readonly string[] 
           path,
           severity: "warn",
           message: `refuses ${list(refused)}, which this bot needs; drop the rule or the tool`,
+        });
+      } else if (
+        hits.length === 0 &&
+        !catalogueProbes(tools, rule.when).some((p) => tryOn(rule.when, p) === true)
+      ) {
+        // A deny on a tool the bot lacks is a promise ("Never send"); one no tool can trigger is not.
+        problems.push({
+          path,
+          severity: "warn",
+          message: "can never apply: no tool Steward has is one it covers, so it refuses nothing",
         });
       }
     }

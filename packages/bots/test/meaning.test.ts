@@ -132,6 +132,35 @@ describe("what a bot's rules mean", () => {
     ).toEqual([]);
   });
 
+  it("warns about a deny rule no tool at all can trigger, however its literal is written", () => {
+    // The literal check reads `tool.kind == "Pay"`; these spell the same dead rule another way.
+    for (const when of ['tool.kind == ("Pay")', 'tool["kind"] == "Pay"', '"Pay" in [tool.kind]']) {
+      const problems = check(["web_search"], { name: "Never pay", effect: "deny", when });
+      expect(problems, when).toEqual([
+        {
+          path: "rules[0].when",
+          severity: "warn",
+          message: "can never apply: no tool Steward has is one it covers, so it refuses nothing",
+        },
+      ]);
+    }
+    // A promise about tools the bot lacks, or about an MCP tool connected later, still counts.
+    for (const when of [
+      'tool.kind == "send"',
+      'tool.surface == "mcp"',
+      'tool.source == "mcp:github"',
+      'tool.surface == "mcp" && tool.kind == "delete"',
+    ]) {
+      expect(check(["web_search"], { name: "Never", effect: "deny", when }), when).toEqual([]);
+    }
+  });
+
+  it("says an unknown kind matches no tool, which holds for != as well as ==", () => {
+    const [problem] = check(["mail_send"], { name: "x", effect: "ask", when: 'tool.kind != "Send"' });
+    expect(problem?.severity).toBe("error");
+    expect(problem?.message).toMatch(/^"Send" is not a kind of tool, so no tool ever matches it\./);
+  });
+
   it("leaves rules about the target to the reader, and warns about the same rule twice", () => {
     expect(
       check(["mail_send"], {

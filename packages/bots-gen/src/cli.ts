@@ -615,6 +615,7 @@ const WARNING_KINDS: readonly [RegExp, string, "style" | "content"][] = [
   [/^has a placeholder/, "a starter has a placeholder", "content"],
   [/^never tells the agent/, "a health or money bot never sends the person to a professional", "content"],
   [/^never applies/, "a rule none of the bot's tools can trigger", "content"],
+  [/^can never apply/, "a deny rule no tool can trigger", "content"],
   [/^only asks before reading/, "a rule asks before reading or showing only", "content"],
   [/^refuses .* which this bot needs/, "a rule refuses the bot's own tools", "content"],
   [/^is the same rule as/, "the same rule twice", "content"],
