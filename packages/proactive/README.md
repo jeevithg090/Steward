@@ -97,8 +97,9 @@ Needs you or can wait, with a one-line reason, for each email. Adapted from Open
    how many and why. Provider error text is never stored: it can echo parts of a key.
 
 The model's answer is read after dropping any thinking (`<think>…</think>`, as reasoning models such
-as qwen3 and deepseek-r1 write it); then each `{…}` in it is tried, the last first. The brief's
-summary drops thinking too.
+as qwen3 and deepseek-r1 write it); then each `{…}` in it is tried, the last first. An answer that
+gives two different verdicts is refused, not guessed, so the email shows under needs you. The
+brief's summary drops thinking too.
 
 Model verdicts are cached by email id, so the inbox and the brief do not pay twice. A cached verdict
 is reused only from the same model, with the same prompt and the same facts you gave in Memory, and
