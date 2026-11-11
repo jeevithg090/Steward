@@ -781,7 +781,7 @@ describe("the computer, in real Chromium", { timeout: 90_000 }, () => {
     expect(napping.status("second").running).toBe(true);
     expect(napping.status("napper").running).toBe(false);
     expect(first.activity().at(-1)?.text).toBe(
-      "Closed the browser to make room: at most 1 run at once; it starts again when needed",
+      "Closed the browser to make room for another one; it starts again when needed",
     );
   });
 

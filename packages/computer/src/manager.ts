@@ -80,7 +80,7 @@ export function createComputerManager(opts: ComputerManagerOptions): ComputerMan
     let running = others.length + 1;
     for (const other of others) {
       if (running <= max) return;
-      if (await other.closeIdle(`to make room: at most ${max} run at once`)) running--;
+      if (await other.closeIdle("to make room for another one")) running--;
     }
   };
 
