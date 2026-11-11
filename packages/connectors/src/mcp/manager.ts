@@ -289,8 +289,9 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         stderr: "pipe",
       });
       transport.stderr?.on("data", (chunk: Buffer) => {
-        // Kept short and only for error messages on the Connections page.
-        state.stderr = (state.stderr + chunk.toString("utf8")).slice(-2000);
+        // Kept short and only for error messages on the Connections page. Saved values are hidden
+        // before the buffer is cut or its lines are joined, so neither leaves part of one behind.
+        state.stderr = hider(state)(state.stderr + chunk.toString("utf8")).slice(-2000);
       });
       return transport;
     }
@@ -340,7 +341,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
                 autoRefresh: false,
                 onChanged: () => {
                   if (state.client !== c) return;
-                  listAllTools(c, connectTimeoutMs)
+                  listAllTools(c, connectTimeoutMs, hider(state))
                     .then((listing) => {
                       if (state.client !== c) return;
                       setListing(state, listing);
@@ -364,7 +365,7 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
         await c.connect(transport, {
           timeout: state.config.transport === "stdio" ? startTimeoutMs : connectTimeoutMs,
         });
-        const listing = await listAllTools(c, connectTimeoutMs);
+        const listing = await listAllTools(c, connectTimeoutMs, hider(state));
         if (generation !== state.generation || closed) {
           await c.close().catch(() => {});
           return;
@@ -513,6 +514,8 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
       // Grants are per server for now and apply to every agent; agentId is here for per-agent grants.
       const out: McpToolDefinition[] = [];
       for (const state of [...servers.values()].sort((a, b) => a.config.id.localeCompare(b.config.id))) {
+        const hide = hider(state);
+        const hasSecrets = secretValues(state.secrets, state.config.url).length > 0;
         for (const tool of state.tools) {
           if (!state.config.granted.includes(tool.name)) continue;
           if (unofferable(state.config.id, tool)) continue;
@@ -523,8 +526,9 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
             tool: tool.name,
             // The person named the server; the rest is the server's own words, and the model is told
             // so, for the descriptions inside its input schema too.
-            description: `${hider(state)(tool.description) || tool.name}\n\nThis and the descriptions of its inputs were written by the MCP server "${state.config.name}", not by Steward.`,
-            parameters: objectSchema(tool.inputSchema),
+            description: `${hide(tool.description) || tool.name}\n\nThis and the descriptions of its inputs were written by the MCP server "${state.config.name}", not by Steward.`,
+            // A server that writes its own token into its inputs' descriptions doesn't show it to the model.
+            parameters: objectSchema(hasSecrets ? hideIn(tool.inputSchema, hide) : tool.inputSchema),
             kind: kindOf(state.config, tool),
           });
         }
@@ -579,15 +583,16 @@ export function createMcpManager(opts: McpManagerOptions): StewardMcpManager {
           throw failed(state, fresh, again);
         }
       }
+      // A server that echoes its own token must not put it in the transcript: hidden before the cut.
+      const hide = hider(state);
       const output =
         result.content === undefined && result.toolResult !== undefined
-          ? resultText([], { toolResult: result.toolResult })
-          : resultText(result.content, result.structuredContent);
+          ? resultText([], { toolResult: result.toolResult }, hide)
+          : resultText(result.content, result.structuredContent, hide);
       if (result.isError === true) {
         throw callError(state, `${state.config.name} reported an error.`, output.text);
       }
-      // A server that echoes its own token must not put it in the transcript.
-      return { ...output, text: hider(state)(output.text) };
+      return output;
     },
 
     async upsert(input) {
@@ -736,13 +741,20 @@ function codeOf(err: unknown): unknown {
   return typeof err === "object" && err !== null ? (err as { code?: unknown }).code : undefined;
 }
 
-/** Lists every tool, following pagination, and bounds the result. */
-async function listAllTools(client: Client, timeout: number): Promise<Listing> {
+/**
+ * Lists every tool, following pagination, and bounds the result. `hide` hides the server's saved
+ * secrets in the descriptions before they are cut, so a cut never leaves part of one behind.
+ */
+async function listAllTools(
+  client: Client,
+  timeout: number,
+  hide: (text: string) => string,
+): Promise<Listing> {
   const tools: ListedTool[] = [];
   let cursor: string | undefined;
   for (let page = 0; page < MAX_TOOL_PAGES; page++) {
     const res = await client.listTools(cursor ? { cursor } : undefined, { timeout });
-    tools.push(...res.tools.map(listedTool));
+    tools.push(...res.tools.map((tool) => listedTool(tool, hide)));
     cursor = res.nextCursor;
     if (!cursor || new Set(tools.map((t) => t.name)).size > MAX_TOOLS) break;
   }
@@ -750,13 +762,13 @@ async function listAllTools(client: Client, timeout: number): Promise<Listing> {
   return cursor ? { ...listing, more: true } : listing;
 }
 
-function listedTool(tool: Tool): ListedTool {
+function listedTool(tool: Tool, hide: (text: string) => string): ListedTool {
   const description = tool.description ?? tool.annotations?.title ?? "";
   const inputSchema = (tool.inputSchema ?? { type: "object" }) as Record<string, unknown>;
   const destructive = tool.annotations?.destructiveHint === true;
   return {
     name: tool.name,
-    description,
+    description: typeof description === "string" ? hide(description) : description,
     inputSchema,
     ...(destructive ? { destructive: true } : {}),
     // Taken before the listing is bounded, so a change past the cut still counts.
@@ -975,10 +987,21 @@ function setFailure(state: ServerState, failure: Failure): void {
 /** The error as the Connections page shows it: Steward's sentence, then what the server said. */
 function shownError(state: ServerState): string | undefined {
   if (!state.error) return undefined;
-  const shown = state.said
-    ? `${state.error} It said: ${JSON.stringify(serverWords(state.said))}`
-    : state.error;
-  return hider(state)(shown);
+  const hide = hider(state);
+  // Hidden before the server's words are put on one line, cut and quoted, which would change a
+  // saved value enough that it no longer matches.
+  const error = hide(state.error);
+  return state.said ? `${error} It said: ${JSON.stringify(serverWords(hide(state.said)))}` : error;
+}
+
+/** `value` with the server's saved secrets hidden in every string in it, names included. */
+function hideIn(value: unknown, hide: (text: string) => string): unknown {
+  if (typeof value === "string") return hide(value);
+  if (Array.isArray(value)) return value.map((item) => hideIn(item, hide));
+  if (value === null || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, item]) => [hide(key), hideIn(item, hide)]),
+  );
 }
 
 /** Hides the server's saved secrets, and any key in its address, from text that leaves the manager. */

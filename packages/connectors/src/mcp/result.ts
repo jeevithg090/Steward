@@ -25,7 +25,12 @@ export interface McpCallOutput {
  * arrived. An empty result says so in words: an empty string reads as "the tool had nothing to say"
  * and the model fills the gap from memory.
  */
-export function resultText(content: unknown, structuredContent?: unknown): McpCallOutput {
+export function resultText(
+  content: unknown,
+  structuredContent?: unknown,
+  /** Hides saved secrets. Applied before the cut, so a cut never leaves part of one behind. */
+  hide: (text: string) => string = (text) => text,
+): McpCallOutput {
   const parts = Array.isArray(content) ? content : [];
   let joined = parts.map(partText).join("\n");
   const structured =
@@ -41,6 +46,7 @@ export function resultText(content: unknown, structuredContent?: unknown): McpCa
       };
     }
   }
+  joined = hide(joined);
   const out: McpCallOutput = { text: joined, truncated: false };
   if (joined.length <= MAX_RESULT_CHARS) return out;
   let end = MAX_RESULT_CHARS;

@@ -32,6 +32,7 @@ import {
   SERVER_WORDS_NOTICE,
   scrubbedEnv,
 } from "../src/mcp/manager.ts";
+import { MAX_RESULT_CHARS } from "../src/mcp/result.ts";
 import { migrations } from "../src/migrations.ts";
 import { BlockedAddressError } from "../src/net/address.ts";
 
@@ -670,6 +671,60 @@ describe("MCP manager with an in-process server", () => {
     });
   });
 
+  describe("a saved secret in what a server writes", () => {
+    const CREDS = '{"client":"c-7781","key":"k-5e3a91f0"}';
+    const PEM = "-----BEGIN KEY-----\nAAAA1111BBBB2222\n-----END KEY-----";
+    const TOKEN = "tok-ABCDEFGHIJKL";
+    const SECRET = { ...RAW, id: "leaky", name: "Leaky", granted: ["leak", "json"] };
+    const env = { APP_CREDS: CREDS, APP_PEM: PEM, APP_TOKEN: TOKEN };
+    const visible = ["k-5e3a91f0", "c-7781", "AAAA1111BBBB2222", "tok-ABCDE"];
+    const expectHidden = (text: string) => {
+      for (const part of visible) expect(text).not.toContain(part);
+    };
+
+    it("is hidden when the text around it is cut, quoted as JSON or put on one line", async () => {
+      const raw = rawServer(
+        () => [
+          {
+            name: "leak",
+            description: `${"x".repeat(MAX_DESCRIPTION_CHARS - 10)}${TOKEN}`,
+            inputSchema: {
+              type: "object",
+              properties: { q: { type: "string", description: `Defaults to ${CREDS} and ${TOKEN}.` } },
+            },
+          },
+          { name: "json", description: "Answers in JSON.", inputSchema: objectInput },
+        ],
+        (name) =>
+          name === "json"
+            ? { content: [], structuredContent: { creds: CREDS, pem: PEM } }
+            : { content: [{ type: "text", text: `${"y".repeat(MAX_RESULT_CHARS - 9)}${TOKEN}` }] },
+      );
+      const mcp = manager({ createTransport: raw.createTransport });
+      const info = await mcp.upsert({ ...SECRET, env });
+      expectHidden(JSON.stringify(info));
+      expectHidden(JSON.stringify(mcp.grantedTools("steward")));
+      expectHidden((await mcp.call("leaky", "leak", {})).text);
+      expectHidden((await mcp.call("leaky", "json", {})).text);
+    });
+
+    it("is hidden from a failure shown on the page and kept in the database", async () => {
+      const raw = rawServer(() => {
+        throw new McpError(ErrorCode.InternalError, `Bad credentials ${CREDS}, key ${PEM}`);
+      });
+      const mcp = manager({ createTransport: raw.createTransport });
+      const info = await mcp.upsert({ ...SECRET, env });
+      expect(info.status).toBe("error");
+      expect(info.error).toMatch(/It said/);
+      expectHidden(info.error ?? "");
+      const row = db.get<{ last_error: string }>(
+        "SELECT last_error FROM connectors_mcp_servers WHERE id = ?",
+        ["leaky"],
+      );
+      expectHidden(row?.last_error ?? "");
+    });
+  });
+
   it("validates configs with plain messages", async () => {
     const mcp = manager({ createTransport: inMemory().createTransport });
     await expect(mcp.upsert({ ...NOTES, id: "Bad Id" })).rejects.toThrow(/lower-case letters/);
@@ -822,6 +877,21 @@ describe("MCP manager over real transports", () => {
       expect((await restarted.call("fixture", "env_check", { name: "STEWARD_FIXTURE_TOKEN" })).text).toBe(
         "(unset)",
       );
+    });
+
+    it("hides a value that spans lines when the server writes it to stderr", async () => {
+      const KEY = "first-half-8812\nsecond-half-9934";
+      const mcp = manager();
+      await mcp.upsert({ ...FIXTURE, env: { STEWARD_FIXTURE_TOKEN: KEY } });
+      const err = (await mcp.call("fixture", "crash", {}).catch((e: unknown) => e)) as McpCallError;
+      expect(err).toBeInstanceOf(McpCallError);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      const shown = mcp.list()[0]?.error ?? "";
+      expect(shown).toMatch(/fatal: bad token \*\*\*/);
+      for (const text of [err.message, shown]) {
+        expect(text).not.toContain("first-half-8812");
+        expect(text).not.toContain("second-half-9934");
+      }
     });
 
     it("refuses variables Steward sets itself, bad names, and secrets for the other kind of server", async () => {

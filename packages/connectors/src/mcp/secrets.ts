@@ -21,6 +21,8 @@ export const HIDDEN = "***";
 const SECRET_PARAM = /key|token|secret|sig|pass|auth|credential|session/i;
 /** Shorter values are left alone: hiding "a" would hide every "a". */
 const MIN_HIDDEN_CHARS = 4;
+/** Lines of a value written over many lines are hidden one by one from this length. */
+const MIN_HIDDEN_LINE_CHARS = 8;
 
 interface SecretRow {
   kind: "env" | "bearer";
@@ -78,10 +80,22 @@ export function secretValues(secrets: Secrets, url?: string): string[] {
     }
   }
   const all = new Set<string>();
+  const add = (variant: string) => {
+    if (variant.length >= MIN_HIDDEN_CHARS) all.add(variant);
+  };
   for (const value of values) {
     if (value.length < MIN_HIDDEN_CHARS) continue;
-    all.add(value);
-    all.add(encodeURIComponent(value));
+    add(value);
+    add(encodeURIComponent(value));
+    // As it reads inside JSON text, where quotes, backslashes and line breaks are escaped.
+    add(JSON.stringify(value).slice(1, -1));
+    if (/\s/.test(value)) {
+      // As it reads once its line breaks and spaces are run together, and each of its lines on its
+      // own, so a key written over many lines stays hidden when only its last lines are shown.
+      add(value.replace(/\s+/g, " ").trim());
+      for (const line of value.split(/\r?\n/))
+        if (line.trim().length >= MIN_HIDDEN_LINE_CHARS) add(line.trim());
+    }
   }
   // Longest first, so a value that contains another is hidden whole.
   return [...all].sort((a, b) => b.length - a.length);

@@ -170,7 +170,8 @@ await mcp.call("github", "search_issues", { q: "is:open label:bug" });
   `connectors_mcp_secrets`, apart from the config; a save that leaves them out keeps them, and a
   name (or the token) set to `null` removes it. `list()` returns only `envNames` and `hasToken`. Every
   saved value, and any key-looking query value in the address (`api_key`, `token`, `sig`…), is
-  replaced by `***` in errors, stderr, results and descriptions, and the address is shown with those
+  replaced by `***` in errors, stderr, results, descriptions and input schemas, before anything is
+  cut, quoted or put on one line (so no part of one is left), and the address is shown with those
   values as `***` (sending that address back keeps the saved one).
 - **Kinds.** A tool's kind is what the person marked: `sends` make it a `send`, `deletes` a
   `delete`, `reads` a `read`; anything unmarked is a `write`. A tool the server marks
